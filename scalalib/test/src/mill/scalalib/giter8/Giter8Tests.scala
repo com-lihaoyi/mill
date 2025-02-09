@@ -38,7 +38,7 @@ object Giter8Tests extends TestSuite {
         )
 
         assert(
-          res.failing.keyCount == 0,
+          res.failing.size == 0,
           res.values.size == 1,
           files.forall(f => os.exists(g8Module.millSourcePath / "hello" / f))
         )

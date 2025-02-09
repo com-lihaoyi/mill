@@ -133,7 +133,7 @@ class UnitTester(
   ): Either[Result.Failing[?], UnitTester.Result[Seq[?]]] = {
     val evaluated = evaluator.evaluate(tasks)
 
-    if (evaluated.failing.keyCount == 0) {
+    if (evaluated.failing.isEmpty) {
       Right(
         UnitTester.Result(
           evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
@@ -148,10 +148,8 @@ class UnitTester(
     } else {
       Left(
         evaluated
-          .failing
-          .lookupKey(evaluated.failing.keys().next)
-          .items
-          .next()
+          .failing(evaluated.failing.keys.head)
+          .head
           .asFailing
           .get
           .map(_.value)
@@ -170,7 +168,7 @@ class UnitTester(
 
     assert(
       cleaned == expectedRawValues,
-      res.failing.keyCount == expectedFailCount
+      res.failing.size == expectedFailCount
     )
 
   }

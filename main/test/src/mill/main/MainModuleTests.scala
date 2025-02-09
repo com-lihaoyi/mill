@@ -145,7 +145,7 @@ object MainModuleTests extends TestSuite {
         val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
         val Result.Success(Val(value: String)) = res.rawValues.head: @unchecked
         assert(
-          res.failing.keyCount == 0,
+          res.failing.size == 0,
           value.startsWith("hello("),
           value.contains("MainModuleTests.scala:")
         )
@@ -155,7 +155,7 @@ object MainModuleTests extends TestSuite {
           eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello", "hello2")))
         val Result.Success(Val(value: String)) = res.rawValues.head: @unchecked
         assert(
-          res.failing.keyCount == 0,
+          res.failing.size == 0,
           value.startsWith("hello("),
           value.contains("MainModuleTests.scala:"),
           value.contains("\n\nhello2(")
@@ -213,7 +213,7 @@ object MainModuleTests extends TestSuite {
         val results =
           evaluator.evaluator.evaluate(Agg(mainModule.show(evaluator.evaluator, "hello")))
 
-        assert(results.failing.keyCount == 0)
+        assert(results.failing.size == 0)
 
         val Result.Success(Val(value)) = results.rawValues.head: @unchecked
 
@@ -241,7 +241,7 @@ object MainModuleTests extends TestSuite {
             "hello2"
           )))
 
-        assert(results.failing.keyCount == 0)
+        assert(results.failing.size == 0)
 
         val Result.Success(Val(value)) = results.rawValues.head: @unchecked
 
@@ -295,7 +295,7 @@ object MainModuleTests extends TestSuite {
         val results =
           evaluator.evaluator.evaluate(Agg(mainModule.showNamed(evaluator.evaluator, "hello")))
 
-        assert(results.failing.keyCount == 0)
+        assert(results.failing.size == 0)
 
         val Result.Success(Val(value)) = results.rawValues.head: @unchecked
 
@@ -312,7 +312,7 @@ object MainModuleTests extends TestSuite {
             "hello2"
           )))
 
-        assert(results.failing.keyCount == 0)
+        assert(results.failing.size == 0)
 
         val Result.Success(Val(value)) = results.rawValues.head: @unchecked
 
@@ -347,17 +347,17 @@ object MainModuleTests extends TestSuite {
 
       test("all") {
         val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
-        assert(r1.failing.keyCount == 0)
+        assert(r1.failing.size == 0)
         checkExists(true)(os.sub / "foo")
 
         val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator)))
-        assert(r2.failing.keyCount == 0)
+        assert(r2.failing.size == 0)
         checkExists(false)(os.sub / "foo")
       }
 
       test("single-target") {
         val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
-        assert(r1.failing.keyCount == 0)
+        assert(r1.failing.size == 0)
         checkExists(true)(
           os.sub / "foo/target.json",
           os.sub / "foo/target.dest/dummy.txt",
@@ -366,7 +366,7 @@ object MainModuleTests extends TestSuite {
         )
 
         val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator, "foo.target")))
-        assert(r2.failing.keyCount == 0)
+        assert(r2.failing.size == 0)
         checkExists(false)(
           os.sub / "foo/target.log",
           os.sub / "foo/target.json",
@@ -380,7 +380,7 @@ object MainModuleTests extends TestSuite {
 
       test("single-module") {
         val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
-        assert(r1.failing.keyCount == 0)
+        assert(r1.failing.size == 0)
         checkExists(true)(
           os.sub / "foo/target.json",
           os.sub / "foo/target.dest/dummy.txt",
@@ -389,7 +389,7 @@ object MainModuleTests extends TestSuite {
         )
 
         val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator, "bar")))
-        assert(r2.failing.keyCount == 0)
+        assert(r2.failing.size == 0)
         checkExists(true)(
           os.sub / "foo/target.json",
           os.sub / "foo/target.dest/dummy.txt"
@@ -408,11 +408,11 @@ object MainModuleTests extends TestSuite {
         val ev = UnitTester(workerModule, null)
 
         val r1 = ev.evaluator.evaluate(Agg(workerModule.all))
-        assert(r1.failing.keyCount == 0)
+        assert(r1.failing.size == 0)
         assert(workers.size == 5)
 
         val r2 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator)))
-        assert(r2.failing.keyCount == 0)
+        assert(r2.failing.size == 0)
         assert(workers.isEmpty)
       }
 
@@ -422,19 +422,19 @@ object MainModuleTests extends TestSuite {
         val ev = UnitTester(workerModule, null)
 
         val r1 = ev.evaluator.evaluate(Agg(workerModule.all))
-        assert(r1.failing.keyCount == 0)
+        assert(r1.failing.size == 0)
         assert(workers.size == 5)
 
         val r2 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "foo.theWorker")))
-        assert(r2.failing.keyCount == 0)
+        assert(r2.failing.size == 0)
         assert(workers.size == 4)
 
         val r3 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bar.theWorker")))
-        assert(r3.failing.keyCount == 0)
+        assert(r3.failing.size == 0)
         assert(workers.size == 3)
 
         val r4 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bazz[1].theWorker")))
-        assert(r4.failing.keyCount == 0)
+        assert(r4.failing.size == 0)
         assert(workers.size == 2)
       }
 
@@ -444,25 +444,25 @@ object MainModuleTests extends TestSuite {
         val ev = UnitTester(workerModule, null)
 
         ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 1)
 
         val originalFooWorker = workers.head
 
         ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 2)
         assert(workers.exists(_ eq originalFooWorker))
 
         val originalBarWorker = workers.filter(_ ne originalFooWorker).head
 
         ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 2)
         assert(workers.exists(_ eq originalFooWorker))
 
         ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 2)
         assert(workers.exists(_ eq originalBarWorker))
 
@@ -472,7 +472,7 @@ object MainModuleTests extends TestSuite {
         os.remove(outDir / "foo/theWorker.json")
 
         ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 2)
         assert(!workers.exists(_ eq originalFooWorker))
         assert(originalFooWorker.closed)
@@ -481,7 +481,7 @@ object MainModuleTests extends TestSuite {
         os.remove(outDir / "bar/theWorker.json")
 
         ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 2)
         assert(!workers.exists(_ eq originalBarWorker))
         assert(originalBarWorker.closed)
@@ -493,19 +493,19 @@ object MainModuleTests extends TestSuite {
         val ev = UnitTester(workerModule, null)
 
         val r1 = ev.evaluator.evaluate(Agg(workerModule.all))
-        assert(r1.failing.keyCount == 0)
+        assert(r1.failing.size == 0)
         assert(workers.size == 5)
 
         val r2 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "foo")))
-        assert(r2.failing.keyCount == 0)
+        assert(r2.failing.size == 0)
         assert(workers.size == 4)
 
         val r3 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bar")))
-        assert(r3.failing.keyCount == 0)
+        assert(r3.failing.size == 0)
         assert(workers.size == 3)
 
         val r4 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bazz[1]")))
-        assert(r4.failing.keyCount == 0)
+        assert(r4.failing.size == 0)
         assert(workers.size == 2)
       }
     }
