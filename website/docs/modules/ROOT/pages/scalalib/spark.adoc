@@ -1,0 +1,23 @@
+= Spark Examples
+:page-aliases: Spark.adoc
+
+:language: Scala
+:language-small: scala
+
+This Page includes Spark Example Using Mill Build Tool
+
+== Spark Hello World Example
+
+include::partial$example/scalalib/spark/1-hello-world.adoc[]
+
+== Spark Assembly Jar Example
+
+include::partial$example/scalalib/spark/2-assembly-jar.adoc[]
+
+== Spark Semi-Realistic Example
+
+include::partial$example/scalalib/spark/3-semi-realistic.adoc[]
+
+== PySpark Example
+
+include::partial$example/scalalib/spark/4-pyspark.adoc[]

@@ -1,0 +1,9 @@
+timestamp,level,endpoint,message
+2023-10-01 12:01:23,INFO,/home,Page loaded
+2023-10-01 12:02:45,ERROR,/checkout,Payment processing failed
+2023-10-01 12:03:11,WARN,/cart,Low inventory warning
+2023-10-01 13:15:22,ERROR,/login,Invalid credentials
+2023-10-01 13:16:01,ERROR,/checkout,Payment gateway timeout
+2023-10-01 14:05:33,ERROR,/profile,Database connection failed
+2023-10-01 14:06:12,ERROR,/checkout,Invalid CVV format
+2023-10-01 14:07:45,INFO,/search,Search query executed

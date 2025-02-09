@@ -1,0 +1,104 @@
+package build
+
+import mill._
+import mill.scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.11"
+
+  def ivyDeps = Agg(
+    ivy"org.apache.spark::spark-core:3.5.4",
+    ivy"org.apache.spark::spark-sql:3.5.4",
+    ivy"com.typesafe.scala-logging:scala-logging_3:3.9.5"
+  )
+
+  def prependShellScript = ""
+
+  def forkArgs = Seq("--add-exports", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  def scalacOptions = Seq("-Ytasty-reader")
+
+  object test extends ScalaTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+    def forkArgs = Seq("--add-exports", "java.base/sun.nio.ch=ALL-UNNAMED")
+  }
+
+}
+
+/** Usage
+
+> ./mill foo.run
+...
+Errors per hour:
++----+-----+
+|hour|count|
++----+-----+
+|  12|    1|
+|  13|    2|
+|  14|    2|
++----+-----+
+...
+Most common error messages:
++--------------------------+-----+
+|message                   |count|
++--------------------------+-----+
+|Invalid CVV format        |1    |
+|Payment processing failed |1    |
+|Payment gateway timeout   |1    |
+|Database connection failed|1    |
+|Invalid credentials       |1    |
++--------------------------+-----+
+...
+Most error-prone endpoints:
++---------+-----+
+| endpoint|count|
++---------+-----+
+|/checkout|    3|
+|   /login|    1|
+| /profile|    1|
++---------+-----+
+...
+
+> ./mill foo.test
+...foo.FooTest.Errors per hour should be counted correctly...
+...foo.FooTest.Most common error messages should be identified...
+...foo.FooTest.Most error-prone endpoints should be identified...
+Tests: 3, Passed: 3, Failed: 0
+
+> ./mill show foo.assembly # show the output of the assembly task
+".../out/foo/assembly.dest/out.jar"
+
+> java --add-exports java.base/sun.nio.ch=ALL-UNNAMED -jar ./out/foo/assembly.dest/out.jar foo/resources/logging.csv
+...
+Errors per hour:
++----+-----+
+|hour|count|
++----+-----+
+|  12|    1|
+|  13|    2|
+|  14|    2|
++----+-----+
+...
+Most common error messages:
++--------------------------+-----+
+|message                   |count|
++--------------------------+-----+
+|Invalid CVV format        |1    |
+|Payment processing failed |1    |
+|Payment gateway timeout   |1    |
+|Database connection failed|1    |
+|Invalid credentials       |1    |
++--------------------------+-----+
+...
+Most error-prone endpoints:
++---------+-----+
+| endpoint|count|
++---------+-----+
+|/checkout|    3|
+|   /login|    1|
+| /profile|    1|
++---------+-----+
+...
+
+*/

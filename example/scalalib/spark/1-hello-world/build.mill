@@ -1,0 +1,38 @@
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.11"
+
+  def ivyDeps = Agg(
+    ivy"org.apache.spark::spark-sql:3.5.4"
+  )
+
+  // Add JVM options to allow access to internal classes
+  // Use this if using Java Version 9+
+  def forkArgs = Seq("--add-exports", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  object test extends ScalaTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+    def forkArgs = Seq("--add-exports", "java.base/sun.nio.ch=ALL-UNNAMED")
+  }
+
+}
+
+/** Usage
+
+> ./mill foo.run
+...
++---------------+
+|Mill Build Tool|
++---------------+
+|  Hello, Spark!|
++---------------+
+...
+
+> ./mill foo.test
+...foo.FooTests.TEST: 'Hello, Spark!'...
+Tests: 1, Passed: 1, Failed: 0
+
+*/

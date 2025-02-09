@@ -1,0 +1,39 @@
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+  def mainScript = Task.Source { "src/foo.py" }
+
+  def pythonDeps = Seq("pyspark==3.5.4")
+
+  object test extends PythonTests with TestModule.Unittest
+}
+
+/** Usage
+
+> ./mill foo.run
+...
++-------+---+------+
+|   Name|Age|Salary|
++-------+---+------+
+|  Alice| 25| 50000|
+|    Bob| 30| 60000|
+|Charlie| 35| 75000|
+|  David| 40| 80000|
+|    Eve| 28| 70000|
++-------+---+------+
+...
+Average Age: 31.60
+Maximum Salary: $80000
+Minimum Salary: $50000
+...
+
+> ./mill foo.test
+...test_compute_average_age...
+...test_compute_max_salary...
+...test_compute_min_salary...
+...Ran 3 tests...
+OK
+...
+
+*/
