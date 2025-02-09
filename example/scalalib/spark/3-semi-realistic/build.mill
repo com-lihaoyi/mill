@@ -22,7 +22,7 @@ object `package` extends RootModule with ScalaModule {
 }
 
 // This examples demonstrates a semi realistic example calculating summary statics
-// from a transactions.csv file located in resources.
+// from a transactions.csv passed in as argument, defaulting to resources folder if not present.
 
 /** Usage
 
