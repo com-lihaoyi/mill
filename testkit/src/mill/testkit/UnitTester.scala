@@ -8,7 +8,8 @@ import mill.eval.Evaluator
 import mill.resolve.{Resolve, SelectMode}
 import mill.internal.PrintLogger
 import mill.api.Strict.Agg
-
+import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.main.client.OutFiles.{millChromeProfile, millProfile}
 import java.io.{InputStream, PrintStream}
 
 object UnitTester {
@@ -103,7 +104,9 @@ class UnitTester(
     allowPositionalCommandArgs = false,
     systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
-    selectiveExecution = false
+    selectiveExecution = false,
+    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+    profileLogger = new ProfileLogger(outPath / millProfile)
   )
 
   def apply(args: String*): Either[Result.Failing[?], UnitTester.Result[Seq[?]]] = {

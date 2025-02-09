@@ -8,7 +8,8 @@ import mill.api.{ColorLogger, PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Segments}
-import mill.main.client.OutFiles.{millBuild, millRunnerState}
+import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.main.client.OutFiles.{millBuild, millRunnerState, millProfile, millChromeProfile}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
 
@@ -347,11 +348,12 @@ class MillBuildBootstrap(
           .mkString("/")
       )
 
+    val outPath = recOut(output, depth)
     new mill.eval.Evaluator(
       home,
       projectRoot,
-      recOut(output, depth),
-      recOut(output, depth),
+      outPath,
+      outPath,
       rootModule,
       new PrefixLogger(logger, bootLogPrefix),
       classLoaderSigHash = millClassloaderSigHash,
@@ -364,7 +366,9 @@ class MillBuildBootstrap(
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       systemExit = systemExit,
       exclusiveSystemStreams = streams0,
-      selectiveExecution = selectiveExecution
+      selectiveExecution = selectiveExecution,
+      chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+      profileLogger = new ProfileLogger(outPath / millProfile)
     )
   }
 

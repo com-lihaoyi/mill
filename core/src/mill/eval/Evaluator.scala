@@ -45,7 +45,9 @@ final case class Evaluator private[mill] (
     val allowPositionalCommandArgs: Boolean,
     val systemExit: Int => Nothing,
     val exclusiveSystemStreams: SystemStreams,
-    val selectiveExecution: Boolean = false
+    val selectiveExecution: Boolean = false,
+    chromeProfileLogger: ChromeProfileLogger,
+    profileLogger: ProfileLogger
 ) extends ExecutionCore with AutoCloseable {
   import Evaluator._
 
@@ -55,8 +57,6 @@ final case class Evaluator private[mill] (
     }
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
-  val chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile)
-  val profileLogger = new ProfileLogger(outPath / millProfile)
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator =
     this.copy(baseLogger = newBaseLogger)
 
