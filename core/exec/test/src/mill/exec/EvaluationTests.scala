@@ -1,10 +1,11 @@
-package mill.eval
+package mill.exec
 
 import mill.util.TestUtil.Test
 import mill.define.{Discover, TargetImpl, Task}
 import mill.util.{TestGraphs, TestUtil}
 import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
+import mill.exec
 import utest.*
 
 object EvaluationTestsThreads1 extends EvaluationTests(threadCount = Some(1))
@@ -38,7 +39,7 @@ import EvaluationTests._
 class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
   class Checker[T <: mill.testkit.TestBaseModule](module: T)
-      extends mill.eval.Checker(module, threadCount)
+      extends exec.Checker(module, threadCount)
 
   val tests = Tests {
     object graphs extends TestGraphs()

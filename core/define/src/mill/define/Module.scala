@@ -36,6 +36,7 @@ trait Module extends Module.BaseClass with OverrideMapping.Wrapper with Ctx.Wrap
   })
 
   def millModuleSegments: Segments = millOuterCtx.segments ++ Seq(millOuterCtx.segment)
+
   final given millModuleCaller: Caller[OverrideMapping.Wrapper & Ctx.Wrapper] = Caller(this)
 
   override def toString = millModuleSegments.render

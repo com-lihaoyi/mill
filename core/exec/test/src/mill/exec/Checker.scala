@@ -1,4 +1,4 @@
-package mill.eval
+package mill.exec
 
 import mill.define.Task
 import mill.testkit.{TestBaseModule, UnitTester}

@@ -1,4 +1,4 @@
-package mill.eval
+package mill.exec
 
 import mill.define.{NamedTask, Target, TargetImpl, Task}
 import mill.util.{TestGraphs, TestUtil}
