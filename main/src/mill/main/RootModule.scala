@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.api.internal
-import mill.define.{Caller, Discover}
+import mill.define.Discover
 import scala.annotation.compileTimeOnly
 
 /**
@@ -22,7 +22,6 @@ abstract class RootModule()(implicit
       millModuleEnclosing0,
       millModuleLine0,
       millFile0,
-      Caller(null)
     ) with mill.main.MainModule {
 
   // Dummy `millDiscover` defined but never actually used and overridden by codegen.

@@ -33,10 +33,7 @@ trait Ctx extends Ctx.Nested {
    */
   def enclosingCls: Class[?]
 
-  /**
-   * The runtime [[Module]] object that contains this definition
-   */
-  def enclosingModule: Ctx.Wrapper
+
   def crossValues: Seq[Any]
 
   private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
@@ -79,21 +76,24 @@ object Ctx extends LowPriCtx {
    * necessary fields down the module hierarchy
    */
   trait Nested {
-
+    /**
+     * The runtime [[Module]] object that contains this definition
+     */
+    def enclosingModule: Ctx.Wrapper
     /**
      * The enclosing module's default source root
      */
-    def millSourcePath: os.Path
+    private[mill] def millSourcePath: os.Path
 
     /**
      * The full path of this task or module, from the [[BaseModule]]
      */
-    def segments: Segments
+    private[mill] def segments: Segments
 
     /**
      * whether this is in an [[ExternalModule]]
      */
-    def external: Boolean
+    private[mill] def external: Boolean
 
     /**
      * The [[Discover]] instance associate with this [[BaseModule]] hierarchy
@@ -105,7 +105,6 @@ object Ctx extends LowPriCtx {
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
       fileName: sourcecode.File,
-      enclosingModule: Caller[Ctx.Wrapper],
       enclosingClass: EnclosingClass,
       ctx: Ctx.Nested
   ): Ctx = {
@@ -116,7 +115,7 @@ object Ctx extends LowPriCtx {
       ctx.segments,
       ctx.external,
       fileName,
-      enclosingModule,
+      ctx.enclosingModule,
       enclosingClass,
       ctx.discover
     )
@@ -128,7 +127,7 @@ object Ctx extends LowPriCtx {
       segments0: Segments,
       external0: Boolean,
       fileName: sourcecode.File,
-      enclosingModule: Caller[Ctx.Wrapper],
+      enclosingModule: Ctx.Wrapper,
       enclosingClass: EnclosingClass,
       discover: Discover
   ): Ctx = {
@@ -144,14 +143,14 @@ object Ctx extends LowPriCtx {
       millSourcePath,
       segments0 ++
         OverrideMapping.computeSegments(
-          enclosingModule.value,
+          enclosingModule,
           discover,
           lastSegmentStr,
           enclosingClass.value
         ),
       external0,
       fileName.value,
-      enclosingModule.value,
+      enclosingModule,
       Seq(),
       discover
     )

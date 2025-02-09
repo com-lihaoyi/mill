@@ -16,7 +16,10 @@ import scala.reflect.ClassTag
  * the concrete instance.
  */
 trait Module extends Module.BaseClass with Ctx.Wrapper {
-  implicit def implicitCtx: Ctx.Nested = millOuterCtx.withMillSourcePath(millSourcePath).withSegments(millModuleSegments)
+  implicit def implicitCtx: Ctx.Nested = millOuterCtx
+    .withMillSourcePath(millSourcePath)
+    .withSegments(millModuleSegments)
+    .withEnclosingModule(this)
 
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,
@@ -38,8 +41,6 @@ trait Module extends Module.BaseClass with Ctx.Wrapper {
   })
 
   def millModuleSegments: Segments = millOuterCtx.segments ++ Seq(millOuterCtx.segment)
-
-  final given millModuleCaller: Caller[Ctx.Wrapper] = Caller(this)
 
   override def toString = millModuleSegments.render
 

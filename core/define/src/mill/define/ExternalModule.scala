@@ -9,7 +9,6 @@ abstract class ExternalModule(implicit
       implicitly,
       implicitly,
       implicitly,
-      Caller(null)
     ) {
 
   assert(

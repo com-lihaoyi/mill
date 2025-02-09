@@ -11,7 +11,6 @@ abstract class BaseModule(
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File,
-    caller: Caller[Ctx.Wrapper]
 ) extends Module.BaseClass()(
       mill.define.Ctx.make(
         implicitly,
@@ -20,7 +19,7 @@ abstract class BaseModule(
         Segments(),
         external0,
         millFile0,
-        caller,
+        null,
         EnclosingClass(null),
         discover = null
       )
