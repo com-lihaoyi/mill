@@ -15,15 +15,16 @@ object ModuleTests extends TestSuite {
     import graphs._
     import TestGraphs._
 
-    test("test"){
+    test("singleton"){
       singleton.toString ==> ""
       singleton.single.toString ==> "single"
     }
+    test("nested"){
+      nestedModule.toString ==> ""
+      nestedModule.nested.toString ==> "nested"
+      nestedModule.nested.single.toString ==> "nested.single"
+    }
     test("cross"){
-      pprint.log(nestedCrosses.cross("210").millModuleSegments)
-      pprint.log(nestedCrosses.cross("210").millOuterCtx.segments)
-      pprint.log(nestedCrosses.cross("210").cross2.millModuleSegments)
-      pprint.log(nestedCrosses.cross("210").cross2.millOuterCtx.segments)
       nestedCrosses.toString ==> ""
       nestedCrosses.cross.toString ==> "cross"
       nestedCrosses.cross("210").toString ==> "cross[210]"
