@@ -74,11 +74,11 @@ final case class Evaluator private[mill] (
     new EvalOrThrow(this, exceptionFactory)
 
   def resolveSegments(
-               scriptArgs: Seq[String],
-               selectMode: SelectMode,
-               allowPositionalCommandArgs: Boolean = false,
-               resolveToModuleTasks: Boolean = false
-             ): Either[String, List[Segments]] = {
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): Either[String, List[Segments]] = {
     Resolve.Segments.resolve(
       rootModule,
       scriptArgs,
@@ -89,11 +89,11 @@ final case class Evaluator private[mill] (
   }
 
   def resolveTasks(
-               scriptArgs: Seq[String],
-               selectMode: SelectMode,
-               allowPositionalCommandArgs: Boolean = false,
-               resolveToModuleTasks: Boolean = false
-             ): Either[String, List[NamedTask[?]]] = {
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): Either[String, List[NamedTask[?]]] = {
     Resolve.Tasks.resolve(
       rootModule,
       scriptArgs,

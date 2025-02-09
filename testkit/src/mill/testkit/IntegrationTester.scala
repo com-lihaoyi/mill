@@ -2,7 +2,6 @@ package mill.testkit
 
 import mill.main.client.EnvVars.MILL_TEST_SUITE
 import mill.define.Segments
-import mill.eval.Evaluator
 import mill.exec.Cached
 import mill.main.client.OutFiles
 import mill.resolve.SelectMode

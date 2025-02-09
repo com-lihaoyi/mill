@@ -11,7 +11,7 @@ import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
-import mill.resolve.{Resolve, SelectMode}
+import mill.resolve.SelectMode
 import mill.scalalib.api.CompilationResult
 import mill.util.Jvm
 import os.Path

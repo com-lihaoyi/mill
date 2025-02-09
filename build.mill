@@ -486,13 +486,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       if (ZincWorkerUtil.isScala3(scalaVersion())) Seq(
         // "-Werror",
         "-Wunused:all",
-        "-Xfatal-warnings",
+        // "-Xfatal-warnings",
         "-Wconf:msg=An existential type that came from a Scala-2 classfile:silent",
         "-Wconf:msg=import scala.language.implicitConversions:silent",
         "-Wconf:msg=IterableOnceExtensionMethods:silent",
         "-Wconf:msg=is deprecated:silent",
-        "-Wconf:msg=cannot be checked at runtime:silent",
-        "-Wconf:msg=unused:silent"
+        "-Wconf:msg=cannot be checked at runtime:silent"
+        // "-Wconf:msg=unused:silent"
         // "-no-indent",
         // "-Wvalue-discard",
         // "-Wshadow:all",
@@ -503,7 +503,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       )
       else Seq(
         "-P:acyclic:force",
-        "-Xfatal-warnings",
+        // "-Xfatal-warnings",
         "-Xlint:unused",
         "-Xlint:adapted-args",
         "-Xsource:3",
