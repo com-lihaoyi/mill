@@ -26,7 +26,6 @@ abstract class BaseModule(
       )
     ) with Module {
 
-
   override def millSourcePath = millOuterCtx.millSourcePath
 
   // `Discover` needs to be defined by every concrete `BaseModule` object, to gather

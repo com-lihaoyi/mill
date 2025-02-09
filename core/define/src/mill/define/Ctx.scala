@@ -6,7 +6,7 @@ import scala.annotation.{compileTimeOnly, implicitNotFound}
  * The contextual information provided to a [[mill.define.Module]] or [[mill.define.Task]]
  */
 @implicitNotFound("Modules and Tasks can only be defined within a mill Module")
-trait Ctx extends Ctx.Nested{
+trait Ctx extends Ctx.Nested {
   def enclosing: String
 
   /**
@@ -37,7 +37,6 @@ trait Ctx extends Ctx.Nested{
   def enclosingModule: Ctx.Wrapper
   def crossValues: Seq[Any]
 
-
   private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
   private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
   private[mill] def withSegment(segment: Segment): Ctx
@@ -67,7 +66,8 @@ object Ctx extends LowPriCtx {
     def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
     def withSegment(segment: Segment): Ctx = copy(segment = segment)
     def withSegments(segments: Segments): Ctx = copy(segments = segments)
-    def withEnclosingModule(enclosingModule: Ctx.Wrapper): Ctx = copy(enclosingModule = enclosingModule)
+    def withEnclosingModule(enclosingModule: Ctx.Wrapper): Ctx =
+      copy(enclosingModule = enclosingModule)
     def withDiscover(discover: Discover): Ctx = copy(discover = discover)
   }
 
@@ -76,6 +76,7 @@ object Ctx extends LowPriCtx {
    * necessary fields down the module hierarchy
    */
   trait Nested {
+
     /**
      * The enclosing module's default source root
      */
@@ -97,14 +98,14 @@ object Ctx extends LowPriCtx {
     private[mill] def discover: Discover
   }
   implicit def implicitMake(
-                             implicit
-                             millModuleEnclosing0: sourcecode.Enclosing,
-                             millModuleLine0: sourcecode.Line,
-                             fileName: sourcecode.File,
-                             enclosingModule: Caller[OverrideMapping.Wrapper & Ctx.Wrapper],
-                             enclosingClass: EnclosingClass,
-                             ctx: Ctx.Nested
-                           ): Ctx = {
+      implicit
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      fileName: sourcecode.File,
+      enclosingModule: Caller[OverrideMapping.Wrapper & Ctx.Wrapper],
+      enclosingClass: EnclosingClass,
+      ctx: Ctx.Nested
+  ): Ctx = {
     make(
       millModuleEnclosing0,
       millModuleLine0,
@@ -114,7 +115,7 @@ object Ctx extends LowPriCtx {
       fileName,
       enclosingModule,
       enclosingClass,
-      ctx.discover,
+      ctx.discover
     )
   }
   def make(

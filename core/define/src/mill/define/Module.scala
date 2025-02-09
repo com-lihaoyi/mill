@@ -15,6 +15,7 @@ import scala.reflect.ClassTag
  */
 trait Module extends Module.BaseClass with OverrideMapping.Wrapper with Ctx.Wrapper {
   implicit def implicitCtx: Ctx.Nested = millOuterCtx.withMillSourcePath(millSourcePath)
+
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,
    * that should not be needed by normal users of Mill

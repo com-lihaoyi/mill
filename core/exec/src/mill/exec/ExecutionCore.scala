@@ -250,7 +250,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
       Strict.Agg.from(
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).iterator.distinct
       ),
-      getFailing(plan.sortedGroups, results).items().map{case (k, v) => (k, v.toSeq)}.toMap,
+      getFailing(plan.sortedGroups, results).items().map { case (k, v) => (k, v.toSeq) }.toMap,
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }

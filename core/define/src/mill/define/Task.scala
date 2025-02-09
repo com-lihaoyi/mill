@@ -71,7 +71,8 @@ object Task extends TaskBase {
     ${ Target.Internal.sourcesImpl2('values)('ctx, 'this) }
 
   inline def Sources(inline values: os.SubPath*)(implicit
-      inline ctx: mill.define.Ctx, dummy: Boolean = true
+      inline ctx: mill.define.Ctx,
+      dummy: Boolean = true
   ): Target[Seq[PathRef]] = ${ Target.Internal.sourcesImpl3('values)('ctx, 'this) }
 
   /**
