@@ -31,7 +31,7 @@ trait DetektModule extends KotlinModule {
       mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
       classPath = detektClasspath().map(_.path).toVector,
       mainArgs = args,
-      cwd = moduleBase, // allow passing relative paths for sources like src/a/b
+      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
       stdin = os.Inherit,
       stdout = os.Inherit,
       check = false

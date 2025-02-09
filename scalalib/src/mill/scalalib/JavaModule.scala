@@ -57,7 +57,7 @@ trait JavaModule
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
     override def sources = Task.Sources {
       for (src <- outer.sources()) yield {
-        PathRef(this.moduleBase / src.path.relativeTo(outer.moduleBase))
+        PathRef(this.moduleDir / src.path.relativeTo(outer.moduleDir))
       }
     }
 
@@ -1000,7 +1000,7 @@ trait JavaModule
    * on the doc tool that is actually used.
    * @see [[docSources]]
    */
-  def docResources: T[Seq[PathRef]] = Task.Sources(moduleBase / "docs")
+  def docResources: T[Seq[PathRef]] = Task.Sources(moduleDir / "docs")
 
   /**
    * Control whether `docJar`-target should use a file to pass command line arguments to the javadoc tool.

@@ -29,7 +29,7 @@ abstract class BaseModule(
   // sourcecode.Name as part of the list,
   override def moduleSegments: Segments = Segments()
 
-  override def moduleBase = moduleCtx.millSourcePath
+  override def moduleDir = moduleCtx.millSourcePath
 
   // `Discover` needs to be defined by every concrete `BaseModule` object, to gather
   // compile-time metadata about the tasks and commands at for use at runtime

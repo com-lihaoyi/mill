@@ -24,7 +24,7 @@ object AssemblyExeTests extends TestSuite with AssemblyTestUtils {
               os.copy(originalPath, winPath)
               winPath
             } else originalPath
-          runAssembly(resolvedPath, TestCase.moduleBase, checkExe = true)
+          runAssembly(resolvedPath, TestCase.moduleDir, checkExe = true)
         }
 
         test("large-should-fail") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>

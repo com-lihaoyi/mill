@@ -16,7 +16,7 @@ object MultiModuleTests extends TestSuite {
     }
 
     object client extends BaseModule {
-      override def moduleBase = MultiModule.moduleBase / "client"
+      override def moduleDir = MultiModule.moduleDir / "client"
       override def moduleDeps = Seq(shared)
       override def mainClass = Some("Main")
       object test extends ScalaJSTests with TestModule.Utest {
@@ -26,7 +26,7 @@ object MultiModuleTests extends TestSuite {
     }
 
     object shared extends BaseModule {
-      override def moduleBase = MultiModule.moduleBase / "shared"
+      override def moduleDir = MultiModule.moduleDir / "shared"
     }
 
     override lazy val millDiscover = {

@@ -7,11 +7,11 @@ import utest._
 object BasePathTests extends TestSuite {
 
   object overriddenBasePath extends TestBaseModule {
-    override def moduleBase = os.pwd / "overriddenBasePathRootValue"
+    override def moduleDir = os.pwd / "overriddenBasePathRootValue"
     object nested extends Module {
-      override def moduleBase = super.moduleBase / "overriddenBasePathNested"
+      override def moduleDir = super.moduleDir / "overriddenBasePathNested"
       object nested extends Module {
-        override def moduleBase = super.moduleBase / "overriddenBasePathDoubleNested"
+        override def moduleDir = super.moduleDir / "overriddenBasePathDoubleNested"
       }
     }
 
@@ -22,7 +22,7 @@ object BasePathTests extends TestSuite {
   val tests = Tests {
     def checkMillSourcePath[T <: Module](m: T)(f: T => Module, segments: String*): Unit = {
       val sub = f(m)
-      val remaining = sub.moduleBase.relativeTo(m.moduleBase).segments
+      val remaining = sub.moduleDir.relativeTo(m.moduleDir).segments
       assert(remaining == segments)
     }
     test("singleton") {
@@ -68,9 +68,9 @@ object BasePathTests extends TestSuite {
     }
     test("overridden") {
       assert(
-        overriddenBasePath.moduleBase == os.pwd / "overriddenBasePathRootValue",
-        overriddenBasePath.nested.moduleBase == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested",
-        overriddenBasePath.nested.nested.moduleBase == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested/nested/overriddenBasePathDoubleNested"
+        overriddenBasePath.moduleDir == os.pwd / "overriddenBasePathRootValue",
+        overriddenBasePath.nested.moduleDir == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested",
+        overriddenBasePath.nested.nested.moduleDir == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested/nested/overriddenBasePathDoubleNested"
       )
     }
 

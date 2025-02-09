@@ -8,7 +8,7 @@ import mill.main.TokenReaders._
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingle extends TestBaseModule with PlayModule {
-    override val moduleBase = os.temp() // workaround problem in `SingleModule`
+    override val moduleDir = os.temp() // workaround problem in `SingleModule`
     override def playVersion = Task { testPlay28 }
     override def scalaVersion = Task { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }
     object test extends PlayTests
@@ -28,16 +28,16 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
         val Right(testSources) = eval.apply(playsingle.test.sources): @unchecked
         val Right(testResources) = eval.apply(playsingle.test.resources): @unchecked
         assert(
-          conf.value.map(_.path.relativeTo(playsingle.moduleBase).toString()) == Seq("conf"),
-          app.value.map(_.path.relativeTo(playsingle.moduleBase).toString()) == Seq("app"),
+          conf.value.map(_.path.relativeTo(playsingle.moduleDir).toString()) == Seq("conf"),
+          app.value.map(_.path.relativeTo(playsingle.moduleDir).toString()) == Seq("app"),
           sources.value == app.value,
-          resources.value.map(_.path.relativeTo(playsingle.moduleBase).toString()).contains(
+          resources.value.map(_.path.relativeTo(playsingle.moduleDir).toString()).contains(
             "conf"
           ),
-          testSources.value.map(_.path.relativeTo(playsingle.moduleBase).toString()) == Seq(
+          testSources.value.map(_.path.relativeTo(playsingle.moduleDir).toString()) == Seq(
             "test"
           ),
-          testResources.value.map(_.path.relativeTo(playsingle.moduleBase).toString()) == Seq(
+          testResources.value.map(_.path.relativeTo(playsingle.moduleDir).toString()) == Seq(
             "test/resources"
           )
         )

@@ -155,7 +155,7 @@ trait TaskTests extends TestSuite {
 
     test("persistent") - withEnv { (build, check) =>
       // Persistent tasks keep the working dir around between runs
-      println(build.moduleBase.toString() + "\n")
+      println(build.moduleDir.toString() + "\n")
       check(build.persistent) ==> Right(Result(1, 1))
       check(build.persistent) ==> Right(Result(2, 1))
       check(build.persistent) ==> Right(Result(3, 1))

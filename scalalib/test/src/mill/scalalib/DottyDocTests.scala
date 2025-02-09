@@ -28,8 +28,8 @@ object DottyDocTests extends TestSuite {
     object multidocs extends ScalaModule {
       def scalaVersion = "0.24.0-RC1"
       def docResources = Task.Sources(
-        moduleBase / "docs1",
-        moduleBase / "docs2"
+        moduleDir / "docs1",
+        moduleDir / "docs2"
       )
     }
     lazy val millDiscover = Discover[this.type]

@@ -46,7 +46,7 @@ object KotlinJsCompileTests extends TestSuite {
     test("failures") {
       val eval = testEval()
 
-      val compilationUnit = module.foo.moduleBase / "src/foo/Hello.kt"
+      val compilationUnit = module.foo.moduleDir / "src/foo/Hello.kt"
 
       val Right(_) = eval.apply(module.foo.compile): @unchecked
 

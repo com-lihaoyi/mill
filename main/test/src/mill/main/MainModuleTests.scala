@@ -466,7 +466,7 @@ object MainModuleTests extends TestSuite {
         assert(workers.size == 2)
         assert(workers.exists(_ eq originalBarWorker))
 
-        val outDir = os.Path(OutFiles.out, workerModule.moduleBase)
+        val outDir = os.Path(OutFiles.out, workerModule.moduleDir)
 
         assert(!originalFooWorker.closed)
         os.remove(outDir / "foo/theWorker.json")

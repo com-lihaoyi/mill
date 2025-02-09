@@ -597,7 +597,7 @@ private class MillBuildServer(
         )) {
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
-            val mainModule = new mill.define.BaseModule(moduleBase) with MainModule {
+            val mainModule = new mill.define.BaseModule(moduleDir) with MainModule {
               override implicit def millDiscover: Discover = Discover[this.type]
             }
             val compileTargetName = (module.moduleSegments ++ Label("compile")).render

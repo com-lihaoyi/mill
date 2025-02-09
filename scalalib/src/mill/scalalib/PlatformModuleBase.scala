@@ -4,7 +4,7 @@ import mill._
 import os.Path
 
 trait PlatformModuleBase extends JavaModule {
-  override def moduleBase: Path = super.moduleBase / os.up
+  override def moduleDir: Path = super.moduleDir / os.up
 
   /**
    * The platform suffix of this [[PlatformModuleBase]]. Useful if you want to

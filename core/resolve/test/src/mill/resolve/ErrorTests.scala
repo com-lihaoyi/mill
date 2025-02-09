@@ -172,7 +172,7 @@ object ErrorTests extends TestSuite {
 
       object cross2 extends mill.Cross[Cross2]("210", "211", "212")
       trait Cross2 extends Cross.Module[String] {
-        override def moduleBase = super.moduleBase / crossValue
+        override def moduleDir = super.moduleDir / crossValue
         def suffix = Task { crossValue }
         def c1 = cross
       }

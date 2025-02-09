@@ -10,7 +10,7 @@ import os.SubPath
 trait GenIdeaModule extends Module {
   import GenIdeaModule._
 
-  def intellijModulePath: os.Path = moduleBase
+  def intellijModulePath: os.Path = moduleDir
 
   /**
    * Skip Idea project file generation.
