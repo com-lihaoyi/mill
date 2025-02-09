@@ -328,7 +328,7 @@ object Jvm extends CoursierSupport {
     createJar(
       jar = jar,
       inputPaths = Agg(),
-      manifest = mill.api.JarManifest.MillDefault.add(
+      manifest = JarManifest.MillDefault.add(
         "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(
           " "
         )

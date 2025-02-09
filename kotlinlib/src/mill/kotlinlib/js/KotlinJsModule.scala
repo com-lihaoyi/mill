@@ -242,7 +242,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Jvm.createJar(
       outputPath,
       Agg(compile().classes.path),
-      mill.api.JarManifest.MillDefault,
+      mill.util.JarManifest.MillDefault,
       fileFilter = (_, _) => true
     )
     PathRef(outputPath)

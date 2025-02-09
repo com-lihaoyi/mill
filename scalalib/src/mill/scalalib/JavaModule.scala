@@ -10,7 +10,8 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import coursier.{Repository, Type}
 import mainargs.{Flag, arg}
 import mill.Agg
-import mill.api.{Ctx, JarManifest, MillException, PathRef, Result, internal}
+import mill.util.JarManifest
+import mill.api.{Ctx, MillException, PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult

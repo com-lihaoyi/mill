@@ -5,7 +5,8 @@ import mill.api.Ctx.Dest
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
-import mill.api.{JarManifest, Loose}
+import mill.util.JarManifest
+import mill.api.Loose
 import utest.*
 import mill.*
 import mill.define.{Discover, Task}

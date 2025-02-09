@@ -3,6 +3,7 @@ package mill.scalalib
 import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
 import mill.Agg
 import mill.api.{Ctx, PathRef}
+import mill.util.JarManifest
 import os.Generator
 
 import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
@@ -177,7 +178,7 @@ object Assembly {
 
   def createAssembly(
       inputPaths: Agg[os.Path],
-      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
+      manifest: JarManifest = JarManifest.MillDefault,
       prependShellScript: String = "",
       base: Option[os.Path] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
@@ -195,7 +196,7 @@ object Assembly {
   def create(
       destJar: os.Path,
       inputPaths: Agg[os.Path],
-      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
+      manifest: JarManifest = JarManifest.MillDefault,
       prependShellScript: Option[String] = None,
       base: Option[os.Path] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
