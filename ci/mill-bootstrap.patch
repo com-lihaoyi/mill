@@ -213,7 +213,7 @@ index fbbeacbc843..5a205433d24 100644
    }
  
 diff --git a/example/package.mill b/example/package.mill
-index bf4160210d8..fe59ca4ed28 100644
+index 427a6aecd74..4ff67c76a33 100644
 --- a/example/package.mill
 +++ b/example/package.mill
 @@ -3,7 +3,6 @@ package build.example
@@ -224,7 +224,7 @@ index bf4160210d8..fe59ca4ed28 100644
  import mill.main.Tasks
  import mill.scalalib._
  import mill.scalalib.api.ZincWorkerUtil
-@@ -18,110 +17,110 @@ import mill.define.Cross
+@@ -18,111 +17,111 @@ import mill.define.Cross
  import $meta._
  
  object `package` extends RootModule with Module {
@@ -293,12 +293,14 @@ index bf4160210d8..fe59ca4ed28 100644
 -    object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
 -    object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
 -    object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
+-    object spark extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "spark"))
 +        extends Cross[ExampleCrossModule](build.listIn(moduleDir / "dependencies"))
 +    object testing extends Cross[ExampleCrossModule](build.listIn(moduleDir / "testing"))
 +    object linting extends Cross[ExampleCrossModule](build.listIn(moduleDir / "linting"))
 +    object publishing extends Cross[ExampleCrossModule](build.listIn(moduleDir / "publishing"))
 +    object web extends Cross[ExampleCrossModule](build.listIn(moduleDir / "web"))
 +    object native extends Cross[ExampleCrossModule](build.listIn(moduleDir / "native"))
++    object spark extends Cross[ExampleCrossModule](build.listIn(moduleDir / "spark"))
    }
    object javascriptlib extends Module {
 -    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
@@ -392,7 +394,7 @@ index bf4160210d8..fe59ca4ed28 100644
        case "1-test-suite" => line
            .replace(
              "mill bar.test bar.BarTests.hello",
-@@ -146,7 +145,7 @@ object `package` extends RootModule with Module {
+@@ -147,7 +146,7 @@ object `package` extends RootModule with Module {
        case "publishing" => Some(scalalib.publishing)
        case _ => None
      }
@@ -401,7 +403,7 @@ index bf4160210d8..fe59ca4ed28 100644
        .flatMap(_.valuesToModules.get(List(crossValue)))
  
      def testRepoRoot = Task {
-@@ -212,10 +211,10 @@ object `package` extends RootModule with Module {
+@@ -213,10 +212,10 @@ object `package` extends RootModule with Module {
  
    trait ExampleCrossModule extends build.integration.IntegrationTestModule {
      // disable scalafix because these example modules don't have sources causing it to misbehave
@@ -414,7 +416,7 @@ index bf4160210d8..fe59ca4ed28 100644
      def sources = Task {
        sources0()
          .flatMap(pathRef => os.walk(pathRef.path))
-@@ -244,7 +243,7 @@ object `package` extends RootModule with Module {
+@@ -245,7 +244,7 @@ object `package` extends RootModule with Module {
  
      def rendered = Task {
        var seenCode = false
@@ -423,7 +425,7 @@ index bf4160210d8..fe59ca4ed28 100644
        os.write(
          Task.dest / "example.adoc",
          parsed()
-@@ -299,7 +298,7 @@ object `package` extends RootModule with Module {
+@@ -300,7 +299,7 @@ object `package` extends RootModule with Module {
      "gatling" -> ("gatling/gatling", "3870fda86e6bca005fbd53108c60a65db36279b6"),
      "arrow" -> ("arrow-kt/arrow", "bc9bf92cc98e01c21bdd2bf8640cf7db0f97204a")
    )
