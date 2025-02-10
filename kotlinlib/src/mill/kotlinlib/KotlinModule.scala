@@ -84,7 +84,7 @@ trait KotlinModule extends JavaModule { outer =>
   /** Flag to use KSP */
   def kotlinSymbolProcessing: T[Boolean] = Task { false }
 
-  def kspProjectBaseDir: T[PathRef] = Task { PathRef(millSourcePath) }
+  def kspProjectBaseDir: T[PathRef] = Task { PathRef(moduleDir) }
 
   /** KSP output dir */
   def kspOutputDir: T[PathRef] = Task {
