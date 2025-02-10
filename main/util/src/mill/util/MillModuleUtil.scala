@@ -7,6 +7,7 @@ import mill.api.{BuildInfo, PathRef, Result}
 import java.nio.file.{Files, Paths}
 
 private[mill] object MillModuleUtil {
+
   /**
    * Deprecated helper method, intended to allow runtime resolution and in-development-tree testings of mill plugins possible.
    * This design has issues and will probably be replaced.
@@ -33,7 +34,6 @@ private[mill] object MillModuleUtil {
     ).map(_.map(_.withRevalidateOnce))
   }
 
-
   private val LongMillProps = new java.util.Properties()
 
   {
@@ -41,7 +41,6 @@ private[mill] object MillModuleUtil {
     if (millOptionsPath != null)
       LongMillProps.load(Files.newInputStream(Paths.get(millOptionsPath)))
   }
-
 
   def millProperty(key: String): Option[String] =
     Option(sys.props(key)) // System property has priority

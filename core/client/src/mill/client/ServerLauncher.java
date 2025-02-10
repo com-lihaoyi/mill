@@ -114,9 +114,9 @@ public abstract class ServerLauncher {
 
     try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {
       f.write(Util.hasConsole() ? 1 : 0);
-      Util.writeString(f, BuildInfo.millVersion);
-      Util.writeArgs(args, f);
-      Util.writeMap(env, f);
+      ClientUtil.writeString(f, BuildInfo.millVersion);
+      ClientUtil.writeArgs(args, f);
+      ClientUtil.writeMap(env, f);
     }
 
     if (locks.processLock.probe()) initServer(serverDir, setJnaNoSys, locks);

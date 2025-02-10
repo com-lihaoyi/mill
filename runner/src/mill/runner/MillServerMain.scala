@@ -2,7 +2,7 @@ package mill.runner
 
 import sun.misc.{Signal, SignalHandler}
 import mill.api.SystemStreams
-import mill.client.Util
+import mill.client.ClientUtil
 import mill.client.lock.Locks
 
 import scala.util.Try
@@ -44,7 +44,7 @@ class MillServerMain(
     ) {
 
   override def exitServer(): Unit = {
-    super.exitServer(); System.exit(Util.ExitServerCodeWhenIdle())
+    super.exitServer(); System.exit(ClientUtil.ExitServerCodeWhenIdle())
   }
   def stateCache0 = RunnerState.empty
 

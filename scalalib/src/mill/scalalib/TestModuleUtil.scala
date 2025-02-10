@@ -4,7 +4,6 @@ import mill.api.{Ctx, PathRef, Result}
 import mill.client.EnvVars
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
-import mill.api.Util
 import mill.{Agg, Task}
 import sbt.testing.Status
 
@@ -146,7 +145,7 @@ private[scalalib] object TestModuleUtil {
               collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
           }
 
-          val paddedIndex = Util.leftPad(i.toString, maxLength, '0')
+          val paddedIndex = mill.internal.Util.leftPad(i.toString, maxLength, '0')
           val folderName = testClassList match {
             case Seq(single) => single
             case multiple =>

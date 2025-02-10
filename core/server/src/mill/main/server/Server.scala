@@ -4,7 +4,7 @@ import java.io.*
 import java.net.{InetAddress, Socket}
 import scala.jdk.CollectionConverters.*
 import mill.api.SystemStreams
-import mill.client.{InputPumper, ProxyStream, ServerFiles, Util, BuildInfo}
+import mill.client.{InputPumper, ProxyStream, ServerFiles, BuildInfo, ClientUtil}
 import mill.client.ProxyStream.Output
 import mill.client.lock.{Lock, Locks}
 
@@ -164,7 +164,7 @@ abstract class Server[T](
 
       val argStream = os.read.inputStream(serverDir / ServerFiles.runArgs)
       val interactive = argStream.read() != 0
-      val clientMillVersion = Util.readString(argStream)
+      val clientMillVersion = ClientUtil.readString(argStream)
       val serverMillVersion = BuildInfo.millVersion
       if (clientMillVersion != serverMillVersion) {
         stderr.println(
@@ -172,15 +172,15 @@ abstract class Server[T](
         )
         os.write(
           serverDir / ServerFiles.exitCode,
-          Util.ExitServerCodeWhenVersionMismatch().toString.getBytes()
+          ClientUtil.ExitServerCodeWhenVersionMismatch().toString.getBytes()
         )
-        System.exit(Util.ExitServerCodeWhenVersionMismatch())
+        System.exit(ClientUtil.ExitServerCodeWhenVersionMismatch())
       }
-      val args = Util.parseArgs(argStream)
-      val env = Util.parseMap(argStream)
+      val args = ClientUtil.parseArgs(argStream)
+      val env = ClientUtil.parseMap(argStream)
       serverLog("args " + upickle.default.write(args))
       serverLog("env " + upickle.default.write(env.asScala))
-      val userSpecifiedProperties = Util.parseMap(argStream)
+      val userSpecifiedProperties = ClientUtil.parseMap(argStream)
       argStream.close()
 
       @volatile var done = false

@@ -3,7 +3,7 @@ package mill.internal
 import fansi.Attrs
 import mill.api.{ColorLogger, Logger, SystemStreams}
 
-import java.io.{InputStream, OutputStream, PrintStream}
+import java.io.{InputStream, PrintStream}
 
 private[mill] class MultiLogger(
     val colored: Boolean,
@@ -119,4 +119,3 @@ private[mill] class MultiLogger(
     )
   }
 }
-

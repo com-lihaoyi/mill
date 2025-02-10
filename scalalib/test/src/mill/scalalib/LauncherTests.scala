@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import mill.api.Util
 import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
@@ -28,7 +27,7 @@ object LauncherTests extends TestSuite {
       val Right(result1) = eval.apply(executableTask): @unchecked
 
       val executable =
-        if (Util.windowsPlatform && copyBat) {
+        if (mill.client.Util.isWindows && copyBat) {
           val prev = result1.value.path
           val next = prev / ".." / s"${prev.baseName}.bat"
           os.copy(prev, next)

@@ -9,7 +9,6 @@ import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.SelectMode
 import mill.define.Watchable
-import mill.util.MillModuleUtil
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue
@@ -21,17 +20,17 @@ object MainModule {
 
   def cleanupScaladoc(v: String): Array[String] = {
     v.linesIterator.map(
-        _.dropWhile(_.isWhitespace)
-          .stripPrefix("/**")
-          .stripPrefix("*/")
-          .stripPrefix("*")
-          .stripSuffix("**/")
-          .stripSuffix("*/")
-          .dropWhile(_.isWhitespace)
-          .reverse
-          .dropWhile(_.isWhitespace)
-          .reverse
-      ).toArray
+      _.dropWhile(_.isWhitespace)
+        .stripPrefix("/**")
+        .stripPrefix("*/")
+        .stripPrefix("*")
+        .stripSuffix("**/")
+        .stripSuffix("*/")
+        .dropWhile(_.isWhitespace)
+        .reverse
+        .dropWhile(_.isWhitespace)
+        .reverse
+    ).toArray
       .dropWhile(_.isEmpty)
       .reverse
       .dropWhile(_.isEmpty)

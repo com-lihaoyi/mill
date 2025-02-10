@@ -6,11 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
-
-import mill.client.OutFiles;
-import mill.client.ServerCouldNotBeStarted;
-import mill.client.ServerLauncher;
-import mill.client.Util;
+import mill.client.*;
 import mill.client.lock.Locks;
 
 /**
@@ -41,7 +37,7 @@ public class MillClientMain {
     } else
       try {
         // start in client-server mode
-        java.util.List<String> optsArgs = Util.readOptsFileLines(millOptsFile());
+        java.util.List<String> optsArgs = ClientUtil.readOptsFileLines(millOptsFile());
         Collections.addAll(optsArgs, args);
 
         ServerLauncher launcher =
@@ -64,10 +60,10 @@ public class MillClientMain {
             };
 
         final String versionAndJvmHomeEncoding =
-            Util.sha1Hash(mill.client.BuildInfo.millVersion + MillProcessLauncher.javaHome());
+            ClientUtil.sha1Hash(mill.client.BuildInfo.millVersion + MillProcessLauncher.javaHome());
         Path serverDir0 = Paths.get(OutFiles.out, OutFiles.millServer, versionAndJvmHomeEncoding);
         int exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
-        if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
+        if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
           exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
         }
         System.exit(exitCode);

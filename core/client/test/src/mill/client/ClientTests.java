@@ -7,7 +7,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.*;
-
 import org.junit.Test;
 
 public class ClientTests {
@@ -36,9 +35,9 @@ public class ClientTests {
     for (int example0 : examples) {
       for (int example : new int[] {-example0, example0}) {
         ByteArrayOutputStream o = new ByteArrayOutputStream();
-        Util.writeInt(o, example);
+        ClientUtil.writeInt(o, example);
         ByteArrayInputStream i = new ByteArrayInputStream(o.toByteArray());
-        int s = Util.readInt(i);
+        int s = ClientUtil.readInt(i);
         assertEquals(example, s);
         assertEquals(i.available(), 0);
       }
@@ -67,9 +66,9 @@ public class ClientTests {
 
   public void checkStringRoundTrip(String example) throws Exception {
     ByteArrayOutputStream o = new ByteArrayOutputStream();
-    Util.writeString(o, example);
+    ClientUtil.writeString(o, example);
     ByteArrayInputStream i = new ByteArrayInputStream(o.toByteArray());
-    String s = Util.readString(i);
+    String s = ClientUtil.readString(i);
     assertEquals(example, s);
     assertEquals(i.available(), 0);
   }
