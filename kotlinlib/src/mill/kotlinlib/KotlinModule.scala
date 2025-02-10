@@ -82,7 +82,7 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlinExplicitApi: T[Boolean] = Task { false }
 
   /** Flag to use KSP */
-  def kotlinSymbolProcessing: T[Boolean] = Task { false }
+  def kotlinSymbolProcessing: Boolean = false
 
   def kspProjectBaseDir: T[PathRef] = Task { PathRef(moduleDir) }
 
@@ -97,11 +97,17 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   /** ksp generated sources */
-  def kspGeneratedSources: T[Seq[PathRef]] = Task {
-    generateSourcesWithKSP()
+  private def kspGeneratedSources: T[Seq[PathRef]] = {
+    if (kotlinSymbolProcessing)
+      generateSourcesWithKSP
+    else {
+      Task(Seq.empty[PathRef])
+    }
   }
 
-  override def generatedSources: T[Seq[PathRef]] = super.generatedSources() ++ kspGeneratedSources()
+  override def generatedSources: T[Seq[PathRef]] = Task {
+    kspGeneratedSources() ++ super.generatedSources()
+  }
 
   /**
    * Mandatory plugins that are needed for KSP to work.
@@ -109,7 +115,7 @@ trait KotlinModule extends JavaModule { outer =>
    * @return
    */
   def kspPlugins: T[Agg[Dep]] = Task {
-    if (kotlinSymbolProcessing()) {
+    if (kotlinSymbolProcessing) {
       Agg(
         ivy"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${symbolProcessingVersion()}",
         ivy"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${symbolProcessingVersion()}"
@@ -176,7 +182,7 @@ trait KotlinModule extends JavaModule { outer =>
    * @return kotlin-compiler or kotlin-compiler-embeddable dependency
    */
   def kotlinCompilerDep: T[Dep] = Task {
-    if (kotlinSymbolProcessing())
+    if (kotlinSymbolProcessing)
       ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}"
     else
       ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}"
@@ -191,7 +197,7 @@ trait KotlinModule extends JavaModule { outer =>
    * @return kotlin-scripting-compiler or kotlin-scripting-compiler-embeddable dependency
    */
   def kotlinScriptingCompilerDep: T[Dep] = Task {
-    if (kotlinSymbolProcessing())
+    if (kotlinSymbolProcessing)
       ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}"
     else
       ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}"
@@ -333,71 +339,66 @@ trait KotlinModule extends JavaModule { outer =>
    * create the generated sources and then we run the compile task without the
    * KSP processors
    */
-  protected def generateSourcesWithKSP: Task[Seq[PathRef]] = Task.Sources {
-    if (kotlinSymbolProcessing()) {
+  private def generateSourcesWithKSP = Task {
+    val sourceFiles = sources().map(_.path)
 
-      val sourceFiles = sources().map(_.path)
+    val compileCp = compileClasspath().map(_.path).filter(os.exists)
 
-      val compileCp = compileClasspath().map(_.path).filter(os.exists)
+    val pluginArgs: String = kspPluginsResolved().map(_.path)
+      .mkString(",")
 
-      val pluginArgs: String = kspPluginsResolved().map(_.path)
-        .mkString(",")
+    val xPluginArg = s"-Xplugin=$pluginArgs"
 
-      val xPluginArg = s"-Xplugin=$pluginArgs"
+    val pluginOpt = s"plugin:${kotlinSymbolProcessorId()}"
 
-      val pluginOpt = s"plugin:${kotlinSymbolProcessorId()}"
+    val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
 
-      val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
+    val kspOut = kspOutputDir().path
 
-      val kspOut = kspOutputDir().path
+    val pluginConfigs = Seq(
+      s"$pluginOpt:apclasspath=$apClasspath",
+      s"$pluginOpt:projectBaseDir=${kspProjectBaseDir().path}",
+      s"$pluginOpt:classOutputDir=${kspOut / "classes"}",
+      s"$pluginOpt:javaOutputDir=${kspOut / "java"}",
+      s"$pluginOpt:kotlinOutputDir=${kspOut / "kotlin"}",
+      s"$pluginOpt:resourceOutputDir=${kspOut / "resources"}",
+      s"$pluginOpt:kspOutputDir=${kspOut}",
+      s"$pluginOpt:cachesDir=${kspCachesDir}",
+      s"$pluginOpt:incremental=true",
+      s"$pluginOpt:allWarningsAsErrors=false",
+      s"$pluginOpt:returnOkOnError=true",
+      s"$pluginOpt:mapAnnotationArgumentsInJava=false"
+    ).mkString(",")
 
-      val pluginConfigs = Seq(
-        s"$pluginOpt:apclasspath=$apClasspath",
-        s"$pluginOpt:projectBaseDir=${kspProjectBaseDir().path}",
-        s"$pluginOpt:classOutputDir=${kspOut / "classes"}",
-        s"$pluginOpt:javaOutputDir=${kspOut / "java"}",
-        s"$pluginOpt:kotlinOutputDir=${kspOut / "kotlin"}",
-        s"$pluginOpt:resourceOutputDir=${kspOut / "resources"}",
-        s"$pluginOpt:kspOutputDir=${kspOut}",
-        s"$pluginOpt:cachesDir=${kspCachesDir}",
-        s"$pluginOpt:incremental=true",
-        s"$pluginOpt:allWarningsAsErrors=false",
-        s"$pluginOpt:returnOkOnError=true",
-        s"$pluginOpt:mapAnnotationArgumentsInJava=false"
-      ).mkString(",")
+    val kspCompilerArgs = Seq(xPluginArg) ++ Seq("-P", pluginConfigs)
 
-      val kspCompilerArgs = Seq(xPluginArg) ++ Seq("-P", pluginConfigs)
+    Task.log.info(
+      s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOut} ..."
+    )
 
-      Task.log.info(
-        s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOut} ..."
-      )
+    val compilerArgs: Seq[String] = Seq(
+      // destdir
+      Seq("-d", kspOutputDir.toString()),
+      // classpath
+      when(compileCp.iterator.nonEmpty)(
+        "-classpath",
+        compileCp.iterator.mkString(File.pathSeparator)
+      ),
+      kotlincOptions(),
+      kspCompilerArgs,
+      // parameters
+      sourceFiles.map(_.toString())
+    ).flatten
 
-      val compilerArgs: Seq[String] = Seq(
-        // destdir
-        Seq("-d", kspOutputDir.toString()),
-        // classpath
-        when(compileCp.iterator.nonEmpty)(
-          "-classpath",
-          compileCp.iterator.mkString(File.pathSeparator)
-        ),
-        kotlincOptions(),
-        kspCompilerArgs,
-        // parameters
-        sourceFiles.map(_.toString())
-      ).flatten
+    // currently if we don't delete the already generated sources
+    // several layers are problematic such as the KSP giving a FileAlreadyExists
+    // and test compilation complaining about duplicate classes
+    // TODO maybe find a better way to do this
+    os.remove.all(kspOut)
 
-      // currently if we don't delete the already generated sources
-      // several layers are problematic such as the KSP giving a FileAlreadyExists
-      // and test compilation complaining about duplicate classes
-      // TODO maybe find a better way to do this
-      os.remove.all(kspOut)
+    kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
 
-      kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
-
-      os.walk(kspOut).filter(os.isFile).map(PathRef(_))
-    } else {
-      Seq.empty[PathRef]
-    }
+    os.walk(kspOut).filter(os.isFile).map(PathRef(_))
   }
 
   /**
