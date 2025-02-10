@@ -234,7 +234,8 @@ abstract class MillBuildRootModule()(implicit
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = Task {
-    val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions.asScala)
+    val candidates =
+      Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions.asScala)
     // We need to unlist those files, which we replaced by generating wrapper scripts
     val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.asScala.toSeq)
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
