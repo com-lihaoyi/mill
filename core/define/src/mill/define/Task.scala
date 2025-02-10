@@ -61,34 +61,11 @@ object Task extends TaskBase {
    * signature for you source files/folders and decides whether or not downstream
    * [[TargetImpl]]s need to be invalidated and re-computed.
    */
-  inline def Sources(inline values: Result[os.Path]*)(implicit
-      inline ctx: mill.define.Ctx
-  ): Target[Seq[PathRef]] = ${ Target.Internal.sourcesImpl1('values)('ctx, 'this) }
-
-  inline def Sources(inline values: Result[Seq[PathRef]])(implicit
-      inline ctx: mill.define.Ctx
-  ): Target[Seq[PathRef]] =
-    ${ Target.Internal.sourcesImpl2('values)('ctx, 'this) }
-
   inline def Sources(inline values: os.SubPath*)(implicit
       inline ctx: mill.define.Ctx,
       dummy: Boolean = true
   ): Target[Seq[PathRef]] = ${ Target.Internal.sourcesImpl3('values)('ctx, 'this) }
 
-  /**
-   * Similar to [[Source]], but only for a single source file or folder. Defined
-   * using `Task.Source`.
-   */
-  inline def Source(inline value: Result[os.Path])(implicit
-      inline ctx: mill.define.Ctx
-  ): Target[PathRef] =
-    ${ Target.Internal.sourceImpl1('value)('ctx, 'this) }
-
-  @annotation.targetName("SourceRef")
-  inline def Source(inline value: Result[PathRef])(implicit
-      inline ctx: mill.define.Ctx
-  ): Target[PathRef] =
-    ${ Target.Internal.sourceImpl2('value)('ctx, 'this) }
 
   inline def Source(inline value: os.SubPath)(implicit
       inline ctx: mill.define.Ctx

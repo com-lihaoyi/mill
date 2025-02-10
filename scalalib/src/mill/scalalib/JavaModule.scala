@@ -55,7 +55,7 @@ trait JavaModule
     override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
-    override def sources = Task.Sources {
+    override def sources = Task.Input {
       for (src <- outer.sources()) yield {
         PathRef(this.moduleDir / src.path.relativeTo(outer.moduleDir))
       }
@@ -1000,7 +1000,7 @@ trait JavaModule
    * on the doc tool that is actually used.
    * @see [[docSources]]
    */
-  def docResources: T[Seq[PathRef]] = Task.Sources(moduleDir / "docs")
+  def docResources: T[Seq[PathRef]] = Task.Sources("docs")
 
   /**
    * Control whether `docJar`-target should use a file to pass command line arguments to the javadoc tool.
