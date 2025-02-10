@@ -45,6 +45,7 @@ public class Util {
    * This method takes into account these differences and is compatible with
    * both JDK versions before 22 and later.
    */
+  @SuppressWarnings("SystemConsoleNull")
   public static boolean hasConsole() {
     Console console = System.console();
 
