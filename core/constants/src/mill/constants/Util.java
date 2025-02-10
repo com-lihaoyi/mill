@@ -10,7 +10,7 @@ import java.security.NoSuchAlgorithmException;
 public class Util {
 
   public static boolean isWindows =
-      System.getProperty("os.name").toLowerCase().startsWith("windows");
+      System.getProperty("os.name").toLowerCase(Locale.Root).startsWith("windows");
   public static boolean isJava9OrAbove =
       !System.getProperty("java.specification.version").startsWith("1.");
 
