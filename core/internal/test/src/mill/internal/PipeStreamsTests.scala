@@ -1,4 +1,4 @@
-package mill.util
+package mill.internal
 
 import mill.internal.PipeStreams
 import utest.*
