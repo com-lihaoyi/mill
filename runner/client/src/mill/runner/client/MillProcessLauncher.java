@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
+
 import mill.client.ClientUtil;
 import mill.constants.EnvVars;
 import mill.constants.ServerFiles;
@@ -44,10 +46,12 @@ public class MillProcessLauncher {
     } finally {
       if (!interrupted && Files.exists(processDir)) {
         // cleanup if process terminated for sure
-        Files.walk(processDir)
+        try(Stream<Path> stream = Files.walk(processDir)) {
+          Files.walk(processDir)
             // depth-first
-            .sorted(Comparator.reverseOrder())
-            .forEach(p -> p.toFile().delete());
+            stream.sorted(Comparator.reverseOrder())
+               .forEach(p -> p.toFile().delete());
+        }
       }
     }
   }
@@ -157,7 +161,6 @@ public class MillProcessLauncher {
 
   static String[] millClasspath() throws Exception {
     String selfJars = "";
-    List<String> vmOptions = new LinkedList<>();
     String millOptionsPath = System.getProperty("MILL_OPTIONS_PATH");
     if (millOptionsPath != null) {
 
