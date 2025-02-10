@@ -66,6 +66,7 @@ object `package` extends RootModule with Module {
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
     object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
+    object spark extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "spark"))
   }
   object javascriptlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
