@@ -10,7 +10,7 @@ import mill.exec.{
   ExecResults,
   ExecutionCore,
   ExecutionPaths,
-  EvaluatorPathsResolver,
+  ExecutionPathsResolver,
   Plan,
   ProfileLogger,
   TaskResult
@@ -56,7 +56,7 @@ final case class Evaluator private[mill] (
     workerCache match {
       case mut: collection.mutable.Map[Segments, (Int, Val)] => mut
     }
-  val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
+  val pathsResolver: ExecutionPathsResolver = ExecutionPathsResolver.default(outPath)
 
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator =
     this.copy(baseLogger = newBaseLogger)
