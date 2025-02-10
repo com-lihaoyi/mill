@@ -1,5 +1,5 @@
 package com.example.dagger
 
 fun main() {
-    println(DaggerNumberApp.create().numberService().generateNumber())
+    println("Random number: ${DaggerNumberApp.create().numberService().generateNumber()}")
 }

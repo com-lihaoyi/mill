@@ -8,7 +8,7 @@ object dagger extends KotlinModule {
 
   def kotlinLanguageVersion = "1.9"
 
-  def mainClass = Some("com.example.dagger.Main.kt")
+  def mainClass = Some("com.example.dagger.MainKt")
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
@@ -51,6 +51,9 @@ object dagger extends KotlinModule {
 DaggerNumberApp.java
 NumberService_Factory.java
 RandomNumberGenerator_Factory.java
+
+> ./mill show dagger.run
+Random number: ...
 
 > ./mill show dagger.test
 ...
