@@ -72,7 +72,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             ev,
             state,
             id,
-            _: TestModule with JavaModule,
+            _: (TestModule & JavaModule),
             (
               _,
               forkArgs,
@@ -121,6 +121,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val classes = mainClass.toList ++ zincWorker.discoverMainClasses(compile)
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
+      case _ => ???
     } {
       agg
     }
@@ -144,6 +145,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             .map(_.resolve(pathResolver))
             .map(sanitizeUri).toSeq.asJava
         )
+      case _ => ???
     } {
       new JvmCompileClasspathResult(_)
     }

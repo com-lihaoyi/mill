@@ -134,13 +134,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       if (sv.startsWith("2.")) {
         // Scala 2.x
         val mainClass = cl.loadClass("scala.tools.nsc.Main")
-        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]])*)
         val exitVal = mainMethod.invoke(null, options.toArray)
         handleResult(true)(exitVal)
       } else {
         // Scala 3.x
         val mainClass = cl.loadClass("dotty.tools.dotc.Main")
-        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]])*)
         val resultClass = cl.loadClass("dotty.tools.dotc.reporting.Reporter")
         val hasErrorsMethod = resultClass.getMethod("hasErrors")
         val exitVal = mainMethod.invoke(null, options.toArray)

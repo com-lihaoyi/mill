@@ -185,7 +185,7 @@ trait PublishModule extends JavaModule { outer =>
     )(_.artifactMetadata)().map { a =>
       Dependency(a, Scope.Import)
     }
-    Agg(fromBomMods: _*) ++
+    Agg(fromBomMods*) ++
       bomIvyDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
@@ -305,9 +305,9 @@ trait PublishModule extends JavaModule { outer =>
       pomPackagingType match {
         case PackagingType.Pom => Task.Anon(Seq())
         case _ => Task.Anon(Seq(
-            (jar(), PublishInfo.jar _),
-            (sourceJar(), PublishInfo.sourcesJar _),
-            (docJar(), PublishInfo.docJar _)
+            (jar(), PublishInfo.jar),
+            (sourceJar(), PublishInfo.sourcesJar),
+            (docJar(), PublishInfo.docJar)
           ))
       }
     }
@@ -596,7 +596,7 @@ object PublishModule extends ExternalModule with TaskModule {
       stagingRelease
     ).publishAll(
       release,
-      x: _*
+      x*
     )
   }
 

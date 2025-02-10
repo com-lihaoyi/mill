@@ -22,7 +22,7 @@ object ScalaDotty213Tests extends TestSuite {
       Dotty213,
       sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "dotty213"
     ).scoped { eval =>
-      val Right(result) = eval.apply(Dotty213.foo.run())
+      val Right(result) = eval.apply(Dotty213.foo.run()): @unchecked
       assert(result.evalCount > 0)
     }
 

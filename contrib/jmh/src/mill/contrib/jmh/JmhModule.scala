@@ -51,7 +51,7 @@ trait JmhModule extends JavaModule {
       ()
     }
 
-  def listJmhBenchmarks(args: String*) = runJmh(("-l" +: args): _*)
+  def listJmhBenchmarks(args: String*) = runJmh(("-l" +: args)*)
 
   def compileGeneratedSources =
     Task {

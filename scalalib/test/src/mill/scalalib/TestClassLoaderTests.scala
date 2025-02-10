@@ -1,12 +1,11 @@
 package mill.scalalib
 
 import mill.define.Discover
-import mill.{Agg, T, Task}
+import mill.{Agg, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.main.TokenReaders._
 import utest.*
-import utest.framework.TestPath
 
 object TestClassLoaderTests extends TestSuite {
   object testclassloader extends TestBaseModule with ScalaModule {

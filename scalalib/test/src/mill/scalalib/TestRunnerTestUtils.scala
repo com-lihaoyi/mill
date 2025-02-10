@@ -5,12 +5,11 @@ import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.main.TokenReaders._
-import mill.{Agg, T, Task}
+import mill.{Agg, Task}
 import os.Path
 import sbt.testing.Status
 import utest.*
 
-import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTestUtils {
@@ -91,7 +90,7 @@ object TestRunnerTestUtils {
         expectedFileListing: Map[TestModule, Set[String]] = Map()
     ) = {
       testOnly0 { (eval, mod) =>
-        val Right(result) = eval.apply(m(mod).testOnly(args: _*))
+        val Right(result) = eval.apply(m(mod).testOnly(args*)): @unchecked
         val testOnly = result.value
         if (expectedFileListing.nonEmpty) {
           val dest = eval.outPath / m(mod).toString / "testOnly.dest"

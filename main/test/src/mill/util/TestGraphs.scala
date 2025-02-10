@@ -2,8 +2,8 @@ package mill.util
 import TestUtil.test
 import mainargs.arg
 import mill.testkit.TestBaseModule
-import mill.define.{Command, Cross, Discover, DynamicModule, ModuleRef, TaskModule}
-import mill.{Module, T, Task}
+import mill.define.{Command, Cross, Discover, TaskModule}
+import mill.{Module, Task}
 
 /**
  * Example dependency graphs for us to use in our test suite.
@@ -155,7 +155,7 @@ object TestGraphs {
     def single = Task { 1 }
     def invisible: Any = Task { 2 }
     def invisible2: mill.define.Task[Int] = Task { 3 }
-    def invisible3: mill.define.Task[_] = Task { 4 }
+    def invisible3: mill.define.Task[?] = Task { 4 }
   }
 
   object nestedModule extends TestBaseModule {

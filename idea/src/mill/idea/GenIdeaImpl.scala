@@ -84,7 +84,7 @@ case class GenIdeaImpl(
             val rootSegs = rootMod.millSourcePath.relativeTo(workDir).segments
             val modSegs = m.millModuleSegments.parts
             val segments: Seq[String] = rootSegs ++ modSegs
-            (Segments(segments.map(Segment.Label)), m, ev)
+            (Segments(segments.map(Segment.Label(_))), m, ev)
         }
       }
 
@@ -238,7 +238,7 @@ case class GenIdeaImpl(
     val resolvedModules: Seq[ResolvedModule] = {
       resolveTasks.toSeq.flatMap { case (evaluator, tasks) =>
         evaluator.evaluate(tasks) match {
-          case r if r.failing.items().nonEmpty =>
+          case r if r.failing.nonEmpty =>
             throw GenIdeaException(
               s"Failure during resolving modules: ${Evaluator.formatFailing(r)}"
             )
@@ -657,7 +657,7 @@ case class GenIdeaImpl(
       attributes1 = attribute1,
       example.scope,
       minimizeEmpty = true,
-      child = element.childs.map(ideaConfigElementTemplate): _*
+      child = element.childs.map(ideaConfigElementTemplate)*
     )
   }
 

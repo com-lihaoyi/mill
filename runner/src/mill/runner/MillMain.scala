@@ -79,7 +79,7 @@ object MillMain {
           streams0 = runnerStreams,
           bspLog = bspLog,
           env = System.getenv().asScala.toMap,
-          setIdle = b => (),
+          setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
           systemExit = i => sys.exit(i),
@@ -272,7 +272,6 @@ object MillMain {
                                     targetsAndParams = targetsAndParams,
                                     prevRunnerState = prevState.getOrElse(stateCache),
                                     logger = logger,
-                                    disableCallgraph = config.disableCallgraph.value,
                                     needBuildFile = needBuildFile(config),
                                     requestedMetaLevel = config.metaLevel,
                                     config.allowPositional.value,
@@ -413,8 +412,8 @@ object MillMain {
       projectDir / ".mill-version"
     ).collectFirst {
       case f if os.exists(f) =>
-        (f, os.read.lines(f).find(l => l.trim().nonEmpty))
-    }.foreach { case (file, Some(version)) =>
+        (f, os.read.lines(f).find(l => l.trim().nonEmpty).get)
+    }.foreach { case (file, version) =>
       if (BuildInfo.millVersion != version.stripSuffix("-native")) {
         val msg =
           s"""Mill version ${BuildInfo.millVersion} is different than configured for this directory!

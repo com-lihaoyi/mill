@@ -3,7 +3,6 @@ package mill.scalalib
 import mill.*
 import mill.define.Discover
 import utest.*
-import utest.framework.TestPath
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 
@@ -40,7 +39,7 @@ object DottyDocTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("static") - UnitTester(StaticDocsModule, resourcePath).scoped { eval =>
-      val Right(_) = eval.apply(StaticDocsModule.static.docJar)
+      val Right(_) = eval.apply(StaticDocsModule.static.docJar): @unchecked
       val dest = eval.outPath / "static/docJar.dest"
       assert(
         os.exists(dest / "out.jar"), // final jar should exist
@@ -52,7 +51,7 @@ object DottyDocTests extends TestSuite {
       )
     }
     test("empty") - UnitTester(EmptyDocsModule, resourcePath).scoped { eval =>
-      val Right(_) = eval.apply(EmptyDocsModule.empty.docJar)
+      val Right(_) = eval.apply(EmptyDocsModule.empty.docJar): @unchecked
       val dest = eval.outPath / "empty/docJar.dest"
       assert(
         os.exists(dest / "out.jar"),
@@ -60,7 +59,7 @@ object DottyDocTests extends TestSuite {
       )
     }
     test("multiple") - UnitTester(MultiDocsModule, resourcePath).scoped { eval =>
-      val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar)
+      val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar): @unchecked
       val dest = eval.outPath / "multidocs/docJar.dest"
       assert(
         os.exists(dest / "out.jar"), // final jar should exist

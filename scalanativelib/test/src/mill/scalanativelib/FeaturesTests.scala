@@ -18,8 +18,8 @@ object FeaturesTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("incremental compilation works") - UnitTester(Features, millSourcePath).scoped { eval =>
-      val Right(_) = eval(Features.nativeLink)
-      val Right(result) = eval(Features.nativeWorkdir)
+      val Right(_) = eval(Features.nativeLink): @unchecked
+      val Right(result) = eval(Features.nativeWorkdir): @unchecked
       assert(os.walk(result.value).exists(_.ext == "ll"))
     }
   }

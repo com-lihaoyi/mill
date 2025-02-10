@@ -4,7 +4,7 @@ import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Loose.Agg
 
 object ZincWorkerApi {
-  type Ctx = mill.api.Ctx.Dest with mill.api.Ctx.Log with mill.api.Ctx.Home
+  type Ctx = mill.api.Ctx.Dest & mill.api.Ctx.Log & mill.api.Ctx.Home
 }
 trait ZincWorkerApi {
 

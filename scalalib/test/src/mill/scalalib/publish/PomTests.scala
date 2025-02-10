@@ -275,7 +275,7 @@ object PomTests extends TestSuite {
       PackagingType.Jar,
       None,
       Agg.empty[Dependency],
-      Agg(depMgmt: _*)
+      Agg(depMgmt*)
     ))
 
   def singleText(seq: NodeSeq) =

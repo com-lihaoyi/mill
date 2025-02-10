@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.*
 import mill.define.Discover
 import mill.util.Jvm
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.TestBaseModule
 
 trait AssemblyTestUtils {
 
