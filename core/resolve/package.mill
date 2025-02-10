@@ -2,6 +2,11 @@ package build.core.resolve
 
 import mill._
 
+/**
+ * This module contains logic around resolving Mill command line
+ * tokens like 'foo.{bar,qux}.baz' into Mill tasks that can be
+ * executed via [[build.core.exec]]
+ */
 object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(build.core.define, build.core.internal)
 }

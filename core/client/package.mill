@@ -4,6 +4,11 @@ import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib._
 
+/**
+ * This module contains the core logic around the Mill command line client,
+ * along with basic constants and helpers shared between the client, server,
+ * and the rest of the Mill codebase.
+ */
 object `package` extends RootModule with build.MillPublishJavaModule with BuildInfo {
   def buildInfoPackageName = "mill.client"
   def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
