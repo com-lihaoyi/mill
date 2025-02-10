@@ -1,20 +1,22 @@
 package mill.runner
 
+import scala.jdk.CollectionConverters.ListHasAsScala
+
 import coursier.Repository
-import mill._
+import mill.*
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.api.{CompilationResult, Versions}
-import mill.constants.OutFiles._
+import mill.constants.OutFiles.*
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
 import mill.runner.worker.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
-
 import scala.util.Try
+
 import mill.define.Target
 import mill.runner.worker.api.MillScalaParser
 
@@ -232,9 +234,9 @@ abstract class MillBuildRootModule()(implicit
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = Task {
-    val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions)
+    val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions.asScala)
     // We need to unlist those files, which we replaced by generating wrapper scripts
-    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.toIndexedSeq)
+    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.asScala.toSeq)
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 

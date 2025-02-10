@@ -11,9 +11,10 @@ import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
-
 import java.io.File
 import java.net.URLClassLoader
+
+import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 
 /**
@@ -92,13 +93,13 @@ class MillBuildBootstrap(
         // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
         lazy val state = evaluateRec(depth + 1)
         if (
-          rootBuildFileNames.exists(rootBuildFileName =>
+          rootBuildFileNames.asScala.exists(rootBuildFileName =>
             os.exists(recRoot(projectRoot, depth) / rootBuildFileName)
           )
         ) state
         else {
           val msg =
-            s"No build file (${rootBuildFileNames.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
+            s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
           if (needBuildFile) {
             RunnerState(None, Nil, Some(msg), None)
           } else {
