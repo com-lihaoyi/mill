@@ -10,12 +10,13 @@ import mill.define.{
   ModuleTask,
   NamedTask,
   Segments,
-  TaskModule
+  TaskModule,
+  SelectMode
 }
 import mill.internal.EitherOps
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 
-object Resolve {
+private[mill] object Resolve {
   object Segments extends Resolve[Segments] {
     private[mill] def handleResolved(
         rootModule: BaseModule,
@@ -165,11 +166,7 @@ object Resolve {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
       else if (nullCommandDefaults) {
-        a.copy(default =
-          if (a.reader.isInstanceOf[SimpleTaskTokenReader[?]])
-            Some(_ => mill.define.Task.Anon(null))
-          else Some(_ => null)
-        )
+        a.copy(default = Some(_ => null))
       } else a
     }
 

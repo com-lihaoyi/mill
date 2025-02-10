@@ -17,7 +17,8 @@ import mill.exec.{
 import mill.define.Watchable
 import mill.main.client.OutFiles
 import mill.main.client.OutFiles.*
-import mill.resolve.{Resolve, SelectMode}
+import mill.resolve.Resolve
+
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.reflect.ClassTag

@@ -2,7 +2,7 @@ package mill.internal
 
 import java.nio.file.{Files, Paths}
 
-object Util {
+private[mill] object Util {
 
   def isInteractive(): Boolean = mill.main.client.Util.hasConsole()
 

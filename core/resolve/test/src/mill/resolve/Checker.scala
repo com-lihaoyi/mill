@@ -1,6 +1,6 @@
 package mill.resolve
 
-import mill.define.NamedTask
+import mill.define.{NamedTask, SelectMode}
 import utest.*
 
 class Checker[T <: mill.define.BaseModule](module: T) {

@@ -2,12 +2,12 @@ package mill.resolve
 
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse._
-import mill.define.{Segment, Segments}
+import mill.define.{Segment, Segments, SelectMode}
 import mill.internal.EitherOps
 
 import scala.annotation.tailrec
 
-object ParseArgs {
+private[mill] object ParseArgs {
 
   type TargetsWithParams = (Seq[(Option[Segments], Option[Segments])], Seq[String])
 

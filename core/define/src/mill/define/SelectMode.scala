@@ -1,4 +1,4 @@
-package mill.resolve
+package mill.define
 
 sealed trait SelectMode
 

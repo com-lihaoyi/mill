@@ -5,8 +5,8 @@ import mill.define.*
 import mill.eval.Evaluator
 import mill.exec.ExecutionPaths
 import mill.moduledefs.Scaladoc
-import mill.resolve.SelectMode.Separated
-import mill.resolve.SelectMode
+import mill.define.SelectMode.Separated
+import mill.define.SelectMode
 import mill.util.Util
 import mill.define.Watchable
 import mill.main.client.DebugLog

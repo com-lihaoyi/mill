@@ -2,7 +2,7 @@ package mill.internal
 
 import scala.collection.{BuildFrom, mutable}
 
-object EitherOps {
+private[mill] object EitherOps {
 
   // implementation similar to scala.concurrent.Future#sequence
   def sequence[A, B, M[X] <: IterableOnce[X]](in: M[Either[A, B]])(

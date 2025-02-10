@@ -3,9 +3,9 @@ package mill.testkit
 import mill.{Target, Task}
 import mill.api.Result.OuterStack
 import mill.api.{DummyInputStream, Result, SystemStreams, Val}
-import mill.define.{InputImpl, TargetImpl}
+import mill.define.{InputImpl, TargetImpl, SelectMode}
 import mill.eval.Evaluator
-import mill.resolve.{Resolve, SelectMode}
+import mill.resolve.Resolve
 import mill.internal.PrintLogger
 import mill.api.Strict.Agg
 import mill.exec.{ChromeProfileLogger, ProfileLogger}
