@@ -20,7 +20,7 @@ object bar extends JavaModule with RevapiModule {
 
   override def revapiClasspath: T[Agg[PathRef]] = Task {
     // add folder containing logback.xml
-    super.revapiClasspath() ++ Seq(PathRef(millSourcePath / "conf"))
+    super.revapiClasspath() ++ Seq(PathRef(moduleDir / "conf"))
   }
 }
 

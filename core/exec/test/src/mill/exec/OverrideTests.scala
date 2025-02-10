@@ -1,4 +1,4 @@
-package mill.eval
+package mill.exec
 
 import mill.define.{Discover, TargetImpl, Task}
 import mill.Module

@@ -82,7 +82,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    * that traverse only their transitive dependencies.
    */
   private implicit class BloopOps(jm: JavaModule) extends MillModule {
-    override def millOuterCtx = jm.millOuterCtx
+    override def moduleCtx = jm.moduleCtx
 
     object bloop extends MillModule {
       def config = Task { outer.bloopConfig(jm)() }
@@ -403,7 +403,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
       BloopConfig.Project(
         name = name(module),
-        directory = module.millSourcePath.toNIO,
+        directory = module.moduleDir.toNIO,
         workspaceDir = Some(wd.toNIO),
         sources = mSources,
         sourcesGlobs = None,

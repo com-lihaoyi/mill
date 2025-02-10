@@ -54,7 +54,7 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBProtocPath: T[Option[String]] = Task { None }
 
   def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
-    millSourcePath / "protobuf"
+    moduleDir / "protobuf"
   }
 
   def scalaPBOptions: T[String] = Task {

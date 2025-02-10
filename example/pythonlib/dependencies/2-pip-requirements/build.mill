@@ -6,7 +6,7 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
   def pythonRequirementFiles = Task.Sources {
-    millSourcePath / "requirements.txt"
+    moduleDir / "requirements.txt"
   }
 }
 

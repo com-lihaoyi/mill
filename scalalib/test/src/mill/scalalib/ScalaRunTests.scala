@@ -87,7 +87,7 @@ object ScalaRunTests extends TestSuite {
         resourcePath
       ).scoped { eval =>
         os.write.append(
-          HelloWorldTests.HelloWorld.millSourcePath / "core/src/Main.scala",
+          HelloWorldTests.HelloWorld.moduleDir / "core/src/Main.scala",
           "val x: "
         )
 

@@ -1,11 +1,12 @@
-package mill.eval
+package mill.exec
 
 import mill.util.Jvm
 import mill.api.Ctx.Dest
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
-import mill.api.{JarManifest, Loose}
+import mill.util.JarManifest
+import mill.api.Loose
 import utest.*
 import mill.*
 import mill.define.{Discover, Task}
@@ -77,7 +78,7 @@ object JavaCompileJarTests extends TestSuite {
       def eval[T](t: Task[T]) = evaluator.apply(t)
       def check(targets: Agg[Task[?]], expected: Agg[Task[?]]) = evaluator.check(targets, expected)
 
-      def append(path: os.SubPath, txt: String) = os.write.append(millSourcePath / path, txt)
+      def append(path: os.SubPath, txt: String) = os.write.append(moduleDir / path, txt)
 
       check(
         targets = Agg(jar),

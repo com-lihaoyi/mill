@@ -6,7 +6,7 @@ object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
 trait FooModule extends Cross.Module[String] {
   def suffix = Task { "_" + crossValue }
   def bigSuffix = Task { "[[[" + suffix() + "]]]" }
-  def sources = Task.Sources(millSourcePath)
+  def sources = Task.Sources(moduleDir)
 }
 
 // ```graphviz

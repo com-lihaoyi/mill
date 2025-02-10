@@ -1,4 +1,4 @@
-package mill.eval
+package mill.exec
 
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result

@@ -24,7 +24,7 @@ case class GenIdeaImpl(
 )(implicit ctx: Ctx) {
   import GenIdeaImpl._
 
-  val workDir: os.Path = evaluators.head.rootModule.millSourcePath
+  val workDir: os.Path = evaluators.head.rootModule.moduleDir
   val ideaDir: os.Path = workDir / ".idea"
 
   val ideaConfigVersion = 4
@@ -81,8 +81,8 @@ case class GenIdeaImpl(
       .flatMap { case (rootMod, transModules, ev, idx) =>
         transModules.collect {
           case m: Module =>
-            val rootSegs = rootMod.millSourcePath.relativeTo(workDir).segments
-            val modSegs = m.millModuleSegments.parts
+            val rootSegs = rootMod.moduleDir.relativeTo(workDir).segments
+            val modSegs = m.moduleSegments.parts
             val segments: Seq[String] = rootSegs ++ modSegs
             (Segments(segments.map(Segment.Label(_))), m, ev)
         }
@@ -977,7 +977,7 @@ case class GenIdeaImpl(
         {
       for ((((plugins, params), mods), i) <- settings.toSeq.zip(1 to settings.size))
         yield <profile name={s"mill $i"} modules={
-          mods.map(m => moduleName(m.millModuleSegments)).mkString(",")
+          mods.map(m => moduleName(m.moduleSegments)).mkString(",")
         }>
             <parameters>
               {
@@ -1002,7 +1002,8 @@ object GenIdeaImpl {
 
   /**
    * Create the module name (to be used by Idea) for the module based on it segments.
-   * @see [[Module.millModuleSegments]]
+   *
+   * @see [[Module.moduleSegments]]
    */
   def moduleName(p: Segments): String =
     p.value

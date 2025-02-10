@@ -166,6 +166,7 @@ object TestGraphs {
       def invisible: Any = Task { 8 }
 
     }
+
     object classInstance extends CanNest
 
     lazy val millDiscover = Discover[this.type]
@@ -191,7 +192,7 @@ object TestGraphs {
 
     object cross2 extends mill.Cross[Cross2]("210", "211", "212")
     trait Cross2 extends Cross.Module[String] {
-      override def millSourcePath = super.millSourcePath / crossValue
+      override def moduleDir = super.moduleDir / crossValue
       def suffix = Task { crossValue }
     }
     lazy val millDiscover = Discover[this.type]
@@ -205,7 +206,7 @@ object TestGraphs {
 
     object cross2 extends mill.Cross[Cross2](210L, 211L, 212L)
     trait Cross2 extends Cross.Module[Long] {
-      override def millSourcePath = super.millSourcePath / crossValue.toString
+      override def moduleDir = super.moduleDir / crossValue.toString
       def suffix = Task { crossValue }
     }
 

@@ -1,10 +1,10 @@
-package mill.define.macros
+package mill.define.internal
 
 import mill.define.Cross.*
 
 import scala.quoted.*
 
-object CrossMacros {
+private[mill] object CrossMacros {
   def makeImpl[T: Type](using Quotes)(t: Expr[Any]): Expr[Factory[T]] = {
     import quotes.reflect.*
 

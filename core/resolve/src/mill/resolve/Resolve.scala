@@ -1,6 +1,7 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
+import mill.define.internal.Reflect
 import mill.define.{
   BaseModule,
   Command,
@@ -8,7 +9,6 @@ import mill.define.{
   Module,
   ModuleTask,
   NamedTask,
-  Reflect,
   Segments,
   TaskModule
 }
@@ -75,7 +75,7 @@ object Resolve {
                 rootModule,
                 value.getClass,
                 Some(value.defaultCommandName()),
-                value.millModuleSegments,
+                value.moduleSegments,
                 cache = cache
               )
 
@@ -142,7 +142,7 @@ object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,
-        rootModule.implicitMillDiscover,
+        rootModule.moduleCtx.discover,
         args,
         nullCommandDefaults,
         allowPositionalCommandArgs
@@ -295,7 +295,8 @@ trait Resolve[T] {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
           val allPossibleNames = rootModule
-            .implicitMillDiscover
+            .moduleCtx
+            .discover
             .classInfo
             .values
             .flatMap(_.declaredTasks)

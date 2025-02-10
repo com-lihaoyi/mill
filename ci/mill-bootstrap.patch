@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 70cfce14468..8ea29a961ab 100644
+index 7a8ea3a31a5..39bbc91f872 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,9 +1,9 @@
@@ -39,6 +39,15 @@ index 70cfce14468..8ea29a961ab 100644
  }
  
  def millDownloadPrefix = Task {
+@@ -316,7 +316,7 @@ def millBinPlatform: T[String] = Task {
+   "0.11"
+ }
+ 
+-def baseDir = build.millSourcePath
++def baseDir = build.moduleDir
+ 
+ val essentialBridgeScalaVersions =
+   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)
 @@ -463,7 +463,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  /**
   * Some custom scala settings and test convenience
@@ -48,7 +57,7 @@ index 70cfce14468..8ea29a961ab 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -525,7 +525,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -535,7 +535,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
    /** Default tests module. */
    lazy val test: MillScalaTests = new MillScalaTests {}
    trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
@@ -57,7 +66,7 @@ index 70cfce14468..8ea29a961ab 100644
      def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
-@@ -565,7 +565,8 @@ trait MillBaseTestsModule extends TestModule {
+@@ -575,7 +575,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
@@ -67,7 +76,7 @@ index 70cfce14468..8ea29a961ab 100644
    import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -695,7 +696,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+@@ -705,7 +706,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
@@ -76,20 +85,94 @@ index 70cfce14468..8ea29a961ab 100644
  }
  
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
+diff --git a/contrib/package.mill b/contrib/package.mill
+index b5e172dd322..c3939bbe82a 100644
+--- a/contrib/package.mill
++++ b/contrib/package.mill
+@@ -3,7 +3,6 @@ package build.contrib
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.api.JarManifest
+ import mill.main.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.ZincWorkerUtil
+@@ -20,10 +19,10 @@ import $meta._
+ 
+ object `package` extends RootModule {
+   def contribModules: Seq[ContribModule] =
+-    millInternal.modules.collect { case m: ContribModule => m }
++    moduleInternal.modules.collect { case m: ContribModule => m }
+ 
+   trait ContribModule extends build.MillPublishScalaModule {
+-    def readme = Task.Source(millSourcePath / "readme.adoc")
++    def readme = Task.Source(moduleDir / "readme.adoc")
+   }
+ 
+   object testng extends JavaModule with ContribModule {
+@@ -76,13 +75,13 @@ object `package` extends RootModule {
+     object worker extends Cross[WorkerModule](build.Deps.play.keys.toSeq)
+     trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
+       def playBinary = crossValue
+-      def millSourcePath: os.Path = super.millSourcePath / playBinary
++      def moduleDir: os.Path = super.moduleDir / playBinary
+ 
+       def sources = Task.Sources {
+         // We want to avoid duplicating code as long as the Play APIs allow.
+         // But if newer Play versions introduce incompatibilities,
+         // just remove the shared source dir for that worker and implement directly.
+-        Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
++        Seq(PathRef(moduleDir / os.up / "src-shared")) ++ super.sources()
+       }
+ 
+       def scalaVersion = build.Deps.play(playBinary).scalaVersion
+diff --git a/core/codesig/package.mill b/core/codesig/package.mill
+index b2d5c62b889..9cb396c9a65 100644
+--- a/core/codesig/package.mill
++++ b/core/codesig/package.mill
+@@ -9,8 +9,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
+   override lazy val test: CodeSigTests = new CodeSigTests {}
+   trait CodeSigTests extends MillScalaTests {
+     val caseKeys = build.interp.watchValue(
+-      os.walk(millSourcePath / "cases", maxDepth = 3)
+-        .map(_.subRelativeTo(millSourcePath / "cases").segments)
++      os.walk(moduleDir / "cases", maxDepth = 3)
++        .map(_.subRelativeTo(moduleDir / "cases").segments)
+         .collect { case Seq(a, b, c) => s"$a-$b-$c" }
+     )
+ 
+@@ -36,7 +36,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
+       def moduleDeps = Seq(external)
+ 
+       val Array(prefix, suffix, rest) = caseName.split("-", 3)
+-      def millSourcePath = super.millSourcePath / prefix / suffix / rest
++      def moduleDir = super.moduleDir / prefix / suffix / rest
+       def scalaVersion = build.Deps.scalaVersion
+       def ivyDeps = Task {
+         if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
 diff --git a/dist/package.mill b/dist/package.mill
-index 5b8d77f5180..72f4963ce5f 100644
+index fbbeacbc843..5a205433d24 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
-@@ -3,7 +3,7 @@ import mill._, scalalib._, publish._
+@@ -2,15 +2,14 @@ package build.dist
+ import mill._, scalalib._, publish._
  import mill.define.ModuleRef
  import mill.util.Jvm
- import mill.api.JarManifest
+-import mill.api.JarManifest
 -import de.tobiasroeser.mill.vcs.version.VcsVersion
 +//import de.tobiasroeser.mill.vcs.version.VcsVersion
  
  import scala.util.Using
  
-@@ -185,10 +185,10 @@ object `package` extends RootModule with InstallModule {
+ trait InstallModule extends build.MillPublishJavaModule {
+   // All modules that we want to aggregate as part of this `dev` assembly.
+   // Excluding itself, and the `dist` module that uses it
+-  lazy val allPublishModules = build.millInternal.modules.collect {
++  lazy val allPublishModules = build.moduleInternal.modules.collect {
+     case m: PublishModule if (m ne build.dist) && (m ne build.dist.native) => m
+   }
+   def moduleDeps = Seq(build.runner, build.idea, build.main.init)
+@@ -185,10 +184,10 @@ object `package` extends RootModule with InstallModule {
          val wd = os.Path(wd0, Task.workspace)
          os.makeDir.all(wd)
          try {
@@ -103,7 +186,16 @@ index 5b8d77f5180..72f4963ce5f 100644
            )
            mill.api.Result.Success(())
          } catch {
-@@ -263,6 +263,7 @@ object `package` extends RootModule with InstallModule {
+@@ -233,7 +232,7 @@ object `package` extends RootModule with InstallModule {
+   def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
+     for {
+       exampleMod <- build.example.exampleModules
+-      path = exampleMod.millSourcePath
++      path = exampleMod.moduleDir
+     } yield {
+       val example = path.subRelativeTo(Task.workspace)
+       val artifactName = example.segments.mkString("-")
+@@ -263,6 +262,7 @@ object `package` extends RootModule with InstallModule {
    }
  
    def uploadToGithub(authKey: String) = Task.Command {
@@ -111,7 +203,7 @@ index 5b8d77f5180..72f4963ce5f 100644
      val vcsState = VcsVersion.vcsState()
      val label = vcsState.copy(dirtyHash = None).format()
      if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
-@@ -279,7 +280,7 @@ object `package` extends RootModule with InstallModule {
+@@ -279,7 +279,7 @@ object `package` extends RootModule with InstallModule {
          headers = Seq("Authorization" -> ("token " + authKey))
        )
      }
@@ -120,6 +212,272 @@ index 5b8d77f5180..72f4963ce5f 100644
      ()
    }
  
+diff --git a/example/package.mill b/example/package.mill
+index bf4160210d8..fe59ca4ed28 100644
+--- a/example/package.mill
++++ b/example/package.mill
+@@ -3,7 +3,6 @@ package build.example
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.api.JarManifest
+ import mill.main.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.ZincWorkerUtil
+@@ -18,110 +17,110 @@ import mill.define.Cross
+ import $meta._
+ 
+ object `package` extends RootModule with Module {
+-  def exampleModules: Seq[ExampleCrossModule] = millInternal
++  def exampleModules: Seq[ExampleCrossModule] = moduleInternal
+     .modules
+     .collect { case m: ExampleCrossModule => m }
+ 
+   object android extends Module {
+     object javalib
+-        extends Cross[ExampleCrossModuleAndroid](build.listIn(millSourcePath / "javalib"))
++        extends Cross[ExampleCrossModuleAndroid](build.listIn(moduleDir / "javalib"))
+     object kotlinlib
+-        extends Cross[ExampleCrossModuleAndroid](build.listIn(millSourcePath / "kotlinlib"))
++        extends Cross[ExampleCrossModuleAndroid](build.listIn(moduleDir / "kotlinlib"))
+   }
+   object javalib extends Module {
+ 
+-    object basic extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "basic"))
+-    object module extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "module"))
++    object basic extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "basic"))
++    object module extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "module"))
+     object dependencies
+-        extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "dependencies"))
+-    object testing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "testing"))
+-    object linting extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "linting"))
++        extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "dependencies"))
++    object testing extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "testing"))
++    object linting extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "linting"))
+     object migrating
+-        extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "migrating"))
++        extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "migrating"))
+     object publishing
+-        extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
+-    object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
++        extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "publishing"))
++    object web extends Cross[ExampleCrossModule](build.listIn(moduleDir / "web"))
+   }
+   object kotlinlib extends Module {
+-    object basic extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "basic"))
+-    object module extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "module"))
++    object basic extends Cross[ExampleCrossModuleKotlin](build.listIn(moduleDir / "basic"))
++    object module extends Cross[ExampleCrossModuleKotlin](build.listIn(moduleDir / "module"))
+     object dependencies
+-        extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "dependencies"))
+-    object testing extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "testing"))
+-    object linting extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "linting"))
++        extends Cross[ExampleCrossModuleKotlin](build.listIn(moduleDir / "dependencies"))
++    object testing extends Cross[ExampleCrossModuleKotlin](build.listIn(moduleDir / "testing"))
++    object linting extends Cross[ExampleCrossModuleKotlin](build.listIn(moduleDir / "linting"))
+     object publishing
+-        extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "publishing"))
+-    object web extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "web"))
++        extends Cross[ExampleCrossModuleKotlin](build.listIn(moduleDir / "publishing"))
++    object web extends Cross[ExampleCrossModuleKotlin](build.listIn(moduleDir / "web"))
+   }
+   object scalalib extends Module {
+-    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
+-    object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
++    object basic extends Cross[ExampleCrossModule](build.listIn(moduleDir / "basic"))
++    object module extends Cross[ExampleCrossModule](build.listIn(moduleDir / "module"))
+     object dependencies
+-        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+-    object testing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "testing"))
+-    object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
+-    object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
+-    object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
+-    object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
++        extends Cross[ExampleCrossModule](build.listIn(moduleDir / "dependencies"))
++    object testing extends Cross[ExampleCrossModule](build.listIn(moduleDir / "testing"))
++    object linting extends Cross[ExampleCrossModule](build.listIn(moduleDir / "linting"))
++    object publishing extends Cross[ExampleCrossModule](build.listIn(moduleDir / "publishing"))
++    object web extends Cross[ExampleCrossModule](build.listIn(moduleDir / "web"))
++    object native extends Cross[ExampleCrossModule](build.listIn(moduleDir / "native"))
+   }
+   object javascriptlib extends Module {
+-    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
+-    object testing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "testing"))
+-    object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
++    object basic extends Cross[ExampleCrossModule](build.listIn(moduleDir / "basic"))
++    object testing extends Cross[ExampleCrossModule](build.listIn(moduleDir / "testing"))
++    object module extends Cross[ExampleCrossModule](build.listIn(moduleDir / "module"))
+     object dependencies
+-        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+-    object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
+-    object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
++        extends Cross[ExampleCrossModule](build.listIn(moduleDir / "dependencies"))
++    object publishing extends Cross[ExampleCrossModule](build.listIn(moduleDir / "publishing"))
++    object linting extends Cross[ExampleCrossModule](build.listIn(moduleDir / "linting"))
+   }
+   object pythonlib extends Module {
+-    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
++    object basic extends Cross[ExampleCrossModule](build.listIn(moduleDir / "basic"))
+     object dependencies
+-        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+-    object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
+-    object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
+-    object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
+-    object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
+-    object testing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "testing"))
++        extends Cross[ExampleCrossModule](build.listIn(moduleDir / "dependencies"))
++    object linting extends Cross[ExampleCrossModule](build.listIn(moduleDir / "linting"))
++    object publishing extends Cross[ExampleCrossModule](build.listIn(moduleDir / "publishing"))
++    object module extends Cross[ExampleCrossModule](build.listIn(moduleDir / "module"))
++    object web extends Cross[ExampleCrossModule](build.listIn(moduleDir / "web"))
++    object testing extends Cross[ExampleCrossModule](build.listIn(moduleDir / "testing"))
+   }
+ 
+   object cli extends Module {
+-    object builtins extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "builtins"))
++    object builtins extends Cross[ExampleCrossModule](build.listIn(moduleDir / "builtins"))
+   }
+ 
+   object fundamentals extends Module {
+ 
+     object dependencies
+-        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+-    object tasks extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "tasks"))
+-    object modules extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "modules"))
+-    object cross extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "cross"))
+-    object `out-dir` extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "out-dir"))
+-    object libraries extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "libraries"))
++        extends Cross[ExampleCrossModule](build.listIn(moduleDir / "dependencies"))
++    object tasks extends Cross[ExampleCrossModule](build.listIn(moduleDir / "tasks"))
++    object modules extends Cross[ExampleCrossModule](build.listIn(moduleDir / "modules"))
++    object cross extends Cross[ExampleCrossModule](build.listIn(moduleDir / "cross"))
++    object `out-dir` extends Cross[ExampleCrossModule](build.listIn(moduleDir / "out-dir"))
++    object libraries extends Cross[ExampleCrossModule](build.listIn(moduleDir / "libraries"))
+   }
+ 
+   object depth extends Module {
+ 
+-    object sandbox extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "sandbox"))
+-    object javahome extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "javahome"))
++    object sandbox extends Cross[ExampleCrossModule](build.listIn(moduleDir / "sandbox"))
++    object javahome extends Cross[ExampleCrossModule](build.listIn(moduleDir / "javahome"))
+   }
+   object large extends Module {
+ 
+-    object selective extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "selective"))
+-    object multi extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "multi"))
++    object selective extends Cross[ExampleCrossModule](build.listIn(moduleDir / "selective"))
++    object multi extends Cross[ExampleCrossModule](build.listIn(moduleDir / "multi"))
+   }
+ 
+   object extending extends Module {
+-    object imports extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "imports"))
+-    object metabuild extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "metabuild"))
+-    object plugins extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "plugins"))
+-    object jvmcode extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "jvmcode"))
+-    object python extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "python"))
+-    object typescript extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "typescript"))
++    object imports extends Cross[ExampleCrossModule](build.listIn(moduleDir / "imports"))
++    object metabuild extends Cross[ExampleCrossModule](build.listIn(moduleDir / "metabuild"))
++    object plugins extends Cross[ExampleCrossModule](build.listIn(moduleDir / "plugins"))
++    object jvmcode extends Cross[ExampleCrossModule](build.listIn(moduleDir / "jvmcode"))
++    object python extends Cross[ExampleCrossModule](build.listIn(moduleDir / "python"))
++    object typescript extends Cross[ExampleCrossModule](build.listIn(moduleDir / "typescript"))
+   }
+ 
+   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
+ 
+-    override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
++    override def lineTransform(line: String) = this.moduleSegments.parts.last match {
+       case "1-test-suite" => line
+           .replace(
+             "mill bar.test bar.BarTests.hello",
+@@ -146,7 +145,7 @@ object `package` extends RootModule with Module {
+       case "publishing" => Some(scalalib.publishing)
+       case _ => None
+     }
+-    val upstreamOpt = upstreamCross(this.millModuleSegments.parts.dropRight(1).last)
++    val upstreamOpt = upstreamCross(this.moduleSegments.parts.dropRight(1).last)
+       .flatMap(_.valuesToModules.get(List(crossValue)))
+ 
+     def testRepoRoot = Task {
+@@ -212,10 +211,10 @@ object `package` extends RootModule with Module {
+ 
+   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
+     // disable scalafix because these example modules don't have sources causing it to misbehave
+-    def testRepoSourceRoot: T[PathRef] = Task.Source(millSourcePath)
++    def testRepoSourceRoot: T[PathRef] = Task.Source(moduleDir)
+     def testRepoRoot: T[PathRef] = Task { testRepoSourceRoot() }
+ 
+-    def sources0 = Task.Sources(millSourcePath)
++    def sources0 = Task.Sources(moduleDir)
+     def sources = Task {
+       sources0()
+         .flatMap(pathRef => os.walk(pathRef.path))
+@@ -244,7 +243,7 @@ object `package` extends RootModule with Module {
+ 
+     def rendered = Task {
+       var seenCode = false
+-      val examplePath = millSourcePath.subRelativeTo(Task.workspace)
++      val examplePath = moduleDir.subRelativeTo(Task.workspace)
+       os.write(
+         Task.dest / "example.adoc",
+         parsed()
+@@ -299,7 +298,7 @@ object `package` extends RootModule with Module {
+     "gatling" -> ("gatling/gatling", "3870fda86e6bca005fbd53108c60a65db36279b6"),
+     "arrow" -> ("arrow-kt/arrow", "bc9bf92cc98e01c21bdd2bf8640cf7db0f97204a")
+   )
+-  object thirdparty extends Cross[ThirdPartyModule](build.listIn(millSourcePath / "thirdparty"))
++  object thirdparty extends Cross[ThirdPartyModule](build.listIn(moduleDir / "thirdparty"))
+   trait ThirdPartyModule extends ExampleCrossModule {
+     val (repoPath, repoHash) = repoInfo(crossValue)
+     def repoSlug = repoPath.split("/").last
+diff --git a/integration/package.mill b/integration/package.mill
+index af00b40d3f0..c916fe48101 100644
+--- a/integration/package.mill
++++ b/integration/package.mill
+@@ -3,7 +3,6 @@ package build.integration
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.api.JarManifest
+ import mill.main.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.ZincWorkerUtil
+@@ -24,7 +23,7 @@ object `package` extends RootModule {
+   // and pass `lib`'s compile output back to `test`.
+ 
+   trait IntegrationTestModule extends Cross.Module[String] {
+-    def millSourcePath = super.millSourcePath / crossValue
++    def moduleDir = super.moduleDir / crossValue
+ 
+     def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
+ 
+@@ -38,7 +37,7 @@ object `package` extends RootModule {
+         testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+       }
+ 
+-      def mode: String = millModuleSegments.parts.last
++      def mode: String = moduleSegments.parts.last
+       def scalaVersion = build.Deps.scalaVersion
+ 
+       def forkEnv =
+@@ -87,11 +86,11 @@ object `package` extends RootModule {
+     }
+   }
+ 
+-  object failure extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "failure"))
+-  object feature extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "feature"))
++  object failure extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "failure"))
++  object feature extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "feature"))
+   object invalidation
+-      extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "invalidation"))
+-  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "ide"))
++      extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "invalidation"))
++  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "ide"))
+   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
+     override def moduleDeps = super[IntegrationTestModule].moduleDeps
+     def forkEnv = super.forkEnv() ++ Seq(
 diff --git a/mill-build/build.mill b/mill-build/build.mill
 index 957d929826d..112f1aaccb8 100644
 --- a/mill-build/build.mill
@@ -140,10 +498,70 @@ index 957d929826d..112f1aaccb8 100644
      ivy"com.lihaoyi::mill-main-graphviz:${mill.api.BuildInfo.millVersion}",
      // TODO: document, why we have this dependency
      ivy"org.jsoup:jsoup:1.18.1"
+diff --git a/scalajslib/package.mill b/scalajslib/package.mill
+index cb17827974f..9270c6ca604 100644
+--- a/scalajslib/package.mill
++++ b/scalajslib/package.mill
+@@ -44,7 +44,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
+   object worker extends Cross[WorkerModule]("1")
+   trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
+     def scalajsWorkerVersion = crossValue
+-    def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
++    def millSourcePath: os.Path = super.moduleDir / scalajsWorkerVersion
+     def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.core.client, build.core.api)
+     def mandatoryIvyDeps = Agg.empty[Dep]
+     def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
+diff --git a/scalalib/package.mill b/scalalib/package.mill
+index 05d74d4426f..29cdadf3dfa 100644
+--- a/scalalib/package.mill
++++ b/scalalib/package.mill
+@@ -2,7 +2,6 @@ package build.scalalib
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.api.JarManifest
+ import mill.define.NamedTask
+ import mill.main.Tasks
+ import mill.scalalib._
+diff --git a/scalanativelib/package.mill b/scalanativelib/package.mill
+index a0c2c525a9e..141559d8435 100644
+--- a/scalanativelib/package.mill
++++ b/scalanativelib/package.mill
+@@ -17,7 +17,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
+ 
+   trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
+     def scalaNativeWorkerVersion = crossValue
+-    def millSourcePath: os.Path = super.millSourcePath / scalaNativeWorkerVersion
++    def millSourcePath: os.Path = super.moduleDir / scalaNativeWorkerVersion
+     def compileModuleDeps = Seq(`worker-api`)
+     def compileIvyDeps = scalaNativeWorkerVersion match {
+       case "0.5" =>
+diff --git a/testkit/package.mill b/testkit/package.mill
+index f73b2261f7b..261e18371b4 100644
+--- a/testkit/package.mill
++++ b/testkit/package.mill
+@@ -8,7 +8,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
+ 
+   def sources =
+     super.sources() ++
+-      Seq(PathRef(build.millSourcePath / "mill-build/src"))
++      Seq(PathRef(build.moduleDir / "mill-build/src"))
+ 
+   def forkEnv =
+     super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString())
 diff --git a/website/package.mill b/website/package.mill
-index eb4f1515dee..a49e72e84fe 100644
+index eb4f1515dee..8a52e72cdc9 100644
 --- a/website/package.mill
 +++ b/website/package.mill
+@@ -26,7 +26,7 @@ object `package` extends RootModule {
+         !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
+       }
+     def scalaVersion = build.Deps.scalaVersion
+-    def moduleDeps = build.millInternal.modules.collect {
++    def moduleDeps = build.moduleInternal.modules.collect {
+       case m: build.MillStableScalaModule => m
+       case m: JavaModule if m eq build.kotlinlib => m
+     }
 @@ -40,8 +40,8 @@ object `package` extends RootModule {
    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
    def npmBase: T[os.Path] = Task(persistent = true) { Task.dest }
@@ -166,7 +584,7 @@ index eb4f1515dee..a49e72e84fe 100644
      )
    }
  
-@@ -63,10 +63,10 @@ object `package` extends RootModule {
+@@ -63,15 +63,15 @@ object `package` extends RootModule {
      val cmdArgs =
        Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
      ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
@@ -181,6 +599,30 @@ index eb4f1515dee..a49e72e84fe 100644
      )
      PathRef(workDir / "build/site")
    }
+ 
+-  def source0 = Task.Source(millSourcePath / "docs")
++  def source0 = Task.Source(moduleDir / "docs")
+   def projectChangelog = Task.Source(Task.workspace / "changelog.adoc")
+   def source = Task {
+     os.copy(source0().path, Task.dest, mergeFolders = true)
+@@ -84,7 +84,7 @@ object `package` extends RootModule {
+     val renderedExamples: Seq[(os.SubPath, PathRef)] =
+       Task.traverse(build.example.exampleModules)(m =>
+         Task.Anon {
+-          (m.millSourcePath.subRelativeTo(build.example.millSourcePath), m.rendered())
++          (m.moduleDir.subRelativeTo(build.example.moduleDir), m.rendered())
+         }
+       )()
+ 
+@@ -96,7 +96,7 @@ object `package` extends RootModule {
+ 
+     val contribReadmes = Task.traverse(build.contrib.contribModules)(m =>
+       Task.Anon {
+-        m.millModuleSegments.parts.last -> m.readme()
++        m.moduleSegments.parts.last -> m.readme()
+       }
+     )()
+ 
 @@ -161,9 +161,9 @@ object `package` extends RootModule {
        (p, i, os.temp(s), os.temp.dir())
      }
@@ -193,3 +635,21 @@ index eb4f1515dee..a49e72e84fe 100644
        mainArgs = orderedDiagrams.map { case (p, i, src, dest) => s"$src;$dest;svg" }
      )
  
+@@ -173,7 +173,7 @@ object `package` extends RootModule {
+ 
+   }
+ 
+-  def supplementalFiles = Task.Source(millSourcePath / "docs" / "supplemental-ui")
++  def supplementalFiles = Task.Source(moduleDir / "docs" / "supplemental-ui")
+ 
+   /**
+    * The doc root ready to be built by antora for the current branch.
+@@ -216,7 +216,7 @@ object `package` extends RootModule {
+     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
+   }
+ 
+-  def blogFolder0 = Task.Source(millSourcePath / "blog")
++  def blogFolder0 = Task.Source(moduleDir / "blog")
+   def blogFolder = Task {
+     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
+     expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))

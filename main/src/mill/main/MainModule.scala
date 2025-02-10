@@ -1,7 +1,7 @@
 package mill.main
 
-import mill.api._
-import mill.define._
+import mill.api.*
+import mill.define.*
 import mill.eval.Evaluator
 import mill.exec.ExecutionPaths
 import mill.moduledefs.Scaladoc
@@ -9,6 +9,7 @@ import mill.resolve.SelectMode.Separated
 import mill.resolve.SelectMode
 import mill.util.Util
 import mill.define.Watchable
+import mill.main.client.DebugLog
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue
@@ -223,11 +224,13 @@ trait MainModule extends BaseModule {
       def pprintTask(t: NamedTask[?], evaluator: Evaluator): Tree.Lazy = {
         val seen = mutable.Set.empty[Task[?]]
 
+        DebugLog.println(t.toString)
+        DebugLog.println(t.ctx.segments.toString)
         def rec(t: Task[?]): Seq[Segments] = {
           if (seen(t)) Nil // do nothing
           else t match {
             case t: mill.define.Target[_]
-                if evaluator.rootModule.millInternal.targets.contains(t) =>
+                if evaluator.rootModule.moduleInternal.targets.contains(t) =>
               Seq(t.ctx.segments)
             case _ =>
               seen.add(t)
@@ -238,7 +241,7 @@ trait MainModule extends BaseModule {
         val annots = for {
           c <- resolveParents(List(t.ctx.enclosingCls))
           m <- c.getMethods
-          if m.getName == t.ctx.segment.pathSegments.head
+          if m.getName == t.ctx.segments.last.pathSegments.head
           a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
           if a != null
         } yield a
@@ -253,7 +256,8 @@ trait MainModule extends BaseModule {
             else {
               val mainDataOpt = evaluator
                 .rootModule
-                .implicitMillDiscover
+                .moduleCtx
+                .discover
                 .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
 
               mainDataOpt match {
@@ -338,7 +342,7 @@ trait MainModule extends BaseModule {
           case _ => None
         }
 
-        val methodMap = evaluator.rootModule.implicitMillDiscover.classInfo
+        val methodMap = evaluator.rootModule.moduleCtx.discover.classInfo
         val tasks = methodMap
           .get(cls)
           .map { node => node.declaredTasks.map(task => s"${t.module}.${task.name}") }

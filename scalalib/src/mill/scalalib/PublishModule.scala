@@ -3,7 +3,8 @@ package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task}
-import mill.api.{JarManifest, PathRef, Result}
+import mill.api.{PathRef, Result}
+import mill.util.JarManifest
 import mill.main.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.SonatypeHelpers.{

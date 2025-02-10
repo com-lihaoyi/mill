@@ -220,13 +220,13 @@ object HelloWorldTests extends TestSuite {
         val Right(result) = eval.apply(HelloWorld.core.compile): @unchecked
         assert(result.evalCount > 0)
 
-        os.write.append(HelloWorld.millSourcePath / "core/src/Main.scala", "\n")
+        os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "\n")
 
         val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
         assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
       }
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        os.write.append(HelloWorld.millSourcePath / "core/src/Main.scala", "val x: ")
+        os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
 
         val Left(Result.Failure("Compilation failed", _)) =
           eval.apply(HelloWorld.core.compile): @unchecked
@@ -239,8 +239,8 @@ object HelloWorldTests extends TestSuite {
         )
         // Works when fixed
         os.write.over(
-          HelloWorld.millSourcePath / "core/src/Main.scala",
-          os.read(HelloWorld.millSourcePath / "core/src/Main.scala").dropRight(
+          HelloWorld.moduleDir / "core/src/Main.scala",
+          os.read(HelloWorld.moduleDir / "core/src/Main.scala").dropRight(
             "val x: ".length
           )
         )

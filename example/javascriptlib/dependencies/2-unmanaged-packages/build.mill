@@ -2,7 +2,7 @@ package build
 import mill._, javascriptlib._
 
 object foo extends TypeScriptModule {
-  def unmanagedDeps = Seq.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+  def unmanagedDeps = Seq.from(os.list(moduleDir / "lib").map(PathRef(_)))
 }
 
 // You can override `unmanagedDeps` to point to a

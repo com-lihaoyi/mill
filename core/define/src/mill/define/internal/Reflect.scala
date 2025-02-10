@@ -1,7 +1,7 @@
-package mill.define
+package mill.define.internal
 
-import scala.reflect.ClassTag
 import java.lang.reflect.Method
+import scala.reflect.ClassTag
 
 private[mill] object Reflect {
   import java.lang.reflect.Modifier
@@ -96,19 +96,24 @@ private[mill] object Reflect {
     )
       .map(m => (m.getName, m))
 
-    val second =
-      outerCls
-        .getClasses
-        .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
-        .flatMap { c =>
-          c.getName.stripPrefix(outerCls.getName) match {
-            case s"$name$$" if filter(name) =>
-              c.getFields.find(_.getName == "MODULE$").map(name -> _)
-            case _ => None
-          }
-
+    val companionClassOpt = outerCls.getName match {
+      case s"$prefix$$" =>
+        try Some(Class.forName(prefix))
+        catch { case e: Throwable => None }
+      case _ => None
+    }
+    val second = (Array(outerCls) ++ companionClassOpt)
+      .flatMap(_.getClasses)
+      .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
+      .flatMap { c =>
+        c.getName.stripPrefix(outerCls.getName) match {
+          case s"$name$$" if filter(name) =>
+            c.getFields.find(_.getName == "MODULE$").map(name -> _)
+          case _ => None
         }
-        .distinct
+
+      }
+      .distinct
 
     // Sometimes `getClasses` returns stuff in odd orders, make sure to sort for determinism
     second.sortInPlaceBy(_._1)

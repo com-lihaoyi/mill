@@ -393,7 +393,7 @@ object BuildGenUtil {
   def renderResources(args: IterableOnce[os.SubPath]): String =
     optional(
       "def resources = Task.Sources { super.resources() ++ Seq(",
-      args.iterator.map(sub => s"PathRef(millSourcePath / ${escape(sub.toString())})"),
+      args.iterator.map(sub => s"PathRef(moduleDir / ${escape(sub.toString())})"),
       ", ",
       ") }"
     )
