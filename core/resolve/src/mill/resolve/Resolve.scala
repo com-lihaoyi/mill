@@ -166,7 +166,11 @@ private[mill] object Resolve {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
       else if (nullCommandDefaults) {
-        a.copy(default = Some(_ => null))
+        a.copy(default =
+          if (a.reader.isInstanceOf[SimpleTaskTokenReader[?]])
+            Some(_ => mill.define.Task.Anon(null))
+          else Some(_ => null)
+        )
       } else a
     }
 
