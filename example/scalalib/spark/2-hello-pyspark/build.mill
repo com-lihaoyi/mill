@@ -1,0 +1,32 @@
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+
+  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+  def pythonDeps = Seq("pyspark==3.5.4")
+
+  object test extends PythonTests with TestModule.Unittest
+
+}
+
+/** Usage
+
+> ./mill foo.run
+...
++-------------+
+|      message|
++-------------+
+|Hello, World!|
++-------------+
+...
+
+> ./mill foo.test
+...
+test_hello_world...
+...
+Ran 1 test...
+...
+OK
+...
+*/
