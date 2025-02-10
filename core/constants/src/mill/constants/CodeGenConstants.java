@@ -1,6 +1,5 @@
 package mill.constants;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class CodeGenConstants {
@@ -23,12 +22,14 @@ public class CodeGenConstants {
   /**
    * The name of the root build file
    */
-  public static final List<String> rootBuildFileNames = List.of("build.mill", "build.mill.scala", "build.sc");
+  public static final List<String> rootBuildFileNames =
+      List.of("build.mill", "build.mill.scala", "build.sc");
 
   /**
    * The name of any sub-folder build files
    */
-  public static final List<String> nestedBuildFileNames = List.of("package.mill", "package.mill.scala", "package.sc");
+  public static final List<String> nestedBuildFileNames =
+      List.of("package.mill", "package.mill.scala", "package.sc");
 
   /**
    * The extensions used by build files

@@ -12,7 +12,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
-
 import mill.client.ClientUtil;
 import mill.constants.EnvVars;
 import mill.constants.ServerFiles;
@@ -46,10 +45,9 @@ public class MillProcessLauncher {
     } finally {
       if (!interrupted && Files.exists(processDir)) {
         // cleanup if process terminated for sure
-        try(Stream<Path> stream = Files.walk(processDir)) {
-            // depth-first
-            stream.sorted(Comparator.reverseOrder())
-               .forEach(p -> p.toFile().delete());
+        try (Stream<Path> stream = Files.walk(processDir)) {
+          // depth-first
+          stream.sorted(Comparator.reverseOrder()).forEach(p -> p.toFile().delete());
         }
       }
     }
