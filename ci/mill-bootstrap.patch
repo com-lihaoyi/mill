@@ -86,10 +86,18 @@ index 7a8ea3a31a5..39bbc91f872 100644
  
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/contrib/package.mill b/contrib/package.mill
-index b5e172dd322..a59b08a230b 100644
+index b5e172dd322..c3939bbe82a 100644
 --- a/contrib/package.mill
 +++ b/contrib/package.mill
-@@ -20,10 +20,10 @@ import $meta._
+@@ -3,7 +3,6 @@ package build.contrib
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.api.JarManifest
+ import mill.main.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.ZincWorkerUtil
+@@ -20,10 +19,10 @@ import $meta._
  
  object `package` extends RootModule {
    def contribModules: Seq[ContribModule] =
@@ -102,7 +110,7 @@ index b5e172dd322..a59b08a230b 100644
    }
  
    object testng extends JavaModule with ContribModule {
-@@ -76,13 +76,13 @@ object `package` extends RootModule {
+@@ -76,13 +75,13 @@ object `package` extends RootModule {
      object worker extends Cross[WorkerModule](build.Deps.play.keys.toSeq)
      trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
        def playBinary = crossValue
@@ -143,19 +151,28 @@ index b2d5c62b889..9cb396c9a65 100644
        def ivyDeps = Task {
          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
 diff --git a/dist/package.mill b/dist/package.mill
-index fbbeacbc843..c323e7d3cf7 100644
+index fbbeacbc843..5a205433d24 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
-@@ -3,7 +3,7 @@ import mill._, scalalib._, publish._
+@@ -2,15 +2,14 @@ package build.dist
+ import mill._, scalalib._, publish._
  import mill.define.ModuleRef
  import mill.util.Jvm
- import mill.api.JarManifest
+-import mill.api.JarManifest
 -import de.tobiasroeser.mill.vcs.version.VcsVersion
 +//import de.tobiasroeser.mill.vcs.version.VcsVersion
  
  import scala.util.Using
  
-@@ -185,10 +185,10 @@ object `package` extends RootModule with InstallModule {
+ trait InstallModule extends build.MillPublishJavaModule {
+   // All modules that we want to aggregate as part of this `dev` assembly.
+   // Excluding itself, and the `dist` module that uses it
+-  lazy val allPublishModules = build.millInternal.modules.collect {
++  lazy val allPublishModules = build.moduleInternal.modules.collect {
+     case m: PublishModule if (m ne build.dist) && (m ne build.dist.native) => m
+   }
+   def moduleDeps = Seq(build.runner, build.idea, build.main.init)
+@@ -185,10 +184,10 @@ object `package` extends RootModule with InstallModule {
          val wd = os.Path(wd0, Task.workspace)
          os.makeDir.all(wd)
          try {
@@ -169,7 +186,7 @@ index fbbeacbc843..c323e7d3cf7 100644
            )
            mill.api.Result.Success(())
          } catch {
-@@ -233,7 +233,7 @@ object `package` extends RootModule with InstallModule {
+@@ -233,7 +232,7 @@ object `package` extends RootModule with InstallModule {
    def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
      for {
        exampleMod <- build.example.exampleModules
@@ -178,7 +195,7 @@ index fbbeacbc843..c323e7d3cf7 100644
      } yield {
        val example = path.subRelativeTo(Task.workspace)
        val artifactName = example.segments.mkString("-")
-@@ -263,6 +263,7 @@ object `package` extends RootModule with InstallModule {
+@@ -263,6 +262,7 @@ object `package` extends RootModule with InstallModule {
    }
  
    def uploadToGithub(authKey: String) = Task.Command {
@@ -186,7 +203,7 @@ index fbbeacbc843..c323e7d3cf7 100644
      val vcsState = VcsVersion.vcsState()
      val label = vcsState.copy(dirtyHash = None).format()
      if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
-@@ -279,7 +280,7 @@ object `package` extends RootModule with InstallModule {
+@@ -279,7 +279,7 @@ object `package` extends RootModule with InstallModule {
          headers = Seq("Authorization" -> ("token " + authKey))
        )
      }
@@ -196,10 +213,25 @@ index fbbeacbc843..c323e7d3cf7 100644
    }
  
 diff --git a/example/package.mill b/example/package.mill
-index bf4160210d8..2b56a99c2a1 100644
+index bf4160210d8..fe59ca4ed28 100644
 --- a/example/package.mill
 +++ b/example/package.mill
-@@ -24,104 +24,104 @@ object `package` extends RootModule with Module {
+@@ -3,7 +3,6 @@ package build.example
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.api.JarManifest
+ import mill.main.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.ZincWorkerUtil
+@@ -18,110 +17,110 @@ import mill.define.Cross
+ import $meta._
+ 
+ object `package` extends RootModule with Module {
+-  def exampleModules: Seq[ExampleCrossModule] = millInternal
++  def exampleModules: Seq[ExampleCrossModule] = moduleInternal
+     .modules
+     .collect { case m: ExampleCrossModule => m }
  
    object android extends Module {
      object javalib
@@ -360,7 +392,7 @@ index bf4160210d8..2b56a99c2a1 100644
        case "1-test-suite" => line
            .replace(
              "mill bar.test bar.BarTests.hello",
-@@ -146,7 +146,7 @@ object `package` extends RootModule with Module {
+@@ -146,7 +145,7 @@ object `package` extends RootModule with Module {
        case "publishing" => Some(scalalib.publishing)
        case _ => None
      }
@@ -369,7 +401,7 @@ index bf4160210d8..2b56a99c2a1 100644
        .flatMap(_.valuesToModules.get(List(crossValue)))
  
      def testRepoRoot = Task {
-@@ -212,10 +212,10 @@ object `package` extends RootModule with Module {
+@@ -212,10 +211,10 @@ object `package` extends RootModule with Module {
  
    trait ExampleCrossModule extends build.integration.IntegrationTestModule {
      // disable scalafix because these example modules don't have sources causing it to misbehave
@@ -382,7 +414,7 @@ index bf4160210d8..2b56a99c2a1 100644
      def sources = Task {
        sources0()
          .flatMap(pathRef => os.walk(pathRef.path))
-@@ -244,7 +244,7 @@ object `package` extends RootModule with Module {
+@@ -244,7 +243,7 @@ object `package` extends RootModule with Module {
  
      def rendered = Task {
        var seenCode = false
@@ -391,7 +423,7 @@ index bf4160210d8..2b56a99c2a1 100644
        os.write(
          Task.dest / "example.adoc",
          parsed()
-@@ -299,7 +299,7 @@ object `package` extends RootModule with Module {
+@@ -299,7 +298,7 @@ object `package` extends RootModule with Module {
      "gatling" -> ("gatling/gatling", "3870fda86e6bca005fbd53108c60a65db36279b6"),
      "arrow" -> ("arrow-kt/arrow", "bc9bf92cc98e01c21bdd2bf8640cf7db0f97204a")
    )
@@ -401,10 +433,18 @@ index bf4160210d8..2b56a99c2a1 100644
      val (repoPath, repoHash) = repoInfo(crossValue)
      def repoSlug = repoPath.split("/").last
 diff --git a/integration/package.mill b/integration/package.mill
-index af00b40d3f0..d3cdd7343ca 100644
+index af00b40d3f0..c916fe48101 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
-@@ -24,7 +24,7 @@ object `package` extends RootModule {
+@@ -3,7 +3,6 @@ package build.integration
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.api.JarManifest
+ import mill.main.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.ZincWorkerUtil
+@@ -24,7 +23,7 @@ object `package` extends RootModule {
    // and pass `lib`'s compile output back to `test`.
  
    trait IntegrationTestModule extends Cross.Module[String] {
@@ -413,7 +453,7 @@ index af00b40d3f0..d3cdd7343ca 100644
  
      def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
  
-@@ -38,7 +38,7 @@ object `package` extends RootModule {
+@@ -38,7 +37,7 @@ object `package` extends RootModule {
          testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
        }
  
@@ -422,7 +462,7 @@ index af00b40d3f0..d3cdd7343ca 100644
        def scalaVersion = build.Deps.scalaVersion
  
        def forkEnv =
-@@ -87,11 +87,11 @@ object `package` extends RootModule {
+@@ -87,11 +86,11 @@ object `package` extends RootModule {
      }
    }
  
@@ -471,6 +511,31 @@ index cb17827974f..9270c6ca604 100644
      def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.core.client, build.core.api)
      def mandatoryIvyDeps = Agg.empty[Dep]
      def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
+diff --git a/scalalib/package.mill b/scalalib/package.mill
+index 05d74d4426f..29cdadf3dfa 100644
+--- a/scalalib/package.mill
++++ b/scalalib/package.mill
+@@ -2,7 +2,6 @@ package build.scalalib
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.api.JarManifest
+ import mill.define.NamedTask
+ import mill.main.Tasks
+ import mill.scalalib._
+diff --git a/scalanativelib/package.mill b/scalanativelib/package.mill
+index a0c2c525a9e..141559d8435 100644
+--- a/scalanativelib/package.mill
++++ b/scalanativelib/package.mill
+@@ -17,7 +17,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
+ 
+   trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
+     def scalaNativeWorkerVersion = crossValue
+-    def millSourcePath: os.Path = super.millSourcePath / scalaNativeWorkerVersion
++    def millSourcePath: os.Path = super.moduleDir / scalaNativeWorkerVersion
+     def compileModuleDeps = Seq(`worker-api`)
+     def compileIvyDeps = scalaNativeWorkerVersion match {
+       case "0.5" =>
 diff --git a/testkit/package.mill b/testkit/package.mill
 index f73b2261f7b..261e18371b4 100644
 --- a/testkit/package.mill
@@ -485,9 +550,18 @@ index f73b2261f7b..261e18371b4 100644
    def forkEnv =
      super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString())
 diff --git a/website/package.mill b/website/package.mill
-index eb4f1515dee..3285594efc3 100644
+index eb4f1515dee..8a52e72cdc9 100644
 --- a/website/package.mill
 +++ b/website/package.mill
+@@ -26,7 +26,7 @@ object `package` extends RootModule {
+         !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
+       }
+     def scalaVersion = build.Deps.scalaVersion
+-    def moduleDeps = build.millInternal.modules.collect {
++    def moduleDeps = build.moduleInternal.modules.collect {
+       case m: build.MillStableScalaModule => m
+       case m: JavaModule if m eq build.kotlinlib => m
+     }
 @@ -40,8 +40,8 @@ object `package` extends RootModule {
    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
    def npmBase: T[os.Path] = Task(persistent = true) { Task.dest }
@@ -510,7 +584,7 @@ index eb4f1515dee..3285594efc3 100644
      )
    }
  
-@@ -63,10 +63,10 @@ object `package` extends RootModule {
+@@ -63,15 +63,15 @@ object `package` extends RootModule {
      val cmdArgs =
        Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
      ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
@@ -525,6 +599,21 @@ index eb4f1515dee..3285594efc3 100644
      )
      PathRef(workDir / "build/site")
    }
+ 
+-  def source0 = Task.Source(millSourcePath / "docs")
++  def source0 = Task.Source(moduleDir / "docs")
+   def projectChangelog = Task.Source(Task.workspace / "changelog.adoc")
+   def source = Task {
+     os.copy(source0().path, Task.dest, mergeFolders = true)
+@@ -84,7 +84,7 @@ object `package` extends RootModule {
+     val renderedExamples: Seq[(os.SubPath, PathRef)] =
+       Task.traverse(build.example.exampleModules)(m =>
+         Task.Anon {
+-          (m.millSourcePath.subRelativeTo(build.example.millSourcePath), m.rendered())
++          (m.moduleDir.subRelativeTo(build.example.moduleDir), m.rendered())
+         }
+       )()
+ 
 @@ -96,7 +96,7 @@ object `package` extends RootModule {
  
      val contribReadmes = Task.traverse(build.contrib.contribModules)(m =>
@@ -546,3 +635,21 @@ index eb4f1515dee..3285594efc3 100644
        mainArgs = orderedDiagrams.map { case (p, i, src, dest) => s"$src;$dest;svg" }
      )
  
+@@ -173,7 +173,7 @@ object `package` extends RootModule {
+ 
+   }
+ 
+-  def supplementalFiles = Task.Source(millSourcePath / "docs" / "supplemental-ui")
++  def supplementalFiles = Task.Source(moduleDir / "docs" / "supplemental-ui")
+ 
+   /**
+    * The doc root ready to be built by antora for the current branch.
+@@ -216,7 +216,7 @@ object `package` extends RootModule {
+     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
+   }
+ 
+-  def blogFolder0 = Task.Source(millSourcePath / "blog")
++  def blogFolder0 = Task.Source(moduleDir / "blog")
+   def blogFolder = Task {
+     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
+     expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
