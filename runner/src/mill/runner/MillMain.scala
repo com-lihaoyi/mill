@@ -8,9 +8,9 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.{ColorLogger, MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
+import mill.client.{OutFiles, ServerFiles, Util}
+import mill.client.lock.Lock
 import mill.main.BuildInfo
-import mill.main.client.{OutFiles, ServerFiles, Util}
-import mill.main.client.lock.Lock
 import mill.runner.worker.ScalaCompilerWorker
 import mill.internal.{Colors, PrintLogger, PromptLogger}
 

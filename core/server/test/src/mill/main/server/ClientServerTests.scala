@@ -1,13 +1,12 @@
 package mill.main.server
 
-import java.io._
-import mill.main.client.Util
-import mill.main.client.ServerFiles
-import mill.main.client.lock.Locks
+import java.io.*
 import mill.api.SystemStreams
+import mill.client.{ServerFiles, ServerLauncher, Util}
+import mill.client.lock.Locks
 
-import scala.jdk.CollectionConverters._
-import utest._
+import scala.jdk.CollectionConverters.*
+import utest.*
 
 import java.nio.file.Path
 
@@ -87,7 +86,7 @@ object ClientServerTests extends TestSuite {
       val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
-      val result = new mill.main.client.ServerLauncher(
+      val result = new ServerLauncher(
         in,
         new PrintStream(out),
         new PrintStream(err),

@@ -1,6 +1,6 @@
 package mill.runner.client;
 
-import static mill.main.client.OutFiles.*;
+import static mill.client.OutFiles.*;
 
 import io.github.alexarchambault.windowsansi.WindowsAnsi;
 import java.io.File;
@@ -11,9 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import mill.main.client.EnvVars;
-import mill.main.client.ServerFiles;
-import mill.main.client.Util;
+import mill.client.EnvVars;
+import mill.client.ServerFiles;
+import mill.client.Util;
 
 public class MillProcessLauncher {
 

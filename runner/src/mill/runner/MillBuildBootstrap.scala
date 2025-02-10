@@ -3,12 +3,12 @@ package mill.runner
 import mill.internal.PrefixLogger
 import mill.define.Watchable
 import mill.main.{BuildInfo, RootModule}
-import mill.main.client.CodeGenConstants.*
+import mill.client.CodeGenConstants.*
 import mill.api.{ColorLogger, PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
 import mill.define.{BaseModule, Segments, SelectMode}
 import mill.exec.{ChromeProfileLogger, ProfileLogger}
-import mill.main.client.OutFiles.{millBuild, millRunnerState, millProfile, millChromeProfile}
+import mill.client.OutFiles.{millBuild, millRunnerState, millProfile, millChromeProfile}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
 

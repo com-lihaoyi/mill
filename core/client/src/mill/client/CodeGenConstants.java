@@ -1,4 +1,4 @@
-package mill.main.client;
+package mill.client;
 
 public class CodeGenConstants {
   /**

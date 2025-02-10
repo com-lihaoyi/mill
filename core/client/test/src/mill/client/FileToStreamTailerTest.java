@@ -1,4 +1,4 @@
-package mill.main.client;
+package mill.client;
 
 import static org.junit.Assert.*;
 
@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.nio.file.Files;
+
 import org.junit.Ignore;
 import org.junit.Test;
 

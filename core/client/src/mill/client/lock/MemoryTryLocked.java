@@ -1,7 +1,7 @@
-package mill.main.client.lock;
+package mill.client.lock;
 
-class FileTryLocked extends FileLocked implements TryLocked {
-  public FileTryLocked(java.nio.channels.FileLock lock) {
+class MemoryTryLocked extends MemoryLocked implements TryLocked {
+  public MemoryTryLocked(java.util.concurrent.locks.Lock lock) {
     super(lock);
   }
 

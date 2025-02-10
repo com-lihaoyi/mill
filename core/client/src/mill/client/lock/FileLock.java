@@ -1,4 +1,4 @@
-package mill.main.client.lock;
+package mill.client.lock;
 
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;

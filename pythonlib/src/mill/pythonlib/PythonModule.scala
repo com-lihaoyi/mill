@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.util.Util
 import mill.util.Jvm
 import mill.api.Ctx
-import mill.main.client.ServerFiles
+import mill.client.ServerFiles
 
 trait PythonModule extends PipModule with TaskModule { outer =>
 

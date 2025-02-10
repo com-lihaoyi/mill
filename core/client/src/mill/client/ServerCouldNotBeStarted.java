@@ -1,4 +1,4 @@
-package mill.main.client;
+package mill.client;
 
 public class ServerCouldNotBeStarted extends Exception {
   public ServerCouldNotBeStarted(String msg) {

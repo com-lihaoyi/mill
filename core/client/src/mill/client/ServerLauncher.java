@@ -1,4 +1,4 @@
-package mill.main.client;
+package mill.client;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -7,8 +7,8 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import mill.main.client.lock.Locks;
-import mill.main.client.lock.TryLocked;
+import mill.client.lock.Locks;
+import mill.client.lock.TryLocked;
 
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic

@@ -8,15 +8,7 @@ import mill.scalajslib.worker.api.*
 import mill.scalajslib.worker.jsenv.*
 import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, PathOutputFile, StandardImpl}
-import org.scalajs.linker.interface.{
-  ESFeatures as ScalaJSESFeatures,
-  ESVersion as ScalaJSESVersion,
-  ModuleKind as ScalaJSModuleKind,
-  OutputPatterns as ScalaJSOutputPatterns,
-  ModuleSplitStyle as _,
-  Report as _,
-  *
-}
+import org.scalajs.linker.interface.{ESFeatures as ScalaJSESFeatures, ESVersion as ScalaJSESVersion, ModuleKind as ScalaJSModuleKind, OutputPatterns as ScalaJSOutputPatterns, ModuleSplitStyle as _, Report as _, *}
 import org.scalajs.logging.{Level, Logger}
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
@@ -25,6 +17,7 @@ import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 import scala.collection.mutable
 import scala.ref.SoftReference
 import com.armanbilge.sjsimportmap.ImportMappedIRFile
+import mill.client.InputPumper
 
 import scala.annotation.nowarn
 
@@ -319,7 +312,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
             for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
               val t = new Thread(
-                new mill.main.client.InputPumper(
+                new InputPumper(
                   () => std,
                   () => dest,
                   checkAvailable,

@@ -3,10 +3,10 @@ package mill.main.server
 import java.io.*
 import java.net.{InetAddress, Socket}
 import scala.jdk.CollectionConverters.*
-import mill.main.client.*
 import mill.api.SystemStreams
-import mill.main.client.ProxyStream.Output
-import mill.main.client.lock.{Lock, Locks}
+import mill.client.{InputPumper, ProxyStream, ServerFiles, Util, BuildInfo}
+import mill.client.ProxyStream.Output
+import mill.client.lock.{Lock, Locks}
 
 import scala.util.Try
 

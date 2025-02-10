@@ -1,10 +1,10 @@
 package mill.runner
 
 import sun.misc.{Signal, SignalHandler}
-
-import mill.main.client._
 import mill.api.SystemStreams
-import mill.main.client.lock.Locks
+import mill.client.Util
+import mill.client.lock.Locks
+
 import scala.util.Try
 
 object MillServerMain {

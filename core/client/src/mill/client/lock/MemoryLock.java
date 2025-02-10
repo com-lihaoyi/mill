@@ -1,4 +1,4 @@
-package mill.main.client.lock;
+package mill.client.lock;
 
 import java.util.concurrent.locks.ReentrantLock;
 

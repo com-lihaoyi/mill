@@ -1,8 +1,10 @@
-package mill.main.client;
+package mill.client;
 
 import static org.junit.Assert.assertArrayEquals;
 
 import java.io.*;
+
+import mill.client.ProxyStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.junit.Test;
 

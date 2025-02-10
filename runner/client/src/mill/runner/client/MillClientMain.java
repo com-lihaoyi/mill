@@ -6,8 +6,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
-import mill.main.client.*;
-import mill.main.client.lock.Locks;
+
+import mill.client.OutFiles;
+import mill.client.ServerCouldNotBeStarted;
+import mill.client.ServerLauncher;
+import mill.client.Util;
+import mill.client.lock.Locks;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
@@ -60,7 +64,7 @@ public class MillClientMain {
             };
 
         final String versionAndJvmHomeEncoding =
-            Util.sha1Hash(BuildInfo.millVersion + MillProcessLauncher.javaHome());
+            Util.sha1Hash(mill.client.BuildInfo.millVersion + MillProcessLauncher.javaHome());
         Path serverDir0 = Paths.get(OutFiles.out, OutFiles.millServer, versionAndJvmHomeEncoding);
         int exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
         if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {

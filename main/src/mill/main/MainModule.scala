@@ -1,6 +1,7 @@
 package mill.main
 
 import mill.api.*
+import mill.client.DebugLog
 import mill.define.*
 import mill.eval.Evaluator
 import mill.exec.ExecutionPaths
@@ -9,7 +10,6 @@ import mill.define.SelectMode.Separated
 import mill.define.SelectMode
 import mill.util.Util
 import mill.define.Watchable
-import mill.main.client.DebugLog
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue

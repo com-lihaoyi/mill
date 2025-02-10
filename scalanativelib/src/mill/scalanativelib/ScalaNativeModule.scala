@@ -18,7 +18,7 @@ import mill.scalanativelib.worker.{
 }
 import mill.T
 import mill.api.PathRef
-import mill.main.client.EnvVars
+import mill.client.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
 trait ScalaNativeModule extends ScalaModule { outer =>

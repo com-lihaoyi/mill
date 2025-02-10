@@ -2,6 +2,7 @@ package mill.eval
 
 import mill.api.{ColorLogger, PathRef, Result, Strict, SystemStreams, Val}
 import mill.api.Strict.Agg
+import mill.client.OutFiles
 import mill.define.*
 import mill.exec.{
   Cached,
@@ -15,8 +16,7 @@ import mill.exec.{
   TaskResult
 }
 import mill.define.Watchable
-import mill.main.client.OutFiles
-import mill.main.client.OutFiles.*
+import OutFiles.*
 import mill.resolve.Resolve
 
 import scala.jdk.CollectionConverters._

@@ -5,7 +5,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib._
 
 object `package` extends RootModule with build.MillPublishJavaModule with BuildInfo {
-  def buildInfoPackageName = "mill.main.client"
+  def buildInfoPackageName = "mill.client"
   def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
 
   object test extends JavaTests with TestModule.Junit4 {

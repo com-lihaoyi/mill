@@ -1,6 +1,6 @@
-package mill.main.client.lock;
+package mill.client.lock;
 
-import mill.main.client.ServerFiles;
+import mill.client.ServerFiles;
 
 public final class Locks implements AutoCloseable {
 

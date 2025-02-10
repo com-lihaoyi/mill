@@ -1,8 +1,8 @@
 package mill.internal
 
 import mill.api.{SystemStreams, ColorLogger}
+import mill.client.ProxyStream
 import mill.internal.PromptLoggerUtil.*
-import mill.main.client.ProxyStream
 import pprint.Util.literalize
 
 import java.io.*

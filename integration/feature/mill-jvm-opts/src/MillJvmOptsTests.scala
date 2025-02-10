@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.main.client.Util
+import mill.client.Util
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
 

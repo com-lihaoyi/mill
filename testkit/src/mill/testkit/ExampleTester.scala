@@ -1,6 +1,7 @@
 package mill.testkit
+import mill.client
 import mill.util.Util
-import utest._
+import utest.*
 
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
@@ -62,7 +63,7 @@ object ExampleTester {
   }
 
   def defaultBashExecutable(): String = {
-    if (!mill.main.client.Util.isWindows) "bash"
+    if (!client.Util.isWindows) "bash"
     else "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
   }
 }

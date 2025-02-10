@@ -8,7 +8,7 @@ import mill.api.{BuildInfo, PathRef, Result}
 
 object Util {
 
-  def isInteractive(): Boolean = mill.main.client.Util.hasConsole()
+  def isInteractive(): Boolean = mill.client.Util.hasConsole()
 
   val newLine: String = System.lineSeparator()
 

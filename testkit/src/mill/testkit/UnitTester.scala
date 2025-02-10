@@ -9,7 +9,7 @@ import mill.resolve.Resolve
 import mill.internal.PrintLogger
 import mill.api.Strict.Agg
 import mill.exec.{ChromeProfileLogger, ProfileLogger}
-import mill.main.client.OutFiles.{millChromeProfile, millProfile}
+import mill.client.OutFiles.{millChromeProfile, millProfile}
 import java.io.{InputStream, PrintStream}
 
 object UnitTester {

@@ -1,4 +1,4 @@
-package mill.main.client;
+package mill.client;
 
 /**
  * Central place containing all the files that live inside the `out/mill-server-*` folder

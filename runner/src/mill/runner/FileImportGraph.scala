@@ -1,8 +1,8 @@
 package mill.runner
 
 import mill.api.internal
-import mill.main.client.CodeGenConstants._
-import mill.main.client.OutFiles._
+import mill.client.CodeGenConstants._
+import mill.client.OutFiles._
 import mill.runner.worker.api.{MillScalaParser, ImportTree}
 
 import scala.reflect.NameTransformer.encode

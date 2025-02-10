@@ -1,10 +1,11 @@
 package mill.internal
 
+
 import java.nio.file.{Files, Paths}
 
 private[mill] object Util {
 
-  def isInteractive(): Boolean = mill.main.client.Util.hasConsole()
+  def isInteractive(): Boolean = mill.client.Util.hasConsole()
 
   val newLine: String = System.lineSeparator()
 

@@ -6,8 +6,8 @@ import coursier.params.ResolutionParams
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{Ctx, Loose, PathRef, Result}
+import mill.client.EnvVars
 import mill.main.BuildInfo
-import mill.main.client.EnvVars
 import mill.util.Util
 import mill.scalalib.api.ZincWorkerUtil
 

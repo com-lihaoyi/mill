@@ -1,4 +1,4 @@
-package mill.main.client;
+package mill.client;
 
 import java.io.BufferedReader;
 import java.io.File;

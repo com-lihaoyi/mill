@@ -1,4 +1,4 @@
-package mill.main.client;
+package mill.client;
 
 import java.io.IOException;
 import java.nio.file.*;

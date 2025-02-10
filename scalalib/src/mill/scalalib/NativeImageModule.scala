@@ -1,6 +1,7 @@
 package mill.scalalib
 
-import mill._
+import mill.*
+import mill.client.Util
 
 import scala.util.Properties
 
@@ -46,7 +47,7 @@ trait NativeImageModule extends WithZincWorker {
 
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
 
-    val ext = if (mill.main.client.Util.isWindows) ".exe" else ""
+    val ext = if (Util.isWindows) ".exe" else ""
     val executable = dest / s"$executeableName$ext"
     assert(os.exists(executable))
     PathRef(executable)

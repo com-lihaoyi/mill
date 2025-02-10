@@ -1,5 +1,5 @@
 // Taken from https://www.swtestacademy.com/rerun-failed-test-junit/
-package mill.main.client;
+package mill.client;
 
 import java.util.Objects;
 import org.junit.rules.TestRule;
