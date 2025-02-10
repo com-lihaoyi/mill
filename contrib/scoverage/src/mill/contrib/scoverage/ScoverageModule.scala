@@ -7,7 +7,7 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.main.BuildInfo
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 
 /**
  * Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.

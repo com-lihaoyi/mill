@@ -5,7 +5,7 @@ import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
 import mill.define.{Discover, ExternalModule, NamedTask, Target}
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.api.{Loose, PathRef, Result}
 import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}

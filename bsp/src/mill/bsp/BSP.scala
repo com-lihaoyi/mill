@@ -5,7 +5,7 @@ import mill.{Agg, T, Task, given}
 import mill.define.{Command, Discover, ExternalModule}
 import mill.main.BuildInfo
 import mill.eval.Evaluator
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.CoursierModule
 
 object BSP extends ExternalModule with CoursierModule {

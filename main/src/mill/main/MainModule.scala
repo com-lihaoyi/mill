@@ -1,6 +1,6 @@
 package mill.main
 
-import mill.api.{*}
+import mill.api.*
 import mill.client.DebugLog
 import mill.define.*
 import mill.eval.Evaluator
@@ -9,7 +9,7 @@ import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.SelectMode
 import mill.define.Watchable
-import mill.util.Util
+import mill.util.MillModuleUtil
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue

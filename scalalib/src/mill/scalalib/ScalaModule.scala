@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import mill.util.{JarManifest, Util}
+import mill.util.{JarManifest, MillModuleUtil}
 import mill.api.{DummyInputStream, PathRef, Result, internal}
 import mill.main.BuildInfo
 import mill.util.Jvm

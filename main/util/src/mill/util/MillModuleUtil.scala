@@ -6,7 +6,7 @@ import mill.api.{BuildInfo, PathRef, Result}
 
 import java.nio.file.{Files, Paths}
 
-object Util {
+private[mill] object MillModuleUtil {
   /**
    * Deprecated helper method, intended to allow runtime resolution and in-development-tree testings of mill plugins possible.
    * This design has issues and will probably be replaced.

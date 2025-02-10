@@ -12,7 +12,7 @@ import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.T
-import mill.util.Util
+import mill.util.MillModuleUtil
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
@@ -46,7 +46,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   def scalaJSWorkerClasspath = Task {
-    Util.millProjectModule(
+    MillModuleUtil.millProjectModule(
       artifact = s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
       repositories = repositoriesTask()
     )
