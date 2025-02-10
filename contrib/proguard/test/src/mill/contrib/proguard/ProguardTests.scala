@@ -2,7 +2,7 @@ package mill.contrib.proguard
 
 import mill.*
 import mill.define.{Discover, Target}
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -38,7 +38,7 @@ object ProguardTests extends TestSuite {
       }
 
       test("should create a proguarded jar") - UnitTester(proguard, testModuleSourcesPath).scoped {
-        eval =>
+        _ =>
           // Not sure why this is broken in Scala 3
           // val Right(result) = eval.apply(proguard.proguard)
           //          assert(os.exists(result.value.path))

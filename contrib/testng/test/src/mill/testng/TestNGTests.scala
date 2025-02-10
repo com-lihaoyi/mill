@@ -2,11 +2,11 @@ package mill
 package testng
 
 import mill.define.{Discover, Target}
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.{TestSuite, Tests, assert, *}
+import utest.*
 
 object TestNGTests extends TestSuite {
 

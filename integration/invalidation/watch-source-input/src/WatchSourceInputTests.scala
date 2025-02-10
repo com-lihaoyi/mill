@@ -1,8 +1,7 @@
 package mill.integration
 
+import mill.client.Util
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
-
-import mill.main.client.Util
 import utest._
 
 import scala.collection.mutable

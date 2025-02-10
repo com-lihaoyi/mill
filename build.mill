@@ -478,6 +478,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   def semanticDbVersion = Deps.semanticDBscala.version
 
   def scaladocOptions = Seq("-Xsource:3")
+
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",
@@ -485,7 +486,14 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     ) ++ (
       if (ZincWorkerUtil.isScala3(scalaVersion())) Seq(
         // "-Werror",
-        "-Wunused:all"
+        "-Wunused:all",
+        // "-Xfatal-warnings",
+        "-Wconf:msg=An existential type that came from a Scala-2 classfile:silent",
+        "-Wconf:msg=import scala.language.implicitConversions:silent",
+        "-Wconf:msg=IterableOnceExtensionMethods:silent",
+        "-Wconf:msg=is deprecated:silent",
+        "-Wconf:msg=cannot be checked at runtime:silent"
+        // "-Wconf:msg=unused:silent"
         // "-no-indent",
         // "-Wvalue-discard",
         // "-Wshadow:all",
@@ -496,12 +504,14 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       )
       else Seq(
         "-P:acyclic:force",
+        // "-Xfatal-warnings",
         "-Xlint:unused",
         "-Xlint:adapted-args",
         "-Xsource:3",
         "-Wconf:msg=inferred type changes:silent",
         "-Wconf:msg=case companions no longer extend FunctionN:silent",
         "-Wconf:msg=access modifiers for:silent",
+        "-Wconf:msg=is deprecated:silent",
         "-Wconf:msg=found in a package prefix of the required type:silent"
       )
     )
@@ -752,26 +762,6 @@ def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(build.scalalib, build.runner)
-}
-
-private def resolveTasks[T](taskNames: String*): Seq[NamedTask[T]] = {
-  mill.resolve.Resolve.Tasks.resolve(
-    build,
-    taskNames,
-    SelectMode.Separated
-  ).map(x => x.asInstanceOf[Seq[mill.define.NamedTask[T]]]).getOrElse(???)
-}
-
-def validate(): Command[Unit] = {
-  val tasks = resolveTasks("__.compile", "__.minaReportBinaryIssues")
-  val sources = resolveTasks("__.sources")
-
-  Task.Command {
-    Task.sequence(tasks)()
-    mill.scalalib.scalafmt.ScalafmtModule.checkFormatAll(Tasks(sources))()
-    build.website.localPages()
-    ()
-  }
 }
 
 val dummyDeps: Seq[Dep] = Seq(

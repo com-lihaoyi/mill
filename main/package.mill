@@ -7,9 +7,15 @@ import mill.T
 import mill.define.Cross
 import mill.scalalib.api.ZincWorkerUtil
 
+/**
+ * This package contains the helpers necessary to define the `build.*` builtin helpers,
+ * e.g. `inspect`/`init`/`visualize`, along with helpers in [[build.util]] that are
+ * intended for use in downstream user-land code, but without the various language-specific
+ * packages which are defined separately in [[build.scalalib]], [[build.pythonlib]], etc.
+ */
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.core.eval, build.core.resolve, build.core.client, util)
+  def moduleDeps = Seq(build.core, build.core.client, util)
   def ivyDeps = Agg(
     build.Deps.windowsAnsi,
     build.Deps.coursierInterface,

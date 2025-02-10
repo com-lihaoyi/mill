@@ -17,7 +17,7 @@ private[dependency] object VersionsFinder {
       rootModule: BaseModule
   ): Seq[ModuleDependenciesVersions] = {
 
-    val javaModules = rootModule.millInternal.modules.collect {
+    val javaModules = rootModule.moduleInternal.modules.collect {
       case javaModule: JavaModule => javaModule
     }
 

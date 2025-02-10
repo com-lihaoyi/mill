@@ -1,6 +1,6 @@
 package mill.testkit
 
-import mill.main.client.ServerFiles
+import mill.client.ServerFiles
 import utest.*
 
 object IntegrationTesterTests extends TestSuite with IntegrationTestSuite {

@@ -1,7 +1,7 @@
 package mill.scalajslib
 
 import mill._
-import mill.eval.EvaluatorPaths
+import mill.exec.ExecutionPaths
 import mill.testkit.UnitTester
 import utest._
 
@@ -55,7 +55,7 @@ object JarPublishRunTests extends TestSuite {
 
         val Right(result) = eval(task): @unchecked
 
-        val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, task)
+        val paths = ExecutionPaths.resolveDestPaths(eval.outPath, task)
         val log = os.read(paths.log)
         assert(
           result.evalCount > 0,

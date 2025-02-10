@@ -146,7 +146,7 @@ object ModuleTests extends TestSuite {
       }
     }
     object niled extends DynamicModule {
-      override def millModuleDirectChildren: Seq[Module] = Nil
+      override def moduleDirectChildren: Seq[Module] = Nil
       object inner extends Module {
         def target = Task { 1 }
       }
@@ -382,6 +382,11 @@ object ModuleTests extends TestSuite {
       }
       test("nested") {
         val check = new Checker(nestedCrosses)
+        pprint.log(nestedCrosses)
+        pprint.log(nestedCrosses.cross)
+        pprint.log(nestedCrosses.cross("210"))
+        pprint.log(nestedCrosses.cross("210").cross2)
+        pprint.log(nestedCrosses.cross("210").cross2("js"))
         test("pos1") - check(
           "cross[210].cross2[js].suffix",
           Right(Set(_.cross("210").cross2("js").suffix)),

@@ -1,7 +1,7 @@
 package mill.runner
 
 import mill.api.SystemStreams.ThreadLocalStreams
-import mill.main.client.{FileToStreamTailer, ServerFiles}
+import mill.client.{FileToStreamTailer, ServerFiles}
 
 import java.io.{OutputStream, PrintStream}
 

@@ -17,7 +17,7 @@ import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, NamedTask, Task}
 import mill.eval.Evaluator
-import mill.eval.Evaluator.TaskResult
+import mill.exec.{ExecResults, TaskResult}
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
@@ -46,7 +46,7 @@ private class MillBuildServer(
 
   lazy val millDiscover = Discover[this.type]
 
-  private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
+  private[worker] var cancellator: Boolean => Unit = _ => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
   protected var client: BuildClient = scala.compiletime.uninitialized
   private var initialized = false
@@ -324,6 +324,7 @@ private class MillBuildServer(
 
         val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
         new DependencySourcesItem(id, cp.asJava)
+      case _ => ???
     } {
       new DependencySourcesResult(_)
     }
@@ -374,6 +375,7 @@ private class MillBuildServer(
           new DependencyModule(s"unmanaged-${dep.path.last}", "")
         }
         new DependencyModulesItem(id, (deps ++ unmanaged).iterator.toSeq.asJava)
+      case _ => ???
     } {
       new DependencyModulesResult(_)
     }
@@ -452,7 +454,7 @@ private class MillBuildServer(
         (module, ev) <- state.bspModulesById.get(target)
       } yield {
         val items =
-          if (module.millOuterCtx.external)
+          if (module.moduleCtx.external)
             outputPaths(
               module.bspBuildTarget.baseDirectory.get,
               topLevelProjectRoot
@@ -537,8 +539,7 @@ private class MillBuildServer(
                 new BspTestReporter(
                   client,
                   targetId,
-                  new TaskId(testTask.hashCode().toString),
-                  Seq.empty[String]
+                  new TaskId(testTask.hashCode().toString)
                 )
 
               val results = evaluate(
@@ -596,10 +597,10 @@ private class MillBuildServer(
         )) {
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
-            val mainModule = new mill.define.BaseModule(millSourcePath) with MainModule {
+            val mainModule = new mill.define.BaseModule(moduleDir) with MainModule {
               override implicit def millDiscover: Discover = Discover[this.type]
             }
-            val compileTargetName = (module.millModuleSegments ++ Label("compile")).render
+            val compileTargetName = (module.moduleSegments ++ Label("compile")).render
             debug(s"about to clean: ${compileTargetName}")
             val cleanTask = mainModule.clean(ev, Seq(compileTargetName)*)
             val cleanResult = evaluate(
@@ -607,7 +608,7 @@ private class MillBuildServer(
               Strict.Agg(cleanTask),
               logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
             )
-            if (cleanResult.failing.keyCount > 0) (
+            if (cleanResult.failing.size > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.results(cleanTask) match {
                   case TaskResult(Result.Failure(msg, _), _) => msg
@@ -620,7 +621,7 @@ private class MillBuildServer(
             )
             else {
               val outPaths = ev.pathsResolver.resolveDest(
-                module.millModuleSegments ++ Label("compile")
+                module.moduleSegments ++ Label("compile")
               )
               val outPathSeq = Seq(outPaths.dest, outPaths.meta, outPaths.log)
 
@@ -810,7 +811,7 @@ private class MillBuildServer(
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = null
-  ): Evaluator.Results = {
+  ): ExecResults = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     mill.runner.MillMain.withOutLock(
       noBuildLock = false,

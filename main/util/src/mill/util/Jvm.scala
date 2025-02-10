@@ -245,8 +245,8 @@ object Jvm extends CoursierSupport {
     }
   }
 
-  def createManifest(mainClass: Option[String]): mill.api.JarManifest = {
-    mainClass.foldLeft(mill.api.JarManifest.MillDefault)((m, c) =>
+  def createManifest(mainClass: Option[String]): JarManifest = {
+    mainClass.foldLeft(JarManifest.MillDefault)((m, c) =>
       m.add((java.util.jar.Attributes.Name.MAIN_CLASS.toString, c))
     )
   }
@@ -328,7 +328,7 @@ object Jvm extends CoursierSupport {
     createJar(
       jar = jar,
       inputPaths = Agg(),
-      manifest = mill.api.JarManifest.MillDefault.add(
+      manifest = JarManifest.MillDefault.add(
         "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(
           " "
         )

@@ -1,6 +1,7 @@
 package mill.resolve
 
-import mill.define._
+import mill.define.*
+import mill.define.internal.Reflect
 import mill.internal.EitherOps
 
 import java.lang.reflect.InvocationTargetException
@@ -98,6 +99,7 @@ private object ResolveCore {
       seenModules: Set[Class[?]],
       cache: Cache
   ): Result = {
+
     def moduleClasses(resolved: Iterable[Resolved]): Set[Class[?]] = {
       resolved.collect { case Resolved.Module(_, cls) => cls }.toSet
     }
@@ -174,7 +176,7 @@ private object ResolveCore {
                   m.cls,
                   None,
                   current.segments,
-                  typePattern,
+                  typePattern.toSeq,
                   seenModules,
                   cache
                 )
@@ -188,7 +190,7 @@ private object ResolveCore {
                   m.cls,
                   None,
                   current.segments,
-                  typePattern,
+                  typePattern.toSeq,
                   cache
                 )
 
@@ -232,7 +234,7 @@ private object ResolveCore {
                 case Right(searchModules) =>
                   recurse(
                     searchModules
-                      .map(m => Resolved.Module(m.millModuleSegments, m.getClass))
+                      .map(m => Resolved.Module(m.moduleSegments, m.getClass))
                   )
               }
 
@@ -254,7 +256,7 @@ private object ResolveCore {
           assert(s != "_", s)
           resolveDirectChildren0(
             rootModule,
-            current.millModuleSegments,
+            current.moduleSegments,
             current.getClass,
             Some(s),
             cache = cache
@@ -414,13 +416,13 @@ private object ResolveCore {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {
         instantiateModule(rootModule, segments, cache).map {
           case m: DynamicModule =>
-            m.millModuleDirectChildren
-              .filter(c => namePred(c.millModuleSegments.last.value))
+            m.moduleDirectChildren
+              .filter(c => namePred(c.moduleSegments.last.value))
               .filter(c => classMatchesTypePred(typePattern)(c.getClass))
               .map(c =>
                 (
                   Resolved.Module(
-                    Segments.labels(c.millModuleSegments.last.value),
+                    Segments.labels(c.moduleSegments.last.value),
                     c.getClass
                   ),
                   Some((x: Module) => Right(c))
@@ -436,6 +438,7 @@ private object ResolveCore {
               val getter2 = Some((mod: Module) => catchWrapException(getter(mod)))
               (resolved, getter2)
           }
+          .toSeq
 
         reflectMemberObjects
       }

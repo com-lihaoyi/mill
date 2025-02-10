@@ -104,7 +104,7 @@ object `package` extends RootModule with InstallModule {
 
     val genIdeaArgs =
       genTask(build.core.define)() ++
-        genTask(build.core.eval)() ++
+        genTask(build.core.exec)() ++
         genTask(build.main)() ++
         genTask(build.scalalib)() ++
         genTask(build.kotlinlib)() ++

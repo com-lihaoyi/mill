@@ -133,7 +133,7 @@ object `package` extends RootModule {
       def kotlinExplicitApi = ArrowMultiplatformModule.this.kotlinExplicitApi
 
       override def sources: T[Seq[PathRef]] = Task.Sources {
-        val sourcesRootPath = millSourcePath / "src"
+        val sourcesRootPath = moduleDir / "src"
         var sources = Seq("common", platformCrossSuffix)
           .map(platform => PathRef(sourcesRootPath / s"${platform}Main" / "kotlin"))
           .filter(p => os.exists(p.path))
@@ -161,7 +161,7 @@ object `package` extends RootModule {
           else Task.Command { ("", Seq.empty[TestResult]) }
 
         override def sources: T[Seq[PathRef]] = Task.Sources {
-          val sourcesRootPath = outer.millSourcePath / "src"
+          val sourcesRootPath = outer.moduleDir / "src"
           Seq("common", outer.platformCrossSuffix)
             .map(platform => PathRef(sourcesRootPath / s"${platform}Test" / "kotlin"))
             .filter(p => os.exists(p.path))

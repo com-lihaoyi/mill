@@ -29,7 +29,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   }
 
   def twirlSources: T[Seq[PathRef]] = Task.Sources {
-    millSourcePath / "views"
+    moduleDir / "views"
   }
 
   /**

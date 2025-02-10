@@ -2,7 +2,7 @@ package mill.scalajslib
 
 import mill._
 import mill.define.Discover
-import mill.eval.EvaluatorPaths
+import mill.exec.ExecutionPaths
 import mill.scalalib._
 import mill.testkit.{UnitTester, TestBaseModule}
 import utest._
@@ -16,7 +16,7 @@ object MultiModuleTests extends TestSuite {
     }
 
     object client extends BaseModule {
-      override def millSourcePath = MultiModule.millSourcePath / "client"
+      override def moduleDir = MultiModule.moduleDir / "client"
       override def moduleDeps = Seq(shared)
       override def mainClass = Some("Main")
       object test extends ScalaJSTests with TestModule.Utest {
@@ -26,7 +26,7 @@ object MultiModuleTests extends TestSuite {
     }
 
     object shared extends BaseModule {
-      override def millSourcePath = MultiModule.millSourcePath / "shared"
+      override def moduleDir = MultiModule.moduleDir / "shared"
     }
 
     override lazy val millDiscover = {
@@ -67,7 +67,7 @@ object MultiModuleTests extends TestSuite {
 
       val Right(result) = evaluator(command): @unchecked
 
-      val paths = EvaluatorPaths.resolveDestPaths(evaluator.outPath, command)
+      val paths = ExecutionPaths.resolveDestPaths(evaluator.outPath, command)
       val log = os.read(paths.log)
       assert(
         result.evalCount > 0,

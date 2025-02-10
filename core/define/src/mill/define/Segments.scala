@@ -61,5 +61,5 @@ object Segments {
   implicit def ordering: Ordering[Segments] = Ordering.by(_.value)
   def apply(): Segments = new Segments(Nil)
   def apply(items: Seq[Segment]): Segments = new Segments(items)
-  def labels(values: String*): Segments = Segments(values.map(Segment.Label))
+  def labels(values: String*): Segments = Segments(values.map(Segment.Label(_)))
 }

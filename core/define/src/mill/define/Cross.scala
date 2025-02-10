@@ -1,7 +1,6 @@
 package mill.define
 
 import mill.api.BuildScriptException
-import mill.internal.Lazy
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -24,7 +23,7 @@ object Cross {
      */
     trait CrossValue extends Module[T1] {
       def crossValue: T1 = Module.this.crossValue
-      override def crossWrapperSegments: List[String] = Module.this.millModuleSegments.parts
+      override def crossWrapperSegments: List[String] = Module.this.moduleSegments.parts
     }
   }
 
@@ -138,7 +137,7 @@ object Cross {
      * provides some degree of type-safety.
      */
     implicit inline def make[M <: Module[?]](inline t: Any): Factory[M] = ${
-      macros.CrossMacros.makeImpl[M]('t)
+      internal.CrossMacros.makeImpl[M]('t)
     }
   }
 
@@ -185,13 +184,12 @@ class Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*)(implicit
             Option(ctx.fileName).filter(_.nonEmpty)
           )
       }
-      val relPath = ctx.segment.pathSegments
+      ctx.segments.last.pathSegments
       val module0 = new Lazy(() =>
         make(
           ctx
-            .withSegments(ctx.segments ++ Seq(ctx.segment))
-            .withMillSourcePath(ctx.millSourcePath / relPath)
-            .withSegment(Segment.Cross(crossSegments0))
+            .withSegments(ctx.segments ++ Segment.Cross(crossSegments0))
+            .withMillSourcePath(ctx.millSourcePath)
             .withCrossValues(factories.flatMap(_.crossValuesRaw))
             .withEnclosingModule(this)
         )
@@ -208,8 +206,8 @@ class Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*)(implicit
     }
   }
 
-  override lazy val millModuleDirectChildren: Seq[Module] =
-    super.millModuleDirectChildren ++ crossModules
+  override lazy val moduleDirectChildren: Seq[Module] =
+    super.moduleDirectChildren ++ crossModules
 
   /**
    * A list of the cross modules, in

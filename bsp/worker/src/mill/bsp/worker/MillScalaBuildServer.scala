@@ -75,6 +75,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             .map(sanitizeUri).toSeq.asJava,
           sanitizeUri(classesPathTask.resolve(pathResolver))
         )
+      case _ => ???
     } {
       new ScalacOptionsResult(_)
     }

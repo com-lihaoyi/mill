@@ -6,7 +6,7 @@ import coursier.maven.MavenRepository
 import mill.api.{Loose, PathRef, Result}
 import mill.main.buildgen.BuildGenUtil
 import mill.scalalib.scalafmt.ScalafmtWorkerModule
-import mill.util.{Jvm, Util}
+import mill.util.{Jvm, MillModuleUtil}
 import mill.{Command, T, Task, TaskModule}
 
 import scala.util.control.NoStackTrace
@@ -23,7 +23,7 @@ trait BuildGenModule extends TaskModule {
   def buildGenScalafmtConfig: T[PathRef] = PathRef(BuildGenUtil.scalafmtConfigFile)
 
   def init(args: String*): Command[Unit] = Task.Command {
-    val root = millSourcePath
+    val root = moduleDir
 
     val mainClass = buildGenMainClass()
     val classPath = buildGenClasspath().map(_.path)
@@ -52,7 +52,7 @@ trait BuildGenModule extends TaskModule {
 object BuildGenModule {
 
   def millModule(artifact: String): Result[Loose.Agg[PathRef]] =
-    Util.millProjectModule(artifact, millRepositories)
+    MillModuleUtil.millProjectModule(artifact, millRepositories)
 
   def millRepositories: Seq[Repository] = Seq(
     LocalRepositories.ivy2Local,

@@ -3,12 +3,13 @@ package mill.testkit
 import mill.{Target, Task}
 import mill.api.Result.OuterStack
 import mill.api.{DummyInputStream, Result, SystemStreams, Val}
-import mill.define.{InputImpl, TargetImpl}
-import mill.eval.{Evaluator, EvaluatorImpl}
-import mill.resolve.{Resolve, SelectMode}
+import mill.define.{InputImpl, TargetImpl, SelectMode}
+import mill.eval.Evaluator
+import mill.resolve.Resolve
 import mill.internal.PrintLogger
 import mill.api.Strict.Agg
-
+import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.client.OutFiles.{millChromeProfile, millProfile}
 import java.io.{InputStream, PrintStream}
 
 object UnitTester {
@@ -55,14 +56,14 @@ class UnitTester(
     env: Map[String, String],
     resetSourcePath: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
-  val outPath: os.Path = module.millSourcePath / "out"
+  val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
-    os.remove.all(module.millSourcePath)
-    os.makeDir.all(module.millSourcePath)
+    os.remove.all(module.moduleDir)
+    os.makeDir.all(module.moduleDir)
 
     for (sourceFileRoot <- Option(sourceRoot)) {
-      os.copy.over(sourceFileRoot, module.millSourcePath, createFolders = true)
+      os.copy.over(sourceFileRoot, module.moduleDir, createFolders = true)
     }
   }
 
@@ -86,9 +87,10 @@ class UnitTester(
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
-  val evaluator: EvaluatorImpl = mill.eval.EvaluatorImpl.make(
+
+  val evaluator: Evaluator = new mill.eval.Evaluator(
     mill.api.Ctx.defaultHome,
-    module.millSourcePath,
+    module.moduleDir,
     outPath,
     outPath,
     module,
@@ -99,11 +101,12 @@ class UnitTester(
     threadCount = threads,
     env = env,
     methodCodeHashSignatures = Map(),
-    disableCallgraph = false,
     allowPositionalCommandArgs = false,
-    systemExit = i => ???,
+    systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
-    selectiveExecution = false
+    selectiveExecution = false,
+    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+    profileLogger = new ProfileLogger(outPath / millProfile)
   )
 
   def apply(args: String*): Either[Result.Failing[?], UnitTester.Result[Seq[?]]] = {
@@ -120,6 +123,7 @@ class UnitTester(
       case Left(f) => Left(f.asInstanceOf[Result.Failing[T]])
       case Right(UnitTester.Result(Seq(v), i)) =>
         Right(UnitTester.Result(v.asInstanceOf[T], i))
+      case _ => ???
     }
   }
 
@@ -129,13 +133,13 @@ class UnitTester(
   ): Either[Result.Failing[?], UnitTester.Result[Seq[?]]] = {
     val evaluated = evaluator.evaluate(tasks)
 
-    if (evaluated.failing.keyCount == 0) {
+    if (evaluated.failing.isEmpty) {
       Right(
         UnitTester.Result(
           evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
           evaluated.evaluated.collect {
             case t: TargetImpl[_]
-                if module.millInternal.targets.contains(t)
+                if module.moduleInternal.targets.contains(t)
                   && !t.ctx.external => t
             case t: mill.define.Command[_] => t
           }.size
@@ -144,10 +148,8 @@ class UnitTester(
     } else {
       Left(
         evaluated
-          .failing
-          .lookupKey(evaluated.failing.keys().next)
-          .items
-          .next()
+          .failing(evaluated.failing.keys.head)
+          .head
           .asFailing
           .get
           .map(_.value)
@@ -166,7 +168,7 @@ class UnitTester(
 
     assert(
       cleaned == expectedRawValues,
-      res.failing.keyCount == expectedFailCount
+      res.failing.size == expectedFailCount
     )
 
   }
@@ -176,7 +178,7 @@ class UnitTester(
     val evaluated = evaluator.evaluate(targets)
       .evaluated
       .flatMap(_.asTarget)
-      .filter(module.millInternal.targets.contains)
+      .filter(module.moduleInternal.targets.contains)
       .filter(!_.isInstanceOf[InputImpl[?]])
     assert(
       evaluated.toSet == expected.toSet,

@@ -4,7 +4,7 @@ import mill._, pythonlib._
 object foo extends PythonModule {
   def mainScript = Task.Source { "src/foo.py" }
 
-  def resources = Task.Sources { super.resources() ++ Seq(PathRef(millSourcePath / "custom")) }
+  def resources = Task.Sources { super.resources() ++ Seq(PathRef(moduleDir / "custom")) }
 
   object test extends PythonTests with TestModule.Unittest {
 

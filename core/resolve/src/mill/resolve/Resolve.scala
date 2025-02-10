@@ -1,6 +1,7 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
+import mill.define.internal.Reflect
 import mill.define.{
   BaseModule,
   Command,
@@ -8,14 +9,14 @@ import mill.define.{
   Module,
   ModuleTask,
   NamedTask,
-  Reflect,
   Segments,
-  TaskModule
+  TaskModule,
+  SelectMode
 }
 import mill.internal.EitherOps
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 
-object Resolve {
+private[mill] object Resolve {
   object Segments extends Resolve[Segments] {
     private[mill] def handleResolved(
         rootModule: BaseModule,
@@ -75,7 +76,7 @@ object Resolve {
                 rootModule,
                 value.getClass,
                 Some(value.defaultCommandName()),
-                value.millModuleSegments,
+                value.moduleSegments,
                 cache = cache
               )
 
@@ -91,6 +92,7 @@ object Resolve {
                       nullCommandDefaults,
                       allowPositionalCommandArgs
                     ).map(Some(_))
+                  case _ => ???
                 }
               )
             case _ => Right(None)
@@ -141,7 +143,7 @@ object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,
-        rootModule.implicitMillDiscover,
+        rootModule.moduleCtx.discover,
         args,
         nullCommandDefaults,
         allowPositionalCommandArgs
@@ -183,7 +185,7 @@ object Resolve {
       allowRepeats = false,
       allowLeftover = ep.argSigs0.exists(_.reader.isLeftover),
       nameMapper = mainargs.Util.kebabCaseNameMapper
-    ).flatMap { (grouped: TokenGrouping[?]) =>
+    ).flatMap { (grouped: TokenGrouping[Any]) =>
       val mainData = ep.asInstanceOf[MainData[Any, Any]]
       val mainDataWithDefaults = mainData
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
@@ -191,7 +193,7 @@ object Resolve {
       mainargs.Invoker.invoke(
         target,
         mainDataWithDefaults,
-        grouped.asInstanceOf[TokenGrouping[Any]]
+        grouped
       )
     } match {
       case mainargs.Result.Success(v: Command[_]) => Right(v)
@@ -210,6 +212,7 @@ object Resolve {
             nameMapper = mainargs.Util.nullNameMapper
           )
         )
+      case _ => ???
     }
   }
 }
@@ -234,14 +237,6 @@ trait Resolve[T] {
       resolveToModuleTasks: Boolean = false
   ): Either[String, List[T]] = {
     resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
-  }
-
-  def resolve(
-      rootModule: BaseModule,
-      scriptArgs: Seq[String],
-      selectMode: SelectMode
-  ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode, false, false)
   }
 
   private[mill] def resolve0(
@@ -301,7 +296,8 @@ trait Resolve[T] {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
           val allPossibleNames = rootModule
-            .implicitMillDiscover
+            .moduleCtx
+            .discover
             .classInfo
             .values
             .flatMap(_.declaredTasks)

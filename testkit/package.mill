@@ -2,8 +2,12 @@ package build.testkit
 // imports
 import mill._
 
+/**
+ * Mill unit/integration/example-testing helpers. Both used internally
+ * and published for third-party plugins to use in their own tests.
+ */
 object `package` extends RootModule with build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.eval, build.main.util, build.main)
+  def moduleDeps = Seq(build.core, build.main.util, build.main)
   def ivyDeps = Agg(build.Deps.TestDeps.utest)
 
   def sources =

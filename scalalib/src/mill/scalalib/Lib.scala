@@ -6,10 +6,10 @@ import coursier.params.ResolutionParams
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{Ctx, Loose, PathRef, Result}
+import mill.client.EnvVars
 import mill.main.BuildInfo
-import mill.main.client.EnvVars
-import mill.util.Util
 import mill.scalalib.api.ZincWorkerUtil
+import mill.util.MillModuleUtil
 
 object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
@@ -162,7 +162,7 @@ object Lib {
       ctx: Option[mill.api.Ctx.Log],
       useSources: Boolean
   ): Seq[os.Path] = {
-    Util.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {
+    MillModuleUtil.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {
       case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
       case None =>
         val Result.Success(res) = scalalib.Lib.resolveDependencies(

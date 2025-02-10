@@ -1,12 +1,14 @@
 package mill.define
 
+import mill.define.internal.OverrideMapping
+
 import scala.annotation.{compileTimeOnly, implicitNotFound}
 
 /**
  * The contextual information provided to a [[mill.define.Module]] or [[mill.define.Task]]
  */
 @implicitNotFound("Modules and Tasks can only be defined within a mill Module")
-trait Ctx {
+trait Ctx extends Ctx.Nested {
   def enclosing: String
 
   /**
@@ -14,26 +16,6 @@ trait Ctx {
    * error reporting purposes
    */
   def lineNum: Int
-
-  /**
-   * The name of this task or module
-   */
-  def segment: Segment
-
-  /**
-   * The enclosing module's default source root
-   */
-  def millSourcePath: os.Path
-
-  /**
-   * The full path of this task or module, from the [[BaseModule]]
-   */
-  def segments: Segments
-
-  /**
-   * whether this is in an [[ExternalModule]]
-   */
-  def external: Boolean
 
   /**
    * the file name that this module is defined in. Useful for
@@ -44,93 +26,124 @@ trait Ctx {
   /**
    * The `class` or `trait` that lexically surrounds this definition
    */
-  def enclosingCls: Class[?]
-
-  /**
-   * The runtime [[Module]] object that contains this definition
-   */
-  def enclosingModule: Any
-  def crossValues: Seq[Any]
-
-  /**
-   * The [[Discover]] instance associate with this [[BaseModule]] hierarchy
-   */
-  def discover: Discover
+  private[mill] def enclosingCls: Class[?]
 
   private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
   private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
-  private[mill] def withSegment(segment: Segment): Ctx
   private[mill] def withSegments(segments: Segments): Ctx
-  private[mill] def withEnclosingModule(enclosingModule: Any): Ctx
+  private[mill] def withEnclosingModule(enclosingModule: Ctx.Wrapper): Ctx
   private[mill] def withDiscover(discover: Discover): Ctx
 }
 
 object Ctx extends LowPriCtx {
+  trait Wrapper {
+    def moduleCtx: Ctx
+    private[mill] def moduleLinearized: Seq[Class[?]]
+  }
   private case class Impl(
       enclosing: String,
       lineNum: Int,
-      segment: Segment,
       millSourcePath: os.Path,
       segments: Segments,
       external: Boolean,
       fileName: String,
-      enclosingModule: Any,
+      enclosingModule: Ctx.Wrapper,
       crossValues: Seq[Any],
       discover: Discover
   ) extends Ctx {
     def enclosingCls = enclosingModule.getClass
     def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
     def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
-    def withSegment(segment: Segment): Ctx = copy(segment = segment)
     def withSegments(segments: Segments): Ctx = copy(segments = segments)
-    def withEnclosingModule(enclosingModule: Any): Ctx = copy(enclosingModule = enclosingModule)
+    def withEnclosingModule(enclosingModule: Ctx.Wrapper): Ctx =
+      copy(enclosingModule = enclosingModule)
     def withDiscover(discover: Discover): Ctx = copy(discover = discover)
   }
 
   /**
-   * Marker for a base path to be used implicitly by [[Ctx]].
+   * A subset of the [[Ctx]] interface that are implicitly propagated
+   * from the enclosing Module.
    */
-  final case class BasePath(value: os.Path)
+  trait Nested {
 
-  /**
-   * Marker for the external flog to be used implicitly by [[Ctx]].
-   * @param value
-   */
-  final case class External(value: Boolean)
+    /**
+     * The runtime [[Module]] object that contains this definition
+     */
+    private[mill] def enclosingModule: Ctx.Wrapper
 
-  implicit def make(implicit
+    /**
+     * The enclosing module's default source root
+     */
+    private[mill] def millSourcePath: os.Path
+
+    /**
+     * The full path of this task or module, from the [[BaseModule]]
+     */
+    private[mill] def segments: Segments
+
+    /**
+     * whether this is in an [[ExternalModule]]
+     */
+    private[mill] def external: Boolean
+
+    /**
+     * The [[Discover]] instance associate with this [[BaseModule]] hierarchy
+     */
+    private[mill] def discover: Discover
+
+    def crossValues: Seq[Any]
+  }
+  implicit def makeNested(
+      implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
-      millModuleBasePath0: BasePath,
-      segments0: Segments,
-      external0: External,
       fileName: sourcecode.File,
-      enclosingModule: Caller[OverrideMapping.Wrapper],
       enclosingClass: EnclosingClass,
-      discover: Discover
+      ctx: Ctx.Nested
   ): Ctx = {
     // Manually break apart `sourcecode.Enclosing` instead of using
     // `sourcecode.Name` to work around bug with anonymous classes
     // returning `$anon` names
     val lastSegmentStr =
       millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
+
     Impl(
       millModuleEnclosing0.value,
       millModuleLine0.value,
-      Segment.Label(lastSegmentStr),
-      millModuleBasePath0.value,
-      segments0 ++
+      ctx.millSourcePath / lastSegmentStr,
+      ctx.segments ++
         OverrideMapping.computeSegments(
-          enclosingModule.value,
-          discover,
+          ctx.enclosingModule,
+          ctx.discover,
           lastSegmentStr,
           enclosingClass.value
-        ),
-      external0.value,
+        ).getOrElse(Segments(List(Segment.Label(lastSegmentStr)))),
+      ctx.external,
       fileName.value,
-      enclosingModule.value,
+      ctx.enclosingModule,
+      Nil,
+      ctx.discover
+    )
+  }
+  def makeRoot(
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millSourcePath: os.Path,
+      segments0: Segments,
+      external0: Boolean,
+      fileName: sourcecode.File
+  ): Ctx = {
+
+    Impl(
+      millModuleEnclosing0.value,
+      millModuleLine0.value,
+      millSourcePath,
+      segments0,
+      external0,
+      fileName.value,
+      null,
       Seq(),
-      discover
+      null
     )
   }
 }

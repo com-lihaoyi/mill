@@ -107,7 +107,7 @@ object `package` extends RootModule with MockitoModule {
   def testFilteredSources: T[Seq[PathRef]] = Task {
     // test `add_listeners_concurrently_sanity_check` is flaky
     Seq(PathRef(
-      millSourcePath / "src/test/java/org/mockitousage/debugging/StubbingLookupListenerCallbackTest.java"
+      moduleDir / "src/test/java/org/mockitousage/debugging/StubbingLookupListenerCallbackTest.java"
     ))
   }
 
@@ -227,8 +227,8 @@ object `package` extends RootModule with MockitoModule {
 //      def testRuntimeIvyDeps = Agg(libraries.equinox)
 //      trait BundleModule extends MockitoModule{
 //        def bundleName: String = millModuleSegments.last.value
-//        override def millSourcePath = `osgi-test`.millSourcePath
-//        def sources = Task.Sources(millSourcePath / "src" / bundleName / "java")
+//        override def moduleDir = `osgi-test`.moduleDir
+//        def sources = Task.Sources(moduleDir / "src" / bundleName / "java")
 //
 //        def manifest = super.manifest().add(
 //          "Bundle-Name" -> bundleName,

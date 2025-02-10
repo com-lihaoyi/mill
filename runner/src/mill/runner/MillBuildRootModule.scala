@@ -8,8 +8,8 @@ import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.api.{CompilationResult, Versions}
-import mill.main.client.OutFiles._
-import mill.main.client.CodeGenConstants.buildFileExtensions
+import mill.client.OutFiles._
+import mill.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
 import mill.runner.worker.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
@@ -37,8 +37,8 @@ abstract class MillBuildRootModule()(implicit
     .++(super.bspDisplayName0.split("/"))
     .mkString("/")
 
-  override def millSourcePath: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
-  override def intellijModulePath: os.Path = millSourcePath / os.up
+  override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
+  override def intellijModulePath: os.Path = moduleDir / os.up
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 

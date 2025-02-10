@@ -1,9 +1,10 @@
 package mill
 package scalalib
 
-import mill.api.{DummyInputStream, JarManifest, PathRef, Result, internal}
+import mill.util.JarManifest
+import mill.api.{DummyInputStream, PathRef, Result, internal}
 import mill.main.BuildInfo
-import mill.util.{Jvm, Util}
+import mill.util.Jvm
 import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
@@ -428,7 +429,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * for you to test and operate your code interactively.
    */
   def console(): Command[Unit] = Task.Command(exclusive = true) {
-    if (!Util.isInteractive()) {
+    if (!mill.client.Util.hasConsole()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
       val useJavaCp = "-usejavacp"

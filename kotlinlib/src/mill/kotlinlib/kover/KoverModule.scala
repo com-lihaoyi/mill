@@ -11,7 +11,7 @@ import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
-import mill.resolve.{Resolve, SelectMode}
+import mill.define.SelectMode
 import mill.scalalib.api.CompilationResult
 import mill.util.Jvm
 import os.Path
@@ -226,7 +226,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
 
   private def resolveTasks[T](tasks: String, evaluator: Evaluator): Seq[Task[T]] =
     if (tasks.trim().isEmpty) Seq.empty
-    else Resolve.Tasks.resolve(evaluator.rootModule, Seq(tasks), SelectMode.Multi) match {
+    else evaluator.resolveTasks(Seq(tasks), SelectMode.Multi) match {
       case Left(err) => throw new Exception(err)
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[T]]]
     }
@@ -234,6 +234,6 @@ object Kover extends ExternalModule with KoverReportBaseModule {
 
 sealed trait ReportType
 object ReportType {
-  final case object Html extends ReportType
-  final case object Xml extends ReportType
+  case object Html extends ReportType
+  case object Xml extends ReportType
 }

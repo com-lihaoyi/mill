@@ -5,13 +5,14 @@ import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
 import mill.define.{Discover, ExternalModule, NamedTask, Target}
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.api.{Loose, PathRef, Result}
 import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
-import mill.eval.Plan
+import mill.exec
+import mill.exec.Plan
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
   def repositories: Seq[Repository] = Seq(
@@ -52,7 +53,7 @@ trait VisualizeModule extends mill.define.TaskModule {
           val sortedGroups = Plan.groupAroundImportantTargets(topoSorted) {
             case x: NamedTask[Any] if transitiveTasks.contains(x) => x
           }
-          val plan = mill.eval.Plan.plan(transitiveTasks)
+          val plan = exec.Plan.plan(transitiveTasks)
 
           val goalSet = transitiveTasks.toSet
           import guru.nidi.graphviz.model.Factory._

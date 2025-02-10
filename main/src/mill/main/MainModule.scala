@@ -1,13 +1,14 @@
 package mill.main
 
-import mill.api._
-import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.api.*
+import mill.client.DebugLog
+import mill.define.*
+import mill.eval.Evaluator
+import mill.exec.ExecutionPaths
 import mill.moduledefs.Scaladoc
-import mill.resolve.SelectMode.Separated
-import mill.resolve.{Resolve, SelectMode}
-import mill.util.Util
-import mill.internal.Watchable
+import mill.define.SelectMode.Separated
+import mill.define.SelectMode
+import mill.define.Watchable
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue
@@ -17,14 +18,31 @@ import scala.reflect.NameTransformer.decode
 
 object MainModule {
 
+  def cleanupScaladoc(v: String): Array[String] = {
+    v.linesIterator.map(
+      _.dropWhile(_.isWhitespace)
+        .stripPrefix("/**")
+        .stripPrefix("*/")
+        .stripPrefix("*")
+        .stripSuffix("**/")
+        .stripSuffix("*/")
+        .dropWhile(_.isWhitespace)
+        .reverse
+        .dropWhile(_.isWhitespace)
+        .reverse
+    ).toArray
+      .dropWhile(_.isEmpty)
+      .reverse
+      .dropWhile(_.isEmpty)
+      .reverse
+  }
   def resolveTasks[T](
       evaluator: Evaluator,
       targets: Seq[String],
       selectMode: SelectMode,
       resolveToModuleTasks: Boolean = false
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
+    evaluator.resolveTasks(
       targets,
       selectMode,
       resolveToModuleTasks = resolveToModuleTasks
@@ -39,7 +57,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    Resolve.Tasks.resolve(evaluator.rootModule, targets, selectMode) match {
+    evaluator.resolveTasks(targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -50,7 +68,7 @@ object MainModule {
       targets: Seq[String],
       log: Logger,
       watch0: Watchable => Unit
-  )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value)
+  )(f: Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 
     // When using `show`, redirect all stdout of the evaluated tasks so the
@@ -59,12 +77,12 @@ object MainModule {
       .withOutStream(evaluator.baseLogger.errorStream)
       .asInstanceOf[ColorLogger]
 
-    RunScript.evaluateTasksNamed(
-      evaluator.withBaseLogger(redirectLogger),
-      targets,
-      Separated,
-      selectiveExecution = evaluator.selectiveExecution
-    ) match {
+    evaluator.withBaseLogger(redirectLogger)
+      .evaluateTasksNamed(
+        targets,
+        Separated,
+        selectiveExecution = evaluator.selectiveExecution
+      ) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) =>
         watched.foreach(watch0)
@@ -82,11 +100,7 @@ object MainModule {
       evaluator: Evaluator,
       tasks: Seq[String]
   ): Either[String, Array[NamedTask[?]]] = {
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
-      tasks,
-      SelectMode.Multi
-    ) match {
+    evaluator.resolveTasks(tasks, SelectMode.Multi) match {
       case Left(err) => Left(err)
       case Right(rs) =>
         val plan = evaluator.plan(rs)
@@ -118,11 +132,7 @@ trait MainModule extends BaseModule {
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] =
     Task.Command(exclusive = true) {
-      val resolved = Resolve.Segments.resolve(
-        evaluator.rootModule,
-        targets,
-        SelectMode.Multi
-      )
+      val resolved = evaluator.resolveSegments(targets, SelectMode.Multi)
 
       resolved match {
         case Left(err) => Result.Failure(err)
@@ -161,13 +171,9 @@ trait MainModule extends BaseModule {
       @mainargs.arg(positional = true) dest: String
   ): Command[List[String]] =
     Task.Command(exclusive = true) {
-      val resolved = Resolve.Tasks.resolve(
-        evaluator.rootModule,
-        List(src, dest),
-        SelectMode.Multi
-      )
+      val resolved = evaluator.resolveTasks(List(src, dest), SelectMode.Multi)
 
-      resolved match {
+      (resolved: @unchecked) match {
         case Left(err) => Result.Failure(err)
         case Right(Seq(src1, dest1)) =>
           val queue = collection.mutable.Queue[List[Task[?]]](List(src1))
@@ -235,11 +241,13 @@ trait MainModule extends BaseModule {
       def pprintTask(t: NamedTask[?], evaluator: Evaluator): Tree.Lazy = {
         val seen = mutable.Set.empty[Task[?]]
 
+        DebugLog.println(t.toString)
+        DebugLog.println(t.ctx.segments.toString)
         def rec(t: Task[?]): Seq[Segments] = {
           if (seen(t)) Nil // do nothing
           else t match {
             case t: mill.define.Target[_]
-                if evaluator.rootModule.millInternal.targets.contains(t) =>
+                if evaluator.rootModule.moduleInternal.targets.contains(t) =>
               Seq(t.ctx.segments)
             case _ =>
               seen.add(t)
@@ -250,14 +258,14 @@ trait MainModule extends BaseModule {
         val annots = for {
           c <- resolveParents(List(t.ctx.enclosingCls))
           m <- c.getMethods
-          if m.getName == t.ctx.segment.pathSegments.head
+          if m.getName == t.ctx.segments.last.pathSegments.head
           a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
           if a != null
         } yield a
 
         val allDocs =
           for (a <- annots.distinct)
-            yield Util.cleanupScaladoc(a.value).map("\n" + inspectItemIndent + _).mkString
+            yield MainModule.cleanupScaladoc(a.value).map("\n" + inspectItemIndent + _).mkString
 
         pprint.Tree.Lazy { ctx =>
           val mainMethodSig =
@@ -265,7 +273,8 @@ trait MainModule extends BaseModule {
             else {
               val mainDataOpt = evaluator
                 .rootModule
-                .implicitMillDiscover
+                .moduleCtx
+                .discover
                 .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
 
               mainDataOpt match {
@@ -316,7 +325,7 @@ trait MainModule extends BaseModule {
         val cls = t.module.getClass
         val annotation = cls.getAnnotation(classOf[Scaladoc])
         val scaladocOpt = Option(annotation).map(annotation =>
-          Util.cleanupScaladoc(annotation.value).map("\n" + inspectItemIndent + _).mkString
+          MainModule.cleanupScaladoc(annotation.value).map("\n" + inspectItemIndent + _).mkString
         )
 
         def parentFilter(parent: Class[?]) =
@@ -350,7 +359,7 @@ trait MainModule extends BaseModule {
           case _ => None
         }
 
-        val methodMap = evaluator.rootModule.implicitMillDiscover.classInfo
+        val methodMap = evaluator.rootModule.moduleCtx.discover.classInfo
         val tasks = methodMap
           .get(cls)
           .map { node => node.declaredTasks.map(task => s"${t.module}.${task.name}") }
@@ -478,15 +487,11 @@ trait MainModule extends BaseModule {
         if (targets.isEmpty)
           Right((os.list(rootDir).filterNot(keepPath), List(mill.define.Segments())))
         else
-          mill.resolve.Resolve.Segments.resolve(
-            evaluator.rootModule,
-            targets,
-            SelectMode.Multi
-          ).map { ts =>
+          evaluator.resolveSegments(targets, SelectMode.Multi).map { ts =>
             val allPaths = ts.flatMap { segments =>
-              val evPaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
+              val evPaths = ExecutionPaths.resolveDestPaths(rootDir, segments)
               val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
-              val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
+              val potentialModulePath = rootDir / ExecutionPaths.makeSegmentStrings(segments)
               if (os.exists(potentialModulePath)) {
                 // this is either because of some pre-Mill-0.10 files lying around
                 // or most likely because the segments denote a module but not a task
@@ -499,7 +504,7 @@ trait MainModule extends BaseModule {
             (allPaths, ts)
           }
 
-      pathsToRemove match {
+      (pathsToRemove: @unchecked) match {
         case Left(err) =>
           Result.Failure(err)
         case Right((paths, allSegments)) =>
@@ -568,8 +573,7 @@ trait MainModule extends BaseModule {
     Task.Command(exclusive = true) {
       val evaluated =
         if (os.exists(os.pwd / "pom.xml"))
-          RunScript.evaluateTasksNamed(
-            evaluator,
+          evaluator.evaluateTasksNamed(
             Seq("mill.init.InitMavenModule/init") ++ args,
             SelectMode.Separated
           )
@@ -579,24 +583,21 @@ trait MainModule extends BaseModule {
           os.exists(os.pwd / "settings.gradle") ||
           os.exists(os.pwd / "settings.gradle.kts")
         )
-          RunScript.evaluateTasksNamed(
-            evaluator,
+          evaluator.evaluateTasksNamed(
             Seq("mill.init.InitGradleModule/init") ++ args,
             SelectMode.Separated
           )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
-          RunScript.evaluateTasksNamed(
-            evaluator,
+          evaluator.evaluateTasksNamed(
             Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
             SelectMode.Separated
           )
         else
-          RunScript.evaluateTasksNamed(
-            evaluator,
+          evaluator.evaluateTasksNamed(
             Seq("mill.init.InitModule/init") ++ args,
             SelectMode.Separated
           )
-      evaluated match {
+      (evaluated: @unchecked) match {
         case Left(failStr) => throw new Exception(failStr)
         case Right((_, Right(Seq((_, Some((_, jsonableResult))))))) => jsonableResult
         case Right((_, Left(failStr))) => throw new Exception(failStr)
@@ -628,11 +629,7 @@ trait MainModule extends BaseModule {
       }
     }
 
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
-      targets,
-      SelectMode.Multi
-    ) match {
+    evaluator.resolveTasks(targets, SelectMode.Multi) match {
       case Left(err) => Result.Failure(err)
       case Right(rs) => planTasks match {
           case Some(allRs) => callVisualizeModule(rs, allRs)

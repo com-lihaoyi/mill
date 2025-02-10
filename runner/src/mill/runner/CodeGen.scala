@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.main.client.CodeGenConstants._
+import mill.client.CodeGenConstants._
 import mill.api.{PathRef, Result}
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
@@ -254,7 +254,7 @@ object CodeGen {
 
   def millDiscover(segmentsNonEmpty: Boolean): String = {
     val rhs =
-      if (segmentsNonEmpty) "build_.package_.implicitMillDiscover"
+      if (segmentsNonEmpty) "build_.package_.millDiscover"
       else "_root_.mill.define.Discover[this.type]"
 
     s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
