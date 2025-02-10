@@ -5,7 +5,7 @@ import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{Result, internal}
 import mill.define.{Command, Task}
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
@@ -18,7 +18,7 @@ import mill.scalanativelib.worker.{
 }
 import mill.T
 import mill.api.PathRef
-import mill.main.client.EnvVars
+import mill.client.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
 trait ScalaNativeModule extends ScalaModule { outer =>

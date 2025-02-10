@@ -10,12 +10,13 @@ import mill.define.{
   ModuleTask,
   NamedTask,
   Segments,
-  TaskModule
+  TaskModule,
+  SelectMode
 }
 import mill.internal.EitherOps
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 
-object Resolve {
+private[mill] object Resolve {
   object Segments extends Resolve[Segments] {
     private[mill] def handleResolved(
         rootModule: BaseModule,

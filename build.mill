@@ -763,26 +763,6 @@ object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(build.scalalib, build.runner)
 }
 
-private def resolveTasks[T](taskNames: String*): Seq[NamedTask[T]] = {
-  mill.resolve.Resolve.Tasks.resolve(
-    build,
-    taskNames,
-    SelectMode.Separated
-  ).map(x => x.asInstanceOf[Seq[mill.define.NamedTask[T]]]).getOrElse(???)
-}
-
-def validate(): Command[Unit] = {
-  val tasks = resolveTasks("__.compile", "__.minaReportBinaryIssues")
-  val sources = resolveTasks("__.sources")
-
-  Task.Command {
-    Task.sequence(tasks)()
-    mill.scalalib.scalafmt.ScalafmtModule.checkFormatAll(Tasks(sources))()
-    build.website.localPages()
-    ()
-  }
-}
-
 val dummyDeps: Seq[Dep] = Seq(
   Deps.DocDeps.millScip,
   Deps.semanticDbJava,

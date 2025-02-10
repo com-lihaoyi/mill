@@ -1,6 +1,8 @@
 package mill.testkit
-import mill.util.Util
-import utest._
+
+import mill.client.Util.isWindows
+import mill.client
+import utest.*
 
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
@@ -62,7 +64,7 @@ object ExampleTester {
   }
 
   def defaultBashExecutable(): String = {
-    if (!mill.main.client.Util.isWindows) "bash"
+    if (!client.Util.isWindows) "bash"
     else "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
   }
 }
@@ -85,8 +87,8 @@ class ExampleTester(
     }
 
     val incorrectPlatform =
-      (comment.exists(_.startsWith("windows")) && !Util.windowsPlatform) ||
-        (comment.exists(_.startsWith("mac/linux")) && Util.windowsPlatform) ||
+      (comment.exists(_.startsWith("windows")) && !isWindows) ||
+        (comment.exists(_.startsWith("mac/linux")) && isWindows) ||
         (comment.exists(_.startsWith("--no-server")) && clientServerMode) ||
         (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
 
@@ -94,7 +96,7 @@ class ExampleTester(
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
-  private val millExt = if (Util.windowsPlatform) ".bat" else ""
+  private val millExt = if (isWindows) ".bat" else ""
 
   def processCommand(
       expectedSnippets: Vector[String],
@@ -115,7 +117,7 @@ class ExampleTester(
     )
 
     val windowsPathEnv =
-      if (!Util.windowsPlatform) Map()
+      if (!isWindows) Map()
       else Map(
         "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
       )

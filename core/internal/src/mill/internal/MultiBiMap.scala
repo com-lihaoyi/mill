@@ -9,7 +9,7 @@ import scala.collection.mutable
  * to any particular key. Also allows lookups in both directions: what values
  * are assigned to a key or what key a value is assigned to.
  */
-trait MultiBiMap[K, V] {
+private[mill] trait MultiBiMap[K, V] {
   def containsValue(v: V): Boolean
   def lookupKey(k: K): Agg[V]
   def lookupValue(v: V): K
@@ -23,7 +23,7 @@ trait MultiBiMap[K, V] {
   def keyCount: Int
 }
 
-object MultiBiMap {
+private[mill] object MultiBiMap {
 
   class Mutable[K, V]() extends MultiBiMap[K, V] {
     private val valueToKey = mutable.LinkedHashMap.empty[V, K]

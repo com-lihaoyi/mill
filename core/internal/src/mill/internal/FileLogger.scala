@@ -5,7 +5,7 @@ import mill.api.{Logger, SystemStreams}
 import java.io.{OutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
 
-class FileLogger(
+private[mill] class FileLogger(
     override val colored: Boolean,
     file: os.Path,
     override val debugEnabled: Boolean,

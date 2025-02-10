@@ -3,16 +3,16 @@ package mill.runner
 import mill.internal.PrefixLogger
 import mill.define.Watchable
 import mill.main.{BuildInfo, RootModule}
-import mill.main.client.CodeGenConstants.*
-import mill.api.{ColorLogger, PathRef, SystemStreams, Val, internal}
+import mill.client.CodeGenConstants.*
+import mill.api.{ColorLogger, PathRef, SystemStreams, Val, WorkspaceRoot, internal}
 import mill.eval.Evaluator
-import mill.resolve.SelectMode
-import mill.define.{BaseModule, Segments}
+import mill.define.{BaseModule, Segments, SelectMode}
 import mill.exec.{ChromeProfileLogger, ProfileLogger}
-import mill.main.client.OutFiles.{millBuild, millRunnerState, millProfile, millChromeProfile}
+import mill.client.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
 
+import java.io.File
 import java.net.URLClassLoader
 import scala.util.Using
 
@@ -376,8 +376,47 @@ class MillBuildBootstrap(
 
 @internal
 object MillBuildBootstrap {
+
+  def classpath(classLoader: ClassLoader): Vector[os.Path] = {
+
+    var current = classLoader
+    val files = collection.mutable.Buffer.empty[os.Path]
+    val seenClassLoaders = collection.mutable.Buffer.empty[ClassLoader]
+    while (current != null) {
+      seenClassLoaders.append(current)
+      current match {
+        case t: java.net.URLClassLoader =>
+          files.appendAll(
+            t.getURLs
+              .collect {
+                case url if url.getProtocol == "file" => os.Path(java.nio.file.Paths.get(url.toURI))
+              }
+          )
+        case _ =>
+      }
+      current = current.getParent
+    }
+
+    val sunBoot = System.getProperty("sun.boot.class.path")
+    if (sunBoot != null) {
+      files.appendAll(
+        sunBoot
+          .split(java.io.File.pathSeparator)
+          .map(os.Path(_))
+          .filter(os.exists(_))
+      )
+    } else {
+      if (seenClassLoaders.contains(ClassLoader.getSystemClassLoader)) {
+        for (p <- System.getProperty("java.class.path").split(File.pathSeparatorChar)) {
+          val f = os.Path(p, WorkspaceRoot.workspaceRoot)
+          if (os.exists(f)) files.append(f)
+        }
+      }
+    }
+    files.toVector
+  }
   def prepareMillBootClasspath(millBuildBase: os.Path): Seq[os.Path] = {
-    val enclosingClasspath: Seq[os.Path] = mill.util.Classpath.classpath(getClass.getClassLoader)
+    val enclosingClasspath: Seq[os.Path] = classpath(getClass.getClassLoader)
 
     val selfClassURL = getClass.getProtectionDomain().getCodeSource().getLocation()
     assert(selfClassURL.getProtocol == "file")

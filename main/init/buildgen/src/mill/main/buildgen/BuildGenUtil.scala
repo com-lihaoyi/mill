@@ -1,14 +1,14 @@
 package mill.main.buildgen
 
 import mainargs.{Flag, arg}
+import mill.client.OutFiles
 import mill.main.buildgen.BuildObject.Companions
-import mill.main.client.CodeGenConstants.{
+import mill.client.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
   rootBuildFileNames,
   rootModuleAlias
 }
-import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
 
 import scala.collection.immutable.SortedSet

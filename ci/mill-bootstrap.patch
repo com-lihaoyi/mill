@@ -1,8 +1,8 @@
 diff --git a/build.mill b/build.mill
-index 7a8ea3a31a5..39bbc91f872 100644
+index 7a8ea3a31a5..5b77aa31591 100644
 --- a/build.mill
 +++ b/build.mill
-@@ -1,9 +1,9 @@
+@@ -1,16 +1,16 @@
  package build
  // imports
 -import com.github.lolgab.mill.mima.Mima
@@ -15,6 +15,14 @@ index 7a8ea3a31a5..39bbc91f872 100644
  import mill._
  import mill.define.NamedTask
  import mill.main.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.ZincWorkerUtil
+ import mill.scalalib.publish._
+-import mill.resolve.SelectMode
++import mill.define.SelectMode
+ import mill.T
+ import mill.define.Cross
+ 
 @@ -284,19 +284,19 @@ object Deps {
  }
  
@@ -86,10 +94,10 @@ index 7a8ea3a31a5..39bbc91f872 100644
  
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/contrib/package.mill b/contrib/package.mill
-index b5e172dd322..c3939bbe82a 100644
+index 421b2955955..7277bba90ff 100644
 --- a/contrib/package.mill
 +++ b/contrib/package.mill
-@@ -3,7 +3,6 @@ package build.contrib
+@@ -3,13 +3,12 @@ package build.contrib
  import scala.util.chaining._
  import coursier.maven.MavenRepository
  import mill._
@@ -97,8 +105,15 @@ index b5e172dd322..c3939bbe82a 100644
  import mill.main.Tasks
  import mill.scalalib._
  import mill.scalalib.api.ZincWorkerUtil
-@@ -20,10 +19,10 @@ import $meta._
- 
+ import mill.scalalib.publish._
+ import mill.util.Jvm
+-import mill.resolve.SelectMode
++import mill.define.SelectMode
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.define.Cross
+@@ -29,10 +28,10 @@ import $meta._
+  */
  object `package` extends RootModule {
    def contribModules: Seq[ContribModule] =
 -    millInternal.modules.collect { case m: ContribModule => m }
@@ -110,7 +125,7 @@ index b5e172dd322..c3939bbe82a 100644
    }
  
    object testng extends JavaModule with ContribModule {
-@@ -76,13 +75,13 @@ object `package` extends RootModule {
+@@ -85,13 +84,13 @@ object `package` extends RootModule {
      object worker extends Cross[WorkerModule](build.Deps.play.keys.toSeq)
      trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
        def playBinary = crossValue
@@ -127,10 +142,10 @@ index b5e172dd322..c3939bbe82a 100644
  
        def scalaVersion = build.Deps.play(playBinary).scalaVersion
 diff --git a/core/codesig/package.mill b/core/codesig/package.mill
-index b2d5c62b889..9cb396c9a65 100644
+index e49f218f4be..9d03aa073f3 100644
 --- a/core/codesig/package.mill
 +++ b/core/codesig/package.mill
-@@ -9,8 +9,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
+@@ -18,8 +18,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
    override lazy val test: CodeSigTests = new CodeSigTests {}
    trait CodeSigTests extends MillScalaTests {
      val caseKeys = build.interp.watchValue(
@@ -141,7 +156,7 @@ index b2d5c62b889..9cb396c9a65 100644
          .collect { case Seq(a, b, c) => s"$a-$b-$c" }
      )
  
-@@ -36,7 +36,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
+@@ -45,7 +45,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
        def moduleDeps = Seq(external)
  
        val Array(prefix, suffix, rest) = caseName.split("-", 3)
@@ -151,7 +166,7 @@ index b2d5c62b889..9cb396c9a65 100644
        def ivyDeps = Task {
          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
 diff --git a/dist/package.mill b/dist/package.mill
-index fbbeacbc843..5a205433d24 100644
+index fbbeacbc843..04b53aaf2f2 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -2,15 +2,14 @@ package build.dist
@@ -212,11 +227,20 @@ index fbbeacbc843..5a205433d24 100644
      ()
    }
  
+@@ -316,7 +316,7 @@ object `package` extends RootModule with InstallModule {
+         out.write(os.read.bytes(assembly().path))
+       }
+ 
+-      if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
++      if (!mill.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
+ 
+       PathRef(executable)
+     }
 diff --git a/example/package.mill b/example/package.mill
-index 427a6aecd74..4ff67c76a33 100644
+index 427a6aecd74..4ff150b74d1 100644
 --- a/example/package.mill
 +++ b/example/package.mill
-@@ -3,7 +3,6 @@ package build.example
+@@ -3,13 +3,12 @@ package build.example
  import scala.util.chaining._
  import coursier.maven.MavenRepository
  import mill._
@@ -224,6 +248,13 @@ index 427a6aecd74..4ff67c76a33 100644
  import mill.main.Tasks
  import mill.scalalib._
  import mill.scalalib.api.ZincWorkerUtil
+ import mill.scalalib.publish._
+ import mill.util.Jvm
+-import mill.resolve.SelectMode
++import mill.define.SelectMode
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.define.Cross
 @@ -18,111 +17,111 @@ import mill.define.Cross
  import $meta._
  
@@ -435,10 +466,10 @@ index 427a6aecd74..4ff67c76a33 100644
      val (repoPath, repoHash) = repoInfo(crossValue)
      def repoSlug = repoPath.split("/").last
 diff --git a/integration/package.mill b/integration/package.mill
-index af00b40d3f0..c916fe48101 100644
+index af00b40d3f0..303bb74cbc0 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
-@@ -3,7 +3,6 @@ package build.integration
+@@ -3,13 +3,12 @@ package build.integration
  import scala.util.chaining._
  import coursier.maven.MavenRepository
  import mill._
@@ -446,6 +477,13 @@ index af00b40d3f0..c916fe48101 100644
  import mill.main.Tasks
  import mill.scalalib._
  import mill.scalalib.api.ZincWorkerUtil
+ import mill.scalalib.publish._
+ import mill.util.Jvm
+-import mill.resolve.SelectMode
++import mill.define.SelectMode
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.define.Cross
 @@ -24,7 +23,7 @@ object `package` extends RootModule {
    // and pass `lib`'s compile output back to `test`.
  
@@ -514,10 +552,10 @@ index cb17827974f..9270c6ca604 100644
      def mandatoryIvyDeps = Agg.empty[Dep]
      def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
 diff --git a/scalalib/package.mill b/scalalib/package.mill
-index 05d74d4426f..29cdadf3dfa 100644
+index 05d74d4426f..e73afa90405 100644
 --- a/scalalib/package.mill
 +++ b/scalalib/package.mill
-@@ -2,7 +2,6 @@ package build.scalalib
+@@ -2,14 +2,13 @@ package build.scalalib
  import scala.util.chaining._
  import coursier.maven.MavenRepository
  import mill._
@@ -525,6 +563,14 @@ index 05d74d4426f..29cdadf3dfa 100644
  import mill.define.NamedTask
  import mill.main.Tasks
  import mill.scalalib._
+ import mill.scalalib.api.ZincWorkerUtil
+ import mill.scalalib.publish._
+ import mill.util.Jvm
+-import mill.resolve.SelectMode
++import mill.define.SelectMode
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.define.Cross
 diff --git a/scalanativelib/package.mill b/scalanativelib/package.mill
 index a0c2c525a9e..141559d8435 100644
 --- a/scalanativelib/package.mill
@@ -539,10 +585,10 @@ index a0c2c525a9e..141559d8435 100644
      def compileIvyDeps = scalaNativeWorkerVersion match {
        case "0.5" =>
 diff --git a/testkit/package.mill b/testkit/package.mill
-index f73b2261f7b..261e18371b4 100644
+index 3b577e29c65..7f45dcaeab6 100644
 --- a/testkit/package.mill
 +++ b/testkit/package.mill
-@@ -8,7 +8,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
+@@ -12,7 +12,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
  
    def sources =
      super.sources() ++

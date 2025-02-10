@@ -2,6 +2,11 @@ package build.core.server
 
 import mill._
 
+/**
+ * This module contains the core logic around the Mill background server,
+ * and tests that exercise is together with [[build.core.client]], without
+ * any Mill-related business logic
+ */
 object `package` extends RootModule with build.MillPublishScalaModule {
   def moduleDeps = Seq(build.core.client, build.core.api)
 }

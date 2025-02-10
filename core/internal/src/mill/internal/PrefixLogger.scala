@@ -4,7 +4,7 @@ import mill.api.{ColorLogger, Logger, SystemStreams}
 
 import java.io.PrintStream
 
-class PrefixLogger(
+private[mill] class PrefixLogger(
     val logger0: ColorLogger,
     key0: Seq[String],
     tickerContext: String = "",
@@ -130,7 +130,7 @@ class PrefixLogger(
   private[mill] override def withPromptUnpaused[T](t: => T): T = logger0.withPromptUnpaused(t)
 }
 
-object PrefixLogger {
+private[mill] object PrefixLogger {
   def apply(out: ColorLogger, context: String, tickerContext: String = ""): PrefixLogger =
     new PrefixLogger(out, context, tickerContext)
 }

@@ -81,11 +81,10 @@ def taskCallingCommand = Task {
 // to traverse the module tree to find the tasks specified by the `tasks` strings,
 // and plan out what would be necessary to run them
 import mill.eval.Evaluator
-import mill.resolve.{Resolve, SelectMode}
+import mill.define.SelectMode
 
 def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
-  Resolve.Tasks.resolve(
-    evaluator.rootModule,
+  evaluator.resolveTasks(
     tasks,
     SelectMode.Multi
   ) match {

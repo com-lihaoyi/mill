@@ -25,6 +25,7 @@ import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 import scala.collection.mutable
 import scala.ref.SoftReference
 import com.armanbilge.sjsimportmap.ImportMappedIRFile
+import mill.client.InputPumper
 
 import scala.annotation.nowarn
 
@@ -319,7 +320,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
             for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
               val t = new Thread(
-                new mill.main.client.InputPumper(
+                new InputPumper(
                   () => std,
                   () => dest,
                   checkAvailable,

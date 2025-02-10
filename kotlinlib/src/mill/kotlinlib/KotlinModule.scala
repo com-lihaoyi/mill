@@ -13,7 +13,7 @@ import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
 import mill.util.Jvm
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.{Agg, T}
 
 import java.io.File

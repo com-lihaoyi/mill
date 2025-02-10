@@ -3,6 +3,7 @@ package mill.scalalib.worker
 import mill.api.Loose.Agg
 import mill.util.CachedFactory
 import mill.api.{CompileProblemReporter, PathRef, Result, internal}
+import mill.client.CodeGenConstants
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
 import os.Path
 import sbt.internal.inc.{
@@ -715,7 +716,7 @@ object ZincWorkerImpl {
     def create(sources: Array[VirtualFile]): (xsbti.Position => xsbti.Position) | Null = {
       val buildSources0 = {
         def isBuild(vf: VirtualFile) =
-          mill.main.client.CodeGenConstants.buildFileExtensions.exists(ex =>
+          CodeGenConstants.buildFileExtensions.exists(ex =>
             vf.id().endsWith(s".$ex")
           )
 

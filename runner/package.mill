@@ -3,6 +3,12 @@ package build.runner
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 
+/**
+ * Logic around the Mill command-line runner, script loading,
+ * process management, and build bootstrapping process.
+ *
+ * Mostly tested by [[build.integration]] and [[build.example]] tests.
+ */
 object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
   object `worker-api` extends build.MillPublishScalaModule {
     // def ivyDeps = Agg(build.Deps.osLib)

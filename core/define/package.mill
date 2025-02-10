@@ -3,6 +3,10 @@ package build.core.define
 import mill._
 import mill.scalalib._
 
+/**
+ * This module contains the data types necessary for defining a Mill build:
+ * defining Tasks, Modules, and other related data structures.
+ */
 object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(build.core.api)
 

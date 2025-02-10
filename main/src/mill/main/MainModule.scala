@@ -1,15 +1,14 @@
 package mill.main
 
 import mill.api.*
+import mill.client.DebugLog
 import mill.define.*
 import mill.eval.Evaluator
 import mill.exec.ExecutionPaths
 import mill.moduledefs.Scaladoc
-import mill.resolve.SelectMode.Separated
-import mill.resolve.SelectMode
-import mill.util.Util
+import mill.define.SelectMode.Separated
+import mill.define.SelectMode
 import mill.define.Watchable
-import mill.main.client.DebugLog
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue
@@ -19,6 +18,24 @@ import scala.reflect.NameTransformer.decode
 
 object MainModule {
 
+  def cleanupScaladoc(v: String): Array[String] = {
+    v.linesIterator.map(
+      _.dropWhile(_.isWhitespace)
+        .stripPrefix("/**")
+        .stripPrefix("*/")
+        .stripPrefix("*")
+        .stripSuffix("**/")
+        .stripSuffix("*/")
+        .dropWhile(_.isWhitespace)
+        .reverse
+        .dropWhile(_.isWhitespace)
+        .reverse
+    ).toArray
+      .dropWhile(_.isEmpty)
+      .reverse
+      .dropWhile(_.isEmpty)
+      .reverse
+  }
   def resolveTasks[T](
       evaluator: Evaluator,
       targets: Seq[String],
@@ -248,7 +265,7 @@ trait MainModule extends BaseModule {
 
         val allDocs =
           for (a <- annots.distinct)
-            yield Util.cleanupScaladoc(a.value).map("\n" + inspectItemIndent + _).mkString
+            yield MainModule.cleanupScaladoc(a.value).map("\n" + inspectItemIndent + _).mkString
 
         pprint.Tree.Lazy { ctx =>
           val mainMethodSig =
@@ -308,7 +325,7 @@ trait MainModule extends BaseModule {
         val cls = t.module.getClass
         val annotation = cls.getAnnotation(classOf[Scaladoc])
         val scaladocOpt = Option(annotation).map(annotation =>
-          Util.cleanupScaladoc(annotation.value).map("\n" + inspectItemIndent + _).mkString
+          MainModule.cleanupScaladoc(annotation.value).map("\n" + inspectItemIndent + _).mkString
         )
 
         def parentFilter(parent: Class[?]) =

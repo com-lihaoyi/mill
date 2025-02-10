@@ -2,6 +2,7 @@ package mill.eval
 
 import mill.api.{ColorLogger, PathRef, Result, Strict, SystemStreams, Val}
 import mill.api.Strict.Agg
+import mill.client.OutFiles
 import mill.define.*
 import mill.exec.{
   Cached,
@@ -9,15 +10,15 @@ import mill.exec.{
   ExecResults,
   ExecutionCore,
   ExecutionPaths,
-  EvaluatorPathsResolver,
+  ExecutionPathsResolver,
   Plan,
   ProfileLogger,
   TaskResult
 }
 import mill.define.Watchable
-import mill.main.client.OutFiles
-import mill.main.client.OutFiles.*
-import mill.resolve.{Resolve, SelectMode}
+import OutFiles.*
+import mill.resolve.Resolve
+
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -55,7 +56,7 @@ final case class Evaluator private[mill] (
     workerCache match {
       case mut: collection.mutable.Map[Segments, (Int, Val)] => mut
     }
-  val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
+  val pathsResolver: ExecutionPathsResolver = ExecutionPathsResolver.default(outPath)
 
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator =
     this.copy(baseLogger = newBaseLogger)

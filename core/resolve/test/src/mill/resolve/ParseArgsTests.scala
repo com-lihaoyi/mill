@@ -1,6 +1,6 @@
 package mill.resolve
 
-import mill.define.{Segment, Segments}
+import mill.define.{Segment, Segments, SelectMode}
 import mill.define.Segment.{Cross, Label}
 import mill.resolve.ParseArgs.TargetSeparator
 import utest._

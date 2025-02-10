@@ -2,10 +2,9 @@ package mill.pythonlib
 
 import mill._
 import mill.api.Result
-import mill.util.Util
-import mill.util.Jvm
+import mill.util.{Jvm}
 import mill.api.Ctx
-import mill.main.client.ServerFiles
+import mill.client.ServerFiles
 
 trait PythonModule extends PipModule with TaskModule { outer =>
 
@@ -210,7 +209,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * for you to test and operate your code interactively.
    */
   def console(): Command[Unit] = Task.Command(exclusive = true) {
-    if (!Util.isInteractive()) {
+    if (!mill.client.Util.hasConsole()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
       runner().run()

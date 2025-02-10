@@ -1,10 +1,10 @@
 package mill.testkit
 
-import mill.main.client.EnvVars.MILL_TEST_SUITE
+import mill.client.EnvVars.MILL_TEST_SUITE
+import mill.client.OutFiles
 import mill.define.Segments
 import mill.exec.Cached
-import mill.main.client.OutFiles
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 import ujson.Value
 
 /**

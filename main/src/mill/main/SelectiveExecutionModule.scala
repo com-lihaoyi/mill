@@ -1,10 +1,10 @@
 package mill.main
 
 import mill.api.Result
+import mill.client.OutFiles
 import mill.define.{Command, Task}
 import mill.eval.{Evaluator, SelectiveExecution}
-import mill.main.client.OutFiles
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 
 trait SelectiveExecutionModule extends mill.define.Module {
 

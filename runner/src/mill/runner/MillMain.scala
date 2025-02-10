@@ -1,5 +1,7 @@
 package mill.runner
 
+import mill.api
+
 import java.io.{PipedInputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -8,9 +10,9 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.{ColorLogger, MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
+import mill.client.{OutFiles, ServerFiles, Util}
+import mill.client.lock.Lock
 import mill.main.BuildInfo
-import mill.main.client.{OutFiles, ServerFiles, Util}
-import mill.main.client.lock.Lock
 import mill.runner.worker.ScalaCompilerWorker
 import mill.internal.{Colors, PrintLogger, PromptLogger}
 
@@ -75,7 +77,7 @@ object MillMain {
       try main0(
           args = args.tail,
           stateCache = RunnerState.empty,
-          mainInteractive = mill.util.Util.isInteractive(),
+          mainInteractive = mill.client.Util.hasConsole(),
           streams0 = runnerStreams,
           bspLog = bspLog,
           env = System.getenv().asScala.toMap,

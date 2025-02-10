@@ -14,8 +14,9 @@ import mill.main.BuildInfo
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
-import mill.util.Classpath
 import mill.scalalib
+import collection.mutable
+import java.net.URL
 import mill.scalalib._
 import mill.scalanativelib.ScalaNativeModule
 
@@ -122,7 +123,7 @@ case class GenIdeaImpl(
     }
 
     // is head the right one?
-    val buildDepsPaths = Classpath.allJars(evaluators.head.rootModule.getClass.getClassLoader)
+    val buildDepsPaths = GenIdeaImpl.allJars(evaluators.head.rootModule.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
     def resolveTasks: Map[Evaluator, Seq[Task[ResolvedModule]]] =
@@ -1015,6 +1016,23 @@ object GenIdeaImpl {
       }
       .mkString
       .toLowerCase()
+
+  def allJars(classloader: ClassLoader): Seq[URL] = {
+    allClassloaders(classloader)
+      .collect { case t: java.net.URLClassLoader => t.getURLs }
+      .flatten
+      .toSeq
+  }
+
+  def allClassloaders(classloader: ClassLoader): mutable.Buffer[ClassLoader] = {
+    val all = mutable.Buffer.empty[ClassLoader]
+    var current = classloader
+    while (current != null && current != ClassLoader.getSystemClassLoader) {
+      all.append(current)
+      current = current.getParent
+    }
+    all
+  }
 
   sealed trait ResolvedLibrary { def path: os.Path }
   final case class CoursierResolved(path: os.Path, pom: os.Path, sources: Option[os.Path])

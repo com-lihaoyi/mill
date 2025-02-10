@@ -1,7 +1,7 @@
 package mill.internal
 
 import mill.api.SystemStreams
-import mill.main.client.ProxyStream
+import mill.client.ProxyStream
 import utest.*
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
