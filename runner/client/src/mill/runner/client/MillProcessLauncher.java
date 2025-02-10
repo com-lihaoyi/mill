@@ -47,7 +47,6 @@ public class MillProcessLauncher {
       if (!interrupted && Files.exists(processDir)) {
         // cleanup if process terminated for sure
         try(Stream<Path> stream = Files.walk(processDir)) {
-          Files.walk(processDir)
             // depth-first
             stream.sorted(Comparator.reverseOrder())
                .forEach(p -> p.toFile().delete());
