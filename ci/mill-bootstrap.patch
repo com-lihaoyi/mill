@@ -166,7 +166,7 @@ index e49f218f4be..9d03aa073f3 100644
        def ivyDeps = Task {
          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
 diff --git a/dist/package.mill b/dist/package.mill
-index fbbeacbc843..5a205433d24 100644
+index fbbeacbc843..04b53aaf2f2 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -2,15 +2,14 @@ package build.dist
@@ -227,6 +227,15 @@ index fbbeacbc843..5a205433d24 100644
      ()
    }
  
+@@ -316,7 +316,7 @@ object `package` extends RootModule with InstallModule {
+         out.write(os.read.bytes(assembly().path))
+       }
+ 
+-      if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
++      if (!mill.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
+ 
+       PathRef(executable)
+     }
 diff --git a/example/package.mill b/example/package.mill
 index 427a6aecd74..4ff150b74d1 100644
 --- a/example/package.mill
