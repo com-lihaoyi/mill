@@ -1,5 +1,7 @@
 package mill.runner
 
+import mill.{api, util}
+
 import java.io.{PipedInputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -75,7 +77,7 @@ object MillMain {
       try main0(
           args = args.tail,
           stateCache = RunnerState.empty,
-          mainInteractive = mill.util.Util.isInteractive(),
+          mainInteractive = api.Util.isInteractive(),
           streams0 = runnerStreams,
           bspLog = bspLog,
           env = System.getenv().asScala.toMap,

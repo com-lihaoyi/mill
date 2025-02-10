@@ -8,8 +8,8 @@ import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{Ctx, Loose, PathRef, Result}
 import mill.client.EnvVars
 import mill.main.BuildInfo
-import mill.util.Util
 import mill.scalalib.api.ZincWorkerUtil
+import mill.util.Util
 
 object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {

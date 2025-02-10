@@ -1,9 +1,8 @@
 package mill.pythonlib
 
 import mill._
-import mill.api.Result
-import mill.util.Util
-import mill.util.Jvm
+import mill.api.{Result, Util}
+import mill.util.{Jvm}
 import mill.api.Ctx
 import mill.client.ServerFiles
 

@@ -1,9 +1,10 @@
 package mill.runner
 
-import mill.api.internal
-import mill.client.CodeGenConstants._
-import mill.client.OutFiles._
-import mill.runner.worker.api.{MillScalaParser, ImportTree}
+import mill.api.{internal}
+import mill.client.CodeGenConstants.*
+import mill.client.OutFiles.*
+import mill.runner.worker.api.{ImportTree, MillScalaParser}
+import mill.api.Util
 
 import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
@@ -216,7 +217,7 @@ object FileImportGraph {
 
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
 
-        stmt = stmt.patch(start, patchString + mill.util.Util.newLine * numNewLines, end - start)
+        stmt = stmt.patch(start, patchString + Util.newLine * numNewLines, end - start)
       }
 
       transformedStmts.append(stmt)

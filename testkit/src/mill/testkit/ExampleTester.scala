@@ -1,6 +1,7 @@
 package mill.testkit
+
+import mill.api.Util
 import mill.client
-import mill.util.Util
 import utest.*
 
 /**

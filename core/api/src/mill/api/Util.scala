@@ -1,9 +1,11 @@
-package mill.internal
+package mill.api
 
+import mill.api.Loose.Agg
+import mill.api.{BuildInfo, PathRef, Result}
 
 import java.nio.file.{Files, Paths}
 
-private[mill] object Util {
+object Util {
 
   def isInteractive(): Boolean = mill.client.Util.hasConsole()
 
@@ -18,7 +20,6 @@ private[mill] object Util {
     if (millOptionsPath != null)
       LongMillProps.load(Files.newInputStream(Paths.get(millOptionsPath)))
   }
-
   def leftPad(s: String, targetLength: Int, char: Char): String = {
     char.toString * (targetLength - s.length) + s
   }
