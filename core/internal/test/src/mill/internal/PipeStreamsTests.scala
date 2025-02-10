@@ -1,6 +1,5 @@
 package mill.internal
 
-import mill.internal.PipeStreams
 import utest.*
 
 import java.util.concurrent.Executors
