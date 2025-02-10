@@ -30,7 +30,7 @@ import mill.scalalib.TestModule.Junit5
 trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer =>
 
   override def sources: T[Seq[PathRef]] =
-    super[AndroidAppModule].sources() :+ PathRef(millSourcePath / "src/main/kotlin")
+    super[AndroidAppModule].sources() :+ PathRef(moduleDir / "src/main/kotlin")
 
   override def kotlincOptions = super.kotlincOptions() ++ {
     if (androidEnableCompose()) {
@@ -61,7 +61,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
     override def sources: T[Seq[PathRef]] =
-      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.millSourcePath / "src/test/kotlin"))
+      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.moduleDir / "src/test/kotlin"))
   }
 
   trait AndroidAppKotlinInstrumentedTests extends AndroidAppKotlinModule
@@ -72,7 +72,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppInstrumentedTests].sources() :+ PathRef(
-        outer.millSourcePath / "src/androidTest/kotlin"
+        outer.moduleDir / "src/androidTest/kotlin"
       )
   }
 
@@ -104,8 +104,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def sources: T[Seq[PathRef]] = Task.Sources(
       Seq(
-        PathRef(outer.millSourcePath / "src/screenshotTest/kotlin"),
-        PathRef(outer.millSourcePath / "src/screenshotTest/java")
+        PathRef(outer.moduleDir / "src/screenshotTest/kotlin"),
+        PathRef(outer.moduleDir / "src/screenshotTest/java")
       )
     )
 
@@ -243,14 +243,18 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
      * @return
      */
     def generatePreviews: T[Agg[PathRef]] = Task {
-      val previewGenOut = mill.util.Jvm.callSubprocess(
+      val previewGenOut = mill.util.Jvm.callProcess(
         mainClass = "com.android.tools.render.compose.MainKt",
-        classPath = composePreviewRenderer().map(_.path) ++ layoutLibRenderer().map(_.path),
+        classPath =
+          composePreviewRenderer().map(_.path).toVector ++ layoutLibRenderer().map(_.path).toVector,
         jvmArgs = Seq(
           "-Dlayoutlib.thread.profile.timeoutms=10000",
           "-Djava.security.manager=allow"
         ),
-        mainArgs = Seq(composePreviewArgs().path.toString())
+        mainArgs = Seq(composePreviewArgs().path.toString()),
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       ).out.lines()
 
       Task.log.info(previewGenOut.mkString("\n"))

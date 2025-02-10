@@ -83,8 +83,8 @@ private[runner] object ScalaCompilerWorker {
   private def reflectUnsafe(classpath: IterableOnce[os.Path])(using
       mill.api.Ctx.Home
   ): ScalaCompilerWorkerApi =
-    val cl = mill.api.ClassLoader.create(
-      classpath.iterator.map(_.toIO.toURI.toURL).toVector,
+    val cl = mill.util.Jvm.createClassLoader(
+      classpath.toVector,
       getClass.getClassLoader
     )
     val bridge = cl

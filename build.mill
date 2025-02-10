@@ -158,7 +158,7 @@ object Deps {
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = ivy"commons-io:commons-io:2.18.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.3"
-  val osLib = ivy"com.lihaoyi::os-lib:0.11.4-M5"
+  val osLib = ivy"com.lihaoyi::os-lib:0.11.4-M6"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
   val millModuledefsVersion = "0.11.3-M3"
@@ -398,7 +398,7 @@ trait MillJavaModule extends JavaModule {
 
   def writeLocalTestOverrides = Task.Anon {
     for ((k, v) <- testTransitiveDeps()) {
-      os.write(Task.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
+      os.write(Task.dest / "mill/local-test-overrides" / k, v, createFolders = true)
     }
     Seq(PathRef(Task.dest))
   }
@@ -472,10 +472,12 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     else ZincWorkerUtil.scalaBinaryVersion(sv)
   }
 
-  def scalafixConfig = T {
-    if (ZincWorkerUtil.isScala3(scalaVersion())) Some(T.workspace / ".scalafix-3.conf") else None
-  }
+  def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
+
   def semanticDbVersion = Deps.semanticDBscala.version
+
+  def scaladocOptions = Seq("-Xsource:3")
+
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",
@@ -483,22 +485,32 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     ) ++ (
       if (ZincWorkerUtil.isScala3(scalaVersion())) Seq(
         // "-Werror",
-        "-Wunused:all"
+        "-Wunused:all",
+        // "-Xfatal-warnings",
+        "-Wconf:msg=An existential type that came from a Scala-2 classfile:silent",
+        "-Wconf:msg=import scala.language.implicitConversions:silent",
+        "-Wconf:msg=IterableOnceExtensionMethods:silent",
+        "-Wconf:msg=is deprecated:silent",
+        "-Wconf:msg=cannot be checked at runtime:silent"
+        // "-Wconf:msg=unused:silent"
         // "-no-indent",
         // "-Wvalue-discard",
         // "-Wshadow:all",
         // "-Wsafe-init",
         // "-Wnonunit-statement",
         // "-Wimplausible-patterns",
+        // "-rewrite", "-source", "3.6-migration"
       )
       else Seq(
         "-P:acyclic:force",
+        // "-Xfatal-warnings",
         "-Xlint:unused",
         "-Xlint:adapted-args",
         "-Xsource:3",
         "-Wconf:msg=inferred type changes:silent",
         "-Wconf:msg=case companions no longer extend FunctionN:silent",
         "-Wconf:msg=access modifiers for:silent",
+        "-Wconf:msg=is deprecated:silent",
         "-Wconf:msg=found in a package prefix of the required type:silent"
       )
     )
@@ -522,7 +534,9 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
-  trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule {
+  trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
+      with ScalafixModule {
+    def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
@@ -764,7 +778,7 @@ def validate(): Command[Unit] = {
   Task.Command {
     Task.sequence(tasks)()
     mill.scalalib.scalafmt.ScalafmtModule.checkFormatAll(Tasks(sources))()
-    build.docs.localPages()
+    build.website.localPages()
     ()
   }
 }

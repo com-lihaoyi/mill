@@ -14,11 +14,11 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   def buildInfoObjectName = "ScalaJSBuildInfo"
 
   def buildInfoMembers = Task {
-    val resolve = resolveCoursierDependency()
+    val resolve = bindDependency()
 
     def formatDep(dep: Dep) = {
       val d = resolve(dep)
-      s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
+      s"${d.dep.module.organization.value}:${d.dep.module.name.value}:${d.dep.version}"
     }
 
     Seq(
@@ -45,7 +45,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
     def scalajsWorkerVersion = crossValue
     def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
-    def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.main.client, build.main.api)
+    def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.core.client, build.core.api)
     def mandatoryIvyDeps = Agg.empty[Dep]
     def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
       build.Deps.Scalajs_1.scalajsLinker,

@@ -2,24 +2,16 @@ package mill.scalajslib
 
 import mill._
 import mill.api.Result
-import mill.define.Discover
-import mill.eval.EvaluatorPaths
-import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
-import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.UnitTester
 import mill.testrunner.TestResult
 import utest._
-
-import java.util.jar.JarFile
-import scala.jdk.CollectionConverters._
 
 object UtestTests extends TestSuite {
   import CompileLinkTests._
   def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
       : Map[String, Map[String, TestResult]] =
     UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
-      val Left(Result.Failure(_, Some(res))) = eval(testTask)
+      val Left(Result.Failure(_, Some(res))) = eval(testTask): @unchecked
 
       val (doneMsg, testResults) = res
       testResults
@@ -78,8 +70,8 @@ object UtestTests extends TestSuite {
 
     def checkInheritedTargets[A](target: ScalaJSModule => T[A], expected: A) =
       UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
-        val Right(mainResult) = eval(target(HelloJSWorld.inherited))
-        val Right(testResult) = eval(target(HelloJSWorld.inherited.test))
+        val Right(mainResult) = eval(target(HelloJSWorld.inherited)): @unchecked
+        val Right(testResult) = eval(target(HelloJSWorld.inherited.test)): @unchecked
         assert(mainResult.value == expected)
         assert(testResult.value == expected)
       }

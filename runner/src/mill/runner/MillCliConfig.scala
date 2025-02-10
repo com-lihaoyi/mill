@@ -188,7 +188,7 @@ options:
 
   import mill.api.JsonFormatters._
 
-  private[this] lazy val parser: ParserForClass[MillCliConfig] =
+  private lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]
 
   lazy val shortUsageText: String =

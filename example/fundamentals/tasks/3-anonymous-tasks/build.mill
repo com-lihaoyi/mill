@@ -5,7 +5,7 @@
 package build
 import mill._, define.Task
 
-def data = Task.Source(millSourcePath / "data")
+def data = Task.Source("data")
 
 def anonTask(fileName: String): Task[String] = Task.Anon {
   os.read(data().path / fileName)

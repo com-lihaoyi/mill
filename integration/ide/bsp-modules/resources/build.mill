@@ -21,9 +21,7 @@ object HelloBsp extends HelloBspModule {
 def validate() = Task.Command {
   val transitiveModules = mill.scalalib.internal.JavaModuleUtils.transitiveModules(build)
   val file = Task.dest / "transitive-modules.json"
-  val moduleNames = transitiveModules.map(m =>
-    mill.scalalib.internal.ModuleUtils.moduleDisplayName(m)
-  ).mkString("\n")
+  val moduleNames = transitiveModules.map(_.moduleSegments.render).mkString("\n")
   val content =
     s"""${moduleNames}
        |""".stripMargin

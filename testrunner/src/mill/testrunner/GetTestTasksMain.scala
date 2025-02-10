@@ -1,7 +1,7 @@
 package mill.testrunner
 
 import mill.api.Loose.Agg
-import mill.api.{Ctx, internal}
+import mill.api.internal
 import os.Path
 
 @internal object GetTestTasksMain {
@@ -26,24 +26,21 @@ import os.Path
       args: Seq[String]
   ): Seq[String] = {
     val globFilter = TestRunnerUtils.globFilter(selectors)
-    mill.util.Jvm.inprocess(
-      runCp,
-      classLoaderOverrideSbtTesting = true,
-      isolated = true,
-      closeContextClassLoaderWhenDone = false,
-      classLoader =>
-        TestRunnerUtils
-          .getTestTasks0(
-            Framework.framework(framework),
-            Agg.from(testCp),
-            args,
-            cls => globFilter(cls.getName),
-            classLoader
-          )
-    )(new Ctx.Home {
-      def home: Path = os.home
-    })
+    mill.util.Jvm.withClassLoader(
+      classPath = runCp,
+      sharedPrefixes = Seq("sbt.testing.")
+    ) { classLoader =>
+      TestRunnerUtils
+        .getTestTasks0(
+          Framework.framework(framework),
+          Agg.from(testCp),
+          args,
+          cls => globFilter(cls.getName),
+          classLoader
+        )
+        .toSeq
+    }
   }
 
-  def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)
+  def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args.toSeq)
 }

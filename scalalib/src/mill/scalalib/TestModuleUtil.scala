@@ -63,18 +63,17 @@ private[scalalib] object TestModuleUtil {
 
       os.makeDir.all(sandbox)
 
-      Jvm.runSubprocess(
+      Jvm.callProcess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath =
-          (runClasspath ++ testrunnerEntrypointClasspath).map(
-            _.path
-          ),
+        classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        envArgs = forkEnv ++ resourceEnv,
+        env = forkEnv ++ resourceEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
-        workingDir = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
-        useCpPassingJar = useArgsFile,
-        javaHome = javaHome
+        cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+        cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+        javaHome = javaHome,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
 
       if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
@@ -102,9 +101,9 @@ private[scalalib] object TestModuleUtil {
         // tests to run and shut down
 
         val discoveredTests = if (javaHome.isDefined) {
-          Jvm.callSubprocess(
+          Jvm.callProcess(
             mainClass = "mill.testrunner.GetTestTasksMain",
-            classPath = scalalibClasspath.map(_.path),
+            classPath = scalalibClasspath.map(_.path).toVector,
             mainArgs =
               (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p =>
                 Seq("--runCp", p.path.toString)
@@ -114,7 +113,9 @@ private[scalalib] object TestModuleUtil {
                 selectors.flatMap(s => Seq("--selectors", s)) ++
                 args.flatMap(s => Seq("--args", s)),
             javaHome = javaHome,
-            streamOut = false
+            stdin = os.Inherit,
+            stdout = os.Pipe,
+            cwd = Task.dest
           ).out.lines().toSet
         } else {
           mill.testrunner.GetTestTasksMain.main0(
@@ -196,12 +197,6 @@ private[scalalib] object TestModuleUtil {
     }
   }
 
-  @deprecated("Use other overload instead", "Mill after 0.10.2")
-  private[scalalib] def handleResults(
-      doneMsg: String,
-      results: Seq[TestResult]
-  ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
-
   private[scalalib] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
@@ -232,7 +227,7 @@ private[scalalib] object TestModuleUtil {
   private[scalalib] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env with Ctx.Dest,
+      ctx: Ctx.Env & Ctx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] = {

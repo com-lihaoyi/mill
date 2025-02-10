@@ -4,28 +4,29 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.io.File
 import java.nio.file.Path
-import mill.scalajslib.worker.api._
-import mill.scalajslib.worker.jsenv._
+import mill.scalajslib.worker.api.*
+import mill.scalajslib.worker.jsenv.*
 import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, PathOutputFile, StandardImpl}
 import org.scalajs.linker.interface.{
-  ESFeatures => ScalaJSESFeatures,
-  ESVersion => ScalaJSESVersion,
-  ModuleKind => ScalaJSModuleKind,
-  OutputPatterns => ScalaJSOutputPatterns,
-  Report => _,
-  ModuleSplitStyle => _,
-  _
+  ESFeatures as ScalaJSESFeatures,
+  ESVersion as ScalaJSESVersion,
+  ModuleKind as ScalaJSModuleKind,
+  OutputPatterns as ScalaJSOutputPatterns,
+  ModuleSplitStyle as _,
+  Report as _,
+  *
 }
 import org.scalajs.logging.{Level, Logger}
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
-import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
+import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 
 import scala.collection.mutable
 import scala.ref.SoftReference
-
 import com.armanbilge.sjsimportmap.ImportMappedIRFile
+
+import scala.annotation.nowarn
 
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
@@ -309,25 +310,27 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       else runConfig0
         .withInheritErr(false)
         .withInheritOut(false)
-        .withOnOutputStream { case (Some(processOut), Some(processErr)) =>
-          val sources = Seq(
-            (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
-            (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
-          )
-
-          for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
-            val t = new Thread(
-              new mill.main.client.InputPumper(
-                () => std,
-                () => dest,
-                checkAvailable,
-                () => runningCheck()
-              ),
-              name
+        .withOnOutputStream {
+          case (Some(processOut), Some(processErr)) =>
+            val sources = Seq(
+              (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
+              (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
             )
-            t.setDaemon(true)
-            t.start()
-          }
+
+            for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
+              val t = new Thread(
+                new mill.main.client.InputPumper(
+                  () => std,
+                  () => dest,
+                  checkAvailable,
+                  () => runningCheck()
+                ),
+                name
+              )
+              t.setDaemon(true)
+              t.start()
+            }
+          case _ => ???
         }
     Run.runInterruptible(env, input, runConfig)
   }

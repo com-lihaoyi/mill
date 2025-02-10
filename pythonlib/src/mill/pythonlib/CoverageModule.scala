@@ -45,7 +45,7 @@ trait CoverageModule extends PythonModule {
    * [[coverageDataFile]]. It is required that this file be readable as soon
    * as this task returns.
    */
-  def coverageTask: Task[_]
+  def coverageTask: Task[?]
 
   private case class CoverageReporter(
       interp: os.Path,

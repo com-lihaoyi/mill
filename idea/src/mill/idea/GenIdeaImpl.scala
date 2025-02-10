@@ -16,7 +16,7 @@ import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.util.Classpath
 import mill.scalalib
-import mill.scalalib.{GenIdeaImpl => _, _}
+import mill.scalalib._
 import mill.scalanativelib.ScalaNativeModule
 
 case class GenIdeaImpl(
@@ -24,7 +24,7 @@ case class GenIdeaImpl(
 )(implicit ctx: Ctx) {
   import GenIdeaImpl._
 
-  val workDir: os.Path = evaluators.head.rootModule.millSourcePath
+  val workDir: os.Path = evaluators.head.rootModule.moduleDir
   val ideaDir: os.Path = workDir / ".idea"
 
   val ideaConfigVersion = 4
@@ -81,10 +81,10 @@ case class GenIdeaImpl(
       .flatMap { case (rootMod, transModules, ev, idx) =>
         transModules.collect {
           case m: Module =>
-            val rootSegs = rootMod.millSourcePath.relativeTo(workDir).segments
-            val modSegs = m.millModuleSegments.parts
+            val rootSegs = rootMod.moduleDir.relativeTo(workDir).segments
+            val modSegs = m.moduleSegments.parts
             val segments: Seq[String] = rootSegs ++ modSegs
-            (Segments(segments.map(Segment.Label)), m, ev)
+            (Segments(segments.map(Segment.Label(_))), m, ev)
         }
       }
 
@@ -238,7 +238,7 @@ case class GenIdeaImpl(
     val resolvedModules: Seq[ResolvedModule] = {
       resolveTasks.toSeq.flatMap { case (evaluator, tasks) =>
         evaluator.evaluate(tasks) match {
-          case r if r.failing.items().nonEmpty =>
+          case r if r.failing.nonEmpty =>
             throw GenIdeaException(
               s"Failure during resolving modules: ${Evaluator.formatFailing(r)}"
             )
@@ -657,7 +657,7 @@ case class GenIdeaImpl(
       attributes1 = attribute1,
       example.scope,
       minimizeEmpty = true,
-      child = element.childs.map(ideaConfigElementTemplate): _*
+      child = element.childs.map(ideaConfigElementTemplate)*
     )
   }
 
@@ -977,7 +977,7 @@ case class GenIdeaImpl(
         {
       for ((((plugins, params), mods), i) <- settings.toSeq.zip(1 to settings.size))
         yield <profile name={s"mill $i"} modules={
-          mods.map(m => moduleName(m.millModuleSegments)).mkString(",")
+          mods.map(m => moduleName(m.moduleSegments)).mkString(",")
         }>
             <parameters>
               {
@@ -1002,7 +1002,8 @@ object GenIdeaImpl {
 
   /**
    * Create the module name (to be used by Idea) for the module based on it segments.
-   * @see [[Module.millModuleSegments]]
+   *
+   * @see [[Module.moduleSegments]]
    */
   def moduleName(p: Segments): String =
     p.value

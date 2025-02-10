@@ -27,7 +27,7 @@ trait ReactScriptsModule extends TypeScriptModule {
     )
   }
 
-  override def sources: Target[PathRef] = Task.Source(millSourcePath)
+  override def sources: Target[PathRef] = Task.Source(moduleDir)
 
   def packageJestOptions: Target[ujson.Obj] = Task {
     ujson.Obj(
@@ -71,7 +71,7 @@ trait ReactScriptsModule extends TypeScriptModule {
     val npm = npmInstall().path
     val combinedPaths = compilerOptionsPaths() ++ Seq(
       "*" -> npm / "node_modules",
-      "typescript" -> npm / "node_modules" / "typescript"
+      "typescript" -> npm / "node_modules/typescript"
     )
 
     val combinedCompilerOptions: Map[String, ujson.Value] = compilerOptions() ++ Map(
@@ -108,7 +108,7 @@ trait ReactScriptsModule extends TypeScriptModule {
   override def bundle: Target[PathRef] = Task {
     val compiled = compile()._1.path
     os.call(
-      ("node", compiled / "node_modules" / "react-scripts" / "bin" / "react-scripts.js", "build"),
+      ("node", compiled / "node_modules/react-scripts/bin/react-scripts.js", "build"),
       cwd = compiled,
       stdout = os.Inherit,
       env = forkEnv()
@@ -142,7 +142,7 @@ trait ReactScriptsModule extends TypeScriptModule {
     os.call(
       (
         "node",
-        (compiled / "node_modules" / "react-scripts" / "bin" / "react-scripts.js").toString,
+        (compiled / "node_modules/react-scripts/bin/react-scripts.js").toString,
         "test",
         "--watchAll=false"
       ),

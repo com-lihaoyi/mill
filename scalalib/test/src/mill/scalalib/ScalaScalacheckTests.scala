@@ -1,10 +1,10 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
 object ScalaScalacheckTests extends TestSuite {
 
   object HelloScalacheck extends TestBaseModule {
@@ -15,6 +15,7 @@ object ScalaScalacheckTests extends TestSuite {
         override def testFramework = "org.scalacheck.ScalaCheckFramework"
       }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
@@ -23,7 +24,7 @@ object ScalaScalacheckTests extends TestSuite {
       HelloScalacheck,
       sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-scalacheck"
     ).scoped { eval =>
-      val Right(result) = eval.apply(HelloScalacheck.foo.test.test())
+      val Right(result) = eval.apply(HelloScalacheck.foo.test.test()): @unchecked
       assert(
         result.evalCount > 0,
         result.value._2.map(_.selector) == Seq(

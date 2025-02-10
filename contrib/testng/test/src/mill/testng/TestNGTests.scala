@@ -1,12 +1,12 @@
 package mill
 package testng
 
-import mill.define.Target
+import mill.define.{Discover, Target}
 import mill.util.Util.millProjectModule
-import mill.scalalib._
+import mill.scalalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.{TestSuite, Tests, assert, _}
+import utest.{TestSuite, Tests, assert, *}
 
 object TestNGTests extends TestSuite {
 
@@ -47,12 +47,14 @@ object TestNGTests extends TestSuite {
       )
       def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "demo"
 
   def tests: Tests = Tests {
     test("demo") - UnitTester(demo, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(demo.test.testFramework)
+      val Right(result) = eval.apply(demo.test.testFramework): @unchecked
       assert(
         result.value == "mill.testng.TestNGFramework",
         result.evalCount > 0
@@ -60,19 +62,19 @@ object TestNGTests extends TestSuite {
     }
     test("Test case lookup from inherited annotations") - UnitTester(demo, resourcePath).scoped {
       eval =>
-        val Right(result) = eval.apply(demo.test.test())
+        val Right(result) = eval.apply(demo.test.test()): @unchecked
         val tres = result.value
         assert(tres._2.size == 8)
     }
     test("noGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
-        val Right(result) = eval.apply(demo.testng.test())
+        val Right(result) = eval.apply(demo.testng.test()): @unchecked
         val tres = result.value._2
         assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }
     test("testForkGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
-        val Right(result) = eval.apply(demo.testngGrouping.test())
+        val Right(result) = eval.apply(demo.testngGrouping.test()): @unchecked
         val tres = result.value._2
         assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }

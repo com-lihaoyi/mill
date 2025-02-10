@@ -2,7 +2,8 @@ package mill
 package kotlinlib
 package js
 
-import mill.eval.EvaluatorPaths
+import mill.define.Discover
+import mill.exec.ExecutionPaths
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, test}
 
@@ -42,6 +43,8 @@ object KotlinJsNodeRunTests extends TestSuite {
     }
 
     object foo extends Cross[KotlinJsModuleKindCross](matrix)
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)
@@ -53,14 +56,14 @@ object KotlinJsNodeRunTests extends TestSuite {
       val eval = testEval()
 
       // plain modules cannot handle the dependencies, so if there are multiple js files, it will fail
-      val Left(_) = eval.apply(module.foo(true, "plain").run())
+      val Left(_) = eval.apply(module.foo(true, "plain").run()): @unchecked
     }
 
     test("split - es module") {
       val eval = testEval()
 
       val command = module.foo(true, "es").run()
-      val Right(_) = eval.apply(command)
+      val Right(_) = eval.apply(command): @unchecked
 
       assertLogContains(eval, command, expectedSuccessOutput)
     }
@@ -69,14 +72,14 @@ object KotlinJsNodeRunTests extends TestSuite {
       val eval = testEval()
 
       // amd modules have "define" method, it is not known by Node.js
-      val Left(_) = eval.apply(module.foo(true, "amd").run())
+      val Left(_) = eval.apply(module.foo(true, "amd").run()): @unchecked
     }
 
     test("split - commonjs module") {
       val eval = testEval()
 
       val command = module.foo(true, "commonjs").run()
-      val Right(_) = eval.apply(command)
+      val Right(_) = eval.apply(command): @unchecked
 
       assertLogContains(eval, command, expectedSuccessOutput)
     }
@@ -85,7 +88,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       val eval = testEval()
 
       val command = module.foo(true, "umd").run()
-      val Right(_) = eval.apply(command)
+      val Right(_) = eval.apply(command): @unchecked
 
       assertLogContains(eval, command, expectedSuccessOutput)
     }
@@ -93,7 +96,7 @@ object KotlinJsNodeRunTests extends TestSuite {
     test("split - no module") {
       val eval = testEval()
 
-      val Left(_) = eval.apply(module.foo(true, "no").run())
+      val Left(_) = eval.apply(module.foo(true, "no").run()): @unchecked
     }
 
     // endregion
@@ -104,7 +107,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       val eval = testEval()
 
       val command = module.foo(false, "plain").run()
-      val Right(_) = eval.apply(command)
+      val Right(_) = eval.apply(command): @unchecked
 
       assertLogContains(eval, command, expectedSuccessOutput)
     }
@@ -113,7 +116,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       val eval = testEval()
 
       val command = module.foo(false, "es").run()
-      val Right(_) = eval.apply(command)
+      val Right(_) = eval.apply(command): @unchecked
 
       assertLogContains(eval, command, expectedSuccessOutput)
     }
@@ -122,14 +125,14 @@ object KotlinJsNodeRunTests extends TestSuite {
       val eval = testEval()
 
       // amd modules have "define" method, it is not known by Node.js
-      val Left(_) = eval.apply(module.foo(false, "amd").run())
+      val Left(_) = eval.apply(module.foo(false, "amd").run()): @unchecked
     }
 
     test("no split - commonjs module") {
       val eval = testEval()
 
       val command = module.foo(false, "commonjs").run()
-      val Right(_) = eval.apply(command)
+      val Right(_) = eval.apply(command): @unchecked
 
       assertLogContains(eval, command, expectedSuccessOutput)
     }
@@ -138,7 +141,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       val eval = testEval()
 
       val command = module.foo(false, "umd").run()
-      val Right(_) = eval.apply(command)
+      val Right(_) = eval.apply(command): @unchecked
 
       assertLogContains(eval, command, expectedSuccessOutput)
     }
@@ -147,7 +150,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       val eval = testEval()
 
       val command = module.foo(false, "no").run()
-      val Right(_) = eval.apply(command)
+      val Right(_) = eval.apply(command): @unchecked
 
       assertLogContains(eval, command, expectedSuccessOutput)
     }
@@ -156,7 +159,7 @@ object KotlinJsNodeRunTests extends TestSuite {
   }
 
   private def assertLogContains(eval: UnitTester, command: Command[Unit], text: String): Unit = {
-    val log = EvaluatorPaths.resolveDestPaths(eval.outPath, command).log
+    val log = ExecutionPaths.resolveDestPaths(eval.outPath, command).log
     assert(os.read(log).contains(text))
   }
 

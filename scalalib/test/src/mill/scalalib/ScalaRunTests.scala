@@ -1,25 +1,31 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.api.Result
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
 object ScalaRunTests extends TestSuite {
 
   object HelloWorldDefaultMain extends TestBaseModule {
     object core extends HelloWorldTests.HelloWorldModule
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithoutMain extends TestBaseModule {
     object core extends HelloWorldTests.HelloWorldModule {
       override def mainClass = None
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithMain extends TestBaseModule {
     object core extends HelloWorldTests.HelloWorldModuleWithMain
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
@@ -29,7 +35,10 @@ object ScalaRunTests extends TestSuite {
         val runResult = eval.outPath / "core/runMain.dest/hello-mill"
 
         val Right(result) =
-          eval.apply(HelloWorldTests.HelloWorld.core.runMain("Main", runResult.toString))
+          eval.apply(HelloWorldTests.HelloWorld.core.runMain(
+            "Main",
+            runResult.toString
+          )): @unchecked
         assert(result.evalCount > 0)
 
         assert(
@@ -44,7 +53,7 @@ object ScalaRunTests extends TestSuite {
 
           val Right(result) = eval.apply(
             HelloWorldTests.CrossHelloWorld.core(v).runMain("Shim", runResult.toString)
-          )
+          ): @unchecked
 
           assert(result.evalCount > 0)
 
@@ -71,19 +80,19 @@ object ScalaRunTests extends TestSuite {
         resourcePath
       ).scoped { eval =>
         val Left(Result.Failure("Subprocess failed", _)) =
-          eval.apply(HelloWorldTests.HelloWorld.core.runMain("Invalid"))
+          eval.apply(HelloWorldTests.HelloWorld.core.runMain("Invalid")): @unchecked
       }
       test("notRunWhenCompileFailed") - UnitTester(
         HelloWorldTests.HelloWorld,
         resourcePath
       ).scoped { eval =>
         os.write.append(
-          HelloWorldTests.HelloWorld.millSourcePath / "core/src/Main.scala",
+          HelloWorldTests.HelloWorld.moduleDir / "core/src/Main.scala",
           "val x: "
         )
 
         val Left(Result.Failure("Compilation failed", _)) =
-          eval.apply(HelloWorldTests.HelloWorld.core.runMain("Main"))
+          eval.apply(HelloWorldTests.HelloWorld.core.runMain("Main")): @unchecked
 
       }
     }
@@ -93,7 +102,7 @@ object ScalaRunTests extends TestSuite {
         val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
           HelloWorldWithMain.core.run(Task.Anon(Args(runResult.toString)))
-        )
+        ): @unchecked
 
         assert(result.evalCount > 0)
 
@@ -106,7 +115,7 @@ object ScalaRunTests extends TestSuite {
         HelloWorldWithoutMain,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-no-main"
       ).scoped { eval =>
-        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run())
+        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run()): @unchecked
       }
 
       test("runDiscoverMainClass") - UnitTester(HelloWorldWithoutMain, resourcePath).scoped {
@@ -116,7 +125,7 @@ object ScalaRunTests extends TestSuite {
           val runResult = eval.outPath / "core/run.dest/hello-mill"
           val Right(result) = eval.apply(
             HelloWorldWithoutMain.core.run(Task.Anon(Args(runResult.toString)))
-          )
+          ): @unchecked
 
           assert(result.evalCount > 0)
 
@@ -132,7 +141,7 @@ object ScalaRunTests extends TestSuite {
         val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
           HelloWorldWithMain.core.runLocal(Task.Anon(Args(runResult.toString)))
-        )
+        ): @unchecked
 
         assert(result.evalCount > 0)
 
@@ -145,7 +154,7 @@ object ScalaRunTests extends TestSuite {
         val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
           HelloWorldDefaultMain.core.runLocal(Task.Anon(Args(runResult.toString)))
-        )
+        ): @unchecked
 
         assert(result.evalCount > 0)
 
@@ -158,7 +167,8 @@ object ScalaRunTests extends TestSuite {
         HelloWorldWithoutMain,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-no-main"
       ).scoped { eval =>
-        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
+        val Left(Result.Failure(_, None)) =
+          eval.apply(HelloWorldWithoutMain.core.runLocal()): @unchecked
       }
     }
   }

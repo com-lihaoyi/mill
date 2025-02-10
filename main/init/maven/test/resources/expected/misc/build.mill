@@ -41,7 +41,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
   def publishVersion = "1.0-SNAPSHOT"
 
   def resources = Task
-    .Sources { super.resources() ++ Seq(PathRef(millSourcePath / "resources")) }
+    .Sources { super.resources() ++ Seq(PathRef(moduleDir / "resources")) }
 
   object test extends MavenTests with TestModule.Junit4 {
 
@@ -54,8 +54,8 @@ object `package` extends RootModule with PublishModule with MavenModule {
 
     def resources = Task.Sources {
       super.resources() ++ Seq(
-        PathRef(millSourcePath / "test/resources"),
-        PathRef(millSourcePath / "src/test/secrets")
+        PathRef(moduleDir / "test/resources"),
+        PathRef(moduleDir / "src/test/secrets")
       )
     }
   }

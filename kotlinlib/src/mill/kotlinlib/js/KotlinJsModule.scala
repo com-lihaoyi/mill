@@ -161,15 +161,19 @@ trait KotlinJsModule extends KotlinModule { outer =>
       case Some(RunTarget.Node) =>
         val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
           .toIO.getAbsolutePath
-        Jvm.runSubprocessWithResult(
-          commandArgs = Seq(
-            "node"
-          ) ++ args.value ++ Seq(binaryPath),
-          envArgs = envArgs,
-          workingDir = workingDir
+        val processResult = os.call(
+          cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
+          env = envArgs,
+          cwd = workingDir,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          check = false
         )
-      case Some(x) =>
-        Result.Failure(s"Run target $x is not supported")
+        if (processResult.exitCode == 0) Result.Success(processResult.exitCode)
+        else Result.Failure(
+          "Interactive Subprocess Failed (exit code " + processResult.exitCode + ")",
+          Some(processResult.exitCode)
+        )
       case None =>
         Result.Failure("Executable binary should have a run target selected.")
     }
@@ -238,7 +242,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Jvm.createJar(
       outputPath,
       Agg(compile().classes.path),
-      mill.api.JarManifest.MillDefault,
+      mill.util.JarManifest.MillDefault,
       fileFilter = (_, _) => true
     )
     PathRef(outputPath)
@@ -309,6 +313,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           case ModuleKind.PlainModule => "plain"
           case ModuleKind.ESModule => "es"
           case ModuleKind.CommonJSModule => "commonjs"
+          case ModuleKind.NoModule => ???
         }
       )
     }
@@ -474,10 +479,12 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO may be optimized if there is a single folder for all modules
     // but may be problematic if modules use different NPM packages versions
     private def nodeModulesDir = Task(persistent = true) {
-      Jvm.runSubprocess(
-        commandArgs = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
-        envArgs = Task.env,
-        workingDir = Task.dest
+      os.call(
+        cmd = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
+        env = Task.env,
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
       PathRef(Task.dest)
     }
@@ -486,11 +493,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // otherwise with random versions there is a possibility to have conflict
     // between the versions of the shared transitive deps
     private def mochaModule = Task {
-      PathRef(nodeModulesDir().path / "node_modules" / "mocha" / "bin" / "mocha.js")
+      PathRef(nodeModulesDir().path / "node_modules/mocha/bin/mocha.js")
     }
 
     private def sourceMapSupportModule = Task {
-      PathRef(nodeModulesDir().path / "node_modules" / "source-map-support" / "register.js")
+      PathRef(nodeModulesDir().path / "node_modules/source-map-support/register.js")
     }
 
     // endregion
@@ -516,7 +523,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
       Task.Command {
-        this.test(args: _*)()
+        this.test(args*)()
       }
 
     override protected[js] def friendModule: Option[KotlinJsModule] = Some(outer)

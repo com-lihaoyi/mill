@@ -5,7 +5,7 @@ import mill._, scalalib._
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
   def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(millSourcePath / "mill-build/src"))
+    super.sources() ++ Seq(PathRef(moduleDir / "mill-build/src"))
   }
 }
 

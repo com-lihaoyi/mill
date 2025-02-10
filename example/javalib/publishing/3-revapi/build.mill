@@ -16,11 +16,11 @@ object bar extends JavaModule with RevapiModule {
 
   override def revapiConfigFiles: T[Seq[PathRef]] =
     // add Revapi config JSON file(s)
-    Task.Sources(millSourcePath / "conf/revapi.json")
+    Task.Sources("conf/revapi.json")
 
   override def revapiClasspath: T[Agg[PathRef]] = Task {
     // add folder containing logback.xml
-    super.revapiClasspath() ++ Seq(PathRef(millSourcePath / "conf"))
+    super.revapiClasspath() ++ Seq(PathRef(moduleDir / "conf"))
   }
 }
 

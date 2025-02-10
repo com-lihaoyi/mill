@@ -9,7 +9,6 @@ import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.define.{Command, Task}
 import mill.scalajslib.api._
-import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.T
@@ -26,11 +25,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def jsEnvConfig: T[JsEnvConfig] = outer.jsEnvConfig()
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
   }
-
-  @deprecated("use ScalaJSTests", "0.11.0")
-  type ScalaJSModuleTests = ScalaJSTests
-  @deprecated("use ScalaJSTests", "0.11.0")
-  trait Tests extends ScalaJSTests
 
   def scalaJSBinaryVersion = Task { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 
@@ -112,16 +106,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def fullLinkJS: T[Report] = Task(persistent = true) {
     linkTask(isFullLinkJS = true, forceOutJs = false)()
-  }
-
-  @deprecated("Use fastLinkJS instead", "Mill 0.10.12")
-  def fastOpt: T[PathRef] = Task {
-    getReportMainFilePathRef(linkTask(isFullLinkJS = false, forceOutJs = true)())
-  }
-
-  @deprecated("Use fullLinkJS instead", "Mill 0.10.12")
-  def fullOpt: T[PathRef] = Task {
-    getReportMainFilePathRef(linkTask(isFullLinkJS = true, forceOutJs = true)())
   }
 
   private def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[Report] = Task.Anon {
@@ -394,7 +378,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   }
 
   override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
-    Task.Command { test(args: _*)() }
+    Task.Command { test(args*)() }
 
   override protected def testTask(
       args: Task[Seq[String]],

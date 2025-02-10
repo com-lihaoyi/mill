@@ -52,7 +52,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
         Seq(
           // whole file
           IdeaConfigFile(
-            os.sub / "runConfigurations" / "testrun.xml",
+            os.sub / "runConfigurations/testrun.xml",
             None,
             Seq(Element("test"))
           ),

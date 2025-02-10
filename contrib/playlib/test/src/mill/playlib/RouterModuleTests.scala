@@ -1,11 +1,11 @@
 package mill.playlib
 
 import mill.api.Result.Failure
-import mill.define.Cross
+import mill.define.{Cross, Discover}
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
-
+import mill.main.TokenReaders._
 object RouterModuleTests extends TestSuite with PlayTestSuite {
 
   trait HelloBase extends TestBaseModule
@@ -20,6 +20,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
       def playVersion = crossValue2
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
@@ -33,7 +34,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
         skipUnsupportedVersions(playVersion) {
           UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val eitherResult = eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
-            val Right(result) = eitherResult
+            val Right(result) = eitherResult: @unchecked
             val outputFiles = os.walk(result.value.classes.path).filter(os.isFile)
             val expectedClassfiles = Seq[os.RelPath](
               os.RelPath("controllers/ReverseRoutes.scala"),
@@ -56,7 +57,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
 
             // don't recompile if nothing changed
             val Right(result2) =
-              eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
+              eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter): @unchecked
 
             assert(result2.evalCount == 0)
           }
@@ -69,7 +70,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
           UnitTester(HelloWorld, invalidResourcePath).scoped { eval =>
             val project = HelloWorld.core(scalaVersion, playVersion)
             val eitherResult = eval.apply(project.compileRouter)
-            val Left(Failure(message, x)) = eitherResult
+            val Left(Failure(message, x)) = eitherResult: @unchecked
             val playExpectedMessage =
               if !playVersion.startsWith("2.7.") && !playVersion.startsWith("2.8.") then {
                 "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
@@ -77,7 +78,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
                 "end of input expected"
               }
             val expectedMessage = "Unable to compile play routes, compilation error in " +
-              project.millSourcePath.toIO.getAbsolutePath.replace(
+              project.moduleDir.toIO.getAbsolutePath.replace(
                 """\""",
                 "/"
               ) + "/routes/routes at line 4, " +
@@ -96,7 +97,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
         skipUnsupportedVersions(playVersion) {
           UnitTester(HelloWorld, invalidSubResourcePath).scoped { eval =>
             val eitherResult = eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
-            val Left(Failure(message, x)) = eitherResult
+            val Left(Failure(message, x)) = eitherResult: @unchecked
             val playExpectedMessage =
               if !playVersion.startsWith("2.7.") && !playVersion.startsWith("2.8.") then {
                 "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
@@ -104,7 +105,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
                 "end of input expected"
               }
             val expectedMessage = "Unable to compile play routes, compilation error in " +
-              HelloWorld.core.millSourcePath.toIO.getAbsolutePath.replace(
+              HelloWorld.core.moduleDir.toIO.getAbsolutePath.replace(
                 """\""",
                 "/"
               ) + "/routes/sub.routes at line 3, column" +

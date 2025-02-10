@@ -41,7 +41,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
       Task.Anon(
-        (os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString()
+        (os.home / ".cache/mill/download" / (build.millVersion() + batExt)).toString()
       )
     )()
     Task.log.outputStream.println(path.toString())
@@ -103,8 +103,8 @@ object `package` extends RootModule with InstallModule {
     val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
 
     val genIdeaArgs =
-      genTask(build.main.define)() ++
-        genTask(build.main.eval)() ++
+      genTask(build.core.define)() ++
+        genTask(build.core.exec)() ++
         genTask(build.main)() ++
         genTask(build.scalalib)() ++
         genTask(build.kotlinlib)() ++

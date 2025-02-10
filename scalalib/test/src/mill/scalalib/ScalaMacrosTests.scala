@@ -1,10 +1,12 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
+
 import scala.util.Properties
-import HelloWorldTests._
+import HelloWorldTests.*
+import mill.define.Discover
 object ScalaMacrosTests extends TestSuite {
 
   object HelloWorldMacros212 extends TestBaseModule {
@@ -17,6 +19,7 @@ object ScalaMacrosTests extends TestSuite {
         ivy"org.scalamacros:::paradise:2.1.0"
       )
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldMacros213 extends TestBaseModule {
@@ -25,6 +28,7 @@ object ScalaMacrosTests extends TestSuite {
       override def ivyDeps = Agg(ivy"com.github.julien-truffaut::monocle-macro::2.1.0")
       override def scalacOptions = super.scalacOptions() ++ Seq("-Ymacro-annotations")
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
@@ -40,7 +44,7 @@ object ScalaMacrosTests extends TestSuite {
         ).scoped { eval =>
           if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
           else {
-            val Right(result) = eval.apply(mod.core.runMain("Main"))
+            val Right(result) = eval.apply(mod.core.runMain("Main")): @unchecked
             assert(result.evalCount > 0)
           }
         }
@@ -51,7 +55,7 @@ object ScalaMacrosTests extends TestSuite {
         ).scoped { eval =>
           if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
           else {
-            val Right(result) = eval.apply(mod.core.docJar)
+            val Right(result) = eval.apply(mod.core.docJar): @unchecked
             assert(result.evalCount > 0)
           }
         }
@@ -63,7 +67,7 @@ object ScalaMacrosTests extends TestSuite {
           mod,
           sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-macros"
         ).scoped { eval =>
-          val Right(result) = eval.apply(mod.core.runMain("Main"))
+          val Right(result) = eval.apply(mod.core.runMain("Main")): @unchecked
           assert(result.evalCount > 0)
         }
         // make sure macros are applied when compiling during scaladoc generation
@@ -71,7 +75,7 @@ object ScalaMacrosTests extends TestSuite {
           mod,
           sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-macros"
         ).scoped { eval =>
-          val Right(result) = eval.apply(mod.core.docJar)
+          val Right(result) = eval.apply(mod.core.docJar): @unchecked
           assert(result.evalCount > 0)
         }
       }

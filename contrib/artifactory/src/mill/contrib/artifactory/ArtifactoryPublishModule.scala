@@ -73,7 +73,7 @@ object ArtifactoryPublishModule extends ExternalModule {
       connectTimeout,
       Task.log
     ).publishAll(
-      artifacts: _*
+      artifacts*
     )
   }
 

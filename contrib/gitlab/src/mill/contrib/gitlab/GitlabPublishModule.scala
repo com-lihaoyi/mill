@@ -72,7 +72,7 @@ object GitlabPublishModule extends ExternalModule {
       repo,
       Task.log
     ).publishAll(
-      artifacts: _*
+      artifacts*
     )
   }
 

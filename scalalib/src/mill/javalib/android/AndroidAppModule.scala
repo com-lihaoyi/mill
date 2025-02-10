@@ -89,7 +89,7 @@ trait AndroidAppModule extends JavaModule {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
 
-  override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath / "src/main/java")
+  override def sources: T[Seq[PathRef]] = Task.Sources(moduleDir / "src/main/java")
 
   /**
    * Provides access to the Android SDK configuration.
@@ -99,7 +99,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
    */
-  def androidManifest: Task[PathRef] = Task.Source(millSourcePath / "src/main/AndroidManifest.xml")
+  def androidManifest: Task[PathRef] = Task.Source("src/main/AndroidManifest.xml")
 
   /**
    * Name of the release keystore file. Default is not set.
@@ -130,7 +130,7 @@ trait AndroidAppModule extends JavaModule {
    * Users can customize the keystore file name to change this path.
    */
   def androidReleaseKeyPath: T[Option[PathRef]] = Task {
-    androidReleaseKeyName().map(name => PathRef(millSourcePath / name))
+    androidReleaseKeyName().map(name => PathRef(moduleDir / name))
   }
 
   /**
@@ -269,7 +269,7 @@ trait AndroidAppModule extends JavaModule {
    */
   override def resources: T[Seq[PathRef]] = Task {
     val libResFolders = androidUnpackArchives().flatMap(_.resources)
-    libResFolders :+ PathRef(millSourcePath / "src/main/res")
+    libResFolders :+ PathRef(moduleDir / "src/main/res")
   }
 
   @internal
@@ -279,7 +279,7 @@ trait AndroidAppModule extends JavaModule {
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    baseDirectory = Some(millSourcePath / "src/main"),
+    baseDirectory = Some(moduleDir / "src/main"),
     tags = Seq("application")
   )
 
@@ -545,7 +545,7 @@ trait AndroidAppModule extends JavaModule {
     val libManifests = androidUnpackArchives().flatMap(_.manifest)
     val mergedManifestPath = Task.dest / "AndroidManifest.xml"
     // TODO put it to the dedicated worker if cost of classloading is too high
-    Jvm.runSubprocess(
+    Jvm.callProcess(
       mainClass = "com.android.manifmerger.Merger",
       mainArgs = Seq(
         "--main",
@@ -562,7 +562,9 @@ trait AndroidAppModule extends JavaModule {
         "--out",
         mergedManifestPath.toString()
       ) ++ libManifests.flatMap(m => Seq("--libs", m.path.toString())),
-      classPath = manifestMergerClasspath().map(_.path)
+      classPath = manifestMergerClasspath().map(_.path).toVector,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
     PathRef(mergedManifestPath)
   }
@@ -760,7 +762,7 @@ trait AndroidAppModule extends JavaModule {
     os.call(
       Seq(
         androidSdkModule().lintToolPath().path.toString,
-        (millSourcePath / "src/main").toString,
+        (moduleDir / "src/main").toString,
         "--classpath",
         cp,
         "--sources",
@@ -1045,7 +1047,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   trait AndroidAppTests extends JavaTests {
-    private def testPath = parent.millSourcePath / "src/test"
+    private def testPath = parent.moduleDir / "src/test"
 
     override def sources: T[Seq[PathRef]] = Seq(PathRef(testPath / "java"))
 
@@ -1059,7 +1061,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   trait AndroidAppInstrumentedTests extends AndroidAppModule with AndroidTestModule {
-    private def androidMainSourcePath = parent.millSourcePath
+    private def androidMainSourcePath = parent.moduleDir
     private def androidTestPath = androidMainSourcePath / "src/androidTest"
 
     override def moduleDeps: Seq[JavaModule] = Seq(parent)

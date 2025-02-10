@@ -5,8 +5,7 @@
 package build
 import $packages._
 import mill._, scalalib._
-import $file.foo.versions
-import $file.util.MyModule
+import foo.versions
 
 object `package` extends RootModule with MyModule {
   def forkEnv = Map(

@@ -23,12 +23,12 @@ object `package` extends RootModule with ScalaModule {
 
   // Add (or replace) source folders for the module to use
   def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
+    super.sources() ++ Seq(PathRef(moduleDir / "custom-src"))
   }
 
   // Add (or replace) resource folders for the module to use
   def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
+    super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
   }
 
   // Generate sources at build time
@@ -70,12 +70,12 @@ object `package` extends RootModule with ScalaModule {
 //// SNIPPET:END
 //
 //
-// Note the use of `millSourcePath`, `Task.dest`, and `PathRef` when preforming
+// Note the use of `moduleDir`, `Task.dest`, and `PathRef` when preforming
 // various filesystem operations:
 //
-// 1. `millSourcePath` refers to the base path of the module. For the root
+// 1. `moduleDir` refers to the base path of the module. For the root
 //    module, this is the root of the repo, and for inner modules it would be
-//    the module path e.g. for module `foo.bar.qux` the `millSourcePath` would
+//    the module path e.g. for module `foo.bar.qux` the `moduleDir` would
 //    be `foo/bar/qux`. This can also be overridden if necessary
 //
 // 2. `Task.dest` refers to the destination folder for a task in the `out/`

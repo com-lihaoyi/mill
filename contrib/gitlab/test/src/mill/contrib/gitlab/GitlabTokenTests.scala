@@ -1,8 +1,8 @@
 package mill.contrib.gitlab
 
 import mill.contrib.gitlab.GitlabTokenLookup._
+import mill.internal.DummyLogger
 import mill.scalalib.publish._
-import mill.util.DummyLogger
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 
 import scala.collection.mutable.ListBuffer

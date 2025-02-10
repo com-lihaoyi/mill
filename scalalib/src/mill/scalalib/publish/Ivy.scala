@@ -82,34 +82,6 @@ object Ivy {
     head + pp.format(xml).replaceAll("&gt;", ">")
   }
 
-  // bin-compat shim
-  def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency],
-      extras: Seq[PublishInfo],
-      overrides: Seq[Override]
-  ): String =
-    apply(
-      artifact,
-      dependencies,
-      extras,
-      overrides,
-      hasJar = true
-    )
-
-  // bin-compat shim
-  def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency],
-      extras: Seq[PublishInfo]
-  ): String =
-    apply(
-      artifact,
-      dependencies,
-      extras,
-      Nil
-    )
-
   private def renderDependency(dep: Dependency): Elem = {
     if (dep.exclusions.isEmpty)
       <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={
@@ -134,6 +106,7 @@ object Ivy {
       case Scope.Provided => s"provided->${target("compile")}"
       case Scope.Test => s"test->${target("runtime")}"
       case Scope.Runtime => s"runtime->${target("runtime")}"
+      case Scope.Import => ???
     }
   }
 

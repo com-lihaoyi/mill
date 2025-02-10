@@ -2,14 +2,16 @@ package mill.pythonlib
 
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
-import mill._
+import mill.*
+import mill.define.Discover
 
 object RunBackgroundTests extends TestSuite {
 
   object HelloWorldPython extends TestBaseModule {
     object foo extends PythonModule {
-      override def mainScript = Task.Source(millSourcePath / "src" / "foo.py")
+      override def mainScript = Task.Source("src/foo.py")
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "run-background"
@@ -18,7 +20,8 @@ object RunBackgroundTests extends TestSuite {
       val eval = UnitTester(HelloWorldPython, resourcePath)
 
       val lockedFile = os.temp()
-      val Right(result) = eval.apply(HelloWorldPython.foo.runBackground(Args(lockedFile)))
+      val Right(result) =
+        eval.apply(HelloWorldPython.foo.runBackground(Args(lockedFile))): @unchecked
       val maxSleep = 20000
       val now1 = System.currentTimeMillis()
       val lock = mill.main.client.lock.Lock.file(lockedFile.toString())
@@ -32,7 +35,7 @@ object RunBackgroundTests extends TestSuite {
 
       while (lock.probe()) sleepIfTimeAvailable("File never locked by python subprocess")
 
-      os.remove.all(eval.outPath / "foo" / "runBackground.dest")
+      os.remove.all(eval.outPath / "foo/runBackground.dest")
 
       while (!lock.probe()) {
         sleepIfTimeAvailable("File never unlocked after runBackground.dest removed")

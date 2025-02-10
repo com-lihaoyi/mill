@@ -4,7 +4,8 @@ package kotlinlib
 import mill.scalalib.TestModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.api.Result
-import utest._
+import mill.define.Discover
+import utest.*
 
 object HelloWorldTests extends TestSuite {
 
@@ -27,6 +28,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
     object main extends Cross[MainCross](kotlinVersions)
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-kotlin"
@@ -37,7 +40,7 @@ object HelloWorldTests extends TestSuite {
       val eval = testEval()
 
       HelloWorldKotlin.main.crossModules.foreach(m => {
-        val Right(result) = eval.apply(m.compile)
+        val Right(result) = eval.apply(m.compile): @unchecked
 
         assert(
           os.walk(result.value.classes.path).exists(_.last == "HelloKt.class")
@@ -48,7 +51,7 @@ object HelloWorldTests extends TestSuite {
       val eval = testEval()
 
       HelloWorldKotlin.main.crossModules.foreach(m => {
-        val Right(result1) = eval.apply(m.test.compile)
+        val Right(result1) = eval.apply(m.test.compile): @unchecked
 
         assert(
           os.walk(result1.value.classes.path).exists(_.last == "HelloTest.class")
@@ -59,7 +62,7 @@ object HelloWorldTests extends TestSuite {
       val eval = testEval()
 
       HelloWorldKotlin.main.crossModules.foreach(m => {
-        val Left(Result.Failure(_, Some(v1))) = eval.apply(m.test.test())
+        val Left(Result.Failure(_, Some(v1))) = eval.apply(m.test.test()): @unchecked
 
         assert(
           v1._2(0).fullyQualifiedName == "hello.tests.HelloTest.testFailure",
@@ -73,10 +76,10 @@ object HelloWorldTests extends TestSuite {
       val eval = testEval()
 
       HelloWorldKotlin.main.crossModules.foreach(m => {
-        val Right(discovered) = eval.apply(m.kotest.discoveredTestClasses)
+        val Right(discovered) = eval.apply(m.kotest.discoveredTestClasses): @unchecked
         assert(discovered.value == Seq("hello.tests.FooTest"))
 
-        val Left(Result.Failure(_, Some(v1))) = eval.apply(m.kotest.test())
+        val Left(Result.Failure(_, Some(v1))) = eval.apply(m.kotest.test()): @unchecked
 
         assert(
           v1._2(0).fullyQualifiedName == "hello.tests.FooTest",
@@ -89,19 +92,19 @@ object HelloWorldTests extends TestSuite {
     test("failures") {
       val eval = testEval()
 
-      val mainJava = HelloWorldKotlin.millSourcePath / "main" / "src" / "Hello.kt"
+      val mainJava = HelloWorldKotlin.moduleDir / "main/src/Hello.kt"
 
       HelloWorldKotlin.main.crossModules.foreach(m => {
 
-        val Right(_) = eval.apply(m.compile)
+        val Right(_) = eval.apply(m.compile): @unchecked
 
         os.write.over(mainJava, os.read(mainJava) + "}")
 
-        val Left(_) = eval.apply(m.compile)
+        val Left(_) = eval.apply(m.compile): @unchecked
 
         os.write.over(mainJava, os.read(mainJava).dropRight(1))
 
-        val Right(_) = eval.apply(m.compile)
+        val Right(_) = eval.apply(m.compile): @unchecked
       })
     }
   }

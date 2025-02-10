@@ -1,9 +1,10 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
 object ScalaTypeLevelTests extends TestSuite {
 
   object HelloWorldTypeLevel extends TestBaseModule {
@@ -22,13 +23,15 @@ object ScalaTypeLevelTests extends TestSuite {
         ivy"com.typesafe.genjavadoc:::genjavadoc-plugin:0.11"
       )
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
 
     test("scalacPluginClasspath") {
       test("withMacroParadise") - UnitTester(HelloWorldTypeLevel, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath)
+        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath): @unchecked
         assert(
           result.value.nonEmpty,
           result.value.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
@@ -39,7 +42,7 @@ object ScalaTypeLevelTests extends TestSuite {
 
     test("scalaDocPluginClasspath") {
       test("extend") - UnitTester(HelloWorldTypeLevel, sourceRoot = resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath)
+        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath): @unchecked
         assert(
           result.value.iterator.nonEmpty,
           result.value.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
@@ -56,7 +59,7 @@ object ScalaTypeLevelTests extends TestSuite {
         HelloWorldTypeLevel.foo.compileClasspath
       )
       for (cp <- classPathsToCheck) {
-        val Right(result) = eval.apply(cp)
+        val Right(result) = eval.apply(cp): @unchecked
         assert(
           // Make sure every relevant piece org.scala-lang has been substituted for org.typelevel
           !result.value.map(_.toString).exists(x =>

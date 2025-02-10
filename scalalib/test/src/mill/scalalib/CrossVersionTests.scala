@@ -1,9 +1,11 @@
 package mill.scalalib
 
 import mill.Agg
+import mill.define.Discover
+import mill.main.TokenReaders._
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import utest.*
 import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
@@ -122,6 +124,7 @@ object CrossVersionTests extends TestSuite {
           |""".stripMargin
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
   def init() = UnitTester(TestCases, null)
@@ -149,7 +152,7 @@ object CrossVersionTests extends TestSuite {
       }
     }
 
-    val Right(libs) = eval.apply(mod.compileClasspath)
+    val Right(libs) = eval.apply(mod.compileClasspath): @unchecked
 
     val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
     assert(libNames == expectedLibs.sorted)

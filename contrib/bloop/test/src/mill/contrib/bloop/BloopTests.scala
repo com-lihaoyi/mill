@@ -4,6 +4,7 @@ import bloop.config.{Config => BloopConfig}
 import mill._
 import mill.scalajslib.api.ModuleKind
 import mill.scalalib._
+import mill.define.Discover
 import mill.scalanativelib.api.ReleaseMode
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -17,7 +18,7 @@ object BloopTests extends TestSuite {
   import BloopFormats._
 
   val unitTester = UnitTester(build, null)
-  val workdir = unitTester.evaluator.rootModule.millSourcePath
+  val workdir = unitTester.evaluator.rootModule.moduleDir
   val testBloop = new BloopImpl(() => Seq(unitTester.evaluator), workdir)
 
   object build extends TestBaseModule {
@@ -78,6 +79,8 @@ object BloopTests extends TestSuite {
       def scalaVersion = "2.12.8"
       override def skipBloop: Boolean = true
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def readBloopConf(jsonFile: String) =

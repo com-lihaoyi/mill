@@ -98,15 +98,6 @@ trait ZincWorkerUtil {
       s"$major.$minor"
   }
 
-  /* Starting from Scala.js 0.6.29 and in 1.x, test artifacts must depend on
-   * scalajs-test-bridge instead of scalajs-test-interface.
-   */
-  @deprecated("No longer used", "Mill after 0.11.0-M0")
-  def scalaJSUsesTestBridge(scalaJSVersion: String): Boolean = scalaJSVersion match {
-    case ScalaJSFullVersion("0", "6", patch, _) => patch.toInt >= 29
-    case _ => true
-  }
-
   lazy val millCompilerBridgeScalaVersions: Set[String] =
     Versions.millCompilerBridgeScalaVersions.split(",").toSet
 
@@ -141,7 +132,7 @@ trait ZincWorkerUtil {
    */
   def versionRanges(version: String, allVersions: Seq[String]): Seq[String] = {
     import scala.math.Ordering.Implicits._
-    val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get)
+    val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get).toSeq
     val all = allVersions.flatMap(
       _.split('.').inits
         .flatMap { l =>

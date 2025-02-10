@@ -61,7 +61,7 @@ trait KtlintModule extends JavaModule {
 object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
   override def defaultCommandName(): String = "reformatAll"
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   /**
    * Reformats Kotlin source files.
@@ -122,12 +122,13 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
       .map(_.toString())
 
-    val exitCode = Jvm.callSubprocess(
+    val exitCode = Jvm.callProcess(
       mainClass = "com.pinterest.ktlint.Main",
-      classPath = classPath.map(_.path),
+      classPath = classPath.map(_.path).toVector,
       mainArgs = args.result(),
-      workingDir = millSourcePath,
-      streamOut = true,
+      cwd = moduleDir,
+      stdin = os.Inherit,
+      stdout = os.Inherit,
       check = false
     ).exitCode
 

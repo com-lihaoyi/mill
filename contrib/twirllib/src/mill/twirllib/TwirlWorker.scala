@@ -13,9 +13,9 @@ import scala.util.matching.Regex
 
 class TwirlWorker {
 
-  private var twirlInstanceCache = Option.empty[(Int, (TwirlWorkerApi, Class[_]))]
+  private var twirlInstanceCache = Option.empty[(Int, (TwirlWorkerApi, Class[?]))]
 
-  private def twirlCompilerAndClass(twirlClasspath: Agg[PathRef]): (TwirlWorkerApi, Class[_]) = {
+  private def twirlCompilerAndClass(twirlClasspath: Agg[PathRef]): (TwirlWorkerApi, Class[?]) = {
     val classloaderSig = twirlClasspath.hashCode
     twirlInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
@@ -124,7 +124,7 @@ class TwirlWorker {
   private def twirl(twirlClasspath: Agg[PathRef]): TwirlWorkerApi =
     twirlCompilerAndClass(twirlClasspath)._1
 
-  private def twirlClass(twirlClasspath: Agg[PathRef]): Class[_] =
+  private def twirlClass(twirlClasspath: Agg[PathRef]): Class[?] =
     twirlCompilerAndClass(twirlClasspath)._2
 
   def defaultImports(twirlClasspath: Agg[PathRef]): Seq[String] =

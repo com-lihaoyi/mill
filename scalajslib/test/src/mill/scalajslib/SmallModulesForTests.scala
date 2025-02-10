@@ -29,7 +29,7 @@ object SmallModulesForTests extends TestSuite {
     test("ModuleSplitStyle.SmallModulesFor") {
       println(evaluator(SmallModulesForModule.sources))
 
-      val Right(result) = evaluator(SmallModulesForModule.fastLinkJS)
+      val Right(result) = evaluator(SmallModulesForModule.fastLinkJS): @unchecked
       val publicModules = result.value.publicModules
       test("it should have a single publicModule") {
         assert(publicModules.size == 1)

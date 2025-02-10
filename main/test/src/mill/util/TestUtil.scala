@@ -54,8 +54,8 @@ object TestUtil {
     override def sideHash = testTask.sideHash
   }
 
-  def checkTopological(targets: Agg[Task[_]]) = {
-    val seen = mutable.Set.empty[Task[_]]
+  def checkTopological(targets: Agg[Task[?]]) = {
+    val seen = mutable.Set.empty[Task[?]]
     for (t <- targets.indexed.reverseIterator) {
       seen.add(t)
       for (upstream <- t.inputs) {
@@ -63,8 +63,6 @@ object TestUtil {
       }
     }
   }
-  @deprecated("Use other overload which support a reason parameter instead", "mill after 0.10.3")
-  def disableInJava9OrAbove(f: => Any): Any = disableInJava9OrAbove(reason = "???")(f)
 
   def disableInJava9OrAbove(reason: String)(f: => Any): Any = {
     if (System.getProperty("java.specification.version").startsWith("1.")) {

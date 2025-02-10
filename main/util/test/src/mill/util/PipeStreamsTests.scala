@@ -1,11 +1,12 @@
 package mill.util
 
-import utest._
+import mill.internal.PipeStreams
+import utest.*
 
 import java.util.concurrent.Executors
-import scala.concurrent._
-import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.duration.Duration._
+import scala.concurrent.*
+import scala.concurrent.ExecutionContext.Implicits.*
+import scala.concurrent.duration.Duration.*
 
 object PipeStreamsTests extends TestSuite {
   val tests = Tests {
@@ -38,7 +39,7 @@ object PipeStreamsTests extends TestSuite {
       val chunkSize = 20
       val chunkCount = 100
       assert(pipe.bufferSize < chunkSize * chunkCount) // ensure it gets filled
-      val writer = Future {
+      Future {
         for (i <- Range(0, chunkCount)) {
           pipe.output.write(Array.fill(chunkSize)(i.toByte))
         }

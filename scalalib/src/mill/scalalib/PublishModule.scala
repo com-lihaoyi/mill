@@ -3,7 +3,8 @@ package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task}
-import mill.api.{JarManifest, PathRef, Result}
+import mill.api.{PathRef, Result}
+import mill.util.JarManifest
 import mill.main.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.SonatypeHelpers.{
@@ -185,7 +186,7 @@ trait PublishModule extends JavaModule { outer =>
     )(_.artifactMetadata)().map { a =>
       Dependency(a, Scope.Import)
     }
-    Agg(fromBomMods: _*) ++
+    Agg(fromBomMods*) ++
       bomIvyDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
@@ -212,20 +213,6 @@ trait PublishModule extends JavaModule { outer =>
     os.write.over(pomPath, pom)
     PathRef(pomPath)
   }
-
-  /**
-   * Dependencies with version placeholder filled from BOMs, alongside with BOM data
-   */
-  @deprecated("Unused by Mill", "Mill after 0.12.5")
-  def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
-    Task {
-      val (processedDeps, depMgmt) = defaultResolver().processDeps(
-        processedIvyDeps(),
-        resolutionParams = resolutionParams(),
-        boms = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
-      )
-      (processedDeps.map(_.moduleVersion).toMap, depMgmt)
-    }
 
   /**
    * Path to the ivy.xml file for this module
@@ -319,9 +306,9 @@ trait PublishModule extends JavaModule { outer =>
       pomPackagingType match {
         case PackagingType.Pom => Task.Anon(Seq())
         case _ => Task.Anon(Seq(
-            (jar(), PublishInfo.jar _),
-            (sourceJar(), PublishInfo.sourcesJar _),
-            (docJar(), PublishInfo.docJar _)
+            (jar(), PublishInfo.jar),
+            (sourceJar(), PublishInfo.sourcesJar),
+            (docJar(), PublishInfo.docJar)
           ))
       }
     }
@@ -610,7 +597,7 @@ object PublishModule extends ExternalModule with TaskModule {
       stagingRelease
     ).publishAll(
       release,
-      x: _*
+      x*
     )
   }
 

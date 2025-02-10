@@ -2,7 +2,8 @@ package mill
 package kotlinlib.js
 
 import mill.api.Result
-import mill.eval.EvaluatorPaths
+import mill.define.Discover
+import mill.exec.ExecutionPaths
 import mill.testkit.{TestBaseModule, UnitTester}
 import sbt.testing.Status
 import utest.{TestSuite, Tests, assert, test}
@@ -29,6 +30,8 @@ object KotlinJsKotestModuleTests extends TestSuite {
           .filter(!_.path.toString().endsWith("HelloKotlinTestPackageTests.kt"))
       }
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)
@@ -40,10 +43,10 @@ object KotlinJsKotestModuleTests extends TestSuite {
 
       val command = module.foo.test.test()
       val Left(Result.Failure(failureMessage, Some((doneMessage, testResults)))) =
-        eval.apply(command)
+        eval.apply(command): @unchecked
 
       val xmlReport =
-        EvaluatorPaths.resolveDestPaths(eval.outPath, command).dest / "test-report.xml"
+        ExecutionPaths.resolveDestPaths(eval.outPath, command).dest / "test-report.xml"
 
       assert(
         os.exists(xmlReport),

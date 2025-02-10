@@ -39,7 +39,7 @@ def npmInstall = Task {
 // e.g. someone can later easily override `allSources` to add additional filtering
 // on exactly which files within the source root they wish to pick up.
 
-def sources = Task.Source(millSourcePath / "src")
+def sources = Task.Source("src")
 def allSources = Task {
   os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
 }

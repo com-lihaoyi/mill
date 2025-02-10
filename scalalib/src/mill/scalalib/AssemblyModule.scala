@@ -1,7 +1,8 @@
 package mill.scalalib
 
 import mill.api.Loose.Agg
-import mill.api.{JarManifest, PathRef, Result}
+import mill.api.{PathRef, Result}
+import mill.util.JarManifest
 import mill.define.{Target => T, _}
 import mill.util.Jvm
 
@@ -67,7 +68,14 @@ trait AssemblyModule extends mill.Module {
 
   def localClasspath: T[Seq[PathRef]]
 
-  private[mill] def upstreamAssembly2_0: T[Assembly] = Task {
+  /**
+   * Build the assembly for upstream dependencies separate from the current
+   * classpath
+   *
+   * This should allow much faster assembly creation in the common case where
+   * upstream dependencies do not change
+   */
+  def upstreamAssembly: T[Assembly] = Task {
     Assembly.create(
       destJar = Task.dest / "out.jar",
       inputPaths = upstreamAssemblyClasspath().map(_.path),
@@ -77,28 +85,12 @@ trait AssemblyModule extends mill.Module {
   }
 
   /**
-   * Build the assembly for upstream dependencies separate from the current
-   * classpath
-   *
-   * This should allow much faster assembly creation in the common case where
-   * upstream dependencies do not change
+   * An executable uber-jar/assembly containing all the resources and compiled
+   * classfiles from this module and all it's upstream modules and dependencies
    */
-  def upstreamAssembly2: T[Assembly] = Task {
-    upstreamAssembly2_0()
-  }
-
-  def upstreamAssembly: T[PathRef] = Task {
-    Task.log.error(
-      s"upstreamAssembly target is deprecated and should no longer used." +
-        s" Please make sure to use upstreamAssembly2 instead."
-    )
-    upstreamAssembly2().pathRef
-  }
-
-  private[mill] def assembly0: Task[PathRef] = Task.Anon {
-
+  def assembly: T[PathRef] = Task {
     val prependScript = Option(prependShellScript()).filter(_ != "")
-    val upstream = upstreamAssembly2()
+    val upstream = upstreamAssembly()
 
     val created = Assembly.create(
       destJar = Task.dest / "out.jar",
@@ -126,13 +118,5 @@ trait AssemblyModule extends mill.Module {
     } else {
       Result.Success(created.pathRef)
     }
-  }
-
-  /**
-   * An executable uber-jar/assembly containing all the resources and compiled
-   * classfiles from this module and all it's upstream modules and dependencies
-   */
-  def assembly: T[PathRef] = Task {
-    assembly0()
   }
 }
