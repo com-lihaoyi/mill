@@ -1,12 +1,12 @@
 package mill.runner
 
-import mill.api.{internal}
+import mill.api.internal
 import mill.client.CodeGenConstants.*
 import mill.client.OutFiles.*
 import mill.runner.worker.api.{ImportTree, MillScalaParser}
-
 import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 /**
  * @param seenScripts
@@ -222,11 +222,11 @@ object FileImportGraph {
       transformedStmts.append(stmt)
     }
 
-    val rootBuildFiles = rootBuildFileNames
+    val rootBuildFiles = rootBuildFileNames.asScala
       .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
     val (useDummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
-      case Nil => (true, rootBuildFileNames.head)
+      case Nil => (true, rootBuildFileNames.asScala.head)
       case Seq(single) => (false, single)
       case multiple =>
         System.err.println(
@@ -237,7 +237,7 @@ object FileImportGraph {
     }
 
     val buildFileExtension =
-      buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
+      buildFileExtensions.asScala.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
 
     val nestedBuildFileName = s"package.$buildFileExtension"
 

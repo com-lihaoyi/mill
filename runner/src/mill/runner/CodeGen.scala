@@ -1,12 +1,13 @@
 package mill.runner
 
-import mill.client.CodeGenConstants._
+import scala.jdk.CollectionConverters.CollectionHasAsScala
+
+import mill.client.CodeGenConstants.*
 import mill.api.{PathRef, Result}
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
-
 import mill.runner.worker.api.MillScalaParser
-import scala.util.control.Breaks._
+import scala.util.control.Breaks.*
 
 object CodeGen {
 
@@ -23,7 +24,7 @@ object CodeGen {
   ): Unit = {
     for (scriptSource <- scriptSources) breakable {
       val scriptPath = scriptSource.path
-      val specialNames = (nestedBuildFileNames ++ rootBuildFileNames).toSet
+      val specialNames = (nestedBuildFileNames.asScala ++ rootBuildFileNames.asScala).toSet
 
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
