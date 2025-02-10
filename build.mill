@@ -763,7 +763,6 @@ object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(build.scalalib, build.runner)
 }
 
-
 val dummyDeps: Seq[Dep] = Seq(
   Deps.DocDeps.millScip,
   Deps.semanticDbJava,
