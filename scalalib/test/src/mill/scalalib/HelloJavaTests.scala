@@ -152,7 +152,7 @@ object HelloJavaTests extends TestSuite {
     test("test") - {
       val eval = testEval()
 
-      val Left(ExecResult.Failure(ref1, None)) =
+      val Left(ExecResult.Failure(ref1)) =
         eval.apply(HelloJava.core.test.test()): @unchecked
 
 //      assert(

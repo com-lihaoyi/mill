@@ -605,7 +605,6 @@ private class MillBuildServer(
             if (cleanResult.failing.size > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.results(cleanTask) match {
-                  case TaskResult(ExecResult.Failure(msg, _), _) => msg
                   case TaskResult(ex: ExecResult.Exception, _) => ex.toString()
                   case TaskResult(ExecResult.Skipped, _) => "Task was skipped"
                   case TaskResult(ExecResult.Aborted, _) => "Task was aborted"

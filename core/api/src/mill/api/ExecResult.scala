@@ -77,13 +77,10 @@ object ExecResult {
    * @param value The optional result value.
    * @tparam T The result type of the computed task.
    */
-  case class Failure[T](msg: String, value: Option[T] = None)
-      extends java.lang.Exception(msg + value.fold("")(", " + _)) with Failing[T] {
-    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg, value.map(f(_)))
-    def flatMap[V](f: T => ExecResult[V]): Failure[V] = {
-      Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
-    }
-    override def toString: String = s"Failure($msg, $value)"
+  case class Failure[T](msg: String) extends Failing[T] {
+    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg)
+    def flatMap[V](f: T => ExecResult[V]): Failure[V] = { Failure(msg) }
+    override def toString: String = s"Failure($msg)"
   }
 
   /**

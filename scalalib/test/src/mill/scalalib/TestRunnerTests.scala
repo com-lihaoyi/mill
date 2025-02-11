@@ -19,7 +19,7 @@ object TestRunnerTests extends TestSuite {
           outStream = new PrintStream(outStream, true),
           sourceRoot = resourcePath
         ).scoped { eval =>
-          val Left(ExecResult.Failure(msg, _)) =
+          val Left(ExecResult.Failure(msg)) =
             eval(testrunner.doneMessageFailure.test()): @unchecked
           val stdout = new String(outStream.toByteArray)
           assert(stdout.contains("test failure done message"))

@@ -266,7 +266,7 @@ object MainModuleTests extends TestSuite {
       }
 
       test("command") {
-        val Left(ExecResult.Failure(failureMsg, _)) =
+        val Left(ExecResult.Failure(failureMsg)) =
           evaluator.apply("show", "helloCommand"): @unchecked
         assert(
           failureMsg.contains("Expected Signature: helloCommand"),

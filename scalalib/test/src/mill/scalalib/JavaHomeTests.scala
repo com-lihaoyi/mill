@@ -128,7 +128,7 @@ object JavaHomeTests extends TestSuite {
       test("test11") {
         val eval = UnitTester(HelloJavaJavaHome11Override, resourcePath)
 
-        val Left(ExecResult.Failure(ref1, None)) =
+        val Left(ExecResult.Failure(ref1)) =
           eval.apply(HelloJavaJavaHome11Override.core.test.test()): @unchecked
 
 //        assert(
@@ -141,7 +141,7 @@ object JavaHomeTests extends TestSuite {
       test("test17") {
         val eval = UnitTester(HelloJavaJavaHome17Override, resourcePath)
 
-        val Left(ExecResult.Failure(ref1, None)) =
+        val Left(ExecResult.Failure(ref1)) =
           eval.apply(HelloJavaJavaHome17Override.core.test.test()): @unchecked
 
 //        assert(

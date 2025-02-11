@@ -14,7 +14,7 @@ object TestingTests extends TestSuite {
     def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
         : Unit =
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Left(ExecResult.Failure(_, None)) = eval(testTask): @unchecked
+        val Left(ExecResult.Failure(_)) = eval(testTask): @unchecked
 
 //        val (doneMsg, testResults) = res
 //        testResults
@@ -30,7 +30,7 @@ object TestingTests extends TestSuite {
         mode: ReleaseMode,
         cached: Boolean
     ) = {
-      val resultMap = runTests(
+      runTests(
         if (!cached) HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.test()
         else HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.testCached
       )

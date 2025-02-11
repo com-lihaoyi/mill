@@ -28,7 +28,7 @@ object AssemblyExeTests extends TestSuite with AssemblyTestUtils {
         }
 
         test("large-should-fail") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
-          val Left(ExecResult.Failure(msg, None)) =
+          val Left(ExecResult.Failure(msg)) =
             eval(TestCase.exe.large.assembly): @unchecked
           val expectedMsg =
             """The created assembly jar contains more than 65535 ZIP entries.

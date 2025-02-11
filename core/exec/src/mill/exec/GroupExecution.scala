@@ -131,11 +131,6 @@ private[mill] trait GroupExecution {
                 )
 
               val valueHash = newResults(labelled) match {
-                case TaskResult(ExecResult.Failure(_, Some((v, _))), _) =>
-                  val valueHash = getValueHash(v, terminal, inputsHash)
-                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                  valueHash
-
                 case TaskResult(ExecResult.Success((v, _)), _) =>
                   val valueHash = getValueHash(v, terminal, inputsHash)
                   handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)

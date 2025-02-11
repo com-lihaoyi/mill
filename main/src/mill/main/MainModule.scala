@@ -1,7 +1,6 @@
 package mill.main
 
 import mill.api.*
-import mill.client.DebugLog
 import mill.define.*
 import mill.eval.Evaluator
 import mill.exec.ExecutionPaths

@@ -241,8 +241,7 @@ private[mill] object Evaluator {
     (for ((k, fs) <- evaluated.failing)
       yield {
         val fss = fs.map {
-          case ExecResult.Failure(t, _) => t
-          case ExecResult.Exception(ExecResult.Failure(t, _), _) => t
+          case ExecResult.Failure(t) => t
           case ex: ExecResult.Exception => ex.toString
         }
         s"${k} ${fss.iterator.mkString(", ")}"

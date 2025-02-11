@@ -11,7 +11,7 @@ object UtestTests extends TestSuite {
   def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
       : Unit =
     UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
-      val Left(ExecResult.Failure(_, None)) = eval(testTask): @unchecked
+      val Left(ExecResult.Failure(_)) = eval(testTask): @unchecked
 
 //      val (doneMsg, testResults) = res
 //      testResults
@@ -22,7 +22,7 @@ object UtestTests extends TestSuite {
     }
 
   def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
-    val resultMap = runTests(
+    runTests(
       if (!cached) HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-utest`.test()
       else HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-utest`.testCached
     )
@@ -41,7 +41,7 @@ object UtestTests extends TestSuite {
   }
 
   def checkScalaTest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
-    val resultMap = runTests(
+    runTests(
       if (!cached) HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-scalatest`.test()
       else HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-scalatest`.testCached
     )

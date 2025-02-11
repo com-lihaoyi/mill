@@ -42,7 +42,7 @@ object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
       val eval = testEval()
 
       val command = module.foo.test.test()
-      val Left(ExecResult.Failure(failureMessage, None)) =
+      val Left(ExecResult.Failure(failureMessage)) =
         eval.apply(command): @unchecked
 
       val xmlReport =
