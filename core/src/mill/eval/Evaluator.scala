@@ -156,9 +156,9 @@ final case class Evaluator private[mill] (
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
-            case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) =>
+            case (t: SourcesImpl, TaskResult(ExecResult.Success(Val(ps: Seq[PathRef])), _)) =>
               ps.map(Watchable.Path(_))
-            case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) =>
+            case (t: SourceImpl, TaskResult(ExecResult.Success(Val(p: PathRef)), _)) =>
               Seq(Watchable.Path(p))
             case (t: InputImpl[_], TaskResult(result, recalc)) =>
               val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
