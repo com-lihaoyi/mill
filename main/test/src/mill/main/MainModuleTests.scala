@@ -1,6 +1,6 @@
 package mill.main
 
-import mill.api.{PathRef, Result, Val}
+import mill.api.{ExecResult, PathRef, Result, Val}
 import mill.client.OutFiles
 import mill.{Task, given}
 import mill.define.{Cross, Discover, Module, TaskModule}
@@ -143,7 +143,7 @@ object MainModuleTests extends TestSuite {
     test("inspect") {
       test("single") - UnitTester(mainModule, null).scoped { eval =>
         val res = eval.evaluator.evaluate(Seq(mainModule.inspect(eval.evaluator, "hello")))
-        val Result.Success(Val(value: String)) = res.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value: String)) = res.rawValues.head: @unchecked
         assert(
           res.failing.size == 0,
           value.startsWith("hello("),
@@ -153,7 +153,7 @@ object MainModuleTests extends TestSuite {
       test("multi") - UnitTester(mainModule, null).scoped { eval =>
         val res =
           eval.evaluator.evaluate(Seq(mainModule.inspect(eval.evaluator, "hello", "hello2")))
-        val Result.Success(Val(value: String)) = res.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value: String)) = res.rawValues.head: @unchecked
         assert(
           res.failing.size == 0,
           value.startsWith("hello("),
@@ -215,7 +215,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.size == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
 
         val shown = ujson.read(outStream.toByteArray)
         val expected = ujson.Arr.from(Seq("hello", "world"))
@@ -243,7 +243,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.size == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
 
         val shown = ujson.read(outStream.toByteArray)
 
@@ -266,7 +266,7 @@ object MainModuleTests extends TestSuite {
       }
 
       test("command") {
-        val Left(Result.Failure(failureMsg, _)) =
+        val Left(ExecResult.Failure(failureMsg)) =
           evaluator.apply("show", "helloCommand"): @unchecked
         assert(
           failureMsg.contains("Expected Signature: helloCommand"),
@@ -297,7 +297,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.size == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world"))
@@ -314,7 +314,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.size == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world")),

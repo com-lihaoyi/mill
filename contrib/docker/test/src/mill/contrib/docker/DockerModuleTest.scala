@@ -2,7 +2,7 @@ package mill
 package contrib.docker
 
 import mill.scalalib.JavaModule
-import mill.api.Result
+import mill.api.ExecResult
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -98,7 +98,7 @@ object DockerModuleTest extends TestSuite {
       "dockerEnv" - workspaceTest(Docker) { eval =>
         // since stdout and stderr are inherited we can only test
         // that docker fails with wrong DOCKER_HOST
-        val Left(Result.Exception(error: os.SubprocessException, _)) =
+        val Left(ExecResult.Exception(error: os.SubprocessException, _)) =
           eval(Docker.dockerEnv.build): @unchecked
         val message = error.getMessage
         assert(message == "Result of docker…: 1\n")

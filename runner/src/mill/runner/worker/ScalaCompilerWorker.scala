@@ -4,7 +4,7 @@ import mill.PathRef
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.api.Result
 
-import mill.api.Result.catchWrapException
+import mill.api.ExecResult.catchWrapException
 import mill.api.internal
 
 @internal
@@ -93,7 +93,7 @@ private[runner] object ScalaCompilerWorker {
     bridge
 
   private def reflectEither(classpath: IterableOnce[os.Path])
-      : Either[String, ScalaCompilerWorkerApi] =
+      : Result[ScalaCompilerWorkerApi] =
     catchWrapException {
       reflectUnsafe(classpath)
     }
@@ -105,13 +105,8 @@ private[runner] object ScalaCompilerWorker {
       reflectUnsafe(classpath)
     }
 
-  def bootstrapWorker(): Either[String, ResolvedWorker] = {
-    val classpath = bootstrapWorkerClasspath() match {
-      case Result.Success(value) => Right(value)
-      case Result.Failure(msg, _) => Left(msg)
-      case err: Result.Exception => Left(err.toString)
-      case res => Left(s"could not resolve worker classpath: $res")
-    }
+  def bootstrapWorker(): Result[ResolvedWorker] = {
+    val classpath = bootstrapWorkerClasspath()
     classpath.flatMap { cp =>
       val resolvedCp = cp.iterator.map(_.path).toVector
       reflectEither(resolvedCp).map(worker => ResolvedWorker(resolvedCp, worker))

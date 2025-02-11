@@ -18,6 +18,7 @@ object Tasks {
         s,
         SelectMode.Separated
       ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]]))
+        .toEither
     }
     override def alwaysRepeatable = false
     override def allowEmpty = false

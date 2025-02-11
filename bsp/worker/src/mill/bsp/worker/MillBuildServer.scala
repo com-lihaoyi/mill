@@ -4,6 +4,7 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
 
+import mill.api.ExecResult
 import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
@@ -604,10 +605,9 @@ private class MillBuildServer(
             if (cleanResult.failing.size > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.results(cleanTask) match {
-                  case TaskResult(Result.Failure(msg, _), _) => msg
-                  case TaskResult(ex: Result.Exception, _) => ex.toString()
-                  case TaskResult(Result.Skipped, _) => "Task was skipped"
-                  case TaskResult(Result.Aborted, _) => "Task was aborted"
+                  case TaskResult(ex: ExecResult.Exception, _) => ex.toString()
+                  case TaskResult(ExecResult.Skipped, _) => "Task was skipped"
+                  case TaskResult(ExecResult.Aborted, _) => "Task was aborted"
                   case _ => "could not retrieve the failure message"
                 }),
               false
@@ -673,7 +673,7 @@ private class MillBuildServer(
         .map { case ((ev, id), ts) =>
           val results = evaluate(ev, ts)
           val failures = results.results.collect {
-            case (_, TaskResult(res: Result.Failing[_], _)) => res
+            case (_, TaskResult(res: ExecResult.Failing[_], _)) => res
           }
 
           def logError(errorMsg: String): Unit = {

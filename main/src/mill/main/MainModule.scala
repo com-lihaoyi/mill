@@ -1,7 +1,6 @@
 package mill.main
 
 import mill.api.*
-import mill.client.DebugLog
 import mill.define.*
 import mill.eval.Evaluator
 import mill.exec.ExecutionPaths
@@ -46,10 +45,7 @@ object MainModule {
       targets,
       selectMode,
       resolveToModuleTasks = resolveToModuleTasks
-    ) match {
-      case Left(err) => Result.Failure(err)
-      case Right(tasks) => Result.Success(f(tasks))
-    }
+    ).map(f)
   }
 
   def resolveTasks[T](
@@ -57,10 +53,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    evaluator.resolveTasks(targets, selectMode) match {
-      case Left(err) => Result.Failure(err)
-      case Right(tasks) => Result.Success(f(tasks))
-    }
+    evaluator.resolveTasks(targets, selectMode).map(f)
   }
 
   private def show0(
@@ -82,29 +75,27 @@ object MainModule {
         targets,
         Separated,
         selectiveExecution = evaluator.selectiveExecution
-      ) match {
-      case Left(err) => Result.Failure(err)
-      case Right((watched, Left(err))) =>
-        watched.foreach(watch0)
-        Result.Failure(err)
+      ).flatMap {
+        case (watched, Result.Failure(err)) =>
+          watched.foreach(watch0)
+          Result.Failure(err)
 
-      case Right((watched, Right(res))) =>
-        val output = f(res)
-        watched.foreach(watch0)
-        println(output.render(indent = 2))
-        Result.Success(output)
-    }
+        case (watched, Result.Success(res)) =>
+          val output = f(res)
+          watched.foreach(watch0)
+          println(output.render(indent = 2))
+          Result.Success(output)
+      }
   }
 
   def plan0(
       evaluator: Evaluator,
       tasks: Seq[String]
-  ): Either[String, Array[NamedTask[?]]] = {
-    evaluator.resolveTasks(tasks, SelectMode.Multi) match {
-      case Left(err) => Left(err)
-      case Right(rs) =>
+  ): Result[Array[NamedTask[?]]] = {
+    evaluator.resolveTasks(tasks, SelectMode.Multi).map {
+      rs =>
         val plan = evaluator.plan(rs)
-        Right(plan.sortedGroups.keys().collect { case r: NamedTask[_] => r }.toArray)
+        plan.sortedGroups.keys().collect { case r: NamedTask[_] => r }.toArray
     }
   }
 
@@ -134,12 +125,10 @@ trait MainModule extends BaseModule {
     Task.Command(exclusive = true) {
       val resolved = evaluator.resolveSegments(targets, SelectMode.Multi)
 
-      resolved match {
-        case Left(err) => Result.Failure(err)
-        case Right(resolvedSegmentsList) =>
-          val resolvedStrings = resolvedSegmentsList.map(_.render)
-          resolvedStrings.sorted.foreach(println)
-          Result.Success(resolvedStrings)
+      resolved.map { resolvedSegmentsList =>
+        val resolvedStrings = resolvedSegmentsList.map(_.render)
+        resolvedStrings.sorted.foreach(println)
+        resolvedStrings
       }
     }
 
@@ -149,12 +138,11 @@ trait MainModule extends BaseModule {
    */
   def plan(evaluator: Evaluator, targets: String*): Command[Array[String]] =
     Task.Command(exclusive = true) {
-      MainModule.plan0(evaluator, targets) match {
-        case Left(err) => Result.Failure(err)
-        case Right(success) =>
+      MainModule.plan0(evaluator, targets).map {
+        success =>
           val renderedTasks = success.map(_.toString)
           renderedTasks.foreach(println)
-          Result.Success(renderedTasks)
+          renderedTasks
       }
     }
 
@@ -173,9 +161,8 @@ trait MainModule extends BaseModule {
     Task.Command(exclusive = true) {
       val resolved = evaluator.resolveTasks(List(src, dest), SelectMode.Multi)
 
-      (resolved: @unchecked) match {
-        case Left(err) => Result.Failure(err)
-        case Right(Seq(src1, dest1)) =>
+      resolved.flatMap {
+        case Seq(src1, dest1) =>
           val queue = collection.mutable.Queue[List[Task[?]]](List(src1))
           var found = Option.empty[List[Task[?]]]
           val seen = collection.mutable.Set.empty[Task[?]]
@@ -241,8 +228,6 @@ trait MainModule extends BaseModule {
       def pprintTask(t: NamedTask[?], evaluator: Evaluator): Tree.Lazy = {
         val seen = mutable.Set.empty[Task[?]]
 
-        DebugLog.println(t.toString)
-        DebugLog.println(t.ctx.segments.toString)
         def rec(t: Task[?]): Seq[Segments] = {
           if (seen(t)) Nil // do nothing
           else t match {
@@ -485,7 +470,7 @@ trait MainModule extends BaseModule {
 
       val pathsToRemove =
         if (targets.isEmpty)
-          Right((os.list(rootDir).filterNot(keepPath), List(mill.define.Segments())))
+          Result.Success((os.list(rootDir).filterNot(keepPath), List(mill.define.Segments())))
         else
           evaluator.resolveSegments(targets, SelectMode.Multi).map { ts =>
             val allPaths = ts.flatMap { segments =>
@@ -504,10 +489,8 @@ trait MainModule extends BaseModule {
             (allPaths, ts)
           }
 
-      (pathsToRemove: @unchecked) match {
-        case Left(err) =>
-          Result.Failure(err)
-        case Right((paths, allSegments)) =>
+      (pathsToRemove: @unchecked).map {
+        case (paths, allSegments) =>
           for {
             workerSegments <- evaluator.workerCache.keys.toList
             if allSegments.exists(workerSegments.startsWith)
@@ -520,7 +503,7 @@ trait MainModule extends BaseModule {
           val existing = paths.filter(p => os.exists(p))
           Target.log.debug(s"Cleaning ${existing.size} paths ...")
           existing.foreach(os.remove.all(_, ignoreErrors = true))
-          Result.Success(existing.map(PathRef(_)))
+          existing.map(PathRef(_))
       }
     }
 
@@ -537,9 +520,9 @@ trait MainModule extends BaseModule {
    */
   def visualizePlan(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) {
-      MainModule.plan0(evaluator, targets) match {
-        case Left(err) => Result.Failure(err)
-        case Right(planResults) => visualize0(
+      MainModule.plan0(evaluator, targets).flatMap {
+        planResults =>
+          visualize0(
             evaluator,
             targets,
             Target.ctx(),
@@ -598,9 +581,10 @@ trait MainModule extends BaseModule {
             SelectMode.Separated
           )
       (evaluated: @unchecked) match {
-        case Left(failStr) => throw new Exception(failStr)
-        case Right((_, Right(Seq((_, Some((_, jsonableResult))))))) => jsonableResult
-        case Right((_, Left(failStr))) => throw new Exception(failStr)
+        case Result.Failure(failStr) => throw new Exception(failStr)
+        case Result.Success((_, Result.Success(Seq((_, Some((_, jsonableResult))))))) =>
+          jsonableResult
+        case Result.Success((_, Result.Failure(failStr))) => throw new Exception(failStr)
       }
     }
 
@@ -629,9 +613,9 @@ trait MainModule extends BaseModule {
       }
     }
 
-    evaluator.resolveTasks(targets, SelectMode.Multi) match {
-      case Left(err) => Result.Failure(err)
-      case Right(rs) => planTasks match {
+    evaluator.resolveTasks(targets, SelectMode.Multi).flatMap {
+      rs =>
+        planTasks match {
           case Some(allRs) => callVisualizeModule(rs, allRs)
           case None => callVisualizeModule(rs, rs)
         }

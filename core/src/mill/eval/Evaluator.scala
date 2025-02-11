@@ -1,7 +1,6 @@
 package mill.eval
 
-import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val}
-
+import mill.api.{ColorLogger, ExecResult, PathRef, Result, SystemStreams, Val}
 import mill.client.OutFiles
 import mill.define.*
 import mill.exec.{
@@ -19,7 +18,7 @@ import mill.define.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.util.DynamicVariable
@@ -79,7 +78,7 @@ final case class Evaluator private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): Either[String, List[Segments]] = {
+  ): Result[List[Segments]] = {
     Resolve.Segments.resolve(
       rootModule,
       scriptArgs,
@@ -94,7 +93,7 @@ final case class Evaluator private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): Either[String, List[NamedTask[?]]] = {
+  ): Result[List[NamedTask[?]]] = {
     Resolve.Tasks.resolve(
       rootModule,
       scriptArgs,
@@ -113,9 +112,8 @@ final case class Evaluator private[mill] (
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
-  ): Either[
-    String,
-    (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])
+  ): Result[
+    (Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])
   ] = {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(this) {
       Resolve.Tasks.resolve(
@@ -137,13 +135,14 @@ final case class Evaluator private[mill] (
   def evaluateNamed(
       targets: Seq[NamedTask[Any]],
       selectiveExecution: Boolean = false
-  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
+  ): (Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
     val selectedTargetsOrErr =
       if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
-        val changedTasks = SelectiveExecution.computeChangedTasks0(this, targets.toSeq)
+        val changedTasks = SelectiveExecution.computeChangedTasks0(this, targets)
+
         val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
         (
           targets.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
@@ -157,9 +156,9 @@ final case class Evaluator private[mill] (
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
-            case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) =>
+            case (t: SourcesImpl, TaskResult(ExecResult.Success(Val(ps: Seq[PathRef])), _)) =>
               ps.map(Watchable.Path(_))
-            case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) =>
+            case (t: SourceImpl, TaskResult(ExecResult.Success(Val(p: PathRef)), _)) =>
               Seq(Watchable.Path(p))
             case (t: InputImpl[_], TaskResult(result, recalc)) =>
               val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
@@ -171,7 +170,7 @@ final case class Evaluator private[mill] (
         val allInputHashes = evaluated.results
           .iterator
           .collect {
-            case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
+            case (t: InputImpl[_], TaskResult(ExecResult.Success(Val(value)), _)) =>
               (t.ctx.segments.render, value.##)
           }
           .toMap
@@ -195,8 +194,8 @@ final case class Evaluator private[mill] (
               }
             }
 
-            watched -> Right(evaluated.values.zip(nameAndJson))
-          case n => watched -> Left(s"$n tasks failed\n$errorStr")
+            watched -> Result.Success(evaluated.values.zip(nameAndJson))
+          case n => watched -> Result.Failure(s"$n tasks failed\n$errorStr")
         }
     }
   }
@@ -242,9 +241,8 @@ private[mill] object Evaluator {
     (for ((k, fs) <- evaluated.failing)
       yield {
         val fss = fs.map {
-          case Result.Failure(t, _) => t
-          case Result.Exception(Result.Failure(t, _), _) => t
-          case ex: Result.Exception => ex.toString
+          case ExecResult.Failure(t) => t
+          case ex: ExecResult.Exception => ex.toString
         }
         s"${k} ${fss.iterator.mkString(", ")}"
       }).mkString("\n")

@@ -165,12 +165,12 @@ object CodeGen {
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
 
     if (objectData.exists(o => o.name.text == "`package`" && o.parent.text != expectedParent)) {
-      throw Result.Failure(s"object `package` in $scriptPath must extend `$expectedParent`")
+      throw new Result.Exception(s"object `package` in $scriptPath must extend `$expectedParent`")
     }
     val misnamed =
       objectData.filter(o => o.name.text != "`package`" && o.parent.text == expectedParent)
     if (misnamed.nonEmpty) {
-      throw Result.Failure(
+      throw new Result.Exception(
         s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name.text).mkString(", ")}"
       )
     }

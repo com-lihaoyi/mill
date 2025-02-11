@@ -4,7 +4,7 @@ import mill.internal.PrefixLogger
 import mill.define.Watchable
 import mill.main.{BuildInfo, RootModule}
 import mill.client.CodeGenConstants.*
-import mill.api.{ColorLogger, PathRef, SystemStreams, Val, WorkspaceRoot, internal}
+import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
 import mill.eval.Evaluator
 import mill.define.{BaseModule, Segments, SelectMode}
 import mill.exec.{ChromeProfileLogger, ProfileLogger}
@@ -230,7 +230,7 @@ class MillBuildBootstrap(
       Seq("{runClasspath,compile,methodCodeHashSignatures}"),
       selectiveExecution = false
     ) match {
-      case (Left(error), evalWatches, moduleWatches) =>
+      case (Result.Failure(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           evalWatches,
@@ -245,7 +245,7 @@ class MillBuildBootstrap(
         nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-            Right(Seq(
+            Result.Success(Seq(
               Val(runClasspath: Seq[PathRef]),
               Val(compile: mill.scalalib.api.CompilationResult),
               Val(methodCodeHashSignatures: Map[String, Int])
@@ -327,7 +327,7 @@ class MillBuildBootstrap(
       Option(evaluator)
     )
 
-    nestedState.add(frame = evalState, errorOpt = evaled.left.toOption)
+    nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
   }
 
   def makeEvaluator(
@@ -450,7 +450,7 @@ object MillBuildBootstrap {
       evaluator: Evaluator,
       targetsAndParams: Seq[String],
       selectiveExecution: Boolean
-  ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
+  ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
       mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
@@ -465,12 +465,13 @@ object MillBuildBootstrap {
     val addedEvalWatched = rootModule.evalWatchedValues.toVector
 
     evalTaskResult match {
-      case Left(msg) => (Left(msg), Nil, moduleWatched)
-      case Right((watched, evaluated)) =>
+      case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatched)
+      case Result.Success((watched, evaluated)) =>
         evaluated match {
-          case Left(msg) => (Left(msg), watched ++ addedEvalWatched, moduleWatched)
-          case Right(results) =>
-            (Right(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
+          case Result.Failure(msg) =>
+            (Result.Failure(msg), watched ++ addedEvalWatched, moduleWatched)
+          case Result.Success(results) =>
+            (Result.Success(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
         }
     }
   }

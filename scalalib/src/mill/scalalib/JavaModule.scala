@@ -1126,7 +1126,7 @@ trait JavaModule
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
         resolutionParams = resolutionParams()
-      ).getOrThrow
+      ).get
 
       val roots = whatDependsOn match {
         case List() =>
@@ -1226,7 +1226,7 @@ trait JavaModule
     } else {
       Task.Command {
         val msg = invalidModules.mkString("\n")
-        Result.Failure[Unit](msg)
+        Result.Failure(msg)
       }
     }
   }

@@ -108,21 +108,21 @@ object ResolveDepsTests extends TestSuite {
     test("errOnInvalidOrgDeps") {
       val deps = Seq(ivy"xxx.yyy.invalid::pprint:0.5.3")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg, _) = evalDeps(deps): @unchecked
+      val Failure(errMsg) = evalDeps(deps): @unchecked
       assert(errMsg.contains("xxx.yyy.invalid"))
     }
 
     test("errOnInvalidVersionDeps") {
       val deps = Seq(ivy"com.lihaoyi::pprint:invalid.version.num")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg, _) = evalDeps(deps): @unchecked
+      val Failure(errMsg) = evalDeps(deps): @unchecked
       assert(errMsg.contains("invalid.version.num"))
     }
 
     test("errOnPartialSuccess") {
       val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3", ivy"fake::fake:fake")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg, _) = evalDeps(deps): @unchecked
+      val Failure(errMsg) = evalDeps(deps): @unchecked
       assert(errMsg.contains("fake"))
     }
 
@@ -142,11 +142,11 @@ object ResolveDepsTests extends TestSuite {
     test("scopes") {
       UnitTester(TestCase, null).scoped { eval =>
         val compileCp = eval(TestCase.scope.compileClasspath)
-          .toTry.get.value.toSeq.map(_.path)
+          .right.get.value.toSeq.map(_.path)
         val runtimeCp = eval(TestCase.scope.upstreamAssemblyClasspath)
-          .toTry.get.value.toSeq.map(_.path)
+          .right.get.value.toSeq.map(_.path)
         val runCp = eval(TestCase.scope.runClasspath)
-          .toTry.get.value.toSeq.map(_.path)
+          .right.get.value.toSeq.map(_.path)
 
         val runtimeOnlyJars = Seq(
           "lifecycle-common-2.3.0.jar",

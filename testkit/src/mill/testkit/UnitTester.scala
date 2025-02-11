@@ -1,15 +1,15 @@
 package mill.testkit
 
 import mill.{Target, Task}
-import mill.api.Result.OuterStack
-import mill.api.{DummyInputStream, Result, SystemStreams, Val}
-import mill.define.{InputImpl, TargetImpl, SelectMode}
+import mill.api.ExecResult.OuterStack
+import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
+import mill.define.{InputImpl, SelectMode, TargetImpl}
 import mill.eval.Evaluator
 import mill.resolve.Resolve
 import mill.internal.PrintLogger
-
 import mill.exec.{ChromeProfileLogger, ProfileLogger}
 import mill.client.OutFiles.{millChromeProfile, millProfile}
+
 import java.io.{InputStream, PrintStream}
 
 object UnitTester {
@@ -109,18 +109,18 @@ class UnitTester(
     profileLogger = new ProfileLogger(outPath / millProfile)
   )
 
-  def apply(args: String*): Either[Result.Failing[?], UnitTester.Result[Seq[?]]] = {
+  def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
     } match {
-      case Left(err) => Left(Result.Failure(err))
-      case Right(resolved) => apply(resolved)
+      case Result.Failure(err) => Left(ExecResult.Failure(err))
+      case Result.Success(resolved) => apply(resolved)
     }
   }
 
-  def apply[T](task: Task[T]): Either[Result.Failing[T], UnitTester.Result[T]] = {
+  def apply[T](task: Task[T]): Either[ExecResult.Failing[T], UnitTester.Result[T]] = {
     apply(Seq(task)) match {
-      case Left(f) => Left(f.asInstanceOf[Result.Failing[T]])
+      case Left(f) => Left(f.asInstanceOf[ExecResult.Failing[T]])
       case Right(UnitTester.Result(Seq(v), i)) =>
         Right(UnitTester.Result(v.asInstanceOf[T], i))
       case _ => ???
@@ -130,13 +130,13 @@ class UnitTester(
   def apply(
       tasks: Seq[Task[?]],
       dummy: DummyImplicit = null
-  ): Either[Result.Failing[?], UnitTester.Result[Seq[?]]] = {
+  ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     val evaluated = evaluator.evaluate(tasks)
 
     if (evaluated.failing.isEmpty) {
       Right(
         UnitTester.Result(
-          evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
+          evaluated.rawValues.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
           evaluated.evaluated.collect {
             case t: TargetImpl[_]
                 if module.moduleInternal.targets.contains(t)
@@ -157,19 +157,21 @@ class UnitTester(
     }
   }
 
-  def fail(target: Target[?], expectedFailCount: Int, expectedRawValues: Seq[Result[?]]): Unit = {
+  def fail(
+      target: Target[?],
+      expectedFailCount: Int,
+      expectedRawValues: Seq[ExecResult[?]]
+  ): Unit = {
 
     val res = evaluator.evaluate(Seq(target))
 
     val cleaned = res.rawValues.map {
-      case Result.Exception(ex, _) => Result.Exception(ex, new OuterStack(Nil))
+      case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
       case x => x.map(_.value)
     }
 
-    assert(
-      cleaned == expectedRawValues,
-      res.failing.size == expectedFailCount
-    )
+    assert(cleaned == expectedRawValues)
+    assert(res.failing.size == expectedFailCount)
 
   }
 

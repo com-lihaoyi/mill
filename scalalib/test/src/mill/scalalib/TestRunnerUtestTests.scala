@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.UnitTester
 import sbt.testing.Status
 import utest._
@@ -69,7 +69,7 @@ object TestRunnerUtestTests extends TestSuite {
         )
       )
       test("noMatch") - tester.testOnly0 { (eval, mod) =>
-        val Left(Result.Failure(msg, _)) =
+        val Left(ExecResult.Failure(msg)) =
           eval.apply(mod.utest.testOnly("noMatch", "noMatch*2")): @unchecked
         assert(
           msg == "Test selector does not match any test: noMatch noMatch*2\nRun discoveredTestClasses to see available tests"
