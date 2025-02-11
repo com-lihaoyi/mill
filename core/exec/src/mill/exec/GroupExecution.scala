@@ -39,7 +39,7 @@ private[mill] trait GroupExecution {
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   // those result which are inputs but not contained in this terminal group
-  def evaluateGroupCached(
+  def executeGroupCached(
       terminal: Task[?],
       group: Seq[Task[?]],
       results: Map[Task[?], TaskResult[(Val, Int)]],
@@ -116,7 +116,7 @@ private[mill] trait GroupExecution {
               if (labelled.flushDest) os.remove.all(paths.dest)
 
               val (newResults, newEvaluated) =
-                evaluateGroup(
+                executeGroup(
                   group,
                   results,
                   inputsHash,
@@ -155,7 +155,7 @@ private[mill] trait GroupExecution {
               )
           }
         case task =>
-          val (newResults, newEvaluated) = evaluateGroup(
+          val (newResults, newEvaluated) = executeGroup(
             group,
             results,
             inputsHash,
@@ -181,7 +181,7 @@ private[mill] trait GroupExecution {
     }
   }
 
-  private def evaluateGroup(
+  private def executeGroup(
       group: Seq[Task[?]],
       results: Map[Task[?], TaskResult[(Val, Int)]],
       inputsHash: Int,

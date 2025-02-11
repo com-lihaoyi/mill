@@ -454,7 +454,7 @@ object MillBuildBootstrap {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
       mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
-        evaluator.evaluateTasksNamed(
+        evaluator.resolveEvaluate(
           targetsAndParams,
           SelectMode.Separated,
           selectiveExecution = selectiveExecution

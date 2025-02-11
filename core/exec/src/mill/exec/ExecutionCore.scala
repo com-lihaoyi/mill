@@ -25,7 +25,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
    * @param testReporter Listener for test events like start, finish with success/error
    */
-  def evaluate(
+  def executeTasks(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
@@ -157,7 +157,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
                   noPrefix = exclusive
                 )
 
-                val res = evaluateGroupCached(
+                val res = executeGroupCached(
                   terminal = terminal,
                   group = plan.sortedGroups.lookupKey(terminal).toSeq,
                   results = upstreamResults,

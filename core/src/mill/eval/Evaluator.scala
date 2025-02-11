@@ -20,7 +20,6 @@ import mill.resolve.Resolve
 
 import scala.jdk.CollectionConverters.*
 import scala.collection.mutable
-import scala.reflect.ClassTag
 import scala.util.DynamicVariable
 
 /**
@@ -62,12 +61,6 @@ final case class Evaluator private[mill] (
 
   def plan(goals: Seq[Task[?]]): Plan = Plan.plan(goals)
 
-  def evalOrThrow(exceptionFactory: ExecResults => Throwable =
-    r =>
-      new Exception(s"Failure during task evaluation: ${formatFailing(r)}"))
-      : Evaluator.EvalOrThrow =
-    new EvalOrThrow(this, exceptionFactory)
-
   def resolveSegments(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
@@ -103,13 +96,11 @@ final case class Evaluator private[mill] (
     profileLogger.close()
   }
 
-  def evaluateTasksNamed(
+  def resolveEvaluate(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
-  ): Result[
-    (Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])
-  ] = {
+  ): Result[(Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])] = {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(this) {
       Resolve.Tasks.resolve(
         rootModule,
@@ -119,7 +110,13 @@ final case class Evaluator private[mill] (
       )
     }
     for (targets <- resolved)
-      yield evaluateNamed(Seq.from(targets), selectiveExecution)
+      yield evaluate(Seq.from(targets), selectiveExecution)
+  }
+
+  def evaluateValues[T](tasks: Seq[Task[T]]): Seq[T] = {
+    val (watches, res0) = evaluate(tasks).get
+    val results = res0.get
+    results.map(_._1.asInstanceOf[T])
   }
 
   /**
@@ -127,8 +124,8 @@ final case class Evaluator private[mill] (
    * @param targets
    * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
    */
-  def evaluateNamed(
-      targets: Seq[NamedTask[Any]],
+  def evaluate(
+      targets: Seq[Task[Any]],
       selectiveExecution: Boolean = false
   ): (Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
 
@@ -136,18 +133,20 @@ final case class Evaluator private[mill] (
 
     val selectedTargetsOrErr =
       if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
-        val changedTasks = SelectiveExecution.computeChangedTasks0(this, targets)
+        val (named, unnamed) = targets.partitionMap{case n: NamedTask[?] => Left(n); case t => Right(t)}
+        val changedTasks = SelectiveExecution.computeChangedTasks0(this, named)
 
         val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+
         (
-          targets.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
+          unnamed ++ named.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
           changedTasks.results
         )
       } else (targets -> Map.empty)
 
     selectedTargetsOrErr match {
       case (selectedTargets, selectiveResults) =>
-        val evaluated: ExecResults = evaluate(selectedTargets, serialCommandExec = true)
+        val evaluated: ExecResults = executeTasks(selectedTargets, serialCommandExec = true)
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
@@ -198,24 +197,6 @@ final case class Evaluator private[mill] (
 
 private[mill] object Evaluator {
 
-  class EvalOrThrow(evaluator: Evaluator, exceptionFactory: ExecResults => Throwable) {
-    def apply[T: ClassTag](task: Task[T]): T =
-      evaluator.evaluate(Seq(task)) match {
-        case r if r.failing.nonEmpty =>
-          throw exceptionFactory(r)
-        case r =>
-          // Input is a single-item Agg, so we also expect a single-item result
-          val Seq(Val(e: T)) = r.values: @unchecked
-          e
-      }
-
-    def apply[T: ClassTag](tasks: Seq[Task[T]]): Seq[T] =
-      evaluator.evaluate(tasks) match {
-        case r if r.failing.nonEmpty =>
-          throw exceptionFactory(r)
-        case r => r.values.map(_.value).asInstanceOf[Seq[T]]
-      }
-  }
 
   type TaskName = String
   // This needs to be a ThreadLocal because we need to pass it into the body of
