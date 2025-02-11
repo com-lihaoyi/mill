@@ -349,26 +349,29 @@ class MillBuildBootstrap(
       )
 
     val outPath = recOut(output, depth)
+    val baseLogger = new PrefixLogger(logger, bootLogPrefix)
     new mill.eval.Evaluator(
-      home,
-      projectRoot,
-      outPath,
-      outPath,
-      rootModule,
-      new PrefixLogger(logger, bootLogPrefix),
-      classLoaderSigHash = millClassloaderSigHash,
-      classLoaderIdentityHash = millClassloaderIdentityHash,
-      workerCache = workerCache.to(collection.mutable.Map),
-      env = env,
-      failFast = !keepGoing,
-      threadCount = threadCount,
-      methodCodeHashSignatures = methodCodeHashSignatures,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
-      systemExit = systemExit,
-      exclusiveSystemStreams = streams0,
-      selectiveExecution = selectiveExecution,
-      chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-      profileLogger = new ProfileLogger(outPath / millProfile)
+      selectiveExecution = false,
+      execution = new mill.exec.Execution(
+        baseLogger = baseLogger,
+        chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+        profileLogger = new ProfileLogger(outPath / millProfile),
+        home = home,
+        workspace = projectRoot,
+        outPath = outPath,
+        externalOutPath = outPath,
+        rootModule = rootModule,
+        classLoaderSigHash = millClassloaderSigHash,
+        classLoaderIdentityHash = millClassloaderIdentityHash,
+        workerCache = workerCache.to(collection.mutable.Map),
+        env = env,
+        failFast = !keepGoing,
+        threadCount = threadCount,
+        methodCodeHashSignatures = methodCodeHashSignatures,
+        systemExit = systemExit,
+        exclusiveSystemStreams = streams0,
+      )
     )
   }
 

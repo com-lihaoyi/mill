@@ -88,25 +88,30 @@ class UnitTester(
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
 
-  val evaluator: Evaluator = new mill.eval.Evaluator(
-    mill.api.Ctx.defaultHome,
-    module.moduleDir,
-    outPath,
-    outPath,
-    module,
-    logger,
-    0,
-    0,
+  val execution = new mill.exec.Execution(
+    baseLogger = logger,
+    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+    profileLogger = new ProfileLogger(outPath / millProfile),
+    home = mill.api.Ctx.defaultHome,
+    workspace = module.moduleDir,
+    outPath = outPath,
+    externalOutPath = outPath,
+    rootModule = module,
+    classLoaderSigHash = 0,
+    classLoaderIdentityHash = 0,
+    workerCache = collection.mutable.Map.empty,
+    env = env,
     failFast = failFast,
     threadCount = threads,
-    env = env,
     methodCodeHashSignatures = Map(),
-    allowPositionalCommandArgs = false,
     systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
+  )
+
+  val evaluator: Evaluator = new mill.eval.Evaluator(
+    allowPositionalCommandArgs = false,
     selectiveExecution = false,
-    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-    profileLogger = new ProfileLogger(outPath / millProfile)
+    execution = execution
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {

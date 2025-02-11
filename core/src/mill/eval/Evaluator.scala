@@ -19,7 +19,6 @@ import OutFiles.*
 import mill.resolve.Resolve
 
 import scala.jdk.CollectionConverters.*
-import scala.collection.mutable
 import scala.util.DynamicVariable
 
 /**
@@ -28,55 +27,25 @@ import scala.util.DynamicVariable
  * extracted into [[Execution]]
  */
 final case class Evaluator private[mill] (
-    home: os.Path,
-    workspace: os.Path,
-    outPath: os.Path,
-    externalOutPath: os.Path,
-    rootModule: mill.define.BaseModule,
-    baseLogger: ColorLogger,
-    classLoaderSigHash: Int,
-    classLoaderIdentityHash: Int,
-    workerCache: mutable.Map[Segments, (Int, Val)] = mutable.Map.empty,
-    env: Map[String, String],
-    failFast: Boolean,
-    threadCount: Option[Int],
-    methodCodeHashSignatures: Map[String, Int],
-    allowPositionalCommandArgs: Boolean,
-    systemExit: Int => Nothing,
-    exclusiveSystemStreams: SystemStreams,
-    selectiveExecution: Boolean = false,
-    chromeProfileLogger: ChromeProfileLogger,
-    profileLogger: ProfileLogger
+    private[mill] val allowPositionalCommandArgs: Boolean,
+    private[mill] val selectiveExecution: Boolean = false,
+    private[mill] val execution: Execution
 ) extends AutoCloseable {
-  private[mill] val execution = new Execution(
-    baseLogger,
-    chromeProfileLogger,
-    profileLogger,
-    home,
-    workspace,
-    outPath,
-    externalOutPath,
-    rootModule,
-    classLoaderSigHash,
-    classLoaderIdentityHash,
-    workerCache,
-    env,
-    failFast,
-    threadCount,
-    methodCodeHashSignatures,
-    systemExit,
-    exclusiveSystemStreams,
-  )
-  import Evaluator._
 
-  private[mill] final def mutableWorkerCache: collection.mutable.Map[Segments, (Int, Val)] =
-    workerCache match {
-      case mut: collection.mutable.Map[Segments, (Int, Val)] => mut
-    }
+  private[mill] def workspace = execution.workspace
+  private[mill] def baseLogger = execution.baseLogger
+  private[mill] def outPath = execution.outPath
+  private[mill] def methodCodeHashSignatures = execution.methodCodeHashSignatures
+  private[mill] def rootModule = execution.rootModule
+  private[mill] def workerCache = execution.workerCache
+
   val pathsResolver: ExecutionPathsResolver = ExecutionPathsResolver.default(outPath)
 
-  def withBaseLogger(newBaseLogger: ColorLogger): Evaluator =
-    this.copy(baseLogger = newBaseLogger)
+  def withBaseLogger(newBaseLogger: ColorLogger): Evaluator = new Evaluator(
+    allowPositionalCommandArgs,
+    selectiveExecution,
+    execution.withBaseLogger(newBaseLogger)
+  )
 
   def plan(goals: Seq[Task[?]]): Plan = Plan.plan(goals)
 
@@ -111,8 +80,7 @@ final case class Evaluator private[mill] (
   }
 
   def close(): Unit = {
-    chromeProfileLogger.close()
-    profileLogger.close()
+    execution.close()
   }
 
   def resolveEvaluate(
