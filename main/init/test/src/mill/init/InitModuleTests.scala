@@ -40,7 +40,9 @@ object InitModuleTests extends TestSuite {
       }
       test("non existing example") {
         val nonExistingModuleId = "nonExistingExampleId"
-        val results = evaluator.evaluator.execution.executeTasks(Seq(initmodule.init(Some(nonExistingModuleId))))
+        val results = evaluator.evaluator.execution.executeTasks(Seq(
+          initmodule.init(Some(nonExistingModuleId))
+        ))
         assert(results.failing.size == 1)
         assert(errStream.toString.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
       }

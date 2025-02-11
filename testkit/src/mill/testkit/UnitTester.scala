@@ -105,7 +105,7 @@ class UnitTester(
     threadCount = threads,
     methodCodeHashSignatures = Map(),
     systemExit = _ => ???,
-    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
+    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream)
   )
 
   val evaluator: Evaluator = new mill.eval.Evaluator(

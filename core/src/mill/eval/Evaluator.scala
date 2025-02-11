@@ -1,17 +1,15 @@
 package mill.eval
 
-import mill.api.{ColorLogger, ExecResult, PathRef, Result, SystemStreams, Val}
+import mill.api.{ColorLogger, ExecResult, PathRef, Result, Val}
 import mill.client.OutFiles
 import mill.define.*
 import mill.exec.{
   Cached,
-  ChromeProfileLogger,
   ExecResults,
   Execution,
   ExecutionPaths,
   ExecutionPathsResolver,
   Plan,
-  ProfileLogger,
   TaskResult
 }
 import mill.define.Watchable
@@ -120,7 +118,8 @@ final case class Evaluator private[mill] (
 
     val selectedTargetsOrErr =
       if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
-        val (named, unnamed) = targets.partitionMap{case n: NamedTask[?] => Left(n); case t => Right(t)}
+        val (named, unnamed) =
+          targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
         val changedTasks = SelectiveExecution.computeChangedTasks0(this, named)
 
         val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
@@ -133,7 +132,8 @@ final case class Evaluator private[mill] (
 
     selectedTargetsOrErr match {
       case (selectedTargets, selectiveResults) =>
-        val evaluated: ExecResults = execution.executeTasks(selectedTargets, serialCommandExec = true)
+        val evaluated: ExecResults =
+          execution.executeTasks(selectedTargets, serialCommandExec = true)
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
@@ -183,7 +183,6 @@ final case class Evaluator private[mill] (
 }
 
 private[mill] object Evaluator {
-
 
   type TaskName = String
   // This needs to be a ThreadLocal because we need to pass it into the body of

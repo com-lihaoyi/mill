@@ -142,7 +142,8 @@ object MainModuleTests extends TestSuite {
 
     test("inspect") {
       test("single") - UnitTester(mainModule, null).scoped { eval =>
-        val res = eval.evaluator.execution.executeTasks(Seq(mainModule.inspect(eval.evaluator, "hello")))
+        val res =
+          eval.evaluator.execution.executeTasks(Seq(mainModule.inspect(eval.evaluator, "hello")))
         val ExecResult.Success(Val(value: String)) = res.rawValues.head: @unchecked
         assert(
           res.failing.size == 0,
@@ -152,7 +153,11 @@ object MainModuleTests extends TestSuite {
       }
       test("multi") - UnitTester(mainModule, null).scoped { eval =>
         val res =
-          eval.evaluator.execution.executeTasks(Seq(mainModule.inspect(eval.evaluator, "hello", "hello2")))
+          eval.evaluator.execution.executeTasks(Seq(mainModule.inspect(
+            eval.evaluator,
+            "hello",
+            "hello2"
+          )))
         val ExecResult.Success(Val(value: String)) = res.rawValues.head: @unchecked
         assert(
           res.failing.size == 0,
@@ -211,7 +216,10 @@ object MainModuleTests extends TestSuite {
       )
       test("single") {
         val results =
-          evaluator.evaluator.execution.executeTasks(Seq(mainModule.show(evaluator.evaluator, "hello")))
+          evaluator.evaluator.execution.executeTasks(Seq(mainModule.show(
+            evaluator.evaluator,
+            "hello"
+          )))
 
         assert(results.failing.size == 0)
 
@@ -293,7 +301,10 @@ object MainModuleTests extends TestSuite {
       val evaluator = UnitTester(mainModule, null)
       test("single") {
         val results =
-          evaluator.evaluator.execution.executeTasks(Seq(mainModule.showNamed(evaluator.evaluator, "hello")))
+          evaluator.evaluator.execution.executeTasks(Seq(mainModule.showNamed(
+            evaluator.evaluator,
+            "hello"
+          )))
 
         assert(results.failing.size == 0)
 
@@ -365,7 +376,8 @@ object MainModuleTests extends TestSuite {
           os.sub / "bar/target.dest/dummy.txt"
         )
 
-        val r2 = ev.evaluator.execution.executeTasks(Seq(cleanModule.clean(ev.evaluator, "foo.target")))
+        val r2 =
+          ev.evaluator.execution.executeTasks(Seq(cleanModule.clean(ev.evaluator, "foo.target")))
         assert(r2.failing.size == 0)
         checkExists(false)(
           os.sub / "foo/target.log",
@@ -425,15 +437,24 @@ object MainModuleTests extends TestSuite {
         assert(r1.failing.size == 0)
         assert(workers.size == 5)
 
-        val r2 = ev.evaluator.execution.executeTasks(Seq(workerModule.clean(ev.evaluator, "foo.theWorker")))
+        val r2 = ev.evaluator.execution.executeTasks(Seq(workerModule.clean(
+          ev.evaluator,
+          "foo.theWorker"
+        )))
         assert(r2.failing.size == 0)
         assert(workers.size == 4)
 
-        val r3 = ev.evaluator.execution.executeTasks(Seq(workerModule.clean(ev.evaluator, "bar.theWorker")))
+        val r3 = ev.evaluator.execution.executeTasks(Seq(workerModule.clean(
+          ev.evaluator,
+          "bar.theWorker"
+        )))
         assert(r3.failing.size == 0)
         assert(workers.size == 3)
 
-        val r4 = ev.evaluator.execution.executeTasks(Seq(workerModule.clean(ev.evaluator, "bazz[1].theWorker")))
+        val r4 = ev.evaluator.execution.executeTasks(Seq(workerModule.clean(
+          ev.evaluator,
+          "bazz[1].theWorker"
+        )))
         assert(r4.failing.size == 0)
         assert(workers.size == 2)
       }
@@ -504,7 +525,8 @@ object MainModuleTests extends TestSuite {
         assert(r3.failing.size == 0)
         assert(workers.size == 3)
 
-        val r4 = ev.evaluator.execution.executeTasks(Seq(workerModule.clean(ev.evaluator, "bazz[1]")))
+        val r4 =
+          ev.evaluator.execution.executeTasks(Seq(workerModule.clean(ev.evaluator, "bazz[1]")))
         assert(r4.failing.size == 0)
         assert(workers.size == 2)
       }

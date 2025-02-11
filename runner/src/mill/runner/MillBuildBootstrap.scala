@@ -370,7 +370,7 @@ class MillBuildBootstrap(
         threadCount = threadCount,
         methodCodeHashSignatures = methodCodeHashSignatures,
         systemExit = systemExit,
-        exclusiveSystemStreams = streams0,
+        exclusiveSystemStreams = streams0
       )
     )
   }

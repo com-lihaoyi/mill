@@ -14,23 +14,25 @@ import scala.concurrent._
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
-private[mill] case class Execution(val baseLogger: ColorLogger,
-                                   val chromeProfileLogger: ChromeProfileLogger,
-                                   val profileLogger: ProfileLogger,
-                                   val home: os.Path,
-                                   val workspace: os.Path,
-                                   val outPath: os.Path,
-                                   val externalOutPath: os.Path,
-                                   val rootModule: BaseModule,
-                                   val classLoaderSigHash: Int,
-                                   val classLoaderIdentityHash: Int,
-                                   val workerCache: mutable.Map[Segments, (Int, Val)],
-                                   val env: Map[String, String],
-                                   val failFast: Boolean,
-                                   val threadCount: Option[Int],
-                                   val methodCodeHashSignatures: Map[String, Int],
-                                   val systemExit: Int => Nothing,
-                                   val exclusiveSystemStreams: SystemStreams) extends GroupExecution with AutoCloseable{
+private[mill] case class Execution(
+    val baseLogger: ColorLogger,
+    val chromeProfileLogger: ChromeProfileLogger,
+    val profileLogger: ProfileLogger,
+    val home: os.Path,
+    val workspace: os.Path,
+    val outPath: os.Path,
+    val externalOutPath: os.Path,
+    val rootModule: BaseModule,
+    val classLoaderSigHash: Int,
+    val classLoaderIdentityHash: Int,
+    val workerCache: mutable.Map[Segments, (Int, Val)],
+    val env: Map[String, String],
+    val failFast: Boolean,
+    val threadCount: Option[Int],
+    val methodCodeHashSignatures: Map[String, Int],
+    val systemExit: Int => Nothing,
+    val exclusiveSystemStreams: SystemStreams
+) extends GroupExecution with AutoCloseable {
 
   def withBaseLogger(newBaseLogger: ColorLogger) = this.copy(baseLogger = newBaseLogger)
 
