@@ -61,7 +61,7 @@ class MillBuildBootstrap(
   }
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
-    val runnerState = evaluateRec(0)(using parserBridge)
+    val runnerState = evaluateRec(0)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
@@ -78,7 +78,7 @@ class MillBuildBootstrap(
     )
   }
 
-  def evaluateRec(depth: Int)(using parser: MillScalaParser): RunnerState = {
+  def evaluateRec(depth: Int): RunnerState = {
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
@@ -112,7 +112,7 @@ class MillBuildBootstrap(
         }
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
-          parser,
+          parserBridge,
           projectRoot,
           recRoot(projectRoot, depth) / os.up,
           output

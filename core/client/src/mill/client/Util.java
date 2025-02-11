@@ -22,9 +22,19 @@ public class Util {
     return hexArray(MessageDigest.getInstance("md5").digest(str.getBytes(StandardCharsets.UTF_8)));
   }
 
-  static String hexArray(byte[] arr) {
-    return String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr));
+  static final String HEXES = "0123456789ABCDEF";
+  public static String hexArray( byte [] raw ) {
+    if ( raw == null ) {
+      return null;
+    }
+    final StringBuilder hex = new StringBuilder( 2 * raw.length );
+    for ( final byte b : raw ) {
+      hex.append(HEXES.charAt((b & 0xF0) >> 4))
+          .append(HEXES.charAt((b & 0x0F)));
+    }
+    return hex.toString();
   }
+
 
   /**
    * Determines if we have an interactive console attached to the application.
