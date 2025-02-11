@@ -6,7 +6,7 @@ import coursier.core.Repository
 import coursier.maven.MavenRepository
 import mill.define.{Discover, ExternalModule, NamedTask, Target}
 import mill.util.MillModuleUtil.millProjectModule
-import mill.api.{Loose, PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
@@ -26,7 +26,7 @@ object VisualizeModule extends ExternalModule with VisualizeModule {
 trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
-  def classpath: Target[Loose.Agg[PathRef]] = Target {
+  def classpath: Target[Seq[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 
@@ -62,7 +62,7 @@ trait VisualizeModule extends mill.define.TaskModule {
               yield (
                 k,
                 for {
-                  v <- vs.items
+                  v <- vs
                   dest <- v.inputs.collect { case v: mill.define.NamedTask[Any] => v }
                   if goalSet.contains(dest)
                 } yield dest

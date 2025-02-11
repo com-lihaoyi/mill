@@ -1,15 +1,14 @@
 package mill.exec
 
-import mill.api.Loose.Agg
 import mill.define.{NamedTask, Task}
 import mill.internal.MultiBiMap
 
 private[mill] class Plan(
-    val transitive: Agg[Task[?]],
+    val transitive: Seq[Task[?]],
     val sortedGroups: MultiBiMap[Task[?], Task[?]]
 )
 private[mill] object Plan {
-  def plan(goals: Agg[Task[?]]): Plan = {
+  def plan(goals: Seq[Task[?]]): Plan = {
     val transitive = Plan.transitiveTargets(goals)
     val topoSorted = Plan.topoSorted(transitive)
 
@@ -29,7 +28,7 @@ private[mill] object Plan {
    *
    * @see [[Plan.topoSorted]]
    */
-  class TopoSorted(val values: Agg[Task[?]])
+  class TopoSorted(val values: Seq[Task[?]])
 
   def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
     Task[?],
@@ -41,17 +40,17 @@ private[mill] object Plan {
       (target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _))).iterator
     ) {
 
-      val transitiveTargets = new Agg.Mutable[Task[?]]
+      val transitiveTargets = collection.mutable.LinkedHashSet[Task[?]]()
       def rec(t: Task[?]): Unit = {
         if (transitiveTargets.contains(t)) () // do nothing
         else if (important.isDefinedAt(t) && t != target) () // do nothing
         else {
-          transitiveTargets.append(t)
+          transitiveTargets.add(t)
           t.inputs.foreach(rec)
         }
       }
       rec(target)
-      output.addAll(t, topoSorted(transitiveTargets).values)
+      output.addAll(t, topoSorted(transitiveTargets.toSeq).values)
     }
     output
   }
@@ -60,10 +59,10 @@ private[mill] object Plan {
    * Collects all transitive dependencies (targets) of the given targets,
    * including the given targets.
    */
-  def transitiveTargets(sourceTargets: Agg[Task[?]]): Agg[Task[?]] = {
+  def transitiveTargets(sourceTargets: Seq[Task[?]]): Seq[Task[?]] = {
     transitiveNodes(sourceTargets)(_.inputs)
   }
-  def transitiveNamed(sourceTargets: Agg[Task[?]]): Agg[NamedTask[?]] = {
+  def transitiveNamed(sourceTargets: Seq[Task[?]]): Seq[NamedTask[?]] = {
     transitiveTargets(sourceTargets).collect { case t: NamedTask[?] => t }
   }
 
@@ -71,36 +70,36 @@ private[mill] object Plan {
    * Collects all transitive dependencies (nodes) of the given nodes,
    * including the given nodes.
    */
-  def transitiveNodes[T](sourceNodes: Agg[T])(inputsFor: T => Seq[T]): Agg[T] = {
-    val transitiveNodes = new Agg.Mutable[T]
+  def transitiveNodes[T](sourceNodes: Seq[T])(inputsFor: T => Seq[T]): Seq[T] = {
+    val transitiveNodes = collection.mutable.LinkedHashSet[T]()
     def rec(t: T): Unit = {
       if (transitiveNodes.contains(t)) {} // do nothing
       else {
-        transitiveNodes.append(t)
+        transitiveNodes.add(t)
         inputsFor(t).foreach(rec)
       }
     }
 
-    sourceNodes.items.foreach(rec)
-    transitiveNodes
+    sourceNodes.foreach(rec)
+    transitiveNodes.toSeq
   }
 
   /**
    * Takes the given targets, finds all the targets they transitively depend
    * on, and sort them topologically. Fails if there are dependency cycles
    */
-  def topoSorted(transitiveTargets: Agg[Task[?]]): TopoSorted = {
+  def topoSorted(transitiveTargets: Seq[Task[?]]): TopoSorted = {
 
-    val indexed = transitiveTargets.indexed
+    val indexed = transitiveTargets
     val targetIndices = indexed.zipWithIndex.toMap
 
     val numberedEdges =
-      for (t <- transitiveTargets.items)
+      for (t <- transitiveTargets)
         yield t.inputs.collect(targetIndices).toArray
 
     val sortedClusters = mill.internal.Tarjans(numberedEdges.toArray)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)
     assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
-    new TopoSorted(Agg.from(sortedClusters.flatten.map(indexed)))
+    new TopoSorted(Seq.from(sortedClusters.flatten.map(indexed)))
   }
 }

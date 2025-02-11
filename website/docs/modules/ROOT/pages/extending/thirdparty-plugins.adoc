@@ -716,7 +716,7 @@ import com.github.lolgab.mill.mima._
 
 object main extends ScalaModule with Mima {
 
-  def mimaPreviousArtifacts = Agg(
+  def mimaPreviousArtifacts = Seq(
     ivy"my_group_id::main:my_previous_version"
   )
 

@@ -29,7 +29,7 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
         case Array(1, 8, _) => "0.9.1"
         case _ => "0.11.0"
       }
-      super.ivyDeps() ++ Agg(
+      super.ivyDeps() ++ Seq(
         ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion"
       )
     }

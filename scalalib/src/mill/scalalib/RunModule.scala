@@ -7,7 +7,7 @@ import mill.api.{Ctx, PathRef, Result}
 import mill.client.ServerFiles
 import mill.define.{Command, Task}
 import mill.util.Jvm
-import mill.{Agg, Args, T}
+import mill.{Args, T}
 import os.{Path, ProcessOutput}
 
 import scala.util.control.NonFatal
@@ -201,7 +201,7 @@ trait RunModule extends WithZincWorker {
       else {
         val classpathJar = Task.dest / "classpath.jar"
         Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
-        Agg(classpathJar)
+        Seq(classpathJar)
       }
 
     Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())

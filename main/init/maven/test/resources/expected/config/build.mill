@@ -52,7 +52,7 @@ object `package` extends RootModule with MyModule {
 
       object tests extends MavenTests with TestModule.Junit4 {
 
-        def ivyDeps = super.ivyDeps() ++ Agg(
+        def ivyDeps = super.ivyDeps() ++ Seq(
           Deps.`junit:junit-dep`,
           Deps.`org.hamcrest:hamcrest-core`,
           Deps.`org.hamcrest:hamcrest-library`,
@@ -70,7 +70,7 @@ object `package` extends RootModule with MyModule {
       def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
       def compileIvyDeps = super.compileIvyDeps() ++
-        Agg(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
+        Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
       def pomPackagingType = "war"
 
@@ -96,7 +96,7 @@ object `package` extends RootModule with MyModule {
       Seq("-source", "1.6", "-target", "1.6")
 
     def ivyDeps = super.ivyDeps() ++
-      Agg(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
+      Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
     def publishProperties = super.publishProperties() ++ Map(
       ("project.build.sourceEncoding", "utf-8"),
@@ -105,7 +105,7 @@ object `package` extends RootModule with MyModule {
 
     object tests extends MavenTests with TestModule.Junit4 {
 
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         Deps.`junit:junit-dep`,
         Deps.`org.hamcrest:hamcrest-core`,
         Deps.`org.hamcrest:hamcrest-library`,

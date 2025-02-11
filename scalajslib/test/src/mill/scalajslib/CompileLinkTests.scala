@@ -46,14 +46,14 @@ object CompileLinkTests extends TestSuite {
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
         override def sources = Task.Sources { this.moduleDir / "src/utest" }
         val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
-        override def ivyDeps = Agg(
+        override def ivyDeps = Seq(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
       }
 
       object `test-scalatest` extends ScalaJSTests with TestModule.ScalaTest {
         override def sources = Task.Sources { this.moduleDir / "src/scalatest" }
-        override def ivyDeps = Agg(
+        override def ivyDeps = Seq(
           ivy"org.scalatest::scalatest::3.1.2"
         )
       }

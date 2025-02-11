@@ -7,7 +7,7 @@ import mill.define.{InputImpl, TargetImpl, SelectMode}
 import mill.eval.Evaluator
 import mill.resolve.Resolve
 import mill.internal.PrintLogger
-import mill.api.Strict.Agg
+
 import mill.exec.{ChromeProfileLogger, ProfileLogger}
 import mill.client.OutFiles.{millChromeProfile, millProfile}
 import java.io.{InputStream, PrintStream}
@@ -159,7 +159,7 @@ class UnitTester(
 
   def fail(target: Target[?], expectedFailCount: Int, expectedRawValues: Seq[Result[?]]): Unit = {
 
-    val res = evaluator.evaluate(Agg(target))
+    val res = evaluator.evaluate(Seq(target))
 
     val cleaned = res.rawValues.map {
       case Result.Exception(ex, _) => Result.Exception(ex, new OuterStack(Nil))
@@ -173,7 +173,7 @@ class UnitTester(
 
   }
 
-  def check(targets: Agg[Task[?]], expected: Agg[Task[?]]): Unit = {
+  def check(targets: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
     val evaluated = evaluator.evaluate(targets)
       .evaluated

@@ -525,7 +525,7 @@ index 957d929826d..112f1aaccb8 100644
 @@ -4,12 +4,12 @@ import mill.scalalib._
  
  object `package` extends MillBuildRootModule {
-   override def ivyDeps = Agg(
+   override def ivyDeps = Seq(
 -    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
 -    ivy"com.github.lolgab::mill-mima::0.1.1",
 +//    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
@@ -549,8 +549,8 @@ index cb17827974f..9270c6ca604 100644
 -    def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
 +    def millSourcePath: os.Path = super.moduleDir / scalajsWorkerVersion
      def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.core.client, build.core.api)
-     def mandatoryIvyDeps = Agg.empty[Dep]
-     def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
+     def mandatoryIvyDeps = Seq.empty[Dep]
+     def compileIvyDeps = super.mandatoryIvyDeps() ++ Seq(
 diff --git a/scalalib/package.mill b/scalalib/package.mill
 index 05d74d4426f..e73afa90405 100644
 --- a/scalalib/package.mill

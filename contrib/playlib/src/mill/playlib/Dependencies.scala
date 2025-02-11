@@ -1,6 +1,6 @@
 package mill.playlib
 
-import mill.{Agg, Task}
+import mill.Task
 import mill.scalalib._
 
 private[playlib] trait Dependencies extends ScalaModule with Version {
@@ -15,7 +15,7 @@ private[playlib] trait Dependencies extends ScalaModule with Version {
   def caffeine = Task { component("play-caffeine-cache")() }
 
   override def ivyDeps = Task {
-    super.ivyDeps() ++ Agg(
+    super.ivyDeps() ++ Seq(
       core(),
       guice(),
       server(),

@@ -9,11 +9,11 @@ object ScalaIvyDepsTests extends TestSuite {
 
   object HelloWorldIvyDeps extends TestBaseModule {
     object moduleA extends HelloWorldTests.HelloWorldModule {
-      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.3")
+      override def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.1.3")
     }
     object moduleB extends HelloWorldTests.HelloWorldModule {
       override def moduleDeps = Seq(moduleA)
-      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
+      override def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.1.4")
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -21,8 +21,8 @@ object ScalaIvyDepsTests extends TestSuite {
 
   object TransitiveRunIvyDeps extends TestBaseModule {
     object upstream extends JavaModule {
-      def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:2.0.16")
-      def runIvyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.5.10")
+      def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:2.0.16")
+      def runIvyDeps = Seq(ivy"ch.qos.logback:logback-classic:1.5.10")
     }
 
     object downstream extends JavaModule {
@@ -35,8 +35,8 @@ object ScalaIvyDepsTests extends TestSuite {
 
   object TransitiveRunIvyDeps2 extends TestBaseModule {
     object upstream extends JavaModule {
-      def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:2.0.16")
-      def runIvyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.5.10")
+      def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:2.0.16")
+      def runIvyDeps = Seq(ivy"ch.qos.logback:logback-classic:1.5.10")
     }
 
     object downstream extends JavaModule {

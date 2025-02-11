@@ -1,7 +1,6 @@
 package mill.scalalib.api
 
 import mill.api.{CompileProblemReporter, PathRef}
-import mill.api.Loose.Agg
 
 object ZincWorkerApi {
   type Ctx = mill.api.Ctx.Dest & mill.api.Ctx.Log & mill.api.Ctx.Home
@@ -11,8 +10,8 @@ trait ZincWorkerApi {
   /** Compile a Java-only project */
   def compileJava(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
@@ -22,14 +21,14 @@ trait ZincWorkerApi {
   /** Compile a mixed Scala/Java or Scala-only project */
   def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
       scalaVersion: String,
       scalaOrganization: String,
       scalacOptions: Seq[String],
-      compilerClasspath: Agg[PathRef],
-      scalacPluginClasspath: Agg[PathRef],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
@@ -44,8 +43,8 @@ trait ZincWorkerApi {
   def docJar(
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Agg[PathRef],
-      scalacPluginClasspath: Agg[PathRef],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
       args: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): Boolean
 

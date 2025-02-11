@@ -126,7 +126,6 @@ object ErrorTests extends TestSuite {
     }
 
     object CyclicModuleRefInitError extends TestBaseModule {
-      import mill.Agg
       def foo = Task { "foo" }
 
       // See issue: https://github.com/com-lihaoyi/mill/issues/3715
@@ -141,7 +140,7 @@ object ErrorTests extends TestSuite {
       trait A extends CommonModule
       object myB extends B
       trait B extends CommonModule {
-        override def moduleDeps = super.moduleDeps ++ Agg(a)
+        override def moduleDeps = super.moduleDeps ++ Seq(a)
       }
       lazy val millDiscover = Discover[this.type]
     }

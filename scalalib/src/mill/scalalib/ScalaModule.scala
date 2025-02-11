@@ -6,7 +6,7 @@ import mill.api.{DummyInputStream, PathRef, Result, internal}
 import mill.main.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
-import mill.api.Loose.Agg
+
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mainargs.Flag
 import mill.define.Task
@@ -27,8 +27,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
-    override def scalacPluginIvyDeps: T[Agg[Dep]] = outer.scalacPluginIvyDeps()
-    override def scalacPluginClasspath: T[Agg[PathRef]] = outer.scalacPluginClasspath()
+    override def scalacPluginIvyDeps: T[Seq[Dep]] = outer.scalacPluginIvyDeps()
+    override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
     override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
     override def mandatoryScalacOptions: T[Seq[String]] =
       Task { super.mandatoryScalacOptions() }
@@ -156,9 +156,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * Allows you to make use of Scala compiler plugins.
    */
-  def scalacPluginIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+  def scalacPluginIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
-  def scalaDocPluginIvyDeps: T[Agg[Dep]] = Task { scalacPluginIvyDeps() }
+  def scalaDocPluginIvyDeps: T[Seq[Dep]] = Task { scalacPluginIvyDeps() }
 
   /**
    * Mandatory command-line options to pass to the Scala compiler
@@ -220,14 +220,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * additional jars here if you have some copiler plugin that isn't present
    * on maven central
    */
-  def scalacPluginClasspath: T[Agg[PathRef]] = Task {
+  def scalacPluginClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(scalacPluginIvyDeps())
   }
 
   /**
    * Classpath of the scaladoc (or dottydoc) tool.
    */
-  def scalaDocClasspath: T[Agg[PathRef]] = Task {
+  def scalaDocClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion())
     )
@@ -236,25 +236,25 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * The ivy coordinates of Scala's own standard library
    */
-  def scalaDocPluginClasspath: T[Agg[PathRef]] = Task {
+  def scalaDocPluginClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       scalaDocPluginIvyDeps()
     )
   }
 
-  def scalaLibraryIvyDeps: T[Agg[Dep]] = Task {
+  def scalaLibraryIvyDeps: T[Seq[Dep]] = Task {
     Lib.scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
-  override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
+  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
     super.mandatoryIvyDeps() ++ scalaLibraryIvyDeps()
   }
 
   /**
    * Classpath of the Scala Compiler & any compiler plugins
    */
-  def scalaCompilerClasspath: T[Agg[PathRef]] = Task {
+  def scalaCompilerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
         scalaLibraryIvyDeps()
@@ -326,7 +326,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
     def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
       if (files.isEmpty) {
-        Result.Success(PathRef(createJar(Task.dest / "out.jar", Agg(javadocDir))))
+        Result.Success(PathRef(createJar(Task.dest / "out.jar", Seq(javadocDir))))
       } else {
         zincWorker()
           .worker()
@@ -338,7 +338,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {
-          case true => Result.Success(PathRef(createJar(Task.dest / "out.jar", Agg(javadocDir))))
+          case true => Result.Success(PathRef(createJar(Task.dest / "out.jar", Seq(javadocDir))))
           case false => Result.Failure("docJar generation failed")
         }
       }
@@ -487,7 +487,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         coursierDependency.withConfiguration(coursier.core.Configuration.runtime),
         force = false
       )) ++
-        Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
+        Seq(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
     }
   }
 

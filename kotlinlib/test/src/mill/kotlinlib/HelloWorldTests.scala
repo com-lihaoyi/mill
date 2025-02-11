@@ -17,12 +17,12 @@ object HelloWorldTests extends TestSuite {
       override def mainClass = Some("hello.HelloKt")
 
       object test extends KotlinTests with TestModule.Junit4 {
-        override def ivyDeps = super.ivyDeps() ++ Agg(
+        override def ivyDeps = super.ivyDeps() ++ Seq(
           ivy"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}"
         )
       }
       object kotest extends KotlinTests with TestModule.Junit5 {
-        override def ivyDeps = super.ivyDeps() ++ Agg(
+        override def ivyDeps = super.ivyDeps() ++ Seq(
           ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
         )
       }

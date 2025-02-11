@@ -2,7 +2,7 @@ package mill.scalalib.bsp
 
 import mill.define.{Cross, Discover}
 import mill.exec.ExecutionPaths
-import mill.{Agg, T}
+import mill.T
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -17,12 +17,12 @@ object BspModuleTests extends TestSuite {
   object MultiBase extends TestBaseModule {
     object HelloBsp extends ScalaModule {
       def scalaVersion = testScalaVersion
-      override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.34")
+      override def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:1.7.34")
     }
     object HelloBsp2 extends ScalaModule {
       def scalaVersion = testScalaVersion
       override def moduleDeps = Seq(HelloBsp)
-      override def ivyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.1.10")
+      override def ivyDeps = Seq(ivy"ch.qos.logback:logback-classic:1.1.10")
     }
     lazy val millDiscover = Discover[this.type]
   }

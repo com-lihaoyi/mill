@@ -1,6 +1,5 @@
 package mill.util
 
-import mill.api.Loose.Agg
 import mill.api.*
 
 import os.ProcessOutput
@@ -67,7 +66,7 @@ object Jvm extends CoursierSupport {
   ): CommandResult = {
     val cp = cpPassingJarPath match {
       case Some(passingJarPath) if classPath.nonEmpty =>
-        createClasspathPassingJar(passingJarPath, classPath)
+        createClasspathPassingJar(passingJarPath, classPath.toSeq)
         Seq(passingJarPath)
       case _ => classPath
     }
@@ -146,7 +145,7 @@ object Jvm extends CoursierSupport {
   ): os.SubProcess = {
     val cp = cpPassingJarPath match {
       case Some(passingJarPath) if classPath.nonEmpty =>
-        createClasspathPassingJar(passingJarPath, classPath)
+        createClasspathPassingJar(passingJarPath, classPath.toSeq)
         Seq(passingJarPath)
       case _ => classPath
     }
@@ -269,7 +268,7 @@ object Jvm extends CoursierSupport {
    */
   def createJar(
       jar: os.Path,
-      inputPaths: Agg[os.Path],
+      inputPaths: Seq[os.Path],
       manifest: JarManifest = JarManifest.Empty,
       fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true,
       includeDirs: Boolean = true,
@@ -324,10 +323,10 @@ object Jvm extends CoursierSupport {
     }
   }
 
-  def createClasspathPassingJar(jar: os.Path, classpath: Agg[os.Path]): Unit = {
+  def createClasspathPassingJar(jar: os.Path, classpath: Seq[os.Path]): Unit = {
     createJar(
       jar = jar,
-      inputPaths = Agg(),
+      inputPaths = Seq(),
       manifest = JarManifest.MillDefault.add(
         "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(
           " "
@@ -363,8 +362,8 @@ object Jvm extends CoursierSupport {
 
   def launcherUniversalScript(
       mainClass: String,
-      shellClassPath: Agg[String],
-      cmdClassPath: Agg[String],
+      shellClassPath: Seq[String],
+      cmdClassPath: Seq[String],
       jvmArgs: Seq[String],
       shebang: Boolean = false,
       shellJvmArgs: Seq[String] = Nil,
@@ -401,7 +400,7 @@ object Jvm extends CoursierSupport {
     )
   }
 
-  def createLauncher(mainClass: String, classPath: Agg[os.Path], jvmArgs: Seq[String])(implicit
+  def createLauncher(mainClass: String, classPath: Seq[os.Path], jvmArgs: Seq[String])(implicit
       ctx: Ctx.Dest
   ): PathRef = {
     val isWin = scala.util.Properties.isWin

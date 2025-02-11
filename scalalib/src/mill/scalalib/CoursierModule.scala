@@ -9,7 +9,6 @@ import mill.api.PathRef
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import mill.Agg
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -48,10 +47,10 @@ trait CoursierModule extends mill.Module {
    * @return The [[PathRef]]s to the resolved files.
    */
   def resolveDeps(
-      deps: Task[Agg[BoundDep]],
+      deps: Task[Seq[BoundDep]],
       sources: Boolean = false,
       artifactTypes: Option[Set[Type]] = None
-  ): Task[Agg[PathRef]] =
+  ): Task[Seq[PathRef]] =
     Task.Anon {
       Lib.resolveDependencies(
         repositories = repositoriesTask(),
@@ -175,7 +174,7 @@ object CoursierModule {
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
-    ): Agg[PathRef] = {
+    ): Seq[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),

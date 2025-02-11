@@ -4,7 +4,7 @@ import mill._, scalalib._, scalajslib._
 object `package` extends RootModule with ScalaModule {
 
   def scalaVersion = "2.13.14"
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"com.lihaoyi::cask:0.9.1",
     ivy"com.lihaoyi::scalatags:0.13.1"
   )
@@ -22,7 +22,7 @@ object `package` extends RootModule with ScalaModule {
   object test extends ScalaTests {
     def testFramework = "utest.runner.Framework"
 
-    def ivyDeps = Agg(
+    def ivyDeps = Seq(
       ivy"com.lihaoyi::utest::0.8.5",
       ivy"com.lihaoyi::requests::0.6.9"
     )
@@ -31,7 +31,7 @@ object `package` extends RootModule with ScalaModule {
   object client extends ScalaJSModule {
     def scalaVersion = "2.13.14"
     def scalaJSVersion = "1.16.0"
-    def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
+    def ivyDeps = Seq(ivy"org.scala-js::scalajs-dom::2.2.0")
   }
 }
 
