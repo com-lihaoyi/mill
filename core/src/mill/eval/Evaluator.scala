@@ -60,12 +60,7 @@ final case class Evaluator private[mill] (
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator =
     this.copy(baseLogger = newBaseLogger)
 
-  def withFailFast(newFailFast: Boolean): Evaluator =
-    this.copy(failFast = newFailFast)
-
-  def plan(goals: Seq[Task[?]]): Plan = {
-    Plan.plan(goals)
-  }
+  def plan(goals: Seq[Task[?]]): Plan = Plan.plan(goals)
 
   def evalOrThrow(exceptionFactory: ExecResults => Throwable =
     r =>
