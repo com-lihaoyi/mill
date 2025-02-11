@@ -101,7 +101,7 @@ final case class Evaluator private[mill] (
   def evaluateValues[T](tasks: Seq[Task[T]]): Seq[T] = {
     val (watches, res0) = evaluate(tasks).get
     val results = res0.get
-    results.map(_._1.asInstanceOf[T])
+    results.map(_._1.value.asInstanceOf[T])
   }
 
   /**
@@ -112,7 +112,7 @@ final case class Evaluator private[mill] (
   def evaluate(
       targets: Seq[Task[Any]],
       selectiveExecution: Boolean = false
-  ): (Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
+  ): (Seq[Watchable], Result[Seq[(Val, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
@@ -172,9 +172,9 @@ final case class Evaluator private[mill] (
                   val jsonFile = ExecutionPaths.resolveDestPaths(outPath, t).meta
                   val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
                   Some((t.toString, metadata.value))
+                case _ => None
               }
             }
-
             watched -> Result.Success(evaluated.values.zip(nameAndJson))
           case n => watched -> Result.Failure(s"$n tasks failed\n$errorStr")
         }
