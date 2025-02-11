@@ -192,8 +192,8 @@ object MillMain {
 
                 (true, stateCache)
 
-              } else if (maybeThreadCount.isInstanceOf[Result.Failure]) {
-                streams.err.println(maybeThreadCount.asInstanceOf[Result.Failure].error)
+              } else if (maybeThreadCount.errorOpt.isDefined) {
+                streams.err.println(maybeThreadCount.errorOpt.get)
                 (false, stateCache)
 
               } else {
