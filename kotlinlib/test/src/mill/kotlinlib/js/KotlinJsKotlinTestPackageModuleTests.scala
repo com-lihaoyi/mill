@@ -6,7 +6,6 @@ import mill.api.ExecResult
 import mill.define.Discover
 import mill.exec.ExecutionPaths
 import mill.testkit.{TestBaseModule, UnitTester}
-import sbt.testing.Status
 import utest.{TestSuite, Tests, assert, test}
 
 object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
@@ -57,7 +56,7 @@ object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
                              |
                              |foo HelloTests - failure: AssertionError: Expected <Hello, world>, actual <Not hello, world>.
                              |
-                             |""".stripMargin,
+                             |""".stripMargin
 //        doneMessage == s"""
 //                          |Tests: 2, Passed: 1, Failed: 1, Skipped: 0
 //                          |

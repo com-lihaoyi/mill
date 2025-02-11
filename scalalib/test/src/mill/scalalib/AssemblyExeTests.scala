@@ -2,7 +2,6 @@ package mill.scalalib
 
 import mill.api.ExecResult
 import scala.util.Properties
-import mill.api.Result
 import mill.testkit.UnitTester
 import utest._
 

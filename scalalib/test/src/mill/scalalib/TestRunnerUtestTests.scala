@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import mill.api.Result
 import mill.api.ExecResult
 import mill.testkit.UnitTester
 import sbt.testing.Status

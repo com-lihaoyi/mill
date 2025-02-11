@@ -1,6 +1,6 @@
 package mill.init
 
-import mill.api.{Result, Val}
+import mill.api.Val
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule

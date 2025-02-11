@@ -157,7 +157,11 @@ class UnitTester(
     }
   }
 
-  def fail(target: Target[?], expectedFailCount: Int, expectedRawValues: Seq[ExecResult[?]]): Unit = {
+  def fail(
+      target: Target[?],
+      expectedFailCount: Int,
+      expectedRawValues: Seq[ExecResult[?]]
+  ): Unit = {
 
     val res = evaluator.evaluate(Seq(target))
 

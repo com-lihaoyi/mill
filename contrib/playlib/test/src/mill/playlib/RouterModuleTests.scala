@@ -1,6 +1,5 @@
 package mill.playlib
 
-import mill.api.Result.Failure
 import mill.api.ExecResult
 import mill.define.{Cross, Discover}
 import mill.scalalib.ScalaModule

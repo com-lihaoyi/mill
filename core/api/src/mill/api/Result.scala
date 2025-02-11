@@ -18,7 +18,7 @@ sealed trait Result[+T] {
 }
 object Result {
   implicit def create[T](value: T): Result[T] = Success(value)
-  
+
   case class Success[+T](value: T) extends Result[T] {
 
     def map[V](f: T => V): Result[V] = Success(f(value))
