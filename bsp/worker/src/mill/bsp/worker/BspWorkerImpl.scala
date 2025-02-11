@@ -20,7 +20,7 @@ private class BspWorkerImpl() extends BspWorker {
       logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
-  ): Either[String, BspServerHandle] = {
+  ): Result[BspServerHandle] = {
 
     val millServer =
       new MillBuildServer(

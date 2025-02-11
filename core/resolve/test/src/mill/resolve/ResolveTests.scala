@@ -20,7 +20,7 @@ object ResolveTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  def isShortError(x: Either[String, ?], s: String) =
+  def isShortError(x: Result[?], s: String) =
     x.left.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
       // contain the entire Mill internal call stack at point of failure

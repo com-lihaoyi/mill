@@ -13,7 +13,7 @@ private trait BspWorker {
       logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
-  ): Either[String, BspServerHandle]
+  ): Result[BspServerHandle]
 }
 
 private object BspWorker {
@@ -25,7 +25,7 @@ private object BspWorker {
       home0: os.Path,
       log: Logger,
       workerLibs: Option[Seq[URL]] = None
-  ): Either[String, BspWorker] = boundary {
+  ): Result[BspWorker] = boundary {
     worker match {
       case Some(x) => Right(x)
       case None =>

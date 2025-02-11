@@ -1,5 +1,6 @@
 package mill.resolve
 
+import mill.api.Result
 import mill.define.{NamedTask, SelectMode}
 import utest.*
 
@@ -7,13 +8,13 @@ class Checker[T <: mill.define.BaseModule](module: T) {
 
   def apply(
       selectorString: String,
-      expected0: Either[String, Set[T => NamedTask[?]]],
+      expected0: Result[Set[T => NamedTask[?]]],
       expectedMetadata: Set[String] = Set()
   ) = checkSeq(Seq(selectorString), expected0, expectedMetadata)
 
   def checkSeq(
       selectorStrings: Seq[String],
-      expected0: Either[String, Set[T => NamedTask[?]]],
+      expected0: Result[Set[T => NamedTask[?]]],
       expectedMetadata: Set[String] = Set()
   ) = {
     val expected = expected0.map(_.map(_(module)))
@@ -27,15 +28,15 @@ class Checker[T <: mill.define.BaseModule](module: T) {
     val resolvedMetadata = resolveMetadata(selectorStrings)
     assert(
       expectedMetadata.isEmpty ||
-        resolvedMetadata.map(_.toSet) == Right(expectedMetadata)
+        resolvedMetadata.map(_.toSet) == Result.Success(expectedMetadata)
     )
     selectorStrings.mkString(" ")
   }
 
   def checkSeq0(
       selectorStrings: Seq[String],
-      check: Either[String, List[NamedTask[?]]] => Boolean,
-      checkMetadata: Either[String, List[String]] => Boolean = _ => true
+      check: Result[List[NamedTask[?]]] => Boolean,
+      checkMetadata: Result[List[String]] => Boolean = _ => true
   ) = {
 
     val resolvedTasks = resolveTasks(selectorStrings)

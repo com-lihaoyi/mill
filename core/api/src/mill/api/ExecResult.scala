@@ -122,12 +122,12 @@ object ExecResult {
     }
   }
 
-  def catchWrapException[T](t: => T): Either[String, T] = {
-    try Right(t)
+  def catchWrapException[T](t: => T): Result[T] = {
+    try mill.api.Result.Success(t)
     catch {
       case e: InvocationTargetException =>
-        makeResultException(e.getCause, new java.lang.Exception())
-      case e: Exception => makeResultException(e, new java.lang.Exception())
+        mill.api.Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
+      case e: Exception => mill.api.Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
     }
   }
 

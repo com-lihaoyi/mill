@@ -113,8 +113,8 @@ class UnitTester(
     mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
     } match {
-      case Left(err) => Left(ExecResult.Failure(err))
-      case Right(resolved) => apply(resolved)
+      case Result.Failure(err) => Left(ExecResult.Failure(err))
+      case Result.Success(resolved) => apply(resolved)
     }
   }
 

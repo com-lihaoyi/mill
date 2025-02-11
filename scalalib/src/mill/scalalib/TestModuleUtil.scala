@@ -131,7 +131,7 @@ private[scalalib] object TestModuleUtil {
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
+    val subprocessResult: Result[(String, Seq[TestResult])] = filteredClassLists match {
       // When no tests at all are discovered, run at least one test JVM
       // process to go through the test framework setup/teardown logic
       case Nil => runTestRunnerSubprocess(Nil, Task.dest)

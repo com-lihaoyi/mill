@@ -166,7 +166,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       worker: ScalaJSWorker,
       toolsClasspath: Seq[PathRef],
       runClasspath: Seq[PathRef],
-      mainClass: Either[String, String],
+      mainClass: Result[String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,

@@ -333,7 +333,7 @@ object MillMain {
   private[runner] def parseThreadCount(
       threadCountRaw: Option[String],
       availableCores: Int
-  ): Either[String, Int] = {
+  ): Result[Int] = {
     def err(detail: String) =
       s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail"
 

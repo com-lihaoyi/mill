@@ -68,7 +68,7 @@ final case class Evaluator private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): Either[String, List[Segments]] = {
+  ): Result[List[Segments]] = {
     Resolve.Segments.resolve(
       rootModule,
       scriptArgs,
@@ -83,7 +83,7 @@ final case class Evaluator private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): Either[String, List[NamedTask[?]]] = {
+  ): Result[List[NamedTask[?]]] = {
     Resolve.Tasks.resolve(
       rootModule,
       scriptArgs,
@@ -102,9 +102,8 @@ final case class Evaluator private[mill] (
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
-  ): Either[
-    String,
-    (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])
+  ): Result[
+    (Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])
   ] = {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(this) {
       Resolve.Tasks.resolve(
@@ -126,7 +125,7 @@ final case class Evaluator private[mill] (
   def evaluateNamed(
       targets: Seq[NamedTask[Any]],
       selectiveExecution: Boolean = false
-  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
+  ): (Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
@@ -184,8 +183,8 @@ final case class Evaluator private[mill] (
               }
             }
 
-            watched -> Right(evaluated.values.zip(nameAndJson))
-          case n => watched -> Left(s"$n tasks failed\n$errorStr")
+            watched -> Result.Success(evaluated.values.zip(nameAndJson))
+          case n => watched -> Result.Failure(s"$n tasks failed\n$errorStr")
         }
     }
   }

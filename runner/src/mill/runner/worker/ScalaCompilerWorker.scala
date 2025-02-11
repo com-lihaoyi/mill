@@ -93,7 +93,7 @@ private[runner] object ScalaCompilerWorker {
     bridge
 
   private def reflectEither(classpath: IterableOnce[os.Path])
-      : Either[String, ScalaCompilerWorkerApi] =
+      : Result[ScalaCompilerWorkerApi] =
     catchWrapException {
       reflectUnsafe(classpath)
     }
@@ -105,7 +105,7 @@ private[runner] object ScalaCompilerWorker {
       reflectUnsafe(classpath)
     }
 
-  def bootstrapWorker(): Either[String, ResolvedWorker] = {
+  def bootstrapWorker(): Result[ResolvedWorker] = {
     val classpath = bootstrapWorkerClasspath() match {
       case Result.Success(value) => Right(value)
       case Result.Failure(msg) => Left(msg)

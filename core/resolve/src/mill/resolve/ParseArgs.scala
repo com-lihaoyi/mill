@@ -1,5 +1,6 @@
 package mill.resolve
 
+import mill.api.Result
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse._
 import mill.define.{Segment, Segments, SelectMode}
@@ -20,7 +21,7 @@ private[mill] object ParseArgs {
   def apply(
       scriptArgs: Seq[String],
       selectMode: SelectMode
-  ): Either[String, Seq[TargetsWithParams]] = {
+  ): Result[Seq[TargetsWithParams]] = {
 
     val MaskPattern = ("""\\+\Q""" + TargetSeparator + """\E""").r
 
@@ -42,10 +43,10 @@ private[mill] object ParseArgs {
         )
     }
     val parts: Seq[Seq[String]] = separated(Seq() /* start value */, scriptArgs)
-    val parsed: Seq[Either[String, TargetsWithParams]] =
+    val parsed: Seq[Result[TargetsWithParams]] =
       parts.map(extractAndValidate(_, selectMode == SelectMode.Multi))
 
-    val res1: Either[String, Seq[TargetsWithParams]] = EitherOps.sequence(parsed)
+    val res1: Result[Seq[TargetsWithParams]] = Result.sequence(parsed)
 
     res1
   }
@@ -53,14 +54,14 @@ private[mill] object ParseArgs {
   private def extractAndValidate(
       scriptArgs: Seq[String],
       multiSelect: Boolean
-  ): Either[String, TargetsWithParams] = {
+  ): Result[TargetsWithParams] = {
     val (selectors, args) = extractSelsAndArgs(scriptArgs, multiSelect)
     for {
       _ <- validateSelectors(selectors)
-      expandedSelectors <- EitherOps
+      expandedSelectors <- Result
         .sequence(selectors.map(ExpandBraces.expandBraces))
         .map(_.flatten)
-      selectors <- EitherOps.sequence(expandedSelectors.map(extractSegments))
+      selectors <- Result.sequence(expandedSelectors.map(extractSegments))
     } yield (selectors.toList, args)
   }
 
@@ -80,17 +81,17 @@ private[mill] object ParseArgs {
     }
   }
 
-  private def validateSelectors(selectors: Seq[String]): Either[String, Unit] = {
+  private def validateSelectors(selectors: Seq[String]): Result[Unit] = {
     if (selectors.isEmpty || selectors.exists(_.isEmpty))
       Left("Target selector must not be empty. Try `mill resolve _` to see what's available.")
     else Right(())
   }
 
   def extractSegments(selectorString: String)
-      : Either[String, (Option[Segments], Option[Segments])] =
+      : Result[(Option[Segments], Option[Segments])] =
     parse(selectorString, selector(using _)) match {
-      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
-      case Parsed.Success(selector, _) => Right(selector)
+      case f: Parsed.Failure => Result.Failure(s"Parsing exception ${f.msg}")
+      case Parsed.Success(selector, _) => Result.Success(selector)
     }
 
   private def selector[_p: P]: P[(Option[Segments], Option[Segments])] = {

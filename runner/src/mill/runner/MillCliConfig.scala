@@ -203,7 +203,7 @@ options:
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
       "\nPlease see the documentation at https://mill-build.org for more details"
 
-  def parse(args: Array[String]): Either[String, MillCliConfig] = {
+  def parse(args: Array[String]): Result[MillCliConfig] = {
     parser.constructEither(
       args.toIndexedSeq,
       allowRepeats = true,

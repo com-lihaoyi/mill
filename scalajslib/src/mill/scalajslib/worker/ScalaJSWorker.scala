@@ -164,7 +164,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       toolsClasspath: Seq[mill.PathRef],
       runClasspath: Seq[mill.PathRef],
       dest: File,
-      main: Either[String, String],
+      main: Result[String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,

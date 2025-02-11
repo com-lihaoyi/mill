@@ -4,7 +4,7 @@ import utest._
 
 object MillMainTests extends TestSuite {
 
-  private def assertParseErr(result: Either[String, Int], msg: String): Unit = {
+  private def assertParseErr(result: Result[Int], msg: String): Unit = {
     assert(result.isLeft)
     assert(result.swap.toOption.get.contains(msg))
   }

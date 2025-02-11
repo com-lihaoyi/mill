@@ -450,7 +450,7 @@ object MillBuildBootstrap {
       evaluator: Evaluator,
       targetsAndParams: Seq[String],
       selectiveExecution: Boolean
-  ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
+  ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
       mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {

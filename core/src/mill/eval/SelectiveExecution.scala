@@ -1,6 +1,7 @@
 package mill.eval
 
 import mill.api.Val
+import mill.api.Result
 import mill.client.OutFiles
 import mill.define.{InputImpl, NamedTask, Task, SelectMode}
 import mill.exec.{CodeSigUtils, ExecutionCore, Plan, TaskResult}
@@ -124,7 +125,7 @@ private[mill] object SelectiveExecution {
   def computeChangedTasks(
       evaluator: Evaluator,
       tasks: Seq[String]
-  ): Either[String, ChangedTasks] = {
+  ): Result[ChangedTasks] = {
     evaluator.resolveTasks(
       tasks,
       SelectMode.Separated,
@@ -152,7 +153,7 @@ private[mill] object SelectiveExecution {
     }
   }
 
-  def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
+  def resolve0(evaluator: Evaluator, tasks: Seq[String]): Result[Array[String]] = {
     for {
       resolved <- evaluator.resolveTasks(tasks, SelectMode.Separated)
       changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)
@@ -163,13 +164,13 @@ private[mill] object SelectiveExecution {
     }
   }
 
-  def resolveChanged(evaluator: Evaluator, tasks: Seq[String]): Either[String, Seq[String]] = {
+  def resolveChanged(evaluator: Evaluator, tasks: Seq[String]): Result[Seq[String]] = {
     for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       changedTasks.changedRootTasks.map(_.ctx.segments.render).toSeq.sorted
     }
   }
 
-  def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Either[String, ujson.Value] = {
+  def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Result[ujson.Value] = {
     for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[?]]
       val plan = Plan.plan(Seq.from(changedTasks.downstreamTasks))

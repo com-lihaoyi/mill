@@ -43,7 +43,7 @@ private[mill] class BspContext(
       streams: SystemStreams,
       logStream: Option[PrintStream],
       canReload: Boolean
-  ): Either[String, BspServerHandle] = {
+  ): Result[BspServerHandle] = {
     val log: Logger = new Logger {
       override def colored: Boolean = false
       override def systemStreams: SystemStreams = new SystemStreams(
