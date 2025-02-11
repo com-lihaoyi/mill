@@ -267,7 +267,7 @@ private class MillBuildServer(
       }.toSeq
 
       val ids = groupList(tasksEvaluators)(_._2)(_._1)
-        .flatMap { case (ev, ts) => ev.evalOrThrow()(ts) }
+        .flatMap { case (ev, ts) => ev.evaluateValues(ts) }
         .flatten
 
       new InverseSourcesResult(ids.asJava)
@@ -816,7 +816,7 @@ private class MillBuildServer(
       },
       streams = logger0.systemStreams
     ) {
-      evaluator.evaluate(
+      evaluator.execution.executeTasks(
         goals,
         reporter,
         testReporter,

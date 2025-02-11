@@ -8,7 +8,7 @@ import utest.*
 class Checker[T <: mill.testkit.TestBaseModule](module: T, threadCount: Option[Int] = Some(1)) {
   // Make sure data is persisted even if we re-create the evaluator each time
 
-  val evaluator = UnitTester(module, null, threads = threadCount).evaluator
+  val execution = UnitTester(module, null, threads = threadCount).execution
 
   def apply(
       target: Task[?],
@@ -23,7 +23,7 @@ class Checker[T <: mill.testkit.TestBaseModule](module: T, threadCount: Option[I
       secondRunNoOp: Boolean = true
   ) = {
 
-    val evaled = evaluator.evaluate(Seq(target))
+    val evaled = execution.executeTasks(Seq(target))
 
     val (matchingReturnedEvaled, extra) =
       evaled.evaluated.partition(expEvaled.contains)
@@ -36,7 +36,7 @@ class Checker[T <: mill.testkit.TestBaseModule](module: T, threadCount: Option[I
 
     // Second time the value is already cached, so no evaluation needed
     if (secondRunNoOp) {
-      val evaled2 = evaluator.evaluate(Seq(target))
+      val evaled2 = execution.executeTasks(Seq(target))
       val expectedSecondRunEvaluated = Seq()
       assert(
         evaled2.values.map(_.value) == evaled.values.map(_.value),

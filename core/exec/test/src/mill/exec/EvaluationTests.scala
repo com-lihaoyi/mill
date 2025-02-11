@@ -162,14 +162,14 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         import separateGroups._
         val checker = new Checker(separateGroups)
-        val evaled1 = checker.evaluator.evaluate(Seq(right, left))
+        val evaled1 = checker.execution.executeTasks(Seq(right, left))
         val filtered1 = evaled1.evaluated.filter(_.isInstanceOf[TargetImpl[?]])
         assert(filtered1.toSeq.sortBy(_.toString) == Seq(change, left, right).sortBy(_.toString))
-        val evaled2 = checker.evaluator.evaluate(Seq(right, left))
+        val evaled2 = checker.execution.executeTasks(Seq(right, left))
         val filtered2 = evaled2.evaluated.filter(_.isInstanceOf[TargetImpl[?]])
         assert(filtered2 == Seq())
         change.counter += 1
-        val evaled3 = checker.evaluator.evaluate(Seq(right, left))
+        val evaled3 = checker.execution.executeTasks(Seq(right, left))
         val filtered3 = evaled3.evaluated.filter(_.isInstanceOf[TargetImpl[?]])
         assert(filtered3 == Seq(change, right))
 

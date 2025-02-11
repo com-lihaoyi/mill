@@ -14,18 +14,34 @@ import scala.concurrent._
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
-private[mill] trait ExecutionCore extends GroupExecution {
+private[mill] case class Execution(
+    val baseLogger: ColorLogger,
+    val chromeProfileLogger: ChromeProfileLogger,
+    val profileLogger: ProfileLogger,
+    val home: os.Path,
+    val workspace: os.Path,
+    val outPath: os.Path,
+    val externalOutPath: os.Path,
+    val rootModule: BaseModule,
+    val classLoaderSigHash: Int,
+    val classLoaderIdentityHash: Int,
+    val workerCache: mutable.Map[Segments, (Int, Val)],
+    val env: Map[String, String],
+    val failFast: Boolean,
+    val threadCount: Option[Int],
+    val methodCodeHashSignatures: Map[String, Int],
+    val systemExit: Int => Nothing,
+    val exclusiveSystemStreams: SystemStreams
+) extends GroupExecution with AutoCloseable {
 
-  def baseLogger: ColorLogger
-  protected[exec] def chromeProfileLogger: ChromeProfileLogger
-  protected[exec] def profileLogger: ProfileLogger
+  def withBaseLogger(newBaseLogger: ColorLogger) = this.copy(baseLogger = newBaseLogger)
 
   /**
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
    * @param testReporter Listener for test events like start, finish with success/error
    */
-  def evaluate(
+  def executeTasks(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
@@ -71,7 +87,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
 
     val threadNumberer = new ThreadNumberer()
     val plan = Plan.plan(goals)
-    val interGroupDeps = ExecutionCore.findInterGroupDeps(plan.sortedGroups)
+    val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
     val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
@@ -157,7 +173,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
                   noPrefix = exclusive
                 )
 
-                val res = evaluateGroupCached(
+                val res = executeGroupCached(
                   terminal = terminal,
                   group = plan.sortedGroups.lookupKey(terminal).toSeq,
                   results = upstreamResults,
@@ -242,7 +258,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
 
     val results: Map[Task[?], TaskResult[(Val, Int)]] = results0.toMap
 
-    ExecutionCore.Results(
+    Execution.Results(
       goals.toIndexedSeq.map(results(_).map(_._1).result),
       // result of flatMap may contain non-distinct entries,
       // so we manually clean it up before converting to a `Strict.Agg`
@@ -254,9 +270,14 @@ private[mill] trait ExecutionCore extends GroupExecution {
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
+
+  def close(): Unit = {
+    chromeProfileLogger.close()
+    profileLogger.close()
+  }
 }
 
-private[mill] object ExecutionCore {
+private[mill] object Execution {
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
       : Map[Task[?], Seq[Task[?]]] = {
     sortedGroups
