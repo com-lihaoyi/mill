@@ -17,7 +17,7 @@ import scala.reflect.NameTransformer.decode
 
 object MainModule {
 
-  def cleanupScaladoc(v: String): Array[String] = {
+  private def cleanupScaladoc(v: String): Array[String] = {
     v.linesIterator.map(
       _.dropWhile(_.isWhitespace)
         .stripPrefix("/**")
@@ -34,26 +34,6 @@ object MainModule {
       .reverse
       .dropWhile(_.isEmpty)
       .reverse
-  }
-  def resolveTasks[T](
-      evaluator: Evaluator,
-      targets: Seq[String],
-      selectMode: SelectMode,
-      resolveToModuleTasks: Boolean = false
-  )(f: List[NamedTask[Any]] => T): Result[T] = {
-    evaluator.resolveTasks(
-      targets,
-      selectMode,
-      resolveToModuleTasks = resolveToModuleTasks
-    ).map(f)
-  }
-
-  def resolveTasks[T](
-      evaluator: Evaluator,
-      targets: Seq[String],
-      selectMode: SelectMode
-  )(f: List[NamedTask[Any]] => T): Result[T] = {
-    evaluator.resolveTasks(targets, selectMode).map(f)
   }
 
   private def show0(
@@ -159,9 +139,7 @@ trait MainModule extends BaseModule {
       @mainargs.arg(positional = true) dest: String
   ): Command[List[String]] =
     Task.Command(exclusive = true) {
-      val resolved = evaluator.resolveTasks(List(src, dest), SelectMode.Multi)
-
-      resolved.flatMap {
+      evaluator.resolveTasks(List(src, dest), SelectMode.Multi).flatMap {
         case Seq(src1, dest1) =>
           val queue = collection.mutable.Queue[List[Task[?]]](List(src1))
           var found = Option.empty[List[Task[?]]]
@@ -180,15 +158,14 @@ trait MainModule extends BaseModule {
             }
           }
           found match {
-            case None =>
-              Result.Failure(s"No path found between $src and $dest")
+            case None => Result.Failure(s"No path found between $src and $dest")
             case Some(list) =>
-              val labels = list
-                .collect { case n: NamedTask[_] => n.ctx.segments.render }
-
+              val labels = list.collect { case n: NamedTask[_] => n.ctx.segments.render }
               labels.foreach(println)
               Result.Success(labels)
           }
+
+        case _ => ???
       }
     }
 
@@ -215,7 +192,7 @@ trait MainModule extends BaseModule {
       def renderFileName(t: NamedTask[?]) = {
         // handle both Windows or Unix separators
         val fullFileName = t.ctx.fileName.replaceAll(raw"\\", "/")
-        val basePath = WorkspaceRoot.workspaceRoot.toString().replaceAll(raw"\\", "/") + "/"
+        val basePath = WorkspaceRoot.workspaceRoot.toString.replaceAll(raw"\\", "/") + "/"
         val name =
           if (fullFileName.startsWith(basePath)) {
             fullFileName.drop(basePath.length)
@@ -401,7 +378,7 @@ trait MainModule extends BaseModule {
         }
       }
 
-      MainModule.resolveTasks(evaluator, tasks, SelectMode.Multi, resolveToModuleTasks = true) {
+      evaluator.resolveTasks(tasks, SelectMode.Multi, resolveToModuleTasks = true).map {
         tasks =>
           val output = (for {
             task <- tasks
