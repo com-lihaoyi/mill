@@ -95,7 +95,7 @@ object MillMain {
   }
 
   lazy val maybeScalaCompilerWorker = ScalaCompilerWorker.bootstrapWorker()
-  
+
   def main0(
       args: Array[String],
       stateCache: RunnerState,
@@ -201,7 +201,6 @@ object MillMain {
                   userSpecifiedProperties0 ++ config.extraSystemProperties
 
                 val threadCount = Some(maybeThreadCount.toOption.get)
-
 
                 if (maybeScalaCompilerWorker.isLeft) {
                   val err = maybeScalaCompilerWorker.left.get

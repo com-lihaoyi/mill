@@ -92,7 +92,8 @@ private[runner] object ScalaCompilerWorker {
       .asInstanceOf[ScalaCompilerWorkerApi]
     bridge
 
-  private def reflectEither(classpath: IterableOnce[os.Path]): Either[String, ScalaCompilerWorkerApi] =
+  private def reflectEither(classpath: IterableOnce[os.Path])
+      : Either[String, ScalaCompilerWorkerApi] =
     catchWrapException {
       reflectUnsafe(classpath)
     }
