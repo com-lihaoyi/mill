@@ -51,17 +51,11 @@ object CheckstyleXsltModuleTest extends TestSuite {
   def testModule(module: TestBaseModule & CheckstyleXsltModule, modulePath: os.Path): Boolean = {
     val eval = UnitTester(module, modulePath)
 
-    eval(module.checkstyle(CheckstyleArgs(check = false, sources = Leftover()))).fold(
-      {
-        case api.ExecResult.Exception(cause, _) => throw cause
-        case failure => throw failure
-      },
-      _ => {
+    eval(module.checkstyle(CheckstyleArgs(check = false, sources = Leftover()))).get
+    
 
-        val Right(reports) = eval(module.checkstyleXsltReports): @unchecked
+    val Right(reports) = eval(module.checkstyleXsltReports): @unchecked
 
-        reports.value.forall(report => os.exists(report.output.path))
-      }
-    )
+    reports.value.forall(report => os.exists(report.output.path))
   }
 }

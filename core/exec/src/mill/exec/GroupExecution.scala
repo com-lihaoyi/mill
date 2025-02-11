@@ -267,7 +267,7 @@ private[mill] trait GroupExecution {
                   case Result.Failure(err) => ExecResult.Failure(err)
                 }
               } catch {
-                case f: ExecResult.Failing[Val] @unchecked => f
+                case ex: Result.Exception => ExecResult.Failure(ex.error)
                 case NonFatal(e) =>
                   ExecResult.Exception(
                     e,

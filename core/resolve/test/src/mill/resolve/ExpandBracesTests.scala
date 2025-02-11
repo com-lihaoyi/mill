@@ -8,7 +8,7 @@ object ExpandBracesTests extends TestSuite {
   val tests = Tests {
     test("expandBraces") {
       def check(input: String, expectedExpansion: List[String]) = {
-        val Right(expanded) = ExpandBraces.expandBraces(input): @unchecked
+        val Result.Success(expanded) = ExpandBraces.expandBraces(input): @unchecked
 
         assert(expanded == expectedExpansion)
       }

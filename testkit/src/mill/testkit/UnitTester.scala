@@ -157,7 +157,7 @@ class UnitTester(
     }
   }
 
-  def fail(target: Target[?], expectedFailCount: Int, expectedRawValues: Seq[Result[?]]): Unit = {
+  def fail(target: Target[?], expectedFailCount: Int, expectedRawValues: Seq[ExecResult[?]]): Unit = {
 
     val res = evaluator.evaluate(Seq(target))
 
@@ -166,10 +166,8 @@ class UnitTester(
       case x => x.map(_.value)
     }
 
-    assert(
-      cleaned == expectedRawValues,
-      res.failing.size == expectedFailCount
-    )
+    assert(cleaned == expectedRawValues)
+    assert(res.failing.size == expectedFailCount)
 
   }
 

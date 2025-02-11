@@ -20,10 +20,9 @@ class Checker[T <: mill.define.BaseModule](module: T) {
     val expected = expected0.map(_.map(_(module)))
 
     val resolvedTasks = resolveTasks(selectorStrings)
-    assert(
-      resolvedTasks.map(_.map(_.toString).toSet[String]) ==
-        expected.map(_.map(_.toString))
-    )
+    val resolvedStrings = resolvedTasks.map(_.map(_.toString).toSet[String])
+    val expectedStrings = expected.map(_.map(_.toString))
+    assert(resolvedStrings == expectedStrings)
 
     val resolvedMetadata = resolveMetadata(selectorStrings)
     assert(

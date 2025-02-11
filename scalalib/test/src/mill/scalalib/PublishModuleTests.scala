@@ -268,9 +268,9 @@ object PublishModuleTests extends TestSuite {
       }
 
       val compileCp =
-        eval(compileAndRuntimeStuff.main.compileClasspath).toTry.get.value.toSeq.map(_.path)
+        eval(compileAndRuntimeStuff.main.compileClasspath).right.get.value.toSeq.map(_.path)
       val runtimeCp =
-        eval(compileAndRuntimeStuff.main.runClasspath).toTry.get.value.toSeq.map(_.path)
+        eval(compileAndRuntimeStuff.main.runClasspath).right.get.value.toSeq.map(_.path)
 
       compileClassPathCheck(compileCp)
       runtimeClassPathCheck(runtimeCp)
@@ -278,12 +278,12 @@ object PublishModuleTests extends TestSuite {
       val ivy2Repo = eval.evaluator.workspace / "ivy2Local"
       val m2Repo = eval.evaluator.workspace / "m2Local"
 
-      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).toTry.get
-      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).toTry.get
-      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).toTry.get
-      eval(compileAndRuntimeStuff.main.publishM2Local(m2Repo.toString)).toTry.get
-      eval(compileAndRuntimeStuff.transitive.publishM2Local(m2Repo.toString)).toTry.get
-      eval(compileAndRuntimeStuff.runtimeTransitive.publishM2Local(m2Repo.toString)).toTry.get
+      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.main.publishM2Local(m2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.transitive.publishM2Local(m2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishM2Local(m2Repo.toString)).right.get
 
       def localRepoCp(localRepo: coursierapi.Repository, moduleName: String, config: String) = {
         val dep = coursierapi.Dependency.of("com.lihaoyi.pubmodtests", moduleName, "0.1.0-SNAPSHOT")

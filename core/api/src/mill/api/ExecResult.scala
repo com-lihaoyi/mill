@@ -15,7 +15,8 @@ sealed trait ExecResult[+T] {
   def asFailing: Option[ExecResult.Failing[T]] = None
   def get: T = (this: @unchecked) match {
     case ExecResult.Success(v) => v
-    case f: ExecResult.Failing[?] => throw f
+    case v: ExecResult.Failing[?] => v.throwException
+
     // no cases for Skipped or Aborted?
   }
 }
@@ -60,11 +61,14 @@ object ExecResult {
    * A failed task execution.
    * @tparam T The result type of the computed task.
    */
-  sealed trait Failing[+T] extends java.lang.Exception with ExecResult[T] {
+  sealed trait Failing[+T] extends ExecResult[T] {
     def map[V](f: T => V): Failing[V]
     def flatMap[V](f: T => ExecResult[V]): Failing[V]
     override def asFailing: Option[ExecResult.Failing[T]] = Some(this)
-
+    def throwException: Nothing = this match {
+      case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg)
+      case f: ExecResult.Exception => throw f.throwable
+    }
   }
 
   /**

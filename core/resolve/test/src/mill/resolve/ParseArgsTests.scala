@@ -198,7 +198,7 @@ object ParseArgsTests extends TestSuite {
       )
       test("multiSelectorsBraceExpansionWithoutAll") {
         val res = ParseArgs(Seq("{core,application}.compile"), SelectMode.Separated)
-        val expected = Right(
+        val expected = Result.Success(
           List(
             (
               List(

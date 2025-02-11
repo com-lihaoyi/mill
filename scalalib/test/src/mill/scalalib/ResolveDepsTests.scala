@@ -142,11 +142,11 @@ object ResolveDepsTests extends TestSuite {
     test("scopes") {
       UnitTester(TestCase, null).scoped { eval =>
         val compileCp = eval(TestCase.scope.compileClasspath)
-          .toTry.get.value.toSeq.map(_.path)
+          .right.get.value.toSeq.map(_.path)
         val runtimeCp = eval(TestCase.scope.upstreamAssemblyClasspath)
-          .toTry.get.value.toSeq.map(_.path)
+          .right.get.value.toSeq.map(_.path)
         val runCp = eval(TestCase.scope.runClasspath)
-          .toTry.get.value.toSeq.map(_.path)
+          .right.get.value.toSeq.map(_.path)
 
         val runtimeOnlyJars = Seq(
           "lifecycle-common-2.3.0.jar",

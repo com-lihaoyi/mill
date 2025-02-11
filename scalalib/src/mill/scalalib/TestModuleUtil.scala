@@ -84,7 +84,7 @@ private[scalalib] object TestModuleUtil {
 
     val globFilter = TestRunnerUtils.globFilter(selectors)
 
-    def doesNotMatchError = Result.Failure(
+    def doesNotMatchError = new Result.Exception(
       s"Test selector does not match any test: ${selectors.mkString(" ")}" +
         "\nRun discoveredTestClasses to see available tests"
     )
