@@ -101,15 +101,6 @@ public class ClientUtil {
         + (in.read() & 0xFF);
   }
 
-  public static String sha1Hash(String path) throws NoSuchAlgorithmException {
-    MessageDigest md = MessageDigest.getInstance("SHA1");
-    md.reset();
-    byte[] pathBytes = path.getBytes(StandardCharsets.UTF_8);
-    md.update(pathBytes);
-    byte[] digest = md.digest();
-    return Util.hexArray(digest);
-  }
-
   /**
    * Reads a file, ignoring empty or comment lines, interpolating env variables.
    *
