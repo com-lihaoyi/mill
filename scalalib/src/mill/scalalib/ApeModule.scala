@@ -6,7 +6,7 @@ import mill.define.{Target => T, _}
 trait ApeModule extends mill.Module with AssemblyModule {
   def cosmoccVersion: T[String] = Task { "" }
 
-  def cosmoccZip: T[PathRef] = Task {
+  def cosmoccZip: T[PathRef] = Task(persistent = true) {
     val version = if (cosmoccVersion().isEmpty) "" else s"-${cosmoccVersion()}"
     os.write(
       Task.dest / "cosmocc.zip",
