@@ -293,7 +293,7 @@ object Target extends TaskBase {
       inline rw: RW[T],
       inline ctx: mill.define.Ctx
   ): Target[T] =
-    ${ Internal.targetResultImpl[T]('{Result.Success(t)})('rw, 'ctx, 'this) }
+    ${ Internal.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, 'this) }
 
   implicit inline def apply[T](inline t: Result[T])(implicit
       inline rw: RW[T],
@@ -372,26 +372,6 @@ object Target extends TaskBase {
               $rw,
               $taskIsPrivate
             )
-        }
-      )
-    }
-
-    def targetTaskImpl[T: Type](using
-        Quotes
-    )(t: Expr[Task[T]])(
-        rw: Expr[RW[T]],
-        ctx: Expr[mill.define.Ctx]
-    ): Expr[Target[T]] = {
-      val taskIsPrivate = isPrivateTargetOption()
-
-      mill.define.internal.Cacher.impl0[Target[T]](
-        '{
-          new TargetImpl[T](
-            $t,
-            $ctx,
-            $rw,
-            $taskIsPrivate
-          )
         }
       )
     }
@@ -574,24 +554,6 @@ object Target extends TaskBase {
       )
     }
 
-    def commandFromTask[T: Type](using
-        Quotes
-    )(t: Expr[Task[T]])(
-        ctx: Expr[mill.define.Ctx],
-        w: Expr[W[T]]
-    ): Expr[Command[T]] = {
-      val taskIsPrivate = isPrivateTargetOption()
-
-      '{
-        new Command[T](
-          $t,
-          $ctx,
-          $w,
-          $taskIsPrivate
-        )
-      }
-    }
-
     def commandImpl[T: Type](using
         Quotes
     )(t: Expr[Result[T]])(
@@ -661,29 +623,6 @@ object Target extends TaskBase {
           new Worker[T](
             $lhs,
             $ctx,
-            $taskIsPrivate
-          )
-        }
-      )
-    }
-
-    def persistentImpl[T: Type](using
-        Quotes
-    )(t: Expr[Result[T]])(
-        rw: Expr[RW[T]],
-        ctx: Expr[mill.define.Ctx],
-        caller: Expr[TraverseCtxHolder]
-    ): Expr[PersistentImpl[T]] = {
-      val taskIsPrivate = isPrivateTargetOption()
-
-      val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
-
-      mill.define.internal.Cacher.impl0[PersistentImpl[T]](
-        '{
-          new PersistentImpl[T](
-            $lhs,
-            $ctx,
-            $rw,
             $taskIsPrivate
           )
         }
