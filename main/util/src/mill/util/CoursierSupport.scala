@@ -9,7 +9,7 @@ import coursier.parse.RepositoryParser
 import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
 import coursier.util.{Artifact, EitherT, Monad, Task}
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
-import mill.api.Loose.Agg
+
 import mill.api.{Ctx, PathRef, Result}
 
 import java.util.concurrent.ConcurrentHashMap
@@ -139,7 +139,7 @@ trait CoursierSupport {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
-  ): Result[Agg[PathRef]] = {
+  ): Result[Seq[PathRef]] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -174,11 +174,9 @@ trait CoursierSupport {
           )
         case Right(res) =>
           Result.Success(
-            Agg.from(
-              res.files
-                .map(os.Path(_))
-                .map(PathRef(_, quick = true))
-            )
+            res.files
+              .map(os.Path(_))
+              .map(PathRef(_, quick = true))
           )
       }
     }

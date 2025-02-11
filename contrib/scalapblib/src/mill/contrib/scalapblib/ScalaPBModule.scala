@@ -2,7 +2,7 @@ package mill
 package contrib.scalapblib
 
 import coursier.core.Version
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 
@@ -16,9 +16,9 @@ trait ScalaPBModule extends ScalaModule {
 
   override def ivyDeps = Task {
     super.ivyDeps() ++
-      Agg(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
-      (if (!scalaPBGrpc()) Agg()
-       else Agg(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
+      Seq(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
+      (if (!scalaPBGrpc()) Seq()
+       else Seq(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
   }
 
   def scalaPBVersion: T[String]
@@ -75,7 +75,7 @@ trait ScalaPBModule extends ScalaModule {
     ).mkString(",")
   }
 
-  def scalaPBClasspath: T[Loose.Agg[PathRef]] = Task {
+  def scalaPBClasspath: T[Seq[PathRef]] = Task {
     resolveDependencies(
       repositoriesTask(),
       Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
@@ -90,7 +90,7 @@ trait ScalaPBModule extends ScalaModule {
     case false => Task.Anon { Seq.empty[PathRef] }
   }
 
-  def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
+  def scalaPBProtoClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),

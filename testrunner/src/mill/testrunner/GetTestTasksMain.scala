@@ -1,6 +1,5 @@
 package mill.testrunner
 
-import mill.api.Loose.Agg
 import mill.api.internal
 import os.Path
 
@@ -33,7 +32,7 @@ import os.Path
       TestRunnerUtils
         .getTestTasks0(
           Framework.framework(framework),
-          Agg.from(testCp),
+          Seq.from(testCp),
           args,
           cls => globFilter(cls.getName),
           classLoader

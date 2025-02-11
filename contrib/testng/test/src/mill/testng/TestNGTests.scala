@@ -25,7 +25,7 @@ object TestNGTests extends TestSuite {
         Task { super.runClasspath() ++ testngClasspath() }
       override def ivyDeps = Task {
         super.ivyDeps() ++
-          Agg(
+          Seq(
             ivy"org.testng:testng:6.11",
             ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
           )
@@ -36,13 +36,13 @@ object TestNGTests extends TestSuite {
     }
 
     object testng extends JavaTests with TestModule.TestNg {
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"org.testng:testng:7.10.2"
       )
     }
 
     object testngGrouping extends JavaTests with TestModule.TestNg {
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"org.testng:testng:7.10.2"
       )
       def testForkGrouping = discoveredTestClasses().grouped(1).toSeq

@@ -534,7 +534,7 @@ def make = Task {
   os.copy(cSources().path, Task.dest / "src" / "main" / "c", createFolders = true)
 
   val Seq(sourceJar) = resolveDeps(
-    deps = Task.Anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
+    deps = Task.Anon(Seq(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
     sources = true
   )().toSeq
 

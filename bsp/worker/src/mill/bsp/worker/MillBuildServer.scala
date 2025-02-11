@@ -3,15 +3,8 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
-import mill.api.Loose.Agg
-import mill.api.{
-  ColorLogger,
-  CompileProblemReporter,
-  DummyTestReporter,
-  Result,
-  Strict,
-  TestReporter
-}
+
+import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
@@ -479,7 +472,7 @@ private class MillBuildServer(
       val runTask = module.run(Task.Anon(Args(args)))
       val runResult = evaluate(
         ev,
-        Strict.Agg(runTask),
+        Seq(runTask),
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client),
         logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
       )
@@ -544,7 +537,7 @@ private class MillBuildServer(
 
               val results = evaluate(
                 ev,
-                Strict.Agg(testTask),
+                Seq(testTask),
                 Utils.getBspLoggedReporterPool(
                   testParams.getOriginId,
                   state.bspIdByModule,
@@ -605,7 +598,7 @@ private class MillBuildServer(
             val cleanTask = mainModule.clean(ev, Seq(compileTargetName)*)
             val cleanResult = evaluate(
               ev,
-              Strict.Agg(cleanTask),
+              Seq(cleanTask),
               logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
             )
             if (cleanResult.failing.size > 0) (
@@ -807,7 +800,7 @@ private class MillBuildServer(
 
   private def evaluate(
       evaluator: Evaluator,
-      goals: Agg[Task[?]],
+      goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = null

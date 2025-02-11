@@ -1,6 +1,6 @@
 package mill.runner.worker
 
-import mill.{Agg, PathRef}
+import mill.PathRef
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.api.Result
 
@@ -61,7 +61,7 @@ private[runner] object ScalaCompilerWorker {
     }
   }
 
-  private def bootstrapWorkerClasspath(): Result[Agg[PathRef]] = {
+  private def bootstrapWorkerClasspath(): Result[Seq[PathRef]] = {
     val repositories = Result.create {
       import scala.concurrent.ExecutionContext.Implicits.global
       import scala.concurrent.Await

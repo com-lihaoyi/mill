@@ -12,7 +12,7 @@ object ScalaVersionsRangesTests extends TestSuite {
     trait CoreCrossModule extends CrossScalaModule
         with CrossScalaVersionRanges {
       object test extends ScalaTests with TestModule.Utest {
-        def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+        def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
       }
     }
 

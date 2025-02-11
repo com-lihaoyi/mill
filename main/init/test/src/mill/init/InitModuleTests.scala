@@ -1,7 +1,6 @@
 package mill.init
 
 import mill.api.{Result, Val}
-import mill.Agg
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -26,7 +25,7 @@ object InitModuleTests extends TestSuite {
         errStream = new PrintStream(errStream, true)
       )
       test("no args") {
-        val results = evaluator.evaluator.evaluate(Agg(initmodule.init(None)))
+        val results = evaluator.evaluator.evaluate(Seq(initmodule.init(None)))
 
         assert(results.failing.size == 0)
 
@@ -41,7 +40,7 @@ object InitModuleTests extends TestSuite {
       }
       test("non existing example") {
         val nonExistingModuleId = "nonExistingExampleId"
-        val results = evaluator.evaluator.evaluate(Agg(initmodule.init(Some(nonExistingModuleId))))
+        val results = evaluator.evaluator.evaluate(Seq(initmodule.init(Some(nonExistingModuleId))))
         assert(results.failing.size == 1)
         assert(errStream.toString.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
       }

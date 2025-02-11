@@ -5,7 +5,7 @@ import mill.main.TokenReaders._
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule
 import mill.testkit.{TestBaseModule, UnitTester}
-import mill.{Agg, T, Task, api}
+import mill.{T, Task, api}
 import utest.{TestSuite, Tests, assert, test}
 
 import scala.xml.{Node, XML}
@@ -23,7 +23,7 @@ object KoverModuleTests extends TestSuite {
         super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
 
       }
-      override def ivyDeps = super.ivyDeps() ++ Agg(
+      override def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
       )
     }

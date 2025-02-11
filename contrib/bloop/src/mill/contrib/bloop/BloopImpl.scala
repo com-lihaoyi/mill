@@ -191,7 +191,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
     val classpath = Task.Anon {
       val transitiveCompileClasspath = Task.traverse(module.transitiveModuleCompileModuleDeps)(m =>
-        Task.Anon { m.localCompileClasspath().map(_.path) ++ Agg(classes(m)) }
+        Task.Anon { m.localCompileClasspath().map(_.path) ++ Seq(classes(m)) }
       )().flatten
 
       module.resolvedIvyDeps().map(_.path) ++

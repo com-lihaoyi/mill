@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 7a8ea3a31a5..5b77aa31591 100644
+index 019adfc8cb9..c9df11158ef 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,16 +1,16 @@
@@ -65,7 +65,25 @@ index 7a8ea3a31a5..5b77aa31591 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -535,7 +535,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -520,8 +520,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+     val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
+     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
+     super.scalacPluginIvyDeps() ++
+-      Agg.when(binaryVersion != "3")(Deps.acyclic) ++
+-      Agg.when(hasModuleDefs)(Deps.millModuledefsPlugin)
++      Option.when(binaryVersion != "3")(Deps.acyclic) ++
++      Option.when(hasModuleDefs)(Deps.millModuledefsPlugin)
+   }
+ 
+   def mandatoryIvyDeps = T {
+@@ -529,13 +529,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+     val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
+     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
+     super.mandatoryIvyDeps() ++
+-      Agg.when(hasModuleDefs)(Deps.millModuledefs)
++      Option.when(hasModuleDefs)(Deps.millModuledefs)
+   }
+ 
    /** Default tests module. */
    lazy val test: MillScalaTests = new MillScalaTests {}
    trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
@@ -94,7 +112,7 @@ index 7a8ea3a31a5..5b77aa31591 100644
  
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/contrib/package.mill b/contrib/package.mill
-index 421b2955955..7277bba90ff 100644
+index 421b2955955..30c453234b9 100644
 --- a/contrib/package.mill
 +++ b/contrib/package.mill
 @@ -3,13 +3,12 @@ package build.contrib
@@ -141,6 +159,15 @@ index 421b2955955..7277bba90ff 100644
        }
  
        def scalaVersion = build.Deps.play(playBinary).scalaVersion
+@@ -139,7 +138,7 @@ object `package` extends RootModule {
+           build.Deps.scalacScoverage2Reporter,
+           build.Deps.scalacScoverage2Domain,
+           build.Deps.scalacScoverage2Serializer
+-        ) ++ Agg.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
++        ) ++ Option.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
+       }
+       def mandatoryIvyDeps = Agg.empty[Dep]
+     }
 diff --git a/core/codesig/package.mill b/core/codesig/package.mill
 index e49f218f4be..9d03aa073f3 100644
 --- a/core/codesig/package.mill

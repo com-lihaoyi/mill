@@ -97,17 +97,17 @@ abstract class MillBuildRootModule()(implicit
   }
 
   override def ivyDeps = Task {
-    Agg.from(
+    Seq.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
     ) ++
-      Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+      Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
 
   override def runIvyDeps = Task {
     val imports = cliImports()
     val ivyImports = imports.collect { case s"ivy:$rest" => rest }
-    Agg.from(
+    Seq.from(
       MillIvy.processMillIvyDepSignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     )
@@ -261,11 +261,11 @@ abstract class MillBuildRootModule()(implicit
     super.bindDependency.apply().apply(dep).exclude(resolveDepsExclusions()*)
   }
 
-  override def unmanagedClasspath: T[Agg[PathRef]] = Task {
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
     enclosingClasspath()
   }
 
-  override def scalacPluginIvyDeps: T[Agg[Dep]] = Agg(
+  override def scalacPluginIvyDeps: T[Seq[Dep]] = Seq(
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
   )
 
@@ -274,15 +274,15 @@ abstract class MillBuildRootModule()(implicit
       Seq("-deprecation")
   }
 
-  override def scalacPluginClasspath: T[Agg[PathRef]] =
+  override def scalacPluginClasspath: T[Seq[PathRef]] =
     super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
 
-  override protected def semanticDbPluginClasspath: T[Agg[PathRef]] =
+  override protected def semanticDbPluginClasspath: T[Seq[PathRef]] =
     super.semanticDbPluginClasspath() ++ lineNumberPluginClasspath()
 
-  def lineNumberPluginClasspath: T[Agg[PathRef]] = Task {
+  def lineNumberPluginClasspath: T[Seq[PathRef]] = Task {
     // millProjectModule("mill-runner-linenumbers", repositoriesTask())
-    Agg.empty
+    Seq.empty
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -315,7 +315,7 @@ abstract class MillBuildRootModule()(implicit
       .worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
-        sources = Agg.from(allSourceFiles().map(_.path)),
+        sources = Seq.from(allSourceFiles().map(_.path)),
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         scalaVersion = scalaVersion(),

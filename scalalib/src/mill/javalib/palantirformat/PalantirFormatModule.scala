@@ -1,7 +1,7 @@
 package mill
 package javalib.palantirformat
 
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.main.Tasks
 import mill.scalalib.JavaModule
@@ -74,7 +74,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       sources: IterableOnce[PathRef],
       check: Boolean,
       options: PathRef,
-      classPath: Loose.Agg[PathRef],
+      classPath: Seq[PathRef],
       jvmArgs: Seq[String]
   )(implicit ctx: api.Ctx): Unit = {
 

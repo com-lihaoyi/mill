@@ -4,15 +4,15 @@ import mill.util.Jvm
 import mill.api.Ctx.Dest
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.api.Strict.Agg
+
 import mill.util.JarManifest
-import mill.api.Loose
+
 import utest.*
 import mill.*
 import mill.define.{Discover, Task}
 
 object JavaCompileJarTests extends TestSuite {
-  def compileAll(sources: mill.api.Loose.Agg[mill.api.PathRef])(implicit ctx: Dest) = {
+  def compileAll(sources: Seq[mill.api.PathRef])(implicit ctx: Dest) = {
     os.makeDir.all(ctx.dest)
 
     os.proc("javac", sources.map(_.path.toString()).toSeq, "-d", ctx.dest).call(ctx.dest)
@@ -46,7 +46,7 @@ object JavaCompileJarTests extends TestSuite {
         def jar = Task {
           val jar = Jvm.createJar(
             Task.dest / "out.jar",
-            Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path)
+            Seq(classFiles().path, readme().path) ++ resourceRoot().map(_.path)
           )
           PathRef(jar)
         }
@@ -54,7 +54,7 @@ object JavaCompileJarTests extends TestSuite {
         def filterJar = Task {
           val jar = Jvm.createJar(
             Task.dest / "out.jar",
-            Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
+            Seq(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
             JarManifest.MillDefault,
             (p: os.Path, r: os.RelPath) => noFoos(r.last)
           )
@@ -76,41 +76,41 @@ object JavaCompileJarTests extends TestSuite {
         sourceRoot = javacSrcPath
       )
       def eval[T](t: Task[T]) = evaluator.apply(t)
-      def check(targets: Agg[Task[?]], expected: Agg[Task[?]]) = evaluator.check(targets, expected)
+      def check(targets: Seq[Task[?]], expected: Seq[Task[?]]) = evaluator.check(targets, expected)
 
       def append(path: os.SubPath, txt: String) = os.write.append(moduleDir / path, txt)
 
       check(
-        targets = Agg(jar),
-        expected = Agg(allSources, classFiles, jar)
+        targets = Seq(jar),
+        expected = Seq(allSources, classFiles, jar)
       )
 
       // Re-running with no changes results in nothing being evaluated
-      check(targets = Agg(jar), expected = Agg())
+      check(targets = Seq(jar), expected = Seq())
       // Appending an empty string gets ignored due to file-content hashing
       append(sourceRootPath / "Foo.java", "")
-      check(targets = Agg(jar), expected = Agg())
+      check(targets = Seq(jar), expected = Seq())
 
       // Appending whitespace forces a recompile, but the classfiles end up
       // exactly the same so no re-jarring.
       append(sourceRootPath / "Foo.java", " ")
       // Note that `sourceRoot` and `resourceRoot` never turn up in the `expected`
       // list, because they are `Source`s not `Target`s
-      check(targets = Agg(jar), expected = Agg( /*sourceRoot, */ allSources, classFiles))
+      check(targets = Seq(jar), expected = Seq( /*sourceRoot, */ allSources, classFiles))
 
       // Appending a new class changes the classfiles, which forces us to
       // re-create the final jar
       append(sourceRootPath / "Foo.java", "\nclass FooTwo{}")
-      check(targets = Agg(jar), expected = Agg(allSources, classFiles, jar))
+      check(targets = Seq(jar), expected = Seq(allSources, classFiles, jar))
 
       // Tweaking the resources forces rebuild of the final jar, without
       // recompiling classfiles
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = Agg(jar), expected = Agg(jar))
+      check(targets = Seq(jar), expected = Seq(jar))
 
       // Touching the readme.md, defined as `Task.Source`, forces a jar rebuild
       append(readmePath, " ")
-      check(targets = Agg(jar), expected = Agg(jar))
+      check(targets = Seq(jar), expected = Seq(jar))
 
       // You can swap evaluators halfway without any ill effects
       evaluator = UnitTester(
@@ -123,15 +123,15 @@ object JavaCompileJarTests extends TestSuite {
       // target only; these are re-used for any downstream targets requested
       append(sourceRootPath / "Bar.java", "\nclass BarTwo{}")
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = Agg(classFiles), expected = Agg(allSources, classFiles))
-      check(targets = Agg(jar), expected = Agg(jar))
-      check(targets = Agg(allSources), expected = Agg())
+      check(targets = Seq(classFiles), expected = Seq(allSources, classFiles))
+      check(targets = Seq(jar), expected = Seq(jar))
+      check(targets = Seq(allSources), expected = Seq())
 
       append(sourceRootPath / "Bar.java", "\nclass BarThree{}")
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = Agg(resourceRoot), expected = Agg())
-      check(targets = Agg(allSources), expected = Agg(allSources))
-      check(targets = Agg(jar), expected = Agg(classFiles, jar))
+      check(targets = Seq(resourceRoot), expected = Seq())
+      check(targets = Seq(allSources), expected = Seq(allSources))
+      check(targets = Seq(jar), expected = Seq(classFiles, jar))
 
       val jarContents = os.proc("jar", "-tf", evaluator.outPath / "jar.dest/out.jar").call(
         evaluator.outPath

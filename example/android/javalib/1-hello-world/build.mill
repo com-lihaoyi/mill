@@ -35,7 +35,7 @@ object app extends AndroidAppModule {
 
   object test extends AndroidAppTests with TestModule.Junit4 {
     def testFramework = "com.novocode.junit.JUnitFramework"
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"junit:junit:4.13.2"
     )
   }
@@ -50,7 +50,7 @@ object app extends AndroidAppModule {
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"androidx.test.ext:junit:1.2.1".exclude((
         "org.jetbrains.kotlinx",
         "kotlinx-coroutines-core-jvm"
