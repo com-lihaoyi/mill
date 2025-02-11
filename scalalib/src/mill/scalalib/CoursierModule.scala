@@ -185,7 +185,7 @@ object CoursierModule {
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
-      ).getOrThrow
+      ).get
     }
 
     /**
@@ -220,7 +220,7 @@ object CoursierModule {
         ctx = ctx,
         resolutionParams = resolutionParams,
         boms = boms0
-      ).getOrThrow
+      ).get
 
       (
         res.finalDependenciesCache.getOrElse(
@@ -262,7 +262,7 @@ object CoursierModule {
         ctx = ctx,
         resolutionParams = ResolutionParams(),
         boms = Nil
-      ).getOrThrow
+      ).get
 
       res.orderedDependencies
     }

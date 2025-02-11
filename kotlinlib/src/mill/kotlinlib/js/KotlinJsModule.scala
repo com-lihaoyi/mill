@@ -118,7 +118,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       artifactId = artifactId(),
       envArgs = Task.env,
       workingDir = Task.dest
-    ).map(_ => ()).getOrThrow
+    ).map(_ => ()).get
   }
 
   override def runMainLocal(

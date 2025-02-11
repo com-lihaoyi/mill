@@ -1126,7 +1126,7 @@ trait JavaModule
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
         resolutionParams = resolutionParams()
-      ).getOrThrow
+      ).get
 
       val roots = whatDependsOn match {
         case List() =>

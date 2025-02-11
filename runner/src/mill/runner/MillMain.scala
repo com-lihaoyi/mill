@@ -207,7 +207,7 @@ object MillMain {
                   streams.err.println(err)
                   (false, stateCache)
                 } else {
-                  val scalaCompilerWorker = maybeScalaCompilerWorker.getOrThrow
+                  val scalaCompilerWorker = maybeScalaCompilerWorker.get
                   val bspContext =
                     if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
 

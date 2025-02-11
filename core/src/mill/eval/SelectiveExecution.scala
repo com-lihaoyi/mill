@@ -38,7 +38,7 @@ private[mill] object SelectiveExecution {
           .results
           .flatMap { case (task, taskResult) =>
             inputTasksToLabels.get(task).map { l =>
-              l -> taskResult.result.getOrThrow.value.hashCode
+              l -> taskResult.result.get.value.hashCode
             }
           }
           .toMap,

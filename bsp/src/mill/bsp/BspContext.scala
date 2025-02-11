@@ -27,10 +27,7 @@ private[mill] class BspContext(
         streams = streams,
         logStream = bspLogStream,
         canReload = true
-      ) match {
-        case Result.Failure(err) => sys.error(err)
-        case Result.Success(res) => res
-      }
+      ).get
     } catch {
       case NonFatal(e) =>
         streams.err.println(s"Could not start BSP server. ${e.getMessage}")

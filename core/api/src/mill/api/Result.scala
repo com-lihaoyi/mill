@@ -3,10 +3,14 @@ package mill.api
 import scala.collection.BuildFrom
 import collection.mutable
 
+/**
+ * Represents a computation that either succeeds with a value [[T]] or
+ * fails.
+ */
 sealed trait Result[+T] {
   def map[V](f: T => V): Result[V]
   def flatMap[V](f: T => Result[V]): Result[V]
-  def getOrThrow: T
+  def get: T
   def toOption: Option[T]
   def toEither: Either[String, T]
   def left: Option[String]
@@ -19,7 +23,7 @@ object Result {
     def map[V](f: T => V): Result[V] = Success(f(value))
 
     def flatMap[V](f: T => Result[V]): Result[V] = f(value)
-    def getOrThrow = value
+    def get = value
     def toOption: Option[T] = Some(value)
     def toEither: Either[String, T] = Right(value)
     def left: Option[String] = None
@@ -28,7 +32,7 @@ object Result {
     def map[V](f: Nothing => V): Result[Nothing] = this
 
     def flatMap[V](f: Nothing => Result[V]): Result[Nothing] = this
-    def getOrThrow = sys.error(error)
+    def get = sys.error(error)
     def toOption: Option[Nothing] = None
     def toEither: Either[String, Nothing] = Left(error)
     def left: Option[String] = Some(error)

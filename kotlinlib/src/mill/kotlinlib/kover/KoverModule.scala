@@ -226,10 +226,8 @@ object Kover extends ExternalModule with KoverReportBaseModule {
 
   private def resolveTasks[T](tasks: String, evaluator: Evaluator): Seq[Task[T]] =
     if (tasks.trim().isEmpty) Seq.empty
-    else evaluator.resolveTasks(Seq(tasks), SelectMode.Multi) match {
-      case Result.Failure(err) => throw new Exception(err)
-      case Result.Success(tasks) => tasks.asInstanceOf[Seq[Task[T]]]
-    }
+    else evaluator.resolveTasks(Seq(tasks), SelectMode.Multi).get.asInstanceOf[Seq[Task[T]]]
+
 }
 
 sealed trait ReportType

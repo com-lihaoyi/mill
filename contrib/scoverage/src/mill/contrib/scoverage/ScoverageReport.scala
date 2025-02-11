@@ -93,17 +93,12 @@ trait ScoverageReport extends Module {
     val sourcesTasks: Seq[Task[Seq[PathRef]]] = evaluator.resolveTasks(
       Seq(sources),
       SelectMode.Separated
-    ) match {
-      case Result.Failure(err) => throw new Exception(err)
-      case Result.Success(tasks) => tasks.asInstanceOf[Seq[Task[Seq[PathRef]]]]
-    }
+    ).get.asInstanceOf[Seq[Task[Seq[PathRef]]]]
+
     val dataTasks: Seq[Task[PathRef]] = evaluator.resolveTasks(
       Seq(dataTargets),
       SelectMode.Separated
-    ) match {
-      case Result.Failure(err) => throw new Exception(err)
-      case Result.Success(tasks) => tasks.asInstanceOf[Seq[Task[PathRef]]]
-    }
+    ).get.asInstanceOf[Seq[Task[PathRef]]]
 
     Task.Anon {
       val sourcePaths: Seq[Path] = Task.sequence(sourcesTasks)().flatten.map(_.path)
