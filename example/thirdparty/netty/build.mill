@@ -70,7 +70,7 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5 {
 trait NettyTestSuiteModule extends NettyBaseTestSuiteModule {}
 trait NettyModule extends NettyBaseModule {
   def testModuleDeps: Seq[MavenModule] = Nil
-  def testIvyDeps: T[Seq[mill.scalalib.Dep]] = Task { Seq() }
+  def testIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   object test extends NettyBaseTestSuiteModule with MavenTests {
     def moduleDeps = super.moduleDeps ++ testModuleDeps
