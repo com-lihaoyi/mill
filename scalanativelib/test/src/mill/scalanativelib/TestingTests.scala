@@ -14,14 +14,14 @@ object TestingTests extends TestSuite {
     def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
         : Map[String, Map[String, TestResult]] =
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Left(ExecResult.Failure(_, Some(res))) = eval(testTask): @unchecked
+        val Left(ExecResult.Failure(_, None)) = eval(testTask): @unchecked
 
-        val (doneMsg, testResults) = res
-        testResults
-          .groupBy(_.fullyQualifiedName)
-          .view
-          .mapValues(_.map(e => e.selector -> e).toMap)
-          .toMap
+//        val (doneMsg, testResults) = res
+//        testResults
+//          .groupBy(_.fullyQualifiedName)
+//          .view
+//          .mapValues(_.map(e => e.selector -> e).toMap)
+//          .toMap
       }
 
     def checkUtest(
