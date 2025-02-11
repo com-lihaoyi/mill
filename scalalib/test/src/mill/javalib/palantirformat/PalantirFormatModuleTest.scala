@@ -108,7 +108,7 @@ object PalantirFormatModuleTest extends TestSuite {
 
     eval(module.palantirformat(mainargs.Flag(check), mainargs.Leftover(sources*))).fold(
       {
-        case api.Result.Exception(cause, _) => throw cause
+        case api.ExecResult.Exception(cause, _) => throw cause
         case failure => throw failure
       },
       { _ =>
@@ -129,7 +129,7 @@ object PalantirFormatModuleTest extends TestSuite {
     val eval = UnitTester(module, modulesRoot)
     eval(PalantirFormatModule.formatAll(mainargs.Flag(check), Tasks(Seq(module.sources)))).fold(
       {
-        case api.Result.Exception(cause, _) => throw cause
+        case api.ExecResult.Exception(cause, _) => throw cause
         case failure => throw failure
       },
       { _ =>

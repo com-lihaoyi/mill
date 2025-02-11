@@ -1,11 +1,11 @@
 package mill.scalanativelib
 
-import mill._
-import mill.api.Result
-import mill.scalanativelib.api._
+import mill.*
+import mill.api.{ExecResult, Result}
+import mill.scalanativelib.api.*
 import mill.testkit.UnitTester
 import mill.testrunner.TestResult
-import utest._
+import utest.*
 
 object TestingTests extends TestSuite {
   import CompileRunTests._
@@ -14,7 +14,7 @@ object TestingTests extends TestSuite {
     def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
         : Map[String, Map[String, TestResult]] =
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Left(Result.Failure(_, Some(res))) = eval(testTask): @unchecked
+        val Left(ExecResult.Failure(_, Some(res))) = eval(testTask): @unchecked
 
         val (doneMsg, testResults) = res
         testResults

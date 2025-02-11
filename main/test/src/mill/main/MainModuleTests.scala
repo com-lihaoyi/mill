@@ -1,6 +1,6 @@
 package mill.main
 
-import mill.api.{PathRef, Result, Val}
+import mill.api.{ExecResult, PathRef, Result, Val}
 import mill.client.OutFiles
 import mill.{Task, given}
 import mill.define.{Cross, Discover, Module, TaskModule}
@@ -266,7 +266,7 @@ object MainModuleTests extends TestSuite {
       }
 
       test("command") {
-        val Left(Result.Failure(failureMsg, _)) =
+        val Left(ExecResult.Failure(failureMsg, _)) =
           evaluator.apply("show", "helloCommand"): @unchecked
         assert(
           failureMsg.contains("Expected Signature: helloCommand"),

@@ -2,6 +2,7 @@ package mill.scalajslib
 
 import mill._
 import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.UnitTester
 import mill.testrunner.TestResult
 import utest._
@@ -11,7 +12,7 @@ object UtestTests extends TestSuite {
   def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
       : Map[String, Map[String, TestResult]] =
     UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
-      val Left(Result.Failure(_, Some(res))) = eval(testTask): @unchecked
+      val Left(ExecResult.Failure(_, Some(res))) = eval(testTask): @unchecked
 
       val (doneMsg, testResults) = res
       testResults

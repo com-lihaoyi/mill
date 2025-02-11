@@ -58,7 +58,7 @@ object KoverModuleTests extends TestSuite {
           eval(_)
             .fold(
               {
-                case api.Result.Exception(cause, _) => throw cause
+                case api.ExecResult.Exception(cause, _) => throw cause
                 case failure => throw failure
               },
               { _ => }

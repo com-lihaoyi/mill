@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.define.{Args, Discover, ModuleRef, Task}
-import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.main.TokenReaders.*
 import utest.*
@@ -128,7 +128,7 @@ object JavaHomeTests extends TestSuite {
       test("test11") {
         val eval = UnitTester(HelloJavaJavaHome11Override, resourcePath)
 
-        val Left(Result.Failure(ref1, Some(v1))) =
+        val Left(ExecResult.Failure(ref1, Some(v1))) =
           eval.apply(HelloJavaJavaHome11Override.core.test.test()): @unchecked
 
         assert(
@@ -141,7 +141,7 @@ object JavaHomeTests extends TestSuite {
       test("test17") {
         val eval = UnitTester(HelloJavaJavaHome17Override, resourcePath)
 
-        val Left(Result.Failure(ref1, Some(v1))) =
+        val Left(ExecResult.Failure(ref1, Some(v1))) =
           eval.apply(HelloJavaJavaHome17Override.core.test.test()): @unchecked
 
         assert(

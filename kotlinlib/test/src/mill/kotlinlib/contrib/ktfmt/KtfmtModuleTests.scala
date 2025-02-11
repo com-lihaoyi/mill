@@ -113,7 +113,7 @@ object KtfmtModuleTests extends TestSuite {
       sources = Tasks(sources)
     )).fold(
       {
-        case api.Result.Exception(cause, _) => throw cause
+        case api.ExecResult.Exception(cause, _) => throw cause
         case failure => throw failure
       },
       { _ =>
@@ -141,7 +141,7 @@ object KtfmtModuleTests extends TestSuite {
       sources = Tasks(Seq(module.sources))
     )).fold(
       {
-        case api.Result.Exception(cause, _) => throw cause
+        case api.ExecResult.Exception(cause, _) => throw cause
         case failure => throw failure
       },
       { _ =>

@@ -180,7 +180,7 @@ object JavaCompileJarTests extends TestSuite {
         )
       }
 
-      val Left(mill.api.Result.Exception(ex, _)) = eval(Build.run("test.BarFour")): @unchecked
+      val Left(mill.api.ExecResult.Exception(ex, _)) = eval(Build.run("test.BarFour")): @unchecked
 
       assert(ex.getMessage.contains("Could not find or load main class"))
 

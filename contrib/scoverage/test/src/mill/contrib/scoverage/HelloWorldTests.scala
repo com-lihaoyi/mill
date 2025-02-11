@@ -1,7 +1,7 @@
 package mill.contrib.scoverage
 
 import mill.*
-import mill.api.Result
+import mill.api.ExecResult
 import mill.contrib.buildinfo.BuildInfo
 import mill.define.Discover
 import mill.scalalib.{DepSyntax, SbtModule, ScalaModule, TestModule}
@@ -278,12 +278,12 @@ trait FailedWorldTests extends HelloWorldTests {
       val mod = HelloWorld
       test("shouldFail") {
         test("scoverageToolsCp") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(Result.Failure(msg, _)) =
+          val Left(ExecResult.Failure(msg, _)) =
             eval.apply(mod.core.scoverageToolsClasspath): @unchecked
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport()): @unchecked
+          val Left(ExecResult.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport()): @unchecked
           assert(msg == errorMsg)
         }
       }
@@ -295,11 +295,11 @@ trait FailedWorldTests extends HelloWorldTests {
           val res = eval.apply(mod.core.scoverageToolsClasspath)
           assert(res.isLeft)
           println(s"res: ${res}")
-          val Left(Result.Failure(msg, _)) = res: @unchecked
+          val Left(ExecResult.Failure(msg, _)) = res: @unchecked
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport()): @unchecked
+          val Left(ExecResult.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport()): @unchecked
           assert(msg == errorMsg)
         }
       }

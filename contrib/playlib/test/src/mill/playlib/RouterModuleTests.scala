@@ -1,6 +1,7 @@
 package mill.playlib
 
 import mill.api.Result.Failure
+import mill.api.ExecResult
 import mill.define.{Cross, Discover}
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestBaseModule, UnitTester}
@@ -70,7 +71,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
           UnitTester(HelloWorld, invalidResourcePath).scoped { eval =>
             val project = HelloWorld.core(scalaVersion, playVersion)
             val eitherResult = eval.apply(project.compileRouter)
-            val Left(Failure(message, x)) = eitherResult: @unchecked
+            val Left(ExecResult.Failure(message, x)) = eitherResult: @unchecked
             val playExpectedMessage =
               if !playVersion.startsWith("2.7.") && !playVersion.startsWith("2.8.") then {
                 "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
@@ -97,7 +98,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
         skipUnsupportedVersions(playVersion) {
           UnitTester(HelloWorld, invalidSubResourcePath).scoped { eval =>
             val eitherResult = eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
-            val Left(Failure(message, x)) = eitherResult: @unchecked
+            val Left(ExecResult.Failure(message, x)) = eitherResult: @unchecked
             val playExpectedMessage =
               if !playVersion.startsWith("2.7.") && !playVersion.startsWith("2.8.") then {
                 "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"

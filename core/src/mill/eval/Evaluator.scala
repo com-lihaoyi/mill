@@ -1,25 +1,14 @@
 package mill.eval
 
-import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val}
-
+import mill.api.{ColorLogger, ExecResult, PathRef, Result, SystemStreams, Val}
 import mill.client.OutFiles
 import mill.define.*
-import mill.exec.{
-  Cached,
-  ChromeProfileLogger,
-  ExecResults,
-  ExecutionCore,
-  ExecutionPaths,
-  ExecutionPathsResolver,
-  Plan,
-  ProfileLogger,
-  TaskResult
-}
+import mill.exec.{Cached, ChromeProfileLogger, ExecResults, ExecutionCore, ExecutionPaths, ExecutionPathsResolver, Plan, ProfileLogger, TaskResult}
 import mill.define.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.util.DynamicVariable
@@ -242,9 +231,9 @@ private[mill] object Evaluator {
     (for ((k, fs) <- evaluated.failing)
       yield {
         val fss = fs.map {
-          case Result.Failure(t, _) => t
-          case Result.Exception(Result.Failure(t, _), _) => t
-          case ex: Result.Exception => ex.toString
+          case ExecResult.Failure(t, _) => t
+          case ExecResult.Exception(ExecResult.Failure(t, _), _) => t
+          case ex: ExecResult.Exception => ex.toString
         }
         s"${k} ${fss.iterator.mkString(", ")}"
       }).mkString("\n")

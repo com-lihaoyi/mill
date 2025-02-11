@@ -4,7 +4,7 @@ import mill.PathRef
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.api.Result
 
-import mill.api.Result.catchWrapException
+import mill.api.ExecResult.catchWrapException
 import mill.api.internal
 
 @internal
@@ -108,9 +108,7 @@ private[runner] object ScalaCompilerWorker {
   def bootstrapWorker(): Either[String, ResolvedWorker] = {
     val classpath = bootstrapWorkerClasspath() match {
       case Result.Success(value) => Right(value)
-      case Result.Failure(msg, _) => Left(msg)
-      case err: Result.Exception => Left(err.toString)
-      case res => Left(s"could not resolve worker classpath: $res")
+      case Result.Failure(msg) => Left(msg)
     }
     classpath.flatMap { cp =>
       val resolvedCp = cp.iterator.map(_.path).toVector

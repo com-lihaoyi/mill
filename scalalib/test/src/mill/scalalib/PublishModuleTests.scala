@@ -2,6 +2,7 @@ package mill.scalalib
 
 import mill.{T, Task}
 import mill.api.{PathRef, Result}
+import mill.api.ExecResult
 import mill.define.Discover
 import mill.eval.Evaluator
 import mill.scalalib.publish.{
@@ -196,7 +197,7 @@ object PublishModuleTests extends TestSuite {
       test(
         "should throw exception if neither environment variables or direct argument were not passed"
       ) - UnitTester(HelloWorldWithPublish, resourcePath).scoped { eval =>
-        val Left(Result.Failure(msg, None)) =
+        val Left(ExecResult.Failure(msg, None)) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds("")): @unchecked
 
         assert(

@@ -220,7 +220,7 @@ private[scalalib] object TestModuleUtil {
           .map(t => s"${t.fullyQualifiedName} ${t.selector}")
           .mkString("\n  ", "\n  ", "")}$suffix"
 
-      Result.Failure(msg, Some((doneMsg, results)))
+      Result.Failure(msg)
     }
   }
 

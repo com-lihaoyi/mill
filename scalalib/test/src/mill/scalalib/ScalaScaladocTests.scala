@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.*
-import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
@@ -77,7 +77,7 @@ object ScalaScaladocTests extends TestSuite {
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"
       ).scoped { eval =>
         // scaladoc generation fails because of "-Xfatal-warnings" flag
-        val Left(Result.Failure(_, None)) =
+        val Left(ExecResult.Failure(_, None)) =
           eval.apply(HelloWorldWithDocVersion.core.docJar): @unchecked
       }
       test("docJarOnlyVersion") - UnitTester(
@@ -85,7 +85,7 @@ object ScalaScaladocTests extends TestSuite {
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"
       ).scoped { eval =>
         // `docJar` requires the `compile` task to succeed (since the addition of Scaladoc 3)
-        val Left(Result.Failure(_, None)) =
+        val Left(ExecResult.Failure(_, None)) =
           eval.apply(HelloWorldOnlyDocVersion.core.docJar): @unchecked
       }
     }

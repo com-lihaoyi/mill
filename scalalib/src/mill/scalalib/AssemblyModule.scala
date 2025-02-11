@@ -112,7 +112,6 @@ trait AssemblyModule extends mill.Module {
            |
            |  def prependShellScript = ""
            |""".stripMargin,
-        Some(created.pathRef)
       )
     } else {
       Result.Success(created.pathRef)

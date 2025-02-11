@@ -3,7 +3,7 @@ package kotlinlib
 
 import mill.scalalib.TestModule
 import mill.testkit.{TestBaseModule, UnitTester}
-import mill.api.Result
+import mill.api.ExecResult
 import mill.define.Discover
 import utest.*
 
@@ -62,7 +62,7 @@ object HelloWorldTests extends TestSuite {
       val eval = testEval()
 
       HelloWorldKotlin.main.crossModules.foreach(m => {
-        val Left(Result.Failure(_, Some(v1))) = eval.apply(m.test.test()): @unchecked
+        val Left(ExecResult.Failure(_, Some(v1))) = eval.apply(m.test.test()): @unchecked
 
         assert(
           v1._2(0).fullyQualifiedName == "hello.tests.HelloTest.testFailure",
@@ -79,7 +79,7 @@ object HelloWorldTests extends TestSuite {
         val Right(discovered) = eval.apply(m.kotest.discoveredTestClasses): @unchecked
         assert(discovered.value == Seq("hello.tests.FooTest"))
 
-        val Left(Result.Failure(_, Some(v1))) = eval.apply(m.kotest.test()): @unchecked
+        val Left(ExecResult.Failure(_, Some(v1))) = eval.apply(m.kotest.test()): @unchecked
 
         assert(
           v1._2(0).fullyQualifiedName == "hello.tests.FooTest",

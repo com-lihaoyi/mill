@@ -5,7 +5,7 @@ import java.util.jar.JarFile
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
 import mill.*
-import mill.api.Result
+import mill.api.ExecResult
 import mill.define.Discover
 import mill.exec.ExecutionPaths
 import mill.testkit.UnitTester
@@ -228,7 +228,7 @@ object HelloWorldTests extends TestSuite {
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
         os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
 
-        val Left(Result.Failure("Compilation failed", _)) =
+        val Left(ExecResult.Failure("Compilation failed", _)) =
           eval.apply(HelloWorld.core.compile): @unchecked
 
         val paths = ExecutionPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
@@ -252,7 +252,7 @@ object HelloWorldTests extends TestSuite {
         sourceRoot = resourcePath
       ).scoped { eval =>
         // compilation fails because of "-Xfatal-warnings" flag
-        val Left(Result.Failure("Compilation failed", _)) =
+        val Left(ExecResult.Failure("Compilation failed", _)) =
           eval.apply(HelloWorldFatalWarnings.core.compile): @unchecked
       }
     }

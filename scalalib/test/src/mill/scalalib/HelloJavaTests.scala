@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
@@ -152,7 +152,7 @@ object HelloJavaTests extends TestSuite {
     test("test") - {
       val eval = testEval()
 
-      val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test()): @unchecked
+      val Left(ExecResult.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test()): @unchecked
 
       assert(
         v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",

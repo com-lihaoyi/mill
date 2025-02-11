@@ -2,7 +2,7 @@ package mill
 package kotlinlib
 package js
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.define.Discover
 import mill.exec.ExecutionPaths
 import mill.testkit.{TestBaseModule, UnitTester}
@@ -43,7 +43,7 @@ object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
       val eval = testEval()
 
       val command = module.foo.test.test()
-      val Left(Result.Failure(failureMessage, Some((doneMessage, testResults)))) =
+      val Left(ExecResult.Failure(failureMessage, Some((doneMessage, testResults)))) =
         eval.apply(command): @unchecked
 
       val xmlReport =
