@@ -7,7 +7,7 @@ import mill.exec.{
   Cached,
   ChromeProfileLogger,
   ExecResults,
-  ExecutionCore,
+  Execution,
   ExecutionPaths,
   ExecutionPathsResolver,
   Plan,
@@ -25,14 +25,14 @@ import scala.util.DynamicVariable
 /**
  * Implementation of [[Evaluator]], which serves both as internal logic as well
  * as an odd bag of user-facing helper methods. Internal-only logic is
- * extracted into [[ExecutionCore]]
+ * extracted into [[Execution]]
  */
 final case class Evaluator private[mill] (
     home: os.Path,
     workspace: os.Path,
     outPath: os.Path,
     externalOutPath: os.Path,
-    override val rootModule: mill.define.BaseModule,
+    rootModule: mill.define.BaseModule,
     baseLogger: ColorLogger,
     classLoaderSigHash: Int,
     classLoaderIdentityHash: Int,
@@ -40,14 +40,33 @@ final case class Evaluator private[mill] (
     env: Map[String, String],
     failFast: Boolean,
     threadCount: Option[Int],
-    val methodCodeHashSignatures: Map[String, Int],
-    val allowPositionalCommandArgs: Boolean,
-    val systemExit: Int => Nothing,
-    val exclusiveSystemStreams: SystemStreams,
-    val selectiveExecution: Boolean = false,
+    methodCodeHashSignatures: Map[String, Int],
+    allowPositionalCommandArgs: Boolean,
+    systemExit: Int => Nothing,
+    exclusiveSystemStreams: SystemStreams,
+    selectiveExecution: Boolean = false,
     chromeProfileLogger: ChromeProfileLogger,
     profileLogger: ProfileLogger
-) extends ExecutionCore with AutoCloseable {
+) extends AutoCloseable {
+  private[mill] val execution = new Execution(
+    baseLogger,
+    chromeProfileLogger,
+    profileLogger,
+    home,
+    workspace,
+    outPath,
+    externalOutPath,
+    rootModule,
+    classLoaderSigHash,
+    classLoaderIdentityHash,
+    workerCache,
+    env,
+    failFast,
+    threadCount,
+    methodCodeHashSignatures,
+    systemExit,
+    exclusiveSystemStreams,
+  )
   import Evaluator._
 
   private[mill] final def mutableWorkerCache: collection.mutable.Map[Segments, (Int, Val)] =
@@ -146,7 +165,7 @@ final case class Evaluator private[mill] (
 
     selectedTargetsOrErr match {
       case (selectedTargets, selectiveResults) =>
-        val evaluated: ExecResults = executeTasks(selectedTargets, serialCommandExec = true)
+        val evaluated: ExecResults = execution.executeTasks(selectedTargets, serialCommandExec = true)
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {

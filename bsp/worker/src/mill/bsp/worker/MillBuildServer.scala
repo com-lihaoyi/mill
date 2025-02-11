@@ -816,7 +816,7 @@ private class MillBuildServer(
       },
       streams = logger0.systemStreams
     ) {
-      evaluator.executeTasks(
+      evaluator.execution.executeTasks(
         goals,
         reporter,
         testReporter,

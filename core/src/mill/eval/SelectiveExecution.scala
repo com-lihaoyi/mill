@@ -4,7 +4,7 @@ import mill.api.Val
 import mill.api.Result
 import mill.client.OutFiles
 import mill.define.{InputImpl, NamedTask, Task, SelectMode}
-import mill.exec.{CodeSigUtils, ExecutionCore, Plan, TaskResult}
+import mill.exec.{CodeSigUtils, Execution, Plan, TaskResult}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 
@@ -31,7 +31,7 @@ private[mill] object SelectiveExecution {
         }
         .toMap
 
-      val results = evaluator.executeTasks(Seq.from(inputTasksToLabels.keys))
+      val results = evaluator.execution.executeTasks(Seq.from(inputTasksToLabels.keys))
 
       val inputHashes = results
         .results
@@ -174,7 +174,7 @@ private[mill] object SelectiveExecution {
       val plan = Plan.plan(Seq.from(changedTasks.downstreamTasks))
       val indexToTerminal = plan.sortedGroups.keys().toArray.filter(t => taskSet.contains(t))
 
-      val interGroupDeps = ExecutionCore.findInterGroupDeps(plan.sortedGroups)
+      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
 
       val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 
