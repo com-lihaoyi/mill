@@ -64,10 +64,10 @@ object IntegrationTester {
         cwd: os.Path = workspacePath,
         stdin: os.ProcessInput = os.Pipe,
         stdout: os.ProcessOutput = os.Pipe,
-        stderr: os.ProcessOutput = os.Pipe,
+        stderr: os.ProcessOutput = os.Inherit,
         mergeErrIntoOut: Boolean = false,
         timeout: Long = -1,
-        check: Boolean = false,
+        check: Boolean = true,
         propagateEnv: Boolean = true,
         timeoutGracePeriod: Long = 100
     ): IntegrationTester.EvalResult = {
