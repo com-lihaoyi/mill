@@ -1,6 +1,5 @@
 package mill.testrunner
 
-import mill.api.Loose.Agg
 import mill.api.{Ctx, TestReporter, internal}
 import mill.util.Jvm
 
@@ -8,8 +7,8 @@ import mill.util.Jvm
 
   def runTestFramework(
       frameworkInstances: ClassLoader => sbt.testing.Framework,
-      entireClasspath: Agg[os.Path],
-      testClassfilePath: Agg[os.Path],
+      entireClasspath: Seq[os.Path],
+      testClassfilePath: Seq[os.Path],
       args: Seq[String],
       testReporter: TestReporter,
       classFilter: Class[?] => Boolean = _ => true

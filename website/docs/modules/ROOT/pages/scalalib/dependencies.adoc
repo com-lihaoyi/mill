@@ -56,7 +56,7 @@ you can use three colons (`:::`) between `organization` and `name`, e.g.: `ivy"o
 .Example
 [source,scala]
 ----
-def ivyDeps = Agg(
+def ivyDeps = Seq(
   // explicit scala version suffix, NOT RECOMMENDED!
   ivy"com.typesafe.akka:akka-actor_2.12:2.5.25",
   ivy"com.typesafe.akka::akka-actor:2.5.25",
@@ -87,7 +87,7 @@ If your Scala version is a Scala 3.x, but you want to use the Scala 2.13 version
 [source,scala]
 ----
 def scalaVersion = "3.2.1"
-def ivyDeps = Agg(
+def ivyDeps = Seq(
   ivy"com.lihaoyi::upickle:2.0.0".withDottyCompat(scalaVersion()) //1
 )
 ----

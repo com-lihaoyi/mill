@@ -4,7 +4,7 @@ package twirllib
 import coursier.Repository
 import mill.api.PathRef
 import mill.scalalib.*
-import mill.api.Loose
+
 import mill.define.Task
 import mill.main.BuildInfo
 
@@ -44,13 +44,13 @@ trait TwirlModule extends mill.Module { twirlModule =>
   /**
    * @since Mill after 0.10.5
    */
-  def twirlIvyDeps: T[Agg[Dep]] = Task {
-    Agg(
+  def twirlIvyDeps: T[Seq[Dep]] = Task {
+    Seq(
       if (twirlVersion().startsWith("1."))
         ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}"
       else ivy"org.playframework.twirl::twirl-compiler:${twirlVersion()}"
     ) ++
-      Agg(
+      Seq(
         ivy"org.scala-lang.modules::scala-parser-combinators:${scalaParserCombinatorsVersion()}"
       )
   }
@@ -75,7 +75,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    */
   lazy val twirlCoursierResolver: TwirlResolver = new TwirlResolver {}
 
-  def twirlClasspath: T[Loose.Agg[PathRef]] = Task {
+  def twirlClasspath: T[Seq[PathRef]] = Task {
     twirlCoursierResolver.defaultResolver().resolveDeps(twirlIvyDeps())
   }
 

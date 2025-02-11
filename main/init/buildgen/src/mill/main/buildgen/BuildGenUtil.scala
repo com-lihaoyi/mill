@@ -356,22 +356,22 @@ object BuildGenUtil {
     else s"def artifactName = ${escape(name)}"
 
   def renderBomIvyDeps(args: IterableOnce[String]): String =
-    optional("def bomIvyDeps = super.bomIvyDeps() ++ Agg", args)
+    optional("def bomIvyDeps = super.bomIvyDeps() ++ Seq", args)
 
   def renderIvyDeps(args: IterableOnce[String]): String =
-    optional("def ivyDeps = super.ivyDeps() ++ Agg", args)
+    optional("def ivyDeps = super.ivyDeps() ++ Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
   def renderCompileIvyDeps(args: IterableOnce[String]): String =
-    optional("def compileIvyDeps = super.compileIvyDeps() ++ Agg", args)
+    optional("def compileIvyDeps = super.compileIvyDeps() ++ Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
   def renderRunIvyDeps(args: IterableOnce[String]): String =
-    optional("def runIvyDeps = super.runIvyDeps() ++ Agg", args)
+    optional("def runIvyDeps = super.runIvyDeps() ++ Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)

@@ -4,7 +4,7 @@ import mill._, kotlinlib._
 
 object `package` extends RootModule with KotlinModule {
   // You can have arbitrary numbers of third-party dependencies
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 

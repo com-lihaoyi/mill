@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import mill.Agg
 import mill.define.{Discover, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -15,7 +14,7 @@ object CoursierParametersTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = "2.13.12"
       def ivyDeps = Task {
-        Agg(ivy"com.lihaoyi::pprint:0.9.0")
+        Seq(ivy"com.lihaoyi::pprint:0.9.0")
       }
       def resolutionParams = Task.Anon {
         super.resolutionParams()

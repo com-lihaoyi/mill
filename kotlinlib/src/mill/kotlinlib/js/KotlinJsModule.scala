@@ -9,7 +9,7 @@ import mill.scalalib.Lib
 import mill.scalalib.api.CompilationResult
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import mill.{Agg, Args, T}
+import mill.{Args, T}
 import sbt.testing.Status
 import upickle.default.{macroRW, ReadWriter => RW}
 
@@ -62,20 +62,20 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
-  override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
-    Agg(
+  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
+    Seq(
       ivy"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
     )
   }
 
-  override def transitiveCompileClasspath: T[Agg[PathRef]] = Task {
+  override def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         val transitiveModuleArtifactPath =
           if (m.isInstanceOf[KotlinJsModule] && m != friendModule.orNull) {
             m.asInstanceOf[KotlinJsModule].klib()
           } else m.compile().classes
-        m.localCompileClasspath() ++ Agg(transitiveModuleArtifactPath)
+        m.localCompileClasspath() ++ Seq(transitiveModuleArtifactPath)
       }
     )().flatten
   }
@@ -241,7 +241,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     val outputPath = Task.dest / s"${artifactId()}.klib"
     Jvm.createJar(
       outputPath,
-      Agg(compile().classes.path),
+      Seq(compile().classes.path),
       mill.util.JarManifest.MillDefault,
       fileFilter = (_, _) => true
     )
@@ -259,7 +259,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       outputMode: OutputMode,
       allKotlinSourceFiles: Seq[PathRef],
       irClasspath: Option[PathRef],
-      librariesClasspath: Agg[PathRef],
+      librariesClasspath: Seq[PathRef],
       callMain: Boolean,
       moduleKind: ModuleKind,
       produceSourceMaps: Boolean,
@@ -677,7 +677,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Run tests for Kotlin/JS target using `kotlin.test` package.
    */
   trait KotlinTestPackageTests extends KotlinJsTests {
-    override def ivyDeps = Agg(
+    override def ivyDeps = Seq(
       ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
   }
@@ -691,7 +691,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     private def kotestProcessor = Task {
       defaultResolver().resolveDeps(
-        Agg(
+        Seq(
           ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
         )
       ).head
@@ -701,7 +701,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       s"-Xplugin=${kotestProcessor().path}"
     )
 
-    override def ivyDeps = Agg(
+    override def ivyDeps = Seq(
       ivy"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
       ivy"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
     )

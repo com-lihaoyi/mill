@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 import mill.api.{PathRef, Result}
 import mill.define.Discover
 import mill.eval.Evaluator
@@ -70,7 +70,7 @@ object PublishModuleTests extends TestSuite {
           Seq(Developer("lefou", "Tobias Roeser", "https://github.com/lefou"))
       )
       override def versionScheme = Some(VersionScheme.EarlySemVer)
-      override def ivyDeps = Agg(
+      override def ivyDeps = Seq(
         ivy"org.slf4j:slf4j-api:2.0.7"
       )
       // ensure, these target won't be called
@@ -95,10 +95,10 @@ object PublishModuleTests extends TestSuite {
   }
   object compileAndRuntimeStuff extends TestBaseModule {
     object main extends JavaModule with TestPublishModule {
-      def ivyDeps = Agg(
+      def ivyDeps = Seq(
         ivy"org.slf4j:slf4j-api:2.0.15"
       )
-      def runIvyDeps = Agg(
+      def runIvyDeps = Seq(
         ivy"ch.qos.logback:logback-classic:1.5.12"
       )
     }

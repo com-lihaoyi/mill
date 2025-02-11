@@ -4,7 +4,7 @@ import mill.api.{Ctx, PathRef, Result}
 import mill.client.EnvVars
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
-import mill.{Agg, Task}
+import mill.Task
 import sbt.testing.Status
 
 import java.time.format.DateTimeFormatter
@@ -17,14 +17,14 @@ private[scalalib] object TestModuleUtil {
       useArgsFile: Boolean,
       forkArgs: Seq[String],
       selectors: Seq[String],
-      scalalibClasspath: Agg[PathRef],
+      scalalibClasspath: Seq[PathRef],
       resources: Seq[PathRef],
       testFramework: String,
       runClasspath: Seq[PathRef],
       testClasspath: Seq[PathRef],
       args: Seq[String],
       testClassLists: Seq[Seq[String]],
-      testrunnerEntrypointClasspath: Agg[PathRef],
+      testrunnerEntrypointClasspath: Seq[PathRef],
       forkEnv: Map[String, String],
       testSandboxWorkingDir: Boolean,
       forkWorkingDir: os.Path,

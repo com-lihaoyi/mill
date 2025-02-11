@@ -273,7 +273,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   @internal
-  override def bspCompileClasspath: T[Agg[UnresolvedPath]] = Task {
+  override def bspCompileClasspath: T[Seq[UnresolvedPath]] = Task {
     compileClasspath().map(_.path).map(UnresolvedPath.ResolvedPath(_))
   }
 
@@ -286,7 +286,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Replaces AAR files in classpath with their extracted JARs.
    */
-  override def compileClasspath: T[Agg[PathRef]] = Task {
+  override def compileClasspath: T[Seq[PathRef]] = Task {
     val jarFiles = androidUnpackArchives().flatMap(_.classesJar) ++
       // need to filter, because it may include aar files, which are covered by androidUnpackArchives already
       super.resolvedRunIvyDeps().filter(_.path.ext == "jar")
@@ -415,8 +415,8 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Adds the Android SDK JAR file to the classpath during the compilation process.
    */
-  override def unmanagedClasspath: T[Agg[PathRef]] = Task {
-    Agg(androidSdkModule().androidJarPath())
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
+    Seq(androidSdkModule().androidJarPath())
   }
 
   /**
@@ -572,9 +572,9 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Classpath for the manifest merger run.
    */
-  def manifestMergerClasspath: T[Agg[PathRef]] = Task {
+  def manifestMergerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
       )
     )

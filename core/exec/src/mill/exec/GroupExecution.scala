@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.api.Result.{OuterStack, Success}
-import mill.api.Strict.Agg
+
 import mill.api.*
 import mill.define.*
 import mill.internal.MultiLogger
@@ -41,7 +41,7 @@ private[mill] trait GroupExecution {
   // those result which are inputs but not contained in this terminal group
   def evaluateGroupCached(
       terminal: Task[?],
-      group: Agg[Task[?]],
+      group: Seq[Task[?]],
       results: Map[Task[?], TaskResult[(Val, Int)]],
       countMsg: String,
       verboseKeySuffix: String,
@@ -55,7 +55,7 @@ private[mill] trait GroupExecution {
   ): GroupExecution.Results = {
     logger.withPrompt {
       val externalInputsHash = MurmurHash3.orderedHash(
-        group.items.flatMap(_.inputs).filter(!group.contains(_))
+        group.flatMap(_.inputs).filter(!group.contains(_))
           .flatMap(results(_).result.asSuccess.map(_.value._2))
       )
 
@@ -187,7 +187,7 @@ private[mill] trait GroupExecution {
   }
 
   private def evaluateGroup(
-      group: Agg[Task[?]],
+      group: Seq[Task[?]],
       results: Map[Task[?], TaskResult[(Val, Int)]],
       inputsHash: Int,
       paths: Option[ExecutionPaths],
@@ -204,7 +204,7 @@ private[mill] trait GroupExecution {
       val newEvaluated = mutable.Buffer.empty[Task[?]]
       val newResults = mutable.Map.empty[Task[?], Result[(Val, Int)]]
 
-      val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
+      val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
       val multiLogger = resolveLogger(paths.map(_.log), logger)
 
       var usedDest = Option.empty[os.Path]

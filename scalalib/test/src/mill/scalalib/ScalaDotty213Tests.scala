@@ -10,7 +10,7 @@ object ScalaDotty213Tests extends TestSuite {
     object foo extends ScalaModule {
       def scalaVersion = "0.18.1-RC1"
       override def ivyDeps =
-        Agg(ivy"org.scala-lang.modules::scala-xml:1.2.0".withDottyCompat(scalaVersion()))
+        Seq(ivy"org.scala-lang.modules::scala-xml:1.2.0".withDottyCompat(scalaVersion()))
     }
 
     lazy val millDiscover = Discover[this.type]

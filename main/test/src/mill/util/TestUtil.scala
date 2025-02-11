@@ -4,7 +4,6 @@ import mill.define._
 import mill.api.Result
 import mill.api.Result.OuterStack
 import utest.assert
-import mill.api.Strict.Agg
 
 import scala.collection.mutable
 
@@ -54,9 +53,9 @@ object TestUtil {
     override def sideHash = testTask.sideHash
   }
 
-  def checkTopological(targets: Agg[Task[?]]) = {
+  def checkTopological(targets: Seq[Task[?]]) = {
     val seen = mutable.Set.empty[Task[?]]
-    for (t <- targets.indexed.reverseIterator) {
+    for (t <- targets.reverseIterator) {
       seen.add(t)
       for (upstream <- t.inputs) {
         assert(!seen(upstream))

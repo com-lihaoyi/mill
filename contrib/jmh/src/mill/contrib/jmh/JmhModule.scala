@@ -33,7 +33,7 @@ trait JmhModule extends JavaModule {
   def jmhCoreVersion: T[String]
   def jmhGeneratorByteCodeVersion: T[String] = jmhCoreVersion
 
-  def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
+  def ivyDeps = super.ivyDeps() ++ Seq(ivy"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
 
   def runJmh(args: String*) =
     Task.Command {
@@ -105,7 +105,7 @@ trait JmhModule extends JavaModule {
 
   def generatorDeps = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
+      Seq(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
     )
   }
 }

@@ -1,7 +1,7 @@
 package mill.eval
 
-import mill.api.{ColorLogger, PathRef, Result, Strict, SystemStreams, Val}
-import mill.api.Strict.Agg
+import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val}
+
 import mill.client.OutFiles
 import mill.define.*
 import mill.exec.{
@@ -64,7 +64,7 @@ final case class Evaluator private[mill] (
   def withFailFast(newFailFast: Boolean): Evaluator =
     this.copy(failFast = newFailFast)
 
-  def plan(goals: Agg[Task[?]]): Plan = {
+  def plan(goals: Seq[Task[?]]): Plan = {
     Plan.plan(goals)
   }
 
@@ -126,7 +126,7 @@ final case class Evaluator private[mill] (
       )
     }
     for (targets <- resolved)
-      yield evaluateNamed(Agg.from(targets), selectiveExecution)
+      yield evaluateNamed(Seq.from(targets), selectiveExecution)
   }
 
   /**
@@ -135,7 +135,7 @@ final case class Evaluator private[mill] (
    * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
    */
   def evaluateNamed(
-      targets: Agg[NamedTask[Any]],
+      targets: Seq[NamedTask[Any]],
       selectiveExecution: Boolean = false
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
 
@@ -206,7 +206,7 @@ private[mill] object Evaluator {
 
   class EvalOrThrow(evaluator: Evaluator, exceptionFactory: ExecResults => Throwable) {
     def apply[T: ClassTag](task: Task[T]): T =
-      evaluator.evaluate(Agg(task)) match {
+      evaluator.evaluate(Seq(task)) match {
         case r if r.failing.nonEmpty =>
           throw exceptionFactory(r)
         case r =>

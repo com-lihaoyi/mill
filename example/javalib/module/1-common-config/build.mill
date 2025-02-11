@@ -4,7 +4,7 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   // You can have arbitrary numbers of third-party dependencies
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 

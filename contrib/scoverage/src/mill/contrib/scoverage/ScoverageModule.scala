@@ -2,7 +2,7 @@ package mill.contrib.scoverage
 
 import coursier.Repository
 import mill._
-import mill.api.{Loose, PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.main.BuildInfo
 import mill.scalalib.api.ZincWorkerUtil
@@ -31,7 +31,7 @@ import mill.util.MillModuleUtil.millProjectModule
  *   def scoverageVersion = "2.1.1"
  *
  *   object test extends ScoverageTests {
- *     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.2.19")
+ *     def ivyDeps = Seq(ivy"org.scalatest::scalatest:3.2.19")
  *     def testFrameworks = Seq("org.scalatest.tools.Framework")
  *   }
  * }
@@ -60,20 +60,20 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
   private def isScala3: Task[Boolean] = Task.Anon { ZincWorkerUtil.isScala3(outer.scalaVersion()) }
 
-  def scoverageRuntimeDeps: T[Agg[Dep]] = Task {
+  def scoverageRuntimeDeps: T[Seq[Dep]] = Task {
     if (isScala3()) {
-      Agg.empty
+      Seq.empty
     } else {
-      Agg(ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
+      Seq(ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
     }
   }
 
-  def scoveragePluginDeps: T[Agg[Dep]] = Task {
+  def scoveragePluginDeps: T[Seq[Dep]] = Task {
     val sv = scoverageVersion()
     if (isScala3()) {
-      Agg.empty
+      Seq.empty
     } else {
-      Agg(
+      Seq(
         ivy"org.scoverage:::scalac-scoverage-plugin:${sv}",
         ivy"org.scoverage::scalac-scoverage-domain:${sv}",
         ivy"org.scoverage::scalac-scoverage-serializer:${sv}",
@@ -95,7 +95,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  private def scoverageReporterIvyDeps: T[Agg[Dep]] = Task {
+  private def scoverageReporterIvyDeps: T[Seq[Dep]] = Task {
     checkVersions()
 
     val sv = scoverageVersion()
@@ -104,23 +104,23 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     // we need to resolve with same Scala version used for Mill, not the project Scala version
     val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(millScalaVersion)
     // In Scoverage 2.x, the reporting API is no longer bundled in the plugin jar
-    Agg(
+    Seq(
       ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
       ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
       ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
     )
   }
 
-  def scoverageToolsClasspath: T[Agg[PathRef]] = Task {
+  def scoverageToolsClasspath: T[Seq[PathRef]] = Task {
     scoverageReportWorkerClasspath() ++
       defaultResolver().resolveDeps(scoverageReporterIvyDeps())
   }
 
-  def scoverageClasspath: T[Agg[PathRef]] = Task {
+  def scoverageClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(scoveragePluginDeps())
   }
 
-  def scoverageReportWorkerClasspath: T[Agg[PathRef]] = Task {
+  def scoverageReportWorkerClasspath: T[Seq[PathRef]] = Task {
     val workerArtifact = "mill-contrib-scoverage-worker2"
 
     millProjectModule(
@@ -161,13 +161,13 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       internalRepositories() ++ outer.repositoriesTask()
     }
-    override def compileIvyDeps: T[Agg[Dep]] = Task { outer.compileIvyDeps() }
-    override def ivyDeps: T[Agg[Dep]] =
+    override def compileIvyDeps: T[Seq[Dep]] = Task { outer.compileIvyDeps() }
+    override def ivyDeps: T[Seq[Dep]] =
       Task { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
-    override def unmanagedClasspath: T[Agg[PathRef]] = Task { outer.unmanagedClasspath() }
+    override def unmanagedClasspath: T[Seq[PathRef]] = Task { outer.unmanagedClasspath() }
 
     /** Add the scoverage scalac plugin. */
-    override def scalacPluginIvyDeps: T[Loose.Agg[Dep]] =
+    override def scalacPluginIvyDeps: T[Seq[Dep]] =
       Task { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */

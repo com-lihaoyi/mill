@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.define.Discover
-import mill.{Agg, Task}
+import mill.Task
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.main.TokenReaders._
@@ -13,7 +13,7 @@ object TestClassLoaderTests extends TestSuite {
 
     object test extends ScalaTests with TestModule.Utest {
       override def ivyDeps = Task {
-        super.ivyDeps() ++ Agg(
+        super.ivyDeps() ++ Seq(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
       }
