@@ -352,7 +352,7 @@ class MillBuildBootstrap(
     val baseLogger = new PrefixLogger(logger, bootLogPrefix)
     new mill.eval.Evaluator(
       allowPositionalCommandArgs = allowPositionalCommandArgs,
-      selectiveExecution = false,
+      selectiveExecution = selectiveExecution,
       execution = new mill.exec.Execution(
         baseLogger = baseLogger,
         chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
