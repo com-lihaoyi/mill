@@ -4,6 +4,8 @@ import mill.api.{PathRef, Result}
 import mill.define.{Target => T, _}
 
 trait ApeModule extends mill.Module with AssemblyModule {
+  def forkArgs(argv0: String): Task[Seq[String]] = Task.Anon { Seq[String]() }
+
   def cosmoccVersion: T[String] = Task { "" }
 
   def cosmoccZip: T[PathRef] = Task(persistent = true) {
@@ -21,25 +23,51 @@ trait ApeModule extends mill.Module with AssemblyModule {
   }
 
   def apeLauncherScript: T[Option[String]] = Task {
+    val start = 1
+    val size0 = start + forkArgs().length
+    val addForkArgs = forkArgs()
+      .zip(start until size0)
+      .map { (arg, i) =>
+        s"""all_argv[${i}] = (char*)malloc((strlen("${arg}") + 1) * sizeof(char));
+           |strcpy(all_argv[${i}], "${arg}");
+        """.stripMargin
+      }.mkString("\n")
+
+    val args = forkArgs("%s")()
+    val size = size0 + args.length
+    val addForkArgsArgv0 = args
+      .zip(size0 until size)
+      .map { (arg, i) =>
+        s"""char* s${i};
+           |asprintf(&s${i}, "${arg}", argv[0]);
+           |all_argv[${i}] = (char*)malloc((strlen(s${i}) + 1) * sizeof(char));
+           |strcpy(all_argv[${i}], s${i});
+        """.stripMargin
+      }.mkString("\n");
+
+    val preArgvSize = size + 3;
+
     finalMainClassOpt().toOption.map { cls =>
       s"""#include <stdlib.h>
          |#include <stdio.h>
          |#include <errno.h>
          |
          |int main(int argc, char* argv[]) {
-         |  size_t preargv_size = 4;
+         |  size_t preargv_size = ${preArgvSize};
          |  size_t total = preargv_size + argc;
          |  char *all_argv[total];
          |  memset(all_argv, 0, sizeof(all_argv));
          |
          |  all_argv[0] = (char*)malloc((strlen(argv[0]) + 1) * sizeof(char));
          |  strcpy(all_argv[0], argv[0]);
-         |  all_argv[1] = (char*)malloc((strlen("-cp") + 1) * sizeof(char));
-         |  strcpy(all_argv[1], "-cp");
-         |  all_argv[2] = (char*)malloc((strlen(argv[0]) + 1) * sizeof(char));
-         |  strcpy(all_argv[2], argv[0]);
-         |  all_argv[3] = (char*)malloc((strlen("${cls}") + 1) * sizeof(char));
-         |  strcpy(all_argv[3], "${cls}");
+         |  ${addForkArgs}
+         |  ${addForkArgsArgv0}
+         |  all_argv[${size}] = (char*)malloc((strlen("-cp") + 1) * sizeof(char));
+         |  strcpy(all_argv[${size}], "-cp");
+         |  all_argv[${size + 1}] = (char*)malloc((strlen(argv[0]) + 1) * sizeof(char));
+         |  strcpy(all_argv[${size + 1}], argv[0]);
+         |  all_argv[${size + 2}] = (char*)malloc((strlen("${cls}") + 1) * sizeof(char));
+         |  strcpy(all_argv[${size + 2}], "${cls}");
          |
          |  int i = preargv_size;
          |  for (int count = 1; count < argc; count++) {
