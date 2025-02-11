@@ -115,7 +115,8 @@ object ScalaRunTests extends TestSuite {
         HelloWorldWithoutMain,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-no-main"
       ).scoped { eval =>
-        val Left(ExecResult.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run()): @unchecked
+        val Left(ExecResult.Failure(_, None)) =
+          eval.apply(HelloWorldWithoutMain.core.run()): @unchecked
       }
 
       test("runDiscoverMainClass") - UnitTester(HelloWorldWithoutMain, resourcePath).scoped {

@@ -76,24 +76,24 @@ object MainModule {
         targets,
         Separated,
         selectiveExecution = evaluator.selectiveExecution
-      ).flatMap{
-      case (watched, Result.Failure(err)) =>
-        watched.foreach(watch0)
-        Result.Failure(err)
+      ).flatMap {
+        case (watched, Result.Failure(err)) =>
+          watched.foreach(watch0)
+          Result.Failure(err)
 
-      case (watched, Result.Success(res)) =>
-        val output = f(res)
-        watched.foreach(watch0)
-        println(output.render(indent = 2))
-        Result.Success(output)
-    }
+        case (watched, Result.Success(res)) =>
+          val output = f(res)
+          watched.foreach(watch0)
+          println(output.render(indent = 2))
+          Result.Success(output)
+      }
   }
 
   def plan0(
       evaluator: Evaluator,
       tasks: Seq[String]
   ): Result[Array[NamedTask[?]]] = {
-    evaluator.resolveTasks(tasks, SelectMode.Multi).map{
+    evaluator.resolveTasks(tasks, SelectMode.Multi).map {
       rs =>
         val plan = evaluator.plan(rs)
         plan.sortedGroups.keys().collect { case r: NamedTask[_] => r }.toArray
@@ -126,10 +126,10 @@ trait MainModule extends BaseModule {
     Task.Command(exclusive = true) {
       val resolved = evaluator.resolveSegments(targets, SelectMode.Multi)
 
-      resolved.map{ resolvedSegmentsList =>
-          val resolvedStrings = resolvedSegmentsList.map(_.render)
-          resolvedStrings.sorted.foreach(println)
-          resolvedStrings
+      resolved.map { resolvedSegmentsList =>
+        val resolvedStrings = resolvedSegmentsList.map(_.render)
+        resolvedStrings.sorted.foreach(println)
+        resolvedStrings
       }
     }
 
@@ -139,7 +139,7 @@ trait MainModule extends BaseModule {
    */
   def plan(evaluator: Evaluator, targets: String*): Command[Array[String]] =
     Task.Command(exclusive = true) {
-      MainModule.plan0(evaluator, targets).map{
+      MainModule.plan0(evaluator, targets).map {
         success =>
           val renderedTasks = success.map(_.toString)
           renderedTasks.foreach(println)
@@ -162,7 +162,7 @@ trait MainModule extends BaseModule {
     Task.Command(exclusive = true) {
       val resolved = evaluator.resolveTasks(List(src, dest), SelectMode.Multi)
 
-      resolved.flatMap{
+      resolved.flatMap {
         case Seq(src1, dest1) =>
           val queue = collection.mutable.Queue[List[Task[?]]](List(src1))
           var found = Option.empty[List[Task[?]]]
@@ -492,7 +492,7 @@ trait MainModule extends BaseModule {
             (allPaths, ts)
           }
 
-      (pathsToRemove: @unchecked).map{
+      (pathsToRemove: @unchecked).map {
         case (paths, allSegments) =>
           for {
             workerSegments <- evaluator.workerCache.keys.toList
@@ -523,8 +523,9 @@ trait MainModule extends BaseModule {
    */
   def visualizePlan(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) {
-      MainModule.plan0(evaluator, targets).flatMap{
-        planResults => visualize0(
+      MainModule.plan0(evaluator, targets).flatMap {
+        planResults =>
+          visualize0(
             evaluator,
             targets,
             Target.ctx(),
@@ -584,7 +585,8 @@ trait MainModule extends BaseModule {
           )
       (evaluated: @unchecked) match {
         case Result.Failure(failStr) => throw new Exception(failStr)
-        case Result.Success((_, Result.Success(Seq((_, Some((_, jsonableResult))))))) => jsonableResult
+        case Result.Success((_, Result.Success(Seq((_, Some((_, jsonableResult))))))) =>
+          jsonableResult
         case Result.Success((_, Result.Failure(failStr))) => throw new Exception(failStr)
       }
     }
@@ -614,8 +616,9 @@ trait MainModule extends BaseModule {
       }
     }
 
-    evaluator.resolveTasks(targets, SelectMode.Multi).flatMap{
-      rs => planTasks match {
+    evaluator.resolveTasks(targets, SelectMode.Multi).flatMap {
+      rs =>
+        planTasks match {
           case Some(allRs) => callVisualizeModule(rs, allRs)
           case None => callVisualizeModule(rs, rs)
         }

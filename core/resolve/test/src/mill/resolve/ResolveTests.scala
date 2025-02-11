@@ -36,7 +36,10 @@ object ResolveTests extends TestSuite {
       test("wildcard") - check("_", Result.Success(Set(_.single)), Set("single"))
       test("neg1") - check("sngle", Result.Failure("Cannot resolve sngle. Did you mean single?"))
       test("neg2") - check("snigle", Result.Failure("Cannot resolve snigle. Did you mean single?"))
-      test("neg3") - check("nsiigle", Result.Failure("Cannot resolve nsiigle. Did you mean single?"))
+      test("neg3") - check(
+        "nsiigle",
+        Result.Failure("Cannot resolve nsiigle. Did you mean single?")
+      )
       test("neg4") - check(
         "ansiigle",
         Result.Failure("Cannot resolve ansiigle. Try `mill resolve _` to see what's available.")
@@ -47,26 +50,44 @@ object ResolveTests extends TestSuite {
       )
       test("neg6") - check(
         "single.doesntExist",
-        Result.Failure("Cannot resolve single.doesntExist. single resolves to a Task with no children.")
+        Result.Failure(
+          "Cannot resolve single.doesntExist. single resolves to a Task with no children."
+        )
       )
       test("neg7") - check(
         "",
-        Result.Failure("Target selector must not be empty. Try `mill resolve _` to see what's available.")
+        Result.Failure(
+          "Target selector must not be empty. Try `mill resolve _` to see what's available."
+        )
       )
     }
     test("backtickIdentifiers") {
       val check = new Checker(bactickIdentifiers)
       test("pos1") - check("up-target", Result.Success(Set(_.`up-target`)), Set("up-target"))
-      test("pos2") - check("a-down-target", Result.Success(Set(_.`a-down-target`)), Set("a-down-target"))
-      test("neg1") - check("uptarget", Result.Failure("Cannot resolve uptarget. Did you mean up-target?"))
-      test("neg2") - check("upt-arget", Result.Failure("Cannot resolve upt-arget. Did you mean up-target?"))
+      test("pos2") - check(
+        "a-down-target",
+        Result.Success(Set(_.`a-down-target`)),
+        Set("a-down-target")
+      )
+      test("neg1") - check(
+        "uptarget",
+        Result.Failure("Cannot resolve uptarget. Did you mean up-target?")
+      )
+      test("neg2") - check(
+        "upt-arget",
+        Result.Failure("Cannot resolve upt-arget. Did you mean up-target?")
+      )
       test("neg3") - check(
         "up-target.doesntExist",
-        Result.Failure("Cannot resolve up-target.doesntExist. up-target resolves to a Task with no children.")
+        Result.Failure(
+          "Cannot resolve up-target.doesntExist. up-target resolves to a Task with no children."
+        )
       )
       test("neg4") - check(
         "",
-        Result.Failure("Target selector must not be empty. Try `mill resolve _` to see what's available.")
+        Result.Failure(
+          "Target selector must not be empty. Try `mill resolve _` to see what's available."
+        )
       )
       test("neg5") - check(
         "invisible",
@@ -93,7 +114,11 @@ object ResolveTests extends TestSuite {
     test("nested") {
       val check = new Checker(nestedModule)
       test("pos1") - check("single", Result.Success(Set(_.single)), Set("single"))
-      test("pos2") - check("nested.single", Result.Success(Set(_.nested.single)), Set("nested.single"))
+      test("pos2") - check(
+        "nested.single",
+        Result.Success(Set(_.nested.single)),
+        Set("nested.single")
+      )
       test("pos3") - check(
         "classInstance.single",
         Result.Success(Set(_.classInstance.single)),
@@ -125,7 +150,9 @@ object ResolveTests extends TestSuite {
       )
       test("neg2") - check(
         "single.doesntExist",
-        Result.Failure("Cannot resolve single.doesntExist. single resolves to a Task with no children.")
+        Result.Failure(
+          "Cannot resolve single.doesntExist. single resolves to a Task with no children."
+        )
       )
       test("neg3") - check(
         "nested.doesntExist",
@@ -163,7 +190,9 @@ object ResolveTests extends TestSuite {
       )
       test("wildcardNeg3") - check(
         "nested._.foobar",
-        Result.Failure("Cannot resolve nested._.foobar. nested._ resolves to a Task with no children.")
+        Result.Failure(
+          "Cannot resolve nested._.foobar. nested._ resolves to a Task with no children."
+        )
       )
       test("wildcard2") - check(
         "__.single",
@@ -187,7 +216,11 @@ object ResolveTests extends TestSuite {
     test("doubleNested") {
       val check = new Checker(doubleNestedModule)
       test("pos1") - check("single", Result.Success(Set(_.single)), Set("single"))
-      test("pos2") - check("nested.single", Result.Success(Set(_.nested.single)), Set("nested.single"))
+      test("pos2") - check(
+        "nested.single",
+        Result.Success(Set(_.nested.single)),
+        Set("nested.single")
+      )
       test("pos3") - check(
         "nested.inner.single",
         Result.Success(Set(_.nested.inner.single)),

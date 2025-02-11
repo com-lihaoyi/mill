@@ -13,7 +13,7 @@ sealed trait Result[+T] {
 }
 object Result {
   implicit def create[T](value: T): Result[T] = Success(value)
-  case class Success[+T](value: T) extends Result[T]{
+  case class Success[+T](value: T) extends Result[T] {
 
     def map[V](f: T => V): Result[V] = Success(f(value))
 
@@ -32,15 +32,15 @@ object Result {
     def toEither: Either[String, Nothing] = Left(error)
     def left: Option[String] = Some(error)
   }
-  
-  def fromEither[T](either: Either[String, T]) = either match{
+
+  def fromEither[T](either: Either[String, T]) = either match {
     case Left(err) => Result.Failure(err)
     case Right(value) => Result.Success(value)
   }
 
   // implementation similar to scala.concurrent.Future#sequence
   def sequence[B, M[X] <: IterableOnce[X]](in: M[Result[B]])(
-    implicit cbf: BuildFrom[M[Result[B]], B, M[B]]
+      implicit cbf: BuildFrom[M[Result[B]], B, M[B]]
   ): Result[M[B]] = {
     in.iterator
       .foldLeft[Result[mutable.Builder[B, M[B]]]](Success(cbf.newBuilder(in))) {

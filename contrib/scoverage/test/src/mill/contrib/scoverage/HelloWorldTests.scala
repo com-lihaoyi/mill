@@ -283,7 +283,8 @@ trait FailedWorldTests extends HelloWorldTests {
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(ExecResult.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport()): @unchecked
+          val Left(ExecResult.Failure(msg, _)) =
+            eval.apply(mod.core.scoverage.xmlReport()): @unchecked
           assert(msg == errorMsg)
         }
       }
@@ -299,7 +300,8 @@ trait FailedWorldTests extends HelloWorldTests {
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(ExecResult.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport()): @unchecked
+          val Left(ExecResult.Failure(msg, _)) =
+            eval.apply(mod.core.scoverage.xmlReport()): @unchecked
           assert(msg == errorMsg)
         }
       }

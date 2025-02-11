@@ -19,7 +19,8 @@ object TestRunnerTests extends TestSuite {
           outStream = new PrintStream(outStream, true),
           sourceRoot = resourcePath
         ).scoped { eval =>
-          val Left(ExecResult.Failure(msg, _)) = eval(testrunner.doneMessageFailure.test()): @unchecked
+          val Left(ExecResult.Failure(msg, _)) =
+            eval(testrunner.doneMessageFailure.test()): @unchecked
           val stdout = new String(outStream.toByteArray)
           assert(stdout.contains("test failure done message"))
           junitReportIn(eval.outPath, "doneMessageFailure").shouldHave(1 -> Status.Failure)

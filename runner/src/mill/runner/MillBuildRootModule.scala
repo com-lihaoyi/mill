@@ -78,7 +78,7 @@ abstract class MillBuildRootModule()(implicit
       repos.find(_.isInstanceOf[Result.Failure]) match {
         case Some(error) => error
         case None =>
-          val res = repos.collect{case Result.Success(v) => v}.flatten
+          val res = repos.collect { case Result.Success(v) => v }.flatten
           Result.Success(res)
       }
     }

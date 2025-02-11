@@ -14,7 +14,6 @@ import mill.define.{
   SelectMode
 }
 import mill.api.Result
-import mill.internal.EitherOps
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 
 private[mill] object Resolve {
@@ -198,7 +197,8 @@ private[mill] object Resolve {
       )
     } match {
       case mainargs.Result.Success(v: Command[_]) => Result.Success(v)
-      case mainargs.Result.Failure.Exception(e) => Result.Failure(makeResultException(e, new Exception()).left.get)
+      case mainargs.Result.Failure.Exception(e) =>
+        Result.Failure(makeResultException(e, new Exception()).left.get)
       case f: mainargs.Result.Failure =>
         Result.Failure(
           mainargs.Renderer.renderResult(

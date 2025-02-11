@@ -4,7 +4,6 @@ import mill.api.Result
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse._
 import mill.define.{Segment, Segments, SelectMode}
-import mill.internal.EitherOps
 
 import scala.annotation.tailrec
 

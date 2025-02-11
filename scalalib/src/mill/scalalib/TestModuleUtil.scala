@@ -76,8 +76,10 @@ private[scalalib] object TestModuleUtil {
         stdout = os.Inherit
       )
 
-      if (!os.exists(outputPath)) Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
-      else Result.Success(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
+      if (!os.exists(outputPath))
+        Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
+      else
+        Result.Success(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
     }
 
     val globFilter = TestRunnerUtils.globFilter(selectors)

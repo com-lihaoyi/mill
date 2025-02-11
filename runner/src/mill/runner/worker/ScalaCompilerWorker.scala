@@ -106,6 +106,7 @@ private[runner] object ScalaCompilerWorker {
     }
 
   def bootstrapWorker(): Result[ResolvedWorker] = {
+    val classpath = bootstrapWorkerClasspath()
     classpath.flatMap { cp =>
       val resolvedCp = cp.iterator.map(_.path).toVector
       reflectEither(resolvedCp).map(worker => ResolvedWorker(resolvedCp, worker))

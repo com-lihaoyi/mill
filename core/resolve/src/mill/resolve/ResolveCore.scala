@@ -2,7 +2,6 @@ package mill.resolve
 
 import mill.define.*
 import mill.define.internal.Reflect
-import mill.internal.EitherOps
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -80,7 +79,8 @@ private object ResolveCore {
     catch {
       case e: InvocationTargetException =>
         mill.api.Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
-      case e: Exception => mill.api.Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
+      case e: Exception =>
+        mill.api.Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
     }
   }
 
@@ -412,7 +412,8 @@ private object ResolveCore {
   ): mill.api.Result[Seq[(Resolved, Option[Module => mill.api.Result[Module]])]] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
 
-    val modulesOrErr: mill.api.Result[Seq[(Resolved, Option[Module => mill.api.Result[Module]])]] = {
+    val modulesOrErr
+        : mill.api.Result[Seq[(Resolved, Option[Module => mill.api.Result[Module]])]] = {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {
         instantiateModule(rootModule, segments, cache).map {
           case m: DynamicModule =>

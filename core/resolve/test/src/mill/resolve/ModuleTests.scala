@@ -262,7 +262,9 @@ object ModuleTests extends TestSuite {
           )
           test("labelNeg3") - check(
             "__.doesntExist",
-            Result.Failure("Cannot resolve __.doesntExist. Try `mill resolve _` to see what's available.")
+            Result.Failure(
+              "Cannot resolve __.doesntExist. Try `mill resolve _` to see what's available."
+            )
           )
           test("labelNeg4") - check(
             "cross.__.doesntExist",

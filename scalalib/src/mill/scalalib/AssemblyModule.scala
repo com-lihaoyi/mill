@@ -111,7 +111,7 @@ trait AssemblyModule extends mill.Module {
            |Either reduce the entries count of the assembly or disable the prepended shell script with:
            |
            |  def prependShellScript = ""
-           |""".stripMargin,
+           |""".stripMargin
       )
     } else {
       Result.Success(created.pathRef)

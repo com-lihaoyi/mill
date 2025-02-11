@@ -127,7 +127,8 @@ object ExecResult {
     catch {
       case e: InvocationTargetException =>
         mill.api.Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
-      case e: Exception => mill.api.Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
+      case e: Exception =>
+        mill.api.Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
     }
   }
 

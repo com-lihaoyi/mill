@@ -1,7 +1,7 @@
 package mill.scalanativelib
 
 import mill.*
-import mill.api.{ExecResult, Result}
+import mill.api.ExecResult
 import mill.scalanativelib.api.*
 import mill.testkit.UnitTester
 import mill.testrunner.TestResult

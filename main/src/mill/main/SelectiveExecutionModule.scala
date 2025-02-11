@@ -33,7 +33,7 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def resolve(evaluator: Evaluator, tasks: String*): Command[Array[String]] =
     Task.Command(exclusive = true) {
-      SelectiveExecution.resolve0(evaluator, tasks).map{ success =>
+      SelectiveExecution.resolve0(evaluator, tasks).map { success =>
         success.foreach(println)
         success
       }
@@ -46,7 +46,7 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def resolveTree(evaluator: Evaluator, tasks: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      SelectiveExecution.resolveTree(evaluator, tasks).map{ success =>
+      SelectiveExecution.resolveTree(evaluator, tasks).map { success =>
         println(success.render(indent = 2))
         success
       }
@@ -58,7 +58,7 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def resolveChanged(evaluator: Evaluator, tasks: String*): Command[Seq[String]] =
     Task.Command(exclusive = true) {
-      SelectiveExecution.resolveChanged(evaluator, tasks).map{ success =>
+      SelectiveExecution.resolveChanged(evaluator, tasks).map { success =>
         success.foreach(println)
         success
       }

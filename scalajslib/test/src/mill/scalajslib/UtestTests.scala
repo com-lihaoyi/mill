@@ -1,7 +1,6 @@
 package mill.scalajslib
 
 import mill._
-import mill.api.Result
 import mill.api.ExecResult
 import mill.testkit.UnitTester
 import mill.testrunner.TestResult

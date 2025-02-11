@@ -210,8 +210,7 @@ options:
       autoPrintHelpAndExit = None,
       customName = customName,
       customDoc = customDoc
-    )
-    )
+    ))
   }
 
 }

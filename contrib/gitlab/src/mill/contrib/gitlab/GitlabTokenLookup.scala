@@ -58,14 +58,18 @@ trait GitlabTokenLookup {
   ): Result[GitlabAuthHeaders] = {
 
     def readPath(path: os.Path): Result[String] =
-      Result.fromEither(Try(os.read(path)).map(_.trim).toEither.left.map(e => s"failed to read file $e"))
+      Result.fromEither(Try(os.read(path)).map(_.trim).toEither.left.map(e =>
+        s"failed to read file $e"
+      ))
 
     def readSource(source: TokenSource): Result[String] =
       source match {
         case Env(name) =>
           Result.fromEither(env.get(name).toRight(s"Could not read environment variable $name"))
         case Property(property) =>
-          Result.fromEither(prop.get(property).toRight(s"Could not read system property variable $prop"))
+          Result.fromEither(
+            prop.get(property).toRight(s"Could not read system property variable $prop")
+          )
         case File(path) =>
           readPath(path)
         case WorkspaceFile(path) =>

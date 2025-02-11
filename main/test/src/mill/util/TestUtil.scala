@@ -1,8 +1,7 @@
 package mill.util
 
 import mill.define.*
-import mill.api.{ExecResult, Result}
-import mill.api.ExecResult.OuterStack
+import mill.api.Result
 import utest.assert
 
 import scala.collection.mutable

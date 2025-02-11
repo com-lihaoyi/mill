@@ -245,7 +245,7 @@ class MillBuildBootstrap(
         nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-        Result.Success(Seq(
+            Result.Success(Seq(
               Val(runClasspath: Seq[PathRef]),
               Val(compile: mill.scalalib.api.CompilationResult),
               Val(methodCodeHashSignatures: Map[String, Int])
@@ -468,7 +468,8 @@ object MillBuildBootstrap {
       case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatched)
       case Result.Success((watched, evaluated)) =>
         evaluated match {
-          case Result.Failure(msg) => (Result.Failure(msg), watched ++ addedEvalWatched, moduleWatched)
+          case Result.Failure(msg) =>
+            (Result.Failure(msg), watched ++ addedEvalWatched, moduleWatched)
           case Result.Success(results) =>
             (Result.Success(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
         }

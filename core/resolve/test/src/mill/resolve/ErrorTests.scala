@@ -346,7 +346,12 @@ object ErrorTests extends TestSuite {
           test - check.checkSeq0(
             Seq("myCross._.foo"),
             isShortError(_, "MyCross Boom"),
-            _ == Result.Success(List("myCross[1].foo", "myCross[2].foo", "myCross[3].foo", "myCross[4].foo"))
+            _ == Result.Success(List(
+              "myCross[1].foo",
+              "myCross[2].foo",
+              "myCross[3].foo",
+              "myCross[4].foo"
+            ))
           )
           test - check.checkSeq0(
             Seq("myCross[_].foo"),
@@ -356,7 +361,12 @@ object ErrorTests extends TestSuite {
           test - check.checkSeq0(
             Seq("__.foo"),
             isShortError(_, "MyCross Boom"),
-            _ == Result.Success(List("myCross[1].foo", "myCross[2].foo", "myCross[3].foo", "myCross[4].foo"))
+            _ == Result.Success(List(
+              "myCross[1].foo",
+              "myCross[2].foo",
+              "myCross[3].foo",
+              "myCross[4].foo"
+            ))
           )
           test - check.checkSeq0(
             Seq("__"),
