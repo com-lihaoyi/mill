@@ -136,7 +136,7 @@ class UnitTester(
     if (evaluated.failing.isEmpty) {
       Right(
         UnitTester.Result(
-          evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
+          evaluated.rawValues.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
           evaluated.evaluated.collect {
             case t: TargetImpl[_]
                 if module.moduleInternal.targets.contains(t)
