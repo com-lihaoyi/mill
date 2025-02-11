@@ -50,7 +50,7 @@ object GitlabTokenTests extends TestSuite {
       )
 
       assertMatch(token) {
-        case Right(GitlabAuthHeaders(Seq(("Private-Token", "private-token-from-env")))) =>
+        case Result.Success(GitlabAuthHeaders(Seq(("Private-Token", "private-token-from-env")))) =>
       }
     }
 
