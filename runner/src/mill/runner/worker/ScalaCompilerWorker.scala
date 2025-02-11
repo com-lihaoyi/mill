@@ -80,9 +80,7 @@ private[runner] object ScalaCompilerWorker {
     }
   }
 
-  private def reflectUnsafe(classpath: IterableOnce[os.Path])(using
-      mill.api.Ctx.Home
-  ): ScalaCompilerWorkerApi =
+  private def reflectUnsafe(classpath: IterableOnce[os.Path]): ScalaCompilerWorkerApi =
     val cl = mill.util.Jvm.createClassLoader(
       classpath.toVector,
       getClass.getClassLoader
@@ -94,9 +92,8 @@ private[runner] object ScalaCompilerWorker {
       .asInstanceOf[ScalaCompilerWorkerApi]
     bridge
 
-  private def reflectEither(classpath: IterableOnce[os.Path])(using
-      mill.api.Ctx.Home
-  ): Either[String, ScalaCompilerWorkerApi] =
+  private def reflectEither(classpath: IterableOnce[os.Path])
+      : Either[String, ScalaCompilerWorkerApi] =
     catchWrapException {
       reflectUnsafe(classpath)
     }
@@ -108,10 +105,7 @@ private[runner] object ScalaCompilerWorker {
       reflectUnsafe(classpath)
     }
 
-  def bootstrapWorker(home0: os.Path): Either[String, ResolvedWorker] = {
-    given mill.api.Ctx.Home = new mill.api.Ctx.Home {
-      def home = home0
-    }
+  def bootstrapWorker(): Either[String, ResolvedWorker] = {
     val classpath = bootstrapWorkerClasspath() match {
       case Result.Success(value) => Right(value)
       case Result.Failure(msg, _) => Left(msg)
