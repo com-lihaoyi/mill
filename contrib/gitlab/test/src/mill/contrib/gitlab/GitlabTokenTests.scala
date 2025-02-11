@@ -1,8 +1,9 @@
 package mill.contrib.gitlab
 
-import mill.contrib.gitlab.GitlabTokenLookup._
+import mill.api.Result
+import mill.contrib.gitlab.GitlabTokenLookup.*
 import mill.internal.DummyLogger
-import mill.scalalib.publish._
+import mill.scalalib.publish.*
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 
 import scala.collection.mutable.ListBuffer
@@ -35,10 +36,10 @@ object GitlabTokenTests extends TestSuite {
           ws
         )
 
-      assert(none.isLeft)
-      assertMatch(first) { case Right(GitlabAuthHeaders(Seq(("Private-Token", "1")))) => }
-      assertMatch(second) { case Right(GitlabAuthHeaders(Seq(("Private-Token", "2")))) => }
-      assertMatch(both) { case Right(GitlabAuthHeaders(Seq(("Private-Token", "1")))) => }
+      assert(none.isInstanceOf[Result.Failure])
+      assertMatch(first) { case Result.Success(GitlabAuthHeaders(Seq(("Private-Token", "1")))) => }
+      assertMatch(second) { case Result.Success(GitlabAuthHeaders(Seq(("Private-Token", "2")))) => }
+      assertMatch(both) { case Result.Success(GitlabAuthHeaders(Seq(("Private-Token", "1")))) => }
     }
 
     test("Token from environment variable") {
@@ -61,7 +62,7 @@ object GitlabTokenTests extends TestSuite {
       )
 
       // personal access token property resolves before deploy token in default lookup
-      assertMatch(token) { case Right(GitlabAuthHeaders(Seq(("Private-Token", "pt")))) => }
+      assertMatch(token) { case Result.Success(GitlabAuthHeaders(Seq(("Private-Token", "pt")))) => }
     }
 
     test("Token from property, with no environment variables") {
@@ -72,7 +73,7 @@ object GitlabTokenTests extends TestSuite {
       )
 
       // personal access token property resolves before deploy token in default lookup
-      assertMatch(token) { case Right(GitlabAuthHeaders(Seq(("Private-Token", "pt")))) => }
+      assertMatch(token) { case Result.Success(GitlabAuthHeaders(Seq(("Private-Token", "pt")))) => }
     }
 
     test("Token from file") {
@@ -89,7 +90,7 @@ object GitlabTokenTests extends TestSuite {
 
       os.remove(tokenFile)
 
-      assertMatch(token) { case Right(GitlabAuthHeaders(Seq(("Deploy-Token", "foo")))) => }
+      assertMatch(token) { case Result.Success(GitlabAuthHeaders(Seq(("Deploy-Token", "foo")))) => }
     }
 
     test("Token from workspace") {
@@ -107,19 +108,19 @@ object GitlabTokenTests extends TestSuite {
 
       os.remove(ws / tokenFile)
 
-      assertMatch(token) { case Right(GitlabAuthHeaders(Seq(("Deploy-Token", "foo")))) => }
+      assertMatch(token) { case Result.Success(GitlabAuthHeaders(Seq(("Deploy-Token", "foo")))) => }
     }
 
     test("Custom token source.") {
       object customEnv extends GitlabTokenLookup {
         override def tokenSearchOrder = Seq(
-          Deploy(Custom(() => Right("tok")))
+          Deploy(Custom(() => Result.Success("tok")))
         )
       }
 
       val token = customEnv.resolveGitlabToken(Map.empty, Map.empty, ws)
 
-      assertMatch(token) { case Right(GitlabAuthHeaders(Seq(("Deploy-Token", "tok")))) => }
+      assertMatch(token) { case Result.Success(GitlabAuthHeaders(Seq(("Deploy-Token", "tok")))) => }
     }
 
     test("Publish url is correct") {

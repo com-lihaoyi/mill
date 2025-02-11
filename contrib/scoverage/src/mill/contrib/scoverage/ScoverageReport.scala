@@ -1,7 +1,8 @@
 package mill.contrib.scoverage
 
+import mill.api.Result
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
-import mill.define.{Command, Module, Task, SelectMode}
+import mill.define.{Command, Module, SelectMode, Task}
 import mill.eval.Evaluator
 import mill.{PathRef, T}
 import os.Path
@@ -93,15 +94,15 @@ trait ScoverageReport extends Module {
       Seq(sources),
       SelectMode.Separated
     ) match {
-      case Left(err) => throw new Exception(err)
-      case Right(tasks) => tasks.asInstanceOf[Seq[Task[Seq[PathRef]]]]
+      case Result.Failure(err) => throw new Exception(err)
+      case Result.Success(tasks) => tasks.asInstanceOf[Seq[Task[Seq[PathRef]]]]
     }
     val dataTasks: Seq[Task[PathRef]] = evaluator.resolveTasks(
       Seq(dataTargets),
       SelectMode.Separated
     ) match {
-      case Left(err) => throw new Exception(err)
-      case Right(tasks) => tasks.asInstanceOf[Seq[Task[PathRef]]]
+      case Result.Failure(err) => throw new Exception(err)
+      case Result.Success(tasks) => tasks.asInstanceOf[Seq[Task[PathRef]]]
     }
 
     Task.Anon {

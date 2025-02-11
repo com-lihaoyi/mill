@@ -182,7 +182,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       bridge.link(
         runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
         dest = dest,
-        main = main,
+        main = main.toEither,
         forceOutJs = forceOutJs,
         testBridgeInit = testBridgeInit,
         isFullLinkJS = isFullLinkJS,

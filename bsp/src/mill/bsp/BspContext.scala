@@ -1,6 +1,6 @@
 package mill.bsp
 
-import mill.api.{DummyInputStream, Logger, SystemStreams}
+import mill.api.{DummyInputStream, Logger, Result, SystemStreams}
 
 import java.io.PrintStream
 import scala.util.control.NonFatal
@@ -28,8 +28,8 @@ private[mill] class BspContext(
         logStream = bspLogStream,
         canReload = true
       ) match {
-        case Left(err) => sys.error(err)
-        case Right(res) => res
+        case Result.Failure(err) => sys.error(err)
+        case Result.Success(res) => res
       }
     } catch {
       case NonFatal(e) =>

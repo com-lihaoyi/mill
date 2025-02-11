@@ -11,7 +11,7 @@ import mill.util.Jvm
 trait AssemblyModule extends mill.Module {
   outer =>
 
-  def finalMainClassOpt: T[Result[String]]
+  def finalMainClassOpt: T[Either[String, String]]
 
   def forkArgs: T[Seq[String]]
 

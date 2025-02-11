@@ -76,8 +76,8 @@ private[scalalib] object TestModuleUtil {
         stdout = os.Inherit
       )
 
-      if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
-      else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
+      if (!os.exists(outputPath)) Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
+      else Result.Success(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
     }
 
     val globFilter = TestRunnerUtils.globFilter(selectors)
@@ -160,17 +160,17 @@ private[scalalib] object TestModuleUtil {
         val outputs = Task.fork.awaitAll(futures)
 
         val (lefts, rights) = outputs.partitionMap {
-          case (name, Left(v)) => Left(name + " " + v)
-          case (name, Right((msg, results))) => Right((name + " " + msg, results))
+          case (name, Result.Failure(v)) => Left(name + " " + v)
+          case (name, Result.Success((msg, results))) => Right((name + " " + msg, results))
         }
 
-        if (lefts.nonEmpty) Left(lefts.mkString("\n"))
-        else Right((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
+        if (lefts.nonEmpty) Result.Failure(lefts.mkString("\n"))
+        else Result.Success((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
     }
 
     subprocessResult match {
-      case Left(errMsg) => Result.Failure(errMsg)
-      case Right((doneMsg, results)) =>
+      case Result.Failure(errMsg) => Result.Failure(errMsg)
+      case Result.Success((doneMsg, results)) =>
         if (results.isEmpty && selectors.nonEmpty) throw doesNotMatchError
         try handleResults(doneMsg, results, Task.ctx(), testReportXml)
         catch {

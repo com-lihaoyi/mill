@@ -1,6 +1,7 @@
 package mill.resolve
 
 import mill.define.Discover
+import mill.api.Result
 import mill.testkit.TestBaseModule
 import mill.{Cross, Module, Task}
 import utest.*
@@ -82,7 +83,7 @@ object TypeSelectorTests extends TestSuite {
       val check = new Checker(TypedModules)
       test - check(
         "__",
-        Right(Set(
+        Result.Success(Set(
           _.typeA.foo,
           _.typeB.bar,
           _.typeAB.foo,
@@ -94,7 +95,7 @@ object TypeSelectorTests extends TestSuite {
       // parens should work
       test - check(
         "(__)",
-        Right(Set(
+        Result.Success(Set(
           _.typeA.foo,
           _.typeB.bar,
           _.typeAB.foo,
@@ -105,34 +106,34 @@ object TypeSelectorTests extends TestSuite {
       )
       test - check(
         "(_)._",
-        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
+        Result.Success(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
         "_:Module._",
-        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
+        Result.Success(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       // parens should work
       test - check(
         "(_:Module)._",
-        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
+        Result.Success(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
         "(_:_root_.mill.define.Module)._",
-        Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
+        Result.Success(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
         "(_:^_root_.mill.define.Module)._",
-        Left(
+        Result.Failure(
           "Cannot resolve _:^_root_.mill.define.Module._. Try `mill resolve _` to see what's available."
         )
       )
       test - check(
         "_:TypeA._",
-        Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar))
+        Result.Success(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar))
       )
       test - check(
         "__:Module._",
-        Right(Set(
+        Result.Success(Set(
           _.typeA.foo,
           _.typeB.bar,
           _.typeAB.foo,
@@ -143,41 +144,41 @@ object TypeSelectorTests extends TestSuite {
       )
       test - check(
         "__:TypeA._",
-        Right(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar, _.typeC.typeA.foo))
+        Result.Success(Set(_.typeA.foo, _.typeAB.foo, _.typeAB.bar, _.typeC.typeA.foo))
       )
       test - check(
         "(__:TypeA:^TypedModules.TypeB)._",
-        Right(Set(_.typeA.foo, _.typeC.typeA.foo))
+        Result.Success(Set(_.typeA.foo, _.typeC.typeA.foo))
       )
       // missing parens
       test - check(
         "__:TypeA:^TypedModules.TypeB._",
-        Left(
+        Result.Failure(
           "Cannot resolve __:TypeA:^TypedModules.TypeB._. Try `mill resolve _` to see what's available."
         )
       )
       test - check(
         "(__:TypeA:!TypeB)._",
-        Right(Set(_.typeA.foo, _.typeC.typeA.foo))
+        Result.Success(Set(_.typeA.foo, _.typeC.typeA.foo))
       )
       test - check(
         "(__:TypedModules.TypeA:^TypedModules.TypeB)._",
-        Right(Set(_.typeA.foo, _.typeC.typeA.foo))
+        Result.Success(Set(_.typeA.foo, _.typeC.typeA.foo))
       )
       test - check(
         "__:^TypeA._",
-        Right(Set(_.typeB.bar, _.typeC.baz))
+        Result.Success(Set(_.typeB.bar, _.typeC.baz))
       )
       test - check(
         "__:^TypeA._",
-        Right(Set(_.typeB.bar, _.typeC.baz))
+        Result.Success(Set(_.typeB.bar, _.typeC.baz))
       )
     }
     test("crossTypeSelector") {
       val check = new Checker(TypedCrossModules)
       test - check(
         "__",
-        Right(Set(
+        Result.Success(Set(
           _.typeA("a").foo,
           _.typeA("b").foo,
           _.typeAB("a").foo,
@@ -206,7 +207,7 @@ object TypeSelectorTests extends TestSuite {
       )
       test - check(
         "__:TypeB._",
-        Right(Set(
+        Result.Success(Set(
           _.typeAB("a").foo,
           _.typeAB("a").bar,
           _.typeAB("b").foo,
@@ -231,7 +232,7 @@ object TypeSelectorTests extends TestSuite {
       )
       test - check(
         "__:^TypeB._",
-        Right(Set(
+        Result.Success(Set(
           _.typeA("a").foo,
           _.typeA("b").foo,
           _.inner.typeA("a").foo,
@@ -241,7 +242,7 @@ object TypeSelectorTests extends TestSuite {
       // Keep `!` as alternative to `^`
       test - check(
         "__:!TypeB._",
-        Right(Set(
+        Result.Success(Set(
           _.typeA("a").foo,
           _.typeA("b").foo,
           _.inner.typeA("a").foo,
@@ -252,20 +253,20 @@ object TypeSelectorTests extends TestSuite {
         val check = new Checker(TypedInnerModules)
         test - check(
           "__:TypeA._",
-          Right(Set(
+          Result.Success(Set(
             _.typeA.foo,
             _.inner.typeA.foo
           ))
         )
         test - check(
           "__:^TypeA._",
-          Right(Set(
+          Result.Success(Set(
             _.typeB.foo
           ))
         )
         test - check(
           "(__:^inner.TypeA)._",
-          Right(Set(
+          Result.Success(Set(
             _.typeA.foo,
             _.typeB.foo
           ))

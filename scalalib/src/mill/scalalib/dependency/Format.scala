@@ -12,7 +12,7 @@ object Format {
 
   implicit object FormatRead extends TokensReader.Simple[Format] {
     override def shortName: String = "format"
-    override def read(strs: scala.Seq[String]): Result[Format] = {
+    override def read(strs: scala.Seq[String]): Either[String, Format] = {
       val all = Seq[Format](Format.PerModule, Format.PerDependency)
       strs.headOption
         .flatMap(n => all.find(f => f.name == n))
