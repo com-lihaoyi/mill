@@ -73,10 +73,10 @@ object TypeSelectorTests extends TestSuite {
   }
 
   def isShortError(x: Result[?], s: String) =
-    x.left.exists(_.contains(s)) &&
+    x.errorOpt.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
       // contain the entire Mill internal call stack at point of failure
-      x.left.exists(_.linesIterator.size < 25)
+      x.errorOpt.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
     test("typeSelector") {

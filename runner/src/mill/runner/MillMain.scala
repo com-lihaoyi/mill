@@ -203,7 +203,7 @@ object MillMain {
                 val threadCount = Some(maybeThreadCount.toOption.get)
 
                 if (maybeScalaCompilerWorker.isInstanceOf[Result.Failure]) {
-                  val err = maybeScalaCompilerWorker.left.get
+                  val err = maybeScalaCompilerWorker.errorOpt.get
                   streams.err.println(err)
                   (false, stateCache)
                 } else {
