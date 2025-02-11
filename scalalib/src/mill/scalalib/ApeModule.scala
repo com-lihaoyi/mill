@@ -20,7 +20,7 @@ trait ApeModule extends mill.Module with AssemblyModule {
     PathRef(Task.dest / "cosmocc" / "bin" / "cosmocc")
   }
 
-  def launcherScript: T[Option[String]] = Task {
+  def apeLauncherScript: T[Option[String]] = Task {
     finalMainClassOpt().toOption.map { cls =>
       s"""#include <stdlib.h>
          |#include <stdio.h>
@@ -62,9 +62,9 @@ trait ApeModule extends mill.Module with AssemblyModule {
     }
   }
 
-  def compiledLauncherScript: T[Option[PathRef]] = Task {
-    launcherScript().map { launcherScript =>
-      os.write(Task.dest / "launcher.c", launcherScript)
+  def apeCompiledLauncherScript: T[Option[PathRef]] = Task {
+    apeLauncherScript().map { sc =>
+      os.write(Task.dest / "launcher.c", sc)
       os.call((cosmocc().path, "-mtiny", "-o", Task.dest / "launcher", Task.dest / "launcher.c"))
 
       PathRef(Task.dest / "launcher")
@@ -72,7 +72,8 @@ trait ApeModule extends mill.Module with AssemblyModule {
   }
 
   def apeAssembly: T[PathRef] = Task {
-    val prepend: Option[os.Source] = compiledLauncherScript().map(p => os.read.inputStream(p.path))
+    val prepend: Option[os.Source] =
+      apeCompiledLauncherScript().map(p => os.read.inputStream(p.path))
     val upstream = upstreamAssembly()
 
     val created = Assembly.create0(
