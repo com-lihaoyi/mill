@@ -33,17 +33,15 @@ private[mill] object SelectiveExecution {
 
       val results = evaluator.evaluate(Seq.from(inputTasksToLabels.keys))
 
-      new Metadata(
-        inputHashes = results
-          .results
-          .flatMap { case (task, taskResult) =>
-            inputTasksToLabels.get(task).map { l =>
-              l -> taskResult.result.get.value.hashCode
-            }
+      val inputHashes = results
+        .results
+        .flatMap { case (task, taskResult) =>
+          inputTasksToLabels.get(task).map { l =>
+            l -> taskResult.result.get.value.hashCode
           }
-          .toMap,
-        methodCodeHashSignatures = evaluator.methodCodeHashSignatures
-      ) -> results.results.toMap
+        }
+
+      new Metadata(inputHashes, evaluator.methodCodeHashSignatures) -> results.results
     }
   }
 
@@ -135,12 +133,12 @@ private[mill] object SelectiveExecution {
 
   def computeChangedTasks0(evaluator: Evaluator, tasks: Seq[NamedTask[?]]): ChangedTasks = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
+
     if (oldMetadataTxt == "") ChangedTasks(tasks, tasks.toSet, tasks, Map.empty)
     else {
       val transitiveNamed = Plan.transitiveNamed(tasks)
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       val (newMetadata, results) = SelectiveExecution.Metadata.compute0(evaluator, transitiveNamed)
-
       val (changedRootTasks, downstreamTasks) =
         SelectiveExecution.computeDownstream(transitiveNamed, oldMetadata, newMetadata)
 

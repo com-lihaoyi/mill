@@ -229,8 +229,6 @@ trait MainModule extends BaseModule {
       def pprintTask(t: NamedTask[?], evaluator: Evaluator): Tree.Lazy = {
         val seen = mutable.Set.empty[Task[?]]
 
-        DebugLog.println(t.toString)
-        DebugLog.println(t.ctx.segments.toString)
         def rec(t: Task[?]): Seq[Segments] = {
           if (seen(t)) Nil // do nothing
           else t match {
@@ -437,15 +435,10 @@ trait MainModule extends BaseModule {
    */
   def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      mill.client.DebugLog.println("show")
       MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0) { res =>
         res.flatMap(_._2) match {
-          case Seq((k, singleValue)) =>
-            mill.client.DebugLog.println("show singleValue " + singleValue)
-            singleValue
-          case multiple =>
-            mill.client.DebugLog.println("show multiple " + multiple)
-            ujson.Obj.from(multiple)
+          case Seq((k, singleValue)) => singleValue
+          case multiple => ujson.Obj.from(multiple)
         }
       }
     }

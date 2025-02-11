@@ -141,7 +141,8 @@ final case class Evaluator private[mill] (
 
     val selectedTargetsOrErr =
       if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
-        val changedTasks = SelectiveExecution.computeChangedTasks0(this, targets.toSeq)
+        val changedTasks = SelectiveExecution.computeChangedTasks0(this, targets)
+
         val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
         (
           targets.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
@@ -169,7 +170,7 @@ final case class Evaluator private[mill] (
         val allInputHashes = evaluated.results
           .iterator
           .collect {
-            case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
+            case (t: InputImpl[_], TaskResult(ExecResult.Success(Val(value)), _)) =>
               (t.ctx.segments.render, value.##)
           }
           .toMap
