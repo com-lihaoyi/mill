@@ -106,11 +106,14 @@ object PalantirFormatModuleTest extends TestSuite {
 
     val eval = UnitTester(module, moduleRoot)
 
-    eval(module.palantirformat(mainargs.Flag(check), mainargs.Leftover(sources*))).get
+    eval(module.palantirformat(mainargs.Flag(check), mainargs.Leftover(sources*))).fold(
+      _.throwException,
+      { _ =>
+        val Right(sources) = eval(module.sources): @unchecked
 
-    val Right(sources2) = eval(module.sources): @unchecked
-
-    sources2.value.flatMap(ref => walkFiles(ref.path))
+        sources.value.flatMap(ref => walkFiles(ref.path))
+      }
+    )
   }
 
   def afterFormatAll(modulesRoot: os.Path, check: Boolean = false): Seq[os.Path] = {
@@ -121,9 +124,13 @@ object PalantirFormatModuleTest extends TestSuite {
     }
 
     val eval = UnitTester(module, modulesRoot)
-    eval(PalantirFormatModule.formatAll(mainargs.Flag(check), Tasks(Seq(module.sources)))).get
-    val Right(sources) = eval(module.sources): @unchecked
-    sources.value.map(_.path).flatMap(walkFiles(_))
+    eval(PalantirFormatModule.formatAll(mainargs.Flag(check), Tasks(Seq(module.sources)))).fold(
+      _.throwException,
+      { _ =>
+        val Right(sources) = eval(module.sources): @unchecked
+        sources.value.map(_.path).flatMap(walkFiles(_))
+      }
+    )
   }
 
   def walkFiles(root: os.Path): Seq[os.Path] = {

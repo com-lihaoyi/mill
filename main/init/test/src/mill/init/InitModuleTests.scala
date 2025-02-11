@@ -29,7 +29,7 @@ object InitModuleTests extends TestSuite {
 
         assert(results.failing.size == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
+        val mill.api.ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
         val consoleShown = outStream.toString
 
         val examplesList: Seq[String] = value.asInstanceOf[Seq[String]]

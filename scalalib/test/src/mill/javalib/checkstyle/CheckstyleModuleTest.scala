@@ -185,19 +185,23 @@ object CheckstyleModuleTest extends TestSuite {
       args: CheckstyleArgs
   ): Boolean = {
     val eval = UnitTester(module, modulePath)
-    val Right(numViolations) = eval(module.checkstyle(args)): @unchecked
+    eval(module.checkstyle(args)).fold(
+      _.throwException,
+      numViolations => {
 
-    numViolations.value == violations.length && {
+        numViolations.value == violations.length && {
 
-      val Right(report) = eval(module.checkstyleOutput): @unchecked
+          val Right(report) = eval(module.checkstyleOutput): @unchecked
 
-      if (os.exists(report.value.path)) {
-        violations.isEmpty || {
-          val lines = os.read.lines(report.value.path)
-          violations.forall(violation => lines.exists(_.contains(violation)))
+          if (os.exists(report.value.path)) {
+            violations.isEmpty || {
+              val lines = os.read.lines(report.value.path)
+              violations.forall(violation => lines.exists(_.contains(violation)))
+            }
+          } else
+            args.stdout
         }
-      } else
-        args.stdout
-    }
+      }
+    )
   }
 }
