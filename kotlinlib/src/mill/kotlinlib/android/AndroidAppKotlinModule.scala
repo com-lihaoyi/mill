@@ -173,8 +173,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
-    override def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
-
     override def mandatoryIvyDeps: T[Seq[Dep]] = super.mandatoryIvyDeps() ++
       Seq(
         ivy"androidx.compose.ui:ui:$uiToolingVersion",
@@ -220,9 +218,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
         layoutlibPath = layoutLibRuntimePath().path.toString(),
         outputFolder = output.toString(),
         metaDataFolder = metadataFolder.toString(),
-        classPath = compileClasspath().map(_.path.toString()),
-        projectClassPath =
-          Seq(compile().classes.path.toString(), androidResources()._1.path.toString),
+        classPath = compileClasspath().map(_.path.toString()).toSeq,
+        projectClassPath = Seq(compile().classes.path.toString()),
         screenshots = androidDiscoveredPreviews()._2,
         namespace = namespace,
         resourceApkPath = resourceApkPath().path.toString(),
@@ -249,8 +246,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       val previewGenCmd = mill.util.Jvm.callProcess(
         mainClass = "com.android.tools.render.compose.MainKt",
         classPath =
-          composePreviewRenderer().map(_.path).toVector ++
-            layoutLibRenderer().map(_.path).toVector,
+          composePreviewRenderer().map(_.path).toVector ++ layoutLibRenderer().map(_.path).toVector,
         jvmArgs = Seq(
           "-Dlayoutlib.thread.profile.timeoutms=10000",
           "-Djava.security.manager=allow"
@@ -315,7 +311,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def forkArgs: T[Seq[String]] = super.forkArgs() ++ testJvmArgs()
     override def runClasspath: T[Seq[PathRef]] =
-      (androidPreviewScreenshotTestEngineClasspath() ++ compileClasspath()).distinct
+      super.runClasspath() ++ androidPreviewScreenshotTestEngineClasspath() ++ compileClasspath()
 
     def androidPreviewScreenshotTestEngineClasspath: T[Seq[PathRef]] = Task {
       defaultResolver().resolveDeps(
