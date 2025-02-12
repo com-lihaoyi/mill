@@ -1,8 +1,6 @@
 // tag::header[]
 
 # What is a Build Tool and how do they work?
-
-
 :author: Li Haoyi
 :revdate: 12 February 2025
 
