@@ -80,9 +80,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           Some(Task.ctx()),
           dist.coursierCacheCustomizer()
         )
-        result
-          .getOrThrow
-          .orderedDependencies
+        result.getOrThrow.orderedDependencies
           .map(_.module.repr)
           .distinct
           .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
