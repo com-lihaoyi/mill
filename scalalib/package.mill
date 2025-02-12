@@ -13,7 +13,9 @@ import mill.resolve.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
+
 object `package` extends RootModule with build.MillStableScalaModule {
+
   def moduleDeps = Seq(build.main, build.scalalib.api, build.testrunner)
   def ivyDeps = {
     Agg(build.Deps.scalafmtDynamic, build.Deps.scalaXml) ++ {
@@ -27,6 +29,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
   }
   def testIvyDeps = super.testIvyDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
+  def testForkEnv = super.testForkEnv() ++ Map("LC_ALL" -> "C.utf8")
 
   object backgroundwrapper extends build.MillPublishJavaModule with build.MillJavaModule {
     def ivyDeps = Agg(build.Deps.sbtTestInterface)
