@@ -30,30 +30,31 @@ projects end up with a lot more requirements than that.
 For example, before running your code, a project may need to:
 
 - Use the configured _direct_ third-party dependencies to resolve the _transitive_ third-party dependencies
-- Download all transitive third-party library dependencies
+- Download all transitive third-party library dependencies to files on disk
 - Compile upstream _internal_ library dependencies, i.e. upstream modules in the same codebase
-- Run code generators (e.g. https://protobuf.dev/[protobuf], https://www.openapis.org/[openapi], etc.)
-- Run the compiler (if your language has one)
-- Generate static assets  (e.g. a game or website may need accompanying files)
+- Run code generators on IDL files to generate source files (e.g. https://protobuf.dev/[protobuf], https://www.openapis.org/[openapi], https://thrift.apache.org/[thrift], etc.)
+- Run the compiler  (if your language has one) on source files to generate binary files
+- Package the binary files into an executable
+- Run the static asset pipeline on input files to generate static files (e.g. for video games or websites)
 
-So although the developer may have asked to `run` their code, it is only after all
-these steps are done does it make sense to begin running it! However, it's not as
-simple as running every one of the steps listed above, but also _which ones_ to run
-and _how_ to run them:
+So although the developer may have just asked to `run` their code, it is only after all
+these tasks are done does it make sense to begin running it! However, it's not as
+simple as running every one of the tasks listed above one after another. You also
+need to decide _which ones_ to run and _how_ to run them:
 
-- You want to skip steps which have earlier results you can re-use (e.g. by not
-  generating static assets if they have already been generated)
+- You want to skip tasks which have earlier results you can re-use (e.g. by not
+  generating static assets if they have already been generated, because that task can be slow)
 
-- You want to make sure to re-run steps whose inputs have changed (e.g.
-  if someone changes the static asset logic, then that step needs to be re-done)
+- You want to make sure to re-run tasks whose inputs have changed (e.g.
+  if someone changes a static file, then the static asset pipeline needs to be re-run)
 
-- You want to parallelize steps which are independent of each other (e.g.
-  _running the compiler_ can happen in parallel with _generating static assets_),
-  but not those which are dependent (e.g. _running the compiler_ must happen after
+- You want to parallelize tasks which are independent of each other (e.g.
+  _running the compiler_ can happen in parallel with _running static asset pipeline_),
+  but not those which depend on one another (e.g. _running the compiler_ must happen after
   _running code generators_, and thus cannot happen in parallel)
 
 Working on any real-world codebase will involve a large variety of tasks:
-downloading dependencies, autoformatting, linting, code-generation, compiling,
+resolving and downloading dependencies, autoformatting, linting, code-generation, compiling,
 testing, packaging and publishing. These tasks depend on each other in various,
 ways, and it is the job of the build tool to take what you (as a developer) want
 to do, and select _which_ tasks to run and _how_ to run them in order to accomplish
@@ -94,58 +95,54 @@ the equivalent external tools and services specific to that language:
 
 |===
 
-There are also language agnostic build tools out there, such as https://bazel.build/[Bazel]
-which supports multiple languages and is optimized for large monorepos. Mill also supports
-multiple languages: xref:mill:ROOT:javalib/intro.adoc[Java],
+Generally each language's build tools will come with integrations for
+the languages other tooling by default: package repositories, compilers, linters, etc.
+There are also language agnostic build tools out there like `make`, or multi-language
+build tools such as https://bazel.build/[Bazel]
+which supports multiple languages and is optimized for large monorepos. The Mill build
+tool also supports multiple languages: xref:mill:ROOT:javalib/intro.adoc[Java],
 xref:mill:ROOT:kotlinlib/intro.adoc[Kotlin], xref:mill:ROOT:scalalib/intro.adoc[Scala],
 xref:mill:ROOT:pythonlib/intro.adoc[Python], and (experimentally)
 xref:mill:ROOT:javascriptlib/intro.adoc[Javascript], allowing it to be used
-for xref:mill:ROOT:large/multi-language-builds.adoc[Multi-Language Builds]
+for xref:mill:ROOT:large/multi-language-builds.adoc[Multi-Language Builds].
 
 ## The Need for Build Tools
 
 Most projects start off small, and while they _can_ use a build tool, do not _need_ one.
-A single-file application has few enough workflows that whatever built-in CLI the
-language provides is enough to compile/run/test their code, and the workflows are
-fast/simple enough that parallelization or caching are not needed.
+A single-file application has few enough tasks that whatever built-in CLI the
+language provides is enough to compile/run/test their code, and the tasks are
+fast and simple enough that parallelization or caching are not needed.
 
 Nevertheless, even in a small project, a simple task like "installing third party
 dependencies" can be surprisingly challenging without a build tool:
 
-- You start off `pip install something`, run your code with `python foo.py`, and it works
+- You start off `pip install something`, run your code with `python foo.py`, and it
+  works. Great!
 
 - The project bumped the version of `something` required, and now everyone working on
-the project must `pip install` it again, or else they will get weird errors
+  the project must `pip install` it again, or else they will get weird errors from
+  having the wrong version installed
 
 - If you change branch to work on an old release branch of the project, you need
-to remember to `pip install` to go back to the old version. And then `pip install`
-the new version when you come back to the `main` branch!
+  to remember to `pip install` to go back to the old version of `something`. And then `pip install`
+  the new version when you come back to the `main` branch!
 
 - What if two modules in your codebase `foo.py` and `bar.py`  require different versions
-of the same dependency? Now you need to remember to manually `python -m venv` to create
-a virtual environment for each module, and remember to update each one
-whenever a dependency changes
+  of the same dependency? Now you need to remember to manually `python -m venv` to create
+  a virtual environment for each module, and remember to update each one
+  whenever a dependency changes
 
-Even for the single problem of "managing third-party dependencies", keeping everything
-in sync and everyone's laptops up to date can be a real headache.
-This kind of busywork, multiplied by all the different development workflows that
-need to be done on a codebase, is the problem that build tools solve.
+As you can see, even for the single problem of "managing third-party dependencies",
+keeping everything in sync and everyone's laptops up to date can be a real headache!
+
 
 As a project grows, the required workflows get both more complex and slower
 over time. The developer ends up needing to manually juggle a dozen different tools
 to run linters/code-generation/autoformatting/etc., making sure to run them in the
 right order for things to work. They also end up spending time just _waiting_, as their
-code takes longer to compile and their tests take longer to run.
+code takes longer to compile and their tests take longer to run. Automating that busywork
+and speeding up the slow development workflows is exactly what build tools are for.
 
-
-A build tool
-like https://mill-build.org/[Mill] comes with the various tooling integrations built
-in, and automates the process of _"getting your project ready"_ for whatever it is
-you want to do. With a build tool,
-you can just say `./mill foo.run` or `./mill bar.run`, and the tool will figure out
-how to install the necessary third-party-dependencies, compile your code (if needed),
-and perform any other necessary tasks in order to get your code into a runnable state
-as quickly and efficiently as possible.
 
 ## Build Tools vs Scripts
 
@@ -229,7 +226,8 @@ project's build maintainable over time.
 
 ## Large Codebases and Monorepos
 
-The last thing that a build tool may help with is working with very-large-codebases.
+It's worth calling out the need for build tools on very-large-codebases:
+those with 100 to 1,000 to even 10,000 developers actively working on it.
 Just as small codebases start off not really needing a build tool, and start
 needing one as they grow larger, very-large-codebases have an even stronger
 need for something to help manage the development workflows, which "monorepo"
@@ -252,28 +250,213 @@ _"monorepo build tool"_ provides and why they are necessary:
 
 * xref:2-monorepo-build-tool.adoc[Why Use a Monorepo Build Tool?]
 
-## Build Tool Internals
+## How Build Tools Work: The Build Graph
+
+After all this talk about what a build tool is, it is worth mentioning how most
+modern build tools work. At their core, most modern build tools are some kind of
+graph evaluation engine.
+
+For example, consider the various tasks we mentioned earlier:
+
+- Use the configured _direct_ third-party dependencies to resolve the _transitive_ third-party dependencies
+- Download all transitive third-party library dependencies to files on disk
+- Compile upstream _internal_ library dependencies
+- Run code generators on IDL files to generate source files
+- Run the compiler on source files to generate binary files
+- Package the binary files to generate executable
+- Run the static asset pipeline on input files to generate static files
+
+We might even include a few more:
+
+- Run unit tests on binary files to generate test_report
+- Run integration tests on executable to generate test_report
+
+At their core, most build steps are of the form
+
+- Run *TOOL* on *INPUT1*, *INPUT2*, ... to generate *OUTPUT*
+
+Which can be visualized as a node in a graph
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  input1 -> tool
+  input2 -> tool
+  tool -> output
+  output[shape=none]
+}
+```
+
+If we consider the tasks we looked at earlier, it might form a graph as shown below,
+where the boxes are the tasks, non-boxed text labels are the input files, and the
+arrows are the dependencies between them
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  direct_deps -> resolve_deps -> compile
+  code_gen -> compile
+  sources -> compile
+  static_input_files -> asset_pipeline
+  asset_pipeline -> integration_test
+  compile -> unit_test
+  compile -> package
+
+  package -> integration_test
+  direct_deps [shape=none]
+  sources [shape=none]
+  static_input_files [shape=none]
+}
+```
+
+## Caching and Invalidation via the Build Graph
+
+It is from this graph representation that most build tools are able to work
+their magic. For example, if you ask to run `unit_test` (blue), then the build tool
+can traverse the graph edges (red) to find it needs to ensure `compile`, `code_gen`, and
+`resolve_deps` need to be run (red)
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  direct_deps -> resolve_deps -> compile
+  code_gen -> compile  [color=red penwidth=2]
+  sources -> compile  [color=red penwidth=2]
+  static_input_files -> asset_pipeline
+  asset_pipeline -> integration_test
+  compile -> unit_test  [color=red penwidth=2]
+  compile -> package
+
+  package -> integration_test
+  direct_deps [shape=none]
+  sources [shape=none]
+  static_input_files [shape=none]
+  resolve_deps [fillcolor=lightpink style=filled]
+  code_gen [fillcolor=lightpink style=filled]
+  compile [fillcolor=lightpink style=filled]
+  unit_test [fillcolor=lightblue style=filled]
+}
+```
+
+If you then subsequently ask to run `integration_test` (blue), the build tool can see that
+`compile`, `code_gen`, and `resolve_deps` were run earlier and can be re-used (green)
+while `package` and `asset_pipeline` need to be run (red)
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  direct_deps -> resolve_deps [color=red penwidth=2]
+  resolve_deps -> compile [color=red penwidth=2]
+  code_gen -> compile  [color=red penwidth=2]
+  sources -> compile
+  static_input_files -> asset_pipeline
+  asset_pipeline -> integration_test  [color=red penwidth=2]
+  compile -> unit_test
+  compile -> package  [color=red penwidth=2]
+
+  package -> integration_test [color=red penwidth=2]
+  direct_deps [shape=none]
+  sources [shape=none]
+  static_input_files [shape=none]
+  resolve_deps [fillcolor=lightgreen style=filled]
+  code_gen [fillcolor=lightgreen style=filled]
+  compile [fillcolor=lightgreen style=filled]
+  package [fillcolor=lightpink style=filled]
+  asset_pipeline [fillcolor=lightpink style=filled]
+  integration_test [fillcolor=lightblue style=filled]
+}
+```
+
+If you then change a source file in `sources` and ask to run `integration_test` (blue)
+again, the build tool can again traverse the graph edges (red) and see that:
+
+- `resolve_deps`, `code_gen`, and `asset_pipeline` are not downstream of `sources` and can be reused (green)
+- `compile` and `package` _are_ downstream of `sources` and need to be re-run (red)
+- `unit_test` is not needed for `integration_test`, and so can be ignored (white)
 
 
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  direct_deps -> resolve_deps -> compile
+  code_gen -> compile
+  sources -> compile [color=red penwidth=2]
+  static_input_files -> asset_pipeline
+  asset_pipeline -> integration_test
+  compile -> unit_test
+  compile -> package [color=red penwidth=2]
 
-Although these workflows use a wide variety of disparate tools, they tend to have a lot
-in common:
+  package -> integration_test [color=red penwidth=2]
+  direct_deps [shape=none]
+  sources [shape=filled color=red]
+  static_input_files [shape=none]
+  resolve_deps [fillcolor=lightgreen style=filled]
+  code_gen [fillcolor=lightgreen style=filled]
+  asset_pipeline [fillcolor=lightgreen style=filled]
+  compile [fillcolor=lightpink style=filled]
+  package [fillcolor=lightpink style=filled]
+  integration_test [fillcolor=lightblue style=filled]
+}
+```
 
-- They work with source files or compiled artifacts
-- They need to be run in a specific _order_:
-e.g. code-generation being done before running tests before packaging for deployment
-- They tend to be easy to _parallelize_: e.g. separate files can be linted
-at the same time without interfering with each other
-- They tend to be _cacheable_: e.g. if I compile a source file, I can re-use the compiled
-output until the source file changes.
+## Parallelism on the Build Graph
 
-Developer workflows typically involve a wide range of tools that operate on the same
-sorts of files in work in largely the same way: taking files as input and using them to
-generate more files as output. Thus, it makes sense to have a framework that handles the
-_"cross cutting concerns"_ of ordering, caching and parallelism: that framework is
-usually called the _build tool_.
+The build graph is also useful for automatically parallelizing your build tasks.
+For example, consider a case where we want to do a clean build (i.e. no caching)
+of `unit_test` and `integration_test`. From the build graph, Mill is able to determine:
+
+- `resolve_deps`, `code_gen`, and `asset_pipeline` can run in parallel (green)
+- `compile`, `package`, and `integration_test` must run sequentially (red),
+  only starting once `resolve_deps` and `code_gen` is complete
+- `unit_test` (blue) can run in parallel with `package` or `integration_test`,
+  only starting once `compile` is complete
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  direct_deps -> resolve_deps -> compile
+  code_gen -> compile
+  sources -> compile
+  static_input_files -> asset_pipeline
+  asset_pipeline -> integration_test
+  compile -> unit_test
+  compile -> package
+
+  package -> integration_test
+  direct_deps [shape=none]
+  sources [shape=none]
+  static_input_files [shape=none]
+  resolve_deps [style=filled fillcolor=lightgreen]
+  code_gen [style=filled fillcolor=lightgreen]
+  asset_pipeline [style=filled fillcolor=lightgreen]
+  compile [style=filled fillcolor=lightpink]
+  package [style=filled fillcolor=lightpink]
+  integration_test [style=filled fillcolor=lightpink]
+  unit_test [style=filled fillcolor=lightblue]
+}
+```
+
 
 ## Conclusion
 
 Build tools are used widely throughout the software engineering community, but
-seldom paid attention to. Hopefully this blog post has given you a good
+seldom paid attention to.
+
+
+Although modern build tools may look very different on the surface, most of them
+are surprisingly similar once you peek under the covers. Bazel's StarLark config,
+Gradle's Groovy/Kotlin config, Mill's Scala config, all end up boiling down to
+a build graph similar to the one above with only minor differences. And although the
+way they execute their tasks using the build graph does differ, at their most
+fundamental level they use the sort of graph traversal that I discuss above.
+
+Hopefully this blog post has given you a good idea of why they are necessary, as well
+as a glimpse at how they work internally. This should give you a better appreciation
+for how build tools do what they do, and perhaps give you some insight next time you need
+to debug a build tool that is doing something wrong!
