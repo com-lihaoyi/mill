@@ -202,7 +202,8 @@ def assembly = Task {
 This code defines the following task graph, with the boxes being the tasks
 and the arrows representing the _data-flow_ between them:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -210,7 +211,7 @@ digraph G {
   resources -> assembly
   mainClass -> assembly
 }
-```
+....
 
 This example does not use any of Mill's builtin support for building Java or
 Scala projects, and instead builds a pipeline "from scratch" using Mill
