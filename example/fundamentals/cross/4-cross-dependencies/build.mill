@@ -13,7 +13,8 @@ trait BarModule extends Cross.Module[String] {
   def bigSuffix = Task { "[[[" + foo(crossValue).suffix() + "]]]" }
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -51,7 +52,7 @@ trait BarModule extends Cross.Module[String] {
 //   "foo[2.11].suffix" -> "bar[2.11].bigSuffix"
 //   "foo[2.12].suffix" -> "bar[2.12].bigSuffix"
 // }
-// ```
+// ....
 
 // Rather than passing in a literal `"2.10"` to the `foo` cross module, we pass
 // in the `crossValue` property that is available within every `Cross.Module`.

@@ -34,14 +34,15 @@ def typeCheck: T[Unit] = Task {
 
 // At this point, we have a minimal working build, with a build graph that looks like this:
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   pythonExe -> typeCheck
 //   sources -> typeCheck
 // }
-// ```
+// ....
 
 // Here is the `main.py` file
 /** See Also: src/main.py */
@@ -64,7 +65,8 @@ def run(args: mill.define.Args) = Task.Command {
 // Note that we use `stdout = os.Inherit` since we want to display any output to the user,
 // rather than capturing it for use in our command.
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -76,7 +78,7 @@ def run(args: mill.define.Args) = Task.Command {
 //   mainFileName [color=green, penwidth=3]
 //   run [color=green, penwidth=3]
 // }
-// ```
+// ....
 //
 // Note that like many optionally-typed languages, The `run` and `typeCheck` tasks are
 // independent: you can run a Python program without needing to typecheck it first. This is
