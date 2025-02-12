@@ -88,7 +88,7 @@ If your Scala version is a Scala 3.x, but you want to use the Scala 2.13 version
 ----
 def scalaVersion = "3.2.1"
 def ivyDeps = Seq(
-  ivy"com.lihaoyi::upickle:2.0.0".withDottyCompat(scalaVersion()) //1
+  ivy"com.lihaoyi::upickle:2.0.0".withDottyCompat(scalaVersion()) // <1>
 )
 ----
 <1> This will result in a Scala 2.13 dependency `com.lihaoyi::upicke_2.13:2.0.0`
