@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import com.calculator.app.R;
 import org.junit.Test;
+import com.calculator.app.Calculator;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
