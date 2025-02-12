@@ -66,7 +66,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
         // Maps internal modules from JavaModule#coursierDependency (like 'mill-internal:thing:0+mill-internal')
         // to actual coordinates used for publishing (like 'com.lihaoyi:mill-thing:0.13.1')
         val internalToPublishedModuleMap = Task.traverse(
-          (distAllDeps).collect { case m: PublishModule => m }
+          distAllDeps.collect { case m: PublishModule => m }
         ) { mod =>
           Task.Anon {
             val selfDep = mod.publishSelfDependency()
