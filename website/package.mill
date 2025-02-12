@@ -132,8 +132,13 @@ object `package` extends RootModule {
             case "```graphviz" => isGraphViz = true
             case "```" | "...." if isGraphViz =>
               isGraphViz = false
+              // if there is no pre-rendered svg, we add the extracted graphviz to the output
               if (inputs.isEmpty) output((p, i)) = graphvizLines.mkString("\n")
               else {
+                // we have a pre-rendered svg and insert it here
+                outputLines.append("////")
+                outputLines.append(graphvizLines.mkString("\n"))
+                outputLines.append("////")
                 outputLines.append("++++")
                 outputLines.append("<div class=\"paragraph\">")
                 outputLines.append("<center>")
@@ -154,6 +159,10 @@ object `package` extends RootModule {
       output.toMap
     }
 
+    // we walk 2 time over the adoc files,
+    // first, we extract the diagrams and write them to a temp dir, where we run graphviz tool on them
+    // second, we scan adoc files again and put the rendered diagrams in place of their sources
+
     val diagrams = walkAllFiles(Map())
     // Batch the rendering so later it can be done in one call to a single subprocess,
     // minimizing per-subprocess overhead needed to spawn them over and over
@@ -164,7 +173,10 @@ object `package` extends RootModule {
     mill.util.Jvm.runSubprocess(
       "mill.main.graphviz.GraphvizTools",
       visualizeClassPath,
-      mainArgs = orderedDiagrams.map { case (p, i, src, dest) => s"$src;$dest;svg" }
+      mainArgs = orderedDiagrams.map { case (p, i, src, dest) =>
+        T.log.debug(s"Rendering graphviz: ${p} (${i}) to ${dest}")
+        s"$src;$dest;svg"
+      }
     )
 
     walkAllFiles(orderedDiagrams.map { case (p, i, src, dest) =>
