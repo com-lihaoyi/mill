@@ -48,26 +48,32 @@ public interface ProjectModel extends Serializable {
       this._java = _java;
     }
 
+    @Override
     public String group() {
       return group;
     }
 
+    @Override
     public String name() {
       return name;
     }
 
+    @Override
     public String version() {
       return version;
     }
 
+    @Override
     public File directory() {
       return directory;
     }
 
+    @Override
     public MavenModel maven() {
       return maven;
     }
 
+    @Override
     public JavaModel _java() {
       return _java;
     }

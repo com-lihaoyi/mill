@@ -2,6 +2,7 @@ package mill.client;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -105,7 +106,7 @@ public class ClientUtil {
    */
   public static List<String> readOptsFileLines(final Path file) throws Exception {
     final List<String> vmOptions = new LinkedList<>();
-    try (final Scanner sc = new Scanner(file.toFile())) {
+    try (final Scanner sc = new Scanner(file.toFile(), StandardCharsets.UTF_8)) {
       final Map<String, String> env = System.getenv();
       while (sc.hasNextLine()) {
         String arg = sc.nextLine();

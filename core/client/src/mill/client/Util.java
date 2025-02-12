@@ -6,11 +6,12 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 
 public class Util {
 
   public static boolean isWindows =
-      System.getProperty("os.name").toLowerCase().startsWith("windows");
+      System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
   public static boolean isJava9OrAbove =
       !System.getProperty("java.specification.version").startsWith("1.");
 
@@ -45,6 +46,7 @@ public class Util {
    * This method takes into account these differences and is compatible with
    * both JDK versions before 22 and later.
    */
+  @SuppressWarnings("SystemConsoleNull")
   public static boolean hasConsole() {
     Console console = System.console();
 
