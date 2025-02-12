@@ -1,7 +1,5 @@
 package mill.scalalib
 
-import coursier.util.StringInterpolators.SafeModule
-import mill.Agg
 import mill.define.{Discover, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -16,7 +14,7 @@ object CoursierParametersTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = "2.13.12"
       def ivyDeps = Task {
-        Agg(ivy"com.lihaoyi::pprint:0.9.0")
+        Seq(ivy"com.lihaoyi::pprint:0.9.0")
       }
       def resolutionParams = Task.Anon {
         super.resolutionParams()
@@ -34,7 +32,7 @@ object CoursierParametersTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("coursierParams") - UnitTester(CoursierTest, null).scoped { eval =>
-      val Right(result) = eval.apply(CoursierTest.core.compileClasspath)
+      val Right(result) = eval.apply(CoursierTest.core.compileClasspath): @unchecked
       val classPath = result.value.toSeq.map(_.path)
       val pprintVersion = classPath
         .map(_.last)

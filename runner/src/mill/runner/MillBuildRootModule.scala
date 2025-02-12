@@ -8,8 +8,8 @@ import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.api.{CompilationResult, Versions}
-import mill.main.client.OutFiles._
-import mill.main.client.CodeGenConstants.buildFileExtensions
+import mill.client.OutFiles._
+import mill.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
 import mill.runner.worker.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
@@ -37,8 +37,8 @@ abstract class MillBuildRootModule()(implicit
     .++(super.bspDisplayName0.split("/"))
     .mkString("/")
 
-  override def millSourcePath: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
-  override def intellijModulePath: os.Path = millSourcePath / os.up
+  override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
+  override def intellijModulePath: os.Path = moduleDir / os.up
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
@@ -75,10 +75,10 @@ abstract class MillBuildRootModule()(implicit
           s"buildfile `${relFile}`: import $$repo.`${repo}`"
         )
       }
-      repos.find(_.asSuccess.isEmpty) match {
+      repos.find(_.isInstanceOf[Result.Failure]) match {
         case Some(error) => error
         case None =>
-          val res = repos.flatMap(_.asSuccess).map(_.value).flatten
+          val res = repos.collect { case Result.Success(v) => v }.flatten
           Result.Success(res)
       }
     }
@@ -97,17 +97,17 @@ abstract class MillBuildRootModule()(implicit
   }
 
   override def ivyDeps = Task {
-    Agg.from(
+    Seq.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
     ) ++
-      Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+      Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
 
   override def runIvyDeps = Task {
     val imports = cliImports()
     val ivyImports = imports.collect { case s"ivy:$rest" => rest }
-    Agg.from(
+    Seq.from(
       MillIvy.processMillIvyDepSignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     )
@@ -154,8 +154,8 @@ abstract class MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
-            (desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
-              desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
+            (desc.ret.pretty == classOf[mill.define.Target[?]].getName ||
+              desc.ret.pretty == classOf[mill.define.Worker[?]].getName) &&
               desc.args.isEmpty
 
           // We avoid ignoring method calls that are simple trait forwarders, because
@@ -190,7 +190,7 @@ abstract class MillBuildRootModule()(implicit
           // part of the `millbuild.build#<init>` transitive call graph they would normally
           // be counted as
           def isCommand =
-            calledSig.desc.ret.pretty == classOf[mill.define.Command[_]].getName
+            calledSig.desc.ret.pretty == classOf[mill.define.Command[?]].getName
 
           // Skip calls to `millDiscover`. `millDiscover` is bundled as part of `RootModule` for
           // convenience, but it should really never be called by any normal Mill module/task code,
@@ -258,14 +258,14 @@ abstract class MillBuildRootModule()(implicit
   }
 
   override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
-    super.bindDependency.apply().apply(dep).exclude(resolveDepsExclusions(): _*)
+    super.bindDependency.apply().apply(dep).exclude(resolveDepsExclusions()*)
   }
 
-  override def unmanagedClasspath: T[Agg[PathRef]] = Task {
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
     enclosingClasspath()
   }
 
-  override def scalacPluginIvyDeps: T[Agg[Dep]] = Agg(
+  override def scalacPluginIvyDeps: T[Seq[Dep]] = Seq(
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
   )
 
@@ -274,15 +274,15 @@ abstract class MillBuildRootModule()(implicit
       Seq("-deprecation")
   }
 
-  override def scalacPluginClasspath: T[Agg[PathRef]] =
+  override def scalacPluginClasspath: T[Seq[PathRef]] =
     super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
 
-  override protected def semanticDbPluginClasspath: T[Agg[PathRef]] =
+  override protected def semanticDbPluginClasspath: T[Seq[PathRef]] =
     super.semanticDbPluginClasspath() ++ lineNumberPluginClasspath()
 
-  def lineNumberPluginClasspath: T[Agg[PathRef]] = Task {
+  def lineNumberPluginClasspath: T[Seq[PathRef]] = Task {
     // millProjectModule("mill-runner-linenumbers", repositoriesTask())
-    Agg.empty
+    Seq.empty
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -315,7 +315,7 @@ abstract class MillBuildRootModule()(implicit
       .worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
-        sources = Agg.from(allSourceFiles().map(_.path)),
+        sources = Seq.from(allSourceFiles().map(_.path)),
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         scalaVersion = scalaVersion(),

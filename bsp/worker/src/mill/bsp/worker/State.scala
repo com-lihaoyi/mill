@@ -16,7 +16,7 @@ private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: St
         modules.collect {
           case m: BspModule =>
             val uri = Utils.sanitizeUri(
-              rootModule.millSourcePath / m.millModuleSegments.parts
+              rootModule.moduleDir / m.moduleSegments.parts
             )
 
             (new BuildTargetIdentifier(uri), (m, eval))
@@ -38,7 +38,7 @@ private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: St
 
   def filterNonSynthetic(input: java.util.List[BuildTargetIdentifier])
       : java.util.List[BuildTargetIdentifier] = {
-    import collection.JavaConverters._
+    import scala.jdk.CollectionConverters.*
     input.asScala.filterNot(syntheticRootBspBuildTarget.map(_.id).contains).toList.asJava
   }
 }

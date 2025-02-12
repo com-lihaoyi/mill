@@ -5,11 +5,11 @@ import coursier.core.BomDependency
 import coursier.params.ResolutionParams
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
-import mill.api.{Ctx, Loose, PathRef, Result}
+import mill.api.{Ctx, PathRef, Result}
+import mill.client.EnvVars
 import mill.main.BuildInfo
-import mill.main.client.EnvVars
-import mill.util.Util
 import mill.scalalib.api.ZincWorkerUtil
+import mill.util.MillModuleUtil
 
 object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
@@ -26,32 +26,6 @@ object Lib {
 
   def depToBoundDep(dep: Dep, scalaVersion: String, platformSuffix: String = ""): BoundDep =
     BoundDep(depToDependency(dep, scalaVersion, platformSuffix), dep.force)
-
-  @deprecated(
-    "Prefer resolveDependenciesMetadataSafe instead, which returns a Result instead of throwing exceptions",
-    "0.12.0"
-  )
-  def resolveDependenciesMetadata(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[Ctx.Log] = None,
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
-  ): (Seq[Dependency], Resolution) = {
-    val deps0 = deps.iterator.toSeq
-    val res = resolveDependenciesMetadataSafe(
-      repositories,
-      deps0,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer
-    )
-    (deps0.map(_.dep), res.getOrThrow)
-  }
 
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
@@ -79,51 +53,6 @@ object Lib {
     )
   }
 
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ],
-      resolutionParams: ResolutionParams
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      resolutionParams,
-      Nil
-    )
-
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ]
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      ResolutionParams(),
-      Nil
-    )
-
   /**
    * Resolve dependencies using Coursier.
    *
@@ -143,7 +72,7 @@ object Lib {
       ] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
-  ): Result[Agg[PathRef]] = {
+  ): Result[Seq[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     val res = mill.util.Jvm.resolveDependencies(
       repositories = repositories,
@@ -155,89 +84,39 @@ object Lib {
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
-      deprecatedResolveFilter = _ => true,
       resolutionParams = resolutionParams
     )
 
     res.map(_.map(_.withRevalidateOnce))
   }
 
-  // bin-compat shim
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ],
-      artifactTypes: Option[Set[Type]]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories,
-      deps,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      artifactTypes,
-      ResolutionParams()
-    )
-
-  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories,
-      deps,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      None,
-      ResolutionParams()
-    )
-
-  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
+  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion))
-      Agg(
+      Seq(
         ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
       )
     else if (ZincWorkerUtil.isScala3(scalaVersion))
-      Agg(
+      Seq(
         ivy"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
       )
     else
-      Agg(
+      Seq(
         ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
         ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
       )
 
-  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
+  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion))
-      Agg(
+      Seq(
         ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
       )
     else if (ZincWorkerUtil.isScala3Milestone(scalaVersion))
-      Agg(
+      Seq(
         // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
         ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
       )
     else if (ZincWorkerUtil.isScala3(scalaVersion))
-      Agg(
+      Seq(
         // scalaVersion >= 3.0.0-RC1 uses scaladoc
         ivy"$scalaOrganization::scaladoc:$scalaVersion".forceVersion()
       )
@@ -245,17 +124,17 @@ object Lib {
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
       scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
 
-  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
+  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion)) {
-      Agg(
+      Seq(
         ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
       )
     } else if (ZincWorkerUtil.isScala3(scalaVersion))
-      Agg(
+      Seq(
         ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
       )
     else
-      Agg(
+      Seq(
         ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
       )
 
@@ -271,7 +150,7 @@ object Lib {
     } yield path
   }
 
-  private[mill] def millAssemblyEmbeddedDeps: Agg[BoundDep] = Agg.from(
+  private[mill] def millAssemblyEmbeddedDeps: Seq[BoundDep] = Seq.from(
     BuildInfo.millEmbeddedDeps
       .split(",")
       .map(d => ivy"$d")
@@ -283,7 +162,7 @@ object Lib {
       ctx: Option[mill.api.Ctx.Log],
       useSources: Boolean
   ): Seq[os.Path] = {
-    Util.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {
+    MillModuleUtil.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {
       case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
       case None =>
         val Result.Success(res) = scalalib.Lib.resolveDependencies(
@@ -294,8 +173,8 @@ object Lib {
           customizer = None,
           coursierCacheCustomizer = None,
           ctx = ctx
-        )
-        res.items.toList.map(_.path)
+        ): @unchecked
+        res.toList.map(_.path)
     }
   }
 

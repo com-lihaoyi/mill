@@ -3,7 +3,6 @@ package mill.scalalib
 import mill.*
 import mill.define.Discover
 import utest.*
-import utest.framework.TestPath
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 
@@ -30,8 +29,8 @@ object ScalaDoc3Tests extends TestSuite {
     object multidocs extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
       def docResources = Task.Sources(
-        millSourcePath / "docs1",
-        millSourcePath / "docs2"
+        moduleDir / "docs1",
+        moduleDir / "docs2"
       )
     }
     lazy val millDiscover = Discover[this.type]
@@ -41,7 +40,7 @@ object ScalaDoc3Tests extends TestSuite {
 
   def tests: Tests = Tests {
     test("static") - UnitTester(StaticDocsModule, resourcePath).scoped { eval =>
-      val Right(_) = eval.apply(StaticDocsModule.static.docJar)
+      val Right(_) = eval.apply(StaticDocsModule.static.docJar): @unchecked
       val dest = eval.outPath / "static/docJar.dest"
       assert(
         os.exists(dest / "out.jar"), // final jar should exist
@@ -53,7 +52,7 @@ object ScalaDoc3Tests extends TestSuite {
       )
     }
     test("empty") - UnitTester(EmptyDocsModule, resourcePath).scoped { eval =>
-      val Right(_) = eval.apply(EmptyDocsModule.empty.docJar)
+      val Right(_) = eval.apply(EmptyDocsModule.empty.docJar): @unchecked
       val dest = eval.outPath / "empty/docJar.dest"
       assert(
         os.exists(dest / "out.jar"),
@@ -61,7 +60,7 @@ object ScalaDoc3Tests extends TestSuite {
       )
     }
     test("multiple") - UnitTester(MultiDocsModule, resourcePath).scoped { eval =>
-      val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar)
+      val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar): @unchecked
       val dest = eval.outPath / "multidocs/docJar.dest"
       assert(
         os.exists(dest / "out.jar"), // final jar should exist

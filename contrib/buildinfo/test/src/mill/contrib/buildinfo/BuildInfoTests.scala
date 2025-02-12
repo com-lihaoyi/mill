@@ -116,13 +116,13 @@ object BuildInfoTests extends TestSuite {
       EmptyBuildInfo,
       testModuleSourcesPath / "scala"
     ).scoped { eval =>
-      val Right(_) = eval.apply(EmptyBuildInfo.buildInfoSources)
+      val Right(_) = eval.apply(EmptyBuildInfo.buildInfoSources): @unchecked
       assert(!os.exists(buildInfoSourcePath(eval)))
     }
 
     test("fileGeneration") - UnitTester(BuildInfoComment, testModuleSourcesPath / "scala").scoped {
       eval =>
-        val Right(_) = eval.apply(BuildInfoComment.compile)
+        val Right(_) = eval.apply(BuildInfoComment.compile): @unchecked
 
         // Make sure that the buildinfo Scala file buildinfo is created and buildinfo
         // resource file is *not* created when we compile the Scala code
@@ -145,7 +145,7 @@ object BuildInfoTests extends TestSuite {
         }
 
         // But becomes created once we package the jar for running
-        val Right(_) = eval.apply(BuildInfoComment.jar)
+        val Right(_) = eval.apply(BuildInfoComment.jar): @unchecked
 
         val expectedResource = "mill.contrib.buildinfo.BuildInfo for foo."
 
@@ -158,7 +158,7 @@ object BuildInfoTests extends TestSuite {
       BuildInfoSettings,
       testModuleSourcesPath / "scala"
     ).scoped { eval =>
-      val Right(result) = eval.apply(BuildInfoSettings.buildInfoSources)
+      val Right(result) = eval.apply(BuildInfoSettings.buildInfoSources): @unchecked
       val path = result.value.head.path
 
       assert(os.exists(path / "foo/bar.scala"))
@@ -168,14 +168,14 @@ object BuildInfoTests extends TestSuite {
     }
 
     test("compile") - UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala").scoped { eval =>
-      val Right(_) = eval.apply(BuildInfoPlain.compile)
+      val Right(_) = eval.apply(BuildInfoPlain.compile): @unchecked
       assert(true)
     }
 
     test("run") - UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala").scoped { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right(_) =
-        eval.apply(BuildInfoPlain.run(Task.Anon(Args(runResult.toString))))
+        eval.apply(BuildInfoPlain.run(Task.Anon(Args(runResult.toString)))): @unchecked
 
       assert(
         os.exists(runResult),
@@ -185,7 +185,7 @@ object BuildInfoTests extends TestSuite {
 
     test("scalajs") - UnitTester(BuildInfoScalaJS, testModuleSourcesPath / "scala-simple").scoped {
       eval =>
-        val runResult = eval.outPath / "hello-mill"
+        eval.outPath / "hello-mill"
         assert(eval.apply(BuildInfoScalaJS.fastLinkJS).isRight)
     }
 
@@ -195,7 +195,7 @@ object BuildInfoTests extends TestSuite {
       val runResult = eval.outPath / "hello-mill"
 
       val Right(_) =
-        eval.apply(BuildInfoStatic.run(Task.Anon(Args(runResult.toString))))
+        eval.apply(BuildInfoStatic.run(Task.Anon(Args(runResult.toString)))): @unchecked
 
       assert(os.exists(buildInfoSourcePath(eval)))
       assert(!os.exists(buildInfoResourcePath(eval)))
@@ -206,7 +206,7 @@ object BuildInfoTests extends TestSuite {
     test("java") - UnitTester(BuildInfoJava, testModuleSourcesPath / "java").scoped { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right(_) =
-        eval.apply(BuildInfoJava.run(Task.Anon(Args(runResult.toString))))
+        eval.apply(BuildInfoJava.run(Task.Anon(Args(runResult.toString)))): @unchecked
 
       assert(
         os.exists(runResult),
@@ -219,7 +219,7 @@ object BuildInfoTests extends TestSuite {
         val runResult = eval.outPath / "hello-mill"
         val generatedSrc = eval.outPath / "buildInfoSources.dest/foo/BuildInfo.java"
         val Right(_) =
-          eval.apply(BuildInfoJavaStatic.run(Task.Anon(Args(runResult.toString))))
+          eval.apply(BuildInfoJavaStatic.run(Task.Anon(Args(runResult.toString)))): @unchecked
 
         assert(
           os.exists(runResult),
@@ -233,7 +233,7 @@ object BuildInfoTests extends TestSuite {
       testModuleSourcesPath / "scala"
     ).scoped { eval =>
       val buildInfoGeneratedSourcesFolder = eval.outPath / "buildInfoSources.dest"
-      val Right(result) = eval.apply(BuildInfoPlain.generatedSources)
+      val Right(result) = eval.apply(BuildInfoPlain.generatedSources): @unchecked
       assert(
         result.value.size == 1,
         os.isDir(result.value.head.path),

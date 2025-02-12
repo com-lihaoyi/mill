@@ -2,7 +2,7 @@ package build
 
 import mill._
 import mill.util.Jvm
-import mill.api.Loose
+
 import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
 

@@ -1,0 +1,136 @@
+// tag::header[]
+
+# What is a Build Tool and what does it do?
+
+
+:author: Li Haoyi
+:revdate: ??? February 2025
+_{author}, {revdate}_
+
+One common question I get asked when I say Mill is a build tool, is what does a build
+tool even do? Even some developers may not be familiar with the idea: they may run
+`pip install` and `python foo.py`, `javac Foo.java`, or `go build` or some other language-specific
+CLI directly. They may have a folder full of custom Bash scripts they use during development.
+This blog post explores what build tools are all about, and why they are important to
+most software projects as they scale.
+
+// end::header[]
+
+
+## What is a Build Tool?
+
+At a high-level, a build tool is something you run locally on your laptop or dev-box
+that helps integrate the wide range of tools and workflows you need to work on your
+software. While a hello-world program may get by with `javac Foo.java` to compile your code and
+`java Foo` to run it, most real-world projects end up with a lot more requirements.
+
+For example:
+
+- Downloading third-party dependencies
+- Running code generators
+- Running linters, autoformatters, and auto-fixers
+- Unit testing, generating test reports, and collecting code coverage statistics
+- Packaging your code for deployment or publishing it to a public repository
+
+Although lot of these workflows use separate tools, they tend to have a lot
+in common:
+
+- They work with source files or compiled artifacts
+- they tend to be chained: e.g. running a code-generator before running
+  tests before packaging for deployment
+- They tend to be easy to parallelize: e.g. separate files can be linted
+  at the same time without interfering with each other
+- They tend to be cacheable: e.g. if I download a third-party dependency once,
+  I can re-use it the next time without needing to download it again
+
+Thus it makes sense to centralize the handling of these disparate tasks in one program,
+so they can be properly integrated with each other. That program is the build tool.
+
+## Example Build Tools
+
+Although programming languages are different, developers in all languages have similar
+requirements, and thus build tools exist that integrate with most language ecosystems.
+A few examples are shown below:
+
+|===
+| Language   | Build Tool          | Repository    | Compiler | Linter                 | Packager
+| Java
+| https://maven.apache.org[Maven], https://gradle.org[Gradle], https://mill-build.org[Mill]
+| https://central.sonatype.com/[Maven Central]
+| https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javac.html[javac]
+| https://errorprone.info/[ErrorProne], https://checkstyle.sourceforge.io/[CheckStyle]
+| https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jar.html[jar], https://www.graalvm.org/latest/reference-manual/native-image/[native-image]
+
+| Python
+| https://python-poetry.org/[Poetry]
+| https://pypi.org/[PyPI]
+| https://github.com/python/mypy[mypy]
+| https://github.com/google/yapf[Yapf], https://github.com/psf/black[Black]
+| https://docs.pex-tool.org/[Pex]
+
+| Javascript
+| https://webpack.js.org/[Webpack], https://vite.dev/[Vite]
+| https://www.npmjs.com/[NPM]
+| https://www.typescriptlang.org/[tsc]
+| https://eslint.org/[ESLint]
+| https://esbuild.github.io/[ESBuild]
+
+| Rust
+| https://doc.rust-lang.org/cargo/[Cargo]
+| https://crates.io/[Crates]
+| https://doc.rust-lang.org/rustc/what-is-rustc.html[rustc]
+| https://github.com/rust-lang/rust-clippy[Clippy]
+|
+|===
+
+## The Need for Build Tools
+
+Most projects start off small, and while they _can_ use a build tool, do not _need_ one:
+a 1 file application has few enough workflows that whatever built-in CLI the programming
+language provides is enough to compile/run/test their code, and the workflows are fast/simple
+enough that parallelization or caching are not needed.
+
+However, as a project grows, the required workflows get both more complex and slower
+over time. The developer ends up needing to manually juggle a dozen different tools
+to run linters/code-generation/autoformatting/etc., making sure to run them in the
+right order for things to work. They also end up spending time just _waiting_, as their
+code takes longer to compile and their tests take longer to run.
+
+One common outcome here is to write scripts to help manage the development of the
+project: a folder full of scripts like `run_tests.sh` or `deploy.py`:
+
+- Initially, these scripts serve to just enumerate the necessary steps to do something
+  in your code, e.g. running integration tests may require `codgen`, `compile`, `package`
+  to be run in order before the tests can be run
+
+- Next, these scripts inevitably begin performing rudimentary caching: e.g. skipping
+  `codegen` if it has already been run, re-using `compile` output, re-using `package` output,
+  etc.
+
+- After that, these scripts inevitably start parallelizing parts of the workflow
+
+
+
+
+## Auxiliary Workflows
+### Downloading Third-Party Dependencies
+### Linting
+### Autoformatting
+### Testing
+### Packaging and Publishing
+
+## Orchestrating Workflows
+
+### Ordering tasks
+### Parallelizing Tasks
+### Caching Tasks
+### Optimizing Tasks
+
+
+## Advanced Features
+
+### Integrating Multiple Languages
+### Optimizing CI Testing
+
+
+## Conclusion

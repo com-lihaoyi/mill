@@ -1,10 +1,10 @@
 package mill.testkit
 
-import mill.main.client.EnvVars.MILL_TEST_SUITE
+import mill.client.EnvVars.MILL_TEST_SUITE
+import mill.client.OutFiles
 import mill.define.Segments
-import mill.eval.Evaluator
-import mill.main.client.OutFiles
-import mill.resolve.SelectMode
+import mill.exec.Cached
+import mill.define.SelectMode
 import ujson.Value
 
 /**
@@ -111,7 +111,7 @@ object IntegrationTester {
        */
       def text: String = {
         val Seq((Seq(selector), _)) =
-          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
+          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).get
 
         val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)
         os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")
@@ -121,7 +121,7 @@ object IntegrationTester {
        * Returns the `.json` metadata file contents parsed into a [[Evaluator.Cached]]
        * object, containing both the value as JSON and the associated metadata (e.g. hashes)
        */
-      def cached: Evaluator.Cached = upickle.default.read[Evaluator.Cached](text)
+      def cached: Cached = upickle.default.read[Cached](text)
 
       /**
        * Returns the value as JSON

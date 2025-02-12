@@ -1,9 +1,8 @@
 package mill.contrib.versionfile
 
-import mill.{T, Task}
+import mill.Task
 import mill.testkit.{UnitTester, TestBaseModule}
-import utest.{TestSuite, Tests, assert, assertMatch, test}
-import utest.framework.TestPath
+import utest.{TestSuite, Tests, assert, test}
 import mill.main.TokenReaders._
 import mill.define.Discover
 object VersionFileModuleTests extends TestSuite {
@@ -19,7 +18,7 @@ object VersionFileModuleTests extends TestSuite {
       versionText: String
   ): UnitTester = UnitTester(m, null).scoped { eval =>
     os.write.over(
-      vf(m).millSourcePath / "version",
+      vf(m).moduleDir / "version",
       versionText,
       createFolders = true
     )
@@ -32,7 +31,7 @@ object VersionFileModuleTests extends TestSuite {
   }
 
   def workspaceTest(versions: Version*)(test: UnitTester => Any): Unit =
-    workspaceTest0(versions: _*)(eval => _ => test(eval))
+    workspaceTest0(versions*)(eval => _ => test(eval))
 
   //  check version file ends with newline
   def workspaceTestEndsWithNewline0(versions: Version*)(test: UnitTester => Version => Any)
@@ -44,7 +43,7 @@ object VersionFileModuleTests extends TestSuite {
   }
 
   def workspaceTestEndsWithNewline(versions: Version*)(test: UnitTester => Any): Unit =
-    workspaceTestEndsWithNewline0(versions: _*)(eval => _ => test(eval))
+    workspaceTestEndsWithNewline0(versions*)(eval => _ => test(eval))
 
   def tests: Tests = Tests {
 
@@ -54,37 +53,37 @@ object VersionFileModuleTests extends TestSuite {
 
       val versions = Seq(Version.Release(1, 2, 3), Version.Snapshot(1, 2, 3))
 
-      test("currentVersion") - workspaceTest0(versions: _*) { eval => expectedVersion =>
-        val Right(out) = eval(TestModule.versionFile.currentVersion)
+      test("currentVersion") - workspaceTest0(versions*) { eval => expectedVersion =>
+        val Right(out) = eval(TestModule.versionFile.currentVersion): @unchecked
         assert(out.value == expectedVersion)
       }
 
-      test("releaseVersion") - workspaceTest(versions: _*) { eval =>
-        val Right(out) = eval(TestModule.versionFile.releaseVersion)
+      test("releaseVersion") - workspaceTest(versions*) { eval =>
+        val Right(out) = eval(TestModule.versionFile.releaseVersion): @unchecked
         assert(out.value == Version.Release(1, 2, 3))
       }
 
-      test("nextVersion") - workspaceTest(versions: _*) { eval =>
-        val Right(out) = eval(TestModule.versionFile.nextVersion(minor))
+      test("nextVersion") - workspaceTest(versions*) { eval =>
+        val Right(out) = eval(TestModule.versionFile.nextVersion(minor)): @unchecked
         assert(out.value == Version.Snapshot(1, 3, 0))
       }
 
       test("currentVersion - file ends with newline") - workspaceTestEndsWithNewline0(
-        versions: _*
+        versions*
       ) { eval => expectedVersion =>
-        val Right(out) = eval(TestModule.versionFile.currentVersion)
+        val Right(out) = eval(TestModule.versionFile.currentVersion): @unchecked
         assert(out.value == expectedVersion)
       }
 
-      test("releaseVersion - file ends with newline") - workspaceTestEndsWithNewline(versions: _*) {
+      test("releaseVersion - file ends with newline") - workspaceTestEndsWithNewline(versions*) {
         eval =>
-          val Right(out) = eval(TestModule.versionFile.releaseVersion)
+          val Right(out) = eval(TestModule.versionFile.releaseVersion): @unchecked
           assert(out.value == Version.Release(1, 2, 3))
       }
 
-      test("nextVersion - file ends with newline") - workspaceTestEndsWithNewline(versions: _*) {
+      test("nextVersion - file ends with newline") - workspaceTestEndsWithNewline(versions*) {
         eval =>
-          val Right(out) = eval(TestModule.versionFile.nextVersion(minor))
+          val Right(out) = eval(TestModule.versionFile.nextVersion(minor)): @unchecked
           assert(out.value == Version.Snapshot(1, 3, 0))
       }
     }
@@ -93,25 +92,25 @@ object VersionFileModuleTests extends TestSuite {
 
       val versions = Seq(Version.Release(1, 2, 3), Version.Snapshot(1, 2, 3))
 
-      test("setReleaseVersion") - workspaceTest(versions: _*) { eval =>
-        val Right(expected) = eval(TestModule.versionFile.releaseVersion)
+      test("setReleaseVersion") - workspaceTest(versions*) { eval =>
+        val Right(expected) = eval(TestModule.versionFile.releaseVersion): @unchecked
         eval(TestModule.versionFile.setReleaseVersion())
-        val Right(actual) = eval(TestModule.versionFile.currentVersion)
+        val Right(actual) = eval(TestModule.versionFile.currentVersion): @unchecked
         assert(expected.value == actual.value)
       }
 
-      test("setNextVersion") - workspaceTest(versions: _*) { eval =>
+      test("setNextVersion") - workspaceTest(versions*) { eval =>
         val bump = minor
-        val Right(expected) = eval(TestModule.versionFile.nextVersion(bump))
+        val Right(expected) = eval(TestModule.versionFile.nextVersion(bump)): @unchecked
         eval(TestModule.versionFile.setNextVersion(bump))
-        val Right(actual) = eval(TestModule.versionFile.currentVersion)
+        val Right(actual) = eval(TestModule.versionFile.currentVersion): @unchecked
         assert(expected.value == actual.value)
       }
 
-      test("setVersion") - workspaceTest(versions: _*) { eval =>
+      test("setVersion") - workspaceTest(versions*) { eval =>
         val expected = Version.Release(1, 2, 4)
         eval(TestModule.versionFile.setVersion(Task.Anon(expected)))
-        val Right(actual) = eval(TestModule.versionFile.currentVersion)
+        val Right(actual) = eval(TestModule.versionFile.currentVersion): @unchecked
         assert(actual.value == expected)
       }
 
@@ -121,8 +120,8 @@ object VersionFileModuleTests extends TestSuite {
 
       val versions = Seq(Version.Release(1, 2, 3), Version.Snapshot(1, 2, 3))
 
-      test("tag") - workspaceTest0(versions: _*) { eval => version =>
-        val Right(out) = eval(TestModule.versionFile.tag)
+      test("tag") - workspaceTest0(versions*) { eval => version =>
+        val Right(out) = eval(TestModule.versionFile.tag): @unchecked
         val commitMessage = TestModule.versionFile.generateCommitMessage(version)
         assert(
           out.value ==
@@ -134,8 +133,8 @@ object VersionFileModuleTests extends TestSuite {
 
       }
 
-      test("push") - workspaceTest0(versions: _*) { eval => version =>
-        val Right(out) = eval(TestModule.versionFile.push)
+      test("push") - workspaceTest0(versions*) { eval => version =>
+        val Right(out) = eval(TestModule.versionFile.push): @unchecked
         val commitMessage = TestModule.versionFile.generateCommitMessage(version)
         assert(
           out.value ==

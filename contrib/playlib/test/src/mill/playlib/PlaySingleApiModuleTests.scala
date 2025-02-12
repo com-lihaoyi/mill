@@ -1,14 +1,14 @@
 package mill.playlib
 
-import mill.{T, Task}
+import mill.Task
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 import mill.define.Discover
 import mill.main.TokenReaders._
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
-  object playsingleapi extends TestBaseModule with PlayApiModule with SingleModule {
-    override val millSourcePath = os.temp() // workaround problem in `SingleModule`
+  object playsingleapi extends TestBaseModule with PlayApiModule {
+    override val moduleDir = os.temp() // workaround problem in `SingleModule`
     override def playVersion = Task { testPlay28 }
     override def scalaVersion = Task { "2.13.12" }
     object test extends PlayTests
@@ -21,7 +21,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
   def tests: Tests = Tests {
     test("playVersion") {
       test("fromBuild") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(playsingleapi.playVersion)
+        val Right(result) = eval.apply(playsingleapi.playVersion): @unchecked
         assert(
           result.value == testPlay28,
           result.evalCount > 0
@@ -30,26 +30,26 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
     }
     test("layout") {
       test("fromBuild") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
-        val Right(conf) = eval.apply(playsingleapi.conf)
-        val Right(app) = eval.apply(playsingleapi.app)
-        val Right(sources) = eval.apply(playsingleapi.sources)
-        val Right(resources) = eval.apply(playsingleapi.resources)
-        val Right(testSources) = eval.apply(playsingleapi.test.sources)
-        val Right(testResources) = eval.apply(playsingleapi.test.resources)
+        val Right(conf) = eval.apply(playsingleapi.conf): @unchecked
+        val Right(app) = eval.apply(playsingleapi.app): @unchecked
+        val Right(sources) = eval.apply(playsingleapi.sources): @unchecked
+        val Right(resources) = eval.apply(playsingleapi.resources): @unchecked
+        val Right(testSources) = eval.apply(playsingleapi.test.sources): @unchecked
+        val Right(testResources) = eval.apply(playsingleapi.test.resources): @unchecked
         assert(
-          conf.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq(
+          conf.value.map(_.path.relativeTo(playsingleapi.moduleDir).toString()) == Seq(
             "conf"
           ),
-          app.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("app"),
+          app.value.map(_.path.relativeTo(playsingleapi.moduleDir).toString()) == Seq("app"),
           sources.value == app.value,
           resources.value == conf.value,
           testSources.value.map(
-            _.path.relativeTo(playsingleapi.millSourcePath).toString()
+            _.path.relativeTo(playsingleapi.moduleDir).toString()
           ) == Seq(
             "test"
           ),
           testResources.value.map(
-            _.path.relativeTo(playsingleapi.millSourcePath).toString()
+            _.path.relativeTo(playsingleapi.moduleDir).toString()
           ) == Seq(
             "test/resources"
           )
@@ -58,7 +58,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
     }
     test("compile") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
       val eitherResult = eval.apply(playsingleapi.compile)
-      val Right(result) = eitherResult
+      val Right(result) = eitherResult: @unchecked
       val outputFiles = os.walk(result.value.classes.path).filter(os.isFile)
       val expectedClassfiles = Seq[os.RelPath](
         os.RelPath("controllers/HomeController.class"),
@@ -83,7 +83,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
         result.evalCount > 0
       )
 
-      val Right(result2) = eval.apply(playsingleapi.compile)
+      val Right(result2) = eval.apply(playsingleapi.compile): @unchecked
 
       assert(result2.evalCount == 0)
     }

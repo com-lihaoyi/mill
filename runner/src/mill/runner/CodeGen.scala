@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.main.client.CodeGenConstants._
+import mill.client.CodeGenConstants._
 import mill.api.{PathRef, Result}
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
@@ -165,12 +165,12 @@ object CodeGen {
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
 
     if (objectData.exists(o => o.name.text == "`package`" && o.parent.text != expectedParent)) {
-      throw Result.Failure(s"object `package` in $scriptPath must extend `$expectedParent`")
+      throw new Result.Exception(s"object `package` in $scriptPath must extend `$expectedParent`")
     }
     val misnamed =
       objectData.filter(o => o.name.text != "`package`" && o.parent.text == expectedParent)
     if (misnamed.nonEmpty) {
-      throw Result.Failure(
+      throw new Result.Exception(
         s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name.text).mkString(", ")}"
       )
     }
@@ -254,7 +254,7 @@ object CodeGen {
 
   def millDiscover(segmentsNonEmpty: Boolean): String = {
     val rhs =
-      if (segmentsNonEmpty) "build_.package_.implicitMillDiscover"
+      if (segmentsNonEmpty) "build_.package_.millDiscover"
       else "_root_.mill.define.Discover[this.type]"
 
     s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"

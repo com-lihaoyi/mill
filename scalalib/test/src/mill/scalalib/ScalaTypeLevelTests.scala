@@ -13,13 +13,13 @@ object ScalaTypeLevelTests extends TestSuite {
       override def scalaOrganization = "org.typelevel"
       override def ammoniteVersion = "1.6.7"
 
-      override def ivyDeps = Agg(
+      override def ivyDeps = Seq(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
       )
-      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Seq(
         ivy"org.scalamacros:::paradise:2.1.0"
       )
-      override def scalaDocPluginIvyDeps = super.scalaDocPluginIvyDeps() ++ Agg(
+      override def scalaDocPluginIvyDeps = super.scalaDocPluginIvyDeps() ++ Seq(
         ivy"com.typesafe.genjavadoc:::genjavadoc-plugin:0.11"
       )
     }
@@ -31,7 +31,7 @@ object ScalaTypeLevelTests extends TestSuite {
 
     test("scalacPluginClasspath") {
       test("withMacroParadise") - UnitTester(HelloWorldTypeLevel, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath)
+        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath): @unchecked
         assert(
           result.value.nonEmpty,
           result.value.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
@@ -42,7 +42,7 @@ object ScalaTypeLevelTests extends TestSuite {
 
     test("scalaDocPluginClasspath") {
       test("extend") - UnitTester(HelloWorldTypeLevel, sourceRoot = resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath)
+        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath): @unchecked
         assert(
           result.value.iterator.nonEmpty,
           result.value.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
@@ -59,7 +59,7 @@ object ScalaTypeLevelTests extends TestSuite {
         HelloWorldTypeLevel.foo.compileClasspath
       )
       for (cp <- classPathsToCheck) {
-        val Right(result) = eval.apply(cp)
+        val Right(result) = eval.apply(cp): @unchecked
         assert(
           // Make sure every relevant piece org.scala-lang has been substituted for org.typelevel
           !result.value.map(_.toString).exists(x =>

@@ -11,8 +11,8 @@ import ch.epfl.scala.bsp4j.{
   TaskId
 }
 import mill.api.{CompileProblemReporter, PathRef}
-import mill.api.Result.{Skipped, Success}
-import mill.eval.Evaluator
+import mill.api.ExecResult.{Skipped, Success}
+import mill.exec.ExecResults
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 
@@ -50,7 +50,7 @@ private object Utils {
   }
 
   // Get the execution status code given the results from Evaluator.evaluate
-  def getStatusCode(resultsLists: Seq[Evaluator.Results]): StatusCode = {
+  def getStatusCode(resultsLists: Seq[ExecResults]): StatusCode = {
     val statusCodes =
       resultsLists.flatMap(r => r.results.keys.map(task => getStatusCodePerTask(r, task)).toSeq)
     if (statusCodes.contains(StatusCode.ERROR)) StatusCode.ERROR
@@ -106,9 +106,9 @@ private object Utils {
     else Nil
   }
 
-  private[this] def getStatusCodePerTask(
-      results: Evaluator.Results,
-      task: mill.define.Task[_]
+  private def getStatusCodePerTask(
+      results: ExecResults,
+      task: mill.define.Task[?]
   ): StatusCode = {
     results.results(task).result match {
       case Success(_) => StatusCode.OK

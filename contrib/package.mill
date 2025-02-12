@@ -18,6 +18,15 @@ import build.Deps
 // plugins and dependencies
 import $meta._
 
+/**
+ * [[build.contrib]] contains user-contributed Mill plugins that satisfy
+ * a range of use cases not covered by the core Mill builtins. `contrib`
+ * modules are typically less polished than builtins in [[build.javalib]]
+ * or [[build.scalalib]], and do not offer binary or source compatibility
+ * guarantees between Mill versions, but provide a place for the community
+ * to collaborate on Mill plugins that is more discoverable than individuals
+ * hosting their own Github repositories
+ */
 object `package` extends RootModule {
   def contribModules: Seq[ContribModule] =
     millInternal.modules.collect { case m: ContribModule => m }
@@ -121,7 +130,7 @@ object `package` extends RootModule {
     object worker2 extends build.MillPublishScalaModule {
       def testDepPaths = Task { Seq(compile().classes) }
       def compileModuleDeps = Seq(
-        build.main.api,
+        build.core.api,
         scoverage.api
       )
       def compileIvyDeps = Task {

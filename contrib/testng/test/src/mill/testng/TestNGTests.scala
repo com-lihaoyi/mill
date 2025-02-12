@@ -2,11 +2,11 @@ package mill
 package testng
 
 import mill.define.{Discover, Target}
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.{TestSuite, Tests, assert, *}
+import utest.*
 
 object TestNGTests extends TestSuite {
 
@@ -25,7 +25,7 @@ object TestNGTests extends TestSuite {
         Task { super.runClasspath() ++ testngClasspath() }
       override def ivyDeps = Task {
         super.ivyDeps() ++
-          Agg(
+          Seq(
             ivy"org.testng:testng:6.11",
             ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
           )
@@ -36,13 +36,13 @@ object TestNGTests extends TestSuite {
     }
 
     object testng extends JavaTests with TestModule.TestNg {
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"org.testng:testng:7.10.2"
       )
     }
 
     object testngGrouping extends JavaTests with TestModule.TestNg {
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"org.testng:testng:7.10.2"
       )
       def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
@@ -54,7 +54,7 @@ object TestNGTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("demo") - UnitTester(demo, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(demo.test.testFramework)
+      val Right(result) = eval.apply(demo.test.testFramework): @unchecked
       assert(
         result.value == "mill.testng.TestNGFramework",
         result.evalCount > 0
@@ -62,19 +62,19 @@ object TestNGTests extends TestSuite {
     }
     test("Test case lookup from inherited annotations") - UnitTester(demo, resourcePath).scoped {
       eval =>
-        val Right(result) = eval.apply(demo.test.test())
+        val Right(result) = eval.apply(demo.test.test()): @unchecked
         val tres = result.value
         assert(tres._2.size == 8)
     }
     test("noGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
-        val Right(result) = eval.apply(demo.testng.test())
+        val Right(result) = eval.apply(demo.testng.test()): @unchecked
         val tres = result.value._2
         assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }
     test("testForkGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
-        val Right(result) = eval.apply(demo.testngGrouping.test())
+        val Right(result) = eval.apply(demo.testngGrouping.test()): @unchecked
         val tres = result.value._2
         assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }

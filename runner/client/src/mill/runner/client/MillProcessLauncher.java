@@ -1,6 +1,6 @@
 package mill.runner.client;
 
-import static mill.main.client.OutFiles.*;
+import static mill.client.OutFiles.*;
 
 import io.github.alexarchambault.windowsansi.WindowsAnsi;
 import java.io.File;
@@ -11,9 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import mill.main.client.EnvVars;
-import mill.main.client.ServerFiles;
-import mill.main.client.Util;
+import mill.client.ClientUtil;
+import mill.client.EnvVars;
+import mill.client.ServerFiles;
 
 public class MillProcessLauncher {
 
@@ -26,7 +26,7 @@ public class MillProcessLauncher {
     l.addAll(millLaunchJvmCommand(setJnaNoSys));
     l.add("mill.runner.MillMain");
     l.add(processDir.toAbsolutePath().toString());
-    l.addAll(Util.readOptsFileLines(millOptsFile()));
+    l.addAll(ClientUtil.readOptsFileLines(millOptsFile()));
     l.addAll(Arrays.asList(args));
 
     final ProcessBuilder builder = new ProcessBuilder().command(l).inheritIO();
@@ -214,7 +214,7 @@ public class MillProcessLauncher {
     // extra opts
     Path millJvmOptsFile = millJvmOptsFile();
     if (Files.exists(millJvmOptsFile)) {
-      vmOptions.addAll(Util.readOptsFileLines(millJvmOptsFile));
+      vmOptions.addAll(ClientUtil.readOptsFileLines(millJvmOptsFile));
     }
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
@@ -225,7 +225,7 @@ public class MillProcessLauncher {
   }
 
   static List<String> readMillJvmOpts() throws Exception {
-    return Util.readOptsFileLines(millJvmOptsFile());
+    return ClientUtil.readOptsFileLines(millJvmOptsFile());
   }
 
   static int getTerminalDim(String s, boolean inheritError) throws Exception {

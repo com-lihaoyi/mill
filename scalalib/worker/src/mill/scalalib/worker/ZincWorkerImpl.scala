@@ -1,7 +1,8 @@
 package mill.scalalib.worker
 
-import mill.api.Loose.Agg
-import mill.api.{CachedFactory, CompileProblemReporter, Ctx, PathRef, Result, internal}
+import mill.util.CachedFactory
+import mill.api.{CompileProblemReporter, PathRef, Result, internal}
+import mill.client.CodeGenConstants
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
 import os.Path
 import sbt.internal.inc.{
@@ -46,7 +47,7 @@ import scala.util.Properties.isWin
 @internal
 class ZincWorkerImpl(
     compilerBridge: Either[
-      (ZincWorkerApi.Ctx, (String, String) => (Option[Agg[PathRef]], PathRef)),
+      (ZincWorkerApi.Ctx, (String, String) => (Option[Seq[PathRef]], PathRef)),
       String => PathRef
     ],
     jobs: Int,
@@ -55,7 +56,7 @@ class ZincWorkerImpl(
     javaHome: Option[PathRef],
     close0: () => Unit
 ) extends ZincWorkerApi with AutoCloseable {
-  val libraryJarNameGrep: (Agg[PathRef], String) => PathRef =
+  val libraryJarNameGrep: (Seq[PathRef], String) => PathRef =
     ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false)
 
   case class CompileCacheKey(
@@ -114,12 +115,12 @@ class ZincWorkerImpl(
           cl.close()
           None
         case Some((cl, n)) if n > 1 => Some((cl, n - 1))
-        // No other cases; n should never be zero or negative
+        case _ => ??? // No other cases; n should never be zero or negative
       }
     }
   }
 
-  private[this] val classloaderCache =
+  private val classloaderCache =
     collection.mutable.LinkedHashMap.empty[Long, (URLClassLoader, Int)]
 
   def getCachedClassLoader(
@@ -133,12 +134,12 @@ class ZincWorkerImpl(
           cl
         case _ =>
           // the Scala compiler must load the `xsbti.*` classes from the same loader as `ZincWorkerImpl`
-          val cl = mill.api.ClassLoader.create(
-            combinedCompilerJars.map(_.toURI.toURL).toSeq,
+          val cl = mill.util.Jvm.createClassLoader(
+            combinedCompilerJars.map(os.Path(_)).toSeq,
             parent = null,
             sharedLoader = getClass.getClassLoader,
             sharedPrefixes = Seq("xsbti")
-          )(new Ctx.Home { override def home: Path = os.home })
+          )
           classloaderCache.update(compilersSig, (cl, 1))
           cl
       }
@@ -189,7 +190,7 @@ class ZincWorkerImpl(
   }
 
   private def zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
-  private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
+  private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
 
   private def filterJavacRuntimeOptions(opt: String): Boolean = opt.startsWith("-J")
 
@@ -216,8 +217,8 @@ class ZincWorkerImpl(
   def docJar(
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Agg[PathRef],
-      scalacPluginClasspath: Agg[PathRef],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
       args: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): Boolean = {
     withCompilers(
@@ -266,8 +267,8 @@ class ZincWorkerImpl(
       workingDir: os.Path,
       compileDest: os.Path,
       scalaVersion: String,
-      compilerClasspath: Agg[PathRef],
-      compilerBridgeClasspath: Agg[PathRef],
+      compilerClasspath: Seq[PathRef],
+      compilerBridgeClasspath: Seq[PathRef],
       compilerBridgeSourcesJar: os.Path
   ): Unit = {
     if (scalaVersion == "2.12.0") {
@@ -284,10 +285,10 @@ class ZincWorkerImpl(
     os.makeDir.all(compileDest)
 
     val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
-    val classloader = mill.api.ClassLoader.create(
-      compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq,
+    val classloader = mill.util.Jvm.createClassLoader(
+      compilerClasspath.map(_.path).toSeq,
       null
-    )(ctx0)
+    )
 
     val (sources, resources) =
       os.walk(sourceFolder).filter(os.isFile)
@@ -341,7 +342,7 @@ class ZincWorkerImpl(
   def compileBridgeIfNeeded(
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Agg[PathRef]
+      compilerClasspath: Seq[PathRef]
   ): os.Path = {
     compilerBridge match {
       case Right(compiled) => compiled(scalaVersion).path
@@ -406,8 +407,8 @@ class ZincWorkerImpl(
 
   override def compileJava(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
@@ -431,14 +432,14 @@ class ZincWorkerImpl(
 
   override def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
       scalaVersion: String,
       scalaOrganization: String,
       scalacOptions: Seq[String],
-      compilerClasspath: Agg[PathRef],
-      scalacPluginClasspath: Agg[PathRef],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
@@ -469,8 +470,8 @@ class ZincWorkerImpl(
   private def withCompilers[T](
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Agg[PathRef],
-      scalacPluginClasspath: Agg[PathRef],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
       javacOptions: Seq[String]
   )(f: Compilers => T) = {
 
@@ -500,8 +501,8 @@ class ZincWorkerImpl(
 
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
@@ -686,19 +687,6 @@ class ZincWorkerImpl(
 }
 
 object ZincWorkerImpl {
-
-  /**
-   * TODO: copied from mill.scalalib.Assembly
-   */
-  private object Streamable {
-    def bytes(is: java.io.InputStream): Array[Byte] = {
-      val out = new java.io.ByteArrayOutputStream
-      mill.api.IO.stream(is, out)
-      out.close()
-      out.toByteArray
-    }
-  }
-
   private def intValue(oi: java.util.Optional[Integer], default: Int): Int = {
     if oi.isPresent then oi.get().intValue()
     else default
@@ -727,13 +715,13 @@ object ZincWorkerImpl {
     def create(sources: Array[VirtualFile]): (xsbti.Position => xsbti.Position) | Null = {
       val buildSources0 = {
         def isBuild(vf: VirtualFile) =
-          mill.main.client.CodeGenConstants.buildFileExtensions.exists(ex =>
+          CodeGenConstants.buildFileExtensions.exists(ex =>
             vf.id().endsWith(s".$ex")
           )
 
         sources.collect({
           case vf if isBuild(vf) =>
-            val str = new String(Streamable.bytes(vf.input()), StandardCharsets.UTF_8)
+            val str = new String(vf.input().readAllBytes(), StandardCharsets.UTF_8)
 
             val lines = str.linesWithSeparators.toVector
             val adjustedFile = lines

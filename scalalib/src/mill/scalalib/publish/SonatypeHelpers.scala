@@ -1,7 +1,5 @@
 package mill.scalalib.publish
 
-import mill.util.Jvm
-
 import java.math.BigInteger
 import java.security.MessageDigest
 
@@ -54,7 +52,14 @@ object SonatypeHelpers {
     val fileName = file.toString
     val command = "gpg" +: args :+ fileName
 
-    Jvm.runSubprocess(command, env, workspace)
+    os.call(
+      command,
+      env,
+      workspace,
+      stdin = os.Inherit,
+      stdout = os.Inherit,
+      stderr = os.Inherit
+    )
     os.Path(fileName + ".asc")
   }
 

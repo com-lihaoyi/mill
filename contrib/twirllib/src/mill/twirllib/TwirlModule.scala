@@ -1,10 +1,11 @@
 package mill
 package twirllib
 
-import coursier.{Dependency, Repository}
+import coursier.Repository
 import mill.api.PathRef
-import mill.scalalib._
-import mill.api.Loose
+import mill.scalalib.*
+
+import mill.define.Task
 import mill.main.BuildInfo
 
 import scala.io.Codec
@@ -28,7 +29,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   }
 
   def twirlSources: T[Seq[PathRef]] = Task.Sources {
-    millSourcePath / "views"
+    moduleDir / "views"
   }
 
   /**
@@ -43,13 +44,13 @@ trait TwirlModule extends mill.Module { twirlModule =>
   /**
    * @since Mill after 0.10.5
    */
-  def twirlIvyDeps: T[Agg[Dep]] = Task {
-    Agg(
+  def twirlIvyDeps: T[Seq[Dep]] = Task {
+    Seq(
       if (twirlVersion().startsWith("1."))
         ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}"
       else ivy"org.playframework.twirl::twirl-compiler:${twirlVersion()}"
     ) ++
-      Agg(
+      Seq(
         ivy"org.scala-lang.modules::scala-parser-combinators:${scalaParserCombinatorsVersion()}"
       )
   }
@@ -59,8 +60,8 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * @since Mill after 0.10.5
    */
   trait TwirlResolver extends CoursierModule {
-    override def resolveCoursierDependency: Task[Dep => Dependency] = Task.Anon { (d: Dep) =>
-      Lib.depToDependency(d, twirlScalaVersion())
+    def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
+      BoundDep(Lib.depToDependency(dep, twirlScalaVersion()), dep.force)
     }
 
     override def repositoriesTask: Task[Seq[Repository]] = twirlModule match {
@@ -74,7 +75,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    */
   lazy val twirlCoursierResolver: TwirlResolver = new TwirlResolver {}
 
-  def twirlClasspath: T[Loose.Agg[PathRef]] = Task {
+  def twirlClasspath: T[Seq[PathRef]] = Task {
     twirlCoursierResolver.defaultResolver().resolveDeps(twirlIvyDeps())
   }
 

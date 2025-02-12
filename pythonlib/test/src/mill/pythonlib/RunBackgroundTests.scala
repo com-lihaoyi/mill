@@ -3,6 +3,7 @@ package mill.pythonlib
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 import mill.*
+import mill.client.lock.Lock
 import mill.define.Discover
 
 object RunBackgroundTests extends TestSuite {
@@ -20,10 +21,11 @@ object RunBackgroundTests extends TestSuite {
       val eval = UnitTester(HelloWorldPython, resourcePath)
 
       val lockedFile = os.temp()
-      val Right(result) = eval.apply(HelloWorldPython.foo.runBackground(Args(lockedFile)))
+      val Right(result) =
+        eval.apply(HelloWorldPython.foo.runBackground(Args(lockedFile))): @unchecked
       val maxSleep = 20000
       val now1 = System.currentTimeMillis()
-      val lock = mill.main.client.lock.Lock.file(lockedFile.toString())
+      val lock = Lock.file(lockedFile.toString())
 
       def sleepIfTimeAvailable(error: String) = {
         Thread.sleep(100)

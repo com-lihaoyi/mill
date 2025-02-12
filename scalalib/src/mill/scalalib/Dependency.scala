@@ -18,7 +18,7 @@ object Dependency extends ExternalModule {
         ev,
         implicitly,
         ev.rootModule,
-        ev.rootModule.implicitMillDiscover,
+        ev.rootModule.moduleCtx.discover,
         allowPreRelease
       )
     }
@@ -31,10 +31,6 @@ object Dependency extends ExternalModule {
   ): Command[Unit] = Task.Command {
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)(), format)
   }
-
-  @deprecated("Use other overload instead", "Mill after 0.11.6")
-  def showUpdates(ev: Evaluator, allowPreRelease: Boolean): Command[Unit] =
-    Dependency.showUpdates(ev, allowPreRelease, Format.PerModule)
 
   lazy val millDiscover = Discover[this.type]
 }

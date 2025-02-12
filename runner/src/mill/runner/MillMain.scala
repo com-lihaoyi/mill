@@ -1,18 +1,20 @@
 package mill.runner
 
+import mill.api
+
 import java.io.{PipedInputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
+import mill.api.{ColorLogger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
+import mill.client.{OutFiles, ServerFiles, Util}
+import mill.client.lock.Lock
 import mill.main.BuildInfo
-import mill.main.client.{OutFiles, ServerFiles, Util}
-import mill.main.client.lock.Lock
 import mill.runner.worker.ScalaCompilerWorker
-import mill.util.{Colors, PrintLogger, PromptLogger}
+import mill.internal.{Colors, PrintLogger, PromptLogger}
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
@@ -75,11 +77,11 @@ object MillMain {
       try main0(
           args = args.tail,
           stateCache = RunnerState.empty,
-          mainInteractive = mill.util.Util.isInteractive(),
+          mainInteractive = mill.client.Util.hasConsole(),
           streams0 = runnerStreams,
           bspLog = bspLog,
           env = System.getenv().asScala.toMap,
-          setIdle = b => (),
+          setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
           systemExit = i => sys.exit(i),
@@ -91,6 +93,8 @@ object MillMain {
       }
     System.exit(if (result) 0 else 1)
   }
+
+  lazy val maybeScalaCompilerWorker = ScalaCompilerWorker.bootstrapWorker()
 
   def main0(
       args: Array[String],
@@ -111,15 +115,15 @@ object MillMain {
       os.SubProcess.env.withValue(env) {
         MillCliConfigParser.parse(args) match {
           // Cannot parse args
-          case Left(msg) =>
+          case Result.Failure(msg) =>
             streams.err.println(msg)
             (false, RunnerState.empty)
 
-          case Right(config) if config.help.value =>
+          case Result.Success(config) if config.help.value =>
             streams.out.println(MillCliConfigParser.longUsageText)
             (true, RunnerState.empty)
 
-          case Right(config) if config.showVersion.value =>
+          case Result.Success(config) if config.showVersion.value =>
             def prop(k: String) = System.getProperty(k, s"<unknown $k>")
 
             val javaVersion = prop("java.version")
@@ -137,7 +141,7 @@ object MillMain {
             )
             (true, RunnerState.empty)
 
-          case Right(config)
+          case Result.Success(config)
               if (
                 config.interactive.value || config.noServer.value || config.bsp.value
               ) && streams.in.getClass == classOf[PipedInputStream] =>
@@ -147,7 +151,7 @@ object MillMain {
             )
             (false, RunnerState.empty)
 
-          case Right(config)
+          case Result.Success(config)
               if Seq(
                 config.interactive.value,
                 config.noServer.value,
@@ -159,14 +163,15 @@ object MillMain {
             (false, RunnerState.empty)
 
           // Check non-negative --meta-level option
-          case Right(config) if config.metaLevel.exists(_ < 0) =>
+          case Result.Success(config) if config.metaLevel.exists(_ < 0) =>
             streams.err.println("--meta-level cannot be negative")
             (false, RunnerState.empty)
 
-          case Right(config) =>
+          case Result.Success(config) =>
             val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
             val colored = config.color.getOrElse(mainInteractive && !noColorViaEnv)
-            val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
+            val colors =
+              if (colored) mill.internal.Colors.Default else mill.internal.Colors.BlackWhite
 
             if (!config.silent.value) {
               checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)
@@ -187,8 +192,8 @@ object MillMain {
 
                 (true, stateCache)
 
-              } else if (maybeThreadCount.isLeft) {
-                streams.err.println(maybeThreadCount.swap.toOption.get)
+              } else if (maybeThreadCount.errorOpt.isDefined) {
+                streams.err.println(maybeThreadCount.errorOpt.get)
                 (false, stateCache)
 
               } else {
@@ -197,13 +202,12 @@ object MillMain {
 
                 val threadCount = Some(maybeThreadCount.toOption.get)
 
-                val maybeScalaCompilerWorker = ScalaCompilerWorker.bootstrapWorker(config.home)
-                if (maybeScalaCompilerWorker.isLeft) {
-                  val err = maybeScalaCompilerWorker.left.get
+                if (maybeScalaCompilerWorker.isInstanceOf[Result.Failure]) {
+                  val err = maybeScalaCompilerWorker.errorOpt.get
                   streams.err.println(err)
                   (false, stateCache)
                 } else {
-                  val scalaCompilerWorker = maybeScalaCompilerWorker.right.get
+                  val scalaCompilerWorker = maybeScalaCompilerWorker.get
                   val bspContext =
                     if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
 
@@ -271,7 +275,6 @@ object MillMain {
                                     targetsAndParams = targetsAndParams,
                                     prevRunnerState = prevState.getOrElse(stateCache),
                                     logger = logger,
-                                    disableCallgraph = config.disableCallgraph.value,
                                     needBuildFile = needBuildFile(config),
                                     requestedMetaLevel = config.metaLevel,
                                     config.allowPositional.value,
@@ -330,21 +333,21 @@ object MillMain {
   private[runner] def parseThreadCount(
       threadCountRaw: Option[String],
       availableCores: Int
-  ): Either[String, Int] = {
+  ): Result[Int] = {
     def err(detail: String) =
       s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail"
 
     (threadCountRaw match {
-      case None => Right(availableCores)
-      case Some("0") => Right(availableCores)
-      case Some(s"${n}C") => n.toDoubleOption
+      case None => Result.Success(availableCores)
+      case Some("0") => Result.Success(availableCores)
+      case Some(s"${n}C") => Result.fromEither(n.toDoubleOption
           .toRight(err("Failed to find a float number before \"C\"."))
-          .map(m => (m * availableCores).toInt)
-      case Some(s"C-${n}") => n.toIntOption
+          .map(m => (m * availableCores).toInt))
+      case Some(s"C-${n}") => Result.fromEither(n.toIntOption
           .toRight(err("Failed to find a int number after \"C-\"."))
-          .map(availableCores - _)
-      case Some(n) => n.toIntOption
-          .toRight(err("Failed to find a int number"))
+          .map(availableCores - _))
+      case Some(n) => Result.fromEither(n.toIntOption
+          .toRight(err("Failed to find a int number")))
     }).map { x => if (x < 1) 1 else x }
   }
 
@@ -357,10 +360,10 @@ object MillMain {
       serverDir: os.Path,
       colored: Boolean,
       colors: Colors
-  ): mill.util.ColorLogger = {
+  ): ColorLogger = {
 
     val logger = if (config.disablePrompt.value) {
-      new mill.util.PrintLogger(
+      new mill.internal.PrintLogger(
         colored = colored,
         enableTicker = enableTicker.getOrElse(mainInteractive),
         infoColor = colors.info,
@@ -412,8 +415,8 @@ object MillMain {
       projectDir / ".mill-version"
     ).collectFirst {
       case f if os.exists(f) =>
-        (f, os.read.lines(f).find(l => l.trim().nonEmpty))
-    }.foreach { case (file, Some(version)) =>
+        (f, os.read.lines(f).find(l => l.trim().nonEmpty).get)
+    }.foreach { case (file, version) =>
       if (BuildInfo.millVersion != version.stripSuffix("-native")) {
         val msg =
           s"""Mill version ${BuildInfo.millVersion} is different than configured for this directory!

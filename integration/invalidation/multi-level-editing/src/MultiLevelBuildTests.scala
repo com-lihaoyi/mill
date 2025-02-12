@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 
-import mill.main.client.OutFiles._
+import mill.client.OutFiles._
 import mill.runner.RunnerState
 import utest._
 

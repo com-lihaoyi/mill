@@ -1,16 +1,13 @@
 package mill.scalalib
 
 import mill.*
-import mill.testkit.{TestBaseModule, UnitTester}
-import utest.*
+import mill.testkit.TestBaseModule
 import mill.main.TokenReaders._
-import java.util.jar.JarFile
-import scala.util.Using
 import HelloWorldTests.*
 import mill.define.Discover
 trait ScalaAssemblyTestUtils {
 
-  val akkaHttpDeps = Agg(ivy"com.typesafe.akka::akka-http:10.0.13")
+  val akkaHttpDeps = Seq(ivy"com.typesafe.akka::akka-http:10.0.13")
 
   object HelloWorldAkkaHttpAppend extends TestBaseModule {
     object core extends HelloWorldModuleWithMain {

@@ -2,13 +2,12 @@ package mill.contrib.proguard
 
 import mill.*
 import mill.define.{Discover, Target}
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.Path
 import utest.*
-import utest.framework.TestPath
 
 object ProguardTests extends TestSuite {
 
@@ -31,7 +30,7 @@ object ProguardTests extends TestSuite {
     test("Proguard module") {
       test("should download proguard jars") - UnitTester(proguard, testModuleSourcesPath).scoped {
         eval =>
-          val Right(result) = eval.apply(proguard.proguardClasspath)
+          val Right(result) = eval.apply(proguard.proguardClasspath): @unchecked
           assert(
             result.value.iterator.toSeq.nonEmpty,
             result.value.iterator.toSeq.head.path.toString().contains("proguard-base")
@@ -39,7 +38,7 @@ object ProguardTests extends TestSuite {
       }
 
       test("should create a proguarded jar") - UnitTester(proguard, testModuleSourcesPath).scoped {
-        eval =>
+        _ =>
           // Not sure why this is broken in Scala 3
           // val Right(result) = eval.apply(proguard.proguard)
           //          assert(os.exists(result.value.path))

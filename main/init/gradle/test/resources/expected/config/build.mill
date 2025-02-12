@@ -18,14 +18,14 @@ object `package` extends RootModule {
 
   object app extends BaseModule {
 
-    def ivyDeps = super.ivyDeps() ++ Agg(Deps.`org.apache.commons:commons-text`)
+    def ivyDeps = super.ivyDeps() ++ Seq(Deps.`org.apache.commons:commons-text`)
 
     def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
 
     object tests extends MavenTests with TestModule.Junit5 {
 
       def ivyDeps = super.ivyDeps() ++
-        Agg(Deps.`org.junit.jupiter:junit-jupiter`)
+        Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
     }
   }
@@ -35,7 +35,7 @@ object `package` extends RootModule {
     object tests extends MavenTests with TestModule.Junit5 {
 
       def ivyDeps = super.ivyDeps() ++
-        Agg(Deps.`org.junit.jupiter:junit-jupiter`)
+        Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
     }
   }

@@ -81,25 +81,21 @@ def taskCallingCommand = Task {
 // to traverse the module tree to find the tasks specified by the `tasks` strings,
 // and plan out what would be necessary to run them
 import mill.eval.Evaluator
-import mill.resolve.{Resolve, SelectMode}
+import mill.define.SelectMode
 
 def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
-  Resolve.Tasks.resolve(
-    evaluator.rootModule,
-    tasks,
-    SelectMode.Multi
-  ) match {
-    case Left(err) => Left(err)
-    case Right(resolved) =>
-      val plan = evaluator.plan(resolved)
-        .sortedGroups
-        .keys()
-        .map(_.toString)
-        .toArray
+  val resolved = evaluator
+    .resolveTasks(tasks, SelectMode.Multi)
+    .get
 
-      plan.foreach(println)
-      Right(())
-  }
+  val plan = evaluator.plan(resolved)
+    .sortedGroups
+    .keys()
+    .map(_.toString)
+    .toArray
+
+  plan.foreach(println)
+  ()
 }
 
 // We can call our `customPlanCommand` from the command line and pass it the

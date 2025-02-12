@@ -3,7 +3,8 @@ package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task}
-import mill.api.{JarManifest, PathRef, Result}
+import mill.api.{PathRef, Result}
+import mill.util.JarManifest
 import mill.main.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.SonatypeHelpers.{
@@ -83,7 +84,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def publishIvyDeps
-      : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Agg[Dependency]] =
+      : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Seq[Dependency]] =
     Task.Anon {
       (rootDepVersions: Map[coursier.core.Module, String], bomDepMgmt: DependencyManagement.Map) =>
         val bindDependency0 = bindDependency()
@@ -135,7 +136,7 @@ trait PublishModule extends JavaModule { outer =>
           runModulePomDeps.map(Dependency(_, Scope.Runtime))
     }
 
-  def publishXmlDeps: Task[Agg[Dependency]] = Task.Anon {
+  def publishXmlDeps: Task[Seq[Dependency]] = Task.Anon {
     val ivyPomDeps =
       allIvyDeps()
         .map(resolvePublishDependency.apply().apply(_))
@@ -169,7 +170,7 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * BOM dependency to specify in the POM
    */
-  def publishXmlBomDeps: Task[Agg[Dependency]] = Task.Anon {
+  def publishXmlBomDeps: Task[Seq[Dependency]] = Task.Anon {
     val fromBomMods = Task.traverse(
       bomModuleDepsChecked
         // TODO When we can break bin-compat, add the bomModuleDeps override above,
@@ -185,14 +186,14 @@ trait PublishModule extends JavaModule { outer =>
     )(_.artifactMetadata)().map { a =>
       Dependency(a, Scope.Import)
     }
-    Agg(fromBomMods: _*) ++
+    Seq(fromBomMods*) ++
       bomIvyDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
   /**
    * Dependency management to specify in the POM
    */
-  def publishXmlDepMgmt: Task[Agg[Dependency]] = Task.Anon {
+  def publishXmlDepMgmt: Task[Seq[Dependency]] = Task.Anon {
     depManagement().map(resolvePublishDependency.apply().apply(_))
   }
 
@@ -212,20 +213,6 @@ trait PublishModule extends JavaModule { outer =>
     os.write.over(pomPath, pom)
     PathRef(pomPath)
   }
-
-  /**
-   * Dependencies with version placeholder filled from BOMs, alongside with BOM data
-   */
-  @deprecated("Unused by Mill", "Mill after 0.12.5")
-  def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
-    Task {
-      val (processedDeps, depMgmt) = defaultResolver().processDeps(
-        processedIvyDeps(),
-        resolutionParams = resolutionParams(),
-        boms = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
-      )
-      (processedDeps.map(_.moduleVersion).toMap, depMgmt)
-    }
 
   /**
    * Path to the ivy.xml file for this module
@@ -319,9 +306,9 @@ trait PublishModule extends JavaModule { outer =>
       pomPackagingType match {
         case PackagingType.Pom => Task.Anon(Seq())
         case _ => Task.Anon(Seq(
-            (jar(), PublishInfo.jar _),
-            (sourceJar(), PublishInfo.sourcesJar _),
-            (docJar(), PublishInfo.docJar _)
+            (jar(), PublishInfo.jar),
+            (sourceJar(), PublishInfo.sourcesJar),
+            (docJar(), PublishInfo.docJar)
           ))
       }
     }
@@ -610,7 +597,7 @@ object PublishModule extends ExternalModule with TaskModule {
       stagingRelease
     ).publishAll(
       release,
-      x: _*
+      x*
     )
   }
 

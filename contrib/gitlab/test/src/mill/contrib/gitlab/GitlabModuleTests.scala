@@ -1,12 +1,11 @@
 package mill.contrib.gitlab
 
-import mill.{T, Task}
-import mill.api.Result.Failure
+import mill.T
+import mill.api.ExecResult.Failure
 import mill.define.Discover
 import mill.scalalib.publish.PomSettings
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.framework.TestPath
 import utest.{TestSuite, Tests, assertMatch, test}
 import mill.main.TokenReaders._
 object GitlabModuleTests extends TestSuite {
@@ -49,7 +48,7 @@ object GitlabModuleTests extends TestSuite {
       val e = eval(GitlabModule.gitlabHeaders(Map.empty))
 
       assertMatch(e) {
-        case Left(Failure(s, _))
+        case Left(Failure(s))
             if s.startsWith("Token lookup for PUBLISH repository") =>
       }
     }
@@ -59,7 +58,7 @@ object GitlabModuleTests extends TestSuite {
         val e = eval(GLMvnRepo.mavenRepository)
 
         assertMatch(e) {
-          case Left(Failure(s, _))
+          case Left(Failure(s))
               if s.startsWith("Token lookup for PACKAGE repository") =>
         }
     }

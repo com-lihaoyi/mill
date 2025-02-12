@@ -3,7 +3,6 @@ package mill.twirllib
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, *}
 
 trait HelloWorldTests extends TestSuite {
@@ -72,7 +71,7 @@ trait HelloWorldTests extends TestSuite {
 
       test("fromBuild") - UnitTester(HelloWorld, resourcePath / "hello-world").scoped { eval =>
         val Right(result) =
-          eval.apply(HelloWorld.core.twirlVersion)
+          eval.apply(HelloWorld.core.twirlVersion): @unchecked
 
         assert(
           result.value == testTwirlVersion,
@@ -85,7 +84,7 @@ trait HelloWorldTests extends TestSuite {
         UnitTester(HelloWorld, resourcePath / "hello-world", debugEnabled = true).scoped { eval =>
           val res = eval.apply(HelloWorld.core.compileTwirl)
           assert(res.isRight)
-          val Right(result) = res
+          val Right(result) = res: @unchecked
 
           val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
           val expectedClassfiles = compileClassfiles.map(
@@ -113,7 +112,7 @@ trait HelloWorldTests extends TestSuite {
 
           // don't recompile if nothing changed
           val Right(result2) =
-            eval.apply(HelloWorld.core.compileTwirl)
+            eval.apply(HelloWorld.core.compileTwirl): @unchecked
 
           assert(result2.evalCount == 0)
         }
@@ -126,7 +125,7 @@ trait HelloWorldTests extends TestSuite {
           HelloWorldWithInclusiveDot,
           sourceRoot = resourcePath / "hello-world-inclusive-dot"
         ).scoped { eval =>
-          val Right(result) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
+          val Right(result) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl): @unchecked
 
           val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
           val expectedClassfiles = compileClassfiles.map(name =>
@@ -152,7 +151,7 @@ trait HelloWorldTests extends TestSuite {
 
           // don't recompile if nothing changed
           val Right(result2) =
-            eval.apply(HelloWorld.core.compileTwirl)
+            eval.apply(HelloWorld.core.compileTwirl): @unchecked
 
           assert(result2.evalCount == 0)
         }

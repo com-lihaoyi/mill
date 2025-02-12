@@ -104,7 +104,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
     publisher.publishAll(
       getPublishingTypeFromReleaseFlag(shouldRelease),
       finalBundleName,
-      artifacts: _*
+      artifacts*
     )
   }
 

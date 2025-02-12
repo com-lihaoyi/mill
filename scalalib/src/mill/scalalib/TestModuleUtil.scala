@@ -1,10 +1,10 @@
 package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
-import mill.main.client.EnvVars
+import mill.client.EnvVars
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
-import mill.{Agg, Task}
+import mill.Task
 import sbt.testing.Status
 
 import java.time.format.DateTimeFormatter
@@ -17,14 +17,14 @@ private[scalalib] object TestModuleUtil {
       useArgsFile: Boolean,
       forkArgs: Seq[String],
       selectors: Seq[String],
-      scalalibClasspath: Agg[PathRef],
+      scalalibClasspath: Seq[PathRef],
       resources: Seq[PathRef],
       testFramework: String,
       runClasspath: Seq[PathRef],
       testClasspath: Seq[PathRef],
       args: Seq[String],
       testClassLists: Seq[Seq[String]],
-      testrunnerEntrypointClasspath: Agg[PathRef],
+      testrunnerEntrypointClasspath: Seq[PathRef],
       forkEnv: Map[String, String],
       testSandboxWorkingDir: Boolean,
       forkWorkingDir: os.Path,
@@ -63,27 +63,28 @@ private[scalalib] object TestModuleUtil {
 
       os.makeDir.all(sandbox)
 
-      Jvm.runSubprocess(
+      Jvm.callProcess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath =
-          (runClasspath ++ testrunnerEntrypointClasspath).map(
-            _.path
-          ),
+        classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        envArgs = forkEnv ++ resourceEnv,
+        env = forkEnv ++ resourceEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
-        workingDir = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
-        useCpPassingJar = useArgsFile,
-        javaHome = javaHome
+        cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+        cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+        javaHome = javaHome,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
 
-      if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
-      else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
+      if (!os.exists(outputPath))
+        Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
+      else
+        Result.Success(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
     }
 
     val globFilter = TestRunnerUtils.globFilter(selectors)
 
-    def doesNotMatchError = Result.Failure(
+    def doesNotMatchError = new Result.Exception(
       s"Test selector does not match any test: ${selectors.mkString(" ")}" +
         "\nRun discoveredTestClasses to see available tests"
     )
@@ -102,9 +103,9 @@ private[scalalib] object TestModuleUtil {
         // tests to run and shut down
 
         val discoveredTests = if (javaHome.isDefined) {
-          Jvm.callSubprocess(
+          Jvm.callProcess(
             mainClass = "mill.testrunner.GetTestTasksMain",
-            classPath = scalalibClasspath.map(_.path),
+            classPath = scalalibClasspath.map(_.path).toVector,
             mainArgs =
               (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p =>
                 Seq("--runCp", p.path.toString)
@@ -114,7 +115,9 @@ private[scalalib] object TestModuleUtil {
                 selectors.flatMap(s => Seq("--selectors", s)) ++
                 args.flatMap(s => Seq("--args", s)),
             javaHome = javaHome,
-            streamOut = false
+            stdin = os.Inherit,
+            stdout = os.Pipe,
+            cwd = Task.dest
           ).out.lines().toSet
         } else {
           mill.testrunner.GetTestTasksMain.main0(
@@ -130,7 +133,7 @@ private[scalalib] object TestModuleUtil {
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
+    val subprocessResult: Result[(String, Seq[TestResult])] = filteredClassLists match {
       // When no tests at all are discovered, run at least one test JVM
       // process to go through the test framework setup/teardown logic
       case Nil => runTestRunnerSubprocess(Nil, Task.dest)
@@ -144,7 +147,7 @@ private[scalalib] object TestModuleUtil {
               collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
           }
 
-          val paddedIndex = mill.util.Util.leftPad(i.toString, maxLength, '0')
+          val paddedIndex = mill.internal.Util.leftPad(i.toString, maxLength, '0')
           val folderName = testClassList match {
             case Seq(single) => single
             case multiple =>
@@ -159,17 +162,17 @@ private[scalalib] object TestModuleUtil {
         val outputs = Task.fork.awaitAll(futures)
 
         val (lefts, rights) = outputs.partitionMap {
-          case (name, Left(v)) => Left(name + " " + v)
-          case (name, Right((msg, results))) => Right((name + " " + msg, results))
+          case (name, Result.Failure(v)) => Left(name + " " + v)
+          case (name, Result.Success((msg, results))) => Right((name + " " + msg, results))
         }
 
-        if (lefts.nonEmpty) Left(lefts.mkString("\n"))
-        else Right((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
+        if (lefts.nonEmpty) Result.Failure(lefts.mkString("\n"))
+        else Result.Success((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
     }
 
     subprocessResult match {
-      case Left(errMsg) => Result.Failure(errMsg)
-      case Right((doneMsg, results)) =>
+      case Result.Failure(errMsg) => Result.Failure(errMsg)
+      case Result.Success((doneMsg, results)) =>
         if (results.isEmpty && selectors.nonEmpty) throw doesNotMatchError
         try handleResults(doneMsg, results, Task.ctx(), testReportXml)
         catch {
@@ -196,12 +199,6 @@ private[scalalib] object TestModuleUtil {
     }
   }
 
-  @deprecated("Use other overload instead", "Mill after 0.10.2")
-  private[scalalib] def handleResults(
-      doneMsg: String,
-      results: Seq[TestResult]
-  ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
-
   private[scalalib] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
@@ -225,14 +222,14 @@ private[scalalib] object TestModuleUtil {
           .map(t => s"${t.fullyQualifiedName} ${t.selector}")
           .mkString("\n  ", "\n  ", "")}$suffix"
 
-      Result.Failure(msg, Some((doneMsg, results)))
+      Result.Failure(msg)
     }
   }
 
   private[scalalib] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env with Ctx.Dest,
+      ctx: Ctx.Env & Ctx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] = {

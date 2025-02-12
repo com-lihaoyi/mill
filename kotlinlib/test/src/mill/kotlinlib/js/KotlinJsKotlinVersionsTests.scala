@@ -29,7 +29,7 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
         case Array(1, 8, _) => "0.9.1"
         case _ => "0.11.0"
       }
-      super.ivyDeps() ++ Agg(
+      super.ivyDeps() ++ Seq(
         ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion"
       )
     }
@@ -49,13 +49,13 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
     test("compile with lowest Kotlin version") {
       val eval = testEval()
 
-      val Right(_) = eval.apply(module.foo(kotlinLowestVersion).compile)
+      val Right(_) = eval.apply(module.foo(kotlinLowestVersion).compile): @unchecked
     }
 
     test("compile with highest Kotlin version") {
       val eval = testEval()
 
-      val Right(_) = eval.apply(module.foo(kotlinHighestVersion).compile)
+      val Right(_) = eval.apply(module.foo(kotlinHighestVersion).compile): @unchecked
     }
   }
 

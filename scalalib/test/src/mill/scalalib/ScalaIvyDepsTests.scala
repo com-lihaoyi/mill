@@ -9,11 +9,11 @@ object ScalaIvyDepsTests extends TestSuite {
 
   object HelloWorldIvyDeps extends TestBaseModule {
     object moduleA extends HelloWorldTests.HelloWorldModule {
-      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.3")
+      override def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.1.3")
     }
     object moduleB extends HelloWorldTests.HelloWorldModule {
       override def moduleDeps = Seq(moduleA)
-      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
+      override def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.1.4")
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -21,8 +21,8 @@ object ScalaIvyDepsTests extends TestSuite {
 
   object TransitiveRunIvyDeps extends TestBaseModule {
     object upstream extends JavaModule {
-      def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:2.0.16")
-      def runIvyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.5.10")
+      def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:2.0.16")
+      def runIvyDeps = Seq(ivy"ch.qos.logback:logback-classic:1.5.10")
     }
 
     object downstream extends JavaModule {
@@ -35,8 +35,8 @@ object ScalaIvyDepsTests extends TestSuite {
 
   object TransitiveRunIvyDeps2 extends TestBaseModule {
     object upstream extends JavaModule {
-      def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:2.0.16")
-      def runIvyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.5.10")
+      def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:2.0.16")
+      def runIvyDeps = Seq(ivy"ch.qos.logback:logback-classic:1.5.10")
     }
 
     object downstream extends JavaModule {
@@ -50,13 +50,13 @@ object ScalaIvyDepsTests extends TestSuite {
   def tests: Tests = Tests {
 
     test("ivyDeps") - UnitTester(HelloWorldIvyDeps, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(HelloWorldIvyDeps.moduleA.runClasspath)
+      val Right(result) = eval.apply(HelloWorldIvyDeps.moduleA.runClasspath): @unchecked
       assert(
         result.value.exists(_.path.last == "sourcecode_2.12-0.1.3.jar"),
         !result.value.exists(_.path.last == "sourcecode_2.12-0.1.4.jar")
       )
 
-      val Right(result2) = eval.apply(HelloWorldIvyDeps.moduleB.runClasspath)
+      val Right(result2) = eval.apply(HelloWorldIvyDeps.moduleB.runClasspath): @unchecked
       assert(
         result2.value.exists(_.path.last == "sourcecode_2.12-0.1.4.jar"),
         !result2.value.exists(_.path.last == "sourcecode_2.12-0.1.3.jar")
@@ -64,7 +64,7 @@ object ScalaIvyDepsTests extends TestSuite {
     }
 
     test("transitiveRun") - UnitTester(TransitiveRunIvyDeps, resourcePath).scoped { eval =>
-      val Right(result2) = eval.apply(TransitiveRunIvyDeps.downstream.runClasspath)
+      val Right(result2) = eval.apply(TransitiveRunIvyDeps.downstream.runClasspath): @unchecked
 
       assert(
         result2.value.exists(_.path.last == "logback-classic-1.5.10.jar")
@@ -73,7 +73,7 @@ object ScalaIvyDepsTests extends TestSuite {
 
     test("transitiveLocalRuntimeDepsRun") - UnitTester(TransitiveRunIvyDeps2, resourcePath).scoped {
       eval =>
-        val Right(result2) = eval.apply(TransitiveRunIvyDeps2.downstream.runClasspath)
+        val Right(result2) = eval.apply(TransitiveRunIvyDeps2.downstream.runClasspath): @unchecked
 
         assert(
           result2.value.exists(_.path.last == "logback-classic-1.5.10.jar"),

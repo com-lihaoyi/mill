@@ -1,10 +1,10 @@
 package mill.runner.worker
 
-import mill.{Agg, PathRef}
+import mill.PathRef
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.api.Result
 
-import mill.api.Result.catchWrapException
+import mill.api.ExecResult.catchWrapException
 import mill.api.internal
 
 @internal
@@ -61,7 +61,7 @@ private[runner] object ScalaCompilerWorker {
     }
   }
 
-  private def bootstrapWorkerClasspath(): Result[Agg[PathRef]] = {
+  private def bootstrapWorkerClasspath(): Result[Seq[PathRef]] = {
     val repositories = Result.create {
       import scala.concurrent.ExecutionContext.Implicits.global
       import scala.concurrent.Await
@@ -80,11 +80,9 @@ private[runner] object ScalaCompilerWorker {
     }
   }
 
-  private def reflectUnsafe(classpath: IterableOnce[os.Path])(using
-      mill.api.Ctx.Home
-  ): ScalaCompilerWorkerApi =
-    val cl = mill.api.ClassLoader.create(
-      classpath.iterator.map(_.toIO.toURI.toURL).toVector,
+  private def reflectUnsafe(classpath: IterableOnce[os.Path]): ScalaCompilerWorkerApi =
+    val cl = mill.util.Jvm.createClassLoader(
+      classpath.toVector,
       getClass.getClassLoader
     )
     val bridge = cl
@@ -94,9 +92,8 @@ private[runner] object ScalaCompilerWorker {
       .asInstanceOf[ScalaCompilerWorkerApi]
     bridge
 
-  private def reflectEither(classpath: IterableOnce[os.Path])(using
-      mill.api.Ctx.Home
-  ): Either[String, ScalaCompilerWorkerApi] =
+  private def reflectEither(classpath: IterableOnce[os.Path])
+      : Result[ScalaCompilerWorkerApi] =
     catchWrapException {
       reflectUnsafe(classpath)
     }
@@ -108,16 +105,8 @@ private[runner] object ScalaCompilerWorker {
       reflectUnsafe(classpath)
     }
 
-  def bootstrapWorker(home0: os.Path): Either[String, ResolvedWorker] = {
-    given mill.api.Ctx.Home = new mill.api.Ctx.Home {
-      def home = home0
-    }
-    val classpath = bootstrapWorkerClasspath() match {
-      case Result.Success(value) => Right(value)
-      case Result.Failure(msg, _) => Left(msg)
-      case err: Result.Exception => Left(err.toString)
-      case res => Left(s"could not resolve worker classpath: $res")
-    }
+  def bootstrapWorker(): Result[ResolvedWorker] = {
+    val classpath = bootstrapWorkerClasspath()
     classpath.flatMap { cp =>
       val resolvedCp = cp.iterator.map(_.path).toVector
       reflectEither(resolvedCp).map(worker => ResolvedWorker(resolvedCp, worker))

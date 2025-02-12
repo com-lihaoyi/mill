@@ -3,6 +3,12 @@ package build.runner
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 
+/**
+ * Logic around the Mill command-line runner, script loading,
+ * process management, and build bootstrapping process.
+ *
+ * Mostly tested by [[build.integration]] and [[build.example]] tests.
+ */
 object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
   object `worker-api` extends build.MillPublishScalaModule {
     // def ivyDeps = Agg(build.Deps.osLib)
@@ -12,12 +18,12 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     def moduleDeps = Seq(`worker-api`)
     def ivyDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
 
-    private[runner] def bootstrapDeps = T.task {
+    private[runner] def bootstrapDeps = Task {
       val moduleDep = {
         val m = artifactMetadata()
         s"${m.group}:${m.id}:${m.version}"
       }
-      val boundIvys = transitiveIvyDeps()
+      val boundIvys = allIvyDeps()
       val nameFilter = "scala(.*)-compiler(.*)".r
       Agg(moduleDep) ++ boundIvys.collect {
         case dep if nameFilter.matches(dep.name) =>
@@ -25,7 +31,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
       }
     }
 
-    def reportDeps() = T.command {
+    def reportDeps() = Task.Command {
       bootstrapDeps().foreach(d => T.log.info(s"ivy dep: $d"))
     }
   }
@@ -35,7 +41,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     // spurious errors when there are mixed Java/Scala sources
     def fix(args: String*): Command[Unit] = Task.Command {}
     def buildInfoPackageName = "mill.runner.client"
-    def moduleDeps = Seq(build.main.client)
+    def moduleDeps = Seq(build.core.client)
     def ivyDeps = Agg(
       build.Deps.windowsAnsi,
       build.Deps.coursier,
@@ -56,8 +62,8 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     build.javascriptlib,
     build.pythonlib,
     build.bsp,
-    build.main.codesig,
-    build.main.server,
+    build.core.codesig,
+    build.core.server,
     client,
     `worker-api`
   )

@@ -4,7 +4,7 @@ import mill._, javascriptlib._, pythonlib._, javalib._
 object client extends ReactScriptsModule
 
 object `sentiment-analysis` extends PythonModule {
-  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+  def mainScript = Task.Source { moduleDir / "src" / "foo.py" }
 
   def pythonDeps = Seq("textblob==0.19.0")
 
@@ -12,7 +12,7 @@ object `sentiment-analysis` extends PythonModule {
 }
 
 object server extends JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"org.springframework.boot:spring-boot-starter-web:2.5.6",
     ivy"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
   )
@@ -26,7 +26,7 @@ object server extends JavaModule {
   }
 
   object test extends JavaTests with javalib.TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }

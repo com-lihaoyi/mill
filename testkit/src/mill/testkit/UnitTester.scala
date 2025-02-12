@@ -1,13 +1,14 @@
 package mill.testkit
 
 import mill.{Target, Task}
-import mill.api.Result.OuterStack
-import mill.api.{DummyInputStream, Result, SystemStreams, Val}
-import mill.define.{InputImpl, TargetImpl}
-import mill.eval.{Evaluator, EvaluatorImpl}
-import mill.resolve.{Resolve, SelectMode}
-import mill.util.PrintLogger
-import mill.api.Strict.Agg
+import mill.api.ExecResult.OuterStack
+import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
+import mill.define.{InputImpl, SelectMode, TargetImpl}
+import mill.eval.Evaluator
+import mill.resolve.Resolve
+import mill.internal.PrintLogger
+import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.client.OutFiles.{millChromeProfile, millProfile}
 
 import java.io.{InputStream, PrintStream}
 
@@ -55,22 +56,22 @@ class UnitTester(
     env: Map[String, String],
     resetSourcePath: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
-  val outPath: os.Path = module.millSourcePath / "out"
+  val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
-    os.remove.all(module.millSourcePath)
-    os.makeDir.all(module.millSourcePath)
+    os.remove.all(module.moduleDir)
+    os.makeDir.all(module.moduleDir)
 
     for (sourceFileRoot <- Option(sourceRoot)) {
-      os.copy.over(sourceFileRoot, module.millSourcePath, createFolders = true)
+      os.copy.over(sourceFileRoot, module.moduleDir, createFolders = true)
     }
   }
 
-  object logger extends mill.util.PrintLogger(
+  object logger extends mill.internal.PrintLogger(
         colored = true,
         enableTicker = false,
-        mill.util.Colors.Default.info,
-        mill.util.Colors.Default.error,
+        mill.internal.Colors.Default.info,
+        mill.internal.Colors.Default.error,
         new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
         context = "",
@@ -86,56 +87,64 @@ class UnitTester(
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
-  val evaluator: EvaluatorImpl = mill.eval.EvaluatorImpl.make(
-    mill.api.Ctx.defaultHome,
-    module.millSourcePath,
-    outPath,
-    outPath,
-    module,
-    logger,
-    0,
-    0,
+
+  val execution = new mill.exec.Execution(
+    baseLogger = logger,
+    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+    profileLogger = new ProfileLogger(outPath / millProfile),
+    home = mill.api.Ctx.defaultHome,
+    workspace = module.moduleDir,
+    outPath = outPath,
+    externalOutPath = outPath,
+    rootModule = module,
+    classLoaderSigHash = 0,
+    classLoaderIdentityHash = 0,
+    workerCache = collection.mutable.Map.empty,
+    env = env,
     failFast = failFast,
     threadCount = threads,
-    env = env,
     methodCodeHashSignatures = Map(),
-    disableCallgraph = false,
-    allowPositionalCommandArgs = false,
-    systemExit = i => ???,
-    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
-    selectiveExecution = false
+    systemExit = _ => ???,
+    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream)
   )
 
-  def apply(args: String*): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {
+  val evaluator: Evaluator = new mill.eval.Evaluator(
+    allowPositionalCommandArgs = false,
+    selectiveExecution = false,
+    execution = execution
+  )
+
+  def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
     } match {
-      case Left(err) => Left(Result.Failure(err))
-      case Right(resolved) => apply(resolved)
+      case Result.Failure(err) => Left(ExecResult.Failure(err))
+      case Result.Success(resolved) => apply(resolved)
     }
   }
 
-  def apply[T](task: Task[T]): Either[Result.Failing[T], UnitTester.Result[T]] = {
+  def apply[T](task: Task[T]): Either[ExecResult.Failing[T], UnitTester.Result[T]] = {
     apply(Seq(task)) match {
-      case Left(f) => Left(f.asInstanceOf[Result.Failing[T]])
+      case Left(f) => Left(f.asInstanceOf[ExecResult.Failing[T]])
       case Right(UnitTester.Result(Seq(v), i)) =>
         Right(UnitTester.Result(v.asInstanceOf[T], i))
+      case _ => ???
     }
   }
 
   def apply(
-      tasks: Seq[Task[_]],
+      tasks: Seq[Task[?]],
       dummy: DummyImplicit = null
-  ): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {
-    val evaluated = evaluator.evaluate(tasks)
+  ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
+    val evaluated = evaluator.execution.executeTasks(tasks)
 
-    if (evaluated.failing.keyCount == 0) {
+    if (evaluated.failing.isEmpty) {
       Right(
         UnitTester.Result(
-          evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
+          evaluated.rawValues.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
           evaluated.evaluated.collect {
             case t: TargetImpl[_]
-                if module.millInternal.targets.contains(t)
+                if module.moduleInternal.targets.contains(t)
                   && !t.ctx.external => t
             case t: mill.define.Command[_] => t
           }.size
@@ -144,10 +153,8 @@ class UnitTester(
     } else {
       Left(
         evaluated
-          .failing
-          .lookupKey(evaluated.failing.keys().next)
-          .items
-          .next()
+          .failing(evaluated.failing.keys.head)
+          .head
           .asFailing
           .get
           .map(_.value)
@@ -155,29 +162,31 @@ class UnitTester(
     }
   }
 
-  def fail(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]): Unit = {
+  def fail(
+      target: Target[?],
+      expectedFailCount: Int,
+      expectedRawValues: Seq[ExecResult[?]]
+  ): Unit = {
 
-    val res = evaluator.evaluate(Agg(target))
+    val res = evaluator.execution.executeTasks(Seq(target))
 
     val cleaned = res.rawValues.map {
-      case Result.Exception(ex, _) => Result.Exception(ex, new OuterStack(Nil))
+      case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
       case x => x.map(_.value)
     }
 
-    assert(
-      cleaned == expectedRawValues,
-      res.failing.keyCount == expectedFailCount
-    )
+    assert(cleaned == expectedRawValues)
+    assert(res.failing.size == expectedFailCount)
 
   }
 
-  def check(targets: Agg[Task[_]], expected: Agg[Task[_]]): Unit = {
+  def check(targets: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
-    val evaluated = evaluator.evaluate(targets)
+    val evaluated = evaluator.execution.executeTasks(targets)
       .evaluated
       .flatMap(_.asTarget)
-      .filter(module.millInternal.targets.contains)
-      .filter(!_.isInstanceOf[InputImpl[_]])
+      .filter(module.moduleInternal.targets.contains)
+      .filter(!_.isInstanceOf[InputImpl[?]])
     assert(
       evaluated.toSet == expected.toSet,
       s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"

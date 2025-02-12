@@ -1,9 +1,8 @@
 package mill.contrib.proguard
 
-import mill.java9rtexport.Export
 import mill.{T, Task}
-import mill.Agg
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
+import mill.client.Util
 import mill.util.Jvm
 import mill.scalalib.{DepSyntax, ScalaModule}
 import os.{Path, Shellable}
@@ -65,7 +64,7 @@ trait Proguard extends ScalaModule {
    * Keep in sync with [[javaHome]].
    */
   def java9RtJar: T[Seq[PathRef]] = Task {
-    if (mill.main.client.Util.isJava9OrAbove) Seq(PathRef(Task.home / Export.rtJarName))
+    if (Util.isJava9OrAbove) Seq(PathRef(Task.home / Export.rtJarName))
     else Seq()
   }
 
@@ -111,11 +110,13 @@ trait Proguard extends ScalaModule {
 //    val result = os.proc(cmd).call(stdout = Task.dest / "stdout.txt", stderr = Task.dest / "stderr.txt")
 //    Task.log.debug(s"result: ${result}")
 
-    Jvm.runSubprocess(
+    Jvm.callProcess(
       mainClass = "proguard.ProGuard",
-      classPath = proguardClasspath().map(_.path),
+      classPath = proguardClasspath().map(_.path).toVector,
       mainArgs = args,
-      workingDir = Task.dest
+      cwd = Task.dest,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
 
     // the call above already throws an exception on a non-zero exit code,
@@ -127,9 +128,9 @@ trait Proguard extends ScalaModule {
    * The location of the proguard jar files.
    * These are downloaded from JCenter and fed to `java -cp`
    */
-  def proguardClasspath: T[Loose.Agg[PathRef]] = Task {
+  def proguardClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.guardsquare:proguard-base:${proguardVersion()}")
+      Seq(ivy"com.guardsquare:proguard-base:${proguardVersion()}")
     )
   }
 

@@ -12,26 +12,26 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
     trait FooModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
-      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.2")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
-      def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
+      def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.2.2")
+      def compileIvyDeps = Seq(ivy"com.lihaoyi::geny:0.4.2")
+      def runIvyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+      def unmanagedClasspath = Task { Seq(PathRef(moduleDir / "unmanaged")) }
     }
     trait BarModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.1")
-      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.1")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
-      def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
+      def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.2.1")
+      def compileIvyDeps = Seq(ivy"com.lihaoyi::geny:0.4.1")
+      def runIvyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+      def unmanagedClasspath = Task { Seq(PathRef(moduleDir / "unmanaged")) }
     }
     trait QuxModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
-      def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.0")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
-      def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
+      def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.2.0")
+      def compileIvyDeps = Seq(ivy"com.lihaoyi::geny:0.4.0")
+      def runIvyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+      def unmanagedClasspath = Task { Seq(PathRef(moduleDir / "unmanaged")) }
     }
     object ModMod extends Module {
       object foo extends FooModule
@@ -94,12 +94,13 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         expectedCompileClasspath: Seq[String],
         expectedLocalClasspath: Seq[String]
     ) = {
-      val Right(runClasspathRes) = eval.apply(mod.runClasspath)
-      val Right(compileClasspathRes) = eval.apply(mod.compileClasspath)
-      val Right(upstreamAssemblyClasspathRes) = eval.apply(mod.upstreamAssemblyClasspath)
-      val Right(localClasspathRes) = eval.apply(mod.localClasspath)
+      val Right(runClasspathRes) = eval.apply(mod.runClasspath): @unchecked
+      val Right(compileClasspathRes) = eval.apply(mod.compileClasspath): @unchecked
+      val Right(upstreamAssemblyClasspathRes) =
+        eval.apply(mod.upstreamAssemblyClasspath): @unchecked
+      val Right(localClasspathRes) = eval.apply(mod.localClasspath): @unchecked
 
-      val start = eval.evaluator.rootModule.millSourcePath
+      val start = eval.evaluator.rootModule.moduleDir
       val startToken = Set("org", "com")
       def simplify(cp: Seq[PathRef]) = {
         cp.map(_.path).map { p =>

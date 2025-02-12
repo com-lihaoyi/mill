@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j.BuildClient
 import mill.main.BuildInfo
 import mill.bsp.{BspServerHandle, BspServerResult, BspWorker, Constants}
 import mill.eval.Evaluator
-import mill.api.SystemStreams
+import mill.api.{Result, SystemStreams}
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.{PrintStream, PrintWriter}
@@ -20,7 +20,7 @@ private class BspWorkerImpl() extends BspWorker {
       logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
-  ): Either[String, BspServerHandle] = {
+  ): mill.api.Result[BspServerHandle] = {
 
     val millServer =
       new MillBuildServer(
@@ -56,7 +56,7 @@ private class BspWorkerImpl() extends BspWorker {
       }
 
       val bspServerHandle = new BspServerHandle {
-        private[this] var lastResult0: Option[BspServerResult] = None
+        private var lastResult0: Option[BspServerResult] = None
 
         override def runSession(evaluators: Seq[Evaluator]): BspServerResult = {
           lastResult0 = None
@@ -90,12 +90,12 @@ private class BspWorkerImpl() extends BspWorker {
         executor.shutdown()
       }).start()
 
-      Right(bspServerHandle)
+      Result.Success(bspServerHandle)
     } catch {
       case _: CancellationException =>
-        Left("The mill server was shut down.")
+        Result.Failure("The mill server was shut down.")
       case e: Exception =>
-        Left(
+        Result.Failure(
           s"""An exception occurred while connecting to the client.
              |Cause: ${e.getCause}
              |Message: ${e.getMessage}

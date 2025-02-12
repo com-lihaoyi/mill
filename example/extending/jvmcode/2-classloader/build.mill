@@ -10,14 +10,14 @@ import mill._, javalib._
 import mill.util.Jvm
 
 object foo extends JavaModule {
-  def groovyClasspath: Task[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(Agg(ivy"org.codehaus.groovy:groovy:3.0.9"))
+  def groovyClasspath: Task[Seq[PathRef]] = Task {
+    defaultResolver().resolveDeps(Seq(ivy"org.codehaus.groovy:groovy:3.0.9"))
   }
 
   def groovyScript = Task.Source("generate.groovy")
 
   def groovyGeneratedResources = Task {
-    Jvm.runClassloader(classPath = groovyClasspath().map(_.path)) { classLoader =>
+    Jvm.withClassLoader(classPath = groovyClasspath().map(_.path).toSeq) { classLoader =>
       classLoader
         .loadClass("groovy.ui.GroovyMain")
         .getMethod("main", classOf[Array[String]])

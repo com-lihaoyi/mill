@@ -1,8 +1,8 @@
 package mill.scalalib
 
 import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
-import mill.Agg
-import mill.api.{Ctx, IO, PathRef}
+import mill.api.{Ctx, PathRef}
+import mill.util.JarManifest
 import os.Generator
 
 import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
@@ -40,18 +40,8 @@ object Assembly {
       def apply(pattern: String, separator: String): AppendPattern =
         new AppendPattern(Pattern.compile(pattern), separator)
 
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def unapply(value: AppendPattern): Option[Pattern] = Some(value.pattern)
     }
     class AppendPattern private (val pattern: Pattern, val separator: String) extends Rule {
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def this(pattern: Pattern) = this(pattern, defaultSeparator)
 
       override def productPrefix: String = "AppendPattern"
       override def productArity: Int = 2
@@ -68,11 +58,6 @@ object Assembly {
       }
       override def toString: String = scala.runtime.ScalaRunTime._toString(this)
 
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def copy(pattern: Pattern = pattern): AppendPattern = new AppendPattern(pattern, separator)
     }
 
     case class Exclude(path: String) extends Rule
@@ -125,7 +110,7 @@ object Assembly {
   type ResourceCloser = () => Unit
 
   def loadShadedClasspath(
-      inputPaths: Agg[os.Path],
+      inputPaths: Seq[os.Path],
       assemblyRules: Seq[Assembly.Rule]
   ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
     val shadeRules = assemblyRules.collect {
@@ -191,12 +176,12 @@ object Assembly {
   }
 
   def createAssembly(
-      inputPaths: Agg[os.Path],
-      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
+      inputPaths: Seq[os.Path],
+      manifest: JarManifest = JarManifest.MillDefault,
       prependShellScript: String = "",
       base: Option[os.Path] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
-  )(implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
+  )(implicit ctx: Ctx.Dest & Ctx.Log): PathRef = {
     create(
       destJar = ctx.dest / "out.jar",
       inputPaths = inputPaths,
@@ -209,8 +194,8 @@ object Assembly {
 
   def create(
       destJar: os.Path,
-      inputPaths: Agg[os.Path],
-      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
+      inputPaths: Seq[os.Path],
+      manifest: JarManifest = JarManifest.MillDefault,
       prependShellScript: Option[String] = None,
       base: Option[os.Path] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
@@ -304,7 +289,7 @@ object Assembly {
       else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
     Using.resource(os.write.outputStream(p, openOptions = options)) { outputStream =>
-      IO.stream(inputStream, outputStream)
+      os.Internals.transfer(inputStream, outputStream)
     }
   }
 }

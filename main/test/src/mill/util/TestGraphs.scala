@@ -2,8 +2,8 @@ package mill.util
 import TestUtil.test
 import mainargs.arg
 import mill.testkit.TestBaseModule
-import mill.define.{Command, Cross, Discover, DynamicModule, ModuleRef, TaskModule}
-import mill.{Module, T, Task}
+import mill.define.{Command, Cross, Discover, TaskModule}
+import mill.{Module, Task}
 
 /**
  * Example dependency graphs for us to use in our test suite.
@@ -155,7 +155,7 @@ object TestGraphs {
     def single = Task { 1 }
     def invisible: Any = Task { 2 }
     def invisible2: mill.define.Task[Int] = Task { 3 }
-    def invisible3: mill.define.Task[_] = Task { 4 }
+    def invisible3: mill.define.Task[?] = Task { 4 }
   }
 
   object nestedModule extends TestBaseModule {
@@ -166,6 +166,7 @@ object TestGraphs {
       def invisible: Any = Task { 8 }
 
     }
+
     object classInstance extends CanNest
 
     lazy val millDiscover = Discover[this.type]
@@ -191,7 +192,7 @@ object TestGraphs {
 
     object cross2 extends mill.Cross[Cross2]("210", "211", "212")
     trait Cross2 extends Cross.Module[String] {
-      override def millSourcePath = super.millSourcePath / crossValue
+      override def moduleDir = super.moduleDir / crossValue
       def suffix = Task { crossValue }
     }
     lazy val millDiscover = Discover[this.type]
@@ -205,7 +206,7 @@ object TestGraphs {
 
     object cross2 extends mill.Cross[Cross2](210L, 211L, 212L)
     trait Cross2 extends Cross.Module[Long] {
-      override def millSourcePath = super.millSourcePath / crossValue.toString
+      override def moduleDir = super.moduleDir / crossValue.toString
       def suffix = Task { crossValue }
     }
 

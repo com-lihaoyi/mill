@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.UnitTester
 import sbt.testing.Status
 import utest._
@@ -9,12 +9,12 @@ object TestRunnerScalatestTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {
     test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval(testrunner.scalatest.test())
+      val Right(result) = eval(testrunner.scalatest.test()): @unchecked
       assert(result.value._2.size == 9)
       junitReportIn(eval.outPath, "scalatest").shouldHave(9 -> Status.Success)
     }
     test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(testrunner.scalatest.discoveredTestClasses)
+      val Right(result) = eval.apply(testrunner.scalatest.discoveredTestClasses): @unchecked
       val expected = Seq(
         "mill.scalalib.ScalaTestSpec",
         "mill.scalalib.ScalaTestSpec2",
@@ -83,7 +83,7 @@ object TestRunnerScalatestTests extends TestSuite {
         )
       )
       test("includeAndExclude") - tester.testOnly0 { (eval, mod) =>
-        val Left(Result.Failure(msg, _)) =
+        val Left(ExecResult.Failure(msg)) =
           eval.apply(mod.scalatest.testOnly(
             "mill.scalalib.ScalaTestSpec",
             "--",
@@ -91,7 +91,7 @@ object TestRunnerScalatestTests extends TestSuite {
             "tagged",
             "-l",
             "tagged"
-          ))
+          )): @unchecked
         assert(msg.contains("Test selector does not match any test"))
       }
     }

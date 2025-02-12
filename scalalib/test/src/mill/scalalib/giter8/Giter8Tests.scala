@@ -3,9 +3,8 @@ package mill.scalalib.giter8
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
-import mill.api.Loose.Agg
+
 import mill.define.Discover
-import os.Path
 
 object Giter8Tests extends TestSuite {
 
@@ -29,7 +28,7 @@ object Giter8Tests extends TestSuite {
           "--name=hello", // skip user interaction
           "--description=hello_desc" // need to pass all args
         )
-        val res = evaluator.evaluator.evaluate(Agg(g8Module.init(giter8Args: _*)))
+        val res = evaluator.evaluator.execution.executeTasks(Seq(g8Module.init(giter8Args*)))
 
         val files = Seq(
           os.sub / "build.mill",
@@ -39,9 +38,9 @@ object Giter8Tests extends TestSuite {
         )
 
         assert(
-          res.failing.keyCount == 0,
+          res.failing.size == 0,
           res.values.size == 1,
-          files.forall(f => os.exists(g8Module.millSourcePath / "hello" / f))
+          files.forall(f => os.exists(g8Module.moduleDir / "hello" / f))
         )
       }
     }

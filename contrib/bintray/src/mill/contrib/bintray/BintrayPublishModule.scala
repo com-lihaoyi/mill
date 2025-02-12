@@ -80,7 +80,7 @@ object BintrayPublishModule extends ExternalModule {
       connectTimeout,
       Task.log
     ).publishAll(
-      Task.sequence(publishArtifacts.value)(): _*
+      Task.sequence(publishArtifacts.value)()*
     )
   }
 

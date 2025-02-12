@@ -47,14 +47,15 @@ trait RevapiModule extends PublishModule {
         .result()
 
     Task.log.info("running revapi cli")
-    Jvm.runSubprocess(
+    Jvm.callProcess(
       mainClass = mainClass,
-      classPath = revapiClasspath().map(_.path),
+      classPath = revapiClasspath().map(_.path).toVector,
       jvmArgs = revapiJvmArgs(),
       mainArgs = mainArgs,
-      workingDir = workingDir
+      cwd = workingDir,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
-
     PathRef(workingDir)
   }
 
@@ -69,7 +70,7 @@ trait RevapiModule extends PublishModule {
   )
 
   /** API archive and supplement files (dependencies) to compare against */
-  def revapiOldFiles: T[Agg[PathRef]] = Task {
+  def revapiOldFiles: T[Seq[PathRef]] = Task {
     val Artifact(group, id, version) = publishSelfDependency()
     defaultResolver().resolveDeps(
       Seq(ivy"$group:$id:$version"),
@@ -78,8 +79,8 @@ trait RevapiModule extends PublishModule {
   }
 
   /** API archive and supplement files (dependencies) to compare */
-  def revapiNewFiles: T[Agg[PathRef]] = Task {
-    Agg(jar()) ++
+  def revapiNewFiles: T[Seq[PathRef]] = Task {
+    Seq(jar()) ++
       Task.traverse(recursiveModuleDeps)(_.jar)() ++
       defaultResolver().resolveDeps(
         Seq(coursierDependency),
@@ -100,9 +101,9 @@ trait RevapiModule extends PublishModule {
   }
 
   /** Classpath containing the Revapi [[revapiCliVersion CLI]] */
-  def revapiClasspath: T[Agg[PathRef]] = Task {
+  def revapiClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"org.revapi:revapi-standalone:${revapiCliVersion()}")
+      Seq(ivy"org.revapi:revapi-standalone:${revapiCliVersion()}")
     )
   }
 
