@@ -1,9 +1,10 @@
-package mill.scalalib
+package mill.scalalib.cosmopolitan
 
 import mill.api.{PathRef, Result}
 import mill.define.{Target => T, _}
+import mill.scalalib._
 
-trait ApeModule extends mill.Module with AssemblyModule {
+trait CosmopolitanModule extends mill.Module with AssemblyModule {
   def forkArgs(argv0: String): Task[Seq[String]] = Task.Anon { Seq[String]() }
 
   def cosmoccVersion: T[String] = Task { "" }
