@@ -7,7 +7,7 @@ This page provides an example of using Mill as a build tool for Android applicat
 This workflow is still pretty rough and nowhere near production ready, but can serve as
 a starting point for further experimentation and development.
 
-==== Relevant Modules
+*Relevant Modules*
 
 These are the main Mill Modules that are relevant for building Android apps:
 
@@ -57,7 +57,7 @@ The `AndroidAppBundle` trait is used to create and manage Android App Bundles (A
 
 * {mill-doc-url}/api/latest/mill/javalib/android/AndroidAppBundle.html[`mill.javalib.android.AndroidAppBundle`]: Provides a framework for building Android App Bundle.
 
-==== Key Functions
+=== Key Functions
 
 - **androidAaptOptions:** Here, Overrides `androidAaptOptions` to add the `--proto-format` option to AAPT commands, enabling protocol buffer format for assets.
 

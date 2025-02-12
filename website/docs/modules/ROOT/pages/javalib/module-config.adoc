@@ -14,6 +14,7 @@ Many of the APIs covered here are listed in the API documentation:
 
 include::partial$example/javalib/module/1-common-config.adoc[]
 
+[#_compilation_execution_flags]
 == Compilation & Execution Flags
 
 include::partial$example/javalib/module/4-compilation-execution-flags.adoc[]

@@ -1,10 +1,10 @@
 // tag::header[]
 
-# How Fast Does Java Compile?
+= How Fast Does Java Compile?
 :page-aliases: xref:mill:ROOT:comparisons/java-compile.adoc
-
 :author: Li Haoyi
 :revdate: 29 November 2024
+
 _{author}, {revdate}_
 
 Java compiles have the reputation for being slow, but that reputation does
@@ -32,7 +32,7 @@ all build tools fall short of how fast compiling Java _should_ be. This post exp
 these numbers were arrived at, and what that means in un-tapped potential for Java build
 tooling to become truly great.
 
-## Mockito Core
+== Mockito Core
 
 To begin to understand the problem, lets consider the codebase of the popular Mockito project:
 
@@ -47,15 +47,17 @@ from Gradle, but the following stackoverflow answer gives us some tips:
 
 * https://stackoverflow.com/a/50639444/871202[How do I print out the Java classpath in gradle?]
 
-```bash
+[source,bash]
+----
 > ./gradlew clean && ./gradlew :classes --no-build-cache --debug | grep "classpath "
-```
+----
 
 This gives us the following classpath:
 
-```
+[source]
+----
 export MY_CLASSPATH=/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.14.18/81e9b9a20944626e6757b5950676af901c2485/byte-buddy-1.14.18.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.18/417558ea01fe9f0e8a94af28b9469d281c4e3984/byte-buddy-agent-1.14.18.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/junit/junit/4.13.2/8ac9e16d933b6fb43bc7f576336b8f4d7eb5ba12/junit-4.13.2.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/2.2/3f2bd07716a31c395e2837254f37f21f0f0ab24b/hamcrest-core-2.2.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.opentest4j/opentest4j/1.3.0/152ea56b3a72f655d4fd677fc0ef2596c3dd5e6e/opentest4j-1.3.0.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.objenesis/objenesis/3.3/1049c09f1de4331e8193e579448d0916d75b7631/objenesis-3.3.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.2/1820c0968dba3a11a1b30669bb1f01978a91dedc/hamcrest-2.2.jar
-```
+----
 
 Note that for this benchmark, all third-party dependencies have already been resolved
 and downloaded from Maven Central. We can thus simply reference the jars on disk directly,
@@ -65,20 +67,22 @@ We can then pass this classpath into `javac -cp`, together with `src/main/java/*
 to perform the compilation outside of Gradle using `javac` directly. Running this a few
 times gives us the timings below:
 
-```bash
+[source,bash]
+----
 > time javac -cp $MY_CLASSPATH src/main/java/**/*.java
 1.290s
 1.250s
 1.293s
-```
+----
 
 To give us an idea of how many lines of code we are compiling, we can run:
 
-```bash
+[source,bash]
+----
 > find src/main/java | grep \\.java | xargs wc -l
 ...
 41601 total
-```
+----
 
 Combining this information, we find that 41601 lines of code compiled in ~1.29 seconds
 (taking the median of the three runs above) suggests that `javac` compiles about ~32,000
@@ -93,7 +97,7 @@ Compiling 32,000 lines of code per second is not bad. But it is nowhere near how
 Java compiler _can_ run. Any software experience with JVM experience would know the next
 obvious optimization for us to explore.
 
-## Keeping the JVM Hot
+== Keeping the JVM Hot
 
 One issue with the above benchmark is that it uses `javac` as a sub-process. The Java
 compiler runs on the Java Virtual Machine, and like any JVM application, it has a slow
@@ -110,7 +114,8 @@ may spawn and manage. We use the same `MY_CLASSPATH` and source files we saw ear
 print the output statistics to the terminal so we can see how fast Java compilation can
 occur once things have a chance to warm up:
 
-```java
+[source,java]
+----
 // Bench.java
 import javax.tools.*;
 import java.io.IOException;
@@ -167,16 +172,17 @@ public class Bench {
         }
     }
 }
-```
+----
 
 Running this using `java Bench.java` in the Mockito repo root, eventually we see it
 settle on approximately the following numbers:
 
-```bash
+[source,bash]
+----
 359ms
 378ms
 353ms
-```
+----
 
 The codebase hasn't changed - we are still compiling 41,601 lines of code -
 but now it only takes ~359ms. That tells us that using a long-lived warm Java compiler
@@ -190,7 +196,7 @@ mentioned earlier, this number is expected to vary based on the codebase being c
 could it be that Mockito-Core just happens to be a very simple Java module that compiles
 quickly?
 
-## Double-checking Our Results
+== Double-checking Our Results
 
 To double-check our results, we can pick another codebase to run some ad-hoc benchmarks.
 For this I will use the Netty codebase:
@@ -202,42 +208,47 @@ easily-reproducible benchmark, we want a decently-sized module that's relatively
 standalone within the project: `netty-common` is a perfect fit. Again, we can use `find | grep | xargs`
 to see how many lines of code we are looking at:
 
-```bash
-$ find common/src/main/java | grep \\.java | xargs wc -l
+[source,bash]
+----
+> find common/src/main/java | grep \\.java | xargs wc -l
 29712 total
-```
+----
 
 Again, Maven doesn't make it easy to show the classpath used to call `javac` ourselves,
 but the following stackoverflow answer gives us a hint in how to do so:
 
 - https://stackoverflow.com/a/16655088/871202[In Maven, how output the classpath being used?]
 
-```bash
+[source,bash]
+----
 > ./mvnw clean; time ./mvnw -e -X -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-```
+----
 
 If you grep the output for `-classpath`, we see:
 
-```bash
+[source,bash]
+----
 -classpath /Users/lihaoyi/Github/netty/common/target/classes:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/svm/19.3.6/svm-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/sdk/graal-sdk/19.3.6/graal-sdk-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/objectfile/19.3.6/objectfile-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/pointsto/19.3.6/pointsto-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/truffle/truffle-nfi/19.3.6/truffle-nfi-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/truffle/truffle-api/19.3.6/truffle-api-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/compiler/compiler/19.3.6/compiler-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/jctools/jctools-core/4.0.5/jctools-core-4.0.5.jar:/Users/lihaoyi/.m2/repository/org/jetbrains/annotations-java5/23.0.0/annotations-java5-23.0.0.jar:/Users/lihaoyi/.m2/repository/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar:/Users/lihaoyi/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar:/Users/lihaoyi/.m2/repository/org/apache/logging/log4j/log4j-1.2-api/2.17.2/log4j-1.2-api-2.17.2.jar:/Users/lihaoyi/.m2/repository/org/apache/logging/log4j/log4j-api/2.17.2/log4j-api-2.17.2.jar:/Users/lihaoyi/.m2/repository/io/projectreactor/tools/blockhound/1.0.6.RELEASE/blockhound-1.0.6.RELEASE.jar
-```
+----
 
 Again, we can `export MY_CLASSPATH` and start using `javac` from the command line:
 
-```bash
+[source,bash]
+----
 > javac -cp $MY_CLASSPATH common/src/main/java/**/*.java
 1.624s
 1.757s
 1.606s
-```
+----
 
 Or programmatically using the `Bench.java` program we saw earlier:
 
-```bash
+[source,bash]
+----
 294ms
 282ms
 285ms
-```
+----
 
 Taking 285ms for a hot-in-memory compile of 29,712 lines of code, `netty-common`
 therefore compiles at *~104,000 lines/second*.
@@ -250,14 +261,15 @@ were disabled for this performance benchmark). This is Java code that looks just
 any Java code you may write in your own projects, and it effortlessless compiles at
 >100,000 lines/second.
 
-## What About Build Tools?
+== What About Build Tools?
 
 Although the Java Compiler is blazing fast - compiling code at >100k lines/second and
 completing both Mockito-Core and Netty-Common in ~300ms - the experience of using typical Java
 build tools is nowhere near as snappy. Consider the benchmark of clean-compiling the
 Mockito-Core codebase using Gradle or Mill:
 
-```bash
+[source,bash]
+----
 $ ./gradlew clean; time ./gradlew :classes --no-build-cache
 4.14s
 4.41s
@@ -267,11 +279,12 @@ $ ./mill clean; time ./mill compile
 1.20s
 1.12s
 1.30s
-```
+----
 
 Or the benchmark of clean-compiling the Netty-Common codebase using Maven or Mill:
 
-```bash
+[source,bash]
+----
 $ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
 4.85s
 4.96s
@@ -281,7 +294,7 @@ $ ./mill clean common; time ./mill common.compile
 1.10s
 1.12s
 1.11s
-```
+----
 
 These benchmarks are run in similar conditions as those we saw earlier: ad-hoc on my M1
 Macbook Pro, with the metadata and jars of all third-party dependencies already downloaded and
@@ -307,7 +320,7 @@ the `javac` Java compiler directly. And it's clear that compared to the actual w
 done by `javac` to actually compile your code, build tools add a frankly absurd amount
 of overhead ranging from ~4x for Mill to 15-16x for Maven and Gradle!
 
-## Whole Project Compile Speed
+== Whole Project Compile Speed
 
 One thing worth calling out is that the overhead of the various build tools does not
 appear to go down in larger builds. This *Clean Compile Single-Module* benchmark
@@ -327,7 +340,7 @@ most of the time is still spent in compilation, and this reinforces the early fi
 that build tools (especially older ones like Maven or Gradle) are indeed adding huge
 amounts of overhead on top of the extremely-fast Java compiler.
 
-## Conclusion
+== Conclusion
 
 From this study we can see the paradox: the Java _compiler_ is blazing fast,
 while Java _build tools_ are dreadfully slow. Something that _should_ compile in a fraction
