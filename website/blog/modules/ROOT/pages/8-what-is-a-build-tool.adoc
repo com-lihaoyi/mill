@@ -611,9 +611,12 @@ are surprisingly similar once you peek under the covers. Bazel's StarLark config
 Gradle's Groovy/Kotlin config, Mill's Scala config, all end up boiling down to
 a build graph similar to the one above with only minor differences. And although the
 way they execute their tasks using the build graph does differ, at their most
-fundamental level they use the sort of graph traversal that I discuss above. They all
-perform some amount of caching and parallelism, because that is necessary in order
-to keep dev workflows fast and responsive even as the codebase grows.
+fundamental level they use the sort of graph traversal that I discuss above.
+
+At their core, most build tools have the same goal. A build tool takes the wide
+variety of tasks a developer needs to do during development, and automatically
+run them as efficiently and quickly as possible, with caching and parallelism
+and whatever other optimizations it can find.
 
 Hopefully this blog post has given you a better appreciation for how build tools
 do what they do, and perhaps give you some insight next time you need
