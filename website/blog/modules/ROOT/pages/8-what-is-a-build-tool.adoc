@@ -4,133 +4,276 @@
 
 
 :author: Li Haoyi
-:revdate: ??? February 2025
+:revdate: 12 February 2025
 _{author}, {revdate}_
 
-One common question I get asked when I say Mill is a build tool, is what does a build
+The most common question I get asked about the Mill build tool is: what does a build
 tool even do? Even some developers may not be familiar with the idea: they may run
-`pip install` and `python foo.py`, `javac Foo.java`, or `go build` or some other language-specific
-CLI directly. They may have a folder full of custom Bash scripts they use during development.
-This blog post explores what build tools are all about, and why they are important to
-most software projects as they scale.
+`pip install` and `python foo.py`, `javac Foo.java`, or `go build` or some other
+language-specific CLI directly. They may have a folder full of custom Bash scripts
+they use during development. This blog post explores what build tools are all about,
+and why they are important to most software projects as they scale.
 
 // end::header[]
 
 
 ## What is a Build Tool?
 
-At a high-level, a build tool is something you run locally on your laptop or dev-box
-that helps integrate the wide range of tools and workflows you need to work on your
-software. While a hello-world program may get by with `javac Foo.java` to compile your code and
-`java Foo` to run it, most real-world projects end up with a lot more requirements.
+A build tool is a program that automates the process of
+selecting which tools or tasks to run - and how to run them - whenever you want
+to do something in your codebase.
 
-For example:
 
-- Downloading third-party dependencies
-- Running code generators
-- Running linters, autoformatters, and auto-fixers
-- Unit testing, generating test reports, and collecting code coverage statistics
-- Packaging your code for deployment or publishing it to a public repository
+A hello-world program may get by with `javac Foo.java` to compile your code and
+`java Foo` to run it, or even a single command `python foo.py`. But most real-world
+projects end up with a lot more requirements than that.
+For example, before running your code, a project may need to:
 
-Although lot of these workflows use separate tools, they tend to have a lot
-in common:
+- Use the configured _direct_ third-party dependencies to resolve the _transitive_ third-party dependencies
+- Download all transitive third-party library dependencies
+- Compile upstream _internal_ library dependencies, i.e. upstream modules in the same codebase
+- Run code generators (e.g. https://protobuf.dev/[protobuf], https://www.openapis.org/[openapi], etc.)
+- Run the compiler (if your language has one)
+- Generate static assets  (e.g. a game or website may need accompanying files)
 
-- They work with source files or compiled artifacts
-- they tend to be chained: e.g. running a code-generator before running
-  tests before packaging for deployment
-- They tend to be easy to parallelize: e.g. separate files can be linted
-  at the same time without interfering with each other
-- They tend to be cacheable: e.g. if I download a third-party dependency once,
-  I can re-use it the next time without needing to download it again
+So although the developer may have asked to `run` their code, it is only after all
+these steps are done does it make sense to begin running it! However, it's not as
+simple as running every one of the steps listed above, but also _which ones_ to run
+and _how_ to run them:
 
-Thus it makes sense to centralize the handling of these disparate tasks in one program,
-so they can be properly integrated with each other. That program is the build tool.
+- You want to skip steps which have earlier results you can re-use (e.g. by not
+  generating static assets if they have already been generated)
 
-## Example Build Tools
+- You want to make sure to re-run steps whose inputs have changed (e.g.
+  if someone changes the static asset logic, then that step needs to be re-done)
 
-Although programming languages are different, developers in all languages have similar
-requirements, and thus build tools exist that integrate with most language ecosystems.
-A few examples are shown below:
+- You want to parallelize steps which are independent of each other (e.g.
+  _running the compiler_ can happen in parallel with _generating static assets_),
+  but not those which are dependent (e.g. _running the compiler_ must happen after
+  _running code generators_, and thus cannot happen in parallel)
+
+Working on any real-world codebase will involve a large variety of tasks:
+downloading dependencies, autoformatting, linting, code-generation, compiling,
+testing, packaging and publishing. These tasks depend on each other in various,
+ways, and it is the job of the build tool to take what you (as a developer) want
+to do, and select _which_ tasks to run and _how_ to run them in order to accomplish
+what you want.
+
+## Build Tools across Languages
+
+Although programming languages are very different, developers in all languages have similar
+requirements. Thus most languages have one-or-more build tools, that then integrate with
+the equivalent external tools and services specific to that language:
 
 |===
-| Language   | Build Tool          | Repository    | Compiler | Linter                 | Packager
+| Language   | Build Tool          | Package Repository    | Compiler | ...
+
 | Java
 | https://maven.apache.org[Maven], https://gradle.org[Gradle], https://mill-build.org[Mill]
 | https://central.sonatype.com/[Maven Central]
 | https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javac.html[javac]
-| https://errorprone.info/[ErrorProne], https://checkstyle.sourceforge.io/[CheckStyle]
-| https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jar.html[jar], https://www.graalvm.org/latest/reference-manual/native-image/[native-image]
+| ...
 
 | Python
 | https://python-poetry.org/[Poetry]
 | https://pypi.org/[PyPI]
 | https://github.com/python/mypy[mypy]
-| https://github.com/google/yapf[Yapf], https://github.com/psf/black[Black]
-| https://docs.pex-tool.org/[Pex]
+| ...
 
 | Javascript
 | https://webpack.js.org/[Webpack], https://vite.dev/[Vite]
 | https://www.npmjs.com/[NPM]
 | https://www.typescriptlang.org/[tsc]
-| https://eslint.org/[ESLint]
-| https://esbuild.github.io/[ESBuild]
+| ...
 
 | Rust
 | https://doc.rust-lang.org/cargo/[Cargo]
 | https://crates.io/[Crates]
 | https://doc.rust-lang.org/rustc/what-is-rustc.html[rustc]
-| https://github.com/rust-lang/rust-clippy[Clippy]
-|
+| ...
+
 |===
+
+There are also language agnostic build tools out there, such as https://bazel.build/[Bazel]
+which supports multiple languages and is optimized for large monorepos. Mill also supports
+multiple languages: xref:mill:ROOT:javalib/intro.adoc[Java],
+xref:mill:ROOT:kotlinlib/intro.adoc[Kotlin], xref:mill:ROOT:scalalib/intro.adoc[Scala],
+xref:mill:ROOT:pythonlib/intro.adoc[Python], and (experimentally)
+xref:mill:ROOT:javascriptlib/intro.adoc[Javascript], allowing it to be used
+for xref:mill:ROOT:large/multi-language-builds.adoc[Multi-Language Builds]
 
 ## The Need for Build Tools
 
-Most projects start off small, and while they _can_ use a build tool, do not _need_ one:
-a 1 file application has few enough workflows that whatever built-in CLI the programming
-language provides is enough to compile/run/test their code, and the workflows are fast/simple
-enough that parallelization or caching are not needed.
+Most projects start off small, and while they _can_ use a build tool, do not _need_ one.
+A single-file application has few enough workflows that whatever built-in CLI the
+language provides is enough to compile/run/test their code, and the workflows are
+fast/simple enough that parallelization or caching are not needed.
 
-However, as a project grows, the required workflows get both more complex and slower
+Nevertheless, even in a small project, a simple task like "installing third party
+dependencies" can be surprisingly challenging without a build tool:
+
+- You start off `pip install something`, run your code with `python foo.py`, and it works
+
+- The project bumped the version of `something` required, and now everyone working on
+the project must `pip install` it again, or else they will get weird errors
+
+- If you change branch to work on an old release branch of the project, you need
+to remember to `pip install` to go back to the old version. And then `pip install`
+the new version when you come back to the `main` branch!
+
+- What if two modules in your codebase `foo.py` and `bar.py`  require different versions
+of the same dependency? Now you need to remember to manually `python -m venv` to create
+a virtual environment for each module, and remember to update each one
+whenever a dependency changes
+
+Even for the single problem of "managing third-party dependencies", keeping everything
+in sync and everyone's laptops up to date can be a real headache.
+This kind of busywork, multiplied by all the different development workflows that
+need to be done on a codebase, is the problem that build tools solve.
+
+As a project grows, the required workflows get both more complex and slower
 over time. The developer ends up needing to manually juggle a dozen different tools
 to run linters/code-generation/autoformatting/etc., making sure to run them in the
 right order for things to work. They also end up spending time just _waiting_, as their
 code takes longer to compile and their tests take longer to run.
 
-One common outcome here is to write scripts to help manage the development of the
-project: a folder full of scripts like `run_tests.sh` or `deploy.py`:
+
+A build tool
+like https://mill-build.org/[Mill] comes with the various tooling integrations built
+in, and automates the process of _"getting your project ready"_ for whatever it is
+you want to do. With a build tool,
+you can just say `./mill foo.run` or `./mill bar.run`, and the tool will figure out
+how to install the necessary third-party-dependencies, compile your code (if needed),
+and perform any other necessary tasks in order to get your code into a runnable state
+as quickly and efficiently as possible.
+
+## Build Tools vs Scripts
+
+One common alternative to build tools is to write scripts to help manage the development
+of the project: e.g. you may find a `dev/` folder full of scripts like `run-tests.sh` or
+`lint.sh`, and so on. While this works, the approach of scripting your development
+workflows directly in Bash runs into trouble as the codebase grows:
 
 - Initially, these scripts serve to just enumerate the necessary steps to do something
-  in your code, e.g. running integration tests may require `codgen`, `compile`, `package`
-  to be run in order before the tests can be run
+  in your code, e.g.
 
-- Next, these scripts inevitably begin performing rudimentary caching: e.g. skipping
-  `codegen` if it has already been run, re-using `compile` output, re-using `package` output,
-  etc.
+** `integration-tests` may require `download-dependencies`,
+  `codegen`, `compile`, `package` to be run in order first
 
-- After that, these scripts inevitably start parallelizing parts of the workflow
+** `unit-tests` on the other hand may need `download-dependencies`, `codegen`, `compile`, but not need  `package`
+
+- Next, these scripts inevitably begin performing rudimentary caching: e.g. if you
+  ran `unit-tests` earlier and now want to run `integration-tests`, we can skip
+  `download-dependencies`, `codegen`, `compile`, but need to now run `package`
+
+- After that, these scripts inevitably start parallelizing parts of the workflow:
+  e.g. `codegen` and `download-dependencies` may be able to run in parallel, while
+  `compile` can only run after both of those are finished
+
+At this stage, your scripts have their own ad-hoc dependency-management, caching,
+and parallelization engine! Because your main focus is on your _actual_ project,
+they will never be in great shape: the performance won't be optimal, the
+error messages and usability won't be great, and bugs and issues won't be fixed.
+This will likely be a drag on your productivity, since even if your focus is on
+your main project, you still need to interact with your build scripts constantly
+throughout the work day.
+
+At its core, a build tool basically automates these things that you would have
+implemented yourself anyway: it provides the ordering of tasks, parallelism,
+caching, and probably does so better than you could implement in your own
+ad-hoc build scripts.
+
+## Custom Tasks
+
+Most codebases have some amount of custom tasks and workflows. While many workflows
+are standardized - e.g. using the same Java compiler, Python interpreter, etc. -
+it is almost inevitable that over time the codebase will pick up workflows unique
+to its place in the business and organization:
+
+- Custom code generation
+- Custom linters and security analysis
+- Custom deployment artifacts and deployment workflows
+
+The default way of handling this customization is the aforementioned
+folder-full-of-scripts, where you have a `do-custom-thing.sh` script to run
+your custom logic. However, this approach can be problematic:
+
+1. Bash scripts are not an easy programming environment to work in, so
+   custom tasks implemented as scripts tend to be buggy and fragile.
+   Even implementing logic like "if-else" or "for-loops" in Bash can
+   be error-prone and easy to mess up!
+
+2. Non-Bash scripting languages have their own problems: e.g. Python
+   scripts tend to be difficult to run reliably on different machines which
+   may have different Python version or dependencies installed, and Ruby
+   scripts may have issues running on Windows
+
+3. Implementing your custom task, you usually want caching and
+   parallelism in order to make your workflows performant
+
+Most build tools thus provide some kind of _"plugin system"_ to let you
+implement your custom logic in a more comfortable programming environment
+than Bash: Maven has its Java plugin interface called https://maven.apache.org/plugin-developers/[MOJO]s,
+Webpack allows you to write https://webpack.js.org/plugins/[Webpack Plugins] in Javascript,
+Bazel provides the https://bazel.build/rules/language[Starlark Language] for writing
+extensions, and so on. The Mill build tool's custom logic runs on the JVM, and thus
+comes with typechecking, IDE support, access to the standard JVM package
+repositories and people are already used to.
+
+How custom tasks and workflows are written does not matter for
+small projects where customizations are trivial. But in larger projects with
+a non-trivial amount of custom logic, this ability to write code to customize
+and extend your development workflows becomes more important, and providing
+a safe, easy-to-use way to do so makes all the difference at keeping your
+project's build maintainable over time.
+
+## Large Codebases and Monorepos
+
+The last thing that a build tool may help with is working with very-large-codebases.
+Just as small codebases start off not really needing a build tool, and start
+needing one as they grow larger, very-large-codebases have an even stronger
+need for something to help manage the development workflows, which "monorepo"
+build tools like Bazel provides. Requirements such as:
+
+- xref:3-selective-testing.adoc[Selective Testing], to avoid running the entire test
+  suite (which may take hours) by only running the tests related to a change
+
+- Multi-language support: e.g. a Java server with a Javascript frontend with a Python
+  ML workflows. Bazel has `rules{lang}` for a wide variety of languages, and Mill
+  also has support for xref:mill:ROOT:large/multi-language-builds.adoc[Multi-Language Builds]
+
+- Distributed caching and execution: allowing different CI machines or developer
+  laptops to share compiled artifacts so a module compiled on one machine and be
+  re-used on another, or submitting a large workflow to a cluster of machines to
+  parallelize it more than you could on a single laptop.
+
+See the following blog post for a deeper discussion on what features a
+_"monorepo build tool"_ provides and why they are necessary:
+
+* xref:2-monorepo-build-tool.adoc[Why Use a Monorepo Build Tool?]
+
+## Build Tool Internals
 
 
 
+Although these workflows use a wide variety of disparate tools, they tend to have a lot
+in common:
 
-## Auxiliary Workflows
-### Downloading Third-Party Dependencies
-### Linting
-### Autoformatting
-### Testing
-### Packaging and Publishing
+- They work with source files or compiled artifacts
+- They need to be run in a specific _order_:
+e.g. code-generation being done before running tests before packaging for deployment
+- They tend to be easy to _parallelize_: e.g. separate files can be linted
+at the same time without interfering with each other
+- They tend to be _cacheable_: e.g. if I compile a source file, I can re-use the compiled
+output until the source file changes.
 
-## Orchestrating Workflows
-
-### Ordering tasks
-### Parallelizing Tasks
-### Caching Tasks
-### Optimizing Tasks
-
-
-## Advanced Features
-
-### Integrating Multiple Languages
-### Optimizing CI Testing
-
+Developer workflows typically involve a wide range of tools that operate on the same
+sorts of files in work in largely the same way: taking files as input and using them to
+generate more files as output. Thus, it makes sense to have a framework that handles the
+_"cross cutting concerns"_ of ordering, caching and parallelism: that framework is
+usually called the _build tool_.
 
 ## Conclusion
+
+Build tools are used widely throughout the software engineering community, but
+seldom paid attention to. Hopefully this blog post has given you a good
