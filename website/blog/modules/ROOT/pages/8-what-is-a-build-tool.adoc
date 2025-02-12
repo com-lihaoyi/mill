@@ -514,7 +514,7 @@ cc_binary(
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
-  "main/hello-greet.cc,\nmain/hello-greet.h" -> "//main:hello-greet"
+  "main/hello-greet.cc\nmain/hello-greet.h" -> "//main:hello-greet"
   "//main:hello-greet" -> "//main:hello-world"
   "main/hello-world.cc" -> "//main:hello-world"
 }
