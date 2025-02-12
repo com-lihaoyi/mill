@@ -1,8 +1,5 @@
 = Java Module Configuration
 :page-aliases: Java_Module_Config.adoc
-
-
-
 :language: Java
 :language-small: java
 
