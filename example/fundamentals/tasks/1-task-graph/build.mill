@@ -34,7 +34,8 @@ def run(args: String*) = Task.Command {
 // This code defines the following task graph, with the boxes being the tasks
 // and the arrows representing the _data-flow_ between them:
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -43,7 +44,7 @@ def run(args: String*) = Task.Command {
 //   mainClass -> assembly
 //   assembly -> run
 // }
-// ```
+// ....
 //
 // This example does not use any of Mill's builtin support for building Java or
 // Scala projects, and instead builds a pipeline "from scratch" using Mill
@@ -78,7 +79,8 @@ My Example Text
 // * If the files in `sources` change, it will re-evaluate
 //  `compile`, and `assembly` (red)
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -92,12 +94,13 @@ My Example Text
 //   resources [fillcolor=lightgreen]
 //   mainClass [fillcolor=lightgreen]
 // }
-// ```
+// ....
 //
 // * If the files in `resources` change, it will only re-evaluate `assembly` (red)
 //   and use the cached output of `compile` (green)
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -111,12 +114,13 @@ My Example Text
 //   sources [fillcolor=lightgreen]
 //   mainClass [fillcolor=lightgreen]
 // }
-// ```
+// ....
 //
 // `run` behaves differently from `assembly`: as a `Task.Command` it is executed
 // every time you run it, even if none of it's upstream ``Task``s or ``Source``s changed.
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -131,7 +135,7 @@ My Example Text
 //   sources [fillcolor=lightgreen]
 //   mainClass [fillcolor=lightgreen]
 // }
-// ```
+// ....
 //
 // `Command` outputs are never cached, and thus can never be
 // re-used. The only times ``Command``s may be
