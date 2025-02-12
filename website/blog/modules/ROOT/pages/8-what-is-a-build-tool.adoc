@@ -1,6 +1,6 @@
 // tag::header[]
 
-# What is a Build Tool and what does it do?
+# What is a Build Tool and how do they work?
 
 
 :author: Li Haoyi
@@ -8,50 +8,54 @@
 _{author}, {revdate}_
 
 The most common question I get asked about the Mill build tool is: what does a build
-tool even do? Even some developers may not be familiar with the idea: they may run
+tool even do? Even software developers may not be familiar with the idea: they may run
 `pip install` and `python foo.py`, `javac Foo.java`, or `go build` or some other
 language-specific CLI directly. They may have a folder full of custom Bash scripts
-they use during development. This blog post explores what build tools are all about,
-and why they are important to most software projects as they scale.
+they use during development. Or they may develop software on a team where someone
+else has set up the tooling that they use. This blog post explores what build tools
+are all about, why they are important to most software projects as they scale, and
+how they work under the hood.
+
 
 // end::header[]
 
 
 ## What is a Build Tool?
 
-A build tool is a program that automates the process of
-selecting which tools or tasks to run - and how to run them - whenever you want
-to do something in your codebase.
+A build tool is a program that automates selecting which tools or tasks to
+run - and how to run them - whenever you want to do something in your codebase.
 
 
 A hello-world program may get by with `javac Foo.java` to compile your code and
-`java Foo` to run it, or even a single command `python foo.py`. But most real-world
-projects end up with a lot more requirements than that.
-For example, before running your code, a project may need to:
+`java Foo` to run it, or even a single command `python foo.py`. But for most real-world
+projects a single "user facing" task may require a lot of work to be done first.
+For example, before _running your code_, you may first need to:
 
-- Use the configured _direct_ third-party dependencies to resolve the _transitive_ third-party dependencies
+- Use the configured _direct_ third-party dependencies to resolve the _transitive_ dependencies
 - Download all transitive third-party library dependencies to files on disk
-- Compile upstream _internal_ library dependencies, i.e. upstream modules in the same codebase
-- Run code generators on IDL files to generate source files (e.g. https://protobuf.dev/[protobuf], https://www.openapis.org/[openapi], https://thrift.apache.org/[thrift], etc.)
+- Compile _internal_ library dependencies, i.e. upstream modules in the same codebase
+- Run code generators on IDL files (e.g. https://protobuf.dev/[protobuf], https://www.openapis.org/[openapi], https://thrift.apache.org/[thrift], etc.) to generate source files
 - Run the compiler  (if your language has one) on source files to generate binary files
 - Package the binary files into an executable
-- Run the static asset pipeline on input files to generate static files (e.g. for video games or websites)
+- Run the static asset pipeline on input files to generate static files (e.g. assets for video games or websites)
 
 So although the developer may have just asked to `run` their code, it is only after all
 these tasks are done does it make sense to begin running it! However, it's not as
 simple as running every one of the tasks listed above one after another. You also
 need to decide _which ones_ to run and _how_ to run them:
 
-- You want to skip tasks which have earlier results you can re-use (e.g. by not
-  generating static assets if they have already been generated, because that task can be slow)
+- You want to skip any tasks that have been run earlier whose outputs you can re-use to save time
+  (e.g. by not generating static assets if they have already been generated)
 
-- You want to make sure to re-run tasks whose inputs have changed (e.g.
-  if someone changes a static file, then the static asset pipeline needs to be re-run)
+- You want to make sure to re-run tasks whose inputs have changed, discarding any out-of-date output (e.g.
+  if a static file is changed, then the static asset pipeline needs to be re-run)
 
 - You want to parallelize tasks which are independent of each other (e.g.
-  _running the compiler_ can happen in parallel with _running static asset pipeline_),
-  but not those which depend on one another (e.g. _running the compiler_ must happen after
-  _running code generators_, and thus cannot happen in parallel)
+  _running the compiler_ can happen in parallel with _running static asset pipeline_)
+
+- You want to _not_ parallelize tasks which depend on one another,
+  and thus cannot happen in parallel (e.g. _running the compiler_ must happen after
+  _running code generators_, )
 
 Working on any real-world codebase will involve a large variety of tasks:
 resolving and downloading dependencies, autoformatting, linting, code-generation, compiling,
@@ -60,7 +64,7 @@ ways, and it is the job of the build tool to take what you (as a developer) want
 to do, and select _which_ tasks to run and _how_ to run them in order to accomplish
 what you want.
 
-## Build Tools across Languages
+### Build Tools across Languages
 
 Although programming languages are very different, developers in all languages have similar
 requirements. Thus most languages have one-or-more build tools, that then integrate with
@@ -99,14 +103,14 @@ Generally each language's build tools will come with integrations for
 the languages other tooling by default: package repositories, compilers, linters, etc.
 There are also language agnostic build tools out there like `make`, or multi-language
 build tools such as https://bazel.build/[Bazel]
-which supports multiple languages and is optimized for large monorepos. The Mill build
+which are optimized for large monorepos. The Mill build
 tool also supports multiple languages: xref:mill:ROOT:javalib/intro.adoc[Java],
 xref:mill:ROOT:kotlinlib/intro.adoc[Kotlin], xref:mill:ROOT:scalalib/intro.adoc[Scala],
 xref:mill:ROOT:pythonlib/intro.adoc[Python], and (experimentally)
 xref:mill:ROOT:javascriptlib/intro.adoc[Javascript], allowing it to be used
 for xref:mill:ROOT:large/multi-language-builds.adoc[Multi-Language Builds].
 
-## The Need for Build Tools
+### Build Tools as Task Orchestrators
 
 Most projects start off small, and while they _can_ use a build tool, do not _need_ one.
 A single-file application has few enough tasks that whatever built-in CLI the
@@ -130,21 +134,29 @@ dependencies" can be surprisingly challenging without a build tool:
 - What if two modules in your codebase `foo.py` and `bar.py`  require different versions
   of the same dependency? Now you need to remember to manually `python -m venv` to create
   a virtual environment for each module, and remember to update each one
-  whenever a dependency changes
+  whenever a dependency changes on that branch
 
 As you can see, even for the single problem of "managing third-party dependencies",
 keeping everything in sync and everyone's laptops up to date can be a real headache!
 
 
-As a project grows, the required workflows get both more complex and slower
-over time. The developer ends up needing to manually juggle a dozen different tools
-to run linters/code-generation/autoformatting/etc., making sure to run them in the
-right order for things to work. They also end up spending time just _waiting_, as their
-code takes longer to compile and their tests take longer to run. Automating that busywork
+As projects grows, developer workflows typically get both more complex, and also slower.
+This can end up being a significant burden on the project's developers, and slow down
+the project overall:
+
+* Each project developer ends up spending mental energy to juggle a dozen different tools
+  to run linters, code-generation, autoformatting, unit-testing, integration-testing, etc.,
+  making sure to run them in the right order for things to work.
+
+* They also end up spending time just _waiting_, as their codebase grows larger it
+  takes longer and longer to compile, and as more tests are written the entire test suite takes
+  longer and longer to run
+
+Automating that busywork
 and speeding up the slow development workflows is exactly what build tools are for.
 
 
-## Build Tools vs Scripts
+### Build Tools vs Bash Scripts
 
 One common alternative to build tools is to write scripts to help manage the development
 of the project: e.g. you may find a `dev/` folder full of scripts like `run-tests.sh` or
@@ -154,22 +166,23 @@ workflows directly in Bash runs into trouble as the codebase grows:
 - Initially, these scripts serve to just enumerate the necessary steps to do something
   in your code, e.g.
 
-** `integration-tests` may require `download-dependencies`,
-  `codegen`, `compile`, `package` to be run in order first
+** `integration-tests.sh` may require `download-dependencies.sh`,
+   `codegen.sh`, `compile.sh`, `package.sh` to be run in order first
 
-** `unit-tests` on the other hand may need `download-dependencies`, `codegen`, `compile`, but not need  `package`
+** `unit-tests.sh` on the other hand may need `download-dependencies.sh`, `codegen.sh`,
+   `compile.sh`, but not need  `package.sh`
 
 - Next, these scripts inevitably begin performing rudimentary caching: e.g. if you
-  ran `unit-tests` earlier and now want to run `integration-tests`, we can skip
-  `download-dependencies`, `codegen`, `compile`, but need to now run `package`
+  ran `unit-tests.sh` earlier and now want to run `integration-tests.sh`, we can skip
+  `download-dependencies.sh`, `codegen.sh`, `compile.sh`, but need to now run `package.sh`
 
 - After that, these scripts inevitably start parallelizing parts of the workflow:
-  e.g. `codegen` and `download-dependencies` may be able to run in parallel, while
-  `compile` can only run after both of those are finished
+  e.g. `codegen.sh` and `download-dependencies.sh` may be able to run in parallel, while
+  `compile.sh` can only run after both of those are finished
 
 At this stage, your scripts have their own ad-hoc dependency-management, caching,
 and parallelization engine! Because your main focus is on your _actual_ project,
-they will never be in great shape: the performance won't be optimal, the
+this ad-hoc engine will never be in great shape: the performance won't be optimal, the
 error messages and usability won't be great, and bugs and issues won't be fixed.
 This will likely be a drag on your productivity, since even if your focus is on
 your main project, you still need to interact with your build scripts constantly
@@ -178,72 +191,91 @@ throughout the work day.
 At its core, a build tool basically automates these things that you would have
 implemented yourself anyway: it provides the ordering of tasks, parallelism,
 caching, and probably does so better than you could implement in your own
-ad-hoc build scripts.
+ad-hoc build scripts. So even though any developer should _be able_ to wrangle
+Bash enough to get the ordering/parallelism/caching they need, they probably
+shouldn't _actually do it_ and just use an off-the-shelf build tool which
+has all these problems already solved.
 
-## Custom Tasks
+### Build Tools as Custom Task Runtimes
 
 Most codebases have some amount of custom tasks and workflows. While many workflows
 are standardized - e.g. using the same Java compiler, Python interpreter, etc. -
 it is almost inevitable that over time the codebase will pick up workflows unique
 to its place in the business and organization:
 
-- Custom code generation
-- Custom linters and security analysis
-- Custom deployment artifacts and deployment workflows
+- *Custom code generation*, e.g. to integrate with some internal RPC system no-one else uses
+- *Custom linters*, e.g. to cover common mistakes that your developers tend to make
+- *Custom deployment artifacts and workflows*, e.g. to deploy to a new cloud platform
 
 The default way of handling this customization is the aforementioned
 folder-full-of-scripts, where you have a `do-custom-thing.sh` script to run
-your custom logic. However, this approach can be problematic:
+your custom logic. While this does work, it can be problematic for a number of reasons:
 
-1. Bash scripts are not an easy programming environment to work in, so
+1. *Bash scripts are not an easy programming environment to work in*, so
    custom tasks implemented as scripts tend to be buggy and fragile.
    Even implementing logic like "if-else" or "for-loops" in Bash can
    be error-prone and easy to mess up!
 
-2. Non-Bash scripting languages have their own problems: e.g. Python
+2. *Non-Bash scripting languages have their own problems*: e.g. Python
    scripts tend to be difficult to run reliably on different machines which
    may have different Python version or dependencies installed, and Ruby
    scripts may have issues running on Windows
 
-3. Implementing your custom task, you usually want caching and
-   parallelism in order to make your workflows performant
+3. *You usually want caching and parallelism* in your custom tasks in order to
+   make your workflows performant, and implementing a caching/parallelization
+   engine in Bash can be quite a challenge!
 
 Most build tools thus provide some kind of _"plugin system"_ to let you
 implement your custom logic in a more comfortable programming environment
-than Bash: Maven has its Java plugin interface called https://maven.apache.org/plugin-developers/[MOJO]s,
-Webpack allows you to write https://webpack.js.org/plugins/[Webpack Plugins] in Javascript,
-Bazel provides the https://bazel.build/rules/language[Starlark Language] for writing
-extensions, and so on. The Mill build tool's custom logic runs on the JVM, and thus
-comes with typechecking, IDE support, access to the standard JVM package
-repositories and people are already used to.
+than Bash: Maven's https://maven.apache.org/plugin-developers/[MOJO] interface interface
+lets you write plugins in Java, Webpack allows you to write https://webpack.js.org/plugins/[Webpack Plugins]
+in Javascript, Bazel provides the https://bazel.build/rules/language[Starlark Language]
+for writing extensions, and so on. The Mill build tool's custom logic is
+xref:mill:ROOT:depth/why-scala.adoc[written in Scala] and runs on the JVM, and
+thus comes with typechecking, IDE support, access to the standard JVM libraries
+and package repositories and people are already used to.
 
 How custom tasks and workflows are written does not matter for
 small projects where customizations are trivial. But in larger projects with
 a non-trivial amount of custom logic, this ability to write code to customize
-and extend your development workflows becomes more important, and providing
-a safe, easy-to-use way to do so makes all the difference at keeping your
-project's build maintainable over time.
+and extend your development workflows becomes very important. Providing
+a safe, easy-to-use way to customize your build is a big benefit of using
+a build tool, one that gets increasingly important as the project grows.
 
-## Large Codebases and Monorepos
+### Build Tools for Large Codebases and Monorepos
 
-It's worth calling out the need for build tools on very-large-codebases:
+Twice now we've mentioned that build tools get more important as projects grow,
+so it's worth calling out the need for build tools on very-large-codebases:
 those with 100 to 1,000 to even 10,000 developers actively working on it.
 Just as small codebases start off not really needing a build tool, and start
 needing one as they grow larger, very-large-codebases have an even stronger
 need for something to help manage the development workflows, which "monorepo"
-build tools like Bazel provides. Requirements such as:
+build tools like Bazel provides. Some examples of "large codebase" requirements are:
 
 - xref:3-selective-testing.adoc[Selective Testing], to avoid running the entire test
-  suite (which may take hours) by only running the tests related to a change
+  suite (which may take hours) by only running the tests related to a change.
+  e.g. Mill supports this via its xref:mill:ROOT:large/selective-execution.adoc[Selective Test Execution]
 
 - Multi-language support: e.g. a Java server with a Javascript frontend with a Python
-  ML workflows. Bazel has `rules{lang}` for a wide variety of languages, and Mill
+  ML workflows. e.g. Bazel has `rules{lang}` for a wide variety of languages, and Mill
   also has support for xref:mill:ROOT:large/multi-language-builds.adoc[Multi-Language Builds]
 
 - Distributed caching and execution: allowing different CI machines or developer
   laptops to share compiled artifacts so a module compiled on one machine and be
   re-used on another, or submitting a large workflow to a cluster of machines to
-  parallelize it more than you could on a single laptop.
+  parallelize it more than you could on a single laptop. This has traditionally
+  been something only https://bazel.build/remote/caching[Bazel supports], though
+  over time more build toolds are adopting these techniques
+
+In large codebases, using a build tool is no longer an optional nice-to-have, but becomes
+table-stakes. In large codebases you _need_ the parallelism and caching that a
+build tool provides, otherwise you may end up waiting hours to compile and test
+each small change. You _need_ the ability to customize and extend the build logic,
+in some way that doesn't become a rat's nest of shell scripts. This is where
+tools like https://bazel.build/[Bazel], https://www.pantsbuild.org/[Pants],
+or https://buck.build/[Buck] really shine, although other tools like
+https://gradle.org/[Gradle] or https://mill-build.org/[Mill] also have some
+support for working with large codebases.
 
 See the following blog post for a deeper discussion on what features a
 _"monorepo build tool"_ provides and why they are necessary:
@@ -252,13 +284,13 @@ _"monorepo build tool"_ provides and why they are necessary:
 
 ## How Build Tools Work: The Build Graph
 
-After all this talk about what a build tool is, it is worth mentioning how most
+After all this talk about what a build tool is, it is worth exploring how most
 modern build tools work. At their core, most modern build tools are some kind of
 graph evaluation engine.
 
 For example, consider the various tasks we mentioned earlier:
 
-- Use the configured _direct_ third-party dependencies to resolve the _transitive_ third-party dependencies
+- Use the configured _direct_ third-party dependencies to resolve the _transitive_ dependencies
 - Download all transitive third-party library dependencies to files on disk
 - Compile upstream _internal_ library dependencies
 - Run code generators on IDL files to generate source files
@@ -268,8 +300,8 @@ For example, consider the various tasks we mentioned earlier:
 
 We might even include a few more:
 
-- Run unit tests on binary files to generate test_report
-- Run integration tests on executable to generate test_report
+- Run unit tests on binary files to generate a test report
+- Run integration tests on executable to generate a test report
 
 At their core, most build steps are of the form
 
@@ -311,7 +343,7 @@ digraph G {
 }
 ```
 
-## Caching and Invalidation via the Build Graph
+### Caching and Invalidation via the Build Graph
 
 It is from this graph representation that most build tools are able to work
 their magic. For example, if you ask to run `unit_test` (blue), then the build tool
@@ -322,9 +354,10 @@ can traverse the graph edges (red) to find it needs to ensure `compile`, `code_g
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
-  direct_deps -> resolve_deps -> compile
+  direct_deps -> resolve_deps
+  resolve_deps -> compile   [color=red penwidth=2]
   code_gen -> compile  [color=red penwidth=2]
-  sources -> compile  [color=red penwidth=2]
+  sources -> compile
   static_input_files -> asset_pipeline
   asset_pipeline -> integration_test
   compile -> unit_test  [color=red penwidth=2]
@@ -349,7 +382,7 @@ while `package` and `asset_pipeline` need to be run (red)
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
-  direct_deps -> resolve_deps [color=red penwidth=2]
+  direct_deps -> resolve_deps
   resolve_deps -> compile [color=red penwidth=2]
   code_gen -> compile  [color=red penwidth=2]
   sources -> compile
@@ -404,13 +437,13 @@ digraph G {
 }
 ```
 
-## Parallelism on the Build Graph
+### Parallelism on the Build Graph
 
 The build graph is also useful for automatically parallelizing your build tasks.
 For example, consider a case where we want to do a clean build (i.e. no caching)
 of `unit_test` and `integration_test`. From the build graph, Mill is able to determine:
 
-- `resolve_deps`, `code_gen`, and `asset_pipeline` can run in parallel (green)
+- `resolve_deps`, `code_gen`, and `asset_pipeline` can immediately start running in parallel (green)
 - `compile`, `package`, and `integration_test` must run sequentially (red),
   only starting once `resolve_deps` and `code_gen` is complete
 - `unit_test` (blue) can run in parallel with `package` or `integration_test`,
@@ -442,12 +475,137 @@ digraph G {
 }
 ```
 
+Most modern build tools do this kind of graph-based parallelism automatically,
+is in contrast to most programming languages and application frameworks where you need
+to set up parallelism yourself. In a build tool, you typically don't need to fiddle
+with threads, locks, semaphores, futures, actors, and so on: you just define the
+shape of the build graph using whatever configuration format or language the build
+tool provides, and you get parallelism for free.
+
+### Languages for defining your Build Graph
+
+Every build tool provides some format for defining the build graph data structure.
+There isn't any industry-wide standard for graph data structures, so each build
+tool comes up with something on their own. Here we'll look at how it is done in the
+Bazel and Mill build tools:
+
+#### Bazel
+
+Bazel uses the https://bazel.build/rules/language[Starlark language], a dialect of Python.
+Below I show an example from their https://bazel.build/start/cpp[documentation on using Bazel for C/C++].
+The Python functions like `cc_library` or `cc_binary` are called _rules_ and by calling
+the function you create a `target` with the given `name` and dependencies on upstream
+targets (`deps`) and source files:
+
+```python
+cc_library(
+    name = "hello-greet",
+    srcs = ["hello-greet.cc"],
+    hdrs = ["hello-greet.h"],
+)
+
+cc_binary(
+    name = "hello-world",
+    srcs = ["hello-world.cc"],
+    deps = [":hello-greet"],
+)
+```
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  "main/hello-greet.cc,\nmain/hello-greet.h" -> "//main:hello-greet"
+  "//main:hello-greet" -> "//main:hello-world"
+  "main/hello-world.cc" -> "//main:hello-world"
+}
+```
+
+In Bazel, the implementation of what rules like `cc_library` actually _do_ is
+done by upstream build libraries implemented in Java or Starlark
+
+#### Mill
+
+Mill xref:mill:ROOT:depth/why-scala.adoc[uses Scala for it's build file format], and lets you write
+normal Scala ``def``s to define xref:mill:ROOT:javalib/intro.adoc#_custom_build_logic[custom tasks]
+in your build graph. The different tasks can refer to each other, e.g. `def resources` below can
+call `lineCount()` or `super.resources()`, and these become the edges in your task graph:
+
+
+```scala
+/** Total number of lines in module source files */
+def lineCount = Task {
+  allSourceFiles().map(f => os.read.lines(f.path).size).sum
+}
+
+/** Generate resources using lineCount of sources */
+override def resources = Task {
+  os.write(Task.dest / "line-count.txt", "" + lineCount())
+  super.resources() ++ Seq(PathRef(Task.dest))
+}
+```
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  allSourceFiles -> lineCount -> resources -> run
+  "resources.super" -> "resources"
+  "resources.super" [color=white]
+  allSourceFiles [color=white]
+  run [color=white]
+}
+```
+
+In Mill, you can write arbitrary Scala code as part of your ``def``s, which provides
+nice IDE support (e.g. in IntelliJ and VSCode), a compiler to check for silly mistakes,
+and a rich ecosystem of libraries
+(e.g. the `os.read.lines` or `os.write` functions are from https://github.com/com-lihaoyi/os-lib[OS-Lib]).
+This provides a safe, ease-to-use programming environment for working with files, subprocesses,
+and other things that are common when working with build pipelines.
+And although you can write any code you want in each task, the `Task{ }` wrapper
+automatically provides parallelism, caching, and other things you want in your build tool.
+
+
+#### Gradle
+
+Gradle lets you define custom tasks in either Kotlin or Groovy. Below I show an
+https://docs.gradle.org/current/userguide/implementing_custom_tasks.html[example custom task from their documentation]
+written in Kotlin, that adds a new `packageApp` task:
+
+```kotlin
+val packageApp = tasks.register<Zip>("packageApp") {
+    from(layout.projectDirectory.file("run.sh"))                // input - run.sh file
+    from(tasks.jar) {                                           // input - jar task output
+        into("libs")
+    }
+    from(configurations.runtimeClasspath) {                     // input - jar of dependencies
+        into("libs")
+    }
+    destinationDirectory.set(layout.buildDirectory.dir("dist")) // output - location of the zip file
+    archiveFileName.set("myApplication.zip")                    // output - name of the zip file
+}
+```
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  "run.sh" -> packageApp
+  "tasks.jar" -> packageApp
+  "configurations.runClassPath" -> packageApp
+}
+```
+
+`packageApp` depends on the `run.sh` source file, the output of the tasks
+`tasks.jar` and `configurations.runClasspath`, and some other miscellanious configuration.
+The kotlin code is a bit idiosyncratic with the `from` and `into` helpers, and it
+needs to integrate with the `Zip` class that represents this task type and is defined
+upstream in the Gradle libraries. But the end result of this syntax is to define a
+small snippet of the build graph as shown above, and it is this graph that ends up
+being important in your build system.
 
 ## Conclusion
-
-Build tools are used widely throughout the software engineering community, but
-seldom paid attention to.
-
 
 Although modern build tools may look very different on the surface, most of them
 are surprisingly similar once you peek under the covers. Bazel's StarLark config,
