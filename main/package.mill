@@ -33,6 +33,11 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
   def buildInfoPackageName = "mill.main"
 
+  private def dist = build.dist.dist0
+  // Inlining this method below currently triggers an error like
+  // java.lang.IllegalArgumentException: Could not find proxy for …
+  private def distAllDeps = dist +: dist.recursiveModuleDeps
+
   def buildInfoMembers = Seq(
     BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
     BuildInfo.Value(
@@ -48,30 +53,44 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
     BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
     BuildInfo.Value(
-      "millEmbeddedDeps",
-      (
-        Task.traverse(
-          build.dist.recursiveModuleDeps.collect { case m: PublishModule => m }
-        )(
-          _.publishSelfDependency
-        )()
-          .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
-          Lib.resolveDependenciesMetadataSafe(
-            repositories = build.dist.repositoriesTask(),
-            Seq(BoundDep(build.dist.coursierDependency, force = false)),
-            Some(build.dist.mapDependencies()),
-            build.dist.resolutionCustomizer(),
-            Some(Task.ctx()),
-            build.dist.coursierCacheCustomizer()
-          ).getOrThrow.minDependencies.toSeq
-            // change to this when bumping Mill
-            //   ).getOrThrow.minDependencies.toSeq
-            .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
-      )
-        //      Task.traverse(dev.moduleDeps)(_.publishSelfDependency)()
-        //        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
-        .mkString(","),
-      "Dependency artifacts embedded in mill assembly by default."
+      "millDistModule",
+      {
+        val selfDep = dist.publishSelfDependency()
+        s"${selfDep.group}:${selfDep.id}"
+      },
+      "Coordinates of the module pulling the whole of Mill"
+    ),
+    BuildInfo.Value(
+      "millAllDistDependencies",
+      {
+        // Maps internal modules from JavaModule#coursierDependency (like 'mill-internal:thing:0+mill-internal')
+        // to actual coordinates used for publishing (like 'com.lihaoyi:mill-thing:0.13.1')
+        val internalToPublishedModuleMap = Task.traverse(
+          (distAllDeps).collect { case m: PublishModule => m }
+        ) { mod =>
+          Task.Anon {
+            val selfDep = mod.publishSelfDependency()
+            (mod.coursierDependency.module.repr, s"${selfDep.group}:${selfDep.id}")
+          }
+        }().toMap
+
+        val result = Lib.resolveDependenciesMetadataSafe(
+          repositories = dist.repositoriesTask(),
+          Seq(BoundDep(dist.coursierDependency, force = false)),
+          Some(dist.mapDependencies()),
+          dist.resolutionCustomizer(),
+          Some(Task.ctx()),
+          dist.coursierCacheCustomizer()
+        )
+        result
+          .getOrThrow
+          .orderedDependencies
+          .map(_.module.repr)
+          .distinct
+          .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
+          .mkString(",")
+      },
+      "All Mill distribution dependencies"
     ),
     BuildInfo.Value(
       "millScalacPluginDeps",
