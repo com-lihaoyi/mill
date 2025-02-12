@@ -21,12 +21,13 @@ some subtleties to be aware of:
   necessary do you pass in the environment variable to compute a real version (e.g.
   during publishing)
 
-```scala
+[source,scala]
+----
 def myProjectVersion: T[String] = Task.Input {
   if (Task.env.contains("MY_PROJECT_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
   else "SNAPSHOT"
 }
-```
+----
 
 - *The filesystem layout and position of the before/after codebases must be exactly
   the same*. This is not an issue when running `selective.prepare`/`selective.run` on

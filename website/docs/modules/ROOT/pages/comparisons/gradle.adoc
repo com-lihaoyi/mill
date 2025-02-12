@@ -124,7 +124,8 @@ on under the hood that I'm not aware of.
 
 === Parallel Clean Compile All
 
-```bash
+[source,bash]
+----
 $ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
 13.8s
 12.3s
@@ -134,7 +135,7 @@ $ ./mill clean; time ./mill __.compile
 3.59s
 3.57s
 3.45s
-```
+----
 
 This benchmark is identical to the <<Sequential Clean Compile All>> benchmark above, but enables
 parallelism: Gradle by default, Mill without `-j 1` to run on 10 cores (the number on my Macbook Pro).
@@ -150,7 +151,8 @@ each tool.
 
 === Clean Compile Single-Module
 
-```bash
+[source,bash]
+----
 $ ./gradlew clean; time ./gradlew :classes --no-build-cache
 4.14s
 4.41s
@@ -160,7 +162,7 @@ $ ./mill clean; time ./mill compile
 1.20s
 1.12s
 1.30s
-```
+----
 
 This benchmark indicates the use case of clean-compiling a single module. In this case,
 the root module in `src/main/java/` containing the bulk of the Mockito library code,
@@ -172,7 +174,8 @@ the results above.
 
 === Incremental Compile Single-Module
 
-```bash
+[source,bash]
+----
 $ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
 1.37s
 1.39s
@@ -183,7 +186,7 @@ compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/c
 0.52s
 0.51s
 0.52s
-```
+----
 
 This benchmark measures the common case of making a tiny change to a single file and
 re-compiling just that module. This is the common workflow that most software developers
@@ -197,7 +200,8 @@ showing a ~2.7x speedup for this task
 
 === No-Op Compile Single-Module
 
-```bash
+[source,bash]
+----
 $ time ./gradlew :classes
 0.95s
 0.93s
@@ -207,7 +211,7 @@ $ time ./mill common.compile
 0.46s
 0.50s
 0.45s
-```
+----
 
 This benchmark is meant to measure the pure overhead of running the build tool: given a single
 module that did _not_ change, the build tool should need to do _nothing_ in response, and so
@@ -306,7 +310,8 @@ IDE experience to improve even more over time.
 Another facet of Mill is that is worth exploring is the ease of making custom tasks or build steps.
 For example, in Mill, overriding the resources to duplicate a file can be done as follows:
 
-```scala
+[source,scala]
+----
 def resources = Task {
   os.copy(
     compile().classes.path / "org/mockito/internal/creation/bytebuddy/inject/MockMethodDispatcher.class",
@@ -315,11 +320,12 @@ def resources = Task {
   )
   super.resources() ++ Seq(PathRef(Task.dest))
 }
-```
+----
 
 In Gradle, it is written as:
 
-```scala
+[source,scala]
+----
 tasks.register('copyMockMethodDispatcher', Copy) {
     dependsOn compileJava
 
@@ -336,7 +342,7 @@ sourceSets.main {
         output.dir(layout.buildDirectory.dir("generated/resources/inline"))
     }
 }
-```
+----
 
 At a first glance, both of these snippets do the same thing, just with different syntaxes
 and helper method names. However, on a deeper look, a few things are worth noting:
