@@ -64,12 +64,13 @@ object IntegrationTester {
         cwd: os.Path = workspacePath,
         stdin: os.ProcessInput = os.Pipe,
         stdout: os.ProcessOutput = os.Pipe,
-        stderr: os.ProcessOutput = os.Pipe,
+        stderr: os.ProcessOutput = os.Inherit,
         mergeErrIntoOut: Boolean = false,
         timeout: Long = -1,
-        check: Boolean = false,
+        check: Boolean = true,
         propagateEnv: Boolean = true,
-        timeoutGracePeriod: Long = 100
+        shutdownGracePeriod: Long = 100,
+        destroyOnExit: Boolean = true
     ): IntegrationTester.EvalResult = {
       val serverArgs = Option.when(!clientServerMode)("--no-server")
 
@@ -88,7 +89,8 @@ object IntegrationTester {
         timeout = timeout,
         check = check,
         propagateEnv = propagateEnv,
-        timeoutGracePeriod = timeoutGracePeriod
+        shutdownGracePeriod = shutdownGracePeriod,
+        destroyOnExit = destroyOnExit
       )
 
       IntegrationTester.EvalResult(
