@@ -20,10 +20,12 @@ image, see below:
 include::partial$example/javalib/publishing/8-native-image-libs.adoc[]
 
 
+[#_java_app_and_bundles_using_jlink]
 == Java App and Bundles using `jlink`
 
 include::partial$example/javalib/publishing/5-jlink.adoc[]
 
+[#_java_installers_using_jpackage]
 == Java Installers using `jpackage`
 
 include::partial$example/javalib/publishing/6-jpackage.adoc[]

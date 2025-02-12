@@ -6,12 +6,13 @@
 This page does a deep dive on how Mill evaluates your build tasks, so you can better understand
 what Mill is doing behind the scenes when building your project.
 
-## Example Project
+== Example Project
 
 For the purposes of this article, we will be using the following example build
 as the basis for discussion:
 
-```scala
+[source,scala]
+----
 // build.mill
 package build
 import mill._, javalib._
@@ -32,7 +33,7 @@ object bar extends JavaModule {
     Seq(PathRef(Task.dest))
   }
 }
-```
+----
 
 This is a simple two-module build with two ``JavaModule``s, one that depends on the other.
 There is a custom task `bar.lineCount` implemented that replaces the default `resources/`
@@ -41,7 +42,8 @@ xref:javalib/intro.adoc#_custom_build_logic[Custom Build Logic].
 
 This expects the source layout:
 
-```
+[source]
+----
 foo/
     src/
         *.java files
@@ -51,35 +53,37 @@ bar/
         *.java files
     package.mill (optional)
 build.mill
-```
+----
 
 You can operate on this build via commands such as
 
-```bash
+[source,bash]
+----
 > ./mill bar.compile
 
 > ./mill foo.run
 
 > ./mill _.assembly # evaluates both foo.compile and bar.compile
-```
+----
 
 
 For the purposes of this article, we will consider what happens when you run
 `./mill _.assembly` on the above example codebase.
 
-## Primary Phases
+== Primary Phases
 
-### Compilation
+=== Compilation
 
 Initial `.mill` build files:
 
-```bash
+[source,bash]
+----
 bar/
     package.mill #optional
 foo/
     package.mill #optional
 build.mill
-```
+----
 
 
 This stage involves compiling your `build.mill` and any
@@ -96,20 +100,20 @@ such that updates can happen relatively quickly even in large projects.
 
 After compilation, the `.mill` files are converted into JVM classfiles as shown below:
 
-
-```bash
+[source,bash]
+----
 bar/
     package.class
 foo/
     package.class
 build.class
-```
+----
 
 
 These classfiles are dynamically loaded into the Mill process and instantiated into
 a concrete Mill `RootModule` object, which is then used in the subsequent tasks below:
 
-### Resolution
+=== Resolution
 
 Resolution converts the Mill xref:cli/query-syntax.adoc[task selector] ``_.assembly`` the list of
 xref:fundamentals/tasks.adoc[] given from the command line. This explores the `build` and `package`
@@ -137,7 +141,7 @@ when working within a large codebase by avoiding instantiation of modules that a
 unrelated to the selector you are running.
 
 
-### Planning
+=== Planning
 
 Planning is the step of turning the tasks selected during <<Resolution>> into a full
 build graph that includes all transitive upstream dependencies. This is done by
@@ -179,7 +183,7 @@ and `bar.assembly`, their upstream task graph requires tasks such as `foo.compil
 `bar.compile`, as well as our custom task `bar.lineCount` and our override of `bar.resources`.
 
 
-### Evaluation
+=== Evaluation
 
 The last phase is execution. Execution depends not only on the tasks you selected at the
 command line, and those discovered during <<Resolution>>, but also what input files changed
@@ -293,7 +297,7 @@ Some other things to note:
   simply a way to define and re-use parts of the task graph, but it is the task graph that matters
   during evaluation
 
-## Bootstrapping
+== Bootstrapping
 
 One part of the Mill evaluation model that is skimmed over above is what happens before
 *Compilation*: how does Mill actually get everything necessary to compile your `build.mill`

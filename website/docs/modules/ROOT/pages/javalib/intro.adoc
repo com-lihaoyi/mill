@@ -10,6 +10,7 @@ include::partial$Intro_Header.adoc[]
 
 include::partial$example/javalib/basic/1-simple.adoc[]
 
+[#_custom_build_logic]
 == Custom Build Logic
 
 include::partial$example/javalib/basic/2-custom-build-logic.adoc[]
