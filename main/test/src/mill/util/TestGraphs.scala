@@ -25,6 +25,62 @@ object TestGraphs {
     lazy val millDiscover = Discover[this.type]
   }
 
+
+  // up---down
+  object pair extends TestBaseModule {
+    def up = Task{1}
+    def down = Task{ up() + 10 }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  // up---o---down
+  object anonTriple extends TestBaseModule {
+    def up = Task{1}
+    def anon = Task.Anon{up() + 10 }
+    def down = Task{ anon() + 100 }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  //   left
+  //   /   \
+  // up    down
+  //   \   /
+  //   right
+  object diamond extends TestBaseModule {
+    def up = Task{1}
+    def left = Task{up() + 10}
+    def right = Task{up() + 100}
+    def down = Task{ left() + right() + 1000 }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  //    o
+  //   / \
+  // up   down
+  //   \ /
+  //    o
+  object anonDiamond extends TestBaseModule {
+    def up = Task{1}
+    val left = Task.Anon{up() + 10}
+    val right = Task.Anon{up() + 100}
+    def down = Task{ left() + right() + 1000 }
+    lazy val millDiscover = Discover[this.type]
+  }
+  //        _ left _
+  //       /        \
+  //  task1 -------- right
+  //               _/
+  // change - task2
+  object separateGroups extends TestBaseModule {
+    val task1 = Task.Anon { 1 }
+    def left = Task { task1() +10 }
+    val change = Task.Anon{ 100 }
+    val task2 = Task.Anon { change() + 1000 }
+    def right = Task { task1() + task2() + left() + 10000 }
+    lazy val millDiscover = Discover[this.type]
+
+  }
+
   //      _ left _
   //     /        \
   // task -------- right
