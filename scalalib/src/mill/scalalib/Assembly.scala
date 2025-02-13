@@ -179,7 +179,7 @@ object Assembly {
       destJar: os.Path,
       inputPaths: Seq[os.Path],
       manifest: JarManifest = JarManifest.MillDefault,
-      prepend: Option[os.Source] = None,
+      prepend: Option[Array[Byte]] = None,
       base: Option[Assembly] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
   ): Assembly = {
@@ -271,9 +271,9 @@ object Assembly {
       base: Option[Assembly] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
   ): Assembly = {
-    val prepend: Option[os.Source] = prependShellScript.map { prependShellScript =>
+    val prepend = prependShellScript.map { prependShellScript =>
       val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
-      prependShellScript + lineSep
+      (prependShellScript + lineSep).getBytes
     }
 
     create0(
