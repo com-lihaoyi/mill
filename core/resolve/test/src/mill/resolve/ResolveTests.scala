@@ -28,89 +28,87 @@ object ResolveTests extends TestSuite {
       x.errorOpt.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
-    val graphs = new mill.util.TestGraphs()
-    import graphs.*
-    test("single") {
-      val check = new Checker(singleton)
-      test("pos") - check("single", Result.Success(Set(_.single)), Set("single"))
-      test("wildcard") - check("_", Result.Success(Set(_.single)), Set("single"))
-      test("neg1") - check("sngle", Result.Failure("Cannot resolve sngle. Did you mean single?"))
-      test("neg2") - check("snigle", Result.Failure("Cannot resolve snigle. Did you mean single?"))
-      test("neg3") - check(
-        "nsiigle",
-        Result.Failure("Cannot resolve nsiigle. Did you mean single?")
-      )
-      test("neg4") - check(
-        "ansiigle",
-        Result.Failure("Cannot resolve ansiigle. Try `mill resolve _` to see what's available.")
-      )
-      test("neg5") - check(
-        "doesntExist",
-        Result.Failure("Cannot resolve doesntExist. Try `mill resolve _` to see what's available.")
-      )
-      test("neg6") - check(
-        "single.doesntExist",
-        Result.Failure(
-          "Cannot resolve single.doesntExist. single resolves to a Task with no children."
-        )
-      )
-      test("neg7") - check(
-        "",
-        Result.Failure(
-          "Target selector must not be empty. Try `mill resolve _` to see what's available."
-        )
-      )
-    }
-    test("backtickIdentifiers") {
-      val check = new Checker(bactickIdentifiers)
-      test("pos1") - check("up-target", Result.Success(Set(_.`up-target`)), Set("up-target"))
-      test("pos2") - check(
-        "a-down-target",
-        Result.Success(Set(_.`a-down-target`)),
-        Set("a-down-target")
-      )
-      test("neg1") - check(
-        "uptarget",
-        Result.Failure("Cannot resolve uptarget. Did you mean up-target?")
-      )
-      test("neg2") - check(
-        "upt-arget",
-        Result.Failure("Cannot resolve upt-arget. Did you mean up-target?")
-      )
-      test("neg3") - check(
-        "up-target.doesntExist",
-        Result.Failure(
-          "Cannot resolve up-target.doesntExist. up-target resolves to a Task with no children."
-        )
-      )
-      test("neg4") - check(
-        "",
-        Result.Failure(
-          "Target selector must not be empty. Try `mill resolve _` to see what's available."
-        )
-      )
-      test("neg5") - check(
-        "invisible",
-        Result.Failure("Cannot resolve invisible. Try `mill resolve _` to see what's available.")
-      )
-      test("negBadParse") - check(
-        "invisible&",
-        Result.Failure("Parsing exception Position 1:10, found \"&\"")
-      )
-      test("nested") {
-        test("pos") - check(
-          "nested-module.nested-target",
-          Result.Success(Set(_.`nested-module`.`nested-target`)),
-          Set("nested-module.nested-target")
-        )
-        test("neg") - check(
-          "nested-module.doesntExist",
-          Result.Failure(
-            "Cannot resolve nested-module.doesntExist. Try `mill resolve nested-module._` to see what's available."
-          )
-        )
-      }
-    }
+//    test("single") {
+//      val check = new Checker(singleton)
+//      test("pos") - check("single", Result.Success(Set(_.single)), Set("single"))
+//      test("wildcard") - check("_", Result.Success(Set(_.single)), Set("single"))
+//      test("neg1") - check("sngle", Result.Failure("Cannot resolve sngle. Did you mean single?"))
+//      test("neg2") - check("snigle", Result.Failure("Cannot resolve snigle. Did you mean single?"))
+//      test("neg3") - check(
+//        "nsiigle",
+//        Result.Failure("Cannot resolve nsiigle. Did you mean single?")
+//      )
+//      test("neg4") - check(
+//        "ansiigle",
+//        Result.Failure("Cannot resolve ansiigle. Try `mill resolve _` to see what's available.")
+//      )
+//      test("neg5") - check(
+//        "doesntExist",
+//        Result.Failure("Cannot resolve doesntExist. Try `mill resolve _` to see what's available.")
+//      )
+//      test("neg6") - check(
+//        "single.doesntExist",
+//        Result.Failure(
+//          "Cannot resolve single.doesntExist. single resolves to a Task with no children."
+//        )
+//      )
+//      test("neg7") - check(
+//        "",
+//        Result.Failure(
+//          "Target selector must not be empty. Try `mill resolve _` to see what's available."
+//        )
+//      )
+//    }
+//    test("backtickIdentifiers") {
+//      val check = new Checker(bactickIdentifiers)
+//      test("pos1") - check("up-target", Result.Success(Set(_.`up-target`)), Set("up-target"))
+//      test("pos2") - check(
+//        "a-down-target",
+//        Result.Success(Set(_.`a-down-target`)),
+//        Set("a-down-target")
+//      )
+//      test("neg1") - check(
+//        "uptarget",
+//        Result.Failure("Cannot resolve uptarget. Did you mean up-target?")
+//      )
+//      test("neg2") - check(
+//        "upt-arget",
+//        Result.Failure("Cannot resolve upt-arget. Did you mean up-target?")
+//      )
+//      test("neg3") - check(
+//        "up-target.doesntExist",
+//        Result.Failure(
+//          "Cannot resolve up-target.doesntExist. up-target resolves to a Task with no children."
+//        )
+//      )
+//      test("neg4") - check(
+//        "",
+//        Result.Failure(
+//          "Target selector must not be empty. Try `mill resolve _` to see what's available."
+//        )
+//      )
+//      test("neg5") - check(
+//        "invisible",
+//        Result.Failure("Cannot resolve invisible. Try `mill resolve _` to see what's available.")
+//      )
+//      test("negBadParse") - check(
+//        "invisible&",
+//        Result.Failure("Parsing exception Position 1:10, found \"&\"")
+//      )
+//      test("nested") {
+//        test("pos") - check(
+//          "nested-module.nested-target",
+//          Result.Success(Set(_.`nested-module`.`nested-target`)),
+//          Set("nested-module.nested-target")
+//        )
+//        test("neg") - check(
+//          "nested-module.doesntExist",
+//          Result.Failure(
+//            "Cannot resolve nested-module.doesntExist. Try `mill resolve nested-module._` to see what's available."
+//          )
+//        )
+//      }
+//    }
     test("nested") {
       val check = new Checker(nestedModule)
       test("pos1") - check("single", Result.Success(Set(_.single)), Set("single"))

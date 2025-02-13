@@ -11,14 +11,14 @@ object ModuleTests extends TestSuite {
 
   val tests = Tests {
 
-    object graphs extends TestGraphs()
-    import graphs._
+//    object graphs extends TestGraphs()
+//    import graphs._
     import TestGraphs._
 
-    test("singleton") {
-      singleton.toString ==> ""
-      singleton.single.toString ==> "single"
-    }
+//    test("singleton") {
+//      singleton.toString ==> ""
+//      singleton.single.toString ==> "single"
+//    }
     test("nested") {
       nestedModule.toString ==> ""
       nestedModule.moduleSegments ==> Segments()

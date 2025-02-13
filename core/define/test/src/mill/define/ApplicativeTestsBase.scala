@@ -12,7 +12,7 @@ trait ApplicativeTestsBase {
     inline def apply[T](inline t: T): Option[T] =
       ${ ApplicativeTestsBase.applyImpl[Opt, T]('t)('this) }
 
-    def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (IndexedSeq[I], String) => Applicative.Id[R])
+    def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (Seq[I], String) => Applicative.Id[R])
         : Option[R] = {
       if (xs.exists(_.self.isEmpty)) None
       else Some(f(xs.map(_.self.get).toVector, injectedCtx))

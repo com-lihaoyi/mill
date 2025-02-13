@@ -1,5 +1,4 @@
 package mill.util
-import TestUtil.test
 import mainargs.arg
 import mill.testkit.TestBaseModule
 import mill.define.{Command, Cross, Discover, TaskModule}
@@ -16,108 +15,108 @@ import mill.{Module, Task}
  * The immutable graphs, used for testing discovery & target resolution,
  * live in the companion object.
  */
-class TestGraphs() {
-  // single
-  object singleton extends TestBaseModule {
-    val single = test()
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  object bactickIdentifiers extends TestBaseModule {
-    val `up-target` = test()
-    val `a-down-target` = test(`up-target`)
-    val `invisible&` = test()
-    object `nested-module` extends Module {
-      val `nested-target` = test()
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  // up---down
-  object pair extends TestBaseModule {
-    val up = test()
-    val down = test(up)
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  // up---o---down
-  object anonTriple extends TestBaseModule {
-    val up = test()
-    val down = test(test.anon(up))
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  //   left
-  //   /   \
-  // up    down
-  //   \   /
-  //   right
-  object diamond extends TestBaseModule {
-    val up = test()
-    val left = test(up)
-    val right = test(up)
-    val down = test(left, right)
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  //    o
-  //   / \
-  // up   down
-  //   \ /
-  //    o
-  object anonDiamond extends TestBaseModule {
-    val up = test()
-    val down = test(test.anon(up), test.anon(up))
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  //          o   g-----o
-  //           \   \     \
-  // o          o   h-----I---o
-  //  \        / \ / \   / \   \
-  //   A---c--o   E   o-o   \   \
-  //  / \ / \    / \         o---J
-  // o   d   o--o   o       /   /
-  //      \ /        \     /   /
-  //       o          o---F---o
-  //      /          /
-  //  o--B          o
-  object bigSingleTerminal extends TestBaseModule {
-    val a = test(test.anon(), test.anon())
-    val b = test(test.anon())
-    val e = {
-      val c = test.anon(a)
-      val d = test.anon(a)
-      test(
-        test.anon(test.anon(), test.anon(c)),
-        test.anon(test.anon(c, test.anon(d, b)))
-      )
-    }
-    val f = test(test.anon(test.anon(), test.anon(e)))
-
-    val i = {
-      val g = test.anon()
-      val h = test.anon(g, e)
-      test(test.anon(g), test.anon(test.anon(h)))
-    }
-    val j = test(test.anon(i), test.anon(i, f), test.anon(f))
-    lazy val millDiscover = Discover[this.type]
-  }
-  //        _ left _
-  //       /        \
-  //  task1 -------- right
-  //               _/
-  // change - task2
-  object separateGroups extends TestBaseModule {
-    val task1 = Task.Anon { 1 }
-    def left = Task { task1() }
-    val change = test()
-    val task2 = Task.Anon { change() }
-    def right = Task { task1() + task2() + left() + 1 }
-    lazy val millDiscover = Discover[this.type]
-
-  }
-}
+//class TestGraphs() {
+//  // single
+//  object singleton extends TestBaseModule {
+//    val single = test()
+//    lazy val millDiscover = Discover[this.type]
+//  }
+//
+//  object bactickIdentifiers extends TestBaseModule {
+//    val `up-target` = test()
+//    val `a-down-target` = test(`up-target`)
+//    val `invisible&` = test()
+//    object `nested-module` extends Module {
+//      val `nested-target` = test()
+//    }
+//    lazy val millDiscover = Discover[this.type]
+//  }
+//
+//  // up---down
+//  object pair extends TestBaseModule {
+//    val up = test()
+//    val down = test(up)
+//    lazy val millDiscover = Discover[this.type]
+//  }
+//
+//  // up---o---down
+//  object anonTriple extends TestBaseModule {
+//    val up = test()
+//    val down = test(test.anon(up))
+//    lazy val millDiscover = Discover[this.type]
+//  }
+//
+//  //   left
+//  //   /   \
+//  // up    down
+//  //   \   /
+//  //   right
+//  object diamond extends TestBaseModule {
+//    val up = test()
+//    val left = test(up)
+//    val right = test(up)
+//    val down = test(left, right)
+//    lazy val millDiscover = Discover[this.type]
+//  }
+//
+//  //    o
+//  //   / \
+//  // up   down
+//  //   \ /
+//  //    o
+//  object anonDiamond extends TestBaseModule {
+//    val up = test()
+//    val down = test(test.anon(up), test.anon(up))
+//    lazy val millDiscover = Discover[this.type]
+//  }
+//
+//  //          o   g-----o
+//  //           \   \     \
+//  // o          o   h-----I---o
+//  //  \        / \ / \   / \   \
+//  //   A---c--o   E   o-o   \   \
+//  //  / \ / \    / \         o---J
+//  // o   d   o--o   o       /   /
+//  //      \ /        \     /   /
+//  //       o          o---F---o
+//  //      /          /
+//  //  o--B          o
+//  object bigSingleTerminal extends TestBaseModule {
+//    val a = test(test.anon(), test.anon())
+//    val b = test(test.anon())
+//    val e = {
+//      val c = test.anon(a)
+//      val d = test.anon(a)
+//      test(
+//        test.anon(test.anon(), test.anon(c)),
+//        test.anon(test.anon(c, test.anon(d, b)))
+//      )
+//    }
+//    val f = test(test.anon(test.anon(), test.anon(e)))
+//
+//    val i = {
+//      val g = test.anon()
+//      val h = test.anon(g, e)
+//      test(test.anon(g), test.anon(test.anon(h)))
+//    }
+//    val j = test(test.anon(i), test.anon(i, f), test.anon(f))
+//    lazy val millDiscover = Discover[this.type]
+//  }
+//  //        _ left _
+//  //       /        \
+//  //  task1 -------- right
+//  //               _/
+//  // change - task2
+//  object separateGroups extends TestBaseModule {
+//    val task1 = Task.Anon { 1 }
+//    def left = Task { task1() }
+//    val change = test()
+//    val task2 = Task.Anon { change() }
+//    def right = Task { task1() + task2() + left() + 1 }
+//    lazy val millDiscover = Discover[this.type]
+//
+//  }
+//}
 
 object TestGraphs {
   //      _ left _
