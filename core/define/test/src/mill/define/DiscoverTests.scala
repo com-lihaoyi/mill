@@ -4,7 +4,6 @@ import mill.util.TestGraphs
 import utest._
 
 object DiscoverTests extends TestSuite {
-  val testGraphs = new TestGraphs
   val tests = Tests {
     def check[T <: Module](m: T)(targets: (T => Target[?])*) = {
       val discovered = m.moduleInternal.targets
@@ -12,10 +11,10 @@ object DiscoverTests extends TestSuite {
       assert(discovered == expected)
     }
     test("singleton") {
-      check(testGraphs.singleton)(_.single)
+      check(TestGraphs.singleton)(_.single)
     }
     test("backtickIdentifiers") {
-      check(testGraphs.bactickIdentifiers)(
+      check(TestGraphs.bactickIdentifiers)(
         _.`up-target`,
         _.`a-down-target`,
         _.`nested-module`.`nested-target`

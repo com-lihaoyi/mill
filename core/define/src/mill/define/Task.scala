@@ -4,7 +4,6 @@ import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
 import mill.define.internal.Applicative.Applyable
 import mill.define.internal.Cacher
 import upickle.default.{ReadWriter as RW, Writer as W}
-import TaskBase.TraverseCtxHolder
 import mill.define.internal.{Applicative, NamedParameterOnlyDummy}
 
 import scala.language.implicitConversions
@@ -65,13 +64,13 @@ object Task extends TaskBase {
   inline def Sources(inline values: Result[os.Path]*)(implicit
       inline ctx: mill.define.Ctx
   ): Target[Seq[PathRef]] = ${
-    TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx, 'this)
+    TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
   }
 
   inline def Sources(inline values: Result[Seq[PathRef]])(implicit
       inline ctx: mill.define.Ctx
   ): Target[Seq[PathRef]] =
-    ${ TaskMacros.sourcesImpl('values)('ctx, 'this) }
+    ${ TaskMacros.sourcesImpl('values)('ctx) }
 
   inline def Sources(inline values: os.SubPath*)(implicit
       inline ctx: mill.define.Ctx,
@@ -79,7 +78,7 @@ object Task extends TaskBase {
   ): Target[Seq[PathRef]] = ${
     TaskMacros.sourcesImpl(
       '{ values.map(sub => PathRef(ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub))) }
-    )('ctx, 'this)
+    )('ctx)
   }
 
   /**
@@ -89,18 +88,18 @@ object Task extends TaskBase {
   inline def Source(inline value: Result[os.Path])(implicit
       inline ctx: mill.define.Ctx
   ): Target[PathRef] =
-    ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx, 'this) }
+    ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
 
   @annotation.targetName("SourceRef")
   inline def Source(inline value: Result[PathRef])(implicit
       inline ctx: mill.define.Ctx
   ): Target[PathRef] =
-    ${ TaskMacros.sourceImpl('value)('ctx, 'this) }
+    ${ TaskMacros.sourceImpl('value)('ctx) }
 
   inline def Source(inline value: os.SubPath)(implicit
       inline ctx: mill.define.Ctx
   ): Target[PathRef] =
-    ${ TaskMacros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx, 'this) }
+    ${ TaskMacros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
 
   /**
    * [[InputImpl]]s, normally defined using `Task.Input`, are [[NamedTask]]s that
@@ -122,7 +121,7 @@ object Task extends TaskBase {
       inline w: upickle.default.Writer[T],
       inline ctx: mill.define.Ctx
   ): Target[T] =
-    ${ TaskMacros.inputImpl[T]('value)('w, 'ctx, 'this) }
+    ${ TaskMacros.inputImpl[T]('value)('w, 'ctx) }
 
   /**
    * [[Command]]s are only [[NamedTask]]s defined using
@@ -134,7 +133,7 @@ object Task extends TaskBase {
   inline def Command[T](inline t: Result[T])(implicit
       inline w: W[T],
       inline ctx: mill.define.Ctx
-  ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, 'this, exclusive = '{ false }) }
+  ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }) }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -148,11 +147,11 @@ object Task extends TaskBase {
       t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false
   ): CommandFactory = new CommandFactory(exclusive)
-  class CommandFactory private[mill] (val exclusive: Boolean) extends TaskBase.TraverseCtxHolder {
+  class CommandFactory private[mill] (val exclusive: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
         inline w: W[T],
         inline ctx: mill.define.Ctx
-    ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, 'this, '{ this.exclusive }) }
+    ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }) }
   }
 
   /**
@@ -170,7 +169,7 @@ object Task extends TaskBase {
    * what in-memory state the worker may have.
    */
   inline def Worker[T](inline t: Result[T])(implicit inline ctx: mill.define.Ctx): Worker[T] =
-    ${ TaskMacros.workerImpl2[T]('t)('ctx, 'this) }
+    ${ TaskMacros.workerImpl2[T]('t)('ctx) }
 
   /**
    * Creates an anonymous `Task`. These depend on other tasks and
@@ -179,13 +178,13 @@ object Task extends TaskBase {
    * implement `Task{...}` targets.
    */
   inline def Anon[T](inline t: Result[T]): Task[T] =
-    ${ TaskMacros.anonTaskImpl[T]('t)('this) }
+    ${ TaskMacros.anonTaskImpl[T]('t) }
 
   inline def apply[T](inline t: Result[T])(implicit
       inline rw: RW[T],
       inline ctx: mill.define.Ctx
   ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this, '{ false }) }
+    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   /**
    * Persistent tasks are defined using
@@ -204,11 +203,11 @@ object Task extends TaskBase {
       t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false
   ): ApplyFactory = new ApplyFactory(persistent)
-  class ApplyFactory private[mill] (val persistent: Boolean) extends TaskBase.TraverseCtxHolder {
+  class ApplyFactory private[mill] (val persistent: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
         inline rw: RW[T],
         inline ctx: mill.define.Ctx
-    ): Target[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this, '{ persistent }) }
+    ): Target[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -224,19 +223,6 @@ object Task extends TaskBase {
     def evaluate(ctx: mill.api.Ctx): Result[Seq[T]] = {
       for (i <- 0 until ctx.args.length)
         yield ctx.args(i).asInstanceOf[T]
-    }
-  }
-  private[define] class TraverseCtx[+T, V](
-      inputs0: Seq[Task[T]],
-      f: (IndexedSeq[T], mill.api.Ctx) => Result[V]
-  ) extends Task[V] {
-    val inputs: Seq[Task[?]] = inputs0
-    def evaluate(ctx: mill.api.Ctx): Result[V] = {
-      f(
-        for (i <- 0 until ctx.args.length)
-          yield ctx.args(i).asInstanceOf[T],
-        ctx
-      )
     }
   }
 
@@ -258,10 +244,6 @@ object Task extends TaskBase {
  */
 trait NamedTask[+T] extends Task[T] {
 
-  /**
-   * The implementation task wrapped by this named task
-   */
-  def t: Task[T]
   def ctx0: mill.define.Ctx
   def isPrivate: Option[Boolean]
   def label: String = ctx.segments.value.last match {
@@ -272,10 +254,11 @@ trait NamedTask[+T] extends Task[T] {
   }
   override def toString = ctx.segments.render
 
-  def evaluate(ctx: mill.api.Ctx): Result[T] = ctx.arg[T](0)
+  def evaluate(ctx: mill.api.Ctx): Result[T] = evaluate0(ctx.args, ctx)
+
+  def evaluate0: (Seq[Any], mill.api.Ctx) => Result[T]
 
   val ctx: Ctx = ctx0
-  val inputs: Seq[Task[?]] = Seq(t)
 
   def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
 
@@ -300,13 +283,13 @@ object Target extends TaskBase {
       inline rw: RW[T],
       inline ctx: mill.define.Ctx
   ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, 'this, '{ false }) }
+    ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
   implicit inline def apply[T](inline t: Result[T])(implicit
       inline rw: RW[T],
       inline ctx: mill.define.Ctx
   ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this, '{ false }) }
+    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
 }
 
@@ -317,8 +300,7 @@ object Target extends TaskBase {
  * define the tasks, while methods like `Task.`[[dest]], `Task.`[[log]] or
  * `Task.`[[env]] provide the core APIs that are provided to a task implementation
  */
-class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
-    with TaskBase.TraverseCtxHolder {
+class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
   /**
    * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
@@ -401,22 +383,9 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
   }
 }
 
-object TaskBase {
-  trait TraverseCtxHolder {
-
-    /**
-     * A variant of [[traverse]] that also provides the [[mill.api.Ctx]] to the
-     * function [[f]]
-     */
-    def traverseCtx[I, R](xs: Seq[Task[I]])(f: (IndexedSeq[I], mill.api.Ctx) => Result[R])
-        : Task[R] = {
-      new Task.TraverseCtx[I, R](xs, f)
-    }
-  }
-}
-
 class TargetImpl[+T](
-    val t: Task[T],
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
     val ctx0: mill.define.Ctx,
     val readWriter: RW[?],
     val isPrivate: Option[Boolean],
@@ -428,31 +397,32 @@ class TargetImpl[+T](
 }
 
 class Command[+T](
-    val t: Task[T],
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
     val ctx0: mill.define.Ctx,
     val writer: W[?],
     val isPrivate: Option[Boolean],
     val exclusive: Boolean
 ) extends NamedTask[T] {
-  def this(
-      t: Task[T],
-      ctx0: mill.define.Ctx,
-      writer: W[?],
-      isPrivate: Option[Boolean]
-  ) = this(t, ctx0, writer, isPrivate, false)
+
   override def asCommand: Some[Command[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[?]] = Some(writer)
 }
 
-class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
-    extends NamedTask[T] {
+class Worker[+T](
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
+    val ctx0: mill.define.Ctx,
+    val isPrivate: Option[Boolean]
+) extends NamedTask[T] {
   override def persistent = false
   override def asWorker: Some[Worker[T]] = Some(this)
 }
 
 class InputImpl[T](
-    val t: Task[T],
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
     val ctx0: mill.define.Ctx,
     val writer: upickle.default.Writer[?],
     val isPrivate: Option[Boolean]
@@ -462,24 +432,49 @@ class InputImpl[T](
   override def writerOpt: Some[W[?]] = Some(writer)
 }
 
-class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends InputImpl[Seq[PathRef]](t, ctx0, upickle.default.readwriter[Seq[PathRef]], isPrivate) {}
+class SourcesImpl(
+    inputs: Seq[Task[Any]],
+    evaluate0: (Seq[Any], mill.api.Ctx) => Result[Seq[PathRef]],
+    ctx0: mill.define.Ctx,
+    isPrivate: Option[Boolean]
+) extends InputImpl[Seq[PathRef]](
+      inputs,
+      evaluate0,
+      ctx0,
+      upickle.default.readwriter[Seq[PathRef]],
+      isPrivate
+    ) {}
 
-class SourceImpl(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends InputImpl[PathRef](t, ctx0, upickle.default.readwriter[PathRef], isPrivate) {}
+class SourceImpl(
+    inputs: Seq[Task[Any]],
+    evaluate0: (Seq[Any], mill.api.Ctx) => Result[PathRef],
+    ctx0: mill.define.Ctx,
+    isPrivate: Option[Boolean]
+) extends InputImpl[PathRef](
+      inputs,
+      evaluate0,
+      ctx0,
+      upickle.default.readwriter[PathRef],
+      isPrivate
+    ) {}
+
+class AnonImpl[T](val inputs: Seq[Task[_]], evaluate0: (Seq[Any], mill.api.Ctx) => Result[T])
+    extends Task[T] {
+  def evaluate(ctx: mill.api.Ctx) = evaluate0(ctx.args, ctx)
+}
 
 object TaskMacros {
-  def appImpl[T: Type](using
+  def appImpl[M[_]: Type, T: Type](using
       Quotes
   )(
       traverseCtx: (
           Expr[Seq[Task[Any]]],
-          Expr[(IndexedSeq[Any], mill.api.Ctx) => Result[T]]
-      ) => Expr[Task[T]],
+          Expr[(Seq[Any], mill.api.Ctx) => Result[T]]
+      ) => Expr[M[T]],
       t: Expr[Result[T]]
-  ): Expr[Task[T]] = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtx, t)
+  ): Expr[M[T]] = Applicative.impl[M, Task, Result, T, mill.api.Ctx](traverseCtx, t)
 
-  private def isPrivateTargetOption()(using Quotes): Expr[Option[Boolean]] =
+  private def taskIsPrivate()(using Quotes): Expr[Option[Boolean]] =
     Cacher.withMacroOwner {
       owner =>
         import quotes.reflect.*
@@ -487,20 +482,8 @@ object TaskMacros {
         else Expr(Some(false))
     }
 
-  private def traverseCtxExpr[R: Type](caller: Expr[TraverseCtxHolder])(
-      args: Expr[Seq[Task[Any]]],
-      fn: Expr[(IndexedSeq[Any], mill.api.Ctx) => Result[R]]
-  )(using Quotes): Expr[Task[R]] =
-    '{ $caller.traverseCtx[Any, R]($args)($fn) }
-
-  private def setup[T: Type](using Quotes)(caller: Expr[TraverseCtxHolder], t: Expr[Result[T]]) = {
-    (isPrivateTargetOption(), appImpl[T](traverseCtxExpr(caller), t))
-  }
-
-  def anonTaskImpl[T: Type](t: Expr[Result[T]])(
-      caller: Expr[TraverseCtxHolder]
-  )(using Quotes): Expr[Task[T]] = {
-    appImpl[T](traverseCtxExpr(caller), t)
+  def anonTaskImpl[T: Type](t: Expr[Result[T]])(using Quotes): Expr[Task[T]] = {
+    appImpl[Task, T]((in, ev) => '{ AnonImpl($in, $ev) }, t)
   }
 
   def targetResultImpl[T: Type](using
@@ -508,11 +491,14 @@ object TaskMacros {
   )(t: Expr[Result[T]])(
       rw: Expr[RW[T]],
       ctx: Expr[mill.define.Ctx],
-      caller: Expr[TraverseCtxHolder],
       persistent: Expr[Boolean]
   ): Expr[Target[T]] = {
-    val (taskIsPrivate, lhs) = setup(caller, t)
-    Cacher.impl0('{ new TargetImpl[T]($lhs, $ctx, $rw, $taskIsPrivate, $persistent) })
+    val expr = appImpl[Target, T](
+      (in, ev) => '{ new TargetImpl[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
+      t
+    )
+
+    Cacher.impl0(expr)
   }
 
   def sourcesImpl(using
@@ -520,32 +506,41 @@ object TaskMacros {
   )(
       values: Expr[Result[Seq[PathRef]]]
   )(
-      ctx: Expr[mill.define.Ctx],
-      caller: Expr[TraverseCtxHolder]
+      ctx: Expr[mill.define.Ctx]
   ): Expr[Target[Seq[PathRef]]] = {
-    val (taskIsPrivate, lhs) = setup(caller, values)
-    Cacher.impl0('{ new SourcesImpl($lhs, $ctx, $taskIsPrivate) })
+    val expr = appImpl[Target, Seq[PathRef]](
+      (in, ev) => '{ new SourcesImpl($in, $ev, $ctx, ${ taskIsPrivate() }) },
+      values
+    )
+    Cacher.impl0(expr)
   }
 
   def sourceImpl(using
       Quotes
   )(value: Expr[Result[PathRef]])(
-      ctx: Expr[mill.define.Ctx],
-      caller: Expr[TraverseCtxHolder]
+      ctx: Expr[mill.define.Ctx]
   ): Expr[Target[PathRef]] = {
-    val (taskIsPrivate, lhs) = setup(caller, value)
-    Cacher.impl0('{ new SourceImpl($lhs, $ctx, $taskIsPrivate) })
+
+    val expr = appImpl[Target, PathRef](
+      (in, ev) => '{ new SourceImpl($in, $ev, $ctx, ${ taskIsPrivate() }) },
+      value
+    )
+    Cacher.impl0(expr)
+
   }
 
   def inputImpl[T: Type](using
       Quotes
   )(value: Expr[Result[T]])(
       w: Expr[upickle.default.Writer[T]],
-      ctx: Expr[mill.define.Ctx],
-      caller: Expr[TraverseCtxHolder]
+      ctx: Expr[mill.define.Ctx]
   ): Expr[Target[T]] = {
-    val (taskIsPrivate, lhs) = setup(caller, value)
-    Cacher.impl0('{ new InputImpl[T]($lhs, $ctx, $w, $taskIsPrivate) })
+
+    val expr = appImpl[Target, T](
+      (in, ev) => '{ new InputImpl[T]($in, $ev, $ctx, $w, ${ taskIsPrivate() }) },
+      value
+    )
+    Cacher.impl0(expr)
   }
 
   def commandImpl[T: Type](using
@@ -553,20 +548,27 @@ object TaskMacros {
   )(t: Expr[Result[T]])(
       w: Expr[W[T]],
       ctx: Expr[mill.define.Ctx],
-      caller: Expr[TraverseCtxHolder],
       exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {
-    val (taskIsPrivate, lhs) = setup(caller, t)
-    '{ new Command[T]($lhs, $ctx, $w, $taskIsPrivate, exclusive = $exclusive) }
+    appImpl[Command, T](
+      (in, ev) =>
+        '{
+          new Command[T]($in, $ev, $ctx, $w, ${ taskIsPrivate() }, exclusive = $exclusive)
+        },
+      t
+    )
   }
 
   def workerImpl2[T: Type](using
       Quotes
   )(t: Expr[Result[T]])(
-      ctx: Expr[mill.define.Ctx],
-      caller: Expr[TraverseCtxHolder]
+      ctx: Expr[mill.define.Ctx]
   ): Expr[Worker[T]] = {
-    val (taskIsPrivate, lhs) = setup(caller, t)
-    Cacher.impl0('{ new Worker[T]($lhs, $ctx, $taskIsPrivate) })
+
+    val expr = appImpl[Worker, T](
+      (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
+      t
+    )
+    Cacher.impl0(expr)
   }
 }
