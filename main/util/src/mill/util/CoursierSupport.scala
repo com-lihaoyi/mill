@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 import coursier.cache.ArchiveCache
-import scala.util.control.NonFatal
 
 trait CoursierSupport {
   import CoursierSupport._
@@ -225,13 +224,9 @@ trait CoursierSupport {
       .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
     val javaHome = JavaHome()
       .withCache(jvmCache)
-    try {
-      val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
-      Result.Success(os.Path(file))
-    } catch {
-      case NonFatal(error) =>
-        Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
-    }
+    val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
+    Result.Success(os.Path(file))
+
   }
 
   def resolveDependenciesMetadataSafe(
@@ -298,8 +293,9 @@ trait CoursierSupport {
             .mkString("\n")
           val msg = header + errLines + "\n" + helpMessage + "\n"
           Result.Failure(msg)
-        } else
-          Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
+        } else {
+          throw error
+        }
       case Right(resolution0) =>
         val resolution = customizer.fold(resolution0)(_.apply(resolution0))
         Result.Success(resolution)
@@ -395,7 +391,7 @@ object CoursierSupport {
         val msg =
           s"Invalid repository string in $origin:" + System.lineSeparator() +
             errs.map("  " + _ + System.lineSeparator()).mkString
-        Result.Failure(msg, Some(Seq()))
+        Result.Failure(msg)
       case Right(repos) =>
         Result.Success(repos)
     }

@@ -393,6 +393,7 @@ trait MillJavaModule extends JavaModule {
   }
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
+  def testForkEnv: T[Map[String, String]] = forkEnv()
   def testModuleDeps: Seq[JavaModule] =
     if (this == build.main) Seq(build.main)
     else Seq(this, build.main.test)
@@ -541,7 +542,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
-    def forkEnv = super.forkEnv() ++ outer.forkEnv()
+    def forkEnv = super.forkEnv() ++ outer.testForkEnv()
     override def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
 }

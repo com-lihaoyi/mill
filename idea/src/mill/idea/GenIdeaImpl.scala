@@ -109,12 +109,7 @@ case class GenIdeaImpl(
       if (!fetchMillModules) Nil
       else {
         val moduleRepos = modulesByEvaluator.toSeq.flatMap { case (ev, modules) =>
-          ev.evalOrThrow(
-            exceptionFactory = r =>
-              GenIdeaException(
-                s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
-              )
-          )(modules.map(_._2.repositoriesTask))
+          ev.evaluateValues(modules.map(_._2.repositoriesTask))
         }
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = false)
@@ -237,7 +232,7 @@ case class GenIdeaImpl(
 
     val resolvedModules: Seq[ResolvedModule] = {
       resolveTasks.toSeq.flatMap { case (evaluator, tasks) =>
-        evaluator.evaluate(tasks) match {
+        evaluator.execution.executeTasks(tasks) match {
           case r if r.failing.nonEmpty =>
             throw GenIdeaException(
               s"Failure during resolving modules: ${Evaluator.formatFailing(r)}"
@@ -504,12 +499,7 @@ case class GenIdeaImpl(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
           allSourcesPathRefs: Seq[PathRef]
-        ) = evaluator.evalOrThrow(
-          exceptionFactory = r =>
-            GenIdeaException(
-              s"Could not evaluate sources/resources of module `${mod}`: ${Evaluator.formatFailing(r)}"
-            )
-        )(Seq(
+        ) = evaluator.evaluateValues(Seq(
           mod.resources,
           mod.generatedSources,
           mod.allSources

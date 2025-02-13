@@ -19,11 +19,11 @@ trait GitlabPublishModule extends PublishModule { outer =>
   ): Task[GitlabAuthHeaders] = Task.Anon {
     val auth = tokenLookup.resolveGitlabToken(Task.env, systemProps, Task.workspace)
     auth match {
-      case Left(msg) =>
+      case Result.Failure(msg) =>
         Failure(
           s"Token lookup for PUBLISH repository ($publishRepository) failed with $msg"
         ): Result[GitlabAuthHeaders]
-      case Right(value) => Success(value)
+      case Result.Success(value) => Success(value)
     }
   }
 

@@ -75,10 +75,10 @@ abstract class MillBuildRootModule()(implicit
           s"buildfile `${relFile}`: import $$repo.`${repo}`"
         )
       }
-      repos.find(_.asSuccess.isEmpty) match {
+      repos.find(_.isInstanceOf[Result.Failure]) match {
         case Some(error) => error
         case None =>
-          val res = repos.flatMap(_.asSuccess).map(_.value).flatten
+          val res = repos.collect { case Result.Success(v) => v }.flatten
           Result.Success(res)
       }
     }

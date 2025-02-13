@@ -4,8 +4,8 @@
 
 package mill.kotlinlib.kover
 
-import mill._
-import mill.api.{PathRef}
+import mill.*
+import mill.api.{PathRef, Result}
 import mill.api.Result.Success
 import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
@@ -226,10 +226,8 @@ object Kover extends ExternalModule with KoverReportBaseModule {
 
   private def resolveTasks[T](tasks: String, evaluator: Evaluator): Seq[Task[T]] =
     if (tasks.trim().isEmpty) Seq.empty
-    else evaluator.resolveTasks(Seq(tasks), SelectMode.Multi) match {
-      case Left(err) => throw new Exception(err)
-      case Right(tasks) => tasks.asInstanceOf[Seq[Task[T]]]
-    }
+    else evaluator.resolveTasks(Seq(tasks), SelectMode.Multi).get.asInstanceOf[Seq[Task[T]]]
+
 }
 
 sealed trait ReportType

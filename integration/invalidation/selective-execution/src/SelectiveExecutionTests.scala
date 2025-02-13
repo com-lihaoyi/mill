@@ -189,103 +189,111 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
 
     test("watch") {
-      test("changed-inputs") - integrationTest { tester =>
-        import tester._
-        @volatile var output0 = List.empty[String]
-        def output = output0.mkString("\n")
-        Future {
-          eval(
-            ("--watch", "{foo.fooCommand,bar.barCommand}"),
-            check = true,
-            stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
-            stderr = os.Inherit
+      test("changed-inputs") - retry(1) {
+        integrationTest { tester =>
+          import tester._
+          @volatile var output0 = List.empty[String]
+
+          def output = output0.mkString("\n")
+
+          Future {
+            eval(
+              ("--watch", "{foo.fooCommand,bar.barCommand}"),
+              check = true,
+              stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
+              stderr = os.Inherit
+            )
+          }
+
+          eventually(
+            output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           )
-        }
 
-        eventually(
-          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
+          // Make sure editing each individual input results in the corresponding downstream
+          // command being re-run, and watches on both are maintained even if in a prior run
+          // one set of tasks was ignored.
+          output0 = Nil
+          modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+          eventually {
+            !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+          }
 
-        // Make sure editing each individual input results in the corresponding downstream
-        // command being re-run, and watches on both are maintained even if in a prior run
-        // one set of tasks was ignored.
-        output0 = Nil
-        modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-        eventually {
-          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        }
-
-        output0 = Nil
-        modifyFile(workspacePath / "foo/foo.txt", _ + "!")
-        eventually {
-          output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+          output0 = Nil
+          modifyFile(workspacePath / "foo/foo.txt", _ + "!")
+          eventually {
+            output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+          }
         }
       }
-      test("show-changed-inputs") - integrationTest { tester =>
-        import tester._
-        @volatile var output0 = List.empty[String]
-        def output = output0.mkString("\n")
-        Future {
-          eval(
-            ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
-            check = true,
-            stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
-            stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
-          )
-        }
+      test("show-changed-inputs") - retry(1) {
+        integrationTest { tester =>
+          import tester._
+          @volatile var output0 = List.empty[String]
+          def output = output0.mkString("\n")
+          Future {
+            eval(
+              ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
+              check = true,
+              stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
+              stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
+            )
+          }
 
-        eventually {
-          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        }
-        output0 = Nil
-        modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+          eventually {
+            output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+          }
+          output0 = Nil
+          modifyFile(workspacePath / "bar/bar.txt", _ + "!")
 
-        eventually {
-          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        }
+          eventually {
+            !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+          }
 
-        output0 = Nil
-        modifyFile(workspacePath / "foo/foo.txt", _ + "!")
-        eventually {
-          output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+          output0 = Nil
+          modifyFile(workspacePath / "foo/foo.txt", _ + "!")
+          eventually {
+            output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+          }
         }
       }
 
-      test("changed-code") - integrationTest { tester =>
-        import tester._
+      test("changed-code") - retry(1) {
+        integrationTest { tester =>
+          import tester._
 
-        @volatile var output0 = List.empty[String]
-        def output = output0.mkString("\n")
-        Future {
-          eval(
-            ("--watch", "{foo.fooCommand,bar.barCommand}"),
-            check = true,
-            stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
-            stderr = os.Inherit
+          @volatile var output0 = List.empty[String]
+          def output = output0.mkString("\n")
+          Future {
+            eval(
+              ("--watch", "{foo.fooCommand,bar.barCommand}"),
+              check = true,
+              stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
+              stderr = os.Inherit
+            )
+          }
+
+          eventually {
+            output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+          }
+          output0 = Nil
+
+          // Check method body code changes correctly trigger downstream evaluation
+          modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
+
+          eventually {
+            !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+          }
+          output0 = Nil
+
+          // Check module body code changes correctly trigger downstream evaluation
+          modifyFile(
+            workspacePath / "build.mill",
+            _.replace("object foo extends Module {", "object foo extends Module { println(123)")
           )
-        }
 
-        eventually {
-          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        }
-        output0 = Nil
-
-        // Check method body code changes correctly trigger downstream evaluation
-        modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
-
-        eventually {
-          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        }
-        output0 = Nil
-
-        // Check module body code changes correctly trigger downstream evaluation
-        modifyFile(
-          workspacePath / "build.mill",
-          _.replace("object foo extends Module {", "object foo extends Module { println(123)")
-        )
-
-        eventually {
-          output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+          eventually {
+            output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+          }
         }
       }
     }

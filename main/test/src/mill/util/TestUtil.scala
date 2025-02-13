@@ -1,8 +1,7 @@
 package mill.util
 
-import mill.define._
+import mill.define.*
 import mill.api.Result
-import mill.api.Result.OuterStack
 import utest.assert
 
 import scala.collection.mutable
@@ -22,7 +21,7 @@ object TestUtil {
     var exception = Option.empty[Throwable]
     override def evaluate(args: mill.api.Ctx) = {
       failure.map(Result.Failure(_)) orElse
-        exception.map(Result.Exception(_, new OuterStack(Nil))) getOrElse
+        exception.map(throw _) getOrElse
         Result.Success(counter + args.args.map(_.asInstanceOf[Int]).sum)
     }
     override def sideHash = counter + failure.hashCode() + exception.hashCode()
@@ -38,7 +37,8 @@ object TestUtil {
         null,
         ctx0,
         upickle.default.readwriter[Int],
-        None
+        None,
+        persistent = false
       ) {
     override def evaluate(args: mill.api.Ctx) = testTask.evaluate(args)
     override val inputs = taskInputs

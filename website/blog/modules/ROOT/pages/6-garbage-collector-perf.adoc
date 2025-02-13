@@ -1,10 +1,9 @@
 // tag::header[]
 
-# Understanding JVM Garbage Collector Performance
-
-
+= Understanding JVM Garbage Collector Performance
 :author: Li Haoyi
 :revdate: 10 January 2025
+
 _{author}, {revdate}_
 
 
@@ -20,14 +19,14 @@ concrete ways you can work to improve its performance in your own real-world pro
 
 For TL,DR see the <<GC Performance Takeaways>> section at the end.
 
-## A Theoretical Garbage Collector
+== A Theoretical Garbage Collector
 
 To understand how real-world JVM garbage collectors works, it is best to start
 by looking at a simple example garbage collector. This will both give an intuition
 for how things work in general, and also help you notice when things diverge from this
 idealized example.
 
-### Process Memory
+=== Process Memory
 
 At its core, a garbage collector helps manage the free memory of a program, often called the
 _heap_. The memory of a program can be modelled as a linear sequence of storage locations, e.g.
@@ -116,7 +115,7 @@ For the purposes of this example, we show all objects on the heap taking up 1 sl
 in real programs the size of each object may vary depending on the fields it has
 or if it's a variable-length array.
 
-### A Simple Garbage Collector
+=== A Simple Garbage Collector
 
 The simplest kind of garbage collector splits the 16-slot heap we saw earlier into
 two 8-slot halves. If we want to allocate 4 more objects (`new2`, to `new5`), but
@@ -318,7 +317,7 @@ strategies, and how modern GCs behave in terms of performance.
 
 
 
-## Compared to Reference Counting
+== Compared to Reference Counting
 
 https://en.wikipedia.org/wiki/Reference_counting[Reference Counting] is another popular
 memory management strategy that Garbage Collection is often compared to. Reference counting
@@ -326,7 +325,7 @@ works by keeping track of how many incoming references each object has, and when
 number reaches zero the object can be collected. This approach has a few major differences
 from that of a tracing GC. We discuss a few of them below:
 
-### Reference counting does not compact the heap
+=== Reference counting does not compact the heap
 
 Program that use reference
 counting tend to find their heap getting more and more fragmented over time
@@ -388,7 +387,7 @@ There are two main ways this affect performance:
   can make allocation faster than a linear scan, but they will never be as fast as the single
   pointer lookup necessary with a GC
 
-### Reference counting cannot collect cycles
+=== Reference counting cannot collect cycles
 
 Objects that reference each other cyclically can thus
 cause memory leaks when their objects never get collected, resulting in the program running
@@ -430,7 +429,7 @@ and compact the heap, and most modern GCs (e.g. ZGC discussed below) use some re
 techniques as part of their implementation.
 
 
-## Theoretical GC Performance
+== Theoretical GC Performance
 
 Typically, GC performance focuses on two main aspects:
 
@@ -534,11 +533,12 @@ clear even if the exact numbers will differ between runs.
 
 You can run this program via:
 
-```bash
+[source,bash]
+----
 > javac -Xmx1g GC.java 800 10000 5 # Default is -XX:+UseG1GC
 > javac -Xmx1g -XX:+UseParallelGC GC.java 800 10000 5
 > javac -Xmx1g -XX:+UseZGC GC.java 800 10000 5
-```
+----
 
 Above, `-Xmx1g` sets the heap size, the `-XX:` flags set the garbage collector, 800 sets
 the `liveSet` size (in megabytes), and `10000` and `5` set the duration and number of
@@ -550,7 +550,7 @@ range of inputs to collect the numbers shown below:
 
 - xref:attachment$GCBenchmark.java[GCBenchmark.java]
 
-### G1 Garbage Collector Benchmarks
+=== G1 Garbage Collector Benchmarks
 
 Running this on the default GC (G1), we get the followings numbers:
 
@@ -587,27 +587,28 @@ Above, we can see the behavior we discussed earlier in the theoretical performan
    `6400 mb` heap and `3200 mb` live set where the pause time is `624 ms`
 
 2. *GC pause times are relatively constant regardless of the heap size*.
-   e.g. for `400 mb` live set a `800 mb` heap has a `39 ms` pause time, while a `400 mb` live set and
-   `6400 mb` heap (8 times as large!) has a `90 ms` pause time. In fact, increasing the heap
-   size while keeping other things constant seems to make pause times go up slightly in
-   this benchmark!
+e.g. for `400 mb` live set a `800 mb` heap has a `39 ms` pause time, while a `400 mb` live set and
+`6400 mb` heap (8 times as large!) has a `90 ms` pause time.In fact, increasing the heap
+size while keeping other things constant seems to make pause times go up slightly in
+this benchmark!
 
 3. *GC throughput goes up as the heap size increases*, e.g. for a `400 mb` live set it goes
-   smoothly from `3238 mb/s` for a `800 mb` heap to a `5410 mb/s` pause time for a `6400 mb`
-   heap.
+smoothly from `3238 mb/s` for a `800 mb` heap to a `5410 mb/s` pause time for a `6400 mb`
+heap.
 
 
-### Generational Optimizations
+[#_generational_optimizations]
+=== Generational Optimizations
 
 One additional GC behavior worth discussing is the "Generational Hypothesis".
 The idea is that _"most"_ objects do not live a long time, e.g. objects allocated within a method are often
-collect when the method returns. Given that assumption, many GCs have made optimizations
+collect when the method returns.Given that assumption, many GCs have made optimizations
 for the collection of objects that become garbage quickly, such that collecting them is
-much cheaper. Practically, that means that the same `live-set` and `heap-size` can have
+much cheaper.Practically, that means that the same `live-set` and `heap-size` can have
 vastly different performance depending on how the allocations are structured:
 
 1. "Least Recently Used" garbage collections, where the _oldest_ objects are the ones that
-   get collected, will perform the worst
+get collected, will perform the worst
 
 2. "Most Recently Used" garbage collections, where the _newest_ objects are the ones that
    get collected, will perform the best
@@ -626,11 +627,12 @@ in the same part of `liveSet`, while older objects in other parts of `liveSet` a
 likely to be become unreachable. This lets us emulate the "generational" behavior that
 is common in real-world programs:
 
-```diff
+[source,diff]
+----
 -liveSetIndex = random.nextInt(liveSetSize);
 +liveSetIndex += (random.nextBoolean() ? 1 : -1) + liveSetSize;
 +liveSetIndex %= liveSetSize;
-```
+----
 
 
 If we do this and measure the pause times and throughput of the example program,
@@ -660,28 +662,29 @@ we get the following:
 
 
 Where the previous random-allocation benchmark has pause times of 10s to 100s to 1000s of
-milliseconds, this "generational" benchmark has pause times in the 1s to 10s. The program
+milliseconds, this "generational" benchmark has pause times in the 1s to 10s.The program
 throughput is also significantly higher.
 This demonstrates that the default G1 garbage collector does in fact have optimizations that
 make it perform better for "generational" workloads.
 
 Most GCs have some kind of optimization to make collecting recently-allocated objects
 cheaper than collecting long-lived objects; these are often called _generational_
-garbage collectors. Java's G1GC is no different, and we can see that even with
+garbage collectors.Java's G1GC is no different, and we can see that even with
 the same live-set size and heap sizes, shorter-lived objects are dramatically
 cheaper to collect than long-lived objects.
 
 
-### Z Garbage Collector Benchmarks
+[#_z_garbage_collector_benchmarks]
+=== Z Garbage Collector Benchmarks
 
 One interesting development in JVM garbage collectors is the
 https://docs.oracle.com/en/java/javase/21/gctuning/z-garbage-collector.html[Z Garbage Collector].
 This is a garbage collector that is optimized for lower pause times, exchange for requiring
-much more memory than the default G1GC. If we run the benchmarks above with ZGC,
+much more memory than the default G1GC.If we run the benchmarks above with ZGC,
 even without the <<Generational Optimizations>>, we get the numbers below:
 
 *Pause Times*
-[%autowidth.stretch, cols=">,>,>,>,>,>"]
+[%autowidth.stretch,cols=">,>,>,>,>,>"]
 |===
 | live-set\heap-size | 800 mb | 1600 mb | 3200 mb | 6400 mb | 12800 mb
 | 400 mb | 39 ms | 12 ms | 1 ms | 1 ms | 1 ms
@@ -727,7 +730,7 @@ But the extra memory requirement means it's not a strict improvement, and it rea
 depends on your use case whether the tradeoff is worth it.
 
 
-## GC Performance Takeaways
+== GC Performance Takeaways
 
 
 Now that we've studied garbage collections in theory, and looked at some concrete
@@ -788,7 +791,7 @@ Nevertheless, the overall trends that you can see would remain the same, as woul
 take-aways of what you need to know to understand garbage collector performance.
 
 
-## Conclusion
+== Conclusion
 
 Garbage collectors can be complicated, differing in design
 and implementation between languages (Python, Java, Go, etc.) and even within the same

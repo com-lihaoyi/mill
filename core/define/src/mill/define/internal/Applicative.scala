@@ -100,23 +100,11 @@ object Applicative {
 
             t.tpe.asType match
               case '[tt] =>
-                // val tempName = c.freshName(TermName("tmp"))
-                // val tempSym = c.internal.newTermSymbol(c.internal.enclosingOwner, tempName)
-                // c.internal.setInfo(tempSym, t.tpe)
-                // val tempIdent = Ident(tempSym)
-                // c.internal.setType(tempIdent, t.tpe)
-                // c.internal.setFlag(tempSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
-                // val itemsIdent = Ident(itemsSym)
-                // exprs.append(q"$fun")
                 exprs += fun
                 '{ $itemsRef(${ Expr(exprs.size - 1) }).asInstanceOf[tt] }.asTerm
           case t
               if t.symbol.exists
                 && t.symbol.annotations.exists(_.tpe =:= TypeRepr.of[mill.api.Ctx.ImplicitStub]) =>
-            // val tempIdent = Ident(ctxSym)
-            // c.internal.setType(tempIdent, t.tpe)
-            // c.internal.setFlag(ctxSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
-            // tempIdent
             ctxRef.asTerm
 
           case t => super.transformTerm(t)(owner)

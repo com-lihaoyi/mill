@@ -1,4 +1,4 @@
-# The Mill Build Engineering Blog
+= The Mill Build Engineering Blog
 
 
 
@@ -7,6 +7,10 @@ Welcome to the Mill build engineering blog! This is the home for articles on
 technical topics related to JVM platform tooling and language-agnostic build tooling,
 some specific to the Mill build tool but mostly applicable to anyone working on
 build tooling for large codebases in JVM and non-JVM languages.
+
+include::8-what-is-a-build-tool.adoc[tag=header,leveloffset=1]
+
+xref:8-what-is-a-build-tool.adoc[Read More...]
 
 include::7-graal-native-executables.adoc[tag=header,leveloffset=1]
 

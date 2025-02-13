@@ -14,11 +14,13 @@ xref:extending/thirdparty-plugins.adoc[Third-Party Plugins] only necessary for
 more sophisticated integrations.
 
 
+[#_importing_java_libraries]
 == Importing Java Libraries
 
 include::partial$example/extending/imports/1-import-ivy.adoc[]
 
 
+[#_importing_scala_libraries]
 == Importing Scala Libraries
 
 include::partial$example/extending/imports/2-import-ivy-scala.adoc[]
@@ -29,7 +31,7 @@ Mill plugins are ordinary JVM libraries jars and are loaded as any other externa
 the `import $ivy` mechanism.
 
 There exist a large number of Mill plugins, Many of them are available on GitHub and via
-Maven Central. We also have a list of plugins, which is most likely not complete, but it
+Maven Central.We also have a list of plugins, which is most likely not complete, but it
 might be a good start if you are looking for plugins: xref:Thirdparty_Plugins.adoc[].
 
 Some plugin contributions are also hosted in Mill's own git tree as xref:Contrib_Plugins.adoc[].

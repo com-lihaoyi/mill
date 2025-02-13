@@ -61,7 +61,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
         coursierCacheCustomizer = coursierCacheCustomizer(),
         ctx = Some(implicitly[mill.api.Ctx.Log]),
         jvmIndexVersion = jvmIndexVersion()
-      ).getOrThrow
+      ).get
       PathRef(path, quick = true)
     }
   }
@@ -94,12 +94,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
         Left((
           Task.ctx(),
           (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, repositoriesTask())
-              .asSuccess
-              .getOrElse(
-                throw new Exception(s"Failed to load compiler bridge for $x $y")
-              )
-              .value
+            scalaCompilerBridgeJar(x, y, repositoriesTask()).get
         )),
         jobs,
         java.lang.Boolean.FALSE,

@@ -1,9 +1,10 @@
 package mill.resolve
 
+import mill.api.Result
 import mill.define.{Segment, Segments, SelectMode}
 import mill.define.Segment.{Cross, Label}
 import mill.resolve.ParseArgs.TargetSeparator
-import utest._
+import utest.*
 
 object ParseArgsTests extends TestSuite {
 
@@ -94,7 +95,7 @@ object ParseArgsTests extends TestSuite {
           expectedArgs: Seq[String],
           multiSelect: Boolean
       ) = {
-        val Right((selectors0, args) :: _) =
+        val Result.Success((selectors0, args) :: _) =
           ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Separated): @unchecked
 
         val selectors = selectors0.map {
@@ -110,7 +111,7 @@ object ParseArgsTests extends TestSuite {
       test("rejectEmpty") {
         val parsed = ParseArgs(Seq.empty, selectMode = SelectMode.Separated)
         assert(
-          parsed == Left(
+          parsed == Result.Failure(
             "Target selector must not be empty. Try `mill resolve _` to see what's available."
           )
         )
@@ -197,7 +198,7 @@ object ParseArgsTests extends TestSuite {
       )
       test("multiSelectorsBraceExpansionWithoutAll") {
         val res = ParseArgs(Seq("{core,application}.compile"), SelectMode.Separated)
-        val expected = Right(
+        val expected = Result.Success(
           List(
             (
               List(
@@ -226,14 +227,14 @@ object ParseArgsTests extends TestSuite {
       def parsed(args: String*) = ParseArgs(args, selectMode)
       test("rejectEmpty") {
         val msg = "Target selector must not be empty. Try `mill resolve _` to see what's available."
-        assert(parsed("") == Left(msg))
-        assert(parsed() == Left(msg))
+        assert(parsed("") == Result.Failure(msg))
+        assert(parsed() == Result.Failure(msg))
       }
       def check(
           input: Seq[String],
           expectedSelectorArgPairs: Seq[(Seq[(Option[Seq[Segment]], Seq[Segment])], Seq[String])]
       ) = {
-        val Right(parsed) = ParseArgs(input, selectMode): @unchecked
+        val Result.Success(parsed) = ParseArgs(input, selectMode): @unchecked
         val actual = parsed.map {
           case (selectors0, args) =>
             val selectors = selectors0.map {

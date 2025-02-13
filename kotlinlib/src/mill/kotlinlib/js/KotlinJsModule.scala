@@ -118,7 +118,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       artifactId = artifactId(),
       envArgs = Task.env,
       workingDir = Task.dest
-    ).map(_ => ()).getOrThrow
+    ).map(_ => ()).get
   }
 
   override def runMainLocal(
@@ -171,8 +171,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
         )
         if (processResult.exitCode == 0) Result.Success(processResult.exitCode)
         else Result.Failure(
-          "Interactive Subprocess Failed (exit code " + processResult.exitCode + ")",
-          Some(processResult.exitCode)
+          "Interactive Subprocess Failed (exit code " + processResult.exitCode + ")"
         )
       case None =>
         Result.Failure("Executable binary should have a run target selected.")
@@ -282,8 +281,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     if (!versionAllowed) {
       // have to put this restriction, because for older versions some compiler options either didn't exist or
       // had different names. It is possible to go to the lower version supported with a certain effort.
-      ctx.log.error("Minimum supported Kotlin version for JS target is 1.8.20.")
-      return Result.Aborted
+      return Result.Failure("Minimum supported Kotlin version for JS target is 1.8.20.")
     }
 
     // compiler options references:
@@ -407,13 +405,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
 
     workerResult match {
-      case Result.Success(_) =>
-        CompilationResult(analysisFile, PathRef(artifactLocation))
-      case Result.Failure(reason, _) =>
-        Result.Failure(reason, Some(CompilationResult(analysisFile, PathRef(artifactLocation))))
-      case e: Result.Exception => e
-      case Result.Aborted => Result.Aborted
-      case Result.Skipped => Result.Skipped
+      case Result.Success(_) => CompilationResult(analysisFile, PathRef(artifactLocation))
+      case Result.Failure(reason) => Result.Failure(reason)
     }
   }
 
@@ -596,7 +589,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
              |${failedTests.mkString("\n")}
              |
              |""".stripMargin
-        Result.Failure(failureMessage, Some((doneMessage, testResults)))
+        Result.Failure(failureMessage)
       } else {
         Result.Success((doneMessage, testResults))
       }

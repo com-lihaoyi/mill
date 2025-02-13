@@ -11,6 +11,7 @@ It covers setting up a basic backend server with a variety of server frameworks
 include::partial$example/javalib/web/1-hello-jetty.adoc[]
 
 
+[#_spring_boot_hello_world_app]
 == Spring Boot Hello World App
 
 include::partial$example/javalib/web/2-hello-spring-boot.adoc[]
@@ -19,6 +20,7 @@ include::partial$example/javalib/web/2-hello-spring-boot.adoc[]
 
 include::partial$example/javalib/web/3-todo-spring-boot.adoc[]
 
+[#_micronaut_hello_world_app]
 == Micronaut Hello World App
 
 include::partial$example/javalib/web/4-hello-micronaut.adoc[]

@@ -92,30 +92,33 @@ below
 | Build Tool | Dependency
 | Java
 a|
-```scala
+[source,scala]
+----
 object foo extends MavenModule{
   object test extends MavenTests{
   }
 }
-```
+----
 
 | Kotlin
 a|
-```scala
+[source,scala]
+----
 object foo extends KotlinMavenModule{
   object test extends KotlinMavenTests{
   }
 }
-```
+----
 
 | Scala
 a|
-```scala
+[source,scala]
+----
 object foo extends SbtModule{
   object test extends SbtTests{
   }
 }
-```
+----
 |===
 
 
@@ -123,11 +126,12 @@ object foo extends SbtModule{
 path on disk, e.g. a subproject inside `foo/` should be `object foo extends MavenModule`,
 or a subproject `bar/qux/` should be a nested:
 
-```scala
+[source,scala]
+----
 object bar extends MavenModule {
   object qux extends MavenModule
 }
-```
+----
 
 * Wire up the existing inter-subproject dependencies using `def moduleDeps = Seq(...)` inside `object foo`.
 
@@ -135,7 +139,8 @@ object bar extends MavenModule {
 inside the `object test`. Note that test modules need to use `super.moduleDeps` to preserve
 the dependency on the enclosing application module
 
-```scala
+[source,scala]
+----
 object foo extends MavenModule{
   object test extends MavenTests{
   }
@@ -147,7 +152,7 @@ object bar extends MavenModule{
     def moduleDeps = super.moduleDeps ++ Seq(foo) // test code dependency
   }
 }
-```
+----
 
 
 
@@ -170,31 +175,35 @@ These are a relatively straightforward translation:
 | Build Tool | Dependency
 | Maven
 a|
-```xml
+[source,xml]
+----
 <dependency>
   <groupId>com.google.guava</groupId>
   <artifactId>guava</artifactId>
   <version>3.3.1-jre</version>
 </dependency>
-```
+----
 
 | Gradle
 a|
-```scala
+[source,scala]
+----
 implementation "com.google.guava:guava:3.3.1-jre"
-```
+----
 
 | SBT
 a|
-```scala
+[source,scala]
+----
 libraryDependencies += "com.google.guava" % "guava" % "3.3.1-jre"
-```
+----
 
 | Mill
 a|
-```scala
+[source,scala]
+----
 def ivyDeps = Seq(ivy"com.google.guava:guava:3.3.1-jre")
-```
+----
 |===
 
 If you are building a Scala project using SBT:
@@ -204,15 +213,17 @@ If you are building a Scala project using SBT:
 | Build Tool | Dependency
 | SBT
 a|
-```scala
+[source,scala]
+----
 libraryDependencies += "com.lihaoyi" %% "scalatags" % "0.12.0"
-```
+----
 
 | Mill
 a|
-```scala
+[source,scala]
+----
 def ivyDeps = Seq(ivy"com.lihaoyi::scalatags:0.12.0")
-```
+----
 |===
 
 * Again, test-only third-party dependencies are defined inside the `object test` submodule.

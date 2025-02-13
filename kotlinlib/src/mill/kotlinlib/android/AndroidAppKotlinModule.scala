@@ -6,7 +6,7 @@ import coursier.params.ResolutionParams
 import coursier.util.ModuleMatchers
 import mill.{T, Task}
 import mill.api.PathRef
-import mill.define.ModuleRef
+import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 import mill.scalalib.{JavaModule, TestModule}
@@ -242,8 +242,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
      * [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/tasks/PreviewRenderWorkAction.kt]]
      * @return
      */
-    def generatePreviews: T[Seq[PathRef]] = Task {
-      val previewGenOut = mill.util.Jvm.callProcess(
+    def generatePreviews(): Command[Seq[PathRef]] = Task.Command(exclusive = true) {
+      val previewGenCmd = mill.util.Jvm.callProcess(
         mainClass = "com.android.tools.render.compose.MainKt",
         classPath =
           composePreviewRenderer().map(_.path).toVector ++ layoutLibRenderer().map(_.path).toVector,
@@ -255,9 +255,11 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit
-      ).out.lines()
+      )
 
-      Task.log.info(previewGenOut.mkString("\n"))
+      Task.log.info(s"Generate preview command ${previewGenCmd.command.mkString(" ")}")
+
+      previewGenCmd.out.lines().foreach(Task.log.info(_))
 
       Seq.from(os.walk(screenshotResults().path).filter(_.ext == "png").map(PathRef(_)))
     }

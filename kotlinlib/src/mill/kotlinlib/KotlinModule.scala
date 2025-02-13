@@ -308,12 +308,7 @@ trait KotlinModule extends JavaModule { outer =>
               // also run Java compiler and use it's returned result
               compileJava
             }
-          case Result.Failure(reason, _) =>
-            Result.Failure(reason, Some(CompilationResult(analysisFile, PathRef(classes))))
-          case e: Result.Exception => e
-          case Result.Aborted => Result.Aborted
-          case Result.Skipped => Result.Skipped
-          //      case x => x
+          case Result.Failure(reason) => Result.Failure(reason)
         }
       } else {
         // it's Java only

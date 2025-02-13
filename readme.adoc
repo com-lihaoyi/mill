@@ -1,4 +1,4 @@
-= image:docs/logo.svg[Mill Logo] Mill
+= image:website/docs/logo.svg[Mill Logo] Mill
 :idprefix:
 :idseparator: -
 :link-github: https://github.com/com-lihaoyi/mill

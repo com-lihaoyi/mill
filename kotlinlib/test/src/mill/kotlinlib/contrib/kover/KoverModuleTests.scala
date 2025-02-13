@@ -54,16 +54,7 @@ object KoverModuleTests extends TestSuite {
       val eval = UnitTester(module, resourcePath)
 
       Seq(module.foo.test.test(), module.bar.test.test(), module.qux.test.test())
-        .foreach(
-          eval(_)
-            .fold(
-              {
-                case api.Result.Exception(cause, _) => throw cause
-                case failure => throw failure
-              },
-              { _ => }
-            )
-        )
+        .foreach(eval(_).get)
 
       val Right(result) = eval(Kover.xmlReportAll(eval.evaluator)): @unchecked
 

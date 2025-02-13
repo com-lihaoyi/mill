@@ -169,7 +169,7 @@ trait TaskTests extends TestSuite {
 
     test("worker") {
       test("static") - withEnv { (build, check) =>
-        val wc = check.evaluator.workerCache
+        val wc = check.execution.workerCache
 
         check(build.staticWorkerDownstream) ==> Right(Result(2, 1))
         wc.size ==> 1
@@ -181,10 +181,10 @@ trait TaskTests extends TestSuite {
         wc.head ==> firstCached
       }
       test("staticButReevaluated") - withEnv { (build, check) =>
-        val wc = check.evaluator.workerCache
+        val wc = check.execution.workerCache
 
         check(build.staticWorkerDownstreamReeval) ==> Right(Result(2, 1))
-        check.evaluator.workerCache.size ==> 1
+        check.execution.workerCache.size ==> 1
         val firstCached = wc.head
 
         check(build.staticWorkerDownstreamReeval) ==> Right(Result(2, 1))
@@ -199,7 +199,7 @@ trait TaskTests extends TestSuite {
         check(build.changeOnceWorkerDownstream) ==> Right(Result(2, 0))
       }
       test("alwaysChanged") - withEnv { (build, check) =>
-        val wc = check.evaluator.workerCache
+        val wc = check.execution.workerCache
 
         check(build.noisyWorkerDownstream) ==> Right(Result(2, 1))
         wc.size ==> 1
@@ -215,7 +215,7 @@ trait TaskTests extends TestSuite {
         assert(wc.head != secondCached)
       }
       test("closableWorker") - withEnv { (build, check) =>
-        val wc = check.evaluator.workerCache
+        val wc = check.execution.workerCache
 
         check(build.noisyClosableWorkerDownstream) ==> Right(Result(2, 1))
         wc.size ==> 1

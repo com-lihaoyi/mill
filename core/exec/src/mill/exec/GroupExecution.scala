@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.api.Result.{OuterStack, Success}
+import mill.api.ExecResult.{OuterStack, Success}
 
 import mill.api.*
 import mill.define.*
@@ -39,7 +39,7 @@ private[mill] trait GroupExecution {
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   // those result which are inputs but not contained in this terminal group
-  def evaluateGroupCached(
+  def executeGroupCached(
       terminal: Task[?],
       group: Seq[Task[?]],
       results: Map[Task[?], TaskResult[(Val, Int)]],
@@ -98,7 +98,7 @@ private[mill] trait GroupExecution {
 
           cachedValueAndHash match {
             case Some((v, hashCode)) =>
-              val res = Result.Success((v, hashCode))
+              val res = ExecResult.Success((v, hashCode))
               val newResults: Map[Task[?], TaskResult[(Val, Int)]] =
                 Map(labelled -> TaskResult(res, () => res))
 
@@ -113,10 +113,10 @@ private[mill] trait GroupExecution {
 
             case _ =>
               // uncached
-              if (labelled.flushDest) os.remove.all(paths.dest)
+              if (!labelled.persistent) os.remove.all(paths.dest)
 
               val (newResults, newEvaluated) =
-                evaluateGroup(
+                executeGroup(
                   group,
                   results,
                   inputsHash,
@@ -131,12 +131,7 @@ private[mill] trait GroupExecution {
                 )
 
               val valueHash = newResults(labelled) match {
-                case TaskResult(Result.Failure(_, Some((v, _))), _) =>
-                  val valueHash = getValueHash(v, terminal, inputsHash)
-                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                  valueHash
-
-                case TaskResult(Result.Success((v, _)), _) =>
+                case TaskResult(ExecResult.Success((v, _)), _) =>
                   val valueHash = getValueHash(v, terminal, inputsHash)
                   handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
                   valueHash
@@ -160,7 +155,7 @@ private[mill] trait GroupExecution {
               )
           }
         case task =>
-          val (newResults, newEvaluated) = evaluateGroup(
+          val (newResults, newEvaluated) = executeGroup(
             group,
             results,
             inputsHash,
@@ -186,7 +181,7 @@ private[mill] trait GroupExecution {
     }
   }
 
-  private def evaluateGroup(
+  private def executeGroup(
       group: Seq[Task[?]],
       results: Map[Task[?], TaskResult[(Val, Int)]],
       inputsHash: Int,
@@ -202,7 +197,7 @@ private[mill] trait GroupExecution {
 
     def computeAll() = {
       val newEvaluated = mutable.Buffer.empty[Task[?]]
-      val newResults = mutable.Map.empty[Task[?], Result[(Val, Int)]]
+      val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]
 
       val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
       val multiLogger = resolveLogger(paths.map(_.log), logger)
@@ -212,7 +207,7 @@ private[mill] trait GroupExecution {
         newEvaluated.append(task)
         val targetInputValues = task.inputs
           .map { x => newResults.getOrElse(x, results(x).result) }
-          .collect { case Result.Success((v, _)) => v }
+          .collect { case ExecResult.Success((v, _)) => v }
 
         def makeDest() = this.synchronized {
           paths match {
@@ -226,7 +221,7 @@ private[mill] trait GroupExecution {
         }
 
         val res = {
-          if (targetInputValues.length != task.inputs.length) Result.Skipped
+          if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
           else {
             val args = new mill.api.Ctx(
               args = targetInputValues.map(_.value).toIndexedSeq,
@@ -260,11 +255,16 @@ private[mill] trait GroupExecution {
             }
 
             wrap {
-              try task.evaluate(args).map(Val(_))
-              catch {
-                case f: Result.Failing[Val] @unchecked => f
+              try {
+
+                task.evaluate(args) match {
+                  case Result.Success(v) => ExecResult.Success(Val(v))
+                  case Result.Failure(err) => ExecResult.Failure(err)
+                }
+              } catch {
+                case ex: Result.Exception => ExecResult.Failure(ex.error)
                 case NonFatal(e) =>
-                  Result.Exception(
+                  ExecResult.Exception(
                     e,
                     new OuterStack(new Exception().getStackTrace.toIndexedSeq)
                   )
