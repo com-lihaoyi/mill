@@ -64,7 +64,9 @@ object Task extends TaskBase {
    */
   inline def Sources(inline values: Result[os.Path]*)(implicit
       inline ctx: mill.define.Ctx
-  ): Target[Seq[PathRef]] = ${ Target.Internal.sourcesImpl1('values)('ctx, 'this) }
+  ): Target[Seq[PathRef]] = ${
+    Target.Internal.sourcesImpl2('{Result.sequence(values.map(_.map(PathRef(_))))})('ctx, 'this)
+  }
 
   inline def Sources(inline values: Result[Seq[PathRef]])(implicit
       inline ctx: mill.define.Ctx
@@ -83,7 +85,7 @@ object Task extends TaskBase {
   inline def Source(inline value: Result[os.Path])(implicit
       inline ctx: mill.define.Ctx
   ): Target[PathRef] =
-    ${ Target.Internal.sourceImpl1('value)('ctx, 'this) }
+    ${ Target.Internal.sourceImpl2('{value.map(PathRef(_))})('ctx, 'this) }
 
   @annotation.targetName("SourceRef")
   inline def Source(inline value: Result[PathRef])(implicit
@@ -361,26 +363,6 @@ object Target extends TaskBase {
       )
     }
 
-    def sourcesImpl1(using
-        Quotes
-    )(values: Expr[Seq[Result[os.Path]]])(
-        ctx: Expr[mill.define.Ctx],
-        caller: Expr[TraverseCtxHolder]
-    ): Expr[Target[Seq[PathRef]]] = {
-
-      val unwrapped = Varargs.unapply(values).get
-
-      val wrapped =
-        for (value <- unwrapped.toList)
-          yield appImpl[PathRef](traverseCtxExpr(caller), '{ $value.map(PathRef(_)) })
-
-      val taskIsPrivate = isPrivateTargetOption()
-
-      Cacher.impl0(
-        '{ new SourcesImpl(Target.sequence(${Expr.ofList(wrapped)}), $ctx, $taskIsPrivate) }
-      )
-    }
-
     def sourcesImpl2(using
         Quotes
     )(
@@ -416,17 +398,6 @@ object Target extends TaskBase {
       Cacher.impl0(
         '{ new SourcesImpl(Target.sequence(${Expr.ofList(wrapped) }), $ctx, $taskIsPrivate) }
       )
-    }
-
-    def sourceImpl1(using
-        Quotes
-    )(value: Expr[Result[os.Path]])(
-        ctx: Expr[mill.define.Ctx],
-        caller: Expr[TraverseCtxHolder]
-    ): Expr[Target[PathRef]] = {
-      val wrapped = appImpl[PathRef](traverseCtxExpr(caller), '{ $value.map(PathRef(_)) })
-      val taskIsPrivate = isPrivateTargetOption()
-      Cacher.impl0('{ new SourceImpl($wrapped, $ctx, $taskIsPrivate) })
     }
 
     def sourceImpl2(using
