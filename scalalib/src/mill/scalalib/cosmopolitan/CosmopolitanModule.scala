@@ -11,13 +11,20 @@ trait CosmopolitanModule extends mill.Module with AssemblyModule {
 
   def cosmocc: T[PathRef] = Task(persistent = true) {
     val version = if (cosmoccVersion().isEmpty) "" else s"-${cosmoccVersion()}"
-    os.write(
-      Task.dest / "cosmocc.zip",
-      requests.get.stream(s"https://cosmo.zip/pub/cosmocc/cosmocc${version}.zip")
-    )
+    val versionedCosmocc = s"cosmocc${version}"
+    val zip = Task.dest / s"${versionedCosmocc}.zip"
+    val dest = Task.dest / versionedCosmocc / "bin" / "cosmocc"
 
-    os.call(("unzip", Task.dest / "cosmocc.zip", "-d", Task.dest / "cosmocc"))
-    PathRef(Task.dest / "cosmocc" / "bin" / "cosmocc")
+    if (!os.exists(dest)) {
+      os.write.over(
+        zip,
+        requests.get.stream(s"https://cosmo.zip/pub/cosmocc/${versionedCosmocc}.zip")
+      )
+      os.remove.all(Task.dest / versionedCosmocc)
+      os.call(("unzip", zip, "-d", Task.dest / versionedCosmocc))
+    }
+
+    PathRef(dest)
   }
 
   def apeLauncherScript: T[Option[String]] = Task {
