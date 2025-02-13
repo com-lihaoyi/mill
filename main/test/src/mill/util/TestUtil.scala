@@ -37,7 +37,8 @@ object TestUtil {
         null,
         ctx0,
         upickle.default.readwriter[Int],
-        None
+        None,
+        persistent = false
       ) {
     override def evaluate(args: mill.api.Ctx) = testTask.evaluate(args)
     override val inputs = taskInputs
