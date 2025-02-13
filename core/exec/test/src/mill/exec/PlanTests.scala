@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.define.{NamedTask, Target, TargetImpl, Task}
+import mill.define.{NamedTask, Task}
 import mill.util.TestGraphs
 import utest.*
 
@@ -57,6 +57,4 @@ object PlanTests extends TestSuite {
     }
   }
 
-
 }
-

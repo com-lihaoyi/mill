@@ -5,9 +5,11 @@ import mill.testkit.{TestBaseModule, UnitTester}
 
 import utest.*
 
-class Checker[T <: mill.testkit.TestBaseModule](module: T,
-                                                threadCount: Option[Int] = Some(1),
-                                                sourceRoot: os.Path = null) {
+class Checker[T <: mill.testkit.TestBaseModule](
+    module: T,
+    threadCount: Option[Int] = Some(1),
+    sourceRoot: os.Path = null
+) {
   // Make sure data is persisted even if we re-create the evaluator each time
 
   val execution = UnitTester(module, sourceRoot, threads = threadCount).execution

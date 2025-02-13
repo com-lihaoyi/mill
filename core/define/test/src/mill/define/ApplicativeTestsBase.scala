@@ -12,7 +12,7 @@ object Opt extends Applicative.Applyer[Opt, Option, Applicative.Id, String] {
     ${ applyImpl[T]('t)('this) }
 
   def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (Seq[I], String) => Applicative.Id[R])
-  : Option[R] = {
+      : Option[R] = {
     if (xs.exists(_.self.isEmpty)) None
     else Some(f(xs.map(_.self.get).toVector, Opt.injectedCtx))
   }
@@ -22,5 +22,8 @@ object Opt extends Applicative.Applyer[Opt, Option, Applicative.Id, String] {
     Applicative.Id,
     String
   ]])(using Quotes): Expr[Option[T]] =
-    Applicative.impl[Option, Opt, Applicative.Id, T, String]((args, fn) => '{ traverseCtx($args)($fn) }, t)
+    Applicative.impl[Option, Opt, Applicative.Id, T, String](
+      (args, fn) => '{ traverseCtx($args)($fn) },
+      t
+    )
 }

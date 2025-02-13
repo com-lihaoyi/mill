@@ -6,7 +6,6 @@ import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{PathRef, exec}
 import utest.*
 
-
 object EvaluationTests extends TestSuite {
 
   class Checker[T <: mill.testkit.TestBaseModule](module: T)
@@ -26,31 +25,47 @@ object EvaluationTests extends TestSuite {
       checker(build.single, 123, Seq(), extraEvaled = -1)
     }
 
-
     test("source") {
       object build extends TestBaseModule {
         def source = Task.Source { "hello/world.txt" }
-        def task = Task{ os.read(source().path) + " !" }
+        def task = Task { os.read(source().path) + " !" }
         lazy val millDiscover = Discover[this.type]
       }
 
       val checker = new Checker(build)
 
       os.write(build.moduleDir / "hello/world.txt", "i am cow", createFolders = true)
-      checker(build.task, "i am cow !", Seq(build.source, build.task), extraEvaled = -1, secondRunNoOp = false)
+      checker(
+        build.task,
+        "i am cow !",
+        Seq(build.source, build.task),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
       checker(build.task, "i am cow !", Seq(build.source), extraEvaled = -1, secondRunNoOp = false)
       os.write.over(build.moduleDir / "hello/world.txt", "hear me moo")
 
-      checker(build.task, "hear me moo !", Seq(build.source, build.task), extraEvaled = -1, secondRunNoOp = false)
-      checker(build.task, "hear me moo !", Seq(build.source), extraEvaled = -1, secondRunNoOp = false)
+      checker(
+        build.task,
+        "hear me moo !",
+        Seq(build.source, build.task),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
+      checker(
+        build.task,
+        "hear me moo !",
+        Seq(build.source),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
     }
-
 
     test("input") {
       var x = 10
       object build extends TestBaseModule {
         def input = Task.Input { x }
-        def task = Task{input() + 1}
+        def task = Task { input() + 1 }
         lazy val millDiscover = Discover[this.type]
       }
 
@@ -60,36 +75,53 @@ object EvaluationTests extends TestSuite {
 
       x = 100
 
-      checker(build.task, 101, Seq(build.input, build.task), extraEvaled = -1, secondRunNoOp = false)
+      checker(
+        build.task,
+        101,
+        Seq(build.input, build.task),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
       checker(build.task, 101, Seq(build.input), extraEvaled = -1, secondRunNoOp = false)
     }
-
 
     test("dest") {
       var x = 10
       object build extends TestBaseModule {
         def input = Task.Input { x }
-        def task = Task{
+        def task = Task {
           assert(!os.exists(Task.dest / "file.txt"))
           os.write(Task.dest / "file.txt", "hello" + input())
           PathRef(Task.dest / "file.txt")
         }
-        def task2 = Task{ os.read(task().path) }
+        def task2 = Task { os.read(task().path) }
         lazy val millDiscover = Discover[this.type]
       }
 
       val checker = new Checker(build)
-      checker(build.task2, "hello10", Seq(build.input, build.task), extraEvaled = -1, secondRunNoOp = false)
+      checker(
+        build.task2,
+        "hello10",
+        Seq(build.input, build.task),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
 
       x = 11
-      checker(build.task2, "hello11", Seq(build.input, build.task), extraEvaled = -1, secondRunNoOp = false)
+      checker(
+        build.task2,
+        "hello11",
+        Seq(build.input, build.task),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
     }
 
     test("persistent") {
       var x = 10
       object build extends TestBaseModule {
         def input = Task.Input { x }
-        def task = Task(persistent = true){
+        def task = Task(persistent = true) {
           val file = Task.dest / "file.txt"
 
           if (os.exists(file)) os.write.over(file, os.read(file) + "hello" + input())
@@ -97,31 +129,43 @@ object EvaluationTests extends TestSuite {
 
           PathRef(file)
         }
-        def task2 = Task{ os.read(task().path) }
+        def task2 = Task { os.read(task().path) }
         lazy val millDiscover = Discover[this.type]
       }
 
       val checker = new Checker(build)
-      checker(build.task2, "hello10", Seq(build.input, build.task), extraEvaled = -1, secondRunNoOp = false)
+      checker(
+        build.task2,
+        "hello10",
+        Seq(build.input, build.task),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
 
       x = 11
-      checker(build.task2, "hello10hello11", Seq(build.input, build.task), extraEvaled = -1, secondRunNoOp = false)
+      checker(
+        build.task2,
+        "hello10hello11",
+        Seq(build.input, build.task),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
     }
 
-    test("worker"){
+    test("worker") {
       var x = 10
-      class MyWorker(val n: Int) extends AutoCloseable{
-        def close () = closed = true
+      class MyWorker(val n: Int) extends AutoCloseable {
+        def close() = closed = true
         var closed = false
       }
 
       object build extends TestBaseModule {
         def input = Task.Input { x }
-        def worker = Task.Worker{ new MyWorker(input()) }
+        def worker = Task.Worker { new MyWorker(input()) }
         lazy val millDiscover = Discover[this.type]
       }
 
-      UnitTester(build, null).scoped{ tester =>
+      UnitTester(build, null).scoped { tester =>
         val Right(UnitTester.Result(worker1, _)) = tester.apply(build.worker)
         val Right(UnitTester.Result(worker2, _)) = tester.apply(build.worker)
         assert(worker1 == worker2)
@@ -141,11 +185,11 @@ object EvaluationTests extends TestSuite {
       var y = 0
       object build extends TestBaseModule {
         def input = Task.Input { x }
-        def command(n: Int) = Task.Command{ y += input() + n }
+        def command(n: Int) = Task.Command { y += input() + n }
         lazy val millDiscover = Discover[this.type]
       }
 
-      UnitTester(build, null).scoped{ tester =>
+      UnitTester(build, null).scoped { tester =>
         assert(y == 0)
         tester.apply(build.command(0))
         assert(y == 10)
@@ -163,11 +207,11 @@ object EvaluationTests extends TestSuite {
       var y = 0
       object build extends TestBaseModule {
         def input = Task.Input { x }
-        def anon = Task.Anon{ y += input() }
+        def anon = Task.Anon { y += input() }
         lazy val millDiscover = Discover[this.type]
       }
 
-      UnitTester(build, null).scoped{ tester =>
+      UnitTester(build, null).scoped { tester =>
         assert(y == 0)
         tester.apply(build.anon)
         assert(y == 10)
@@ -185,11 +229,11 @@ object EvaluationTests extends TestSuite {
       var y = 0
       object build extends TestBaseModule {
         def input = Task.Input { x }
-        def task = Task{ y += 100 / input() }
+        def task = Task { y += 100 / input() }
         lazy val millDiscover = Discover[this.type]
       }
 
-      UnitTester(build, null).scoped{ tester =>
+      UnitTester(build, null).scoped { tester =>
         assert(y == 0)
         val Right(_) = tester.apply(build.task)
         assert(y == 10)
