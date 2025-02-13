@@ -8,11 +8,11 @@ import utest.*
 
 object ExecutionTests extends TestSuite {
   object traverseBuild extends TestBaseModule {
-    trait TaskModule extends mill.Module{
+    trait TaskModule extends mill.Module {
       def x = 1
       def task = Task { x }
     }
-    object mod1 extends TaskModule{
+    object mod1 extends TaskModule {
       def x = 1
     }
     object mod2 extends TaskModule {
