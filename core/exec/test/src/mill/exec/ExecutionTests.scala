@@ -6,7 +6,7 @@ import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{PathRef, exec}
 import utest.*
 
-object EvaluationTests extends TestSuite {
+object ExecutionTests extends TestSuite {
 
   class Checker[T <: mill.testkit.TestBaseModule](module: T)
       extends exec.Checker(module)
@@ -50,6 +50,44 @@ object EvaluationTests extends TestSuite {
       checker(
         build.task,
         "hear me moo !",
+        Seq(build.source),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
+    }
+    test("sources") {
+      object build extends TestBaseModule {
+        def source = Task.Sources("hello/world.txt", "hello/world2.txt")
+        def task = Task { source().map(pr => os.read(pr.path)).mkString + "!" }
+        lazy val millDiscover = Discover[this.type]
+      }
+
+      val checker = new Checker(build)
+
+      os.write(build.moduleDir / "hello/world.txt", "i am cow ", createFolders = true)
+      os.write(build.moduleDir / "hello/world2.txt", "hear me moo ", createFolders = true)
+      checker(
+        build.task,
+        "i am cow hear me moo !",
+        Seq(build.source, build.task),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
+      checker(build.task, "i am cow hear me moo !", Seq(build.source), extraEvaled = -1, secondRunNoOp = false)
+      os.write.over(build.moduleDir / "hello/world.txt", "I AM COW ")
+
+      checker(
+        build.task,
+        "I AM COW hear me moo !",
+        Seq(build.source, build.task),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
+
+      os.write.over(build.moduleDir / "hello/world2.txt", "HEAR ME MOO ")
+      checker(
+        build.task,
+        "I AM COW HEAR ME MOO !",
         Seq(build.source),
         extraEvaled = -1,
         secondRunNoOp = false
