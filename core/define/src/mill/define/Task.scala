@@ -38,7 +38,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   /**
    * Whether or not this [[Task]] deletes the `Task.dest` folder between runs
    */
-  def flushDest: Boolean = true
+  def persistent: Boolean = false
 
   def asTarget: Option[Target[T]] = None
   def asCommand: Option[Command[T]] = None
@@ -185,7 +185,7 @@ object Task extends TaskBase {
       inline rw: RW[T],
       inline ctx: mill.define.Ctx
   ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this) }
+    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this, '{ false }) }
 
   /**
    * Persistent tasks are defined using
@@ -208,7 +208,7 @@ object Task extends TaskBase {
     inline def apply[T](inline t: Result[T])(implicit
         inline rw: RW[T],
         inline ctx: mill.define.Ctx
-    ): Target[T] = ${ TaskMacros.persistentTargetResultImpl[T]('t)('rw, 'ctx, 'this) }
+    ): Target[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this, '{ persistent }) }
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -300,13 +300,13 @@ object Target extends TaskBase {
       inline rw: RW[T],
       inline ctx: mill.define.Ctx
   ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, 'this) }
+    ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, 'this, '{ false }) }
 
   implicit inline def apply[T](inline t: Result[T])(implicit
       inline rw: RW[T],
       inline ctx: mill.define.Ctx
   ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this) }
+    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this, '{ false }) }
 
 }
 
@@ -419,20 +419,12 @@ class TargetImpl[+T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
     val readWriter: RW[?],
-    val isPrivate: Option[Boolean]
+    val isPrivate: Option[Boolean],
+    override val persistent: Boolean
 ) extends Target[T] {
   override def asTarget: Option[Target[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def readWriterOpt: Some[RW[?]] = Some(readWriter)
-}
-
-class PersistentImpl[+T](
-    t: Task[T],
-    ctx0: mill.define.Ctx,
-    readWriter: RW[?],
-    isPrivate: Option[Boolean]
-) extends TargetImpl[T](t, ctx0, readWriter, isPrivate) {
-  override def flushDest = false
 }
 
 class Command[+T](
@@ -455,7 +447,7 @@ class Command[+T](
 
 class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
     extends NamedTask[T] {
-  override def flushDest = false
+  override def persistent = false
   override def asWorker: Some[Worker[T]] = Some(this)
 }
 
@@ -501,6 +493,10 @@ object TaskMacros {
   )(using Quotes): Expr[Task[R]] =
     '{ $caller.traverseCtx[Any, R]($args)($fn) }
 
+  private def setup[T: Type](using Quotes)(caller: Expr[TraverseCtxHolder], t: Expr[Result[T]]) = {
+    (isPrivateTargetOption(), appImpl[T](traverseCtxExpr(caller), t))
+  }
+
   def anonTaskImpl[T: Type](t: Expr[Result[T]])(
       caller: Expr[TraverseCtxHolder]
   )(using Quotes): Expr[Task[T]] = {
@@ -512,29 +508,11 @@ object TaskMacros {
   )(t: Expr[Result[T]])(
       rw: Expr[RW[T]],
       ctx: Expr[mill.define.Ctx],
-      caller: Expr[TraverseCtxHolder]
+      caller: Expr[TraverseCtxHolder],
+      persistent: Expr[Boolean]
   ): Expr[Target[T]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val lhs = appImpl[T](traverseCtxExpr(caller), t)
-    Cacher.impl0('{ new TargetImpl[T]($lhs, $ctx, $rw, $taskIsPrivate) })
-  }
-
-  def persistentTargetResultImpl[T: Type](using
-      Quotes
-  )(t: Expr[Result[T]])(
-      rw: Expr[RW[T]],
-      ctx: Expr[mill.define.Ctx],
-      caller: Expr[Task.ApplyFactory]
-  ): Expr[Target[T]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val lhs = appImpl[T](traverseCtxExpr(caller), t)
-
-    Cacher.impl0(
-      '{
-        if $caller.persistent then new PersistentImpl[T]($lhs, $ctx, $rw, $taskIsPrivate)
-        else new TargetImpl[T]($lhs, $ctx, $rw, $taskIsPrivate)
-      }
-    )
+    val (taskIsPrivate, lhs) = setup(caller, t)
+    Cacher.impl0('{ new TargetImpl[T]($lhs, $ctx, $rw, $taskIsPrivate, $persistent) })
   }
 
   def sourcesImpl(using
@@ -545,9 +523,7 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx],
       caller: Expr[TraverseCtxHolder]
   ): Expr[Target[Seq[PathRef]]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val lhs = appImpl[Seq[PathRef]](traverseCtxExpr(caller), values)
-
+    val (taskIsPrivate, lhs) = setup(caller, values)
     Cacher.impl0('{ new SourcesImpl($lhs, $ctx, $taskIsPrivate) })
   }
 
@@ -557,8 +533,7 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx],
       caller: Expr[TraverseCtxHolder]
   ): Expr[Target[PathRef]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val lhs = appImpl[PathRef](traverseCtxExpr(caller), value)
+    val (taskIsPrivate, lhs) = setup(caller, value)
     Cacher.impl0('{ new SourceImpl($lhs, $ctx, $taskIsPrivate) })
   }
 
@@ -569,8 +544,7 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx],
       caller: Expr[TraverseCtxHolder]
   ): Expr[Target[T]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val lhs = appImpl[T](traverseCtxExpr(caller), value)
+    val (taskIsPrivate, lhs) = setup(caller, value)
     Cacher.impl0('{ new InputImpl[T]($lhs, $ctx, $w, $taskIsPrivate) })
   }
 
@@ -582,8 +556,7 @@ object TaskMacros {
       caller: Expr[TraverseCtxHolder],
       exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val lhs = appImpl[T](traverseCtxExpr(caller), t)
+    val (taskIsPrivate, lhs) = setup(caller, t)
     '{ new Command[T]($lhs, $ctx, $w, $taskIsPrivate, exclusive = $exclusive) }
   }
 
@@ -593,8 +566,7 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx],
       caller: Expr[TraverseCtxHolder]
   ): Expr[Worker[T]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val lhs = appImpl[T](traverseCtxExpr(caller), t)
+    val (taskIsPrivate, lhs) = setup(caller, t)
     Cacher.impl0('{ new Worker[T]($lhs, $ctx, $taskIsPrivate) })
   }
 }
