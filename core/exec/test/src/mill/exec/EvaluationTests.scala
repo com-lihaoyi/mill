@@ -180,6 +180,25 @@ object EvaluationTests extends TestSuite {
       }
     }
 
+    test("error") {
+      var x = 10
+      var y = 0
+      object build extends TestBaseModule {
+        def input = Task.Input { x }
+        def task = Task{ y += 100 / input() }
+        lazy val millDiscover = Discover[this.type]
+      }
+
+      UnitTester(build, null).scoped{ tester =>
+        assert(y == 0)
+        val Right(_) = tester.apply(build.task)
+        assert(y == 10)
+        x = 0
+        val Left(_) = tester.apply(build.task)
+        assert(y == 10)
+      }
+    }
+
     test("triangleTask") {
 
       import triangleTask._
