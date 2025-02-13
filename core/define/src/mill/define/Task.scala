@@ -225,19 +225,6 @@ object Task extends TaskBase {
         yield ctx.args(i).asInstanceOf[T]
     }
   }
-  private[define] class TraverseCtx[+T, V](
-      inputs0: Seq[Task[T]],
-      f: (IndexedSeq[T], mill.api.Ctx) => Result[V]
-  ) extends Task[V] {
-    val inputs: Seq[Task[?]] = inputs0
-    def evaluate(ctx: mill.api.Ctx): Result[V] = {
-      f(
-        for (i <- 0 until ctx.args.length)
-          yield ctx.args(i).asInstanceOf[T],
-        ctx
-      )
-    }
-  }
 
   private[define] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
     def evaluate(ctx: mill.api.Ctx): Result[V] = f(ctx.arg(0))
