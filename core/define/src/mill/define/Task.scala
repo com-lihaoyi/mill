@@ -340,7 +340,7 @@ object Target extends TaskBase {
     ): Expr[Target[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
       val lhs = appImpl[T](traverseCtxExpr(caller), t)
-      Cacher.impl0[Target[T]]('{ new TargetImpl[T]($lhs, $ctx, $rw, $taskIsPrivate) })
+      Cacher.impl0('{ new TargetImpl[T]($lhs, $ctx, $rw, $taskIsPrivate) })
     }
 
     def persistentTargetResultImpl[T: Type](using
