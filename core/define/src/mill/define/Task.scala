@@ -660,5 +660,5 @@ class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Optio
 }
 
 class SourceImpl(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends InputImpl[PathRef](t, ctx0, upickle.default.readwriter[Seq[PathRef]], isPrivate) {
+    extends InputImpl[PathRef](t, ctx0, upickle.default.readwriter[PathRef], isPrivate) {
 }
