@@ -7,6 +7,24 @@ import mill.{PathRef, exec}
 import utest.*
 
 object ExecutionTests extends TestSuite {
+  object traverseBuild extends TestBaseModule {
+    trait TaskModule extends mill.Module{
+      def x = 1
+      def task = Task { x }
+    }
+    object mod1 extends TaskModule{
+      def x = 1
+    }
+    object mod2 extends TaskModule {
+      def x = 10
+    }
+    object mod3 extends TaskModule {
+      def x = 100
+    }
+
+    def task4 = Task.traverse(Seq(mod1, mod2, mod3))(_.task).map(_.sum)
+    lazy val millDiscover = Discover[this.type]
+  }
 
   class Checker[T <: mill.testkit.TestBaseModule](module: T)
       extends exec.Checker(module)
@@ -279,6 +297,24 @@ object ExecutionTests extends TestSuite {
         x = 0
         val Left(_) = tester.apply(build.task)
         assert(y == 10)
+      }
+    }
+
+    test("sequence") {
+      object build extends TestBaseModule {
+        def task1 = Task { 1 }
+        def task2 = Task { 10 }
+        def task3 = Task { 100 }
+        def task4 = Task.sequence(Seq(task1, task2, task3)).map(_.sum)
+        lazy val millDiscover = Discover[this.type]
+      }
+      UnitTester(build, null).scoped { tester =>
+        val Right(UnitTester.Result(111, _)) = tester.apply(build.task4)
+      }
+    }
+    test("traverse") {
+      UnitTester(traverseBuild, null).scoped { tester =>
+        val Right(UnitTester.Result(111, _)) = tester.apply(traverseBuild.task4)
       }
     }
 
