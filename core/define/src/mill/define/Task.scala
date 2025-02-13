@@ -377,7 +377,7 @@ object Target extends TaskBase {
       val taskIsPrivate = isPrivateTargetOption()
 
       Cacher.impl0(
-        '{ new SourcesImpl(Target.sequence(List(${ Varargs(wrapped) }*)), $ctx, $taskIsPrivate) }
+        '{ new SourcesImpl(Target.sequence(${Expr.ofList(wrapped)}), $ctx, $taskIsPrivate) }
       )
     }
 
@@ -414,7 +414,7 @@ object Target extends TaskBase {
       val taskIsPrivate = isPrivateTargetOption()
 
       Cacher.impl0(
-        '{ new SourcesImpl(Target.sequence(List(${ Varargs(wrapped) }*)), $ctx, $taskIsPrivate) }
+        '{ new SourcesImpl(Target.sequence(${Expr.ofList(wrapped) }), $ctx, $taskIsPrivate) }
       )
     }
 
