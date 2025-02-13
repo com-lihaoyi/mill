@@ -2,7 +2,7 @@ package mill.kotlinlib.ktlint
 
 import mainargs.arg
 import mill._
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.javalib.JavaModule
 import mill.kotlinlib.DepSyntax
@@ -30,9 +30,9 @@ trait KtlintModule extends JavaModule {
   /**
    * Classpath for running Ktlint.
    */
-  def ktlintClasspath: T[Loose.Agg[PathRef]] = Task {
+  def ktlintClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
+      Seq(ivy"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
     )
   }
 
@@ -100,7 +100,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       filesToFormat: Seq[PathRef],
       config: Option[PathRef],
       options: Seq[String],
-      classPath: Loose.Agg[PathRef]
+      classPath: Seq[PathRef]
   )(implicit ctx: api.Ctx): Unit = {
     if (ktlintArgs.check) {
       ctx.log.info("checking format in kotlin sources ...")

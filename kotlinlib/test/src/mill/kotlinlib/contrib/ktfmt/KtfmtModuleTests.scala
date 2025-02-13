@@ -111,17 +111,11 @@ object KtfmtModuleTests extends TestSuite {
         removeUnusedImports = removeUnusedImports
       ),
       sources = Tasks(sources)
-    )).fold(
-      {
-        case api.Result.Exception(cause, _) => throw cause
-        case failure => throw failure
-      },
-      { _ =>
-        val Right(sources) = eval(module.sources): @unchecked
+    )).get
 
-        sources.value.flatMap(ref => walkFiles(ref.path))
-      }
-    )
+    val Right(sources2) = eval(module.sources): @unchecked
+
+    sources2.value.flatMap(ref => walkFiles(ref.path))
   }
 
   def afterFormatAll(modulesRoot: os.Path, format: Boolean = true): Seq[os.Path] = {
@@ -139,16 +133,9 @@ object KtfmtModuleTests extends TestSuite {
         removeUnusedImports = true
       ),
       sources = Tasks(Seq(module.sources))
-    )).fold(
-      {
-        case api.Result.Exception(cause, _) => throw cause
-        case failure => throw failure
-      },
-      { _ =>
-        val Right(sources) = eval(module.sources): @unchecked
-        sources.value.flatMap(ref => walkFiles(ref.path))
-      }
-    )
+    )).get
+    val Right(sources) = eval(module.sources): @unchecked
+    sources.value.flatMap(ref => walkFiles(ref.path))
   }
 
   def walkFiles(root: os.Path): Seq[os.Path] =

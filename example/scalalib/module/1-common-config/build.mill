@@ -13,7 +13,7 @@ object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
 
   // You can have arbitrary numbers of third-party dependencies
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"com.lihaoyi::scalatags:0.8.2",
     ivy"com.lihaoyi::os-lib:0.10.7"
   )

@@ -5,7 +5,7 @@ import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
-import mill.{Agg, T}
+import mill.T
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -218,7 +218,7 @@ trait TestModule
     val (doneMsg, results) = TestRunner.runTestFramework(
       Framework.framework(testFramework()),
       runClasspath().map(_.path),
-      Agg.from(testClasspath().map(_.path)),
+      Seq.from(testClasspath().map(_.path)),
       args,
       Task.testReporter
     )
@@ -242,8 +242,8 @@ object TestModule {
    */
   trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
-    override def ivyDeps: T[Agg[Dep]] = Task {
-      super.ivyDeps() ++ Agg(
+    override def ivyDeps: T[Seq[Dep]] = Task {
+      super.ivyDeps() ++ Seq(
         ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
       )
     }
@@ -255,8 +255,8 @@ object TestModule {
    */
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
-    override def ivyDeps: T[Agg[Dep]] = Task {
-      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
+    override def ivyDeps: T[Seq[Dep]] = Task {
+      super.ivyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
 
@@ -266,8 +266,8 @@ object TestModule {
    */
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-    override def ivyDeps: T[Agg[Dep]] = Task {
-      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
+    override def ivyDeps: T[Seq[Dep]] = Task {
+      super.ivyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
 
     /**
@@ -392,7 +392,7 @@ object TestModule {
     TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
 
   trait JavaModuleBase extends BspModule {
-    def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
+    def ivyDeps: T[Seq[Dep]] = Seq.empty[Dep]
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
   }
 

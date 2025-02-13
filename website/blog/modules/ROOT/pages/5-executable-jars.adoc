@@ -1,8 +1,6 @@
 // tag::header[]
 
-# How JVM Executable Assembly Jars Work
-
-
+= How JVM Executable Assembly Jars Work
 :author: Li Haoyi
 :revdate: 2 January 2025
 _{author}, {revdate}_
@@ -12,13 +10,14 @@ _{author}, {revdate}_
 One feature of the https://mill-build.org[Mill JVM build tool] is that the
 assembly jars it creates are directly executable:
 
-```bash
+[source,bash]
+----
 > ./mill show foo.assembly # generate the assembly jar
 "ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
 
 > out/foo/assembly.dest/out.jar # run the assembly jar directly
 Hello World
-```
+----
 
 Other JVM build tools also can generate assemblies, but most need you to run them
 via `java -jar` or `java -cp`,
@@ -34,19 +33,21 @@ other build tools and toolchains will be able to provide the same convenience
 
 // end::header[]
 
-## Trying Out Mill's Executable Assemblies
+== Trying Out Mill's Executable Assemblies
 
 To try out Mill's executable assembly jars, you can reproduce the above steps
 with the following code and config:
 
-```scala
+[source,scala]
+----
 // build.mill
 import mill._, javalib._
 
 object foo extends JavaModule
-```
+----
 
-```java
+[source,java]
+----
 // foo/src/Foo.java
 package foo;
 
@@ -55,15 +56,16 @@ public class Foo{
     System.out.println("Hello World");
   }
 }
-```
+----
 
-```bash
+[source,bash]
+----
 > ./mill show foo.assembly
 "ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
 
 > /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
 Hello World
-```
+----
 
 Mill's ``JavaModule``s come with `.assembly` tasks built in by default, without needing
 to install plugins like is necessary in other build tools like
@@ -79,7 +81,7 @@ Most `.jar` files are not directly executable, hence the need for a `java -jar` 
 command to run them. To understand how Mill makes direct execution
 possible, we first need to understand what a `.jar` file is.
 
-## What is an Assembly Jar?
+== What is an Assembly Jar?
 
 An "assembly" jar is just a jar file that includes all transitive dependencies.
 What makes an assembly different from a "normal" jar is that it should (in theory) contain
@@ -91,14 +93,17 @@ One thing that many people don't know is that jar files are just zip files. You 
 that from the command line, where although you normally use `jar tf` to list the contents
 of a `.jar` file, `unzip -l` works as well:
 
-```bash
+[source,bash]
+----
 > jar tf /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
 META-INF/MANIFEST.MF
 META-INF/
 foo/
 foo/Foo.class
-```
-```bash
+----
+
+[source,bash]
+----------
 > unzip -l /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
 Archive:  /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
 warning [/Users/lihaoyi/test/out/foo/assembly.dest/out.jar]:  203 extra bytes at beginning or within zipfile
@@ -111,7 +116,7 @@ warning [/Users/lihaoyi/test/out/foo/assembly.dest/out.jar]:  203 extra bytes at
       415  01-02-2025 12:05   foo/Foo.class
 ---------                     -------
       525                     4 files
-```
+----------
 
 In this case, the example project only has one `Foo.java` source file, compiled into a single
 `Foo.class` JVM class file. Larger projects will have multiple class files, including those
@@ -121,7 +126,8 @@ In addition to the compiled class files, jars also can contain metadata. For exa
 this generated `out.jar` contains a `META-INF/MANIFEST.MF` file, which contains some basic
 metadata including the `Main-Class: foo.Foo` which is the entrypoint of the Java program:
 
-```bash
+[source,bash]
+----
 $ unzip -p /Users/lihaoyi/test/out/foo/assembly.dest/out.jar META-INF/MANIFEST.MF
 warning [/Users/lihaoyi/test/out/foo/assembly.dest/out.jar]:  203 extra bytes at beginning or within zipfile
   (attempting to process anyway)
@@ -129,13 +135,13 @@ Manifest-Version: 1.0
 Created-By: Mill 0.12.4-23-2ff492
 Tool: Mill-0.12.4-23-2ff492
 Main-Class: foo.Foo
-```
+----
 
 The `warning:  203 extra bytes at beginning or within zipfile` is a hint that although
 this is a valid zip file, something unusual is going on, which leads us to the trick
 that we use to make the `out.jar` file executable
 
-## What is a Zip file?
+== What is a Zip file?
 
 A https://en.wikipedia.org/wiki/ZIP_(file_format)[zip file] is an archive made of multiple smaller files, individually compressed,
 concatenated together followed by a "central directory" containing the _reverse offsets_ of
@@ -163,7 +169,7 @@ Unlike `.tar.gz` files, the entries within a `.zip` file are compressed individu
 is convenient for use cases like Java classfiles where you want to lazily load them
 individually on-demand without having to first decompress the whole archive up front.
 
-## Executable Zip Archives
+== Executable Zip Archives
 
 One quirk of the above Zip format is that _the zip data does not need to start at the
 beginning of the file_! The zip data can be at the end of an arbitrarily long file, and
@@ -217,7 +223,8 @@ digraph G {
 
 If you use `less out.jar` to look at what's inside the Jar file, it looks like this:
 
-```bash
+[source,bash]
+----
 exec java $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
 PK^C^D^T^@^H^H^H^@<B5>`"Z^@^@^@^@^@^@^@^@^@^@^@^@^T^@^Q^@META-INF/MANIFEST.MFUT^M^@^G<97>^Pvg<97>^Pvg<97>^Pvgeɱ
 <80> ^P^@<D0><FD><C0>^?<B8>^_81s<C9>1<A1><CD>-<DA>^OR^P<C4>^Cu<E9><EF>ESC^Z{<EB><8B><DC>JNcҕ<FA>(<D2><.<DA>=<F1>L7<ED><8F><C7>XjE<A3>^W<AB>^]ٕl<CE>n<B3>
@@ -231,7 +238,7 @@ N<91><FA>%<FD>3ri^T*<8F><E1>1<8B><E8>CD<81><82>^WPK^G^HB?^Xo[^@^@^@n^@^@^@PK^C^D
 ^@^@^@^@^@<B5>`"Z^@^@^@^@^@^@^@^@^@^@^@^@^D^@   ^@^@^@^@^@^@^@^@^@^@^@<E6>^@^@^@foo/UT^E^@^G<97>^PvgPK^A^B^T^@^T^@^H^H^H^@<B5>`"Z<94>r+6 ^A^@^@<9F>^A^@^@^M^@     ^@^@^@^@^@^@^@^@^@^@^@^Y^A^@^@foo/Foo.classUT^E^@^G<97>^PvgPK^E^F^@^@^@^@^D^@^D^@
 ^A^@^@<85>^B^@^@^@^@
 /Users/lihaoyi/test/out/foo/assembly.dest/out.jar (END)
-```
+----
 
 Here, you can see a single line of `exec java $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"` which
 is the bash script we prepended to the zip, followed by the un-intelligible compressed
@@ -239,7 +246,7 @@ class file data that makes up the `.jar`. Since now you are running the Java pro
 via `./out.jar` instead of `java -jar`, we expose the `JAVA_OPTS` environment variable
 as a way to pass flags to the `java` command that ends up being run.]
 
-## What about Windows?
+== What about Windows?
 
 The self-executing jar file above works by prepending a shell script. This works on Unix
 environments like Linux or Mac, but not on the Windows machines which are also very common.
@@ -248,13 +255,15 @@ To fix this, we can replace our shell script zip prefix with a "universal" scrip
 is both a valid `.sh` program as well as valid `.bat` program, the latter being the
 standard windows command line language. Thus, instead of:
 
-```bash
+[source,bash]
+----
 exec java  $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
-```
+----
 
 We can instead use:
 
-```bash
+[source,bash]
+----
 @ 2>/dev/null # 2>nul & echo off & goto BOF
 :
 exec java  $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
@@ -266,7 +275,7 @@ setlocal
 java  %JAVA_OPTS% -cp "%~dpnx0" foo.Foo %*
 endlocal
 exit /B %errorlevel%
-```
+----
 
 
 This universal launcher script is worth digging into.
@@ -300,7 +309,8 @@ once working it is unlikely to break in future versions of Mac/Linux/Windows.
 If we look at the file using `less -n20`, we can now see our universal launcher script
 pre-pended to the blobs of compressed classfile data that make up the rest of the jar:
 
-```bash
+[source,bash]
+----
 @ 2>/dev/null # 2>nul & echo off & goto BOF
 :
 exec java  $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
@@ -324,22 +334,24 @@ N<91><FA>%<FD>3ri^T*<8F><E1>1<8B><E8>CD<81><82>^WPK^G^HB?^Xo[^@^@^@n^@^@^@PK^C^D
 ^@^@^@^@^@<B5>`"Z^@^@^@^@^@^@^@^@^@^@^@^@^D^@   ^@^@^@^@^@^@^@^@^@^@^@<E6>^@^@^@foo/UT^E^@^G<97>^PvgPK^A^B^T^@^T^@^H^H^H^@<B5>`"Z<94>r+6 ^A^@^@<9F>^A^@^@^M^@     ^@^@^@^@^@^@^@^@^@^@^@^Y^A^@^@foo/Foo.classUT^E^@^G<97>^PvgPK^E^F^@^@^@^@^D^@^D^@
 ^A^@^@<85>^B^@^@^@^@
 /Users/lihaoyi/test/out/foo/assembly.dest/out.jar (END)
-```
+----
 
 We can run it directly on Mac/Linux:
 
-```bash
+[source,bash]
+----
 > ./mill show foo.assembly # generate the assembly jar
 "ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
 
 > out/foo/assembly.dest/out.jar # run the assembly jar directly
 Hello World
-```
+----
 
 And we can run it on windows, although we need to rename
 `out.jar` to `out.bat` before executing it:
 
-```bash
+[source,bash]
+----
 > ./mill show foo.assembly
 "ref:v0:bd2c6c70:C:\\Users\\haoyi\\test\\out\\foo\\assembly.dest\\out.jar"
 
@@ -347,9 +359,9 @@ And we can run it on windows, although we need to rename
 
 > ./out.bat
 Hello World
-```
+----
 
-## Conclusion
+== Conclusion
 
 The executable assembly jars that Mill generates are very convenient; it means that
 you can use Mill to compile (almost) any Java program into an executable you can run with

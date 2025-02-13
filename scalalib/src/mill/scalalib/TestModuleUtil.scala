@@ -4,7 +4,7 @@ import mill.api.{Ctx, PathRef, Result}
 import mill.client.EnvVars
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
-import mill.{Agg, Task}
+import mill.Task
 import sbt.testing.Status
 
 import java.time.format.DateTimeFormatter
@@ -17,14 +17,14 @@ private[scalalib] object TestModuleUtil {
       useArgsFile: Boolean,
       forkArgs: Seq[String],
       selectors: Seq[String],
-      scalalibClasspath: Agg[PathRef],
+      scalalibClasspath: Seq[PathRef],
       resources: Seq[PathRef],
       testFramework: String,
       runClasspath: Seq[PathRef],
       testClasspath: Seq[PathRef],
       args: Seq[String],
       testClassLists: Seq[Seq[String]],
-      testrunnerEntrypointClasspath: Agg[PathRef],
+      testrunnerEntrypointClasspath: Seq[PathRef],
       forkEnv: Map[String, String],
       testSandboxWorkingDir: Boolean,
       forkWorkingDir: os.Path,
@@ -76,13 +76,15 @@ private[scalalib] object TestModuleUtil {
         stdout = os.Inherit
       )
 
-      if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
-      else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
+      if (!os.exists(outputPath))
+        Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
+      else
+        Result.Success(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
     }
 
     val globFilter = TestRunnerUtils.globFilter(selectors)
 
-    def doesNotMatchError = Result.Failure(
+    def doesNotMatchError = new Result.Exception(
       s"Test selector does not match any test: ${selectors.mkString(" ")}" +
         "\nRun discoveredTestClasses to see available tests"
     )
@@ -131,7 +133,7 @@ private[scalalib] object TestModuleUtil {
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
+    val subprocessResult: Result[(String, Seq[TestResult])] = filteredClassLists match {
       // When no tests at all are discovered, run at least one test JVM
       // process to go through the test framework setup/teardown logic
       case Nil => runTestRunnerSubprocess(Nil, Task.dest)
@@ -160,17 +162,17 @@ private[scalalib] object TestModuleUtil {
         val outputs = Task.fork.awaitAll(futures)
 
         val (lefts, rights) = outputs.partitionMap {
-          case (name, Left(v)) => Left(name + " " + v)
-          case (name, Right((msg, results))) => Right((name + " " + msg, results))
+          case (name, Result.Failure(v)) => Left(name + " " + v)
+          case (name, Result.Success((msg, results))) => Right((name + " " + msg, results))
         }
 
-        if (lefts.nonEmpty) Left(lefts.mkString("\n"))
-        else Right((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
+        if (lefts.nonEmpty) Result.Failure(lefts.mkString("\n"))
+        else Result.Success((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
     }
 
     subprocessResult match {
-      case Left(errMsg) => Result.Failure(errMsg)
-      case Right((doneMsg, results)) =>
+      case Result.Failure(errMsg) => Result.Failure(errMsg)
+      case Result.Success((doneMsg, results)) =>
         if (results.isEmpty && selectors.nonEmpty) throw doesNotMatchError
         try handleResults(doneMsg, results, Task.ctx(), testReportXml)
         catch {
@@ -220,7 +222,7 @@ private[scalalib] object TestModuleUtil {
           .map(t => s"${t.fullyQualifiedName} ${t.selector}")
           .mkString("\n  ", "\n  ", "")}$suffix"
 
-      Result.Failure(msg, Some((doneMsg, results)))
+      Result.Failure(msg)
     }
   }
 

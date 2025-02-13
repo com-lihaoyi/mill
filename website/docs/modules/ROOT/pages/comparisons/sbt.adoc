@@ -95,7 +95,8 @@ since Mill doesn't bundle them and instead expects them to be invoked separately
 
 === Parallel Clean Compile All
 
-```bash
+[source,bash]
+----
 $ sbt clean; time sbt test:compile
 34.28s
 32.84s
@@ -112,7 +113,7 @@ $ ./mill clean; time ./mill -j 10 __.compile
 10.7s
 9.4s
 10.4s
-```
+----
 
 This benchmark measures the time taken to parallel compile all the Java and Scala code in
 the Gatling code base. We configure Mill to do the same using the same number of threads
@@ -121,7 +122,8 @@ comparison for sequential execution times.
 
 === Clean Compile Single-Module
 
-```bash
+[source,bash]
+----
 > sbt clean; time sbt gatling-commons/compile
 10.1
 10.7
@@ -136,7 +138,7 @@ $ ./mill clean; time ./mill gatling-common.compile
 0.96s
 0.95s
 0.96s
-```
+----
 
 This benchmark indicates the use case of clean-compiling a single module. In this case,
 the `gatling-commons` module's application code in `commons/, _excluding_ the test code in
@@ -144,7 +146,8 @@ and all the downstream submodules.
 
 === Incremental Compile Single-Module
 
-```bash
+[source,bash]
+----
 $ echo "" >> gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
 $ time sbt gatling-commons/compile
 6.6s
@@ -161,7 +164,7 @@ $ time ./mill gatling-commons.compile
 0.49s
 0.48s
 0.47s
-```
+----
 
 This benchmark measures the common case of making a tiny change to a single file and
 re-compiling just that module. This is the common workflow that most software developers
@@ -175,7 +178,8 @@ a fraction of a second, while "Cold SBT" has substantial overhead.
 
 === No-Op Compile Single-Module
 
-```bash
+[source,bash]
+----
 $ time sbt gatling-commons/compile
 4.2s
 4.2s
@@ -190,7 +194,7 @@ $ time ./mill gatling-commons.compile
 0.39s
 0.41s
 0.40s
-```
+----
 
 This benchmark is meant to measure the pure overhead of running the build tool: given a single
 module that did _not_ change, the build tool should need to do _nothing_ in response, and so
@@ -270,7 +274,8 @@ image::comparisons/GatlingCompileProfile.png[]
 If you want to inspect the tree of third-party dependencies used by any module, the
 built in `ivyDepsTree` command lets you do that easily:
 
-```bash
+[source,text]
+----
 $ ./mill gatling-app.ivyDepsTree
 [137/137] gatling-app.ivyDepsTree
 ├─ org.scala-lang:scala-library:2.13.14
@@ -291,7 +296,7 @@ $ ./mill gatling-app.ivyDepsTree
 │  ├─ com.google.errorprone:error_prone_annotations:2.21.1
 │  └─ org.checkerframework:checker-qual:3.37.0
 ...
-```
+----
 
 None of these tools are rocket science, but Mill provides all of them out of the
 box in a convenient package for you to use. Whether you want a visual graph layout,

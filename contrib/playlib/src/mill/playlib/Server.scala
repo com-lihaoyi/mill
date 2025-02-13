@@ -1,7 +1,7 @@
 package mill.playlib
 
 import mill.scalalib._
-import mill.{Agg, Task}
+import mill.Task
 
 private[playlib] trait Server extends ScalaModule with Version {
 
@@ -19,7 +19,7 @@ private[playlib] trait Server extends ScalaModule with Version {
   }
 
   override def runIvyDeps = Task {
-    super.runIvyDeps() ++ Agg(playServerProvider())
+    super.runIvyDeps() ++ Seq(playServerProvider())
   }
 
   override def mainClass = Task { Some("play.core.server.ProdServerStart") }

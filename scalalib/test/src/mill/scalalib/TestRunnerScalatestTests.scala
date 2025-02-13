@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.UnitTester
 import sbt.testing.Status
 import utest._
@@ -83,7 +83,7 @@ object TestRunnerScalatestTests extends TestSuite {
         )
       )
       test("includeAndExclude") - tester.testOnly0 { (eval, mod) =>
-        val Left(Result.Failure(msg, _)) =
+        val Left(ExecResult.Failure(msg)) =
           eval.apply(mod.scalatest.testOnly(
             "mill.scalalib.ScalaTestSpec",
             "--",

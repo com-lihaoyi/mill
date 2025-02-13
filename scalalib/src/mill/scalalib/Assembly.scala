@@ -1,7 +1,6 @@
 package mill.scalalib
 
 import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
-import mill.Agg
 import mill.api.{Ctx, PathRef}
 import mill.util.JarManifest
 import os.Generator
@@ -111,7 +110,7 @@ object Assembly {
   type ResourceCloser = () => Unit
 
   def loadShadedClasspath(
-      inputPaths: Agg[os.Path],
+      inputPaths: Seq[os.Path],
       assemblyRules: Seq[Assembly.Rule]
   ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
     val shadeRules = assemblyRules.collect {
@@ -177,7 +176,7 @@ object Assembly {
   }
 
   def createAssembly(
-      inputPaths: Agg[os.Path],
+      inputPaths: Seq[os.Path],
       manifest: JarManifest = JarManifest.MillDefault,
       prependShellScript: String = "",
       base: Option[os.Path] = None,
@@ -195,7 +194,7 @@ object Assembly {
 
   def create(
       destJar: os.Path,
-      inputPaths: Agg[os.Path],
+      inputPaths: Seq[os.Path],
       manifest: JarManifest = JarManifest.MillDefault,
       prependShellScript: Option[String] = None,
       base: Option[os.Path] = None,

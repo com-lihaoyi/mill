@@ -1,8 +1,5 @@
 = Kotlin Module Configuration
 :page-aliases: Kotlin_Module_Config.adoc
-
-
-
 :language: Kotlin
 :language-small: kotlin
 

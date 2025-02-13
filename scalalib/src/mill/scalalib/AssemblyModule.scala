@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import mill.api.Loose.Agg
 import mill.api.{PathRef, Result}
 import mill.util.JarManifest
 import mill.define.{Target => T, _}
@@ -50,8 +49,8 @@ trait AssemblyModule extends mill.Module {
       case Some(cls) =>
         mill.util.Jvm.launcherUniversalScript(
           mainClass = cls,
-          shellClassPath = Agg("$0"),
-          cmdClassPath = Agg("%~dpnx0"),
+          shellClassPath = Seq("$0"),
+          cmdClassPath = Seq("%~dpnx0"),
           jvmArgs = forkArgs(),
           shebang = false,
           shellJvmArgs = forkShellArgs(),
@@ -64,7 +63,7 @@ trait AssemblyModule extends mill.Module {
 
   private[mill] def assemblyRules0: Seq[Assembly.Rule] = Assembly.defaultRules
 
-  def upstreamAssemblyClasspath: T[Agg[PathRef]]
+  def upstreamAssemblyClasspath: T[Seq[PathRef]]
 
   def localClasspath: T[Seq[PathRef]]
 
@@ -94,7 +93,7 @@ trait AssemblyModule extends mill.Module {
 
     val created = Assembly.create(
       destJar = Task.dest / "out.jar",
-      Agg.from(localClasspath().map(_.path)),
+      Seq.from(localClasspath().map(_.path)),
       manifest(),
       prependScript,
       Some(upstream.pathRef.path),
@@ -112,8 +111,7 @@ trait AssemblyModule extends mill.Module {
            |Either reduce the entries count of the assembly or disable the prepended shell script with:
            |
            |  def prependShellScript = ""
-           |""".stripMargin,
-        Some(created.pathRef)
+           |""".stripMargin
       )
     } else {
       Result.Success(created.pathRef)

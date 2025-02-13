@@ -3,7 +3,7 @@ package mill.init
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.api.{Loose, PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.main.buildgen.BuildGenUtil
 import mill.scalalib.scalafmt.ScalafmtWorkerModule
 import mill.util.{Jvm, MillModuleUtil}
@@ -16,7 +16,7 @@ trait BuildGenModule extends TaskModule {
 
   def defaultCommandName(): String = "init"
 
-  def buildGenClasspath: T[Loose.Agg[PathRef]]
+  def buildGenClasspath: T[Seq[PathRef]]
 
   def buildGenMainClass: T[String]
 
@@ -51,7 +51,7 @@ trait BuildGenModule extends TaskModule {
 @mill.api.experimental
 object BuildGenModule {
 
-  def millModule(artifact: String): Result[Loose.Agg[PathRef]] =
+  def millModule(artifact: String): Result[Seq[PathRef]] =
     MillModuleUtil.millProjectModule(artifact, millRepositories)
 
   def millRepositories: Seq[Repository] = Seq(

@@ -5,9 +5,8 @@ import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
-import mill.Agg
 import mill.api.Ctx
-import mill.api.{PathRef, Strict}
+import mill.api.PathRef
 import mill.define.{Ctx => _, _}
 import mill.eval.Evaluator
 import mill.main.BuildInfo
@@ -110,12 +109,7 @@ case class GenIdeaImpl(
       if (!fetchMillModules) Nil
       else {
         val moduleRepos = modulesByEvaluator.toSeq.flatMap { case (ev, modules) =>
-          ev.evalOrThrow(
-            exceptionFactory = r =>
-              GenIdeaException(
-                s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
-              )
-          )(modules.map(_._2.repositoriesTask))
+          ev.evaluateValues(modules.map(_._2.repositoriesTask))
         }
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = false)
@@ -133,7 +127,7 @@ case class GenIdeaImpl(
 
             // same as input of resolvedIvyDeps
             val allIvyDeps = Task.Anon {
-              Agg(
+              Seq(
                 mod.coursierDependency,
                 mod.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
               ).map(BoundDep(_, force = false))
@@ -143,7 +137,7 @@ case class GenIdeaImpl(
               case x: ScalaModule => x.scalaCompilerClasspath
               case _ =>
                 Task.Anon {
-                  Agg.empty[PathRef]
+                  Seq.empty[PathRef]
                 }
             }
 
@@ -171,7 +165,7 @@ case class GenIdeaImpl(
                   Task.Anon { Some(mod.scalaVersion()) }
                 )
               case _ => (
-                  Task.Anon(Agg[Dep]()),
+                  Task.Anon(Seq[Dep]()),
                   Task.Anon(Seq[String]()),
                   Task.Anon(None)
                 )
@@ -194,7 +188,7 @@ case class GenIdeaImpl(
             }
 
             Task.Anon {
-              val resolvedCp: Agg[Scoped[os.Path]] =
+              val resolvedCp: Seq[Scoped[os.Path]] =
                 externalDependencies().map(_.path).map(Scoped(_, None)) ++
                   extCompileIvyDeps()
                     .map(_.path)
@@ -203,10 +197,10 @@ case class GenIdeaImpl(
               // unused, but we want to trigger sources, to have them available (automatically)
               // TODO: make this a separate eval to handle resolve errors
               externalSources()
-              val resolvedSp: Agg[PathRef] = scalacPluginDependencies()
-              val resolvedCompilerCp: Agg[PathRef] =
+              val resolvedSp: Seq[PathRef] = scalacPluginDependencies()
+              val resolvedCompilerCp: Seq[PathRef] =
                 scalaCompilerClasspath()
-              val resolvedLibraryCp: Agg[PathRef] =
+              val resolvedLibraryCp: Seq[PathRef] =
                 externalLibraryDependencies()
               val scalacOpts: Seq[String] = allScalacOptions()
               val resolvedFacets: Seq[JavaFacet] = facets()
@@ -238,7 +232,7 @@ case class GenIdeaImpl(
 
     val resolvedModules: Seq[ResolvedModule] = {
       resolveTasks.toSeq.flatMap { case (evaluator, tasks) =>
-        evaluator.evaluate(tasks) match {
+        evaluator.execution.executeTasks(tasks) match {
           case r if r.failing.nonEmpty =>
             throw GenIdeaException(
               s"Failure during resolving modules: ${Evaluator.formatFailing(r)}"
@@ -432,7 +426,7 @@ case class GenIdeaImpl(
         .collect { case Some(r) => r }
 
     val compilerSettings = resolvedModules
-      .foldLeft(Map[(Agg[os.Path], Seq[String]), Vector[JavaModule]]()) {
+      .foldLeft(Map[(Seq[os.Path], Seq[String]), Vector[JavaModule]]()) {
         (r, q) =>
           val key = (q.pluginClasspath, q.scalaOptions)
           r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
@@ -505,12 +499,7 @@ case class GenIdeaImpl(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
           allSourcesPathRefs: Seq[PathRef]
-        ) = evaluator.evalOrThrow(
-          exceptionFactory = r =>
-            GenIdeaException(
-              s"Could not evaluate sources/resources of module `${mod}`: ${Evaluator.formatFailing(r)}"
-            )
-        )(Seq(
+        ) = evaluator.evaluateValues(Seq(
           mod.resources,
           mod.generatedSources,
           mod.allSources
@@ -546,14 +535,14 @@ case class GenIdeaImpl(
             .toSeq
         }
 
-        val libNames = Strict.Agg.from(sanizedDeps).iterator.toSeq
+        val libNames = Seq.from(sanizedDeps).iterator.toSeq
 
         val depNames = {
           val allTransitive = mod.transitiveModuleCompileModuleDeps
           val recursive = mod.recursiveModuleDeps
           val provided = allTransitive.filterNot(recursive.contains)
 
-          Strict.Agg
+          Seq
             .from(recursive.map((_, None)) ++
               provided.map((_, Some("PROVIDED"))))
             .filter(!_._1.skipIdea)
@@ -576,9 +565,9 @@ case class GenIdeaImpl(
         val moduleXml = moduleXmlTemplate(
           basePath = mod.intellijModulePath,
           sdkOpt = sdkName,
-          resourcePaths = Strict.Agg.from(resourcesPathRefs.map(_.path)),
-          normalSourcePaths = Strict.Agg.from(normalSourcePaths),
-          generatedSourcePaths = Strict.Agg.from(generatedSourcePaths),
+          resourcePaths = Seq.from(resourcesPathRefs.map(_.path)),
+          normalSourcePaths = Seq.from(normalSourcePaths),
+          generatedSourcePaths = Seq.from(generatedSourcePaths),
           compileOutputPath = compilerOutput,
           libNames = libNames,
           depNames = depNames,
@@ -609,7 +598,7 @@ case class GenIdeaImpl(
                 scalaCompilerClassPath = compilerClasspath.filter(cpFilter),
                 // FIXME: fill in these fields
                 compilerBridgeJar = None,
-                scaladocExtraClasspath = None
+                scaladocExtraClasspath = Nil
               )
             )
           }
@@ -713,7 +702,7 @@ case class GenIdeaImpl(
       </component>
     </project>
   }
-  def rootXmlTemplate(libNames: Strict.Agg[String]): scala.xml.Elem = {
+  def rootXmlTemplate(libNames: Seq[String]): scala.xml.Elem = {
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../../out/ideaOutputDir-mill-build"/>
@@ -774,9 +763,9 @@ case class GenIdeaImpl(
   def scalaSdkTemplate(
       name: String,
       languageLevel: Option[String],
-      scalaCompilerClassPath: Agg[os.Path],
+      scalaCompilerClassPath: Seq[os.Path],
       compilerBridgeJar: Option[os.Path],
-      scaladocExtraClasspath: Agg[os.Path]
+      scaladocExtraClasspath: Seq[os.Path]
   ): Elem = {
     <component name="libraryTable">
       <library name={name} type="Scala">
@@ -845,9 +834,9 @@ case class GenIdeaImpl(
   def moduleXmlTemplate(
       basePath: os.Path,
       sdkOpt: Option[String],
-      resourcePaths: Strict.Agg[os.Path],
-      normalSourcePaths: Strict.Agg[os.Path],
-      generatedSourcePaths: Strict.Agg[os.Path],
+      resourcePaths: Seq[os.Path],
+      normalSourcePaths: Seq[os.Path],
+      generatedSourcePaths: Seq[os.Path],
       compileOutputPath: os.Path,
       libNames: Seq[ScopedOrd[String]],
       depNames: Seq[ScopedOrd[String]],
@@ -970,7 +959,7 @@ case class GenIdeaImpl(
   }
 
   def scalaCompilerTemplate(
-      settings: Map[(Agg[os.Path], Seq[String]), Seq[JavaModule]]
+      settings: Map[(Seq[os.Path], Seq[String]), Seq[JavaModule]]
   ) = {
 
     <project version={"" + ideaConfigVersion}>
@@ -1064,12 +1053,12 @@ object GenIdeaImpl {
 
   final case class ResolvedModule(
       path: Segments,
-      classpath: Agg[Scoped[os.Path]],
+      classpath: Seq[Scoped[os.Path]],
       module: JavaModule,
-      pluginClasspath: Agg[os.Path],
+      pluginClasspath: Seq[os.Path],
       scalaOptions: Seq[String],
-      scalaCompilerClasspath: Agg[os.Path],
-      libraryClasspath: Agg[os.Path],
+      scalaCompilerClasspath: Seq[os.Path],
+      libraryClasspath: Seq[os.Path],
       facets: Seq[JavaFacet],
       configFileContributions: Seq[IdeaConfigFile],
       compilerOutput: os.Path,

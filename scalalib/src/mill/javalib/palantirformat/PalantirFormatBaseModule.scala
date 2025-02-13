@@ -1,17 +1,17 @@
 package mill.javalib.palantirformat
 
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.scalalib.{CoursierModule, DepSyntax}
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 
 trait PalantirFormatBaseModule extends CoursierModule {
 
   /**
    * Classpath for running Palantir Java Format.
    */
-  def palantirformatClasspath: T[Loose.Agg[PathRef]] = Task {
+  def palantirformatClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.palantir.javaformat:palantir-java-format:${palantirformatVersion()}")
+      Seq(ivy"com.palantir.javaformat:palantir-java-format:${palantirformatVersion()}")
     )
   }
 

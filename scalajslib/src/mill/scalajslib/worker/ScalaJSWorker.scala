@@ -6,14 +6,14 @@ import mill.scalajslib.worker.{api => workerApi}
 import mill.api.{Ctx, Result, internal}
 import mill.define.{Discover, Worker}
 import mill.util.CachedFactory
-import mill.{Agg, PathRef, Task}
+import mill.{PathRef, Task}
 
 import java.net.URLClassLoader
 
 @internal
 private[scalajslib] class ScalaJSWorker(jobs: Int)
-    extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
-  override def setup(key: Agg[PathRef]) = {
+    extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
+  override def setup(key: Seq[PathRef]) = {
     val cl = mill.util.Jvm.createClassLoader(
       key.map(_.path).toVector,
       getClass.getClassLoader
@@ -28,7 +28,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
   }
 
   override def teardown(
-      key: Agg[PathRef],
+      key: Seq[PathRef],
       value: (URLClassLoader, workerApi.ScalaJSWorkerApi)
   ): Unit = {
     value._1.close()
@@ -161,10 +161,10 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
   }
 
   def link(
-      toolsClasspath: Agg[mill.PathRef],
-      runClasspath: Agg[mill.PathRef],
+      toolsClasspath: Seq[mill.PathRef],
+      runClasspath: Seq[mill.PathRef],
       dest: File,
-      main: Either[String, String],
+      main: Result[String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
@@ -182,7 +182,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       bridge.link(
         runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
         dest = dest,
-        main = main,
+        main = main.toEither,
         forceOutJs = forceOutJs,
         testBridgeInit = testBridgeInit,
         isFullLinkJS = isFullLinkJS,
@@ -202,7 +202,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     }
   }
 
-  def run(toolsClasspath: Agg[mill.PathRef], config: api.JsEnvConfig, report: api.Report)(
+  def run(toolsClasspath: Seq[mill.PathRef], config: api.JsEnvConfig, report: api.Report)(
       implicit ctx: Ctx.Home
   ): Unit = {
     withValue(toolsClasspath) { case (cl, bridge) =>
@@ -211,7 +211,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
   }
 
   def getFramework(
-      toolsClasspath: Agg[mill.PathRef],
+      toolsClasspath: Seq[mill.PathRef],
       config: api.JsEnvConfig,
       frameworkName: String,
       report: api.Report

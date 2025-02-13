@@ -1,13 +1,13 @@
 package mill.exec
 
-import mill.api.{BuildInfo, MillException, Strict}
+import mill.api.{BuildInfo, MillException}
 import mill.define.{NamedTask, Segment}
 
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
 
 private[mill] object CodeSigUtils {
-  def precomputeMethodNamesPerClass(transitiveNamed: Strict.Agg[NamedTask[?]])
+  def precomputeMethodNamesPerClass(transitiveNamed: Seq[NamedTask[?]])
       : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
     def resolveTransitiveParents(c: Class[?]): Iterator[Class[?]] = {
       Iterator(c) ++

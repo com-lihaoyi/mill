@@ -1,85 +1,58 @@
 package mill.eval
 
-import mill.api.{ColorLogger, PathRef, Result, Strict, SystemStreams, Val}
-import mill.api.Strict.Agg
+import mill.api.{ColorLogger, ExecResult, PathRef, Result, Val}
 import mill.client.OutFiles
 import mill.define.*
 import mill.exec.{
   Cached,
-  ChromeProfileLogger,
   ExecResults,
-  ExecutionCore,
+  Execution,
   ExecutionPaths,
   ExecutionPathsResolver,
   Plan,
-  ProfileLogger,
   TaskResult
 }
 import mill.define.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
 
-import scala.jdk.CollectionConverters._
-import scala.collection.mutable
-import scala.reflect.ClassTag
+import scala.jdk.CollectionConverters.*
 import scala.util.DynamicVariable
 
 /**
  * Implementation of [[Evaluator]], which serves both as internal logic as well
  * as an odd bag of user-facing helper methods. Internal-only logic is
- * extracted into [[ExecutionCore]]
+ * extracted into [[Execution]]
  */
 final case class Evaluator private[mill] (
-    home: os.Path,
-    workspace: os.Path,
-    outPath: os.Path,
-    externalOutPath: os.Path,
-    override val rootModule: mill.define.BaseModule,
-    baseLogger: ColorLogger,
-    classLoaderSigHash: Int,
-    classLoaderIdentityHash: Int,
-    workerCache: mutable.Map[Segments, (Int, Val)] = mutable.Map.empty,
-    env: Map[String, String],
-    failFast: Boolean,
-    threadCount: Option[Int],
-    val methodCodeHashSignatures: Map[String, Int],
-    val allowPositionalCommandArgs: Boolean,
-    val systemExit: Int => Nothing,
-    val exclusiveSystemStreams: SystemStreams,
-    val selectiveExecution: Boolean = false,
-    chromeProfileLogger: ChromeProfileLogger,
-    profileLogger: ProfileLogger
-) extends ExecutionCore with AutoCloseable {
-  import Evaluator._
+    private[mill] val allowPositionalCommandArgs: Boolean,
+    private[mill] val selectiveExecution: Boolean = false,
+    private[mill] val execution: Execution
+) extends AutoCloseable {
 
-  private[mill] final def mutableWorkerCache: collection.mutable.Map[Segments, (Int, Val)] =
-    workerCache match {
-      case mut: collection.mutable.Map[Segments, (Int, Val)] => mut
-    }
+  private[mill] def workspace = execution.workspace
+  private[mill] def baseLogger = execution.baseLogger
+  private[mill] def outPath = execution.outPath
+  private[mill] def methodCodeHashSignatures = execution.methodCodeHashSignatures
+  private[mill] def rootModule = execution.rootModule
+  private[mill] def workerCache = execution.workerCache
+
   val pathsResolver: ExecutionPathsResolver = ExecutionPathsResolver.default(outPath)
 
-  def withBaseLogger(newBaseLogger: ColorLogger): Evaluator =
-    this.copy(baseLogger = newBaseLogger)
+  def withBaseLogger(newBaseLogger: ColorLogger): Evaluator = new Evaluator(
+    allowPositionalCommandArgs,
+    selectiveExecution,
+    execution.withBaseLogger(newBaseLogger)
+  )
 
-  def withFailFast(newFailFast: Boolean): Evaluator =
-    this.copy(failFast = newFailFast)
-
-  def plan(goals: Agg[Task[?]]): Plan = {
-    Plan.plan(goals)
-  }
-
-  def evalOrThrow(exceptionFactory: ExecResults => Throwable =
-    r =>
-      new Exception(s"Failure during task evaluation: ${formatFailing(r)}"))
-      : Evaluator.EvalOrThrow =
-    new EvalOrThrow(this, exceptionFactory)
+  def plan(goals: Seq[Task[?]]): Plan = Plan.plan(goals)
 
   def resolveSegments(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): Either[String, List[Segments]] = {
+  ): Result[List[Segments]] = {
     Resolve.Segments.resolve(
       rootModule,
       scriptArgs,
@@ -94,7 +67,7 @@ final case class Evaluator private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): Either[String, List[NamedTask[?]]] = {
+  ): Result[List[NamedTask[?]]] = {
     Resolve.Tasks.resolve(
       rootModule,
       scriptArgs,
@@ -105,18 +78,14 @@ final case class Evaluator private[mill] (
   }
 
   def close(): Unit = {
-    chromeProfileLogger.close()
-    profileLogger.close()
+    execution.close()
   }
 
-  def evaluateTasksNamed(
+  def resolveEvaluate(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
-  ): Either[
-    String,
-    (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])
-  ] = {
+  ): Result[(Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])] = {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(this) {
       Resolve.Tasks.resolve(
         rootModule,
@@ -126,7 +95,13 @@ final case class Evaluator private[mill] (
       )
     }
     for (targets <- resolved)
-      yield evaluateNamed(Agg.from(targets), selectiveExecution)
+      yield evaluate(Seq.from(targets), selectiveExecution)
+  }
+
+  def evaluateValues[T](tasks: Seq[Task[T]]): Seq[T] = {
+    val (watches, res0) = evaluate(tasks).get
+    val results = res0.get
+    results.map(_._1.value.asInstanceOf[T])
   }
 
   /**
@@ -134,32 +109,37 @@ final case class Evaluator private[mill] (
    * @param targets
    * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
    */
-  def evaluateNamed(
-      targets: Agg[NamedTask[Any]],
+  def evaluate(
+      targets: Seq[Task[Any]],
       selectiveExecution: Boolean = false
-  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
+  ): (Seq[Watchable], Result[Seq[(Val, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
     val selectedTargetsOrErr =
       if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
-        val changedTasks = SelectiveExecution.computeChangedTasks0(this, targets.toSeq)
+        val (named, unnamed) =
+          targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
+        val changedTasks = SelectiveExecution.computeChangedTasks0(this, named)
+
         val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+
         (
-          targets.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
+          unnamed ++ named.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
           changedTasks.results
         )
       } else (targets -> Map.empty)
 
     selectedTargetsOrErr match {
       case (selectedTargets, selectiveResults) =>
-        val evaluated: ExecResults = evaluate(selectedTargets, serialCommandExec = true)
+        val evaluated: ExecResults =
+          execution.executeTasks(selectedTargets, serialCommandExec = true)
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
-            case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) =>
+            case (t: SourcesImpl, TaskResult(ExecResult.Success(Val(ps: Seq[PathRef])), _)) =>
               ps.map(Watchable.Path(_))
-            case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) =>
+            case (t: SourceImpl, TaskResult(ExecResult.Success(Val(p: PathRef)), _)) =>
               Seq(Watchable.Path(p))
             case (t: InputImpl[_], TaskResult(result, recalc)) =>
               val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
@@ -171,7 +151,7 @@ final case class Evaluator private[mill] (
         val allInputHashes = evaluated.results
           .iterator
           .collect {
-            case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
+            case (t: InputImpl[_], TaskResult(ExecResult.Success(Val(value)), _)) =>
               (t.ctx.segments.render, value.##)
           }
           .toMap
@@ -192,36 +172,17 @@ final case class Evaluator private[mill] (
                   val jsonFile = ExecutionPaths.resolveDestPaths(outPath, t).meta
                   val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
                   Some((t.toString, metadata.value))
+                case _ => None
               }
             }
-
-            watched -> Right(evaluated.values.zip(nameAndJson))
-          case n => watched -> Left(s"$n tasks failed\n$errorStr")
+            watched -> Result.Success(evaluated.values.zip(nameAndJson))
+          case n => watched -> Result.Failure(s"$n tasks failed\n$errorStr")
         }
     }
   }
 }
 
 private[mill] object Evaluator {
-
-  class EvalOrThrow(evaluator: Evaluator, exceptionFactory: ExecResults => Throwable) {
-    def apply[T: ClassTag](task: Task[T]): T =
-      evaluator.evaluate(Agg(task)) match {
-        case r if r.failing.nonEmpty =>
-          throw exceptionFactory(r)
-        case r =>
-          // Input is a single-item Agg, so we also expect a single-item result
-          val Seq(Val(e: T)) = r.values: @unchecked
-          e
-      }
-
-    def apply[T: ClassTag](tasks: Seq[Task[T]]): Seq[T] =
-      evaluator.evaluate(tasks) match {
-        case r if r.failing.nonEmpty =>
-          throw exceptionFactory(r)
-        case r => r.values.map(_.value).asInstanceOf[Seq[T]]
-      }
-  }
 
   type TaskName = String
   // This needs to be a ThreadLocal because we need to pass it into the body of
@@ -242,9 +203,8 @@ private[mill] object Evaluator {
     (for ((k, fs) <- evaluated.failing)
       yield {
         val fss = fs.map {
-          case Result.Failure(t, _) => t
-          case Result.Exception(Result.Failure(t, _), _) => t
-          case ex: Result.Exception => ex.toString
+          case ExecResult.Failure(t) => t
+          case ex: ExecResult.Exception => ex.toString
         }
         s"${k} ${fss.iterator.mkString(", ")}"
       }).mkString("\n")

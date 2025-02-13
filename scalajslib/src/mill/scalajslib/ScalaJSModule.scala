@@ -2,7 +2,7 @@ package mill
 package scalajslib
 
 import mainargs.{Flag, arg}
-import mill.api.{Loose, PathRef, Result, internal}
+import mill.api.{PathRef, Result, internal}
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
@@ -31,7 +31,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSWorkerVersion = Task { ZincWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
-  override def scalaLibraryIvyDeps: T[Loose.Agg[Dep]] = Task {
+  override def scalaLibraryIvyDeps: T[Seq[Dep]] = Task {
     val deps = super.scalaLibraryIvyDeps()
     if (ZincWorkerUtil.isScala3(scalaVersion())) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
@@ -52,7 +52,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  def scalaJSJsEnvIvyDeps: T[Agg[Dep]] = Task {
+  def scalaJSJsEnvIvyDeps: T[Seq[Dep]] = Task {
     val dep = jsEnvConfig() match {
       case _: JsEnvConfig.NodeJs =>
         ivy"${ScalaJSBuildInfo.scalajsEnvNodejs}"
@@ -66,10 +66,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         ivy"${ScalaJSBuildInfo.scalajsEnvSelenium}"
     }
 
-    Agg(dep)
+    Seq(dep)
   }
 
-  def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = Task {
+  def scalaJSLinkerClasspath: T[Seq[PathRef]] = Task {
     val commonDeps = Seq(
       ivy"org.scala-js:scalajs-sbt-test-adapter_2.13:${scalaJSVersion()}"
     )
@@ -114,7 +114,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = runClasspath(),
-      mainClass = finalMainClassOpt(),
+      mainClass = Result.fromEither(finalMainClassOpt()),
       forceOutJs = forceOutJs,
       testBridgeInit = false,
       isFullLinkJS = isFullLinkJS,
@@ -164,9 +164,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   private[scalajslib] def linkJs(
       worker: ScalaJSWorker,
-      toolsClasspath: Agg[PathRef],
-      runClasspath: Agg[PathRef],
-      mainClass: Either[String, String],
+      toolsClasspath: Seq[PathRef],
+      runClasspath: Seq[PathRef],
+      mainClass: Result[String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
@@ -349,7 +349,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaJSModule].resources
   def scalaJSTestDeps = Task {
     defaultResolver().resolveDeps(
-      Loose.Agg(
+      Seq(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
       )
@@ -362,7 +362,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = scalaJSTestDeps() ++ runClasspath(),
-      mainClass = Left("No main class specified or found"),
+      mainClass = Result.Failure("No main class specified or found"),
       forceOutJs = false,
       testBridgeInit = true,
       isFullLinkJS = false,
@@ -396,7 +396,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     val (doneMsg, results) = TestRunner.runTestFramework(
       _ => framework,
       runClasspath().map(_.path),
-      Agg(compile().classes.path),
+      Seq(compile().classes.path),
       args(),
       Task.testReporter,
       cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)

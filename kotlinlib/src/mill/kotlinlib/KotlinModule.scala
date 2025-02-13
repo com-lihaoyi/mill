@@ -14,7 +14,7 @@ import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
 import mill.util.Jvm
 import mill.util.MillModuleUtil.millProjectModule
-import mill.{Agg, T}
+import mill.T
 
 import java.io.File
 
@@ -52,8 +52,8 @@ trait KotlinModule extends JavaModule { outer =>
    * The dependencies of this module.
    * Defaults to add the kotlin-stdlib dependency matching the [[kotlinVersion]].
    */
-  override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
-    super.mandatoryIvyDeps() ++ Agg(
+  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
+    super.mandatoryIvyDeps() ++ Seq(
       ivy"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
     )
   }
@@ -106,15 +106,15 @@ trait KotlinModule extends JavaModule { outer =>
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerVersion]].
    */
-  def kotlinCompilerIvyDeps: T[Agg[Dep]] = Task {
-    Agg(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
+  def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
+    Seq(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
       (
         if (
           !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
             kotlinVersion().startsWith(prefix)
           )
         )
-          Agg(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
+          Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
         else Seq()
       )
   }
@@ -189,7 +189,7 @@ trait KotlinModule extends JavaModule { outer =>
       )
     }
 
-    PathRef(Jvm.createJar(outDir / "out.jar", Agg(dokkaDir)))
+    PathRef(Jvm.createJar(outDir / "out.jar", Seq(dokkaDir)))
   }
 
   /**
@@ -209,17 +209,17 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Classpath for running Dokka.
    */
-  private def dokkaCliClasspath: T[Agg[PathRef]] = Task {
+  private def dokkaCliClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       )
     )
   }
 
-  private def dokkaPluginsClasspath: T[Agg[PathRef]] = Task {
+  private def dokkaPluginsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
         ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
         Dep.parse(Versions.kotlinxHtmlJvmDep),
@@ -308,12 +308,7 @@ trait KotlinModule extends JavaModule { outer =>
               // also run Java compiler and use it's returned result
               compileJava
             }
-          case Result.Failure(reason, _) =>
-            Result.Failure(reason, Some(CompilationResult(analysisFile, PathRef(classes))))
-          case e: Result.Exception => e
-          case Result.Aborted => Result.Aborted
-          case Result.Skipped => Result.Skipped
-          //      case x => x
+          case Result.Failure(reason) => Result.Failure(reason)
         }
       } else {
         // it's Java only
@@ -344,7 +339,7 @@ trait KotlinModule extends JavaModule { outer =>
       worker: ZincWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
-      compileCp: Agg[os.Path],
+      compileCp: Seq[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean

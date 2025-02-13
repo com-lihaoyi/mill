@@ -21,7 +21,7 @@ private[dependency] object VersionsFinder {
       case javaModule: JavaModule => javaModule
     }
 
-    val resolvedDependencies = evaluator.evalOrThrow() {
+    val resolvedDependencies = evaluator.evaluateValues {
       val progress = new Progress(javaModules.size)
       javaModules.map(resolveDeps(progress))
     }
@@ -33,7 +33,7 @@ private[dependency] object VersionsFinder {
     // (see https://github.com/com-lihaoyi/mill/issues/3876).
     val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
 
-    evaluator.evalOrThrow() {
+    evaluator.evaluateValues {
       val progress = new Progress(resolvedDependencies.map(_._3.size).sum)
       resolvedDependencies.map(resolveVersions(progress, clock))
     }

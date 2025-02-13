@@ -1,7 +1,6 @@
 package mill.scalanativelib
 
 import mill.given
-import mill.Agg
 import mill.scalalib._
 import mill.define.Discover
 import mill.testkit.UnitTester
@@ -13,14 +12,14 @@ object ExclusionsTests extends TestSuite {
     object scala213 extends ScalaNativeModule {
       def scalaNativeVersion = "0.4.3"
       def scalaVersion = "2.13.10"
-      override def ivyDeps = super.ivyDeps() ++ Agg(
+      override def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"com.github.scopt:scopt_native0.4_3:4.0.1"
       )
     }
     object scala3 extends ScalaNativeModule {
       def scalaNativeVersion = "0.4.3"
       def scalaVersion = "3.1.1"
-      override def ivyDeps = super.ivyDeps() ++ Agg(
+      override def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"com.github.scopt:scopt_native0.4_2.13:4.0.1"
       )
     }

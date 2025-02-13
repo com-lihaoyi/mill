@@ -1,6 +1,5 @@
 package mill.scalalib.worker
 
-import mill.api.Loose.Agg
 import mill.util.CachedFactory
 import mill.api.{CompileProblemReporter, PathRef, Result, internal}
 import mill.client.CodeGenConstants
@@ -48,7 +47,7 @@ import scala.util.Properties.isWin
 @internal
 class ZincWorkerImpl(
     compilerBridge: Either[
-      (ZincWorkerApi.Ctx, (String, String) => (Option[Agg[PathRef]], PathRef)),
+      (ZincWorkerApi.Ctx, (String, String) => (Option[Seq[PathRef]], PathRef)),
       String => PathRef
     ],
     jobs: Int,
@@ -57,7 +56,7 @@ class ZincWorkerImpl(
     javaHome: Option[PathRef],
     close0: () => Unit
 ) extends ZincWorkerApi with AutoCloseable {
-  val libraryJarNameGrep: (Agg[PathRef], String) => PathRef =
+  val libraryJarNameGrep: (Seq[PathRef], String) => PathRef =
     ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false)
 
   case class CompileCacheKey(
@@ -218,8 +217,8 @@ class ZincWorkerImpl(
   def docJar(
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Agg[PathRef],
-      scalacPluginClasspath: Agg[PathRef],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
       args: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): Boolean = {
     withCompilers(
@@ -268,8 +267,8 @@ class ZincWorkerImpl(
       workingDir: os.Path,
       compileDest: os.Path,
       scalaVersion: String,
-      compilerClasspath: Agg[PathRef],
-      compilerBridgeClasspath: Agg[PathRef],
+      compilerClasspath: Seq[PathRef],
+      compilerBridgeClasspath: Seq[PathRef],
       compilerBridgeSourcesJar: os.Path
   ): Unit = {
     if (scalaVersion == "2.12.0") {
@@ -343,7 +342,7 @@ class ZincWorkerImpl(
   def compileBridgeIfNeeded(
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Agg[PathRef]
+      compilerClasspath: Seq[PathRef]
   ): os.Path = {
     compilerBridge match {
       case Right(compiled) => compiled(scalaVersion).path
@@ -408,8 +407,8 @@ class ZincWorkerImpl(
 
   override def compileJava(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
@@ -433,14 +432,14 @@ class ZincWorkerImpl(
 
   override def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
       scalaVersion: String,
       scalaOrganization: String,
       scalacOptions: Seq[String],
-      compilerClasspath: Agg[PathRef],
-      scalacPluginClasspath: Agg[PathRef],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
@@ -471,8 +470,8 @@ class ZincWorkerImpl(
   private def withCompilers[T](
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Agg[PathRef],
-      scalacPluginClasspath: Agg[PathRef],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
       javacOptions: Seq[String]
   )(f: Compilers => T) = {
 
@@ -502,8 +501,8 @@ class ZincWorkerImpl(
 
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Agg[os.Path],
-      compileClasspath: Agg[os.Path],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,

@@ -2,10 +2,7 @@ package mill.client;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -99,15 +96,6 @@ public class ClientUtil {
         + ((in.read() & 0xFF) << 16)
         + ((in.read() & 0xFF) << 8)
         + (in.read() & 0xFF);
-  }
-
-  public static String sha1Hash(String path) throws NoSuchAlgorithmException {
-    MessageDigest md = MessageDigest.getInstance("SHA1");
-    md.reset();
-    byte[] pathBytes = path.getBytes(StandardCharsets.UTF_8);
-    md.update(pathBytes);
-    byte[] digest = md.digest();
-    return Util.hexArray(digest);
   }
 
   /**

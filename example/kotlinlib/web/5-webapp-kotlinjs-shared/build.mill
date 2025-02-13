@@ -23,7 +23,7 @@ object `package` extends RootModule with AppKotlinModule {
 
   def moduleDeps = Seq(shared.jvm)
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
     ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
     ivy"io.ktor:ktor-server-html-builder-jvm:$ktorVersion",
@@ -41,7 +41,7 @@ object `package` extends RootModule with AppKotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
       ivy"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
     )
@@ -52,7 +52,7 @@ object `package` extends RootModule with AppKotlinModule {
     trait SharedModule extends AppKotlinModule with PlatformKotlinModule {
       def processors = Task {
         defaultResolver().resolveDeps(
-          Agg(
+          Seq(
             ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
           )
         )
@@ -64,13 +64,13 @@ object `package` extends RootModule with AppKotlinModule {
     }
 
     object jvm extends SharedModule {
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion",
         ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion"
       )
     }
     object js extends SharedModule with AppKotlinJsModule {
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
         ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
       )
@@ -80,7 +80,7 @@ object `package` extends RootModule with AppKotlinModule {
   object client extends AppKotlinJsModule {
     def splitPerModule = false
     def moduleDeps = Seq(shared.js)
-    def ivyDeps = Agg(
+    def ivyDeps = Seq(
       ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
       ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
     )

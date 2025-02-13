@@ -45,11 +45,12 @@ compiling Java, compiling and linking C code via JNI, running JUnit tests and so
 tests using H2Spec. All 47 Maven subprojects are modelled using Mill, with the entire Netty codebase
 being approximately 500,000 lines of code.
 
-```bash
+[source,bash]
+----
 $ git ls-files | grep \\.java | xargs wc -l
 ...
 513805 total
-```
+----
 
 The goal of this exercise is not to be 100% feature complete enough to replace the Maven build
 today. It is instead meant to provide a realistic comparison of how using Mill in a large,
@@ -86,9 +87,11 @@ equivalent Maven workflow. In most cases,  Mill is 4-10x faster than Maven. Belo
 will go into more detail of each benchmark: how they were run, what they mean, and how
 we can explain the difference in performing the same task with the two different build tools.
 
+[#_sequential_clean_compile_all]
 === Sequential Clean Compile All
 
-```bash
+[source,bash]
+----
 $ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
 98.80s
 96.14s
@@ -98,7 +101,7 @@ $ ./mill clean; time ./mill -j1 __.compile
 23.99s
 23.14s
 22.68s
-```
+----
 
 This benchmark exercises the simple "build everything from scratch" workflow, with all remote
 artifacts already in the local cache. The actual files
@@ -120,7 +123,8 @@ Maven's main mechanism for managing inter-module dependencies is via the local a
 at `~/.m2/repository`. Although many workflows work with `compile`, some don't, and
 `./mvnw clean compile` on the Netty repository fails with:
 
-```text
+[listing]
+----
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-dependency-plugin:2.10:unpack-dependencies
 (unpack) on project netty-resolver-dns-native-macos: Artifact has not been packaged yet.
 When used on reactor artifact, unpack should be executed after packaging: see MDEP-98. -> [Help 1]
@@ -133,7 +137,7 @@ When used on reactor artifact, unpack should be executed after packaging: see MD
 [ERROR]
 [ERROR] After correcting the problems, you can resume the build with the command
 [ERROR]   mvn <args> -rf :netty-resolver-dns-native-macos
-```
+----
 
 In contrast, Mill builds do not rely on the local artifact cache, even though Mill is able
 to publish to it. That means Mill builds are able to work directly with classfiles on disk,
@@ -142,22 +146,25 @@ into `.jar` files. Furthermore, even if we _did_ want Mill to generate the ``.ja
 overhead of doing so is just a few seconds, far less than the two entire minutes that
 Maven's overhead adds to the clean build:
 
-```bash
+[source,bash]
+----
 $ ./mill clean; time ./mill -j1 __.jar
 32.58s
 24.90s
 23.35s
-```
+----
 
 From this benchmark, we can see that although both Mill and Maven are doing the same work,
 Mill takes about as long as it _should_ for this task of compiling 500,000 lines of Java source
-code, while Maven takes considerably longer. And much of this overhead comes from Maven
+code, while Maven takes considerably longer.And much of this overhead comes from Maven
 doing unnecessary work packing/unpacking jar files and publishing to a local repository,
 whereas Mill directly uses the classfiles generated on disk to bypass all that work.
 
+[#_parallel_clean_compile_all]
 === Parallel Clean Compile All
 
-```bash
+[source,bash]
+----
 $ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 48.92s
 48.41s
@@ -167,20 +174,22 @@ $ ./mill clean; time ./mill __.compile
 9.07s
 8.79s
 7.93s
-```
+----
 
 This example compares Maven v.s. Mill, when performing the clean build on 10 threads.
 Both build tools support parallelism (`-T 10` in Maven, by default in Mill), and both
-tools see a similar ~2x speedup for building the Netty project using 4 threads. Again,
+tools see a similar ~2x speedup for building the Netty project using 4 threads.Again,
 this tests a clean build using `./mvnw clean` or `./mill clean`.
 
 This comparison shows that much of Mill's speedup over Maven is unrelated to parallelism.
 Whether sequential or parallel, Mill has approximately the same ~7x speedup over Maven
 when performing a clean build of the Netty repository.
 
+[#_clean_compile_single_module]
 === Clean Compile Single-Module
 
-```bash
+[source,bash]
+----
 $ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
 4.85s
 4.96s
@@ -190,7 +199,7 @@ $ ./mill clean common; time ./mill common.compile
 1.10s
 1.12s
 1.11s
-```
+----
 
 This exercise limits the comparison to compiling a single module, in this case `common/`,
 ignore test sources.
@@ -198,12 +207,14 @@ ignore test sources.
 Again, we can see a significant speedup of Mill v.s. Maven remains even when compiling a
 single module: a clean compile of `common/` is about 4x faster with Mill than with Maven!
 Again, `common/` is about 30,000 lines of Java source code, so at 10,000-50,000 lines per
-second we would expect it to compile in about 1-4s. That puts Mill's compile times right
+second we would expect it to compile in about 1-4s.That puts Mill's compile times right
 at what you would expect, whereas Maven's has a significant overhead.
 
+[#_incremental_compile_single_module]
 === Incremental Compile Single-Module
 
-```bash
+[source,bash]
+----
 $ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
@@ -221,7 +232,7 @@ compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/c
 0.78s
 0.54s
 0.51s
-```
+----
 
 This benchmark explores editing a single file and re-compiling `common/`.
 
@@ -236,7 +247,8 @@ between files to figure out what needs to re-compile: for an internal change tha
 affect downstream compilation (e.g. changing a string literal) Zinc only needs to compile
 the file that changed, taking barely half a second:
 
-```diff
+[source,diff]
+----
 $ git diff
 diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
 index de16653cee..9818f6b3ce 100644
@@ -251,17 +263,20 @@ index de16653cee..9818f6b3ce 100644
      }
 
  }
-```
-```bash
+----
+
+[source,bash]
+----
 $ time ./mill common.test.compile
 [info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 0m 00.55s6
-```
+----
 
 In contrast, a change to a class or function public signature (e.g. adding a method) may
 require downstream code to re-compile, and we can see that below:
 
-```diff
+[source,diff]
+----
 $ git diff
 diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
 index de16653cee..f5f5a93e0d 100644
@@ -278,8 +293,10 @@ index de16653cee..f5f5a93e0d 100644
      @Override
      public final int id() {
          return id;
-```
-```bash
+----
+
+[source,bash]
+----
 $ time ./mill common.test.compile
 [25/48] common.compile
 [info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
@@ -288,7 +305,7 @@ $ time ./mill common.test.compile
 [info] compiling 3 Java sources to /Users/lihaoyi/Github/netty/out/common/test/compile.super/mill/scalalib/JavaModule/compile.dest/classes ...
 [info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/test/compile.super/mill/scalalib/JavaModule/compile.dest/classes ...
 0m 00.81s2
-```
+----
 
 Here, we can see that Zinc ended up re-compiling 7 files in `common/src/main/` and 3 files
 in `common/src/test/` as a result of adding a method to `AbstractConstant.java`.
@@ -296,14 +313,16 @@ in `common/src/test/` as a result of adding a method to `AbstractConstant.java`.
 In general, Zinc is conservative, and does not always end up selecting the minimal set of
 files that need re-compiling: e.g. in the above example, the new method `name2` does not
 interfere with any existing method, and the ~9 downstream files did not actually need to
-be re-compiled! However, even conservatively re-compiling 9 files is much faster than
+be re-compiled!However, even conservatively re-compiling 9 files is much faster than
 Maven blindly re-compiling all 234 files, and as a result the iteration loop of
 editing-compiling-testing your Java projects in Mill can be much faster than doing
 the same thing in Maven
 
+[#_no_op_compile_single_module]
 === No-Op Compile Single-Module
 
-```bash
+[source,bash]
+----
 $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 5.08s
 5.25s
@@ -313,7 +332,7 @@ $ time ./mill common.test.compile
 0.49s
 0.47s
 0.45s
-```
+----
 
 This last benchmark explores the boundaries of Maven and Mill: what happens if
 we ask to compile a single module _that has already been compiled_? In this case,
@@ -344,7 +363,8 @@ so you can see how Mill differs from Maven in the handling of these requirements
 The Maven build for the `common/` subproject
 uses a Groovy script for code generation. This is configured via:
 
-```xml
+[source,xml]
+----
 <properties>
   <collection.template.dir>${project.basedir}/src/main/templates</collection.template.dir>
   <collection.template.test.dir>${project.basedir}/src/test/templates</collection.template.test.dir>
@@ -380,11 +400,12 @@ uses a Groovy script for code generation. This is configured via:
     </execution>
   </executions>
 </plugin>
-```
+----
 
 In contrast, the Mill build configures the code generation as follows:
 
-```scala
+[source,scala]
+----
 import $ivy.`org.codehaus.groovy:groovy:3.0.9`
 import $ivy.`org.codehaus.groovy:groovy-ant:3.0.9`
 import $ivy.`ant:ant-optional:1.5.3-1`
@@ -411,7 +432,7 @@ object common extends NettyModule{
 
   def generatedSources = Task { Seq(generatedSources0()._1)}
 }
-```
+----
 
 While the number of lines of code _written_ is not that different, the Mill configuration
 is a lot more direct: rather than writing 35 lines of XML to configure an opaque third-party
@@ -442,7 +463,8 @@ The Maven build for the `transport-native-unix-common/` subproject needs to call
 via JNI. Maven does this via the `maven-dependency-plugin` and `maven-antrun-plugin` which are
 approximately configured as below:
 
-```xml
+[source,xml]
+----
 <properties>
   <exe.make>make</exe.make>
   <exe.compiler>gcc</exe.compiler>
@@ -511,7 +533,7 @@ approximately configured as below:
     </executions>
   </plugin>
 </plugins>
-```
+----
 
 The `maven-dependency-plugin` is used to download and unpack a single `jar` file,
 while `maven-antrun-plugin` is used to call `make`. Both are configured via XML,
@@ -519,7 +541,8 @@ with the `make` command essentially being a bash script wrapped in layers of XML
 
 In contrast, the Mill configuration for this logic is as follows:
 
-```scala
+[source,scala]
+----
 def makefile = Task.Source("Makefile")
 def cSources = Task.Source("src" / "main" / "c")
 def cHeaders = Task {
@@ -534,7 +557,7 @@ def make = Task {
   os.copy(cSources().path, Task.dest / "src" / "main" / "c", createFolders = true)
 
   val Seq(sourceJar) = resolveDeps(
-    deps = Task.Anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
+    deps = Task.Anon(Seq(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
     sources = true
   )().toSeq
 
@@ -563,7 +586,7 @@ def make = Task {
 
   (PathRef(Task.dest / "lib-out"), PathRef(Task.dest / "obj-out"))
 }
-```
+----
 
 ```graphviz
 digraph G {
@@ -616,7 +639,8 @@ image::comparisons/NettyCompileProfile.png[]
 If you want to inspect the tree of third-party dependencies used by any module, the
 built in `ivyDepsTree` command lets you do that easily:
 
-```bash
+[source,text]
+----
 $ ./mill handler.ivyDepsTree
 ├─ org.jctools:jctools-core:4.0.5
 ├─ org.junit.jupiter:junit-jupiter-api:5.9.0
@@ -625,7 +649,7 @@ $ ./mill handler.ivyDepsTree
 │  │  └─ org.apiguardian:apiguardian-api:1.1.2
 │  └─ org.opentest4j:opentest4j:1.2.0
 └─ com.google.protobuf:protobuf-java:2.6.1
-```
+----
 
 None of these tools are rocket science, but Mill provides all of them out of the
 box in a convenient package for you to use. Whether you want a visual graph layout,

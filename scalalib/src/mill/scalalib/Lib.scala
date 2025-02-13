@@ -5,7 +5,7 @@ import coursier.core.BomDependency
 import coursier.params.ResolutionParams
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
-import mill.api.{Ctx, Loose, PathRef, Result}
+import mill.api.{Ctx, PathRef, Result}
 import mill.client.EnvVars
 import mill.main.BuildInfo
 import mill.scalalib.api.ZincWorkerUtil
@@ -72,7 +72,7 @@ object Lib {
       ] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
-  ): Result[Agg[PathRef]] = {
+  ): Result[Seq[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     val res = mill.util.Jvm.resolveDependencies(
       repositories = repositories,
@@ -90,33 +90,33 @@ object Lib {
     res.map(_.map(_.withRevalidateOnce))
   }
 
-  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
+  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion))
-      Agg(
+      Seq(
         ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
       )
     else if (ZincWorkerUtil.isScala3(scalaVersion))
-      Agg(
+      Seq(
         ivy"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
       )
     else
-      Agg(
+      Seq(
         ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
         ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
       )
 
-  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
+  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion))
-      Agg(
+      Seq(
         ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
       )
     else if (ZincWorkerUtil.isScala3Milestone(scalaVersion))
-      Agg(
+      Seq(
         // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
         ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
       )
     else if (ZincWorkerUtil.isScala3(scalaVersion))
-      Agg(
+      Seq(
         // scalaVersion >= 3.0.0-RC1 uses scaladoc
         ivy"$scalaOrganization::scaladoc:$scalaVersion".forceVersion()
       )
@@ -124,17 +124,17 @@ object Lib {
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
       scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
 
-  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
+  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion)) {
-      Agg(
+      Seq(
         ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
       )
     } else if (ZincWorkerUtil.isScala3(scalaVersion))
-      Agg(
+      Seq(
         ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
       )
     else
-      Agg(
+      Seq(
         ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
       )
 
@@ -150,7 +150,7 @@ object Lib {
     } yield path
   }
 
-  private[mill] def millAssemblyEmbeddedDeps: Agg[BoundDep] = Agg.from(
+  private[mill] def millAssemblyEmbeddedDeps: Seq[BoundDep] = Seq.from(
     BuildInfo.millEmbeddedDeps
       .split(",")
       .map(d => ivy"$d")
@@ -174,7 +174,7 @@ object Lib {
           coursierCacheCustomizer = None,
           ctx = ctx
         ): @unchecked
-        res.items.toList.map(_.path)
+        res.toList.map(_.path)
     }
   }
 

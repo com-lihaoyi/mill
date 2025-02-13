@@ -1,10 +1,9 @@
 // tag::header[]
 
-# Faster CI with Selective Testing
-
-
+= Faster CI with Selective Testing
 :author: Li Haoyi
 :revdate: 24 December 2024
+
 _{author}, {revdate}_
 
 
@@ -19,7 +18,7 @@ xref:mill::large/selective-execution.adoc[how the Mill build tool supports selec
 
 // end::header[]
 
-## Large Codebases
+== Large Codebases
 
 Although codebases can be large, in any large codebase you are typically only working on
 a fraction of it at any point in time. As an example that we will use throughout this
@@ -64,7 +63,7 @@ Although the codebase described above is just an example, it reflects the kind o
 codebase structure that exists in many real-world codebases. Using this example,
 let us now consider a few ways in which selective testing can be used.
 
-## No Selective Testing
+== No Selective Testing
 
 Most software projects start off naively running every test on every pull-request
 to validate the changes. For small projects this is fine. Every project starts
@@ -98,13 +97,14 @@ slowing down day to day development. At that point, the first thing people reach
 some kind of folder-based selective testing.
 
 
-## Folder-based Selective Testing
+== Folder-based Selective Testing
 
 Typically, in any large codebase, most work happens within a single part of it: e.g. a
 developer may be working on `backend_service_1`, another may be working on `frontend_web_2`.
 The obvious thing to do would be make sure each module is in its own folder, e.g.
 
-```
+[source]
+----
 my_repo/
     backend_service_1/
     backend_service_2/
@@ -117,7 +117,7 @@ my_repo/
     deployment_2/
     deployment_3/
     ...
-```
+----
 
 To do simple module-based selective execution generally involves:
 
@@ -162,7 +162,7 @@ that it's tolerable. But as the development organization grows beyond 100, these
 affect more and more people and become more and more painful. To resolve this, we need
 something more sophisticated.
 
-## Dependency-based Selective Testing
+== Dependency-based Selective Testing
 
 To solve the problem of code changes potentially breaking downstream modules, we need to make
 sure that for every code change, we run both the tests for that module as well as every downstream
@@ -230,7 +230,8 @@ _"which modules depend on which other modules"_.
   as well as what command in the underlying build tool you need to run
   in order to test that module (`sbt_test_goals`):
 
-```python
+[source,python]
+----
 tags = Module(
     name="tags",
     dependencies=[],
@@ -252,7 +253,7 @@ kvstore = Module(
 )
 
 ...
-```
+----
 
 * In a larger project maintaining this information by hand is tedious and error prone,
   so it is better to get the information from your build tool that already has it
@@ -267,7 +268,7 @@ Although the implementation is different, this caching-based approach largely ha
 same behavioral and performance characteristics as the ``git diff``-based approach
 to dependency-based selective testing.
 
-### Limitations of Dependency-based Selective Testing
+=== Limitations of Dependency-based Selective Testing
 
 Dependency-based selective test execution can get you pretty far: 100s to 1,000 developers
 working on a shared codebase. But it still has weaknesses, and as the number of
@@ -381,13 +382,13 @@ Running more tests to display more breakages is usually a waste of time and reso
 although dependency-based selective testing helps, it still falls short of the ideal of how a CI
 system should behave.
 
-## Heuristic-based Selective Testing
+== Heuristic-based Selective Testing
 
 The next stage of selective testing that most teams encounter is using heuristics: these are
 ad-hoc rules that you put in place to decide what tests to run based on a code change.
 Common heuristics include:
 
-### Limiting Dependency Depth
+=== Limiting Dependency Depth
 
 The chances
 are that a breaking in module X will be caught by X's test suite, or the test suite of
@@ -426,7 +427,7 @@ and test latency. The principle here is that "most" code is tested
 by its own tests and those of its direct dependencies, so running tests for downstream
 folders which are too far removed in the dependency graph is "generally" not useful.
 
-### Hard-coding Dependency Relationships
+=== Hard-coding Dependency Relationships
 
 For example if I change `deployment_1`, I can choose to ignore the `staging_environment`
 when finding downstream tests, and only run `end_to_end_test_1` since it is end-to-end
@@ -479,7 +480,7 @@ Fundamentally, tweaking magic configuration values to try and optimize an unclea
 result is not a good use of developer time, but in some cases doing so may be necessary 
 in large codebases to keep pull-request validation time and cost under control.
 
-### Machine-Learning-based Selective Testing
+=== Machine-Learning-based Selective Testing
 
 The last option I've seen in the wild is machine-learning based test selection. This
 has two steps:
@@ -505,7 +506,7 @@ someone <<Hard-coding Dependency Relationships>> decided on the exact hard-coded
 ended up choosing.
 
 
-### Limitations of Heuristics
+=== Limitations of Heuristics
 
 The nature of heuristics is that they are _approximate_. That means that it is possible
 both that we run too may tests and waste time, and also that we run too few tests and allow
@@ -523,7 +524,7 @@ The heuristics also do not need to be 100% precise, and as long as they are prec
 the time saved skipping tests outweighs the time spend dealing with post-merge breakages, it
 still ends up being worth it.
 
-## Selective Testing in Mill
+== Selective Testing in Mill
 
 The Mill build tool's xref:mill::large/selective-execution.adoc[Selective Test Execution]
 supports <<Dependency-based Selective Testing>> out of the box. This makes it easy to set up

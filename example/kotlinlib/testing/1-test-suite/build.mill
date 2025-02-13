@@ -10,7 +10,7 @@ object foo extends KotlinModule {
 
   object test extends KotlinTests {
     def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-    def ivyDeps = Agg(
+    def ivyDeps = Seq(
       ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
       ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
@@ -36,7 +36,7 @@ object bar extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
       ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )

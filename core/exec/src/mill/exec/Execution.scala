@@ -1,7 +1,7 @@
 package mill.exec
 
-import mill.api.Result.{Aborted, Failing}
-import mill.api.Strict.Agg
+import mill.api.ExecResult.{Aborted, Failing}
+
 import mill.api._
 import mill.define._
 import mill.internal.{PrefixLogger, MultiBiMap}
@@ -14,19 +14,35 @@ import scala.concurrent._
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
-private[mill] trait ExecutionCore extends GroupExecution {
+private[mill] case class Execution(
+    val baseLogger: ColorLogger,
+    val chromeProfileLogger: ChromeProfileLogger,
+    val profileLogger: ProfileLogger,
+    val home: os.Path,
+    val workspace: os.Path,
+    val outPath: os.Path,
+    val externalOutPath: os.Path,
+    val rootModule: BaseModule,
+    val classLoaderSigHash: Int,
+    val classLoaderIdentityHash: Int,
+    val workerCache: mutable.Map[Segments, (Int, Val)],
+    val env: Map[String, String],
+    val failFast: Boolean,
+    val threadCount: Option[Int],
+    val methodCodeHashSignatures: Map[String, Int],
+    val systemExit: Int => Nothing,
+    val exclusiveSystemStreams: SystemStreams
+) extends GroupExecution with AutoCloseable {
 
-  def baseLogger: ColorLogger
-  protected[exec] def chromeProfileLogger: ChromeProfileLogger
-  protected[exec] def profileLogger: ProfileLogger
+  def withBaseLogger(newBaseLogger: ColorLogger) = this.copy(baseLogger = newBaseLogger)
 
   /**
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
    * @param testReporter Listener for test events like start, finish with success/error
    */
-  def evaluate(
-      goals: Agg[Task[?]],
+  def executeTasks(
+      goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
@@ -48,19 +64,19 @@ private[mill] trait ExecutionCore extends GroupExecution {
       sortedGroups: MultiBiMap[Task[?], Task[?]],
       results: Map[Task[?], TaskResult[(Val, Int)]]
   ): MultiBiMap.Mutable[Task[?], Failing[Val]] = {
-    val failing = new MultiBiMap.Mutable[Task[?], Result.Failing[Val]]
+    val failing = new MultiBiMap.Mutable[Task[?], ExecResult.Failing[Val]]
     for ((k, vs) <- sortedGroups.items()) {
-      val failures = vs.items.flatMap(results.get).collect {
-        case TaskResult(f: Result.Failing[(Val, Int)], _) => f.map(_._1)
+      val failures = vs.flatMap(results.get).collect {
+        case TaskResult(f: ExecResult.Failing[(Val, Int)], _) => f.map(_._1)
       }
 
-      failing.addAll(k, Loose.Agg.from(failures))
+      failing.addAll(k, Seq.from(failures))
     }
     failing
   }
 
   private def evaluate0(
-      goals: Agg[Task[?]],
+      goals: Seq[Task[?]],
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
@@ -71,7 +87,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
 
     val threadNumberer = new ThreadNumberer()
     val plan = Plan.plan(goals)
-    val interGroupDeps = ExecutionCore.findInterGroupDeps(plan.sortedGroups)
+    val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
     val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
@@ -109,7 +125,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
         val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
 
         if (!terminal.isExclusiveCommand && exclusiveDeps.nonEmpty) {
-          val failure = Result.Failure(
+          val failure = ExecResult.Failure(
             s"Non-exclusive task ${terminal} cannot depend on exclusive task " +
               exclusiveDeps.mkString(", ")
           )
@@ -142,10 +158,10 @@ private[mill] trait ExecutionCore extends GroupExecution {
 
                 // should we log progress?
                 val inputResults = for {
-                  target <- group.indexed.filterNot(upstreamResults.contains)
+                  target <- group.toIndexedSeq.filterNot(upstreamResults.contains)
                   item <- target.inputs.filterNot(group.contains)
                 } yield upstreamResults(item).map(_._1)
-                val logRun = inputResults.forall(_.result.isInstanceOf[Result.Success[?]])
+                val logRun = inputResults.forall(_.result.isInstanceOf[ExecResult.Success[?]])
 
                 val tickerPrefix = if (logRun && logger.enableTicker) terminal.toString else ""
 
@@ -157,9 +173,9 @@ private[mill] trait ExecutionCore extends GroupExecution {
                   noPrefix = exclusive
                 )
 
-                val res = evaluateGroupCached(
+                val res = executeGroupCached(
                   terminal = terminal,
-                  group = plan.sortedGroups.lookupKey(terminal),
+                  group = plan.sortedGroups.lookupKey(terminal).toSeq,
                   results = upstreamResults,
                   countMsg = countMsg,
                   verboseKeySuffix = verboseKeySuffix,
@@ -206,7 +222,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
       case _ => true
     }
 
-    val tasksTransitive = Plan.transitiveTargets(Agg.from(tasks0)).toSet
+    val tasksTransitive = Plan.transitiveTargets(Seq.from(tasks0)).toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
       case t: NamedTask[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
@@ -242,21 +258,26 @@ private[mill] trait ExecutionCore extends GroupExecution {
 
     val results: Map[Task[?], TaskResult[(Val, Int)]] = results0.toMap
 
-    ExecutionCore.Results(
-      goals.indexed.map(results(_).map(_._1).result),
+    Execution.Results(
+      goals.toIndexedSeq.map(results(_).map(_._1).result),
       // result of flatMap may contain non-distinct entries,
       // so we manually clean it up before converting to a `Strict.Agg`
       // see https://github.com/com-lihaoyi/mill/issues/2958
-      Strict.Agg.from(
+      Seq.from(
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).iterator.distinct
       ),
       getFailing(plan.sortedGroups, results).items().map { case (k, v) => (k, v.toSeq) }.toMap,
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
+
+  def close(): Unit = {
+    chromeProfileLogger.close()
+    profileLogger.close()
+  }
 }
 
-private[mill] object ExecutionCore {
+private[mill] object Execution {
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
       : Map[Task[?], Seq[Task[?]]] = {
     sortedGroups
@@ -272,9 +293,9 @@ private[mill] object ExecutionCore {
       .toMap
   }
   case class Results(
-      rawValues: Seq[Result[Val]],
-      evaluated: Agg[Task[?]],
-      failing: Map[Task[?], Seq[Result.Failing[Val]]],
+      rawValues: Seq[ExecResult[Val]],
+      evaluated: Seq[Task[?]],
+      failing: Map[Task[?], Seq[ExecResult.Failing[Val]]],
       results: Map[Task[?], TaskResult[Val]]
   ) extends ExecResults
 }

@@ -223,9 +223,10 @@ trait AndroidAppModule extends JavaModule {
     val aarFiles = (super.compileClasspath() ++ super.resolvedRunIvyDeps())
       .map(_.path)
       .filter(_.ext == "aar")
+      .distinct
 
     // TODO do it in some shared location, otherwise each module is doing the same, having its own copy for nothing
-    extractAarFiles(aarFiles.toSeq, Task.dest)
+    extractAarFiles(aarFiles, Task.dest)
   }
 
   final def extractAarFiles(aarFiles: Seq[os.Path], taskDest: os.Path): Seq[UnpackedDep] = {
@@ -273,7 +274,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   @internal
-  override def bspCompileClasspath: T[Agg[UnresolvedPath]] = Task {
+  override def bspCompileClasspath: T[Seq[UnresolvedPath]] = Task {
     compileClasspath().map(_.path).map(UnresolvedPath.ResolvedPath(_))
   }
 
@@ -286,13 +287,15 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Replaces AAR files in classpath with their extracted JARs.
    */
-  override def compileClasspath: T[Agg[PathRef]] = Task {
+  override def compileClasspath: T[Seq[PathRef]] = Task {
     val jarFiles = androidUnpackArchives().flatMap(_.classesJar) ++
       // need to filter, because it may include aar files, which are covered by androidUnpackArchives already
       super.resolvedRunIvyDeps().filter(_.path.ext == "jar")
     // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
     // TODO support baseline profiles shipped with Android libs.
-    super.compileClasspath().filter(_.path.ext != "aar") ++ jarFiles
+    (super.compileClasspath().filter(_.path.ext != "aar") ++ jarFiles).map(
+      _.path
+    ).distinct.map(PathRef(_))
   }
 
   /**
@@ -325,7 +328,7 @@ trait AndroidAppModule extends JavaModule {
 
     val localResources = resources().map(_.path).filter(os.exists)
 
-    val allResources = localResources ++ transitiveResources
+    val allResources = (localResources ++ transitiveResources).distinct
 
     for (resDir <- allResources) {
       val segmentsSeq = resDir.segments.toSeq
@@ -415,8 +418,8 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Adds the Android SDK JAR file to the classpath during the compilation process.
    */
-  override def unmanagedClasspath: T[Agg[PathRef]] = Task {
-    Agg(androidSdkModule().androidJarPath())
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
+    Seq(androidSdkModule().androidJarPath())
   }
 
   /**
@@ -424,7 +427,7 @@ trait AndroidAppModule extends JavaModule {
    * the Android resource generation step.
    */
   override def generatedSources: T[Seq[PathRef]] = Task {
-    Seq(PathRef(androidResources()._1.path / rClassDirName)) ++ androidLibsRClasses()
+    androidLibsRClasses()
   }
 
   /**
@@ -572,9 +575,9 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Classpath for the manifest merger run.
    */
-  def manifestMergerClasspath: T[Agg[PathRef]] = Task {
+  def manifestMergerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
       )
     )
@@ -702,7 +705,9 @@ trait AndroidAppModule extends JavaModule {
     val mainRClass = os.read(mainRClassPath)
     val libsPackages = androidUnpackArchives()
       .flatMap(_.manifest)
-      .map(f => ((XML.loadFile(f.path.toIO) \\ "manifest").head \ "@package").head.toString())
+      .map(_.path)
+      .map(path => ((XML.loadFile(path.toIO) \\ "manifest").head \ "@package").head.toString())
+      .distinct
 
     val libClasses: Seq[PathRef] = for {
       libPackage <- libsPackages
