@@ -10,16 +10,16 @@ object DiscoverTests extends TestSuite {
       val expected = targets.map(_(m)).toSet
       assert(discovered == expected)
     }
-//    test("singleton") {
-//      check(testGraphs.singleton)(_.single)
-//    }
-//    test("backtickIdentifiers") {
-//      check(testGraphs.bactickIdentifiers)(
-//        _.`up-target`,
-//        _.`a-down-target`,
-//        _.`nested-module`.`nested-target`
-//      )
-//    }
+    test("singleton") {
+      check(testGraphs.singleton)(_.single)
+    }
+    test("backtickIdentifiers") {
+      check(testGraphs.bactickIdentifiers)(
+        _.`up-target`,
+        _.`a-down-target`,
+        _.`nested-module`.`nested-target`
+      )
+    }
     test("separateGroups") {
       check(TestGraphs.triangleTask)(_.left, _.right)
     }
