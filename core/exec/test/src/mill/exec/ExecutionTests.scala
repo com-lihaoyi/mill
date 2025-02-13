@@ -73,7 +73,13 @@ object ExecutionTests extends TestSuite {
         extraEvaled = -1,
         secondRunNoOp = false
       )
-      checker(build.task, "i am cow hear me moo !", Seq(build.source), extraEvaled = -1, secondRunNoOp = false)
+      checker(
+        build.task,
+        "i am cow hear me moo !",
+        Seq(build.source),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
       os.write.over(build.moduleDir / "hello/world.txt", "I AM COW ")
 
       checker(

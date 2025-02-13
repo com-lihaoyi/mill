@@ -9,7 +9,7 @@ import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, nonStrin
 import utest.*
 
 object CrossTests extends TestSuite {
-  
+
   object crossExtension extends TestBaseModule {
     object myCross extends Cross[MyCrossModule]("a", "b")
     trait MyCrossModule extends Cross.Module[String] {
@@ -69,7 +69,7 @@ object CrossTests extends TestSuite {
     }
     lazy val millDiscover = Discover[this.type]
   }
-  
+
   val tests = Tests {
     test("singleCross") {
       val check = UnitTester(singleCross, null)

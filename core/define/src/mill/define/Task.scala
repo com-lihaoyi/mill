@@ -507,7 +507,7 @@ object TaskMacros {
       persistent: Expr[Boolean]
   ): Expr[Target[T]] = {
     val expr = appImpl[Target, T](
-      (in, ev) => '{ new TargetImpl[T]($in, $ev, $ctx, $rw, ${taskIsPrivate()}, $persistent) },
+      (in, ev) => '{ new TargetImpl[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
       t
     )
 
@@ -522,7 +522,7 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx]
   ): Expr[Target[Seq[PathRef]]] = {
     val expr = appImpl[Target, Seq[PathRef]](
-      (in, ev) => '{ new SourcesImpl($in, $ev, $ctx, ${taskIsPrivate()}) },
+      (in, ev) => '{ new SourcesImpl($in, $ev, $ctx, ${ taskIsPrivate() }) },
       values
     )
     Cacher.impl0(expr)
@@ -534,9 +534,8 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx]
   ): Expr[Target[PathRef]] = {
 
-    
     val expr = appImpl[Target, PathRef](
-      (in, ev) => '{ new SourceImpl($in, $ev, $ctx, ${taskIsPrivate()}) },
+      (in, ev) => '{ new SourceImpl($in, $ev, $ctx, ${ taskIsPrivate() }) },
       value
     )
     Cacher.impl0(expr)
@@ -549,9 +548,9 @@ object TaskMacros {
       w: Expr[upickle.default.Writer[T]],
       ctx: Expr[mill.define.Ctx]
   ): Expr[Target[T]] = {
-    
+
     val expr = appImpl[Target, T](
-      (in, ev) => '{ new InputImpl[T]($in, $ev, $ctx, $w, ${taskIsPrivate()}) },
+      (in, ev) => '{ new InputImpl[T]($in, $ev, $ctx, $w, ${ taskIsPrivate() }) },
       value
     )
     Cacher.impl0(expr)
@@ -565,9 +564,10 @@ object TaskMacros {
       exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {
     appImpl[Command, T](
-      (in, ev) => '{ 
-        new Command[T]($in, $ev, $ctx, $w, ${taskIsPrivate()}, exclusive = $exclusive)
-       },
+      (in, ev) =>
+        '{
+          new Command[T]($in, $ev, $ctx, $w, ${ taskIsPrivate() }, exclusive = $exclusive)
+        },
       t
     )
   }
@@ -577,9 +577,9 @@ object TaskMacros {
   )(t: Expr[Result[T]])(
       ctx: Expr[mill.define.Ctx]
   ): Expr[Worker[T]] = {
-    
+
     val expr = appImpl[Worker, T](
-      (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${taskIsPrivate()}) }, 
+      (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
       t
     )
     Cacher.impl0(expr)
