@@ -9,17 +9,14 @@ trait CosmopolitanModule extends mill.Module with AssemblyModule {
 
   def cosmoccVersion: T[String] = Task { "" }
 
-  def cosmoccZip: T[PathRef] = Task(persistent = true) {
+  def cosmocc: T[PathRef] = Task(persistent = true) {
     val version = if (cosmoccVersion().isEmpty) "" else s"-${cosmoccVersion()}"
     os.write(
       Task.dest / "cosmocc.zip",
-      requests.get(s"https://cosmo.zip/pub/cosmocc/cosmocc${version}.zip")
+      requests.get.stream(s"https://cosmo.zip/pub/cosmocc/cosmocc${version}.zip")
     )
-    PathRef(Task.dest / "cosmocc.zip")
-  }
 
-  def cosmocc: T[PathRef] = Task {
-    os.call(("unzip", cosmoccZip().path, "-d", Task.dest / "cosmocc"))
+    os.call(("unzip", Task.dest / "cosmocc.zip", "-d", Task.dest / "cosmocc"))
     PathRef(Task.dest / "cosmocc" / "bin" / "cosmocc")
   }
 
