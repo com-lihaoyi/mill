@@ -2,6 +2,7 @@ package mill.define
 
 import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
 import mill.define.internal.Applicative.Applyable
+import mill.define.internal.Cacher
 import upickle.default.{ReadWriter as RW, Writer as W}
 import TaskBase.TraverseCtxHolder
 import mill.define.internal.{Applicative, NamedParameterOnlyDummy}
@@ -127,7 +128,7 @@ object Task extends TaskBase {
   inline def Command[T](inline t: Result[T])(implicit
       inline w: W[T],
       inline ctx: mill.define.Ctx
-  ): Command[T] = ${ Target.Internal.commandImpl[T]('t)('w, 'ctx, 'this) }
+  ): Command[T] = ${ Target.Internal.commandImpl[T]('t)('w, 'ctx, 'this, exclusive = '{false}) }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -145,7 +146,7 @@ object Task extends TaskBase {
     inline def apply[T](inline t: Result[T])(implicit
         inline w: W[T],
         inline ctx: mill.define.Ctx
-    ): Command[T] = ${ Target.Internal.serialCommandImpl[T]('t)('w, 'ctx, 'this) }
+    ): Command[T] = ${ Target.Internal.commandImpl[T]('t)('w, 'ctx, 'this, '{this.exclusive}) }
   }
 
   /**
@@ -302,9 +303,16 @@ object Target extends TaskBase {
     ${ Internal.targetResultImpl[T]('t)('rw, 'ctx, 'this) }
 
   object Internal {
+    def appImpl[T: Type](using
+                          Quotes
+                         )(
+                           traverseCtx: (Expr[Seq[Task[Any]]], Expr[(IndexedSeq[Any], mill.api.Ctx) => Result[T]]) => Expr[Task[T]],
+                           t: Expr[Result[T]]
+                         ): Expr[Task[T]]
+    = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtx, t)
 
     private def isPrivateTargetOption()(using Quotes): Expr[Option[Boolean]] =
-      mill.define.internal.Cacher.withMacroOwner {
+      Cacher.withMacroOwner {
         owner =>
           import quotes.reflect.*
           if owner.flags.is(Flags.Private) then Expr(Some(true))
@@ -320,7 +328,7 @@ object Target extends TaskBase {
     def anonTaskImpl[T: Type](t: Expr[Result[T]])(
         caller: Expr[TraverseCtxHolder]
     )(using Quotes): Expr[Task[T]] = {
-      Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
+      appImpl[T](traverseCtxExpr(caller), t)
     }
 
     def targetResultImpl[T: Type](using
@@ -331,19 +339,8 @@ object Target extends TaskBase {
         caller: Expr[TraverseCtxHolder]
     ): Expr[Target[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
-
-      val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
-
-      mill.define.internal.Cacher.impl0[Target[T]](
-        '{
-          new TargetImpl[T](
-            $lhs,
-            $ctx,
-            $rw,
-            $taskIsPrivate
-          )
-        }
-      )
+      val lhs = appImpl[T](traverseCtxExpr(caller), t)
+      Cacher.impl0[Target[T]]('{ new TargetImpl[T]($lhs, $ctx, $rw, $taskIsPrivate) })
     }
 
     def persistentTargetResultImpl[T: Type](using
@@ -354,24 +351,12 @@ object Target extends TaskBase {
         caller: Expr[Task.ApplyFactory]
     ): Expr[Target[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
-      val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
+      val lhs = appImpl[T](traverseCtxExpr(caller), t)
 
-      mill.define.internal.Cacher.impl0[Target[T]](
+      Cacher.impl0(
         '{
-          if $caller.persistent then
-            new PersistentImpl[T](
-              $lhs,
-              $ctx,
-              $rw,
-              $taskIsPrivate
-            )
-          else
-            new TargetImpl[T](
-              $lhs,
-              $ctx,
-              $rw,
-              $taskIsPrivate
-            )
+          if $caller.persistent then new PersistentImpl[T]($lhs, $ctx, $rw, $taskIsPrivate)
+          else new TargetImpl[T]($lhs,  $ctx,  $rw,  $taskIsPrivate)
         }
       )
     }
@@ -387,21 +372,12 @@ object Target extends TaskBase {
 
       val wrapped =
         for (value <- unwrapped.toList)
-          yield Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](
-            traverseCtxExpr(caller),
-            '{ $value.map(PathRef(_)) }
-          )
+          yield appImpl[PathRef](traverseCtxExpr(caller), '{ $value.map(PathRef(_)) })
 
       val taskIsPrivate = isPrivateTargetOption()
 
-      mill.define.internal.Cacher.impl0[SourcesImpl](
-        '{
-          new SourcesImpl(
-            Target.sequence(List(${ Varargs(wrapped) }*)),
-            $ctx,
-            $taskIsPrivate
-          )
-        }
+      Cacher.impl0(
+        '{ new SourcesImpl(Target.sequence(List(${ Varargs(wrapped) }*)), $ctx, $taskIsPrivate) }
       )
     }
 
@@ -414,21 +390,9 @@ object Target extends TaskBase {
         caller: Expr[TraverseCtxHolder]
     ): Expr[Target[Seq[PathRef]]] = {
       val taskIsPrivate = isPrivateTargetOption()
+      val lhs = appImpl[Seq[PathRef]](traverseCtxExpr(caller), values)
 
-      val lhs = Applicative.impl[Task, Task, Result, Seq[PathRef], mill.api.Ctx](
-        traverseCtxExpr(caller),
-        values
-      )
-
-      mill.define.internal.Cacher.impl0[SourcesImpl](
-        '{
-          new SourcesImpl(
-            $lhs,
-            $ctx,
-            $taskIsPrivate
-          )
-        }
-      )
+      Cacher.impl0('{ new SourcesImpl($lhs, $ctx, $taskIsPrivate) })
     }
 
     def sourcesImpl3(using
@@ -442,21 +406,15 @@ object Target extends TaskBase {
 
       val wrapped =
         for (value <- unwrapped.toList)
-          yield Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](
+          yield appImpl[PathRef](
             traverseCtxExpr(caller),
             '{ PathRef($ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk($value)) }
           )
 
       val taskIsPrivate = isPrivateTargetOption()
 
-      mill.define.internal.Cacher.impl0[SourcesImpl](
-        '{
-          new SourcesImpl(
-            Target.sequence(List(${ Varargs(wrapped) }*)),
-            $ctx,
-            $taskIsPrivate
-          )
-        }
+      Cacher.impl0(
+        '{ new SourcesImpl(Target.sequence(List(${ Varargs(wrapped) }*)), $ctx, $taskIsPrivate) }
       )
     }
 
@@ -466,23 +424,9 @@ object Target extends TaskBase {
         ctx: Expr[mill.define.Ctx],
         caller: Expr[TraverseCtxHolder]
     ): Expr[Target[PathRef]] = {
-      val wrapped =
-        Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](
-          traverseCtxExpr(caller),
-          '{ $value.map(PathRef(_)) }
-        )
-
+      val wrapped = appImpl[PathRef](traverseCtxExpr(caller), '{ $value.map(PathRef(_)) })
       val taskIsPrivate = isPrivateTargetOption()
-
-      mill.define.internal.Cacher.impl0[Target[PathRef]](
-        '{
-          new SourceImpl(
-            $wrapped,
-            $ctx,
-            $taskIsPrivate
-          )
-        }
-      )
+      Cacher.impl0('{ new SourceImpl($wrapped, $ctx, $taskIsPrivate) })
     }
 
     def sourceImpl2(using
@@ -492,18 +436,8 @@ object Target extends TaskBase {
         caller: Expr[TraverseCtxHolder]
     ): Expr[Target[PathRef]] = {
       val taskIsPrivate = isPrivateTargetOption()
-
-      val lhs =
-        Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](traverseCtxExpr(caller), value)
-      mill.define.internal.Cacher.impl0[Target[PathRef]](
-        '{
-          new SourceImpl(
-            $lhs,
-            $ctx,
-            $taskIsPrivate
-          )
-        }
-      )
+      val lhs = appImpl[PathRef](traverseCtxExpr(caller), value)
+      Cacher.impl0('{ new SourceImpl($lhs, $ctx, $taskIsPrivate) })
     }
 
     def sourceImpl3(using
@@ -513,22 +447,13 @@ object Target extends TaskBase {
         caller: Expr[TraverseCtxHolder]
     ): Expr[Target[PathRef]] = {
       val wrapped =
-        Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](
+        appImpl[PathRef](
           traverseCtxExpr(caller),
           '{ PathRef($ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk($value)) }
         )
 
       val taskIsPrivate = isPrivateTargetOption()
-
-      mill.define.internal.Cacher.impl0[Target[PathRef]](
-        '{
-          new SourceImpl(
-            $wrapped,
-            $ctx,
-            $taskIsPrivate
-          )
-        }
-      )
+      Cacher.impl0('{ new SourceImpl($wrapped, $ctx, $taskIsPrivate) })
     }
 
     def inputImpl[T: Type](using
@@ -539,73 +464,22 @@ object Target extends TaskBase {
         caller: Expr[TraverseCtxHolder]
     ): Expr[Target[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
-      val lhs =
-        Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), value)
-
-      mill.define.internal.Cacher.impl0[InputImpl[T]](
-        '{
-          new InputImpl[T](
-            $lhs,
-            $ctx,
-            $w,
-            $taskIsPrivate
-          )
-        }
-      )
+      val lhs = appImpl[T](traverseCtxExpr(caller), value)
+      Cacher.impl0('{ new InputImpl[T]($lhs, $ctx, $w, $taskIsPrivate) })
     }
+
 
     def commandImpl[T: Type](using
-        Quotes
+                             Quotes
     )(t: Expr[Result[T]])(
         w: Expr[W[T]],
         ctx: Expr[mill.define.Ctx],
-        caller: Expr[TraverseCtxHolder]
+        caller: Expr[TraverseCtxHolder],
+        exclusive: Expr[Boolean]
     ): Expr[Command[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
-
-      val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
-      '{
-        new Command[T](
-          $lhs,
-          $ctx,
-          $w,
-          $taskIsPrivate,
-          exclusive = false
-        )
-      }
-    }
-
-    def serialCommandImpl[T: Type](using
-        Quotes
-    )(t: Expr[Result[T]])(
-        w: Expr[W[T]],
-        ctx: Expr[mill.define.Ctx],
-        caller: Expr[Task.CommandFactory]
-    ): Expr[Command[T]] = {
-      val taskIsPrivate = isPrivateTargetOption()
-
-      val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
-      '{
-        new Command[T](
-          $lhs,
-          $ctx,
-          $w,
-          $taskIsPrivate,
-          exclusive = $caller.exclusive
-        )
-      }
-    }
-
-    def workerImpl1[T: Type](using
-        Quotes
-    )(t: Expr[Task[T]])(ctx: Expr[mill.define.Ctx]): Expr[Worker[T]] = {
-      val taskIsPrivate = isPrivateTargetOption()
-
-      mill.define.internal.Cacher.impl0[Worker[T]](
-        '{
-          new Worker[T]($t, $ctx, $taskIsPrivate)
-        }
-      )
+      val lhs = appImpl[T](traverseCtxExpr(caller), t)
+      '{ new Command[T]($lhs, $ctx, $w, $taskIsPrivate, exclusive = $exclusive) }
     }
 
     def workerImpl2[T: Type](using
@@ -615,21 +489,10 @@ object Target extends TaskBase {
         caller: Expr[TraverseCtxHolder]
     ): Expr[Worker[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
-
-      val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
-
-      mill.define.internal.Cacher.impl0[Worker[T]](
-        '{
-          new Worker[T](
-            $lhs,
-            $ctx,
-            $taskIsPrivate
-          )
-        }
-      )
+      val lhs = appImpl[T](traverseCtxExpr(caller), t)
+      Cacher.impl0('{ new Worker[T]($lhs, $ctx, $taskIsPrivate) })
     }
   }
-
 }
 
 /**
@@ -793,22 +656,9 @@ class InputImpl[T](
 }
 
 class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends InputImpl[Seq[PathRef]](
-      t,
-      ctx0,
-      upickle.default.readwriter[Seq[PathRef]],
-      isPrivate
-    ) {
-  override def readWriterOpt: Some[RW[Seq[PathRef]]] =
-    Some(upickle.default.readwriter[Seq[PathRef]])
+    extends InputImpl[Seq[PathRef]](t, ctx0, upickle.default.readwriter[Seq[PathRef]], isPrivate) {
 }
 
 class SourceImpl(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends InputImpl[PathRef](
-      t,
-      ctx0,
-      upickle.default.readwriter[PathRef],
-      isPrivate
-    ) {
-  override def readWriterOpt: Some[RW[PathRef]] = Some(upickle.default.readwriter[PathRef])
+    extends InputImpl[PathRef](t, ctx0, upickle.default.readwriter[Seq[PathRef]], isPrivate) {
 }
