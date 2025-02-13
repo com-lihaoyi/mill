@@ -1,7 +1,7 @@
 package mill
 package javalib.spotless
 
-import mill.api.{Loose, PathRef}
+import mill.api.PathRef
 import mill.scalalib.{CoursierModule, DepSyntax}
 import java.util.Set
 import java.util.stream.Collectors
@@ -30,7 +30,7 @@ trait SpotlessModule extends CoursierModule {
   /**
    * Classpath for running any of the formatters supported by Spotless.
    */
-  def jvmLangLibClasspath: T[Loose.Agg[PathRef]]
+  def jvmLangLibClasspath: T[Seq[PathRef]]
 
   /**
    * Formats source files.
@@ -38,7 +38,7 @@ trait SpotlessModule extends CoursierModule {
    * @param check if an exception should be raised when formatting errors are found
    *              - when set, files are not formatted
    * @param sources list of file or folder path(s) to be processed
-   *                - path must be relative to [[millSourcePath]]
+   *                - path must be relative to [[moduleDir]]
    *                - when empty, all [[sources]] are processed
    */
   def spotless(
@@ -49,7 +49,7 @@ trait SpotlessModule extends CoursierModule {
     val settings = jvmLangConfig
 
     val steps = settings.getSteps(
-      PathRef(millSourcePath).path,
+      PathRef(moduleDir).path,
       new Provisioner {
         def provisionWithTransitives(
             withTransitives: Boolean,
@@ -61,8 +61,8 @@ trait SpotlessModule extends CoursierModule {
     )
 
     val _sources =
-      if (sources.value.isEmpty) Seq(PathRef(millSourcePath))
-      else sources.value.iterator.map(rel => PathRef(millSourcePath / os.RelPath(rel)))
+      if (sources.value.isEmpty) Seq(PathRef(moduleDir))
+      else sources.value.iterator.map(rel => PathRef(moduleDir / os.RelPath(rel)))
 
     val formatter = Formatter.builder()
       .encoding(StandardCharsets.UTF_8)
@@ -184,9 +184,9 @@ object SpotlessModule {
   /**
    * Resolves classpath requests for all 3rd-party dependencies used by the Spotless library.
    */
-  def provisionWithTransitives(withTransitives: Boolean, classpath: Agg[PathRef]): Set[File] = {
-    val deps: Agg[PathRef] = classpath
-    val files = deps.items.map(pathRef => pathRef.path.toIO.toPath.toFile).toSet.asJava
+  def provisionWithTransitives(withTransitives: Boolean, classpath: Seq[PathRef]): Set[File] = {
+    val deps: Seq[PathRef] = classpath
+    val files = deps.map(pathRef => pathRef.path.toIO.toPath.toFile).toSet.asJava
     files
   }
 }
@@ -198,7 +198,7 @@ trait JavaSpotlessModule extends SpotlessModule {
    * - Google Java Format
    * - Palantir Java Format
    */
-  def jvmLangLibClasspath: T[Loose.Agg[PathRef]] = Task {
+  def jvmLangLibClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"com.google.googlejavaformat:google-java-format:${googleJavaFormatVersion()}",
@@ -229,7 +229,7 @@ trait KotlinSpotlessModule extends SpotlessModule {
    * - Ktfmt
    * - ktlint
    */
-  def jvmLangLibClasspath: T[Loose.Agg[PathRef]] = Task {
+  def jvmLangLibClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"com.facebook:ktfmt:${ktfmtVersion()}",
@@ -258,7 +258,7 @@ trait ScalaSpotlessModule extends SpotlessModule {
   /**
    * Classpath for running Scala Format.
    */
-  def jvmLangLibClasspath: T[Loose.Agg[PathRef]] = Task {
+  def jvmLangLibClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(ivy"org.scalameta:scalafmt-core_2.13:${scalafmtVersion()}")
     )

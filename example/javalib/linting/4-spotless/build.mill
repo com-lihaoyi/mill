@@ -12,26 +12,23 @@ import mill.javalib.spotless.{ScalaSpotlessModule, ScalaConfig}
 
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#java
 object `package` extends RootModule with JavaModule with JavaSpotlessModule {
-  val googleFormatter = GoogleJavaFormat()
-    .copy(version = "1.25.2")
-    .copy(aosp = true)
-    .copy(reflowLongStrings = true)
-    .copy(formatJavadoc = false)
-    .copy(reorderImports = false)
-    .copy(groupArtifact = "com.google.googlejavaformat:google-java-format")
+  val googleFormatter = GoogleJavaFormat(
+    version = "1.25.2",
+    aosp = true,
+    reflowLongStrings = true,
+    formatJavadoc = false,
+    reorderImports = false,
+    groupArtifact = "com.google.googlejavaformat:google-java-format")
 
-  val palantirFormatter = PalantirJavaFormat()
-    .copy(version = "2.50.0")
-    .copy(style = "GOOGLE")
-    .copy(formatJavadoc = true)
+  val palantirFormatter = PalantirJavaFormat(
+    version = "2.50.0",
+    style = "GOOGLE",
+    formatJavadoc = true)
 
-  def jvmLangConfig = new JavaConfig()
-    .copy(importOrder = Some(Seq()))
-    .copy(formatter = Some(googleFormatter))
-    .copy(formatter =
-      Some(palantirFormatter)
-    ) // this replaces `googleFormatter` as only 1 `JavaFormatter` can be active
-    .copy(licenseHeader = Some("/* (C) 2025. Licensed under Apache-2.0. */\n"))
+  def jvmLangConfig = new JavaConfig(
+    importOrder = Some(Seq()),
+    formatter = Some(googleFormatter), // either `googleFormatter` or `palantirFormatter` is supported as `JavaFormatter`
+    licenseHeader = Some("/* (C) 2025. Licensed under Apache-2.0. */\n"))
 }
 
 /*
@@ -58,10 +55,12 @@ object `package` extends RootModule with KotlinSpotlessModule {
     manageTrailingCommas = Some(false)
   )
 
-  def jvmLangConfig = KotlinConfig()
-    .copy(ktfmtFlag = true, ktfmtVersion = "0.53")
-    .copy(ktfmtOptions = Some(ktfmtOptions))
-    .copy(ktlintFlag = true, ktlintVersion = "1.5.0")
+  def jvmLangConfig = KotlinConfig(
+    ktfmtFlag = true,
+    ktfmtVersion = "0.53",
+    ktfmtOptions = Some(ktfmtOptions),
+    ktlintFlag = true,
+    ktlintVersion = "1.5.0")
 }
  */
 
