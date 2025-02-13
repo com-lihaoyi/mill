@@ -104,7 +104,7 @@ case class ModuleTask[+T](module: Module) extends NamedTask[T] {
   override def ctx0: Ctx = module.moduleCtx
   override def isPrivate: Option[Boolean] = None
 
-  override val inputs: Seq[Task[_]] = ???
+  override val inputs: Seq[Task[_]] = Nil
 
   override def evaluate0: (Seq[Any], api.Ctx) => Result[T] = ???
 }
