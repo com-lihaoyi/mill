@@ -68,20 +68,22 @@ object `package` extends RootModule with build.MillStableScalaModule {
       BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
       BuildInfo.Value(
         "sbtTestInterface",
-        build.Deps.RuntimeDeps.sbtTestInterface.pipe { d =>
-          s"${d.dep.module.organization.value}:${d.dep.module.name.value}:${d.version}"
-        },
+        Dep.unparse(build.Deps.RuntimeDeps.sbtTestInterface).get,
         "Dependency sbt-test-interface"
       ),
       BuildInfo.Value(
         "jupiterInterface",
-        build.Deps.RuntimeDeps.jupiterInterface.pipe { d =>
-          s"${d.dep.module.organization.value}:${d.dep.module.name.value}:${d.version}"
-        },
+        Dep.unparse(build.Deps.RuntimeDeps.jupiterInterface).get,
         "Dependency to jupiter-interface"
       ),
       BuildInfo.Value("errorProneVersion", build.Deps.RuntimeDeps.errorProneCore.version),
-      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
+      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
+      BuildInfo.Value(
+        "revApiVersion",
+        build.Deps.RuntimeDeps.revApi.version,
+        "Version of revApi"
+      )
+
     )
   }
 
