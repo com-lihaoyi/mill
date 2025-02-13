@@ -125,11 +125,8 @@ trait CosmopolitanModule extends mill.Module with AssemblyModule {
     ) {
       Result.Failure(
         s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
-           |JARs of that size are known to not work correctly with a prepended shell script.
-           |Either reduce the entries count of the assembly or disable the prepended shell script with:
-           |
-           |  def prependShellScript = ""
-           |""".stripMargin
+           |Prepended JARs of that size are known to not work correctly.
+         """.stripMargin
       )
     } else {
       Result.Success(created.pathRef)
