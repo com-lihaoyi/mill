@@ -144,13 +144,16 @@ object Task extends TaskBase {
    *                  run directly to perform some action or display some output
    *                  to the user.
    */
-  inline def Command[T](
-      dummy: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+  def Command(
+      t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false
-  )(inline t: Result[T])(implicit
-      inline w: W[T],
-      inline ctx: mill.define.Ctx
-  ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, 'this, 'exclusive) }
+  ): CommandFactory = new CommandFactory(exclusive)
+  class CommandFactory private[mill] (val exclusive: Boolean) extends TaskBase.TraverseCtxHolder {
+    inline def apply[T](inline t: Result[T])(implicit
+        inline w: W[T],
+        inline ctx: mill.define.Ctx
+    ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, 'this, '{ this.exclusive }) }
+  }
 
   /**
    * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
@@ -197,13 +200,16 @@ object Task extends TaskBase {
    * that it computes the same result whether or not there is data in `Task.dest`.
    * Violating that invariant can result in confusing mis-behaviors
    */
-  inline def apply[T](
-      dummy: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+  def apply(
+      t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false
-  )(inline t: Result[T])(implicit
-      inline rw: RW[T],
-      inline ctx: mill.define.Ctx
-  ): Target[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this, '{ persistent }) }
+  ): ApplyFactory = new ApplyFactory(persistent)
+  class ApplyFactory private[mill] (val persistent: Boolean) extends TaskBase.TraverseCtxHolder {
+    inline def apply[T](inline t: Result[T])(implicit
+        inline rw: RW[T],
+        inline ctx: mill.define.Ctx
+    ): Target[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this, '{ persistent }) }
+  }
 
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
