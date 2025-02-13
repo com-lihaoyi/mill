@@ -11,10 +11,10 @@ object DiscoverTests extends TestSuite {
       assert(discovered == expected)
     }
     test("singleton") {
-      check(testGraphs.singleton)(_.single)
+      check(TestGraphs.singleton)(_.single)
     }
     test("backtickIdentifiers") {
-      check(testGraphs.bactickIdentifiers)(
+      check(TestGraphs.bactickIdentifiers)(
         _.`up-target`,
         _.`a-down-target`,
         _.`nested-module`.`nested-target`
