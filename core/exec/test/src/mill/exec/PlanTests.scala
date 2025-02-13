@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.define.{NamedTask, Task}
+import mill.define.{NamedTask, Target, TargetImpl, Task}
 import mill.util.TestGraphs
 import utest.*
 
@@ -20,6 +20,21 @@ object PlanTests extends TestSuite {
   val tests = Tests {
 
     import TestGraphs._
+    def check(targets: Seq[Task[?]], expected: Seq[Task[?]]) = {
+      val result = Plan.topoSorted(Plan.transitiveTargets(targets)).values
+      checkTopological(result)
+      assert(result == expected)
+    }
+
+    test("singleton") - check(
+      targets = Seq(singleton.single),
+      expected = Seq(singleton.single)
+    )
+
+    test("backtickIdentifiers") - check(
+      targets = Seq(bactickIdentifiers.`a-down-target`),
+      expected = Seq(bactickIdentifiers.`up-target`, bactickIdentifiers.`a-down-target`)
+    )
 
     def countGroups(goals: Task[?]*) = {
 
@@ -32,6 +47,7 @@ object PlanTests extends TestSuite {
       }
       grouped.keyCount
     }
+
     test("triangleTask") {
       // Make sure the following graph ends up as a single group, since although
       // `right` depends on `left`, both of them depend on the un-cached `task`
@@ -56,5 +72,4 @@ object PlanTests extends TestSuite {
       assert(groupCount == 3)
     }
   }
-
 }

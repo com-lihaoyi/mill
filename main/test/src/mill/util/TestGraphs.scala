@@ -9,6 +9,10 @@ import mill.{Module, Task}
  */
 
 object TestGraphs {
+  object singleton extends TestBaseModule {
+    def single = Task{123}
+    lazy val millDiscover = Discover[this.type]
+  }
   object bactickIdentifiers extends TestBaseModule {
     def `up-target` = Task{1}
     def `a-down-target` = Task{ `up-target`() + 2}

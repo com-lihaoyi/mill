@@ -15,14 +15,9 @@ object EvaluationTests extends TestSuite {
     import TestGraphs._
     import utest._
     test("single") {
-      object build extends TestBaseModule {
-        def single = Task { 123 }
-        lazy val millDiscover = Discover[this.type]
-      }
-
-      val checker = new Checker(build)
-      checker(build.single, 123, Seq(build.single), extraEvaled = -1)
-      checker(build.single, 123, Seq(), extraEvaled = -1)
+      val checker = new Checker(singleton)
+      checker(singleton.single, 123, Seq(singleton.single), extraEvaled = -1)
+      checker(singleton.single, 123, Seq(), extraEvaled = -1)
     }
 
     test("source") {

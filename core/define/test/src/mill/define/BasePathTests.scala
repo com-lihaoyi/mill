@@ -24,9 +24,9 @@ object BasePathTests extends TestSuite {
       val remaining = sub.moduleDir.relativeTo(m.moduleDir).segments
       assert(remaining == segments)
     }
-//    test("singleton") {
-//      checkMillSourcePath(testGraphs.singleton)(identity)
-//    }
+    test("singleton") {
+      checkMillSourcePath(TestGraphs.singleton)(identity)
+    }
     test("backtickIdentifiers") {
       checkMillSourcePath(TestGraphs.bactickIdentifiers)(
         _.`nested-module`,
