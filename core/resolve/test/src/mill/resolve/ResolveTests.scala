@@ -89,7 +89,9 @@ object ResolveTests extends TestSuite {
       )
       test("neg5") - check(
         "invisible",
-        Result.Failure("Cannot resolve invisible. Try `mill resolve _` or `mill resolve __.invisible&` to see what's available.")
+        Result.Failure(
+          "Cannot resolve invisible. Try `mill resolve _` or `mill resolve __.invisible&` to see what's available."
+        )
       )
       test("negBadParse") - check(
         "invisible&",

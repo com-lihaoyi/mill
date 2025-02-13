@@ -471,23 +471,23 @@ class SourceImpl(
       isPrivate
     ) {}
 
-
-class AnonImpl[T](val inputs: Seq[Task[_]], evaluate0: (Seq[Any], mill.api.Ctx) => Result[T]) extends Task[T] {
+class AnonImpl[T](val inputs: Seq[Task[_]], evaluate0: (Seq[Any], mill.api.Ctx) => Result[T])
+    extends Task[T] {
   def evaluate(ctx: mill.api.Ctx) = evaluate0(ctx.args, ctx)
 }
 
 object TaskMacros {
-  def appImpl[T: Type](using
+  def appImpl[M[_]: Type, T: Type](using
       Quotes
   )(
       traverseCtx: (
           Expr[Seq[Task[Any]]],
           Expr[(Seq[Any], mill.api.Ctx) => Result[T]]
-      ) => Expr[Task[T]],
+      ) => Expr[M[T]],
       t: Expr[Result[T]]
-  ): Expr[Task[T]] = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtx, t)
+  ): Expr[M[T]] = Applicative.impl[M, Task, Result, T, mill.api.Ctx](traverseCtx, t)
 
-  private def isPrivateTargetOption()(using Quotes): Expr[Option[Boolean]] =
+  private def taskIsPrivate()(using Quotes): Expr[Option[Boolean]] =
     Cacher.withMacroOwner {
       owner =>
         import quotes.reflect.*
@@ -496,7 +496,7 @@ object TaskMacros {
     }
 
   def anonTaskImpl[T: Type](t: Expr[Result[T]])(using Quotes): Expr[Task[T]] = {
-    appImpl[T]((in, ev) => '{ AnonImpl($in, $ev)  }, t)
+    appImpl[Task, T]((in, ev) => '{ AnonImpl($in, $ev) }, t)
   }
 
   def targetResultImpl[T: Type](using
@@ -506,12 +506,10 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx],
       persistent: Expr[Boolean]
   ): Expr[Target[T]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val expr = appImpl[T](
-      (in, ev) => '{ new TargetImpl[T]($in, $ev, $ctx, $rw, $taskIsPrivate, $persistent) },
+    val expr = appImpl[Target, T](
+      (in, ev) => '{ new TargetImpl[T]($in, $ev, $ctx, $rw, ${taskIsPrivate()}, $persistent) },
       t
     )
-      .asInstanceOf[Expr[Target[T]]]
 
     Cacher.impl0(expr)
   }
@@ -523,12 +521,10 @@ object TaskMacros {
   )(
       ctx: Expr[mill.define.Ctx]
   ): Expr[Target[Seq[PathRef]]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val expr = appImpl[Seq[PathRef]](
-      (in, ev) => '{ new SourcesImpl($in, $ev, $ctx, $taskIsPrivate) },
+    val expr = appImpl[Target, Seq[PathRef]](
+      (in, ev) => '{ new SourcesImpl($in, $ev, $ctx, ${taskIsPrivate()}) },
       values
     )
-      .asInstanceOf[Expr[Target[Seq[PathRef]]]]
     Cacher.impl0(expr)
   }
 
@@ -538,10 +534,11 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx]
   ): Expr[Target[PathRef]] = {
 
-    val taskIsPrivate = isPrivateTargetOption()
-    val expr =
-      appImpl[PathRef]((in, ev) => '{ new SourceImpl($in, $ev, $ctx, $taskIsPrivate) }, value)
-        .asInstanceOf[Expr[Target[PathRef]]]
+    
+    val expr = appImpl[Target, PathRef](
+      (in, ev) => '{ new SourceImpl($in, $ev, $ctx, ${taskIsPrivate()}) },
+      value
+    )
     Cacher.impl0(expr)
 
   }
@@ -552,10 +549,11 @@ object TaskMacros {
       w: Expr[upickle.default.Writer[T]],
       ctx: Expr[mill.define.Ctx]
   ): Expr[Target[T]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val expr =
-      appImpl[T]((in, ev) => '{ new InputImpl[T]($in, $ev, $ctx, $w, $taskIsPrivate) }, value)
-        .asInstanceOf[Expr[Target[T]]]
+    
+    val expr = appImpl[Target, T](
+      (in, ev) => '{ new InputImpl[T]($in, $ev, $ctx, $w, ${taskIsPrivate()}) },
+      value
+    )
     Cacher.impl0(expr)
   }
 
@@ -566,15 +564,12 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx],
       exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {
-
-    val taskIsPrivate = isPrivateTargetOption()
-    val expr = appImpl[T](
-      (in, ev) => '{ new Command[T]($in, $ev, $ctx, $w, $taskIsPrivate, exclusive = $exclusive) },
+    appImpl[Command, T](
+      (in, ev) => '{ 
+        new Command[T]($in, $ev, $ctx, $w, ${taskIsPrivate()}, exclusive = $exclusive)
+       },
       t
     )
-      .asInstanceOf[Expr[Command[T]]]
-
-    expr
   }
 
   def workerImpl2[T: Type](using
@@ -582,10 +577,11 @@ object TaskMacros {
   )(t: Expr[Result[T]])(
       ctx: Expr[mill.define.Ctx]
   ): Expr[Worker[T]] = {
-    val taskIsPrivate = isPrivateTargetOption()
-    val expr = appImpl[T]((in, ev) => '{ new Worker[T]($in, $ev, $ctx, $taskIsPrivate) }, t)
-      .asInstanceOf[Expr[Worker[T]]]
+    
+    val expr = appImpl[Worker, T](
+      (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${taskIsPrivate()}) }, 
+      t
+    )
     Cacher.impl0(expr)
-
   }
 }

@@ -314,7 +314,8 @@ object EvaluationTests extends TestSuite {
         val Right(UnitTester.Result(1, _)) = tester.apply(bactickIdentifiers.`up-target`)
         val Right(UnitTester.Result(3, _)) = tester.apply(bactickIdentifiers.`a-down-target`)
         val Right(UnitTester.Result(3, _)) = tester.apply(bactickIdentifiers.`invisible&`)
-        val Right(UnitTester.Result(4, _)) = tester.apply(bactickIdentifiers.`nested-module`.`nested-target`)
+        val Right(UnitTester.Result(4, _)) =
+          tester.apply(bactickIdentifiers.`nested-module`.`nested-target`)
       }
     }
   }

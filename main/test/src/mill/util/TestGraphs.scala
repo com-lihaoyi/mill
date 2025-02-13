@@ -10,34 +10,33 @@ import mill.{Module, Task}
 
 object TestGraphs {
   object singleton extends TestBaseModule {
-    def single = Task{123}
+    def single = Task { 123 }
     lazy val millDiscover = Discover[this.type]
   }
   object bactickIdentifiers extends TestBaseModule {
-    def `up-target` = Task{1}
-    def `a-down-target` = Task{ `up-target`() + 2}
-    def `invisible&` = Task{3}
+    def `up-target` = Task { 1 }
+    def `a-down-target` = Task { `up-target`() + 2 }
+    def `invisible&` = Task { 3 }
 
     object `nested-module` extends Module {
-      def `nested-target` = Task{4}
+      def `nested-target` = Task { 4 }
     }
 
     lazy val millDiscover = Discover[this.type]
   }
 
-
   // up---down
   object pair extends TestBaseModule {
-    def up = Task{1}
-    def down = Task{ up() + 10 }
+    def up = Task { 1 }
+    def down = Task { up() + 10 }
     lazy val millDiscover = Discover[this.type]
   }
 
   // up---o---down
   object anonTriple extends TestBaseModule {
-    def up = Task{1}
-    def anon = Task.Anon{up() + 10 }
-    def down = Task{ anon() + 100 }
+    def up = Task { 1 }
+    def anon = Task.Anon { up() + 10 }
+    def down = Task { anon() + 100 }
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -47,10 +46,10 @@ object TestGraphs {
   //   \   /
   //   right
   object diamond extends TestBaseModule {
-    def up = Task{1}
-    def left = Task{up() + 10}
-    def right = Task{up() + 100}
-    def down = Task{ left() + right() + 1000 }
+    def up = Task { 1 }
+    def left = Task { up() + 10 }
+    def right = Task { up() + 100 }
+    def down = Task { left() + right() + 1000 }
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -60,10 +59,10 @@ object TestGraphs {
   //   \ /
   //    o
   object anonDiamond extends TestBaseModule {
-    def up = Task{1}
-    val left = Task.Anon{up() + 10}
-    val right = Task.Anon{up() + 100}
-    def down = Task{ left() + right() + 1000 }
+    def up = Task { 1 }
+    val left = Task.Anon { up() + 10 }
+    val right = Task.Anon { up() + 100 }
+    def down = Task { left() + right() + 1000 }
     lazy val millDiscover = Discover[this.type]
   }
   //        _ left _
@@ -73,8 +72,8 @@ object TestGraphs {
   // change - task2
   object separateGroups extends TestBaseModule {
     val task1 = Task.Anon { 1 }
-    def left = Task { task1() +10 }
-    val change = Task.Anon{ 100 }
+    def left = Task { task1() + 10 }
+    val change = Task.Anon { 100 }
     val task2 = Task.Anon { change() + 1000 }
     def right = Task { task1() + task2() + left() + 10000 }
     lazy val millDiscover = Discover[this.type]
