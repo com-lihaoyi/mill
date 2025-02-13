@@ -64,21 +64,13 @@ object Task extends TaskBase {
   inline def Sources(inline values: Result[os.Path]*)(implicit
       inline ctx: mill.define.Ctx
   ): Target[Seq[PathRef]] = ${
-<<<<<<< HEAD
     TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
-=======
-    TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx, 'this)
->>>>>>> main
   }
 
   inline def Sources(inline values: Result[Seq[PathRef]])(implicit
       inline ctx: mill.define.Ctx
   ): Target[Seq[PathRef]] =
-<<<<<<< HEAD
     ${ TaskMacros.sourcesImpl('values)('ctx) }
-=======
-    ${ TaskMacros.sourcesImpl('values)('ctx, 'this) }
->>>>>>> main
 
   inline def Sources(inline values: os.SubPath*)(implicit
       inline ctx: mill.define.Ctx,
@@ -86,11 +78,7 @@ object Task extends TaskBase {
   ): Target[Seq[PathRef]] = ${
     TaskMacros.sourcesImpl(
       '{ values.map(sub => PathRef(ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub))) }
-<<<<<<< HEAD
     )('ctx)
-=======
-    )('ctx, 'this)
->>>>>>> main
   }
 
   /**
@@ -100,30 +88,18 @@ object Task extends TaskBase {
   inline def Source(inline value: Result[os.Path])(implicit
       inline ctx: mill.define.Ctx
   ): Target[PathRef] =
-<<<<<<< HEAD
     ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
-=======
-    ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx, 'this) }
->>>>>>> main
 
   @annotation.targetName("SourceRef")
   inline def Source(inline value: Result[PathRef])(implicit
       inline ctx: mill.define.Ctx
   ): Target[PathRef] =
-<<<<<<< HEAD
     ${ TaskMacros.sourceImpl('value)('ctx) }
-=======
-    ${ TaskMacros.sourceImpl('value)('ctx, 'this) }
->>>>>>> main
 
   inline def Source(inline value: os.SubPath)(implicit
       inline ctx: mill.define.Ctx
   ): Target[PathRef] =
-<<<<<<< HEAD
     ${ TaskMacros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
-=======
-    ${ TaskMacros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx, 'this) }
->>>>>>> main
 
   /**
    * [[InputImpl]]s, normally defined using `Task.Input`, are [[NamedTask]]s that
@@ -145,11 +121,7 @@ object Task extends TaskBase {
       inline w: upickle.default.Writer[T],
       inline ctx: mill.define.Ctx
   ): Target[T] =
-<<<<<<< HEAD
     ${ TaskMacros.inputImpl[T]('value)('w, 'ctx) }
-=======
-    ${ TaskMacros.inputImpl[T]('value)('w, 'ctx, 'this) }
->>>>>>> main
 
   /**
    * [[Command]]s are only [[NamedTask]]s defined using
@@ -161,11 +133,7 @@ object Task extends TaskBase {
   inline def Command[T](inline t: Result[T])(implicit
       inline w: W[T],
       inline ctx: mill.define.Ctx
-<<<<<<< HEAD
   ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }) }
-=======
-  ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, 'this, exclusive = '{ false }) }
->>>>>>> main
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -183,11 +151,7 @@ object Task extends TaskBase {
     inline def apply[T](inline t: Result[T])(implicit
         inline w: W[T],
         inline ctx: mill.define.Ctx
-<<<<<<< HEAD
     ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }) }
-=======
-    ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, 'this, '{ this.exclusive }) }
->>>>>>> main
   }
 
   /**
@@ -205,11 +169,7 @@ object Task extends TaskBase {
    * what in-memory state the worker may have.
    */
   inline def Worker[T](inline t: Result[T])(implicit inline ctx: mill.define.Ctx): Worker[T] =
-<<<<<<< HEAD
     ${ TaskMacros.workerImpl2[T]('t)('ctx) }
-=======
-    ${ TaskMacros.workerImpl2[T]('t)('ctx, 'this) }
->>>>>>> main
 
   /**
    * Creates an anonymous `Task`. These depend on other tasks and
@@ -218,21 +178,13 @@ object Task extends TaskBase {
    * implement `Task{...}` targets.
    */
   inline def Anon[T](inline t: Result[T]): Task[T] =
-<<<<<<< HEAD
     ${ TaskMacros.anonTaskImpl[T]('t) }
-=======
-    ${ TaskMacros.anonTaskImpl[T]('t)('this) }
->>>>>>> main
 
   inline def apply[T](inline t: Result[T])(implicit
       inline rw: RW[T],
       inline ctx: mill.define.Ctx
   ): Target[T] =
-<<<<<<< HEAD
     ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
-=======
-    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, 'this, '{ false }) }
->>>>>>> main
 
   /**
    * Persistent tasks are defined using
