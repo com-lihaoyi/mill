@@ -244,7 +244,7 @@ object `package` extends RootModule {
         "'" + _ + "'"
       ).mkString("[", ",", "]")}
        |      edit_url: false
-       |      start_path: website/antora
+       |      start_path: docs/antora
        |
        |${taggedSources.mkString("\n\n")}
        |
