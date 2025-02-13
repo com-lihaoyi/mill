@@ -105,8 +105,7 @@ trait CosmopolitanModule extends mill.Module with AssemblyModule {
   }
 
   def apeAssembly: T[PathRef] = Task {
-    val prepend: Option[os.Source] =
-      apeCompiledLauncherScript().map(p => os.read.inputStream(p.path))
+    val prepend = apeCompiledLauncherScript().map(p => os.read.bytes(p.path))
     val upstream = upstreamAssembly()
 
     val created = Assembly.create0(
