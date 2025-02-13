@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -771,7 +775,7 @@ import mill._, javalib._
 import mill.define.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
     ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;,
     ivy&quot;org.slf4j:slf4j-nop:2.0.7&quot;
@@ -1160,9 +1164,9 @@ object bar extends JavaModule with RevapiModule {
     // add Revapi config JSON file(s)
     Task.Sources(&quot;conf/revapi.json&quot;)
 
-  override def revapiClasspath: T[Agg[PathRef]] = Task {
+  override def revapiClasspath: T[Seq[PathRef]] = Task {
     // add folder containing logback.xml
-    super.revapiClasspath() ++ Seq(PathRef(millSourcePath / &quot;conf&quot;))
+    super.revapiClasspath() ++ Seq(PathRef(moduleDir / &quot;conf&quot;))
   }
 }</code></pre>
 </div>

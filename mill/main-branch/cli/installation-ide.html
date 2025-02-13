@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -1014,13 +1018,13 @@ The typical symptom will be error messages which look like this;</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>1 tasks failed
+<pre class="highlightjs highlight"><code class="language-none hljs">1 tasks failed
 mill.scalalib.ZincWorkerModule.classpath
 Resolution failed for 1 modules:
 --------------------------------------------
   com.lihaoyi:mill-scalalib-worker_2.13:0.11.1
         not found: C:\Users\partens\.ivy2\local\com.lihaoyi\mill-scalalib-worker_2.13\0.11.1\ivys\ivy.xml
-        download error: Caught java.io.IOException (Server returned HTTP response code: 503 for URL: https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom) while downloading https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom</pre>
+        download error: Caught java.io.IOException (Server returned HTTP response code: 503 for URL: https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom) while downloading https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1037,7 +1041,7 @@ The below command should pass the environment variable to the <code>mill</code> 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1275,11 +1279,9 @@ There are various issues, especially with interactive mode.</p>
 <div class="listingblock">
 <div class="title">Steps to install the <code>mill</code> plugin and Mill with <code>asdf</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">---
-asdf plugin add mill
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">asdf plugin add mill
 asdf install mill latest
-asdf global mill latest
----</code></pre>
+asdf global mill latest</code></pre>
 </div>
 </div>
 </div>

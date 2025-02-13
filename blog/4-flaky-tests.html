@@ -206,7 +206,7 @@
 <button class="nav-toggle"></button>
 </div>
 <div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/blogFolder.dest/modules/ROOT/pages/4-flaky-tests.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/4-flaky-tests.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -502,14 +502,14 @@ code changes on flaky tests: merging pull-requests, deploying services, etc.</p>
 <div class="paragraph">
 <p>That is despite blocking code changes being the default and most obvious behavior: e.g.
 if you wait for a fully-green test run before merging a code change, and a flaky test
-makes the test run red, then it blocks the merge. However, this is not a good workflow
+makes the test run red, then it blocks the merge.However, this is not a good workflow
 for a variety of reasons:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
 <p>A flaky failure when testing a code change does not indicate the code change caused
-that breakage. So blocking the merge on the flaky failure just prevents progress
+that breakage.So blocking the merge on the flaky failure just prevents progress
 without actually helping increase system quality.</p>
 </li>
 <li>

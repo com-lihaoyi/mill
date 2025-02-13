@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -689,7 +693,7 @@ When a different form is used, e.g. some double-colons are used between the part
 <div class="listingblock">
 <div class="title">Example for a simple Java Dependency</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Seq(
   ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
 )</code></pre>
 </div>
@@ -712,7 +716,7 @@ There is no special test scope in Mill.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object main extends JavaModule {
   object test extends JavaTests {
-    def ivyDeps = Agg(
+    def ivyDeps = Seq(
       ivy&quot;org.qos.logback:logback-classic:1.2.3&quot;
     )
   }
@@ -728,7 +732,7 @@ There is no special test scope in Mill.</p>
 <div class="listingblock">
 <div class="title">Example</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileIvyDeps = Agg(
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileIvyDeps = Seq(
   ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
 )</code></pre>
 </div>
@@ -748,7 +752,7 @@ There is no special test scope in Mill.</p>
 <div class="listingblock">
 <div class="title">Example</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def runIvyDeps = Agg(
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def runIvyDeps = Seq(
   ivy&quot;ch.qos.logback:logback-classic:1.2.0&quot;
 )</code></pre>
 </div>
@@ -835,7 +839,7 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="listingblock">
 <div class="title">Example: Exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Agg(
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Seq(
   ivy&quot;com.lihaoyi::pprint:0.5.3&quot;.exclude(&quot;com.lihaoyi&quot; -&gt; &quot;fansi_2.12&quot;)
 )</code></pre>
 </div>
@@ -849,7 +853,7 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="listingblock">
 <div class="title">Example: Shot notation to exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Agg(
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Seq(
   ivy&quot;com.lihaoyi::pprint:0.5.3;exclude=com.lihaoyi:fansi_2.12&quot;
 )</code></pre>
 </div>
@@ -857,7 +861,7 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="listingblock">
 <div class="title">Example: Exclude all <code>com.lihaoyi</code> libraries from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(ivy&quot;com.lihaoyi::pprint:0.5.3&quot;.excludeOrg(&quot;com.lihaoyi&quot;))</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Seq(ivy&quot;com.lihaoyi::pprint:0.5.3&quot;.excludeOrg(&quot;com.lihaoyi&quot;))</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -866,7 +870,7 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="listingblock">
 <div class="title">Example: Excluding a library (fansi) by name from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Seq(
   ivy&quot;com.lihaoyi::pprint:0.5.3&quot;
     .excludeName(&quot;fansi_2.12&quot;)
     .excludeName(&quot;sourcecode&quot;)
@@ -882,10 +886,10 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="ulist">
 <ul>
 <li>
-<p>You declare a dependency <code>val deps = Agg(ivy&quot;com.lihaoyi::fansi:0.2.14&quot;)</code></p>
+<p>You declare a dependency <code>val deps = Seq(ivy&quot;com.lihaoyi::fansi:0.2.14&quot;)</code></p>
 </li>
 <li>
-<p>There is another dependency, <code>val deps = Agg(ivy&quot;com.lihaoyi::PPrint:0.8.1&quot;)</code></p>
+<p>There is another dependency, <code>val deps = Seq(ivy&quot;com.lihaoyi::PPrint:0.8.1&quot;)</code></p>
 </li>
 <li>
 <p>PPrint 0.8.1 uses fansi 0.4.0, so it is a transitive dependency</p>
@@ -894,7 +898,7 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <p><code>mill show myModule.resolvedIvyDeps | grep &quot;fansi&quot;</code> should show fansi 0.4.0</p>
 </li>
 <li>
-<p>If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use <code>val deps = Agg(ivy&quot;com.lihaoyi::fansi:0.2.14&quot;.forceVersion())</code></p>
+<p>If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use <code>val deps = Seq(ivy&quot;com.lihaoyi::fansi:0.2.14&quot;.forceVersion())</code></p>
 </li>
 <li>
 <p><code>mill show myModule.resolvedIvyDeps | grep &quot;fansi&quot;</code> should show fansi 0.2.14</p>
@@ -952,10 +956,10 @@ whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code><
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def bomIvyDeps = Agg(
+  def bomIvyDeps = Seq(
     ivy&quot;com.google.cloud:libraries-bom:26.50.0&quot;
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.grpc:grpc-protobuf&quot;
   )
 }</code></pre>
@@ -988,11 +992,11 @@ for a dependency, all exclusions are added to that dependency.</p>
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def depManagement = Agg(
+  def depManagement = Seq(
     ivy&quot;com.google.protobuf:protobuf-java:4.28.3&quot;,
     ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.grpc:grpc-protobuf&quot;
   )
 }</code></pre>
@@ -1013,11 +1017,11 @@ protobuf-java <code>4.28.3</code> ends up being pulled here.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  def depManagement = Agg(
+  def depManagement = Seq(
     ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
       .exclude((&quot;com.google.protobuf&quot;, &quot;protobuf-java&quot;))
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.grpc:grpc-protobuf&quot;
   )
 }</code></pre>
@@ -1035,11 +1039,11 @@ like</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object baz extends JavaModule {
-  def depManagement = Agg(
+  def depManagement = Seq(
     ivy&quot;io.grpc:grpc-protobuf&quot;
       .exclude((&quot;com.google.protobuf&quot;, &quot;protobuf-java&quot;))
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
   )
 }</code></pre>
@@ -1056,11 +1060,11 @@ like</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myBom extends BomModule {
   // Importing external BOMs from our BOM module with bomIvyDeps
-  def bomIvyDeps = Agg(
+  def bomIvyDeps = Seq(
     ivy&quot;com.google.protobuf:protobuf-bom:4.28.1&quot;
   )
   // Managing versions directly from our BOM module with depManagement
-  def depManagement = Agg(
+  def depManagement = Seq(
     ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
   )
 }</code></pre>
@@ -1075,7 +1079,7 @@ like</p>
   def bomModuleDeps = Seq(
     myBom
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.grpc:grpc-protobuf&quot;
   )
 }</code></pre>
@@ -1088,10 +1092,10 @@ packaging type <code>pom</code>, usable as a BOM from other build tools:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myPublishedBom extends BomModule with MyPublishModule {
-  def bomIvyDeps = Agg(
+  def bomIvyDeps = Seq(
     ivy&quot;com.google.protobuf:protobuf-bom:4.28.1&quot;
   )
-  def depManagement = Agg(
+  def depManagement = Seq(
     ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
   )
 }</code></pre>
@@ -1107,7 +1111,7 @@ but we can still use it right from our build with bomModuleDeps:</p>
   def bomModuleDeps = Seq(
     myPublishedBom
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.grpc:grpc-protobuf&quot;
   )
 }
@@ -1150,11 +1154,11 @@ trait MyModule extends ScalaModule {
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+  def ivyDeps = Seq(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 }
 
 object bar extends MyModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
+  def ivyDeps = Seq(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
 }</code></pre>
 </div>
 </div>

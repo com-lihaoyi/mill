@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -667,7 +671,7 @@ object foo extends ScalaModule with FlywayModule {
 
   //region flyway
   def flywayUrl = &quot;jdbc:postgresql:myDb&quot; // required
-  def flywayDriverDeps = Agg(ivy&quot;org.postgresql:postgresql:42.2.5&quot;) // required
+  def flywayDriverDeps = Seq(ivy&quot;org.postgresql:postgresql:42.2.5&quot;) // required
   def flywayUser = &quot;postgres&quot; // optional
   // def flywayPassword = &quot;&quot; // optional
   //endregion

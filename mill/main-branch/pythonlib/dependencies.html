@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -698,7 +702,7 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
   def pythonRequirementFiles = Task.Sources {
-    millSourcePath / &quot;requirements.txt&quot;
+    moduleDir / &quot;requirements.txt&quot;
   }
 }</code></pre>
 </div>
@@ -729,7 +733,7 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
   def unmanagedWheels: T[Seq[PathRef]] = Task.Input {
-    Seq.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
+    Seq.from(os.list(moduleDir / &quot;lib&quot;).map(PathRef(_)))
   }
 }</code></pre>
 </div>

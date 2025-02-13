@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -833,7 +837,7 @@ at <code>~/.m2/repository</code>. Although many workflows work with <code>compil
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">[ERROR] Failed to execute goal org.apache.maven.plugins:maven-dependency-plugin:2.10:unpack-dependencies
+<pre>[ERROR] Failed to execute goal org.apache.maven.plugins:maven-dependency-plugin:2.10:unpack-dependencies
 (unpack) on project netty-resolver-dns-native-macos: Artifact has not been packaged yet.
 When used on reactor artifact, unpack should be executed after packaging: see MDEP-98. -&gt; [Help 1]
 [ERROR]
@@ -844,7 +848,7 @@ When used on reactor artifact, unpack should be executed after packaging: see MD
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
 [ERROR]
 [ERROR] After correcting the problems, you can resume the build with the command
-[ERROR]   mvn &lt;args&gt; -rf :netty-resolver-dns-native-macos</code></pre>
+[ERROR]   mvn &lt;args&gt; -rf :netty-resolver-dns-native-macos</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -866,7 +870,7 @@ Maven’s overhead adds to the clean build:</p>
 <div class="paragraph">
 <p>From this benchmark, we can see that although both Mill and Maven are doing the same work,
 Mill takes about as long as it <em>should</em> for this task of compiling 500,000 lines of Java source
-code, while Maven takes considerably longer. And much of this overhead comes from Maven
+code, while Maven takes considerably longer.And much of this overhead comes from Maven
 doing unnecessary work packing/unpacking jar files and publishing to a local repository,
 whereas Mill directly uses the classfiles generated on disk to bypass all that work.</p>
 </div>
@@ -890,7 +894,7 @@ $ ./mill clean; time ./mill __.compile
 <div class="paragraph">
 <p>This example compares Maven v.s. Mill, when performing the clean build on 10 threads.
 Both build tools support parallelism (<code>-T 10</code> in Maven, by default in Mill), and both
-tools see a similar ~2x speedup for building the Netty project using 4 threads. Again,
+tools see a similar ~2x speedup for building the Netty project using 4 threads.Again,
 this tests a clean build using <code>./mvnw clean</code> or <code>./mill clean</code>.</p>
 </div>
 <div class="paragraph">
@@ -922,7 +926,7 @@ ignore test sources.</p>
 <p>Again, we can see a significant speedup of Mill v.s. Maven remains even when compiling a
 single module: a clean compile of <code>common/</code> is about 4x faster with Mill than with Maven!
 Again, <code>common/</code> is about 30,000 lines of Java source code, so at 10,000-50,000 lines per
-second we would expect it to compile in about 1-4s. That puts Mill’s compile times right
+second we would expect it to compile in about 1-4s.That puts Mill’s compile times right
 at what you would expect, whereas Maven’s has a significant overhead.</p>
 </div>
 </div>
@@ -1034,7 +1038,7 @@ in <code>common/src/test/</code> as a result of adding a method to <code>Abstrac
 <p>In general, Zinc is conservative, and does not always end up selecting the minimal set of
 files that need re-compiling: e.g. in the above example, the new method <code>name2</code> does not
 interfere with any existing method, and the ~9 downstream files did not actually need to
-be re-compiled! However, even conservatively re-compiling 9 files is much faster than
+be re-compiled!However, even conservatively re-compiling 9 files is much faster than
 Maven blindly re-compiling all 234 files, and as a result the iteration loop of
 editing-compiling-testing your Java projects in Mill can be much faster than doing
 the same thing in Maven</p>
@@ -1297,7 +1301,7 @@ def make = Task {
   os.copy(cSources().path, Task.dest / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;, createFolders = true)
 
   val Seq(sourceJar) = resolveDeps(
-    deps = Task.Anon(Agg(ivy&quot;io.netty:netty-jni-util:0.0.9.Final&quot;).map(bindDependency())),
+    deps = Task.Anon(Seq(ivy&quot;io.netty:netty-jni-util:0.0.9.Final&quot;).map(bindDependency())),
     sources = true
   )().toSeq
 
@@ -1441,7 +1445,7 @@ built in <code>ivyDepsTree</code> command lets you do that easily:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill handler.ivyDepsTree
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">$ ./mill handler.ivyDepsTree
 ├─ org.jctools:jctools-core:4.0.5
 ├─ org.junit.jupiter:junit-jupiter-api:5.9.0
 │  ├─ org.apiguardian:apiguardian-api:1.1.2

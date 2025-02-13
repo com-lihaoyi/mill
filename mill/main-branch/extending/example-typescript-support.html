@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -996,7 +1000,7 @@ trait TypeScriptModule extends Module {
     PathRef(Task.dest)
   }
 
-  def mainFileName = Task { s&quot;${millSourcePath.last}.js&quot; }
+  def mainFileName = Task { s&quot;${moduleDir.last}.js&quot; }
   def run(args: mill.define.Args) = Task.Command {
     val mainFile = compile().path / mainFileName()
     os.call((&quot;node&quot;, mainFile, args.value), stdout = os.Inherit)
@@ -1344,7 +1348,7 @@ trait TypeScriptModule extends Module {
 
     val upstreamPaths =
       for (((jsDir, dTsDir), mod) &lt;- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath).toString + &quot;/*&quot;, dTsDir.path)
+        yield (mod.moduleDir.subRelativeTo(build.moduleDir).toString + &quot;/*&quot;, dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq(&quot;*&quot; -&gt; sources().path)
 
@@ -1366,12 +1370,12 @@ trait TypeScriptModule extends Module {
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def mainFileName = Task { s&quot;${millSourcePath.last}.js&quot; }
+  def mainFileName = Task { s&quot;${moduleDir.last}.js&quot; }
   def run(args: mill.define.Args) = Task.Command {
 
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     for (((jsDir, tTsDir), mod) &lt;- upstream) {
-      os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
+      os.copy(jsDir.path, Task.dest / mod.moduleDir.subRelativeTo(build.moduleDir))
     }
     val mainFile = compile()._1.path / mainFileName()
     os.call(
@@ -1457,6 +1461,11 @@ ultimately <code>qux.run</code>):</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 670.01,-363 670.01,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
+<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 537.02,-351 537.02,-124 8,-124"></polygon>
@@ -1466,11 +1475,6 @@ ultimately <code>qux.run</code>):</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 529.02,-318 529.02,-210 16,-210"></polygon>
 <text text-anchor="middle" x="272.51" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
-<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -1753,7 +1757,7 @@ trait TypeScriptModule extends Module {
 
     val upstreamPaths =
       for (((jsDir, dTsDir), mod) &lt;- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath).toString + &quot;/*&quot;, dTsDir.path)
+        yield (mod.moduleDir.subRelativeTo(build.moduleDir).toString + &quot;/*&quot;, dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq(&quot;*&quot; -&gt; sources().path, &quot;*&quot; -&gt; npmInstall().path)
 
@@ -1776,12 +1780,12 @@ trait TypeScriptModule extends Module {
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def mainFileName = Task { s&quot;${millSourcePath.last}.js&quot; }
+  def mainFileName = Task { s&quot;${moduleDir.last}.js&quot; }
 
   def prepareRun = Task.Anon {
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     for (((jsDir, tTsDir), mod) &lt;- upstream) {
-      os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
+      os.copy(jsDir.path, Task.dest / mod.moduleDir.subRelativeTo(build.moduleDir))
     }
     val mainFile = compile()._1.path / mainFileName()
     val env = Map(&quot;NODE_PATH&quot; -&gt; Seq(&quot;.&quot;, compile()._1.path, npmInstall().path).mkString(&quot;:&quot;))
@@ -1839,11 +1843,6 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 701.13,-363 701.13,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
-<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 558.42,-351 558.42,-124 8,-124"></polygon>
@@ -1853,6 +1852,11 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 550.42,-318 550.42,-210 16,-210"></polygon>
 <text text-anchor="middle" x="283.21" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
+<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">

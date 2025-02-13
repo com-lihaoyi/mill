@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -721,7 +725,7 @@ error: ...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
 
 import mill._
 import mill.util.Jvm
-import mill.api.Loose
+
 import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
 
@@ -764,7 +768,7 @@ error: ...src/example/FooWrong.kt:6:28: Missing newline before &quot;)&quot; (st
 
 import mill._
 import mill.util.Jvm
-import mill.api.Loose
+
 import kotlinlib.KotlinModule
 import kotlinlib.ktfmt.KtfmtModule
 
@@ -811,7 +815,7 @@ object `package` extends RootModule with KotlinModule with KoverModule {
       super.forkArgs() ++ Seq(&quot;-Dkotest.framework.classpath.scanning.autoscan.disable=true&quot;)
 
     }
-    override def ivyDeps = super.ivyDeps() ++ Agg(
+    override def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }

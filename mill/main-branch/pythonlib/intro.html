@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -1011,7 +1015,7 @@ build logic remains performant and maintainable even as the complexity of your p
 import mill._, pythonlib._
 
 trait MyModule extends PythonModule {
-  def resources = super.resources() ++ Seq(PathRef(millSourcePath / &quot;res&quot;))
+  def resources = super.resources() ++ Seq(PathRef(moduleDir / &quot;res&quot;))
   object test extends PythonTests with TestModule.Unittest
 }
 

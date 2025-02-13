@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -783,7 +787,7 @@ override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
     CustomHeader(&quot;my-header&quot;, Custom(myCustomTokenSource))
   )
 
-  def myCustomTokenSource(): Either[String, String] = Right(&quot;foo&quot;)
+  def myCustomTokenSource(): Result[String] = Right(&quot;foo&quot;)
 }</code></pre>
 </div>
 </div>
@@ -808,7 +812,7 @@ override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
 <p><code>WorkspaceFile</code>: File relative to workspace root.</p>
 </li>
 <li>
-<p><code>Custom</code>: Any <code>() ⇒ Either[String, String]</code> function</p>
+<p><code>Custom</code>: Any <code>() ⇒ Result[String]</code> function</p>
 </li>
 </ol>
 </div>

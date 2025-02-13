@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -669,13 +673,13 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some(&quot;com.example.HelloKtorKt&quot;)
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.ktor:ktor-server-core-jvm:2.3.12&quot;,
     ivy&quot;io.ktor:ktor-server-netty-jvm:2.3.12&quot;
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;io.ktor:ktor-server-test-host-jvm:2.3.12&quot;
     )
@@ -780,7 +784,7 @@ object `package` extends RootModule with KotlinModule {
   val ktorVersion = &quot;2.3.12&quot;
   val exposedVersion = &quot;0.53.0&quot;
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
     ivy&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
     ivy&quot;org.jetbrains.exposed:exposed-core:$exposedVersion&quot;,
@@ -796,7 +800,7 @@ object `package` extends RootModule with KotlinModule {
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;io.ktor:ktor-server-test-host-jvm:2.3.12&quot;
     )
@@ -866,7 +870,7 @@ object `package` extends RootModule with KotlinJsModule {
   def moduleKind = ModuleKind.ESModule
   def kotlinVersion = &quot;1.9.25&quot;
   def kotlinJsRunTarget = Some(RunTarget.Node)
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:0.11.0&quot;
   )
   object test extends KotlinJsModule with KotestTests
@@ -923,7 +927,7 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some(&quot;webapp.WebApp&quot;)
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
     ivy&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
     ivy&quot;io.ktor:ktor-server-html-builder-jvm:$ktorVersion&quot;
@@ -940,7 +944,7 @@ object `package` extends RootModule with KotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;io.ktor:ktor-server-test-host-jvm:$ktorVersion&quot;
     )
@@ -951,7 +955,7 @@ object `package` extends RootModule with KotlinModule {
 
     override def splitPerModule = false
 
-    def ivyDeps = Agg(
+    def ivyDeps = Seq(
       ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;
     )
   }
@@ -1017,7 +1021,7 @@ object `package` extends RootModule with AppKotlinModule {
 
   def moduleDeps = Seq(shared.jvm)
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
     ivy&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
     ivy&quot;io.ktor:ktor-server-html-builder-jvm:$ktorVersion&quot;,
@@ -1035,7 +1039,7 @@ object `package` extends RootModule with AppKotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;io.ktor:ktor-server-test-host-jvm:$ktorVersion&quot;
     )
@@ -1046,7 +1050,7 @@ object `package` extends RootModule with AppKotlinModule {
     trait SharedModule extends AppKotlinModule with PlatformKotlinModule {
       def processors = Task {
         defaultResolver().resolveDeps(
-          Agg(
+          Seq(
             ivy&quot;org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}&quot;
           )
         )
@@ -1058,13 +1062,13 @@ object `package` extends RootModule with AppKotlinModule {
     }
 
     object jvm extends SharedModule {
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion&quot;,
         ivy&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion&quot;
       )
     }
     object js extends SharedModule with AppKotlinJsModule {
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;,
         ivy&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion&quot;
       )
@@ -1074,7 +1078,7 @@ object `package` extends RootModule with AppKotlinModule {
   object client extends AppKotlinJsModule {
     def splitPerModule = false
     def moduleDeps = Seq(shared.js)
-    def ivyDeps = Agg(
+    def ivyDeps = Seq(
       ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;,
       ivy&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion&quot;
     )
@@ -1130,13 +1134,13 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some(&quot;com.example.HelloSpringBootKt&quot;)
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
     ivy&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
   }
@@ -1175,7 +1179,7 @@ object `package` extends RootModule with KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   def mainClass = Some(&quot;com.example.TodomvcApplicationKt&quot;)
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;org.springframework.boot:spring-boot-starter-data-jpa:2.5.4&quot;,
     ivy&quot;org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4&quot;,
     ivy&quot;org.springframework.boot:spring-boot-starter-validation:2.5.4&quot;,
@@ -1189,19 +1193,19 @@ object `package` extends RootModule with KotlinModule {
 
   trait HelloTests extends KotlinTests with TestModule.Junit5 {
     def mainClass = Some(&quot;com.example.TodomvcApplicationKt&quot;)
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
   }
 
   object test extends HelloTests {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;com.h2database:h2:2.3.230&quot;
     )
   }
 
   object integration extends HelloTests {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;org.testcontainers:testcontainers:1.18.0&quot;,
       ivy&quot;org.testcontainers:junit-jupiter:1.18.0&quot;,
       ivy&quot;org.testcontainers:postgresql:1.18.0&quot;,

@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -670,7 +674,7 @@ import mill.scalalib.Assembly._
 object foo extends ScalaModule {
   def moduleDeps = Seq(bar)
   def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;)
+  def ivyDeps = Seq(ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;)
   def assemblyRules = Seq(
     // all application.conf files will be concatenated into single file
     Rule.Append(&quot;application.conf&quot;),
@@ -784,7 +788,7 @@ object foo extends ScalaModule with NativeImageModule {
 
   def nativeImageOptions = Seq(&quot;--no-fallback&quot;, &quot;-Os&quot;)
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;,
     ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
   )

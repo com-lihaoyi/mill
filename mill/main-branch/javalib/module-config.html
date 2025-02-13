@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -683,7 +687,7 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   // You can have arbitrary numbers of third-party dependencies
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )
 
@@ -692,12 +696,12 @@ object `package` extends RootModule with JavaModule {
 
   // Add (or replace) source folders for the module to use
   def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(millSourcePath / &quot;custom-src&quot;))
+    super.sources() ++ Seq(PathRef(moduleDir / &quot;custom-src&quot;))
   }
 
   // Add (or replace) resource folders for the module to use
   def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(millSourcePath / &quot;custom-resources&quot;))
+    super.resources() ++ Seq(PathRef(moduleDir / &quot;custom-resources&quot;))
   }
 
   // Generate sources at build time
@@ -705,10 +709,10 @@ object `package` extends RootModule with JavaModule {
     for (name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
       Task.dest / s&quot;Foo$name.java&quot;,
       s&quot;&quot;&quot;
-package foo;
-public class Foo$name {
-  public static String value = &quot;hello $name&quot;;
-}
+         |package foo;
+         |public class Foo$name {
+         |  public static String value = &quot;hello $name&quot;;
+         |}
       &quot;&quot;&quot;.stripMargin
     )
 
@@ -743,15 +747,15 @@ a task of interest, such as <code>run</code>, you can visualize their relationsh
 <p>(right-click open in new tab to see full sized)</p>
 </div>
 <div class="paragraph">
-<p>Note the use of <code>millSourcePath</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
+<p>Note the use of <code>moduleDir</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
 various filesystem operations:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>millSourcePath</code> refers to the base path of the module. For the root
+<p><code>moduleDir</code> refers to the base path of the module. For the root
 module, this is the root of the repo, and for inner modules it would be
-the module path e.g. for module <code>foo.bar.qux</code> the <code>millSourcePath</code> would
+the module path e.g. for module <code>foo.bar.qux</code> the <code>moduleDir</code> would
 be <code>foo/bar/qux</code>. This can also be overridden if necessary</p>
 </li>
 <li>
@@ -1041,7 +1045,7 @@ import mill._, javalib._
 import java.io.File
 
 object foo extends JavaModule {
-  def compileIvyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
+  def compileIvyDeps = Seq(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
 
   object test extends JavaTests with TestModule.Junit4
 }</code></pre>
@@ -1077,10 +1081,10 @@ those to <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  def compileIvyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
+  def compileIvyDeps = Seq(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
 
   def processors = Task {
-    defaultResolver().resolveDeps(Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;))
+    defaultResolver().resolveDeps(Seq(ivy&quot;org.projectlombok:lombok:1.18.34&quot;))
   }
 
   def javacOptions = Seq(
@@ -1193,7 +1197,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;)
+  def ivyDeps = Seq(ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for (ivyDep &lt;- ivyDeps()) yield {
@@ -1206,11 +1210,11 @@ object `package` extends RootModule with JavaModule {
     os.write(
       Task.dest / s&quot;MyDeps.java&quot;,
       s&quot;&quot;&quot;
-package foo;
-public class MyDeps {
-  public static String value =
-    $ivyDepsString;
-}
+         |package foo;
+         |public class MyDeps {
+         |  public static String value =
+         |    $ivyDepsString;
+         |}
       &quot;&quot;&quot;.stripMargin
     )
 
@@ -1437,12 +1441,12 @@ object foo extends JavaModule {
     os.write(
       Task.dest / &quot;Foo.java&quot;,
       &quot;&quot;&quot;package foo;
-
-public class Foo {
-    public static void main(String[] args) {
-        System.out.println(&quot;Hello World&quot;);
-    }
-}
+        |
+        |public class Foo {
+        |    public static void main(String[] args) {
+        |        System.out.println(&quot;Hello World&quot;);
+        |    }
+        |}
       &quot;&quot;&quot;.stripMargin
     )
     Seq(PathRef(Task.dest))

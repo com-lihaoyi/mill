@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -1546,7 +1550,7 @@ import com.github.lolgab.mill.mima._
 
 object main extends ScalaModule with Mima {
 
-  def mimaPreviousArtifacts = Agg(
+  def mimaPreviousArtifacts = Seq(
     ivy&quot;my_group_id::main:my_previous_version&quot;
   )
 

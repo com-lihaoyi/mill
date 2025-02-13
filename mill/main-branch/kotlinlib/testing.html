@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -670,7 +674,7 @@ object foo extends KotlinModule {
 
   object test extends KotlinTests {
     def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
-    def ivyDeps = Agg(
+    def ivyDeps = Seq(
       ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
@@ -809,7 +813,7 @@ details on how to use each one from the command line.</p>
   def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
     )
@@ -951,7 +955,7 @@ object qux extends KotlinModule {
 
   object test extends KotlinTests with TestModule.Junit5 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
     )
@@ -963,7 +967,7 @@ object baz extends KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
     )
@@ -1018,12 +1022,12 @@ object qux extends KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
   object integration extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
@@ -1073,7 +1077,7 @@ object foo extends KotlinModule {
 
   object test extends KotlinTests {
     def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
-    def ivyDeps = Agg(
+    def ivyDeps = Seq(
       ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;

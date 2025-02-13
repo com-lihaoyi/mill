@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -701,11 +705,11 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
     developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
 
-  def compileIvyDeps = Agg(Deps.scalaCompiler(crossScalaVersion))
+  def compileIvyDeps = Seq(Deps.scalaCompiler(crossScalaVersion))
 
   object test extends ScalaTests with TestModule.Utest {
     def sources = Task.Sources(&quot;src&quot;, &quot;resources&quot;)
-    def ivyDeps = Agg(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
+    def ivyDeps = Seq(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
 }</code></pre>
 </div>
@@ -776,10 +780,10 @@ trait FansiModule extends PublishModule with CrossScalaModule with PlatformScala
     developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
 
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
+  def ivyDeps = Seq(ivy&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
 
   trait FansiTests extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
   }
 }
 

@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -680,7 +684,7 @@ import mill._, scalalib._
 
 object `package` extends RootModule with build.MyModule {
   def moduleDeps = Seq(build.bar.qux.mymodule)
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+  def ivyDeps = Seq(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 }</code></pre>
 </div>
 </div>
@@ -691,7 +695,7 @@ object `package` extends RootModule with build.MyModule {
 import mill._, scalalib._
 
 object mymodule extends build.MyModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
+  def ivyDeps = Seq(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
 }</code></pre>
 </div>
 </div>

@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -662,7 +666,7 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 import mill._, javalib._, publish._
 
 def sharedCompileIvyDeps = Task {
-  Agg(
+  Seq(
     ivy&quot;com.google.auto.service:auto-service:1.0.1&quot;,
     ivy&quot;com.google.code.findbugs:jsr305:3.0.2&quot;,
     ivy&quot;org.checkerframework:checker-compat-qual:2.5.5&quot;,
@@ -682,14 +686,14 @@ object jimfs extends PublishModule with MavenModule {
     developers = Nil
   )
 
-  def ivyDeps = sharedCompileIvyDeps() ++ Agg(
+  def ivyDeps = sharedCompileIvyDeps() ++ Seq(
     ivy&quot;com.google.guava:guava:31.1-android&quot;
   )
 
   def javacOptions = Seq(&quot;-processor&quot;, &quot;com.google.auto.service.processor.AutoServiceProcessor&quot;)
 
   object test extends MavenTests {
-    def ivyDeps = sharedCompileIvyDeps() ++ Agg(
+    def ivyDeps = sharedCompileIvyDeps() ++ Seq(
       ivy&quot;junit:junit:4.13.2&quot;,
       ivy&quot;com.google.guava:guava-testlib:31.1-android&quot;,
       ivy&quot;com.google.truth:truth:1.1.3&quot;,
@@ -759,7 +763,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
   object test extends MavenTests with TestModule.Junit5 with JmhModule {
     def testSandboxWorkingDir = false
     def jmhCoreVersion = &quot;1.37&quot;
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;org.junit.jupiter:junit-jupiter:5.10.3&quot;,
       ivy&quot;org.junit-pioneer:junit-pioneer:1.9.1&quot;,
       ivy&quot;net.bytebuddy:byte-buddy:1.14.18&quot;,

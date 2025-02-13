@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -660,19 +664,19 @@ import mill.javascriptlib._
 object foo extends TypeScriptModule {
 
   def customSource = Task {
-    Seq(PathRef(millSourcePath / &quot;custom-src/foo2.ts&quot;))
+    Seq(PathRef(moduleDir / &quot;custom-src/foo2.ts&quot;))
   }
 
   def allSources = super.allSources() ++ customSource()
 
-  def resources = super.resources() ++ Seq(PathRef(millSourcePath / &quot;custom-resources&quot;))
+  def resources = super.resources() ++ Seq(PathRef(moduleDir / &quot;custom-resources&quot;))
 
   def generatedSources = Task {
     for (name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
       Task.dest / s&quot;foo-$name.ts&quot;,
       s&quot;&quot;&quot;export default class Foo$name {
-  static value: string = &quot;Hello $name&quot;
-}
+         |  static value: string = &quot;Hello $name&quot;
+         |}
       &quot;&quot;&quot;.stripMargin
     )
 
@@ -692,13 +696,13 @@ object foo extends TypeScriptModule {
 <p>This example demonstrates usage of common configs</p>
 </div>
 <div class="paragraph">
-<p>Note the use of <code>millSourcePath</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
+<p>Note the use of <code>moduleDir</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
 various filesystem operations:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>millSourcePath</code>: Base path of the module. For the root module, it’s the repo root.
+<p><code>moduleDir</code>: Base path of the module. For the root module, it’s the repo root.
 For inner modules, it’s the module path (e.g., <code>foo/bar/qux</code> for <code>foo.bar.qux</code>). Can be overridden if needed.</p>
 </li>
 <li>
@@ -760,8 +764,8 @@ object foo extends TypeScriptModule {
     os.write(
       Task.dest / &quot;bar.ts&quot;,
       s&quot;&quot;&quot;export default class Bar {
-  static value: number = 123
-}
+         |  static value: number = 123
+         |}
       &quot;&quot;&quot;.stripMargin
     )
 
@@ -916,8 +920,8 @@ object foo extends TypeScriptModule {
     os.write.over(
       filePath,
       &quot;&quot;&quot;(function () {
-  console.log(&quot;Hello World!&quot;)
-})()
+        |  console.log(&quot;Hello World!&quot;)
+        |})()
       &quot;&quot;&quot;.stripMargin
     )
 

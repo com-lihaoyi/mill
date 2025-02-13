@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -679,7 +683,7 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some(&quot;foo.FooKt&quot;)
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;com.fasterxml.jackson.core:jackson-databind:2.13.4&quot;
   )
 }</code></pre>
@@ -689,7 +693,7 @@ object `package` extends RootModule with KotlinModule {
 <p>You can define the <code>ivyDeps</code> field to add ivy dependencies to your module,
 named after the <a href="https://ant.apache.org/ivy/history/latest-milestone/settings/resolvers.html">Ivy Dependency Resolver</a>
 and JVM package repository format. The <code>Agg</code> factory function constructs an
-<code>Agg[Dep]</code> collection, which is a collection of `Dep`s without duplicates,
+<code>Seq[Dep]</code> collection, which is a collection of `Dep`s without duplicates,
 a type common in Mill builds.</p>
 </div>
 <div class="ulist">
@@ -740,7 +744,7 @@ object foo extends KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   def moduleDeps = Seq(bar)
-  def runIvyDeps = Agg(
+  def runIvyDeps = Seq(
     ivy&quot;javax.servlet:servlet-api:2.5&quot;,
     ivy&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
     ivy&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
@@ -760,7 +764,7 @@ transitive dependencies.</p>
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def compileIvyDeps = Agg(
+  def compileIvyDeps = Seq(
     ivy&quot;javax.servlet:servlet-api:2.5&quot;,
     ivy&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
     ivy&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
@@ -839,8 +843,8 @@ object `package` extends RootModule with KotlinModule {
   def mainClass = Some(&quot;foo.FooKt&quot;)
 
   def unmanagedClasspath = Task {
-    if (!os.exists(millSourcePath / &quot;lib&quot;)) Agg()
-    else Agg.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
+    if (!os.exists(moduleDir / &quot;lib&quot;)) Seq()
+    else Seq.from(os.list(moduleDir / &quot;lib&quot;).map(PathRef(_)))
   }
 }</code></pre>
 </div>
@@ -887,7 +891,7 @@ object `package` extends RootModule with KotlinModule {
         &quot;https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar&quot;
       )
     )
-    Agg(PathRef(Task.dest / &quot;fastjavaio.jar&quot;))
+    Seq(PathRef(Task.dest / &quot;fastjavaio.jar&quot;))
   }
 }</code></pre>
 </div>
@@ -952,7 +956,7 @@ object foo extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;,
     ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
   )

@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -689,7 +693,7 @@ to the right place.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">$ ./mill --help
+<pre class="highlightjs highlight"><code class="language-none hljs">$ ./mill --help
 Mill Build Tool, version 0.12.5-13-0e02e6
 Usage: mill [options] task [task-options] [+ task ...]
 
@@ -782,10 +786,10 @@ change:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill --watch foo.compile
-$ mill --watch foo.run
-$ mill -w foo.compile
-$ mill -w foo.run</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill --watch foo.compile
+&gt; mill --watch foo.run
+&gt; mill -w foo.compile
+&gt; mill -w foo.run</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -799,7 +803,7 @@ forcefully terminating the previous process even though it may be still alive:</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill -w foo.runBackground</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill -w foo.runBackground</code></pre>
 </div>
 </div>
 </div>
@@ -849,8 +853,8 @@ depend on one another other cannot be processed in parallel</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill supports the <code>.mill-opts</code> file for passing a default set of command line
-options to Mill itself. For example, if your project’s tasks are CPU heavy, you
-may want everyone using your project to run only 0.5 concurrent tasks per CPU. This
+options to Mill itself.For example, if your project’s tasks are CPU heavy, you
+may want everyone using your project to run only 0.5 concurrent tasks per CPU.This
 can be done by setting <code>.mill-opts</code> to:</p>
 </div>
 <div class="paragraph">
@@ -858,7 +862,7 @@ can be done by setting <code>.mill-opts</code> to:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>--jobs=0.5C</pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">--jobs=0.5C</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -874,7 +878,7 @@ You can also pass in flags like <code>--jobs=10</code> explicitly to override th
 </td>
 <td class="content">
 <code>.mill-jvm-opts</code> is for passing JVM options to the JVM running Mill,
-and <code>.mill-opts</code> is for passing options to Mill itself. If you want to pass JVM options
+and <code>.mill-opts</code> is for passing options to Mill itself.If you want to pass JVM options
 to the project that Mill is building and running, see the section on
 <a href="../javalib/module-config.html#_compilation_execution_flags" class="xref page">Compilation and Execution Flags</a>.
 </td>
@@ -887,8 +891,8 @@ to the project that Mill is building and running, see the section on
 <h2 id="_running_mill_with_custom_jvm_options"><a class="anchor" href="#_running_mill_with_custom_jvm_options"></a>Running Mill with custom JVM options</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>It’s possible to pass JVM options to the Mill launcher. To do this you can either set
-the <code>JAVA_OPTS</code> environment variable, or  create a <code>.mill-jvm-opts</code> file in your project’s
+<p>It’s possible to pass JVM options to the Mill launcher.To do this you can either set
+the <code>JAVA_OPTS</code> environment variable, or create a <code>.mill-jvm-opts</code> file in your project’s
 root that contains JVM options one per line.</p>
 </div>
 <div class="paragraph">
@@ -907,8 +911,8 @@ root that contains JVM options one per line.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>-Xss10m
--Xmx10G</pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">-Xss10m
+-Xmx10G</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -924,8 +928,8 @@ as a single token and fail argument parsing)</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre># PWD on mac/linux
--Dmy.jvm.property=${PWD}</pre>
+<pre class="highlightjs highlight"><code class="language-none hljs"># PWD on mac/linux
+-Dmy.jvm.property=${PWD}</code></pre>
 </div>
 </div>
 <div class="paragraph">

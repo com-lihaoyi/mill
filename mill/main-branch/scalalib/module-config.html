@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -685,7 +689,7 @@ object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   // You can have arbitrary numbers of third-party dependencies
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;,
     ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;
   )
@@ -695,12 +699,12 @@ object `package` extends RootModule with ScalaModule {
 
   // Add (or replace) source folders for the module to use
   def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(millSourcePath / &quot;custom-src&quot;))
+    super.sources() ++ Seq(PathRef(moduleDir / &quot;custom-src&quot;))
   }
 
   // Add (or replace) resource folders for the module to use
   def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(millSourcePath / &quot;custom-resources&quot;))
+    super.resources() ++ Seq(PathRef(moduleDir / &quot;custom-resources&quot;))
   }
 
   // Generate sources at build time
@@ -708,10 +712,10 @@ object `package` extends RootModule with ScalaModule {
     for (name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
       Task.dest / s&quot;Foo$name.scala&quot;,
       s&quot;&quot;&quot;
-package foo
-object Foo$name {
-  val value = &quot;hello $name&quot;
-}
+         |package foo
+         |object Foo$name {
+         |  val value = &quot;hello $name&quot;
+         |}
       &quot;&quot;&quot;.stripMargin
     )
 
@@ -749,15 +753,15 @@ a task of interest, such as <code>run</code>, you can visualize their relationsh
 <p>(right-click open in new tab to see full sized)</p>
 </div>
 <div class="paragraph">
-<p>Note the use of <code>millSourcePath</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
+<p>Note the use of <code>moduleDir</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
 various filesystem operations:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>millSourcePath</code> refers to the base path of the module. For the root
+<p><code>moduleDir</code> refers to the base path of the module. For the root
 module, this is the root of the repo, and for inner modules it would be
-the module path e.g. for module <code>foo.bar.qux</code> the <code>millSourcePath</code> would
+the module path e.g. for module <code>foo.bar.qux</code> the <code>moduleDir</code> would
 be <code>foo/bar/qux</code>. This can also be overridden if necessary</p>
 </li>
 <li>
@@ -879,12 +883,12 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;
   )
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
 
     def otherFiles = Task.Source(&quot;other-files&quot;)
@@ -1037,9 +1041,9 @@ import mill._, scalalib._
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
-  def compileIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;)
+  def compileIvyDeps = Seq(ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;)
   def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
-  def scalacPluginIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;)
+  def scalacPluginIvyDeps = Seq(ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;)
 }</code></pre>
 </div>
 </div>
@@ -1368,7 +1372,7 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+  def ivyDeps = Seq(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for (ivyDep &lt;- ivyDeps()) yield {
@@ -1380,12 +1384,12 @@ object `package` extends RootModule with ScalaModule {
     os.write(
       Task.dest / s&quot;MyDeps.scala&quot;,
       s&quot;&quot;&quot;
-package foo
-object MyDeps {
-  val value = List(
-    ${prettyIvyDeps.mkString(&quot;,\n&quot;)}
-  )
-}
+         |package foo
+         |object MyDeps {
+         |  val value = List(
+         |    ${prettyIvyDeps.mkString(&quot;,\n&quot;)}
+         |  )
+         |}
       &quot;&quot;&quot;.stripMargin
     )
 
@@ -1613,11 +1617,11 @@ object foo extends ScalaModule {
     os.write(
       Task.dest / &quot;Foo.scala&quot;,
       &quot;&quot;&quot;package foo
-object Foo {
-  def main(args: Array[String]): Unit = {
-    println(&quot;Hello World&quot;)
-  }
-}
+        |object Foo {
+        |  def main(args: Array[String]): Unit = {
+        |    println(&quot;Hello World&quot;)
+        |  }
+        |}
       &quot;&quot;&quot;.stripMargin
     )
     Seq(PathRef(Task.dest))

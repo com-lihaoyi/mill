@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -1131,25 +1135,21 @@ and plan out what would be necessary to run them</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.eval.Evaluator
-import mill.resolve.{Resolve, SelectMode}
+import mill.define.SelectMode
 
 def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
-  Resolve.Tasks.resolve(
-    evaluator.rootModule,
-    tasks,
-    SelectMode.Multi
-  ) match {
-    case Left(err) =&gt; Left(err)
-    case Right(resolved) =&gt;
-      val plan = evaluator.plan(resolved)
-        .sortedGroups
-        .keys()
-        .map(_.toString)
-        .toArray
+  val resolved = evaluator
+    .resolveTasks(tasks, SelectMode.Multi)
+    .get
 
-      plan.foreach(println)
-      Right(())
-  }
+  val plan = evaluator.plan(resolved)
+    .sortedGroups
+    .keys()
+    .map(_.toString)
+    .toArray
+
+  plan.foreach(println)
+  ()
 }</code></pre>
 </div>
 </div>

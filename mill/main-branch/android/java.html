@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -653,10 +657,9 @@
 This workflow is still pretty rough and nowhere near production ready, but can serve as
 a starting point for further experimentation and development.</p>
 </div>
+<div class="paragraph">
+<p><strong>Relevant Modules</strong></p>
 </div>
-</div>
-<div class="sect3">
-<h4 id="_relevant_modules"><a class="anchor" href="#_relevant_modules"></a>Relevant Modules</h4>
 <div class="paragraph">
 <p>These are the main Mill Modules that are relevant for building Android apps:</p>
 </div>
@@ -672,6 +675,7 @@ a starting point for further experimentation and development.</p>
 <p><a href="https://mill-build.org/api/latest/mill/scalalib/JavaModule.html"><code>mill.javalib.JavaModule</code></a>: General Java build tasks like compiling Java code and creating JAR files.</p>
 </li>
 </ul>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -728,7 +732,7 @@ import mill.javalib.android.AndroidTestModule</code></pre>
 
   object test extends AndroidAppTests with TestModule.Junit4 {
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;junit:junit:4.13.2&quot;
     )
   }
@@ -743,7 +747,7 @@ import mill.javalib.android.AndroidTestModule</code></pre>
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;androidx.test.ext:junit:1.2.1&quot;.exclude((
         &quot;org.jetbrains.kotlinx&quot;,
         &quot;kotlinx-coroutines-core-jvm&quot;
@@ -1005,8 +1009,8 @@ bundle/
 </li>
 </ul>
 </div>
-<div class="sect3">
-<h4 id="_key_functions"><a class="anchor" href="#_key_functions"></a>Key Functions</h4>
+<div class="sect2">
+<h3 id="_key_functions"><a class="anchor" href="#_key_functions"></a>Key Functions</h3>
 <div class="ulist">
 <ul>
 <li>

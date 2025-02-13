@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -710,8 +714,8 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
-  def compileIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
-  def scalacPluginIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
+  def compileIvyDeps = Seq(ivy&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
+  def scalacPluginIvyDeps = Seq(ivy&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
   def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
 }</code></pre>
 </div>
@@ -869,13 +873,13 @@ import mill.contrib.scoverage._
 object `package` extends RootModule with ScoverageModule {
   def scoverageVersion = &quot;2.1.0&quot;
   def scalaVersion = &quot;2.13.11&quot;
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;,
     ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>

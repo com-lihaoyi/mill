@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -679,13 +683,13 @@ trait MyModule extends JavaModule {
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;
   )
 }
 
 object bar extends MyModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
     ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )

@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -671,7 +675,7 @@ object foo extends ScoverageModule  {
   def scoverageVersion = &quot;2.1.1&quot;
 
   object test extends ScoverageTests with TestModule.ScalaTest {
-    def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.2.19&quot;)
+    def ivyDeps = Seq(ivy&quot;org.scalatest::scalatest:3.2.19&quot;)
   }
 }</code></pre>
 </div>

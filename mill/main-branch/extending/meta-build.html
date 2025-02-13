@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -727,7 +731,7 @@ import scalatags.Text.all._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.4&quot;
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}&quot;,
     ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;
   )
@@ -755,16 +759,16 @@ import mill._, scalalib._
 
 object `package` extends MillBuildRootModule {
   val scalatagsVersion = &quot;0.13.1&quot;
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
+  def ivyDeps = Seq(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
 
   def generatedSources = Task {
     os.write(
       Task.dest / &quot;DepVersions.scala&quot;,
       s&quot;&quot;&quot;
-package millbuild
-object DepVersions{
-  def scalatagsVersion = &quot;$scalatagsVersion&quot;
-}
+         |package millbuild
+         |object DepVersions{
+         |  def scalatagsVersion = &quot;$scalatagsVersion&quot;
+         |}
       &quot;&quot;&quot;.stripMargin
     )
     super.generatedSources() ++ Seq(PathRef(Task.dest))
@@ -860,7 +864,7 @@ import mill._, scalalib._
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
   def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(millSourcePath / &quot;mill-build/src&quot;))
+    super.sources() ++ Seq(PathRef(moduleDir / &quot;mill-build/src&quot;))
   }
 }</code></pre>
 </div>

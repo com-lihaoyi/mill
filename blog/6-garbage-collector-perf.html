@@ -206,7 +206,7 @@
 <button class="nav-toggle"></button>
 </div>
 <div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/blogFolder.dest/modules/ROOT/pages/6-garbage-collector-perf.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/6-garbage-collector-perf.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -2211,7 +2211,7 @@ of the <code>live-set</code> size.</p>
 <li>
 <p><strong>GC pause times are relatively constant regardless of the heap size</strong>.
 e.g. for <code>400 mb</code> live set a <code>800 mb</code> heap has a <code>39 ms</code> pause time, while a <code>400 mb</code> live set and
-<code>6400 mb</code> heap (8 times as large!) has a <code>90 ms</code> pause time. In fact, increasing the heap
+<code>6400 mb</code> heap (8 times as large!) has a <code>90 ms</code> pause time.In fact, increasing the heap
 size while keeping other things constant seems to make pause times go up slightly in
 this benchmark!</p>
 </li>
@@ -2228,9 +2228,9 @@ heap.</p>
 <div class="paragraph">
 <p>One additional GC behavior worth discussing is the &quot;Generational Hypothesis&quot;.
 The idea is that <em>&quot;most&quot;</em> objects do not live a long time, e.g. objects allocated within a method are often
-collect when the method returns. Given that assumption, many GCs have made optimizations
+collect when the method returns.Given that assumption, many GCs have made optimizations
 for the collection of objects that become garbage quickly, such that collecting them is
-much cheaper. Practically, that means that the same <code>live-set</code> and <code>heap-size</code> can have
+much cheaper.Practically, that means that the same <code>live-set</code> and <code>heap-size</code> can have
 vastly different performance depending on how the allocations are structured:</p>
 </div>
 <div class="olist arabic">
@@ -2400,7 +2400,7 @@ we get the following:</p>
 </table>
 <div class="paragraph">
 <p>Where the previous random-allocation benchmark has pause times of 10s to 100s to 1000s of
-milliseconds, this &quot;generational&quot; benchmark has pause times in the 1s to 10s. The program
+milliseconds, this &quot;generational&quot; benchmark has pause times in the 1s to 10s.The program
 throughput is also significantly higher.
 This demonstrates that the default G1 garbage collector does in fact have optimizations that
 make it perform better for &quot;generational&quot; workloads.</p>
@@ -2408,7 +2408,7 @@ make it perform better for &quot;generational&quot; workloads.</p>
 <div class="paragraph">
 <p>Most GCs have some kind of optimization to make collecting recently-allocated objects
 cheaper than collecting long-lived objects; these are often called <em>generational</em>
-garbage collectors. Java’s G1GC is no different, and we can see that even with
+garbage collectors.Java’s G1GC is no different, and we can see that even with
 the same live-set size and heap sizes, shorter-lived objects are dramatically
 cheaper to collect than long-lived objects.</p>
 </div>
@@ -2419,7 +2419,7 @@ cheaper to collect than long-lived objects.</p>
 <p>One interesting development in JVM garbage collectors is the
 <a href="https://docs.oracle.com/en/java/javase/21/gctuning/z-garbage-collector.html">Z Garbage Collector</a>.
 This is a garbage collector that is optimized for lower pause times, exchange for requiring
-much more memory than the default G1GC. If we run the benchmarks above with ZGC,
+much more memory than the default G1GC.If we run the benchmarks above with ZGC,
 even without the <a href="#_generational_optimizations">Generational Optimizations</a>, we get the numbers below:</p>
 </div>
 <div class="paragraph">

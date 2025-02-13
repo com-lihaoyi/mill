@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -665,7 +669,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -776,7 +780,7 @@ details on how to use each one from the command line.</p>
   def scalaVersion = &quot;2.13.8&quot;
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
   }
 }</code></pre>
 </div>
@@ -909,7 +913,7 @@ object qux extends ScalaModule {
   def moduleDeps = Seq(baz)
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
   }
@@ -919,7 +923,7 @@ object baz extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -972,10 +976,10 @@ object qux extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
   }
   object integration extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
   }
 }</code></pre>
 </div>
@@ -1014,7 +1018,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }

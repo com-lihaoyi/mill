@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -664,7 +668,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;org.eclipse.jetty:jetty-server:9.4.43.v20210629&quot;,
     ivy&quot;javax.servlet:javax.servlet-api:4.0.1&quot;
   )
@@ -702,13 +706,13 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
     ivy&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
   )
 
   object test extends JavaTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
   }
@@ -744,7 +748,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;org.springframework.boot:spring-boot-starter-data-jpa:2.5.4&quot;,
     ivy&quot;org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4&quot;,
     ivy&quot;org.springframework.boot:spring-boot-starter-validation:2.5.4&quot;,
@@ -757,19 +761,19 @@ object `package` extends RootModule with JavaModule {
 
   trait HelloTests extends JavaTests with TestModule.Junit5 {
     def mainClass = Some(&quot;com.example.TodomvcApplication&quot;)
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
   }
 
   object test extends HelloTests {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;com.h2database:h2:2.3.230&quot;
     )
   }
 
   object integration extends HelloTests {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;org.testcontainers:testcontainers:1.18.0&quot;,
       ivy&quot;org.testcontainers:junit-jupiter:1.18.0&quot;,
       ivy&quot;org.testcontainers:postgresql:1.18.0&quot;,
@@ -834,14 +838,14 @@ import mill._, javalib._
 
 object `package` extends RootModule with MicronautModule {
   def micronautVersion = &quot;4.5.3&quot;
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.micronaut:micronaut-http-server-netty:$micronautVersion&quot;,
     ivy&quot;io.micronaut.serde:micronaut-serde-jackson:2.10.1&quot;,
     ivy&quot;ch.qos.logback:logback-classic:1.5.3&quot;
   )
 
   object test extends MavenTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.micronaut:micronaut-http-client:$micronautVersion&quot;,
       ivy&quot;io.micronaut.test:micronaut-test-junit5:4.4.0&quot;,
       ivy&quot;org.junit.jupiter:junit-jupiter-api:5.8.1&quot;,
@@ -855,7 +859,7 @@ trait MicronautModule extends MavenModule {
 
   def processors = Task {
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy&quot;io.micronaut.data:micronaut-data-processor:4.7.0&quot;,
         ivy&quot;io.micronaut:micronaut-http-validation:$micronautVersion&quot;,
         ivy&quot;io.micronaut.serde:micronaut-serde-processor:2.9.0&quot;,
@@ -924,12 +928,12 @@ import mill._, javalib._
 
 object `package` extends RootModule with MicronautModule {
   def micronautVersion = &quot;4.4.3&quot;
-  def runIvyDeps = Agg(
+  def runIvyDeps = Seq(
     ivy&quot;ch.qos.logback:logback-classic:1.5.3&quot;,
     ivy&quot;com.h2database:h2:2.2.224&quot;
   )
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;io.micronaut:micronaut-http-server-netty:$micronautVersion&quot;,
     ivy&quot;io.micronaut.serde:micronaut-serde-jackson:2.9.0&quot;,
     ivy&quot;io.micronaut.data:micronaut-data-jdbc:4.7.0&quot;,
@@ -943,7 +947,7 @@ object `package` extends RootModule with MicronautModule {
   )
 
   object test extends MavenTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;com.h2database:h2:2.2.224&quot;,
       ivy&quot;io.micronaut:micronaut-http-client:$micronautVersion&quot;,
       ivy&quot;io.micronaut.test:micronaut-test-junit5:4.4.0&quot;,
@@ -958,7 +962,7 @@ trait MicronautModule extends MavenModule {
 
   def processors = Task {
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy&quot;io.micronaut.data:micronaut-data-processor:4.7.0&quot;,
         ivy&quot;io.micronaut:micronaut-http-validation:$micronautVersion&quot;,
         ivy&quot;io.micronaut.serde:micronaut-serde-processor:2.9.0&quot;,

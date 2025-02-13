@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -665,9 +669,9 @@ In most places, where Mill accepts a task, it really accepts a task selector que
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>&gt; mill for.compile
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill for.compile
 &gt; mill for.run hello world
-&gt; mill foo.testCached</pre>
+&gt; mill foo.testCached</code></pre>
 </div>
 </div>
 <div class="sidebarblock">
@@ -822,10 +826,10 @@ A fully qualified type can be denoted with the <code>_root_</code> package.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>&gt; mill resolve __:TestModule.jar
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">&gt; mill resolve __:TestModule.jar
 &gt; mill resolve &quot;(__:scalalib.TestModule).jar&quot;
 &gt; mill resolve &quot;(__:mill.scalalib.TestModule).jar&quot;
-&gt; mill resolve &quot;(__:_root_.mill.scalalib.TestModule).jar&quot;</pre>
+&gt; mill resolve &quot;(__:_root_.mill.scalalib.TestModule).jar&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -833,7 +837,7 @@ A fully qualified type can be denoted with the <code>_root_</code> package.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>&gt; mill resolve __:^TestModule.jar</pre>
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">&gt; mill resolve __:^TestModule.jar</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -841,7 +845,7 @@ A fully qualified type can be denoted with the <code>_root_</code> package.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>&gt; mill resolve &quot;__:JavaModule:^ScalaModule:^TestModule.jar&quot;</pre>
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">&gt; mill resolve &quot;__:JavaModule:^ScalaModule:^TestModule.jar&quot;</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -876,10 +880,10 @@ That means, you can’t filter based on the result type of a task.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>&gt; mill foo.run hello                         <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">&gt; mill foo.run hello                         <i class="conum" data-value="1"></i><b>(1)</b>
 &gt; mill {foo,bar}.run hello                   <i class="conum" data-value="2"></i><b>(2)</b>
 &gt; mill __:JavaModule:^TestModule.run hello   <i class="conum" data-value="3"></i><b>(3)</b>
-&gt; mill foo.run hello + bar.run world         <i class="conum" data-value="4"></i><b>(4)</b></pre>
+&gt; mill foo.run hello + bar.run world         <i class="conum" data-value="4"></i><b>(4)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">

@@ -201,6 +201,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -654,7 +658,7 @@ import mill._, javascriptlib._, pythonlib._, javalib._
 object client extends ReactScriptsModule
 
 object `sentiment-analysis` extends PythonModule {
-  def mainScript = Task.Source { millSourcePath / &quot;src&quot; / &quot;foo.py&quot; }
+  def mainScript = Task.Source { moduleDir / &quot;src&quot; / &quot;foo.py&quot; }
 
   def pythonDeps = Seq(&quot;textblob==0.19.0&quot;)
 
@@ -662,7 +666,7 @@ object `sentiment-analysis` extends PythonModule {
 }
 
 object server extends JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
     ivy&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
   )
@@ -676,7 +680,7 @@ object server extends JavaModule {
   }
 
   object test extends JavaTests with javalib.TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
   }

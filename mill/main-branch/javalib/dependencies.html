@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -664,7 +668,7 @@ for <code>JavaModule</code>.</p>
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;com.fasterxml.jackson.core:jackson-databind:2.13.4&quot;
   )
 }</code></pre>
@@ -674,7 +678,7 @@ object `package` extends RootModule with JavaModule {
 <p>You can define the <code>ivyDeps</code> field to add ivy dependencies to your module,
 named after the <a href="https://ant.apache.org/ivy/history/latest-milestone/settings/resolvers.html">Ivy Dependency Resolver</a>
 and JVM package repository format. The <code>Agg</code> factory function constructs an
-<code>Agg[Dep]</code> collection, which is a collection of `Dep`s without duplicates,
+<code>Seq[Dep]</code> collection, which is a collection of `Dep`s without duplicates,
 a type common in Mill builds.</p>
 </div>
 <div class="ulist">
@@ -722,7 +726,7 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def moduleDeps = Seq(bar)
-  def runIvyDeps = Agg(
+  def runIvyDeps = Seq(
     ivy&quot;javax.servlet:servlet-api:2.5&quot;,
     ivy&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
     ivy&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
@@ -739,7 +743,7 @@ transitive dependencies.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  def compileIvyDeps = Agg(
+  def compileIvyDeps = Seq(
     ivy&quot;javax.servlet:servlet-api:2.5&quot;,
     ivy&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
     ivy&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
@@ -813,8 +817,8 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def unmanagedClasspath = Task {
-    if (!os.exists(millSourcePath / &quot;lib&quot;)) Agg()
-    else Agg.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
+    if (!os.exists(moduleDir / &quot;lib&quot;)) Seq()
+    else Seq.from(os.list(moduleDir / &quot;lib&quot;).map(PathRef(_)))
   }
 }</code></pre>
 </div>
@@ -856,7 +860,7 @@ object `package` extends RootModule with JavaModule {
         &quot;https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar&quot;
       )
     )
-    Agg(PathRef(Task.dest / &quot;fastjavaio.jar&quot;))
+    Seq(PathRef(Task.dest / &quot;fastjavaio.jar&quot;))
   }
 }</code></pre>
 </div>
@@ -916,7 +920,7 @@ val sonatypeReleases = Seq(
 
 object foo extends JavaModule {
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
     ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )
