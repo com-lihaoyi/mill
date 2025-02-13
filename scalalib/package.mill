@@ -83,7 +83,6 @@ object `package` extends RootModule with build.MillStableScalaModule {
         build.Deps.RuntimeDeps.revApi.version,
         "Version of revApi"
       )
-
     )
   }
 
