@@ -43,7 +43,7 @@ trait PalantirFormatBaseModule extends CoursierModule {
   )
 
   /**
-   * Palantir Java Format version. Defaults to `2.50.0`.
+   * Palantir Java Format version. Defaults to the version used when Mill was built.
    */
   def palantirformatVersion: T[String] = Task {
     Versions.palantirFormatVersion
