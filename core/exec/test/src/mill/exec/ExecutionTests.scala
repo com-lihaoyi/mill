@@ -22,7 +22,7 @@ object ExecutionTests extends TestSuite {
       def x = 100
     }
 
-    def task4 = Task.traverse(Seq(mod1, mod2, mod3))(_.task).map(_.sum)
+    def task4 = Task.traverse(Seq(mod1, mod2, mod3))(_.task)
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -305,16 +305,40 @@ object ExecutionTests extends TestSuite {
         def task1 = Task { 1 }
         def task2 = Task { 10 }
         def task3 = Task { 100 }
-        def task4 = Task.sequence(Seq(task1, task2, task3)).map(_.sum)
+        def task4 = Task.sequence(Seq(task1, task2, task3))
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(111, _)) = tester.apply(build.task4)
+        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(build.task4)
       }
     }
     test("traverse") {
       UnitTester(traverseBuild, null).scoped { tester =>
-        val Right(UnitTester.Result(111, _)) = tester.apply(traverseBuild.task4)
+        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(traverseBuild.task4)
+      }
+    }
+
+    test("zip") {
+      object build extends TestBaseModule {
+        def task1 = Task { 1 }
+        def task2 = Task { 10 }
+        def task4 = task1.zip(task2)
+        lazy val millDiscover = Discover[this.type]
+      }
+      UnitTester(build, null).scoped { tester =>
+        val Right(UnitTester.Result((1, 10), _)) = tester.apply(build.task4)
+      }
+    }
+
+    test("map") {
+      object build extends TestBaseModule {
+        def task1 = Task { 1 }
+        def task2 = task1.map(_ + 10)
+
+        lazy val millDiscover = Discover[this.type]
+      }
+      UnitTester(build, null).scoped { tester =>
+        val Right(UnitTester.Result(11, _)) = tester.apply(build.task2)
       }
     }
 
