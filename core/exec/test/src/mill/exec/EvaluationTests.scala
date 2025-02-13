@@ -314,5 +314,13 @@ object EvaluationTests extends TestSuite {
       checker(nc4, null, Seq(nc4), extraEvaled = -1, secondRunNoOp = false)
     }
 
+    test("backticked") {
+      UnitTester(bactickIdentifiers, null).scoped { tester =>
+        val Right(UnitTester.Result(1, _)) = tester.apply(bactickIdentifiers.`up-target`)
+        val Right(UnitTester.Result(3, _)) = tester.apply(bactickIdentifiers.`a-down-target`)
+        val Right(UnitTester.Result(3, _)) = tester.apply(bactickIdentifiers.`invisible&`)
+        val Right(UnitTester.Result(4, _)) = tester.apply(bactickIdentifiers.`nested-module`.`nested-target`)
+      }
+    }
   }
 }

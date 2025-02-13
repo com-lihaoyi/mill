@@ -27,12 +27,12 @@ object BasePathTests extends TestSuite {
 //    test("singleton") {
 //      checkMillSourcePath(testGraphs.singleton)(identity)
 //    }
-//    test("backtickIdentifiers") {
-//      checkMillSourcePath(testGraphs.bactickIdentifiers)(
-//        _.`nested-module`,
-//        "nested-module"
-//      )
-//    }
+    test("backtickIdentifiers") {
+      checkMillSourcePath(TestGraphs.bactickIdentifiers)(
+        _.`nested-module`,
+        "nested-module"
+      )
+    }
     test("separateGroups") {
       checkMillSourcePath(TestGraphs.triangleTask)(identity)
     }

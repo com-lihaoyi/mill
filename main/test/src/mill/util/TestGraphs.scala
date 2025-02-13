@@ -9,6 +9,18 @@ import mill.{Module, Task}
  */
 
 object TestGraphs {
+  object bactickIdentifiers extends TestBaseModule {
+    def `up-target` = Task{1}
+    def `a-down-target` = Task{ `up-target`() + 2}
+    def `invisible&` = Task{3}
+
+    object `nested-module` extends Module {
+      def `nested-target` = Task{4}
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
   //      _ left _
   //     /        \
   // task -------- right
