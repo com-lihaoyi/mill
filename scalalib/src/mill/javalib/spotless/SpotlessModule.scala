@@ -2,7 +2,7 @@ package mill
 package javalib.spotless
 
 import mill.api.PathRef
-import mill.scalalib.{CoursierModule, DepSyntax}
+import mill.scalalib.CoursierModule
 import java.util.Set
 import java.util.stream.Collectors
 import java.nio.charset.StandardCharsets

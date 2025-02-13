@@ -18,17 +18,22 @@ object `package` extends RootModule with JavaModule with JavaSpotlessModule {
     reflowLongStrings = true,
     formatJavadoc = false,
     reorderImports = false,
-    groupArtifact = "com.google.googlejavaformat:google-java-format")
+    groupArtifact = "com.google.googlejavaformat:google-java-format"
+  )
 
   val palantirFormatter = PalantirJavaFormat(
     version = "2.50.0",
     style = "GOOGLE",
-    formatJavadoc = true)
+    formatJavadoc = true
+  )
 
   def jvmLangConfig = new JavaConfig(
     importOrder = Some(Seq()),
-    formatter = Some(googleFormatter), // either `googleFormatter` or `palantirFormatter` is supported as `JavaFormatter`
-    licenseHeader = Some("/* (C) 2025. Licensed under Apache-2.0. */\n"))
+    formatter = Some(
+      googleFormatter
+    ), // either `googleFormatter` or `palantirFormatter` is supported as `JavaFormatter`
+    licenseHeader = Some("/* (C) 2025. Licensed under Apache-2.0. */\n")
+  )
 }
 
 /*

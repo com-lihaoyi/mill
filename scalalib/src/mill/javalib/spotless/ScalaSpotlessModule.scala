@@ -21,4 +21,3 @@ trait ScalaSpotlessModule extends SpotlessModule {
     "3.8.1"
   }
 }
-
