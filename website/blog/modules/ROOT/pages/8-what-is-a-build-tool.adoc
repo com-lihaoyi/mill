@@ -119,7 +119,7 @@ tool also supports multiple languages: xref:mill:ROOT:javalib/intro.adoc[Java],
 xref:mill:ROOT:kotlinlib/intro.adoc[Kotlin], xref:mill:ROOT:scalalib/intro.adoc[Scala],
 xref:mill:ROOT:pythonlib/intro.adoc[Python], and (experimentally)
 xref:mill:ROOT:javascriptlib/intro.adoc[Javascript], allowing it to be used
-for xref:mill:ROOT:large/multi-language-builds.adoc[Multi-Language Builds].
+for https://mill-build.org/mill/main-branch/large/multi-language-builds.html[Multi-Language Builds].
 
 ### Build Tools for Small Codebases
 
@@ -275,7 +275,7 @@ build tools like Bazel provides. Some examples of "large codebase" requirements 
   ML workflows. e.g. Bazel has `rules{lang}` for a wide variety of languages (e.g.
   https://github.com/bazelbuild/rules_java[rules_java], https://github.com/bazelbuild/rules_python[rules_python],
   https://github.com/bazel-contrib/rules_go[rules_go]), and Mill
-  has support for xref:mill:ROOT:large/multi-language-builds.adoc[Multi-Language Builds]
+  has support for https://mill-build.org/mill/main-branch/large/multi-language-builds.html[Multi-Language Builds]
 
 - Distributed caching and execution: allowing different CI machines or developer
   laptops to share compiled artifacts so a module compiled on one machine and be
