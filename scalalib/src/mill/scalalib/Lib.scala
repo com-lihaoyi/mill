@@ -150,13 +150,6 @@ object Lib {
     } yield path
   }
 
-  private[mill] def millAssemblyEmbeddedDeps: Seq[BoundDep] = Seq.from(
-    BuildInfo.millEmbeddedDeps
-      .split(",")
-      .map(d => ivy"$d")
-      .map(dep => Lib.depToBoundDep(dep, BuildInfo.scalaVersion))
-  )
-
   def resolveMillBuildDeps(
       repos: Seq[Repository],
       ctx: Option[mill.api.Ctx.Log],
@@ -165,16 +158,26 @@ object Lib {
     MillModuleUtil.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {
       case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
       case None =>
-        val Result.Success(res) = scalalib.Lib.resolveDependencies(
+        val distModule = BuildInfo.millDistModule.split(":", 2) match {
+          case Array(org, name) =>
+            coursier.Module(coursier.Organization(org), coursier.ModuleName(name))
+          case _ =>
+            sys.error(
+              s"Malformed BuildInfo.millDistModule value: '${BuildInfo.millDistModule}' (expected 'org:name')"
+            )
+        }
+        val res = scalalib.Lib.resolveDependencies(
           repositories = repos.toList,
-          deps = millAssemblyEmbeddedDeps,
+          deps = Seq(
+            BoundDep(coursier.Dependency(distModule, BuildInfo.millVersion), force = false)
+          ),
           sources = useSources,
           mapDependencies = None,
           customizer = None,
           coursierCacheCustomizer = None,
           ctx = ctx
-        ): @unchecked
-        res.toList.map(_.path)
+        )
+        res.get.toList.map(_.path)
     }
   }
 
