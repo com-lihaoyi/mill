@@ -37,7 +37,6 @@ object Applicative {
 
   trait Applyer[W[_], T[_], Z[_], Ctx] {
     def ctx()(implicit c: Ctx): Ctx = c
-    def traverseCtx[I, R](xs: Seq[W[I]])(f: (Seq[I], Ctx) => Z[R]): T[R]
   }
 
   def impl[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using

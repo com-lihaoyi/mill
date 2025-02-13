@@ -6,7 +6,7 @@ import utest._
 import scala.annotation.compileTimeOnly
 import scala.language.implicitConversions
 
-object ApplicativeTests extends TestSuite with ApplicativeTestsBase {
+object ApplicativeTests extends TestSuite {
   implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
 
   class Counter {
