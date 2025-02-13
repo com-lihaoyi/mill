@@ -1,6 +1,7 @@
 package mill.define
 
-import mill.api.internal
+import mill.api
+import mill.api.{Result, internal}
 import mill.define.internal.{OverrideMapping, Reflect}
 
 import scala.jdk.CollectionConverters.*
@@ -104,4 +105,6 @@ case class ModuleTask[+T](module: Module) extends NamedTask[T] {
   override def isPrivate: Option[Boolean] = None
 
   override val inputs: Seq[Task[_]] = ???
+
+  override def evaluate0: (Seq[Any], api.Ctx) => Result[T] = ???
 }

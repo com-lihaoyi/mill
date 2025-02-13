@@ -30,7 +30,6 @@ object EvaluationTests {
 
     lazy val millDiscover = Discover[this.type]
   }
-
 }
 
 import EvaluationTests._

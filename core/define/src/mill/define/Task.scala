@@ -268,7 +268,9 @@ trait NamedTask[+T] extends Task[T] {
   }
   override def toString = ctx.segments.render
 
-  def evaluate(ctx: mill.api.Ctx): Result[T] = ctx.arg[T](0)
+  def evaluate(ctx: mill.api.Ctx): Result[T] = evaluate0(ctx.args, ctx)
+
+  def evaluate0: (Seq[Any], mill.api.Ctx) => Result[T]
 
   val ctx: Ctx = ctx0
 
@@ -516,6 +518,7 @@ object TaskMacros {
     val taskIsPrivate = isPrivateTargetOption()
     val expr = appImpl[T]((in, ev) => '{ new TargetImpl[T]($in, $ev, $ctx, $rw, $taskIsPrivate, $persistent) }, t)
       .asInstanceOf[Expr[Target[T]]]
+
     Cacher.impl0(expr)
   }
 
