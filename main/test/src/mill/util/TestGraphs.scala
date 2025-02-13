@@ -205,66 +205,6 @@ object TestGraphs {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object crossExtension extends TestBaseModule {
-    object myCross extends Cross[MyCrossModule]("a", "b")
-    trait MyCrossModule extends Cross.Module[String] {
-      def param1 = Task { "Param Value: " + crossValue }
-    }
-
-    object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1), ("b", 2))
-    trait MyCrossModuleExtended extends MyCrossModule with Cross.Module2[String, Int] {
-      def param2 = Task { "Param Value: " + crossValue2 }
-    }
-
-    object myCrossExtendedAgain
-        extends Cross[MyCrossModuleExtendedAgain](("a", 1, true), ("b", 2, false))
-    trait MyCrossModuleExtendedAgain extends MyCrossModuleExtended
-        with Cross.Module3[String, Int, Boolean] {
-      def param3 = Task { "Param Value: " + crossValue3 }
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  object innerCrossModule extends TestBaseModule {
-    object myCross extends Cross[MyCrossModule]("a", "b")
-    trait MyCrossModule extends Cross.Module[String] {
-      object foo extends CrossValue {
-        def bar = Task { "foo " + crossValue }
-      }
-
-      object baz extends CrossValue {
-        def bar = Task { "baz " + crossValue }
-      }
-    }
-
-    object myCross2 extends Cross[MyCrossModule2](("a", 1), ("b", 2))
-    trait MyCrossModule2 extends Cross.Module2[String, Int] {
-      object foo extends InnerCrossModule2 {
-        def bar = Task { "foo " + crossValue }
-        def qux = Task { "foo " + crossValue2 }
-      }
-      object baz extends InnerCrossModule2 {
-        def bar = Task { "baz " + crossValue }
-        def qux = Task { "baz " + crossValue2 }
-      }
-    }
-
-    object myCross3 extends Cross[MyCrossModule3](("a", 1, true), ("b", 2, false))
-    trait MyCrossModule3 extends Cross.Module3[String, Int, Boolean] {
-      object foo extends InnerCrossModule3 {
-        def bar = Task { "foo " + crossValue }
-        def qux = Task { "foo " + crossValue2 }
-        def lol = Task { "foo " + crossValue3 }
-      }
-      object baz extends InnerCrossModule3 {
-        def bar = Task { "baz " + crossValue }
-        def qux = Task { "baz " + crossValue2 }
-        def lol = Task { "baz " + crossValue3 }
-      }
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
-
   object nestedCrosses extends TestBaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212") {
       override def defaultCrossSegments: Seq[String] = Seq("212")
