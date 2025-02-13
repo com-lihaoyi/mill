@@ -36,7 +36,8 @@ These modules may depend on each other as shown in the diagram below,
 with the various `backend_service` and `frontend_web` codebases
 grouped into `deployments`, and the `_utils` files shared between them:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -54,7 +55,7 @@ digraph G {
   staging_environment -> end_to_end_test_2
   staging_environment -> end_to_end_test_3
 }
-```
+....
 
 These various modules would typically each have their own test suite, which
 for simplicity I left out of the diagrams.
@@ -170,7 +171,8 @@ test. For example, if we make a change to `backend_service_1`, we need to run th
 `backend_service_1` as well as the integration tests for `deployment_1`:
 
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -186,13 +188,14 @@ digraph G {
   deployment_1 [color=red, penwidth=2]
   backend_service_1 -> deployment_1 [color=red, penwidth=2]
 }
-```
+....
 
 On the other hand, if we make a change to `frontend_web_utils`, we need to run the unit tests
 for `frontend_web_1` and `frontend_web_2`, as well as the integration tests for `deployment_1`
 and `deployment_2`, but _not_ `deployment_3` since (in this example) it doesn't depend on any frontend codebase:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -209,7 +212,7 @@ digraph G {
   backend_service_utils -> backend_service_2 -> deployment_2
   backend_service_utils -> backend_service_1 -> deployment_1
 }
-```
+....
 
 This kind of dependency-based selective test execution is generally straightforward:
 
@@ -297,7 +300,8 @@ you touch any line of code is extremely expensive and wasteful.
 
 For example, touching `backend_service_1` is enough to trigger all the `end_to_end` tests:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -324,11 +328,12 @@ digraph G {
   staging_environment -> end_to_end_test_2 [color=red, penwidth=2]
   staging_environment -> end_to_end_test_3 [color=red, penwidth=2]
 }
-```
+....
 
 Touching `frontend_web_2` is also enough to trigger all the `end_to_end` tests:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -357,7 +362,7 @@ digraph G {
   staging_environment -> end_to_end_test_2 [color=red, penwidth=2]
   staging_environment -> end_to_end_test_3 [color=red, penwidth=2]
 }
-```
+....
 
 The two examples above demonstrate both failure modes:
 
@@ -397,7 +402,8 @@ module's test suite. e.g. if we set `N = 1`, then a change to `backend_service_1
 will only run tests for `backend_service_1` and `deployment_1`, but not the ``end_to_end_test``s
 downstream of the `staging_environment`:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -419,7 +425,7 @@ digraph G {
   staging_environment -> end_to_end_test_2
   staging_environment -> end_to_end_test_3
 }
-```
+....
 
 At my last job, we picked `N = 8` somewhat arbitrarily, but as a heuristic there is
 no "right" answer, and the exact choice can be chosen to tradeoff between thoroughness
@@ -435,7 +441,8 @@ tests for the `deployment_1` module. We represent this by rendering `staging_env
 in dashed lines below, and adding additional arrows representing the hard-coded dependency
 from `deployment_1` to `end_to_end_test_1`:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -464,7 +471,7 @@ digraph G {
   end_to_end_test_2
   deployment_3 -> end_to_end_test_3
 }
-```
+....
 
 This approach does work, as developers usually have _some_ idea of what tests
 should be run to exercise their application code. But maintaining these hard-coded

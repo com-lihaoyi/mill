@@ -147,7 +147,8 @@ A https://en.wikipedia.org/wiki/ZIP_(file_format)[zip file] is an archive made o
 concatenated together followed by a "central directory" containing the _reverse offsets_ of
 every file within the archive, relative to the central directory.
 
-```graphviz
+[graphviz]
+....
 digraph G {
   label="archive.zip"
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -156,7 +157,7 @@ digraph G {
   zip:f2:n -> zip:f0:n
   zip:f2:n -> zip:f3:n
 }
-```
+....
 
 The typical way someone reads from a zip file is a follows:
 
@@ -176,7 +177,8 @@ beginning of the file_! The zip data can be at the end of an arbitrarily long fi
 as long as programs can scan to the end of the zip to find the central directory, they
 will be able to extract the zip.
 
-```graphviz
+[graphviz]
+....
 digraph G {
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   label="archive.zip"
@@ -187,7 +189,7 @@ digraph G {
   zip:f2:n -> zip:f0:n
   zip:f2:n -> zip:f3:n
 }
-```
+....
 
 Thus, we can actually use the `.zip` format in two ways:
 
@@ -205,7 +207,8 @@ So we can prepend a bash script to our `.jar` file to
 * Pass any of the current executable's command-line arguments `"$@"`as the Java program's command-line arguments
 * Allow configuration of the `java` process (since we're no longer calling it ourselves) via a `JAVA_OPTS` environment variable
 
-```graphviz
+[graphviz]
+....
 digraph G {
   label="out.jar"
   left [shape=plaintext label="bash script starts executing at start of file\nruns `java` passing itself as the classpath"]
@@ -219,7 +222,7 @@ digraph G {
   left -> zip:fe:n [color=red penwidth=3]
   zip:f2:s -> right [dir=back color=red penwidth=3]
 }
-```
+....
 
 If you use `less out.jar` to look at what's inside the Jar file, it looks like this:
 

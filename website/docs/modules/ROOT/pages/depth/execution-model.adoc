@@ -148,7 +148,8 @@ build graph that includes all transitive upstream dependencies. This is done by
 traversing the graph of task dependencies, and generates a (simplified) task graph
 as shown below:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -176,7 +177,7 @@ digraph G {
   "foo.classPath" -> "bar.compile" [constraint=false]
   "foo.classPath" -> "bar.classPath"
 }
-```
+....
 
 In this graph, we can see that even though <<Resolution>> only selected `foo.assembly`
 and `bar.assembly`, their upstream task graph requires tasks such as `foo.compile`,
@@ -194,7 +195,8 @@ changes may have their value loaded from cache (if already evaluated earlier) or
 For example, a change to `foo/src/*.java` would affect the `foo.sources` task, which
 would invalidate and cause evaluation of the tasks highlighted in red below:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -230,12 +232,13 @@ digraph G {
   "foo.classPath" -> "bar.compile" [constraint=false]
   "foo.classPath" -> "bar.classPath"  [color=red, penwidth=2]
 }
-```
+....
 
 On the other hand a change to `bar/src/*.java` would affect the `bar.sources` task, which
 would invalidate and cause evaluation of the tasks highlighted in red below:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -268,7 +271,7 @@ digraph G {
   "foo.classPath" -> "bar.compile" [constraint=false]
   "foo.classPath" -> "bar.classPath"
 }
-```
+....
 
 In the example changing `bar/src/*.java`, Mill may also take the opportunity to parallelize
 things:

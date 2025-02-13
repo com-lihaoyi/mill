@@ -588,7 +588,8 @@ def make = Task {
 }
 ----
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -596,7 +597,7 @@ digraph G {
   cSources -> make
   cSources -> cHeaders
 }
-```
+....
 
 In Mill, we define the `makefile`, `cSources`, `cHeaders`, and `make` tasks. The bulk
 of the logic is in `def make`, which prepares the `makefile` and C sources,
