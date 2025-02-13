@@ -37,13 +37,13 @@ object Applicative {
 
   trait Applyer[W[_], T[_], Z[_], Ctx] {
     def ctx()(implicit c: Ctx): Ctx = c
-    def traverseCtx[I, R](xs: Seq[W[I]])(f: (IndexedSeq[I], Ctx) => Z[R]): T[R]
+    def traverseCtx[I, R](xs: Seq[W[I]])(f: (Seq[I], Ctx) => Z[R]): T[R]
   }
 
   def impl[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
       Quotes
   )(
-      traverseCtx: (Expr[Seq[W[Any]]], Expr[(IndexedSeq[Any], Ctx) => Z[T]]) => Expr[M[T]],
+      traverseCtx: (Expr[Seq[W[Any]]], Expr[(Seq[Any], Ctx) => Z[T]]) => Expr[M[T]],
       t: Expr[Z[T]]
   ): Expr[M[T]] = {
     import quotes.reflect.*
@@ -77,7 +77,7 @@ object Applicative {
     }
 
     def transformed(
-        itemsRef: Expr[IndexedSeq[Any]],
+        itemsRef: Expr[Seq[Any]],
         ctxRef: Expr[Ctx]
     ): (Expr[Z[T]], Expr[Seq[W[Any]]]) = {
       val exprs = collection.mutable.Buffer.empty[Tree]
@@ -118,7 +118,7 @@ object Applicative {
 
     val (callback, exprsList) = {
       var exprsExpr: Expr[Seq[W[Any]]] | Null = null
-      val cb = '{ (items: IndexedSeq[Any], ctx: Ctx) =>
+      val cb = '{ (items: Seq[Any], ctx: Ctx) =>
         ${
           val (body, exprs) = transformed('items, 'ctx)
           exprsExpr = exprs

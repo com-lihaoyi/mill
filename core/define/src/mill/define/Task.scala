@@ -252,10 +252,6 @@ object Task extends TaskBase {
  */
 trait NamedTask[+T] extends Task[T] {
 
-  /**
-   * The implementation task wrapped by this named task
-   */
-  def t: Task[T]
   def ctx0: mill.define.Ctx
   def isPrivate: Option[Boolean]
   def label: String = ctx.segments.value.last match {
@@ -269,7 +265,6 @@ trait NamedTask[+T] extends Task[T] {
   def evaluate(ctx: mill.api.Ctx): Result[T] = ctx.arg[T](0)
 
   val ctx: Ctx = ctx0
-  val inputs: Seq[Task[?]] = Seq(t)
 
   def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
 
@@ -402,7 +397,7 @@ object TaskBase {
      * A variant of [[traverse]] that also provides the [[mill.api.Ctx]] to the
      * function [[f]]
      */
-    def traverseCtx[I, R](xs: Seq[Task[I]])(f: (IndexedSeq[I], mill.api.Ctx) => Result[R])
+    def traverseCtx[I, R](xs: Seq[Task[I]])(f: (Seq[I], mill.api.Ctx) => Result[R])
         : Task[R] = {
       new Task.TraverseCtx[I, R](xs, f)
     }
@@ -410,7 +405,8 @@ object TaskBase {
 }
 
 class TargetImpl[+T](
-    val t: Task[T],
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
     val ctx0: mill.define.Ctx,
     val readWriter: RW[?],
     val isPrivate: Option[Boolean],
@@ -422,31 +418,32 @@ class TargetImpl[+T](
 }
 
 class Command[+T](
-    val t: Task[T],
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
     val ctx0: mill.define.Ctx,
     val writer: W[?],
     val isPrivate: Option[Boolean],
     val exclusive: Boolean
 ) extends NamedTask[T] {
-  def this(
-      t: Task[T],
-      ctx0: mill.define.Ctx,
-      writer: W[?],
-      isPrivate: Option[Boolean]
-  ) = this(t, ctx0, writer, isPrivate, false)
+  
   override def asCommand: Some[Command[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[?]] = Some(writer)
 }
 
-class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
+class Worker[+T](
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
+    val ctx0: mill.define.Ctx, 
+    val isPrivate: Option[Boolean])
     extends NamedTask[T] {
   override def persistent = false
   override def asWorker: Some[Worker[T]] = Some(this)
 }
 
 class InputImpl[T](
-    val t: Task[T],
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
     val ctx0: mill.define.Ctx,
     val writer: upickle.default.Writer[?],
     val isPrivate: Option[Boolean]
@@ -456,11 +453,16 @@ class InputImpl[T](
   override def writerOpt: Some[W[?]] = Some(writer)
 }
 
-class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends InputImpl[Seq[PathRef]](t, ctx0, upickle.default.readwriter[Seq[PathRef]], isPrivate) {}
+class SourcesImpl(
+                   inputs: Seq[Task[Any]],
+                   evaluate0: (Seq[Any], mill.api.Ctx) => Result[Seq[PathRef]],
+                   ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
+    extends InputImpl[Seq[PathRef]](inputs, evaluate0, ctx0, upickle.default.readwriter[Seq[PathRef]], isPrivate) {}
 
-class SourceImpl(t: Task[PathRef], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
-    extends InputImpl[PathRef](t, ctx0, upickle.default.readwriter[PathRef], isPrivate) {}
+class SourceImpl(inputs: Seq[Task[Any]],
+                 evaluate0: (Seq[Any], mill.api.Ctx) => Result[PathRef],
+                 ctx0: mill.define.Ctx, isPrivate: Option[Boolean])
+    extends InputImpl[PathRef](inputs, evaluate0, ctx0, upickle.default.readwriter[PathRef], isPrivate) {}
 
 object TaskMacros {
   def appImpl[T: Type](using
@@ -468,7 +470,7 @@ object TaskMacros {
   )(
       traverseCtx: (
           Expr[Seq[Task[Any]]],
-          Expr[(IndexedSeq[Any], mill.api.Ctx) => Result[T]]
+          Expr[(Seq[Any], mill.api.Ctx) => Result[T]]
       ) => Expr[Task[T]],
       t: Expr[Result[T]]
   ): Expr[Task[T]] = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtx, t)
@@ -483,7 +485,7 @@ object TaskMacros {
 
   private def traverseCtxExpr[R: Type](caller: Expr[TraverseCtxHolder])(
       args: Expr[Seq[Task[Any]]],
-      fn: Expr[(IndexedSeq[Any], mill.api.Ctx) => Result[R]]
+      fn: Expr[(Seq[Any], mill.api.Ctx) => Result[R]]
   )(using Quotes): Expr[Task[R]] =
     '{ $caller.traverseCtx[Any, R]($args)($fn) }
 
@@ -505,8 +507,10 @@ object TaskMacros {
       caller: Expr[TraverseCtxHolder],
       persistent: Expr[Boolean]
   ): Expr[Target[T]] = {
-    val (taskIsPrivate, lhs) = setup(caller, t)
-    Cacher.impl0('{ new TargetImpl[T]($lhs, $ctx, $rw, $taskIsPrivate, $persistent) })
+    val taskIsPrivate = isPrivateTargetOption()
+    val expr = appImpl[T]((in, ev) => '{ new TargetImpl[T]($in, $ev, $ctx, $rw, $taskIsPrivate, $persistent) }, t)
+      .asInstanceOf[Expr[Target[T]]]
+    Cacher.impl0(expr)
   }
 
   def sourcesImpl(using
@@ -517,8 +521,10 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx],
       caller: Expr[TraverseCtxHolder]
   ): Expr[Target[Seq[PathRef]]] = {
-    val (taskIsPrivate, lhs) = setup(caller, values)
-    Cacher.impl0('{ new SourcesImpl($lhs, $ctx, $taskIsPrivate) })
+    val taskIsPrivate = isPrivateTargetOption()
+    val expr = appImpl[Seq[PathRef]]((in, ev) => '{ new SourcesImpl($in, $ev, $ctx, $taskIsPrivate) }, values)
+      .asInstanceOf[Expr[Target[Seq[PathRef]]]]
+    Cacher.impl0(expr )
   }
 
   def sourceImpl(using
@@ -527,8 +533,12 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx],
       caller: Expr[TraverseCtxHolder]
   ): Expr[Target[PathRef]] = {
-    val (taskIsPrivate, lhs) = setup(caller, value)
-    Cacher.impl0('{ new SourceImpl($lhs, $ctx, $taskIsPrivate) })
+
+    val taskIsPrivate = isPrivateTargetOption()
+    val expr = appImpl[PathRef]((in, ev) => '{ new SourceImpl($in, $ev, $ctx, $taskIsPrivate) }, value)
+      .asInstanceOf[Expr[Target[PathRef]]]
+    Cacher.impl0(expr)
+
   }
 
   def inputImpl[T: Type](using
@@ -538,8 +548,10 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx],
       caller: Expr[TraverseCtxHolder]
   ): Expr[Target[T]] = {
-    val (taskIsPrivate, lhs) = setup(caller, value)
-    Cacher.impl0('{ new InputImpl[T]($lhs, $ctx, $w, $taskIsPrivate) })
+    val taskIsPrivate = isPrivateTargetOption()
+    val expr = appImpl[T]((in, ev) => '{ new InputImpl[T]($in, $ev, $ctx, $w, $taskIsPrivate) }, value)
+      .asInstanceOf[Expr[Target[T]]]
+    Cacher.impl0(expr)
   }
 
   def commandImpl[T: Type](using
@@ -550,8 +562,12 @@ object TaskMacros {
       caller: Expr[TraverseCtxHolder],
       exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {
-    val (taskIsPrivate, lhs) = setup(caller, t)
-    '{ new Command[T]($lhs, $ctx, $w, $taskIsPrivate, exclusive = $exclusive) }
+
+    val taskIsPrivate = isPrivateTargetOption()
+    val expr = appImpl[T]((in, ev) => '{ new Command[T]($in, $ev, $ctx, $w, $taskIsPrivate, exclusive = $exclusive) }, t)
+      .asInstanceOf[Expr[Command[T]]]
+
+    expr
   }
 
   def workerImpl2[T: Type](using
@@ -560,7 +576,10 @@ object TaskMacros {
       ctx: Expr[mill.define.Ctx],
       caller: Expr[TraverseCtxHolder]
   ): Expr[Worker[T]] = {
-    val (taskIsPrivate, lhs) = setup(caller, t)
-    Cacher.impl0('{ new Worker[T]($lhs, $ctx, $taskIsPrivate) })
+    val taskIsPrivate = isPrivateTargetOption()
+    val expr = appImpl[T]((in, ev) => '{ new Worker[T]($in, $ev, $ctx, $taskIsPrivate) }, t)
+      .asInstanceOf[Expr[Worker[T]]]
+    Cacher.impl0(expr)
+
   }
 }
