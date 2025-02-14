@@ -32,14 +32,15 @@ object bar extends PythonModule {
 // In this example, not only does `foo` depend on `bar`, but we also make
 // `foo.test` depend on `bar.test`.
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0]
 //   "bar" -> "bar.test" -> "foo.test"
 //   "bar" -> "foo" -> "foo.test"
 // }
-// ```
+// ....
 //
 // That lets `foo.test` make use of the
 // `BarTestUtils` class that `bar.test` defines, allowing us to re-use this

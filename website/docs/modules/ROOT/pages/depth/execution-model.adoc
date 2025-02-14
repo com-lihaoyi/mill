@@ -121,7 +121,8 @@ files generated in the <<Compilation>> step above, instantiates the xref:fundame
 and xref:fundamentals/tasks.adoc[Tasks] as necessary, and returns a list of the final tasks that
 were selected by selector:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   bgcolor=transparent
@@ -129,7 +130,7 @@ digraph G {
   build -> foo -> "foo.assembly"
   build -> bar -> "bar.assembly"
 }
-```
+....
 
 Mill starts from the `RootModule` instantiated after <<Compilation>>, and uses
 Java reflection to walk the tree of modules and tasks to find the tasks that match
