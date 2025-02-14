@@ -3,9 +3,6 @@ package foo
 import org.apache.spark.sql.{SparkSession, Dataset, DataFrame}
 import org.apache.spark.sql.functions._
 
-
-
-
 object Foo {
 
   case class Transaction(id: Int, category: String, amount: Double)
@@ -25,13 +22,7 @@ object Foo {
       .master("local[*]")
       .getOrCreate()
 
-    // Check for a file path provided as a command-line argument first;
-    // otherwise, use resources.
-    val resourcePath: String = args.headOption
-      .orElse(Option(getClass.getResource("/transactions.csv")).map(_.getPath))
-      .getOrElse(throw new RuntimeException(
-        "transactions.csv not provided as argument and not found in resources"
-      ))
+    val resourcePath: String = args(0)
 
     import spark.implicits._
 
@@ -45,10 +36,9 @@ object Foo {
 
     println("Summary Statistics by Category:")
     summaryDF.show()
-    summaryDF.writeStream
-      .format("delta")
-      .option("checkpointLocation", "/tmp/checkpoint")
-      .start("/tmp/delta-table")
+
     spark.stop()
   }
 }
+
+object dummy2

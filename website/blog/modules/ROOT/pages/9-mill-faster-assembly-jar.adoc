@@ -1,0 +1,305 @@
+// tag::header[]
+
+# Faster Incremental JVM Assembly Jars with the Mill Build Tool
+
+:author: Li Haoyi
+:revdate: 13 February 2025
+
+_{author}, {revdate}_
+
+Assembly jars are a convenient deployment format for JVM applications, bundling
+your application code and resources into a single file that can run anywhere a JVM
+is installed. But assembly jars can be slow to create, which can slow down iterative
+development workflows that depend on them. The Mill JVM build tool uses some special
+tricks to let you iterate on your assembly jars much faster than traditional build tools
+like Maven or Gradle, which can substantially increase your developer productivity.
+
+// end::header[]
+
+## Example JVM Application
+
+For the purposes of this blog post, we will be using a small spark program
+as our example application. This program was written by https://github.com/monyedavid[@monyedavid]
+to demonstrate how to xref:mill:ROOT:scalalib/spark.adoc[Build Spark Programs using Mill],
+and does some simple processing of a CSV file to output summary statistics:
+
+```scala
+package foo
+
+import org.apache.spark.sql._
+import org.apache.spark.sql.functions._
+
+object Foo {
+  case class Transaction(id: Int, category: String, amount: Double)
+
+  def computeSummary(transactions: Dataset[Transaction]): DataFrame = {
+    transactions.groupBy("category")
+      .agg(
+        sum("amount").alias("total_amount"),
+        avg("amount").alias("average_amount"),
+        count("amount").alias("transaction_count")
+      )
+  }
+
+  def main(args: Array[String]): Unit = {
+    val spark = SparkSession.builder()
+      .appName("SparkExample")
+      .master("local[*]")
+      .getOrCreate()
+
+    val resourcePath: String = args(0)
+
+    import spark.implicits._
+
+    val df = spark.read
+      .option("header", "true")
+      .option("inferSchema", "true")
+      .csv(resourcePath)
+
+    val transactionsDS: Dataset[Transaction] = df.as[Transaction]
+    val summaryDF = computeSummary(transactionsDS)
+
+    println("Summary Statistics by Category:")
+    summaryDF.show()
+
+    spark.stop()
+  }
+}
+```
+
+This program can be built into an executable assembly jar using Mill:
+
+```scala
+package build
+import mill._, scalalib._
+
+object `package` extends RootModule with SbtModule {
+  def scalaVersion = "2.12.19"
+  def ivyDeps = Agg(
+    ivy"org.apache.spark::spark-core:3.5.4",
+    ivy"org.apache.spark::spark-sql:3.5.4"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  def prependShellScript = ""
+}
+```
+```bash
+ > ./mill show assembly
+".../out/assembly.dest/out.jar"
+Total time: 27s
+
+$ ls -lh out/assembly.dest/out.jar
+-rw-r--r--  1 lihaoyi  staff   214M Feb 14 15:51 out/assembly.dest/out.jar
+
+> java --add-opens java.base/sun.nio.ch=ALL-UNNAMED -jar out/assembly.dest/out.jar src/main/resources/transactions.csv
+...
++-----------+------------+--------------+-----------------+
+|   category|total_amount|average_amount|transaction_count|
++-----------+------------+--------------+-----------------+
+|       Food|        70.5|          23.5|                3|
+|Electronics|       375.0|         187.5|                2|
+|   Clothing|       120.5|         60.25|                2|
++-----------+------------+--------------+-----------------+
+```
+
+
+Using SBT:
+
+```scala
+lazy val root = (project in file("."))
+  .enablePlugins(AssemblyPlugin) // Enables sbt-assembly
+  .settings(
+    name := "spark-app",
+    version := "0.1",
+    scalaVersion := "2.12.19"
+    libraryDependencies ++= Seq(
+      "org.apache.spark" %% "spark-core" % "3.5.4",
+      "org.apache.spark" %% "spark-sql" % "3.5.4",
+    ),
+    assemblyMergeStrategy in assembly := {
+      case PathList("META-INF", _ @ _*) => MergeStrategy.discard
+      case _ => MergeStrategy.first
+    }
+  )
+```
+```bash
+> sbt 'assembly'
+Built: .../target/scala-2.12/spark-app-assembly-0.1.jar
+Total time: 18 s
+
+$ ls -lh target/scala-2.12/spark-app-assembly-0.1.jar
+-rw-r--r--  1 lihaoyi  staff   213M Feb 14 15:58 target/scala-2.12/spark-app-assembly-0.1.jar
+
+>  java --add-opens java.base/sun.nio.ch=ALL-UNNAMED -jar target/scala-2.12/spark-app-assembly-0.1.jar src/main/resources/transactions.csv
+...
++-----------+------------+--------------+-----------------+
+|   category|total_amount|average_amount|transaction_count|
++-----------+------------+--------------+-----------------+
+|       Food|        70.5|          23.5|                3|
+|Electronics|       375.0|         187.5|                2|
+|   Clothing|       120.5|         60.25|                2|
++-----------+------------+--------------+-----------------+
+```
+
+And using Maven:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>spark-app</artifactId>
+    <version>0.1</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <scala.version>2.12.19</scala.version>
+        <spark.version>3.5.4</spark.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.12</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_2.12</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Maven Assembly Plugin for creating a fat JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <descriptorRefs><descriptorRef>assembly</descriptorRef></descriptorRefs>
+                    <archive><manifest><mainClass>foo.Foo</mainClass></manifest></archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+
+            <!-- Scala Plugin -->
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>4.7.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+```bash
+> ./mvnw package -DskipTests
+Building jar: .../target/spark-app-0.1-jar-with-dependencies.jar
+Total time:  20 s
+
+> ls -lh target/spark-app-0.1-jar-with-dependencies.jar
+-rw-r--r--  1 lihaoyi  staff   211M Feb 14 16:12 target/spark-app-0.1-jar-with-dependencies.jar
+
+> java --add-opens java.base/sun.nio.ch=ALL-UNNAMED -jar target/spark-app-0.1-jar-with-dependencies.jar src/main/resources/transactions.csv
+...
++-----------+------------+--------------+-----------------+
+|   category|total_amount|average_amount|transaction_count|
++-----------+------------+--------------+-----------------+
+|       Food|        70.5|          23.5|                3|
+|Electronics|       375.0|         187.5|                2|
+|   Clothing|       120.5|         60.25|                2|
++-----------+------------+--------------+-----------------+
+```
+
+We can see all 3 build tools take about 20s to build the assembly, with some
+variation expected from run to run. All three jars are about the same size (~212mb),
+which makes sense since they should contain the same local code and upstream dependencies.
+While 20s is a bit long, it's not that surprising since the tool has to compress
+a large ~212mb jar file.
+
+NOTE: for many Spark usage patterns, e.g. https://spark.apache.org/docs/latest/submitting-applications.html[spark-submit],
+you do not need to include `spark-core` and `spark-sql` in the assembly jar you
+submit to the cluster, as the cluster will provide them. Nevertheless, any Spark or JVM
+developer will likely encounter scenarios where large assemblies are necessary,
+whether due to third-party libraries or non-spark frameworks, and so
+
+## Incremental Builds
+
+While all JVM build tools take about the same amount of time for the initial build,
+what is interesting is what happens for incremental builds. For example, below we
+add a `class dummy` line of code to `Foo.scala` to force it to re-compile:
+
+```bash
+> echo "class dummy" >> src/main/scala/foo/Foo.scala
+
+> ./mill show assembly
+".../out/assembly.dest/out.jar"
+1s
+
+> sbt assembly
+Built: .../target/scala-2.12/spark-app-assembly-0.1.jar
+Total time: 20 s
+
+> ./mvnw package
+Building jar: .../target/spark-app-0.1-jar-with-dependencies.jar
+Total time:  22 s
+```
+
+Here, we can see that Mill only took `1s` to re-build the assembly jar,
+while SBT and Maven took the same ~20s that they took the first time the
+jar was built. If you play around with it, you will see that the assembly jar
+does contain classfiles associated with our newly-added code:
+
+```bash
+> jar tf out/assembly.dest/out.jar | grep dummy
+foo/dummy.class
+
+> jar tf target/scala-2.12/spark-app-assembly-0.1.jar | grep dummy
+foo/dummy.class
+
+> jar tf target/spark-app-0.1-jar-with-dependencies.jar | grep dummy
+foo/dummy.class
+```
+
+You can try making other code changes, e.g. to the body of the spark program itself,
+and running the output jar with `java -jar` to see that your changes are indeed
+taking effect. So the question you may ask is: how is it that Mill is able to
+rebuild it's output assembly jar in ~1s, while other build tools are
+spending a whole ~20s rebuilding it?
+
+## Jar File Layering

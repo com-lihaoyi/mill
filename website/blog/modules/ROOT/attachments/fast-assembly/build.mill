@@ -2,13 +2,11 @@ package build
 import mill._, scalalib._
 
 object `package` extends RootModule with SbtModule {
-  def scalaVersion = "2.12.15"
+  def scalaVersion = "2.12.19"
   def ivyDeps = Agg(
     ivy"org.apache.spark::spark-core:3.5.4",
     ivy"org.apache.spark::spark-sql:3.5.4"
   )
-
-  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
 
   def prependShellScript = ""
 }
