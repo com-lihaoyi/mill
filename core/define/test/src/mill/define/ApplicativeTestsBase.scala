@@ -4,7 +4,7 @@ import mill.define.internal.Applicative
 
 import scala.quoted.*
 
-class Opt[+T](val self: Option[T]) extends Applicative.Applyable[Opt, T]
+case class Opt[+T](val self: Option[T]) extends Applicative.Applyable[Opt, T]
 object Opt extends Applicative.Applyer[String] {
   def none: Opt[Nothing] = new Opt(None)
   def some[T](t: T): Opt[T] = new Opt(Some(t))
