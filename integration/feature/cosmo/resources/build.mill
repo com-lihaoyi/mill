@@ -2,11 +2,11 @@ package build
 
 import mill._, javalib._, scalalib._
 
-object helloworld extends ScalaModule with cosmopolitan.CosmopolitanModule {
+object helloworld extends ScalaModule with cosmo.CosmoModule {
   def scalaVersion = "3.6.3"
 }
-object hello extends JavaModule with cosmopolitan.CosmopolitanModule
-object javaopts extends JavaModule with cosmopolitan.CosmopolitanModule {
+object hello extends JavaModule with cosmo.CosmoModule
+object javaopts extends JavaModule with cosmo.CosmoModule {
   def forkArgs = Seq("-Dmy.java.property=hello");
 
   override def forkArgs(argv0: String) = Task.Anon {

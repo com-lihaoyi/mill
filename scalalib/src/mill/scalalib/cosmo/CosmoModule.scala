@@ -1,10 +1,15 @@
-package mill.scalalib.cosmopolitan
+package mill.scalalib.cosmo
 
 import mill.api.{PathRef, Result}
 import mill.define.{Target => T, _}
 import mill.scalalib._
 
-trait CosmopolitanModule extends mill.Module with AssemblyModule {
+/**
+ * Provides a [[CosmoModule.cosmoAssembly task]] to build a cross-platfrom executable assembly jar
+ * by prepending an [[https://justine.lol/ape.html Actually Portable Executable (APE)]]
+ * launcher binary compiled with the [[https://justine.lol/cosmopolitan/index.html Cosmopolitan Libc]]
+ */
+trait CosmoModule extends mill.Module with AssemblyModule {
   def forkArgs(argv0: String): Task[Seq[String]] = Task.Anon { Seq[String]() }
 
   def cosmoccVersion: T[String] = Task { "" }
@@ -27,7 +32,7 @@ trait CosmopolitanModule extends mill.Module with AssemblyModule {
     PathRef(dest)
   }
 
-  def apeLauncherScript: T[Option[String]] = Task {
+  def cosmoLauncherScript: T[Option[String]] = Task {
     val start = 1
     val size0 = start + forkArgs().length
     val addForkArgs = forkArgs()
@@ -95,8 +100,8 @@ trait CosmopolitanModule extends mill.Module with AssemblyModule {
     }
   }
 
-  def apeCompiledLauncherScript: T[Option[PathRef]] = Task {
-    apeLauncherScript().map { sc =>
+  def cosmoCompiledLauncherScript: T[Option[PathRef]] = Task {
+    cosmoLauncherScript().map { sc =>
       os.write(Task.dest / "launcher.c", sc)
       os.call((cosmocc().path, "-mtiny", "-o", Task.dest / "launcher", Task.dest / "launcher.c"))
 
@@ -104,8 +109,8 @@ trait CosmopolitanModule extends mill.Module with AssemblyModule {
     }
   }
 
-  def apeAssembly: T[PathRef] = Task {
-    val prepend = apeCompiledLauncherScript().map(p => os.read.bytes(p.path))
+  def cosmoAssembly: T[PathRef] = Task {
+    val prepend = cosmoCompiledLauncherScript().map(p => os.read.bytes(p.path))
     val upstream = upstreamAssembly()
 
     val created = Assembly.create0(
