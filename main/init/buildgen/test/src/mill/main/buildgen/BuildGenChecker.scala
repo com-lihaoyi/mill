@@ -1,6 +1,6 @@
 package mill.main.buildgen
 
-import mill.client.{CodeGenConstants, OutFiles}
+import mill.constants.{CodeGenConstants, OutFiles}
 import mill.define.Discover
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestBaseModule, UnitTester}

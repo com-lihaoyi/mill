@@ -8,7 +8,7 @@ import mill.eval.Evaluator
 import mill.resolve.Resolve
 import mill.internal.PrintLogger
 import mill.exec.{ChromeProfileLogger, ProfileLogger}
-import mill.client.OutFiles.{millChromeProfile, millProfile}
+import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 import java.io.{InputStream, PrintStream}
 

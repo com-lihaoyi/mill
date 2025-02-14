@@ -15,7 +15,7 @@ import mill.scalalib.api.ZincWorkerUtil
  */
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.core, build.core.client, util)
+  def moduleDeps = Seq(build.core, build.core.constants, util)
   def ivyDeps = Agg(
     build.Deps.windowsAnsi,
     build.Deps.coursierInterface,
@@ -81,7 +81,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   )
 
   object util extends build.MillStableScalaModule {
-    def moduleDeps = Seq(build.core.api, build.core.client)
+    def moduleDeps = Seq(build.core.api, build.core.constants)
     def ivyDeps = Agg(
       build.Deps.coursier,
       build.Deps.coursierJvm,

@@ -2,7 +2,7 @@ package mill.scalalib.worker
 
 import mill.util.CachedFactory
 import mill.api.{CompileProblemReporter, PathRef, Result, internal}
-import mill.client.CodeGenConstants
+import mill.constants.CodeGenConstants
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
 import os.Path
 import sbt.internal.inc.{

@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
-import mill.client.EnvVars
+import mill.constants.EnvVars
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
 import mill.Task

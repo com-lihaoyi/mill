@@ -299,7 +299,12 @@ object Target extends TaskBase {
  * define the tasks, while methods like `Task.`[[dest]], `Task.`[[log]] or
  * `Task.`[[env]] provide the core APIs that are provided to a task implementation
  */
-class TaskBase extends Applicative.Applyer[mill.api.Ctx] {
+class TaskBase {
+
+  /**
+   * Returns the [[mill.api.Ctx]] that is available within this task
+   */
+  def ctx()(implicit c: mill.api.Ctx): mill.api.Ctx = c
 
   /**
    * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
@@ -462,7 +467,7 @@ class AnonImpl[T](val inputs: Seq[Task[_]], evaluate0: (Seq[Any], mill.api.Ctx) 
   def evaluate(ctx: mill.api.Ctx) = evaluate0(ctx.args, ctx)
 }
 
-object TaskMacros {
+private object TaskMacros {
   def appImpl[M[_]: Type, T: Type](using
       Quotes
   )(

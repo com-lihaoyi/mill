@@ -1,14 +1,14 @@
 package mill.runner
 
 import mill.internal.PrefixLogger
-import mill.define.Watchable
+import mill.define.internal.Watchable
 import mill.main.{BuildInfo, RootModule}
-import mill.client.CodeGenConstants.*
+import mill.constants.CodeGenConstants.*
 import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
 import mill.eval.Evaluator
 import mill.define.{BaseModule, Segments, SelectMode}
 import mill.exec.{ChromeProfileLogger, ProfileLogger}
-import mill.client.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
+import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
 
@@ -219,7 +219,7 @@ class MillBuildBootstrap(
    */
   def processRunClasspath(
       nestedState: RunnerState,
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator,
       prevFrameOpt: Option[RunnerState.Frame],
       prevOuterFrameOpt: Option[RunnerState.Frame]
@@ -304,7 +304,7 @@ class MillBuildBootstrap(
    */
   def processFinalTargets(
       nestedState: RunnerState,
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator
   ): RunnerState = {
 
@@ -449,7 +449,7 @@ object MillBuildBootstrap {
   }
 
   def evaluateWithWatches(
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator,
       targetsAndParams: Seq[String],
       selectiveExecution: Boolean
@@ -479,9 +479,9 @@ object MillBuildBootstrap {
     }
   }
 
-  def getRootModule(runClassLoader: URLClassLoader): BaseModule = {
+  def getRootModule(runClassLoader: URLClassLoader): RootModule = {
     val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
-    buildClass.getField("MODULE$").get(buildClass).asInstanceOf[BaseModule]
+    buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
   }
 
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
