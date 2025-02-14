@@ -114,7 +114,9 @@ trait KotlinModule extends JavaModule { outer =>
             kotlinVersion().startsWith(prefix)
           )
         )
-          Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}")
+          Seq(
+            ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}"
+          )
         else Seq()
       )
   }
