@@ -1,0 +1,18 @@
+// tag::header[]
+
+# Faster Incremental JVM Assembly Jars with the Mill Build Tool
+
+:author: Li Haoyi
+:revdate: 13 February 2025
+
+_{author}, {revdate}_
+
+Assembly jars are a convenient deployment format for JVM applications, bundling
+your application code and resources into a single file that can run anywhere a JVM
+is installed. But assembly jars can be slow to create, which can slow down iterative
+development workflows that depend on them. The Mill JVM build tool uses some special
+tricks to let you iterate on your assembly jars much faster than traditional build tools
+like Maven or Gradle, which can substantially increase your developer productivity.
+
+// end::header[]
+
