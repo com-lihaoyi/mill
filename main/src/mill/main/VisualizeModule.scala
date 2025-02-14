@@ -59,8 +59,7 @@ object VisualizeModule extends ExternalModule {
     }
   }
 
-  def defaultCommandName() = "run"
-  def classpath: Target[Seq[PathRef]] = Target {
+  private def classpath: Target[Seq[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 
@@ -71,7 +70,7 @@ object VisualizeModule extends ExternalModule {
    * everyone can use to call into Graphviz, which the Mill execution threads
    * can communicate via in/out queues.
    */
-  def worker: Worker[(
+  private def worker: Worker[(
       LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path)],
       LinkedBlockingQueue[Result[Seq[PathRef]]]
   )] = mill.define.Task.Worker {
