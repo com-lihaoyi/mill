@@ -12,7 +12,7 @@ import mill.exec.{
   Plan,
   TaskResult
 }
-import mill.define.Watchable
+import mill.define.internal.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
 

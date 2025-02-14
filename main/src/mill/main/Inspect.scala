@@ -139,7 +139,7 @@ private object Inspect {
       }
     }
 
-    def pprintModule(t: ModuleTask[?], evaluator: Evaluator): Tree.Lazy = {
+    def pprintModule(t: mill.resolve.Resolve.ModuleTask[?], evaluator: Evaluator): Tree.Lazy = {
       val cls = t.module.getClass
       val annotation = cls.getAnnotation(classOf[Scaladoc])
       val scaladocOpt = Option(annotation).map(annotation =>
@@ -224,7 +224,7 @@ private object Inspect {
         val output = (for {
           task <- tasks
           tree = task match {
-            case t: ModuleTask[_] => pprintModule(t, evaluator)
+            case t: mill.resolve.Resolve.ModuleTask[_] => pprintModule(t, evaluator)
             case t => pprintTask(t, evaluator)
           }
           defaults = pprint.PPrinter()

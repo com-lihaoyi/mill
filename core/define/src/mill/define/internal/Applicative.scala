@@ -25,10 +25,6 @@ object Applicative {
 
   type Id[+T] = T
 
-  trait Applyer[Ctx] {
-    def ctx()(implicit c: Ctx): Ctx = c
-  }
-
   def impl[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
       Quotes
   )(

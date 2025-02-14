@@ -7,7 +7,7 @@ import mill.exec.ExecutionPaths
 import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.SelectMode
-import mill.define.Watchable
+import mill.define.internal.Watchable
 
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable

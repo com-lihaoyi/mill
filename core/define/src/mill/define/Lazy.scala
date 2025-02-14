@@ -1,5 +1,5 @@
 package mill.define
 
-class Lazy[T](t: () => T) {
+final class Lazy[T](t: () => T) {
   lazy val value: T = t()
 }
