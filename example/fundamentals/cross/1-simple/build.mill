@@ -9,7 +9,8 @@ trait FooModule extends Cross.Module[String] {
   def sources = Task.Sources(moduleDir)
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -32,7 +33,7 @@ trait FooModule extends Cross.Module[String] {
 //     "foo[2.10].sources"
 //   }
 // }
-// ```
+// ....
 
 // Cross modules defined using the `Cross[T]` class allow you to define
 // multiple copies of the same module, differing only in some input key. This

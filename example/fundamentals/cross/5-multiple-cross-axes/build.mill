@@ -17,7 +17,8 @@ trait FooModule extends Cross.Module2[String, String] {
 
 def bar = Task { s"hello ${foo("2.10", "jvm").suffix()}" }
 
-// ```graphviz
+// [graphviz]
+// ....
 //  digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -64,7 +65,7 @@ def bar = Task { s"hello ${foo("2.10", "jvm").suffix()}" }
 //
 //   "foo[2.10,jvm].suffix" -> bar
 // }
-// ```
+// ....
 //
 // This example shows off using a for-loop to generate a list of
 // cross-key-tuples, as a `Seq[(String, String)]` that we then pass it into the

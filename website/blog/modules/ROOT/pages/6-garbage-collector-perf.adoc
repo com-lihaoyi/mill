@@ -32,16 +32,17 @@ At its core, a garbage collector helps manage the free memory of a program, ofte
 _heap_. The memory of a program can be modelled as a linear sequence of storage locations, e.g.
 below where we have 16 slots in memory:
 
-```graphviz
+[graphviz]
+....
 digraph G {
-  
+
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   heap [shape=record label="HEAP | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> | <f8> | <f9> | <f10> | <f11> | <f12> | <f13> | <f14> | <f15>"]
 
   heap:f0:s -> alloc:n [dir=back, style=dotted]
   alloc [label = "free memory", shape=plaintext]
 }
-```
+....
 
 These storage locations can contain objects (below named `foo`, `bar`, `qux`, `baz`) that take
 up memory and may reference other objects (solid arrows). Furthermore, the values may be referenced from outside
@@ -49,10 +50,10 @@ the heap (dashed lines), e.g. from the "stack" which represents
 local variables in methods that are currently being run (shown below) or from static global
 variables (not shown). We keep a `free-memory` pointer to the first empty slot on the right.
 
-
-```graphviz
+[graphviz]
+....
 digraph G {
-  
+
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   heap [shape=record label="HEAP | <f0> foo | <f1> bar | <f2> qux | <f3> baz | <f4> | <f5> | <f6> | <f7> | <f8> | <f9> | <f10> | <f11> | <f12> | <f13> | <f14> | <f15>"]
   heap:f0:s -> heap:f1:s
@@ -65,12 +66,13 @@ digraph G {
   stack:f0 -> heap:f1 [dir=none, style=dashed]
   stack:f1 -> heap:f2 [dir=none, style=dashed]
 }
-```
+....
 
 If we want to allocate a new object `new1`, we can simply put it at the location of
 the `free-memory` pointer (green below), and bump the pointer 1 slot to the right
 
-```graphviz
+[graphviz]
+....
 digraph G {
 
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -86,7 +88,7 @@ digraph G {
   stack:f1 -> heap:f2 [dir=none, style=dashed]
   stack:f2 -> heap:f4 [dir=none, style=dashed,  color=green, penwidth=3]
 }
-```
+....
 
 Similarly, objects may stop being referenced, e.g. `bar` below no longer has a reference
 pointing at it from the stack. This may happen because a local variable on the stack is
@@ -94,7 +96,8 @@ set to `null`, or because a method call returned and the local variables associa
 it are no longer necessary
 
 
-```graphviz
+[graphviz]
+....
 digraph G {
 
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -109,7 +112,7 @@ digraph G {
   stack:f1 -> heap:f2 [dir=none, style=dashed]
   stack:f2 -> heap:f4 [dir=none, style=dashed]
 }
-```
+....
 
 For the purposes of this example, we show all objects on the heap taking up 1 slot, but
 in real programs the size of each object may vary depending on the fields it has
@@ -121,7 +124,8 @@ The simplest kind of garbage collector splits the 16-slot heap we saw earlier in
 two 8-slot halves. If we want to allocate 4 more objects (`new2`, to `new5`), but
 there are only 3 slots left in that half of the heap, we will need to do a collection:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -139,13 +143,14 @@ digraph G {
   stack:f1 -> heap1:f2 [dir=none, style=dashed]
   stack:f2 -> heap1:f4 [dir=none, style=dashed]
 }
-```
+....
 
 To do a collection, the GC first starts from all non-heap
 references (e.g. the `STACK` references above) often called "GC roots". It then traces
 the graph of references, highlighted red below:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -162,7 +167,7 @@ digraph G {
   stack:f1 -> heap1:f2 [dir=none, style=dashed, color=red, penwidth=3]
   stack:f2 -> heap1:f4 [dir=none, style=dashed, color=red, penwidth=3]
 }
-```
+....
 
 Here, we can see that `foo` is not referenced ("garbage"), `qux` and `new1` are referenced directly from the
 `STACK`, and `baz` is referenced indirectly from `qux`. `bar` is referenced by `foo`, but
@@ -172,7 +177,8 @@ We then copy all objects we traced (often called the _live-set_) from `HALF1` to
 appropriately. Now `HALF2` is the half of the heap in use, and `HALF1` can be reset to empty.
 
 
-```graphviz
+[graphviz]
+....
 digraph G {
 
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -188,12 +194,13 @@ digraph G {
   stack:f0 -> heap2:f0 [dir=none, style=dashed, color=red, penwidth=3]
   stack:f1 -> heap2:f2 [dir=none, style=dashed, color=red, penwidth=3]
 }
-```
+....
 
 This collection has freed up 5 slots, so we now have space to allocate the
 4 `new2` to `new5` objects we wanted (green) starting from our `free-memory` pointer:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -213,7 +220,7 @@ digraph G {
   stack:f2 -> heap2:f3 [dir=none, style=dashed, color=green, penwidth=3]
   stack:f6 -> heap2:f6 [dir=none, style=dashed, color=green, penwidth=3]
 }
-```
+....
 
 You may notice that the objects `foo` and `bar` disappeared. This is because `foo` and `bar`
 were not referenced directly or indirectly by any GC roots: they were unreachable, and thus
@@ -225,7 +232,8 @@ As your program executes, the methods actively running may change, and thus the 
 (both from stack to heap and between entries on your heap) may change. For example, we may
 stop referencing `qux`, which also means that `baz` is now unreachable:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -247,7 +255,7 @@ digraph G {
 
 
 }
-```
+....
 
 Although `qux` and `baz` are now "garbage", they still take up space in the heap. Thus, if we want
 to allocate two new objects (e.g. `new6` and `new7`), and there is only one slot left on the heap (above),
@@ -257,7 +265,8 @@ from `HALF2` to `HALF1`,
 adjusting any references to now use `HALF1` as the new heap, and clearing anything that was left
 behind in `HALF2`. This then gives us enough space to allocate `new6` and `new7` (below in green):
 
-```graphviz
+[graphviz]
+....
 digraph G {
   
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -280,7 +289,7 @@ digraph G {
   heap1:f7:s -> alloc:n [dir=back, style=dotted]
   alloc [label = "free memory", shape=plaintext]
 }
-```
+....
 
 This process can repeat as many times as necessary: as long as there are _some_ objects
 that are unreachable, you can run a collection and copy the "live" objects to the other
@@ -333,7 +342,8 @@ We can see this in the heap diagrams: the tracing garbage collector heaps above 
 single block of empty space to the right, and had the `new` objects allocated in ascending order
 from left-to-right:
 
-```graphviz
+[graphviz]
+....
 digraph G {
 
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -349,7 +359,7 @@ digraph G {
   heap1:f5:s -> alloc:n [dir=back, style=dotted]
   alloc [label = "free memory", shape=plaintext]
 }
-```
+....
 
 
 In contrast,
@@ -357,7 +367,8 @@ reference counted heaps (e.g. below) tend to get fragmented, with free space sca
 and the allocated objects jumbled up in no particular order
 
 
-```graphviz
+[graphviz]
+....
 digraph G {
 
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -370,7 +381,7 @@ digraph G {
   heap:f1:s -> heap:f5:s
   stack:f4 -> heap:f6 [dir=none, style=dashed]
 }
-```
+....
 
 
 There are two main ways this affect performance:
@@ -398,7 +409,8 @@ For example, consider the following heap, identical to the one we started with, 
 additional edge from `bar` to `foo` (green), and with the edge from the stack to `bar` removed:
 
 
-```graphviz
+[graphviz]
+....
 digraph G {
 
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -411,7 +423,7 @@ digraph G {
   stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
   stack:f1 -> heap:f2 [dir=none, style=dashed, color=red, penwidth=3]
 }
-```
+....
 
 * With reference counting, even though `foo` and `bar` cannot be reached by any external reference -
 they are "garbage" - each one still has a reference pointing at it from the other. Thus
@@ -502,7 +514,7 @@ Even from this theoretical analysis, we have already found a number of surprisin
 in how GCs perform over time. Let's now see how this applies to some real-world garbage
 collectors included with the Java Virtual Machine
 
-## Benchmarking JVM Garbage Collectors
+== Benchmarking JVM Garbage Collectors
 
 Now that we have run through a theoretical introduction and analysis of how GCs work
 and how we would expect them to perform, let's look at some small Java programs and
