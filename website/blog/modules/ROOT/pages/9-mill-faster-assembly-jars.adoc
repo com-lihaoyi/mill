@@ -1,6 +1,6 @@
 // tag::header[]
 
-# Faster Incremental JVM Assembly Jars with the Mill Build Tool
+# Faster JVM Assembly Jars with the Mill Build Tool
 
 :author: Li Haoyi
 :revdate: 13 February 2025
