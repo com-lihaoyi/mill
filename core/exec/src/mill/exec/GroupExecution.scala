@@ -113,7 +113,7 @@ private[mill] trait GroupExecution {
 
             case _ =>
               // uncached
-              if (labelled.flushDest) os.remove.all(paths.dest)
+              if (!labelled.persistent) os.remove.all(paths.dest)
 
               val (newResults, newEvaluated) =
                 executeGroup(

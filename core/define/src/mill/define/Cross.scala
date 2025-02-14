@@ -198,7 +198,7 @@ class Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*)(implicit
       val item = new Item {
         def crossValues = crossValues0.toList
         def crossSegments = crossSegments0.toList
-        def module = module0
+        lazy val module = module0
         def cls = cls0
       }
       seen.update(crossSegments0, crossValues0)

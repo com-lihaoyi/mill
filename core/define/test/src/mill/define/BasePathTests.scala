@@ -18,7 +18,6 @@ object BasePathTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  val testGraphs = new TestGraphs
   val tests = Tests {
     def checkMillSourcePath[T <: Module](m: T)(f: T => Module, segments: String*): Unit = {
       val sub = f(m)
@@ -26,10 +25,10 @@ object BasePathTests extends TestSuite {
       assert(remaining == segments)
     }
     test("singleton") {
-      checkMillSourcePath(testGraphs.singleton)(identity)
+      checkMillSourcePath(TestGraphs.singleton)(identity)
     }
     test("backtickIdentifiers") {
-      checkMillSourcePath(testGraphs.bactickIdentifiers)(
+      checkMillSourcePath(TestGraphs.bactickIdentifiers)(
         _.`nested-module`,
         "nested-module"
       )

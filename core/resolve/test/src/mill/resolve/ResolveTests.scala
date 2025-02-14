@@ -28,8 +28,6 @@ object ResolveTests extends TestSuite {
       x.errorOpt.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
-    val graphs = new mill.util.TestGraphs()
-    import graphs.*
     test("single") {
       val check = new Checker(singleton)
       test("pos") - check("single", Result.Success(Set(_.single)), Set("single"))
@@ -91,7 +89,9 @@ object ResolveTests extends TestSuite {
       )
       test("neg5") - check(
         "invisible",
-        Result.Failure("Cannot resolve invisible. Try `mill resolve _` to see what's available.")
+        Result.Failure(
+          "Cannot resolve invisible. Try `mill resolve _` or `mill resolve __.invisible&` to see what's available."
+        )
       )
       test("negBadParse") - check(
         "invisible&",

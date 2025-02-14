@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.client.CodeGenConstants._
+import mill.constants.CodeGenConstants._
 import mill.api.{PathRef, Result}
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize

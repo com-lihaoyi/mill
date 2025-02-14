@@ -1,7 +1,6 @@
 package mill.testkit
 
-import mill.client.Util.isWindows
-import mill.client
+import mill.constants.Util.isWindows
 import utest.*
 
 /**
@@ -64,7 +63,7 @@ object ExampleTester {
   }
 
   def defaultBashExecutable(): String = {
-    if (!client.Util.isWindows) "bash"
+    if (!mill.constants.Util.isWindows) "bash"
     else "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
   }
 }

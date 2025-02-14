@@ -132,7 +132,8 @@ object InspectTests extends UtestIntegrationTestSuite {
       assert(eval(("core.ivyDepsTree", "--withCompile", "--withRuntime")).isSuccess)
       assert(eval(("core.ivyDepsTree", "--with-compile", "--with-runtime")).isSuccess)
 
-      assert(eval(("inspect", "basic")).isSuccess)
+      val basic = eval(("inspect", "basic"))
+      assert(basic.isSuccess)
       val basicInspect = out("inspect").json.str
       assertGlobMatches(
         """basic(build.mill:26)

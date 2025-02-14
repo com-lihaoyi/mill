@@ -1,9 +1,9 @@
 package mill.main.buildgen
 
 import mainargs.{Flag, arg}
-import mill.client.OutFiles
+import mill.constants.OutFiles
 import mill.main.buildgen.BuildObject.Companions
-import mill.client.CodeGenConstants.{
+import mill.constants.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
   rootBuildFileNames,
