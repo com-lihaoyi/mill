@@ -103,7 +103,14 @@ trait CosmoModule extends mill.Module with AssemblyModule {
   def cosmoCompiledLauncherScript: T[Option[PathRef]] = Task {
     cosmoLauncherScript().map { sc =>
       os.write(Task.dest / "launcher.c", sc)
-      os.call((cosmocc().path, "-mtiny", "-o", Task.dest / "launcher", Task.dest / "launcher.c"))
+      os.call((
+        cosmocc().path,
+        "-mtiny",
+        "-O3",
+        "-o",
+        Task.dest / "launcher",
+        Task.dest / "launcher.c"
+      ))
 
       PathRef(Task.dest / "launcher")
     }
