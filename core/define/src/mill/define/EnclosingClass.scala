@@ -2,6 +2,10 @@ package mill.define
 
 import scala.quoted.*
 
+/**
+ * An implicit that provides the lexically-enclosing class
+ * at the point at which it is resolved
+ */
 case class EnclosingClass(value: Class[?])
 object EnclosingClass {
   def apply()(implicit c: EnclosingClass) = c.value

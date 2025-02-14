@@ -238,6 +238,7 @@ object Deps {
     val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
     val ktfmt = ivy"com.facebook:ktfmt:0.53"
     val ktlint = ivy"com.pinterest.ktlint:ktlint-core:0.49.1"
+    val palantirFormat = ivy"com.palantir.javaformat:palantir-java-format:2.51.0"
     val revApi = ivy"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
 
@@ -254,6 +255,7 @@ object Deps {
       koverJvmAgent,
       ktfmt,
       ktlint,
+      palantirFormat,
       revApi,
       sbtTestInterface
     )

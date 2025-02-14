@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.{ColorLogger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
-import mill.client.{OutFiles, ServerFiles, Util}
+import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
 import mill.main.BuildInfo
 import mill.runner.worker.ScalaCompilerWorker
@@ -77,7 +77,7 @@ object MillMain {
       try main0(
           args = args.tail,
           stateCache = RunnerState.empty,
-          mainInteractive = mill.client.Util.hasConsole(),
+          mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = runnerStreams,
           bspLog = bspLog,
           env = System.getenv().asScala.toMap,

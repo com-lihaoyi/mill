@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.api.Result
-import mill.client.OutFiles
+import mill.constants.OutFiles
 import mill.define.{Command, Task}
 import mill.eval.{Evaluator, SelectiveExecution}
 import mill.define.SelectMode

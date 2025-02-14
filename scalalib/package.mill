@@ -78,6 +78,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
       ),
       BuildInfo.Value("errorProneVersion", build.Deps.RuntimeDeps.errorProneCore.version),
       BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
+      BuildInfo.Value("palantirFormatVersion", build.Deps.RuntimeDeps.palantirFormat.version),
       BuildInfo.Value(
         "revApiVersion",
         build.Deps.RuntimeDeps.revApi.version,

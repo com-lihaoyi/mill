@@ -7,7 +7,6 @@ import scala.annotation.compileTimeOnly
 import scala.language.implicitConversions
 
 object ApplicativeTests extends TestSuite {
-  implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
 
   class Counter {
     var value = 0
@@ -24,57 +23,64 @@ object ApplicativeTests extends TestSuite {
 
     test("selfContained") {
 
-      test("simple") - assert(Opt("lol " + 1) == Some("lol 1"))
-      test("singleSome") - assert(Opt("lol " + Some("hello")()) == Some("lol hello"))
-      test("twoSomes") - assert(Opt(Some("lol ")() + Some("hello")()) == Some("lol hello"))
-      test("singleNone") - assert(Opt("lol " + None()) == None)
-      test("twoNones") - assert(Opt("lol " + None() + None()) == None)
+      test("simple") - assert(Opt("lol " + 1) == Opt.some("lol 1"))
+      test("singleSome") - assert(Opt("lol " + Opt.some("hello")()) == Opt.some("lol hello"))
+      test("twoSomes") - assert(
+        Opt(Opt.some("lol ")() + Opt.some("hello")()) == Opt.some("lol hello")
+      )
+      test("singleNone") - assert(Opt("lol " + Opt.none()) == Opt.none)
+      test("twoNones") - assert(Opt("lol " + Opt.none() + Opt.none()) == Opt.none)
       test("moreThan22") {
         assert(
           Opt(
             "lol " +
-              None() + None() + None() + None() + None() +
-              None() + None() + None() + None() + Some(" world")() +
-              None() + None() + None() + None() + None() +
-              None() + None() + None() + None() + None() +
-              None() + None() + None() + None() + Some(" moo")()
-          ) == None
+              Opt.none() + Opt.none() + Opt.none() + Opt.none() + Opt.none() +
+              Opt.none() + Opt.none() + Opt.none() + Opt.none() + Opt.some(" world")() +
+              Opt.none() + Opt.none() + Opt.none() + Opt.none() + Opt.none() +
+              Opt.none() + Opt.none() + Opt.none() + Opt.none() + Opt.none() +
+              Opt.none() + Opt.none() + Opt.none() + Opt.none() + Opt.some(" moo")()
+          ) == Opt.none
         )
         assert(
           Opt(
             "lol " +
-              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")() +
-              Some("a")() + Some("b")() + Some("c")() + Some("d")() + Some("e")()
-          ) == Some("lol abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde")
+              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() +
+              Opt.some("e")() + Opt.some("a")() + Opt.some("b")() + Opt.some("c")() +
+              Opt.some("d")() + Opt.some("e")() + Opt.some("a")() + Opt.some("b")() +
+              Opt.some("c")() + Opt.some("d")() + Opt.some("e")() + Opt.some("a")() +
+              Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
+              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() +
+              Opt.some("e")() + Opt.some("a")() + Opt.some("b")() + Opt.some("c")() +
+              Opt.some("d")() + Opt.some("e")() + Opt.some("a")() + Opt.some("b")() +
+              Opt.some("c")() + Opt.some("d")() + Opt.some("e")() + Opt.some("a")() +
+              Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
+              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() +
+              Opt.some("e")() + Opt.some("a")() + Opt.some("b")() + Opt.some("c")() +
+              Opt.some("d")() + Opt.some("e")()
+          ) == Opt.some("lol abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde")
         )
       }
     }
     test("context") {
-      assert(Opt(Opt.ctx() + Some("World")()) == Some("hellooooWorld"))
+      assert(Opt(Opt.ctx() + Opt.some("World")()) == Opt.some("hellooooWorld"))
     }
     test("capturing") {
       val lol = "lol "
       def hell(o: String) = "hell" + o
-      test("simple") - assert(Opt(lol + 1) == Some("lol 1"))
-      test("singleSome") - assert(Opt(lol + Some(hell("o"))()) == Some("lol hello"))
-      test("twoSomes") - assert(Opt(Some(lol)() + Some(hell("o"))()) == Some("lol hello"))
-      test("singleNone") - assert(Opt(lol + None()) == None)
-      test("twoNones") - assert(Opt(lol + None() + None()) == None)
+      test("simple") - assert(Opt(lol + 1) == Opt.some("lol 1"))
+      test("singleSome") - assert(Opt(lol + Opt.some(hell("o"))()) == Opt.some("lol hello"))
+      test("twoSomes") - assert(
+        Opt(Opt.some(lol)() + Opt.some(hell("o"))()) == Opt.some("lol hello")
+      )
+      test("singleNone") - assert(Opt(lol + Opt.none()) == Opt.none)
+      test("twoNones") - assert(Opt(lol + Opt.none() + Opt.none()) == Opt.none)
     }
     test("allowedLocalDef") {
       // Although x is defined inside the Opt{...} block, it is also defined
       // within the LHS of the Applyable#apply call, so it is safe to life it
       // out into the `zipMap` arguments list.
-      val res = Opt { "lol " + Some("hello").flatMap(x => Some(x)).apply() }
-      assert(res == Some("lol hello"))
+      val res = Opt { "lol " + new Opt(Some("hello").flatMap(x => Some(x))).apply() }
+      assert(res == Opt.some("lol hello"))
     }
     test("upstreamAlwaysEvaluated") {
       // Whether or not control-flow reaches the Applyable#apply call inside an
@@ -84,7 +90,7 @@ object ApplicativeTests extends TestSuite {
       def up = Opt { "lol " + counter() }
       val down = Opt { if ("lol".length > 10) up() else "fail" }
       assert(
-        down == Some("fail"),
+        down == Opt.some("fail"),
         counter.value == 1
       )
     }
@@ -96,7 +102,7 @@ object ApplicativeTests extends TestSuite {
       def runTwice[T](t: => T) = (t, t)
       val down = Opt { runTwice(up()) }
       assert(
-        down == Some(("lol 1", "lol 1")),
+        down == Opt.some(("lol 1", "lol 1")),
         counter.value == 1
       )
     }
@@ -108,8 +114,8 @@ object ApplicativeTests extends TestSuite {
       val down1 = Opt { (() => up())() }
       val down2 = Opt { Seq(1, 2, 3).map(n => up() * n) }
       assert(
-        down1 == Some("hello1"),
-        down2 == Some(Seq("hello2", "hello2hello2", "hello2hello2hello2"))
+        down1 == Opt.some("hello1"),
+        down2 == Opt.some(Seq("hello2", "hello2hello2", "hello2hello2hello2"))
       )
     }
     test("appliesEvaluatedOncePerLexicalCallsite") {
@@ -120,7 +126,7 @@ object ApplicativeTests extends TestSuite {
       val counter = new Counter()
       def up = Opt { s"hello${counter()}" }
       val down = Opt { Seq(1, 2, 3).map(n => n + up() + up()) }
-      assert(down == Some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2")))
+      assert(down == Opt.some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2")))
     }
     test("appliesEvaluateBeforehand") {
       // Every Applyable#apply() within a Opt{...} block evaluates before any
@@ -135,7 +141,7 @@ object ApplicativeTests extends TestSuite {
         val three = up()
         (res, one, two, three)
       }
-      assert(down == Some((4, 1, 2, 3)))
+      assert(down == Opt.some((4, 1, 2, 3)))
     }
   }
 }

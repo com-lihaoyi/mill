@@ -1,7 +1,7 @@
 package mill.scalalib.scalafmt
 
 import mill._
-import mill.client.CodeGenConstants.buildFileExtensions
+import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.api.Result
 import mill.define.{Discover, ExternalModule}
 import mill.scalalib._

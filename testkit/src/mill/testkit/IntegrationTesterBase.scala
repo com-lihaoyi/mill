@@ -1,6 +1,6 @@
 package mill.testkit
-import mill.client.OutFiles.{millServer, out}
-import mill.client.ServerFiles.serverId
+import mill.constants.OutFiles.{millServer, out}
+import mill.constants.ServerFiles.serverId
 import mill.util.Retry
 
 trait IntegrationTesterBase {
