@@ -384,4 +384,6 @@ which would extend this optimization to scenarios where most of the assembly siz
 from local code rather than from upstream dependencies.
 
 It turns out there's no magic in Mill's fast assembly generation: just careful use of
-the available APIs provided by the underlying JVM platform.
+the available APIs provided by the underlying JVM platform. Hopefully this approach
+can eventually make its way to other build tools like Maven or SBT, so everyone can
+benefit from the fast assembly jar creation that Mill provides today.
