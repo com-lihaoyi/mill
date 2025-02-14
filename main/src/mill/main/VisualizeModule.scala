@@ -16,7 +16,7 @@ import mill.exec.Plan
 import mill.eval.Evaluator
 import mill.define.SelectMode
 
-object VisualizeModule extends ExternalModule with VisualizeModule {
+object VisualizeModule extends ExternalModule {
   def repositories: Seq[Repository] = Seq(
     LocalRepositories.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2"),
@@ -58,10 +58,7 @@ object VisualizeModule extends ExternalModule with VisualizeModule {
         }
     }
   }
-}
 
-trait VisualizeModule extends mill.define.TaskModule {
-  def repositories: Seq[Repository]
   def defaultCommandName() = "run"
   def classpath: Target[Seq[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
