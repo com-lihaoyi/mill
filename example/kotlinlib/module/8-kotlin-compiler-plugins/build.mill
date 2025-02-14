@@ -18,7 +18,7 @@ object foo extends KotlinModule {
   def processors = Task {
     defaultResolver().resolveDeps(
       Seq(
-        ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:1.9.24"
+        ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin-embeddable:1.9.24"
       )
     )
   }
