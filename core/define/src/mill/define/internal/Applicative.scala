@@ -28,14 +28,13 @@ object Applicative {
     @compileTimeOnly("Target#apply() can only be used with a Task{...} block")
     implicit def defaultApplyHandler[M[+_]]: ApplyHandler[M] = ???
   }
-  trait Applyable[M[+_], +T] {
-    def self: M[T]
-    def apply()(implicit handler: ApplyHandler[M]): T = handler(self)
+  trait Applyable[M[+_], +T] { this: M[T] =>
+    def apply()(implicit handler: ApplyHandler[M]): T = handler(this)
   }
 
   type Id[+T] = T
 
-  trait Applyer[W[_], T[_], Z[_], Ctx] {
+  trait Applyer[T[_], Z[_], Ctx] {
     def ctx()(implicit c: Ctx): Ctx = c
   }
 
