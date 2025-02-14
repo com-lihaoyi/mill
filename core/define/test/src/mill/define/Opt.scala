@@ -4,13 +4,13 @@ import mill.define.internal.Applicative
 
 import scala.quoted.*
 
-case class Opt[+T](val self: Option[T]) extends Applicative.Applyable[Opt, T]
+case class Opt[+T](self: Option[T]) extends Applicative.Applyable[Opt, T]
 object Opt extends Applicative.Applyer[String] {
   def none: Opt[Nothing] = new Opt(None)
   def some[T](t: T): Opt[T] = new Opt(Some(t))
   val injectedCtx = "helloooo"
-  inline def apply[T](inline t: T): Opt[T] =
-    ${ applyImpl[T]('t)('this) }
+  
+  inline def apply[T](inline t: T): Opt[T] = ${ applyImpl[T]('t)('this) }
 
   def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (Seq[I], String) => Applicative.Id[R])
       : Opt[R] = {
