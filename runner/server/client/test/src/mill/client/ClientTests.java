@@ -7,8 +7,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.*;
-import org.junit.Test;
 import mill.constants.ProxyStream;
+import org.junit.Test;
 
 public class ClientTests {
 

@@ -9,10 +9,10 @@ import java.nio.file.Path;
 import java.util.Map;
 import mill.client.lock.Locks;
 import mill.client.lock.TryLocked;
+import mill.constants.InputPumper;
+import mill.constants.ProxyStream;
 import mill.constants.ServerFiles;
 import mill.constants.Util;
-import mill.constants.ProxyStream;
-import mill.constants.InputPumper;
 
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic
