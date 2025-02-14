@@ -102,30 +102,34 @@ trait KotlinModule extends JavaModule { outer =>
     )().toSeq ++ kotlinWorkerClasspath()
   }
 
-  /** Flag to use the embeddable kotlin compiler */
-  def kotlinCompilerEmbeddable: Boolean = false
+  /**
+   * Flag to use the embeddable kotlin compiler.
+   * This can be necessary to avoid classpath conflicts or ensure
+   * compatibility to the used set of plugins.
+   *
+   * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196
+   */
+  def kotlinCompilerEmbeddable: Task[Boolean] = Task { false }
 
   /**
-   * If ksp plugins are used, switch to embeddable to avoid
-   * any classpath conflicts.
+   * The kotlin-compiler dependency.
    *
-   * @return kotlin-compiler or kotlin-compiler-embeddable dependency
+   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
    */
   def kotlinCompilerDep: T[Dep] = Task {
-    if (kotlinCompilerEmbeddable)
+    if (kotlinCompilerEmbeddable())
       ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}"
     else
       ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}"
   }
 
   /**
-   * If ksp plugins are used, switch to embeddable to avoid
-   * any classpath conflicts.
+   * The kotlin-scripting-compiler dependency.
    *
-   * @return kotlin-scripting-compiler or kotlin-scripting-compiler-embeddable dependency
+   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
    */
   def kotlinScriptingCompilerDep: T[Dep] = Task {
-    if (kotlinCompilerEmbeddable)
+    if (kotlinCompilerEmbeddable())
       ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}"
     else
       ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}"
@@ -133,7 +137,8 @@ trait KotlinModule extends JavaModule { outer =>
 
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
-   * Default is derived from [[kotlinCompilerVersion]].
+   *
+   * Default is derived from [[kotlinCompilerVersion]] and [[kotlinCompilerEmbeddable]].
    */
   def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
     Seq(kotlinCompilerDep()) ++
