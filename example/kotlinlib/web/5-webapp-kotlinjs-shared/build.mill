@@ -53,7 +53,7 @@ object `package` extends RootModule with AppKotlinModule {
       def processors = Task {
         defaultResolver().resolveDeps(
           Seq(
-            ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
+            ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin-embeddable:${kotlinVersion()}"
           )
         )
       }
