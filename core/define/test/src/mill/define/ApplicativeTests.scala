@@ -26,7 +26,9 @@ object ApplicativeTests extends TestSuite {
 
       test("simple") - assert(Opt("lol " + 1) == Opt.some("lol 1"))
       test("singleSome") - assert(Opt("lol " + Opt.some("hello")()) == Opt.some("lol hello"))
-      test("twoSomes") - assert(Opt(Opt.some("lol ")() + Opt.some("hello")()) == Opt.some("lol hello"))
+      test("twoSomes") - assert(
+        Opt(Opt.some("lol ")() + Opt.some("hello")()) == Opt.some("lol hello")
+      )
       test("singleNone") - assert(Opt("lol " + Opt.none()) == Opt.none)
       test("twoNones") - assert(Opt("lol " + Opt.none() + Opt.none()) == Opt.none)
       test("moreThan22") {
@@ -43,16 +45,19 @@ object ApplicativeTests extends TestSuite {
         assert(
           Opt(
             "lol " +
-              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
-              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
-              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
-              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
-              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
-              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
-              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
-              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
-              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
-              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")()
+              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() +
+              Opt.some("e")() + Opt.some("a")() + Opt.some("b")() + Opt.some("c")() +
+              Opt.some("d")() + Opt.some("e")() + Opt.some("a")() + Opt.some("b")() +
+              Opt.some("c")() + Opt.some("d")() + Opt.some("e")() + Opt.some("a")() +
+              Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
+              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() +
+              Opt.some("e")() + Opt.some("a")() + Opt.some("b")() + Opt.some("c")() +
+              Opt.some("d")() + Opt.some("e")() + Opt.some("a")() + Opt.some("b")() +
+              Opt.some("c")() + Opt.some("d")() + Opt.some("e")() + Opt.some("a")() +
+              Opt.some("b")() + Opt.some("c")() + Opt.some("d")() + Opt.some("e")() +
+              Opt.some("a")() + Opt.some("b")() + Opt.some("c")() + Opt.some("d")() +
+              Opt.some("e")() + Opt.some("a")() + Opt.some("b")() + Opt.some("c")() +
+              Opt.some("d")() + Opt.some("e")()
           ) == Opt.some("lol abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde")
         )
       }
@@ -65,7 +70,9 @@ object ApplicativeTests extends TestSuite {
       def hell(o: String) = "hell" + o
       test("simple") - assert(Opt(lol + 1) == Opt.some("lol 1"))
       test("singleSome") - assert(Opt(lol + Opt.some(hell("o"))()) == Opt.some("lol hello"))
-      test("twoSomes") - assert(Opt(Opt.some(lol)() + Opt.some(hell("o"))()) == Opt.some("lol hello"))
+      test("twoSomes") - assert(
+        Opt(Opt.some(lol)() + Opt.some(hell("o"))()) == Opt.some("lol hello")
+      )
       test("singleNone") - assert(Opt(lol + Opt.none()) == Opt.none)
       test("twoNones") - assert(Opt(lol + Opt.none() + Opt.none()) == Opt.none)
     }

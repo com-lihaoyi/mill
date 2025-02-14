@@ -6,7 +6,7 @@ import scala.quoted.*
 
 class Opt[+T](val self: Option[T]) extends Applicative.Applyable[Opt, T]
 object Opt extends Applicative.Applyer[String] {
-  def none: Opt[Nothing ] = new Opt(None)
+  def none: Opt[Nothing] = new Opt(None)
   def some[T](t: T): Opt[T] = new Opt(Some(t))
   val injectedCtx = "helloooo"
   inline def apply[T](inline t: T): Opt[T] =
@@ -19,9 +19,9 @@ object Opt extends Applicative.Applyer[String] {
       else Some(f(xs.map(_.self.get).toVector, Opt.injectedCtx))
     )
   }
-  def applyImpl[T: Type](t: Expr[T])
-                        (caller: Expr[Applicative.Applyer[String]])
-                        (using Quotes): Expr[Opt[T]] =
+  def applyImpl[T: Type](t: Expr[T])(caller: Expr[Applicative.Applyer[String]])(using
+      Quotes
+  ): Expr[Opt[T]] =
     Applicative.impl[Opt, Opt, Applicative.Id, T, String](
       (args, fn) => '{ traverseCtx($args)($fn) },
       t
