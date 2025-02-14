@@ -102,21 +102,48 @@ trait KotlinModule extends JavaModule { outer =>
     )().toSeq ++ kotlinWorkerClasspath()
   }
 
+  /** Flag to use the embeddable kotlin compiler */
+  def kotlinCompilerEmbeddable: Boolean = false
+
+  /**
+   * If ksp plugins are used, switch to embeddable to avoid
+   * any classpath conflicts.
+   *
+   * @return kotlin-compiler or kotlin-compiler-embeddable dependency
+   */
+  def kotlinCompilerDep: T[Dep] = Task {
+    if (kotlinCompilerEmbeddable)
+      ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}"
+    else
+      ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}"
+  }
+
+  /**
+   * If ksp plugins are used, switch to embeddable to avoid
+   * any classpath conflicts.
+   *
+   * @return kotlin-scripting-compiler or kotlin-scripting-compiler-embeddable dependency
+   */
+  def kotlinScriptingCompilerDep: T[Dep] = Task {
+    if (kotlinCompilerEmbeddable)
+      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}"
+    else
+      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}"
+  }
+
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerVersion]].
    */
   def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
-    Seq(ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}") ++
+    Seq(kotlinCompilerDep()) ++
       (
         if (
           !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
             kotlinVersion().startsWith(prefix)
           )
         )
-          Seq(
-            ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}"
-          )
+          Seq(kotlinScriptingCompilerDep())
         else Seq()
       )
   }
