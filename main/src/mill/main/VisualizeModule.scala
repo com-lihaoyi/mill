@@ -70,7 +70,7 @@ object VisualizeModule extends ExternalModule {
    * everyone can use to call into Graphviz, which the Mill execution threads
    * can communicate via in/out queues.
    */
-  private def worker: Worker[(
+  private[mill] def worker: Worker[(
       LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path)],
       LinkedBlockingQueue[Result[Seq[PathRef]]]
   )] = mill.define.Task.Worker {

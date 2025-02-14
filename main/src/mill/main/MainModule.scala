@@ -12,53 +12,6 @@ import mill.define.Watchable
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
 
-object MainModule {
-
-  private def show0(
-      evaluator: Evaluator,
-      targets: Seq[String],
-      log: Logger,
-      watch0: Watchable => Unit
-  )(f: Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])] => ujson.Value)
-      : Result[ujson.Value] = {
-
-    // When using `show`, redirect all stdout of the evaluated tasks so the
-    // printed JSON is the only thing printed to stdout.
-    val redirectLogger = log
-      .withOutStream(evaluator.baseLogger.errorStream)
-      .asInstanceOf[ColorLogger]
-
-    evaluator.withBaseLogger(redirectLogger)
-      .resolveEvaluate(
-        targets,
-        Separated,
-        selectiveExecution = evaluator.selectiveExecution
-      ).flatMap {
-        case (watched, Result.Failure(err)) =>
-          watched.foreach(watch0)
-          Result.Failure(err)
-
-        case (watched, Result.Success(res)) =>
-          val output = f(res)
-          watched.foreach(watch0)
-          println(output.render(indent = 2))
-          Result.Success(output)
-      }
-  }
-
-  def plan0(
-      evaluator: Evaluator,
-      tasks: Seq[String]
-  ): Result[Array[NamedTask[?]]] = {
-    evaluator.resolveTasks(tasks, SelectMode.Multi).map {
-      rs =>
-        val plan = evaluator.plan(rs)
-        plan.sortedGroups.keys().collect { case r: NamedTask[_] => r }.toArray
-    }
-  }
-
-}
-
 /**
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
@@ -348,5 +301,52 @@ trait MainModule extends BaseModule {
    * depending on what task inputs or implementations changed
    */
   lazy val selective: SelectiveExecutionModule = new SelectiveExecutionModule {}
+
+}
+
+object MainModule {
+
+  private def show0(
+      evaluator: Evaluator,
+      targets: Seq[String],
+      log: Logger,
+      watch0: Watchable => Unit
+  )(f: Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])] => ujson.Value)
+      : Result[ujson.Value] = {
+
+    // When using `show`, redirect all stdout of the evaluated tasks so the
+    // printed JSON is the only thing printed to stdout.
+    val redirectLogger = log
+      .withOutStream(evaluator.baseLogger.errorStream)
+      .asInstanceOf[ColorLogger]
+
+    evaluator.withBaseLogger(redirectLogger)
+      .resolveEvaluate(
+        targets,
+        Separated,
+        selectiveExecution = evaluator.selectiveExecution
+      ).flatMap {
+        case (watched, Result.Failure(err)) =>
+          watched.foreach(watch0)
+          Result.Failure(err)
+
+        case (watched, Result.Success(res)) =>
+          val output = f(res)
+          watched.foreach(watch0)
+          println(output.render(indent = 2))
+          Result.Success(output)
+      }
+  }
+
+  def plan0(
+      evaluator: Evaluator,
+      tasks: Seq[String]
+  ): Result[Array[NamedTask[?]]] = {
+    evaluator.resolveTasks(tasks, SelectMode.Multi).map {
+      rs =>
+        val plan = evaluator.plan(rs)
+        plan.sortedGroups.keys().collect { case r: NamedTask[_] => r }.toArray
+    }
+  }
 
 }
