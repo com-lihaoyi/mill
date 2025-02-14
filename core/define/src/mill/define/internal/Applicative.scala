@@ -17,25 +17,15 @@ import scala.quoted.*
  */
 @internal
 object Applicative {
-  trait ApplyHandler[M[+_]] {
 
-    /**
-     * Extracts the current value [[T]] out of the wrapping [[M[T]]
-     */
-    def apply[T](t: M[T]): T
-  }
-  object ApplyHandler {
+  trait Applyable[M[+_], +T] { this: M[T] =>
     @compileTimeOnly("Target#apply() can only be used with a Task{...} block")
-    implicit def defaultApplyHandler[M[+_]]: ApplyHandler[M] = ???
-  }
-  trait Applyable[M[+_], +T] {
-    def self: M[T]
-    def apply()(implicit handler: ApplyHandler[M]): T = handler(self)
+    def apply(): T = ???
   }
 
   type Id[+T] = T
 
-  trait Applyer[W[_], T[_], Z[_], Ctx] {
+  trait Applyer[Ctx] {
     def ctx()(implicit c: Ctx): Ctx = c
   }
 
@@ -83,8 +73,7 @@ object Applicative {
       val treeMap = new TreeMap {
 
         override def transformTerm(tree: Term)(owner: Symbol): Term = tree match
-          // case t @ '{$fun.apply()($handler)}
-          case t @ Apply(Apply(sel @ Select(fun, "apply"), Nil), List(handler))
+          case t @ Apply(sel @ Select(fun, "apply"), Nil)
               if sel.symbol == targetApplySym =>
             val localDefs = extractDefs(fun)
             visitAllTrees(t) { x =>
