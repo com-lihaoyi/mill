@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.{ColorLogger, ExecResult, PathRef, Result, Val}
-import mill.client.OutFiles
+import mill.constants.OutFiles
 import mill.define.*
 import mill.exec.{
   Cached,

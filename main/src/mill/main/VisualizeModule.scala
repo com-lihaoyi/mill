@@ -59,7 +59,7 @@ object VisualizeModule extends ExternalModule {
     }
   }
 
-  private def classpath: Target[Seq[PathRef]] = Target {
+  def classpath: Target[Seq[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 

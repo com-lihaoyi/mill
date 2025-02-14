@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.api.Val
 import mill.api.Result
-import mill.client.OutFiles
+import mill.constants.OutFiles
 import mill.define.{InputImpl, NamedTask, Task, SelectMode}
 import mill.exec.{CodeSigUtils, Execution, Plan, TaskResult}
 import mill.internal.SpanningForest
