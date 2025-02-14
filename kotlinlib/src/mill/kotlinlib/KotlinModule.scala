@@ -112,27 +112,27 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlinCompilerEmbeddable: Task[Boolean] = Task { false }
 
   /**
-   * The kotlin-compiler dependency.
+   * The kotlin-compiler dependencies.
    *
    * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
    */
-  def kotlinCompilerDep: T[Dep] = Task {
+  def kotlinCompilerDep: T[Seq[Dep]] = Task {
     if (kotlinCompilerEmbeddable())
-      ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}"
+      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}")
     else
-      ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}"
+      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}")
   }
 
   /**
-   * The kotlin-scripting-compiler dependency.
+   * The kotlin-scripting-compiler dependencies.
    *
    * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
    */
-  def kotlinScriptingCompilerDep: T[Dep] = Task {
+  def kotlinScriptingCompilerDep: T[Seq[Dep]] = Task {
     if (kotlinCompilerEmbeddable())
-      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}"
+      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}")
     else
-      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}"
+      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
   }
 
   /**
@@ -141,14 +141,14 @@ trait KotlinModule extends JavaModule { outer =>
    * Default is derived from [[kotlinCompilerVersion]] and [[kotlinCompilerEmbeddable]].
    */
   def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
-    Seq(kotlinCompilerDep()) ++
+    kotlinCompilerDep() ++
       (
         if (
           !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
             kotlinVersion().startsWith(prefix)
           )
         )
-          Seq(kotlinScriptingCompilerDep())
+          kotlinScriptingCompilerDep()
         else Seq()
       )
   }
