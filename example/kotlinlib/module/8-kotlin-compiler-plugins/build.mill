@@ -15,12 +15,10 @@ object foo extends KotlinModule {
     ivy"org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
   )
 
-  def kotlinCompilerEmbeddable = true
-
   def processors = Task {
     defaultResolver().resolveDeps(
       Seq(
-        ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin-embeddable:1.9.24"
+        ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:1.9.24"
       )
     )
   }
