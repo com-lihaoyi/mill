@@ -219,7 +219,7 @@ class MillBuildBootstrap(
    */
   def processRunClasspath(
       nestedState: RunnerState,
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator,
       prevFrameOpt: Option[RunnerState.Frame],
       prevOuterFrameOpt: Option[RunnerState.Frame]
@@ -304,7 +304,7 @@ class MillBuildBootstrap(
    */
   def processFinalTargets(
       nestedState: RunnerState,
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator
   ): RunnerState = {
 
@@ -449,7 +449,7 @@ object MillBuildBootstrap {
   }
 
   def evaluateWithWatches(
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator,
       targetsAndParams: Seq[String],
       selectiveExecution: Boolean
@@ -479,9 +479,9 @@ object MillBuildBootstrap {
     }
   }
 
-  def getRootModule(runClassLoader: URLClassLoader): BaseModule = {
+  def getRootModule(runClassLoader: URLClassLoader): RootModule = {
     val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
-    buildClass.getField("MODULE$").get(buildClass).asInstanceOf[BaseModule]
+    buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
   }
 
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {

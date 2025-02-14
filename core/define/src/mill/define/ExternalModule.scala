@@ -4,11 +4,12 @@ import mill.api.WorkspaceRoot
 
 abstract class ExternalModule(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
-    millModuleLine0: sourcecode.Line
+    millModuleLine0: sourcecode.Line,
+    millFile0: sourcecode.File
 ) extends BaseModule(WorkspaceRoot.workspaceRoot, external0 = true)(
-      implicitly,
-      implicitly,
-      implicitly
+      millModuleEnclosing0,
+      millModuleLine0,
+      millFile0
     ) {
 
   assert(
@@ -18,6 +19,4 @@ abstract class ExternalModule(implicit
   override def moduleSegments: Segments = {
     Segments(millModuleEnclosing0.value.split('.').map(Segment.Label(_)).toIndexedSeq)
   }
-
-  override def moduleCtx = super.moduleCtx.withDiscover(millDiscover)
 }

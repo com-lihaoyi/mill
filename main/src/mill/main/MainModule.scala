@@ -86,8 +86,35 @@ object MainModule {
  * [[show]], [[inspect]], [[plan]], etc.
  */
 trait MainModule extends BaseModule {
+  protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
+  protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
+  object interp {
+    def watchValue[T](v0: => T)(implicit fn: sourcecode.FileName, ln: sourcecode.Line): T = {
+      val v = v0
+      val watchable = Watchable.Value(
+        () => v0.hashCode,
+        v.hashCode(),
+        fn.value + ":" + ln.value
+      )
+      watchedValues.append(watchable)
+      v
+    }
 
-  object interp extends Interp
+    def watch(p: os.Path): os.Path = {
+      val watchable = Watchable.Path(PathRef(p))
+      watchedValues.append(watchable)
+      p
+    }
+
+    def watch0(w: Watchable): Unit = {
+      watchedValues.append(w)
+    }
+
+    def evalWatch0(w: Watchable): Unit = {
+      evalWatchedValues.append(w)
+    }
+
+  }
 
   /**
    * Show the mill version.
