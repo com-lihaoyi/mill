@@ -327,7 +327,8 @@ At their core, most build steps are of the form
 
 Which can be visualized as a node in a graph
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -336,13 +337,14 @@ digraph G {
   tool -> output
   output[shape=none]
 }
-```
+....
 
 If we consider the tasks we looked at earlier, it might form a graph as shown below,
 where the boxes are the tasks, non-boxed text labels are the input files, and the
 arrows are the dataflow between them
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -359,7 +361,7 @@ digraph G {
   sources [shape=none]
   static_input_files [shape=none]
 }
-```
+....
 
 ### Ordering on the Build Graph
 
@@ -368,7 +370,8 @@ their magic. For example, if you ask to run `unit_test` (blue), then the build t
 can traverse the graph edges (red) to find it needs to ensure `compile`, `code_gen`, and
 `resolve_deps` need to be run (red)
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -390,7 +393,7 @@ digraph G {
   compile [fillcolor=lightpink style=filled]
   unit_test [fillcolor=lightblue style=filled]
 }
-```
+....
 
 Furthermore, the build tool is able to figure out what tasks need to run in what
 order, simply by doing a topological sort of the subset it needs. In this case,
@@ -405,7 +408,8 @@ If you then subsequently ask to run `integration_test`, the build tool can see t
 `compile`, `code_gen`, and `resolve_deps` were run earlier and can be re-used (green)
 while `package` and `asset_pipeline` need to be run
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -429,7 +433,7 @@ digraph G {
   asset_pipeline [fillcolor=lightpink style=filled]
   integration_test [fillcolor=lightblue style=filled]
 }
-```
+....
 
 If you then change a source file in `sources` and ask to run `integration_test`
 again, the build tool can again traverse the graph edges and see that:
@@ -439,7 +443,8 @@ again, the build tool can again traverse the graph edges and see that:
 - `unit_test` is not needed for `integration_test`, and so can be ignored
 
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -462,7 +467,7 @@ digraph G {
   package [fillcolor=lightpink style=filled]
   integration_test [fillcolor=lightblue style=filled]
 }
-```
+....
 
 Thus, having a model of the build graph is fundamental to how most build
 tools work their magic. When the user asks to run `unit_test` or `integration_test`,
@@ -482,7 +487,8 @@ of `unit_test` and `integration_test`. From the build graph, Mill is able to det
 - `unit_test` (blue) can run in parallel with `asset_pipeline`, `package` or `integration_test`,
   but only can start once `compile` is complete
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -506,7 +512,8 @@ digraph G {
   integration_test [style=filled fillcolor=lightpink]
   unit_test [style=filled fillcolor=lightblue]
 }
-```
+....
+
 
 Most modern build tools do this kind of graph-based parallelism automatically.
 In contrast to most programming languages and application frameworks where you need
@@ -544,7 +551,8 @@ cc_binary(
 )
 ```
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -552,7 +560,7 @@ digraph G {
   "//main:hello-greet" -> "//main:hello-world"
   "main/hello-world.cc" -> "//main:hello-world"
 }
-```
+....
 
 In Bazel, the implementation of what rules like `cc_library` actually _do_ is
 done by upstream build libraries implemented in Java or Starlark. You can
@@ -581,7 +589,8 @@ val packageApp = tasks.register<Zip>("packageApp") {
 }
 ```
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -589,7 +598,7 @@ digraph G {
   "tasks.jar" -> packageApp
   "configurations.runClassPath" -> packageApp
 }
-```
+....
 
 `packageApp` depends on the `run.sh` source file, the output of the tasks
 `tasks.jar` and `configurations.runClasspath`, and some other miscellanious configuration.
@@ -620,7 +629,8 @@ override def resources = Task {
 }
 ```
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -630,7 +640,7 @@ digraph G {
   allSourceFiles [color=white]
   run [color=white]
 }
-```
+....
 
 Perhaps the most interesting thing about Mill is that you can write arbitrary code as
 part of your ``def``s: above you can see the code for iterating over files, counting
