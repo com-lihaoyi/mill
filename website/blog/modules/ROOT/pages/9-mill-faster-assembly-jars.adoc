@@ -67,7 +67,9 @@ object Foo {
 }
 ```
 
-This program can be built into an executable assembly jar using Mill:
+## Example Builds
+
+### Mill
 
 ```scala
 package build
@@ -105,7 +107,8 @@ $ ls -lh out/assembly.dest/out.jar
 ```
 
 
-Using SBT:
+### SBT
+
 
 ```scala
 lazy val root = (project in file("."))
@@ -143,7 +146,7 @@ $ ls -lh target/scala-2.12/spark-app-assembly-0.1.jar
 +-----------+------------+--------------+-----------------+
 ```
 
-And using Maven:
+### Maven
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -256,7 +259,9 @@ NOTE: for many Spark usage patterns, e.g. https://spark.apache.org/docs/latest/s
 you do not need to include `spark-core` and `spark-sql` in the assembly jar you
 submit to the cluster, as the cluster will provide them. Nevertheless, any Spark or JVM
 developer will likely encounter scenarios where large assemblies are necessary,
-whether due to third-party libraries or non-spark frameworks, and so
+whether due to third-party libraries or non-spark frameworks. Similarly, although
+the example Spark code is in Scala, the same techniques apply to any JVM language
+that compiles to bytecode you may want to pack into an assembly.
 
 ## Incremental Builds
 
@@ -302,4 +307,81 @@ taking effect. So the question you may ask is: how is it that Mill is able to
 rebuild it's output assembly jar in ~1s, while other build tools are
 spending a whole ~20s rebuilding it?
 
-## Jar File Layering
+## Copy-On-Update Jar Files
+
+The trick to Mill's fast incremental rebuilding of assembly jars is to split the
+assembly jar creation into two phases. Mill calls these `upstreamAssembly` and `assembly`:
+
+```scala
+/**
+ * Build the assembly for upstream dependencies separate from the current
+ * classpath
+ *
+ * This should allow much faster assembly creation in the common case where
+ * upstream dependencies do not change
+ */
+def upstreamAssembly: T[Assembly] = Task { ... }
+
+/**
+ * An executable uber-jar/assembly containing all the resources and compiled
+ * classfiles from this module and all it's upstream modules and dependencies
+ */
+def assembly: T[PathRef] = Task { ... }
+```
+
+`upstreamAssembly` is a jar file containing all the files taken from upstream
+dependencies: both upstream local modules on disk, as well as third-party dependencies
+from Maven Central such as `spark-core` and `spark-sql`. In many applications,
+this `upstreamAssemblyClasspath` is bulk of the data in your assembly jar.
+and also changes relatively infrequently: someone may be adding `println`s and
+iterating on their local code once every few seconds, while they may change
+their upstream dependencies once every few days or less.
+
+The next trick is that rather than building the `assembly` jar from scratch,
+Mill instead:
+
+1. Makes a copy of the `upstreamAssemblyJar`, which is fast even when the file is large
+
+2. Opens that copy using `java.nio.file.FileSystems.newFileSystem`, which allows you
+   to open an existing jar file by passing in `new URI("jar", path, null)`
+
+3. Modifies the returned `java.nio.file.FileSystem` using normal `java.nio.file.File`
+   operations
+
+Since `.jar` files are just `.zip` files by another name, calling `FileSystems.newFileSystem`
+with a `"jar"` URL returns a
+https://github.com/openjdk/jdk/blob/master/src/jdk.zipfs/share/classes/jdk/nio/zipfs/ZipFileSystem.java[ZipFileSystem].
+`ZipFileSystem` basically implements all the normal `java.nio.file.File.*` operations that
+normally modifies files on disk, and replaces them with versions to instead modify
+the entries inside a `.zip` file. And since `.zip` files have every file individually
+compressed (unlike e.g. `.tar.gz` which compresses them together) `ZipFileSystem` is
+able to efficiently read and write individual files to the `zip` file without needing
+to un-pack and re-pack the entire archive.
+
+Exactly how the `ZipFileSystem` works is beyond the scope of this article, and
+may change over time as the Java platform evolves. But what is important is that it
+allows Mill to incrementally update its assembly jars in _O(size-of-local-code)_,
+rather than _O(size-of-transitive-dependencies)_.
+
+## Possible Future Work
+
+One possible optimization that Mill does not yet do is to use the _previous_ `assembly`
+jar as the base to copy-and-modify, rather than the `upstreamAssembly`. This would
+help further improve performance when your local codebase is large, as even in large
+codebases the developer tend to change only a few files at a time, and it should be
+possible to compare the local files before and after each change to decide which
+files need to be updated in the assembly.
+
+## Conclusion
+
+This blog post has discussed how Mill is able to provide fast incremental updates to
+generated assembly jars, allowing the developer to make local changes and get the same
+output artifact much faster than with other build tools like Maven or SBT. In the example
+shown above it sped up Spark assembly jar creation from ~20s to ~1s, but the speedup can
+apply to any JVM codebase, and the benefit would depend on the size of your local application
+code and its transitive dependencies. More sophisticated update schemes are also possible,
+which would extend this optimization to scenarios where most of the assembly size comes
+from local code rather than from upstream dependencies.
+
+It turns out there's no magic in Mill's fast assembly generation: just careful use of
+the available APIs provided by the underlying JVM platform.
