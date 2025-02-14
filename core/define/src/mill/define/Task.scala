@@ -299,7 +299,7 @@ object Target extends TaskBase {
  * define the tasks, while methods like `Task.`[[dest]], `Task.`[[log]] or
  * `Task.`[[env]] provide the core APIs that are provided to a task implementation
  */
-class TaskBase extends Applicative.Applyer[Task, Result, mill.api.Ctx] {
+class TaskBase extends Applicative.Applyer[mill.api.Ctx] {
 
   /**
    * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)

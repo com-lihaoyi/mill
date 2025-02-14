@@ -34,7 +34,7 @@ object Applicative {
 
   type Id[+T] = T
 
-  trait Applyer[T[_], Z[_], Ctx] {
+  trait Applyer[Ctx] {
     def ctx()(implicit c: Ctx): Ctx = c
   }
 
