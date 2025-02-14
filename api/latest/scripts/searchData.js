@@ -1221,6 +1221,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/api/Versions$.html#millCompilerBridgeVersion-0","e":false,"i":"","n":"millCompilerBridgeVersion","t":"millCompilerBridgeVersion: String","d":"mill.scalalib.api.Versions","k":"val","x":""},
 {"l":"mill/scalalib/api/Versions$.html#millModuledefsVersion-0","e":false,"i":"","n":"millModuledefsVersion","t":"millModuledefsVersion: String","d":"mill.scalalib.api.Versions","k":"val","x":""},
 {"l":"mill/scalalib/api/Versions$.html#millVersion-0","e":false,"i":"","n":"millVersion","t":"millVersion: String","d":"mill.scalalib.api.Versions","k":"val","x":""},
+{"l":"mill/scalalib/api/Versions$.html#palantirFormatVersion-0","e":false,"i":"","n":"palantirFormatVersion","t":"palantirFormatVersion: String","d":"mill.scalalib.api.Versions","k":"val","x":""},
 {"l":"mill/scalalib/api/Versions$.html#sbtTestInterface-0","e":false,"i":"","n":"sbtTestInterface","t":"sbtTestInterface: String","d":"mill.scalalib.api.Versions","k":"val","x":""},
 {"l":"mill/scalalib/api/Versions$.html#scalafmtVersion-0","e":false,"i":"","n":"scalafmtVersion","t":"scalafmtVersion: String","d":"mill.scalalib.api.Versions","k":"val","x":""},
 {"l":"mill/scalalib/api/Versions$.html#semanticDBVersion-0","e":false,"i":"","n":"semanticDBVersion","t":"semanticDBVersion: String","d":"mill.scalalib.api.Versions","k":"val","x":""},
