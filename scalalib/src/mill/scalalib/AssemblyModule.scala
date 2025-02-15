@@ -63,8 +63,8 @@ trait AssemblyModule extends mill.Module {
 
   private[mill] def assemblyRules0: Seq[Assembly.Rule] = Assembly.defaultRules
 
-  def resolvedIvyAssemblyClasspath: T[Seq[PathRef]]
-  
+  def resolvedIvyAssemblyClasspath: T[Agg[PathRef]]
+
   def upstreamAssemblyClasspath: T[Agg[PathRef]]
 
   def localClasspath: T[Seq[PathRef]]
