@@ -63,9 +63,27 @@ trait AssemblyModule extends mill.Module {
 
   private[mill] def assemblyRules0: Seq[Assembly.Rule] = Assembly.defaultRules
 
+  def resolvedIvyAssemblyClasspath: T[Seq[PathRef]]
+
   def upstreamAssemblyClasspath: T[Seq[PathRef]]
 
   def localClasspath: T[Seq[PathRef]]
+
+  /**
+   * Build the assembly for third-party dependencies separate from the current
+   * classpath
+   *
+   * This should allow much faster assembly creation in the common case where
+   * third-party dependencies do not change
+   */
+  def resolvedIvyAssembly: T[Assembly] = Task {
+    Assembly.create(
+      destJar = Task.dest / "out.jar",
+      inputPaths = resolvedIvyAssemblyClasspath().map(_.path),
+      manifest = manifest(),
+      assemblyRules = assemblyRules
+    )
+  }
 
   /**
    * Build the assembly for upstream dependencies separate from the current
@@ -79,6 +97,7 @@ trait AssemblyModule extends mill.Module {
       destJar = Task.dest / "out.jar",
       inputPaths = upstreamAssemblyClasspath().map(_.path),
       manifest = manifest(),
+      base = Some(resolvedIvyAssembly().pathRef.path),
       assemblyRules = assemblyRules
     )
   }
@@ -93,11 +112,11 @@ trait AssemblyModule extends mill.Module {
 
     val created = Assembly.create(
       destJar = Task.dest / "out.jar",
-      Seq.from(localClasspath().map(_.path)),
-      manifest(),
-      prependScript,
-      Some(upstream.pathRef.path),
-      assemblyRules
+      inputPaths = Seq.from(localClasspath().map(_.path)),
+      manifest = manifest(),
+      prependShellScript = prependScript,
+      base = Some(upstream.pathRef.path),
+      assemblyRules = assemblyRules
     )
     // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
     val problematicEntryCount = 65535
