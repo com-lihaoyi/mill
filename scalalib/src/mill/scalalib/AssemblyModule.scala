@@ -63,15 +63,34 @@ trait AssemblyModule extends mill.Module {
 
   private[mill] def assemblyRules0: Seq[Assembly.Rule] = Assembly.defaultRules
 
+  def resolvedIvyAssemblyClasspath: T[Seq[PathRef]]
+  
   def upstreamAssemblyClasspath: T[Agg[PathRef]]
 
   def localClasspath: T[Seq[PathRef]]
+
+  /**
+   * Build the assembly for third-party dependencies separate from the current
+   * classpath
+   *
+   * This should allow much faster assembly creation in the common case where
+   * third-party dependencies do not change
+   */
+  def resolvedIvyAssembly: T[Assembly] = Task {
+    Assembly.create(
+      destJar = Task.dest / "out.jar",
+      inputPaths = resolvedIvyAssemblyClasspath().map(_.path),
+      manifest = manifest(),
+      assemblyRules = assemblyRules
+    )
+  }
 
   private[mill] def upstreamAssembly2_0: T[Assembly] = Task {
     Assembly.create(
       destJar = Task.dest / "out.jar",
       inputPaths = upstreamAssemblyClasspath().map(_.path),
       manifest = manifest(),
+      base = Some(resolvedIvyAssembly().pathRef.path),
       assemblyRules = assemblyRules
     )
   }
