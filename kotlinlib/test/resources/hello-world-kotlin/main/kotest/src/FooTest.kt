@@ -6,11 +6,11 @@ import io.kotest.matchers.shouldBe
 
 class FooTest :
     FunSpec({
-        test("testFailure") {
+        test("testSuccess") {
             getHelloString() shouldBe "Hello, world!"
         }
 
-        test("testSuccess") {
+        test("testFailure") {
             getHelloString() shouldBe "WRONG!"
         }
     })
