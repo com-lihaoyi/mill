@@ -1,7 +1,7 @@
 package mill.scalalib.cosmo
 
+import mill.{T, Task}
 import mill.api.{PathRef, Result}
-import mill.define.{Target => T, _}
 import mill.scalalib._
 
 /**
@@ -122,18 +122,16 @@ trait CosmoModule extends mill.Module with AssemblyModule {
 
     val created = Assembly.create0(
       destJar = Task.dest / "out.jar.exe",
-      Seq.from(localClasspath().map(_.path)),
-      manifest(),
-      prepend,
-      Some(upstream.pathRef.path),
-      assemblyRules
+      inputPaths = Seq.from(localClasspath().map(_.path)),
+      manifest = manifest(),
+      prepend = prepend,
+      base = Some(upstream),
+      assemblyRules = assemblyRules
     )
     // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
     val problematicEntryCount = 65535
-    if (
-      prepend.isDefined &&
-      (upstream.addedEntries + created.addedEntries) > problematicEntryCount
-    ) {
+
+    if (prepend.isDefined && created.entries > problematicEntryCount) {
       Result.Failure(
         s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
            |Prepended JARs of that size are known to not work correctly.
