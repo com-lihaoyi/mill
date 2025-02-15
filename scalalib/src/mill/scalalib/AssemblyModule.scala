@@ -65,7 +65,7 @@ trait AssemblyModule extends mill.Module {
 
   def resolvedIvyAssemblyClasspath: T[Seq[PathRef]]
 
-  def upstreamAssemblyClasspath: T[Seq[PathRef]]
+  def upstreamLocalAssemblyClasspath: T[Seq[PathRef]]
 
   def localClasspath: T[Seq[PathRef]]
 
@@ -95,7 +95,7 @@ trait AssemblyModule extends mill.Module {
   def upstreamAssembly: T[Assembly] = Task {
     Assembly.create(
       destJar = Task.dest / "out.jar",
-      inputPaths = upstreamAssemblyClasspath().map(_.path),
+      inputPaths = upstreamLocalAssemblyClasspath().map(_.path),
       manifest = manifest(),
       base = Some(resolvedIvyAssembly()),
       assemblyRules = assemblyRules
