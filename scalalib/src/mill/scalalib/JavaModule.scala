@@ -934,7 +934,7 @@ trait JavaModule
     )
   }
 
-  def resolvedIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
+  def upstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
     resolvedRunIvyDeps()
   }
   def upstreamLocalAssemblyClasspath: T[Seq[PathRef]] = Task {
