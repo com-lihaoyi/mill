@@ -6310,11 +6310,101 @@ node24 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="kotlinCompilerDep-0" data-f-inherited="KotlinModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The kotlin-compiler dependencies.\n *\n * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidAppKotlinModule.html#kotlinCompilerDep-0" t="n" class="documentableName ">kotlinCompilerDep</a>: <a href="../../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../kotlinlib.html#Dep-0" t="t">Dep</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The kotlin-compiler dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The kotlin-compiler dependencies.</p>
+              <p>It uses the embeddable version, if <a href="../KotlinModule.html#kotlinCompilerEmbeddable-0">kotlinCompilerEmbeddable</a> is <code>true</code>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../KotlinModule.html#kotlinCompilerDep-0">KotlinModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/kotlinlib/src/mill/kotlinlib/KotlinModule.scala" target="_blank">KotlinModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="kotlinCompilerEmbeddable-0" data-f-inherited="KotlinModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Flag to use the embeddable kotlin compiler.\n * This can be necessary to avoid classpath conflicts or ensure\n * compatibility to the used set of plugins.\n *\n * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidAppKotlinModule.html#kotlinCompilerEmbeddable-0" t="n" class="documentableName ">kotlinCompilerEmbeddable</a>: <a href="../../define/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Boolean</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Flag to use the embeddable kotlin compiler. This can be necessary to avoid classpath conflicts or ensure compatibility to the used set of plugins.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Flag to use the embeddable kotlin compiler. This can be necessary to avoid classpath conflicts or ensure compatibility to the used set of plugins.</p>
+              <p>See also <a href="https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196">https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196</a></p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../KotlinModule.html#kotlinCompilerEmbeddable-0">KotlinModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/kotlinlib/src/mill/kotlinlib/KotlinModule.scala" target="_blank">KotlinModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="kotlinCompilerIvyDeps-0" data-f-inherited="KotlinModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The Ivy/Coursier dependencies resembling the Kotlin compiler.\n * Default is derived from [[kotlinCompilerVersion]].\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The Ivy/Coursier dependencies resembling the Kotlin compiler.\n *\n * Default is derived from [[kotlinCompilerVersion]] and [[kotlinCompilerEmbeddable]].\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -6328,11 +6418,12 @@ node24 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The Ivy/Coursier dependencies resembling the Kotlin compiler. Default is derived from <a href="../KotlinModule.html#kotlinCompilerVersion-0">kotlinCompilerVersion</a>.</p>
+             <p>The Ivy/Coursier dependencies resembling the Kotlin compiler.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The Ivy/Coursier dependencies resembling the Kotlin compiler. Default is derived from <a href="../KotlinModule.html#kotlinCompilerVersion-0">kotlinCompilerVersion</a>.</p>
+              <p>The Ivy/Coursier dependencies resembling the Kotlin compiler.</p>
+              <p>Default is derived from <a href="../KotlinModule.html#kotlinCompilerVersion-0">kotlinCompilerVersion</a> and <a href="../KotlinModule.html#kotlinCompilerEmbeddable-0">kotlinCompilerEmbeddable</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -6473,6 +6564,51 @@ node24 -> node0;
               </dt>
               <dd class="body-medium">
                <a href="../KotlinModule.html#kotlinLanguageVersion-0">KotlinModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/kotlinlib/src/mill/kotlinlib/KotlinModule.scala" target="_blank">KotlinModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="kotlinScriptingCompilerDep-0" data-f-inherited="KotlinModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The kotlin-scripting-compiler dependencies.\n *\n * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidAppKotlinModule.html#kotlinScriptingCompilerDep-0" t="n" class="documentableName ">kotlinScriptingCompilerDep</a>: <a href="../../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../kotlinlib.html#Dep-0" t="t">Dep</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The kotlin-scripting-compiler dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The kotlin-scripting-compiler dependencies.</p>
+              <p>It uses the embeddable version, if <a href="../KotlinModule.html#kotlinCompilerEmbeddable-0">kotlinCompilerEmbeddable</a> is <code>true</code>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../KotlinModule.html#kotlinScriptingCompilerDep-0">KotlinModule</a>
               </dd>
               <dt class="body-small">
                Source
