@@ -4,6 +4,8 @@ import mill.{T, Task}
 import mill.api.{PathRef, Result}
 import mill.scalalib._
 
+import scala.jdk.CollectionConverters._
+
 /**
  * Provides a [[CosmoModule.cosmoAssembly task]] to build a cross-platfrom executable assembly jar
  * by prepending an [[https://justine.lol/ape.html Actually Portable Executable (APE)]]
@@ -100,16 +102,55 @@ trait CosmoModule extends mill.Module with AssemblyModule {
     """.stripMargin
   }
 
+  def cosmoWindowsExtras: T[Option[PathRef]] = Task(persistent = true) {
+    if (scala.util.Properties.isWin) {
+      val tools = Seq(
+        "dash" -> "dash.com",
+        "rm.ape" -> "rm",
+        "mv.ape" -> "mv"
+      )
+
+      tools.foreach { (from, to) =>
+        if (!os.exists(Task.dest / to)) {
+          os.write(
+            Task.dest / to,
+            requests.get.stream(s"https://cosmo.zip/pub/cosmos/bin/${from}")
+          )
+        }
+      }
+
+      Some(PathRef(Task.dest))
+    } else None
+  }
+
   def cosmoCompiledLauncherScript: T[PathRef] = Task {
     os.write(Task.dest / "launcher.c", cosmoLauncherScript())
-    os.call((
+
+    val cmd = (
       cosmocc().path,
       "-mtiny",
       "-O3",
       "-o",
-      Task.dest / "launcher",
-      Task.dest / "launcher.c"
-    ))
+      "launcher",
+      "launcher.c"
+    )
+
+    cosmoWindowsExtras() match {
+      case Some(d) =>
+        val env = System.getenv().asScala.toMap
+        val pathEnvVar = env.find((k, _) => k.toUpperCase == "PATH")
+        val updatedEnv = pathEnvVar.fold(env.updated("Path", d.path.toString)) {
+          (k, v) => env.updated(k, s"${d.path.toString};${v}")
+        }
+
+        os.call(
+          (d.path / "dash.com", cmd),
+          env = updatedEnv,
+          propagateEnv = false,
+          cwd = Task.dest
+        )
+      case None => os.call(cmd, cwd = Task.dest)
+    }
 
     PathRef(Task.dest / "launcher")
   }
