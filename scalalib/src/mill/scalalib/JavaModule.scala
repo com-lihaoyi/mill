@@ -1028,7 +1028,7 @@ trait JavaModule
    * assembly, but without this module's contribution
    */
   def upstreamAssemblyClasspath: T[Agg[PathRef]] = Task {
-    transitiveLocalClasspath()
+    resolvedRunIvyDeps() ++ transitiveLocalClasspath()
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
