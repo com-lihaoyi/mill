@@ -36,7 +36,7 @@ import scala.jdk.CollectionConverters.*
  *  - build profiles
  */
 @mill.api.internal
-object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
+object MavenBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[Model, Dependency] {
   type C = Config
 
   def main(args: Array[String]): Unit = {
@@ -54,7 +54,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       (Node(dirs, model), model.getModules.iterator().asScala.map(dirs :+ _))
     }
 
-    convertWriteOut(cfg, cfg.shared, input)
+    convertWriteOut(cfg, cfg.shared.basicConfig, input)
 
     println("converted Maven build to Mill")
   }
@@ -67,7 +67,8 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
   ): IrBaseInfo = {
     val model = input.node.value
     val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
-    val repositores = getRepositories(model)
+    val scalacOptions = None
+    val repositories = getRepositories(model)
     val pomSettings = extractPomSettings(model)
     val publishVersion = model.getVersion
     val publishProperties = getPublishProperties(model, cfg.shared)
@@ -77,13 +78,22 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       baseModule,
       getModuleSupertypes(cfg),
       javacOptions,
+      scalacOptions,
       pomSettings,
       publishVersion,
       publishProperties,
       getRepositories(model)
     )
 
-    IrBaseInfo(javacOptions, repositores, noPom = false, publishVersion, publishProperties, typedef)
+    IrBaseInfo(
+      javacOptions,
+      scalacOptions,
+      repositories,
+      noPom = false,
+      publishVersion,
+      publishProperties,
+      typedef
+    )
   }
 
   override def extractIrBuild(
@@ -97,11 +107,12 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
     val version = model.getVersion
     IrBuild(
       scopedDeps = scopedDeps,
-      testModule = cfg.shared.testModule,
+      testModule = cfg.shared.basicConfig.testModule,
       hasTest = os.exists(getMillSourcePath(model) / "src/test"),
       dirs = build.dirs,
       repositories = getRepositories(model),
       javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model).diff(baseInfo.javacOptions),
+      scalacOptions = None,
       projectName = getArtifactId(model),
       pomSettings = if (baseInfo.noPom) extractPomSettings(model) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,
@@ -127,10 +138,9 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
 
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
-  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] = {
+  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
     Seq("RootModule") ++
-      cfg.shared.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
-  }
+      cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
 
   def processResources(
       input: java.util.List[org.apache.maven.model.Resource],
@@ -205,7 +215,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
 
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
     val ivyDep: Dependency => String = {
-      cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
+      cfg.shared.basicConfig.depsObject.fold(interpIvy(_)) { objName => dep =>
         {
           val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
           sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))

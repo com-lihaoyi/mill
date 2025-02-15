@@ -12,7 +12,7 @@ object BuildGenTests extends TestSuite {
       val sourceRoot = os.sub / "scala-seed-project"
       val expectedRoot = os.sub / "expected/scala-seed-project"
       assert(
-        checker.check(SbtBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
+        checker.check(SbtBuildGenMain.main(Array.empty), sourceRoot, expectedRoot, true)
       )
     }
 

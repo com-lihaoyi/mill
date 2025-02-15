@@ -1,0 +1,29 @@
+package build
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib.SbtModule
+
+object `package` extends RootModule with SbtModule with PublishModule {
+
+  def artifactName = "Scala Seed Project"
+
+  def ivyDeps = super.ivyDeps() ++
+    Agg(ivy"org.scala-lang:scala-library:2.13.12")
+
+  def pomSettings = PomSettings(
+    "Scala Seed Project",
+    "",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  object test extends MavenTests with TestModule.Munit {
+
+    def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.scalameta:munit::0.7.29")
+
+  }
+}

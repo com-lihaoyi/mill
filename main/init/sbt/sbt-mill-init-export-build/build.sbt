@@ -1,5 +1,4 @@
-
-name := """sbt-mill-init-generate-project-tree"""
+name := """sbt-mill-init-export-build"""
 organization := "com.lihaoyi"
 version := "SNAPSHOT"
 

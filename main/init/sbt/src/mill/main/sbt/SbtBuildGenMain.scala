@@ -2,7 +2,12 @@ package mill.main.sbt
 
 import mainargs.{ParserForClass, main}
 import mill.main.buildgen.*
-import mill.main.buildgen.BuildGenUtil.escape
+import mill.main.buildgen.BuildGenUtil.*
+import mill.main.buildgen.IrDependencyType.*
+import os.Path
+
+import scala.collection.View
+import scala.collection.immutable.SortedSet
 
 /**
  * Converts an sbt build to Mill by generating Mill build file(s).
@@ -16,17 +21,24 @@ import mill.main.buildgen.BuildGenUtil.escape
  * The conversion
  *  - handles deeply nested modules
  *  - configures dependencies for configurations:
+ *    - no configuration
  *    - Compile
+ *    - Provided
+ *    - Optional
  *    - Runtime
  *    - Test
- *  - configures testing frameworks:
- *    - JUnit 4
- *    - JUnit 5
- *    - TestNG
- *    - µTest
- *    - ScalaTest
- *    - Specs2
- *    - ScalaCheck
+ *  - configures testing frameworks (@see [[mill.scalalib.TestModule]]):
+ *    - Java:
+ *      - JUnit 4
+ *      - JUnit 5
+ *      - TestNG
+ *    - Scala:
+ *      - ScalaTest
+ *      - Specs2
+ *      - µTest
+ *      - MUnit
+ *      - Weaver
+ *      - ZIOTest
  * ===Limitations===
  * The conversion does not support
  *  - custom configurations
@@ -34,7 +46,7 @@ import mill.main.buildgen.BuildGenUtil.escape
  *  - sources other than Scala on JVM and Java
  */
 @mill.api.internal
-object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
+object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Project]])] {
   type C = Config
 
   def main(args: Array[String]): Unit = {
@@ -67,62 +79,52 @@ object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
 
     println("Running sbt task to generate the project tree")
 
-    val exitCode = Process(
+    Process(
       Seq(
         sbtExecutable,
         s"-addPluginSbtFile=${writeSbtFile().toString}",
-        "millInitGenerateProjectTree"
+        "millInitExportBuild"
       ),
       workspace.toIO
     ).!
 
-    println("Exit code from running the `millInitGenerateProjectTree` sbt task: " + exitCode)
+    // println("Exit code from running the `millInitExportBuild` sbt task: " + exitCode)
 
+    val buildExportPickled = os.read(workspace / "target" / "mill-init-build-export.json")
+    // TODO This is mainly for debugging purposes. Comment out this line if it's unnecessary.
+    println("sbt build export retrieved: " + buildExportPickled)
     import upickle.default.*
-    val projectTree =
-      read[ProjectTree](os.read(workspace / "target" / "mill-init-project-tree.json"))
-    println("Project tree retrieved: " + projectTree)
+    val buildExport = read[BuildExport](buildExportPickled)
 
-    /*
-    val connector = GradleConnector.newConnector()
+    // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
+    val projectNodesByParentDirs: Map[Option[Seq[String]], View[Node[Project]]] =
+      buildExport.projects.view
+        .map(project =>
+          Node(os.Path(project.projectDirectory).subRelativeTo(workspace).segments, project)
+        )
+        .groupBy(node => {
+          val dirs = node.dirs
+          Option.when(dirs.nonEmpty)(dirs.dropRight(1))
+        })
 
-    val args =
-      cfg.shared.jvmId.map { id =>
-        println(s"resolving Java home for jvmId $id")
-        val home = Jvm.resolveJavaHome(id).getOrThrow
-        s"-Dorg.gradle.java.home=$home"
-      } ++ Seq("--init-script", writeGradleInitScript.toString())
+    val input = Tree.from(projectNodesByParentDirs(None).head) { node =>
+      val dirs = node.dirs
+      val children = projectNodesByParentDirs.getOrElse(Some(dirs), Seq.empty)
+      (node, children)
+    }
 
-    try {
-      println("connecting to Gradle daemon")
-      val connection = connector.forProjectDirectory(workspace.toIO).connect()
-      try {
-        val root = connection.model(classOf[ProjectTree])
-          .withArguments(args.asJava)
-          .get
+    convertWriteOut(cfg, cfg.shared, (buildExport.defaultBuildInfo, input))
 
-        val input = Tree.from(root) { tree =>
-          val project = tree.project()
-          val dirs = os.Path(project.directory()).subRelativeTo(workspace).segments
-          val children = tree.children().asScala.sortBy(_.project().name()).iterator
-          (Node(dirs, project), children)
-        }
-
-        convertWriteOut(cfg, cfg.shared, input)
-
-        println("converted Gradle build to Mill")
-      } finally connection.close()
-    } finally connector.disconnect()
-     */
+    println("converted sbt build to Mill")
   }
 
   private def writeSbtFile(): os.Path = {
     val file = os.temp.dir() / "mill-init.sbt"
     // TODO copy to a temp file if it doesn't work when packaged in a jar
     val sbtPluginJarUrl =
-      getClass.getResource("/sbt-mill-init-generate-project-tree-assembly.jar").toExternalForm
+      getClass.getResource("/sbt-mill-init-export-build-assembly.jar").toExternalForm
     val contents =
-      s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-sbt-mill-init-generate-project-tree" % "0.1.0-SNAPSHOT" from ${escape(
+      s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-sbt-mill-init-export-build" % "dummy-version" from ${escape(
           sbtPluginJarUrl
         )})
          |""".stripMargin
@@ -130,272 +132,257 @@ object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
     file
   }
 
-  override def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[IrBuild]): Seq[String] =
-    ???
+  override def getProjectTree(input: (BuildInfo, Tree[Node[Project]])): Tree[Node[Project]] =
+    input._2
 
-  override def getBaseInfo(
-      input: Tree[Node[IrBuild]],
-      cfg: Config,
-      baseModule: String,
-      packagesSize: Int
-  ): IrBaseInfo = ???
+  def sbtSupertypes = Seq("SbtModule", "PublishModule") // always publish
 
-  override def getPackage(model: IrBuild): (String, String, String) = ???
-
-  override def getArtifactId(model: IrBuild): String = ???
-
-  override def extractIrBuild(
-      cfg: Config,
-      baseInfo: IrBaseInfo,
-      build: Node[IrBuild],
-      packages: Map[(String, String, String), String]
-  ): IrBuild = ???
-
-  /*
   def getBaseInfo(
-      input: Tree[Node[ProjectModel]],
+      input: (BuildInfo, Tree[Node[Project]]),
       cfg: Config,
       baseModule: String,
       packagesSize: Int
   ): IrBaseInfo = {
-    val project = {
-      val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
-      cfg.baseProject
-        .flatMap(name => projects.collectFirst { case m if name == m.name => m })
-        .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
-        .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
-        .getOrElse(input.node.value)
-    }
-    if (packagesSize > 1) {
-      println(s"settings from ${project.name()} will be shared in base module")
-    }
-    val supertypes =
-      Seq("MavenModule") ++
-        Option.when(null != project.maven().pom()) { "PublishModule" }
+    val buildInfo = input._1
 
-    val javacOptions = getJavacOptions(project)
-    val repos = getRepositories(project)
-    val pomSettings = extractPomSettings(project)
-    val publishVersion = getPublishVersion(project)
-    val publishProperties = getPublishProperties(project, cfg.shared)
+    val javacOptions = getJavacOptions(buildInfo)
+    val scalacOptions = buildInfo.scalacOptions
+    val repositories = getRepositories(buildInfo)
+    val pomSettings = extractPomSettings(buildInfo.buildPublicationInfo)
+    val publishVersion = getPublishVersion(buildInfo)
 
     val typedef = IrTrait(
-      cfg.shared.jvmId,
+      None, // There doesn't seem to be a Java version setting in sbt. See https://stackoverflow.com/a/76456295/5082913.
       baseModule,
-      supertypes,
+      sbtSupertypes,
       javacOptions,
+      scalacOptions,
       pomSettings,
       publishVersion,
-      publishProperties,
-      repos
+      null, // not available in sbt as it seems
+      repositories
     )
 
-    IrBaseInfo(javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)
+    IrBaseInfo(
+      javacOptions,
+      scalacOptions,
+      repositories,
+      noPom = false, // always publish
+      publishVersion,
+      Seq.empty,
+      typedef
+    )
   }
 
   override def extractIrBuild(
       cfg: Config,
       baseInfo: IrBaseInfo,
-      build: Node[ProjectModel],
+      build: Node[Project],
       packages: Map[(String, String, String), String]
   ): IrBuild = {
     val project = build.value
-    val scopedDeps = extractScopedDeps(project, packages, cfg)
-    val version = getPublishVersion(project)
+    val buildInfo = project.buildInfo
+    val configurationDeps = extractConfigurationDeps(project, packages, cfg)
+    val version = getPublishVersion(buildInfo)
     IrBuild(
-      scopedDeps = scopedDeps,
+      scopedDeps = configurationDeps,
       testModule = cfg.shared.testModule,
       hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
-      repositories = getRepositories(project).diff(baseInfo.repositories),
-      javacOptions = getJavacOptions(project).diff(baseInfo.javacOptions),
-      projectName = getArtifactId(project),
-      pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,
+      repositories = getRepositories(buildInfo).diff(baseInfo.repositories),
+      javacOptions = getJavacOptions(buildInfo).diff(baseInfo.javacOptions),
+      scalacOptions = buildInfo.scalacOptions.map(scalacOptions =>
+        baseInfo.scalacOptions.fold(scalacOptions)(baseScalacOptions =>
+          scalacOptions.diff(baseScalacOptions)
+        )
+      ),
+      projectName = project.name,
+      pomSettings =
+        if (baseInfo.noPom) extractPomSettings(buildInfo.buildPublicationInfo) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,
-      packaging = getPomPackaging(project),
-      // not available
-      pomParentArtifact = null,
-      // skipped, requires relatively new API (JavaPluginExtension.getSourceSets)
+      packaging = null, // not available in sbt as it seems
+      pomParentArtifact = null, // not available
       resources = Nil,
       testResources = Nil,
-      publishProperties = getPublishProperties(project, cfg.shared)
+      publishProperties = Nil // not available in sbt as it seems
     )
   }
 
   def getModuleSupertypes(cfg: Config): Seq[String] =
-    Seq(cfg.shared.baseModule.getOrElse("MavenModule"))
+    cfg.shared.baseModule.fold(sbtSupertypes)(Seq(_))
 
-  def getPackage(project: ProjectModel): (String, String, String) = {
-    (project.group(), project.name(), project.version())
+  def getPackage(project: Project): (String, String, String) = {
+    val buildPublicationInfo = project.buildInfo.buildPublicationInfo
+    (buildPublicationInfo.organization.orNull, project.name, buildPublicationInfo.version.orNull)
   }
 
-  def getArtifactId(model: ProjectModel): String = model.name()
+  def getArtifactId(project: Project): String = project.name
 
-  def getMillSourcePath(model: ProjectModel): Path = os.Path(model.directory())
+  def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
 
-  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] = {
+  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
     Seq("RootModule") ++
-      Option.when(null != build.value.maven().pom() && baseInfo.noPom) { "PublishModule" } ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
         getModuleSupertypes(cfg)
-      }.toSeq.flatten
-  }
+      }.iterator.toSeq.flatten
 
-  def groupArtifactVersion(dep: JavaModel.Dep): (String, String, String) =
-    (dep.group(), dep.name(), dep.version())
+  def groupArtifactVersion(dep: Dependency): (String, String, String) =
+    (dep.organization, dep.name, dep.revision)
 
-  def getJavacOptions(project: ProjectModel): Seq[String] = {
-    val _java = project._java()
-    if (null == _java) Seq.empty
-    else _java.javacOptions().asScala.toSeq
-  }
+  def getJavacOptions(buildInfo: BuildInfo): Seq[String] =
+    buildInfo.javacOptions.getOrElse(Seq.empty)
 
-  def getRepositories(project: ProjectModel): Seq[String] =
-    project.maven().repositories().asScala.toSeq.sorted.map(uri =>
-      s"coursier.maven.MavenRepository(${escape(uri.toString)})"
+  def getRepositories(buildInfo: BuildInfo): Seq[String] =
+    buildInfo.resolvers.getOrElse(Seq.empty).map(resolver =>
+      s"coursier.maven.MavenRepository(${escape(resolver.root)})"
     )
 
-  def getPomPackaging(project: ProjectModel): String = {
-    val pom = project.maven().pom()
-    if (null == pom) null else pom.packaging()
+  def getPublishVersion(buildInfo: BuildInfo): String =
+    buildInfo.buildPublicationInfo.version.orNull
+
+  // originally named `ivyInterp` in the Maven and module
+  def renderIvy(dependency: Dependency): String = {
+    // type, classifier, and exclusions are not processed yet
+    import dependency.*
+    s"ivy\"$organization:$name${if (crossVersion) "::" else ":"}$revision\""
   }
 
-  def getPublishProperties(project: ProjectModel, cfg: BuildGenUtil.Config): Seq[(String, String)] =
-    if (cfg.publishProperties.value) {
-      val pom = project.maven().pom()
-      if (null == pom) Seq.empty
-      else pom.properties().iterator().asScala
-        .map(prop => (prop.key(), prop.value()))
-        .toSeq
-    } else Seq.empty
-
-  def getPublishVersion(project: ProjectModel): String =
-    project.version() match {
-      case "" | "unspecified" => null
-      case version => version
-    }
-
-  def interpIvy(dep: JavaModel.Dep): String = {
-    BuildGenUtil.renderIvyString(dep.group(), dep.name(), dep.version())
+  def extractPomSettings(buildPublicationInfo: BuildPublicationInfo): IrPom = {
+    import buildPublicationInfo.*
+    // always publish
+    /*
+    if (
+      Seq(
+        description,
+        homepage,
+        licenses,
+        organizationName,
+        organizationHomepage,
+        developers,
+        scmInfo
+      ).forall(_.isEmpty)
+    )
+      null
+    else
+     */
+    IrPom(
+      description.getOrElse(""),
+      organization.getOrElse(""),
+      organizationHomepage.fold("")(_.getOrElse("")),
+      licenses.getOrElse(Seq.empty).map(license => IrLicense(license._1, license._1, license._2)),
+      scmInfo.flatten.fold(IrVersionControl(null, null, null, null))(scmInfo => {
+        import scmInfo.*
+        IrVersionControl(browseUrl, connection, devConnection.orNull, null)
+      }),
+      developers.getOrElse(Seq.empty).map { developer =>
+        import developer.*
+        IrDeveloper(id, name, url, null, null)
+      }
+    )
   }
 
-  def extractPomSettings(project: ProjectModel): IrPom = {
-    val pom = project.maven.pom()
-    if (null == pom) null
-    else {
-      IrPom(
-        pom.description(),
-        project.group(), // Mill uses group for POM org
-        pom.url(),
-        licenses = pom.licenses().asScala
-          .map(lic => IrLicense(lic.name(), lic.name(), lic.url()))
-          .toSeq,
-        versionControl = Option(pom.scm()).fold(IrVersionControl(null, null, null, null))(scm =>
-          IrVersionControl(scm.url(), scm.connection(), scm.devConnection(), scm.tag())
-        ),
-        developers = pom.devs().asScala
-          .map(dev => IrDeveloper(dev.id(), dev.name(), dev.url(), dev.org(), dev.orgUrl()))
-          .toSeq
-      )
-    }
-  }
-
-  def extractScopedDeps(
-      project: ProjectModel,
+  def extractConfigurationDeps(
+      project: Project,
       packages: PartialFunction[(String, String, String), String],
       cfg: Config
   ): IrScopedDeps = {
-    var sd = IrScopedDeps()
-    val hasTest = os.exists(os.Path(project.directory()) / "src/test")
-    val _java = project._java()
-    if (null != _java) {
-      val ivyDep: JavaModel.Dep => String =
-        cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
-          val depName = s"`${dep.group()}:${dep.name()}`"
-          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))
-          s"$objName.$depName"
-        }
+    // refactored to a functional approach from the original imperative code in Maven and Gradle
 
-      def appendIvyDepPackage(
-          deps: IterableOnce[JavaModel.Dep],
-          onPackage: String => IrScopedDeps,
-          onIvy: (String, (String, String, String)) => IrScopedDeps
-      ): Unit = {
-        for (dep <- deps.iterator) {
+    val allDepsByConfiguration = project.allDependencies.groupBy(_.configurations match {
+      case None => Default
+      case Some(configuration) => configuration match {
+          case "compile" => Default
+          case "test" => Test
+          case "runtime" => Run
+          case "provided" | "optional" => Compile
+        }
+    })
+
+    case class Deps[I, M](ivy: Seq[I], module: Seq[M])
+
+    // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
+    val ivyAndModuleDepsByConfiguration: Map[IrDependencyType, Deps[Dependency, String]] =
+      allDepsByConfiguration.view.mapValues(deps => {
+        val tuple2 = deps.partitionMap(dep => {
           val id = groupArtifactVersion(dep)
-          if (packages.isDefinedAt(id)) sd = onPackage(packages(id))
-          else {
-            val ivy = ivyDep(dep)
-            sd = onIvy(ivy, id)
-          }
-        }
-      }
-      _java.configs().forEach { config =>
-        import JavaPlugin.*
+          if (packages.isDefinedAt(id)) Right(packages(id))
+          else Left(dep)
+        })
+        Deps(tuple2._1, tuple2._2)
+      }).toMap
 
-        val conf = config.name()
-        conf match {
-          case IMPLEMENTATION_CONFIGURATION_NAME | API_CONFIGURATION_NAME =>
-            appendIvyDepPackage(
-              config.deps.asScala,
-              onPackage = v => sd.copy(mainModuleDeps = sd.mainModuleDeps + v),
-              onIvy = (v, id) =>
-                if (isBom(id)) sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + v)
-                else sd.copy(mainIvyDeps = sd.mainIvyDeps + v)
+    val testIvyAndModuleDeps = ivyAndModuleDepsByConfiguration.get(Test)
+    val testIvyDeps = testIvyAndModuleDeps.map(_.ivy)
+    val hasTest = os.exists(os.Path(project.projectDirectory) / "src/test")
+    val testModule = Option.when(hasTest)(
+      testIvyDeps.flatMap(_.collectFirst(Function.unlift(dep =>
+        testModulesByGroup.get(dep.organization)
+      )))
+    ).flatten
+
+    cfg.shared.depsObject.fold({
+      val default = ivyAndModuleDepsByConfiguration.get(Default)
+      val compile = ivyAndModuleDepsByConfiguration.get(Compile)
+      val run = ivyAndModuleDepsByConfiguration.get(Run)
+      val test = testIvyAndModuleDeps
+      IrScopedDeps(
+        Seq.empty,
+        SortedSet.empty,
+        // Using `fold` here causes issues with type inference.
+        SortedSet.from(default.map(_.ivy.iterator.map(renderIvy)).getOrElse(Iterator.empty)),
+        SortedSet.from(default.map(_.module).getOrElse(Seq.empty)),
+        SortedSet.from(compile.map(_.ivy.iterator.map(renderIvy)).getOrElse(Iterator.empty)),
+        SortedSet.from(compile.map(_.module).getOrElse(Seq.empty)),
+        SortedSet.from(run.map(_.ivy.iterator.map(renderIvy)).getOrElse(Iterator.empty)),
+        SortedSet.from(run.map(_.module).getOrElse(Seq.empty)),
+        testModule,
+        SortedSet.empty,
+        SortedSet.from(testIvyDeps.map(_.iterator.map(renderIvy)).getOrElse(Iterator.empty)),
+        SortedSet.from(test.map(_.module).getOrElse(Seq.empty)),
+        SortedSet.empty,
+        SortedSet.empty
+      )
+    })(objectName => {
+      // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
+      val extractedIvyAndModuleDepsByConfiguration
+          : Map[IrDependencyType, Deps[((String, String), String), String]] =
+        ivyAndModuleDepsByConfiguration.view.mapValues({
+          case Deps(ivy, module) =>
+            Deps(
+              ivy.map(dep => {
+                val depName = s"`${dep.organization}:${dep.name}`"
+                ((depName, renderIvy(dep)), s"$objectName.$depName")
+              }),
+              module
             )
+        }).toMap
 
-          case COMPILE_ONLY_CONFIGURATION_NAME | COMPILE_ONLY_API_CONFIGURATION_NAME =>
-
-            appendIvyDepPackage(
-              config.deps.asScala,
-              onPackage = v => sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + v),
-              onIvy = (v, id) => sd.copy(mainCompileIvyDeps = sd.mainCompileIvyDeps + v)
-            )
-
-          case RUNTIME_ONLY_CONFIGURATION_NAME =>
-            appendIvyDepPackage(
-              config.deps.asScala,
-              onPackage = v => sd.copy(mainRunModuleDeps = sd.mainRunModuleDeps + v),
-              onIvy = (v, id) => sd.copy(mainRunIvyDeps = sd.mainRunIvyDeps + v)
-            )
-
-          case TEST_IMPLEMENTATION_CONFIGURATION_NAME =>
-
-            appendIvyDepPackage(
-              config.deps.asScala,
-              onPackage = v => sd.copy(testModuleDeps = sd.testModuleDeps + v),
-              onIvy = (v, id) =>
-                if (isBom(id)) sd.copy(testBomIvyDeps = sd.testBomIvyDeps + v)
-                else sd.copy(testIvyDeps = sd.testIvyDeps + v)
-            )
-            config.deps.forEach { dep =>
-              if (hasTest && sd.testModule.isEmpty) {
-                sd = sd.copy(testModule = testModulesByGroup.get(dep.group()))
-              }
-            }
-
-          case TEST_COMPILE_ONLY_CONFIGURATION_NAME =>
-            appendIvyDepPackage(
-              config.deps.asScala,
-              onPackage = v => sd.copy(testCompileModuleDeps = sd.testCompileModuleDeps + v),
-              onIvy = (v, id) => sd.copy(testCompileIvyDeps = sd.testCompileIvyDeps + v)
-            )
-
-          case name =>
-            config.deps.forEach { dep =>
-              val id = groupArtifactVersion(dep)
-              println(s"ignoring $name dependency $id")
-            }
-        }
-      }
-    }
-    sd
+      val default = extractedIvyAndModuleDepsByConfiguration.get(Default)
+      val compile = extractedIvyAndModuleDepsByConfiguration.get(Compile)
+      val run = extractedIvyAndModuleDepsByConfiguration.get(Run)
+      val test = extractedIvyAndModuleDepsByConfiguration.get(Test)
+      IrScopedDeps(
+        extractedIvyAndModuleDepsByConfiguration.values.flatMap(_.ivy.iterator.map(_._1)).toSeq,
+        SortedSet.empty,
+        SortedSet.from(default.map(_.ivy.iterator.map(_._2)).getOrElse(Iterator.empty)),
+        SortedSet.from(default.map(_.module).getOrElse(Seq.empty)),
+        SortedSet.from(compile.map(_.ivy.iterator.map(_._2)).getOrElse(Iterator.empty)),
+        SortedSet.from(compile.map(_.module).getOrElse(Seq.empty)),
+        SortedSet.from(run.map(_.ivy.iterator.map(_._2)).getOrElse(Iterator.empty)),
+        SortedSet.from(run.map(_.module).getOrElse(Seq.empty)),
+        testModule,
+        SortedSet.empty,
+        SortedSet.from(test.map(_.ivy.iterator.map(_._2)).getOrElse(Iterator.empty)),
+        SortedSet.from(test.map(_.module).getOrElse(Seq.empty)),
+        SortedSet.empty,
+        SortedSet.empty
+      )
+    })
   }
-   */
 
   @main
   @mill.api.internal
   case class Config(
-      shared: BuildGenUtil.Config
+      shared: BuildGenUtil.BasicConfig
   )
 }

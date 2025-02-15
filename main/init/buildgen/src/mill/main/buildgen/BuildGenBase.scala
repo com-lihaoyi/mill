@@ -4,26 +4,29 @@ import mill.main.buildgen.BuildGenUtil.{buildPackages, compactBuildTree, writeBu
 
 import scala.collection.immutable.SortedMap
 
-trait BuildGenBase[M, D] {
+trait BuildGenBase[M, D, I] {
   type C
-  def convertWriteOut(cfg: C, shared: BuildGenUtil.Config, input: Tree[Node[M]]): Unit = {
+  def convertWriteOut(cfg: C, shared: BuildGenUtil.BasicConfig, input: I): Unit = {
     val output = convert(input, cfg, shared)
     writeBuildObject(if (shared.merge.value) compactBuildTree(output) else output)
   }
 
-  def convert(
-      input: Tree[Node[M]],
-      cfg: C,
-      shared: BuildGenUtil.Config
-  ): Tree[Node[BuildObject]] = {
-    // for resolving moduleDeps
+  def getProjectTree(input: I): Tree[Node[M]]
 
-    val packages = buildPackages(input)(getPackage)
+  def convert(
+      input: I,
+      cfg: C,
+      shared: BuildGenUtil.BasicConfig
+  ): Tree[Node[BuildObject]] = {
+    val projectTree = getProjectTree(input)
+
+    // for resolving moduleDeps
+    val packages = buildPackages(projectTree)(getPackage)
 
     val baseInfo =
       shared.baseModule.fold(IrBaseInfo()) { getBaseInfo(input, cfg, _, packages.size) }
 
-    input.map { build =>
+    projectTree.map { build =>
       val name = getArtifactId(build.value)
       println(s"converting module $name")
 
@@ -50,7 +53,7 @@ trait BuildGenBase[M, D] {
   def getSuperTypes(cfg: C, baseInfo: IrBaseInfo, build: Node[M]): Seq[String]
 
   def getBaseInfo(
-      input: Tree[Node[M]],
+      input: I,
       cfg: C,
       baseModule: String,
       packagesSize: Int
@@ -66,4 +69,10 @@ trait BuildGenBase[M, D] {
       build: Node[M],
       packages: Map[(String, String, String), String]
   ): IrBuild
+}
+
+object BuildGenBase {
+  trait BaseInfoFromSubproject[M, D] extends BuildGenBase[M, D, Tree[Node[M]]] {
+    override def getProjectTree(input: Tree[Node[M]]): Tree[Node[M]] = input
+  }
 }

@@ -634,8 +634,10 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 }
 
+trait MillPublishCrossScalaModule extends MillPublishJavaModule with CrossScalaModule
+
 object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
-trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
+trait BridgeModule extends MillPublishCrossScalaModule {
   def scalaVersion = crossScalaVersion
   def publishVersion = bridgeVersion
   def artifactName = "mill-scala-compiler-bridge"
