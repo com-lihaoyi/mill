@@ -96,6 +96,8 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
     ) = {
       val Right(runClasspathRes) = eval.apply(mod.runClasspath): @unchecked
       val Right(compileClasspathRes) = eval.apply(mod.compileClasspath): @unchecked
+      val Right(resolvedIvyAssemblyClasspathRes) =
+        eval.apply(mod.resolvedIvyAssemblyClasspath): @unchecked
       val Right(upstreamAssemblyClasspathRes) =
         eval.apply(mod.upstreamAssemblyClasspath): @unchecked
       val Right(localClasspathRes) = eval.apply(mod.localClasspath): @unchecked
@@ -122,8 +124,12 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
       // invariant: the `upstreamAssemblyClasspath` used to make the `upstreamAssembly`
       // and the `localClasspath` used to complete it to make the final `assembly` must
       // have the same entries as the `runClasspath` used to execute things
+
       assert(
-        runClasspathRes.value == upstreamAssemblyClasspathRes.value.toSeq ++ localClasspathRes.value
+        runClasspathRes.value ==
+          resolvedIvyAssemblyClasspathRes.value.toSeq ++
+            upstreamAssemblyClasspathRes.value.toSeq ++
+            localClasspathRes.value
       )
     }
 

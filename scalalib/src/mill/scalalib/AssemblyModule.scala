@@ -97,7 +97,7 @@ trait AssemblyModule extends mill.Module {
       destJar = Task.dest / "out.jar",
       inputPaths = upstreamAssemblyClasspath().map(_.path),
       manifest = manifest(),
-      base = Some(resolvedIvyAssembly().pathRef.path),
+      base = Some(resolvedIvyAssembly()),
       assemblyRules = assemblyRules
     )
   }
@@ -115,15 +115,13 @@ trait AssemblyModule extends mill.Module {
       inputPaths = Seq.from(localClasspath().map(_.path)),
       manifest = manifest(),
       prependShellScript = prependScript,
-      base = Some(upstream.pathRef.path),
+      base = Some(upstream),
       assemblyRules = assemblyRules
     )
     // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
     val problematicEntryCount = 65535
-    if (
-      prependScript.isDefined &&
-      (upstream.addedEntries + created.addedEntries) > problematicEntryCount
-    ) {
+
+    if (prependScript.isDefined && created.entries > problematicEntryCount) {
       Result.Failure(
         s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
            |JARs of that size are known to not work correctly with a prepended shell script.
