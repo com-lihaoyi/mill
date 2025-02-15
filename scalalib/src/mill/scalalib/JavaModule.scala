@@ -1015,10 +1015,13 @@ trait JavaModule
     )
   }
 
-  def resolvedIvyAssemblyClasspath: T[Agg[PathRef]] = Task {
+  def upstreamIvyAssemblyClasspath: T[Agg[PathRef]] = Task {
     resolvedRunIvyDeps()
   }
 
+  def upstreamLocalAssemblyClasspath: T[Agg[PathRef]] = Task {
+    transitiveLocalClasspath()
+  }
   /**
    * All upstream classfiles and resources necessary to build and executable
    * assembly, but without this module's contribution
