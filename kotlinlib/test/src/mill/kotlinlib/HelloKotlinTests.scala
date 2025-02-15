@@ -14,7 +14,6 @@ object HelloKotlinTests extends TestSuite {
     embeddable <- Seq(false, true)
   } yield (kotlinVersion, embeddable)
 
-
   val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.9.1")
 
   object HelloKotlin extends TestBaseModule {
