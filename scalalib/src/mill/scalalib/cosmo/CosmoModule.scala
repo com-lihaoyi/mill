@@ -10,6 +10,8 @@ import mill.scalalib._
  * launcher binary compiled with the [[https://justine.lol/cosmopolitan/index.html Cosmopolitan Libc]]
  */
 trait CosmoModule extends mill.Module with AssemblyModule {
+  def finalMainClass: T[String]
+
   def forkArgs(argv0: String): Task[Seq[String]] = Task.Anon { Seq[String]() }
 
   def cosmoccVersion: T[String] = Task { "" }
@@ -32,7 +34,7 @@ trait CosmoModule extends mill.Module with AssemblyModule {
     PathRef(dest)
   }
 
-  def cosmoLauncherScript: T[Option[String]] = Task {
+  def cosmoLauncherScript: T[String] = Task {
     val start = 1
     val size0 = start + forkArgs().length
     val addForkArgs = forkArgs()
@@ -57,81 +59,77 @@ trait CosmoModule extends mill.Module with AssemblyModule {
 
     val preArgvSize = size + 3;
 
-    finalMainClassOpt().toOption.map { cls =>
-      s"""#include <stdlib.h>
-         |#include <stdio.h>
-         |#include <errno.h>
-         |
-         |int main(int argc, char* argv[]) {
-         |  size_t preargv_size = ${preArgvSize};
-         |  size_t total = preargv_size + argc;
-         |  char *all_argv[total];
-         |  memset(all_argv, 0, sizeof(all_argv));
-         |
-         |  all_argv[0] = (char*)malloc((strlen(argv[0]) + 1) * sizeof(char));
-         |  strcpy(all_argv[0], argv[0]);
-         |  ${addForkArgs}
-         |  ${addForkArgsArgv0}
-         |  all_argv[${size}] = (char*)malloc((strlen("-cp") + 1) * sizeof(char));
-         |  strcpy(all_argv[${size}], "-cp");
-         |  all_argv[${size + 1}] = (char*)malloc((strlen(argv[0]) + 1) * sizeof(char));
-         |  strcpy(all_argv[${size + 1}], argv[0]);
-         |  all_argv[${size + 2}] = (char*)malloc((strlen("${cls}") + 1) * sizeof(char));
-         |  strcpy(all_argv[${size + 2}], "${cls}");
-         |
-         |  int i = preargv_size;
-         |  for (int count = 1; count < argc; count++) {
-         |    all_argv[i] = (char*)malloc((strlen(argv[count]) + 1) * sizeof(char));
-         |    strcpy(all_argv[i], argv[count]);
-         |    i++;
-         |  }
-         |
-         |  all_argv[total - 1] = NULL;
-         |
-         |  execvp("java", all_argv);
-         |  if (errno == ENOENT) {
-         |    execvp("java.exe", all_argv);
-         |  }
-         |
-         |  perror("java");
-         |  exit(EXIT_FAILURE);
-         |}
-      """.stripMargin
-    }
+    s"""#include <stdlib.h>
+       |#include <stdio.h>
+       |#include <errno.h>
+       |
+       |int main(int argc, char* argv[]) {
+       |  size_t preargv_size = ${preArgvSize};
+       |  size_t total = preargv_size + argc;
+       |  char *all_argv[total];
+       |  memset(all_argv, 0, sizeof(all_argv));
+       |
+       |  all_argv[0] = (char*)malloc((strlen(argv[0]) + 1) * sizeof(char));
+       |  strcpy(all_argv[0], argv[0]);
+       |  ${addForkArgs}
+       |  ${addForkArgsArgv0}
+       |  all_argv[${size}] = (char*)malloc((strlen("-cp") + 1) * sizeof(char));
+       |  strcpy(all_argv[${size}], "-cp");
+       |  all_argv[${size + 1}] = (char*)malloc((strlen(argv[0]) + 1) * sizeof(char));
+       |  strcpy(all_argv[${size + 1}], argv[0]);
+       |  all_argv[${size + 2}] = (char*)malloc((strlen("${finalMainClass()}") + 1) * sizeof(char));
+       |  strcpy(all_argv[${size + 2}], "${finalMainClass()}");
+       |
+       |  int i = preargv_size;
+       |  for (int count = 1; count < argc; count++) {
+       |    all_argv[i] = (char*)malloc((strlen(argv[count]) + 1) * sizeof(char));
+       |    strcpy(all_argv[i], argv[count]);
+       |    i++;
+       |  }
+       |
+       |  all_argv[total - 1] = NULL;
+       |
+       |  execvp("java", all_argv);
+       |  if (errno == ENOENT) {
+       |    execvp("java.exe", all_argv);
+       |  }
+       |
+       |  perror("java");
+       |  exit(EXIT_FAILURE);
+       |}
+    """.stripMargin
   }
 
-  def cosmoCompiledLauncherScript: T[Option[PathRef]] = Task {
-    cosmoLauncherScript().map { sc =>
-      os.write(Task.dest / "launcher.c", sc)
-      os.call((
-        cosmocc().path,
-        "-mtiny",
-        "-O3",
-        "-o",
-        Task.dest / "launcher",
-        Task.dest / "launcher.c"
-      ))
+  def cosmoCompiledLauncherScript: T[PathRef] = Task {
+    os.write(Task.dest / "launcher.c", cosmoLauncherScript())
+    os.call((
+      cosmocc().path,
+      "-mtiny",
+      "-O3",
+      "-o",
+      Task.dest / "launcher",
+      Task.dest / "launcher.c"
+    ))
 
-      PathRef(Task.dest / "launcher")
-    }
+    PathRef(Task.dest / "launcher")
   }
 
   def cosmoAssembly: T[PathRef] = Task {
-    val prepend = cosmoCompiledLauncherScript().map(p => os.read.bytes(p.path))
+    val prepend = os.read.bytes(cosmoCompiledLauncherScript().path)
     val upstream = upstreamAssembly()
 
     val created = Assembly.create0(
       destJar = Task.dest / "out.jar.exe",
       inputPaths = Seq.from(localClasspath().map(_.path)),
       manifest = manifest(),
-      prepend = prepend,
+      prepend = Some(prepend),
       base = Some(upstream),
       assemblyRules = assemblyRules
     )
     // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
     val problematicEntryCount = 65535
 
-    if (prepend.isDefined && created.entries > problematicEntryCount) {
+    if (created.entries > problematicEntryCount) {
       Result.Failure(
         s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
            |Prepended JARs of that size are known to not work correctly.
