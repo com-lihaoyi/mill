@@ -9,11 +9,13 @@ import utest.*
 
 object HelloKotlinTests extends TestSuite {
 
-  val crossMatrix = for{
+  val crossMatrix = for {
     kotlinVersion <- Seq("1.9.24", "2.0.20", "2.1.0")
     embeddable <- Seq(false, true)
   } yield (kotlinVersion, embeddable)
 
+
+  val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.9.1")
 
   object HelloKotlin extends TestBaseModule {
     // crossValue - test different Kotlin versions
@@ -32,7 +34,7 @@ object HelloKotlinTests extends TestSuite {
       }
       object kotest extends KotlinTests with TestModule.Junit5 {
         override def ivyDeps = super.ivyDeps() ++ Seq(
-          ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+          ivy"io.kotest:kotest-runner-junit5-jvm:${junit5Version}"
         )
       }
     }
@@ -41,9 +43,10 @@ object HelloKotlinTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-kotlin"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-kotlin"
 
   def testEval() = UnitTester(HelloKotlin, resourcePath)
+
   def tests: Tests = Tests {
 
     def compilerDep(embeddable: Boolean) =
