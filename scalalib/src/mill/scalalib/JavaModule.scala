@@ -934,10 +934,10 @@ trait JavaModule
     )
   }
 
-
   def resolvedIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
     resolvedRunIvyDeps()
   }
+
   /**
    * All upstream classfiles and resources necessary to build and executable
    * assembly, but without this module's contribution
