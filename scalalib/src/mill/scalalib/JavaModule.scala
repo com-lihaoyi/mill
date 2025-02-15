@@ -1022,6 +1022,7 @@ trait JavaModule
   def upstreamLocalAssemblyClasspath: T[Agg[PathRef]] = Task {
     transitiveLocalClasspath()
   }
+
   /**
    * All upstream classfiles and resources necessary to build and executable
    * assembly, but without this module's contribution
