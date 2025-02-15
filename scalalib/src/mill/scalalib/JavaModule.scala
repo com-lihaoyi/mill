@@ -1015,18 +1015,10 @@ trait JavaModule
     )
   }
 
-  /**
-   * Upstream classfiles and resources from third-party libraries
-   * necessary to build an executable assembly
-   */
   def upstreamIvyAssemblyClasspath: T[Agg[PathRef]] = Task {
     resolvedRunIvyDeps()
   }
 
-  /**
-   * Upstream classfiles and resources from locally-built modules
-   * necessary to build an executable assembly, but without this module's contribution
-   */
   def upstreamLocalAssemblyClasspath: T[Agg[PathRef]] = Task {
     transitiveLocalClasspath()
   }
