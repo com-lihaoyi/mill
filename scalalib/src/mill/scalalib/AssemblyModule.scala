@@ -63,8 +63,16 @@ trait AssemblyModule extends mill.Module {
 
   private[mill] def assemblyRules0: Seq[Assembly.Rule] = Assembly.defaultRules
 
+  /**
+   * Upstream classfiles and resources from third-party libraries
+   * necessary to build an executable assembly
+   */
   def upstreamIvyAssemblyClasspath: T[Seq[PathRef]]
 
+  /**
+   * Upstream classfiles and resources from locally-built modules
+   * necessary to build an executable assembly, but without this module's contribution
+   */
   def upstreamLocalAssemblyClasspath: T[Seq[PathRef]]
 
   def localClasspath: T[Seq[PathRef]]
