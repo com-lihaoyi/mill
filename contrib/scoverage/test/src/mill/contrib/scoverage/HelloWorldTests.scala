@@ -191,7 +191,7 @@ trait HelloWorldTests extends utest.TestSuite {
         test("test") - {
           test("upstreamAssemblyClasspath") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(HelloWorld.core.scoverage.resolvedIvyAssemblyClasspath): @unchecked
+              eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath): @unchecked
 
             val runtimeExistsOnClasspath =
               result.value.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
