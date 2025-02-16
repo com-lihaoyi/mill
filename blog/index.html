@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>The Mill Build Engineering Blog :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/blog/index.html" />
-    <link rel="next" href="8-what-is-a-build-tool.html" />
+    <link rel="next" href="9-mill-faster-assembly-jars.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -131,6 +131,10 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="9-mill-faster-assembly-jars.html">Fast Incremental JVM Assembly Jar Creation with Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="8-what-is-a-build-tool.html">What does a Build Tool do?</a>
   </li>
 
@@ -142,7 +146,7 @@
     <a class="nav-link" href="6-garbage-collector-perf.html">Understanding JVM Garbage Collector Performance</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="5-executable-jars.html">How JVM Executable Assembly Jars Work</a>
   </li>
 
@@ -224,6 +228,27 @@
 technical topics related to JVM platform tooling and language-agnostic build tooling,
 some specific to the Mill build tool but mostly applicable to anyone working on
 build tooling for large codebases in JVM and non-JVM languages.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_fast_incremental_jvm_assembly_jar_creation_with_mill"><a class="anchor" href="#_fast_incremental_jvm_assembly_jar_creation_with_mill"></a>Fast Incremental JVM Assembly Jar Creation with Mill</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 16 February 2025</em></p>
+</div>
+<div class="paragraph">
+<p>Assembly jars are a convenient deployment format for JVM applications, bundling
+your application code and resources into a single file that can run anywhere a JVM
+is installed. But assembly jars can be slow to create, which can slow down iterative
+development workflows that depend on them. The Mill JVM build tool uses some special
+tricks to let you iterate on your assembly jars much faster than traditional build tools
+like Maven or Gradle, cutting down their incremental creation time from 10s of seconds
+to less than a second. This can substantially increase your developer productivity by
+saving time you would otherwise spend waiting for your assembly to be created.</p>
+</div>
+<div class="paragraph">
+<p><a href="9-mill-faster-assembly-jars.html" class="xref page">Read More…​</a></p>
 </div>
 </div>
 </div>
@@ -422,7 +447,7 @@ faster in the presence of parallelism</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="next"><a href="8-what-is-a-build-tool.html">What does a Build Tool do?</a></span>
+  <span class="next"><a href="9-mill-faster-assembly-jars.html">Fast Incremental JVM Assembly Jar Creation with Mill</a></span>
 </nav>
 </article>
   </div>
