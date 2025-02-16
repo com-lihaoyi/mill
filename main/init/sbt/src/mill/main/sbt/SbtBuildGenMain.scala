@@ -20,13 +20,14 @@ import scala.collection.{MapView, View}
  * ===Capabilities===
  * The conversion
  *  - handles deeply nested modules
+ *  - captures publish settings
  *  - configures dependencies for configurations:
  *    - no configuration
  *    - Compile
+ *    - Test
+ *    - Runtime
  *    - Provided
  *    - Optional
- *    - Runtime
- *    - Test
  *  - configures testing frameworks (@see [[mill.scalalib.TestModule]]):
  *    - Java:
  *      - JUnit 4
@@ -40,9 +41,9 @@ import scala.collection.{MapView, View}
  *      - Weaver
  *      - ZIOTest
  * ===Limitations===
- * The conversion does not support
- *  - custom configurations
- *  - custom tasks
+ * The conversion does not support:
+ *  - custom dependency configurations
+ *  - custom settings including custom tasks
  *  - sources other than Scala on JVM and Java
  */
 @mill.api.internal

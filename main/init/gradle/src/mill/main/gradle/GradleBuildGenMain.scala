@@ -21,6 +21,7 @@ import scala.jdk.CollectionConverters.*
  * ===Capabilities===
  * The conversion
  *  - handles deeply nested modules
+ *  - captures publish settings
  *  - configures dependencies for configurations:
  *    - implementation / api
  *    - compileOnly / compileOnlyApi
@@ -33,7 +34,7 @@ import scala.jdk.CollectionConverters.*
  *    - TestNG
  *
  * ===Limitations===
- * The conversion does not support
+ * The conversion does not support:
  *  - custom dependency configurations
  *  - custom tasks
  *  - non-Java sources

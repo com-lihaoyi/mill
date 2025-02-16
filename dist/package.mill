@@ -75,6 +75,7 @@ object `package` extends RootModule with InstallModule {
       build.main.graphviz.testDep(),
       build.main.init.maven.testDep(),
       build.main.init.gradle.testDep(),
+      build.main.init.sbt.testDep(),
       build.runner.linenumbers.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
       build.contrib.bloop.testDep(),
