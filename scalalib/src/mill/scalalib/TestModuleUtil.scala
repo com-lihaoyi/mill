@@ -70,7 +70,9 @@ private[scalalib] object TestModuleUtil {
         env = forkEnv ++ resourceEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
-        cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+        cpPassingJarPath = Option.when(useArgsFile)(
+          os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+        ),
         javaHome = javaHome,
         stdin = os.Inherit,
         stdout = os.Inherit
