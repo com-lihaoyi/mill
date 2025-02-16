@@ -41,6 +41,7 @@ case class IrTrait(
     baseModule: String,
     moduleSupertypes: Seq[String],
     javacOptions: Seq[String],
+    scalaVersion: Option[String],
     scalacOptions: Option[Seq[String]],
     pomSettings: IrPom,
     publishVersion: String,
@@ -84,6 +85,7 @@ case class IrBuild(
     dirs: Seq[String],
     repositories: Seq[String],
     javacOptions: Seq[String],
+    scalaVersion : Option[String],
     scalacOptions: Option[Seq[String]],
     projectName: String,
     pomSettings: IrPom,
@@ -115,6 +117,7 @@ case class IrScopedDeps(
 
 case class IrBaseInfo(
     javacOptions: Seq[String] = Nil,
+    scalaVersion : Option[String] = None,
     scalacOptions : Option[Seq[String]] = None,
     repositories: Seq[String] = Nil,
     noPom: Boolean = true,

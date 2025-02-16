@@ -32,6 +32,8 @@ object BuildGenUtil {
        |
        |${renderJavacOptions(javacOptions)}
        |
+       |${renderScalaVersion(scalaVersion)}
+       |
        |${renderScalacOptions(scalacOptions)}
        |
        |${renderPomSettings(renderIrPom(pomSettings))}
@@ -87,6 +89,8 @@ object BuildGenUtil {
     s"""${renderArtifactName(projectName, dirs)}
        |
        |${renderJavacOptions(javacOptions)}
+       |
+       |${renderScalaVersion(scalaVersion)}
        |
        |${renderScalacOptions(scalacOptions)}
        |
@@ -391,6 +395,9 @@ object BuildGenUtil {
       "def javacOptions = super.javacOptions() ++ Seq",
       args.iterator.map(escape)
     )
+
+  def renderScalaVersion(scalaVersion: Option[String]): String =
+    scalaVersion.fold("")(scalaVersion => s"def scalaVersion = ${escape(scalaVersion)}")
 
   def renderScalacOptions(args: Option[IterableOnce[String]]): String =
     args.fold("")(args =>

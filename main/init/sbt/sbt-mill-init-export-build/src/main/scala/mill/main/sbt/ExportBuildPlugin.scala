@@ -44,6 +44,7 @@ object ExportBuildPlugin extends AutoPlugin {
       version.?.value
     ),
     javacOptions.?.value,
+    scalaVersion.?.value,
     scalacOptions.?.value,
     resolvers.?.value.map(_.flatMap {
       case mavenRepository: MavenRepository => Some(Resolver(mavenRepository.root))

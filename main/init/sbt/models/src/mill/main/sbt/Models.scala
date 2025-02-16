@@ -22,6 +22,8 @@ case class BuildInfo(
     buildPublicationInfo: BuildPublicationInfo,
     /** @see [[Keys.javacOptions]] */
     javacOptions: Option[Seq[String]],
+    /** @see [[Keys.scalaVersion]] */
+    scalaVersion: Option[String],
     /** @see [[Keys.scalacOptions]] */
     scalacOptions: Option[Seq[String]],
     /** @see [[Keys.resolvers]] */

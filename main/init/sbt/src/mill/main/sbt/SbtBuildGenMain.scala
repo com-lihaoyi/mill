@@ -145,10 +145,10 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
   ): IrBaseInfo = {
     val buildInfo = input._1
 
+    import buildInfo.*
     val javacOptions = getJavacOptions(buildInfo)
-    val scalacOptions = buildInfo.scalacOptions
     val repositories = getRepositories(buildInfo)
-    val pomSettings = extractPomSettings(buildInfo.buildPublicationInfo)
+    val pomSettings = extractPomSettings(buildPublicationInfo)
     val publishVersion = getPublishVersion(buildInfo)
 
     val typedef = IrTrait(
@@ -156,6 +156,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
       baseModule,
       sbtSupertypes,
       javacOptions,
+      scalaVersion,
       scalacOptions,
       pomSettings,
       publishVersion,
@@ -165,6 +166,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
 
     IrBaseInfo(
       javacOptions,
+      scalaVersion,
       scalacOptions,
       repositories,
       noPom = false, // always publish
@@ -191,6 +193,8 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
       dirs = build.dirs,
       repositories = getRepositories(buildInfo).diff(baseInfo.repositories),
       javacOptions = getJavacOptions(buildInfo).diff(baseInfo.javacOptions),
+      scalaVersion =
+        if (buildInfo.scalaVersion != baseInfo.scalaVersion) buildInfo.scalaVersion else null,
       scalacOptions = buildInfo.scalacOptions.map(scalacOptions =>
         baseInfo.scalacOptions.fold(scalacOptions)(baseScalacOptions =>
           scalacOptions.diff(baseScalacOptions)
