@@ -2,6 +2,13 @@ name := "sbt-multi-project-example"
 organization in ThisBuild := "com.pbassiner"
 scalaVersion in ThisBuild := "2.12.3"
 
+val urlString = "https://github.com/com-lihaoyi/mill"
+ThisBuild / homepage := Some(url(urlString))
+ThisBuild / description := "This is an sbt sample project for testing Mill's init command."
+ThisBuild / licenses := Seq(License.Apache2)
+ThisBuild / developers := List(Developer("johnd", "John Doe", "john.doe@example.com", url("https://example.com/johnd")))
+ThisBuild / scmInfo := Some(ScmInfo(url(urlString), s"scm:git:$urlString.git"))
+
 // PROJECTS
 
 lazy val global = project

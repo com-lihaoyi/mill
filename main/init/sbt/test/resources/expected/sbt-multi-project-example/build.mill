@@ -36,12 +36,24 @@ object `package` extends RootModule {
   }
 
   def pomSettings = PomSettings(
-    "sbt-multi-project-example",
+    "This is an sbt sample project for testing Mill's init command.",
     "com.pbassiner",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
+    "https://github.com/com-lihaoyi/mill",
+    Seq(License(
+      "Apache-2.0",
+      "Apache-2.0",
+      "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      false,
+      false,
+      "repo"
+    )),
+    VersionControl(
+      Some("https://github.com/com-lihaoyi/mill"),
+      Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+      None,
+      None
+    ),
+    Seq(Developer("johnd", "John Doe", "https://example.com/johnd", None, None))
   )
 
   def publishVersion = "0.1.0-SNAPSHOT"

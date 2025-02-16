@@ -37,15 +37,6 @@ object `package` extends RootModule {
 
   def artifactName = "sbt-multi-project-example"
 
-  def pomSettings = PomSettings(
-    "sbt-multi-project-example",
-    "com.pbassiner",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
-  )
-
   object multi1 extends BaseModule {
 
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -60,15 +51,6 @@ object `package` extends RootModule {
     )
 
     def moduleDeps = super.moduleDeps ++ Seq(build.common)
-
-    def pomSettings = PomSettings(
-      "multi1",
-      "com.pbassiner",
-      "",
-      Seq(),
-      VersionControl(None, None, None, None),
-      Seq()
-    )
 
     object tests extends MavenTests with TestModule.ScalaTest {
 
@@ -92,15 +74,6 @@ object `package` extends RootModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(build.common)
 
-    def pomSettings = PomSettings(
-      "multi2",
-      "com.pbassiner",
-      "",
-      Seq(),
-      VersionControl(None, None, None, None),
-      Seq()
-    )
-
     object tests extends MavenTests with TestModule.ScalaTest {
 
       def ivyDeps = super.ivyDeps() ++
@@ -118,15 +91,6 @@ object `package` extends RootModule {
       Deps.`com.typesafe:config`,
       Deps.`net.logstash.logback:logstash-logback-encoder`,
       Deps.`org.slf4j:jcl-over-slf4j`
-    )
-
-    def pomSettings = PomSettings(
-      "common",
-      "com.pbassiner",
-      "",
-      Seq(),
-      VersionControl(None, None, None, None),
-      Seq()
     )
 
     object tests extends MavenTests with TestModule.ScalaTest {
@@ -155,12 +119,24 @@ trait BaseModule extends SbtModule with PublishModule {
   )
 
   def pomSettings = PomSettings(
-    "",
+    "This is an sbt sample project for testing Mill's init command.",
     "com.pbassiner",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
+    "https://github.com/com-lihaoyi/mill",
+    Seq(License(
+      "Apache-2.0",
+      "Apache-2.0",
+      "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      false,
+      false,
+      "repo"
+    )),
+    VersionControl(
+      Some("https://github.com/com-lihaoyi/mill"),
+      Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+      None,
+      None
+    ),
+    Seq(Developer("johnd", "John Doe", "https://example.com/johnd", None, None))
   )
 
   def publishVersion = "0.1.0-SNAPSHOT"

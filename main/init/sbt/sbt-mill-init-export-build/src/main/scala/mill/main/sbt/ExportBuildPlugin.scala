@@ -34,7 +34,7 @@ object ExportBuildPlugin extends AutoPlugin {
       }),
       organization.?.value,
       //organizationName.?.value, // not needed
-      organizationHomepage.?.value.map(_.map(_.toExternalForm)),
+      //organizationHomepage.?.value.map(_.map(_.toExternalForm)), // not needed
       developers.?.value.map(_.map(developer =>
         Developer(developer.id, developer.name, developer.email, developer.url.toExternalForm)
       )),

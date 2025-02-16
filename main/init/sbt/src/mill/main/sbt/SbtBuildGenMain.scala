@@ -277,7 +277,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
     IrPom(
       description.getOrElse(""),
       organization.getOrElse(""),
-      organizationHomepage.fold("")(_.getOrElse("")),
+      homepage.fold("")(_.getOrElse("")),
       licenses.getOrElse(Seq.empty).map(license => IrLicense(license._1, license._1, license._2)),
       scmInfo.flatten.fold(IrVersionControl(null, null, null, null))(scmInfo => {
         import scmInfo.*

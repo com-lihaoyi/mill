@@ -62,12 +62,15 @@ case class BuildPublicationInfo(
      */
     organizationName: Option[String],
      */
+    // not needed
+    /*
     /**
      * corresponds to `organizationUrl` in POM
      *
      * @see [[Keys.organizationHomepage]]
      */
     organizationHomepage: Option[Option[String]],
+     */
     /** @see [[Keys.developers]] */
     developers: Option[Seq[Developer]],
     /** @see [[Keys.scmInfo]] */
