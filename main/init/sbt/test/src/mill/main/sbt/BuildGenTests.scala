@@ -12,7 +12,7 @@ object BuildGenTests extends TestSuite {
       val sourceRoot = os.sub / "scala-seed-project"
       val expectedRoot = os.sub / "expected/scala-seed-project"
       assert(
-        checker.check(SbtBuildGenMain.main(Array.empty), sourceRoot, expectedRoot, true)
+        checker.check(SbtBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
       )
     }
 
@@ -21,7 +21,7 @@ object BuildGenTests extends TestSuite {
       val sourceRoot = os.sub / "sbt-multi-project-example"
       val expectedRoot = os.sub / "expected/sbt-multi-project-example"
       assert(
-        checker.check(SbtBuildGenMain.main(Array.empty), sourceRoot, expectedRoot, true)
+        checker.check(SbtBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
       )
     }
 
@@ -38,7 +38,7 @@ object BuildGenTests extends TestSuite {
         "--merge"
       )
       assert(
-        checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot, true)
+        checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot)
       )
     }
   }
