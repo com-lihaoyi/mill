@@ -207,6 +207,8 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
     )
   }
 
+  override def extraImports: Seq[String] = Seq("mill.scalalib.SbtModule")
+
   def getModuleSupertypes(cfg: Config): Seq[String] =
     cfg.shared.baseModule.fold(sbtSupertypes)(Seq(_))
 

@@ -132,14 +132,15 @@ object BuildGenUtil {
   def renderImports(
       baseModule: Option[String],
       isNested: Boolean,
-      packagesSize: Int
+      packagesSize: Int,
+      extraImports: Seq[String]
   ): SortedSet[String] = {
     scala.collection.immutable.SortedSet(
       "mill._",
       "mill.javalib._",
-      "mill.javalib.publish._",
-      "mill.scalalib.SbtModule"
+      "mill.javalib.publish._"
     ) ++
+      extraImports ++
       (if (isNested) baseModule.map(name => s"$$file.$name")
        else if (packagesSize > 1) Seq("$packages._")
        else None)

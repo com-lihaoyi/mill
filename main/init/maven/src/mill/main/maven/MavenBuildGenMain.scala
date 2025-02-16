@@ -128,6 +128,8 @@ object MavenBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[Model, Depe
     )
   }
 
+  override def extraImports: Seq[String] = Seq.empty
+
   def getModuleSupertypes(cfg: Config): Seq[String] = Seq("PublishModule", "MavenModule")
 
   def getPackage(model: Model): (String, String, String) = {

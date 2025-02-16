@@ -183,6 +183,8 @@ object GradleBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[ProjectMod
     )
   }
 
+  override def extraImports: Seq[String] = Seq.empty
+
   def getModuleSupertypes(cfg: Config): Seq[String] =
     Seq(cfg.shared.basicConfig.baseModule.getOrElse("MavenModule"))
 
