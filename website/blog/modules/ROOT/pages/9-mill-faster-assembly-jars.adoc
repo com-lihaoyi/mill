@@ -22,7 +22,7 @@ For the purposes of this blog post, we will be using a small spark program
 as our example application. This program was written by https://github.com/monyedavid[@monyedavid]
 to demonstrate how to xref:mill:ROOT:scalalib/spark.adoc[Build Spark Programs using Mill],
 and does some simple processing of a CSV file to output summary statistics. This program
-pulls in the `org.apache.spark::spark-core:3.5.4` anf `org.apache.spark::spark-sql:3.5.4`
+pulls in the `org.apache.spark::spark-core:3.5.4` and `org.apache.spark::spark-sql:3.5.4`
 artifacts, which makes the JVM assembly jar pretty large.
 
 NOTE: For many Spark usage patterns, e.g. https://spark.apache.org/docs/latest/submitting-applications.html[spark-submit],
