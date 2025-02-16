@@ -11,9 +11,6 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   def scalaVersion = "2.13.12"
 
-  def ivyDeps = super.ivyDeps() ++
-    Agg(ivy"org.scala-lang:scala-library:2.13.12")
-
   def pomSettings = PomSettings(
     "Scala Seed Project",
     "com.example",

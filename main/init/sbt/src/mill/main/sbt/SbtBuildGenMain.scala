@@ -286,6 +286,10 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
     )
   }
 
+  private def isScalaStandardLibrary(dep: Dependency) =
+    Seq("ch.epfl.lamp", "org.scala-lang").contains(dep.organization) &&
+      Seq("scala-library", "dotty-library", "scala3-library").contains(dep.name)
+
   def extractConfigurationDeps(
       project: Project,
       packages: PartialFunction[(String, String, String), String],
@@ -293,15 +297,18 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
   ): IrScopedDeps = {
     // refactored to a functional approach from the original imperative code in Maven and Gradle
 
-    val allDepsByConfiguration = project.allDependencies.groupBy(_.configurations match {
-      case None => Default
-      case Some(configuration) => configuration match {
-          case "compile" => Default
-          case "test" => Test
-          case "runtime" => Run
-          case "provided" | "optional" => Compile
-        }
-    })
+    val allDepsByConfiguration = project.allDependencies
+      // .view // This makes the types hard to deal with here thus commented out.
+      .filterNot(isScalaStandardLibrary)
+      .groupBy(_.configurations match {
+        case None => Default
+        case Some(configuration) => configuration match {
+            case "compile" => Default
+            case "test" => Test
+            case "runtime" => Run
+            case "provided" | "optional" => Compile
+          }
+      })
 
     case class Deps[I, M](ivy: Seq[I], module: Seq[M])
 
