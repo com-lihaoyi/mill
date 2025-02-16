@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -538,6 +542,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
 </ul>
   </li>
 
@@ -594,7 +602,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.7</span>
+    <span class="version">latest-0.12.8</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -604,7 +612,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.7</a>
+          <a href="../index.html">latest-0.12.8</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -652,7 +660,7 @@
 <h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-kotlinlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/kotlinlib/testing/1-test-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-kotlinlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/kotlinlib/testing/1-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -678,7 +686,7 @@ object foo extends KotlinModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/kotlinlib/testing/1-test-suite/foo/src/foo/Foo.kt">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/kotlinlib/testing/1-test-suite/foo/src/foo/Foo.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
@@ -690,7 +698,7 @@ fun main(args: Array&lt;String&gt;) = println(Foo().hello())</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/kotlinlib/testing/1-test-suite/foo/test/src/foo/FooTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/kotlinlib/testing/1-test-suite/foo/test/src/foo/FooTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
@@ -933,7 +941,7 @@ and <code>runIvyDeps</code> to declare dependencies in test modules, and test mo
 can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-kotlinlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/kotlinlib/testing/2-test-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-kotlinlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/kotlinlib/testing/2-test-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1004,7 +1012,7 @@ the build below defines a test suite with the name <code>integration</code>, in 
 to that named <code>test</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-kotlinlib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/kotlinlib/testing/3-integration-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-kotlinlib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/kotlinlib/testing/3-integration-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1055,7 +1063,7 @@ execute in parallel when you call <code>test</code>. Test grouping is enabled
 by overriding <code>def testForkGrouping</code>, as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-kotlinlib-testing-4-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/kotlinlib/testing/4-test-grouping">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-kotlinlib-testing-4-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/kotlinlib/testing/4-test-grouping">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1080,7 +1088,7 @@ object foo extends KotlinModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/HelloTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/HelloTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/foo/HelloTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/HelloTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
@@ -1100,7 +1108,7 @@ class HelloTests :
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/WorldTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/WorldTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/foo/WorldTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/WorldTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 

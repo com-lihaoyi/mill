@@ -201,6 +201,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -537,6 +541,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
 </ul>
   </li>
 
@@ -593,7 +601,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.7</span>
+    <span class="version">latest-0.12.8</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -603,7 +611,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.7</a>
+          <a href="../index.html">latest-0.12.8</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -1136,7 +1144,7 @@ import $ivy.`ant:ant-optional:1.5.3-1`
 
 object common extends NettyModule{
   ...
-  def script = Task.Source(millSourcePath / "src" / "main" / "script")
+  def script = Task.Source("src/main/script")
   def generatedSources0 = Task {
     val shell = new groovy.lang.GroovyShell()
     val context = new java.util.HashMap[String, Object]
@@ -1277,8 +1285,8 @@ with the <code>make</code> command essentially being a bash script wrapped in la
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def makefile = Task.Source(millSourcePath / "Makefile")
-def cSources = Task.Source(millSourcePath / "src" / "main" / "c")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def makefile = Task.Source("Makefile")
+def cSources = Task.Source("src/main/c")
 def cHeaders = Task {
   for(p &lt;- os.walk(cSources().path) if p.ext == "h"){
     os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)
@@ -1288,14 +1296,14 @@ def cHeaders = Task {
 
 def make = Task {
   os.copy(makefile().path, Task.dest / "Makefile")
-  os.copy(cSources().path, Task.dest / "src" / "main" / "c", createFolders = true)
+  os.copy(cSources().path, Task.dest / "src/main/c", createFolders = true)
 
   val Seq(sourceJar) = resolveDeps(
     deps = Task.Anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
     sources = true
   )().toSeq
 
-  os.proc("jar", "xf", sourceJar.path).call(cwd = Task.dest  / "src" / "main" / "c")
+  os.proc("jar", "xf", sourceJar.path).call(cwd = Task.dest  / "src/main/c")
 
   os.proc("make").call(
     cwd = Task.dest,

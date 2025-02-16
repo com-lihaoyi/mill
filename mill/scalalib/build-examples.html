@@ -201,6 +201,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -537,6 +541,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
 </ul>
   </li>
 
@@ -593,7 +601,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.7</span>
+    <span class="version">latest-0.12.8</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -603,7 +611,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.7</a>
+          <a href="../index.html">latest-0.12.8</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -650,7 +658,7 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <div class="sect2">
 <h3 id="_acyclic"><a class="anchor" href="#_acyclic"></a>Acyclic</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/thirdparty/acyclic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/thirdparty/acyclic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._</code></pre>
@@ -698,7 +706,7 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
   def compileIvyDeps = Agg(Deps.scalaCompiler(crossScalaVersion))
 
   object test extends ScalaTests with TestModule.Utest {
-    def sources = Task.Sources(millSourcePath / "src", millSourcePath / "resources")
+    def sources = Task.Sources("src", "resources")
     def ivyDeps = Agg(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
 }</code></pre>
@@ -749,7 +757,7 @@ compiling 6 Scala sources...
 <div class="sect2">
 <h3 id="_fansi"><a class="anchor" href="#_fansi"></a>Fansi</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/thirdparty/fansi">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/thirdparty/fansi">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalajslib._, scalanativelib._, publish._

@@ -202,6 +202,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
 </ul>
   </li>
 
@@ -538,6 +542,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
 </ul>
   </li>
 
@@ -604,7 +612,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.7</a>
+          <a href="../../index.html">latest-0.12.8</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -652,21 +660,21 @@
 <h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-pythonlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/pythonlib/testing/1-test-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-pythonlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/pythonlib/testing/1-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
 object foo extends PythonModule {
-  def mainScript = Task.Source { millSourcePath / &quot;src/foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
   object test extends PythonTests with TestModule.Unittest {
-    def mainScript = Task.Source { millSourcePath / &quot;src/test_foo.py&quot; }
+    def mainScript = Task.Source { &quot;src/test_foo.py&quot; }
   }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/pythonlib/testing/1-test-suite/foo/src/foo.py">browse</a>)</div>
+<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/pythonlib/testing/1-test-suite/foo/src/foo.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">class Foo:
     def main(self):
@@ -678,7 +686,7 @@ if __name__ == &quot;__main__&quot;:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/test_foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/pythonlib/testing/1-test-suite/foo/test/src/test_foo.py">browse</a>)</div>
+<div class="title">foo/test/src/test_foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/pythonlib/testing/1-test-suite/foo/test/src/test_foo.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import unittest
 from unittest.mock import MagicMock
@@ -757,7 +765,7 @@ details on how to use each one from the command line.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends PythonModule {
-  def mainScript = Task.Source { millSourcePath / &quot;src/bar.py&quot; }
+  def mainScript = Task.Source { &quot;src/bar.py&quot; }
   object test extends PythonTests with TestModule.Pytest
 }</code></pre>
 </div>
@@ -876,14 +884,14 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 and test modules can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-pythonlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/pythonlib/testing/2-test-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-pythonlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/pythonlib/testing/2-test-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src/foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
   def moduleDeps = Seq(bar)
 
@@ -900,7 +908,7 @@ object foo extends PythonModule {
 
 object bar extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src/bar.py&quot; }
+  def mainScript = Task.Source { &quot;src/bar.py&quot; }
 
   object test extends PythonTests with TestModule.Unittest
 
@@ -979,13 +987,15 @@ test helper throughout multiple modules test suites</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
 ...Using BarTestUtils.bar_assert_equals...
-...test_equal_string (test.TestScript...)...ok...
+...test_equal_string (test.TestScript...)...
+...ok...
 ...Ran 1 test...
 ...OK...
 
 &gt; ./mill bar.test
 ...Using BarTestUtils.bar_assert_equals...
-...test_mean (test.TestScript...)...ok...
+...test_mean (test.TestScript...)...
+...ok...
 ...Ran 1 test...
 ...OK...
 
@@ -1007,14 +1017,14 @@ the build below defines a test suite with the name <code>itest</code>, in additi
 to that named <code>test</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-pythonlib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/pythonlib/testing/3-integration-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-pythonlib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/pythonlib/testing/3-integration-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src/foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
   object test extends PythonTests with TestModule.Unittest
 
