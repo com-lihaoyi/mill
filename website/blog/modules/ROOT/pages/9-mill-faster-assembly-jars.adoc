@@ -1,0 +1,583 @@
+// tag::header[]
+
+# Fast Incremental JVM Assembly Jar Creation with Mill
+
+:author: Li Haoyi
+:revdate: 16 February 2025
+
+_{author}, {revdate}_
+
+Assembly jars are a convenient deployment format for JVM applications, bundling
+your application code and resources into a single file that can run anywhere a JVM
+is installed. But assembly jars can be slow to create, which can slow down iterative
+development workflows that depend on them. The Mill JVM build tool uses some special
+tricks to let you iterate on your assembly jars much faster than traditional build tools
+like Maven or Gradle, cutting down their incremental creation time from 10s of seconds
+to less than a second. This can substantially increase your developer productivity by
+saving time you would otherwise spend waiting for your assembly to be created.
+
+// end::header[]
+
+## Example JVM Application
+
+For the purposes of this blog post, we will be using a small
+https://spark.apache.org/[Apache Spark] program
+as our example application. This program was written by https://github.com/monyedavid[@monyedavid]
+to demonstrate how to xref:mill:ROOT:scalalib/spark.adoc[Build Spark Programs using Mill],
+and does some simple processing of a CSV file to output summary statistics. This program
+pulls in the `org.apache.spark::spark-core:3.5.4` and `org.apache.spark::spark-sql:3.5.4`
+artifacts, which makes the JVM assembly jar pretty large.
+
+NOTE: For many Spark usage patterns, e.g. https://spark.apache.org/docs/latest/submitting-applications.html[spark-submit],
+you do not actually need to include `spark-core` and `spark-sql` in the assembly jar,
+as the Spark cluster will provide them. Nevertheless, any JVM
+developer will likely encounter scenarios where large assemblies are necessary,
+whether due to third-party libraries or non-spark frameworks. Similarly, although
+the example Spark code is in Scala since that's what Spark uses, the same techniques
+apply to any JVM language you may want to pack into a
+self-contained assembly jar.
+
+```scala
+package foo
+
+import org.apache.spark.sql._
+import org.apache.spark.sql.functions._
+
+object Foo {
+  case class Transaction(id: Int, category: String, amount: Double)
+
+  def computeSummary(transactions: Dataset[Transaction]): DataFrame = {
+    transactions.groupBy("category")
+      .agg(
+        sum("amount").alias("total_amount"),
+        avg("amount").alias("average_amount"),
+        count("amount").alias("transaction_count")
+      )
+  }
+
+  def main(args: Array[String]): Unit = {
+    val spark = SparkSession.builder()
+      .appName("SparkExample")
+      .master("local[*]")
+      .getOrCreate()
+
+    val resourcePath: String = args(0)
+
+    import spark.implicits._
+
+    val df = spark.read
+      .option("header", "true")
+      .option("inferSchema", "true")
+      .csv(resourcePath)
+
+    val transactionsDS: Dataset[Transaction] = df.as[Transaction]
+    val summaryDF = computeSummary(transactionsDS)
+
+    println("Summary Statistics by Category:")
+    summaryDF.show()
+
+    spark.stop()
+  }
+}
+```
+
+## Example Builds
+
+To build this small program, we will set up equivalent builds using the
+https://mill-build.org/[Mill build tool], https://www.scala-sbt.org/[SBT],
+and https://maven.apache.org/[Maven]
+
+### Mill
+
+The Mill build config for this project is shown below, setting the `scalaVersion`
+and the `ivyDeps`. There is a wrinkle in needing override `def prependShellScript`,
+because Mill's xref:5-executable-jars.adoc[executable assembly jars] don't work
+for large assemblies like this one.
+
+```scala
+package build
+import mill._, scalalib._
+
+object `package` extends RootModule with SbtModule {
+  def scalaVersion = "2.12.19"
+  def ivyDeps = Agg(
+    ivy"org.apache.spark::spark-core:3.5.4",
+    ivy"org.apache.spark::spark-sql:3.5.4"
+  )
+
+  def prependShellScript = ""
+}
+```
+
+From this build, we can use the `./mill`
+xref:mill:ROOT:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script]
+to build an assembly that we can run using `java -jar`:
+
+```bash
+> ./mill show assembly
+".../out/assembly.dest/out.jar"
+Total time: 27s
+
+$ ls -lh out/assembly.dest/out.jar
+-rw-r--r--  1 lihaoyi  staff   214M Feb 14 15:51 out/assembly.dest/out.jar
+
+> java --add-opens java.base/sun.nio.ch=ALL-UNNAMED -jar out/assembly.dest/out.jar src/main/resources/transactions.csv
+...
++-----------+------------+--------------+-----------------+
+|   category|total_amount|average_amount|transaction_count|
++-----------+------------+--------------+-----------------+
+|       Food|        70.5|          23.5|                3|
+|Electronics|       375.0|         187.5|                2|
+|   Clothing|       120.5|         60.25|                2|
++-----------+------------+--------------+-----------------+
+```
+
+
+### SBT
+
+The SBT build is similar to the Mill build above. Apart from a slightly different syntax,
+SBT also needs you to specify `name` and `version` (Mill lets you skip these unless
+you are publishing your module), and configure an `assemblyMergeStrategy`. SBT
+also requires that you explicitly enable the `AssemblyPlugin`, whereas Mill comes with
+that built in by default.
+
+```scala
+lazy val root = (project in file("."))
+  .enablePlugins(AssemblyPlugin) // Enables sbt-assembly
+  .settings(
+    name := "spark-app",
+    version := "0.1",
+    scalaVersion := "2.12.19",
+    libraryDependencies ++= Seq(
+      "org.apache.spark" %% "spark-core" % "3.5.4",
+      "org.apache.spark" %% "spark-sql" % "3.5.4",
+    ),
+    assembly / assemblyMergeStrategy := {
+      case PathList("META-INF", "services", _*) => MergeStrategy.concat
+      case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+      case x => MergeStrategy.first
+    }
+  )
+```
+
+You can then use `sbt assembly` to build a jar, and `java -jar` to execute it:
+
+```bash
+> sbt assembly
+Built: .../target/scala-2.12/spark-app-assembly-0.1.jar
+Total time: 18s
+
+$ ls -lh target/scala-2.12/spark-app-assembly-0.1.jar
+-rw-r--r--  1 lihaoyi  staff   213M Feb 14 15:58 target/scala-2.12/spark-app-assembly-0.1.jar
+
+>  java --add-opens java.base/sun.nio.ch=ALL-UNNAMED -jar target/scala-2.12/spark-app-assembly-0.1.jar src/main/resources/transactions.csv
+...
++-----------+------------+--------------+-----------------+
+|   category|total_amount|average_amount|transaction_count|
++-----------+------------+--------------+-----------------+
+|       Food|        70.5|          23.5|                3|
+|Electronics|       375.0|         187.5|                2|
+|   Clothing|       120.5|         60.25|                2|
++-----------+------------+--------------+-----------------+
+```
+
+### Maven
+
+The Maven build is by far the most verbose of the build configurations for this
+example codebase, but it contains basically the same information: `scala.version`,
+`spark.version` and dependencies on `spark-core` and `spark-sql`. Maven requires
+you to enable the `maven-assembly-plugin` explicitly similar to SBT, and on top of
+that requires you enable `maven-compiler-plugin` and `maven-scala-plugin`:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>spark-app</artifactId>
+    <version>0.1</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <scala.version>2.12.19</scala.version>
+        <spark.version>3.5.4</spark.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.12</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_2.12</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Maven Assembly Plugin for creating a fat JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <descriptorRefs><descriptorRef>assembly</descriptorRef></descriptorRefs>
+                    <archive><manifest><mainClass>foo.Foo</mainClass></manifest></archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+
+            <!-- Scala Plugin -->
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>4.7.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+Once this is all set up, you can use `./mvnw package` to build the `jar-with-dependencies`
+that you can execute with `java -jar`:
+
+```bash
+> ./mvnw package
+Building jar: .../target/spark-app-0.1-jar-with-dependencies.jar
+Total time: 20s
+
+> ls -lh target/spark-app-0.1-jar-with-dependencies.jar
+-rw-r--r--  1 lihaoyi  staff   211M Feb 14 16:12 target/spark-app-0.1-jar-with-dependencies.jar
+
+> java --add-opens java.base/sun.nio.ch=ALL-UNNAMED -jar target/spark-app-0.1-jar-with-dependencies.jar src/main/resources/transactions.csv
+...
++-----------+------------+--------------+-----------------+
+|   category|total_amount|average_amount|transaction_count|
++-----------+------------+--------------+-----------------+
+|       Food|        70.5|          23.5|                3|
+|Electronics|       375.0|         187.5|                2|
+|   Clothing|       120.5|         60.25|                2|
++-----------+------------+--------------+-----------------+
+```
+
+We can see all 3 build tools take about 20s to build the assembly, with some
+variation expected from run to run. All three jars are about the same size (~212mb),
+which makes sense since they should contain the same local code and same
+upstream dependencies. While 20s is a bit long, it's not that surprising
+since the tool has to compress ~212mb of dependencies to assemble the into a jar file.
+
+## Incremental Builds
+
+While all JVM build tools take about the same amount of time for the initial build,
+what is interesting is what happens for incremental builds. For example, below we
+add a `class dummy` line of code to `Foo.scala` to force it to re-compile:
+
+```bash
+> echo "class dummy" >> src/main/scala/foo/Foo.scala
+
+> ./mill show assembly
+".../out/assembly.dest/out.jar"
+Total time: 1s
+
+> sbt assembly
+Built: .../target/scala-2.12/spark-app-assembly-0.1.jar
+Total time: 20s
+
+> ./mvnw package
+Building jar: .../target/spark-app-0.1-jar-with-dependencies.jar
+Total time: 22s
+```
+
+Here, we can see that Mill only took `1s` to re-build the assembly jar,
+while SBT and Maven took the same ~20s that they took the first time the
+jar was built. If you play around with it, you will see that the assembly jar
+does contain classfiles associated with our newly-added code:
+
+```bash
+> jar tf out/assembly.dest/out.jar | grep dummy
+foo/dummy.class
+
+> jar tf target/scala-2.12/spark-app-assembly-0.1.jar | grep dummy
+foo/dummy.class
+
+> jar tf target/spark-app-0.1-jar-with-dependencies.jar | grep dummy
+foo/dummy.class
+```
+
+You can try making other code changes, e.g. to the body of the spark program itself,
+and running the output jar with `java -jar` to see that your changes are indeed
+taking effect. So the question you may ask is: how is it that Mill is able to
+rebuild it's output assembly jar in ~1s, while other build tools are
+spending a whole ~20s rebuilding it?
+
+### Multi-Step Assemblies
+
+The trick to Mill's fast incremental rebuilding of assembly jars is to split the
+assembly jar creation into three phases.
+
+
+Typically, construction of an assembly jar is a slow single-step process. The 
+build tool has to take all third-party dependencies, local dependencies, and 
+the module being assembled, compress all their files and assemble them into a `.jar`:
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  third_party_libraries -> "assembly (slow)"
+  local_dependencies -> "assembly (slow)"
+  current_module -> "assembly (slow)"
+  third_party_libraries [shape=none]
+  local_dependencies [shape=none]
+  current_module [shape=none]
+}
+```
+
+Mill instead does the assembly as a three-step process. In Mill, each of 
+`third_party_libraries`, `local_dependencies`, and `current_module` are
+added one-by-one to construct the final jar:
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  third_party_libraries -> "upstream_thirdparty_assembly (slow)"
+  "upstream_thirdparty_assembly (slow)" -> "upstream_assembly (fast)"
+  local_dependencies -> "upstream_assembly (fast)"
+  "upstream_assembly (fast)" -> "assembly (fast)"
+  current_module -> "assembly (fast)"
+  third_party_libraries [shape=none]
+  local_dependencies [shape=none]
+  current_module [shape=none]
+}
+```
+
+1. Third-party libraries are combined into an `upstream_thirdparty_assembly`
+in the first step, which is slow but rarely needs to be re-run
+2. Local upstream modules are combined with `upstream_thirdparty_assembly`
+into a `upstream_assembly` in the second step, which needs to happen
+more often but is fastest
+3. The current module is combined into `upstream_assembly` in the third step,
+which is the fastest step but needs to happen the most frequently.
+
+
+The key here is that the intermediate `upstream_thirdparty_assembly` and
+`upstream_assembly` jar files can be re-used. This means that although any changes
+to `third_party_libraries` will still have to go through the slow process
+of creating the assemblies from scratch:
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  third_party_libraries -> "upstream_thirdparty_assembly (slow)" [color=red penwidth=2]
+  "upstream_thirdparty_assembly (slow)" -> "upstream_assembly (fast)" [color=red penwidth=2]
+  local_dependencies -> "upstream_assembly (fast)"
+  "upstream_assembly (fast)" -> "assembly (fast)" [color=red penwidth=2]
+  current_module -> "assembly (fast)"
+  third_party_libraries [shape=none]
+  local_dependencies [shape=none]
+  current_module [shape=none]
+  "upstream_thirdparty_assembly (slow)" [color=red penwidth=2]
+  "upstream_assembly (fast)" [color=red penwidth=2]
+  "assembly (fast)"  [color=red penwidth=2]
+}
+```
+
+In exchange, any changes to `local_dependencies` can skip the slowest
+`upstream_thirdparty_assembly` step, and only run `upstream_assembly` and `assembly`:
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  third_party_libraries -> "upstream_thirdparty_assembly (slow)"
+  "upstream_thirdparty_assembly (slow)" -> "upstream_assembly (fast)"
+  local_dependencies -> "upstream_assembly (fast)" [color=red penwidth=2]
+  "upstream_assembly (fast)" -> "assembly (fast)" [color=red penwidth=2]
+  current_module -> "assembly (fast)"
+  third_party_libraries [shape=none]
+  local_dependencies [shape=none]
+  current_module [shape=none]
+  "upstream_assembly (fast)" [color=red penwidth=2]
+  "assembly (fast)"  [color=red penwidth=2]
+}
+```
+And changes to `current_module` can skip both upstream steps, only running the fast
+`assembly` step:
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  third_party_libraries -> "upstream_thirdparty_assembly (slow)"
+  "upstream_thirdparty_assembly (slow)" -> "upstream_assembly (fast)"
+  local_dependencies -> "upstream_assembly (fast)"
+  "upstream_assembly (fast)" -> "assembly (fast)"
+  current_module -> "assembly (fast)"  [color=red penwidth=2]
+  third_party_libraries [shape=none]
+  local_dependencies [shape=none]
+  current_module [shape=none]
+  "assembly (fast)"  [color=red penwidth=2]
+}
+```
+
+Building an assembly "clean" requires running all three steps and is just
+as slow as the naive one-step assembly creation, as is the case where you change third
+party dependencies. But in practice these scenarios tend to happen relatively infrequently:
+perhaps once a day, or even less. In contrast, the scenarios where you are changing
+code in local modules happens much more frequently, often several times a minute
+while you are working on your code and adding ``println``s or tweaking its behavior.
+Thus, although the _worst_ case building an assembly with Mill is no better than other
+tools, the _average_ case can be substantially better with these optimizations.
+
+### Efficiently Updating Assembly Jars In Theory
+
+One core assumption of the section above is that creating a new assembly jar
+based on an existing one with additional files included is fast. This is not
+true for every file format - e.g. `.tar.gz` files are just as expensive to append to
+as they are to build from scratch, as you need to de-compress and re-compress the whole
+archive - but it is true for `.jar` archives.
+
+The key here is that `.jar` archives are just `.zip` files by another name, which
+means two things:
+
+1. Every file within the `.jar` is compressed individually, so adding additional
+   files does not need existing files to be re-compressed
+
+2. The zip index storing the offsets and metadata of each file within the jar is
+   stored at the _end_ of the `.jar` file, meaning it is straightforward to
+   over-write the index with additional files and then write a _new_ index after
+   those new files without needing to move the existing files around the archive.
+
+Visually, a Zip file laid out on disk looks something like this, with each
+file e.g. `Foo.class` or `MANIFEST.MF` compressed separately:
+
+
+```graphviz
+digraph G {
+  label="archive.zip"
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  zip [shape=record label="<f0> ...thirdparty dependencies... | <f1> MANIFEST.MF | <f2> central directory"]
+  zip:f2:n -> zip:f1:n [label="reverse offsets"]
+  zip:f2:n -> zip:f0:n
+}
+```
+
+Thus, in order to add to the zip file, you can write any additional files to the
+right of the last existing file (`MANIFEST.MF` above), and write an updated
+`central directory` with updated pointers. Below, we see the additional of
+a `Foo.class` fill to the existing archive, with the `thirdparty dependencies` and `MANIFEST.MF`
+files left untouched and in place.
+
+
+```graphviz
+digraph G {
+  label="archive.zip"
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  zip [shape=record label="<f0> ...thirdparty dependencies... | <f1> MANIFEST.MF  | <f2> Foo.class | <f4> central directory"]
+  zip:f4:n -> zip:f1:n [label="reverse offsets"]
+  zip:f4:n -> zip:f0:n
+  zip:f4:n -> zip:f2:n
+}
+```
+
+When adding files to an existing archive, the existing files do not need to be processed at all,
+making such an operation _O(added-files)_ rather than _O(total-number-of-files)_. You only
+need to compress the additional files. You also need to update/rewrite the central directory
+after the last added file with updated pointer offsets, but the central directory is
+typically small so such an update/rewrite doesn't materially slow things down.
+
+NOTE: Earlier versions of Mill used a two-stage assembly where `upstream_thirdparty_assembly`
+and `upstream_assembly` were combined, but the latest
+https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#0128---2025-02-16[0.12.8 release]
+moves to the three-stage assembly described here for better performance when iterating
+and generating assemblies from multi-module projects.
+
+### Efficiently Updating Assembly Jars In Practice
+
+In practice, the way this works on the JVM (which is how the Mill build tool does it,
+since the Mill is a JVM application) is as follows:
+
+1. Makes a copy of the upstream assembly. Copying a file is typically fast even
+   when the file is large, and allows the upstream assembly to be re-used later.
+
+2. Opens that copy using `java.nio.file.FileSystems.newFileSystem`, which allows you
+   to open an existing jar file by passing in `new URI("jar", path, null)`
+
+3. Modifies the returned `java.nio.file.FileSystem` using normal `java.nio.file.File`
+   operations
+
+Calling `FileSystems.newFileSystem` with a `"jar"` URL returns a
+https://github.com/openjdk/jdk/blob/master/src/jdk.zipfs/share/classes/jdk/nio/zipfs/ZipFileSystem.java[ZipFileSystem].
+`ZipFileSystem` basically implements all the normal `java.nio.file.File.*` operations that
+normally modifies files on disk, and replaces them with versions to instead modify
+the entries inside a `.zip` file. And since `.zip` files have every file individually
+compressed (unlike e.g. `.tar.gz` which compresses them together) `ZipFileSystem` is
+able to efficiently read and write individual files to the `zip` file without needing
+to un-pack and re-pack the entire archive.
+
+While we discussed how adding files
+to a jar can be done efficiently, there is also subtlety around other operations such
+as modifying files, removing files, etc. which are less trivial. But the JDK's built in
+`ZipFileSystem` implements all these in a reasonable manner, and what is important is that
+it allows Mill to incrementally update its assembly jars in (more or less)
+_O(size-of-local-code)_, which is typically much smaller than the
+_O(size-of-transitive-dependencies)_ which a naive assembly-jar creation process requires.
+
+## Conclusion
+
+This blog post has discussed how Mill is able to provide fast incremental updates to
+generated assembly jars, in the example shown above it sped up Spark assembly jar creation
+from ~20s to ~1s v.s. the equivalent workflow in other build tools like Maven or SBT.
+This speedup can apply to any JVM codebase, although the benefit would depend on the
+size of your local application code and its transitive dependencies. There is some overhead
+to "clean build" assembly jars from scratch, but such scenarios typically happen much
+less frequently than the "incremental update" scenario, and so the tradeoff can be worth it.
+
+Mill splits its assembly jars into three hardcoded "layers", but more sophisticated
+update schemes are also possible. One could imagine a build tool that keeps track of
+what files were put into the assembly jar previously, diff-ed that against the current
+set of files, and did the copy-and-update only updating the files within the jar that
+have changed outside of it. That would allow much more fine-grained incremental
+updates to be done to the assembly jar, which may matter in large codebases where
+Mill's hardcoded three-layer split aren't sufficient to keep things fast.
+
+It turns out there's no magic in Mill's fast assembly generation: just careful use of
+the available APIs provided by the underlying JVM platform. Hopefully this approach
+can eventually make its way to other build tools like Maven or SBT, so everyone can
+benefit from the fast assembly jar creation that Mill provides today.
