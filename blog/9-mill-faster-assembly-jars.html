@@ -237,6 +237,14 @@ like Maven or Gradle, cutting down their incremental creation time from 10s of s
 to less than a second. This can substantially increase your developer productivity by
 saving time you would otherwise spend waiting for your assembly to be created.</p>
 </div>
+<div class="paragraph">
+<p>An assembly jar is a jar file containing both the compiled code for an application,
+as well as its upstream dependencies. This is in contrast to &quot;normal&quot; jar files which
+contain only the local code and not that of upstream libraries. Assembly jars are convenient
+because they are self contained: contains all the code and classpath resources
+necessary to run, without needing any additional upstreams dependencies to be first
+downloaded and added to the classpath.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
