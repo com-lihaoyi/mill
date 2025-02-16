@@ -1,5 +1,7 @@
 # sbt-multi-project-example
 
+Adapted from <https://github.com/pbassiner/sbt-multi-project-example>.
+
 The goal of this example is to provide a multi-project build using `sbt` providing:
 * A single `build.sbt` file which allows for centralized configuration, dependency and build management
 * Each sub-project contains only its source code

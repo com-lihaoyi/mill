@@ -91,7 +91,6 @@ lazy val commonDependencies = Seq(
 // SETTINGS
 
 lazy val settings =
-commonSettings ++
 wartremoverSettings ++
 scalafmtSettings
 
@@ -107,14 +106,12 @@ lazy val compilerOptions = Seq(
   "utf8"
 )
 
-lazy val commonSettings = Seq(
-  scalacOptions ++= compilerOptions,
-  resolvers ++= Seq(
-    // commented out as this is different on different machines
-    //"Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository",
-    Resolver.sonatypeRepo("releases"),
-    Resolver.sonatypeRepo("snapshots")
-  )
+ThisBuild / scalacOptions ++= compilerOptions
+ThisBuild / resolvers ++= Seq(
+  // commented out as this is different on different machines
+  //"Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository",
+  Resolver.sonatypeRepo("releases"),
+  Resolver.sonatypeRepo("snapshots")
 )
 
 lazy val wartremoverSettings = Seq(

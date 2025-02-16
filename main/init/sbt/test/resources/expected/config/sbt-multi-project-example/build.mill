@@ -37,29 +37,6 @@ object `package` extends RootModule {
 
   def artifactName = "sbt-multi-project-example"
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
-    "-unchecked",
-    "-feature",
-    "-language:existentials",
-    "-language:higherKinds",
-    "-language:implicitConversions",
-    "-language:postfixOps",
-    "-deprecation",
-    "-encoding",
-    "utf8"
-  )
-
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/service/local/repositories/releases/content/"
-      ),
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/content/repositories/snapshots"
-      )
-    )
-  }
-
   def pomSettings = PomSettings(
     "sbt-multi-project-example",
     "com.pbassiner",
@@ -70,29 +47,6 @@ object `package` extends RootModule {
   )
 
   object multi1 extends BaseModule {
-
-    def scalacOptions = super.scalacOptions() ++ Seq(
-      "-unchecked",
-      "-feature",
-      "-language:existentials",
-      "-language:higherKinds",
-      "-language:implicitConversions",
-      "-language:postfixOps",
-      "-deprecation",
-      "-encoding",
-      "utf8"
-    )
-
-    def repositoriesTask = Task.Anon {
-      super.repositoriesTask() ++ Seq(
-        coursier.maven.MavenRepository(
-          "https://oss.sonatype.org/service/local/repositories/releases/content/"
-        ),
-        coursier.maven.MavenRepository(
-          "https://oss.sonatype.org/content/repositories/snapshots"
-        )
-      )
-    }
 
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.`ch.qos.logback:logback-classic`,
@@ -126,29 +80,6 @@ object `package` extends RootModule {
 
   object multi2 extends BaseModule {
 
-    def scalacOptions = super.scalacOptions() ++ Seq(
-      "-unchecked",
-      "-feature",
-      "-language:existentials",
-      "-language:higherKinds",
-      "-language:implicitConversions",
-      "-language:postfixOps",
-      "-deprecation",
-      "-encoding",
-      "utf8"
-    )
-
-    def repositoriesTask = Task.Anon {
-      super.repositoriesTask() ++ Seq(
-        coursier.maven.MavenRepository(
-          "https://oss.sonatype.org/service/local/repositories/releases/content/"
-        ),
-        coursier.maven.MavenRepository(
-          "https://oss.sonatype.org/content/repositories/snapshots"
-        )
-      )
-    }
-
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.github.pureconfig:pureconfig`,
@@ -179,29 +110,6 @@ object `package` extends RootModule {
   }
 
   object common extends BaseModule {
-
-    def scalacOptions = super.scalacOptions() ++ Seq(
-      "-unchecked",
-      "-feature",
-      "-language:existentials",
-      "-language:higherKinds",
-      "-language:implicitConversions",
-      "-language:postfixOps",
-      "-deprecation",
-      "-encoding",
-      "utf8"
-    )
-
-    def repositoriesTask = Task.Anon {
-      super.repositoriesTask() ++ Seq(
-        coursier.maven.MavenRepository(
-          "https://oss.sonatype.org/service/local/repositories/releases/content/"
-        ),
-        coursier.maven.MavenRepository(
-          "https://oss.sonatype.org/content/repositories/snapshots"
-        )
-      )
-    }
 
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.`ch.qos.logback:logback-classic`,
@@ -234,6 +142,18 @@ trait BaseModule extends SbtModule with PublishModule {
 
   def scalaVersion = "2.12.3"
 
+  def scalacOptions = super.scalacOptions() ++ Seq(
+    "-unchecked",
+    "-feature",
+    "-language:existentials",
+    "-language:higherKinds",
+    "-language:implicitConversions",
+    "-language:postfixOps",
+    "-deprecation",
+    "-encoding",
+    "utf8"
+  )
+
   def pomSettings = PomSettings(
     "",
     "com.pbassiner",
@@ -244,5 +164,16 @@ trait BaseModule extends SbtModule with PublishModule {
   )
 
   def publishVersion = "0.1.0-SNAPSHOT"
+
+  def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      coursier.maven.MavenRepository(
+        "https://oss.sonatype.org/service/local/repositories/releases/content/"
+      ),
+      coursier.maven.MavenRepository(
+        "https://oss.sonatype.org/content/repositories/snapshots"
+      )
+    )
+  }
 
 }
