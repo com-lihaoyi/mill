@@ -1,0 +1,63 @@
+package build.common
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib.SbtModule
+
+object `package` extends RootModule with SbtModule with PublishModule {
+
+  def scalaVersion = "2.12.3"
+
+  def scalacOptions = super.scalacOptions() ++ Seq(
+    "-unchecked",
+    "-feature",
+    "-language:existentials",
+    "-language:higherKinds",
+    "-language:implicitConversions",
+    "-language:postfixOps",
+    "-deprecation",
+    "-encoding",
+    "utf8"
+  )
+
+  def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      coursier.maven.MavenRepository(
+        "https://oss.sonatype.org/service/local/repositories/releases/content/"
+      ),
+      coursier.maven.MavenRepository(
+        "https://oss.sonatype.org/content/repositories/snapshots"
+      )
+    )
+  }
+
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    ivy"ch.qos.logback:logback-classic:1.2.3",
+    ivy"com.typesafe.akka:akka-stream::2.5.6",
+    ivy"com.typesafe.scala-logging:scala-logging::3.7.2",
+    ivy"com.typesafe:config:1.3.1",
+    ivy"net.logstash.logback:logstash-logback-encoder:4.11",
+    ivy"org.slf4j:jcl-over-slf4j:1.7.25"
+  )
+
+  def pomSettings = PomSettings(
+    "common",
+    "com.pbassiner",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  def publishVersion = "0.1.0-SNAPSHOT"
+
+  object test extends MavenTests with TestModule.ScalaTest {
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"org.scalacheck:scalacheck::1.13.5",
+      ivy"org.scalatest:scalatest::3.0.4"
+    )
+
+  }
+}

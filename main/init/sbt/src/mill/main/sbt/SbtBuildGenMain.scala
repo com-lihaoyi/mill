@@ -6,7 +6,7 @@ import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.IrDependencyType.*
 import os.Path
 
-import scala.collection.View
+import scala.collection.{MapView, View}
 import scala.collection.immutable.SortedSet
 
 /**
@@ -79,7 +79,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
 
     println("Running sbt task to generate the project tree")
 
-    Process(
+    val exitCode = Process(
       Seq(
         sbtExecutable,
         s"-addPluginSbtFile=${writeSbtFile().toString}",
@@ -89,6 +89,10 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
     ).!
 
     // println("Exit code from running the `millInitExportBuild` sbt task: " + exitCode)
+    if (exitCode != 0)
+      println(
+        "The sbt command to run the `millInitExportBuild` sbt task has likely failed, please update the project's sbt version to the latest or our tested version v1.10.7, and try again."
+      )
 
     val buildExportPickled = os.read(workspace / "target" / "mill-init-build-export.json")
     // TODO This is mainly for debugging purposes. Comment out this line if it's unnecessary.
@@ -300,21 +304,32 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
     val allDepsByConfiguration = project.allDependencies
       // .view // This makes the types hard to deal with here thus commented out.
       .filterNot(isScalaStandardLibrary)
-      .groupBy(_.configurations match {
-        case None => Default
-        case Some(configuration) => configuration match {
-            case "compile" => Default
-            case "test" => Test
-            case "runtime" => Run
-            case "provided" | "optional" => Compile
+      .flatMap(dep =>
+        (dep.configurations match {
+          case None => Some(Default)
+          case Some(configuration) => configuration match {
+            case "compile" => Some(Default)
+            case "test" => Some(Test)
+            case "runtime" => Some(Run)
+            case "provided" | "optional" => Some(Compile)
+            case other =>
+              println(s"Dependency $dep with an unknown configuration ${escape(other)} is dropped.")
+              None
           }
-      })
+        })
+          .map(tpe => (dep, tpe))
+      )
+      .groupBy(_._2)
+      .view
+      .mapValues(_.map(_._1))
+      // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
+      .asInstanceOf[MapView[IrDependencyType, Seq[Dependency]]]
 
     case class Deps[I, M](ivy: Seq[I], module: Seq[M])
 
     // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
     val ivyAndModuleDepsByConfiguration: Map[IrDependencyType, Deps[Dependency, String]] =
-      allDepsByConfiguration.view.mapValues(deps => {
+      allDepsByConfiguration.mapValues(deps => {
         val tuple2 = deps.partitionMap(dep => {
           val id = groupArtifactVersion(dep)
           if (packages.isDefinedAt(id)) Right(packages(id))
