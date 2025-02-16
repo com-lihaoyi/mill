@@ -47,6 +47,9 @@ object BuildGenUtil {
 
   }
 
+  def takeIrPomIfNeeded(baseInfo: IrBaseInfo, irPom: IrPom): IrPom =
+    if (baseInfo.noPom || irPom != baseInfo.moduleTypedef.pomSettings) irPom else null
+
   def renderIrPom(value: IrPom): String = {
     if (value == null) ""
     else {

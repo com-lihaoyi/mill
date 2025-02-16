@@ -14,12 +14,14 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   def pomSettings = PomSettings(
     "Scala Seed Project",
-    "",
+    "com.example",
     "",
     Seq(),
     VersionControl(None, None, None, None),
     Seq()
   )
+
+  def publishVersion = "0.1.0-SNAPSHOT"
 
   object test extends MavenTests with TestModule.Munit {
 

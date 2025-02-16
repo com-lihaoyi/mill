@@ -197,8 +197,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
         )
       ),
       projectName = project.name,
-      pomSettings =
-        if (baseInfo.noPom) extractPomSettings(buildInfo.buildPublicationInfo) else null,
+      pomSettings = takeIrPomIfNeeded(baseInfo, extractPomSettings(buildInfo.buildPublicationInfo)),
       publishVersion = if (version == baseInfo.publishVersion) null else version,
       packaging = null, // not available in sbt as it seems
       pomParentArtifact = null, // not available

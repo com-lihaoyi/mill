@@ -66,7 +66,7 @@ object ExportBuildPlugin extends AutoPlugin {
         //version.value,
         //baseDirectory.value.relativeTo((ThisBuild / baseDirectory).value).get.getPath.split(File.separator),
         baseDirectory.value.getPath,
-        {
+        /*{
           // keep the project `BuildInfo` members only when they are different
           val defaultBi = (ThisBuild / millInitBuildInfo).value
           val projectBi = millInitBuildInfo.value
@@ -90,7 +90,8 @@ object ExportBuildPlugin extends AutoPlugin {
             if (scalacOptions != defaultBi.scalacOptions) scalacOptions else None,
             if (resolvers != defaultBi.resolvers) resolvers else None
           )
-        },
+        }*/
+        millInitBuildInfo.value,
 
         /** See the TODO in [[sbt.Defaults]] above `allDependencies :=` for more details (v1.10.7, Lines 3210 - 3212). */
         /*allDependencies.value*/ (projectDependencies.value ++ libraryDependencies.value).map { moduleID =>
