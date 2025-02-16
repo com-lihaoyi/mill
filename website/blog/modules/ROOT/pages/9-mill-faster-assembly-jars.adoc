@@ -519,6 +519,12 @@ need to compress the additional files. You also need to update/rewrite the centr
 after the last added file with updated pointer offsets, but the central directory is
 typically small so such an update/rewrite doesn't materially slow things down.
 
+NOTE: Earlier versions of Mill used a two-stage assembly where `upstream_thirdparty_assembly`
+and `upstream_assembly` were combined, but the latest
+https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#0128---2025-02-16[0.12.8 release]
+moves to the three-stage assembly described here for better performance when iterating
+and generating assemblies from multi-module projects.
+
 ### Efficiently Updating Assembly Jars In Practice
 
 In practice, the way this works on the JVM (which is how the Mill build tool does it,
