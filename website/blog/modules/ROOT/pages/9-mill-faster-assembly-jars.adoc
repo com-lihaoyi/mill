@@ -83,7 +83,7 @@ object Foo {
 
 ## Example Builds
 
-To build this project, we will set up equivalent builds using the
+To build this small program, we will set up equivalent builds using the
 https://mill-build.org/[Mill build tool], https://www.scala-sbt.org/[SBT],
 and https://maven.apache.org/[Maven]
 
@@ -456,22 +456,22 @@ digraph G {
 }
 ```
 
-Although building an assembly "clean" is just as slow as the one-step assembly creation,
-as is the case where you change third party dependencies, in practice these scenarios
-tend to happen relatively infrequently:
+Building an assembly "clean" requires running all three steps and is just
+as slow as the naive one-step assembly creation, as is the case where you change third
+party dependencies. But in practice these scenarios tend to happen relatively infrequently:
 perhaps once a day, or even less. In contrast, the scenarios where you are changing
 code in local modules happens much more frequently, often several times a minute
-while you are working on your code and adding `println`s or tweaking its behavior.
-Thus, the Mill build tool makes a conscious choice to accept a bit of overhead
-for the "clean build" code path, in exchange for making the "incremental build"
-code path an order of magnitude faster.
+while you are working on your code and adding ``println``s or tweaking its behavior.
+Thus, although the _worst_ case building an assembly with Mill is no better than other
+tools, the _average_ case can be substantially better with these optimizations.
 
 ### Efficiently Updating Assembly Jars In Theory
 
 One core assumption of the section above is that creating a new assembly jar
 based on an existing one with additional files included is fast. This is not
-true for every file format - e.g. `.tar.gz` archives are just as expensive to append to
-as they are to build from scratch - but it is true for `.jar` archives.
+true for every file format - e.g. `.tar.gz` files are just as expensive to append to
+as they are to build from scratch, as you need to de-compress and re-compress the whole
+archive - but it is true for `.jar` archives.
 
 The key here is that `.jar` archives are just `.zip` files by another name, which
 means two things:
@@ -492,7 +492,7 @@ file e.g. `Foo.class` or `MANIFEST.MF` compressed separately:
 digraph G {
   label="archive.zip"
   node [shape=box width=0 height=0 style=filled fillcolor=white]
-  zip [shape=record label="<f0> Foo.class | <f1> MANIFEST.MF | <f2> central directory"]
+  zip [shape=record label="<f0> ...thirdparty dependencies... | <f1> MANIFEST.MF | <f2> central directory"]
   zip:f2:n -> zip:f1:n [label="reverse offsets"]
   zip:f2:n -> zip:f0:n
 }
@@ -500,21 +500,23 @@ digraph G {
 
 Thus, in order to add to the zip file, you can write any additional files to the
 right of the last existing file (`MANIFEST.MF` above), and write an updated
-`central directory` with updated pointers:
+`central directory` with updated pointers. Below, we see the additional of
+a `Foo.class` fill to the existing archive, with the `thirdparty dependencies` and `MANIFEST.MF`
+files left untouched and in place.
 
 
 ```graphviz
 digraph G {
   label="archive.zip"
   node [shape=box width=0 height=0 style=filled fillcolor=white]
-  zip [shape=record label="<f0> Foo.class | <f1> MANIFEST.MF | <f3> additional files... | <f2> updated central directory"]
-  zip:f2:n -> zip:f1:n [label="reverse offsets"]
-  zip:f2:n -> zip:f0:n
-  zip:f2:n -> zip:f3:n
+  zip [shape=record label="<f0> ...thirdparty dependencies... | <f1> MANIFEST.MF  | <f2> Foo.class | <f4> central directory"]
+  zip:f4:n -> zip:f1:n [label="reverse offsets"]
+  zip:f4:n -> zip:f0:n
+  zip:f4:n -> zip:f2:n
 }
 ```
 
-When adding files to an existing archive, the existing files do not need to be touched at all,
+When adding files to an existing archive, the existing files do not need to be processed at all,
 making such an operation _O(added-files)_ rather than _O(total-number-of-files)_. You only
 need to compress the additional files. You also need to update/rewrite the central directory
 after the last added file with updated pointer offsets, but the central directory is
@@ -531,7 +533,7 @@ and generating assemblies from multi-module projects.
 In practice, the way this works on the JVM (which is how the Mill build tool does it,
 since the Mill is a JVM application) is as follows:
 
-1. Makes a copy of the upstream assembly. Copy a file is typically fast even
+1. Makes a copy of the upstream assembly. Copying a file is typically fast even
    when the file is large, and allows the upstream assembly to be re-used later.
 
 2. Opens that copy using `java.nio.file.FileSystems.newFileSystem`, which allows you
@@ -561,7 +563,7 @@ _O(size-of-transitive-dependencies)_ which a naive assembly-jar creation process
 
 This blog post has discussed how Mill is able to provide fast incremental updates to
 generated assembly jars, in the example shown above it sped up Spark assembly jar creation
-from ~20s to ~1s v.s. the equivalent workflow in other build tools like Maven or Gradle.
+from ~20s to ~1s v.s. the equivalent workflow in other build tools like Maven or SBT.
 This speedup can apply to any JVM codebase, although the benefit would depend on the
 size of your local application code and its transitive dependencies. There is some overhead
 to "clean build" assembly jars from scratch, but such scenarios typically happen much
