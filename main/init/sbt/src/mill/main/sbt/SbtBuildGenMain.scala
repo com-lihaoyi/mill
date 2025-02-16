@@ -6,8 +6,8 @@ import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.IrDependencyType.*
 import os.Path
 
-import scala.collection.{MapView, View}
 import scala.collection.immutable.SortedSet
+import scala.collection.{MapView, View}
 
 /**
  * Converts an sbt build to Mill by generating Mill build file(s).
@@ -164,7 +164,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
       scalacOptions,
       pomSettings,
       publishVersion,
-      null, // not available in sbt as it seems
+      Seq.empty, // not available in sbt as it seems
       repositories
     )
 
@@ -198,7 +198,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
       repositories = getRepositories(buildInfo).diff(baseInfo.repositories),
       javacOptions = getJavacOptions(buildInfo).diff(baseInfo.javacOptions),
       scalaVersion =
-        if (buildInfo.scalaVersion != baseInfo.scalaVersion) buildInfo.scalaVersion else null,
+        if (buildInfo.scalaVersion != baseInfo.scalaVersion) buildInfo.scalaVersion else None,
       scalacOptions = buildInfo.scalacOptions.map(scalacOptions =>
         baseInfo.scalacOptions.fold(scalacOptions)(baseScalacOptions =>
           scalacOptions.diff(baseScalacOptions)
@@ -308,14 +308,16 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
         (dep.configurations match {
           case None => Some(Default)
           case Some(configuration) => configuration match {
-            case "compile" => Some(Default)
-            case "test" => Some(Test)
-            case "runtime" => Some(Run)
-            case "provided" | "optional" => Some(Compile)
-            case other =>
-              println(s"Dependency $dep with an unknown configuration ${escape(other)} is dropped.")
-              None
-          }
+              case "compile" => Some(Default)
+              case "test" => Some(Test)
+              case "runtime" => Some(Run)
+              case "provided" | "optional" => Some(Compile)
+              case other =>
+                println(
+                  s"Dependency $dep with an unknown configuration ${escape(other)} is dropped."
+                )
+                None
+            }
         })
           .map(tpe => (dep, tpe))
       )

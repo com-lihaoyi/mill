@@ -25,17 +25,12 @@ object BuildGenTests extends TestSuite {
       )
     }
 
-    /*
-    test("config") {
-      val sourceRoot = os.sub / "application-library"
-      val expectedRoot = os.sub / "expected/config"
+    test("config-sbt-multi-project-example") {
+      val sourceRoot = os.sub / "sbt-multi-project-example"
+      val expectedRoot = os.sub / "expected/config/sbt-multi-project-example"
       val args = Array(
         "--base-module",
         "BaseModule",
-        "--base-project",
-        "utilities",
-        "--jvm-id",
-        "11",
         "--test-module",
         "tests",
         "--deps-object",
@@ -43,9 +38,8 @@ object BuildGenTests extends TestSuite {
         "--merge"
       )
       assert(
-        checker.check(GradleBuildGenMain.main(args), sourceRoot, expectedRoot)
+        checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot, true)
       )
     }
-     */
   }
 }
