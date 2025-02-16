@@ -12,6 +12,21 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+[#0-12-8]
+=== 0.12.8 - 2025-02-16
+:version: 0.12.8
+:milestone-name: 0.12.8
+:milestone: 111
+:prev-version: 0.12.7
+
+* Speed up incremental `.assembly` jar creation for updates in upstream local modules {link-pr}/4566[#4566]
+* Add examples of building Apache Spark applications using Mill (https://mill-build.org/mill/main-branch/scalalib/spark.html[docs])
+* Add example of building a multi-language project combining Java/Typescript/Python modules with Mill (https://mill-build.org/mill/main-branch/large/multi-language-builds.html[docs])
+* Make `Task.Source` and `Task.Sources` take a literal sub-path string syntax by default {link-pr}/4487[#4487]
+* Fix `transitiveCoursierProjects` cause OOM on large build {link-pr}/4452[#4452]
+
+
+
 [#0-12-7]
 === 0.12.7 - 2025-02-01
 :version: 0.12.7
