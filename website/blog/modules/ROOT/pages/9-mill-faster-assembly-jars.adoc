@@ -304,7 +304,8 @@ since the tool has to compress ~212mb of dependencies to assemble the into a jar
 
 While all JVM build tools take about the same amount of time for the initial build,
 what is interesting is what happens for incremental builds. For example, below we
-add a `class dummy` line of code to `Foo.scala` to force it to re-compile:
+add a `class dummy` line of code to `Foo.scala` to force it to re-compile
+the code and re-build the assembly:
 
 ```bash
 > echo "class dummy" >> src/main/scala/foo/Foo.scala
