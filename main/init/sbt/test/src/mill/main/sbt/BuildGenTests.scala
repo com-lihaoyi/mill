@@ -16,15 +16,16 @@ object BuildGenTests extends TestSuite {
       )
     }
 
-    /*
-    test("application-library") {
-      val sourceRoot = os.sub / "application-library"
-      val expectedRoot = os.sub / "expected/application-library"
+    // from https://github.com/pbassiner/sbt-multi-project-example/tree/master
+    test("sbt-multi-project-example") {
+      val sourceRoot = os.sub / "sbt-multi-project-example"
+      val expectedRoot = os.sub / "expected/sbt-multi-project-example"
       assert(
-        checker.check(GradleBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
+        checker.check(SbtBuildGenMain.main(Array.empty), sourceRoot, expectedRoot, true)
       )
     }
 
+    /*
     test("config") {
       val sourceRoot = os.sub / "application-library"
       val expectedRoot = os.sub / "expected/config"
