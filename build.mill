@@ -37,7 +37,7 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.7"
+    "0.12.8"
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
