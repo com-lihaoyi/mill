@@ -1,6 +1,7 @@
 package mill.javalib.palantirformat
 
-import mill.api.{PathRef}
+import mill.api.PathRef
+import mill.scalalib.api.Versions
 import mill.scalalib.{CoursierModule, DepSyntax}
 import mill.{T, Task}
 
@@ -42,9 +43,9 @@ trait PalantirFormatBaseModule extends CoursierModule {
   )
 
   /**
-   * Palantir Java Format version. Defaults to `2.50.0`.
+   * Palantir Java Format version. Defaults to the version used when Mill was built.
    */
   def palantirformatVersion: T[String] = Task {
-    "2.50.0"
+    Versions.palantirFormatVersion
   }
 }

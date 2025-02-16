@@ -31,7 +31,8 @@ object foo extends ScalaModule {
 // folder of the new task which contains a `lint-count.txt` file we write.
 //
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -41,7 +42,7 @@ object foo extends ScalaModule {
 //   allSourceFiles [color=white]
 //   run [color=white]
 // }
-// ```
+// ....
 //
 // * `os.read.lines` and `os.write` come
 // from the https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which is

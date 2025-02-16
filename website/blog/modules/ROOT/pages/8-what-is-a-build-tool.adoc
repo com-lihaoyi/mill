@@ -1,6 +1,6 @@
 // tag::header[]
 
-# What does a Build Tool do?
+= What does a Build Tool do?
 :author: Li Haoyi
 :revdate: 13 February 2025
 
@@ -19,7 +19,7 @@ how they work under the hood.
 // end::header[]
 
 
-## What is a Build Tool?
+== What is a Build Tool?
 
 A build tool is a program that automates selecting which tools or tasks to
 run - and how to run them - whenever you want to do something in your codebase.
@@ -31,7 +31,7 @@ job of the build tool is to help decide what work needs to be done to accomplish
 you want, and how best to perform that work with caching and parallelism to complete it
 as quickly and as efficiently as possible.
 
-### Build Tools as Task Orchestrators
+=== Build Tools as Task Orchestrators
 
 For example, in a real-world project, before _running your code_ you may first need to:
 
@@ -68,7 +68,7 @@ ways, and it is the job of the build tool to take what you (as a developer) want
 to do, and select _which_ tasks to run and _how_ to run them in order to accomplish
 what you want.
 
-### Build Tools across Languages
+=== Build Tools across Languages
 
 Although programming languages are very different, developers in all languages have similar
 requirements. Thus most languages have one-or-more build tools, that then integrate with
@@ -121,7 +121,7 @@ xref:mill:ROOT:pythonlib/intro.adoc[Python], and (experimentally)
 xref:mill:ROOT:javascriptlib/intro.adoc[Javascript], allowing it to be used
 for https://mill-build.org/mill/main-branch/large/multi-language-builds.html[Multi-Language Builds].
 
-### Build Tools for Small Codebases
+=== Build Tools for Small Codebases
 
 Most projects start off small, and while they _can_ use a build tool, do not _need_ one.
 A single-file program or script can get by with using its language's built-in CLI
@@ -169,7 +169,7 @@ and as the codebase grows (as they tend to do) the build tool becomes even more
 necessary over time.
 
 
-### Build Tools vs Build Scripts
+=== Build Tools vs Build Scripts
 
 One common alternative to build tools is to write scripts to help manage the development
 of the project: e.g. you may find a `dev/` folder full of scripts like `run-tests.sh` or
@@ -211,7 +211,7 @@ Bash or Python enough to get the ordering/parallelism/caching they need, they pr
 shouldn't _actually do it_ and just use an off-the-shelf build tool which
 has all these problems already solved.
 
-### Build Tools as Custom Task Runtimes
+=== Build Tools as Custom Task Runtimes
 
 Most codebases have some amount of custom tasks and workflows. While many workflows
 are standardized - e.g. using the same Java compiler, Python interpreter, etc. -
@@ -257,7 +257,7 @@ a non-trivial amount of custom logic, it becomes very important. Providing
 a safe, easy-to-use way to customize your build is thus a big benefit of using
 a build tool, one that gets increasingly important as the project grows.
 
-### Build Tools for Large Codebases and Monorepos
+=== Build Tools for Large Codebases and Monorepos
 
 Twice now we've mentioned that build tools get more important as projects grow,
 so it's worth calling out the need for build tools on very-large-codebases:
@@ -300,7 +300,7 @@ _"monorepo build tool"_ provides and why they are necessary:
 
 * xref:2-monorepo-build-tool.adoc[Why Use a Monorepo Build Tool?]
 
-## How Build Tools Work: The Build Graph
+== How Build Tools Work: The Build Graph
 
 After all this talk about what a build tool is and why you would need one,
 it is worth exploring how most modern build tools work. At their core,
@@ -327,7 +327,8 @@ At their core, most build steps are of the form
 
 Which can be visualized as a node in a graph
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -336,13 +337,14 @@ digraph G {
   tool -> output
   output[shape=none]
 }
-```
+....
 
 If we consider the tasks we looked at earlier, it might form a graph as shown below,
 where the boxes are the tasks, non-boxed text labels are the input files, and the
 arrows are the dataflow between them
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -359,16 +361,17 @@ digraph G {
   sources [shape=none]
   static_input_files [shape=none]
 }
-```
+....
 
-### Ordering on the Build Graph
+=== Ordering on the Build Graph
 
 It is from this graph representation that most build tools are able to work
 their magic. For example, if you ask to run `unit_test` (blue), then the build tool
 can traverse the graph edges (red) to find it needs to ensure `compile`, `code_gen`, and
 `resolve_deps` need to be run (red)
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -390,14 +393,14 @@ digraph G {
   compile [fillcolor=lightpink style=filled]
   unit_test [fillcolor=lightblue style=filled]
 }
-```
+....
 
 Furthermore, the build tool is able to figure out what tasks need to run in what
 order, simply by doing a topological sort of the subset it needs. In this case,
 it knows that `resolve_deps` and `code_gen` must both finish running before
 `compile` can begin, and `compile` must finish running before `unit_test` can begin.
 
-### Caching and Invalidation via the Build Graph
+=== Caching and Invalidation via the Build Graph
 
 
 
@@ -405,7 +408,8 @@ If you then subsequently ask to run `integration_test`, the build tool can see t
 `compile`, `code_gen`, and `resolve_deps` were run earlier and can be re-used (green)
 while `package` and `asset_pipeline` need to be run
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -429,7 +433,7 @@ digraph G {
   asset_pipeline [fillcolor=lightpink style=filled]
   integration_test [fillcolor=lightblue style=filled]
 }
-```
+....
 
 If you then change a source file in `sources` and ask to run `integration_test`
 again, the build tool can again traverse the graph edges and see that:
@@ -439,7 +443,8 @@ again, the build tool can again traverse the graph edges and see that:
 - `unit_test` is not needed for `integration_test`, and so can be ignored
 
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -462,7 +467,7 @@ digraph G {
   package [fillcolor=lightpink style=filled]
   integration_test [fillcolor=lightblue style=filled]
 }
-```
+....
 
 Thus, having a model of the build graph is fundamental to how most build
 tools work their magic. When the user asks to run `unit_test` or `integration_test`,
@@ -470,7 +475,7 @@ the build tool can simply traversal build graph to automatically determine which
 tasks need to run in order to do that, and which tasks have earlier output that can
 be re-used.
 
-### Parallelism on the Build Graph
+=== Parallelism on the Build Graph
 
 Apart from caching, the build graph is also useful for automatically parallelizing your build tasks.
 For example, consider a case where we want to do a clean build (i.e. no caching)
@@ -482,7 +487,8 @@ of `unit_test` and `integration_test`. From the build graph, Mill is able to det
 - `unit_test` (blue) can run in parallel with `asset_pipeline`, `package` or `integration_test`,
   but only can start once `compile` is complete
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
@@ -506,7 +512,8 @@ digraph G {
   integration_test [style=filled fillcolor=lightpink]
   unit_test [style=filled fillcolor=lightblue]
 }
-```
+....
+
 
 Most modern build tools do this kind of graph-based parallelism automatically.
 In contrast to most programming languages and application frameworks where you need
@@ -515,14 +522,14 @@ with threads, locks, semaphores, futures, actors, and so on. You just define the
 shape of the build graph using whatever configuration format or language the build
 tool provides, and you get parallelism for free.
 
-### Languages for defining your Build Graph
+=== Languages for defining your Build Graph
 
 Every build tool provides some format for defining the build graph data structure.
 There isn't any industry-wide standard text format for graph data structures, so each build
 tool comes up with something on their own. Here we'll look at how it is done in
 a few common build tools:
 
-#### Bazel
+==== Bazel
 
 Bazel uses the https://bazel.build/rules/language[Starlark language], a dialect of Python.
 Below I show an example `BUILD` file from their https://bazel.build/start/cpp[documentation on using Bazel for C/C++].
@@ -530,7 +537,8 @@ The Python functions like `cc_library` or `cc_binary` are called _rules_ and by 
 the function you create a `target` with the given `name` and dependencies on upstream
 targets (`deps`) and source files (`srcs`):
 
-```python
+[source,python]
+----
 cc_library(
     name = "hello-greet",
     srcs = ["hello-greet.cc"],
@@ -542,9 +550,10 @@ cc_binary(
     srcs = ["hello-world.cc"],
     deps = [":hello-greet"],
 )
-```
+----
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -552,7 +561,7 @@ digraph G {
   "//main:hello-greet" -> "//main:hello-world"
   "main/hello-world.cc" -> "//main:hello-world"
 }
-```
+....
 
 In Bazel, the implementation of what rules like `cc_library` actually _do_ is
 done by upstream build libraries implemented in Java or Starlark. You can
@@ -561,13 +570,14 @@ or use other people's rules from one of the
 `rules_{lang}` repos on https://github.com/bazel-contrib[Bazel-Contrib],
 if you need functionality that Bazel does not come built in with
 
-#### Gradle
+==== Gradle
 
 Gradle lets you define custom tasks in either Kotlin or Groovy. Below I show an
 https://docs.gradle.org/current/userguide/implementing_custom_tasks.html[example custom task from their documentation]
 written in Kotlin, that adds a new `packageApp` task:
 
-```kotlin
+[source,kotlin]
+----
 val packageApp = tasks.register<Zip>("packageApp") {
     from(layout.projectDirectory.file("run.sh"))                // input - run.sh file
     from(tasks.jar) {                                           // input - jar task output
@@ -579,9 +589,10 @@ val packageApp = tasks.register<Zip>("packageApp") {
     destinationDirectory.set(layout.buildDirectory.dir("dist")) // output - location of the zip file
     archiveFileName.set("myApplication.zip")                    // output - name of the zip file
 }
-```
+----
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -589,7 +600,7 @@ digraph G {
   "tasks.jar" -> packageApp
   "configurations.runClassPath" -> packageApp
 }
-```
+....
 
 `packageApp` depends on the `run.sh` source file, the output of the tasks
 `tasks.jar` and `configurations.runClasspath`, and some other miscellanious configuration.
@@ -606,8 +617,8 @@ normal method ``def``s to define xref:mill:ROOT:javalib/intro.adoc#_custom_build
 in your build graph. The different methods can call each other, e.g. `def resources` below can
 call `lineCount()` or `super.resources()`, and these method calls become the edges in your build graph:
 
-
-```scala
+[source,scala]
+----
 /** Total number of lines in module source files */
 def lineCount = Task {
   allSourceFiles().map(f => os.read.lines(f.path).size).sum
@@ -618,9 +629,10 @@ override def resources = Task {
   os.write(Task.dest / "line-count.txt", "" + lineCount())
   super.resources() ++ Seq(PathRef(Task.dest))
 }
-```
+----
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -630,7 +642,7 @@ digraph G {
   allSourceFiles [color=white]
   run [color=white]
 }
-```
+....
 
 Perhaps the most interesting thing about Mill is that you can write arbitrary code as
 part of your ``def``s: above you can see the code for iterating over files, counting
@@ -667,7 +679,7 @@ you want in your build tool.
 
 
 
-## Conclusion
+== Conclusion
 
 Although modern build tools may look very different on the surface, most of them
 are surprisingly similar once you peek under the covers. Bazel's StarLark config,
