@@ -399,7 +399,7 @@ digraph G {
 in the first step, which is slow but rarely needs to be re-run
 2. Local upstream modules are combined with `upstream_thirdparty_assembly`
 into a `upstream_assembly` in the second step, which needs to happen
-more often but is fastest
+more often but is faster
 3. The current module is combined into `upstream_assembly` in the third step,
 which is the fastest step but needs to happen the most frequently.
 
