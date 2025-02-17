@@ -49,7 +49,7 @@ trait JavaModule
     override def resources = super[JavaModule].resources
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-      internalRepositories() ++ outer.repositoriesTask()
+      outer.repositoriesTask()
     }
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
@@ -1001,7 +1001,7 @@ trait JavaModule
    * Resolved dependencies
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    internalCoursierResolver().resolveDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.provided),
@@ -1032,7 +1032,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    internalCoursierResolver().resolveDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.runtime),
@@ -1232,7 +1232,7 @@ trait JavaModule
       val dependencies =
         (additionalDeps() ++ Seq(BoundDep(coursierDependency, force = false))).iterator.to(Seq)
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
-        repositoriesTask(),
+        allRepositoriesTask(),
         dependencies,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
@@ -1475,7 +1475,7 @@ trait JavaModule
     val tasks =
       if (all.value) Seq(
         Task.Anon {
-          defaultResolver().resolveDeps(
+          internalCoursierResolver().resolveDeps(
             Seq(
               coursierDependency.withConfiguration(cs.Configuration.provided),
               coursierDependency
@@ -1488,7 +1488,7 @@ trait JavaModule
           )
         },
         Task.Anon {
-          defaultResolver().resolveDeps(
+          internalCoursierResolver().resolveDeps(
             Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
             sources = true
           )

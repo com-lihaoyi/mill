@@ -114,7 +114,7 @@ case class GenIdeaImpl(
               GenIdeaException(
                 s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
               )
-          )(modules.map(_._2.repositoriesTask))
+          )(modules.map(_._2.allRepositoriesTask))
         }
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = false)
@@ -160,7 +160,7 @@ case class GenIdeaImpl(
             val extRunIvyDeps = mod.resolvedRunIvyDeps
 
             val externalSources = Task.Anon {
-              mod.resolveDeps(allIvyDeps, sources = true)()
+              mod.resolveDeps(allIvyDeps, sources = true, enableMillInternalDependencies = true)()
             }
 
             val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
