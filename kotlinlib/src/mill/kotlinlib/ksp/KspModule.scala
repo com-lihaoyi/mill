@@ -50,7 +50,7 @@ trait KspModule extends KotlinModule { outer =>
     generateSourcesWithKSP() ++ super.generatedSources()
   }
 
-  final def kspPluginsResolved: T[Agg[PathRef]] = Task {
+  def kspPluginsResolved: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(kspPlugins())
   }
 
@@ -62,7 +62,7 @@ trait KspModule extends KotlinModule { outer =>
     Agg.empty[Dep]
   }
 
-  final def kotlinSymbolProcessorsResolved: T[Agg[PathRef]] = Task {
+  def kotlinSymbolProcessorsResolved: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       kotlinSymbolProcessors()
     )
@@ -76,13 +76,13 @@ trait KspModule extends KotlinModule { outer =>
   private val kspPluginId: String =
     "com.google.devtools.ksp.symbol-processing"
 
-  /*
+  /**
    * The Kotlin compile task with KSP.
    * This task should run as part of the [[generatedSources]] task to
    * so that the generated  sources are in the [[compileClasspath]]
    * for the main compile task.
    */
-  private def generateSourcesWithKSP = Task {
+  def generateSourcesWithKSP: Target[Seq[PathRef]] = Task {
     val sourceFiles = sources().map(_.path)
 
     val compileCp = compileClasspath().map(_.path).filter(os.exists)
@@ -136,15 +136,9 @@ trait KspModule extends KotlinModule { outer =>
       sourceFiles.map(_.toString())
     ).flatten
 
-    // currently if we don't delete the already generated sources
-    // several layers are problematic such as the KSP giving a FileAlreadyExists
-    // and test compilation complaining about duplicate classes
-    // TODO maybe find a better way to do this
-    os.remove.all(kspOutputDir)
-
     kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
 
-    os.walk(kspOutputDir).filter(os.isFile).map(PathRef(_))
+    Seq(PathRef(kspOutputDir))
   }
 
   /**
