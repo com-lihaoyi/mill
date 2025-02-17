@@ -2,9 +2,13 @@
 
 package build
 import mill._, kotlinlib._
+import kotlinlib.ksp.KspModule
 
-object dagger extends KotlinModule {
+object dagger extends KspModule { outer =>
+
   def kotlinVersion = "2.1.0"
+
+  def symbolProcessingVersion = "1.0.29"
 
   def kotlinLanguageVersion = "1.9"
 
@@ -22,8 +26,9 @@ object dagger extends KotlinModule {
     ivy"com.google.dagger:dagger-compiler:2.55"
   )
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 with KspModule {
     def kotlinSymbolProcessing = true
+    def symbolProcessingVersion = outer.symbolProcessingVersion
 
     def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 

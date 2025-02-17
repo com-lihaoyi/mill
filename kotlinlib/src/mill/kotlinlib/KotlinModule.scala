@@ -74,58 +74,10 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinApiVersion: T[String] = Task { "" }
 
-  def symbolProcessingVersion: T[String] = Task { "1.0.29" }
-
   /**
    * Flag to use explicit API check in the compiler. Default is `false`.
    */
   def kotlinExplicitApi: T[Boolean] = Task { false }
-
-  /** Flag to use KSP */
-  def kotlinSymbolProcessing: Boolean = false
-
-  def kspProjectBaseDir: T[PathRef] = Task { PathRef(moduleDir) }
-
-  /** KSP output dir */
-  def kspOutputDir: T[PathRef] = Task {
-    PathRef(T.dest / "generated" / "ksp" / "main")
-  }
-
-  /** KSP caches dir */
-  def kspCachesDir: T[PathRef] = Task {
-    PathRef(T.dest / "main")
-  }
-
-  /** ksp generated sources */
-  private def kspGeneratedSources: T[Seq[PathRef]] = {
-    if (kotlinSymbolProcessing)
-      generateSourcesWithKSP
-    else {
-      Task(Seq.empty[PathRef])
-    }
-  }
-
-  override def generatedSources: T[Seq[PathRef]] = Task {
-    kspGeneratedSources() ++ super.generatedSources()
-  }
-
-  /**
-   * Mandatory plugins that are needed for KSP to work.
-   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
-   * @return
-   */
-  def kspPlugins: T[Agg[Dep]] = Task {
-    if (kotlinSymbolProcessing) {
-      Agg(
-        ivy"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${symbolProcessingVersion()}",
-        ivy"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${symbolProcessingVersion()}"
-      )
-    } else Agg.empty[Dep]
-  }
-
-  final def kspPluginsResolved: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(kspPlugins())
-  }
 
   type CompileProblemReporter = mill.api.CompileProblemReporter
 
@@ -147,75 +99,56 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
     resolveDeps(
       Task.Anon { kotlinCompilerIvyDeps().map(bindDependency()) }
-    )().toSeq ++ kotlinWorkerClasspath()
-  }
-
-  def kotlinCompilerPlugins: T[Agg[Dep]] = Task { kspPlugins() }
-
-  def kotlinCompilerPluginsResolved: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(kotlinCompilerPlugins())
+    )() ++ kotlinWorkerClasspath()
   }
 
   /**
-   * The symbol processors to be used by the Kotlin compiler.
-   * Default is empty.
-   */
-  def kotlinSymbolProcessors: T[Agg[Dep]] = Task { Agg.empty[Dep] }
-
-  def kotlinSymbolProcessorsResolved: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
-      kotlinSymbolProcessors()
-    )
-  }
-
-  /**
-   * The symbol processing plugin id
-   */
-  def kotlinSymbolProcessorId: T[String] = Task { "com.google.devtools.ksp.symbol-processing" }
-
-  /**
-   * If ksp plugins are used, switch to embeddable to avoid
-   * any classpath conflicts.
+   * Flag to use the embeddable kotlin compiler.
+   * This can be necessary to avoid classpath conflicts or ensure
+   * compatibility to the used set of plugins.
    *
-   * TODO consider switching to embeddable permanently
-   *
-   * @return kotlin-compiler or kotlin-compiler-embeddable dependency
+   * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196
    */
-  def kotlinCompilerDep: T[Dep] = Task {
-    if (kotlinSymbolProcessing)
-      ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}"
+  def kotlinCompilerEmbeddable: Task[Boolean] = Task { false }
+
+  /**
+   * The kotlin-compiler dependencies.
+   *
+   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
+   */
+  def kotlinCompilerDep: T[Seq[Dep]] = Task {
+    if (kotlinCompilerEmbeddable())
+      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}")
     else
-      ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}"
+      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}")
   }
 
   /**
-   * If ksp plugins are used, switch to embeddable to avoid
-   * any classpath conflicts.
+   * The kotlin-scripting-compiler dependencies.
    *
-   * TODO consider switching to embeddable permanently
-   *
-   * @return kotlin-scripting-compiler or kotlin-scripting-compiler-embeddable dependency
+   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
    */
-  def kotlinScriptingCompilerDep: T[Dep] = Task {
-    if (kotlinSymbolProcessing)
-      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}"
+  def kotlinScriptingCompilerDep: T[Seq[Dep]] = Task {
+    if (kotlinCompilerEmbeddable())
+      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}")
     else
-      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}"
+      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
   }
 
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
-   * Default is derived from [[kotlinCompilerVersion]].
+   *
+   * Default is derived from [[kotlinCompilerVersion]] and [[kotlinCompilerEmbeddable]].
    */
   def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
-    Seq(kotlinCompilerDep()) ++
+    kotlinCompilerDep() ++
       (
         if (
           !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
             kotlinVersion().startsWith(prefix)
           )
         )
-          Seq(kotlinScriptingCompilerDep())
+          kotlinScriptingCompilerDep()
         else Seq()
       )
   }
@@ -333,73 +266,6 @@ trait KotlinModule extends JavaModule { outer =>
   protected def dokkaSourceSetDisplayName: String = "jvm"
 
   protected def when(cond: Boolean)(args: String*): Seq[String] = if (cond) args else Seq()
-
-  /**
-   * The actual Kotlin compile task with KSP. If ksp is enabled, this runs first to
-   * create the generated sources and then we run the compile task without the
-   * KSP processors
-   */
-  private def generateSourcesWithKSP = Task {
-    val sourceFiles = sources().map(_.path)
-
-    val compileCp = compileClasspath().map(_.path).filter(os.exists)
-
-    val pluginArgs: String = kspPluginsResolved().map(_.path)
-      .mkString(",")
-
-    val xPluginArg = s"-Xplugin=$pluginArgs"
-
-    val pluginOpt = s"plugin:${kotlinSymbolProcessorId()}"
-
-    val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
-
-    val kspOut = kspOutputDir().path
-
-    val pluginConfigs = Seq(
-      s"$pluginOpt:apclasspath=$apClasspath",
-      s"$pluginOpt:projectBaseDir=${kspProjectBaseDir().path}",
-      s"$pluginOpt:classOutputDir=${kspOut / "classes"}",
-      s"$pluginOpt:javaOutputDir=${kspOut / "java"}",
-      s"$pluginOpt:kotlinOutputDir=${kspOut / "kotlin"}",
-      s"$pluginOpt:resourceOutputDir=${kspOut / "resources"}",
-      s"$pluginOpt:kspOutputDir=${kspOut}",
-      s"$pluginOpt:cachesDir=${kspCachesDir}",
-      s"$pluginOpt:incremental=true",
-      s"$pluginOpt:allWarningsAsErrors=false",
-      s"$pluginOpt:returnOkOnError=true",
-      s"$pluginOpt:mapAnnotationArgumentsInJava=false"
-    ).mkString(",")
-
-    val kspCompilerArgs = Seq(xPluginArg) ++ Seq("-P", pluginConfigs)
-
-    Task.log.info(
-      s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOut} ..."
-    )
-
-    val compilerArgs: Seq[String] = Seq(
-      // destdir
-      Seq("-d", kspOutputDir.toString()),
-      // classpath
-      when(compileCp.iterator.nonEmpty)(
-        "-classpath",
-        compileCp.iterator.mkString(File.pathSeparator)
-      ),
-      kotlincOptions(),
-      kspCompilerArgs,
-      // parameters
-      sourceFiles.map(_.toString())
-    ).flatten
-
-    // currently if we don't delete the already generated sources
-    // several layers are problematic such as the KSP giving a FileAlreadyExists
-    // and test compilation complaining about duplicate classes
-    // TODO maybe find a better way to do this
-    os.remove.all(kspOut)
-
-    kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
-
-    os.walk(kspOut).filter(os.isFile).map(PathRef(_))
-  }
 
   /**
    * The actual Kotlin compile task (used by [[compile]] and [[kotlincHelp]]).
@@ -546,6 +412,8 @@ trait KotlinModule extends JavaModule { outer =>
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
+
+    override def kotlinCompilerEmbeddable: Task[Boolean] = outer.kotlinCompilerEmbeddable
   }
 
 }
