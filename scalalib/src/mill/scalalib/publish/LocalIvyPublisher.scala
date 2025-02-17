@@ -21,7 +21,9 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
       publishInfos: Seq[PublishInfo]
   )(implicit ctx: Ctx.Log): Seq[os.Path] = {
 
-    ctx.log.info(s"Publishing ${artifact} to ivy repo ${localIvyRepo}")
+    ctx.log.info(
+      s"Publishing ${s"${artifact.group}:${artifact.id}:${artifact.version}"} to ivy repo ${localIvyRepo}"
+    )
     val releaseDir = localIvyRepo / artifact.group / artifact.id / artifact.version
 
     val toCopy: Seq[(Either[String, os.Path], os.Path)] =
