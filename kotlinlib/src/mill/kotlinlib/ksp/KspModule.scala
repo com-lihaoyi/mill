@@ -15,9 +15,22 @@ import java.io.File
  * Use of kotlin-compiler-embedded is also recommended (and thus enabled by default)
  * to avoid any classpath conflicts between the compiler and user defined plugins!
  */
-trait KspModule extends KotlinModule {
+trait KspModule extends KotlinModule { outer =>
 
-  def symbolProcessingVersion: T[String]
+  /**
+   * The version of the symbol processing library to use.
+   *
+   * This is combined with the version of the kotlin compiler to pull the symbol processing
+   * plugins for the compiler. These dependencies are
+   *
+   * com.google.devtools.ksp:symbol-processing-api
+   * and
+   * com.google.devtools.ksp:symbol-processing
+   *
+   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
+   * @return
+   */
+  def kspVersion: T[String]
 
   /**
    * Mandatory plugins that are needed for KSP to work.
@@ -27,30 +40,13 @@ trait KspModule extends KotlinModule {
    */
   def kspPlugins: T[Agg[Dep]] = Task {
     Agg(
-      ivy"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${symbolProcessingVersion()}",
-      ivy"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${symbolProcessingVersion()}"
+      ivy"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
+      ivy"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${kspVersion()}"
     )
   }
 
-  def kspProjectBaseDir: T[PathRef] = Task {
-    PathRef(moduleDir)
-  }
-
-  /** KSP output dir */
-  def kspOutputDir: T[PathRef] = Task {
-    PathRef(T.dest / "generated" / "ksp" / "main")
-  }
-
-  /** KSP caches dir */
-  def kspCachesDir: T[PathRef] = Task {
-    PathRef(T.dest / "main")
-  }
-
-  /** ksp generated sources */
-  private def kspGeneratedSources: T[Seq[PathRef]] = { generateSourcesWithKSP }
-
   override def generatedSources: T[Seq[PathRef]] = Task {
-    kspGeneratedSources() ++ super.generatedSources()
+    generateSourcesWithKSP() ++ super.generatedSources()
   }
 
   final def kspPluginsResolved: T[Agg[PathRef]] = Task {
@@ -107,16 +103,19 @@ trait KspModule extends KotlinModule {
 
     val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
 
-    val kspOut = kspOutputDir().path
+    val kspProjectBasedDir = moduleDir
+    val kspOutputDir = T.dest / "generated/ksp/main"
+
+    val kspCachesDir = T.dest / "caches/main"
 
     val pluginConfigs = Seq(
       s"$pluginOpt:apclasspath=$apClasspath",
-      s"$pluginOpt:projectBaseDir=${kspProjectBaseDir().path}",
-      s"$pluginOpt:classOutputDir=${kspOut / "classes"}",
-      s"$pluginOpt:javaOutputDir=${kspOut / "java"}",
-      s"$pluginOpt:kotlinOutputDir=${kspOut / "kotlin"}",
-      s"$pluginOpt:resourceOutputDir=${kspOut / "resources"}",
-      s"$pluginOpt:kspOutputDir=${kspOut}",
+      s"$pluginOpt:projectBaseDir=${kspProjectBasedDir}",
+      s"$pluginOpt:classOutputDir=${kspOutputDir / "classes"}",
+      s"$pluginOpt:javaOutputDir=${kspOutputDir / "java"}",
+      s"$pluginOpt:kotlinOutputDir=${kspOutputDir / "kotlin"}",
+      s"$pluginOpt:resourceOutputDir=${kspOutputDir / "resources"}",
+      s"$pluginOpt:kspOutputDir=${kspOutputDir}",
       s"$pluginOpt:cachesDir=${kspCachesDir}",
       s"$pluginOpt:incremental=true",
       s"$pluginOpt:allWarningsAsErrors=false",
@@ -127,7 +126,7 @@ trait KspModule extends KotlinModule {
     val kspCompilerArgs = Seq(xPluginArg) ++ Seq("-P", pluginConfigs)
 
     Task.log.info(
-      s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOut} ..."
+      s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOutputDir} ..."
     )
 
     val compilerArgs: Seq[String] = Seq(
@@ -148,10 +147,17 @@ trait KspModule extends KotlinModule {
     // several layers are problematic such as the KSP giving a FileAlreadyExists
     // and test compilation complaining about duplicate classes
     // TODO maybe find a better way to do this
-    os.remove.all(kspOut)
+    os.remove.all(kspOutputDir)
 
     kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
 
-    os.walk(kspOut).filter(os.isFile).map(PathRef(_))
+    os.walk(kspOutputDir).filter(os.isFile).map(PathRef(_))
+  }
+
+  /**
+   * A test sub-module linked to its parent module best suited for unit-tests.
+   */
+  trait KspTests extends KspModule with KotlinTests {
+    override def kspVersion: T[String] = outer.kspVersion
   }
 }
