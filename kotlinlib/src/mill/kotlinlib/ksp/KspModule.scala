@@ -15,6 +15,7 @@ import java.io.File
  * Use of kotlin-compiler-embedded is also recommended (and thus enabled by default)
  * to avoid any classpath conflicts between the compiler and user defined plugins!
  */
+@mill.api.experimental
 trait KspModule extends KotlinModule { outer =>
 
   /**
@@ -67,14 +68,13 @@ trait KspModule extends KotlinModule { outer =>
     )
   }
 
-  /**
+  override def kotlinCompilerEmbeddable: Task[Boolean] = Task { true }
+
+  /*
    * The symbol processing plugin id
    */
-  def kotlinSymbolProcessorId: T[String] = Task {
+  private val kspPluginId: String =
     "com.google.devtools.ksp.symbol-processing"
-  }
-
-  override def kotlinCompilerEmbeddable: Task[Boolean] = Task { true }
 
   /*
    * The Kotlin compile task with KSP.
@@ -92,7 +92,7 @@ trait KspModule extends KotlinModule { outer =>
 
     val xPluginArg = s"-Xplugin=$pluginArgs"
 
-    val pluginOpt = s"plugin:${kotlinSymbolProcessorId()}"
+    val pluginOpt = s"plugin:${kspPluginId}"
 
     val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
 
