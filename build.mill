@@ -119,7 +119,7 @@ object Deps {
 
   val coursierVersion = "2.1.25-M1"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.28-M1"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
