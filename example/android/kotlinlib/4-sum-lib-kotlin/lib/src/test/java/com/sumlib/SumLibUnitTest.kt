@@ -1,5 +1,5 @@
 package com.sumlib
-import com.sumlib.app.Main
+
 import org.junit.Assert.*
 import org.junit.Test
 /**
@@ -10,6 +10,7 @@ import org.junit.Test
 class SumlibUnitTest {
     @Test
     fun kotlin_dir_text_size_is_correct() {
-        assertEquals(2, Main.sum(1, 1))
+        val numbers = arrayOf(1, 1)
+        assertEquals(2, Sum.apply(numbers))
     }
 }

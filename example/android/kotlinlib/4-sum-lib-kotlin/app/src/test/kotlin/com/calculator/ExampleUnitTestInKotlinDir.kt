@@ -14,4 +14,10 @@ class ExampleUnitTestInKotlinDir {
     fun kotlin_dir_text_size_is_correct() {
         assertEquals(64f, SampleLogicInKotlinDir.textSize())
     }
+
+    @Test
+    fun kotlin_dir_sum_is_correct() {
+        val numbers = arrayOf(1, 1)
+        assertEquals(2, SampleLogicInKotlinDir.sum(numbers))
+    }
 }
