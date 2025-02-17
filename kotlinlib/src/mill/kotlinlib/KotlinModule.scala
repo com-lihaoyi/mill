@@ -103,18 +103,52 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   /**
+   * Flag to use the embeddable kotlin compiler.
+   * This can be necessary to avoid classpath conflicts or ensure
+   * compatibility to the used set of plugins.
+   *
+   * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196
+   */
+  def kotlinCompilerEmbeddable: Task[Boolean] = Task { false }
+
+  /**
+   * The kotlin-compiler dependencies.
+   *
+   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
+   */
+  def kotlinCompilerDep: T[Seq[Dep]] = Task {
+    if (kotlinCompilerEmbeddable())
+      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}")
+    else
+      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}")
+  }
+
+  /**
+   * The kotlin-scripting-compiler dependencies.
+   *
+   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
+   */
+  def kotlinScriptingCompilerDep: T[Seq[Dep]] = Task {
+    if (kotlinCompilerEmbeddable())
+      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}")
+    else
+      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
+  }
+
+  /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
-   * Default is derived from [[kotlinCompilerVersion]].
+   *
+   * Default is derived from [[kotlinCompilerVersion]] and [[kotlinCompilerEmbeddable]].
    */
   def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
-    Seq(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
+    kotlinCompilerDep() ++
       (
         if (
           !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
             kotlinVersion().startsWith(prefix)
           )
         )
-          Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
+          kotlinScriptingCompilerDep()
         else Seq()
       )
   }
@@ -368,6 +402,9 @@ trait KotlinModule extends JavaModule { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends JavaTests with KotlinModule {
+
+    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
@@ -375,6 +412,8 @@ trait KotlinModule extends JavaModule { outer =>
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
+
+    override def kotlinCompilerEmbeddable: Task[Boolean] = outer.kotlinCompilerEmbeddable
   }
 
 }

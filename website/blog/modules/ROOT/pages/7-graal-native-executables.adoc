@@ -1,10 +1,9 @@
 // tag::header[]
 
-# How to Compile Java into Native Binaries with Mill and Graal
-
-
+= How to Compile Java into Native Binaries with Mill and Graal
 :author: Li Haoyi
 :revdate: 1 February 2025
+
 _{author}, {revdate}_
 
 One recent development is the ability to compile Java programs into self-contained
@@ -19,12 +18,14 @@ and how to think about the benefits and challenges of doing so.
 
 // end::header[]
 
-## An Example Java Program
+== An Example Java Program
 
 To get started building a Java native binary, we will use the following example program:
 
 *foo/src/foo/Foo.java*
-```java
+
+[source,java]
+----
 package foo;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -59,7 +60,7 @@ public class Foo {
     System.out.println(generateHtml(ns.getString("text")));
   }
 }
-```
+----
 
 `Foo.java` is a simple Java program with two dependencies - https://argparse4j.github.io/[ArgParse4J]
 and https://www.thymeleaf.org/[Thymeleaf] - that takes input via CLI flags and generates an
@@ -70,12 +71,15 @@ To build `Foo.java` using Mill, we can use the following build configuration:
 
 *.mill-version*
 
-```
+[source]
+----
 0.12.6
-```
+----
 
 *build.mill*
-```scala
+
+[source,scala]
+----
 package build
 import mill._, javalib._
 import mill.define.ModuleRef
@@ -87,35 +91,39 @@ object foo extends JavaModule {
     ivy"org.slf4j:slf4j-nop:2.0.7"
   )
 }
-```
+----
 
 Now, using a `./mill` xref:mill:ROOT:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script],
 we can run this program as follows:
 
-```bash
+[source,bash]
+----
 $ ./mill foo.run --text "hello-world"
 [55/55] foo.run
 [55] <h1>hello-world</h1>
-```
+----
 
 Or turn it into an xref:5-executable-jars.adoc[Executable Assembly Jar] that can be run
 outside of the build tool:
 
-```bash
+[source,bash]
+----
 $ ./mill show foo.assembly
 ".../out/foo/assembly.dest/out.jar"
 
 $ out/foo/assembly.dest/out.jar --text "hello world"
 <h1>hello world</h1>
-```
+----
 
-## Building a Native Image Binary
+== Building a Native Image Binary
 
 To use Mill to build a Graal Native Image out of `Foo.java`, we need to tweak the config
 above:
 
 *build.mill*
-```scala
+
+[source,scala]
+----
 package build
 import mill._, javalib._
 import mill.define.ModuleRef
@@ -138,7 +146,7 @@ object foo extends JavaModule with NativeImageModule {
 object ZincWorkerGraalvm extends ZincWorkerModule {
   def jvmId = "graalvm-community:23.0.1"
 }
-```
+----
 
 Notable changes:
 
@@ -155,13 +163,14 @@ Notable changes:
 
 Now, we can use build a native image using `foo.nativeImage`:
 
-```bash
+[source,bash]
+----
 $ ./mill show foo.nativeImage
 ".../out/foo/nativeImage.dest/native-executable"
 
 $ out/foo/nativeImage.dest/native-executable --text "hello world"
 <h1>hello world</h1>
-```
+----
 
 You can download this example below:
 
@@ -170,7 +179,8 @@ You can download this example below:
 You can also access the `native-image` tool directly from the Mill download folder,
 if you want to use it directly or view its `--help` documentation:
 
-```bash
+[source,bash]
+----
 $ ~/Github/mill/mill show foo.nativeImageTool
 ".../graalvm-community-openjdk-17.0.9+9.1/Contents/Home/bin/native-image"
 
@@ -192,9 +202,9 @@ where options include:
     @argument files       one or more argument files containing options
     -cp <class search path of directories and zip/jar files>\
 ...
-```
+----
 
-## Native Image v.s. Executable Assembly
+== Native Image v.s. Executable Assembly
 
 At a glance, the difference between the traditional executable assembly
 and the Graal native image we built above can be summarized below:
@@ -214,22 +224,26 @@ The remainder of this section will dive into the details of how each number was 
 and a discussion of what these changes really mean.
 
 
-### Creation Time
+=== Creation Time
 
 JVM Executable assemblies are generally very cheap to create, whereas Graal native
 image executables can take very long. For this tiny example project, we can see below
 that the executable assembly takes about ~1s to create, while the native image takes ~25s:
 
 _Executable Assembly_
-```bash
+
+[source,bash]
+----
 $ time ./mill show foo.assembly
 [1-41] [info] compiling 1 Java source...
 ".../out/foo/assembly.dest/out.jar"
 ./mill show foo.assembly  0.12s user 0.06s system 21% cpu 0.818 total
-```
+----
 
 _Native Image_
-```bash
+
+[source,bash]
+----
 $ time ./mill show foo.nativeImage
 [1-50] GraalVM Native Image: Generating 'native-executable' (executable)...
 ...
@@ -238,46 +252,54 @@ $ time ./mill show foo.nativeImage
 [1-50] Finished generating 'native-executable' in 26.0s.
 ".../out/foo/nativeImage.dest/native-executable"
 ./mill show foo.nativeImage  0.70s user 1.11s system 7% cpu 24.762 total
-```
+----
 
-### Executable Size
+=== Executable Size
 
 Graal native image binaries are typically larger than the equivalent executable assembly:
-```bash
+
+[source,bash]
+----
 $ ls -lh out/foo/assembly.dest/out.jar
 -rwxr-xr-x  1 lihaoyi  staff   2.5M Jan 16 15:33 out/foo/assembly.dest/out.jar
-```
-```bash
+----
+
+[source,bash]
+----
 $ ls -lh out/foo/nativeImage.dest/native-executable
 -rwxr-xr-x  1 lihaoyi  staff    17M Jan 16 15:34 out/foo/nativeImage.dest/native-executable
-```
+----
 
 Here, the assembly `out.jar` is ~2.5mb, while the native `native-executable` is ~17mb,
 even for a tiny hello-world application using some trivial libraries. In general native
 image binaries can be pretty large, which can have consequences in download sizes or deployment
 times as you try to distribute these binaries to servers or users.
 
-### Startup Time
+=== Startup Time
 
 Executable assembly jars typically take longer than Graal native executables to run. For this
 small example project, we can see the Executable assembly takes about ~235ms to run, while
 the native image takes ~60ms
 
 _Executable Assembly_
-```bash
+
+[source,bash]
+----
 $ time ./out/foo/assembly.dest/out.jar --text hello-world
 <h1>hello-world</h1>
 ./out/foo/assembly.dest/out.jar --text hello-world
 0.35s user 0.04s system 165% cpu 0.235 total
-```
+----
 
 _Native Image_
-```bash
+
+[source,bash]
+----
 $ time ./out/foo/nativeImage.dest/native-executable --text hello-world
 <h1>hello-world</h1>
 ./out/foo/nativeImage.dest/native-executable --text hello-world
 0.04s user 0.01s system 87% cpu 0.062 total
-```
+----
 
 The `~175ms` speedup shown is for a tiny example program, and can be expected to grow
 for larger Java applications which normally can take multiple seconds to start up.
@@ -290,13 +312,14 @@ this saves Mill ~100-200ms every time it is run from the command line, which goe
 way to ensuring it feels snappy and responsive to users.
 
 
-### Steady-State Performance
+=== Steady-State Performance
 
 To do a rough benchmark of the steady-state performance of the executable assembly and
 native executable, we can adjust our Java program to run the same logic in a loop, and
 every ~1s print out how many iterations of the loop have occurred:
 
-```diff
+[source,diff]
+----
    public static void main(String[] args) {
 +    long count = 0;
 +    long prevTime = System.currentTimeMillis();
@@ -322,13 +345,15 @@ every ~1s print out how many iterations of the loop have occurred:
 +    System.out.println(global);
    }
  }
-```
+----
 
 Now, if we re-build our assembly and native image and run it, we can see the number
 of iterations per second they are able to achieve below:
 
 _Executable Assembly_
-```bash
+
+[source,bash]
+----
 $ ./out/foo/assembly.dest/out.jar --text hello-world
 135
 170
@@ -343,10 +368,12 @@ $ ./out/foo/assembly.dest/out.jar --text hello-world
 195
 185
 182
-```
+----
 
 _Native Image_
-```bash
+
+[source,bash]
+----
 $ time ./out/foo/nativeImage.dest/native-executable --text hello-world
 171
 163
@@ -361,7 +388,7 @@ $ time ./out/foo/nativeImage.dest/native-executable --text hello-world
 182
 183
 181
-```
+----
 
 As you can see, the executable assembly and native image both have comparable performance,
 although the executable assembly starts off lower (135 vs 171) for the first iteration due
@@ -373,12 +400,14 @@ native binaries avoid the slow startup that JVM applications often exhibit, but 
 may not quite reach the same peak steady-state performance that a long-lived JVM application
 would typically achieve.
 
-### Memory Usage
+=== Memory Usage
 
 While our programs are looping, we can also see how much memory they take via `top`:
 
 _Executable Assembly_
-```bash
+
+[source,bash]
+----
 $ jps
 58547 MillMain
 86276 MillServerMain
@@ -388,10 +417,12 @@ $ jps
 
 $ top | grep 9263
 9263   java             0.0  00:20.41 32/1   1   134    373M  0B    0B    9263  42892 running  *0[1]       0.00000 0.00000    501 93089     9569   5005      2470      387381     104652     75938      9       0        0.0   0      0      lihaoyi            N/A    N/A   N/A   N/A   N/A   N/A
-```
+----
 
 _Native Image_
-```bash
+
+[source,bash]
+----
 $ ps aux | grep native-executable
 lihaoyi          43880  46.1  0.1 408681792  30176 s000  S+    3:40PM   0:05.84 ./out/foo/nativeImage.dest/native-executable --text hello-world
 lihaoyi          86276   0.0  2.1 420349904 720416 s000  S     3:14PM   1:00.88 /Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/bin/java -cp /Users/lihaoyi/.cache/mill/download/0.12.5-68-e4bf78 mill.runner.MillServerMain /Users/lihaoyi/Github/mill/blog/modules/ROOT/attachments/7-graal-native-executables/out/mill-server/aa508f0984fd2811f6c6d8fae1362f1774e4f5f7-1
@@ -399,13 +430,13 @@ lihaoyi          48496   0.0  0.0 408626896   1376 s002  S+    3:40PM   0:00.00 
 
 $ top | grep 43880
 43880  native-executabl 0.0  00:10.19 3/1    0   26     20M   0B    0B    43880 42892 running  *0[1]       0.00000 0.00000    501 695907    44380  8100      4045      153233     8177       24637      313     0        0.0   0      0      lihaoyi            N/A    N/A   N/A   N/A   N/A   N/A
-```
+----
 
 The column `373M` and `20M` are the respective memory footprints of the executable assembly
 and native image binary. In this small program, the native image uses almost 20x less memory
 than the JVM executable assembly! That is a very significant reduction in resource footprint
 
-### Portability and Hermeticity
+=== Portability and Hermeticity
 
 Executable assembly jars require a JVM installed globally in order to run. In a way they are
 not hermetic, since the globally-installed JVM can differ resulting in the assembly behaving
@@ -427,12 +458,12 @@ launcher means there's one less thing for people to do during setup and installa
 and one less thing to go wrong and cause the user to get stuck.
 
 
-## Native Image Limitations
+== Native Image Limitations
 
 Now that we've seen many iof the benefits of Graal native images binaries over
 traditional executable assemblies, it's worth discussing the limitations:
 
-### No Cross Building
+=== No Cross Building
 
 Graal can only create native binaries targeting the system on which it is running. That means
 that if you want to create binaries for {Linux,Windows,Mac}x{Intel,ARM}, you need 6 different
@@ -440,7 +471,7 @@ machines in order to build the 6 binaries and somehow aggregate them together fo
 or deployment. This is not a blocker, but can definitely be inconvenient v.s. some other toolchains
 which allow you to build native binaries for all targets on a single machine.
 
-### No Windows-ARM support
+=== No Windows-ARM support
 
 Graal does not support Windows-Arm64 yet (https://github.com/oracle/graal/issues/9215). While
 that traditionally would not have been a problem, Windows-ARM is getting more popular over time,
@@ -448,7 +479,7 @@ with new laptops like my new flagship https://www.microsoft.com/en-sg/surface/de
 running on an ARM processor. You simply cannot build Java code into Graal native image binaries
 that work on Windows-Arm64 at this time, and thus have to fall back to traditional executable assemblies
 
-### Creation Performance
+=== Creation Performance
 
 Graal native image binaries are much slower to create than executable assemblies, as we saw above:
 the example program took ~1s to compile into an executable assembly, but ~25s to compile into
@@ -456,7 +487,7 @@ a native image! That means you probably do not want to do day-to-day iterative d
 native images: instead you may want to iterate using traditional JVM assemblies, and only build
 native images for integration testing and deployment.
 
-### Reflection and Dynamic Classloading
+=== Reflection and Dynamic Classloading
 
 Graal native image binaries do not work with Java reflection and dynamic classloading by default, unless
 specifically configured. Almost every Java program, library, and framework uses _some_ degree of
@@ -478,7 +509,7 @@ using there may be existing support.
   have also introduced support, making it easy to configure Graal to handle the pattern
   of reflection and classloading that the framework performs
 
-## Cross-Publishing Graal Native Binaries on Github Actions
+== Cross-Publishing Graal Native Binaries on Github Actions
 
 Although Graal doesn't let you cross-build from a single platform, you can still easily
 publish artifacts for all supported versions by taking advantage of CI systems like
@@ -489,7 +520,8 @@ https://github.com/com-lihaoyi/mill/blob/a383b9c851f4cee55abb3d454c3ecd06853a40b
 running on Mac, Windows, and Linux to create these binaries and upload them to Maven Central
 for users.
 
-```yaml
+[source,yaml]
+----
 
 on:
   push:
@@ -552,7 +584,7 @@ jobs:
         with: { fetch-depth: 0 }
 
       - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
-```
+----
 
 Note that the default `ubuntu-latest` job publishes `__.publishArtifacts` (all artifacts),
 while the other platform-specific jobs publish only `dist.native.publishArtifacts` (the native
@@ -564,7 +596,8 @@ Each job overrides `artifactName` based on `os.name` and `os.arch` such that it 
 different artifact on Maven Central, and we override `def jar` to replace
 the default `.jar` artifact with our native image:
 
-```scala
+[source,scala]
+----
 def artifactOsSuffix = Task {
   val osName = System.getProperty("os.name").toLowerCase
   if (osName.contains("mac")) "mac"
@@ -582,11 +615,12 @@ def artifactCpuSuffix = Task {
 override def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
 
 override def jar = nativeImage()
-```
+----
 
 This results in the following artifacts being published:
 
-```bash
+[source,bash]
+----
 # JVM platform-agnostic artifact
 com.lihaoyi:mill-dist:0.12.6
 # native platform-specific artifacts
@@ -595,7 +629,7 @@ com.lihaoyi:mill-dist-native-mac-aarch64:0.12.6
 com.lihaoyi:mill-dist-native-linux-amd64:0.12.6
 com.lihaoyi:mill-dist-native-linux-aarch64:0.12.6
 com.lihaoyi:mill-dist-native-windows-amd64:0.12.6
-```
+----
 
 These artifacts can be seen online:
 
@@ -603,19 +637,20 @@ These artifacts can be seen online:
 
 And downloaded via
 
-```bash
+[source,bash]
+----
 curl https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-mac-aarch64/0.12.6/mill-dist-native-mac-aarch64-0.12.6.jar -o mill-dist-native
 chmod +x mill-dist-native
 ./mill-dist-native version
 0.12.6
-```
+----
 
 Any application using these binaries can similarly look at the OS/CPU they are running
 on and resolve the appropriate executable for them to use.
 
 
 
-## Conclusion
+== Conclusion
 
 Graal native images are a pretty cool technology that give Java developers a new superpower: the
 ability to package your Java program into a native binary that can be run without needing a JVM

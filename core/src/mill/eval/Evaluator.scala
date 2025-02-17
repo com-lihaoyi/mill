@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.{ColorLogger, ExecResult, PathRef, Result, Val}
-import mill.client.OutFiles
+import mill.constants.OutFiles
 import mill.define.*
 import mill.exec.{
   Cached,
@@ -12,7 +12,7 @@ import mill.exec.{
   Plan,
   TaskResult
 }
-import mill.define.Watchable
+import mill.define.internal.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
 

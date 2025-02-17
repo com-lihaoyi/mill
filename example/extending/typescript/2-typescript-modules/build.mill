@@ -61,7 +61,8 @@ Hello James Qux
 // At this point, we have multiple ``TypeScriptModule``s, with `bar` nested inside `foo`,
 // but they are each independent and do not depend on one another.
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -87,7 +88,7 @@ Hello James Qux
 //     "foo.mainFileName" -> "foo.run"
 //   }
 // }
-// ```
+// ....
 //
 // Next, we will look at how to wire them up using
 // `moduleDeps`.

@@ -66,14 +66,15 @@ def compile = Task {
 }
 // At this point, we have a minimal working build, with a build graph that looks like this:
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   npmInstall -> compile
 //   sources -> allSources -> compile
 // }
-// ```
+// ....
 //
 // Given an input file below, we can run
 // `mill compile` and demonstrate it is installing typescript locally and using it to compile
@@ -117,7 +118,8 @@ def run(args: mill.define.Args) = Task.Command {
 // Note that we use `stdout = os.Inherit` since we want to display any output to
 // the user, rather than capturing it for use in our command.
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -127,7 +129,7 @@ def run(args: mill.define.Args) = Task.Command {
 //   mainFileName [color=green, penwidth=3]
 //   run [color=green, penwidth=3]
 // }
-// ```
+// ....
 
 /** Usage
 > mill run James Bond

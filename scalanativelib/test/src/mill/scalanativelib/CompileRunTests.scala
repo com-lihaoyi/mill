@@ -10,7 +10,6 @@ import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.util.TestUtil
 import utest._
 
 import scala.jdk.CollectionConverters._
@@ -184,15 +183,7 @@ object CompileRunTests extends TestSuite {
       if !skipScalaNative(scalaNative)
       if !skipReleaseMode(releaseMode)
     } {
-      if (scala.startsWith("2.11.")) {
-        TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't run in Java 9+")(f(
-          scala,
-          scalaNative,
-          releaseMode
-        ))
-      } else {
-        f(scala, scalaNative, releaseMode)
-      }
+      f(scala, scalaNative, releaseMode)
     }
   }
 }

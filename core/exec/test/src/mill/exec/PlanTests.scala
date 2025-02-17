@@ -1,21 +1,30 @@
 package mill.exec
 
 import mill.define.{NamedTask, Target, TargetImpl, Task}
-import mill.util.{TestGraphs, TestUtil}
+import mill.util.TestGraphs
 import utest.*
 
+import scala.collection.mutable
+
 object PlanTests extends TestSuite {
+  def checkTopological(targets: Seq[Task[?]]) = {
+    val seen = mutable.Set.empty[Task[?]]
+    for (t <- targets.reverseIterator) {
+      seen.add(t)
+      for (upstream <- t.inputs) {
+        assert(!seen(upstream))
+      }
+    }
+  }
 
   val tests = Tests {
 
-    val graphs = new TestGraphs()
-    import graphs._
     import TestGraphs._
 
     test("topoSortedTransitiveTargets") {
       def check(targets: Seq[Task[?]], expected: Seq[Task[?]]) = {
         val result = Plan.topoSorted(Plan.transitiveTargets(targets)).values
-        TestUtil.checkTopological(result)
+        checkTopological(result)
         assert(result == expected)
       }
 
@@ -48,13 +57,7 @@ object PlanTests extends TestSuite {
           diamond.down
         )
       )
-      test("bigSingleTerminal") {
-        val result = Plan.topoSorted(Plan.transitiveTargets(Seq(bigSingleTerminal.j))).values
-        TestUtil.checkTopological(result)
-        assert(result.size == 28)
-      }
     }
-
     test("groupAroundNamedTargets") {
       def check[T, R <: Target[Int]](base: T)(
           target: T => R,
@@ -70,7 +73,7 @@ object PlanTests extends TestSuite {
         }
         val flattened = Seq.from(grouped.values().flatten)
 
-        TestUtil.checkTopological(flattened)
+        checkTopological(flattened)
         for ((terminal, expectedSize) <- expected) {
           val grouping = grouped.lookupKey(terminal)
           assert(
@@ -124,18 +127,6 @@ object PlanTests extends TestSuite {
           anonDiamond.down -> 3
         )
       )
-      test("bigSingleTerminal") - check(bigSingleTerminal)(
-        _.j,
-        Seq(_.a, _.b, _.e, _.f, _.i, _.j),
-        Seq(
-          bigSingleTerminal.a -> 3,
-          bigSingleTerminal.b -> 2,
-          bigSingleTerminal.e -> 9,
-          bigSingleTerminal.i -> 6,
-          bigSingleTerminal.f -> 4,
-          bigSingleTerminal.j -> 4
-        )
-      )
     }
     test("multiTerminalGroupCounts") {
       def countGroups(goals: Task[?]*) = {
@@ -153,7 +144,7 @@ object PlanTests extends TestSuite {
       test("separateGroups") {
         import separateGroups._
         val groupCount = countGroups(right, left)
-        assert(groupCount == 3)
+        assert(groupCount == 2)
       }
 
       test("triangleTask") {

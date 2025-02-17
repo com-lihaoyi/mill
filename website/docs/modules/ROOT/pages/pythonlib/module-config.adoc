@@ -1,8 +1,5 @@
 = Python Module Configuration
 :page-aliases: Python_Module_Config.adoc
-
-
-
 :language: Python
 :language-small: python
 

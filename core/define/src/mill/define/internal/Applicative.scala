@@ -17,33 +17,18 @@ import scala.quoted.*
  */
 @internal
 object Applicative {
-  trait ApplyHandler[M[+_]] {
 
-    /**
-     * Extracts the current value [[T]] out of the wrapping [[M[T]]
-     */
-    def apply[T](t: M[T]): T
-  }
-  object ApplyHandler {
+  trait Applyable[M[+_], +T] { this: M[T] =>
     @compileTimeOnly("Target#apply() can only be used with a Task{...} block")
-    implicit def defaultApplyHandler[M[+_]]: ApplyHandler[M] = ???
-  }
-  trait Applyable[M[+_], +T] {
-    def self: M[T]
-    def apply()(implicit handler: ApplyHandler[M]): T = handler(self)
+    def apply(): T = ???
   }
 
   type Id[+T] = T
 
-  trait Applyer[W[_], T[_], Z[_], Ctx] {
-    def ctx()(implicit c: Ctx): Ctx = c
-    def traverseCtx[I, R](xs: Seq[W[I]])(f: (IndexedSeq[I], Ctx) => Z[R]): T[R]
-  }
-
   def impl[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
       Quotes
   )(
-      traverseCtx: (Expr[Seq[W[Any]]], Expr[(IndexedSeq[Any], Ctx) => Z[T]]) => Expr[M[T]],
+      traverseCtx: (Expr[Seq[W[Any]]], Expr[(Seq[Any], Ctx) => Z[T]]) => Expr[M[T]],
       t: Expr[Z[T]]
   ): Expr[M[T]] = {
     import quotes.reflect.*
@@ -77,15 +62,14 @@ object Applicative {
     }
 
     def transformed(
-        itemsRef: Expr[IndexedSeq[Any]],
+        itemsRef: Expr[Seq[Any]],
         ctxRef: Expr[Ctx]
     ): (Expr[Z[T]], Expr[Seq[W[Any]]]) = {
       val exprs = collection.mutable.Buffer.empty[Tree]
       val treeMap = new TreeMap {
 
         override def transformTerm(tree: Term)(owner: Symbol): Term = tree match
-          // case t @ '{$fun.apply()($handler)}
-          case t @ Apply(Apply(sel @ Select(fun, "apply"), Nil), List(handler))
+          case t @ Apply(sel @ Select(fun, "apply"), Nil)
               if sel.symbol == targetApplySym =>
             val localDefs = extractDefs(fun)
             visitAllTrees(t) { x =>
@@ -118,7 +102,7 @@ object Applicative {
 
     val (callback, exprsList) = {
       var exprsExpr: Expr[Seq[W[Any]]] | Null = null
-      val cb = '{ (items: IndexedSeq[Any], ctx: Ctx) =>
+      val cb = '{ (items: Seq[Any], ctx: Ctx) =>
         ${
           val (body, exprs) = transformed('items, 'ctx)
           exprsExpr = exprs

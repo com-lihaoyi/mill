@@ -1,9 +1,6 @@
 
 = Building Kotlin with Mill
 :page-aliases: Kotlin_Intro_to_Mill.adoc
-
-
-
 :language: Kotlin
 :language-small: kotlin
 

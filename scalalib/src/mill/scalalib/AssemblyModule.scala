@@ -63,9 +63,35 @@ trait AssemblyModule extends mill.Module {
 
   private[mill] def assemblyRules0: Seq[Assembly.Rule] = Assembly.defaultRules
 
-  def upstreamAssemblyClasspath: T[Seq[PathRef]]
+  /**
+   * Upstream classfiles and resources from third-party libraries
+   * necessary to build an executable assembly
+   */
+  def upstreamIvyAssemblyClasspath: T[Seq[PathRef]]
+
+  /**
+   * Upstream classfiles and resources from locally-built modules
+   * necessary to build an executable assembly, but without this module's contribution
+   */
+  def upstreamLocalAssemblyClasspath: T[Seq[PathRef]]
 
   def localClasspath: T[Seq[PathRef]]
+
+  /**
+   * Build the assembly for third-party dependencies separate from the current
+   * classpath
+   *
+   * This should allow much faster assembly creation in the common case where
+   * third-party dependencies do not change
+   */
+  def resolvedIvyAssembly: T[Assembly] = Task {
+    Assembly.create(
+      destJar = Task.dest / "out.jar",
+      inputPaths = upstreamIvyAssemblyClasspath().map(_.path),
+      manifest = manifest(),
+      assemblyRules = assemblyRules
+    )
+  }
 
   /**
    * Build the assembly for upstream dependencies separate from the current
@@ -77,8 +103,9 @@ trait AssemblyModule extends mill.Module {
   def upstreamAssembly: T[Assembly] = Task {
     Assembly.create(
       destJar = Task.dest / "out.jar",
-      inputPaths = upstreamAssemblyClasspath().map(_.path),
+      inputPaths = upstreamLocalAssemblyClasspath().map(_.path),
       manifest = manifest(),
+      base = Some(resolvedIvyAssembly()),
       assemblyRules = assemblyRules
     )
   }
@@ -93,18 +120,16 @@ trait AssemblyModule extends mill.Module {
 
     val created = Assembly.create(
       destJar = Task.dest / "out.jar",
-      Seq.from(localClasspath().map(_.path)),
-      manifest(),
-      prependScript,
-      Some(upstream.pathRef.path),
-      assemblyRules
+      inputPaths = Seq.from(localClasspath().map(_.path)),
+      manifest = manifest(),
+      prependShellScript = prependScript,
+      base = Some(upstream),
+      assemblyRules = assemblyRules
     )
     // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
     val problematicEntryCount = 65535
-    if (
-      prependScript.isDefined &&
-      (upstream.addedEntries + created.addedEntries) > problematicEntryCount
-    ) {
+
+    if (prependScript.isDefined && created.entries > problematicEntryCount) {
       Result.Failure(
         s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
            |JARs of that size are known to not work correctly with a prepended shell script.

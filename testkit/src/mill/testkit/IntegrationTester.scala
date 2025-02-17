@@ -1,7 +1,7 @@
 package mill.testkit
 
-import mill.client.EnvVars.MILL_TEST_SUITE
-import mill.client.OutFiles
+import mill.constants.EnvVars.MILL_TEST_SUITE
+import mill.constants.OutFiles
 import mill.define.Segments
 import mill.exec.Cached
 import mill.define.SelectMode

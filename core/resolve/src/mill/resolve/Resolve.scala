@@ -7,7 +7,6 @@ import mill.define.{
   Command,
   Discover,
   Module,
-  ModuleTask,
   NamedTask,
   Segments,
   TaskModule,
@@ -32,6 +31,17 @@ private[mill] object Resolve {
     }
 
     private[mill] override def deduplicate(items: List[Segments]): List[Segments] = items.distinct
+  }
+
+  /**
+   * HACK: Dummy task used to wrap [[Module]]s so they can participate in
+   * `resolve`/`inspect`/etc.
+   */
+  class ModuleTask[+T](val module: Module) extends NamedTask[T] {
+    override def ctx0 = module.moduleCtx
+    override def isPrivate = None
+    override val inputs = Nil
+    override def evaluate0 = ???
   }
 
   object Tasks extends Resolve[NamedTask[Any]] {
@@ -70,7 +80,7 @@ private[mill] object Resolve {
 
         case r: Resolved.Module =>
           ResolveCore.instantiateModule(rootModule, r.segments, cache).flatMap {
-            case value if resolveToModuleTasks => Result.Success(Some(ModuleTask(value)))
+            case value if resolveToModuleTasks => Result.Success(Some(new ModuleTask(value)))
             case value: TaskModule if !resolveToModuleTasks =>
               val directChildrenOrErr = ResolveCore.resolveDirectChildren(
                 rootModule,

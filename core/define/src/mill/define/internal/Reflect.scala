@@ -107,8 +107,8 @@ private[mill] object Reflect {
       .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
       .flatMap { c =>
         c.getName.stripPrefix(outerCls.getName) match {
-          case s"$name$$" if filter(name) =>
-            c.getFields.find(_.getName == "MODULE$").map(name -> _)
+          case s"$name$$" if filter(scala.reflect.NameTransformer.decode(name)) =>
+            c.getFields.find(f => f.getName == "MODULE$").map(name -> _)
           case _ => None
         }
 

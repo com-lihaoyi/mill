@@ -1,7 +1,4 @@
 = Typescript Module Configuration
-
-
-
 :language: Typescript
 :language-small: typescript
 
