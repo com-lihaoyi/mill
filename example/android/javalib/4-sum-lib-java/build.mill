@@ -134,44 +134,36 @@ object app extends AndroidAppModule {
 
 /** Usage
 
- > ./mill show lib.publishM2Local
+> ./mill lib.publishM2Local
+Publish ... to /home/.../.m2/repository/...
 
- > cat out/lib/publishM2Local.log
- "Publish lib-0.0.1 to /home/.../.m2/repository/io/github/.../lib/0.0.1"
-
-
- */
+*/
 
 // This command runs unit tests on your local environment.
 
 /** Usage
 
- > ./mill app.test
- ...
- [
+> ./mill show app.test
+...
+[
   "",
   [
     {
       "fullyQualifiedName": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
       "selector": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
-      "duration": 2,
+      "duration": ...,
       "status": "Success"
-    }
-  ]
- ]
- [
-  "",
-  [
+    },
     {
-      "fullyQualifiedName": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
-      "selector": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
-      "duration": 2,
+      "fullyQualifiedName": "com.calculator.app.CalculatorUnitTest.testPlus",
+      "selector": "com.calculator.app.CalculatorUnitTest.testPlus",
+      "duration": ...,
       "status": "Success"
     }
   ]
- ]
- ...
- */
+]
+...
+*/
 
 // The android tests (existing typically in androidTest directory, aka instrumented tests)
 // typically run on an android device.

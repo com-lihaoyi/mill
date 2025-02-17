@@ -138,44 +138,42 @@ object app extends AndroidAppKotlinModule {
 
 /** Usage
 
- > ./mill show lib.publishM2Local
+> ./mill lib.publishM2Local
+Publish ... to /home/.../.m2/repository/...
 
- > cat out/lib/publishM2Local.log
- "Publish lib-0.0.1 to /home/.../.m2/repository/io/github/.../lib/0.0.1"
-
-
- */
+*/
 
 // This command runs unit tests on your local environment.
 
 /** Usage
 
- > ./mill app.test
- ...
- [
- "",
- [
- {
- "fullyQualifiedName": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
- "selector": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
- "duration": 2,
- "status": "Success"
- }
- ]
- ]
- [
- "",
- [
- {
- "fullyQualifiedName": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
- "selector": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
- "duration": 2,
- "status": "Success"
- }
- ]
- ]
- ...
- */
+> ./mill show app.test
+...
+[
+  "",
+  [
+    {
+      "fullyQualifiedName": "com.calculator.ExampleUnitTest.text_size_is_correct",
+      "selector": "com.calculator.ExampleUnitTest.text_size_is_correct",
+      "duration": ...,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.calculator.ExampleUnitTestInKotlinDir.kotlin_dir_sum_is_correct",
+      "selector": "com.calculator.ExampleUnitTestInKotlinDir.kotlin_dir_sum_is_correct",
+      "duration": ...,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.calculator.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct",
+      "selector": "com.calculator.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+]
+...
+*/
 
 // The android tests (existing typically in androidTest directory, aka instrumented tests)
 // typically run on an android device.
