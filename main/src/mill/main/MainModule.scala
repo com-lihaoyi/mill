@@ -278,6 +278,11 @@ trait MainModule extends BaseModule {
             Seq("mill.init.InitGradleModule/init") ++ args,
             SelectMode.Separated
           )
+        else if (os.exists(os.pwd / "build.sbt"))
+          evaluator.resolveEvaluate(
+            Seq("mill.init.InitSbtModule/init") ++ args,
+            SelectMode.Separated
+          )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
           evaluator.resolveEvaluate(
             Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,

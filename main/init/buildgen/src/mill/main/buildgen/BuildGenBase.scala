@@ -4,7 +4,7 @@ import mill.main.buildgen.BuildGenUtil.{buildPackages, compactBuildTree, writeBu
 
 import scala.collection.immutable.SortedMap
 
-trait BuildGenBase[M, D] {
+trait BuildGenBase[M] {
   type C
   def convertWriteOut(cfg: C, shared: BuildGenUtil.Config, input: Tree[Node[M]]): Unit = {
     val output = convert(input, cfg, shared)
@@ -38,7 +38,7 @@ trait BuildGenBase[M, D] {
               SortedMap((name, SortedMap(inner.scopedDeps.namedIvyDeps.toSeq*)))
             ),
           supertypes = getSuperTypes(cfg, baseInfo, build),
-          inner = BuildGenUtil.renderIrBuild(inner),
+          inner = BuildGenUtil.renderIrBuild(inner, getTestsSuperType),
           outer =
             if (isNested || baseInfo.moduleTypedef == null) ""
             else BuildGenUtil.renderIrTrait(baseInfo.moduleTypedef)
@@ -48,6 +48,8 @@ trait BuildGenBase[M, D] {
   }
 
   def getSuperTypes(cfg: C, baseInfo: IrBaseInfo, build: Node[M]): Seq[String]
+  
+  def getTestsSuperType: String = "MavenTests"
 
   def getBaseInfo(
       input: Tree[Node[M]],

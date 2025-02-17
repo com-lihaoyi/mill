@@ -33,6 +33,8 @@ object BuildGenUtil {
        |
        |${renderJavacOptions(javacOptions)}
        |
+       |${renderScalacOptions(scalacOptions)}
+       |
        |${renderPomSettings(renderIrPom(pomSettings))}
        |
        |${renderPublishVersion(publishVersion)}
@@ -56,13 +58,13 @@ object BuildGenUtil {
     }
   }
 
-  def renderIrBuild(value: IrBuild): String = {
+  def renderIrBuild(value: IrBuild, testsSuperType: String): String = {
     import value.*
     val testModuleTypedef =
       if (!hasTest) ""
       else {
         val declare =
-          BuildGenUtil.renderTestModuleDecl(testModule, scopedDeps.testModule)
+          BuildGenUtil.renderTestModuleDecl(testModule, testsSuperType, scopedDeps.testModule)
 
         s"""$declare {
            |
@@ -83,6 +85,10 @@ object BuildGenUtil {
     s"""${renderArtifactName(projectName, dirs)}
        |
        |${renderJavacOptions(javacOptions)}
+       |
+       |${renderScalaVersion(scalaVersion)}
+       |
+       |${renderScalacOptions(scalacOptions)}
        |
        |${renderRepositories(repositories)}
        |
@@ -130,7 +136,7 @@ object BuildGenUtil {
       isNested: Boolean,
       packagesSize: Int
   ): SortedSet[String] = {
-    scala.collection.immutable.SortedSet("mill._", "mill.javalib._", "mill.javalib.publish._") ++
+    scala.collection.immutable.SortedSet("mill._", "mill.javalib._", "mill.javalib.publish._", "mill.scalalib._") ++
       (if (isNested) baseModule.map(name => s"$$file.$name")
        else if (packagesSize > 1) Seq("$packages._")
        else None)
@@ -255,7 +261,8 @@ object BuildGenUtil {
       version: String = null,
       tpe: String = null,
       classifier: String = null,
-      excludes: IterableOnce[(String, String)] = Seq.empty
+      excludes: IterableOnce[(String, String)] = Seq.empty,
+      isCrossBinary: Boolean = false
   ): String = {
     val sepVersion =
       if (null == version) {
@@ -279,7 +286,8 @@ object BuildGenUtil {
       .map { case (group, artifact) => s";exclude=$group:$artifact" }
       .mkString
 
-    s"ivy\"$group:$artifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
+    val separator = if (isCrossBinary) "::" else ":"
+    s"ivy\"$group$separator$artifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
   }
 
   def isBom(groupArtifactVersion: (String, String, String)): Boolean =
@@ -341,7 +349,7 @@ object BuildGenUtil {
   def scalafmtConfigFile: os.Path =
     os.temp(
       """version = "3.8.4"
-        |runner.dialect = scala213
+        |runner.dialect = scala3
         |newlines.source=fold
         |newlines.topLevelStatementBlankLines = [
         |  {
@@ -354,6 +362,9 @@ object BuildGenUtil {
   def renderArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
+
+  def renderScalaVersion(scalaVersion: Option[String]): String =
+    scalaVersion.map(sv => s"def scalaVersion = ${escape(sv)}").getOrElse("")
 
   def renderBomIvyDeps(args: IterableOnce[String]): String =
     optional("def bomIvyDeps = super.bomIvyDeps() ++ Seq", args)
@@ -379,6 +390,12 @@ object BuildGenUtil {
   def renderJavacOptions(args: IterableOnce[String]): String =
     optional(
       "def javacOptions = super.javacOptions() ++ Seq",
+      args.iterator.map(escape)
+    )
+
+  def renderScalacOptions(args: IterableOnce[String]): String =
+    optional(
+      "def scalacOptions = super.scalacOptions() ++ Seq",
       args.iterator.map(escape)
     )
 
@@ -428,7 +445,13 @@ object BuildGenUtil {
   val testModulesByGroup: Map[String, String] = Map(
     "junit" -> "TestModule.Junit4",
     "org.junit.jupiter" -> "TestModule.Junit5",
-    "org.testng" -> "TestModule.TestNg"
+    "org.testng" -> "TestModule.TestNg",
+    "org.scalatest" -> "TestModule.ScalaTest",
+    "org.specs2" -> "TestModule.Specs2",
+    "com.lihaoyi" -> "TestModule.Utest",
+    "org.scalameta" -> "TestModule.Munit",
+    "com.disneystreaming" -> "TestModule.Weaver",
+    "dev.zio" -> "TestModule.ZioTest"
   )
 
   def writeBuildObject(tree: Tree[Node[BuildObject]]): Unit = {
@@ -447,11 +470,11 @@ object BuildGenUtil {
     }
   }
 
-  def renderTestModuleDecl(testModule: String, testModuleType: Option[String]): String = {
+  def renderTestModuleDecl(testModule: String, testsSuperType: String, testModuleType: Option[String]): String = {
     val name = backtickWrap(testModule)
     testModuleType match {
-      case Some(supertype) => s"object $name extends MavenTests with $supertype"
-      case None => s"trait $name extends MavenTests"
+      case Some(supertype) => s"object $name extends $testsSuperType with $supertype"
+      case None => s"trait $name extends $testsSuperType"
     }
   }
 

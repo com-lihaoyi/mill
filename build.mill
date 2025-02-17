@@ -220,7 +220,7 @@ object Deps {
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-84-f852c6"
   val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
-
+  val sbtBuildExtractCore = ivy"ba.sake::sbt-build-extract-core:0.0.1"
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
     val koverVersion = "0.8.3"

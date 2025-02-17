@@ -1,0 +1,33 @@
+package build
+
+import $packages._
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib._
+
+object `package` extends RootModule with PublishModule with SbtModule {
+
+  def artifactName = "multi-module"
+
+  def scalaVersion = "2.13.15"
+
+  def moduleDeps = super.moduleDeps ++ Seq(build.core, build.util)
+
+  def pomSettings = PomSettings(
+    "multi-module",
+    "com.example",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  def publishVersion = "0.1.0-SNAPSHOT"
+
+  def resources = Task.Sources {
+    super.resources() ++
+      Seq(PathRef(moduleDir / "target/scala-2.13/resource_managed/main"))
+  }
+
+}

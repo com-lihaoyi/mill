@@ -36,7 +36,7 @@ import scala.jdk.CollectionConverters.*
  *  - build profiles
  */
 @mill.api.internal
-object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
+object MavenBuildGenMain extends BuildGenBase[Model] {
   type C = MavenBuildGenMain.Config
 
   def main(args: Array[String]): Unit = {
@@ -77,6 +77,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       baseModule,
       getModuleSupertypes(cfg),
       javacOptions,
+      Seq.empty,
       pomSettings,
       publishVersion,
       publishProperties,
@@ -102,6 +103,8 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       dirs = build.dirs,
       repositories = getRepositories(model),
       javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model).diff(baseInfo.javacOptions),
+      scalacOptions = Seq.empty,
+      scalaVersion = None,
       projectName = getArtifactId(model),
       pomSettings = if (baseInfo.noPom) extractPomSettings(model) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,

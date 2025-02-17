@@ -1,0 +1,63 @@
+package build
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib._
+
+object `package` extends RootModule with PublishModule with SbtModule {
+
+  def artifactName = "scala-3-project-template"
+
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "17", "-target", "17")
+
+  def scalaVersion = "3.6.3"
+
+  def scalacOptions = super.scalacOptions() ++ Seq("-unchecked", "-feature")
+
+  def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++
+      Seq(coursier.maven.MavenRepository("https://jitpack.io"))
+  }
+
+  def ivyDeps = super.ivyDeps() ++
+    Seq(ivy"com.lihaoyi::os-lib:0.11.4", ivy"com.lihaoyi::upickle:4.1.0")
+
+  def pomSettings = PomSettings(
+    "Scala 3 Project Template",
+    "scala-3-project-template",
+    "",
+    Seq(),
+    VersionControl(
+      Some("https://github.com/ghuser/myproject"),
+      Some("scm:git:git@github.com:ghuser/myproject.git"),
+      None,
+      None
+    ),
+    Seq(Developer(
+      "ghuser",
+      "Gh User",
+      "https://example.com",
+      Some("scala-3-project-template"),
+      None
+    ))
+  )
+
+  def publishVersion = "0.1.0-SNAPSHOT"
+
+  def resources = Task.Sources {
+    super.resources() ++
+      Seq(PathRef(moduleDir / "target/scala-3.6.3/resource_managed/main"))
+  }
+
+  object test extends SbtTests with TestModule.Munit {
+
+    def ivyDeps = super.ivyDeps() ++ Seq(ivy"org.scalameta::munit:1.0.0")
+
+    def resources = Task.Sources {
+      super.resources() ++
+        Seq(PathRef(moduleDir / "target/scala-3.6.3/resource_managed/test"))
+    }
+  }
+}

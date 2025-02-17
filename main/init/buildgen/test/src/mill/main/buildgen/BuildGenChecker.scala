@@ -36,7 +36,7 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
     }
     val eval = UnitTester(module, testRoot)
     eval(module.reformat())
-
+    
     // check
     val expectedRoot = sourceRoot / expectedRel
     // Non *.mill files, that are not in test data, that we don't want

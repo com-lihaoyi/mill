@@ -39,7 +39,7 @@ import scala.jdk.CollectionConverters.*
  *  - non-Java sources
  */
 @mill.api.internal
-object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
+object GradleBuildGenMain extends BuildGenBase[ProjectModel] {
   type C = GradleBuildGenMain.Config
 
   def main(args: Array[String]): Unit = {
@@ -134,6 +134,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       baseModule,
       supertypes,
       javacOptions,
+      Seq.empty,
       pomSettings,
       publishVersion,
       publishProperties,
@@ -159,6 +160,8 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       dirs = build.dirs,
       repositories = getRepositories(project).diff(baseInfo.repositories),
       javacOptions = getJavacOptions(project).diff(baseInfo.javacOptions),
+      scalacOptions = Seq.empty,
+      scalaVersion = None,
       projectName = getArtifactId(project),
       pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,
