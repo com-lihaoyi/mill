@@ -20,6 +20,7 @@ public class CalculatorUnitTest {
 
     @Test
     public void testPlus() {
-        assertEquals(3, Calculator.plus(1, 2));
+        int[] numbers = {1, 2};
+        assertEquals(3, Calculator.plus(numbers));
     }
 }

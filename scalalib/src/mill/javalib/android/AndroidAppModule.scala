@@ -208,6 +208,12 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidIsDebug: T[Boolean] = true
 
+  def aarPath: T[PathRef] = Task{
+    val aarPath = T.dest / "library.aar"
+    PathRef(aarPath)
+  }
+
+
   /**
    * Extracts JAR files and resources from AAR dependencies.
    */
@@ -284,16 +290,34 @@ trait AndroidAppModule extends JavaModule {
     tags = Seq("application")
   )
 
+  def androidTransformAarFiles: T[Seq[UnpackedDep]] = Task {
+    val transformDest = Task.dest / "transform"
+    val aarFiles = super.resolvedRunIvyDeps()
+      .map(_.path)
+      .filter(_.ext == "aar")
+      .distinct
+
+    // TODO do it in some shared location, otherwise each module is doing the same, having its own copy for nothing
+    extractAarFiles(aarFiles, transformDest)
+  }
+
+  override def resolvedRunIvyDeps: T[Seq[PathRef]] = Task {
+    val transformedAarFilesToJar: Seq[PathRef] = androidTransformAarFiles().flatMap(_.classesJar)
+    val jarFiles = super.resolvedRunIvyDeps()
+      .filter(_.path.ext == "jar")
+      .distinct
+    transformedAarFilesToJar ++ jarFiles
+  }
+
+
   /**
    * Replaces AAR files in classpath with their extracted JARs.
    */
   override def compileClasspath: T[Seq[PathRef]] = Task {
-    val jarFiles = androidUnpackArchives().flatMap(_.classesJar) ++
-      // need to filter, because it may include aar files, which are covered by androidUnpackArchives already
-      super.resolvedRunIvyDeps().filter(_.path.ext == "jar")
     // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
     // TODO support baseline profiles shipped with Android libs.
-    (super.compileClasspath().filter(_.path.ext != "aar") ++ jarFiles).map(
+
+    (super.compileClasspath().filter(_.path.ext != "aar") ++ resolvedRunIvyDeps()).map(
       _.path
     ).distinct.map(PathRef(_))
   }
@@ -1051,7 +1075,14 @@ trait AndroidAppModule extends JavaModule {
       throw new Exception("Device failed to boot")
   }
 
-  trait AndroidAppTests extends JavaTests {
+  trait AndroidAppTests extends AndroidAppModule with JavaTests {
+
+    override def androidCompileSdk: T[Int] = parent.androidCompileSdk
+    override def androidMinSdk: T[Int] = parent.androidMinSdk
+    override def androidTargetSdk: T[Int] = parent.androidTargetSdk
+    override def androidSdkModule = parent.androidSdkModule
+    override def androidManifest: Task[PathRef] = parent.androidManifest
+
     private def testPath = parent.moduleDir / "src/test"
 
     override def sources: T[Seq[PathRef]] = Seq(PathRef(testPath / "java"))

@@ -206,14 +206,13 @@ trait AndroidLibModule extends JavaModule with PublishModule {
   /**
    * Classpath for the manifest merger run.
    */
-  def manifestMergerClasspath: T[Agg[PathRef]] = Task {
+  def manifestMergerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
       )
     )
   }
-
 
   /**
    * Extracts JAR files and resources from AAR dependencies.
@@ -227,7 +226,7 @@ trait AndroidLibModule extends JavaModule with PublishModule {
     //
     // In Gradle terms using only `resolvedRunIvyDeps` won't be complete, because source modules can be also
     // api/implementation, but Mill has no such configurations.
-    val aarFiles = (super.compileClasspath() ++ super.resolvedRunIvyDeps())
+    val aarFiles = (super.compileClasspath() ++ super.resolvedRunIvyDeps() )
       .map(_.path)
       .filter(_.ext == "aar")
       .distinct

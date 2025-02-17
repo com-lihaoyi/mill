@@ -1,6 +1,6 @@
 package com.calculator.app;
 
-import com.sumlib.app.Main;
+import com.sumlib.Sum;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -10,8 +10,8 @@ import android.widget.TextView;
 
 public class Calculator extends Activity {
 
-    public static int plus(int a, int b) {
-        return Main.sum(a, b);
+    public static int plus(int[] numbers) {
+        return Sum.apply(numbers);
     }
 
 
@@ -23,7 +23,8 @@ public class Calculator extends Activity {
         TextView textView = new TextView(this);
 
 
-        int size = plus(1, 2);
+        int[] numbers = {1, 2};
+        int size = plus(numbers);
 
         // Set text size
         textView.setTextSize(size);

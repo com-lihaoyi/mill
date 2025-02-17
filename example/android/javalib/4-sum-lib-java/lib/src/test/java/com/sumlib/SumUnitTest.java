@@ -14,6 +14,8 @@ import org.junit.Test;
 public class SumUnitTest {
     @Test
     public void sum_isCorrect() {
-        assertEquals(2, Main.sum(1,1));
+
+        int[] numbers = {1, 1};
+        assertEquals(2, Sum.apply(numbers));
     }
 }
