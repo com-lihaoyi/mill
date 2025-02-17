@@ -260,7 +260,7 @@ public class MillProcessLauncher {
     // Loading the native library on our own allows to speed things compared to what jansi would
     // have done on its own (reading the library in its resources and writing it in a temporary
     // location upon every new Mill run)
-    String jansiVersion = mill.runner.client.Versions.jansiVersion;
+    String jansiVersion = mill.runner.client.Versions.jansiVersion();
     File archiveCacheLocation;
     try {
       archiveCacheLocation = coursier.paths.CachePath.defaultArchiveCacheDirectory();
