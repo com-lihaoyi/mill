@@ -53,12 +53,8 @@ trait KspModule extends KotlinModule { outer =>
     defaultResolver().resolveDeps(kspPlugins())
   }
 
-  def kotlinCompilerPlugins: T[Agg[Dep]] = Task {
-    kspPlugins()
-  }
-
   def kotlinCompilerPluginsResolved: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(kotlinCompilerPlugins())
+    defaultResolver().resolveDeps(kspPlugins())
   }
 
   /**
