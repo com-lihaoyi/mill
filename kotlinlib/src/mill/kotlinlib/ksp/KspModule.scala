@@ -77,9 +77,10 @@ trait KspModule extends KotlinModule { outer =>
   override def kotlinCompilerEmbeddable: Task[Boolean] = Task { true }
 
   /*
-   * The actual Kotlin compile task with KSP. If ksp is enabled, this runs first to
-   * create the generated sources and then we run the compile task without the
-   * KSP processors
+   * The Kotlin compile task with KSP.
+   * This task should run as part of the [[generatedSources]] task to
+   * so that the generated  sources are in the [[compileClasspath]]
+   * for the main compile task.
    */
   private def generateSourcesWithKSP = Task {
     val sourceFiles = sources().map(_.path)
