@@ -99,7 +99,7 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
     resolveDeps(
       Task.Anon { kotlinCompilerIvyDeps().map(bindDependency()) }
-    )().toSeq ++ kotlinWorkerClasspath()
+    )() ++ kotlinWorkerClasspath()
   }
 
   /**
