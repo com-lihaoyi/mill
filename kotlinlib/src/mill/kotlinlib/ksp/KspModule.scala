@@ -53,10 +53,6 @@ trait KspModule extends KotlinModule { outer =>
     defaultResolver().resolveDeps(kspPlugins())
   }
 
-  def kotlinCompilerPluginsResolved: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(kspPlugins())
-  }
-
   /**
    * The symbol processors to be used by the Kotlin compiler.
    * Default is empty.
@@ -65,7 +61,7 @@ trait KspModule extends KotlinModule { outer =>
     Agg.empty[Dep]
   }
 
-  def kotlinSymbolProcessorsResolved: T[Agg[PathRef]] = Task {
+  final def kotlinSymbolProcessorsResolved: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       kotlinSymbolProcessors()
     )
