@@ -44,7 +44,8 @@ import scala.collection.{MapView, View}
  * The conversion does not support:
  *  - custom dependency configurations
  *  - custom settings including custom tasks
- *  - sources other than Scala on JVM and Java
+ *  - sources other than Scala on JVM and Java, such as Scala.js and Scala Native
+ *  - cross builds
  */
 @mill.api.internal
 object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Project]])] {
@@ -78,7 +79,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
         "No sbt executable (`./sbt`, `./sbtx`, or system-wide `sbt`) found"
       )
 
-    println("Running sbt task to generate the project tree")
+    println("Running the added `millInitExportBuild` sbt task to export the build")
 
     val exitCode = Process(
       Seq(
@@ -96,8 +97,8 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
       )
 
     val buildExportPickled = os.read(workspace / "target" / "mill-init-build-export.json")
-    // TODO This is mainly for debugging purposes. Comment out this line if it's unnecessary.
-    println("sbt build export retrieved: " + buildExportPickled)
+    // TODO This is mainly for debugging purposes. Comment out or uncomment this line as needed.
+    // println("sbt build export retrieved: " + buildExportPickled)
     import upickle.default.*
     val buildExport = read[BuildExport](buildExportPickled)
 
@@ -112,6 +113,11 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
           Option.when(dirs.nonEmpty)(dirs.dropRight(1))
         })
 
+    /*
+    TODO This does not support converting child projects nested in a parent directory which is not a project yet.
+     Supporting this may involve refactoring `Node[Project]` into `Node[Option[Project]]`
+     or adding a subproject as a direct child with its ancestor directory project (I am not sure whether this works).
+     */
     val input = Tree.from(projectNodesByParentDirs(None).head) { node =>
       val dirs = node.dirs
       val children = projectNodesByParentDirs.getOrElse(Some(dirs), Seq.empty)
@@ -124,13 +130,20 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
   }
 
   private def writeSbtFile(): os.Path = {
-    val file = os.temp.dir() / "mill-init.sbt"
-    // TODO copy to a temp file if it doesn't work when packaged in a jar
+    val tempDir = os.temp.dir()
+    // This doesn't work in integration tests when Mill is packaged.
+    /*
     val sbtPluginJarUrl =
       getClass.getResource("/sbt-mill-init-export-build-assembly.jar").toExternalForm
+     */
+    val file = tempDir / "mill-init.sbt"
+    val sbtPluginJarName = "sbt-mill-init-export-build-assembly.jar"
+    val sbtPluginJarStream = getClass.getResourceAsStream(s"/$sbtPluginJarName")
+    val sbtPluginJarPath = tempDir / sbtPluginJarName
+    os.write(sbtPluginJarPath, sbtPluginJarStream)
     val contents =
       s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-sbt-mill-init-export-build" % "dummy-version" from ${escape(
-          sbtPluginJarUrl
+          sbtPluginJarPath.wrapped.toUri.toString
         )})
          |""".stripMargin
     os.write(file, contents)
@@ -231,10 +244,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
   def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
 
   def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
-    Seq("RootModule") ++
-      Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
-        getModuleSupertypes(cfg)
-      }.iterator.toSeq.flatten
+    Seq("RootModule") ++ getModuleSupertypes(cfg)
 
   def groupArtifactVersion(dep: Dependency): (String, String, String) =
     (dep.organization, dep.name, dep.revision)
@@ -254,7 +264,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
   def renderIvy(dependency: Dependency): String = {
     // type, classifier, and exclusions are not processed yet
     import dependency.*
-    s"ivy\"$organization:$name${if (crossVersion) "::" else ":"}$revision\""
+    s"ivy\"$organization${if (crossVersion) "::" else ":"}$name:$revision\""
   }
 
   def extractPomSettings(buildPublicationInfo: BuildPublicationInfo): IrPom = {

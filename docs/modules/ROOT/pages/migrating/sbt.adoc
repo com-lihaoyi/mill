@@ -89,7 +89,8 @@ The conversion does not support:
 
 * custom dependency configurations
 * custom settings including custom tasks
-* sources other than Scala on JVM and Java
+* sources other than Scala on JVM and Java, such as Scala.js and Scala Native
+* cross builds
 
 sbt plugin support is limited to:
 

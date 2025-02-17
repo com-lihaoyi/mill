@@ -125,6 +125,7 @@ object GradleBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[ProjectMod
         Option.when(null != project.maven().pom()) { "PublishModule" }
 
     val javacOptions = getJavacOptions(project)
+    val scalaVersion = None
     val scalacOptions = None
     val repos = getRepositories(project)
     val pomSettings = extractPomSettings(project)
@@ -136,6 +137,7 @@ object GradleBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[ProjectMod
       baseModule,
       supertypes,
       javacOptions,
+      scalaVersion,
       scalacOptions,
       pomSettings,
       publishVersion,
@@ -145,6 +147,7 @@ object GradleBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[ProjectMod
 
     IrBaseInfo(
       javacOptions,
+      scalaVersion,
       scalacOptions,
       repos,
       pomSettings == null,
@@ -170,6 +173,7 @@ object GradleBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[ProjectMod
       dirs = build.dirs,
       repositories = getRepositories(project).diff(baseInfo.repositories),
       javacOptions = getJavacOptions(project).diff(baseInfo.javacOptions),
+      scalaVersion = None,
       scalacOptions = None,
       projectName = getArtifactId(project),
       pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,

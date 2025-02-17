@@ -6,7 +6,7 @@ import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
 
-object `package` extends RootModule {
+object `package` extends RootModule with SbtModule with PublishModule {
 
   def artifactName = "sbt-multi-project-example"
 

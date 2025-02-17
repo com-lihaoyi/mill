@@ -103,7 +103,7 @@ object ExportBuildPlugin extends AutoPlugin {
               case Disabled => false
               case _: Binary => true
               case crossVersion =>
-                println(s"Unsupported `CrossVersion`: $crossVersion")
+                println(s"Dependency $moduleID with unsupported `CrossVersion`: $crossVersion")
                 false
             },
             moduleID.revision,

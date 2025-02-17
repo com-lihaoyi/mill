@@ -67,6 +67,7 @@ object MavenBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[Model, Depe
   ): IrBaseInfo = {
     val model = input.node.value
     val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
+    val scalaVersion = None
     val scalacOptions = None
     val repositories = getRepositories(model)
     val pomSettings = extractPomSettings(model)
@@ -78,6 +79,7 @@ object MavenBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[Model, Depe
       baseModule,
       getModuleSupertypes(cfg),
       javacOptions,
+      scalaVersion,
       scalacOptions,
       pomSettings,
       publishVersion,
@@ -87,6 +89,7 @@ object MavenBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[Model, Depe
 
     IrBaseInfo(
       javacOptions,
+      scalaVersion,
       scalacOptions,
       repositories,
       noPom = false,
@@ -112,6 +115,7 @@ object MavenBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[Model, Depe
       dirs = build.dirs,
       repositories = getRepositories(model),
       javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model).diff(baseInfo.javacOptions),
+      scalaVersion = None,
       scalacOptions = None,
       projectName = getArtifactId(model),
       pomSettings = if (baseInfo.noPom) extractPomSettings(model) else null,
