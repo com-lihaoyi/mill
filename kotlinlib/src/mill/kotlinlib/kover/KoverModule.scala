@@ -212,12 +212,14 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       s"${reportPath.toString()}.xml"
     } else reportPath.toString()
     args ++= Seq(s"--${reportType.toString.toLowerCase(Locale.US)}", output)
-    Jvm.runSubprocess(
+    Jvm.callProcess(
       mainClass = "kotlinx.kover.cli.MainKt",
-      classPath = classpath,
+      classPath = classpath.toVector,
       jvmArgs = Seq.empty[String],
       mainArgs = args.result(),
-      workingDir = workingDir
+      cwd = workingDir,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
     PathRef(os.Path(output))
   }

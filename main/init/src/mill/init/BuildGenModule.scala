@@ -27,14 +27,16 @@ trait BuildGenModule extends TaskModule {
 
     val mainClass = buildGenMainClass()
     val classPath = buildGenClasspath().map(_.path)
-    val exit = Jvm.callSubprocess(
+    val exitCode = Jvm.callProcess(
       mainClass = mainClass,
-      classPath = classPath,
+      classPath = classPath.toVector,
       mainArgs = args,
-      workingDir = root
+      cwd = root,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     ).exitCode
 
-    if (exit == 0) {
+    if (exitCode == 0) {
       val files = BuildGenUtil.buildFiles(root).map(PathRef(_)).toSeq
       val config = buildGenScalafmtConfig()
       Task.log.info("formatting Mill build files")
@@ -42,7 +44,7 @@ trait BuildGenModule extends TaskModule {
 
       Task.log.info("init completed, run \"mill resolve _\" to list available tasks")
     } else {
-      throw BuildGenException(s"$mainClass exit($exit)")
+      throw BuildGenException(s"$mainClass exit($exitCode)")
     }
   }
 }

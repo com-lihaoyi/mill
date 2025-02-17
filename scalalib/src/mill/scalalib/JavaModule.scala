@@ -825,20 +825,20 @@ trait JavaModule
   /**
    * The folders where the source files for this module live
    */
-  def sources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "src" }
+  def sources: T[Seq[PathRef]] = Task.Sources { "src" }
 
   /**
    * The folders where the resource files for this module live.
    * If you need resources to be seen by the compiler, use [[compileResources]].
    */
-  def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
+  def resources: T[Seq[PathRef]] = Task.Sources { "resources" }
 
   /**
    * The folders where the compile time resource files for this module live.
    * If your resources files do not necessarily need to be seen by the compiler,
    * you should use [[resources]] instead.
    */
-  def compileResources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "compile-resources" }
+  def compileResources: T[Seq[PathRef]] = Task.Sources { "compile-resources" }
 
   /**
    * Folders containing source files that are generated rather than
@@ -1015,6 +1015,14 @@ trait JavaModule
     )
   }
 
+  def upstreamIvyAssemblyClasspath: T[Agg[PathRef]] = Task {
+    resolvedRunIvyDeps()
+  }
+
+  def upstreamLocalAssemblyClasspath: T[Agg[PathRef]] = Task {
+    transitiveLocalClasspath()
+  }
+
   /**
    * All upstream classfiles and resources necessary to build and executable
    * assembly, but without this module's contribution
@@ -1106,7 +1114,7 @@ trait JavaModule
    * on the doc tool that is actually used.
    * @see [[docSources]]
    */
-  def docResources: T[Seq[PathRef]] = Task.Sources(millSourcePath / "docs")
+  def docResources: T[Seq[PathRef]] = Task.Sources("docs")
 
   /**
    * Control whether `docJar`-target should use a file to pass command line arguments to the javadoc tool.
@@ -1163,10 +1171,12 @@ trait JavaModule
 
       Task.log.info("options: " + cmdArgs)
 
-      Jvm.runSubprocess(
-        commandArgs = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
-        envArgs = Map(),
-        workingDir = Task.dest
+      os.call(
+        cmd = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
+        env = Map(),
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
     }
 

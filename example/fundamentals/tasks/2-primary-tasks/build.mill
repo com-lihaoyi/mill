@@ -9,8 +9,8 @@ package build
 
 import mill.{Module, T, _}
 
-def sources = Task.Source { millSourcePath / "src" }
-def resources = Task.Source { millSourcePath / "resources" }
+def sources = Task.Source { "src" }
+def resources = Task.Source { "resources" }
 
 // ``Source``s are defined using `Task.Source{...}` taking one `os.Path`, or `Task.Sources{...}`,
 // taking multiple ``os.Path``s as arguments. A ``Source``'s:

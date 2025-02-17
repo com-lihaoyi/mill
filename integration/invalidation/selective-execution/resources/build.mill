@@ -1,7 +1,7 @@
 import mill._
 
 object foo extends Module {
-  def fooTask = Task.Source(millSourcePath / "foo.txt")
+  def fooTask = Task.Source("foo.txt")
 
   def fooHelper(p: os.Path) = {
     "fooHelper " + os.read(p)
@@ -15,7 +15,7 @@ object foo extends Module {
 
 object bar extends mill.define.TaskModule {
   // make sure it works with private tasks as well
-  private def barTask = Task.Source(millSourcePath / "bar.txt")
+  private def barTask = Task.Source("bar.txt")
 
   def barHelper(p: os.Path) = {
     "barHelper " + os.read(p)

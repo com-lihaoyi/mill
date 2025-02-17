@@ -11,7 +11,7 @@ object RevapiModuleTests extends TestSuite {
 
   def tests: Tests = Tests {
 
-    val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "javalib" / "revapi"
+    val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "javalib/revapi"
     val conf = root / "conf"
     val textReport = "report.txt"
 

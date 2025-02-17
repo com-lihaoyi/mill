@@ -228,7 +228,7 @@ object `package` extends RootModule with MockitoModule {
 //      trait BundleModule extends MockitoModule{
 //        def bundleName: String = millModuleSegments.last.value
 //        override def millSourcePath = `osgi-test`.millSourcePath
-//        def sources = Task.Sources(millSourcePath / "src" / bundleName / "java")
+//        def sources = Task.Sources("src" / bundleName / "java")
 //
 //        def manifest = super.manifest().add(
 //          "Bundle-Name" -> bundleName,
