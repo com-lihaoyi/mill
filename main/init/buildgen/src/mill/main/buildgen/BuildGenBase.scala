@@ -48,7 +48,7 @@ trait BuildGenBase[M] {
   }
 
   def getSuperTypes(cfg: C, baseInfo: IrBaseInfo, build: Node[M]): Seq[String]
-  
+
   def getTestsSuperType: String = "MavenTests"
 
   def getBaseInfo(
