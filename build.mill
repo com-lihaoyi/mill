@@ -220,6 +220,7 @@ object Deps {
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-84-f852c6"
   val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
+  val spotless = ivy"com.diffplug.spotless:spotless-lib:3.0.2"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
