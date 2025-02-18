@@ -139,7 +139,7 @@ trait CoursierModule extends mill.Module {
   def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
 
   /**
-   * The repositories used to resolved dependencies with [[resolveDeps()]].
+   * The repositories used to resolved dependencie with [[resolveDeps()]].
    *
    * See [[allRepositoriesTask]] if you need to resolve Mill internal modules.
    */
@@ -153,7 +153,7 @@ trait CoursierModule extends mill.Module {
   }
 
   /**
-   * The repositories used to resolved dependencies
+   * The repositories used to resolve dependencies
    *
    * Unlike [[repositoriesTask]], this includes the Mill internal repositories,
    * which allow to resolve Mill internal modules (usually brought in via
