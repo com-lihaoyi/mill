@@ -27,7 +27,7 @@ trait TestModule extends TaskModule {
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * If no input has changed since the last run, no test were executed.
- *
+   *
    * @see [[testForked()]]
    */
   def testCached: T[Seq[TestResult]] = Task {
