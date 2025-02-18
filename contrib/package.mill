@@ -3,12 +3,13 @@ package build.contrib
 import scala.util.chaining._
 import coursier.maven.MavenRepository
 import mill._
+import mill.api.JarManifest
 import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.define.SelectMode
+import mill.resolve.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
@@ -28,10 +29,10 @@ import $meta._
  */
 object `package` extends RootModule {
   def contribModules: Seq[ContribModule] =
-    moduleInternal.modules.collect { case m: ContribModule => m }
+    millInternal.modules.collect { case m: ContribModule => m }
 
   trait ContribModule extends build.MillPublishScalaModule {
-    def readme = Task.Source(moduleDir / "readme.adoc")
+    def readme = Task.Source(millSourcePath / "readme.adoc")
   }
 
   object testng extends JavaModule with ContribModule {
@@ -84,13 +85,13 @@ object `package` extends RootModule {
     object worker extends Cross[WorkerModule](build.Deps.play.keys.toSeq)
     trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
       def playBinary = crossValue
-      def moduleDir: os.Path = super.moduleDir / playBinary
+      def millSourcePath: os.Path = super.millSourcePath / playBinary
 
       def sources = Task.Sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
         // just remove the shared source dir for that worker and implement directly.
-        Seq(PathRef(moduleDir / os.up / "src-shared")) ++ super.sources()
+        Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
       }
 
       def scalaVersion = build.Deps.play(playBinary).scalaVersion
@@ -138,7 +139,7 @@ object `package` extends RootModule {
           build.Deps.scalacScoverage2Reporter,
           build.Deps.scalacScoverage2Domain,
           build.Deps.scalacScoverage2Serializer
-        ) ++ Option.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
+        ) ++ Agg.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
       }
       def mandatoryIvyDeps = Agg.empty[Dep]
     }
