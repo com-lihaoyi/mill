@@ -99,7 +99,7 @@ object app extends AndroidAppKotlinModule {
 ]
 ...
 
-> cat out/app/screenshotTest/test.dest/test-report.xml
+> cat out/app/screenshotTest/testForked.dest/test-report.xml
 ...
 <?xml version='1.0' encoding='UTF-8'?>
 <testsuites tests="1" failures="0" errors="0" skipped="0" time="...">

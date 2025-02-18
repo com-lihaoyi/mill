@@ -38,8 +38,8 @@ object bar extends MyModule
 // With Mill's test sandboxing, each test runs in a separate folder: the `.dest` folder
 // of the respective task and module. For example:
 //
-// - `foo.test` runs in `out/foo/test/test.dest/`
-// - `bar.test` runs in `out/bar/test/test.dest/`
+// - `foo.test` runs in `out/foo/test/testForked.dest/`
+// - `bar.test` runs in `out/bar/test/testForked.dest/`
 //
 // As a result, each test's `generated.html` file is written to its own dedicated
 // working directory, without colliding with each other on disk:
@@ -47,13 +47,13 @@ object bar extends MyModule
 /** Usage
 
 > find . | grep generated.html
-.../out/foo/test/test.dest/sandbox/generated.html
-.../out/bar/test/test.dest/sandbox/generated.html
+.../out/foo/test/testForked.dest/sandbox/generated.html
+.../out/bar/test/testForked.dest/sandbox/generated.html
 
-> cat out/foo/test/test.dest/sandbox/generated.html
+> cat out/foo/test/testForked.dest/sandbox/generated.html
 <h1>hello</h1>
 
-> cat out/bar/test/test.dest/sandbox/generated.html
+> cat out/bar/test/testForked.dest/sandbox/generated.html
 <p>world</p>
 
 */
