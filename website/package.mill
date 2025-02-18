@@ -26,7 +26,7 @@ object `package` extends RootModule {
         !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
       }
     def scalaVersion = build.Deps.scalaVersion
-    def moduleDeps = build.millInternal.modules.collect {
+    def moduleDeps = build.moduleInternal.modules.collect {
       case m: build.MillStableScalaModule => m
       case m: JavaModule if m eq build.kotlinlib => m
     }
@@ -40,8 +40,8 @@ object `package` extends RootModule {
   private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
   def npmBase: T[os.Path] = Task(persistent = true) { Task.dest }
   def prepareAntora(npmDir: os.Path) = {
-    Jvm.runSubprocess(
-      commandArgs = Seq(
+    os.call(
+      cmd = Seq(
         npmExe,
         "--no-audit",
         "install",
@@ -50,8 +50,8 @@ object `package` extends RootModule {
         "gitlab:antora/xref-validator",
         "@antora/lunr-extension@v1.0.0-alpha.6"
       ),
-      envArgs = Map(),
-      workingDir = npmDir
+      env = Map(),
+      cwd = npmDir
     )
   }
 
@@ -63,15 +63,15 @@ object `package` extends RootModule {
     val cmdArgs =
       Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
     ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
-    Jvm.runSubprocess(
-      commandArgs = cmdArgs,
-      envArgs = Map("CI" -> "true"),
-      workingDir = workDir
+    os.call(
+      cmd = cmdArgs,
+      env = Map("CI" -> "true"),
+      cwd = workDir
     )
     PathRef(workDir / "build/site")
   }
 
-  def source0 = Task.Source(millSourcePath / "docs")
+  def source0 = Task.Source(moduleDir / "docs")
   def projectChangelog = Task.Source(Task.workspace / "changelog.adoc")
   def source = Task {
     os.copy(source0().path, Task.dest, mergeFolders = true)
@@ -84,7 +84,7 @@ object `package` extends RootModule {
     val renderedExamples: Seq[(os.SubPath, PathRef)] =
       Task.traverse(build.example.exampleModules)(m =>
         Task.Anon {
-          (m.millSourcePath.subRelativeTo(build.example.millSourcePath), m.rendered())
+          (m.moduleDir.subRelativeTo(build.example.moduleDir), m.rendered())
         }
       )()
 
@@ -96,7 +96,7 @@ object `package` extends RootModule {
 
     val contribReadmes = Task.traverse(build.contrib.contribModules)(m =>
       Task.Anon {
-        m.millModuleSegments.parts.last -> m.readme()
+        m.moduleSegments.parts.last -> m.readme()
       }
     )()
 
@@ -170,9 +170,9 @@ object `package` extends RootModule {
       (p, i, os.temp(s), os.temp.dir())
     }
 
-    mill.util.Jvm.runSubprocess(
+    mill.util.Jvm.callProcess(
       "mill.main.graphviz.GraphvizTools",
-      visualizeClassPath,
+      classPath = visualizeClassPath.toSeq,
       mainArgs = orderedDiagrams.map { case (p, i, src, dest) =>
         T.log.debug(s"Rendering graphviz: ${p} (${i}) to ${dest}")
         s"$src;$dest;svg"
@@ -185,7 +185,7 @@ object `package` extends RootModule {
 
   }
 
-  def supplementalFiles = Task.Source(millSourcePath / "docs" / "supplemental-ui")
+  def supplementalFiles = Task.Source(moduleDir / "docs" / "supplemental-ui")
 
   /**
    * The doc root ready to be built by antora for the current branch.
@@ -228,7 +228,7 @@ object `package` extends RootModule {
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
   }
 
-  def blogFolder0 = Task.Source(millSourcePath / "blog")
+  def blogFolder0 = Task.Source(moduleDir / "blog")
   def blogFolder = Task {
     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
     expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))

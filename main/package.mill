@@ -63,7 +63,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
             build.dist.resolutionCustomizer(),
             Some(Task.ctx()),
             build.dist.coursierCacheCustomizer()
-          ).getOrThrow.minDependencies.toSeq
+          ).get.minDependencies.toSeq
             // change to this when bumping Mill
             //   ).getOrThrow.minDependencies.toSeq
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
