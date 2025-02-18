@@ -743,7 +743,7 @@ trait JavaModule
    * These are not meant to be modified by Mill users, unless you really know what you're
    * doing.
    */
-  def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
+  private[mill] def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
     Seq(internalDependenciesRepository())
   }
 

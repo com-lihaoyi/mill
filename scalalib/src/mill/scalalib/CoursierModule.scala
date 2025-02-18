@@ -136,7 +136,7 @@ trait CoursierModule extends mill.Module {
    * These are not meant to be modified by Mill users, unless you really know what you're
    * doing.
    */
-  def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
+  private[mill] def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
 
   /**
    * The repositories used to resolved dependencie with [[resolveDeps()]].
