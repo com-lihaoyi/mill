@@ -205,17 +205,7 @@ object CodeGen {
 
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
-        // Make sure we put the `object` before the `class`, so that it can get
-        // the scaladoc for usage in `mill inspect`
-        newScriptCode = objectData.obj.applyTo(
-          newScriptCode,
-          s"""object $wrapperObjectName extends $wrapperObjectName {
-             |  ${childAliases.linesWithSeparators.mkString("  ")}
-             |  $exportSiblingScripts
-             |  ${millDiscover(segments.nonEmpty)}
-             |}
-             |abstract class""".stripMargin
-        )
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
         s"""package $pkg
            |$miscInfo
@@ -224,7 +214,11 @@ object CodeGen {
            |$prelude
            |$markerComment
            |$newScriptCode
-           |""".stripMargin
+           |object $wrapperObjectName extends $wrapperObjectName {
+           |  ${childAliases.linesWithSeparators.mkString("  ")}
+           |  $exportSiblingScripts
+           |  ${millDiscover(segments.nonEmpty)}
+           |}""".stripMargin
 
       case None =>
         s"""package $pkg
