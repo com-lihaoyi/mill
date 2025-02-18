@@ -43,7 +43,7 @@ trait CoursierModule extends mill.Module {
    */
   def internalCoursierResolver: Task[CoursierModule.Resolver] = Task.Anon {
     new CoursierModule.Resolver(
-      repositories = allRepositoriesTask(),
+      repositories = allRepositories(),
       bind = bindDependency(),
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
@@ -88,7 +88,7 @@ trait CoursierModule extends mill.Module {
       enableMillInternalDependencies: Boolean = false
   ): Task[Agg[PathRef]] = {
     val repositoriesTask0 =
-      if (enableMillInternalDependencies) allRepositoriesTask
+      if (enableMillInternalDependencies) allRepositories
       else repositoriesTask
     Task.Anon {
       Lib.resolveDependencies(
@@ -141,7 +141,7 @@ trait CoursierModule extends mill.Module {
   /**
    * The repositories used to resolved dependencie with [[resolveDeps()]].
    *
-   * See [[allRepositoriesTask]] if you need to resolve Mill internal modules.
+   * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     val resolve = Resolve()
@@ -164,7 +164,7 @@ trait CoursierModule extends mill.Module {
    * and related tasks. You shouldn't depend on this task from implementations of `ivyDeps`,
    * which would introduce cycles between Mill tasks.
    */
-  def allRepositoriesTask: Task[Seq[Repository]] = Task.Anon {
+  def allRepositories: Task[Seq[Repository]] = Task.Anon {
     internalRepositories() ++ repositoriesTask()
   }
 

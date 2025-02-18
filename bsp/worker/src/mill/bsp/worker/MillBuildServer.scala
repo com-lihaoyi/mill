@@ -304,7 +304,7 @@ private class MillBuildServer(
                 sources = true
               ),
               m.unmanagedClasspath(),
-              m.allRepositoriesTask()
+              m.allRepositories()
             )
           }
       }

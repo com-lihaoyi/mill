@@ -1232,7 +1232,7 @@ trait JavaModule
       val dependencies =
         (additionalDeps() ++ Seq(BoundDep(coursierDependency, force = false))).iterator.to(Seq)
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
-        allRepositoriesTask(),
+        allRepositories(),
         dependencies,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),

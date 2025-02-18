@@ -114,7 +114,7 @@ case class GenIdeaImpl(
               GenIdeaException(
                 s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
               )
-          )(modules.map(_._2.allRepositoriesTask))
+          )(modules.map(_._2.allRepositories))
         }
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = false)
