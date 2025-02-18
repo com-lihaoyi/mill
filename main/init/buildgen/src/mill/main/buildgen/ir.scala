@@ -90,6 +90,8 @@ case class IrBuild(
     publishVersion: String,
     packaging: String,
     pomParentArtifact: IrArtifact,
+    sources: Seq[os.SubPath],
+    testSources: Seq[os.SubPath],
     resources: Seq[os.SubPath],
     testResources: Seq[os.SubPath],
     publishProperties: Seq[(String, String)]

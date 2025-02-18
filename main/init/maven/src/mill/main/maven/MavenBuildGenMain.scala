@@ -110,6 +110,8 @@ object MavenBuildGenMain extends BuildGenBase[Model] {
       publishVersion = if (version == baseInfo.publishVersion) null else version,
       packaging = model.getPackaging,
       pomParentArtifact = mkPomParent(model.getParent),
+      sources = Nil,
+      testSources = Nil,
       resources =
         processResources(model.getBuild.getResources, getMillSourcePath(model))
           .filterNot(_ == mavenMainResourceDir),

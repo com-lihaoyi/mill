@@ -169,6 +169,8 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel] {
       // not available
       pomParentArtifact = null,
       // skipped, requires relatively new API (JavaPluginExtension.getSourceSets)
+      sources = Nil,
+      testSources = Nil,
       resources = Nil,
       testResources = Nil,
       publishProperties = getPublishProperties(project, cfg.shared)

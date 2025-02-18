@@ -78,6 +78,8 @@ object BuildGenUtil {
            |
            |${renderCompileModuleDeps(scopedDeps.testCompileModuleDeps)}
            |
+           |${renderSources(testSources)}
+           |
            |${renderResources(testResources)}
            |}""".stripMargin
       }
@@ -118,6 +120,8 @@ object BuildGenUtil {
       }
        |
        |${renderPublishProperties(Nil)}
+       |
+       |${renderSources(sources)}
        |
        |${renderResources(resources)}
        |
@@ -407,6 +411,14 @@ object BuildGenUtil {
       ") }"
     )
 
+  def renderSources(args: IterableOnce[os.SubPath]): String =
+    optional(
+      "def sources = Task.Sources { super.sources() ++ Seq(",
+      args.iterator.map(sub => s"PathRef(moduleDir / ${escape(sub.toString())})"),
+      ", ",
+      ") }"
+    )
+    
   def renderResources(args: IterableOnce[os.SubPath]): String =
     optional(
       "def resources = Task.Sources { super.resources() ++ Seq(",

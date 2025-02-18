@@ -13,6 +13,9 @@ import mill.runner.FileImportGraph
 object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
   type C = SbtBuildGenMain.Config
 
+  private var allProjects: Seq[ProjectExport] = Seq.empty
+  private var rootProject: ProjectExport = _
+
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
     run(cfg)
@@ -22,14 +25,21 @@ object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
     println("converting Sbt build")
     val workspace = os.pwd
     val sbtCmd = if (scala.util.Properties.isWin) "sbt.bat" else "sbt"
+    val exportBuildStructurePluginVersion = "0.0.1+1-955d37b4+20250218-1228-SNAPSHOT"
+    val exportBuildStructurePluginSource=
+      s"""addSbtPlugin("ba.sake" % "sbt-build-extract" % "$exportBuildStructurePluginVersion")
+         |libraryDependencies += "ba.sake" %% "sbt-build-extract-core" % "$exportBuildStructurePluginVersion"
+         |""".stripMargin
+    val exportBuildStructurePluginPath =  workspace / "project/exportBuildStructure.sbt"
+    os.write.over(exportBuildStructurePluginPath, exportBuildStructurePluginSource)
     os.call((sbtCmd, "exportBuildStructure"), cwd = workspace, stdout = os.Inherit)
-    val allProjectsMap = os.list(workspace / "target/build-export").filter(_.ext == "json").map { file =>
+    os.remove(exportBuildStructurePluginPath)
+    allProjects = os.list(workspace / "target/build-export").filter(_.ext == "json").map { file =>
       val json = os.read(file)
-      val projExport = upickle.default.read[ProjectExport](json)
-      os.Path(projExport.base) -> projExport
-    }.toMap
-    
-    val rootProject = allProjectsMap(workspace)
+      upickle.default.read[ProjectExport](json)
+    }
+    val allProjectsMap = allProjects.map(p => os.Path(p.base) -> p).toMap
+    rootProject = allProjectsMap(workspace)
     val subProjectsMap = allProjectsMap - workspace
     
     val input = Tree(
@@ -101,8 +111,11 @@ object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
       publishVersion = if (version == baseInfo.publishVersion) null else version,
       packaging = model.artifactType,
       pomParentArtifact = null,
-      resources = model.resourceDirs.filterNot(_.endsWith("resources")).map(os.Path(_).subRelativeTo(millSourcePath)), // filter out default ones (from MavenModule)
-      testResources = model.testResourceDirs.filterNot(_.endsWith("resources")).map(os.Path(_).subRelativeTo(millSourcePath)), // filter out default ones
+      // filter out default ones (from MavenModule)
+      sources = model.sourceDirs.map(os.Path(_).subRelativeTo(millSourcePath)).filterNot(p => p == os.SubPath("src/main/java") || p == os.SubPath("src/main/scala")), 
+      testSources = model.testSourceDirs.map(os.Path(_).subRelativeTo(millSourcePath)).filterNot(p => p == os.SubPath("src/test/java") || p == os.SubPath("src/test/scala")),
+      resources = model.resourceDirs.map(os.Path(_).subRelativeTo(millSourcePath)).filterNot(_ == os.SubPath("src/main/resources")),
+      testResources = model.testResourceDirs.map(os.Path(_).subRelativeTo(millSourcePath)).filterNot(_ == os.SubPath("src/test/resources")),
       publishProperties = getPublishProperties(model, cfg.shared).diff(baseInfo.publishProperties)
     )
   }
@@ -182,7 +195,14 @@ object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
       }
     }
 
-    sd = sd.copy(mainModuleDeps = sd.mainModuleDeps ++ model.interProjectDependencies.map(p => s"build.${FileImportGraph.backtickWrap(p.project)}"))
+    val projectByIdMap = allProjects.map(p => p.id -> p).toMap
+    val projectDeps = model.interProjectDependencies.map{ p => 
+      val dependingProject = projectByIdMap(p.project)
+      val dir = os.Path(dependingProject.base).subRelativeTo(getMillSourcePath(rootProject))
+      val dependingProjectMillName = dir.segments.map(FileImportGraph.backtickWrap).mkString(".")
+      s"build.${dependingProjectMillName}"
+    }
+    sd = sd.copy(mainModuleDeps = sd.mainModuleDeps ++ projectDeps)
     // exclude scalalib
     val externalDeps = model.externalDependencies.filterNot { dep =>
       dep.organization == "org.scala-lang" && (dep.name == "scala3-library" || dep.name == "scala-library")
