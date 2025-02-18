@@ -318,6 +318,7 @@ public class MillProcessLauncher {
           }
         },
         "TermInfoPropagatorThread");
+    termInfoPropagatorThread.setDaemon(true);
     termInfoPropagatorThread.start();
   }
 }

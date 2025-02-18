@@ -88,7 +88,8 @@ object IntegrationTester {
         timeout = timeout,
         check = check,
         propagateEnv = propagateEnv,
-        timeoutGracePeriod = timeoutGracePeriod
+        shutdownGracePeriod = timeoutGracePeriod,
+        destroyOnExit = true
       )
 
       IntegrationTester.EvalResult(
