@@ -1,0 +1,69 @@
+package com.example.musicplayer;
+
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
+import java.io.File;
+import java.io.IOException;
+
+public class MainActivity extends AppCompatActivity {
+
+    private MediaPlayer mediaPlayer;
+    private Button playPauseButton;
+    private TextView songTitle;
+    private boolean isPlaying = false;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        playPauseButton = findViewById(R.id.playPauseButton);
+        songTitle = findViewById(R.id.songTitle);
+        
+        String songPath = "/sdcard/Music/sample.mp3"; // Change this path according to your file
+        File songFile = new File(songPath);
+
+        if (songFile.exists()) {
+            mediaPlayer = new MediaPlayer();
+            try {
+                mediaPlayer.setDataSource(songPath);
+                mediaPlayer.prepare();
+                songTitle.setText("Playing: sample.mp3");
+            } catch (IOException e) {
+                e.printStackTrace();
+                songTitle.setText("Error: Unable to load song.");
+            }
+        } else {
+            songTitle.setText("Song file not found!");
+        }
+
+        playPauseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mediaPlayer != null) {
+                    if (isPlaying) {
+                        mediaPlayer.pause();
+                        playPauseButton.setText("Play");
+                    } else {
+                        mediaPlayer.start();
+                        playPauseButton.setText("Pause");
+                    }
+                    isPlaying = !isPlaying;
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+}
