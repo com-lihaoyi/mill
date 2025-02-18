@@ -189,7 +189,8 @@ object InspectTests extends UtestIntegrationTestSuite {
       assert(core3Res.isSuccess)
       val core3Inspect = out("inspect").json.str
       assertGlobMatches(
-        """core3(core3/package.mill:5)
+        """core3(core3/package.mill:11)
+          |    Subfolder Module Scaladoc
           |
           |Inherited Modules:
           |    build_.core3.package_
