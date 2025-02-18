@@ -120,8 +120,23 @@ public class MillProcessLauncher {
     String javaHome = null;
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
-      ;
-      javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
+
+      // Fast path to avoid calling `CoursierClient` and paying the classloading cost
+      // when the `javaHome` JVM has already been initialized for the configured `jvmId`
+      // and is ready to use directly
+      Path millJavaHomeFile = Paths.get(".").resolve(out).resolve(millJavaHome);
+      if (Files.exists(millJavaHomeFile)) {
+        String[] savedJavaHomeInfo = Files.readString(millJavaHomeFile).split(" ");
+        if (savedJavaHomeInfo[0].equals(jvmId)) {
+          javaHome = savedJavaHomeInfo[1];
+        }
+      }
+
+      if (javaHome == null) {
+        javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
+        Files.createDirectories(millJavaHomeFile.getParent());
+        Files.write(millJavaHomeFile, (jvmId + " " + javaHome).getBytes());
+      }
     }
 
     if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
@@ -318,6 +333,7 @@ public class MillProcessLauncher {
           }
         },
         "TermInfoPropagatorThread");
+    termInfoPropagatorThread.setDaemon(true);
     termInfoPropagatorThread.start();
   }
 }

@@ -41,7 +41,7 @@ object Settings {
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-      Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5", "0.12.6", "0.12.7")
+      0.to(8).map("0.12." + _)
 
   val graalvmJvmId = "graalvm-community:23.0.1"
 }
@@ -158,10 +158,10 @@ object Deps {
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = ivy"commons-io:commons-io:2.18.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.3"
-  val osLib = ivy"com.lihaoyi::os-lib:0.11.4"
+  val osLib = ivy"com.lihaoyi::os-lib:0.11.5-M1"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
-  val millModuledefsVersion = "0.11.3-M3"
+  val millModuledefsVersion = "0.11.3-M4"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =

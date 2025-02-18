@@ -250,11 +250,23 @@ abstract class MillBuildRootModule()(implicit
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
   protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
-    Lib.millAssemblyEmbeddedDeps.toSeq.flatMap({ d =>
-      val isScala3 = ZincWorkerUtil.isScala3(scalaVersion())
-      if isScala3 && d.dep.module.name.value == "scala-library" then None
-      else Some((d.dep.module.organization.value, d.dep.module.name.value))
-    })
+    val allMillDistModules = BuildInfo.millAllDistDependencies
+      .split(',')
+      .filter(_.nonEmpty)
+      .map { str =>
+        str.split(":", 2) match {
+          case Array(org, name) => (org, name)
+          case other =>
+            sys.error(
+              s"Unexpected misshapen entry in BuildInfo.millAllDistDependencies ('$str', expected 'org:name')"
+            )
+        }
+      }
+    val isScala3 = ZincWorkerUtil.isScala3(scalaVersion())
+    if (isScala3)
+      allMillDistModules.filter(_._2 != "scala-library").toSeq
+    else
+      allMillDistModules.toSeq
   }
 
   override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>

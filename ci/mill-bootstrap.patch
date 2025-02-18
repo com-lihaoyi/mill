@@ -551,18 +551,18 @@ index af00b40d3f0..e43343cabf1 100644
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
      def forkEnv = super.forkEnv() ++ Seq(
 diff --git a/main/package.mill b/main/package.mill
-index 03f2256c480..f879f8f3f92 100644
+index 24a6babcdb7..1887035b5a8 100644
 --- a/main/package.mill
 +++ b/main/package.mill
-@@ -63,7 +63,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
-             build.dist.resolutionCustomizer(),
-             Some(Task.ctx()),
-             build.dist.coursierCacheCustomizer()
--          ).getOrThrow.minDependencies.toSeq
-+          ).get.minDependencies.toSeq
-             // change to this when bumping Mill
-             //   ).getOrThrow.minDependencies.toSeq
-             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
+@@ -82,7 +82,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
+           Some(Task.ctx()),
+           dist.coursierCacheCustomizer()
+         )
+-        result.getOrThrow.orderedDependencies
++        result.get.orderedDependencies
+           .map(_.module.repr)
+           .distinct
+           .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
 diff --git a/mill-build/build.mill b/mill-build/build.mill
 index 957d929826d..112f1aaccb8 100644
 --- a/mill-build/build.mill

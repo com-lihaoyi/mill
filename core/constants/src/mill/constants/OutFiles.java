@@ -76,4 +76,9 @@ public class OutFiles {
 
   public static final String millDependencyTree = "mill-dependency-tree.json";
   public static final String millInvalidationTree = "mill-invalidation-tree.json";
+
+  /**
+   * Any active Mill command that is currently run, for debugging purposes
+   */
+  public static final String millJavaHome = "mill-java-home";
 }
