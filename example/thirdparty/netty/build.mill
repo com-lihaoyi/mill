@@ -411,7 +411,7 @@ object `testsuite-http2` extends NettyTestSuiteModule {
     os.proc("tar", "xzf", Task.dest / "h2spec.tar.gz").call(cwd = Task.dest)
     PathRef(Task.dest / "h2spec")
   }
-  override def test(args: String*) = Task.Command {
+  override def testForked(args: String*) = Task.Command {
     val server = os.proc(assembly().path).spawn(stdout = os.Inherit)
     try {
       Thread.sleep(1000) // let the server start up
