@@ -1,0 +1,21 @@
+
+name: Run sbt-build-extract tests
+on:
+  push:
+    branches: main
+  pull_request:
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: sbt/setup-sbt@v1
+        with:
+          distribution: temurin
+          java-version: 11
+          cache: sbt
+      - working-directory: ./sbt-build-extract
+        run: sbt test

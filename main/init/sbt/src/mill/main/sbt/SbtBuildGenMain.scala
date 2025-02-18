@@ -4,10 +4,9 @@ import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import os.{Path, SubPath}
-
 import scala.jdk.CollectionConverters.*
-import ba.sake.sbt.build.extract.*
 import mill.runner.FileImportGraph
+import com.lihaoyi.sbt.build.extract.*
 
 @mill.api.internal
 object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
@@ -27,8 +26,8 @@ object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
     val sbtCmd = if (scala.util.Properties.isWin) "sbt.bat" else "sbt"
     val exportBuildStructurePluginVersion = "0.0.1+1-955d37b4+20250218-1228-SNAPSHOT"
     val exportBuildStructurePluginSource=
-      s"""addSbtPlugin("ba.sake" % "sbt-build-extract" % "$exportBuildStructurePluginVersion")
-         |libraryDependencies += "ba.sake" %% "sbt-build-extract-core" % "$exportBuildStructurePluginVersion"
+      s"""addSbtPlugin("com.lihaoyi" % "sbt-build-extract" % "$exportBuildStructurePluginVersion")
+         |libraryDependencies += "com.lihaoyi" %% "sbt-build-extract-core" % "$exportBuildStructurePluginVersion"
          |""".stripMargin
     val exportBuildStructurePluginPath =  workspace / "project/exportBuildStructure.sbt"
     os.write.over(exportBuildStructurePluginPath, exportBuildStructurePluginSource)
