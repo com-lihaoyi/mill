@@ -1,0 +1,20 @@
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule with cosmo.CosmoModule {
+  def scalaVersion = "2.13.16"
+}
+//// SNIPPET:END
+
+// This example uses the `scalalib.cosmo.CosmoModule` to build a cross-platform executable assembly by prepending
+// a launcher in the Actually Portable Executable (APE) format compiled with the Cosmopolitan's toolchain.
+
+/** Usage
+
+> ./mill show foo.cosmoAssembly # mac/linux
+
+> ./out/foo/cosmoAssembly.dest/out.jar.exe # mac/linux
+Hello, World!
+
+*/
