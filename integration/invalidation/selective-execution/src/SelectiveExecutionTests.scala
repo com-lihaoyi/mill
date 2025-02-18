@@ -268,7 +268,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
               ("--watch", "{foo.fooCommand,bar.barCommand}"),
               check = true,
               stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
-              stderr = os.Inherit
+              stderr = os.ProcessOutput.Readlines { line => System.err.println(line) }
             )
           }
 
