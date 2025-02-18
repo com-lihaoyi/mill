@@ -141,6 +141,9 @@ private object Inspect {
 
     def pprintModule(t: mill.resolve.Resolve.ModuleTask[?], evaluator: Evaluator): Tree.Lazy = {
       val cls = t.module.getClass
+
+      // For `RootModule`s named `package_`, the scaladoc annotation ends
+      // up on the companion `class` rather than on the `object`.
       val companionClsName = cls.getName match{
         case s"$prefix.package_$$" => Some(s"$prefix.package_")
         case _ => None
