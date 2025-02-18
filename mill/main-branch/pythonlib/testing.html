@@ -728,7 +728,7 @@ it will run the <code>.test</code> task as the default task for that module.</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
 Hello World
 
-&gt; ./mill foo.test.test
+&gt; ./mill foo.test.testForked
 test_hello (test_foo.TestScript...) ... ok
 test_mock (test_foo.TestScript...) ... ok
 test_world (test_foo.TestScript...) ... ok
@@ -815,7 +815,7 @@ OK</code></pre>
 <ul>
 <li>
 <p><code>foo.test</code>: runs tests in a subprocess in an empty <code>sandbox/</code> folder. This is short
-for <code>foo.test.test</code>, as <code>test</code> is the default task for <code>TestModule</code>s.</p>
+for <code>foo.test.testForked</code>, as <code>testForked</code> is the default task for <code>TestModule</code>s.</p>
 </li>
 </ul>
 </div>

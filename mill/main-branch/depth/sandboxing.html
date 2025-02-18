@@ -875,10 +875,10 @@ of the respective task and module. For example:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>foo.test</code> runs in <code>out/foo/test/test.dest/</code></p>
+<p><code>foo.test</code> runs in <code>out/foo/test/testForked.dest/</code></p>
 </li>
 <li>
-<p><code>bar.test</code> runs in <code>out/bar/test/test.dest/</code></p>
+<p><code>bar.test</code> runs in <code>out/bar/test/testForked.dest/</code></p>
 </li>
 </ul>
 </div>
@@ -889,13 +889,13 @@ working directory, without colliding with each other on disk:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find . | grep generated.html
-.../out/foo/test/test.dest/sandbox/generated.html
-.../out/bar/test/test.dest/sandbox/generated.html
+.../out/foo/test/testForked.dest/sandbox/generated.html
+.../out/bar/test/testForked.dest/sandbox/generated.html
 
-&gt; cat out/foo/test/test.dest/sandbox/generated.html
+&gt; cat out/foo/test/testForked.dest/sandbox/generated.html
 &lt;h1&gt;hello&lt;/h1&gt;
 
-&gt; cat out/bar/test/test.dest/sandbox/generated.html
+&gt; cat out/bar/test/testForked.dest/sandbox/generated.html
 &lt;p&gt;world&lt;/p&gt;</code></pre>
 </div>
 </div>
@@ -1011,9 +1011,9 @@ public class FooTests {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find . | grep .html
 ...
-.../out/foo/test/test.dest/sandbox/foo.html
+.../out/foo/test/testForked.dest/sandbox/foo.html
 
-&gt; cat out/foo/test/test.dest/sandbox/foo.html
+&gt; cat out/foo/test/testForked.dest/sandbox/foo.html
 &lt;h1&gt;foo&lt;/h1&gt;</code></pre>
 </div>
 </div>

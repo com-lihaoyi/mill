@@ -7067,65 +7067,11 @@ node28 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="test-5ff" data-f-inherited="TestModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in a subprocess, reporting the\n * results to the console.\n * @see [[testCached]]\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaModule$ScalaTests.html#test-5ff" t="n" class="documentableName ">test</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../define/Command.html" t="t">Command</a>[(<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">TestResult</span>])]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Discovers and runs the module's tests in a subprocess, reporting the results to the console.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Discovers and runs the module's tests in a subprocess, reporting the results to the console.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               See also
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <div>
-                 <p><a href="TestModule.html#testCached-0">testCached</a></p>
-                </div>
-               </div>
-              </dd>
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TestModule.html#test-5ff">TestModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/TestModule.scala" target="_blank">TestModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="testCached-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in a subprocess, reporting the\n * results to the console.\n * If no input has changed since the last run, no test were executed.\n * @see [[test()]]\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in a subprocess, reporting the\n * results to the console.\n * If no input has changed since the last run, no test were executed.\n *\n * @see [[testForked()]]\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -7153,7 +7099,7 @@ node28 -> node0;
               <dd class="body-medium">
                <div>
                 <div>
-                 <p><a href="TestModule.html#test-5ff">test</a></p>
+                 <p><a href="TestModule.html#testForked-5ff">testForked</a></p>
                 </div>
                </div>
               </dd>
@@ -7294,6 +7240,60 @@ node28 -> node0;
               </dt>
               <dd class="body-medium">
                <a href="TestModule.html#testForkGrouping-0">TestModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/TestModule.scala" target="_blank">TestModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="testForked-5ff" data-f-inherited="TestModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in a subprocess, reporting the\n * results to the console.\n * @see [[testCached]]\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaModule$ScalaTests.html#testForked-5ff" t="n" class="documentableName ">testForked</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../define/Command.html" t="t">Command</a>[(<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">TestResult</span>])]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Discovers and runs the module's tests in a subprocess, reporting the results to the console.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Discovers and runs the module's tests in a subprocess, reporting the results to the console.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               See also
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p><a href="TestModule.html#testCached-0">testCached</a></p>
+                </div>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="TestModule.html#testForked-5ff">TestModule</a>
               </dd>
               <dt class="body-small">
                Source

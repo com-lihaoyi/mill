@@ -725,7 +725,7 @@ compiling 1 ... source...
 &gt; mill foo.test.compile
 compiling 1 ... source...
 
-&gt; mill foo.test.test
+&gt; mill foo.test.testForked
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
 
@@ -816,7 +816,7 @@ details on how to use each one from the command line.</p>
 </div>
 <div class="paragraph">
 <p><code>foo.test</code>: runs tests in a subprocess in an empty <code>sandbox/</code> folder. This is short
-for <code>foo.test.test</code>, as <code>test</code> is the default task for <code>TestModule</code>s.</p>
+for <code>foo.test.testForked</code>, as <code>testForked</code> is the default task for <code>TestModule</code>s.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1074,13 +1074,13 @@ separate <code>sandbox</code> folder and <code>.log</code> file:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test
 
-&gt; find out/foo/test/test.dest
+&gt; find out/foo/test/testForked.dest
 ...
-out/foo/test/test.dest/foo.HelloTests.log
-out/foo/test/test.dest/foo.HelloTests/sandbox
-out/foo/test/test.dest/foo.WorldTests.log
-out/foo/test/test.dest/foo.WorldTests/sandbox
-out/foo/test/test.dest/test-report.xml</code></pre>
+out/foo/test/testForked.dest/foo.HelloTests.log
+out/foo/test/testForked.dest/foo.HelloTests/sandbox
+out/foo/test/testForked.dest/foo.WorldTests.log
+out/foo/test/testForked.dest/foo.WorldTests/sandbox
+out/foo/test/testForked.dest/test-report.xml</code></pre>
 </div>
 </div>
 <div class="paragraph">

@@ -901,8 +901,8 @@ after the code change, to only run the tests downstream of the change (below, <c
 &gt; echo '//' &gt;&gt; bar/src/bar/Bar.java # emulate the code change
 
 &gt; mill selective.resolve __.test # dry-run selective execution to show what would get run
-foo.test.test
-bar.test.test
+foo.test.testForked
+bar.test.testForked
 
 &gt; mill selective.run __.test
 Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
@@ -1005,7 +1005,7 @@ bar.sources
           &quot;bar.test.compile&quot;: {
             &quot;bar.test.localRunClasspath&quot;: {
               &quot;bar.test.testClasspath&quot;: {
-                &quot;bar.test.test&quot;: {}
+                &quot;bar.test.testForked&quot;: {}
               }
             }
           }
@@ -1015,11 +1015,11 @@ bar.sources
     &quot;bar.allSources&quot;: {
       &quot;bar.allSourceFiles&quot;: {
         &quot;bar.compile&quot;: {
-          &quot;bar.localRunClasspath&quot;: {
-            &quot;bar.localClasspath&quot;: {
-              &quot;foo.test.transitiveLocalClasspath&quot;: {
-                &quot;foo.test.runClasspath&quot;: {
-                  &quot;foo.test.test&quot;: {}
+          &quot;foo.test.upstreamCompileOutput&quot;: {
+            &quot;foo.test.compile&quot;: {
+              &quot;foo.test.localRunClasspath&quot;: {
+                &quot;foo.test.testClasspath&quot;: {
+                  &quot;foo.test.testForked&quot;: {}
                 }
               }
             }
