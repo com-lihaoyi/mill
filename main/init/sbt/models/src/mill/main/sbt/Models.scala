@@ -131,7 +131,7 @@ object Project {
 case class Dependency(
     organization: String, // `groupId` in Maven
     name: String, // `artifactId` in Maven
-    crossVersion: Boolean = false,
+    crossVersion: Boolean = false, // TODO support `CrossVersion` types other than binary?
     revision: String,
     configurations: Option[String]
     // BOM seems not supported by sbt. See https://stackoverflow.com/questions/42032303/how-do-i-use-a-maven-bom-bill-of-materials-to-manage-my-dependencies-in-sbt.

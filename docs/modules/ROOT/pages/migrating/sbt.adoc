@@ -15,11 +15,11 @@ A nested `test` module is defined, if `src/test` exists, and is configured with 
 Again, note that `mill init` imports an sbt build on a best-effort basis.
 This means that while simple projects can be expected to complete without issue:
 
-include::partial$example/javalib/migrating/3-sbt-complete.adoc[]
+include::partial$example/scalalib/migrating/1-sbt-complete.adoc[]
 
 Projects with a complex build often require some manual tweaking in order to work:
 
-include::partial$example/javalib/migrating/4-sbt-incomplete.adoc[]
+include::partial$example/scalalib/migrating/2-sbt-incomplete.adoc[]
 
 == Capabilities
 
@@ -109,7 +109,10 @@ or xref:extending/thirdparty-plugins.adoc[third party] plugins
 
 == FAQ
 
-How to fix `java.lang.UnsupportedOperationException: The Security Manager is deprecated and will be removed in a future release` error thrown by the sbt command invoked by `mill init`?
+How to fix errors such as
+`java.lang.UnsupportedOperationException: The Security Manager is deprecated and will be removed in a future release` and
+`java.io.IOError: java.lang.RuntimeException: /packages cannot be represented as URI`
+thrown by the sbt command invoked by `mill init`?
 
 Update the project's sbt version to the latest or our tested version v1.10.7, and try again.
 

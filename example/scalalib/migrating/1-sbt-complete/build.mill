@@ -1,0 +1,26 @@
+/** Usage
+
+ > rm build.mill # remove any existing build file
+
+ > git init .
+ > git remote add -f origin https://github.com/scalacenter/library-example.git
+ > git checkout v1.0.1
+
+ > ./mill init
+converting module library-example
+Dependency Dependency(com.lightbend.paradox,paradox-theme-generic,false,0.4.4,Some(paradox-theme)) with an unknown configuration "paradox-theme" is dropped.
+Dependency Dependency(com.lightbend.paradox,paradox-theme-generic,false,0.4.4,Some(paradox-theme)) with an unknown configuration "paradox-theme" is dropped.
+generated 1 Mill build file(s)
+removing existing Mill build files
+writing Mill build file to build.mill
+converted sbt build to Mill
+formatting Mill build files
+Formatting 1 Scala sources
+parsed config (v3.8.4): /var/folders/xh/9t7mxl615nv8627_v54lc9ph0000gn/T/3390681381000847719.tmp
+init completed, run "mill resolve _" to list available tasks
+
+ > ./mill compile
+ [46/46] compile
+ [46] [info] compiling 1 Scala source to /.../libsam/out/compile.dest/classes ...
+ [46] [info] done compiling
+*/
