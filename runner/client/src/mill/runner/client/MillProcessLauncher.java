@@ -134,6 +134,7 @@ public class MillProcessLauncher {
 
       if (javaHome == null) {
         javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
+        Files.createDirectories(millJavaHomeFile.getParent());
         Files.write(millJavaHomeFile, (jvmId + " " + javaHome).getBytes());
       }
     }
