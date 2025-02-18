@@ -141,8 +141,20 @@ private object Inspect {
 
     def pprintModule(t: mill.resolve.Resolve.ModuleTask[?], evaluator: Evaluator): Tree.Lazy = {
       val cls = t.module.getClass
+
+      // For `RootModule`s named `package_`, the scaladoc annotation ends
+      // up on the companion `class` rather than on the `object`.
+      val companionClsName = cls.getName match {
+        case s"$prefix.package_$$" => Some(s"$prefix.package_")
+        case _ => None
+      }
+
+      val companionClsOpt = companionClsName.map(cls.getClassLoader.loadClass(_))
+
       val annotation = cls.getAnnotation(classOf[Scaladoc])
-      val scaladocOpt = Option(annotation).map(annotation =>
+      val companionAnnotation =
+        companionClsOpt.map(_.getAnnotation(classOf[Scaladoc])).flatMap(Option(_))
+      val scaladocOpt = (Option(annotation) ++ companionAnnotation).map(annotation =>
         cleanupScaladoc(annotation.value).map("\n" + inspectItemIndent + _).mkString
       )
 
