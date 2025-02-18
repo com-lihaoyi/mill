@@ -222,7 +222,7 @@ abstract class MillBuildRootModule()(implicit
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
   protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
-    val allMillDistModules = BuildInfo.millAllDistDependencies
+    val allMillDistModules = BuildInfo.millEmbeddedDeps
       .split(',')
       .filter(_.nonEmpty)
       .map { str =>
@@ -230,7 +230,7 @@ abstract class MillBuildRootModule()(implicit
           case Array(org, name) => (org, name)
           case other =>
             sys.error(
-              s"Unexpected misshapen entry in BuildInfo.millAllDistDependencies ('$str', expected 'org:name')"
+              s"Unexpected misshapen entry in BuildInfo.millEmbeddedDeps ('$str', expected 'org:name')"
             )
         }
       }

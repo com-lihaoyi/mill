@@ -54,7 +54,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
       "Coordinates of the module pulling the whole of Mill"
     ),
     BuildInfo.Value(
-      "millAllDistDependencies", {
+      "millEmbeddedDeps", {
         // Maps internal modules from JavaModule#coursierDependency (like 'mill-internal:thing:0+mill-internal')
         // to actual coordinates used for publishing (like 'com.lihaoyi:mill-thing:0.13.1')
         val internalToPublishedModuleMap = Task.traverse(
