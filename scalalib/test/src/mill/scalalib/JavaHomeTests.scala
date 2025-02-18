@@ -129,7 +129,7 @@ object JavaHomeTests extends TestSuite {
         val eval = UnitTester(HelloJavaJavaHome11Override, resourcePath)
 
         val Left(ExecResult.Failure(ref1)) =
-          eval.apply(HelloJavaJavaHome11Override.core.test.test()): @unchecked
+          eval.apply(HelloJavaJavaHome11Override.core.test.testForked()): @unchecked
 
 //        assert(
 //          v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
@@ -142,7 +142,7 @@ object JavaHomeTests extends TestSuite {
         val eval = UnitTester(HelloJavaJavaHome17Override, resourcePath)
 
         val Left(ExecResult.Failure(ref1)) =
-          eval.apply(HelloJavaJavaHome17Override.core.test.test()): @unchecked
+          eval.apply(HelloJavaJavaHome17Override.core.test.testForked()): @unchecked
 
 //        assert(
 //          v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",

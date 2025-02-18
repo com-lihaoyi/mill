@@ -31,7 +31,7 @@ object TestingTests extends TestSuite {
         cached: Boolean
     ) = {
       runTests(
-        if (!cached) HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.test()
+        if (!cached) HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.testForked()
         else HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.testCached
       )
 

@@ -109,8 +109,8 @@ Test run qux.QuxTests finished: 1 failed, 0 ignored, 1 total, ...
 > echo '//' >> bar/src/bar/Bar.java # emulate the code change
 
 > mill selective.resolve __.test # dry-run selective execution to show what would get run
-foo.test.test
-bar.test.test
+foo.test.testForked
+bar.test.testForked
 
 > mill selective.run __.test
 Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
@@ -159,7 +159,7 @@ bar.sources
           "bar.test.compile": {
             "bar.test.localRunClasspath": {
               "bar.test.testClasspath": {
-                "bar.test.test": {}
+                "bar.test.testForked": {}
               }
             }
           }
@@ -169,11 +169,11 @@ bar.sources
     "bar.allSources": {
       "bar.allSourceFiles": {
         "bar.compile": {
-          "bar.localRunClasspath": {
-            "bar.localClasspath": {
-              "foo.test.transitiveLocalClasspath": {
-                "foo.test.runClasspath": {
-                  "foo.test.test": {}
+          "foo.test.upstreamCompileOutput": {
+            "foo.test.compile": {
+              "foo.test.localRunClasspath": {
+                "foo.test.testClasspath": {
+                  "foo.test.testForked": {}
                 }
               }
             }
@@ -183,6 +183,7 @@ bar.sources
     }
   }
 }
+
 
 */
 

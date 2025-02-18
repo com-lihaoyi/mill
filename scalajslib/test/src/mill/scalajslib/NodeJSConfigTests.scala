@@ -79,7 +79,7 @@ object NodeJSConfigTests extends TestSuite {
       def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) =
         if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
         else checkLog(
-          HelloJSWorld.build(scalaVersion, nodeArgs).`test-utest`.test(),
+          HelloJSWorld.build(scalaVersion, nodeArgs).`test-utest`.testForked(),
           nodeArgs,
           notNodeArgs
         )

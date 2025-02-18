@@ -18,7 +18,7 @@ trait TestModule extends TaskModule {
 
   protected def testTask(args: Task[Seq[String]]): Task[TestResult]
 
-  override def defaultCommandName() = "test"
+  override def defaultCommandName() = "testForked"
 }
 
 object TestModule {

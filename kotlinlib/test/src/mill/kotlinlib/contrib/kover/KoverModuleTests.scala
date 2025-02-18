@@ -53,7 +53,7 @@ object KoverModuleTests extends TestSuite {
 
       val eval = UnitTester(module, resourcePath)
 
-      Seq(module.foo.test.test(), module.bar.test.test(), module.qux.test.test())
+      Seq(module.foo.test.testForked(), module.bar.test.testForked(), module.qux.test.testForked())
         .foreach(eval(_).get)
 
       val Right(result) = eval(Kover.xmlReportAll(eval.evaluator)): @unchecked
@@ -79,7 +79,7 @@ object KoverModuleTests extends TestSuite {
 
       val eval = UnitTester(module, resourcePath)
 
-      val Right(_) = eval(module.foo.test.test()): @unchecked
+      val Right(_) = eval(module.foo.test.testForked()): @unchecked
 
       val Right(result) = eval(module.foo.kover.xmlReport()): @unchecked
 
@@ -109,7 +109,7 @@ object KoverModuleTests extends TestSuite {
 
       val eval = UnitTester(module, resourcePath)
 
-      val Right(_) = eval(module.foo.test.test()): @unchecked
+      val Right(_) = eval(module.foo.test.testForked()): @unchecked
 
       val Right(result) = eval(module.foo.kover.htmlReport()): @unchecked
 
