@@ -7,7 +7,7 @@ import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
-import mill.scalalib.api.{CompilationResult, Versions}
+import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mill.main.client.OutFiles._
 import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
@@ -222,9 +222,23 @@ abstract class MillBuildRootModule()(implicit
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
   protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
-    Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
-      (d.dep.module.organization.value, d.dep.module.name.value)
-    )
+    val allMillDistModules = BuildInfo.millAllDistDependencies
+      .split(',')
+      .filter(_.nonEmpty)
+      .map { str =>
+        str.split(":", 2) match {
+          case Array(org, name) => (org, name)
+          case other =>
+            sys.error(
+              s"Unexpected misshapen entry in BuildInfo.millAllDistDependencies ('$str', expected 'org:name')"
+            )
+        }
+      }
+    val isScala3 = ZincWorkerUtil.isScala3(scalaVersion())
+    if (isScala3)
+      allMillDistModules.filter(_._2 != "scala-library").toSeq
+    else
+      allMillDistModules.toSeq
   }
 
   override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
