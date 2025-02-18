@@ -110,7 +110,7 @@ object TestRunnerTestUtils {
   def junitReportIn(
       outPath: Path,
       moduleName: String,
-      action: String = "test"
+      action: String = "testForked"
   ): JUnitReportMatch = {
     val reportPath: Path = outPath / moduleName / s"$action.dest" / "test-report.xml"
     val reportXML = XML.loadFile(reportPath.toIO)

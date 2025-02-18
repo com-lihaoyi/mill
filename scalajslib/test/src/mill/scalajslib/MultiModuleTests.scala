@@ -53,7 +53,7 @@ object MultiModuleTests extends TestSuite {
     test("fullOpt") - checkOpt(optimize = true)
 
     test("test") {
-      val Right(result) = evaluator(MultiModule.client.test.test()): @unchecked
+      val Right(result) = evaluator(MultiModule.client.test.testForked()): @unchecked
 
       assert(
         result.evalCount > 0,

@@ -16,7 +16,7 @@ trait TestModule
   // FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
   def compile: T[mill.scalalib.api.CompilationResult]
 
-  override def defaultCommandName() = "test"
+  override def defaultCommandName() = "testForked"
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
@@ -69,7 +69,7 @@ trait TestModule
    * results to the console.
    * @see [[testCached]]
    */
-  def test(args: String*): Command[(String, Seq[TestResult])] =
+  def testForked(args: String*): Command[(String, Seq[TestResult])] =
     Task.Command {
       testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
     }
@@ -89,7 +89,8 @@ trait TestModule
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * If no input has changed since the last run, no test were executed.
-   * @see [[test()]]
+   *
+   * @see [[testForked()]]
    */
   def testCached: T[(String, Seq[TestResult])] = Task {
     testTask(testCachedArgs, Task.Anon { Seq.empty[String] })()

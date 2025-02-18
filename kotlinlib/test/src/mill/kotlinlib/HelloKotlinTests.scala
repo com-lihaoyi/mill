@@ -96,7 +96,7 @@ object HelloKotlinTests extends TestSuite {
       val eval = testEval()
 
       HelloKotlin.main.crossModules.foreach(m => {
-        val Left(ExecResult.Failure(_)) = eval.apply(m.test.test()): @unchecked
+        val Left(ExecResult.Failure(_)) = eval.apply(m.test.testForked()): @unchecked
       })
     }
     test("kotest") {
@@ -106,7 +106,7 @@ object HelloKotlinTests extends TestSuite {
         val Right(discovered) = eval.apply(m.kotest.discoveredTestClasses): @unchecked
         assert(discovered.value == Seq("hello.tests.FooTest"))
 
-        val Left(ExecResult.Failure(_)) = eval.apply(m.kotest.test()): @unchecked
+        val Left(ExecResult.Failure(_)) = eval.apply(m.kotest.testForked()): @unchecked
       })
     }
 

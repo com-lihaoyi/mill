@@ -29,7 +29,7 @@ object TestClassLoaderTests extends TestSuite {
       testclassloader,
       resourcePath
     ).scoped { eval =>
-      assert(eval.apply(testclassloader.test.test()).isRight)
+      assert(eval.apply(testclassloader.test.testForked()).isRight)
     }
   }
 }

@@ -516,7 +516,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
       Task.Command {
-        this.test(args*)()
+        this.testForked(args*)()
       }
 
     override protected[js] def friendModule: Option[KotlinJsModule] = Some(outer)

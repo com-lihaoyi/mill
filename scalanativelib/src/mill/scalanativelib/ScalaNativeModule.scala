@@ -366,7 +366,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaNativeModule].resources
   override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
-    Task.Command { test(args*)() }
+    Task.Command { testForked(args*)() }
   override protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]

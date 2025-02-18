@@ -379,7 +379,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   }
 
   override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
-    Task.Command { test(args*)() }
+    Task.Command { testForked(args*)() }
 
   override protected def testTask(
       args: Task[Seq[String]],
