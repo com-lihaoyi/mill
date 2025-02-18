@@ -16,6 +16,7 @@ trait AndroidLibKotlinModule extends AndroidLibModule with KotlinModule { outer 
       )
     } else Seq.empty
   }
+
   /**
    * Enable Jetpack Compose support in the module. Default is `false`.
    */

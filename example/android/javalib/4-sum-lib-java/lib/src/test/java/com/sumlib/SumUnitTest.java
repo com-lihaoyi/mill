@@ -1,7 +1,5 @@
 package com.sumlib;
 
-
-
 import static org.junit.Assert.*;
 
 import org.junit.Test;
@@ -12,10 +10,10 @@ import org.junit.Test;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 public class SumUnitTest {
-    @Test
-    public void sum_isCorrect() {
+  @Test
+  public void sum_isCorrect() {
 
-        int[] numbers = {1, 1};
-        assertEquals(2, Sum.apply(numbers));
-    }
+    int[] numbers = {1, 1};
+    assertEquals(2, Sum.apply(numbers));
+  }
 }

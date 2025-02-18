@@ -7,7 +7,10 @@ import mill.api.{PathRef, Result}
 import mill.util.JarManifest
 import mill.main.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
-import mill.scalalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
+import mill.scalalib.publish.SonatypeHelpers.{
+  PASSWORD_ENV_VARIABLE_NAME,
+  USERNAME_ENV_VARIABLE_NAME
+}
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 
@@ -402,14 +405,14 @@ trait PublishModule extends JavaModule { outer =>
           )
         }
       case PackagingType.Aar => Task.Anon {
-        val baseName = baseNameTask()
-        Seq(
-          jar() -> s"$baseName.aar",
-          sourceJar() -> s"$baseName-sources.jar",
-          docJar() -> s"$baseName-javadoc.jar",
-          pom() -> s"$baseName.pom"
-        )
-      }
+          val baseName = baseNameTask()
+          Seq(
+            jar() -> s"$baseName.aar",
+            sourceJar() -> s"$baseName-sources.jar",
+            docJar() -> s"$baseName-javadoc.jar",
+            pom() -> s"$baseName.pom"
+          )
+        }
       case PackagingType.Jar | _ => Task.Anon {
           val baseName = baseNameTask()
           Seq(

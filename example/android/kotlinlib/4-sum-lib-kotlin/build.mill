@@ -19,19 +19,17 @@ import mill.javalib.android.AndroidTestModule
 import publish._
 import kotlinlib.android._
 
-
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
-object lib extends AndroidLibKotlinModule with PublishModule{
+object lib extends AndroidLibKotlinModule with PublishModule {
 
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
   def kotlinVersion = "2.0.20"
-
 
   def publishVersion = "0.0.1"
   def pomSettings = PomSettings(
@@ -74,7 +72,6 @@ object app extends AndroidAppKotlinModule {
     ivy"io.github.irodotos7:lib:0.0.1"
   )
 
-
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
     def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -106,7 +103,6 @@ object app extends AndroidAppKotlinModule {
 }
 
 ////SNIPPET:END
-
 
 // This command triggers the build process, which installs the Android Setup, compiles the kotlin
 // code, generates Android resources, converts kotlin bytecode to DEX format, packages everything

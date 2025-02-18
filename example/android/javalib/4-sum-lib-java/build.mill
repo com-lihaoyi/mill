@@ -18,13 +18,12 @@ import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 import mill.javalib.android.AndroidTestModule
 import publish._
 
-
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
-object lib extends AndroidLibModule with PublishModule{
+object lib extends AndroidLibModule with PublishModule {
 
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
@@ -102,7 +101,6 @@ object app extends AndroidAppModule {
 }
 
 ////SNIPPET:END
-
 
 // This command triggers the build process, which installs the Android Setup, compiles the kotlin
 // code, generates Android resources, converts kotlin bytecode to DEX format, packages everything
