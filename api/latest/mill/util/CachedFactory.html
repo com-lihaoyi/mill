@@ -6,6 +6,7 @@
  <span>mill.util.CachedFactory</span>
 </div>
 <div class="main-signature mono-small-block">
+ <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Manage the setup, teardown, and caching of objects of type [[V]] safely\n * in a multithreaded environment.\n *\n * The user provides the [[setup]] and [[teardown]] logic along with a [[maxCacheSize]],\n * and [[CachedFactory]] provides instances of [[V]] as requested using the [[withValue]]\n * method. These instances are automatically constructed on-demand from the give key,\n * cached with an LRU strategy, and destroyed when they are eventually evicted\n *\n * Intended for relatively small caches approximately O(num-threads) in size that\n * will typically get used in a build system, not intended for caching large amounts of entries\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"><span t="k">abstract </span></span><span class="kind"><span t="k">class </span></span><a href="CachedFactory.html" t="n" class="documentableName ">CachedFactory</a>[<span t="k"></span><span data-unresolved-link="" t="t">K</span>, <span t="k"></span><span data-unresolved-link="" t="t">V</span>]<span t="k"> extends </span><span data-unresolved-link="" t="t">AutoCloseable</span></span><span class="signature-long"></span>
  </div>

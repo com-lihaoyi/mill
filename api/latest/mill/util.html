@@ -32,6 +32,9 @@
         <div class="documentableElement" data-f-keywords="abstract">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Manage the setup, teardown, and caching of objects of type [[V]] safely\n * in a multithreaded environment.\n *\n * The user provides the [[setup]] and [[teardown]] logic along with a [[maxCacheSize]],\n * and [[CachedFactory]] provides instances of [[V]] as requested using the [[withValue]]\n * method. These instances are automatically constructed on-demand from the give key,\n * cached with an LRU strategy, and destroyed when they are eventually evicted\n *\n * Intended for relatively small caches approximately O(num-threads) in size that\n * will typically get used in a build system, not intended for caching large amounts of entries\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">abstract </span></span><span class="kind"><span t="k">class </span></span><a href="util/CachedFactory.html" t="n" class="documentableName ">CachedFactory</a>[<span t="k"></span><span data-unresolved-link="" t="t">K</span>, <span t="k"></span><span data-unresolved-link="" t="t">V</span>]<span t="k"> extends </span><span data-unresolved-link="" t="t">AutoCloseable</span></span><span class="signature-long"></span>
@@ -259,6 +262,9 @@
         <div class="documentableElement" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a JAR manifest.\n *\n * @param main the main manifest attributes\n * @param groups additional attributes for named entries\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">class </span></span><a href="util/JarManifest.html" t="n" class="documentableName ">JarManifest</a>
@@ -546,6 +552,9 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Generic retry functionality\n *\n * @param count How many times to retry before giving up\n * @param backoffMillis What is the initial backoff time\n * @param backoffMultiplier How much to multiply the initial backoff each time\n * @param timeoutMillis How much time we want to allow [[t]] to run. If passed,\n * runs [[t]] in a separate thread and throws a `TimeoutException`\n * if it takes too long\n * @param filter Whether or not we want to retry a given exception at a given retryCount;\n * defaults to `true` to retry all exceptions, but can be made more fine-grained\n * to only retry specific exceptions, or log them together with the retryCount\n * @param t The code block that we want to retry\n * @return the value of evaluating [[t]], or throws an exception if evaluating\n * [[t]] fails more than [[count]] times\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="util/Retry.html" t="n" class="documentableName ">Retry</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">count</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">backoffMillis</span>: <span data-unresolved-link="" t="t">Long</span>, <span t="k"></span><span data-unresolved-link="" t="n">backoffMultiplier</span>: <span data-unresolved-link="" t="t">Double</span>, <span t="k"></span><span data-unresolved-link="" t="n">timeoutMillis</span>: <span data-unresolved-link="" t="t">Long</span>, <span t="k"></span><span data-unresolved-link="" t="n">filter</span>: (<span data-unresolved-link="" t="t">Int</span>, <span data-unresolved-link="" t="t">Throwable</span>)<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Boolean</span>)

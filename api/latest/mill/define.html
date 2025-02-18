@@ -106,6 +106,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents an unstructured sequence of command-line arguments that can be\n * passed to Mill commands; similar to `mainargs.Leftover`.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="define/Args.html" t="n" class="documentableName ">Args</a>(<span t="k"></span><span t="k">val </span><span data-unresolved-link="" t="n">value</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>])
@@ -226,6 +229,9 @@
         <div class="documentableElement" data-f-keywords="abstract">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a module at the root of a module tree. This can either be a\n * `mill.define.RootModule` representing the `build.mill` file, or a\n * `mill.define.ExternalModule` provided by a library.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">abstract </span></span><span class="kind"><span t="k">class </span></span><a href="define/BaseModule.html" t="n" class="documentableName ">BaseModule</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">millSourcePath0</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">external0</span>: <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">millModuleEnclosing0</span>: <span data-unresolved-link="" t="t">Enclosing</span>, <span t="k"></span><span data-unresolved-link="" t="n">millModuleLine0</span>: <span data-unresolved-link="" t="t">Line</span>, <span t="k"></span><span data-unresolved-link="" t="n">millFile0</span>: <span data-unresolved-link="" t="t">File</span>)<span t="k"> extends </span><a href="define/Module$$BaseClass.html" t="t">BaseClass</a><span t="k">, </span></span><span class="signature-long"><a href="define/Module.html" t="t">Module</a></span>
@@ -465,6 +471,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Models \"cross-builds\": sets of duplicate builds which differ only in the\n * value of one or more \"case\" variables whose values are determined at runtime.\n * Used via:\n *\n * {{{\n * object foo extends Cross[FooModule](\"bar\", \"baz\", \"qux\")\n * trait FooModule extends Cross.Module[String]{\n * ... crossValue ...\n * }\n * }}}\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="define/Cross.html" t="n" class="documentableName ">Cross</a>[<span t="k"></span><span data-unresolved-link="" t="t">M</span><span t="k"> &lt;: </span><a href="define/Cross$$Module.html" t="t">Module</a>[<span t="k">_</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">factories</span>: <a href="define/Cross$$Factory.html" t="t">Factory</a>[<span data-unresolved-link="" t="t">M</span>]*)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="define/Ctx.html" t="t">Ctx</a>)<span t="k"> extends </span><a href="define/Module.html" t="t">Module</a></span><span class="signature-long"></span>
@@ -545,6 +554,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The contextual information provided to a [[mill.define.Module]] or [[mill.define.Task]]\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="define/Ctx.html" t="n" class="documentableName ">Ctx</a><span t="k"> extends </span><a href="define/Ctx$$Nested.html" t="t">Nested</a></span><span class="signature-long"></span>
@@ -671,6 +683,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Macro to walk the module tree and generate `mainargs` entrypoints for any\n * `Task.Command` methods that it finds.\n *\n * Note that unlike the rest of Mill\'s module-handling logic which uses Java\n * reflection, generation of entrypoints requires typeclass resolution, and so\n * needs to be done at compile time. Thus, we walk the entire module tree,\n * collecting all the module `Class[_]`s we can find, and for each one generate\n * the `mainargs.MainData` containing metadata and resolved typeclasses for all\n * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`\n * can then be used later to look up the `MainData` for any module.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="define/Discover.html" t="n" class="documentableName ">Discover</a>(<span t="k"></span><span t="k">val </span><span data-unresolved-link="" t="n">classInfo</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">Class</span>[<span t="k">_</span>], <a href="define/Discover$$ClassInfo.html" t="t">ClassInfo</a>])
@@ -792,6 +807,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A module which you can override [[moduleDirectChildren]] to dynamically\n * enable or disable child modules at runtime\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="define/DynamicModule.html" t="n" class="documentableName ">DynamicModule</a><span t="k"> extends </span><a href="define/Module.html" t="t">Module</a></span><span class="signature-long"></span>
@@ -858,6 +876,9 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * An implicit that provides the lexically-enclosing class\n * at the point at which it is resolved\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="define/EnclosingClass.html" t="n" class="documentableName ">EnclosingClass</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">value</span>: <span data-unresolved-link="" t="t">Class</span>[<span t="k">_</span>])
@@ -993,6 +1014,9 @@
         <div class="documentableElement" data-f-keywords="abstract">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A module defined outside of the `build.mill` file, and is instead\n * provided builtin by some Mill library or plugin\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">abstract </span></span><span class="kind"><span t="k">class </span></span><a href="define/ExternalModule.html" t="n" class="documentableName ">ExternalModule</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">millModuleEnclosing0</span>: <span data-unresolved-link="" t="t">Enclosing</span>, <span t="k"></span><span data-unresolved-link="" t="n">millModuleLine0</span>: <span data-unresolved-link="" t="t">Line</span>, <span t="k"></span><span data-unresolved-link="" t="n">millFile0</span>: <span data-unresolved-link="" t="t">File</span>)<span t="k"> extends </span><a href="define/BaseModule.html" t="t">BaseModule</a></span><span class="signature-long"></span>
@@ -1281,6 +1305,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a namespace within the Mill build hierarchy, containing nested\n * modules or tasks.\n *\n * `Module` is a class meant to be extended by ``trait``s *only*, in order to\n * propagate the implicit parameters forward to the final concrete\n * instantiation site so they can capture the enclosing/line information of\n * the concrete instance.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="define/Module.html" t="n" class="documentableName ">Module</a><span t="k"> extends </span><a href="define/Module$$BaseClass.html" t="t">BaseClass</a><span t="k">, </span></span><span class="signature-long"><a href="define/Ctx$$Wrapper.html" t="t">Wrapper</a></span>
@@ -1724,6 +1751,9 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Used to refer to a module from another module without including the target\n * module as a child-module of the first.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="define/ModuleRef.html" t="n" class="documentableName ">ModuleRef</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span><span t="k"> &lt;: </span><a href="define/Module.html" t="t">Module</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <span data-unresolved-link="" t="t">T</span>)
@@ -1784,6 +1814,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a task that can be referenced by its path segments. `Task{...}`\n * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous\n * `Task.Anon` or `Task.traverse` etc. instances\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="define/NamedTask.html" t="n" class="documentableName ">NamedTask</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]<span t="k"> extends </span><a href="define/Task.html" t="t">Task</a>[<span t="t">T</span>]</span><span class="signature-long"></span>
@@ -2006,6 +2039,9 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Models a path with the Mill build hierarchy, e.g. `amm.util[2.11].test.compile`.\n * Segments must start with a [[Segment.Label]].\n *\n * `.`-separated segments are [[Segment.Label]]s,\n * while `[]`-delimited segments are [[Segment.Cross]]s\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="define/Segments.html" t="n" class="documentableName ">Segments</a>
@@ -2404,6 +2440,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A Target is a [[NamedTask]] that is cached on disk; either a\n * [[TargetImpl]] or an [[InputImpl]]\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="define/Target.html" t="n" class="documentableName ">Target</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]<span t="k"> extends </span><a href="define/NamedTask.html" t="t">NamedTask</a>[<span t="t">T</span>]</span><span class="signature-long"></span>
@@ -2619,6 +2658,9 @@
         <div class="documentableElement" data-f-keywords="abstract">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Models a single node in the Mill build graph, with a list of inputs and a\n * single output of type [[T]].\n *\n * Generally not instantiated manually, but instead constructed via the\n * [[Target.apply]] &amp; similar macros.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">abstract </span></span><span class="kind"><span t="k">class </span></span><a href="define/Task.html" t="n" class="documentableName ">Task</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]<span t="k"> extends </span><a href="define/Task$$Ops.html" t="t">Ops</a>[<span t="t">T</span>]<span t="k">, </span></span><span class="signature-long"><a href="define/internal/Applicative$$Applyable.html" t="t">Applyable</a>[<a href="define/Task.html" t="t">Task</a>, <span t="t">T</span>]</span>
@@ -2783,6 +2825,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The [[mill.define.Target]] companion object, usually aliased as [[T]],\n * provides most of the helper methods and macros used to build task graphs.\n * methods like `Task.`[[apply]], `Task.`[[sources]], `Task.`[[command]] allow you to\n * define the tasks, while methods like `Task.`[[dest]], `Task.`[[log]] or\n * `Task.`[[env]] provide the core APIs that are provided to a task implementation\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="define/TaskBase.html" t="n" class="documentableName ">TaskBase</a>
@@ -2847,6 +2892,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[Module]] that has a [[defaultCommandName]] that will be automatically\n * executed if the module name is provide at the Mill command line\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="define/TaskModule.html" t="n" class="documentableName ">TaskModule</a><span t="k"> extends </span><a href="define/Module.html" t="t">Module</a></span><span class="signature-long"></span>

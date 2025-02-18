@@ -264,6 +264,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A listener trait for getting notified about\n * compilation output like compiler warnings and errors\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/CompileProblemReporter.html" t="n" class="documentableName ">CompileProblemReporter</a>
@@ -386,6 +389,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents the data and utilities that are contextually available inside the\n * implementation of a `Task`.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="api/Ctx.html" t="n" class="documentableName ">Ctx</a>(<span t="k"></span><span t="k">val </span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">IndexedSeq</span>[<span t="k">_</span>], <span t="k"></span><span data-unresolved-link="" t="n">dest0</span>: ()<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Path</span>, <span t="k">val </span><span data-unresolved-link="" t="n">log</span>: <a href="api/Logger.html" t="t">Logger</a>, <span t="k">val </span><span data-unresolved-link="" t="n">home</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k">val </span><span data-unresolved-link="" t="n">env</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k">val </span><span data-unresolved-link="" t="n">reporter</span>: <span data-unresolved-link="" t="t">Int</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Option</span>[<a href="api/CompileProblemReporter.html" t="t">CompileProblemReporter</a>], <span t="k">val </span><span data-unresolved-link="" t="n">testReporter</span>: <a href="api/TestReporter.html" t="t">TestReporter</a>, <span t="k">val </span><span data-unresolved-link="" t="n">workspace</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k">val </span><span data-unresolved-link="" t="n">systemExit</span>: <span data-unresolved-link="" t="t">Int</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Nothing</span>, <span t="k">val </span><span data-unresolved-link="" t="n">fork</span>: <a href="api/Ctx$$Fork$$Api.html" t="t">Api</a>)<span t="k"> extends </span><a href="api/Ctx$$Dest.html" t="t">Dest</a><span t="k">, </span></span><span class="signature-long"><a href="api/Ctx$$Log.html" t="t">Log</a><span t="k">, </span><a href="api/Ctx$$Args.html" t="t">Args</a><span t="k">, </span><a href="api/Ctx$$Home.html" t="t">Home</a><span t="k">, </span><a href="api/Ctx$$Env.html" t="t">Env</a><span t="k">, </span><a href="api/Ctx$$Workspace.html" t="t">Workspace</a></span>
@@ -461,6 +467,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Unique diagnostic code given from the compiler with an optional further explanation.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/DiagnosticCode.html" t="n" class="documentableName ">DiagnosticCode</a>
@@ -812,6 +821,9 @@
         <div class="documentableElement" data-f-keywords="sealed">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The result of a task execution.\n *\n * @tparam T The result type of the computed task.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">sealed </span></span><span class="kind"><span t="k">trait </span></span><a href="api/ExecResult.html" t="n" class="documentableName ">ExecResult</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]
@@ -1116,6 +1128,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Defines various default JSON formatters used in mill.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/JsonFormatters.html" t="n" class="documentableName ">JsonFormatters</a>
@@ -1183,6 +1198,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The standard logging interface of the Mill build tool.\n *\n * Contains these primary logging methods, in order of increasing importance:\n *\n * - `debug` : internal debug messages normally not shown to the user;\n * mostly useful when debugging issues\n *\n * - `ticker`: short-lived logging output where consecutive lines over-write\n * each other; useful for information which is transient and disposable\n *\n * - `info`: miscellaneous logging output which isn\'t part of the main output\n * a user is looking for, but useful to provide context on what Mill is doing\n *\n * - `error`: logging output which represents problems the user should care\n * about\n *\n * Also contains the two forwarded stdout and stderr streams, for code executed\n * by Mill to use directly. Typically, these correspond to the stdout and stderr,\n * but when `show` is used both are forwarded to stderr and stdout is only\n * used to display the final `show` output for easy piping.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/Logger.html" t="n" class="documentableName ">Logger</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AutoCloseable</span></span><span class="signature-long"></span>
@@ -1259,6 +1277,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * This exception is specifically handled in [[mill.runner.MillMain]] and [[mill.runner.MillServerMain]]. You can use it, if you need to exit Mill with a nice error message.\n * @param msg The error message, to be displayed to the user.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="api/MillException.html" t="n" class="documentableName ">MillException</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">msg</span>: <span data-unresolved-link="" t="t">String</span>)<span t="k"> extends </span><span data-unresolved-link="" t="t">Exception</span></span><span class="signature-long"></span>
@@ -1395,6 +1416,9 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A wrapper around `os.Path` that calculates it\'s hashcode based\n * on the contents of the filesystem underneath it. Used to ensure filesystem\n * changes can bust caches which are keyed off hashcodes.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="api/PathRef.html" t="n" class="documentableName ">PathRef</a>
@@ -1530,6 +1554,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Contains general information about the build problem\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/Problem.html" t="n" class="documentableName ">Problem</a>
@@ -1581,6 +1608,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Indicates the exact location (source file, line, column) of the build problem\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/ProblemPosition.html" t="n" class="documentableName ">ProblemPosition</a>
@@ -1632,6 +1662,9 @@
         <div class="documentableElement" data-f-keywords="sealed">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a computation that either succeeds with a value [[T]] or\n * fails. Basically equivalent to `Either[String, T]`, with converters\n * back and forther via [[Result.toEither]] or [[Result.fromEither]]\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">sealed </span></span><span class="kind"><span t="k">trait </span></span><a href="api/Result.html" t="n" class="documentableName ">Result</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]
@@ -1833,6 +1866,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a set of streams that look similar to those provided by the\n * operating system. These may internally be proxied/redirected/processed, but\n * from the consumer\'s perspective they look just like the stdout/stderr/stdin\n * that any Unix process receives from the OS.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="api/SystemStreams.html" t="n" class="documentableName ">SystemStreams</a>(<span t="k"></span><span t="k">val </span><span data-unresolved-link="" t="n">out</span>: <span data-unresolved-link="" t="t">PrintStream</span>, <span t="k">val </span><span data-unresolved-link="" t="n">err</span>: <span data-unresolved-link="" t="t">PrintStream</span>, <span t="k">val </span><span data-unresolved-link="" t="n">in</span>: <span data-unresolved-link="" t="t">InputStream</span>)
@@ -1953,6 +1989,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Test reporter class that can be\n * injected into the test task and\n * report information upon the start\n * and the finish of testing events\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/TestReporter.html" t="n" class="documentableName ">TestReporter</a>
@@ -2014,6 +2053,9 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A somewhat-type-safe wrapper around `Any`. Stores an un-typed value, but\n * can only be created explicitly by wrapping in `Val(_)` and de-constructed\n * explicitly via `.value`. That makes it much less likely to introduce bugs\n * passing the wrong thing, e.g. `(Any, Int)` can be passed to `Any`, but\n * `(Val, Int)` cannot be passed to `Val`\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="api/Val.html" t="n" class="documentableName ">Val</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">value</span>: <span data-unresolved-link="" t="t">Any</span>)
@@ -2209,6 +2251,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Annotation to mark experimental API, which is not guaranteed to stay.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="api/experimental.html" t="n" class="documentableName ">experimental</a><span t="k"> extends </span><span data-unresolved-link="" t="t">StaticAnnotation</span></span><span class="signature-long"></span>
@@ -2266,6 +2311,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Annotation to mark internal API, which is not guaranteed to stay.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="api/internal.html" t="n" class="documentableName ">internal</a><span t="k"> extends </span><span data-unresolved-link="" t="t">StaticAnnotation</span></span><span class="signature-long"></span>

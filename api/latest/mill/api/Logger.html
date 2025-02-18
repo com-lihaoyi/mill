@@ -6,6 +6,7 @@
  <span>mill.api.Logger</span>
 </div>
 <div class="main-signature mono-small-block">
+ <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The standard logging interface of the Mill build tool.\n *\n * Contains these primary logging methods, in order of increasing importance:\n *\n * - `debug` : internal debug messages normally not shown to the user;\n * mostly useful when debugging issues\n *\n * - `ticker`: short-lived logging output where consecutive lines over-write\n * each other; useful for information which is transient and disposable\n *\n * - `info`: miscellaneous logging output which isn\'t part of the main output\n * a user is looking for, but useful to provide context on what Mill is doing\n *\n * - `error`: logging output which represents problems the user should care\n * about\n *\n * Also contains the two forwarded stdout and stderr streams, for code executed\n * by Mill to use directly. Typically, these correspond to the stdout and stderr,\n * but when `show` is used both are forwarded to stderr and stdout is only\n * used to display the final `show` output for easy piping.\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="Logger.html" t="n" class="documentableName ">Logger</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AutoCloseable</span></span><span class="signature-long"></span>
  </div>

@@ -32,6 +32,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A Trait for Android App Bundle Creation\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="android/AndroidAppBundle.html" t="n" class="documentableName ">AndroidAppBundle</a><span t="k"> extends </span><a href="android/AndroidAppModule.html" t="t">AndroidAppModule</a><span t="k">, </span></span><span class="signature-long"><a href="../scalalib/JavaModule.html" t="t">JavaModule</a></span>
@@ -134,6 +137,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Trait for building Android applications using the Mill build tool.\n *\n * This trait defines all the necessary steps for building an Android app from Java sources,\n * integrating both Android-specific tasks and generic Java tasks by extending the\n * [[AndroidSdkModule]] (for Android SDK interactions) and [[JavaModule]] (for standard Java tasks).\n *\n * It provides a structured way to handle various steps in the Android app build process,\n * including compiling Java sources, creating DEX files, generating resources, packaging\n * APKs, optimizing, and signing APKs.\n *\n * [[https://developer.android.com/studio Android Studio Documentation]]\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="android/AndroidAppModule.html" t="n" class="documentableName ">AndroidAppModule</a><span t="k"> extends </span><a href="../scalalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -329,6 +335,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Trait for managing the Android SDK in a Mill build system.\n *\n * This trait offers utility methods for automating the download, installation,\n * and configuration of the Android SDK, build tools, and other essential\n * components necessary for Android development. It facilitates setting up\n * an Android development environment, streamlining the process of building,\n * compiling, and packaging Android applications in a Mill project.\n *\n * For more information, refer to the official Android\n * [[https://developer.android.com/studio documentation]].\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="android/AndroidSdkModule.html" t="n" class="documentableName ">AndroidSdkModule</a><span t="k"> extends </span><a href="../../mill.html#Module-0" t="t">Module</a></span><span class="signature-long"></span>
@@ -630,6 +639,9 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Descriptor of unpacked `.aar` dependency structure.\n * @param name dependency name\n * @param classesJar path to the classes.jar\n * @param proguardRules path to the proguard rules\n * @param resources path to the res folder\n * @param manifest path to the AndroidManifest.xml\n * @param lintJar path to the lint.jar file\n * @param metaInf path to the META-INF folder\n * @param nativeLibs path to the native .so libraries root folder\n * @param baselineProfile path to the baseline profile file\n * @param rTxtFile path to the R.txt\n * @param publicResFile path to public.txt file\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="android/UnpackedDep.html" t="n" class="documentableName ">UnpackedDep</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">name</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classesJar</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], <span t="k"></span><span data-unresolved-link="" t="n">proguardRules</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], <span t="k"></span><span data-unresolved-link="" t="n">resources</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], <span t="k"></span><span data-unresolved-link="" t="n">manifest</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], <span t="k"></span><span data-unresolved-link="" t="n">lintJar</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], <span t="k"></span><span data-unresolved-link="" t="n">metaInf</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], <span t="k"></span><span data-unresolved-link="" t="n">nativeLibs</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], <span t="k"></span><span data-unresolved-link="" t="n">baselineProfile</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], <span t="k"></span><span data-unresolved-link="" t="n">rTxtFile</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], <span t="k"></span><span data-unresolved-link="" t="n">publicResFile</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>])

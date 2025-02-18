@@ -235,6 +235,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Core configuration required to compile a single Java compilation target\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/AssemblyModule.html" t="n" class="documentableName ">AssemblyModule</a><span t="k"> extends </span><a href="../mill.html#Module-0" t="t">Module</a></span><span class="signature-long"></span>
@@ -490,6 +493,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A module that consists solely of dependency management\n *\n * To be used by other modules via `JavaModule#bomModuleDeps`\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/BomModule.html" t="n" class="documentableName ">BomModule</a><span t="k"> extends </span><a href="scalalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -590,6 +596,9 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as [[Dep]] but with already bound cross and platform settings.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="scalalib/BoundDep.html" t="n" class="documentableName ">BoundDep</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dep</span>: <span data-unresolved-link="" t="t">Dependency</span>, <span t="k"></span><span data-unresolved-link="" t="n">force</span>: <span data-unresolved-link="" t="t">Boolean</span>)
@@ -725,6 +734,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.\n *\n * It\'s mainly used in [[JavaModule]], but can also be used stand-alone,\n * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/CoursierModule.html" t="n" class="documentableName ">CoursierModule</a><span t="k"> extends </span><a href="../mill.html#Module-0" t="t">Module</a></span><span class="signature-long"></span>
@@ -1311,6 +1323,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[ScalaModule]] which is suited to be used with [[mill.define.Cross]].\n * It supports additional source directories with the scala version pattern\n * as suffix (`src-{scalaversionprefix}`), e.g.\n *\n * - src\n * - src-2.11\n * - src-2.12.3\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/CrossScalaModule.html" t="n" class="documentableName ">CrossScalaModule</a><span t="k"> extends </span><a href="scalalib/ScalaModule.html" t="t">ScalaModule</a><span t="k">, </span></span><span class="signature-long"><a href="scalalib/CrossModuleBase.html" t="t">CrossModuleBase</a></span>
@@ -1427,6 +1442,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Adds version range specific sources when mixed-in to a cross module like\n * `CrossScalaModule` or `CrossSbtModule`.\n * It is useful when a Scala version specific breaking change requires two\n * implementations of the same code for the cross versions before and after\n * a specific version. For example, migrating to Scala 2.13 it is usually\n * needed to define some version specific code for Scala 2.12- (all the versions\n * less or equal 2.12) and for Scala 2.13+ (all the versions greater or equal to 2.13).\n * Mixing `CrossScalaVersionRanges` into a `CrossScalaModule` will automatically add\n * the `src-2.13+` and `src-2.12-`, based on the `crossScalaVersion`.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/CrossScalaVersionRanges.html" t="n" class="documentableName ">CrossScalaVersionRanges</a><span t="k"> extends </span><a href="scalalib/CrossModuleBase.html" t="t">CrossModuleBase</a></span><span class="signature-long"></span>
@@ -1929,6 +1947,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Module specific configuration of the Idea project file generator.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/GenIdeaModule.html" t="n" class="documentableName ">GenIdeaModule</a><span t="k"> extends </span><a href="../mill.html#Module-0" t="t">Module</a></span><span class="signature-long"></span>
@@ -2242,6 +2263,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Arguments for the ivDepsTree command.\n *\n * @param inverse Invert the tree representation, so that the root is on the bottom.\n * @param withCompile Include the compile-time only dependencies (`compileIvyDeps`, provided scope) into the tree.\n * @param withRuntime Include the runtime dependencies (`runIvyDeps`, runtime scope) into the tree.\n * @param whatDependsOn possible list of modules (org:artifact) to target in the tree in order to see\n * where a dependency stems from.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="scalalib/IvyDepsTreeArgs.html" t="n" class="documentableName ">IvyDepsTreeArgs</a>
@@ -2389,6 +2413,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Core configuration required to compile a single Java compilation target\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/JavaModule.html" t="n" class="documentableName ">JavaModule</a><span t="k"> extends </span><a href="../mill.html#Module-0" t="t">Module</a><span t="k">, </span></span><span class="signature-long"><a href="scalalib/WithZincWorker.html" t="t">WithZincWorker</a><span t="k">, </span><a href="scalalib/TestModule$$JavaModuleBase.html" t="t">JavaModuleBase</a><span t="k">, </span><a href="define/TaskModule.html" t="t">TaskModule</a><span t="k">, </span><a href="scalalib/RunModule.html" t="t">RunModule</a><span t="k">, </span><a href="scalalib/GenIdeaModule.html" t="t">GenIdeaModule</a><span t="k">, </span><a href="scalalib/CoursierModule.html" t="t">CoursierModule</a><span t="k">, </span><a href="scalalib/OfflineSupportModule.html" t="t">OfflineSupportModule</a><span t="k">, </span><a href="scalalib/bsp/BspModule.html" t="t">BspModule</a><span t="k">, </span><a href="scalalib/SemanticDbJavaModule.html" t="t">SemanticDbJavaModule</a><span t="k">, </span><a href="scalalib/AssemblyModule.html" t="t">AssemblyModule</a></span>
@@ -2740,6 +2767,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Support building modular runtime images with the `jlink` tool, which is included in JDK 9 and later.\n *\n * The official `jlink` docs: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jlink.html\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/JlinkModule.html" t="n" class="documentableName ">JlinkModule</a><span t="k"> extends </span><a href="scalalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -2840,6 +2870,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Support for building a native package / installer with the `jpackage` tool which comes bundled with JDK 14 and later.\n *\n * The official `jpackage` docs: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jpackage.html\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/JpackageModule.html" t="n" class="documentableName ">JpackageModule</a><span t="k"> extends </span><a href="scalalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -3125,6 +3158,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[JavaModule]] with a Maven compatible directory layout.\n *\n * @see [[SbtModule]] if you need a scala module with Maven layout.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/MavenModule.html" t="n" class="documentableName ">MavenModule</a><span t="k"> extends </span><a href="scalalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -3261,6 +3297,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Provides a [[NativeImageModule.nativeImage task]] to build a native executable using [[https://www.graalvm.org/ Graal VM]].\n *\n * It is recommended to specify a custom JDK that includes the `native-image` Tool.\n * {{{\n * trait AppModule extends NativeImageModule {\n * def zincWorker = ModuleRef(ZincWorkerGraalvm)\n *\n * object ZincWorkerGraalvm extends ZincWorkerModule {\n * def jvmId = \"graalvm-community:23.0.1\"\n * }\n * }\n * }}}\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/NativeImageModule.html" t="n" class="documentableName ">NativeImageModule</a><span t="k"> extends </span><a href="scalalib/WithZincWorker.html" t="t">WithZincWorker</a></span><span class="signature-long"></span>
@@ -3691,6 +3730,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[ScalaModule]] intended for defining `.jvm`/`.js`/`.native` submodules\n * It supports additional source directories per platform, e.g. `src-jvm/` or\n * `src-js/` and can be used inside a [[CrossScalaModule.Base]], to get one\n * source folder per platform per version e.g. `src-2.12-jvm/`.\n *\n * Adjusts the [[moduleDir]] and [[artifactNameParts]] to ignore the last\n * path segment, which is assumed to be the name of the platform the module is\n * built against and not something that should affect the filesystem path or\n * artifact name\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/PlatformScalaModule.html" t="n" class="documentableName ">PlatformScalaModule</a><span t="k"> extends </span><a href="scalalib/ScalaModule.html" t="t">ScalaModule</a></span><span class="signature-long"></span>
@@ -3797,6 +3839,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Configuration necessary for publishing a Scala module to Maven Central or similar\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/PublishModule.html" t="n" class="documentableName ">PublishModule</a><span t="k"> extends </span><a href="scalalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -4347,6 +4392,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[ScalaModule]] with sbt compatible directory layout.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/SbtModule.html" t="n" class="documentableName ">SbtModule</a><span t="k"> extends </span><a href="scalalib/ScalaModule.html" t="t">ScalaModule</a><span t="k">, </span></span><span class="signature-long"><a href="scalalib/MavenModule.html" t="t">MavenModule</a></span>
@@ -4468,6 +4516,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Core configuration required to compile a single Scala compilation target\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/ScalaModule.html" t="n" class="documentableName ">ScalaModule</a><span t="k"> extends </span><a href="scalalib/JavaModule.html" t="t">JavaModule</a><span t="k">, </span></span><span class="signature-long"><a href="scalalib/TestModule$$ScalaModuleBase.html" t="t">ScalaModuleBase</a></span>
@@ -5195,6 +5246,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] target that\n * can be used to build a unified scaladoc site for this module and all of\n * its transitive dependencies\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/UnidocModule.html" t="n" class="documentableName ">UnidocModule</a><span t="k"> extends </span><a href="scalalib/ScalaModule.html" t="t">ScalaModule</a></span><span class="signature-long"></span>
@@ -5300,6 +5354,9 @@
         <div class="documentableElement" data-f-keywords="sealed">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * An unresolved path is relative to some unspecified destination\n * which depends on the actual configuration at evaluation time.\n * Hence, you need to call [[#resolve]] with an instance of\n * [[ExecutionPathsResolver]] to get the final [[os.Path]].\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">sealed </span></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/UnresolvedPath.html" t="n" class="documentableName ">UnresolvedPath</a>
@@ -5439,6 +5496,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Common trait for modules that use either a custom or a globally shared [[ZincWorkerModule]].\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/WithZincWorker.html" t="n" class="documentableName ">WithZincWorker</a><span t="k"> extends </span><a href="define/Module.html" t="t">Module</a></span><span class="signature-long"></span>
@@ -5826,6 +5886,9 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A module managing an in-memory Zinc Scala incremental compiler\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="scalalib/ZincWorkerModule.html" t="n" class="documentableName ">ZincWorkerModule</a><span t="k"> extends </span><a href="../mill.html#Module-0" t="t">Module</a><span t="k">, </span></span><span class="signature-long"><a href="scalalib/OfflineSupportModule.html" t="t">OfflineSupportModule</a><span t="k">, </span><a href="scalalib/CoursierModule.html" t="t">CoursierModule</a></span>

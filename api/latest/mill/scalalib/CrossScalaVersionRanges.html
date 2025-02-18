@@ -6,6 +6,7 @@
  <span>mill.scalalib.CrossScalaVersionRanges</span>
 </div>
 <div class="main-signature mono-small-block">
+ <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Adds version range specific sources when mixed-in to a cross module like\n * `CrossScalaModule` or `CrossSbtModule`.\n * It is useful when a Scala version specific breaking change requires two\n * implementations of the same code for the cross versions before and after\n * a specific version. For example, migrating to Scala 2.13 it is usually\n * needed to define some version specific code for Scala 2.12- (all the versions\n * less or equal 2.12) and for Scala 2.13+ (all the versions greater or equal to 2.13).\n * Mixing `CrossScalaVersionRanges` into a `CrossScalaModule` will automatically add\n * the `src-2.13+` and `src-2.12-`, based on the `crossScalaVersion`.\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="CrossScalaVersionRanges.html" t="n" class="documentableName ">CrossScalaVersionRanges</a><span t="k"> extends </span><a href="CrossModuleBase.html" t="t">CrossModuleBase</a></span><span class="signature-long"></span>
  </div>
@@ -221,6 +222,9 @@ node24 -> node13;
         <div class="documentableElement" data-f-inherited="Module">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * trait that can be mixed into any sub-modules within the body of a\n * [[Cross.Module]], to automatically inherit the [[crossValue]]\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="../define/Cross$$Module$CrossValue.html" t="n" class="documentableName ">CrossValue</a><span t="k"> extends </span><a href="../define/Cross$$Module.html" t="t">Module</a>[<span t="t">T1</span>]</span><span class="signature-long"></span>

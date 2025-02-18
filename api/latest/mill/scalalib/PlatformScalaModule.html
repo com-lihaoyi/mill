@@ -6,6 +6,7 @@
  <span>mill.scalalib.PlatformScalaModule</span>
 </div>
 <div class="main-signature mono-small-block">
+ <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[ScalaModule]] intended for defining `.jvm`/`.js`/`.native` submodules\n * It supports additional source directories per platform, e.g. `src-jvm/` or\n * `src-js/` and can be used inside a [[CrossScalaModule.Base]], to get one\n * source folder per platform per version e.g. `src-2.12-jvm/`.\n *\n * Adjusts the [[moduleDir]] and [[artifactNameParts]] to ignore the last\n * path segment, which is assumed to be the name of the platform the module is\n * built against and not something that should affect the filesystem path or\n * artifact name\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="PlatformScalaModule.html" t="n" class="documentableName ">PlatformScalaModule</a><span t="k"> extends </span><a href="ScalaModule.html" t="t">ScalaModule</a></span><span class="signature-long"></span>
  </div>

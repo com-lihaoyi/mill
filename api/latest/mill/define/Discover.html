@@ -9,6 +9,7 @@
  <span>See the<span class="micon ob"></span><a href="Discover$.html">Discover</a> companion object</span>
 </div>
 <div class="main-signature mono-small-block">
+ <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Macro to walk the module tree and generate `mainargs` entrypoints for any\n * `Task.Command` methods that it finds.\n *\n * Note that unlike the rest of Mill\'s module-handling logic which uses Java\n * reflection, generation of entrypoints requires typeclass resolution, and so\n * needs to be done at compile time. Thus, we walk the entire module tree,\n * collecting all the module `Class[_]`s we can find, and for each one generate\n * the `mainargs.MainData` containing metadata and resolved typeclasses for all\n * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`\n * can then be used later to look up the `MainData` for any module.\n */") </span>
  <div class="signature">
   <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="Discover.html" t="n" class="documentableName ">Discover</a>(<span t="k"></span><span t="k">val </span><span data-unresolved-link="" t="n">classInfo</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">Class</span>[<span t="k">_</span>], <a href="Discover$$ClassInfo.html" t="t">ClassInfo</a>])
  </div>
