@@ -84,7 +84,7 @@ object app extends AndroidAppKotlinModule {
 
 /** Usage
 
-> ./mill show app.screenshotTest.test
+> ./mill show app.screenshotTest.testForked
 ...
 [
   "",

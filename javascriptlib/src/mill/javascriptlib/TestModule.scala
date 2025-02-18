@@ -5,7 +5,7 @@ import mill.*
 trait TestModule extends TaskModule {
   import TestModule.TestResult
 
-  def test(args: String*): Command[TestResult] =
+  def testForked(args: String*): Command[TestResult] =
     Task.Command {
       testTask(Task.Anon { args })()
     }
