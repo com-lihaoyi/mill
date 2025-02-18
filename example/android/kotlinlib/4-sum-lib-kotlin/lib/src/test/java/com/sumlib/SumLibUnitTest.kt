@@ -7,7 +7,7 @@ import org.junit.Test
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class SumlibUnitTest {
+class SumLibUnitTest {
     @Test
     fun kotlin_dir_text_size_is_correct() {
         val numbers = arrayOf(1, 1)
