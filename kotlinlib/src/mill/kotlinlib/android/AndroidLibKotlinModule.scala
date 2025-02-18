@@ -36,14 +36,4 @@ trait AndroidLibKotlinModule extends AndroidLibModule with KotlinModule { outer 
     override def sources: T[Seq[PathRef]] =
       super[AndroidLibTests].sources() ++ Seq(PathRef(outer.moduleDir / "src/test/kotlin"))
   }
-  //    trait AndroidLibKotlinInstrumentedTests extends AndroidLibKotlinModule with AndroidLibInstrumentedTests {
-  //
-  //      override final def kotlinVersion = outer.kotlinVersion
-  //      override final def androidSdkModule = outer.androidSdkModule
-  //
-  //      override def sources: T[Seq[PathRef]] =
-  //        super[AndroidLibInstrumentedTests].sources() :+ PathRef(
-  //          outer.millSourcePath / "src/androidTest/kotlin"
-  //        )
-  //    }
 }
