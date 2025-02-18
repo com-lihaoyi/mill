@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 93bd1656426..9d704ff7fbc 100644
+index ce02c1bc1a0..df2271c63a5 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,16 +1,16 @@
@@ -493,7 +493,7 @@ index 62190fd6c1e..9d4f176c915 100644
      val (repoPath, repoHash) = repoInfo(crossValue)
      def repoSlug = repoPath.split("/").last
 diff --git a/integration/package.mill b/integration/package.mill
-index af00b40d3f0..303bb74cbc0 100644
+index af00b40d3f0..e43343cabf1 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -3,13 +3,12 @@ package build.integration
@@ -520,7 +520,12 @@ index af00b40d3f0..303bb74cbc0 100644
  
      def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
  
-@@ -38,7 +37,7 @@ object `package` extends RootModule {
+@@ -34,11 +33,11 @@ object `package` extends RootModule {
+     def forkEnv: T[Map[String, String]]
+     def testExclusive = false
+     trait ModeModule extends build.MillBaseTestsModule {
+-      override def test(args: String*) = Task.Command(exclusive = testExclusive) {
++      override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
          testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
        }
  
