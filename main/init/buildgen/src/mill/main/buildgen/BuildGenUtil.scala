@@ -140,7 +140,12 @@ object BuildGenUtil {
       isNested: Boolean,
       packagesSize: Int
   ): SortedSet[String] = {
-    scala.collection.immutable.SortedSet("mill._", "mill.javalib._", "mill.javalib.publish._", "mill.scalalib._") ++
+    scala.collection.immutable.SortedSet(
+      "mill._",
+      "mill.javalib._",
+      "mill.javalib.publish._",
+      "mill.scalalib._"
+    ) ++
       (if (isNested) baseModule.map(name => s"$$file.$name")
        else if (packagesSize > 1) Seq("$packages._")
        else None)
@@ -482,7 +487,11 @@ object BuildGenUtil {
     }
   }
 
-  def renderTestModuleDecl(testModule: String, testsSuperType: String, testModuleType: Option[String]): String = {
+  def renderTestModuleDecl(
+      testModule: String,
+      testsSuperType: String,
+      testModuleType: Option[String]
+  ): String = {
     val name = backtickWrap(testModule)
     testModuleType match {
       case Some(supertype) => s"object $name extends $testsSuperType with $supertype"

@@ -15,7 +15,7 @@ object BuildGenTests extends TestSuite {
         checker.check(SbtBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
       )
     }
-    
+
     // multi-modules
     test("multi-module") {
       val sourceRoot = os.sub / "multi-module"
@@ -24,7 +24,7 @@ object BuildGenTests extends TestSuite {
         checker.check(SbtBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
       )
     }
-/*
+    /*
     test("config") {
       val sourceRoot = os.sub / "maven-samples"
       val expectedRoot = os.sub / "expected/config"
@@ -46,6 +46,6 @@ object BuildGenTests extends TestSuite {
         checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot)
       )
     }
-*/
+     */
   }
 }

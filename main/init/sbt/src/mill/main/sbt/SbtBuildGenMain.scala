@@ -1,6 +1,6 @@
 package mill.main.sbt
 
-import mainargs.{Flag, ParserForClass, arg, main}
+import mainargs.{ParserForClass, arg, main}
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import os.{Path, SubPath}
@@ -40,10 +40,10 @@ object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
     val allProjectsMap = allProjects.map(p => os.Path(p.base) -> p).toMap
     rootProject = allProjectsMap(workspace)
     val subProjectsMap = allProjectsMap - workspace
-    
+
     val input = Tree(
       Node(Seq.empty, rootProject),
-      subProjectsMap.values.view.map { proj => 
+      subProjectsMap.values.view.map { proj =>
         val dir = os.Path(proj.base).subRelativeTo(workspace)
         Tree(Node(dir.segments, proj), Seq.empty)
       }.toSeq
@@ -59,7 +59,6 @@ object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
 
   override def getArtifactId(model: ProjectExport): String = model.artifactName
 
-  
   override def getBaseInfo(
       input: Tree[Node[ProjectExport]],
       cfg: Config,
@@ -83,7 +82,14 @@ object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
       getRepositories(model)
     )
 
-    IrBaseInfo(model.javacOptions, getRepositories(model), noPom = false, publishVersion, publishProperties, typedef)
+    IrBaseInfo(
+      model.javacOptions,
+      getRepositories(model),
+      noPom = false,
+      publishVersion,
+      publishProperties,
+      typedef
+    )
   }
 
   override def extractIrBuild(
@@ -119,24 +125,29 @@ object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
     )
   }
 
-
-  override def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectExport]): Seq[String] = 
+  override def getSuperTypes(
+      cfg: Config,
+      baseInfo: IrBaseInfo,
+      build: Node[ProjectExport]
+  ): Seq[String] =
     Seq("RootModule") ++
       cfg.shared.baseModule.fold(getModuleSupertypes)(Seq(_))
 
- 
   override def getTestsSuperType: String = "SbtTests"
-  
+
   private def getModuleSupertypes: Seq[String] = Seq("PublishModule", "SbtModule")
-  
+
   private def getMillSourcePath(model: ProjectExport): Path = os.Path(model.base)
-  
+
   private def getRepositories(model: ProjectExport): Seq[String] =
     model.repositories
       .map(repo => s"coursier.maven.MavenRepository(${escape(repo)})")
-  
+
   // TODO ???
-  private def getPublishProperties(model: ProjectExport, cfg: BuildGenUtil.Config): Seq[(String, String)] =
+  private def getPublishProperties(
+      model: ProjectExport,
+      cfg: BuildGenUtil.Config
+  ): Seq[(String, String)] =
     Seq.empty
     /*if (cfg.publishProperties.value) {
       val props = model.pub
@@ -168,14 +179,14 @@ object SbtBuildGenMain extends BuildGenBase[ProjectExport] {
         IrVersionControl(scm.browseUrl, scm.connection, scm.devConnection.orNull, tag = null)
       ).getOrElse(IrVersionControl(null, null, null, null)),
       developers = model.developers.map(dev =>
-          IrDeveloper(
-            dev.id,
-            dev.name,
-            dev.url,
-            model.organization,
-            model.homepage.orNull
-          )
+        IrDeveloper(
+          dev.id,
+          dev.name,
+          dev.url,
+          model.organization,
+          model.homepage.orNull
         )
+      )
     )
   }
 
