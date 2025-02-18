@@ -57,7 +57,7 @@ object ScalaIvyDepsTests extends TestSuite {
       // in order to get the internal repository for Mill modules.
       // If users add a dependency the other way around, like here, this used to trigger
       // a stackoverflow. This isn't a problem anymore since the introduction of
-      // CoursierModule#{allRepositories,internalCoursierResolver}.
+      // CoursierModule#{allRepositories,millResolver}.
       def ivyDeps = Task {
         if (repositoriesTask().contains(coursier.Repositories.google))
           Agg(ivy"com.google.protobuf:protobuf-java:2.6.1")

@@ -219,7 +219,7 @@ trait PublishModule extends JavaModule { outer =>
   @deprecated("Unused by Mill", "Mill after 0.12.5")
   def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
     Task {
-      val (processedDeps, depMgmt) = internalCoursierResolver().processDeps(
+      val (processedDeps, depMgmt) = millResolver().processDeps(
         processedIvyDeps(),
         resolutionParams = resolutionParams(),
         boms = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
@@ -244,7 +244,7 @@ trait PublishModule extends JavaModule { outer =>
    * @return
    */
   private def ivy(hasJar: Boolean): Task[String] = Task.Anon {
-    val (results, bomDepMgmt) = internalCoursierResolver().processDeps(
+    val (results, bomDepMgmt) = millResolver().processDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(Configuration.runtime),

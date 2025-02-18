@@ -36,12 +36,12 @@ trait CoursierModule extends mill.Module {
   /**
    * A `CoursierModule.Resolver` to resolve dependencies.
    *
-   * Unlike `defaultResolver`, this resolver can resolve Mill internal modules
+   * Unlike `defaultResolver`, this resolver can resolve Mill modules too
    * (obtained via `JavaModule#coursierDependency`).
    *
    * @return `CoursierModule.Resolver` instance
    */
-  def internalCoursierResolver: Task[CoursierModule.Resolver] = Task.Anon {
+  def millResolver: Task[CoursierModule.Resolver] = Task.Anon {
     new CoursierModule.Resolver(
       repositories = allRepositories(),
       bind = bindDependency(),
