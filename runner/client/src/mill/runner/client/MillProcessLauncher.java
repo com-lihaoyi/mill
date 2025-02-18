@@ -127,7 +127,7 @@ public class MillProcessLauncher {
       Path millJavaHomeFile = Paths.get(".").resolve(out).resolve(millJavaHome);
       if (Files.exists(millJavaHomeFile)) {
         String[] savedJavaHomeInfo = Files.readString(millJavaHomeFile).split(" ");
-        if (savedJavaHomeInfo[0].equals(jvmId)){
+        if (savedJavaHomeInfo[0].equals(jvmId)) {
           javaHome = savedJavaHomeInfo[1];
         }
       }
