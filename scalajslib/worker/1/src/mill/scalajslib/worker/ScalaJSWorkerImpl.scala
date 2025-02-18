@@ -31,7 +31,6 @@ import scala.annotation.nowarn
 
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
-      isFullLinkJS: Boolean,
       optimizer: Boolean,
       sourceMap: Boolean,
       moduleKind: ModuleKind,
@@ -49,15 +48,21 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private object ScalaJSLinker {
     private val irFileCache = StandardImpl.irFileCache()
     private val cache = mutable.Map.empty[LinkerInput, SoftReference[(Linker, IRFileCache.Cache)]]
-    def reuseOrCreate(input: LinkerInput): (Linker, IRFileCache.Cache) = cache.get(input) match {
-      case Some(SoftReference((linker, irFileCacheCache))) => (linker, irFileCacheCache)
-      case _ =>
-        val newResult = createLinker(input)
-        cache.update(input, SoftReference(newResult))
-        newResult
-    }
-    private def createLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
-      val semantics = input.isFullLinkJS match {
+    def reuseOrCreate(isFullLinkJS: Boolean, input: LinkerInput): (Linker, IRFileCache.Cache) =
+      if (isFullLinkJS) createLinker(input, isFullLinkJS)
+      else cache.get(input) match {
+        case Some(SoftReference((linker, irFileCacheCache))) => (linker, irFileCacheCache)
+        case _ =>
+          val newResult = createLinker(input, isFullLinkJS)
+          cache.update(input, SoftReference(newResult))
+          newResult
+      }
+
+    private def createLinker(
+        input: LinkerInput,
+        isFullLinkJS: Boolean
+    ): (Linker, IRFileCache.Cache) = {
+      val semantics = isFullLinkJS match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
       }
@@ -102,7 +107,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         if (minorIsGreaterThanOrEqual(6)) withESVersion_1_6_plus(scalaJSESFeatures)
         else withESVersion_1_5_minus(scalaJSESFeatures)
 
-      val useClosure = input.isFullLinkJS && input.moduleKind != ModuleKind.ESModule
+      val useClosure = isFullLinkJS && input.moduleKind != ModuleKind.ESModule
       val partialConfig = StandardConfig()
         .withOptimizer(input.optimizer)
         .withClosureCompilerIfAvailable(useClosure)
@@ -154,7 +159,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
       val withMinify =
         if (minorIsGreaterThanOrEqual(16))
-          withOutputPatterns.withMinify(input.minify && input.isFullLinkJS)
+          withOutputPatterns.withMinify(input.minify && isFullLinkJS)
         else withOutputPatterns
 
       val withWasm =
@@ -199,18 +204,20 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     // the new mode is not supported and in tests we always use legacy = false
     val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
-    val (linker, irFileCacheCache) = ScalaJSLinker.reuseOrCreate(LinkerInput(
+    val (linker, irFileCacheCache) = ScalaJSLinker.reuseOrCreate(
       isFullLinkJS = isFullLinkJS,
-      optimizer = optimizer,
-      sourceMap = sourceMap,
-      moduleKind = moduleKind,
-      esFeatures = esFeatures,
-      moduleSplitStyle = moduleSplitStyle,
-      outputPatterns = outputPatterns,
-      minify = minify,
-      dest = dest,
-      experimentalUseWebAssembly = experimentalUseWebAssembly
-    ))
+      LinkerInput(
+        optimizer = optimizer,
+        sourceMap = sourceMap,
+        moduleKind = moduleKind,
+        esFeatures = esFeatures,
+        moduleSplitStyle = moduleSplitStyle,
+        outputPatterns = outputPatterns,
+        minify = minify,
+        dest = dest,
+        experimentalUseWebAssembly = experimentalUseWebAssembly
+      )
+    )
     val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
     val testInitializer =
       if (testBridgeInit)
