@@ -7,13 +7,23 @@ import mill.api.ExecResult
 import mill.define.Discover
 import utest.*
 
-object HelloWorldTests extends TestSuite {
+object HelloKotlinTests extends TestSuite {
 
-  val kotlinVersions = Seq("1.9.24", "2.0.20", "2.1.0")
+  val crossMatrix = for {
+    kotlinVersion <- Seq("1.9.24", "2.0.20", "2.1.0")
+    embeddable <- Seq(false, true)
+  } yield (kotlinVersion, embeddable)
 
-  object HelloWorldKotlin extends TestBaseModule {
-    trait MainCross extends KotlinModule with Cross.Module[String] {
+  val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.9.1")
+
+  object HelloKotlin extends TestBaseModule {
+    // crossValue - test different Kotlin versions
+    // crossValue2 - test with/without the kotlin embeddable compiler
+    trait KotlinVersionCross extends KotlinModule with Cross.Module2[String, Boolean] {
       def kotlinVersion = crossValue
+
+      override def kotlinCompilerEmbeddable: Task[Boolean] = Task { crossValue2 }
+
       override def mainClass = Some("hello.HelloKt")
 
       object test extends KotlinTests with TestModule.Junit4 {
@@ -23,23 +33,37 @@ object HelloWorldTests extends TestSuite {
       }
       object kotest extends KotlinTests with TestModule.Junit5 {
         override def ivyDeps = super.ivyDeps() ++ Seq(
-          ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+          ivy"io.kotest:kotest-runner-junit5-jvm:${junit5Version}"
         )
       }
     }
-    object main extends Cross[MainCross](kotlinVersions)
+    object main extends Cross[KotlinVersionCross](crossMatrix)
 
     lazy val millDiscover = Discover[this.type]
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-kotlin"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-kotlin"
 
-  def testEval() = UnitTester(HelloWorldKotlin, resourcePath)
+  def testEval() = UnitTester(HelloKotlin, resourcePath)
+
   def tests: Tests = Tests {
+
+    def compilerDep(embeddable: Boolean) =
+      if (embeddable) "org.jetbrains.kotlin" -> "kotlin-compiler-embeddable"
+      else "org.jetbrains.kotlin" -> "kotlin-compiler"
+
     test("compile") {
       val eval = testEval()
 
-      HelloWorldKotlin.main.crossModules.foreach(m => {
+      HelloKotlin.main.crossModules.foreach(m => {
+        val Right(compiler) = eval.apply(m.kotlinCompilerIvyDeps): @unchecked
+
+        assert(
+          compiler.value.map(_.dep.module)
+            .map(m => m.organization.value -> m.name.value)
+            .contains(compilerDep(m.crossValue2))
+        )
+
         val Right(result) = eval.apply(m.compile): @unchecked
 
         assert(
@@ -47,10 +71,19 @@ object HelloWorldTests extends TestSuite {
         )
       })
     }
+
     test("testCompile") {
       val eval = testEval()
 
-      HelloWorldKotlin.main.crossModules.foreach(m => {
+      HelloKotlin.main.crossModules.foreach(m => {
+        val Right(compiler) = eval.apply(m.test.kotlinCompilerIvyDeps): @unchecked
+
+        assert(
+          compiler.value.map(_.dep.module)
+            .map(m => m.organization.value -> m.name.value)
+            .contains(compilerDep(m.crossValue2))
+        )
+
         val Right(result1) = eval.apply(m.test.compile): @unchecked
 
         assert(
@@ -58,43 +91,31 @@ object HelloWorldTests extends TestSuite {
         )
       })
     }
+
     test("test") {
       val eval = testEval()
 
-      HelloWorldKotlin.main.crossModules.foreach(m => {
+      HelloKotlin.main.crossModules.foreach(m => {
         val Left(ExecResult.Failure(_)) = eval.apply(m.test.test()): @unchecked
-
-//        assert(
-//          v1._2(0).fullyQualifiedName == "hello.tests.HelloTest.testFailure",
-//          v1._2(0).status == "Failure",
-//          v1._2(1).fullyQualifiedName == "hello.tests.HelloTest.testSuccess",
-//          v1._2(1).status == "Success"
-//        )
       })
     }
     test("kotest") {
       val eval = testEval()
 
-      HelloWorldKotlin.main.crossModules.foreach(m => {
+      HelloKotlin.main.crossModules.foreach(m => {
         val Right(discovered) = eval.apply(m.kotest.discoveredTestClasses): @unchecked
         assert(discovered.value == Seq("hello.tests.FooTest"))
 
         val Left(ExecResult.Failure(_)) = eval.apply(m.kotest.test()): @unchecked
-
-//        assert(
-//          v1._2(0).fullyQualifiedName == "hello.tests.FooTest",
-//          v1._2(0).status == "Success",
-//          v1._2(1).fullyQualifiedName == "hello.tests.FooTest",
-//          v1._2(1).status == "Failure"
-//        )
       })
     }
+
     test("failures") {
       val eval = testEval()
 
-      val mainJava = HelloWorldKotlin.moduleDir / "main/src/Hello.kt"
+      val mainJava = HelloKotlin.moduleDir / "main/src/Hello.kt"
 
-      HelloWorldKotlin.main.crossModules.foreach(m => {
+      HelloKotlin.main.crossModules.foreach(m => {
 
         val Right(_) = eval.apply(m.compile): @unchecked
 

@@ -9,8 +9,8 @@ import utest.{TestSuite, Tests, test}
 
 object KotlinJsKotlinVersionsTests extends TestSuite {
 
-  private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
   private val kotlinLowestVersion = "1.8.20"
+  private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
   private val kotlinHighestVersion = mill.kotlinlib.Versions.kotlinVersion
   private val kotlinVersions = Seq(kotlinLowestVersion, kotlinHighestVersion)
 
