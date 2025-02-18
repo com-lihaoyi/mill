@@ -120,8 +120,13 @@ public class MillProcessLauncher {
     String javaHome = null;
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
-      ;
-      javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
+
+      Path millJavaHomeFile = Paths.get(".").resolve(out).resolve(millJavaHome);
+      if (Files.exists(millJavaHomeFile)) javaHome = Files.readString(millJavaHomeFile);
+      else {
+        javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
+        Files.write(millJavaHomeFile, javaHome.getBytes());
+      }
     }
 
     if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
