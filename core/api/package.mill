@@ -1,0 +1,31 @@
+package build.core.api
+
+import mill.contrib.buildinfo.BuildInfo
+import mill._
+
+/**
+ * This module contains the core data types that are shared between Mill's
+ * internal code and user-land code
+ */
+object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
+  def moduleDeps = Seq(build.core.constants)
+  def buildInfoPackageName = "mill.api"
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("millDocUrl", build.Settings.docUrl, "Mill documentation url."),
+    BuildInfo.Value(
+      "millReportNewIssueUrl",
+      build.Settings.newIssueUrl,
+      "URL to create a new issue in Mills issue tracker."
+    )
+  )
+
+  def ivyDeps = Agg(
+    build.Deps.osLib,
+    build.Deps.mainargs,
+    build.Deps.upickle,
+    build.Deps.pprint,
+    build.Deps.fansi,
+    build.Deps.sbtTestInterface
+  )
+}

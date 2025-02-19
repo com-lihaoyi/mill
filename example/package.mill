@@ -1,10 +1,7 @@
 package build.example
 // imports
 import scala.util.chaining._
-import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.api.JarManifest
 import mill.main.Tasks
@@ -26,9 +23,10 @@ object `package` extends RootModule with Module {
     .collect { case m: ExampleCrossModule => m }
 
   object android extends Module {
-    object javalib extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "javalib"))
+    object javalib
+        extends Cross[ExampleCrossModuleAndroid](build.listIn(millSourcePath / "javalib"))
     object kotlinlib
-        extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "kotlinlib"))
+        extends Cross[ExampleCrossModuleAndroid](build.listIn(millSourcePath / "kotlinlib"))
   }
   object javalib extends Module {
 
@@ -65,6 +63,7 @@ object `package` extends RootModule with Module {
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
     object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
+    object spark extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "spark"))
     object migrating extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "migrating"))
   }
   object javascriptlib extends Module {
@@ -80,6 +79,7 @@ object `package` extends RootModule with Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
     object dependencies
         extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+    object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
@@ -134,6 +134,9 @@ object `package` extends RootModule with Module {
     }
   }
 
+  trait ExampleCrossModuleAndroid extends ExampleCrossModule {
+    def testExclusive = true
+  }
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
     def upstreamCross(s: String) = s match {
@@ -250,12 +253,13 @@ object `package` extends RootModule with Module {
           .filter(_._2.nonEmpty)
           .map {
             case (s"see:$path", txt) =>
+              // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
-                 |.$path ({mill-example-url}/$examplePath/$path[browse])
-                 |[source,scala,subs="attributes,verbatim"]
-                 |----
-                 |$txt
-                 |----""".stripMargin
+.$path ({mill-example-url}/$examplePath/$path[browse])
+[source,scala,subs="attributes,verbatim"]
+----
+$txt
+----"""
             case ("scala", txt) =>
               val title =
                 if (seenCode) ""
@@ -266,21 +270,23 @@ object `package` extends RootModule with Module {
                   s".build.mill ($download, $browse)"
                 }
               seenCode = true
+              // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
-                 |$title
-                 |[source,scala,subs="attributes,verbatim"]
-                 |----
-                 |
-                 |$txt
-                 |----
-                 |""".stripMargin
+$title
+[source,scala,subs="attributes,verbatim"]
+----
+
+$txt
+----
+"""
             case ("comment", txt) => txt + "\n"
             case ("example", txt) =>
+              // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
-                 |[source,bash,subs="attributes,verbatim"]
-                 |----
-                 |$txt
-                 |----""".stripMargin
+[source,bash,subs="attributes,verbatim"]
+----
+$txt
+----"""
           }
           .mkString("\n")
       )

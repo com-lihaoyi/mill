@@ -6,7 +6,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / "src/foo.py" }
+  def mainScript = Task.Source { "src/foo.py" }
 
   def moduleDeps = Seq(bar)
 
@@ -23,7 +23,7 @@ object foo extends PythonModule {
 
 object bar extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / "src/bar.py" }
+  def mainScript = Task.Source { "src/bar.py" }
 
   object test extends PythonTests with TestModule.Unittest
 
@@ -32,14 +32,15 @@ object bar extends PythonModule {
 // In this example, not only does `foo` depend on `bar`, but we also make
 // `foo.test` depend on `bar.test`.
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0]
 //   "bar" -> "bar.test" -> "foo.test"
 //   "bar" -> "foo" -> "foo.test"
 // }
-// ```
+// ....
 //
 // That lets `foo.test` make use of the
 // `BarTestUtils` class that `bar.test` defines, allowing us to re-use this
@@ -49,13 +50,15 @@ object bar extends PythonModule {
 
 > ./mill foo.test
 ...Using BarTestUtils.bar_assert_equals...
-...test_equal_string (test.TestScript...)...ok...
+...test_equal_string (test.TestScript...)...
+...ok...
 ...Ran 1 test...
 ...OK...
 
 > ./mill bar.test
 ...Using BarTestUtils.bar_assert_equals...
-...test_mean (test.TestScript...)...ok...
+...test_mean (test.TestScript...)...
+...ok...
 ...Ran 1 test...
 ...OK...
 

@@ -1,17 +1,19 @@
 package mill.javalib.revapi
 
 import mill.api.PathRef
+import mill.define.Discover
 import mill.javalib.*
 import mill.scalalib.publish.{PomSettings, VersionControl}
 import mill.testkit.{TestBaseModule, UnitTester}
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 import utest.*
+import mill.main.TokenReaders._
 
 object RevapiModuleTests extends TestSuite {
 
   def tests: Tests = Tests {
 
-    val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "javalib" / "revapi"
+    val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "javalib/revapi"
     val conf = root / "conf"
     val textReport = "report.txt"
 
@@ -65,20 +67,24 @@ object RevapiModuleTests extends TestSuite {
         PomSettings("", "mill.revapi.local", "", Seq(), VersionControl(), Seq())
       override def publishVersion: T[String] = root1.last
     }
-    object module1 extends module
+    object module1 extends module {
+      lazy val millDiscover = Discover[this.type]
+    }
     object module2 extends module with RevapiModule {
       override def revapiConfigFiles: T[Seq[PathRef]] =
         Task.Sources(os.list(conf).iterator.filter(_.ext == "json").map(PathRef(_)).toSeq)
-      override def revapiClasspath: T[Agg[PathRef]] = Task {
+      override def revapiClasspath: T[Seq[PathRef]] = Task {
         super.revapiClasspath() ++ Seq(PathRef(conf))
       }
+
+      lazy val millDiscover = Discover[this.type]
     }
 
     var eval = UnitTester(module1, root1)
     eval(module1.publishLocal())
 
     eval = UnitTester(module2, root2)
-    val Right(dir) = eval(module2.revapi())
+    val Right(dir) = eval(module2.revapi()): @unchecked
     dir.value.path
   }
 
@@ -96,21 +102,23 @@ object RevapiModuleTests extends TestSuite {
         PomSettings("", group, "", Seq(), VersionControl(), Seq())
       override def publishVersion: T[String] = v1
 
-      override def revapiOldFiles: T[Agg[PathRef]] = Task {
+      override def revapiOldFiles: T[Seq[PathRef]] = Task {
         defaultResolver().resolveDeps(Seq(ivy"$group:$id:$v1"))
       }
-      override def revapiNewFiles: T[Agg[PathRef]] = Task {
+      override def revapiNewFiles: T[Seq[PathRef]] = Task {
         defaultResolver().resolveDeps(Seq(ivy"$group:$id:$v2"))
       }
       override def revapiConfigFiles: T[Seq[PathRef]] =
         Task.Sources(os.list(conf).iterator.filter(_.ext == "json").map(PathRef(_)).toSeq)
-      override def revapiClasspath: T[Agg[PathRef]] = Task {
+      override def revapiClasspath: T[Seq[PathRef]] = Task {
         super.revapiClasspath() ++ Seq(PathRef(conf))
       }
+
+      lazy val millDiscover = Discover[this.type]
     }
 
     val eval = UnitTester(module, os.temp.dir())
-    val Right(dir) = eval(module.revapi())
+    val Right(dir) = eval(module.revapi()): @unchecked
     dir.value.path
   }
 }

@@ -1,6 +1,7 @@
 package mill
 package pythonlib
 
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 
@@ -16,9 +17,11 @@ object HelloWorldTests extends TestSuite {
 
     object qux extends PythonModule {
       override def moduleDeps: Seq[PythonModule] = Seq(foo)
-      override def mainScript = Task.Source(millSourcePath / "src" / "qux.py")
+      override def mainScript = Task.Source("src/qux.py")
       object test extends PythonTests with TestModule.Unittest
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-python"
@@ -27,7 +30,7 @@ object HelloWorldTests extends TestSuite {
       val baos = new ByteArrayOutputStream()
       val eval = UnitTester(HelloWorldPython, resourcePath, outStream = new PrintStream(baos))
 
-      val Right(result) = eval.apply(HelloWorldPython.qux.run(Args()))
+      val Right(result) = eval.apply(HelloWorldPython.qux.run(Args())): @unchecked
 
       assert(baos.toString().contains("Hello,  Qux!\n"))
     }
@@ -35,7 +38,7 @@ object HelloWorldTests extends TestSuite {
     test("test") {
       val eval = UnitTester(HelloWorldPython, resourcePath)
 
-      val result = eval.apply(HelloWorldPython.qux.test.test())
+      val result = eval.apply(HelloWorldPython.qux.test.testForked())
       assert(result.isRight)
     }
   }

@@ -9,7 +9,7 @@ import coursier.parse.RepositoryParser
 import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
 import coursier.util.{Artifact, EitherT, Monad, Task}
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
-import mill.api.Loose.Agg
+
 import mill.api.{Ctx, PathRef, Result}
 
 import java.util.concurrent.ConcurrentHashMap
@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 import coursier.cache.ArchiveCache
-import scala.util.control.NonFatal
 
 trait CoursierSupport {
   import CoursierSupport._
@@ -127,10 +126,6 @@ trait CoursierSupport {
    * We do not bother breaking this out into the separate ZincWorkerApi classpath,
    * because Coursier is already bundled with mill/Ammonite to support the
    * `import $ivy` syntax.
-   *
-   * Avoid using `deprecatedResolveFilter` if you can. As a substitute, use exclusions
-   * (or upfront, mark some dependencies as provided aka compile-time when you publish them),
-   * or as a last resort, manually filter the file sequence returned by this function.
    */
   def resolveDependencies(
       repositories: Seq[Repository],
@@ -141,14 +136,9 @@ trait CoursierSupport {
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      @deprecated(
-        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
-        "Mill after 0.12.5"
-      )
-      deprecatedResolveFilter: os.Path => Boolean = _ => true,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
-  ): Result[Agg[PathRef]] = {
+  ): Result[Seq[PathRef]] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -181,106 +171,16 @@ trait CoursierSupport {
           Result.Failure(
             s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
           )
-        case Left(error) =>
-          Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
         case Right(res) =>
           Result.Success(
-            Agg.from(
-              res.files
-                .map(os.Path(_))
-                .filter(deprecatedResolveFilter)
-                .map(PathRef(_, quick = true))
-            )
+            res.files
+              .map(os.Path(_))
+              .map(PathRef(_, quick = true))
           )
       }
     }
   }
 
-  // bin-compat shim
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.Ctx.Log],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      @deprecated(
-        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
-        "Mill after 0.12.5"
-      )
-      deprecatedResolveFilter: os.Path => Boolean,
-      artifactTypes: Option[Set[Type]]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories,
-      deps,
-      force,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      deprecatedResolveFilter,
-      artifactTypes,
-      ResolutionParams()
-    )
-
-  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.Ctx.Log],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      @deprecated(
-        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
-        "Mill after 0.12.5"
-      )
-      deprecatedResolveFilter: os.Path => Boolean
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories,
-      deps,
-      force,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      deprecatedResolveFilter
-    )
-
-  @deprecated(
-    "Prefer resolveDependenciesMetadataSafe instead, which returns a Result instead of throwing exceptions",
-    "0.12.0"
-  )
-  def resolveDependenciesMetadata(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
-  ): (Seq[Dependency], Resolution) = {
-    val deps0 = deps.iterator.toSeq
-    val res = resolveDependenciesMetadataSafe(
-      repositories,
-      deps0,
-      force,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      ResolutionParams()
-    )
-    (deps0, res.getOrThrow)
-  }
   def jvmIndex(
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
@@ -324,13 +224,9 @@ trait CoursierSupport {
       .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
     val javaHome = JavaHome()
       .withCache(jvmCache)
-    try {
-      val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
-      Result.Success(os.Path(file))
-    } catch {
-      case NonFatal(error) =>
-        Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
-    }
+    val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
+    Result.Success(os.Path(file))
+
   }
 
   def resolveDependenciesMetadataSafe(
@@ -357,7 +253,7 @@ trait CoursierSupport {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
     val resolutionParams0 = resolutionParams
-      .addForceVersion(forceVersions.toSeq: _*)
+      .addForceVersion(forceVersions.toSeq*)
 
     val testOverridesRepo =
       new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
@@ -368,7 +264,7 @@ trait CoursierSupport {
       .withRepositories(testOverridesRepo +: repositories)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
-      .withBoms(boms.toSeq)
+      .withBoms(boms.iterator.toSeq)
 
     resolve.either() match {
       case Left(error) =>
@@ -397,59 +293,14 @@ trait CoursierSupport {
             .mkString("\n")
           val msg = header + errLines + "\n" + helpMessage + "\n"
           Result.Failure(msg)
-        } else
-          Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
+        } else {
+          throw error
+        }
       case Right(resolution0) =>
         val resolution = customizer.fold(resolution0)(_.apply(resolution0))
         Result.Success(resolution)
     }
   }
-
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.Ctx.Log],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      resolutionParams: ResolutionParams
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      force,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      resolutionParams,
-      Nil
-    )
-
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.Ctx.Log],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      force,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      ResolutionParams(),
-      Nil
-    )
-
 }
 
 object CoursierSupport {
@@ -540,7 +391,7 @@ object CoursierSupport {
         val msg =
           s"Invalid repository string in $origin:" + System.lineSeparator() +
             errs.map("  " + _ + System.lineSeparator()).mkString
-        Result.Failure(msg, Some(Seq()))
+        Result.Failure(msg)
       case Right(repos) =>
         Result.Success(repos)
     }

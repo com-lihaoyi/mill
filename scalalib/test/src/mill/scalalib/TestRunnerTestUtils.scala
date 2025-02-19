@@ -1,23 +1,28 @@
 package mill.scalalib
 
 import mill.api.Result
+import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.{Agg, T, Task}
+import mill.main.TokenReaders._
+import mill.Task
 import os.Path
 import sbt.testing.Status
-import utest._
+import utest.*
 
-import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTestUtils {
   object testrunner extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = Seq(x)
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object testrunnerGrouping extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = x.sorted.grouped(2).toSeq
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   trait TestRunnerTestModule extends TestBaseModule with ScalaModule {
@@ -27,7 +32,7 @@ object TestRunnerTestUtils {
     object utest extends ScalaTests with TestModule.Utest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def ivyDeps = Task {
-        super.ivyDeps() ++ Agg(
+        super.ivyDeps() ++ Seq(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
       }
@@ -36,7 +41,7 @@ object TestRunnerTestUtils {
     object scalatest extends ScalaTests with TestModule.ScalaTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def ivyDeps = Task {
-        super.ivyDeps() ++ Agg(
+        super.ivyDeps() ++ Seq(
           ivy"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
         )
       }
@@ -44,7 +49,7 @@ object TestRunnerTestUtils {
 
     trait DoneMessage extends ScalaTests {
       override def ivyDeps = Task {
-        super.ivyDeps() ++ Agg(
+        super.ivyDeps() ++ Seq(
           ivy"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
         )
       }
@@ -63,7 +68,7 @@ object TestRunnerTestUtils {
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def ivyDeps = Task {
-        super.ivyDeps() ++ Agg(
+        super.ivyDeps() ++ Seq(
           ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
           ivy"dev.zio::zio-test-sbt:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
         )
@@ -85,7 +90,7 @@ object TestRunnerTestUtils {
         expectedFileListing: Map[TestModule, Set[String]] = Map()
     ) = {
       testOnly0 { (eval, mod) =>
-        val Right(result) = eval.apply(m(mod).testOnly(args: _*))
+        val Right(result) = eval.apply(m(mod).testOnly(args*)): @unchecked
         val testOnly = result.value
         if (expectedFileListing.nonEmpty) {
           val dest = eval.outPath / m(mod).toString / "testOnly.dest"
@@ -105,7 +110,7 @@ object TestRunnerTestUtils {
   def junitReportIn(
       outPath: Path,
       moduleName: String,
-      action: String = "test"
+      action: String = "testForked"
   ): JUnitReportMatch = {
     val reportPath: Path = outPath / moduleName / s"$action.dest" / "test-report.xml"
     val reportXML = XML.loadFile(reportPath.toIO)

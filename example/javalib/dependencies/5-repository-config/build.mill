@@ -10,7 +10,7 @@ val sonatypeReleases = Seq(
 
 object foo extends JavaModule {
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )

@@ -9,7 +9,7 @@ trait DiyJavaModule extends Module {
   def mainClass: T[Option[String]] = None
 
   def upstream: T[Seq[PathRef]] = Task { Task.traverse(moduleDeps)(_.classPath)().flatten }
-  def sources = Task.Source(millSourcePath / "src")
+  def sources = Task.Source("src")
 
   def compile = Task {
     val allSources = os.walk(sources().path)
@@ -34,7 +34,8 @@ trait DiyJavaModule extends Module {
 // edges (dashed) are not connected; that is because `DiyJavaModule` is abstract, and
 // needs to be inherited by a concrete `object` before it can be used.
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -50,7 +51,7 @@ trait DiyJavaModule extends Module {
 //     "sources" -> "compile" -> "classPath" -> "assembly"
 //   }
 // }
-// ```
+// ....
 //
 // Some notable things to call out:
 //
@@ -62,7 +63,7 @@ trait DiyJavaModule extends Module {
 //   necessary to convert the `Seq[T[V]]` into a `T[Seq[V]]` that we can work
 //   with inside our tasks
 //
-// * We use the `millSourcePath` together with `Task.workspace` to infer a default
+// * We use the `moduleDir` together with `Task.workspace` to infer a default
 //   name for the jar of each module. Users can override it if they want, but
 //   having a default is very convenient
 //
@@ -86,7 +87,8 @@ object qux extends DiyJavaModule {
 // duplicated three times - once per module - with the tasks wired up between the modules
 // according to our overrides for `moduleDeps`
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -121,7 +123,7 @@ object qux extends DiyJavaModule {
 //     "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
 //   }
 // }
-// ```
+// ....
 //
 // This simple set of `DiyJavaModule` can be used as follows:
 

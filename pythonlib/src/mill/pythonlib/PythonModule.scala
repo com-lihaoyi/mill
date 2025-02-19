@@ -2,9 +2,9 @@ package mill.pythonlib
 
 import mill._
 import mill.api.Result
-import mill.util.Util
-import mill.util.Jvm
+import mill.util.{Jvm}
 import mill.api.Ctx
+import mill.constants.ServerFiles
 
 trait PythonModule extends PipModule with TaskModule { outer =>
 
@@ -43,7 +43,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def pythonExe: T[PathRef] = Task {
     os.call((hostPythonCommand(), "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv" / "bin" / "python3"
+    val python = Task.dest / "venv/bin/python3"
     os.call((python, "-m", "pip", "install", pipInstallArgs().args), stdout = os.Inherit)
     PathRef(python)
   }
@@ -53,17 +53,17 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    *
    * Python modules will be defined relative to these directories.
    */
-  def sources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "src" }
+  def sources: T[Seq[PathRef]] = Task.Sources { "src" }
 
   /**
    * The folders where the resource files for this module live.
    */
-  def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
+  def resources: T[Seq[PathRef]] = Task.Sources { "resources" }
 
   /**
    * The python script to run. This file may not exist if this module is only a library.
    */
-  def mainScript: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
+  def mainScript: T[PathRef] = Task.Source { "src/main.py" }
 
   override def pythonToolDeps: T[Seq[String]] = Task {
     super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1")
@@ -124,7 +124,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
       command0 = pythonExe().path.toString,
       options = pythonOptions(),
       env0 = runnerEnvTask() ++ forkEnv(),
-      workingDir0 = Task.workspace
+      workingDir0 = Task.dest
     )
   }
 
@@ -174,12 +174,13 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def runBackground(args: mill.define.Args) = Task.Command {
     val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(Task.dest)
+    val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
-    Jvm.runSubprocess(
+    Jvm.spawnProcess(
       mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
       classPath = mill.scalalib.ZincWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
       jvmArgs = Nil,
-      envArgs = runnerEnvTask(),
+      env = runnerEnvTask(),
       mainArgs = Seq(
         procUuidPath.toString,
         procLockfile.toString,
@@ -189,10 +190,13 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         pythonExe().path.toString,
         mainScript().path.toString
       ) ++ args.value,
-      workingDir = Task.workspace,
-      background = true,
-      useCpPassingJar = false,
-      runBackgroundLogToConsole = true,
+      cwd = Task.workspace,
+      stdin = "",
+      // Hack to forward the background subprocess output to the Mill server process
+      // stdout/stderr files, so the output will get properly slurped up by the Mill server
+      // and shown to any connected Mill client even if the current command has completed
+      stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+      stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
       javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path)
     )
     ()
@@ -205,7 +209,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * for you to test and operate your code interactively.
    */
   def console(): Command[Unit] = Task.Command(exclusive = true) {
-    if (!Util.isInteractive()) {
+    if (!mill.constants.Util.hasConsole()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
       runner().run()
@@ -261,11 +265,15 @@ object PythonModule {
         command: String = null,
         env: Map[String, String] = null,
         workingDir: os.Path = null
-    )(implicit ctx: Ctx): Unit =
-      Jvm.runSubprocess(
-        commandArgs = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
-        envArgs = Option(env).getOrElse(env0),
-        workingDir = Option(workingDir).getOrElse(workingDir0)
+    )(implicit ctx: Ctx): Unit = {
+      os.call(
+        cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
+        env = Option(env).getOrElse(env0),
+        cwd = Option(workingDir).getOrElse(workingDir0),
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = true
       )
+    }
   }
 }

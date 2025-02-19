@@ -6,12 +6,12 @@ import mill.javascriptlib._
 object foo extends TypeScriptModule {
 
   def customSource = Task {
-    Seq(PathRef(millSourcePath / "custom-src" / "foo2.ts"))
+    Seq(PathRef(moduleDir / "custom-src/foo2.ts"))
   }
 
   def allSources = super.allSources() ++ customSource()
 
-  def resources = super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
+  def resources = super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
 
   def generatedSources = Task {
     for (name <- Seq("A", "B", "C")) os.write(
@@ -35,10 +35,10 @@ object foo extends TypeScriptModule {
 
 // This example demonstrates usage of common configs
 
-// Note the use of `millSourcePath`, `Task.dest`, and `PathRef` when preforming
+// Note the use of `moduleDir`, `Task.dest`, and `PathRef` when preforming
 // various filesystem operations:
 //
-// 1. `millSourcePath`: Base path of the module. For the root module, it's the repo root.
+// 1. `moduleDir`: Base path of the module. For the root module, it's the repo root.
 //    For inner modules, it's the module path (e.g., `foo/bar/qux` for `foo.bar.qux`). Can be overridden if needed.
 //
 // 2. `Task.dest`: Destination folder in the `out/` folder for task output.

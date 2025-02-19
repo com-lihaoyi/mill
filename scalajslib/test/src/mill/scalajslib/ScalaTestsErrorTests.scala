@@ -3,7 +3,6 @@ package mill.scalajslib
 import mill.define.Discover
 import mill.scalalib.TestModule
 import mill.testkit.TestBaseModule
-import mill.util.TestUtil
 import utest._
 
 object ScalaTestsErrorTests extends TestSuite {

@@ -1,7 +1,9 @@
 package mill.scalalib
 
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
+import mill.main.TokenReaders.*
 
 object LauncherTests extends TestSuite {
 
@@ -12,6 +14,8 @@ object LauncherTests extends TestSuite {
     }
 
     def javacOptions = Seq("-target", "1.8", "-source", "1.8")
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "launcher"
@@ -20,10 +24,10 @@ object LauncherTests extends TestSuite {
     def check(executableTask: mill.define.Target[mill.api.PathRef], copyBat: Boolean = false) = {
       val eval = UnitTester(HelloJava, resourcePath)
 
-      val Right(result1) = eval.apply(executableTask)
+      val Right(result1) = eval.apply(executableTask): @unchecked
 
       val executable =
-        if (mill.util.Util.windowsPlatform && copyBat) {
+        if (mill.constants.Util.isWindows && copyBat) {
           val prev = result1.value.path
           val next = prev / ".." / s"${prev.baseName}.bat"
           os.copy(prev, next)
@@ -40,7 +44,7 @@ object LauncherTests extends TestSuite {
         .out.text()
       assert(text2.contains("test.property 123"))
       assert(!text2.contains(customJavaVersion))
-      val Right(javaHome) = eval.apply(HelloJava.ZincWorkerJava.javaHome)
+      val Right(javaHome) = eval.apply(HelloJava.ZincWorkerJava.javaHome): @unchecked
 
       val text3 = os
         .call(executable, env = Map("JAVA_HOME" -> javaHome.value.get.path.toString))

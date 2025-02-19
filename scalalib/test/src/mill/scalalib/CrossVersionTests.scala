@@ -1,9 +1,10 @@
 package mill.scalalib
 
-import mill.Agg
+import mill.define.Discover
+import mill.main.TokenReaders._
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import utest.*
 import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
@@ -25,7 +26,7 @@ object CrossVersionTests extends TestSuite {
           |└─ org.scala-lang:scala-library:2.13.10
           |""".stripMargin
       override def scalaVersion = "2.13.10"
-      override def ivyDeps = Agg(ivy"com.lihaoyi::upickle:1.4.0")
+      override def ivyDeps = Seq(ivy"com.lihaoyi::upickle:1.4.0")
     }
 
     object JavaDependsOnScala213 extends JavaModule {
@@ -45,7 +46,7 @@ object CrossVersionTests extends TestSuite {
           |└─ org.slf4j:slf4j-api:1.7.35
           |""".stripMargin
       override def moduleDeps = Seq(StandaloneScala213)
-      override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.35")
+      override def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:1.7.35")
     }
 
     object Scala3DependsOnScala213 extends ScalaModule {
@@ -68,7 +69,7 @@ object CrossVersionTests extends TestSuite {
           |""".stripMargin
       override def scalaVersion = "3.2.1"
       override def moduleDeps = Seq(StandaloneScala213)
-      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.7")
+      override def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.2.7")
     }
 
     object JavaDependsOnScala3 extends JavaModule {
@@ -92,12 +93,12 @@ object CrossVersionTests extends TestSuite {
           |└─ org.slf4j:slf4j-api:1.7.35
           |""".stripMargin
       override def moduleDeps = Seq(Scala3DependsOnScala213)
-      override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.35")
+      override def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:1.7.35")
     }
 
     object sandwitch3 extends ScalaModule {
       override def scalaVersion = "3.0.2"
-      override def ivyDeps = Agg(ivy"com.lihaoyi::upickle:1.4.0")
+      override def ivyDeps = Seq(ivy"com.lihaoyi::upickle:1.4.0")
     }
 
     object sandwitch213 extends ScalaModule {
@@ -122,6 +123,7 @@ object CrossVersionTests extends TestSuite {
           |""".stripMargin
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
   def init() = UnitTester(TestCases, null)
@@ -149,7 +151,7 @@ object CrossVersionTests extends TestSuite {
       }
     }
 
-    val Right(libs) = eval.apply(mod.compileClasspath)
+    val Right(libs) = eval.apply(mod.compileClasspath): @unchecked
 
     val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
     assert(libNames == expectedLibs.sorted)

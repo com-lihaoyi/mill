@@ -57,7 +57,7 @@ object GradleBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[ProjectMod
     val args =
       cfg.shared.jvmId.map { id =>
         println(s"resolving Java home for jvmId $id")
-        val home = Jvm.resolveJavaHome(id).getOrThrow
+        val home = Jvm.resolveJavaHome(id).get
         s"-Dorg.gradle.java.home=$home"
       } ++ Seq("--init-script", writeGradleInitScript.toString())
 

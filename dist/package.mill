@@ -41,7 +41,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
       Task.Anon(
-        (os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString()
+        (os.home / ".cache/mill/download" / (build.millVersion() + batExt)).toString()
       )
     )()
     Task.log.outputStream.println(path.toString())
@@ -76,7 +76,6 @@ object `package` extends RootModule with InstallModule {
       build.main.init.maven.testDep(),
       build.main.init.gradle.testDep(),
       build.main.init.sbt.testDep(),
-      build.runner.linenumbers.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
       build.contrib.bloop.testDep(),
       build.contrib.buildinfo.testDep(),
@@ -87,7 +86,8 @@ object `package` extends RootModule with InstallModule {
       build.contrib.playlib.worker("2.8").testDep(),
       build.contrib.testng.testDep(),
       build.bsp.worker.testDep(),
-      build.testkit.testDep()
+      build.testkit.testDep(),
+      build.runner.worker.testDep()
     )
   }
 
@@ -104,8 +104,8 @@ object `package` extends RootModule with InstallModule {
     val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
 
     val genIdeaArgs =
-      genTask(build.main.define)() ++
-        genTask(build.main.eval)() ++
+      genTask(build.core.define)() ++
+        genTask(build.core.exec)() ++
         genTask(build.main)() ++
         genTask(build.scalalib)() ++
         genTask(build.kotlinlib)() ++

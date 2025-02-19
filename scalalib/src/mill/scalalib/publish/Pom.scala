@@ -1,7 +1,5 @@
 package mill.scalalib.publish
 
-import mill.api.Loose.Agg
-
 import scala.xml.{Atom, Elem, NodeSeq, PrettyPrinter}
 
 object Pom {
@@ -25,51 +23,9 @@ object Pom {
     }
   }
 
-  @deprecated("Use overload with packagingType parameter instead", "Mill 0.11.8")
   def apply(
       artifact: Artifact,
-      dependencies: Agg[Dependency],
-      name: String,
-      pomSettings: PomSettings,
-      properties: Map[String, String]
-  ): String = apply(
-    artifact = artifact,
-    dependencies = dependencies,
-    name = name,
-    pomSettings = pomSettings,
-    properties = properties,
-    packagingType = pomSettings.packaging,
-    parentProject = None,
-    bomDependencies = Agg.empty[Dependency],
-    dependencyManagement = Agg.empty[Dependency]
-  )
-
-  @deprecated(
-    "Use overload with parentProject, bomDependencies, and dependencyManagement parameters instead",
-    "Mill 0.12.1"
-  )
-  def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency],
-      name: String,
-      pomSettings: PomSettings,
-      properties: Map[String, String],
-      packagingType: String
-  ): String = apply(
-    artifact = artifact,
-    dependencies = dependencies,
-    name = name,
-    pomSettings = pomSettings,
-    properties = properties,
-    packagingType = packagingType,
-    parentProject = None,
-    bomDependencies = Agg.empty[Dependency],
-    dependencyManagement = Agg.empty[Dependency]
-  )
-
-  def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency],
+      dependencies: Seq[Dependency],
       name: String,
       pomSettings: PomSettings,
       properties: Map[String, String],
@@ -84,20 +40,20 @@ object Pom {
       properties,
       packagingType,
       parentProject,
-      Agg.empty[Dependency],
-      Agg.empty[Dependency]
+      Seq.empty[Dependency],
+      Seq.empty[Dependency]
     )
 
   def apply(
       artifact: Artifact,
-      dependencies: Agg[Dependency],
+      dependencies: Seq[Dependency],
       name: String,
       pomSettings: PomSettings,
       properties: Map[String, String],
       packagingType: String,
       parentProject: Option[Artifact],
-      bomDependencies: Agg[Dependency],
-      dependencyManagement: Agg[Dependency]
+      bomDependencies: Seq[Dependency],
+      dependencyManagement: Seq[Dependency]
   ): String = {
     val developersSection =
       if (pomSettings.developers.isEmpty) NodeSeq.Empty
@@ -109,7 +65,7 @@ object Pom {
       if (properties.isEmpty) NodeSeq.Empty
       else
         <properties>
-          {properties.map(renderProperty _).iterator}
+          {properties.map(renderProperty).iterator}
         </properties>
     val depMgmtSection =
       if (dependencyManagement.isEmpty) NodeSeq.Empty
@@ -202,6 +158,7 @@ object Pom {
           case Scope.Provided => <scope>provided</scope>
           case Scope.Test => <scope>test</scope>
           case Scope.Runtime => <scope>runtime</scope>
+          case Scope.Import => ???
         }
 
     val `type` = if (isImport) <type>pom</type> else NodeSeq.Empty

@@ -1,8 +1,7 @@
 package mill.testrunner
 
-import mill.api.Loose.Agg
 import mill.api.{Ctx, DummyTestReporter, SystemStreams, internal}
-import mill.util.PrintLogger
+import mill.internal.PrintLogger
 
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
@@ -30,7 +29,7 @@ import mill.util.PrintLogger
 
       val result = TestRunnerUtils.runTestFramework0(
         frameworkInstances = Framework.framework(testArgs.framework),
-        testClassfilePath = Agg.from(testArgs.testCp),
+        testClassfilePath = Seq.from(testArgs.testCp),
         args = testArgs.arguments,
         classFilter = cls => filter(cls.getName),
         cl = classLoader,

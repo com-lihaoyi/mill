@@ -1,7 +1,8 @@
 package mill.pythonlib
 
 import mill.api.Result
-import mill.{PathRef, Task, T, Command}
+import mill.scalalib.publish.License
+import mill.{Command, PathRef, T, Task}
 
 /**
  * A python module which also defines how to build and publish source distributions and wheels.
@@ -105,14 +106,14 @@ trait PublishModule extends PythonModule {
    * The readme file to include in the published distribution.
    */
   def publishReadme: T[PathRef] = Task.Input {
-    val readme = if (os.exists(millSourcePath)) {
-      os.list(millSourcePath).find(_.last.toLowerCase().startsWith("readme"))
+    val readme = if (os.exists(moduleDir)) {
+      os.list(moduleDir).find(_.last.toLowerCase().startsWith("readme"))
     } else None
     readme match {
       case None =>
         Result.Failure(
-          s"No readme file found in `${millSourcePath}`. A readme file is required for publishing distributions. " +
-            s"Please create a file named `${millSourcePath}/readme*` (any capitalization), or override the `publishReadme` task."
+          s"No readme file found in `${moduleDir}`. A readme file is required for publishing distributions. " +
+            s"Please create a file named `${moduleDir}/readme*` (any capitalization), or override the `publishReadme` task."
         )
       case Some(path) =>
         Result.Success(PathRef(path))
@@ -236,6 +237,8 @@ trait PublishModule extends PythonModule {
 }
 
 object PublishModule {
+  private implicit lazy val licenseFormat: upickle.default.ReadWriter[License] =
+    upickle.default.macroRW
 
   /**
    * Static metadata about a project.

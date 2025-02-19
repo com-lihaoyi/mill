@@ -13,13 +13,13 @@ trait PythonModule extends Module {
   // List of module dependencies required by this module.
   def moduleDeps: Seq[PythonModule] = Nil
 
-  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+  def sources: T[PathRef] = Task.Source("src")
   def mainFileName: T[String] = Task { "main.py" }
 
   def pythonExe: T[PathRef] = Task {
 
     os.call(("python3", "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv" / "bin" / "python3"
+    val python = Task.dest / "venv/bin/python3"
     os.call((python, "-m", "pip", "install", "mypy==1.13.0"))
 
     PathRef(python)
@@ -38,7 +38,7 @@ trait PythonModule extends Module {
 
   def gatherScripts(upstream: Seq[(PathRef, PythonModule)]) = {
     for ((sourcesFolder, mod) <- upstream) {
-      val destinationPath = os.pwd / mod.millSourcePath.subRelativeTo(build.millSourcePath)
+      val destinationPath = os.pwd / mod.moduleDir.subRelativeTo(build.moduleDir)
       os.copy.over(sourcesFolder.path / os.up, destinationPath)
     }
   }
@@ -86,7 +86,8 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5
 
 // Task dependency graph, showing `foo` and `bar` tasks feeding into `qux`:
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -122,7 +123,7 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5
 //   "foo.typeCheck" -> "qux.typeCheck"  [color=green, penwidth=3]
 //   "foo.sources" -> "qux.run"  [color=green, penwidth=3]
 // }
-// ```
+// ....
 
 // Next, we will add support for depending on external Python libraries from
 // https://pypi.org/[PyPI], and bundling via https://pypi.org/project/pex/[PEX]

@@ -18,13 +18,13 @@ trait MyModule extends JavaModule {
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0"
   )
 }
 
 object bar extends MyModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
@@ -373,9 +373,10 @@ scalalib/basic/1-simple
 ...
 scalalib/web/1-todo-webapp
 scalalib/web/2-webapp-cache-busting
-scalalib/web/3-scalajs-module
-scalalib/web/4-webapp-scalajs
-scalalib/web/5-webapp-scalajs-shared
+scalalib/web/3-todo-http4s
+scalalib/web/4-scalajs-module
+scalalib/web/5-webapp-scalajs
+scalalib/web/6-webapp-scalajs-shared
 ...
 javalib/basic/1-simple
 ...

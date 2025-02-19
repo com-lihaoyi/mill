@@ -35,7 +35,7 @@ object GenIdeaUtils {
 
     val pattern =
       "(?s)^\\Q" + expected.replaceAll(Pattern.quote(ignoreString), "\\\\E.*\\\\Q") + "\\E$"
-    assert(Pattern.compile(pattern).matcher(found).matches())
+    scala.Predef.assert(Pattern.compile(pattern).matcher(found).matches(), found)
   }
 
   private def normaliseLibraryPaths(in: String, workspacePath: os.Path): String = {

@@ -4,9 +4,9 @@ import coursier.Dependency
 import coursier.core.Reconciliation
 import coursier.params.ResolutionParams
 import coursier.util.ModuleMatchers
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 import mill.api.PathRef
-import mill.define.ModuleRef
+import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 import mill.scalalib.{JavaModule, TestModule}
@@ -30,7 +30,7 @@ import mill.scalalib.TestModule.Junit5
 trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer =>
 
   override def sources: T[Seq[PathRef]] =
-    super[AndroidAppModule].sources() :+ PathRef(millSourcePath / "src/main/kotlin")
+    super[AndroidAppModule].sources() :+ PathRef(moduleDir / "src/main/kotlin")
 
   override def kotlincOptions = super.kotlincOptions() ++ {
     if (androidEnableCompose()) {
@@ -53,7 +53,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     if (kotlinVersion().startsWith("1"))
       throw new IllegalStateException("Compose can be used only with Kotlin version 2 or newer.")
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
       )
     ).head
@@ -61,7 +61,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
     override def sources: T[Seq[PathRef]] =
-      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.millSourcePath / "src/test/kotlin"))
+      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.moduleDir / "src/test/kotlin"))
   }
 
   trait AndroidAppKotlinInstrumentedTests extends AndroidAppKotlinModule
@@ -72,7 +72,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppInstrumentedTests].sources() :+ PathRef(
-        outer.millSourcePath / "src/androidTest/kotlin"
+        outer.moduleDir / "src/androidTest/kotlin"
       )
   }
 
@@ -104,8 +104,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def sources: T[Seq[PathRef]] = Task.Sources(
       Seq(
-        PathRef(outer.millSourcePath / "src/screenshotTest/kotlin"),
-        PathRef(outer.millSourcePath / "src/screenshotTest/java")
+        PathRef(outer.moduleDir / "src/screenshotTest/kotlin"),
+        PathRef(outer.moduleDir / "src/screenshotTest/java")
       )
     )
 
@@ -113,33 +113,33 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
      * The compose-preview-renderer jar executable that generates the screenshots.
      * For more information see [[https://developer.android.com/studio/preview/compose-screenshot-testing]]
      */
-    def composePreviewRenderer: T[Agg[PathRef]] = Task {
+    def composePreviewRenderer: T[Seq[PathRef]] = Task {
       defaultResolver().resolveDeps(
-        Agg(
+        Seq(
           ivy"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
         )
       )
     }
 
-    final def layoutLibRenderer: T[Agg[PathRef]] = Task {
+    final def layoutLibRenderer: T[Seq[PathRef]] = Task {
       defaultResolver().resolveDeps(
-        Agg(
+        Seq(
           ivy"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
         )
       )
     }
 
-    final def layoutLibRuntime: T[Agg[PathRef]] = Task {
+    final def layoutLibRuntime: T[Seq[PathRef]] = Task {
       defaultResolver().resolveDeps(
-        Agg(
+        Seq(
           ivy"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
         )
       )
     }
 
-    final def layoutLibFrameworkRes: T[Agg[PathRef]] = Task {
+    final def layoutLibFrameworkRes: T[Seq[PathRef]] = Task {
       defaultResolver().resolveDeps(
-        Agg(
+        Seq(
           ivy"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
         )
       )
@@ -173,8 +173,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
-    override def mandatoryIvyDeps: T[Agg[Dep]] = super.mandatoryIvyDeps() ++
-      Agg(
+    override def mandatoryIvyDeps: T[Seq[Dep]] = super.mandatoryIvyDeps() ++
+      Seq(
         ivy"androidx.compose.ui:ui:$uiToolingVersion",
         ivy"androidx.compose.ui:ui-tooling:$uiToolingVersion",
         ivy"androidx.compose.ui:ui-test-manifest:$uiToolingVersion",
@@ -242,20 +242,26 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
      * [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/tasks/PreviewRenderWorkAction.kt]]
      * @return
      */
-    def generatePreviews: T[Agg[PathRef]] = Task {
-      val previewGenOut = mill.util.Jvm.callSubprocess(
+    def generatePreviews(): Command[Seq[PathRef]] = Task.Command(exclusive = true) {
+      val previewGenCmd = mill.util.Jvm.callProcess(
         mainClass = "com.android.tools.render.compose.MainKt",
-        classPath = composePreviewRenderer().map(_.path) ++ layoutLibRenderer().map(_.path),
+        classPath =
+          composePreviewRenderer().map(_.path).toVector ++ layoutLibRenderer().map(_.path).toVector,
         jvmArgs = Seq(
           "-Dlayoutlib.thread.profile.timeoutms=10000",
           "-Djava.security.manager=allow"
         ),
-        mainArgs = Seq(composePreviewArgs().path.toString())
-      ).out.lines()
+        mainArgs = Seq(composePreviewArgs().path.toString()),
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
 
-      Task.log.info(previewGenOut.mkString("\n"))
+      Task.log.info(s"Generate preview command ${previewGenCmd.command.mkString(" ")}")
 
-      Agg.from(os.walk(screenshotResults().path).filter(_.ext == "png").map(PathRef(_)))
+      previewGenCmd.out.lines().foreach(Task.log.info(_))
+
+      Seq.from(os.walk(screenshotResults().path).filter(_.ext == "png").map(PathRef(_)))
     }
 
     // TODO add more devices for default, i.e. the same as in AGP
@@ -307,7 +313,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     override def runClasspath: T[Seq[PathRef]] =
       super.runClasspath() ++ androidPreviewScreenshotTestEngineClasspath() ++ compileClasspath()
 
-    def androidPreviewScreenshotTestEngineClasspath: T[Agg[PathRef]] = Task {
+    def androidPreviewScreenshotTestEngineClasspath: T[Seq[PathRef]] = Task {
       defaultResolver().resolveDeps(
         Seq(
           ivy"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08"

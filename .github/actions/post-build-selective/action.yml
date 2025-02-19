@@ -12,9 +12,6 @@ inputs:
     default: ''
     type: string
 
-  install-android-sdk:
-    default: false
-    type: boolean
 runs:
   using: "composite"
   steps:
@@ -35,17 +32,12 @@ runs:
     - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}
 
-    - run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
-      shell: ${{ inputs.shell }}
-
-    - run: ./mill -i -j1 -k selective.run ${{ inputs.millargs }}
-      if: ${{ inputs.install-android-sdk }}
-      env:
-        COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
-      shell: ${{ inputs.shell }}
+    # Comment this out because it can be very verbose when broad codesig
+    # invalidation results in all tasks being counted as changed inputs
+    #- run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
+    #  shell: ${{ inputs.shell }}
 
     - run: ./mill -i -k selective.run ${{ inputs.millargs }}
-      if: ${{ !inputs.install-android-sdk }}
       env:
         COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
       shell: ${{ inputs.shell }}

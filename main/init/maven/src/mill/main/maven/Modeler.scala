@@ -64,7 +64,7 @@ object Modeler {
   }
 
   def defaultLocalRepository: LocalRepository =
-    new LocalRepository((os.home / ".m2" / "repository").toIO)
+    new LocalRepository((os.home / ".m2/repository").toIO)
 
   def defaultRemoteRepositories: Seq[RemoteRepository] =
     Seq(

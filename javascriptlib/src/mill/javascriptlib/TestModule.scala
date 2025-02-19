@@ -5,7 +5,7 @@ import mill.*
 trait TestModule extends TaskModule {
   import TestModule.TestResult
 
-  def test(args: String*): Command[TestResult] =
+  def testForked(args: String*): Command[TestResult] =
     Task.Command {
       testTask(Task.Anon { args })()
     }
@@ -18,7 +18,7 @@ trait TestModule extends TaskModule {
 
   protected def testTask(args: Task[Seq[String]]): Task[TestResult]
 
-  override def defaultCommandName() = "test"
+  override def defaultCommandName() = "testForked"
 }
 
 object TestModule {
@@ -95,7 +95,7 @@ object TestModule {
         val stuUpstreams = for {
           ((_, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
         } yield (
-          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/test/utils/*",
+          mod.moduleDir.subRelativeTo(Task.workspace).toString + "/test/utils/*",
           (ts.path / "test/src/utils").toString
         )
 

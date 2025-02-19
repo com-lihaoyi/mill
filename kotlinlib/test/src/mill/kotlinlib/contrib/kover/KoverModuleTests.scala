@@ -1,10 +1,11 @@
 package mill.kotlinlib.kover
 
+import mill.define.Discover
+import mill.main.TokenReaders._
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule
-import mill.kotlinlib.kover.{Kover, KoverModule}
 import mill.testkit.{TestBaseModule, UnitTester}
-import mill.{Agg, T, Task, api}
+import mill.{T, Task, api}
 import utest.{TestSuite, Tests, assert, test}
 
 import scala.xml.{Node, XML}
@@ -13,7 +14,7 @@ object KoverModuleTests extends TestSuite {
 
   val kotlinVersion = "1.9.24"
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib" / "kover"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib/kover"
 
   object module extends TestBaseModule {
 
@@ -22,7 +23,7 @@ object KoverModuleTests extends TestSuite {
         super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
 
       }
-      override def ivyDeps = super.ivyDeps() ++ Agg(
+      override def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
       )
     }
@@ -42,6 +43,8 @@ object KoverModuleTests extends TestSuite {
       def kotlinVersion = KoverModuleTests.kotlinVersion
       object test extends KotlinTests with module.KotestTestModule
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
@@ -50,19 +53,10 @@ object KoverModuleTests extends TestSuite {
 
       val eval = UnitTester(module, resourcePath)
 
-      Seq(module.foo.test.test(), module.bar.test.test(), module.qux.test.test())
-        .foreach(
-          eval(_)
-            .fold(
-              {
-                case api.Result.Exception(cause, _) => throw cause
-                case failure => throw failure
-              },
-              { _ => }
-            )
-        )
+      Seq(module.foo.test.testForked(), module.bar.test.testForked(), module.qux.test.testForked())
+        .foreach(eval(_).get)
 
-      val Right(result) = eval(Kover.xmlReportAll(eval.evaluator))
+      val Right(result) = eval(Kover.xmlReportAll(eval.evaluator)): @unchecked
 
       val xmlReportPath = result.value.path
       assert(os.exists(xmlReportPath))
@@ -85,9 +79,9 @@ object KoverModuleTests extends TestSuite {
 
       val eval = UnitTester(module, resourcePath)
 
-      val Right(_) = eval(module.foo.test.test())
+      val Right(_) = eval(module.foo.test.testForked()): @unchecked
 
-      val Right(result) = eval(module.foo.kover.xmlReport())
+      val Right(result) = eval(module.foo.kover.xmlReport()): @unchecked
 
       val xmlReportPath = result.value.path
       assert(os.exists(xmlReportPath))
@@ -115,9 +109,9 @@ object KoverModuleTests extends TestSuite {
 
       val eval = UnitTester(module, resourcePath)
 
-      val Right(_) = eval(module.foo.test.test())
+      val Right(_) = eval(module.foo.test.testForked()): @unchecked
 
-      val Right(result) = eval(module.foo.kover.htmlReport())
+      val Right(result) = eval(module.foo.kover.htmlReport()): @unchecked
 
       val htmlReportPath = result.value.path
       assert(os.exists(htmlReportPath))

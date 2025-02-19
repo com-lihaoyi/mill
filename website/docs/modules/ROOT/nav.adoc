@@ -1,0 +1,127 @@
+// This section of the docs is very much "by example": how to do this, do that,
+// do this other thing, etc. We touch on a lot of topics about how Mill works,
+// but we intentionally skim over them and do not go into depth: the focus is
+// on end user goals and how to achieve them.
+
+* xref:javalib/intro.adoc[]
+** xref:javalib/module-config.adoc[]
+** xref:javalib/dependencies.adoc[]
+** xref:javalib/testing.adoc[]
+** xref:javalib/linting.adoc[]
+** xref:javalib/publishing.adoc[]
+** xref:javalib/build-examples.adoc[]
+** xref:javalib/web-examples.adoc[]
+* xref:scalalib/intro.adoc[]
+** xref:scalalib/module-config.adoc[]
+** xref:scalalib/dependencies.adoc[]
+** xref:scalalib/testing.adoc[]
+** xref:scalalib/linting.adoc[]
+** xref:scalalib/publishing.adoc[]
+** xref:scalalib/build-examples.adoc[]
+** xref:scalalib/web-examples.adoc[]
+** xref:scalalib/native-examples.adoc[]
+** xref:scalalib/spark.adoc[]
+* xref:kotlinlib/intro.adoc[]
+** xref:kotlinlib/module-config.adoc[]
+** xref:kotlinlib/dependencies.adoc[]
+** xref:kotlinlib/testing.adoc[]
+** xref:kotlinlib/linting.adoc[]
+** xref:kotlinlib/publishing.adoc[]
+// ** xref:kotlinlib/build-examples.adoc[]
+** xref:kotlinlib/web-examples.adoc[]
+* xref:pythonlib/intro.adoc[]
+** xref:pythonlib/module-config.adoc[]
+** xref:pythonlib/dependencies.adoc[]
+** xref:pythonlib/linting.adoc[]
+** xref:pythonlib/testing.adoc[]
+** xref:pythonlib/publishing.adoc[]
+** xref:pythonlib/web-examples.adoc[]
+* Experimental Platform Support
+** Building Android Apps
+*** xref:android/java.adoc[]
+*** xref:android/kotlin.adoc[]
+*** xref:android/android-linting.adoc[]
+** xref:javascriptlib/intro.adoc[]
+*** xref:javascriptlib/dependencies.adoc[]
+*** xref:javascriptlib/module-config.adoc[]
+*** xref:javascriptlib/testing.adoc[]
+*** xref:javascriptlib/publishing.adoc[]
+*** xref:javascriptlib/linting.adoc[]
+* xref:comparisons/why-mill.adoc[]
+** xref:comparisons/maven.adoc[]
+** xref:comparisons/gradle.adoc[]
+** xref:comparisons/sbt.adoc[]
+** xref:comparisons/unique.adoc[]
+* The Mill CLI
+** xref:cli/installation-ide.adoc[]
+** xref:cli/flags.adoc[]
+** xref:cli/builtin-commands.adoc[]
+** xref:cli/query-syntax.adoc[]
+* xref:migrating/migrating.adoc[]
+** xref:migrating/maven.adoc[]
+** xref:migrating/gradle.adoc[]
+** xref:migrating/sbt.adoc[]
+// This section gives a tour of the various user-facing features of Mill:
+// library deps, out folder, queries, tasks, etc.. These are things that
+// every Mill user will likely encounter, and are touched upon in the various
+// language-specific sections, but here we go into a deeper language-agnostic
+// discussion of what these Mill features ar and how they work
+* Mill Fundamentals
+** xref:fundamentals/tasks.adoc[]
+** xref:fundamentals/modules.adoc[]
+** xref:fundamentals/out-dir.adoc[]
+** xref:fundamentals/library-deps.adoc[]
+** xref:fundamentals/cross-builds.adoc[]
+** xref:fundamentals/bundled-libraries.adoc[]
+** xref:fundamentals/configuring-jvm-versions.adoc[]
+// This section talks about Mill plugins. While it could theoretically fit in
+// either section above, it is probably an important enough topic it is worth
+// breaking out on its own
+* Extending Mill
+** xref:extending/import-ivy-plugins.adoc[]
+** xref:extending/contrib-plugins.adoc[]
+// See also the list in Contrib_Plugins.adoc
+*** xref:contrib/artifactory.adoc[]
+*** xref:contrib/bintray.adoc[]
+*** xref:contrib/bloop.adoc[]
+*** xref:contrib/buildinfo.adoc[]
+*** xref:contrib/codeartifact.adoc[]
+*** xref:contrib/docker.adoc[]
+*** xref:contrib/flyway.adoc[]
+*** xref:contrib/gitlab.adoc[]
+*** xref:contrib/jmh.adoc[]
+*** xref:contrib/playlib.adoc[]
+*** xref:contrib/proguard.adoc[]
+*** xref:contrib/scalapblib.adoc[]
+*** xref:contrib/scoverage.adoc[]
+*** xref:contrib/sonatypecentral.adoc[]
+*** xref:contrib/testng.adoc[]
+*** xref:contrib/twirllib.adoc[]
+*** xref:contrib/versionfile.adoc[]
+** xref:extending/thirdparty-plugins.adoc[]
+** xref:extending/running-jvm-code.adoc[]
+** xref:extending/writing-plugins.adoc[]
+** xref:extending/meta-build.adoc[]
+** xref:extending/example-typescript-support.adoc[]
+** xref:extending/example-python-support.adoc[]
+* xref:large/large.adoc[]
+** xref:large/selective-execution.adoc[]
+** xref:large/multi-file-builds.adoc[]
+** xref:large/multi-language-builds.adoc[]
+// This section focuses on diving into deeper, more advanced topics for Mill.
+// These are things that most Mill developers would not encounter day to day,
+// but people developing Mill plugins or working on particularly large or
+// sophisticated Mill builds will need to understand.
+* Mill In Depth
+** xref:depth/sandboxing.adoc[]
+** xref:depth/execution-model.adoc[]
+** xref:depth/process-architecture.adoc[]
+** xref:depth/design-principles.adoc[]
+** xref:depth/why-scala.adoc[]
+// Reference pages that a typical user would not typically read top-to-bottom,
+// but may need to look up once in a while, and thus should be written down
+// *somewhere*.
+* Reference
+** {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
+** {mill-github-url}/blob/main/changelog.adoc[Changelog]
+** xref:reference/talks-blog-posts.adoc[]]

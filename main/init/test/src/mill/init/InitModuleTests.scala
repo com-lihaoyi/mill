@@ -1,16 +1,12 @@
 package mill.init
 
-import mill.api.{PathRef, Result, Val}
-import mill.{Agg, T}
-import mill.define.{Cross, Discover, Module, Task}
-import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.api.Val
+import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
 
 import java.io.{ByteArrayOutputStream, PrintStream}
-import scala.util.Using
 
 object InitModuleTests extends TestSuite {
 
@@ -19,7 +15,9 @@ object InitModuleTests extends TestSuite {
     test("init") {
       val outStream = new ByteArrayOutputStream()
       val errStream = new ByteArrayOutputStream()
-      object initmodule extends TestBaseModule with InitModule
+      object initmodule extends TestBaseModule with InitModule {
+        lazy val millDiscover = Discover[this.type]
+      }
       val evaluator = UnitTester(
         initmodule,
         null,
@@ -27,11 +25,11 @@ object InitModuleTests extends TestSuite {
         errStream = new PrintStream(errStream, true)
       )
       test("no args") {
-        val results = evaluator.evaluator.evaluate(Agg(initmodule.init(None)))
+        val results = evaluator.evaluator.execution.executeTasks(Seq(initmodule.init(None)))
 
-        assert(results.failing.keyCount == 0)
+        assert(results.failing.size == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head
+        val mill.api.ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
         val consoleShown = outStream.toString
 
         val examplesList: Seq[String] = value.asInstanceOf[Seq[String]]
@@ -42,8 +40,10 @@ object InitModuleTests extends TestSuite {
       }
       test("non existing example") {
         val nonExistingModuleId = "nonExistingExampleId"
-        val results = evaluator.evaluator.evaluate(Agg(initmodule.init(Some(nonExistingModuleId))))
-        assert(results.failing.keyCount == 1)
+        val results = evaluator.evaluator.execution.executeTasks(Seq(
+          initmodule.init(Some(nonExistingModuleId))
+        ))
+        assert(results.failing.size == 1)
         assert(errStream.toString.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
       }
     }

@@ -1,7 +1,7 @@
 package mill.scalalib.scalafmt
 
 import mill._
-import mill.main.client.CodeGenConstants.buildFileExtensions
+import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.api.Result
 import mill.define.{Discover, ExternalModule}
 import mill.scalalib._
@@ -86,8 +86,9 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
         )
     }
 
-  def checkFormatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
-    Tasks.resolveMainDefault("__.sources")): Command[Unit] =
+  def checkFormatAll(
+      @arg(positional = true) sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources")
+  ): Command[Unit] =
     Task.Command {
       val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
@@ -98,5 +99,5 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
         )
     }
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }

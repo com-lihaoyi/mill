@@ -3,7 +3,7 @@ package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"com.fasterxml.jackson.core:jackson-databind:2.13.4"
   )
 }

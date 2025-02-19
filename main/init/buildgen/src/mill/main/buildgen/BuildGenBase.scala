@@ -38,7 +38,7 @@ trait BuildGenBase[M, D, I] {
           imports = BuildGenUtil.renderImports(shared.baseModule, isNested, packages.size, extraImports),
           companions =
             shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-              SortedMap((name, SortedMap(inner.scopedDeps.namedIvyDeps.toSeq *)))
+              SortedMap((name, SortedMap(inner.scopedDeps.namedIvyDeps.toSeq*)))
             ),
           supertypes = getSuperTypes(cfg, baseInfo, build),
           inner = BuildGenUtil.renderIrBuild(inner),

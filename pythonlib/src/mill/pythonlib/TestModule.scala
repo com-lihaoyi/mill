@@ -13,7 +13,7 @@ trait TestModule extends TaskModule {
    * results to the console.
    * @see [[testCached]]
    */
-  def test(args: String*): Command[Seq[TestResult]] =
+  def testForked(args: String*): Command[Seq[TestResult]] =
     Task.Command {
       testTask(Task.Anon { args })()
     }
@@ -27,7 +27,8 @@ trait TestModule extends TaskModule {
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * If no input has changed since the last run, no test were executed.
-   * @see [[test()]]
+   *
+   * @see [[testForked()]]
    */
   def testCached: T[Seq[TestResult]] = Task {
     testTask(testCachedArgs)()
@@ -38,7 +39,7 @@ trait TestModule extends TaskModule {
    */
   protected def testTask(args: Task[Seq[String]]): Task[Seq[TestResult]]
 
-  override def defaultCommandName() = "test"
+  override def defaultCommandName() = "testForked"
 }
 
 object TestModule {
@@ -56,7 +57,8 @@ object TestModule {
         args()
       }
       runner().run(
-        ("-m", "unittest", testArgs, "-v")
+        ("-m", "unittest", testArgs, "-v"),
+        workingDir = Task.workspace
       )
       Seq()
     }
@@ -78,7 +80,8 @@ object TestModule {
           sources().map(_.path),
           args()
           // format: in
-        )
+        ),
+        workingDir = Task.workspace
       )
       Seq()
     }

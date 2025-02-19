@@ -1,13 +1,15 @@
 package mill
 package scalalib
 
-import mill.api.{DummyInputStream, JarManifest, PathRef, Result, internal}
+import mill.util.JarManifest
+import mill.api.{DummyInputStream, PathRef, Result, internal}
 import mill.main.BuildInfo
-import mill.util.{Jvm, Util}
+import mill.util.Jvm
 import mill.util.Jvm.createJar
-import mill.api.Loose.Agg
+
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mainargs.Flag
+import mill.define.Task
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
@@ -21,14 +23,12 @@ import scala.util.Using
  * Core configuration required to compile a single Scala compilation target
  */
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
-  @deprecated("use ScalaTests", "0.11.0")
-  type ScalaModuleTests = ScalaTests
 
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
-    override def scalacPluginIvyDeps: T[Agg[Dep]] = outer.scalacPluginIvyDeps()
-    override def scalacPluginClasspath: T[Agg[PathRef]] = outer.scalacPluginClasspath()
+    override def scalacPluginIvyDeps: T[Seq[Dep]] = outer.scalacPluginIvyDeps()
+    override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
     override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
     override def mandatoryScalacOptions: T[Seq[String]] =
       Task { super.mandatoryScalacOptions() }
@@ -78,10 +78,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     }
   }
 
-  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
-    Task.Anon {
-      Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
-    }
+  def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
+    BoundDep(Lib.depToDependency(dep, scalaVersion(), platformSuffix()), dep.force)
+  }
 
   override def resolvePublishDependency: Task[Dep => publish.Dependency] =
     Task.Anon {
@@ -136,13 +135,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       if (sv.startsWith("2.")) {
         // Scala 2.x
         val mainClass = cl.loadClass("scala.tools.nsc.Main")
-        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]])*)
         val exitVal = mainMethod.invoke(null, options.toArray)
         handleResult(true)(exitVal)
       } else {
         // Scala 3.x
         val mainClass = cl.loadClass("dotty.tools.dotc.Main")
-        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]])*)
         val resultClass = cl.loadClass("dotty.tools.dotc.reporting.Reporter")
         val hasErrorsMethod = resultClass.getMethod("hasErrors")
         val exitVal = mainMethod.invoke(null, options.toArray)
@@ -157,9 +156,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * Allows you to make use of Scala compiler plugins.
    */
-  def scalacPluginIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+  def scalacPluginIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
-  def scalaDocPluginIvyDeps: T[Agg[Dep]] = Task { scalacPluginIvyDeps() }
+  def scalaDocPluginIvyDeps: T[Seq[Dep]] = Task { scalacPluginIvyDeps() }
 
   /**
    * Mandatory command-line options to pass to the Scala compiler
@@ -221,14 +220,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * additional jars here if you have some copiler plugin that isn't present
    * on maven central
    */
-  def scalacPluginClasspath: T[Agg[PathRef]] = Task {
+  def scalacPluginClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(scalacPluginIvyDeps())
   }
 
   /**
    * Classpath of the scaladoc (or dottydoc) tool.
    */
-  def scalaDocClasspath: T[Agg[PathRef]] = Task {
+  def scalaDocClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion())
     )
@@ -237,25 +236,25 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * The ivy coordinates of Scala's own standard library
    */
-  def scalaDocPluginClasspath: T[Agg[PathRef]] = Task {
+  def scalaDocPluginClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       scalaDocPluginIvyDeps()
     )
   }
 
-  def scalaLibraryIvyDeps: T[Agg[Dep]] = Task {
+  def scalaLibraryIvyDeps: T[Seq[Dep]] = Task {
     Lib.scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
-  override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
+  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
     super.mandatoryIvyDeps() ++ scalaLibraryIvyDeps()
   }
 
   /**
    * Classpath of the Scala Compiler & any compiler plugins
    */
-  def scalaCompilerClasspath: T[Agg[PathRef]] = Task {
+  def scalaCompilerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
         scalaLibraryIvyDeps()
@@ -297,7 +296,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         Task.log.debug(
           s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
         )
-        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
+        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments)
       }
     } else {
       Task {
@@ -326,8 +325,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     )
 
     def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
-      if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(Task.dest))
-      else {
+      if (files.isEmpty) {
+        Result.Success(PathRef(createJar(Task.dest / "out.jar", Seq(javadocDir))))
+      } else {
         zincWorker()
           .worker()
           .docJar(
@@ -338,7 +338,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {
-          case true => Result.Success(createJar(Agg(javadocDir))(Task.dest))
+          case true => Result.Success(PathRef(createJar(Task.dest / "out.jar", Seq(javadocDir))))
           case false => Result.Failure("docJar generation failed")
         }
       }
@@ -429,12 +429,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * for you to test and operate your code interactively.
    */
   def console(): Command[Unit] = Task.Command(exclusive = true) {
-    if (!Util.isInteractive()) {
+    if (!mill.constants.Util.hasConsole()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
       val useJavaCp = "-usejavacp"
 
-      Jvm.runSubprocess(
+      Jvm.callProcess(
         mainClass =
           if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
             "dotty.tools.repl.Main"
@@ -444,9 +444,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           _.path
         ),
         jvmArgs = forkArgs(),
-        envArgs = forkEnv(),
+        env = forkEnv(),
         mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
-        workingDir = forkWorkingDir()
+        cwd = forkWorkingDir(),
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
       Result.Success(())
     }
@@ -485,7 +487,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         coursierDependency.withConfiguration(coursier.core.Configuration.runtime),
         force = false
       )) ++
-        Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
+        Seq(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
     }
   }
 
@@ -509,13 +511,15 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     } else {
       val mainClass = ammoniteMainClass()
       Task.log.debug(s"Using ammonite main class: ${mainClass}")
-      Jvm.runSubprocess(
+      Jvm.callProcess(
         mainClass = mainClass,
-        classPath = ammoniteReplClasspath().map(_.path),
+        classPath = ammoniteReplClasspath().map(_.path).toVector,
         jvmArgs = forkArgs(),
-        envArgs = forkEnv(),
+        env = forkEnv(),
         mainArgs = replOptions,
-        workingDir = forkWorkingDir()
+        cwd = forkWorkingDir(),
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
       Result.Success(())
     }

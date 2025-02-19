@@ -4,14 +4,14 @@
 
 package mill.kotlinlib.kover
 
-import mill._
-import mill.api.{Loose, PathRef}
+import mill.*
+import mill.api.{PathRef, Result}
 import mill.api.Result.Success
 import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
-import mill.resolve.{Resolve, SelectMode}
+import mill.define.SelectMode
 import mill.scalalib.api.CompilationResult
 import mill.util.Jvm
 import os.Path
@@ -88,8 +88,8 @@ trait KoverModule extends KotlinModule { outer =>
 
   trait KoverTests extends TestModule {
 
-    private def koverAgentDep: T[Agg[Dep]] = Task {
-      Agg(ivy"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
+    private def koverAgentDep: T[Seq[Dep]] = Task {
+      Seq(ivy"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
     }
 
     /** The Kover Agent is used at test-runtime. */
@@ -129,7 +129,7 @@ trait KoverModule extends KotlinModule { outer =>
  */
 object Kover extends ExternalModule with KoverReportBaseModule {
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   def htmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command {
     koverReportTask(
@@ -199,7 +199,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       // will be treated as a dir in case of HTML, and as file in case of XML
       reportPath: Path,
       reportType: ReportType,
-      classpath: Loose.Agg[Path],
+      classpath: Seq[Path],
       workingDir: os.Path
   )(implicit ctx: api.Ctx): PathRef = {
     val args = Seq.newBuilder[String]
@@ -212,26 +212,26 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       s"${reportPath.toString()}.xml"
     } else reportPath.toString()
     args ++= Seq(s"--${reportType.toString.toLowerCase(Locale.US)}", output)
-    Jvm.runSubprocess(
+    Jvm.callProcess(
       mainClass = "kotlinx.kover.cli.MainKt",
-      classPath = classpath,
+      classPath = classpath.toVector,
       jvmArgs = Seq.empty[String],
       mainArgs = args.result(),
-      workingDir = workingDir
+      cwd = workingDir,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
     PathRef(os.Path(output))
   }
 
   private def resolveTasks[T](tasks: String, evaluator: Evaluator): Seq[Task[T]] =
     if (tasks.trim().isEmpty) Seq.empty
-    else Resolve.Tasks.resolve(evaluator.rootModule, Seq(tasks), SelectMode.Multi) match {
-      case Left(err) => throw new Exception(err)
-      case Right(tasks) => tasks.asInstanceOf[Seq[Task[T]]]
-    }
+    else evaluator.resolveTasks(Seq(tasks), SelectMode.Multi).get.asInstanceOf[Seq[Task[T]]]
+
 }
 
 sealed trait ReportType
 object ReportType {
-  final case object Html extends ReportType
-  final case object Xml extends ReportType
+  case object Html extends ReportType
+  case object Xml extends ReportType
 }

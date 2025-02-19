@@ -2,6 +2,7 @@ package mill
 package kotlinlib
 package js
 
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
 
@@ -21,6 +22,8 @@ object KotlinJsCompileTests extends TestSuite {
       override def kotlinVersion = KotlinJsCompileTests.kotlinVersion
       override def moduleDeps = Seq(module.bar)
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)
@@ -29,13 +32,13 @@ object KotlinJsCompileTests extends TestSuite {
     test("compile") {
       val eval = testEval()
 
-      val Right(result) = eval.apply(module.foo.compile)
+      val Right(result) = eval.apply(module.foo.compile): @unchecked
 
       val irDir = result.value.classes.path
       assert(
         os.isDir(irDir),
-        os.exists(irDir / "default" / "manifest"),
-        os.exists(irDir / "default" / "linkdata" / "package_foo"),
+        os.exists(irDir / "default/manifest"),
+        os.exists(irDir / "default/linkdata/package_foo"),
         !os.walk(irDir).exists(_.ext == "klib")
       )
     }
@@ -43,17 +46,17 @@ object KotlinJsCompileTests extends TestSuite {
     test("failures") {
       val eval = testEval()
 
-      val compilationUnit = module.foo.millSourcePath / "src" / "foo" / "Hello.kt"
+      val compilationUnit = module.foo.moduleDir / "src/foo/Hello.kt"
 
-      val Right(_) = eval.apply(module.foo.compile)
+      val Right(_) = eval.apply(module.foo.compile): @unchecked
 
       os.write.over(compilationUnit, os.read(compilationUnit) + "}")
 
-      val Left(_) = eval.apply(module.foo.compile)
+      val Left(_) = eval.apply(module.foo.compile): @unchecked
 
       os.write.over(compilationUnit, os.read(compilationUnit).dropRight(1))
 
-      val Right(_) = eval.apply(module.foo.compile)
+      val Right(_) = eval.apply(module.foo.compile): @unchecked
     }
   }
 

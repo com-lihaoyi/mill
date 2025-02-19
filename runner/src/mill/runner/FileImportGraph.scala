@@ -1,8 +1,9 @@
 package mill.runner
 
-import mill.api.internal
-import mill.main.client.CodeGenConstants._
-import mill.main.client.OutFiles._
+import mill.api.{internal}
+import mill.constants.CodeGenConstants.*
+import mill.constants.OutFiles.*
+import mill.runner.worker.api.{ImportTree, MillScalaParser}
 
 import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
@@ -95,6 +96,7 @@ object FileImportGraph {
    * instantiate the [[MillRootModule]]
    */
   def parseBuildFiles(
+      parser: MillScalaParser,
       topLevelProjectRoot: os.Path,
       projectRoot: os.Path,
       output: os.Path
@@ -110,7 +112,7 @@ object FileImportGraph {
       val readFileEither = scala.util.Try {
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
-        for (splitted <- Parsers.splitScript(content, fileName))
+        for (splitted <- parser.splitScript(content, fileName))
           yield {
             val (pkgs, stmts) = splitted
             val importSegments = pkgs.mkString(".")
@@ -155,7 +157,7 @@ object FileImportGraph {
           val fileImports = mutable.Set.empty[os.Path]
           // we don't expect any new imports when using an empty dummy
           val transformedStmts = mutable.Buffer.empty[String]
-          for ((stmt0, importTrees) <- Parsers.parseImportHooksWithIndices(stmts)) {
+          for ((stmt0, importTrees) <- parser.parseImportHooksWithIndices(stmts)) {
             walkStmt(s, stmt0, importTrees, fileImports, transformedStmts)
           }
           seenScripts(s) = transformedStmts.mkString
@@ -214,7 +216,7 @@ object FileImportGraph {
 
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
 
-        stmt = stmt.patch(start, patchString + mill.util.Util.newLine * numNewLines, end - start)
+        stmt = stmt.patch(start, patchString + System.lineSeparator() * numNewLines, end - start)
       }
 
       transformedStmts.append(stmt)
@@ -272,14 +274,10 @@ object FileImportGraph {
   }
 
   def nextPathFor(s: os.Path, rest: Seq[String]): os.Path = {
-    // Manually do the foldLeft to work around bug in os-lib
-    // https://github.com/com-lihaoyi/os-lib/pull/160
-    val restSegments = rest
-      .map {
-        case "^" => os.up
-        case s => os.rel / s
-      }
-      .foldLeft(os.rel)(_ / _)
+    val restSegments = rest.map {
+      case "^" => os.up
+      case s => os.rel / s
+    }
 
     s / os.up / restSegments / os.up / s"${rest.last}.sc"
   }

@@ -8,7 +8,7 @@ object foo extends ScalaModule with NativeImageModule {
 
   def nativeImageOptions = Seq("--no-fallback", "-Os")
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"com.lihaoyi::scalatags:0.13.1",
     ivy"com.lihaoyi::mainargs:0.6.2"
   )
@@ -53,3 +53,7 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 ".../bin/native-image.cmd"
 
 */
+
+// For more details on using Graal, check the this blog post:
+//
+// - xref:blog:ROOT:7-graal-native-executables.adoc[]

@@ -1,0 +1,29 @@
+
+= Building Java with Mill
+:page-aliases: Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
+:language: Java
+:language-small: java
+
+include::partial$Intro_Header.adoc[]
+
+== Simple Java Module
+
+include::partial$example/javalib/basic/1-simple.adoc[]
+
+[#_custom_build_logic]
+== Custom Build Logic
+
+include::partial$example/javalib/basic/2-custom-build-logic.adoc[]
+
+== Multi-Module Project
+
+include::partial$example/javalib/basic/3-multi-module.adoc[]
+
+== Maven-Compatible Modules
+
+include::partial$example/javalib/basic/4-compat-modules.adoc[]
+
+
+== Realistic Java Example Project
+
+include::partial$example/javalib/basic/6-realistic.adoc[]

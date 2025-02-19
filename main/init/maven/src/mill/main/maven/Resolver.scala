@@ -23,7 +23,7 @@ class Resolver(
     remotes: Seq[RemoteRepository],
     context: String
 ) extends ModelResolver {
-  private[this] var repositories = remotes
+  private var repositories = remotes
 
   override def resolveModel(groupId: String, artifactId: String, version: String): ModelSource = {
     val artifact = new DefaultArtifact(groupId, artifactId, "", "pom", version)

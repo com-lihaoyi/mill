@@ -11,7 +11,7 @@ object PomTests extends TestSuite {
     val artifactId = "mill-scalalib_2.12"
     val artifact =
       Artifact("com.lihaoyi", "mill-scalalib_2.12", "0.0.1")
-    val deps = Agg(
+    val deps = Seq(
       Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"), Scope.Compile),
       Dependency(Artifact("org.scala-sbt", "test-interface", "1.0"), Scope.Compile),
       Dependency(
@@ -108,7 +108,7 @@ object PomTests extends TestSuite {
 
         assert(dependencies.size == 3)
 
-        val pomDeps = deps.indexed
+        val pomDeps = deps
 
         dependencies.zipWithIndex.foreach {
           case (dep, index) =>
@@ -166,7 +166,7 @@ object PomTests extends TestSuite {
       val pomNoDeps =
         pomXml(
           artifact,
-          dependencies = Agg.empty,
+          dependencies = Seq.empty,
           artifactId = artifactId,
           pomSettings = settings,
           properties
@@ -184,7 +184,7 @@ object PomTests extends TestSuite {
       val pomNoDepMgmt =
         pomXml(
           artifact,
-          dependencies = Agg.empty,
+          dependencies = Seq.empty,
           artifactId = artifactId,
           pomSettings = settings,
           properties,
@@ -193,7 +193,7 @@ object PomTests extends TestSuite {
       val pomDepMgmt =
         pomXml(
           artifact,
-          dependencies = Agg.empty,
+          dependencies = Seq.empty,
           artifactId = artifactId,
           pomSettings = settings,
           properties,
@@ -260,7 +260,7 @@ object PomTests extends TestSuite {
 
   def pomXml(
       artifact: Artifact,
-      dependencies: Agg[Dependency],
+      dependencies: Seq[Dependency],
       artifactId: String,
       pomSettings: PomSettings,
       properties: Map[String, String],
@@ -274,8 +274,8 @@ object PomTests extends TestSuite {
       properties,
       PackagingType.Jar,
       None,
-      Agg.empty[Dependency],
-      Agg(depMgmt: _*)
+      Seq.empty[Dependency],
+      Seq(depMgmt*)
     ))
 
   def singleText(seq: NodeSeq) =

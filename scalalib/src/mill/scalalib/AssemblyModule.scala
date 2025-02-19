@@ -1,7 +1,7 @@
 package mill.scalalib
 
-import mill.api.Loose.Agg
-import mill.api.{JarManifest, PathRef, Result}
+import mill.api.{PathRef, Result}
+import mill.util.JarManifest
 import mill.define.{Target => T, _}
 import mill.util.Jvm
 
@@ -49,8 +49,8 @@ trait AssemblyModule extends mill.Module {
       case Some(cls) =>
         mill.util.Jvm.launcherUniversalScript(
           mainClass = cls,
-          shellClassPath = Agg("$0"),
-          cmdClassPath = Agg("%~dpnx0"),
+          shellClassPath = Seq("$0"),
+          cmdClassPath = Seq("%~dpnx0"),
           jvmArgs = forkArgs(),
           shebang = false,
           shellJvmArgs = forkShellArgs(),
@@ -63,14 +63,31 @@ trait AssemblyModule extends mill.Module {
 
   private[mill] def assemblyRules0: Seq[Assembly.Rule] = Assembly.defaultRules
 
-  def upstreamAssemblyClasspath: T[Agg[PathRef]]
+  /**
+   * Upstream classfiles and resources from third-party libraries
+   * necessary to build an executable assembly
+   */
+  def upstreamIvyAssemblyClasspath: T[Seq[PathRef]]
+
+  /**
+   * Upstream classfiles and resources from locally-built modules
+   * necessary to build an executable assembly, but without this module's contribution
+   */
+  def upstreamLocalAssemblyClasspath: T[Seq[PathRef]]
 
   def localClasspath: T[Seq[PathRef]]
 
-  private[mill] def upstreamAssembly2_0: T[Assembly] = Task {
+  /**
+   * Build the assembly for third-party dependencies separate from the current
+   * classpath
+   *
+   * This should allow much faster assembly creation in the common case where
+   * third-party dependencies do not change
+   */
+  def resolvedIvyAssembly: T[Assembly] = Task {
     Assembly.create(
       destJar = Task.dest / "out.jar",
-      inputPaths = upstreamAssemblyClasspath().map(_.path),
+      inputPaths = upstreamIvyAssemblyClasspath().map(_.path),
       manifest = manifest(),
       assemblyRules = assemblyRules
     )
@@ -83,49 +100,14 @@ trait AssemblyModule extends mill.Module {
    * This should allow much faster assembly creation in the common case where
    * upstream dependencies do not change
    */
-  def upstreamAssembly2: T[Assembly] = Task {
-    upstreamAssembly2_0()
-  }
-
-  def upstreamAssembly: T[PathRef] = Task {
-    Task.log.error(
-      s"upstreamAssembly target is deprecated and should no longer used." +
-        s" Please make sure to use upstreamAssembly2 instead."
-    )
-    upstreamAssembly2().pathRef
-  }
-
-  private[mill] def assembly0: Task[PathRef] = Task.Anon {
-
-    val prependScript = Option(prependShellScript()).filter(_ != "")
-    val upstream = upstreamAssembly2()
-
-    val created = Assembly.create(
+  def upstreamAssembly: T[Assembly] = Task {
+    Assembly.create(
       destJar = Task.dest / "out.jar",
-      Agg.from(localClasspath().map(_.path)),
-      manifest(),
-      prependScript,
-      Some(upstream.pathRef.path),
-      assemblyRules
+      inputPaths = upstreamLocalAssemblyClasspath().map(_.path),
+      manifest = manifest(),
+      base = Some(resolvedIvyAssembly()),
+      assemblyRules = assemblyRules
     )
-    // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
-    val problematicEntryCount = 65535
-    if (
-      prependScript.isDefined &&
-      (upstream.addedEntries + created.addedEntries) > problematicEntryCount
-    ) {
-      Result.Failure(
-        s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
-           |JARs of that size are known to not work correctly with a prepended shell script.
-           |Either reduce the entries count of the assembly or disable the prepended shell script with:
-           |
-           |  def prependShellScript = ""
-           |""".stripMargin,
-        Some(created.pathRef)
-      )
-    } else {
-      Result.Success(created.pathRef)
-    }
   }
 
   /**
@@ -133,6 +115,31 @@ trait AssemblyModule extends mill.Module {
    * classfiles from this module and all it's upstream modules and dependencies
    */
   def assembly: T[PathRef] = Task {
-    assembly0()
+    val prependScript = Option(prependShellScript()).filter(_ != "")
+    val upstream = upstreamAssembly()
+
+    val created = Assembly.create(
+      destJar = Task.dest / "out.jar",
+      inputPaths = Seq.from(localClasspath().map(_.path)),
+      manifest = manifest(),
+      prependShellScript = prependScript,
+      base = Some(upstream),
+      assemblyRules = assemblyRules
+    )
+    // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
+    val problematicEntryCount = 65535
+
+    if (prependScript.isDefined && created.entries > problematicEntryCount) {
+      Result.Failure(
+        s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
+           |JARs of that size are known to not work correctly with a prepended shell script.
+           |Either reduce the entries count of the assembly or disable the prepended shell script with:
+           |
+           |  def prependShellScript = ""
+           |""".stripMargin
+      )
+    } else {
+      Result.Success(created.pathRef)
+    }
   }
 }

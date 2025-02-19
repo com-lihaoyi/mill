@@ -7,13 +7,13 @@ import mill.contrib.scoverage._
 object `package` extends RootModule with ScoverageModule {
   def scoverageVersion = "2.1.0"
   def scalaVersion = "2.13.11"
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"com.lihaoyi::scalatags:0.13.1",
     ivy"com.lihaoyi::mainargs:0.6.2"
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 }
