@@ -107,12 +107,15 @@ object `package` extends RootModule with build.MillPublishScalaModule {
 
       sbtPluginProjectSource()
 
+      val isWindows = System.getProperty("os.name").toLowerCase.startsWith("windows")
       val version = build.millVersion()
       if (
         os.call(
           // The version is passed to the sbt build so it correctly resolves the "models" dependency version and sets its own version.
-          ("sbt", s"""set version := "$version"""", "assembly"),
-          cwd = sbtPluginProjectPath
+          if (isWindows) ("sbt.bat", s"""set version := \\"$version\\"""", "assembly")
+          else ("sbt", s"""set version := "$version"""", "assembly"),
+          cwd = sbtPluginProjectPath,
+          stdout = os.Inherit
         ).exitCode != 0
       )
         throw new RuntimeException(

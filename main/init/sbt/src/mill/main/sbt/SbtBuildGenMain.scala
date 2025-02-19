@@ -1,6 +1,7 @@
 package mill.main.sbt
 
 import mainargs.{ParserForClass, main}
+import mill.constants.Util
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.IrDependencyType.*
@@ -61,7 +62,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
 
     println("converting sbt build")
 
-    import scala.sys.process.*
+    val systemSbt = if (Util.isWindows) "sbt.bat" else "sbt"
 
     // resolve the sbt executable
     // https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt
@@ -71,23 +72,20 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
       "./sbtx"
     else if (
       // The return code is somehow 1 instead of 0.
-      os.call(("sbt", "--help"), check = false).exitCode == 1
+      os.call((systemSbt, "--help"), check = false).exitCode == 1
     )
-      "sbt"
+      systemSbt
     else
       throw new RuntimeException(
-        "No sbt executable (`./sbt`, `./sbtx`, or system-wide `sbt`) found"
+        s"No sbt executable (`./sbt`, `./sbtx`, or system-wide `$systemSbt`) found"
       )
 
     println("Running the added `millInitExportBuild` sbt task to export the build")
 
     val exitCode = os.call(
-      Seq(
-        sbtExecutable,
-        s"-addPluginSbtFile=${writeSbtFile().toString}",
-        "millInitExportBuild"
-      ),
-      cwd = workspace
+      (sbtExecutable, s"-addPluginSbtFile=${writeSbtFile().toString}", "millInitExportBuild"),
+      cwd = workspace,
+      stdout = os.Inherit
     ).exitCode
 
     // println("Exit code from running the `millInitExportBuild` sbt task: " + exitCode)
