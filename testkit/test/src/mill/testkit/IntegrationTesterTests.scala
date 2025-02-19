@@ -1,6 +1,5 @@
 package mill.testkit
 
-import mill.constants.ServerFiles
 import utest.*
 
 trait IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
@@ -26,14 +25,17 @@ trait IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
 
         val suffix = if (clientServerMode) "mill-server" else "mill-no-server"
         assert(os.exists(tester.workspacePath / "out" / suffix))
+
+        // Make sure processId file(s) is present while the test is running
+        val processIdFiles = TestkitTestUtils.getProcessIdFiles(tester.workspacePath)
+        assert(processIdFiles.nonEmpty)
         tester.workspacePath
       }
 
       // Make sure processId file is correctly removed to ensure the Mill
       // server process shuts down
-      val remainingProcessIdFiles =
-        os.walk(workspacePath / "out").filter(_.last == ServerFiles.processId)
-      assert(remainingProcessIdFiles.isEmpty)
+      val processIdFiles = TestkitTestUtils.getProcessIdFiles(workspacePath)
+      assert(processIdFiles.isEmpty)
 
     }
   }

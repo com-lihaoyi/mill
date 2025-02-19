@@ -52,14 +52,16 @@ object ExampleTester {
       millExecutable: os.Path,
       bashExecutable: String = defaultBashExecutable(),
       workspacePath: os.Path = os.pwd
-  ): Unit = {
-    new ExampleTester(
+  ): os.Path = {
+    val tester = new ExampleTester(
       clientServerMode,
       workspaceSourcePath,
       millExecutable,
       bashExecutable,
       workspacePath
-    ).run()
+    )
+    tester.run()
+    tester.workspacePath
   }
 
   def defaultBashExecutable(): String = {
@@ -193,7 +195,7 @@ class ExampleTester(
     expected.linesIterator.exists(globMatches(_, filtered))
   }
 
-  def run(): Any = {
+  def run(): Unit = {
     os.makeDir.all(workspacePath)
     val parsed = ExampleParser(workspaceSourcePath)
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
