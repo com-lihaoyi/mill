@@ -50,7 +50,7 @@ object BspModuleTests extends TestSuite {
         ): @unchecked
 
         val relResult =
-          result.value.iterator.map(_.resolve(eval.evaluator.pathsResolver).last).toSeq.sorted
+          result.value.iterator.map(_.resolve(eval.evaluator.workspace).last).toSeq.sorted
         val expected = Seq(
           "compile-resources",
           "slf4j-api-1.7.34.jar",
@@ -68,7 +68,7 @@ object BspModuleTests extends TestSuite {
         ): @unchecked
 
         val relResults: Seq[FilePath] = result.value.iterator.map { p =>
-          val path = p.resolve(eval.evaluator.pathsResolver)
+          val path = p.resolve(eval.evaluator.workspace)
           val name = path.last
           if (name.endsWith(".jar")) os.rel / name
           else path

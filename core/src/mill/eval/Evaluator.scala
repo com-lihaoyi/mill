@@ -3,7 +3,7 @@ package mill.eval
 import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, ExecResult, PathRef, Result, TestReporter, Val}
 import mill.constants.OutFiles
 import mill.define.*
-import mill.exec.{Cached, Execution, ExecutionPaths, ExecutionPathsResolver, Plan}
+import mill.exec.{Cached, Execution, ExecutionPaths, Plan}
 import mill.define.internal.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
@@ -12,9 +12,14 @@ import scala.jdk.CollectionConverters.*
 import scala.util.DynamicVariable
 
 /**
- * Implementation of [[Evaluator]], which serves both as internal logic as well
- * as an odd bag of user-facing helper methods. Internal-only logic is
- * extracted into [[Execution]]
+ * [[Evaluator]] is the primary API through which a user interacts with the Mill
+ * evaluation process. The various phases of evaluation as methods they can call:
+ * 
+ * 1. [[resolveSegments]]/[[resolveTasks]]
+ * 2. [[plan]]
+ * 3. [[execute]]/[[executeTasks]],
+ * 
+ * As well as [[evaluate]] which does all of these phases one after another 
  */
 final class Evaluator private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
@@ -29,15 +34,11 @@ final class Evaluator private[mill] (
   private[mill] def rootModule = execution.rootModule
   private[mill] def workerCache = execution.workerCache
 
-  val pathsResolver: ExecutionPathsResolver = ExecutionPathsResolver.default(outPath)
-
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator = new Evaluator(
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger)
   )
-
-  def plan(goals: Seq[Task[?]]): Plan = Plan.plan(goals)
 
   def resolveSegments(
       scriptArgs: Seq[String],
@@ -68,11 +69,9 @@ final class Evaluator private[mill] (
       resolveToModuleTasks
     )
   }
-
-  def close(): Unit = {
-    execution.close()
-  }
-
+  
+  def plan(goals: Seq[Task[?]]): Plan = Plan.plan(goals)
+  
   def evaluate(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
@@ -96,13 +95,6 @@ final class Evaluator private[mill] (
     results.map(_._1.value.asInstanceOf[T])
   }
 
-  def executeTasks(goals: Seq[Task[?]],
-                   reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-                   testReporter: TestReporter = DummyTestReporter,
-                   logger: ColorLogger = baseLogger,
-                   serialCommandExec: Boolean = false): ExecutionResults = {
-    execution.executeTasks(goals, reporter, testReporter, logger, serialCommandExec)
-  }
   /**
    * @param evaluator
    * @param targets
@@ -179,6 +171,20 @@ final class Evaluator private[mill] (
         }
     }
   }
+
+
+  def executeTasks(goals: Seq[Task[?]],
+                   reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+                   testReporter: TestReporter = DummyTestReporter,
+                   logger: ColorLogger = baseLogger,
+                   serialCommandExec: Boolean = false): ExecutionResults = {
+    execution.executeTasks(goals, reporter, testReporter, logger, serialCommandExec)
+  }
+
+  def close(): Unit = {
+    execution.close()
+  }
+
 }
 
 private[mill] object Evaluator {

@@ -37,15 +37,14 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
     ) {
       // We ignore all non-JavaModule
       case (ev, state, id, m: JavaModule, (classesPath, javacOptions, bspCompileClasspath)) =>
-        val pathResolver = ev.pathsResolver
         val options = javacOptions
         val classpath =
-          bspCompileClasspath.map(_.resolve(pathResolver)).map(sanitizeUri)
+          bspCompileClasspath.map(_.resolve(ev.workspace)).map(sanitizeUri)
         new JavacOptionsItem(
           id,
           options.asJava,
           classpath.iterator.toSeq.asJava,
-          sanitizeUri(classesPath.resolve(pathResolver))
+          sanitizeUri(classesPath.resolve(ev.workspace))
         )
 
       case _ => ???

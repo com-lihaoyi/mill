@@ -1,7 +1,8 @@
 package mill.scalalib
 
 import mill.define.Discover
-import mill.main.TokenReaders._
+import mill.exec.ExecutionPaths
+import mill.main.TokenReaders.*
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
@@ -146,7 +147,7 @@ object CrossVersionTests extends TestSuite {
         // Escape-sequence formatting isn't working under bare Windows
         val expectedDepsTree = tree
         val depsTree =
-          os.read(eval.evaluator.pathsResolver.resolveDest(mod.ivyDepsTree(IvyDepsTreeArgs())).log)
+          os.read(ExecutionPaths.resolveDestPaths(eval.execution.workspace, mod.ivyDepsTree(IvyDepsTreeArgs())).log)
         assert(depsTree == expectedDepsTree)
       }
     }
