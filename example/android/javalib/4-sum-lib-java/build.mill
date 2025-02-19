@@ -125,14 +125,14 @@ Publish ... to /home/.../.m2/repository/...
   "",
   [
     {
-      "fullyQualifiedName": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
-      "selector": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
+      "fullyQualifiedName": "com.example.app.CalculatorUnitTest.textSize_isCorrect",
+      "selector": "com.example.app.CalculatorUnitTest.textSize_isCorrect",
       "duration": ...,
       "status": "Success"
     },
     {
-      "fullyQualifiedName": "com.calculator.app.CalculatorUnitTest.testPlus",
-      "selector": "com.calculator.app.CalculatorUnitTest.testPlus",
+      "fullyQualifiedName": "com.example.app.CalculatorUnitTest.testPlus",
+      "selector": "com.example.app.CalculatorUnitTest.testPlus",
       "duration": ...,
       "status": "Success"
     }

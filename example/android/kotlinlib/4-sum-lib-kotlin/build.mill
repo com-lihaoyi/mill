@@ -127,20 +127,20 @@ Publish ... to /home/.../.m2/repository/...
   "",
   [
     {
-      "fullyQualifiedName": "com.calculator.ExampleUnitTest.text_size_is_correct",
-      "selector": "com.calculator.ExampleUnitTest.text_size_is_correct",
+      "fullyQualifiedName": "com.example.ExampleUnitTest.text_size_is_correct",
+      "selector": "com.example.ExampleUnitTest.text_size_is_correct",
       "duration": ...,
       "status": "Success"
     },
     {
-      "fullyQualifiedName": "com.calculator.ExampleUnitTestInKotlinDir.kotlin_dir_sum_is_correct",
-      "selector": "com.calculator.ExampleUnitTestInKotlinDir.kotlin_dir_sum_is_correct",
+      "fullyQualifiedName": "com.example.ExampleUnitTestInKotlinDir.kotlin_dir_sum_is_correct",
+      "selector": "com.example.ExampleUnitTestInKotlinDir.kotlin_dir_sum_is_correct",
       "duration": ...,
       "status": "Success"
     },
     {
-      "fullyQualifiedName": "com.calculator.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct",
-      "selector": "com.calculator.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct",
+      "fullyQualifiedName": "com.example.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct",
+      "selector": "com.example.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct",
       "duration": ...,
       "status": "Success"
     }
