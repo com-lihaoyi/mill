@@ -7,7 +7,7 @@ import mill.constants.CodeGenConstants.*
 import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
 import mill.eval.Evaluator
 import mill.define.{BaseModule, Segments, SelectMode}
-import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
@@ -355,8 +355,8 @@ class MillBuildBootstrap(
       selectiveExecution = selectiveExecution,
       execution = new mill.exec.Execution(
         baseLogger = baseLogger,
-        chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-        profileLogger = new ProfileLogger(outPath / millProfile),
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
+        profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
         home = home,
         workspace = projectRoot,
         outPath = outPath,

@@ -16,7 +16,7 @@ import scala.util.hashing.MurmurHash3
  * Logic around evaluating a single group, which is a collection of [[Task]]s
  * with a single [[Terminal]].
  */
-private[mill] trait GroupExecution {
+private trait GroupExecution {
   def home: os.Path
   def workspace: os.Path
   def outPath: os.Path
@@ -445,7 +445,7 @@ private[mill] trait GroupExecution {
   }
 }
 
-private[mill] object GroupExecution {
+private object GroupExecution {
 
   case class Results(
       newResults: Map[Task[?], TaskResult[(Val, Int)]],

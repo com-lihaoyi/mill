@@ -5,7 +5,7 @@ import mill.define.Task
 import java.io.PrintStream
 import java.nio.file.{Files, StandardOpenOption}
 
-private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, indent: Int) {
+private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, indent: Int) {
   private var used = false
 
   val indentStr: String = " " * indent
@@ -37,88 +37,91 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
   }
 }
 
-private[mill] class ProfileLogger(outPath: os.Path)
-    extends JsonArrayLogger[ProfileLogger.Timing](outPath, indent = 2) {
-  def log(
-      terminal: Task[?],
-      duration: Long,
-      res: GroupExecution.Results,
-      deps: Seq[Task[?]]
-  ): Unit = {
-    log(
-      ProfileLogger.Timing(
-        terminal.toString,
-        (duration / 1000).toInt,
-        res.cached,
-        res.valueHashChanged,
-        deps.map(_.toString),
-        res.inputsHash,
-        res.previousInputsHash
+private[mill] object JsonArrayLogger {
+
+  private[mill] class Profile(outPath: os.Path)
+    extends JsonArrayLogger[Profile.Timing](outPath, indent = 2) {
+    def log(
+             terminal: Task[?],
+             duration: Long,
+             res: GroupExecution.Results,
+             deps: Seq[Task[?]]
+           ): Unit = {
+      log(
+        Profile.Timing(
+          terminal.toString,
+          (duration / 1000).toInt,
+          res.cached,
+          res.valueHashChanged,
+          deps.map(_.toString),
+          res.inputsHash,
+          res.previousInputsHash
+        )
       )
-    )
+    }
   }
-}
 
-private object ProfileLogger {
-  case class Timing(
-      label: String,
-      millis: Int,
-      cached: java.lang.Boolean = null,
-      valueHashChanged: java.lang.Boolean = null,
-      dependencies: Seq[String] = Nil,
-      inputsHash: Int,
-      previousInputsHash: Int = -1
-  )
+  private object Profile {
+    case class Timing(
+                       label: String,
+                       millis: Int,
+                       cached: java.lang.Boolean = null,
+                       valueHashChanged: java.lang.Boolean = null,
+                       dependencies: Seq[String] = Nil,
+                       inputsHash: Int,
+                       previousInputsHash: Int = -1
+                     )
 
-  object Timing {
-    implicit val readWrite: upickle.default.ReadWriter[Timing] = upickle.default.macroRW
+    object Timing {
+      implicit val readWrite: upickle.default.ReadWriter[Timing] = upickle.default.macroRW
+    }
   }
-}
 
-private[mill] class ChromeProfileLogger(outPath: os.Path)
-    extends JsonArrayLogger[ChromeProfileLogger.TraceEvent](outPath, indent = -1) {
+  private[mill] class ChromeProfile(outPath: os.Path)
+    extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
 
-  def log(
-      terminal: Task[?],
-      cat: String,
-      startTime: Long,
-      duration: Long,
-      threadId: Int,
-      cached: Boolean
-  ): Unit = {
+    def log(
+             terminal: Task[?],
+             cat: String,
+             startTime: Long,
+             duration: Long,
+             threadId: Int,
+             cached: Boolean
+           ): Unit = {
 
-    val event = ChromeProfileLogger.TraceEvent(
-      name = terminal.toString,
-      cat = cat,
-      ph = "X",
-      ts = startTime,
-      dur = duration,
-      pid = 1,
-      tid = threadId,
-      args = if (cached) Seq("cached") else Seq()
-    )
-    log(event)
+      val event = ChromeProfile.TraceEvent(
+        name = terminal.toString,
+        cat = cat,
+        ph = "X",
+        ts = startTime,
+        dur = duration,
+        pid = 1,
+        tid = threadId,
+        args = if (cached) Seq("cached") else Seq()
+      )
+      log(event)
+    }
   }
-}
 
-private object ChromeProfileLogger {
+  private object ChromeProfile {
 
-  /**
-   * Trace Event Format, that can be loaded with Google Chrome via chrome://tracing
-   * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
-   */
-  case class TraceEvent(
-      name: String,
-      cat: String,
-      ph: String,
-      ts: Long,
-      dur: Long,
-      pid: Int,
-      tid: Int,
-      args: Seq[String]
-  )
+    /**
+     * Trace Event Format, that can be loaded with Google Chrome via chrome://tracing
+     * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
+     */
+    case class TraceEvent(
+                           name: String,
+                           cat: String,
+                           ph: String,
+                           ts: Long,
+                           dur: Long,
+                           pid: Int,
+                           tid: Int,
+                           args: Seq[String]
+                         )
 
-  object TraceEvent {
-    implicit val readWrite: upickle.default.ReadWriter[TraceEvent] = upickle.default.macroRW
+    object TraceEvent {
+      implicit val readWrite: upickle.default.ReadWriter[TraceEvent] = upickle.default.macroRW
+    }
   }
 }

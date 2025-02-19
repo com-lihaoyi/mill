@@ -16,8 +16,8 @@ import scala.concurrent._
  */
 private[mill] case class Execution(
     baseLogger: ColorLogger,
-    chromeProfileLogger: ChromeProfileLogger,
-    profileLogger: ProfileLogger,
+    chromeProfileLogger: JsonArrayLogger.ChromeProfile,
+    profileLogger: JsonArrayLogger.Profile,
     home: os.Path,
     workspace: os.Path,
     outPath: os.Path,

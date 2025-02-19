@@ -4,7 +4,6 @@ import ch.epfl.scala.bsp4j.{BuildClient, BuildTarget, BuildTargetCapabilities, B
 import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.ExecResult.{Skipped, Success}
 import mill.define.ExecutionResults
-import mill.exec.Execution
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 

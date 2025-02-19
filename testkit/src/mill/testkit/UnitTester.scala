@@ -7,7 +7,7 @@ import mill.define.{InputImpl, SelectMode, TargetImpl}
 import mill.eval.Evaluator
 import mill.resolve.Resolve
 import mill.internal.PrintLogger
-import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 import java.io.{InputStream, PrintStream}
@@ -90,8 +90,8 @@ class UnitTester(
 
   val execution = new mill.exec.Execution(
     baseLogger = logger,
-    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-    profileLogger = new ProfileLogger(outPath / millProfile),
+    chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
+    profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
     home = mill.api.Ctx.defaultHome,
     workspace = module.moduleDir,
     outPath = outPath,
