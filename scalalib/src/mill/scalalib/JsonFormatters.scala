@@ -11,6 +11,30 @@ trait JsonFormatters {
   implicit lazy val extensionFormat: RW[coursier.core.Extension] = upickle.default.macroRW
 
   implicit lazy val modFormat: RW[coursier.Module] = upickle.default.macroRW
+  implicit lazy val versionConstraintFormat: RW[coursier.version.VersionConstraint] =
+    implicitly[RW[String]].bimap(
+      _.asString,
+      coursier.version.VersionConstraint(_)
+    )
+  implicit lazy val versionIntervalFormat0: RW[coursier.version.VersionInterval] =
+    upickle.default.macroRW
+  implicit lazy val versionFormat0: RW[coursier.version.Version] =
+    implicitly[RW[String]].bimap(
+      _.asString,
+      coursier.version.Version(_)
+    )
+  implicit lazy val variantSelectorFormat: RW[coursier.core.VariantSelector] =
+    RW.merge(
+      upickle.default.macroRW[coursier.core.VariantSelector.ConfigurationBased],
+      upickle.default.macroRW[coursier.core.VariantSelector.AttributesBased]
+    )
+  private implicit lazy val variantAttributesFormat: RW[coursier.core.Variant.Attributes] =
+    upickle.default.macroRW
+  implicit lazy val variantFormat: RW[coursier.core.Variant] =
+    RW.merge(
+      upickle.default.macroRW[coursier.core.Variant.Configuration],
+      variantAttributesFormat
+    )
   implicit lazy val bomDepFormat: RW[coursier.core.BomDependency] = upickle.default.macroRW
   implicit lazy val overridesFormat: RW[coursier.core.Overrides] =
     implicitly[RW[coursier.core.DependencyManagement.Map]].bimap(
@@ -65,14 +89,22 @@ trait JsonFormatters {
         coursier.core.Versions(
           latest = json("latest").str,
           release = json("release").str,
-          available = upickle.default.read(json("available")),
-          lastUpdated = upickle.default.read(json("lastUpdated"))
+          available = upickle.default.read(json("available")): List[String],
+          lastUpdated =
+            upickle.default.read(json("lastUpdated")): Option[coursier.core.Versions.DateTime]
         )
     )
   implicit lazy val versionsDateTimeFormat: RW[coursier.core.Versions.DateTime] =
     upickle.default.macroRW
   implicit lazy val activationFormat: RW[coursier.core.Activation] = upickle.default.macroRW
   implicit lazy val profileFormat: RW[coursier.core.Profile] = upickle.default.macroRW
+  private implicit lazy val variantPublicationFormat: RW[coursier.core.VariantPublication] =
+    upickle.default.macroRW
+  private implicit def attributesMapFormat[T: RW]: RW[Map[coursier.core.Variant.Attributes, T]] =
+    implicitly[RW[Map[String, T]]].bimap(
+      attrMap => attrMap.map { case (k, v) => k.variantName -> v },
+      strMap => strMap.map { case (k, v) => coursier.core.Variant.Attributes(k) -> v }
+    )
   implicit lazy val projectFormat: RW[coursier.core.Project] = upickle.default.macroRW
 
 }
@@ -84,6 +116,19 @@ object JsonFormatters extends JsonFormatters {
       Mirrors.autoRoot[coursier.core.Extension]
     given Root_coursier_Module: Mirrors.Root[coursier.core.Module] =
       Mirrors.autoRoot[coursier.core.Module]
+    given Root_coursier_version_VersionInterval: Mirrors.Root[coursier.version.VersionInterval] =
+      Mirrors.autoRoot[coursier.version.VersionInterval]
+    given Root_coursier_core_VariantSelector_ConfigurationBased
+        : Mirrors.Root[coursier.core.VariantSelector.ConfigurationBased] =
+      Mirrors.autoRoot[coursier.core.VariantSelector.ConfigurationBased]
+    given Root_coursier_core_VariantSelector_AttributesBased
+        : Mirrors.Root[coursier.core.VariantSelector.AttributesBased] =
+      Mirrors.autoRoot[coursier.core.VariantSelector.AttributesBased]
+    given Root_coursier_core_Variant_Configuration
+        : Mirrors.Root[coursier.core.Variant.Configuration] =
+      Mirrors.autoRoot[coursier.core.Variant.Configuration]
+    given Root_coursier_core_Variant_Attributes: Mirrors.Root[coursier.core.Variant.Attributes] =
+      Mirrors.autoRoot[coursier.core.Variant.Attributes]
     given Root_coursier_BomDependency: Mirrors.Root[coursier.core.BomDependency] =
       Mirrors.autoRoot[coursier.core.BomDependency]
     given Root_coursier_Dependency: Mirrors.Root[coursier.core.Dependency] =
@@ -147,6 +192,9 @@ object JsonFormatters extends JsonFormatters {
     given Root_coursier_core_Profile
         : Mirrors.Root[coursier.core.Profile] =
       Mirrors.autoRoot[coursier.core.Profile]
+    given Root_coursier_core_VariantPublication
+        : Mirrors.Root[coursier.core.VariantPublication] =
+      Mirrors.autoRoot[coursier.core.VariantPublication]
     given Root_coursier_core_Project
         : Mirrors.Root[coursier.core.Project] =
       Mirrors.autoRoot[coursier.core.Project]
