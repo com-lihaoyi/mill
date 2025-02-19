@@ -262,7 +262,11 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
 
   // originally named `ivyInterp` in the Maven and module
   def renderIvy(dependency: Dependency): String = {
-    // TODO type, classifier, and exclusions are not processed yet
+    /*
+    TODO `type, `classifier`, and `exclusions` are not processed yet.
+     Processing them involves extracting information from `ModuleID.explicitArtifacts`
+     which is a `Vector` of `sbt.librarymanagement.Artifact` and `sbt.librarymanagement.InclExclRule`s.
+     */
     import dependency.*
     s"ivy\"$organization${if (crossVersion) "::" else ":"}$name:$revision\""
   }
