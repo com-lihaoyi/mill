@@ -3,7 +3,6 @@ package mill.main
 import mill.api.*
 import mill.define.*
 import mill.eval.Evaluator
-import mill.exec.ExecutionPaths
 import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.SelectMode
@@ -177,7 +176,7 @@ trait MainModule extends BaseModule {
         else
           evaluator.resolveSegments(targets, SelectMode.Multi).map { ts =>
             val allPaths = ts.flatMap { segments =>
-              val evPaths = ExecutionPaths.resolveDestPaths(rootDir, segments)
+              val evPaths = ExecutionPaths.resolve(rootDir, segments)
               val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
               val potentialModulePath = rootDir / ExecutionPaths.makeSegmentStrings(segments)
               if (os.exists(potentialModulePath)) {

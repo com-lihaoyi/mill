@@ -3,7 +3,7 @@ package mill.eval
 import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, ExecResult, PathRef, Result, TestReporter, Val}
 import mill.constants.OutFiles
 import mill.define.*
-import mill.exec.{Cached, Execution, ExecutionPaths, Plan}
+import mill.exec.{Cached, Execution, Plan}
 import mill.define.internal.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
@@ -160,7 +160,7 @@ final class Evaluator private[mill] (
             val nameAndJson = for (t <- selectedTargets.toSeq) yield {
               t match {
                 case t: mill.define.NamedTask[_] =>
-                  val jsonFile = ExecutionPaths.resolveDestPaths(outPath, t).meta
+                  val jsonFile = ExecutionPaths.resolve(outPath, t).meta
                   val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
                   Some((t.toString, metadata.value))
                 case _ => None

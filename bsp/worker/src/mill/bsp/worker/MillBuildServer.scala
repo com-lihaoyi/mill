@@ -10,7 +10,6 @@ import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExecutionResults, ExternalModule, NamedTask, Task, TaskResult}
 import mill.eval.Evaluator
-import mill.exec.Execution
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
@@ -612,7 +611,7 @@ private class MillBuildServer(
               false
             )
             else {
-              val outPaths = mill.exec.ExecutionPaths.resolveDestPaths(
+              val outPaths = mill.define.ExecutionPaths.resolve(
                 ev.workspace,
                 module.moduleSegments ++ Label("compile")
               )

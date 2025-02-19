@@ -1,7 +1,6 @@
 package mill.scalalib
 
-import mill.define.{Segment, Segments}
-import mill.exec.ExecutionPaths
+import mill.define.{Segment, Segments, ExecutionPaths}
 import os.Path
 import upickle.default.{ReadWriter, macroRW}
 
@@ -29,7 +28,7 @@ object UnresolvedPath {
       segments: Seq[String]
   ) extends UnresolvedPath {
     override def resolve(workspacePath: os.Path): Path = {
-      ExecutionPaths.resolveDestPaths(workspacePath, Segments(segments.map(Segment.Label(_)))).dest / os.SubPath(subPath)
+      ExecutionPaths.resolve(workspacePath, Segments(segments.map(Segment.Label(_)))).dest / os.SubPath(subPath)
     }
   }
   object DestPath {

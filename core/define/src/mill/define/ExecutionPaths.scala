@@ -1,4 +1,4 @@
-package mill.exec
+package mill.define
 
 import mill.api.internal
 import mill.define.{NamedTask, Segment, Segments}
@@ -17,7 +17,7 @@ object ExecutionPaths {
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(values) => values.map(_.toString)
   }
-  def resolveDestPaths(
+  def resolve(
       workspacePath: os.Path,
       segments: Segments
   ): ExecutionPaths = {
@@ -29,10 +29,10 @@ object ExecutionPaths {
       targetPath / os.up / s"${targetPath.last}.log"
     )
   }
-  def resolveDestPaths(
+  def resolve(
       workspacePath: os.Path,
       task: NamedTask[?]
-  ): ExecutionPaths = resolveDestPaths(workspacePath, task.ctx.segments)
+  ): ExecutionPaths = resolve(workspacePath, task.ctx.segments)
 
   // case-insensitive match on reserved names
   private val ReservedWinNames =
