@@ -31,7 +31,7 @@ abstract class Server[T](
   var stateCache = stateCache0
   def stateCache0: T
 
-  val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
+  val serverId: String = Server.computeProcessId()
   def serverLog0(s: String): Unit = {
     if (os.exists(serverDir) || testLogEvenWhenServerIdWrong) {
       os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
@@ -47,7 +47,15 @@ abstract class Server[T](
     try {
       Server.tryLockBlock(locks.processLock) {
         serverLog("server file locked")
-        watchServerIdFile()
+        Server.watchProcessIdFile(
+          serverDir / ServerFiles.serverId,
+          serverId,
+          running = () => running,
+          exit = msg => {
+            serverLog(msg)
+            exitServer()
+          }
+        )
         val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
         os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
         serverLog("listening on port " + serverSocket.getLocalPort)
@@ -88,35 +96,6 @@ abstract class Server[T](
     pumperThread.setDaemon(true)
     pumperThread.start()
     pipedInput
-  }
-
-  def watchServerIdFile(): Unit = {
-    os.write.over(serverDir / ServerFiles.serverId, serverId)
-
-    val serverIdThread = new Thread(
-      () =>
-        while (running) {
-          checkServerIdFile() match {
-            case None => Thread.sleep(100)
-            case Some(msg) =>
-              serverLog(msg)
-              exitServer()
-          }
-        },
-      "Server ID Checker Thread: " + serverDir
-    )
-    serverIdThread.start()
-  }
-  def checkServerIdFile(): Option[String] = {
-    Try(os.read(serverDir / ServerFiles.serverId)) match {
-      case scala.util.Failure(e) => Some(s"serverId file missing")
-
-      case scala.util.Success(s) =>
-        Option.when(s != serverId) {
-          s"serverId file contents $s does not match serverId $serverId"
-        }
-    }
-
   }
 
   def interruptWithTimeout[T](close: () => Unit, t: () => T): Option[T] = {
@@ -261,11 +240,40 @@ abstract class Server[T](
 }
 
 object Server {
+  def computeProcessId() = {
+    java.lang.Long.toHexString(scala.util.Random.nextLong()) +
+      "-pid" +
+      ProcessHandle.current().pid()
+  }
+  def checkProcessIdFile(processIdFile: os.Path, processId: String): Option[String] = {
+    Try(os.read(processIdFile)) match {
+      case scala.util.Failure(e) => Some(s"serverId file missing")
 
-  def lockBlock[T](lock: Lock)(t: => T): T = {
-    val l = lock.lock()
-    try t
-    finally l.release()
+      case scala.util.Success(s) =>
+        Option.when(s != processId) {
+          s"serverId file contents $s does not match serverId $processId"
+        }
+    }
+
+  }
+
+  def watchProcessIdFile(processIdFile: os.Path,
+                         processId: String,
+                         running: () => Boolean,
+                         exit: String => Unit): Unit = {
+    os.write.over(processIdFile, processId)
+
+    val processIdThread = new Thread(
+      () =>
+        while (running()) {
+          checkProcessIdFile(processIdFile, processId) match {
+            case None => Thread.sleep(100)
+            case Some(msg) => exit(msg)
+          }
+        },
+      "Process ID Checker Thread: " + processIdFile
+    )
+    processIdThread.start()
   }
 
   def tryLockBlock[T](lock: Lock)(t: => T): Option[T] = {

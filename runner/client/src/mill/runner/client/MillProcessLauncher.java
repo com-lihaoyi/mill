@@ -42,7 +42,7 @@ public class MillProcessLauncher {
       interrupted = true;
       throw e;
     } finally {
-      if (!interrupted) {
+      if (!interrupted && Files.exists(processDir)) {
         // cleanup if process terminated for sure
         Files.walk(processDir)
             // depth-first

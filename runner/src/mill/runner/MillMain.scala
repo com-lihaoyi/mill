@@ -73,6 +73,18 @@ object MillMain {
     if (Properties.isWin && Util.hasConsole())
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
+    val processId = mill.main.server.Server.computeProcessId()
+    val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
+    mill.main.server.Server.watchProcessIdFile(
+      out / OutFiles.millNoServer / ServerFiles.serverId,
+      processId,
+      running = () => true,
+      exit = msg => {
+        System.err.println(msg)
+        System.exit(0)
+      }
+    )
+
     val (result, _) =
       try main0(
           args = args.tail,
