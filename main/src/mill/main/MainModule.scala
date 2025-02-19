@@ -290,9 +290,9 @@ trait MainModule extends BaseModule {
           )
       (evaluated: @unchecked) match {
         case Result.Failure(failStr) => throw new Exception(failStr)
-        case Result.Success((_, Result.Success(Seq((_, Some((_, jsonableResult))))))) =>
+        case Result.Success(Evaluator.Result(_, Result.Success(Seq((_, Some((_, jsonableResult))))))) =>
           jsonableResult
-        case Result.Success((_, Result.Failure(failStr))) => throw new Exception(failStr)
+        case Result.Success(Evaluator.Result(_, Result.Failure(failStr))) => throw new Exception(failStr)
       }
     }
 
@@ -326,11 +326,11 @@ object MainModule {
         Separated,
         selectiveExecution = evaluator.selectiveExecution
       ).flatMap {
-        case (watched, Result.Failure(err)) =>
+        case Evaluator.Result(watched, Result.Failure(err)) =>
           watched.foreach(watch0)
           Result.Failure(err)
 
-        case (watched, Result.Success(res)) =>
+        case Evaluator.Result(watched, Result.Success(res)) =>
           val output = f(res)
           watched.foreach(watch0)
           println(output.render(indent = 2))

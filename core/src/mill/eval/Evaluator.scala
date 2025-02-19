@@ -85,7 +85,7 @@ final case class Evaluator private[mill] (
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
-  ): Result[(Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])] = {
+  ): Result[Evaluator.Result] = {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(this) {
       Resolve.Tasks.resolve(
         rootModule,
@@ -99,8 +99,8 @@ final case class Evaluator private[mill] (
   }
 
   def evaluateValues[T](tasks: Seq[Task[T]]): Seq[T] = {
-    val (watches, res0) = evaluate(tasks).get
-    val results = res0.get
+    val res0 = evaluate(tasks)
+    val results = res0.values.get
     results.map(_._1.value.asInstanceOf[T])
   }
 
@@ -112,7 +112,7 @@ final case class Evaluator private[mill] (
   def evaluate(
       targets: Seq[Task[Any]],
       selectiveExecution: Boolean = false
-  ): (Seq[Watchable], Result[Seq[(Val, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
+  ): Evaluator.Result = {
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
@@ -175,15 +175,16 @@ final case class Evaluator private[mill] (
                 case _ => None
               }
             }
-            watched -> Result.Success(evaluated.values.zip(nameAndJson))
-          case n => watched -> Result.Failure(s"$n tasks failed\n$errorStr")
+            Evaluator.Result(watched, Result.Success(evaluated.values.zip(nameAndJson)))
+          case n => Evaluator.Result(watched, Result.Failure(s"$n tasks failed\n$errorStr"))
         }
     }
   }
 }
 
 private[mill] object Evaluator {
-
+  case class Result(watchable: Seq[Watchable],
+                    values: mill.api.Result[Seq[(Val, Option[(Evaluator.TaskName, ujson.Value)])]])
   type TaskName = String
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
