@@ -275,7 +275,7 @@ trait JavaModule
    * here if you'd like fancy artifact extensions to be fetched.
    */
   def artifactTypes: T[Set[Type]] =
-    Task { coursier.core.Resolution.defaultTypes ++ Set(Type.Exotic.aar) }
+    Task { coursier.core.Resolution.defaultTypes }
 
   /**
    * Options to pass to the java compiler
