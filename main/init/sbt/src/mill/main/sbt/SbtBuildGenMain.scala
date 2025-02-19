@@ -125,12 +125,15 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
     import upickle.default.*
     val buildExport = read[BuildExport](buildExportPickled)
 
+    import scala.math.Ordering.Implicits.*
     // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
     val projectNodesByParentDirs: Map[Option[Seq[String]], View[Node[Project]]] =
       buildExport.projects.view
         .map(project =>
           Node(os.Path(project.projectDirectory).subRelativeTo(workspace).segments, project)
         )
+        // The projects are ordered differently in different `sbt millInitExportBuild` runs and on different OSs, which is strange.
+        .sortBy(_.dirs)
         .groupBy(node => {
           val dirs = node.dirs
           Option.when(dirs.nonEmpty)(dirs.dropRight(1))

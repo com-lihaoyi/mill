@@ -37,6 +37,25 @@ object `package` extends RootModule with BaseModule {
 
   def artifactName = "sbt-multi-project-example"
 
+  object common extends BaseModule {
+
+    def ivyDeps = super.ivyDeps() ++ Seq(
+      Deps.`ch.qos.logback:logback-classic`,
+      Deps.`com.typesafe.akka:akka-stream`,
+      Deps.`com.typesafe.scala-logging:scala-logging`,
+      Deps.`com.typesafe:config`,
+      Deps.`net.logstash.logback:logstash-logback-encoder`,
+      Deps.`org.slf4j:jcl-over-slf4j`
+    )
+
+    object tests extends MavenTests with TestModule.ScalaTest {
+
+      def ivyDeps = super.ivyDeps() ++
+        Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
+
+    }
+  }
+
   object multi1 extends BaseModule {
 
     def ivyDeps = super.ivyDeps() ++ Seq(
@@ -73,25 +92,6 @@ object `package` extends RootModule with BaseModule {
     )
 
     def moduleDeps = super.moduleDeps ++ Seq(build.common)
-
-    object tests extends MavenTests with TestModule.ScalaTest {
-
-      def ivyDeps = super.ivyDeps() ++
-        Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
-
-    }
-  }
-
-  object common extends BaseModule {
-
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      Deps.`ch.qos.logback:logback-classic`,
-      Deps.`com.typesafe.akka:akka-stream`,
-      Deps.`com.typesafe.scala-logging:scala-logging`,
-      Deps.`com.typesafe:config`,
-      Deps.`net.logstash.logback:logstash-logback-encoder`,
-      Deps.`org.slf4j:jcl-over-slf4j`
-    )
 
     object tests extends MavenTests with TestModule.ScalaTest {
 
