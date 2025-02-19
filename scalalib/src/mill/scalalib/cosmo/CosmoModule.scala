@@ -62,6 +62,7 @@ trait CosmoModule extends mill.Module with AssemblyModule {
     s"""#include <stdlib.h>
        |#include <stdio.h>
        |#include <errno.h>
+       |#include <libc/x/xasprintf.h>
        |
        |int main(int argc, char* argv[]) {
        |  size_t preargv_size = ${preArgvSize};
@@ -88,6 +89,18 @@ trait CosmoModule extends mill.Module with AssemblyModule {
        |  }
        |
        |  all_argv[total - 1] = NULL;
+       |
+       |  const char* java_opts = getenv("JAVA_OPTS");
+       |  if (java_opts != NULL) {
+       |    const char* jdk_java_options = getenv("JDK_JAVA_OPTIONS");
+       |
+       |    if (jdk_java_options != NULL) {
+       |      const char* new_jdk_java_options = xasprintf("%s %s", jdk_java_options, java_opts);
+       |      setenv("JDK_JAVA_OPTIONS", new_jdk_java_options, 1);
+       |    } else {
+       |      setenv("JDK_JAVA_OPTIONS", java_opts, 1);
+       |    }
+       |  }
        |
        |  execvp("java", all_argv);
        |  if (errno == ENOENT) {
