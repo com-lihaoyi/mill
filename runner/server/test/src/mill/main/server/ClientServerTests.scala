@@ -18,7 +18,7 @@ object ClientServerTests extends TestSuite {
 
   val ENDL = System.lineSeparator()
   class EchoServer(
-      override val serverId: String,
+      override val processId: String,
       serverDir: os.Path,
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean
@@ -97,10 +97,10 @@ object ClientServerTests extends TestSuite {
       ) {
         def preRun(serverDir: Path) = { /*do nothing*/ }
         def initServer(serverDir: Path, b: Boolean, locks: Locks) = {
-          val serverId = "server-" + nextServerId
+          val processId = "server-" + nextServerId
           nextServerId += 1
           new Thread(new EchoServer(
-            serverId,
+            processId,
             os.Path(serverDir, os.pwd),
             locks,
             testLogEvenWhenServerIdWrong
@@ -173,7 +173,7 @@ object ClientServerTests extends TestSuite {
         os.remove.all(res3.outDir)
         Thread.sleep(1000)
 
-        assert(res3.logsFor("serverId file missing") == Seq("server-1"))
+        assert(res3.logsFor("processId file missing") == Seq("server-1"))
         assert(res3.logsFor("exiting server") == Seq("server-1", "server-1"))
       }
     }

@@ -31,14 +31,14 @@ abstract class Server[T](
   var stateCache = stateCache0
   def stateCache0: T
 
-  val serverId: String = Server.computeProcessId()
+  val processId: String = Server.computeProcessId()
   def serverLog0(s: String): Unit = {
     if (os.exists(serverDir) || testLogEvenWhenServerIdWrong) {
       os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
     }
   }
 
-  def serverLog(s: String): Unit = serverLog0(s"$serverId $s")
+  def serverLog(s: String): Unit = serverLog0(s"$processId $s")
 
   def run(): Unit = {
     serverLog("running server in " + serverDir)
@@ -48,8 +48,8 @@ abstract class Server[T](
       Server.tryLockBlock(locks.processLock) {
         serverLog("server file locked")
         Server.watchProcessIdFile(
-          serverDir / ServerFiles.serverId,
-          serverId,
+          serverDir / ServerFiles.processId,
+          processId,
           running = () => running,
           exit = msg => {
             serverLog(msg)
@@ -247,11 +247,11 @@ object Server {
   }
   def checkProcessIdFile(processIdFile: os.Path, processId: String): Option[String] = {
     Try(os.read(processIdFile)) match {
-      case scala.util.Failure(e) => Some(s"serverId file missing")
+      case scala.util.Failure(e) => Some(s"processId file missing")
 
       case scala.util.Success(s) =>
         Option.when(s != processId) {
-          s"serverId file contents $s does not match serverId $processId"
+          s"processId file contents $s does not match processId $processId"
         }
     }
 

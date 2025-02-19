@@ -1,6 +1,6 @@
 package mill.testkit
 import mill.constants.OutFiles.{millServer, millNoServer, out}
-import mill.constants.ServerFiles.serverId
+import mill.constants.ServerFiles.processId
 import mill.util.Retry
 
 trait IntegrationTesterBase {
@@ -58,11 +58,11 @@ trait IntegrationTesterBase {
   /**
    * Remove any ID files to try and force them to exit
    */
-  def removeServerIdFile(): Unit = {
+  def removeProcessIdFile(): Unit = {
     val serverPath0 =
       os.Path(out, workspacePath) / (if (clientServerMode) millServer else millNoServer)
 
-    for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / serverId)
+    for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / processId)
 
     Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
   }

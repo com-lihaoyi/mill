@@ -157,7 +157,7 @@ object IntegrationTester {
         )
       }
 
-      removeServerIdFile()
+      removeProcessIdFile()
     }
   }
 

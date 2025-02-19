@@ -204,7 +204,7 @@ class ExampleTester(
       for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
     } finally {
       if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
-      removeServerIdFile()
+      removeProcessIdFile()
     }
   }
 }
