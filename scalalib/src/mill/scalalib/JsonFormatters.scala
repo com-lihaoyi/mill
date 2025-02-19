@@ -7,6 +7,26 @@ trait JsonFormatters {
   implicit lazy val extensionFormat: RW[coursier.core.Extension] = upickle.default.macroRW
 
   implicit lazy val modFormat: RW[coursier.Module] = upickle.default.macroRW
+  implicit lazy val versionConstraintFormat: RW[coursier.version.VersionConstraint] =
+    implicitly[RW[String]].bimap(
+      _.asString,
+      coursier.version.VersionConstraint(_)
+    )
+  implicit lazy val versionIntervalFormat0: RW[coursier.version.VersionInterval] =
+    upickle.default.macroRW
+  implicit lazy val versionFormat0: RW[coursier.version.Version] =
+    implicitly[RW[String]].bimap(
+      _.asString,
+      coursier.version.Version(_)
+    )
+  implicit lazy val variantSelectorFormat: RW[coursier.core.VariantSelector] =
+    RW.merge(
+      upickle.default.macroRW[coursier.core.VariantSelector.ConfigurationBased]
+    )
+  implicit lazy val variantFormat: RW[coursier.core.Variant] =
+    RW.merge(
+      upickle.default.macroRW[coursier.core.Variant.Configuration]
+    )
   implicit lazy val bomDepFormat: RW[coursier.core.BomDependency] = upickle.default.macroRW
   implicit lazy val overridesFormat: RW[coursier.core.Overrides] =
     implicitly[RW[coursier.core.DependencyManagement.Map]].bimap(
