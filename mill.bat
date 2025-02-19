@@ -77,8 +77,12 @@ REM Check if MILL_VERSION contains MILL_NATIVE_SUFFIX
 echo %MILL_VERSION% | findstr /C:"%MILL_NATIVE_SUFFIX%" >nul
 if %errorlevel% equ 0 (
     set "MILL_VERSION=%MILL_VERSION:-native=%"
-    set "ARTIFACT_SUFFIX=-native-windows-amd64"
-    set "MILL_EXT=.exe"
+    REM -native images compiled with graal do not support windows-arm
+    REM https://github.com/oracle/graal/issues/9215
+    IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+        set "ARTIFACT_SUFFIX=-native-windows-amd64"
+        set "MILL_EXT=.exe"
+    )
 )
 
 set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
