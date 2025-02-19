@@ -14,51 +14,58 @@ object CosmoTests extends UtestIntegrationTestSuite {
   }
 
   val tests: Tests = Tests {
-    test("test Cosmopolitan APE assemblies") - integrationTest {
+    test("test running an APE assembly with arguments") - integrationTest {
       tester =>
-        import tester._
+        if (!scala.util.Properties.isWin) {
+          import tester._
 
-        // test running an APE assembly with arguments
-        val res1 = eval("hello.cosmoAssembly")
-        assert(res1.isSuccess)
-        val assembly1 = workspacePath / "out/hello/cosmoAssembly.dest/out.jar.exe"
-        val args = "scala".toSeq
-        assert(os.call((assembly1, args)).out.text().trim == s"Hello ${args.mkString(" ")}")
-
-        // test running an APE assembly with forkArgs
-        val res2 = eval("javaopts.cosmoAssembly")
-        assert(res2.isSuccess)
-        val assembly2 = workspacePath / "out/javaopts/cosmoAssembly.dest/out.jar.exe"
-
-        val forkArgs = "my.java.property" -> "hello"
-        val forkArgsArgv0 = "my.argv0" -> assembly2.toString
-
-        val props = os.call(assembly2).out.lines()
-          .map(_.split('='))
-          .collect {
-            case Array(k, v) => k -> v
-          }
-
-        assert(props.contains(forkArgs))
-        assert(props.contains(forkArgsArgv0))
-
-        val vars = Map(
-          "JAVA_OPTS" -> "-Dmy.jvm.property=0",
-          "JDK_JAVA_OPTIONS" -> "-Dmy.jvm.property=1",
-          "JAVA_TOOL_OPTIONS" -> "-Dmy.jvm.property=2"
-        )
-
-        val updatedEnv = vars.foldRight(System.getenv().asScala.toMap) { case ((k, v), env) =>
-          updateEnv(env, k, v)
+          val res = eval("hello.cosmoAssembly")
+          assert(res.isSuccess)
+          val assembly = workspacePath / "out/hello/cosmoAssembly.dest/out.jar.exe"
+          val args = "scala".toSeq
+          assert(os.call((assembly, args)).out.text().trim == s"Hello ${args.mkString(" ")}")
         }
+    }
 
-        val props0 = os.call(assembly2, env = updatedEnv, propagateEnv = false).out.lines()
-          .map(_.split('='))
-          .collect {
-            case Array(k, v) => k -> v
+    test("test running an APE assembly with forkArgs and JavaOpts") - integrationTest {
+      tester =>
+        if (!scala.util.Properties.isWin) {
+          import tester._
+
+          val res = eval("javaopts.cosmoAssembly")
+          assert(res.isSuccess)
+          val assembly = workspacePath / "out/javaopts/cosmoAssembly.dest/out.jar.exe"
+
+          val forkArgs = "my.java.property" -> "hello"
+          val forkArgsArgv0 = "my.argv0" -> assembly.toString
+
+          val props = os.call(assembly).out.lines()
+            .map(_.split('='))
+            .collect {
+              case Array(k, v) => k -> v
+            }
+
+          assert(props.contains(forkArgs))
+          assert(props.contains(forkArgsArgv0))
+
+          val vars = Map(
+            "JAVA_OPTS" -> "-Dmy.jvm.property=0",
+            "JDK_JAVA_OPTIONS" -> "-Dmy.jvm.property=1",
+            "JAVA_TOOL_OPTIONS" -> "-Dmy.jvm.property=2"
+          )
+
+          val updatedEnv = vars.foldRight(System.getenv().asScala.toMap) { case ((k, v), env) =>
+            updateEnv(env, k, v)
           }
 
-        assert(props0.contains("my.jvm.property" -> "0"))
+          val props0 = os.call(assembly, env = updatedEnv, propagateEnv = false).out.lines()
+            .map(_.split('='))
+            .collect {
+              case Array(k, v) => k -> v
+            }
+
+          assert(props0.contains("my.jvm.property" -> "0"))
+        }
     }
   }
 }
