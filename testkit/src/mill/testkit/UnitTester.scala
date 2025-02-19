@@ -136,7 +136,7 @@ class UnitTester(
       tasks: Seq[Task[?]],
       dummy: DummyImplicit = null
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    val evaluated = evaluator.execution.executeTasks(tasks)
+    val evaluated = evaluator.executeTasks(tasks)
 
     if (evaluated.failing.isEmpty) {
       Right(
@@ -168,7 +168,7 @@ class UnitTester(
       expectedRawValues: Seq[ExecResult[?]]
   ): Unit = {
 
-    val res = evaluator.execution.executeTasks(Seq(target))
+    val res = evaluator.executeTasks(Seq(target))
 
     val cleaned = res.rawValues.map {
       case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
@@ -182,7 +182,7 @@ class UnitTester(
 
   def check(targets: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
-    val evaluated = evaluator.execution.executeTasks(targets)
+    val evaluated = evaluator.executeTasks(targets)
       .evaluated
       .flatMap(_.asTarget)
       .filter(module.moduleInternal.targets.contains)

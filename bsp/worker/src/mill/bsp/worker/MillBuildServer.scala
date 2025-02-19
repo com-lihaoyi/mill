@@ -1,17 +1,15 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j
-import ch.epfl.scala.bsp4j._
+import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
-
 import mill.api.ExecResult
 import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, ExternalModule, NamedTask, Task}
+import mill.define.{Args, Discover, ExecutionResults, ExternalModule, NamedTask, Task, TaskResult}
 import mill.eval.Evaluator
-import mill.exec.TaskResult
 import mill.exec.Execution
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
@@ -22,7 +20,7 @@ import mill.given
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import scala.concurrent.Promise
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
@@ -805,7 +803,7 @@ private class MillBuildServer(
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = null
-  ): Execution.Results = {
+  ): ExecutionResults = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     mill.runner.MillMain.withOutLock(
       noBuildLock = false,
@@ -817,7 +815,7 @@ private class MillBuildServer(
       },
       streams = logger0.systemStreams
     ) {
-      evaluator.execution.executeTasks(
+      evaluator.executeTasks(
         goals,
         reporter,
         testReporter,

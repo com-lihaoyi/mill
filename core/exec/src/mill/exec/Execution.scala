@@ -287,12 +287,10 @@ private[mill] object Execution {
       }
       .toMap
   }
-  case class Results(
+  private[Execution] case class Results(
       rawValues: Seq[ExecResult[Val]],
       evaluated: Seq[Task[?]],
       failing: Map[Task[?], Seq[ExecResult.Failing[Val]]],
       results: Map[Task[?], TaskResult[Val]]
-  ) {
-    def values: Seq[Val] = rawValues.collect { case ExecResult.Success(v) => v }
-  }
+  ) extends mill.define.ExecutionResults
 }

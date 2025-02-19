@@ -1,4 +1,4 @@
-package mill.exec
+package mill.define
 
 import mill.api.ExecResult
 

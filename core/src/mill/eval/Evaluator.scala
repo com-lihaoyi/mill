@@ -1,16 +1,9 @@
 package mill.eval
 
-import mill.api.{ColorLogger, ExecResult, PathRef, Result, Val}
+import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, ExecResult, PathRef, Result, TestReporter, Val}
 import mill.constants.OutFiles
 import mill.define.*
-import mill.exec.{
-  Cached,
-  Execution,
-  ExecutionPaths,
-  ExecutionPathsResolver,
-  Plan,
-  TaskResult
-}
+import mill.exec.{Cached, Execution, ExecutionPaths, ExecutionPathsResolver, Plan}
 import mill.define.internal.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
@@ -23,10 +16,10 @@ import scala.util.DynamicVariable
  * as an odd bag of user-facing helper methods. Internal-only logic is
  * extracted into [[Execution]]
  */
-final case class Evaluator private[mill] (
+final class Evaluator private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
-    private[mill] val execution: Execution
+    private val execution: Execution
 ) extends AutoCloseable {
 
   private[mill] def workspace = execution.workspace
@@ -103,6 +96,13 @@ final case class Evaluator private[mill] (
     results.map(_._1.value.asInstanceOf[T])
   }
 
+  def executeTasks(goals: Seq[Task[?]],
+                   reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+                   testReporter: TestReporter = DummyTestReporter,
+                   logger: ColorLogger = baseLogger,
+                   serialCommandExec: Boolean = false): ExecutionResults = {
+    execution.executeTasks(goals, reporter, testReporter, logger, serialCommandExec)
+  }
   /**
    * @param evaluator
    * @param targets
@@ -131,7 +131,7 @@ final case class Evaluator private[mill] (
 
     selectedTargetsOrErr match {
       case (selectedTargets, selectiveResults) =>
-        val evaluated: Execution.Results =
+        val evaluated: ExecutionResults =
           execution.executeTasks(selectedTargets, serialCommandExec = true)
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
@@ -205,7 +205,7 @@ private[mill] object Evaluator {
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
-  def formatFailing(evaluated: Execution.Results): String = {
+  def formatFailing(evaluated: ExecutionResults): String = {
     (for ((k, fs) <- evaluated.failing)
       yield {
         val fss = fs.map {

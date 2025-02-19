@@ -232,7 +232,7 @@ case class GenIdeaImpl(
 
     val resolvedModules: Seq[ResolvedModule] = {
       resolveTasks.toSeq.flatMap { case (evaluator, tasks) =>
-        evaluator.execution.executeTasks(tasks) match {
+        evaluator.executeTasks(tasks) match {
           case r if r.failing.nonEmpty =>
             throw GenIdeaException(
               s"Failure during resolving modules: ${Evaluator.formatFailing(r)}"

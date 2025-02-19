@@ -198,7 +198,7 @@ trait MainModule extends BaseModule {
             workerSegments <- evaluator.workerCache.keys.toList
             if allSegments.exists(workerSegments.startsWith)
             case (_, Val(closeable: AutoCloseable)) <-
-              evaluator.execution.workerCache.remove(workerSegments)
+              evaluator.workerCache.remove(workerSegments)
           } {
             closeable.close()
           }
