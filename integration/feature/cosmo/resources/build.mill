@@ -1,6 +1,6 @@
 package build
 
-import mill._, javalib._, scalalib._
+import mill._, javalib._
 
 object hello extends JavaModule with cosmo.CosmoModule
 object javaopts extends JavaModule with cosmo.CosmoModule {
