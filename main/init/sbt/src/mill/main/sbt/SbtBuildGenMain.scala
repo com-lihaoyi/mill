@@ -62,7 +62,8 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
 
     println("converting sbt build")
 
-    val systemSbt = if (Util.isWindows) "sbt.bat" else "sbt"
+    val isWindows = Util.isWindows
+    val systemSbt = if (isWindows) "sbt.bat" else "sbt"
 
     // resolve the sbt executable
     // https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt
@@ -82,11 +83,35 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
 
     println("Running the added `millInitExportBuild` sbt task to export the build")
 
-    val exitCode = os.call(
-      (sbtExecutable, s"-addPluginSbtFile=${writeSbtFile().toString}", "millInitExportBuild"),
-      cwd = workspace,
-      stdout = os.Inherit
-    ).exitCode
+    val exitCode = (
+      if (isWindows) {
+        /*
+        `-addPluginSbtFile` somehow doesn't work on Windows, therefore, the ".sbt" file is put directly in the sbt "project" directory.
+        The error message:
+        ```text
+        [error] Expected ':'
+        [error] Expected '='
+        [error] Expected whitespace character
+        [error] -addPluginSbtFile
+        [error]                  ^
+        ```
+         */
+        val sbtFile = writeTempSbtFileInSbtProjectDirectory(workspace)
+        val commandResult = os.call(
+          (sbtExecutable, "millInitExportBuild"),
+          cwd = workspace,
+          stdout = os.Inherit
+        )
+        os.remove(sbtFile)
+        commandResult
+      } else
+        os.call(
+          (sbtExecutable, s"-addPluginSbtFile=${writeSbtFile().toString}", "millInitExportBuild"),
+          cwd = workspace,
+          stdout = os.Inherit
+        )
+    )
+    .exitCode
 
     // println("Exit code from running the `millInitExportBuild` sbt task: " + exitCode)
     if (exitCode != 0)
@@ -127,26 +152,41 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
     println("converted sbt build to Mill")
   }
 
-  private def writeSbtFile(): os.Path = {
+  /**
+   * @return the temp directory the jar is in and the sbt file contents.
+   */
+  private def copyExportBuildAssemblyJarOutAndGetSbtFileContents(): (os.Path, String) = {
     val tempDir = os.temp.dir()
     // This doesn't work in integration tests when Mill is packaged.
     /*
     val sbtPluginJarUrl =
       getClass.getResource("/sbt-mill-init-export-build-assembly.jar").toExternalForm
      */
-    val file = tempDir / "mill-init.sbt"
     val sbtPluginJarName = "sbt-mill-init-export-build-assembly.jar"
     val sbtPluginJarStream = getClass.getResourceAsStream(s"/$sbtPluginJarName")
     val sbtPluginJarPath = tempDir / sbtPluginJarName
     os.write(sbtPluginJarPath, sbtPluginJarStream)
     val contents =
-      s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-sbt-mill-init-export-build" % "dummy-version" from ${escape(
-          sbtPluginJarPath.wrapped.toUri.toString
-        )})
+      s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-sbt-mill-init-export-build" % "dummy-version" from ${
+          escape(sbtPluginJarPath.wrapped.toUri.toString)
+        })
          |""".stripMargin
-    os.write(file, contents)
-    file
+    (tempDir, contents)
   }
+
+  private def writeSbtFile(): os.Path = {
+    val (tempDir, contents) = copyExportBuildAssemblyJarOutAndGetSbtFileContents()
+    val sbtFile = tempDir / "mill-init.sbt"
+    os.write(sbtFile, contents)
+    sbtFile
+  }
+
+  private def writeTempSbtFileInSbtProjectDirectory(workspace: os.Path) =
+    os.temp(
+      copyExportBuildAssemblyJarOutAndGetSbtFileContents()._2,
+      workspace / "project",
+      suffix = ".sbt"
+    )
 
   override def getProjectTree(input: (BuildInfo, Tree[Node[Project]])): Tree[Node[Project]] =
     input._2
