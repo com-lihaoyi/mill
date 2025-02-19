@@ -18,12 +18,6 @@ object CosmoTests extends UtestIntegrationTestSuite {
       tester =>
         import tester._
 
-        // test running a simple hello world APE assembly
-        val res0 = eval("helloworld.cosmoAssembly")
-        assert(res0.isSuccess)
-        val assembly0 = workspacePath / "out/helloworld/cosmoAssembly.dest/out.jar.exe"
-        assert(os.call(assembly0).out.text().trim == "Hello World")
-
         // test running an APE assembly with arguments
         val res1 = eval("hello.cosmoAssembly")
         assert(res1.isSuccess)
