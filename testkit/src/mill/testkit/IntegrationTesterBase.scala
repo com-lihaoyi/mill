@@ -1,5 +1,5 @@
 package mill.testkit
-import mill.constants.OutFiles.{millServer, out}
+import mill.constants.OutFiles.{millServer, millNoServer, out}
 import mill.constants.ServerFiles.serverId
 import mill.util.Retry
 
