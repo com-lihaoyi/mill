@@ -96,6 +96,7 @@ class ExampleTester(
     }
   }
   private val millExt = if (isWindows) ".bat" else ""
+  private val clientServerFlag = if (clientServerMode) "" else "--no-server"
 
   def processCommand(
       expectedSnippets: Vector[String],
@@ -103,8 +104,8 @@ class ExampleTester(
       check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill$millExt --disable-ticker $rest"
-      case s"./mill $rest" => s"./mill$millExt --disable-ticker $rest"
+      case s"mill $rest" => s"./mill$millExt $clientServerFlag --disable-ticker $rest"
+      case s"./mill $rest" => s"./mill$millExt $clientServerFlag --disable-ticker $rest"
       case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
