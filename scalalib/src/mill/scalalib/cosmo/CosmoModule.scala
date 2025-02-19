@@ -59,58 +59,10 @@ trait CosmoModule extends mill.Module with AssemblyModule {
 
     val preArgvSize = size + 3;
 
-    s"""#include <stdlib.h>
-       |#include <stdio.h>
-       |#include <errno.h>
-       |#include <libc/x/xasprintf.h>
-       |
-       |int main(int argc, char* argv[]) {
-       |  size_t preargv_size = ${preArgvSize};
-       |  size_t total = preargv_size + argc;
-       |  char *all_argv[total];
-       |  memset(all_argv, 0, sizeof(all_argv));
-       |
-       |  all_argv[0] = (char*)malloc((strlen(argv[0]) + 1) * sizeof(char));
-       |  strcpy(all_argv[0], argv[0]);
-       |  ${addForkArgs}
-       |  ${addForkArgsArgv0}
-       |  all_argv[${size}] = (char*)malloc((strlen("-cp") + 1) * sizeof(char));
-       |  strcpy(all_argv[${size}], "-cp");
-       |  all_argv[${size + 1}] = (char*)malloc((strlen(argv[0]) + 1) * sizeof(char));
-       |  strcpy(all_argv[${size + 1}], argv[0]);
-       |  all_argv[${size + 2}] = (char*)malloc((strlen("${finalMainClass()}") + 1) * sizeof(char));
-       |  strcpy(all_argv[${size + 2}], "${finalMainClass()}");
-       |
-       |  int i = preargv_size;
-       |  for (int count = 1; count < argc; count++) {
-       |    all_argv[i] = (char*)malloc((strlen(argv[count]) + 1) * sizeof(char));
-       |    strcpy(all_argv[i], argv[count]);
-       |    i++;
-       |  }
-       |
-       |  all_argv[total - 1] = NULL;
-       |
-       |  const char* java_opts = getenv("JAVA_OPTS");
-       |  if (java_opts != NULL) {
-       |    const char* jdk_java_options = getenv("JDK_JAVA_OPTIONS");
-       |
-       |    if (jdk_java_options != NULL) {
-       |      const char* new_jdk_java_options = xasprintf("%s %s", jdk_java_options, java_opts);
-       |      setenv("JDK_JAVA_OPTIONS", new_jdk_java_options, 1);
-       |    } else {
-       |      setenv("JDK_JAVA_OPTIONS", java_opts, 1);
-       |    }
-       |  }
-       |
-       |  execvp("java", all_argv);
-       |  if (errno == ENOENT) {
-       |    execvp("java.exe", all_argv);
-       |  }
-       |
-       |  perror("java");
-       |  exit(EXIT_FAILURE);
-       |}
-    """.stripMargin
+    val template =
+      scala.io.Source.fromResource("mill/scalalib/cosmo/launcher.c").getLines.mkString("\n")
+
+    template.format(preArgvSize, size, finalMainClass(), addForkArgs, addForkArgsArgv0)
   }
 
   def cosmoCompiledLauncherScript: T[PathRef] = Task {
