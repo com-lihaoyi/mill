@@ -91,7 +91,7 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    millResolver().resolveDeps(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),
         coursierDependency
