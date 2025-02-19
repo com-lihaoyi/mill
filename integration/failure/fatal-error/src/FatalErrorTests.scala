@@ -4,7 +4,7 @@ import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object CompileErrorTests extends UtestIntegrationTestSuite {
+object FatalErrorTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       val res = tester.eval("fatalTask")

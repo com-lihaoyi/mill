@@ -5,7 +5,7 @@ package mill.constants;
  * and documentation about what they do
  */
 public class ServerFiles {
-  public static final String serverId = "serverId";
+  public static final String processId = "processId";
   public static final String sandbox = "sandbox";
 
   /**
