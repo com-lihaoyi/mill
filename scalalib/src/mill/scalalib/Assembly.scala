@@ -175,7 +175,7 @@ object Assembly {
     def append(entry: UnopenedInputStream): GroupedEntry = this
   }
 
-  private[mill] def create0(
+  def create0(
       destJar: os.Path,
       inputPaths: Seq[os.Path],
       manifest: JarManifest = JarManifest.MillDefault,

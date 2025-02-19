@@ -59,6 +59,15 @@ trait AssemblyModule extends mill.Module {
     }
   }
 
+  def prepend: T[Option[Array[Byte]]] = Task {
+    Option(prependShellScript())
+      .filter(_ != "")
+      .map { prependShellScript =>
+        val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
+        (prependShellScript + lineSep).getBytes
+      }
+  }
+
   def assemblyRules: Seq[Assembly.Rule] = assemblyRules0
 
   private[mill] def assemblyRules0: Seq[Assembly.Rule] = Assembly.defaultRules
@@ -101,8 +110,8 @@ trait AssemblyModule extends mill.Module {
    * upstream dependencies do not change
    */
   def upstreamAssembly: T[Assembly] = Task {
-    Assembly.create(
-      destJar = Task.dest / "out.jar",
+    Assembly.create0(
+      destJar = Task.dest / destJarName(),
       inputPaths = upstreamLocalAssemblyClasspath().map(_.path),
       manifest = manifest(),
       base = Some(resolvedIvyAssembly()),
@@ -110,26 +119,30 @@ trait AssemblyModule extends mill.Module {
     )
   }
 
+  private[mill] def createAssembly: Task[Assembly] = Task.Anon {
+    Assembly.create0(
+      destJar = Task.dest / destJarName(),
+      inputPaths = Seq.from(localClasspath().map(_.path)),
+      manifest = manifest(),
+      prepend = prepend(),
+      base = Some(upstreamAssembly()),
+      assemblyRules = assemblyRules
+    )
+  }
+
+  def destJarName: T[String] = Task { "out.jar" }
+
   /**
    * An executable uber-jar/assembly containing all the resources and compiled
    * classfiles from this module and all it's upstream modules and dependencies
    */
   def assembly: T[PathRef] = Task {
-    val prependScript = Option(prependShellScript()).filter(_ != "")
-    val upstream = upstreamAssembly()
+    val created = createAssembly()
 
-    val created = Assembly.create(
-      destJar = Task.dest / "out.jar",
-      inputPaths = Seq.from(localClasspath().map(_.path)),
-      manifest = manifest(),
-      prependShellScript = prependScript,
-      base = Some(upstream),
-      assemblyRules = assemblyRules
-    )
     // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
     val problematicEntryCount = 65535
 
-    if (prependScript.isDefined && created.entries > problematicEntryCount) {
+    if (prepend().isDefined && created.entries > problematicEntryCount) {
       Result.Failure(
         s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
            |JARs of that size are known to not work correctly with a prepended shell script.

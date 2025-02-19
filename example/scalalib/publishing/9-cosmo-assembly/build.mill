@@ -12,9 +12,9 @@ object foo extends ScalaModule with cosmo.CosmoModule {
 
 /** Usage
 
-> ./mill show foo.cosmoAssembly # mac/linux
+> ./mill show foo.assembly # mac/linux
 
-> ./out/foo/cosmoAssembly.dest/out.jar.exe # mac/linux
+> ./out/foo/assembly.dest/out.jar.exe # mac/linux
 Hello, World!
 
 */
