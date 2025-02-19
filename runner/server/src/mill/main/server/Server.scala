@@ -263,7 +263,7 @@ object Server {
       running: () => Boolean,
       exit: String => Unit
   ): Unit = {
-    os.write.over(processIdFile, processId)
+    os.write.over(processIdFile, processId, createFolders = true)
 
     val processIdThread = new Thread(
       () =>

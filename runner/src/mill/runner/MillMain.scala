@@ -76,7 +76,7 @@ object MillMain {
     val processId = mill.main.server.Server.computeProcessId()
     val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
     mill.main.server.Server.watchProcessIdFile(
-      out / OutFiles.millNoServer / ServerFiles.processId,
+      out / OutFiles.millNoServer / processId / ServerFiles.processId,
       processId,
       running = () => true,
       exit = msg => {

@@ -25,7 +25,7 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
       @volatile var watchTerminated = false
       Future {
         eval(
-          ("--watch", "version"),
+          ("--watch", "foo"),
           stdout = os.ProcessOutput.Readlines { println(_) },
           stderr = os.ProcessOutput.Readlines { println(_) }
         )
@@ -34,10 +34,14 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
 
       if (tester.clientServerMode) eventually { os.exists(workspacePath / "out/mill-server") }
       else eventually { os.exists(workspacePath / "out/mill-no-server") }
+
       assert(watchTerminated == false)
 
-      if (tester.clientServerMode) os.remove.all(workspacePath / "out/mill-server")
-      else os.remove.all(workspacePath / "out/mill-no-server")
+      val processRoot =
+        if (tester.clientServerMode) workspacePath / "out/mill-server"
+        else workspacePath / "out/mill-no-server"
+
+      os.list(processRoot).map(p => os.remove(p / "processId"))
 
       eventually { watchTerminated == true }
     }
