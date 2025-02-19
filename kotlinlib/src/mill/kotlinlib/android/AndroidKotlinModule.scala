@@ -1,8 +1,7 @@
 package mill.kotlinlib.android
 
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 import mill.api.PathRef
-import mill.javalib.android.AndroidLibModule
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 
 trait AndroidKotlinModule extends KotlinModule {

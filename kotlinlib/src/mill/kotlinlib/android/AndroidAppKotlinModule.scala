@@ -7,7 +7,7 @@ import coursier.util.ModuleMatchers
 import mill.{T, Task}
 import mill.api.PathRef
 import mill.define.{Command, ModuleRef, Task}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
+import mill.kotlinlib.{Dep, DepSyntax}
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 import mill.scalalib.{JavaModule, TestModule}
 import mill.scalalib.TestModule.Junit5
@@ -31,8 +31,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
 
   override def sources: T[Seq[PathRef]] =
     super[AndroidAppModule].sources() :+ PathRef(moduleDir / "src/main/kotlin")
-
-  
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
     override def sources: T[Seq[PathRef]] =
