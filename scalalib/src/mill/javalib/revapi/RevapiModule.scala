@@ -83,7 +83,7 @@ trait RevapiModule extends PublishModule {
   def revapiNewFiles: T[Seq[PathRef]] = Task {
     Seq(jar()) ++
       Task.traverse(recursiveModuleDeps)(_.jar)() ++
-      internalCoursierResolver().resolveDeps(
+      millResolver().resolveDeps(
         Seq(coursierDependency),
         artifactTypes = Some(revapiArtifactTypes())
       )

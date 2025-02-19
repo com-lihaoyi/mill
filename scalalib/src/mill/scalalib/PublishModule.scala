@@ -220,7 +220,7 @@ trait PublishModule extends JavaModule { outer =>
    * @return
    */
   private def ivy(hasJar: Boolean): Task[String] = Task.Anon {
-    val (results, bomDepMgmt) = internalCoursierResolver().processDeps(
+    val (results, bomDepMgmt) = millResolver().processDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(Configuration.runtime),

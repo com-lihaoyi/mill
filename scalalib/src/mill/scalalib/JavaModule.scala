@@ -667,7 +667,7 @@ trait JavaModule
    * These are not meant to be modified by Mill users, unless you really know what you're
    * doing.
    */
-  def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
+  private[mill] def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
     Seq(internalDependenciesRepository())
   }
 
@@ -920,7 +920,7 @@ trait JavaModule
    * Resolved dependencies
    */
   def resolvedIvyDeps: T[Seq[PathRef]] = Task {
-    internalCoursierResolver().resolveDeps(
+    millResolver().resolveDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.provided),
@@ -950,7 +950,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Seq[PathRef]] = Task {
-    internalCoursierResolver().resolveDeps(
+    millResolver().resolveDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.runtime),
@@ -1127,7 +1127,7 @@ trait JavaModule
       val dependencies =
         (additionalDeps() ++ Seq(BoundDep(coursierDependency, force = false))).iterator.to(Seq)
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
-        allRepositoriesTask(),
+        allRepositories(),
         dependencies,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
@@ -1329,7 +1329,7 @@ trait JavaModule
     val tasks =
       if (all.value) Seq(
         Task.Anon {
-          internalCoursierResolver().resolveDeps(
+          millResolver().resolveDeps(
             Seq(
               coursierDependency.withConfiguration(cs.Configuration.provided),
               coursierDependency
@@ -1342,7 +1342,7 @@ trait JavaModule
           )
         },
         Task.Anon {
-          internalCoursierResolver().resolveDeps(
+          millResolver().resolveDeps(
             Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
             sources = true
           )

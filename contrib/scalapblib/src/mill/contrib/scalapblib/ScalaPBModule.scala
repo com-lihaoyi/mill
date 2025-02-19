@@ -90,8 +90,8 @@ trait ScalaPBModule extends ScalaModule {
     case false => Task.Anon { Seq.empty[PathRef] }
   }
 
-  def scalaPBProtoClasspath: T[Seq[PathRef]] = Task {
-    internalCoursierResolver().resolveDeps(
+  def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
+    millResolver().resolveDeps(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),
         coursierDependency

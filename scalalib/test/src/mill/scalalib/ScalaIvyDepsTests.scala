@@ -54,6 +54,16 @@ object ScalaIvyDepsTests extends TestSuite {
           coursier.Repositories.google
         )
       }
+      // ivyDeps depends on repositoriesTask task, like can be the case sometimes
+      // (like in mill-scalablytyped as of writing this). Eval'ing both tasks shouldn't
+      // be a problem.
+      // This used to be a problem at some point because of the
+      // JavaModule#coursierProject / CoursierModule#internalRepositories stuff,
+      // where repositoriesTask needed to evaluate coursierProject, itself needing ivyDeps,
+      // in order to get the internal repository for Mill modules.
+      // If users add a dependency the other way around, like here, this used to trigger
+      // a stackoverflow. This isn't a problem anymore since the introduction of
+      // CoursierModule#{allRepositories,millResolver}.
       def ivyDeps = Task {
         if (repositoriesTask().contains(coursier.Repositories.google))
           Agg(ivy"com.google.protobuf:protobuf-java:2.6.1")
@@ -61,6 +71,8 @@ object ScalaIvyDepsTests extends TestSuite {
           Agg.empty
       }
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
@@ -99,8 +111,10 @@ object ScalaIvyDepsTests extends TestSuite {
 
     test("ivyDepsNeedsRepositoriesTask") - UnitTester(IvyDepsRepositoriesTaskDep, null).scoped {
       eval =>
-        val ivyDeps = eval.apply(IvyDepsRepositoriesTaskDep.module.ivyDeps).toTry.get
-        val repositories = eval.apply(IvyDepsRepositoriesTaskDep.module.repositoriesTask).toTry.get
+        val ivyDeps = eval.apply(IvyDepsRepositoriesTaskDep.module.ivyDeps)
+          .get.fold(_.throwException, identity)
+        val repositories = eval.apply(IvyDepsRepositoriesTaskDep.module.repositoriesTask)
+          .get.fold(_.throwException, identity)
         assert(ivyDeps.value.contains(ivy"com.google.protobuf:protobuf-java:2.6.1"))
         assert(repositories.value.contains(coursier.Repositories.google))
     }
