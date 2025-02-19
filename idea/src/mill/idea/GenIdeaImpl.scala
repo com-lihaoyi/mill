@@ -109,7 +109,7 @@ case class GenIdeaImpl(
       if (!fetchMillModules) Nil
       else {
         val moduleRepos = modulesByEvaluator.toSeq.flatMap { case (ev, modules) =>
-          ev.evaluateValues(modules.map(_._2.repositoriesTask))
+          ev.execute(modules.map(_._2.repositoriesTask))
         }
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = false)
@@ -499,7 +499,7 @@ case class GenIdeaImpl(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
           allSourcesPathRefs: Seq[PathRef]
-        ) = evaluator.evaluateValues(Seq(
+        ) = evaluator.execute(Seq(
           mod.resources,
           mod.generatedSources,
           mod.allSources

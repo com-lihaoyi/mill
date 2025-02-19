@@ -15,23 +15,23 @@ import scala.concurrent._
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
 private[mill] case class Execution(
-    val baseLogger: ColorLogger,
-    val chromeProfileLogger: ChromeProfileLogger,
-    val profileLogger: ProfileLogger,
-    val home: os.Path,
-    val workspace: os.Path,
-    val outPath: os.Path,
-    val externalOutPath: os.Path,
-    val rootModule: BaseModule,
-    val classLoaderSigHash: Int,
-    val classLoaderIdentityHash: Int,
-    val workerCache: mutable.Map[Segments, (Int, Val)],
-    val env: Map[String, String],
-    val failFast: Boolean,
-    val threadCount: Option[Int],
-    val methodCodeHashSignatures: Map[String, Int],
-    val systemExit: Int => Nothing,
-    val exclusiveSystemStreams: SystemStreams
+    baseLogger: ColorLogger,
+    chromeProfileLogger: ChromeProfileLogger,
+    profileLogger: ProfileLogger,
+    home: os.Path,
+    workspace: os.Path,
+    outPath: os.Path,
+    externalOutPath: os.Path,
+    rootModule: BaseModule,
+    classLoaderSigHash: Int,
+    classLoaderIdentityHash: Int,
+    workerCache: mutable.Map[Segments, (Int, Val)],
+    env: Map[String, String],
+    failFast: Boolean,
+    threadCount: Option[Int],
+    methodCodeHashSignatures: Map[String, Int],
+    systemExit: Int => Nothing,
+    exclusiveSystemStreams: SystemStreams
 ) extends GroupExecution with AutoCloseable {
 
   def withBaseLogger(newBaseLogger: ColorLogger) = this.copy(baseLogger = newBaseLogger)
@@ -47,7 +47,7 @@ private[mill] case class Execution(
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false
-  ): ExecResults = logger.withPromptUnpaused {
+  ): Execution.Results = logger.withPromptUnpaused {
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
@@ -55,7 +55,7 @@ private[mill] case class Execution(
         if (effectiveThreadCount == 1) ExecutionContexts.RunNow
         else new ExecutionContexts.ThreadPool(effectiveThreadCount)
 
-      try evaluate0(goals, logger, reporter, testReporter, ec, serialCommandExec)
+      try execute0(goals, logger, reporter, testReporter, ec, serialCommandExec)
       finally ec.close()
     }
   }
@@ -75,14 +75,14 @@ private[mill] case class Execution(
     failing
   }
 
-  private def evaluate0(
+  private def execute0(
       goals: Seq[Task[?]],
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       ec: mill.api.Ctx.Fork.Impl,
       serialCommandExec: Boolean
-  ): ExecResults = {
+  ): Execution.Results = {
     os.makeDir.all(outPath)
 
     val threadNumberer = new ThreadNumberer()
@@ -260,12 +260,7 @@ private[mill] case class Execution(
 
     Execution.Results(
       goals.toIndexedSeq.map(results(_).map(_._1).result),
-      // result of flatMap may contain non-distinct entries,
-      // so we manually clean it up before converting to a `Strict.Agg`
-      // see https://github.com/com-lihaoyi/mill/issues/2958
-      Seq.from(
-        finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).iterator.distinct
-      ),
+      finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
       getFailing(plan.sortedGroups, results).items().map { case (k, v) => (k, v.toSeq) }.toMap,
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
@@ -297,5 +292,7 @@ private[mill] object Execution {
       evaluated: Seq[Task[?]],
       failing: Map[Task[?], Seq[ExecResult.Failing[Val]]],
       results: Map[Task[?], TaskResult[Val]]
-  ) extends ExecResults
+  ) {
+    def values: Seq[Val] = rawValues.collect { case ExecResult.Success(v) => v }
+  }
 }

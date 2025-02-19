@@ -5,7 +5,6 @@ import mill.constants.OutFiles
 import mill.define.*
 import mill.exec.{
   Cached,
-  ExecResults,
   Execution,
   ExecutionPaths,
   ExecutionPathsResolver,
@@ -81,7 +80,7 @@ final case class Evaluator private[mill] (
     execution.close()
   }
 
-  def resolveEvaluate(
+  def evaluate(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
@@ -95,11 +94,11 @@ final case class Evaluator private[mill] (
       )
     }
     for (targets <- resolved)
-      yield evaluate(Seq.from(targets), selectiveExecution)
+      yield execute0(Seq.from(targets), selectiveExecution)
   }
 
-  def evaluateValues[T](tasks: Seq[Task[T]]): Seq[T] = {
-    val res0 = evaluate(tasks)
+  def execute[T](tasks: Seq[Task[T]]): Seq[T] = {
+    val res0 = execute0(tasks)
     val results = res0.values.get
     results.map(_._1.value.asInstanceOf[T])
   }
@@ -109,7 +108,7 @@ final case class Evaluator private[mill] (
    * @param targets
    * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
    */
-  def evaluate(
+  def execute0(
       targets: Seq[Task[Any]],
       selectiveExecution: Boolean = false
   ): Evaluator.Result = {
@@ -132,7 +131,7 @@ final case class Evaluator private[mill] (
 
     selectedTargetsOrErr match {
       case (selectedTargets, selectiveResults) =>
-        val evaluated: ExecResults =
+        val evaluated: Execution.Results =
           execution.executeTasks(selectedTargets, serialCommandExec = true)
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
@@ -183,6 +182,12 @@ final case class Evaluator private[mill] (
 }
 
 private[mill] object Evaluator {
+  /**
+   *
+   * @param watchable
+   * @param values A sequence of untyped values returned by evaluation, boxed in [[Val]]s,
+   *               along with an optional task name and JSON-serialization for named tasks
+   */
   case class Result(watchable: Seq[Watchable],
                     values: mill.api.Result[Seq[(Val, Option[(Evaluator.TaskName, ujson.Value)])]])
   type TaskName = String
@@ -200,7 +205,7 @@ private[mill] object Evaluator {
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
-  def formatFailing(evaluated: ExecResults): String = {
+  def formatFailing(evaluated: Execution.Results): String = {
     (for ((k, fs) <- evaluated.failing)
       yield {
         val fss = fs.map {

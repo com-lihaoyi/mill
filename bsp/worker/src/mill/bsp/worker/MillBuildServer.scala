@@ -11,7 +11,8 @@ import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, NamedTask, Task}
 import mill.eval.Evaluator
-import mill.exec.{ExecResults, TaskResult}
+import mill.exec.TaskResult
+import mill.exec.Execution
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
@@ -267,7 +268,7 @@ private class MillBuildServer(
       }.toSeq
 
       val ids = groupList(tasksEvaluators)(_._2)(_._1)
-        .flatMap { case (ev, ts) => ev.evaluateValues(ts) }
+        .flatMap { case (ev, ts) => ev.execute(ts) }
         .flatten
 
       new InverseSourcesResult(ids.asJava)
@@ -804,7 +805,7 @@ private class MillBuildServer(
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = null
-  ): ExecResults = {
+  ): Execution.Results = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     mill.runner.MillMain.withOutLock(
       noBuildLock = false,

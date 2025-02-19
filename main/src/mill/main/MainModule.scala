@@ -264,7 +264,7 @@ trait MainModule extends BaseModule {
     Task.Command(exclusive = true) {
       val evaluated =
         if (os.exists(os.pwd / "pom.xml"))
-          evaluator.resolveEvaluate(
+          evaluator.evaluate(
             Seq("mill.init.InitMavenModule/init") ++ args,
             SelectMode.Separated
           )
@@ -274,17 +274,17 @@ trait MainModule extends BaseModule {
           os.exists(os.pwd / "settings.gradle") ||
           os.exists(os.pwd / "settings.gradle.kts")
         )
-          evaluator.resolveEvaluate(
+          evaluator.evaluate(
             Seq("mill.init.InitGradleModule/init") ++ args,
             SelectMode.Separated
           )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
-          evaluator.resolveEvaluate(
+          evaluator.evaluate(
             Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
             SelectMode.Separated
           )
         else
-          evaluator.resolveEvaluate(
+          evaluator.evaluate(
             Seq("mill.init.InitModule/init") ++ args,
             SelectMode.Separated
           )
@@ -321,7 +321,7 @@ object MainModule {
       .asInstanceOf[ColorLogger]
 
     evaluator.withBaseLogger(redirectLogger)
-      .resolveEvaluate(
+      .evaluate(
         targets,
         Separated,
         selectiveExecution = evaluator.selectiveExecution
