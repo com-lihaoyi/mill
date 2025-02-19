@@ -26,7 +26,7 @@ trait IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
 
         val suffix = if (clientServerMode) "mill-server" else "mill-no-server"
         assert(os.exists(tester.workspacePath / "out" / suffix))
-         tester.workspacePath
+        tester.workspacePath
       }
 
       // Make sure processId file is correctly removed to ensure the Mill
@@ -38,9 +38,9 @@ trait IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
     }
   }
 }
-object IntegrationTesterTestsServer extends IntegrationTesterTests{
+object IntegrationTesterTestsServer extends IntegrationTesterTests {
   def clientServerMode = true
 }
-object IntegrationTesterTestsFork extends IntegrationTesterTests{
+object IntegrationTesterTestsFork extends IntegrationTesterTests {
   def clientServerMode = false
 }
