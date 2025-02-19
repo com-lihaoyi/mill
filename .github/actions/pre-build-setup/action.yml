@@ -66,3 +66,5 @@ runs:
 
     - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
       shell: bash
+
+    - uses: sbt/setup-sbt@v1
