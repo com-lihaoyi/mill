@@ -1,6 +1,6 @@
-package com.calculator
+package com.example
 
-import com.sumlib.Sum
+import com.example.Sum
 
 object SampleLogicInKotlinDir {
 

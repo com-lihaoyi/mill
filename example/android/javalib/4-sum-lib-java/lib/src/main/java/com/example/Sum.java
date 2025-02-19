@@ -1,4 +1,4 @@
-package com.sumlib;
+package com.example;
 
 public class Sum {
   public static int apply(int[] numbers) {

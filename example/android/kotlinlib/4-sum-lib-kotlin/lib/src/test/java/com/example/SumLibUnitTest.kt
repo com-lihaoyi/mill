@@ -1,4 +1,4 @@
-package com.sumlib
+package com.example
 
 import org.junit.Assert.*
 import org.junit.Test

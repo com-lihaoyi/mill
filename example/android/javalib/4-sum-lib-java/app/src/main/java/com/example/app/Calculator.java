@@ -1,11 +1,11 @@
-package com.calculator.app;
+package com.example.app;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.TextView;
-import com.sumlib.Sum;
+import com.example.Sum;
 
 public class Calculator extends Activity {
 

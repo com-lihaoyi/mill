@@ -1,4 +1,4 @@
-package com.calculator.app;
+package com.example.app;
 
 import static org.junit.Assert.*;
 

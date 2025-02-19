@@ -1,4 +1,4 @@
-package com.sumlib
+package com.example
 
 object Sum {
     fun apply(numbers: Array<Int>): Int {

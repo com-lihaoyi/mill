@@ -37,7 +37,6 @@ trait JavaModule
     with AssemblyModule { outer =>
 
   override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
-
   trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
@@ -274,8 +273,7 @@ trait JavaModule
    * Default artifact types to fetch and put in the classpath. Add extra types
    * here if you'd like fancy artifact extensions to be fetched.
    */
-  def artifactTypes: T[Set[Type]] =
-    Task { coursier.core.Resolution.defaultTypes }
+  def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
 
   /**
    * Options to pass to the java compiler
