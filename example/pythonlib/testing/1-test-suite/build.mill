@@ -2,9 +2,9 @@ package build
 import mill._, pythonlib._
 
 object foo extends PythonModule {
-  def mainScript = Task.Source { millSourcePath / "src/foo.py" }
+  def mainScript = Task.Source { "src/foo.py" }
   object test extends PythonTests with TestModule.Unittest {
-    def mainScript = Task.Source { millSourcePath / "src/test_foo.py" }
+    def mainScript = Task.Source { "src/test_foo.py" }
   }
 }
 
@@ -23,7 +23,7 @@ object foo extends PythonModule {
 > ./mill foo.run
 Hello World
 
-> ./mill foo.test.test
+> ./mill foo.test.testForked
 test_hello (test_foo.TestScript...) ... ok
 test_mock (test_foo.TestScript...) ... ok
 test_world (test_foo.TestScript...) ... ok
@@ -51,7 +51,7 @@ OK
 // details on how to use each one from the command line.
 
 object bar extends PythonModule {
-  def mainScript = Task.Source { millSourcePath / "src/bar.py" }
+  def mainScript = Task.Source { "src/bar.py" }
   object test extends PythonTests with TestModule.Pytest
 }
 
@@ -97,7 +97,7 @@ OK
 */
 
 // * `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
-//   for `foo.test.test`, as `test` is the default task for ``TestModule``s.
+//   for `foo.test.testForked`, as `testForked` is the default task for ``TestModule``s.
 
 /** Usage
 

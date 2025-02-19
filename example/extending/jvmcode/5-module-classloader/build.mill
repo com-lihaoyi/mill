@@ -12,7 +12,7 @@ object foo extends JavaModule {
   def moduleDeps = Seq(bar)
 
   def sources = Task {
-    Jvm.runClassloader(classPath = bar.runClasspath().map(_.path)) { classLoader =>
+    Jvm.withClassLoader(classPath = bar.runClasspath().map(_.path)) { classLoader =>
       classLoader
         .loadClass("bar.Bar")
         .getMethod("main", classOf[Array[String]])

@@ -13,7 +13,7 @@ object foo extends KotlinModule with KotlinMavenModule {
   def kotlinVersion = "1.9.24"
 
   object test extends KotlinMavenTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }
@@ -44,7 +44,7 @@ Compiling 1 Kotlin source...
 > mill foo.test.compile
 Compiling 1 Kotlin source...
 
-> mill foo.test.test
+> mill foo.test.testForked
 ...foo.FooTests hello ...
 
 > mill foo.test

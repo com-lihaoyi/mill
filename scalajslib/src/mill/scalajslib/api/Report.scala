@@ -1,6 +1,8 @@
 package mill.scalajslib.api
 
 import upickle.default.{ReadWriter => RW, macroRW}
+import mill.api.Mirrors
+import Mirrors.autoMirror
 
 final class Report private (val publicModules: Iterable[Report.Module], val dest: mill.PathRef) {
   override def toString(): String =
@@ -38,8 +40,14 @@ object Report {
         moduleKind = moduleKind
       )
     implicit val rw: RW[Module] = macroRW[Module]
+
+    private given Root_Module: Mirrors.Root[Module] =
+      Mirrors.autoRoot[Module]
   }
   def apply(publicModules: Iterable[Report.Module], dest: mill.PathRef): Report =
     new Report(publicModules = publicModules, dest = dest)
   implicit val rw: RW[Report] = macroRW[Report]
+
+  private given Root_Module: Mirrors.Root[Report] =
+    Mirrors.autoRoot[Report]
 }

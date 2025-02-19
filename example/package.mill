@@ -1,10 +1,7 @@
 package build.example
 // imports
 import scala.util.chaining._
-import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.api.JarManifest
 import mill.main.Tasks
@@ -66,6 +63,7 @@ object `package` extends RootModule with Module {
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
     object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
+    object spark extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "spark"))
   }
   object javascriptlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
@@ -254,12 +252,13 @@ object `package` extends RootModule with Module {
           .filter(_._2.nonEmpty)
           .map {
             case (s"see:$path", txt) =>
+              // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
-                 |.$path ({mill-example-url}/$examplePath/$path[browse])
-                 |[source,scala,subs="attributes,verbatim"]
-                 |----
-                 |$txt
-                 |----""".stripMargin
+.$path ({mill-example-url}/$examplePath/$path[browse])
+[source,scala,subs="attributes,verbatim"]
+----
+$txt
+----"""
             case ("scala", txt) =>
               val title =
                 if (seenCode) ""
@@ -270,21 +269,23 @@ object `package` extends RootModule with Module {
                   s".build.mill ($download, $browse)"
                 }
               seenCode = true
+              // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
-                 |$title
-                 |[source,scala,subs="attributes,verbatim"]
-                 |----
-                 |
-                 |$txt
-                 |----
-                 |""".stripMargin
+$title
+[source,scala,subs="attributes,verbatim"]
+----
+
+$txt
+----
+"""
             case ("comment", txt) => txt + "\n"
             case ("example", txt) =>
+              // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
-                 |[source,bash,subs="attributes,verbatim"]
-                 |----
-                 |$txt
-                 |----""".stripMargin
+[source,bash,subs="attributes,verbatim"]
+----
+$txt
+----"""
           }
           .mkString("\n")
       )

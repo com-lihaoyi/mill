@@ -31,7 +31,7 @@ object app extends AndroidAppKotlinModule {
   def androidEnableCompose = true
   def androidIsDebug = true
 
-  def ivyDeps: T[Agg[Dep]] = Agg(
+  def ivyDeps: T[Seq[Dep]] = Seq(
     ivy"androidx.core:core-ktx:1.15.0",
     ivy"androidx.activity:activity-compose:1.9.3",
     ivy"androidx.compose.ui:ui:1.7.5",

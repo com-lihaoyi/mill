@@ -1,8 +1,9 @@
 package mill.scalalib
 
-import mill._
+import mill.*
+import mill.define.Discover
 import mill.util.Jvm
-import mill.testkit.{UnitTester, TestBaseModule}
+import mill.testkit.TestBaseModule
 
 trait AssemblyTestUtils {
 
@@ -12,7 +13,7 @@ trait AssemblyTestUtils {
 
       def sources = Task.Sources(Task.workspace / "src")
 
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"com.lihaoyi::scalatags:0.8.2",
         ivy"com.lihaoyi::mainargs:0.4.0",
         ivy"org.apache.avro:avro:1.11.1"
@@ -20,7 +21,7 @@ trait AssemblyTestUtils {
     }
 
     trait ExtraDeps extends ScalaModule {
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"dev.zio::zio:2.0.15",
         ivy"org.typelevel::cats-core:2.9.0",
         ivy"org.apache.spark::spark-core:3.4.0",
@@ -45,21 +46,27 @@ trait AssemblyTestUtils {
       object large extends Setup with ExtraDeps
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
   val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "assembly"
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
     println(s"File size: ${os.stat(file).size}")
-    Jvm.runSubprocess(
-      commandArgs = Seq(Jvm.javaExe, "-jar", file.toString(), "--text", "tutu"),
-      envArgs = Map.empty[String, String],
-      workingDir = wd
+    os.call(
+      cmd = Seq(Jvm.javaExe, "-jar", file.toString(), "--text", "tutu"),
+      env = Map.empty[String, String],
+      cwd = wd,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
+
     if (checkExe) {
-      Jvm.runSubprocess(
-        commandArgs = Seq(file.toString(), "--text", "tutu"),
-        envArgs = Map.empty[String, String],
-        workingDir = wd
+      os.call(
+        cmd = Seq(file.toString(), "--text", "tutu"),
+        env = Map.empty[String, String],
+        cwd = wd,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
     }
   }

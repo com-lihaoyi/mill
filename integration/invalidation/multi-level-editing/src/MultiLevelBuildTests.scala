@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 
-import mill.main.client.OutFiles._
+import mill.constants.OutFiles._
 import mill.runner.RunnerState
 import utest._
 
@@ -110,10 +110,10 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
     // restarts behave as expected:
     if (clientServerMode) {
       // Only one server should be running at any point in time
-      val Seq(serverFolder) = os.list(tester.workspacePath / "out" / "mill-server")
+      val Seq(serverFolder) = os.list(tester.workspacePath / "out/mill-server")
 
       // client-server mode should never restart in these tests and preserve the same process,
-      val currentServerId = os.read(serverFolder / "serverId")
+      val currentServerId = os.read(serverFolder / "processId")
       assert(currentServerId == savedServerId || savedServerId == "")
       savedServerId = currentServerId
     }
@@ -370,7 +370,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
           // Ensure the file path in the compile error is properly adjusted to point
           // at the original source file and not the generated file
           (workspacePath / "build.mill").toString,
-          "not found: value doesnt"
+          "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester), buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, false, false)
@@ -380,7 +380,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
           tester,
           "\n1 tasks failed",
           (workspacePath / "mill-build/build.mill").toString,
-          "not found: object doesnt"
+          "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, null, false)
@@ -390,7 +390,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
           tester,
           "\n1 tasks failed",
           (workspacePath / "mill-build/mill-build/build.mill").toString,
-          "not found: object doesnt"
+          "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, Nil, Nil, buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, null, null)
@@ -400,7 +400,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
           tester,
           "\n1 tasks failed",
           (workspacePath / "mill-build/build.mill").toString,
-          "not found: object doesnt"
+          "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, null, true)
@@ -410,7 +410,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
           tester,
           "\n1 tasks failed",
           (workspacePath / "build.mill").toString,
-          "not found: value doesnt"
+          "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester), buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, true, false)

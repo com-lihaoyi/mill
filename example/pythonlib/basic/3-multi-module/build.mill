@@ -2,17 +2,17 @@ package build
 import mill._, pythonlib._
 
 trait MyModule extends PythonModule {
-  def resources = super.resources() ++ Seq(PathRef(millSourcePath / "res"))
+  def resources = super.resources() ++ Seq(PathRef(moduleDir / "res"))
   object test extends PythonTests with TestModule.Unittest
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+  def mainScript = Task.Source { "src/foo.py" }
 }
 
 object bar extends MyModule {
-  def mainScript = Task.Source { millSourcePath / "src" / "bar.py" }
+  def mainScript = Task.Source { "src/bar.py" }
   def pythonDeps = Seq("Jinja2==3.1.4")
 }
 

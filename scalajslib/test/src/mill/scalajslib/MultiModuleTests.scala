@@ -2,7 +2,7 @@ package mill.scalajslib
 
 import mill._
 import mill.define.Discover
-import mill.eval.EvaluatorPaths
+import mill.exec.ExecutionPaths
 import mill.scalalib._
 import mill.testkit.{UnitTester, TestBaseModule}
 import utest._
@@ -16,17 +16,17 @@ object MultiModuleTests extends TestSuite {
     }
 
     object client extends BaseModule {
-      override def millSourcePath = MultiModule.millSourcePath / "client"
+      override def moduleDir = MultiModule.moduleDir / "client"
       override def moduleDeps = Seq(shared)
       override def mainClass = Some("Main")
       object test extends ScalaJSTests with TestModule.Utest {
         override def ivyDeps =
-          Agg(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
+          Seq(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
       }
     }
 
     object shared extends BaseModule {
-      override def millSourcePath = MultiModule.millSourcePath / "shared"
+      override def moduleDir = MultiModule.moduleDir / "shared"
     }
 
     override lazy val millDiscover = {
@@ -39,10 +39,10 @@ object MultiModuleTests extends TestSuite {
 
   def tests: Tests = Tests {
     def checkOpt(optimize: Boolean) = {
-      val task = if (optimize) MultiModule.client.fullOpt else MultiModule.client.fastOpt
-      val Right(result) = evaluator(task)
+      val task = if (optimize) MultiModule.client.fullLinkJS else MultiModule.client.fastLinkJS
+      val Right(result) = evaluator(task): @unchecked
 
-      val runOutput = ScalaJsUtils.runJS(result.value.path)
+      val runOutput = ScalaJsUtils.runJS(result.value.dest.path / "main.js")
       assert(
         result.evalCount > 0,
         runOutput == "Hello from Scala.js, result is: 3\n"
@@ -53,7 +53,7 @@ object MultiModuleTests extends TestSuite {
     test("fullOpt") - checkOpt(optimize = true)
 
     test("test") {
-      val Right(result) = evaluator(MultiModule.client.test.test())
+      val Right(result) = evaluator(MultiModule.client.test.testForked()): @unchecked
 
       assert(
         result.evalCount > 0,
@@ -65,9 +65,9 @@ object MultiModuleTests extends TestSuite {
     test("run") {
       val command = MultiModule.client.run()
 
-      val Right(result) = evaluator(command)
+      val Right(result) = evaluator(command): @unchecked
 
-      val paths = EvaluatorPaths.resolveDestPaths(evaluator.outPath, command)
+      val paths = ExecutionPaths.resolveDestPaths(evaluator.outPath, command)
       val log = os.read(paths.log)
       assert(
         result.evalCount > 0,

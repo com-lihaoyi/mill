@@ -14,7 +14,7 @@ object DependencyUpdatesImpl {
 
   def apply(
       evaluator: Evaluator,
-      ctx: Log with Home,
+      ctx: Log & Home,
       rootModule: BaseModule,
       discover: Discover,
       allowPreRelease: Boolean
@@ -32,10 +32,6 @@ object DependencyUpdatesImpl {
     // 3. Return the results
     allUpdates
   }
-
-  @deprecated("Use other overload instead", "Mill after 0.11.6")
-  def showAllUpdates(updates: Seq[ModuleDependenciesUpdates]): Unit =
-    showAllUpdates(updates, format = Format.PerModule)
 
   def showAllUpdates(
       updates: Seq[ModuleDependenciesUpdates],

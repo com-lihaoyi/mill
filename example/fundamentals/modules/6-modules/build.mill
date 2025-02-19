@@ -13,7 +13,8 @@ object foo extends Module {
   }
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   "root-module" [style=dashed]
@@ -23,7 +24,7 @@ object foo extends Module {
 //   "root-module" -> foo -> "foo.qux" -> "foo.qux.baz"  [style=dashed]
 //   foo -> "foo.bar"  [style=dashed]
 // }
-// ```
+// ....
 //
 // * You can run the two tasks via `mill foo.bar` or `mill
 // foo.qux.baz`.
@@ -80,7 +81,8 @@ object foo2 extends FooModule {
 // arrows representing the module tree, and the solid boxes and arrows representing
 // the task graph
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   bgcolor=transparent
@@ -96,7 +98,7 @@ object foo2 extends FooModule {
 //   "foo1.bar" -> "foo1.super.qux" -> "foo1.qux" [constraint=false]
 //   "foo2.bar" -> "foo2.qux" -> "foo2.baz" [constraint=false]
 // }
-// ```
+// ....
 
 // Note that the `override` keyword is optional in mill, as is `T{...}` wrapper.
 
@@ -127,13 +129,13 @@ object foo2 extends FooModule {
 // When defining your own module abstractions, you should be using ``trait``s
 // and not ``class``es due to implementation limitations
 //
-// == millSourcePath
+// == moduleDir
 //
-// Each Module has a `millSourcePath` field that corresponds to the path that
+// Each Module has a `moduleDir` field that corresponds to the path that
 // module expects its input files to be on disk.
 
 trait MyModule extends Module {
-  def sources = Task.Source(millSourcePath / "sources")
+  def sources = Task.Source("sources")
   def task = Task { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
 }
 
@@ -141,7 +143,8 @@ object outer extends MyModule {
   object inner extends MyModule
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   "root-module" [style=dashed]
@@ -156,12 +159,12 @@ object outer extends MyModule {
 //   outer -> "outer.sources"  [style=dashed]
 //   outer -> "outer.task"  [style=dashed]
 // }
-// ```
+// ....
 
-// * The `outer` module has a `millSourcePath` of `outer/`, and thus a
+// * The `outer` module has a `moduleDir` of `outer/`, and thus a
 //   `outer.sources` referencing `outer/sources/`
 //
-// * The `inner` module has a `millSourcePath` of `outer/inner/`, and thus a
+// * The `inner` module has a `moduleDir` of `outer/inner/`, and thus a
 //   `outer.inner.sources` referencing `outer/inner/sources/`
 
 /** Usage
@@ -174,20 +177,20 @@ object outer extends MyModule {
 
 */
 
-// You should use `millSourcePath` to set the source folders of your
+// You should use `moduleDir` to set the source folders of your
 // modules to match the build structure. In almost every case, a module's source files
-// live at some relative path within the module's folder, and using `millSourcePath`
+// live at some relative path within the module's folder, and using `moduleDir`
 // ensures that the relative path to the module's source files remains the same
 // regardless of where your module lives in the build hierarchy.
 //
 // E.g. for `mill.scalalib.ScalaModule`, the Scala source code is assumed by
-// default to be in `millSourcePath / "src"` while resources are automatically
-// assumed to be in `millSourcePath / "resources"`.
+// default to be in `moduleDir / "src"` while resources are automatically
+// assumed to be in `moduleDir / "resources"`.
 //
-// You can also override `millSourcePath`:
+// You can also override `moduleDir`:
 
 object outer2 extends MyModule {
-  def millSourcePath = super.millSourcePath / "nested"
+  def moduleDir = super.moduleDir / "nested"
   object inner extends MyModule
 }
 
@@ -202,13 +205,13 @@ object outer2 extends MyModule {
 */
 
 // Any overrides propagate down to the module's children: in the above example,
-// `outer2` would have its `millSourcePath` be `outer2/nested/` while
-// `outer.inner` would have its `millSourcePath` be `outer2/nested/inner/`.
+// `outer2` would have its `moduleDir` be `outer2/nested/` while
+// `outer.inner` would have its `moduleDir` be `outer2/nested/inner/`.
 //
-// Note that `millSourcePath` is meant to be used for a module's input source
+// Note that `moduleDir` is meant to be used for a module's input source
 // files: source code, config files, library binaries, etc. Output is always in
 // the `out/` folder and cannot be changed, e.g. even with the overridden
-// `millSourcePath` the output paths are still the default `./out/outer2` and
+// `moduleDir` the output paths are still the default `./out/outer2` and
 // `./out/outer2/inner` folders:
 
 /** Usage
@@ -222,7 +225,7 @@ object outer2 extends MyModule {
 */
 
 // NOTE: *`os.pwd` of the Mill process is set to an empty `sandbox/` folder by default.*
-// When defining a module's source files, you should always use `millSourcePath` to ensure the
+// When defining a module's source files, you should always use `moduleDir` to ensure the
 // paths defined are relative to the module's root folder, so the module logic can continue
 // to work even if moved into a different subfolder. In the rare case where you need the
 // Mill project root path, and you truly know what you are doing, you can call
@@ -238,7 +241,7 @@ object outer2 extends MyModule {
 //
 
 trait Foo extends Module {
-  def sourceRoots = Task.Sources(millSourcePath / "src")
+  def sourceRoots = Task.Sources("src")
   def sourceContents = Task {
     sourceRoots()
       .flatMap(pref => os.walk(pref.path))
@@ -249,20 +252,21 @@ trait Foo extends Module {
 }
 
 trait Bar extends Foo {
-  def additionalSources = Task.Sources(millSourcePath / "src2")
+  def additionalSources = Task.Sources("src2")
   def sourceRoots = Task { super.sourceRoots() ++ additionalSources() }
 }
 
 object bar extends Bar
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   "bar.sourceRoots.super" -> "bar.sourceRoots" -> "bar.sourceContents"
 //   "bar.additionalSources" -> "bar.sourceRoots"
 // }
-// ```
+// ....
 /** Usage
 
 > ./mill show bar.sourceContents # includes both source folders

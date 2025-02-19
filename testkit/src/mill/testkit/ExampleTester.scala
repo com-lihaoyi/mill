@@ -1,6 +1,7 @@
 package mill.testkit
-import mill.util.Util
-import utest._
+
+import mill.constants.Util.isWindows
+import utest.*
 
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
@@ -51,18 +52,20 @@ object ExampleTester {
       millExecutable: os.Path,
       bashExecutable: String = defaultBashExecutable(),
       workspacePath: os.Path = os.pwd
-  ): Unit = {
-    new ExampleTester(
+  ): os.Path = {
+    val tester = new ExampleTester(
       clientServerMode,
       workspaceSourcePath,
       millExecutable,
       bashExecutable,
       workspacePath
-    ).run()
+    )
+    tester.run()
+    tester.workspacePath
   }
 
   def defaultBashExecutable(): String = {
-    if (!mill.main.client.Util.isWindows) "bash"
+    if (!mill.constants.Util.isWindows) "bash"
     else "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
   }
 }
@@ -85,8 +88,8 @@ class ExampleTester(
     }
 
     val incorrectPlatform =
-      (comment.exists(_.startsWith("windows")) && !Util.windowsPlatform) ||
-        (comment.exists(_.startsWith("mac/linux")) && Util.windowsPlatform) ||
+      (comment.exists(_.startsWith("windows")) && !isWindows) ||
+        (comment.exists(_.startsWith("mac/linux")) && isWindows) ||
         (comment.exists(_.startsWith("--no-server")) && clientServerMode) ||
         (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
 
@@ -94,7 +97,8 @@ class ExampleTester(
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
-  private val millExt = if (Util.windowsPlatform) ".bat" else ""
+  private val millExt = if (isWindows) ".bat" else ""
+  private val clientServerFlag = if (clientServerMode) "" else "--no-server"
 
   def processCommand(
       expectedSnippets: Vector[String],
@@ -102,8 +106,8 @@ class ExampleTester(
       check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill$millExt --disable-ticker $rest"
-      case s"./mill $rest" => s"./mill$millExt --disable-ticker $rest"
+      case s"mill $rest" => s"./mill$millExt $clientServerFlag --disable-ticker $rest"
+      case s"./mill $rest" => s"./mill$millExt $clientServerFlag --disable-ticker $rest"
       case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
@@ -115,7 +119,7 @@ class ExampleTester(
     )
 
     val windowsPathEnv =
-      if (!Util.windowsPlatform) Map()
+      if (!isWindows) Map()
       else Map(
         "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
       )
@@ -191,7 +195,7 @@ class ExampleTester(
     expected.linesIterator.exists(globMatches(_, filtered))
   }
 
-  def run(): Any = {
+  def run(): Unit = {
     os.makeDir.all(workspacePath)
     val parsed = ExampleParser(workspaceSourcePath)
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
@@ -203,7 +207,7 @@ class ExampleTester(
       for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
     } finally {
       if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
-      removeServerIdFile()
+      removeProcessIdFile()
     }
   }
 }

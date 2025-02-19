@@ -1,8 +1,8 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j._
-import mill.api.Logger
-import mill.util.{ColorLogger, ProxyLogger}
+import mill.api.{ColorLogger, Logger}
+import mill.internal.ProxyLogger
 
 /**
  * BSP-specialized logger class which sends `task-progress`

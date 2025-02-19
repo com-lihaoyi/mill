@@ -1,9 +1,9 @@
 package mill.javalib.android
 
+import mill.internal.DummyLogger
 import mill.scalalib.AssemblyTestUtils
 import utest._
 import mill.javalib.android.InstrumentationOutput._
-import mill.util.DummyLogger
 
 import java.io.{BufferedReader, StringReader}
 

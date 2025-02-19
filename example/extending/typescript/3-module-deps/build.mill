@@ -22,7 +22,7 @@ trait TypeScriptModule extends Module {
     PathRef(Task.dest)
   }
 
-  def sources = Task.Source(millSourcePath / "src")
+  def sources = Task.Source("src")
   def allSources = Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
 
   def compile: T[(PathRef, PathRef)] = Task {
@@ -33,7 +33,7 @@ trait TypeScriptModule extends Module {
 
     val upstreamPaths =
       for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
+        yield (mod.moduleDir.subRelativeTo(build.moduleDir).toString + "/*", dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq("*" -> sources().path)
 
@@ -55,12 +55,12 @@ trait TypeScriptModule extends Module {
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def mainFileName = Task { s"${millSourcePath.last}.js" }
+  def mainFileName = Task { s"${moduleDir.last}.js" }
   def run(args: mill.define.Args) = Task.Command {
 
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     for (((jsDir, tTsDir), mod) <- upstream) {
-      os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
+      os.copy(jsDir.path, Task.dest / mod.moduleDir.subRelativeTo(build.moduleDir))
     }
     val mainFile = compile()._1.path / mainFileName()
     os.call(
@@ -103,7 +103,8 @@ Hello James Bond Professor
 // `foo.compile` and `bar.compile` now being fed into `qux.compile` (and
 // ultimately `qux.run`):
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -131,4 +132,4 @@ Hello James Bond Professor
 //   "bar.compile" -> "qux.compile"  [color=green, penwidth=3]
 //   "foo.compile" -> "qux.compile"  [color=green, penwidth=3]
 // }
-// ```
+// ....

@@ -47,7 +47,8 @@ object bar extends MyModule
 
 object qux extends MyModule
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -56,14 +57,15 @@ object qux extends MyModule
 //   bar -> foo
 //   foo -> "foo.test"
 // }
-// ```
+// ....
 //
 //
 // In this example, `qux.test` starts off failing with an error, while `foo.test` and
 // `bar.test` pass successfully. Normally, running `__.test` will run all three test
 // suites and show both successes and the one failure:
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -75,7 +77,7 @@ object qux extends MyModule
 //   "bar.test"  [color=red penwidth=2]
 //   "foo.test"  [color=red penwidth=2]
 // }
-// ```
+// ....
 
 /** Usage
 
@@ -107,8 +109,8 @@ Test run qux.QuxTests finished: 1 failed, 0 ignored, 1 total, ...
 > echo '//' >> bar/src/bar/Bar.java # emulate the code change
 
 > mill selective.resolve __.test # dry-run selective execution to show what would get run
-foo.test.test
-bar.test.test
+foo.test.testForked
+bar.test.testForked
 
 > mill selective.run __.test
 Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
@@ -119,7 +121,8 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 // As we only touched ``bar``'s source files, we only need to run tests for
 //
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -132,7 +135,7 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 //   "bar.test" [color=red penwidth=2]
 //   "foo.test" [color=red penwidth=2]
 // }
-// ```
+// ....
 //
 // For a more detailed report of how the changed inputs resulted in the selected tasks
 // being chosen, you can also use `selective.resolveChanged` to print out the upstream
@@ -156,7 +159,7 @@ bar.sources
           "bar.test.compile": {
             "bar.test.localRunClasspath": {
               "bar.test.testClasspath": {
-                "bar.test.test": {}
+                "bar.test.testForked": {}
               }
             }
           }
@@ -166,11 +169,11 @@ bar.sources
     "bar.allSources": {
       "bar.allSourceFiles": {
         "bar.compile": {
-          "bar.localRunClasspath": {
-            "bar.localClasspath": {
-              "foo.test.transitiveLocalClasspath": {
-                "foo.test.runClasspath": {
-                  "foo.test.test": {}
+          "foo.test.upstreamCompileOutput": {
+            "foo.test.compile": {
+              "foo.test.localRunClasspath": {
+                "foo.test.testClasspath": {
+                  "foo.test.testForked": {}
                 }
               }
             }
@@ -180,7 +183,6 @@ bar.sources
     }
   }
 }
-
 
 
 */

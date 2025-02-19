@@ -1,18 +1,18 @@
 package mill.bsp
 
 import mill.api.{Ctx, PathRef}
-import mill.{Agg, T, Task, given}
+import mill.{T, Task, given}
 import mill.define.{Command, Discover, ExternalModule}
 import mill.main.BuildInfo
 import mill.eval.Evaluator
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.CoursierModule
 
 object BSP extends ExternalModule with CoursierModule {
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
-  private def bspWorkerLibs: T[Agg[PathRef]] = Task {
+  private def bspWorkerLibs: T[Seq[PathRef]] = Task {
     millProjectModule("mill-bsp-worker", repositoriesTask())
   }
 

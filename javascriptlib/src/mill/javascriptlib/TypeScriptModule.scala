@@ -50,9 +50,9 @@ trait TypeScriptModule extends Module { outer =>
     PathRef(Task.dest)
   }
 
-  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+  def sources: T[PathRef] = Task.Source("src")
 
-  def resources: T[Seq[PathRef]] = Task { Seq(PathRef(millSourcePath / "resources")) }
+  def resources: T[Seq[PathRef]] = Task { Seq(PathRef(moduleDir / "resources")) }
 
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
@@ -86,10 +86,10 @@ trait TypeScriptModule extends Module { outer =>
     val core = for {
       file <- allSources()
     } yield file.path match {
-      case coreS if coreS.startsWith(millSourcePath) =>
+      case coreS if coreS.startsWith(moduleDir) =>
         // core - regular sources
         // expected to exist within boundaries of `millSourcePath`
-        typescriptOut / coreS.relativeTo(millSourcePath)
+        typescriptOut / coreS.relativeTo(moduleDir)
       case otherS =>
         // sources defined by a modified source task
         // mv to compile source
@@ -137,13 +137,13 @@ trait TypeScriptModule extends Module { outer =>
       ((comp, ts, res), mod) <- Task.traverse(moduleDeps)(_.upstreams)().zip(moduleDeps)
     } yield {
       Seq((
-        mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
+        mod.moduleDir.subRelativeTo(Task.workspace).toString + "/*",
         (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
       )) ++
         res.map { rp =>
           val resourceRoot = rp.path.last
           (
-            "@" + mod.millSourcePath.subRelativeTo(Task.workspace).toString + s"/$resourceRoot/*",
+            "@" + mod.moduleDir.subRelativeTo(Task.workspace).toString + s"/$resourceRoot/*",
             resourceRoot match {
               case s if s.contains(".dest") =>
                 rp.path.toString
@@ -159,7 +159,7 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   def modulePaths: Task[Seq[(String, String)]] = Task.Anon {
-    val module = millSourcePath.last
+    val module = moduleDir.last
     val typescriptOut = Task.dest / "typescript"
     val declarationsOut = Task.dest / "declarations"
 
@@ -232,13 +232,13 @@ trait TypeScriptModule extends Module { outer =>
       )
     )
 
-    os.copy(millSourcePath, Task.dest / "typescript", mergeFolders = true)
+    os.copy(moduleDir, Task.dest / "typescript", mergeFolders = true)
     os.call(npmInstall().path / "node_modules/typescript/bin/tsc", cwd = Task.dest)
 
     (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
 
-  def mainFileName: T[String] = Task { s"${millSourcePath.last}.ts" }
+  def mainFileName: T[String] = Task { s"${moduleDir.last}.ts" }
 
   def mainFilePath: T[Path] = Task { compile()._2.path / "src" / mainFileName() }
 
@@ -257,7 +257,6 @@ trait TypeScriptModule extends Module { outer =>
     val execFlags: Seq[String] = executionFlags().map {
       case (key, "") => s"--$key"
       case (key, value) => s"--$key=$value"
-      case _ => ""
     }.toSeq
 
     os.call(

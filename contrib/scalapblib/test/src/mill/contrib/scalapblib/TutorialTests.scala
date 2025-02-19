@@ -1,11 +1,12 @@
 package mill.contrib.scalapblib
 
-import mill._
+import mill.*
 import mill.api.PathRef
+import mill.constants.Util
+import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.framework.TestPath
-import utest.{TestSuite, Tests, assert, _}
+import utest.{TestSuite, Tests, assert, *}
 
 object TutorialTests extends TestSuite {
   val testScalaPbVersion = "0.11.7"
@@ -24,12 +25,17 @@ object TutorialTests extends TestSuite {
     object core extends TutorialModule {
       override def scalaPBVersion = testScalaPbVersion
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object TutorialWithProtoc extends TutorialBase {
     object core extends TutorialModule {
       override def scalaPBProtocPath = Some("/dev/null")
     }
+
+    lazy val millDiscover = Discover[this.type]
+
   }
 
   object TutorialWithAdditionalArgs extends TutorialBase {
@@ -40,25 +46,28 @@ object TutorialTests extends TestSuite {
         )
       }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object TutorialWithSpecificSources extends TutorialBase {
     object core extends TutorialModule {
       override def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
-        millSourcePath / "protobuf/tutorial/Tutorial.proto"
+        moduleDir / "protobuf/tutorial/Tutorial.proto"
       }
 
       override def scalaPBSearchDeps = true
       override def scalaPBIncludePath = Seq(
-        PathRef(millSourcePath / "protobuf/tutorial")
+        PathRef(moduleDir / "protobuf/tutorial")
       )
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object TutorialWithScala3Soures extends TutorialBase {
     object core extends TutorialModule {
       override def scalaPBScala3Sources = { true }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
@@ -78,7 +87,7 @@ object TutorialTests extends TestSuite {
     test("scalapbVersion") {
 
       test("fromBuild") - UnitTester(Tutorial, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(Tutorial.core.scalaPBVersion)
+        val Right(result) = eval.apply(Tutorial.core.scalaPBVersion): @unchecked
 
         assert(
           result.value == testScalaPbVersion,
@@ -89,8 +98,8 @@ object TutorialTests extends TestSuite {
 
     test("compileScalaPB") {
       test("calledDirectly") - UnitTester(Tutorial, resourcePath).scoped { eval =>
-        if (!mill.main.client.Util.isWindows) {
-          val Right(result) = eval.apply(Tutorial.core.compileScalaPB)
+        if (!mill.constants.Util.isWindows) {
+          val Right(result) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
 
           val outPath = protobufOutPath(eval)
 
@@ -107,7 +116,7 @@ object TutorialTests extends TestSuite {
           )
 
           // don't recompile if nothing changed
-          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
+          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
 
           assert(result2.evalCount == 0)
         }
@@ -117,8 +126,9 @@ object TutorialTests extends TestSuite {
         TutorialWithSpecificSources,
         resourcePath
       ).scoped { eval =>
-        if (!mill.main.client.Util.isWindows) {
-          val Right(result) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
+        if (!Util.isWindows) {
+          val Right(result) =
+            eval.apply(TutorialWithSpecificSources.core.compileScalaPB): @unchecked
 
           val outPath = protobufOutPath(eval)
 
@@ -140,7 +150,7 @@ object TutorialTests extends TestSuite {
           )
 
           // don't recompile if nothing changed
-          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
+          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
 
           assert(result2.evalCount == 0)
         }

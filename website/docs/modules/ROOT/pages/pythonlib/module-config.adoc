@@ -1,0 +1,33 @@
+= Python Module Configuration
+:page-aliases: Python_Module_Config.adoc
+:language: Python
+:language-small: python
+
+This page goes into more detail about the various configuration options
+for `PythonModule`.
+
+// TODO: How to include PythonModule Link ?
+// Many of the APIs covered here are listed in the Scaladoc:
+
+// * {mill-doc-url}/api/latest/mill/pythonlib/PythonModule.html[mill.pythonlib.PythonModule]
+
+
+== Common Configuration Overrides
+
+include::partial$example/pythonlib/module/1-common-config.adoc[]
+
+== Custom Tasks
+
+include::partial$example/pythonlib/module/2-custom-tasks.adoc[]
+
+== Overriding Tasks
+
+include::partial$example/pythonlib/module/3-override-tasks.adoc[]
+
+== Compilation & Execution Flags
+
+include::partial$example/pythonlib/module/4-compilation-execution-flags.adoc[]
+
+== PythonPath and Filesystem Resources
+
+include::partial$example/pythonlib/module/5-resources.adoc[]

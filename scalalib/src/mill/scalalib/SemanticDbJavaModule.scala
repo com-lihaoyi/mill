@@ -6,7 +6,7 @@ import mill.main.BuildInfo
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.util.Version
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 
 import scala.util.Properties
 
@@ -21,7 +21,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
-  def compileClasspath: T[Agg[PathRef]]
+  def compileClasspath: T[Seq[PathRef]]
 
   def semanticDbVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModule.buildTimeSemanticDbVersion
@@ -43,7 +43,7 @@ trait SemanticDbJavaModule extends CoursierModule {
 
   def semanticDbScalaVersion: T[String] = BuildInfo.scalaVersion
 
-  protected def semanticDbPluginIvyDeps: T[Agg[Dep]] = Task {
+  protected def semanticDbPluginIvyDeps: T[Seq[Dep]] = Task {
     val sv = semanticDbScalaVersion()
     val semDbVersion = semanticDbVersion()
     if (!ZincWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
@@ -55,15 +55,15 @@ trait SemanticDbJavaModule extends CoursierModule {
            |""".stripMargin
       Result.Failure(msg)
     } else if (ZincWorkerUtil.isScala3(sv)) {
-      Result.Success(Agg.empty[Dep])
+      Result.Success(Seq.empty[Dep])
     } else {
-      Result.Success(Agg(
+      Result.Success(Seq(
         ivy"org.scalameta:semanticdb-scalac_${sv}:${semDbVersion}"
       ))
     }
   }
 
-  private def semanticDbJavaPluginIvyDeps: T[Agg[Dep]] = Task {
+  private def semanticDbJavaPluginIvyDeps: T[Seq[Dep]] = Task {
     val sv = semanticDbJavaVersion()
     if (sv.isEmpty) {
       val msg =
@@ -74,7 +74,7 @@ trait SemanticDbJavaModule extends CoursierModule {
            |""".stripMargin
       Result.Failure(msg)
     } else {
-      Result.Success(Agg(
+      Result.Success(Seq(
         ivy"com.sourcegraph:semanticdb-javac:${sv}"
       ))
     }
@@ -90,11 +90,11 @@ trait SemanticDbJavaModule extends CoursierModule {
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
-  protected def semanticDbPluginClasspath: T[Agg[PathRef]] = Task {
+  protected def semanticDbPluginClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(semanticDbPluginIvyDeps())
   }
 
-  protected def resolvedSemanticDbJavaPluginIvyDeps: T[Agg[PathRef]] = Task {
+  protected def resolvedSemanticDbJavaPluginIvyDeps: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(semanticDbJavaPluginIvyDeps())
   }
 
@@ -145,8 +145,7 @@ trait SemanticDbJavaModule extends CoursierModule {
         )
         UnresolvedPath.DestPath(
           os.sub,
-          compiledClassesAndSemanticDbFiles.ctx.segments,
-          compiledClassesAndSemanticDbFiles.ctx.foreign
+          compiledClassesAndSemanticDbFiles.ctx.segments
         )
       }
     } else {

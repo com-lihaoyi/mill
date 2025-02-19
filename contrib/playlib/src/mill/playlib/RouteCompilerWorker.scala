@@ -3,28 +3,27 @@ package mill.playlib
 import mill.api.{Ctx, PathRef, Result}
 import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
 import mill.scalalib.api.CompilationResult
-import mill.{Agg, Task}
+import mill.Task
 
 private[playlib] class RouteCompilerWorker extends AutoCloseable {
 
   private var routeCompilerInstanceCache =
     Option.empty[(Long, mill.playlib.api.RouteCompilerWorkerApi)]
 
-  protected def bridge(toolsClasspath: Agg[PathRef])(
+  protected def bridge(toolsClasspath: Seq[PathRef])(
       implicit ctx: Ctx
   ): RouteCompilerWorkerApi = {
     val classloaderSig = toolsClasspath.hashCode
     routeCompilerInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
-        val toolsClassPath = toolsClasspath.map(_.path.toIO.toURI.toURL).toVector
+        val toolsClassPath = toolsClasspath.map(_.path).toVector
         ctx.log.debug("Loading classes from\n" + toolsClassPath.mkString("\n"))
-        val cl = mill.api.ClassLoader.create(
+        val cl = mill.util.Jvm.createClassLoader(
           toolsClassPath,
           null,
           sharedLoader = getClass().getClassLoader(),
-          sharedPrefixes = Seq("mill.playlib.api."),
-          logger = Some(ctx.log)
+          sharedPrefixes = Seq("mill.playlib.api.")
         )
         val bridge = cl
           .loadClass("mill.playlib.worker.RouteCompilerWorker")
@@ -36,7 +35,7 @@ private[playlib] class RouteCompilerWorker extends AutoCloseable {
   }
 
   def compile(
-      routerClasspath: Agg[PathRef],
+      routerClasspath: Seq[PathRef],
       files: Seq[os.Path],
       additionalImports: Seq[String],
       forwardsRouter: Boolean,

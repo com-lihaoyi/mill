@@ -5,27 +5,61 @@ import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
 import mill.define.{Discover, ExternalModule, NamedTask, Target}
-import mill.util.Util.millProjectModule
-import mill.api.{Loose, PathRef, Result}
+import mill.util.MillModuleUtil.millProjectModule
+import mill.api.{PathRef, Result}
 import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
-import mill.eval.Graph
+import mill.exec
+import mill.exec.Plan
+import mill.eval.Evaluator
+import mill.define.SelectMode
 
-object VisualizeModule extends ExternalModule with VisualizeModule {
+object VisualizeModule extends ExternalModule {
   def repositories: Seq[Repository] = Seq(
     LocalRepositories.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2"),
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
 
-  lazy val millDiscover: Discover = Discover[this.type]
-}
-trait VisualizeModule extends mill.define.TaskModule {
-  def repositories: Seq[Repository]
-  def defaultCommandName() = "run"
-  def classpath: Target[Loose.Agg[PathRef]] = Target {
+  lazy val millDiscover = Discover[this.type]
+
+  private type VizWorker = (
+      LinkedBlockingQueue[(scala.Seq[NamedTask[Any]], scala.Seq[NamedTask[Any]], os.Path)],
+      LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
+  )
+
+  private[mill] def visualize0(
+      evaluator: Evaluator,
+      targets: Seq[String],
+      ctx: mill.api.Ctx,
+      vizWorker: VizWorker,
+      planTasks: Option[List[NamedTask[?]]] = None
+  ): Result[Seq[PathRef]] = {
+    def callVisualizeModule(
+        tasks: List[NamedTask[Any]],
+        transitiveTasks: List[NamedTask[Any]]
+    ): Result[Seq[PathRef]] = {
+      val (in, out) = vizWorker
+      in.put((tasks, transitiveTasks, ctx.dest))
+      val res = out.take()
+      res.map { v =>
+        println(upickle.default.write(v.map(_.path.toString()), indent = 2))
+        v
+      }
+    }
+
+    evaluator.resolveTasks(targets, SelectMode.Multi).flatMap {
+      rs =>
+        planTasks match {
+          case Some(allRs) => callVisualizeModule(rs, allRs)
+          case None => callVisualizeModule(rs, rs)
+        }
+    }
+  }
+
+  def classpath: Target[Seq[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 
@@ -36,10 +70,10 @@ trait VisualizeModule extends mill.define.TaskModule {
    * everyone can use to call into Graphviz, which the Mill execution threads
    * can communicate via in/out queues.
    */
-  def worker: Worker[(
+  private[mill] def worker: Worker[(
       LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path)],
       LinkedBlockingQueue[Result[Seq[PathRef]]]
-  )] = Target.worker {
+  )] = mill.define.Task.Worker {
     val in = new LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path)]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
 
@@ -47,12 +81,12 @@ trait VisualizeModule extends mill.define.TaskModule {
       while (true) {
         val res = Result.Success {
           val (tasks, transitiveTasks, dest) = in.take()
-          val transitive = Graph.transitiveTargets(tasks)
-          val topoSorted = Graph.topoSorted(transitive)
-          val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
+          val transitive = Plan.transitiveTargets(tasks)
+          val topoSorted = Plan.topoSorted(transitive)
+          val sortedGroups = Plan.groupAroundImportantTargets(topoSorted) {
             case x: NamedTask[Any] if transitiveTasks.contains(x) => x
           }
-          val (plannedForRender, _) = mill.eval.Plan.plan(transitiveTasks)
+          val plan = exec.Plan.plan(transitiveTasks)
 
           val goalSet = transitiveTasks.toSet
           import guru.nidi.graphviz.model.Factory._
@@ -61,7 +95,7 @@ trait VisualizeModule extends mill.define.TaskModule {
               yield (
                 k,
                 for {
-                  v <- vs.items
+                  v <- vs
                   dest <- v.inputs.collect { case v: mill.define.NamedTask[Any] => v }
                   if goalSet.contains(dest)
                 } yield dest
@@ -81,7 +115,7 @@ trait VisualizeModule extends mill.define.TaskModule {
 
           org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
           val nodes = indexToTask.map(t =>
-            node(plannedForRender.lookupValue(t).render)
+            node(plan.sortedGroups.lookupValue(t).toString)
               .`with` {
                 if (tasks.contains(t)) Style.SOLID
                 else Style.DASHED
@@ -102,10 +136,12 @@ trait VisualizeModule extends mill.define.TaskModule {
 
           g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
 
-          mill.util.Jvm.runSubprocess(
-            "mill.main.graphviz.GraphvizTools",
-            classpath().map(_.path),
-            mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg")
+          mill.util.Jvm.callProcess(
+            mainClass = "mill.main.graphviz.GraphvizTools",
+            classPath = classpath().map(_.path).toVector,
+            mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg"),
+            stdin = os.Inherit,
+            stdout = os.Inherit
           )
 
           os.list(dest).sorted.map(PathRef(_))

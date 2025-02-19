@@ -8,7 +8,7 @@ object `package` extends RootModule with KotlinModule {
   def kotlinVersion = "1.9.24"
 
   // Additional source folder to put C sources
-  def nativeSources = Task.Sources(millSourcePath / "native-src")
+  def nativeSources = Task.Sources("native-src")
 
   // Compile C
   def nativeCompiled = Task {
@@ -33,7 +33,7 @@ object `package` extends RootModule with KotlinModule {
   def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
     def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)

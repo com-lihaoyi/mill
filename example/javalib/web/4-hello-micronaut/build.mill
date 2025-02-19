@@ -3,14 +3,14 @@ import mill._, javalib._
 
 object `package` extends RootModule with MicronautModule {
   def micronautVersion = "4.5.3"
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"io.micronaut:micronaut-http-server-netty:$micronautVersion",
     ivy"io.micronaut.serde:micronaut-serde-jackson:2.10.1",
     ivy"ch.qos.logback:logback-classic:1.5.3"
   )
 
   object test extends MavenTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.micronaut:micronaut-http-client:$micronautVersion",
       ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
       ivy"org.junit.jupiter:junit-jupiter-api:5.8.1",
@@ -24,7 +24,7 @@ trait MicronautModule extends MavenModule {
 
   def processors = Task {
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
         ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
         ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",

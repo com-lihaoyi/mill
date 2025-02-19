@@ -1,7 +1,7 @@
 package mill.kotlinlib.detekt
 
 import mill._
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Jvm
 
@@ -27,12 +27,13 @@ trait DetektModule extends KotlinModule {
     Task.log.info("running detekt ...")
     Task.log.debug(s"with $args")
 
-    Jvm.callSubprocess(
+    Jvm.callProcess(
       mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
-      classPath = detektClasspath().map(_.path),
+      classPath = detektClasspath().map(_.path).toVector,
       mainArgs = args,
-      workingDir = millSourcePath, // allow passing relative paths for sources like src/a/b
-      streamOut = true,
+      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
+      stdin = os.Inherit,
+      stdout = os.Inherit,
       check = false
     ).exitCode
   }
@@ -58,9 +59,9 @@ trait DetektModule extends KotlinModule {
   /**
    * Classpath for running Dekekt.
    */
-  def detektClasspath: T[Loose.Agg[PathRef]] = Task {
+  def detektClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"io.gitlab.arturbosch.detekt:detekt-cli:${detektVersion()}")
+      Seq(ivy"io.gitlab.arturbosch.detekt:detekt-cli:${detektVersion()}")
     )
   }
 

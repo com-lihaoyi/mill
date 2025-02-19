@@ -1,14 +1,14 @@
 package mill.integration
 
+import mill.constants.Util
 import mill.testkit.UtestIntegrationTestSuite
-
-import utest._
+import utest.*
 
 class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       val launcherEnv =
-        if (mill.main.client.Util.isWindows) "MILL_LAUNCHER_BAT"
+        if (Util.isWindows) "MILL_LAUNCHER_BAT"
         else "MILL_LAUNCHER"
 
       val workspacePath = tester.workspacePath

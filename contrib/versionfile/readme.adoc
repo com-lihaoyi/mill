@@ -75,7 +75,7 @@ import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
 import mill.contrib.versionfile.VersionFileModule
 
 object versionFile extends VersionFileModule {
-  def millSourcePath = millOuterCtx.millSourcePath
+  def millSourcePath = moduleCtx.millSourcePath
 }
 ----
 

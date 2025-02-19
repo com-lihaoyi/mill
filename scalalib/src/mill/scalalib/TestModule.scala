@@ -5,7 +5,7 @@ import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
-import mill.{Agg, T}
+import mill.T
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -16,7 +16,7 @@ trait TestModule
   // FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
   def compile: T[mill.scalalib.api.CompilationResult]
 
-  override def defaultCommandName() = "test"
+  override def defaultCommandName() = "testForked"
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
@@ -42,15 +42,17 @@ trait TestModule
 
   def discoveredTestClasses: T[Seq[String]] = Task {
     val classes = if (zincWorker().javaHome().isDefined) {
-      Jvm.callSubprocess(
+      Jvm.callProcess(
         mainClass = "mill.testrunner.DiscoverTestsMain",
-        classPath = zincWorker().scalalibClasspath().map(_.path),
+        classPath = zincWorker().scalalibClasspath().map(_.path).toVector,
         mainArgs =
           runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
             testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
             Seq("--framework", testFramework()),
         javaHome = zincWorker().javaHome().map(_.path),
-        streamOut = false
+        stdin = os.Inherit,
+        stdout = os.Pipe,
+        cwd = Task.dest
       ).out.lines()
     } else {
       mill.testrunner.DiscoverTestsMain.main0(
@@ -67,7 +69,7 @@ trait TestModule
    * results to the console.
    * @see [[testCached]]
    */
-  def test(args: String*): Command[(String, Seq[TestResult])] =
+  def testForked(args: String*): Command[(String, Seq[TestResult])] =
     Task.Command {
       testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
     }
@@ -87,7 +89,8 @@ trait TestModule
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * If no input has changed since the last run, no test were executed.
-   * @see [[test()]]
+   *
+   * @see [[testForked()]]
    */
   def testCached: T[(String, Seq[TestResult])] = Task {
     testTask(testCachedArgs, Task.Anon { Seq.empty[String] })()
@@ -148,7 +151,7 @@ trait TestModule
 
       val testArgs = TestArgs(
         framework = testFramework(),
-        classpath = runClasspath().map(_.path),
+        classpath = runClasspath().map(_.path).toVector,
         arguments = args(),
         sysProps = Map.empty,
         outputPath = outputPath,
@@ -216,7 +219,7 @@ trait TestModule
     val (doneMsg, results) = TestRunner.runTestFramework(
       Framework.framework(testFramework()),
       runClasspath().map(_.path),
-      Agg.from(testClasspath().map(_.path)),
+      Seq.from(testClasspath().map(_.path)),
       args,
       Task.testReporter
     )
@@ -240,8 +243,8 @@ object TestModule {
    */
   trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
-    override def ivyDeps: T[Agg[Dep]] = Task {
-      super.ivyDeps() ++ Agg(
+    override def ivyDeps: T[Seq[Dep]] = Task {
+      super.ivyDeps() ++ Seq(
         ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
       )
     }
@@ -253,8 +256,8 @@ object TestModule {
    */
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
-    override def ivyDeps: T[Agg[Dep]] = Task {
-      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
+    override def ivyDeps: T[Seq[Dep]] = Task {
+      super.ivyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
 
@@ -264,8 +267,8 @@ object TestModule {
    */
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-    override def ivyDeps: T[Agg[Dep]] = Task {
-      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
+    override def ivyDeps: T[Seq[Dep]] = Task {
+      super.ivyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
 
     /**
@@ -282,45 +285,43 @@ object TestModule {
      * override this method.
      */
     override def discoveredTestClasses: T[Seq[String]] = Task {
-      Jvm.inprocess(
-        runClasspath().map(_.path),
-        classLoaderOverrideSbtTesting = true,
-        isolated = true,
-        closeContextClassLoaderWhenDone = true,
-        cl => {
-          val builderClass: Class[_] =
-            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
-          val builder = builderClass.getConstructor().newInstance()
+      Jvm.withClassLoader(
+        classPath = runClasspath().map(_.path).toVector,
+        sharedPrefixes = Seq("sbt.testing.")
+      ) { classLoader =>
+        val builderClass: Class[?] =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
+        val builder = builderClass.getConstructor().newInstance()
 
-          builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
-            builder,
-            compile().classes.path.wrapped.toFile
-          )
-          builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
-            builder,
-            testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
-          )
-          builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, cl)
+        builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
+          builder,
+          compile().classes.path.wrapped.toFile
+        )
+        builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
+          builder,
+          testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
+        )
+        builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, classLoader)
 
-          val testCollector = builderClass.getMethod("build").invoke(builder)
-          val testCollectorClass =
-            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector")
+        val testCollector = builderClass.getMethod("build").invoke(builder)
+        val testCollectorClass =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector")
 
-          val result = testCollectorClass.getMethod("collectTests").invoke(testCollector)
-          val resultClass =
-            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Result")
+        val result = testCollectorClass.getMethod("collectTests").invoke(testCollector)
+        val resultClass =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Result")
 
-          val items = resultClass.getMethod(
-            "getDiscoveredTests"
-          ).invoke(result).asInstanceOf[java.util.List[_]]
-          val itemClass = cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
+        val items = resultClass.getMethod(
+          "getDiscoveredTests"
+        ).invoke(result).asInstanceOf[java.util.List[?]]
+        val itemClass =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
 
-          import scala.jdk.CollectionConverters._
-          items.asScala.map { item =>
-            itemClass.getMethod("getFullyQualifiedClassName").invoke(item).asInstanceOf[String]
-          }.toSeq
-        }
-      )
+        import scala.jdk.CollectionConverters._
+        items.asScala.map { item =>
+          itemClass.getMethod("getFullyQualifiedClassName").invoke(item).asInstanceOf[String]
+        }.toSeq
+      }
     }
   }
 
@@ -376,12 +377,6 @@ object TestModule {
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
   }
 
-  @deprecated("Use other overload instead", "Mill after 0.10.2")
-  def handleResults(
-      doneMsg: String,
-      results: Seq[TestResult]
-  ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
-
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
@@ -391,14 +386,14 @@ object TestModule {
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env with Ctx.Dest,
+      ctx: Ctx.Env & Ctx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] =
     TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
 
   trait JavaModuleBase extends BspModule {
-    def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
+    def ivyDeps: T[Seq[Dep]] = Seq.empty[Dep]
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
   }
 

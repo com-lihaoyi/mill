@@ -1,4 +1,4 @@
-= image:docs/logo.svg[Mill Logo] Mill
+= image:website/docs/logo.svg[Mill Logo] Mill
 :idprefix:
 :idseparator: -
 :link-github: https://github.com/com-lihaoyi/mill
@@ -19,7 +19,7 @@ ifdef::env-github[]
 endif::[]
 
 https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
-https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable[Maven Central Version]]
+https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable&versionPrefix=0.12.[Maven Central Version]]
 
 
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
@@ -49,13 +49,13 @@ package build
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   object test extends JavaTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"com.google.guava:guava:33.3.0-jre"
     )
   }

@@ -7,13 +7,13 @@ object foo extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def otherFiles = Task.Source(millSourcePath / "other-files")
+    def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
       "OTHER_FILES_DIR" -> otherFiles().path.toString
     )
 
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }

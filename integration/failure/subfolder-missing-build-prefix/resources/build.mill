@@ -1,5 +1,0 @@
-package build
-import $packages._
-import mill._
-
-val x = sub.y

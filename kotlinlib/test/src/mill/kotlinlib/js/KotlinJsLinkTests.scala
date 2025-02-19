@@ -1,9 +1,10 @@
 package mill.kotlinlib.js
 
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{Cross, T}
 import utest.{TestSuite, Tests, assert, test}
-
+import mill.main.TokenReaders._
 object KotlinJsLinkTests extends TestSuite {
 
   private val kotlinVersion = "1.9.25"
@@ -26,6 +27,8 @@ object KotlinJsLinkTests extends TestSuite {
     }
 
     object foo extends Cross[KotlinJsCrossModule](Seq(true, false))
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)
@@ -34,7 +37,7 @@ object KotlinJsLinkTests extends TestSuite {
     test("link { per module }") {
       val eval = testEval()
 
-      val Right(result) = eval.apply(module.foo(true).linkBinary)
+      val Right(result) = eval.apply(module.foo(true).linkBinary): @unchecked
 
       val binariesDir = result.value.classes.path
       assert(
@@ -51,7 +54,7 @@ object KotlinJsLinkTests extends TestSuite {
     test("link { fat }") {
       val eval = testEval()
 
-      val Right(result) = eval.apply(module.foo(false).linkBinary)
+      val Right(result) = eval.apply(module.foo(false).linkBinary): @unchecked
 
       val binariesDir = result.value.classes.path
       assert(

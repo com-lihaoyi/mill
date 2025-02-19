@@ -4,12 +4,13 @@ package js
 
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.Cross
+import mill.define.Discover
 import utest.{TestSuite, Tests, test}
 
 object KotlinJsKotlinVersionsTests extends TestSuite {
 
-  private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
   private val kotlinLowestVersion = "1.8.20"
+  private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
   private val kotlinHighestVersion = mill.kotlinlib.Versions.kotlinVersion
   private val kotlinVersions = Seq(kotlinLowestVersion, kotlinHighestVersion)
 
@@ -28,7 +29,7 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
         case Array(1, 8, _) => "0.9.1"
         case _ => "0.11.0"
       }
-      super.ivyDeps() ++ Agg(
+      super.ivyDeps() ++ Seq(
         ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion"
       )
     }
@@ -38,6 +39,8 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
     object foo extends Cross[KotlinJsFooCrossModule](kotlinVersions)
     object bar extends Cross[KotlinJsCrossModule](kotlinVersions)
     object qux extends Cross[KotlinJsQuxCrossModule](kotlinVersions)
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)
@@ -46,13 +49,13 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
     test("compile with lowest Kotlin version") {
       val eval = testEval()
 
-      val Right(_) = eval.apply(module.foo(kotlinLowestVersion).compile)
+      val Right(_) = eval.apply(module.foo(kotlinLowestVersion).compile): @unchecked
     }
 
     test("compile with highest Kotlin version") {
       val eval = testEval()
 
-      val Right(_) = eval.apply(module.foo(kotlinHighestVersion).compile)
+      val Right(_) = eval.apply(module.foo(kotlinHighestVersion).compile): @unchecked
     }
   }
 

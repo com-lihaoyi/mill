@@ -1,17 +1,18 @@
 package mill.main.buildgen
 
 import mainargs.{Flag, arg}
+import mill.constants.OutFiles
 import mill.main.buildgen.BuildObject.Companions
-import mill.main.client.CodeGenConstants.{
+import mill.constants.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
   rootBuildFileNames,
   rootModuleAlias
 }
-import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
 
 import scala.collection.immutable.SortedSet
+import scala.util.boundary
 
 @mill.api.internal
 object BuildGenUtil {
@@ -105,8 +106,10 @@ object BuildGenUtil {
        |
        |${renderPomPackaging(packaging)}
        |
-       |${if (pomParentArtifact == null) ""
-      else renderPomParentProject(renderArtifact(pomParentArtifact))}
+       |${
+        if (pomParentArtifact == null) ""
+        else renderPomParentProject(renderArtifact(pomParentArtifact))
+      }
        |
        |${renderPublishProperties(Nil)}
        |
@@ -178,7 +181,7 @@ object BuildGenUtil {
        |""".stripMargin
   }
 
-  def compactBuildTree(tree: Tree[Node[BuildObject]]): Tree[Node[BuildObject]] = {
+  def compactBuildTree(tree: Tree[Node[BuildObject]]): Tree[Node[BuildObject]] = boundary {
     println("compacting Mill build tree")
 
     def merge(parentCompanions: Companions, childCompanions: Companions): Companions = {
@@ -189,7 +192,7 @@ object BuildGenUtil {
         if (null == parentConstants) mergedParentCompanions += entry
         else {
           if (childConstants.exists { case (k, v) => v != parentConstants.getOrElse(k, v) })
-            return null
+            boundary.break(null)
           else mergedParentCompanions += ((objectName, parentConstants ++ childConstants))
         }
       }
@@ -353,22 +356,22 @@ object BuildGenUtil {
     else s"def artifactName = ${escape(name)}"
 
   def renderBomIvyDeps(args: IterableOnce[String]): String =
-    optional("def bomIvyDeps = super.bomIvyDeps() ++ Agg", args)
+    optional("def bomIvyDeps = super.bomIvyDeps() ++ Seq", args)
 
   def renderIvyDeps(args: IterableOnce[String]): String =
-    optional("def ivyDeps = super.ivyDeps() ++ Agg", args)
+    optional("def ivyDeps = super.ivyDeps() ++ Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
   def renderCompileIvyDeps(args: IterableOnce[String]): String =
-    optional("def compileIvyDeps = super.compileIvyDeps() ++ Agg", args)
+    optional("def compileIvyDeps = super.compileIvyDeps() ++ Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
   def renderRunIvyDeps(args: IterableOnce[String]): String =
-    optional("def runIvyDeps = super.runIvyDeps() ++ Agg", args)
+    optional("def runIvyDeps = super.runIvyDeps() ++ Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
@@ -390,7 +393,7 @@ object BuildGenUtil {
   def renderResources(args: IterableOnce[os.SubPath]): String =
     optional(
       "def resources = Task.Sources { super.resources() ++ Seq(",
-      args.iterator.map(sub => s"PathRef(millSourcePath / ${escape(sub.toString())})"),
+      args.iterator.map(sub => s"PathRef(moduleDir / ${escape(sub.toString())})"),
       ", ",
       ") }"
     )

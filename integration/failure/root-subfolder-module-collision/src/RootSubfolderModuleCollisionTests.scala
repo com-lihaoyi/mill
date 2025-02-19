@@ -10,10 +10,9 @@ object RootSubfolderModuleCollisionTests extends UtestIntegrationTestSuite {
       import tester._
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
-      assert(res.err.contains("cannot override final member"))
-      assert(res.err.contains(
-        " final lazy val sub: _root_.build_.sub.package_.type = _root_.build_.sub.package_ // subfolder module referenc"
-      ))
+      assert(res.err.contains("Reference to sub is ambiguous."))
+      assert(res.err.contains("It is both defined in class package_"))
+      assert(res.err.contains("and inherited subsequently in class package_"))
     }
   }
 }

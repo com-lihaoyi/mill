@@ -1,23 +1,26 @@
 package mill.kotlinlib.ktfmt
 
+import mill.define.Discover
 import mill.{PathRef, T, api}
 import mill.kotlinlib.KotlinModule
 import mill.main.Tasks
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
-
+import mill.main.TokenReaders._
 object KtfmtModuleTests extends TestSuite {
 
   val kotlinVersion = "1.9.24"
 
   object module extends TestBaseModule with KotlinModule with KtfmtModule {
     override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
 
     val (before, after) = {
-      val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib" / "ktfmt"
+      val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib/ktfmt"
       (root / "before", root / "after")
     }
 
@@ -25,7 +28,7 @@ object KtfmtModuleTests extends TestSuite {
       assert(
         checkState(
           afterFormat(before, style = "kotlin"),
-          after / "style" / "kotlin"
+          after / "style/kotlin"
         )
       )
     }
@@ -34,7 +37,7 @@ object KtfmtModuleTests extends TestSuite {
       assert(
         checkState(
           afterFormat(before, style = "google"),
-          after / "style" / "google"
+          after / "style/google"
         )
       )
     }
@@ -43,7 +46,7 @@ object KtfmtModuleTests extends TestSuite {
       assert(
         checkState(
           afterFormat(before, style = "meta"),
-          after / "style" / "meta"
+          after / "style/meta"
         )
       )
     }
@@ -65,7 +68,7 @@ object KtfmtModuleTests extends TestSuite {
     test("ktfmt - explicit files") {
       checkState(
         afterFormat(before, sources = Seq(module.sources)),
-        after / "style" / "kotlin"
+        after / "style/kotlin"
       )
     }
 
@@ -74,7 +77,7 @@ object KtfmtModuleTests extends TestSuite {
       assert(
         checkState(
           afterFormatAll(before),
-          after / "style" / "kotlin"
+          after / "style/kotlin"
         )
       )
     }
@@ -108,23 +111,18 @@ object KtfmtModuleTests extends TestSuite {
         removeUnusedImports = removeUnusedImports
       ),
       sources = Tasks(sources)
-    )).fold(
-      {
-        case api.Result.Exception(cause, _) => throw cause
-        case failure => throw failure
-      },
-      { _ =>
-        val Right(sources) = eval(module.sources)
+    )).get
 
-        sources.value.flatMap(ref => walkFiles(ref.path))
-      }
-    )
+    val Right(sources2) = eval(module.sources): @unchecked
+
+    sources2.value.flatMap(ref => walkFiles(ref.path))
   }
 
   def afterFormatAll(modulesRoot: os.Path, format: Boolean = true): Seq[os.Path] = {
 
     object module extends TestBaseModule with KotlinModule {
       override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
+      lazy val millDiscover = Discover[this.type]
     }
 
     val eval = UnitTester(module, modulesRoot)
@@ -135,16 +133,9 @@ object KtfmtModuleTests extends TestSuite {
         removeUnusedImports = true
       ),
       sources = Tasks(Seq(module.sources))
-    )).fold(
-      {
-        case api.Result.Exception(cause, _) => throw cause
-        case failure => throw failure
-      },
-      { _ =>
-        val Right(sources) = eval(module.sources)
-        sources.value.flatMap(ref => walkFiles(ref.path))
-      }
-    )
+    )).get
+    val Right(sources) = eval(module.sources): @unchecked
+    sources.value.flatMap(ref => walkFiles(ref.path))
   }
 
   def walkFiles(root: os.Path): Seq[os.Path] =

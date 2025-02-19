@@ -9,8 +9,8 @@ package build
 
 import mill.{Module, T, _}
 
-def sources = Task.Source { millSourcePath / "src" }
-def resources = Task.Source { millSourcePath / "resources" }
+def sources = Task.Source { "src" }
+def resources = Task.Source { "resources" }
 
 // ``Source``s are defined using `Task.Source{...}` taking one `os.Path`, or `Task.Sources{...}`,
 // taking multiple ``os.Path``s as arguments. A ``Source``'s:
@@ -38,14 +38,15 @@ def lineCount: T[Int] = Task {
     .sum
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   sources -> allSources -> lineCount
 //   sources [color=white]
 // }
-// ```
+// ....
 //
 // ``Tasks``s are defined using the `def foo = Task {...}` syntax, and dependencies
 // on other tasks are defined using `foo()` to extract the value from them.
@@ -143,7 +144,8 @@ def jar = Task {
   PathRef(Task.dest / "foo.jar")
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -152,7 +154,7 @@ def jar = Task {
 //   allSources [color=white]
 //   resources [color=white]
 // }
-// ```
+// ....
 
 /** Usage
 
@@ -188,14 +190,15 @@ def hugeFileName = Task {
   else "<no-huge-file>"
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   allSources -> largeFile-> hugeFileName
 //   allSources [color=white]
 // }
-// ```
+// ....
 
 // CAUTION: The graph of inter-dependent tasks is evaluated in topological order; that
 // means that the body of a task will not even begin to evaluate if one of its
@@ -242,14 +245,15 @@ def summarizeClassFileStats = Task {
   )
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   classFiles -> summarizedClassFileStats
 //   classFiles [color=white]
 // }
-// ```
+// ....
 
 /** Usage
 
@@ -277,7 +281,8 @@ def run(mainClass: String, args: String*) = Task.Command {
     .call(stdout = os.Inherit)
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -286,7 +291,7 @@ def run(mainClass: String, args: String*) = Task.Command {
 //   classFiles [color=white]
 //   resources [color=white]
 // }
-// ```
+// ....
 
 // Defined using `Task.Command {...}` syntax, ``Command``s can run arbitrary code, with
 // dependencies declared using the same `foo()` syntax (e.g. `classFiles()` above).

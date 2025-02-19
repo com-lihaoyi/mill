@@ -78,7 +78,7 @@ The following compile dependencies will automatically be added to your build:
 
 [source,scala]
 ----
-Agg(
+Seq(
   ivy"com.typesafe.play::play:${playVersion()}",
   ivy"com.typesafe.play::play-guice:${playVersion()}",
   ivy"com.typesafe.play::play-server:${playVersion()}",
@@ -162,7 +162,7 @@ object core extends PlayApiModule {
 
     object test extends PlayTests
 
-    override def ivyDeps = Task { super.ivyDeps() ++ Agg(ws(), filters()) }
+    override def ivyDeps = Task { super.ivyDeps() ++ Seq(ws(), filters()) }
 }
 ----
 

@@ -10,13 +10,13 @@ class ScalaPBWorker extends AutoCloseable {
 
   private var scalaPBInstanceCache = Option.empty[(Long, ScalaPBWorkerApi)]
 
-  private def scalaPB(scalaPBClasspath: Agg[PathRef])(implicit ctx: mill.api.Ctx) = {
+  private def scalaPB(scalaPBClasspath: Seq[PathRef])(implicit ctx: mill.api.Ctx) = {
     val classloaderSig = scalaPBClasspath.hashCode
     scalaPBInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
       case _ =>
-        val pbcClasspath = scalaPBClasspath.map(_.path.toIO.toURI.toURL).toVector
-        val cl = mill.api.ClassLoader.create(pbcClasspath, null)
+        val pbcClasspath = scalaPBClasspath.map(_.path).toVector
+        val cl = mill.util.Jvm.createClassLoader(pbcClasspath, null)
         val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
         val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
 
@@ -74,7 +74,7 @@ class ScalaPBWorker extends AutoCloseable {
    * @return execute result with path ref to `dest`
    */
   def compile(
-      scalaPBClasspath: Agg[PathRef],
+      scalaPBClasspath: Seq[PathRef],
       scalaPBSources: Seq[os.Path],
       scalaPBOptions: String,
       dest: os.Path,
@@ -104,17 +104,6 @@ class ScalaPBWorker extends AutoCloseable {
 }
 
 trait ScalaPBWorkerApi {
-
-  @deprecated("Use other overload instead", "Mill after 0.10.9")
-  def compileScalaPB(
-      root: File,
-      source: Seq[File],
-      scalaPBOptions: String,
-      generatedDirectory: File,
-      otherArgs: Seq[String]
-  ): Unit =
-    compileScalaPB(Seq(root), source, scalaPBOptions, generatedDirectory, otherArgs)
-
   def compileScalaPB(
       roots: Seq[File],
       source: Seq[File],
@@ -126,5 +115,5 @@ trait ScalaPBWorkerApi {
 
 object ScalaPBWorkerApi extends ExternalModule {
   def scalaPBWorker: Worker[ScalaPBWorker] = Task.Worker { new ScalaPBWorker() }
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }

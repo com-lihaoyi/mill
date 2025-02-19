@@ -3,10 +3,10 @@ package mill.init
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.api.{Loose, PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.main.buildgen.BuildGenUtil
 import mill.scalalib.scalafmt.ScalafmtWorkerModule
-import mill.util.{Jvm, Util}
+import mill.util.{Jvm, MillModuleUtil}
 import mill.{Command, T, Task, TaskModule}
 
 import scala.util.control.NoStackTrace
@@ -16,25 +16,27 @@ trait BuildGenModule extends TaskModule {
 
   def defaultCommandName(): String = "init"
 
-  def buildGenClasspath: T[Loose.Agg[PathRef]]
+  def buildGenClasspath: T[Seq[PathRef]]
 
   def buildGenMainClass: T[String]
 
   def buildGenScalafmtConfig: T[PathRef] = PathRef(BuildGenUtil.scalafmtConfigFile)
 
   def init(args: String*): Command[Unit] = Task.Command {
-    val root = millSourcePath
+    val root = moduleDir
 
     val mainClass = buildGenMainClass()
     val classPath = buildGenClasspath().map(_.path)
-    val exit = Jvm.callSubprocess(
+    val exitCode = Jvm.callProcess(
       mainClass = mainClass,
-      classPath = classPath,
+      classPath = classPath.toVector,
       mainArgs = args,
-      workingDir = root
+      cwd = root,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     ).exitCode
 
-    if (exit == 0) {
+    if (exitCode == 0) {
       val files = BuildGenUtil.buildFiles(root).map(PathRef(_)).toSeq
       val config = buildGenScalafmtConfig()
       Task.log.info("formatting Mill build files")
@@ -42,15 +44,15 @@ trait BuildGenModule extends TaskModule {
 
       Task.log.info("init completed, run \"mill resolve _\" to list available tasks")
     } else {
-      throw BuildGenException(s"$mainClass exit($exit)")
+      throw BuildGenException(s"$mainClass exit($exitCode)")
     }
   }
 }
 @mill.api.experimental
 object BuildGenModule {
 
-  def millModule(artifact: String): Result[Loose.Agg[PathRef]] =
-    Util.millProjectModule(artifact, millRepositories)
+  def millModule(artifact: String): Result[Seq[PathRef]] =
+    MillModuleUtil.millProjectModule(artifact, millRepositories)
 
   def millRepositories: Seq[Repository] = Seq(
     LocalRepositories.ivy2Local,

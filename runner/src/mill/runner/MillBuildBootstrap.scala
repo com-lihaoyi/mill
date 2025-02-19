@@ -1,14 +1,18 @@
 package mill.runner
 
-import mill.util.{ColorLogger, PrefixLogger, Watchable}
-import mill.main.{BuildInfo, RootModule, RunScript}
-import mill.main.client.CodeGenConstants.*
-import mill.api.{PathRef, SystemStreams, Val, internal}
+import mill.internal.PrefixLogger
+import mill.define.internal.Watchable
+import mill.main.{BuildInfo, RootModule}
+import mill.constants.CodeGenConstants.*
+import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
 import mill.eval.Evaluator
-import mill.resolve.SelectMode
-import mill.define.{BaseModule, Segments}
-import mill.main.client.OutFiles.{millBuild, millRunnerState}
+import mill.define.{BaseModule, Segments, SelectMode}
+import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
+import mill.runner.worker.api.MillScalaParser
+import mill.runner.worker.ScalaCompilerWorker
 
+import java.io.File
 import java.net.URLClassLoader
 import scala.util.Using
 
@@ -39,18 +43,22 @@ class MillBuildBootstrap(
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
     logger: ColorLogger,
-    disableCallgraph: Boolean,
     needBuildFile: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
     systemExit: Int => Nothing,
     streams0: SystemStreams,
-    selectiveExecution: Boolean
-) {
+    selectiveExecution: Boolean,
+    scalaCompilerWorker: ScalaCompilerWorker.ResolvedWorker
+) { outer =>
   import MillBuildBootstrap._
 
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
+
+  def parserBridge: MillScalaParser = {
+    scalaCompilerWorker.worker
+  }
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
     val runnerState = evaluateRec(0)
@@ -104,6 +112,7 @@ class MillBuildBootstrap(
         }
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
+          parserBridge,
           projectRoot,
           recRoot(projectRoot, depth) / os.up,
           output
@@ -115,10 +124,12 @@ class MillBuildBootstrap(
             new MillBuildRootModule.BootstrapModule()(
               new RootModule.Info(
                 millBootClasspath,
+                scalaCompilerWorker.classpath,
                 recRoot(projectRoot, depth),
                 output,
                 projectRoot
-              )
+              ),
+              scalaCompilerWorker.constResolver
             )
           RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
         }
@@ -208,7 +219,7 @@ class MillBuildBootstrap(
    */
   def processRunClasspath(
       nestedState: RunnerState,
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator,
       prevFrameOpt: Option[RunnerState.Frame],
       prevOuterFrameOpt: Option[RunnerState.Frame]
@@ -219,7 +230,7 @@ class MillBuildBootstrap(
       Seq("{runClasspath,compile,methodCodeHashSignatures}"),
       selectiveExecution = false
     ) match {
-      case (Left(error), evalWatches, moduleWatches) =>
+      case (Result.Failure(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           evalWatches,
@@ -234,7 +245,7 @@ class MillBuildBootstrap(
         nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-            Right(Seq(
+            Result.Success(Seq(
               Val(runClasspath: Seq[PathRef]),
               Val(compile: mill.scalalib.api.CompilationResult),
               Val(methodCodeHashSignatures: Map[String, Int])
@@ -282,6 +293,7 @@ class MillBuildBootstrap(
         )
 
         nestedState.add(frame = evalState)
+      case _ => ???
     }
   }
 
@@ -292,7 +304,7 @@ class MillBuildBootstrap(
    */
   def processFinalTargets(
       nestedState: RunnerState,
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator
   ): RunnerState = {
 
@@ -315,7 +327,7 @@ class MillBuildBootstrap(
       Option(evaluator)
     )
 
-    nestedState.add(frame = evalState, errorOpt = evaled.left.toOption)
+    nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
   }
 
   def makeEvaluator(
@@ -336,25 +348,30 @@ class MillBuildBootstrap(
           .mkString("/")
       )
 
-    mill.eval.EvaluatorImpl.make(
-      home,
-      projectRoot,
-      recOut(output, depth),
-      recOut(output, depth),
-      rootModule,
-      new PrefixLogger(logger, bootLogPrefix),
-      classLoaderSigHash = millClassloaderSigHash,
-      classLoaderIdentityHash = millClassloaderIdentityHash,
-      workerCache = workerCache.to(collection.mutable.Map),
-      env = env,
-      failFast = !keepGoing,
-      threadCount = threadCount,
-      methodCodeHashSignatures = methodCodeHashSignatures,
-      disableCallgraph = disableCallgraph,
+    val outPath = recOut(output, depth)
+    val baseLogger = new PrefixLogger(logger, bootLogPrefix)
+    new mill.eval.Evaluator(
       allowPositionalCommandArgs = allowPositionalCommandArgs,
-      systemExit = systemExit,
-      exclusiveSystemStreams = streams0,
-      selectiveExecution = selectiveExecution
+      selectiveExecution = selectiveExecution,
+      execution = new mill.exec.Execution(
+        baseLogger = baseLogger,
+        chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+        profileLogger = new ProfileLogger(outPath / millProfile),
+        home = home,
+        workspace = projectRoot,
+        outPath = outPath,
+        externalOutPath = outPath,
+        rootModule = rootModule,
+        classLoaderSigHash = millClassloaderSigHash,
+        classLoaderIdentityHash = millClassloaderIdentityHash,
+        workerCache = workerCache.to(collection.mutable.Map),
+        env = env,
+        failFast = !keepGoing,
+        threadCount = threadCount,
+        methodCodeHashSignatures = methodCodeHashSignatures,
+        systemExit = systemExit,
+        exclusiveSystemStreams = streams0
+      )
     )
   }
 
@@ -362,8 +379,47 @@ class MillBuildBootstrap(
 
 @internal
 object MillBuildBootstrap {
+
+  def classpath(classLoader: ClassLoader): Vector[os.Path] = {
+
+    var current = classLoader
+    val files = collection.mutable.Buffer.empty[os.Path]
+    val seenClassLoaders = collection.mutable.Buffer.empty[ClassLoader]
+    while (current != null) {
+      seenClassLoaders.append(current)
+      current match {
+        case t: java.net.URLClassLoader =>
+          files.appendAll(
+            t.getURLs
+              .collect {
+                case url if url.getProtocol == "file" => os.Path(java.nio.file.Paths.get(url.toURI))
+              }
+          )
+        case _ =>
+      }
+      current = current.getParent
+    }
+
+    val sunBoot = System.getProperty("sun.boot.class.path")
+    if (sunBoot != null) {
+      files.appendAll(
+        sunBoot
+          .split(java.io.File.pathSeparator)
+          .map(os.Path(_))
+          .filter(os.exists(_))
+      )
+    } else {
+      if (seenClassLoaders.contains(ClassLoader.getSystemClassLoader)) {
+        for (p <- System.getProperty("java.class.path").split(File.pathSeparatorChar)) {
+          val f = os.Path(p, WorkspaceRoot.workspaceRoot)
+          if (os.exists(f)) files.append(f)
+        }
+      }
+    }
+    files.toVector
+  }
   def prepareMillBootClasspath(millBuildBase: os.Path): Seq[os.Path] = {
-    val enclosingClasspath: Seq[os.Path] = mill.util.Classpath.classpath(getClass.getClassLoader)
+    val enclosingClasspath: Seq[os.Path] = classpath(getClass.getClassLoader)
 
     val selfClassURL = getClass.getProtectionDomain().getCodeSource().getLocation()
     assert(selfClassURL.getProtocol == "file")
@@ -393,16 +449,15 @@ object MillBuildBootstrap {
   }
 
   def evaluateWithWatches(
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator,
       targetsAndParams: Seq[String],
       selectiveExecution: Boolean
-  ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
+  ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
       mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
-        RunScript.evaluateTasksNamed(
-          evaluator,
+        evaluator.resolveEvaluate(
           targetsAndParams,
           SelectMode.Separated,
           selectiveExecution = selectiveExecution
@@ -413,19 +468,20 @@ object MillBuildBootstrap {
     val addedEvalWatched = rootModule.evalWatchedValues.toVector
 
     evalTaskResult match {
-      case Left(msg) => (Left(msg), Nil, moduleWatched)
-      case Right((watched, evaluated)) =>
+      case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatched)
+      case Result.Success((watched, evaluated)) =>
         evaluated match {
-          case Left(msg) => (Left(msg), watched ++ addedEvalWatched, moduleWatched)
-          case Right(results) =>
-            (Right(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
+          case Result.Failure(msg) =>
+            (Result.Failure(msg), watched ++ addedEvalWatched, moduleWatched)
+          case Result.Success(results) =>
+            (Result.Success(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
         }
     }
   }
 
-  def getRootModule(runClassLoader: URLClassLoader): BaseModule = {
+  def getRootModule(runClassLoader: URLClassLoader): RootModule = {
     val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
-    buildClass.getField("MODULE$").get(buildClass).asInstanceOf[BaseModule]
+    buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
   }
 
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
