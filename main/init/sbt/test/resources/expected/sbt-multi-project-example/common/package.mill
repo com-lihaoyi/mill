@@ -32,7 +32,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
     )
   }
 
-  def ivyDeps = super.ivyDeps() ++ Agg(
+  def ivyDeps = super.ivyDeps() ++ Seq(
     ivy"ch.qos.logback:logback-classic:1.2.3",
     ivy"com.typesafe.akka::akka-stream:2.5.6",
     ivy"com.typesafe.scala-logging::scala-logging:3.7.2",
@@ -66,7 +66,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   object test extends MavenTests with TestModule.ScalaTest {
 
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"org.scalacheck::scalacheck:1.13.5",
       ivy"org.scalatest::scalatest:3.0.4"
     )

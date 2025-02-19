@@ -24,7 +24,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   object test extends MavenTests with TestModule.Munit {
 
-    def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.scalameta::munit:0.7.29")
+    def ivyDeps = super.ivyDeps() ++ Seq(ivy"org.scalameta::munit:0.7.29")
 
   }
 }
