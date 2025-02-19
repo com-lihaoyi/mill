@@ -127,18 +127,15 @@ trait CosmoModule extends mill.Module with AssemblyModule {
     PathRef(Task.dest / "launcher")
   }
 
-  def cosmoAssembly: T[PathRef] = Task {
-    val prepend = os.read.bytes(cosmoCompiledLauncherScript().path)
-    val upstream = upstreamAssembly()
+  override def prepend: T[Option[Array[Byte]]] = Task {
+    Some(os.read.bytes(cosmoCompiledLauncherScript().path))
+  }
 
-    val created = Assembly.create0(
-      destJar = Task.dest / "out.jar.exe",
-      inputPaths = Seq.from(localClasspath().map(_.path)),
-      manifest = manifest(),
-      prepend = Some(prepend),
-      base = Some(upstream),
-      assemblyRules = assemblyRules
-    )
+  override def destJarName: T[String] = Task { "out.jar.exe" }
+
+  override def assembly: T[PathRef] = Task {
+    val created = createAssembly()
+
     // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
     val problematicEntryCount = 65535
 

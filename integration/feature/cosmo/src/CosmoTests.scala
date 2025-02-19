@@ -19,9 +19,9 @@ object CosmoTests extends UtestIntegrationTestSuite {
         if (!scala.util.Properties.isWin) {
           import tester._
 
-          val res = eval("hello.cosmoAssembly")
+          val res = eval("hello.assembly")
           assert(res.isSuccess)
-          val assembly = workspacePath / "out/hello/cosmoAssembly.dest/out.jar.exe"
+          val assembly = workspacePath / "out/hello/assembly.dest/out.jar.exe"
           val args = "scala".toSeq
           assert(os.call((assembly, args)).out.text().trim == s"Hello ${args.mkString(" ")}")
         }
@@ -32,9 +32,9 @@ object CosmoTests extends UtestIntegrationTestSuite {
         if (!scala.util.Properties.isWin) {
           import tester._
 
-          val res = eval("javaopts.cosmoAssembly")
+          val res = eval("javaopts.assembly")
           assert(res.isSuccess)
-          val assembly = workspacePath / "out/javaopts/cosmoAssembly.dest/out.jar.exe"
+          val assembly = workspacePath / "out/javaopts/assembly.dest/out.jar.exe"
 
           val forkArgs = "my.java.property" -> "hello"
           val forkArgsArgv0 = "my.argv0" -> assembly.toString
