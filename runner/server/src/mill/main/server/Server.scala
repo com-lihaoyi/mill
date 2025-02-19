@@ -275,6 +275,7 @@ object Server {
         },
       "Process ID Checker Thread: " + processIdFile
     )
+    processIdThread.setDaemon(true)
     processIdThread.start()
   }
 
