@@ -31,7 +31,7 @@ object IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
       // server process shuts down
       val remainingProcessIdFiles =
         os.walk(workspacePath / "out").filter(_.last == ServerFiles.processId)
-      assert(remainingProcessFiles.isEmpty)
+      assert(remainingProcessIdFiles.isEmpty)
 
     }
   }
