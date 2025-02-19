@@ -107,14 +107,13 @@ object `package` extends RootModule with build.MillPublishScalaModule {
 
       sbtPluginProjectSource()
 
-      import scala.sys.process._
       val version = build.millVersion()
       if (
-        Process(
+        os.call(
           // The version is passed to the sbt build so it correctly resolves the "models" dependency version and sets its own version.
-          s"""sbt 'set version := "$version"' assembly""",
-          sbtPluginProjectPath.toIO
-        ).! != 0
+          ("sbt", s"""set version := "$version"""", "assembly"),
+          cwd = sbtPluginProjectPath
+        ).exitCode != 0
       )
         throw new RuntimeException(
           "Failed to run `sbt assembly` in the \"sbt-mill-init-export-build\" sbt project. " +

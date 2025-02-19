@@ -71,7 +71,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
       "./sbtx"
     else if (
       // The return code is somehow 1 instead of 0.
-      Seq("sbt", "--help").!(ProcessLogger(_ => ())) == 1
+      os.call(("sbt", "--help"), check = false).exitCode == 1
     )
       "sbt"
     else
@@ -81,14 +81,14 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
 
     println("Running the added `millInitExportBuild` sbt task to export the build")
 
-    val exitCode = Process(
+    val exitCode = os.call(
       Seq(
         sbtExecutable,
         s"-addPluginSbtFile=${writeSbtFile().toString}",
         "millInitExportBuild"
       ),
-      workspace.toIO
-    ).!
+      cwd = workspace
+    ).exitCode
 
     // println("Exit code from running the `millInitExportBuild` sbt task: " + exitCode)
     if (exitCode != 0)
