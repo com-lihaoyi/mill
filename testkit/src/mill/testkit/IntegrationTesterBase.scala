@@ -59,7 +59,8 @@ trait IntegrationTesterBase {
    * Remove any ID files to try and force them to exit
    */
   def removeServerIdFile(): Unit = {
-    val serverPath0 = os.Path(out, workspacePath) / (if (clientServerMode) millServer else millNoServer)
+    val serverPath0 =
+      os.Path(out, workspacePath) / (if (clientServerMode) millServer else millNoServer)
 
     for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / serverId)
 

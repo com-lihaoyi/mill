@@ -257,10 +257,12 @@ object Server {
 
   }
 
-  def watchProcessIdFile(processIdFile: os.Path,
-                         processId: String,
-                         running: () => Boolean,
-                         exit: String => Unit): Unit = {
+  def watchProcessIdFile(
+      processIdFile: os.Path,
+      processId: String,
+      running: () => Boolean,
+      exit: String => Unit
+  ): Unit = {
     os.write.over(processIdFile, processId)
 
     val processIdThread = new Thread(

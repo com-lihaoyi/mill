@@ -1,13 +1,9 @@
 package mill.integration
 
-import mill.constants.Util
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 import utest._
 
-import scala.collection.mutable
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.SECONDS
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import utest.asserts.{RetryMax, RetryInterval}
@@ -36,11 +32,11 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         watchTerminated = true
       }
 
-      if (clientServerMode) eventually {os.exists(workspacePath / "out/mill-server") }
-      else eventually{os.exists(workspacePath / "out/mill-no-server")}
+      if (tester.clientServerMode) eventually { os.exists(workspacePath / "out/mill-server") }
+      else eventually { os.exists(workspacePath / "out/mill-no-server") }
       assert(watchTerminated == false)
 
-      if (clientServerMode) os.remove.all(workspacePath / "out/mill-server")
+      if (tester.clientServerMode) os.remove.all(workspacePath / "out/mill-server")
       else os.remove.all(workspacePath / "out/mill-no-server")
 
       eventually { watchTerminated == true }
