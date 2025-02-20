@@ -12,17 +12,12 @@ object ExecutionPaths {
   def apply(dest: os.Path, meta: os.Path, log: os.Path): ExecutionPaths =
     new ExecutionPaths(dest, meta, log)
 
-  @internal
-  private[mill] def makeSegmentStrings(segments: Segments): Seq[String] = segments.value.flatMap {
-    case Segment.Label(s) => Seq(s)
-    case Segment.Cross(values) => values.map(_.toString)
-  }
   def resolve(
-      workspacePath: os.Path,
+      outPath: os.Path,
       segments: Segments
   ): ExecutionPaths = {
-    val segmentStrings = makeSegmentStrings(segments)
-    val targetPath = workspacePath / segmentStrings.map(sanitizePathSegment)
+    val segmentStrings = segments.parts
+    val targetPath = outPath / segmentStrings.map(sanitizePathSegment)
     ExecutionPaths(
       targetPath / os.up / s"${targetPath.last}.dest",
       targetPath / os.up / s"${targetPath.last}.json",
@@ -30,9 +25,9 @@ object ExecutionPaths {
     )
   }
   def resolve(
-      workspacePath: os.Path,
+      outPath: os.Path,
       task: NamedTask[?]
-  ): ExecutionPaths = resolve(workspacePath, task.ctx.segments)
+  ): ExecutionPaths = resolve(outPath, task.ctx.segments)
 
   // case-insensitive match on reserved names
   private val ReservedWinNames =

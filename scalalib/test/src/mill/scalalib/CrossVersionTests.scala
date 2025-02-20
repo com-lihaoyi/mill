@@ -148,7 +148,7 @@ object CrossVersionTests extends TestSuite {
         val expectedDepsTree = tree
         val depsTree =
           os.read(ExecutionPaths.resolve(
-            eval.execution.workspace,
+            eval.outPath,
             mod.ivyDepsTree(IvyDepsTreeArgs())
           ).log)
         assert(depsTree == expectedDepsTree)

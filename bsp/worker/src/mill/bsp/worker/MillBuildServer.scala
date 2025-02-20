@@ -612,7 +612,7 @@ private class MillBuildServer(
             )
             else {
               val outPaths = mill.define.ExecutionPaths.resolve(
-                ev.workspace,
+                ev.outPath,
                 module.moduleSegments ++ Label("compile")
               )
               val outPathSeq = Seq(outPaths.dest, outPaths.meta, outPaths.log)

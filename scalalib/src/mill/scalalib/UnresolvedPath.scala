@@ -11,11 +11,11 @@ import upickle.default.{ReadWriter, macroRW}
  * [[ExecutionPathsResolver]] to get the final [[os.Path]].
  */
 sealed trait UnresolvedPath {
-  def resolve(workspacePath: os.Path): Path
+  def resolve(outPath: os.Path): Path
 }
 object UnresolvedPath {
   case class ResolvedPath private (path: String) extends UnresolvedPath {
-    override def resolve(workspacePath: os.Path): Path = os.Path(path)
+    override def resolve(outPath: os.Path): Path = os.Path(path)
   }
   object ResolvedPath {
     def apply(path: os.Path): ResolvedPath = ResolvedPath(path.toString)
@@ -27,9 +27,9 @@ object UnresolvedPath {
       subPath: String,
       segments: Seq[String]
   ) extends UnresolvedPath {
-    override def resolve(workspacePath: os.Path): Path = {
+    override def resolve(outPath: os.Path): Path = {
       ExecutionPaths.resolve(
-        workspacePath,
+        outPath,
         Segments(segments.map(Segment.Label(_)))
       ).dest / os.SubPath(subPath)
     }
@@ -39,10 +39,7 @@ object UnresolvedPath {
         subPath: os.SubPath,
         segments: Segments
     ): DestPath = {
-      DestPath(
-        subPath.toString(),
-        ExecutionPaths.makeSegmentStrings(segments)
-      )
+      DestPath(subPath.toString(), segments.parts)
     }
 
     implicit def upickleRW: ReadWriter[DestPath] = macroRW

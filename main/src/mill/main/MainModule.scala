@@ -179,7 +179,7 @@ trait MainModule extends BaseModule {
             val allPaths = ts.flatMap { segments =>
               val evPaths = ExecutionPaths.resolve(rootDir, segments)
               val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
-              val potentialModulePath = rootDir / ExecutionPaths.makeSegmentStrings(segments)
+              val potentialModulePath = rootDir / segments.parts
               if (os.exists(potentialModulePath)) {
                 // this is either because of some pre-Mill-0.10 files lying around
                 // or most likely because the segments denote a module but not a task
