@@ -337,7 +337,7 @@ object MainModule {
           Result.Failure(err)
 
         case Evaluator.Result(watched, Result.Success(res), selectedTasks, executionResults) =>
-          val namesAndJson = for (t <- executionResults.evaluated) yield {
+          val namesAndJson = for (t <- selectedTasks) yield {
             t match {
               case t: mill.define.NamedTask[_] =>
                 val jsonFile = ExecutionPaths.resolve(evaluator.outPath, t).meta
@@ -346,12 +346,7 @@ object MainModule {
               case _ => None
             }
           }
-          val output = f(
-            executionResults
-              .evaluated
-              .zip(namesAndJson)
-              .filter(t => selectedTasks.contains(t._1))
-          )
+          val output = f(selectedTasks.zip(namesAndJson))
           watched.foreach(watch0)
           println(output.render(indent = 2))
           Result.Success(output)
