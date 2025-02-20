@@ -80,13 +80,7 @@ object app extends AndroidAppModule {
 
 ////SNIPPET:END
 
-// This command triggers the build process, which installs the Android Setup, compiles the kotlin
-// code, generates Android resources, converts kotlin bytecode to DEX format, packages everything
-// into an APK, optimizes the APK using `zipalign`, and finally signs it.
-//
-// This Mill build configuration is designed to build a simple "Hello World" Android application.
-// By extending `AndroidAppKotlinModule`, we leverage its predefined Android build tasks, ensuring that
-// all necessary steps (resource generation, APK creation, and signing) are executed automatically.
+// This command triggers the build process, which create the library AAR and publish it locally at ~/.m2/repository
 //
 // #### Project Structure:
 // The project follows the standard Android app layout. Below is a typical project folder structure:
@@ -95,15 +89,24 @@ object app extends AndroidAppModule {
 // .
 //├── app
 //│   └── src
-//│       ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.kt
 //│       ├── main
 //│       │   ├── AndroidManifest.xml
-//│       │   ├── java/com/helloworld/app/MainActivity.kt
+//│       │   ├── java/com/example/app/Calculator.java
 //│       │   └── res
 //│       │       └── values
 //│       │           ├── colors.xml
 //│       │           └── strings.xml
-//│       └── test/java/com/helloworld/app/ExampleUnitTest.kt
+//│       └── test/java/com/example/CalculatorUnitTest.java
+//├── lib
+//│   └── src
+//│       └── main
+//│           ├── AndroidManifest.xml
+//│       |   └── java/com/example/lib/Sum.java
+//|       |   └── res
+//|       |       └── values
+//|       |           ├── colors.xml
+//|       |           └── strings.xml
+//|       └── test/java/com/example/lib/SumUnitTest.java
 //└── build.mill
 // ----
 //

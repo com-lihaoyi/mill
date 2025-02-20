@@ -22,10 +22,8 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       case _ => PackagingType.Aar
     }
 
-  private def aar: T[PathRef] = androidAar()
-
-  override def jar = {
-    aar
+  override def jar: T[PathRef] = {
+    androidAar()
   }
 
   override def defaultPublishInfos: T[Seq[PublishInfo]] = {
@@ -55,7 +53,8 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     os.proc("jar", "cvf", classesJar.toString, "-C", classFiles.toString, ".").call()
 
     os.makeDir.all(compiledRes)
-    os.proc(
+
+    val compileResult = os.proc(
       androidSdkModule().aapt2Path().path,
       "compile",
       "--dir",
@@ -64,7 +63,13 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       compiledRes.toString
     ).call()
 
-    os.proc(
+    if (compileResult.exitCode != 0) {
+      throw new RuntimeException(
+        s"aapt2 failed to compile resources with error code ${compileResult.exitCode}"
+      )
+    }
+
+    val linkResult = os.proc(
       androidSdkModule().aapt2Path().path,
       "link",
       "--static-lib",
@@ -74,10 +79,15 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       androidSdkModule().androidJarPath().path.toString,
       "--manifest",
       androidMergedManifest().path.toString
-    )
-      .call(cwd = compiledRes)
+    ).call(cwd = compiledRes)
 
-    val tempZip = aarFile / os.up / "library.zip"
+    if (linkResult.exitCode != 0) {
+      throw new RuntimeException(
+        s"aapt2 failed to link resources with error code ${linkResult.exitCode}"
+      )
+    }
+
+    val tempZip = Task.dest / "library.zip"
     os.move(aarFile, tempZip)
     os.proc("unzip", tempZip.toString, "-d", unpackedAar.toString).call()
     os.move(classesJar, unpackedAar / "classes.jar", replaceExisting = true)

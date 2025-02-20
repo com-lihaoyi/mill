@@ -84,11 +84,6 @@ trait AndroidAppModule extends AndroidModule {
    */
   def androidLintArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
-  def aarPath: T[PathRef] = Task {
-    val aarPath = T.dest / "library.aar"
-    PathRef(aarPath)
-  }
-
   /**
    * Combines module resources with those unpacked from AARs.
    */
