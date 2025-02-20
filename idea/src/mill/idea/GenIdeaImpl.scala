@@ -29,17 +29,13 @@ class GenIdeaImpl(
   val ideaConfigVersion = 4
 
   def run(): Unit = {
-    println("A")
     val pp = new scala.xml.PrettyPrinter(999, 4)
-    println("B")
     val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
       .getOrElse(("JDK_1_8", "1.8 (1)"))
-    println("C")
 
     ctx.log.info("Analyzing modules ...")
     val layout: Seq[(os.SubPath, Node)] =
       xmlFileLayout(evaluators, jdkInfo)
-    println("D")
 
     ctx.log.debug("Cleaning obsolete IDEA project files ...")
     os.remove.all(ideaDir / "libraries")
