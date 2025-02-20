@@ -66,14 +66,13 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             m: JavaModule,
             (allScalacOptions, compileClasspath, classesPathTask)
           ) =>
-        val pathResolver = ev.pathsResolver
         new ScalacOptionsItem(
           id,
           allScalacOptions.asJava,
           compileClasspath.iterator
-            .map(_.resolve(pathResolver))
+            .map(_.resolve(ev.outPath))
             .map(sanitizeUri).toSeq.asJava,
-          sanitizeUri(classesPathTask.resolve(pathResolver))
+          sanitizeUri(classesPathTask.resolve(ev.outPath))
         )
       case _ => ???
     } {

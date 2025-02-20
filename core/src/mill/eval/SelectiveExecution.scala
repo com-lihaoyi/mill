@@ -3,8 +3,8 @@ package mill.eval
 import mill.api.Val
 import mill.api.Result
 import mill.constants.OutFiles
-import mill.define.{InputImpl, NamedTask, Task, SelectMode}
-import mill.exec.{CodeSigUtils, Execution, Plan, TaskResult}
+import mill.define.{InputImpl, NamedTask, SelectMode, Task, TaskResult}
+import mill.exec.{CodeSigUtils, Execution, Plan}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 
@@ -31,9 +31,10 @@ private[mill] object SelectiveExecution {
         }
         .toMap
 
-      val results = evaluator.execution.executeTasks(Seq.from(inputTasksToLabels.keys))
+      val results = evaluator.execute(Seq.from(inputTasksToLabels.keys))
 
       val inputHashes = results
+        .executionResults
         .results
         .flatMap { case (task, taskResult) =>
           inputTasksToLabels.get(task).map { l =>
@@ -41,7 +42,10 @@ private[mill] object SelectiveExecution {
           }
         }
 
-      new Metadata(inputHashes, evaluator.methodCodeHashSignatures) -> results.results
+      new Metadata(
+        inputHashes,
+        evaluator.methodCodeHashSignatures
+      ) -> results.executionResults.results
     }
   }
 

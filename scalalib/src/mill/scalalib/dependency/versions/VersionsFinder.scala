@@ -21,10 +21,10 @@ private[dependency] object VersionsFinder {
       case javaModule: JavaModule => javaModule
     }
 
-    val resolvedDependencies = evaluator.evaluateValues {
+    val resolvedDependencies = evaluator.execute {
       val progress = new Progress(javaModules.size)
       javaModules.map(resolveDeps(progress))
-    }
+    }.values.get
 
     // Using a fixed time clock, so that the TTL cut-off is the same for all version checks,
     // and we don't run into race conditions like one check assuming a file in cache is valid,
@@ -33,10 +33,10 @@ private[dependency] object VersionsFinder {
     // (see https://github.com/com-lihaoyi/mill/issues/3876).
     val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
 
-    evaluator.evaluateValues {
+    evaluator.execute {
       val progress = new Progress(resolvedDependencies.map(_._3.size).sum)
       resolvedDependencies.map(resolveVersions(progress, clock))
-    }
+    }.values.get
   }
 
   class Progress(val count: Int) {
