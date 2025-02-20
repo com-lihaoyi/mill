@@ -114,12 +114,17 @@ public class MillProcessLauncher {
   }
 
   static String javaHome() throws IOException {
-    String jvmId;
+    String jvmId = null;
     Path millJvmVersionFile = millJvmVersionFile();
 
     String javaHome = null;
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
+      if (jvmId.equals("global")) jvmId = null;
+    } else {
+      jvmId = "zulu:17.0.3";
+    }
+    if (jvmId != null) {
 
       // Fast path to avoid calling `CoursierClient` and paying the classloading cost
       // when the `javaHome` JVM has already been initialized for the configured `jvmId`
