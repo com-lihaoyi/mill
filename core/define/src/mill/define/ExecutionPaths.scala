@@ -1,6 +1,5 @@
 package mill.define
 
-
 import java.util.regex.Matcher
 
 case class ExecutionPaths private (dest: os.Path, meta: os.Path, log: os.Path) {}
