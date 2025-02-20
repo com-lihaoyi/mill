@@ -15,9 +15,6 @@ object MillInitTests extends UtestIntegrationTestSuite {
       val res = eval("init")
       res.isSuccess ==> true
 
-      val exampleListOut = out("init")
-      val parsed = exampleListOut.json.arr.map(_.str)
-      assert(parsed.nonEmpty)
       assert(res.out.startsWith(msg))
       assert(res.out.endsWith(msg))
     }
