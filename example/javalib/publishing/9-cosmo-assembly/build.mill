@@ -2,8 +2,13 @@ package build
 import mill._, javalib._
 
 object foo extends JavaModule with cosmo.CosmoModule
-// This example uses the `scalalib.cosmo.CosmoModule` to build a cross-platform executable assembly by prepending
-// a launcher in the Actually Portable Executable (APE) format compiled with the Cosmopolitan's toolchain.
+
+// This example uses `cosmo.CosmoModule` to build a single executable assembly
+// that runs on multiple platforms, including Mac and Linux on both AMD64 and ARM64 and Windows AMD64 (See
+// https://github.com/jart/cosmopolitan/wiki/Features#systems-and-cpu-arch-supported for an exhaustive
+// and up-to-date supported platform list). It achieves this by prepending to the assembly jar a launcher in the
+// https://justine.lol/ape.html[Actually Portable Executable (APE)] file format compiled with the
+// https://justine.lol/cosmopolitan/index.html[Cosmopolitan's toolchain].
 
 /** Usage
 
