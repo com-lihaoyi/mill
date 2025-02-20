@@ -4,7 +4,7 @@ package js
 
 import mill.api.ExecResult
 import mill.define.Discover
-import mill.exec.ExecutionPaths
+import mill.define.ExecutionPaths
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
 
@@ -46,7 +46,7 @@ object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
         eval.apply(command): @unchecked
 
       val xmlReport =
-        ExecutionPaths.resolveDestPaths(eval.outPath, command).dest / "test-report.xml"
+        ExecutionPaths.resolve(eval.outPath, command).dest / "test-report.xml"
 
       assert(
         os.exists(xmlReport),

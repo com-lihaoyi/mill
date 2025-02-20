@@ -228,7 +228,7 @@ private[mill] object Resolve {
   }
 }
 
-trait Resolve[T] {
+private[mill] trait Resolve[T] {
   private[mill] def handleResolved(
       rootModule: BaseModule,
       resolved: Seq[Resolved],

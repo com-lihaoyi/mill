@@ -1,17 +1,18 @@
 package mill.eval
 
-import mill.api.{ColorLogger, ExecResult, PathRef, Result, Val}
+import mill.api.{
+  ColorLogger,
+  CompileProblemReporter,
+  DummyTestReporter,
+  ExecResult,
+  PathRef,
+  Result,
+  TestReporter,
+  Val
+}
 import mill.constants.OutFiles
 import mill.define.*
-import mill.exec.{
-  Cached,
-  ExecResults,
-  Execution,
-  ExecutionPaths,
-  ExecutionPathsResolver,
-  Plan,
-  TaskResult
-}
+import mill.exec.{Execution, Plan}
 import mill.define.internal.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
@@ -20,14 +21,19 @@ import scala.jdk.CollectionConverters.*
 import scala.util.DynamicVariable
 
 /**
- * Implementation of [[Evaluator]], which serves both as internal logic as well
- * as an odd bag of user-facing helper methods. Internal-only logic is
- * extracted into [[Execution]]
+ * [[Evaluator]] is the primary API through which a user interacts with the Mill
+ * evaluation process. The various phases of evaluation as methods they can call:
+ *
+ * 1. [[resolveSegments]]/[[resolveTasks]]
+ * 2. [[plan]]
+ * 3. [[execute]]/[[execute]],
+ *
+ * As well as [[evaluate]] which does all of these phases one after another
  */
-final case class Evaluator private[mill] (
+final class Evaluator private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
-    private[mill] val execution: Execution
+    private val execution: Execution
 ) extends AutoCloseable {
 
   private[mill] def workspace = execution.workspace
@@ -37,16 +43,16 @@ final case class Evaluator private[mill] (
   private[mill] def rootModule = execution.rootModule
   private[mill] def workerCache = execution.workerCache
 
-  val pathsResolver: ExecutionPathsResolver = ExecutionPathsResolver.default(outPath)
-
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator = new Evaluator(
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger)
   )
 
-  def plan(goals: Seq[Task[?]]): Plan = Plan.plan(goals)
-
+  /**
+   * Takes query selector tokens and resolves them to a list of [[Segments]]
+   * representing concrete tasks or modules that match that selector
+   */
   def resolveSegments(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
@@ -62,6 +68,10 @@ final case class Evaluator private[mill] (
     )
   }
 
+  /**
+   * Takes query selector tokens and resolves them to a list of [[NamedTask]]s
+   * representing concrete tasks or modules that match that selector
+   */
   def resolveTasks(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
@@ -77,46 +87,29 @@ final case class Evaluator private[mill] (
     )
   }
 
-  def close(): Unit = {
-    execution.close()
-  }
-
-  def resolveEvaluate(
-      scriptArgs: Seq[String],
-      selectMode: SelectMode,
-      selectiveExecution: Boolean = false
-  ): Result[(Seq[Watchable], Result[Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])] = {
-    val resolved = mill.eval.Evaluator.currentEvaluator.withValue(this) {
-      Resolve.Tasks.resolve(
-        rootModule,
-        scriptArgs,
-        selectMode,
-        allowPositionalCommandArgs
-      )
-    }
-    for (targets <- resolved)
-      yield evaluate(Seq.from(targets), selectiveExecution)
-  }
-
-  def evaluateValues[T](tasks: Seq[Task[T]]): Seq[T] = {
-    val (watches, res0) = evaluate(tasks).get
-    val results = res0.get
-    results.map(_._1.value.asInstanceOf[T])
-  }
+  /**
+   * Takes a sequence of [[Task]]s and returns a [[Plan]] containing the
+   * transitive upstream tasks necessary to evaluate those provided.
+   */
+  def plan(tasks: Seq[Task[?]]): Plan = Plan.plan(tasks)
 
   /**
-   * @param evaluator
    * @param targets
-   * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
+   * @param selectiveExecution
+   * @return
    */
-  def evaluate(
-      targets: Seq[Task[Any]],
+  def execute[T](
+      targets: Seq[Task[T]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = DummyTestReporter,
+      logger: ColorLogger = baseLogger,
+      serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
-  ): (Seq[Watchable], Result[Seq[(Val, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
+  ): Evaluator.Result[T] = {
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
-    val selectedTargetsOrErr =
+    val selectedTasksOrErr =
       if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
         val (named, unnamed) =
           targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
@@ -128,12 +121,18 @@ final case class Evaluator private[mill] (
           unnamed ++ named.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
           changedTasks.results
         )
-      } else (targets -> Map.empty)
+      } else (targets, Map.empty)
 
-    selectedTargetsOrErr match {
-      case (selectedTargets, selectiveResults) =>
-        val evaluated: ExecResults =
-          execution.executeTasks(selectedTargets, serialCommandExec = true)
+    selectedTasksOrErr match {
+      case (selectedTasks, selectiveResults) =>
+        val evaluated: ExecutionResults =
+          execution.executeTasks(
+            selectedTasks,
+            reporter,
+            testReporter,
+            logger,
+            serialCommandExec
+          )
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
@@ -166,40 +165,79 @@ final case class Evaluator private[mill] (
         val errorStr = Evaluator.formatFailing(evaluated)
         evaluated.failing.size match {
           case 0 =>
-            val nameAndJson = for (t <- selectedTargets.toSeq) yield {
-              t match {
-                case t: mill.define.NamedTask[_] =>
-                  val jsonFile = ExecutionPaths.resolveDestPaths(outPath, t).meta
-                  val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
-                  Some((t.toString, metadata.value))
-                case _ => None
-              }
-            }
-            watched -> Result.Success(evaluated.values.zip(nameAndJson))
-          case n => watched -> Result.Failure(s"$n tasks failed\n$errorStr")
+            Evaluator.Result(
+              watched,
+              Result.Success(evaluated.values.map(_._1.asInstanceOf[T])),
+              selectedTasks,
+              evaluated
+            )
+          case n =>
+            Evaluator.Result(
+              watched,
+              Result.Failure(s"$n tasks failed\n$errorStr"),
+              selectedTasks,
+              evaluated
+            )
         }
     }
   }
+
+  /**
+   * Evaluates the given query selector, performing [[resolveTasks]] and [[execute]]
+   * internally, and returning the [[Evaluator.Result]] containing the output
+   */
+  def evaluate(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      selectiveExecution: Boolean = false
+  ): Result[Evaluator.Result[Any]] = {
+    val resolved = mill.eval.Evaluator.currentEvaluator.withValue(this) {
+      Resolve.Tasks.resolve(
+        rootModule,
+        scriptArgs,
+        selectMode,
+        allowPositionalCommandArgs
+      )
+    }
+    for (targets <- resolved)
+      yield execute(Seq.from(targets), selectiveExecution = selectiveExecution)
+  }
+
+  def close(): Unit = execution.close()
+
 }
 
-private[mill] object Evaluator {
+object Evaluator {
 
-  type TaskName = String
+  /**
+   * @param watchable the list of [[Watchable]]s that were generated during this evaluation,
+   *                  useful if you want to know what to watch in case you need to re-run it.
+   * @param values A sequence of values returned by evaluation.
+   * @param selectedTasks The tasks that actually were selected to be run during this evaluation
+   * @param executionResults Detailed information on the results of executing each task
+   */
+  case class Result[T](
+      watchable: Seq[Watchable],
+      values: mill.api.Result[Seq[T]],
+      selectedTasks: Seq[Task[?]],
+      executionResults: ExecutionResults
+  )
+
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
-  val currentEvaluator = new DynamicVariable[mill.eval.Evaluator](null)
-  val allBootstrapEvaluators = new DynamicVariable[AllBootstrapEvaluators](null)
+  private[mill] val currentEvaluator = new DynamicVariable[mill.eval.Evaluator](null)
+  private[mill] val allBootstrapEvaluators = new DynamicVariable[AllBootstrapEvaluators](null)
 
   /**
    * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
    */
   case class AllBootstrapEvaluators(value: Seq[Evaluator])
 
-  val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
+  private[mill] val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
-  def formatFailing(evaluated: ExecResults): String = {
+  private[mill] def formatFailing(evaluated: ExecutionResults): String = {
     (for ((k, fs) <- evaluated.failing)
       yield {
         val fss = fs.map {

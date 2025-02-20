@@ -7,7 +7,7 @@ import mill.constants.CodeGenConstants.*
 import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
 import mill.eval.Evaluator
 import mill.define.{BaseModule, Segments, SelectMode}
-import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
@@ -246,9 +246,9 @@ class MillBuildBootstrap(
 
       case (
             Result.Success(Seq(
-              Val(runClasspath: Seq[PathRef]),
-              Val(compile: mill.scalalib.api.CompilationResult),
-              Val(methodCodeHashSignatures: Map[String, Int])
+              runClasspath: Seq[PathRef],
+              compile: mill.scalalib.api.CompilationResult,
+              methodCodeHashSignatures: Map[String, Int]
             )),
             evalWatches,
             moduleWatches
@@ -355,8 +355,8 @@ class MillBuildBootstrap(
       selectiveExecution = selectiveExecution,
       execution = new mill.exec.Execution(
         baseLogger = baseLogger,
-        chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-        profileLogger = new ProfileLogger(outPath / millProfile),
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
+        profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
         home = home,
         workspace = projectRoot,
         outPath = outPath,
@@ -457,7 +457,7 @@ object MillBuildBootstrap {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
       mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
-        evaluator.resolveEvaluate(
+        evaluator.evaluate(
           targetsAndParams,
           SelectMode.Separated,
           selectiveExecution = selectiveExecution
@@ -469,12 +469,12 @@ object MillBuildBootstrap {
 
     evalTaskResult match {
       case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatched)
-      case Result.Success((watched, evaluated)) =>
+      case Result.Success(Evaluator.Result(watched, evaluated, _, _)) =>
         evaluated match {
           case Result.Failure(msg) =>
             (Result.Failure(msg), watched ++ addedEvalWatched, moduleWatched)
           case Result.Success(results) =>
-            (Result.Success(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
+            (Result.Success(results), watched ++ addedEvalWatched, moduleWatched)
         }
     }
   }
