@@ -35,7 +35,8 @@ trait BuildGenBase[M, D, I] {
       val isNested = build.dirs.nonEmpty
       build.copy(value =
         BuildObject(
-          imports = BuildGenUtil.renderImports(shared.baseModule, isNested, packages.size, extraImports),
+          imports =
+            BuildGenUtil.renderImports(shared.baseModule, isNested, packages.size, extraImports),
           companions =
             shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
               SortedMap((name, SortedMap(inner.scopedDeps.namedIvyDeps.toSeq*)))
