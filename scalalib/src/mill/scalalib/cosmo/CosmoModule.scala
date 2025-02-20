@@ -4,6 +4,8 @@ import mill.{T, Task}
 import mill.api.{PathRef, Result}
 import mill.scalalib._
 
+import java.nio.file.attribute.PosixFilePermission
+
 /**
  * Provides a [[CosmoModule.cosmoAssembly task]] to build a cross-platfrom executable assembly jar
  * by prepending an [[https://justine.lol/ape.html Actually Portable Executable (APE)]]
@@ -19,16 +21,31 @@ trait CosmoModule extends mill.Module with AssemblyModule {
   def cosmocc: T[PathRef] = Task(persistent = true) {
     val version = if (cosmoccVersion().isEmpty) "" else s"-${cosmoccVersion()}"
     val versionedCosmocc = s"cosmocc${version}"
-    val zip = Task.dest / s"${versionedCosmocc}.zip"
+    Task.dest / s"${versionedCosmocc}.zip"
     val dest = Task.dest / versionedCosmocc / "bin" / "cosmocc"
 
     if (!os.exists(dest)) {
-      os.write.over(
-        zip,
-        requests.get.stream(s"https://cosmo.zip/pub/cosmocc/${versionedCosmocc}.zip")
-      )
       os.remove.all(Task.dest / versionedCosmocc)
-      os.call(("unzip", zip, "-d", Task.dest / versionedCosmocc))
+      os.unzip.stream(
+        requests.get.stream(s"https://cosmo.zip/pub/cosmocc/${versionedCosmocc}.zip"),
+        Task.dest / versionedCosmocc
+      )
+
+      if (!scala.util.Properties.isWin) {
+        (
+          os.walk.stream(Task.dest / versionedCosmocc / "bin") ++
+            os.walk.stream(Task.dest / versionedCosmocc / "libexec")
+        ).filter(p => os.isFile(p) && p.ext != "c" && p.last != "cosmoranlib")
+          .foreach { p =>
+            os.perms.set(
+              p,
+              os.perms(p)
+                + PosixFilePermission.GROUP_EXECUTE
+                + PosixFilePermission.OWNER_EXECUTE
+                + PosixFilePermission.OTHERS_EXECUTE
+            )
+          }
+      }
     }
 
     PathRef(dest)
