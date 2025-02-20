@@ -165,25 +165,14 @@ final class Evaluator private[mill] (
         val errorStr = Evaluator.formatFailing(evaluated)
         evaluated.failing.size match {
           case 0 =>
-            val nameAndJson = for (t <- selectedTargets.toSeq) yield {
-              t match {
-                case t: mill.define.NamedTask[_] =>
-                  val jsonFile = ExecutionPaths.resolve(outPath, t).meta
-                  val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
-                  Some((t.toString, metadata.value))
-                case _ => None
-              }
-            }
             Evaluator.Result(
               watched,
               Result.Success(evaluated.values.map(_._1.asInstanceOf[T])),
-              Result.Success(nameAndJson),
               evaluated
             )
           case n =>
             Evaluator.Result(
               watched,
-              Result.Failure(s"$n tasks failed\n$errorStr"),
               Result.Failure(s"$n tasks failed\n$errorStr"),
               evaluated
             )
@@ -227,7 +216,6 @@ object Evaluator {
   case class Result[T](
       watchable: Seq[Watchable],
       values: mill.api.Result[Seq[T]],
-      namesAndJson: mill.api.Result[Seq[Option[(String, ujson.Value)]]],
       executionResults: ExecutionResults
   )
 

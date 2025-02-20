@@ -79,8 +79,8 @@ trait SelectiveExecutionModule extends mill.define.Module {
           if (resolved.isEmpty) Result.Success((Nil, Result.Success(Nil)))
           else evaluator.evaluate(resolved.toSeq, SelectMode.Multi)
         }.flatMap {
-          case Evaluator.Result(watched, Result.Failure(err), _, _) => Result.Failure(err)
-          case Evaluator.Result(watched, Result.Success(res), _, _) => Result.Success(())
+          case Evaluator.Result(watched, Result.Failure(err), _) => Result.Failure(err)
+          case Evaluator.Result(watched, Result.Success(res), _) => Result.Success(())
         }
       }
     }

@@ -7,6 +7,7 @@ import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.SelectMode
 import mill.define.internal.Watchable
+import mill.exec.Cached
 
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
@@ -259,7 +260,7 @@ trait MainModule extends BaseModule {
    * It prompts you to enter project name and creates a folder with that name.
    * There are lots of templates out there for many frameworks and tools!
    */
-  def init(evaluator: Evaluator, args: String*): Command[ujson.Value] =
+  def init(evaluator: Evaluator, args: String*): Command[Unit] =
     Task.Command(exclusive = true) {
       val evaluated =
         if (os.exists(os.pwd / "pom.xml"))
@@ -292,11 +293,10 @@ trait MainModule extends BaseModule {
         case Result.Success(Evaluator.Result(
               _,
               Result.Success(Seq(_)),
-              Result.Success(Seq(Some((_, jsonableResult)))),
               _
             )) =>
-          jsonableResult
-        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _, _)) =>
+          ()
+        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _)) =>
           throw new Exception(failStr)
       }
     }
@@ -331,11 +331,20 @@ object MainModule {
         Separated,
         selectiveExecution = evaluator.selectiveExecution
       ).flatMap {
-        case Evaluator.Result(watched, Result.Failure(err), _, _) =>
+        case Evaluator.Result(watched, Result.Failure(err), _) =>
           watched.foreach(watch0)
           Result.Failure(err)
 
-        case Evaluator.Result(watched, Result.Success(res), Result.Success(namesAndJson), _) =>
+        case Evaluator.Result(watched, Result.Success(res), executionResults) =>
+          val namesAndJson = for (t <- executionResults.evaluated) yield {
+            t match {
+              case t: mill.define.NamedTask[_] =>
+                val jsonFile = ExecutionPaths.resolve(evaluator.outPath, t).meta
+                val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
+                Some((t.toString, metadata.value))
+              case _ => None
+            }
+          }
           val output = f(res.zip(namesAndJson))
           watched.foreach(watch0)
           println(output.render(indent = 2))
