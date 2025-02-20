@@ -289,9 +289,14 @@ trait MainModule extends BaseModule {
           )
       (evaluated: @unchecked) match {
         case Result.Failure(failStr) => throw new Exception(failStr)
-        case Result.Success(Evaluator.Result(_, Result.Success(Seq((_, Some((_, jsonableResult))))), _)) =>
+        case Result.Success(Evaluator.Result(
+              _,
+              Result.Success(Seq((_, Some((_, jsonableResult))))),
+              _
+            )) =>
           jsonableResult
-        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _)) => throw new Exception(failStr)
+        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _)) =>
+          throw new Exception(failStr)
       }
     }
 

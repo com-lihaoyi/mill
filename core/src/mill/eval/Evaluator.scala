@@ -1,6 +1,15 @@
 package mill.eval
 
-import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, ExecResult, PathRef, Result, TestReporter, Val}
+import mill.api.{
+  ColorLogger,
+  CompileProblemReporter,
+  DummyTestReporter,
+  ExecResult,
+  PathRef,
+  Result,
+  TestReporter,
+  Val
+}
 import mill.constants.OutFiles
 import mill.define.*
 import mill.exec.{Cached, Execution, Plan}
@@ -91,7 +100,6 @@ final class Evaluator private[mill] (
   }
 
   /**
-   *
    * @param targets
    * @param selectiveExecution
    * @return
@@ -102,7 +110,7 @@ final class Evaluator private[mill] (
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false,
-      selectiveExecution: Boolean = false,
+      selectiveExecution: Boolean = false
   ): Evaluator.Result = {
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
@@ -173,11 +181,11 @@ final class Evaluator private[mill] (
               }
             }
             Evaluator.Result(watched, Result.Success(evaluated.values.zip(nameAndJson)), evaluated)
-          case n => Evaluator.Result(watched, Result.Failure(s"$n tasks failed\n$errorStr"), evaluated)
+          case n =>
+            Evaluator.Result(watched, Result.Failure(s"$n tasks failed\n$errorStr"), evaluated)
         }
     }
   }
-
 
   /**
    * Evaluates the given query selector, performing [[resolveTasks]] and [[execute]]
@@ -205,16 +213,18 @@ final class Evaluator private[mill] (
 }
 
 object Evaluator {
+
   /**
-   *
    * @param watchable
    * @param values A sequence of untyped values returned by evaluation, boxed in [[Val]]s,
    *               along with an optional task name and JSON-serialization for named tasks
    * @param executionResults Detailed information on the results of executing each task
    */
-  case class Result(watchable: Seq[Watchable],
-                    values: mill.api.Result[Seq[(Val, Option[(String, ujson.Value)])]],
-                    executionResults: ExecutionResults)
+  case class Result(
+      watchable: Seq[Watchable],
+      values: mill.api.Result[Seq[(Val, Option[(String, ujson.Value)])]],
+      executionResults: ExecutionResults
+  )
 
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.

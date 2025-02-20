@@ -517,11 +517,13 @@ object MainModuleTests extends TestSuite {
         assert(r1.failing.size == 0)
         assert(workers.size == 5)
 
-        val r2 = ev.evaluator.execute0(Seq(workerModule.clean(ev.evaluator, "foo"))).executionResults
+        val r2 =
+          ev.evaluator.execute0(Seq(workerModule.clean(ev.evaluator, "foo"))).executionResults
         assert(r2.failing.size == 0)
         assert(workers.size == 4)
 
-        val r3 = ev.evaluator.execute0(Seq(workerModule.clean(ev.evaluator, "bar"))).executionResults
+        val r3 =
+          ev.evaluator.execute0(Seq(workerModule.clean(ev.evaluator, "bar"))).executionResults
         assert(r3.failing.size == 0)
         assert(workers.size == 3)
 

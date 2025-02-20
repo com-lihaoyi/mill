@@ -40,13 +40,13 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
 private[mill] object JsonArrayLogger {
 
   private[mill] class Profile(outPath: os.Path)
-    extends JsonArrayLogger[Profile.Timing](outPath, indent = 2) {
+      extends JsonArrayLogger[Profile.Timing](outPath, indent = 2) {
     def log(
-             terminal: Task[?],
-             duration: Long,
-             res: GroupExecution.Results,
-             deps: Seq[Task[?]]
-           ): Unit = {
+        terminal: Task[?],
+        duration: Long,
+        res: GroupExecution.Results,
+        deps: Seq[Task[?]]
+    ): Unit = {
       log(
         Profile.Timing(
           terminal.toString,
@@ -63,14 +63,14 @@ private[mill] object JsonArrayLogger {
 
   private object Profile {
     case class Timing(
-                       label: String,
-                       millis: Int,
-                       cached: java.lang.Boolean = null,
-                       valueHashChanged: java.lang.Boolean = null,
-                       dependencies: Seq[String] = Nil,
-                       inputsHash: Int,
-                       previousInputsHash: Int = -1
-                     )
+        label: String,
+        millis: Int,
+        cached: java.lang.Boolean = null,
+        valueHashChanged: java.lang.Boolean = null,
+        dependencies: Seq[String] = Nil,
+        inputsHash: Int,
+        previousInputsHash: Int = -1
+    )
 
     object Timing {
       implicit val readWrite: upickle.default.ReadWriter[Timing] = upickle.default.macroRW
@@ -78,16 +78,16 @@ private[mill] object JsonArrayLogger {
   }
 
   private[mill] class ChromeProfile(outPath: os.Path)
-    extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
+      extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
 
     def log(
-             terminal: Task[?],
-             cat: String,
-             startTime: Long,
-             duration: Long,
-             threadId: Int,
-             cached: Boolean
-           ): Unit = {
+        terminal: Task[?],
+        cat: String,
+        startTime: Long,
+        duration: Long,
+        threadId: Int,
+        cached: Boolean
+    ): Unit = {
 
       val event = ChromeProfile.TraceEvent(
         name = terminal.toString,
@@ -110,15 +110,15 @@ private[mill] object JsonArrayLogger {
      * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
      */
     case class TraceEvent(
-                           name: String,
-                           cat: String,
-                           ph: String,
-                           ts: Long,
-                           dur: Long,
-                           pid: Int,
-                           tid: Int,
-                           args: Seq[String]
-                         )
+        name: String,
+        cat: String,
+        ph: String,
+        ts: Long,
+        dur: Long,
+        pid: Int,
+        tid: Int,
+        args: Seq[String]
+    )
 
     object TraceEvent {
       implicit val readWrite: upickle.default.ReadWriter[TraceEvent] = upickle.default.macroRW

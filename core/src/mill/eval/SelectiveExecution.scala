@@ -42,7 +42,10 @@ private[mill] object SelectiveExecution {
           }
         }
 
-      new Metadata(inputHashes, evaluator.methodCodeHashSignatures) -> results.executionResults.results
+      new Metadata(
+        inputHashes,
+        evaluator.methodCodeHashSignatures
+      ) -> results.executionResults.results
     }
   }
 

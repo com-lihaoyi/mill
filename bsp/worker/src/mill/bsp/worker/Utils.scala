@@ -1,6 +1,15 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{BuildClient, BuildTarget, BuildTargetCapabilities, BuildTargetIdentifier, OutputPathItem, OutputPathItemKind, StatusCode, TaskId}
+import ch.epfl.scala.bsp4j.{
+  BuildClient,
+  BuildTarget,
+  BuildTargetCapabilities,
+  BuildTargetIdentifier,
+  OutputPathItem,
+  OutputPathItemKind,
+  StatusCode,
+  TaskId
+}
 import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.ExecResult.{Skipped, Success}
 import mill.define.ExecutionResults

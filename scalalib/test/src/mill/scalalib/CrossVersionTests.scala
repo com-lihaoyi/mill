@@ -147,7 +147,10 @@ object CrossVersionTests extends TestSuite {
         // Escape-sequence formatting isn't working under bare Windows
         val expectedDepsTree = tree
         val depsTree =
-          os.read(ExecutionPaths.resolve(eval.execution.workspace, mod.ivyDepsTree(IvyDepsTreeArgs())).log)
+          os.read(ExecutionPaths.resolve(
+            eval.execution.workspace,
+            mod.ivyDepsTree(IvyDepsTreeArgs())
+          ).log)
         assert(depsTree == expectedDepsTree)
       }
     }

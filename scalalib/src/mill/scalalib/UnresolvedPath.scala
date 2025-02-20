@@ -28,7 +28,10 @@ object UnresolvedPath {
       segments: Seq[String]
   ) extends UnresolvedPath {
     override def resolve(workspacePath: os.Path): Path = {
-      ExecutionPaths.resolve(workspacePath, Segments(segments.map(Segment.Label(_)))).dest / os.SubPath(subPath)
+      ExecutionPaths.resolve(
+        workspacePath,
+        Segments(segments.map(Segment.Label(_)))
+      ).dest / os.SubPath(subPath)
     }
   }
   object DestPath {
