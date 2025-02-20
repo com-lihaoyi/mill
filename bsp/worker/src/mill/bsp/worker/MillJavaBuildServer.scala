@@ -39,12 +39,12 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       case (ev, state, id, m: JavaModule, (classesPath, javacOptions, bspCompileClasspath)) =>
         val options = javacOptions
         val classpath =
-          bspCompileClasspath.map(_.resolve(ev.workspace)).map(sanitizeUri)
+          bspCompileClasspath.map(_.resolve(ev.outPath)).map(sanitizeUri)
         new JavacOptionsItem(
           id,
           options.asJava,
           classpath.iterator.toSeq.asJava,
-          sanitizeUri(classesPath.resolve(ev.workspace))
+          sanitizeUri(classesPath.resolve(ev.outPath))
         )
 
       case _ => ???

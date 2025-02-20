@@ -70,9 +70,9 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           id,
           allScalacOptions.asJava,
           compileClasspath.iterator
-            .map(_.resolve(ev.workspace))
+            .map(_.resolve(ev.outPath))
             .map(sanitizeUri).toSeq.asJava,
-          sanitizeUri(classesPathTask.resolve(ev.workspace))
+          sanitizeUri(classesPathTask.resolve(ev.outPath))
         )
       case _ => ???
     } {

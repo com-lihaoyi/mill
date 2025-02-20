@@ -141,7 +141,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         new JvmCompileClasspathItem(
           id,
           compileClasspath.iterator
-            .map(_.resolve(ev.workspace))
+            .map(_.resolve(ev.outPath))
             .map(sanitizeUri).toSeq.asJava
         )
       case _ => ???
