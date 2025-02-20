@@ -80,7 +80,7 @@ object MillInitScalaCsv136Tests extends BuildGenTestSuite {
 object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
-    - 10 KB
+    - 12 KB
     - originally sbt 1.0.2
      */
     val url =
@@ -157,7 +157,7 @@ object MillInitSbtScalazTests extends BuildGenTestSuite {
 object MillInitSbtCatsTests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
-    - 2 MB
+    - 1.9 MB
     - sbt 1.10.7
     - MUnit
      */
@@ -177,9 +177,11 @@ object MillInitSbtCatsTests extends BuildGenTestSuite {
 
 // Converting child projects nested in a parent directory which is not a project is not supported yet.
 object MillInitSbtPlayFrameworkTests extends BuildGenTestSuite {
+  // Commented out as it causes `java.util.concurrent.TimeoutException: Future timed out after [600000 milliseconds]` in the CI.
+  /*
   def tests: Tests = Tests {
     /*
-    - 5 MB
+    - 4.8 MB
     - sbt 1.10.5
      */
     val url = "https://github.com/playframework/playframework/archive/refs/tags/3.0.6.zip"
@@ -194,13 +196,14 @@ object MillInitSbtPlayFrameworkTests extends BuildGenTestSuite {
       assert(compileResult.isSuccess)
     }
   }
+  */
 }
 
 // Scala.js and scala-native projects are not properly imported
 object MillInitSbtScalaCheckTests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
-    - 0.5 MB
+    - 245 KB
     - sbt 1.10.1
      */
     val url = "https://github.com/typelevel/scalacheck/archive/refs/tags/v1.18.1.zip"
