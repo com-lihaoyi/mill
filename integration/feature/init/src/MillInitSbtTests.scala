@@ -177,9 +177,9 @@ object MillInitSbtCatsTests extends BuildGenTestSuite {
 
 // Converting child projects nested in a parent directory which is not a project is not supported yet.
 object MillInitSbtPlayFrameworkTests extends BuildGenTestSuite {
-  // Commented out as it causes `java.util.concurrent.TimeoutException: Future timed out after [600000 milliseconds]` in the CI.
-  /*
   def tests: Tests = Tests {
+    // Commented out as it causes `java.util.concurrent.TimeoutException: Future timed out after [600000 milliseconds]` in the CI.
+    /*
     /*
     - 4.8 MB
     - sbt 1.10.5
@@ -195,8 +195,8 @@ object MillInitSbtPlayFrameworkTests extends BuildGenTestSuite {
       val compileResult = eval("compile")
       assert(compileResult.isSuccess)
     }
+     */
   }
-  */
 }
 
 // Scala.js and scala-native projects are not properly imported
