@@ -815,13 +815,13 @@ private class MillBuildServer(
       },
       streams = logger0.systemStreams
     ) {
-      evaluator.executeTasks(
+      evaluator.execute0(
         goals,
         reporter,
         testReporter,
         logger0,
         serialCommandExec = false
-      )
+      ).executionResults
     }
   }
 }

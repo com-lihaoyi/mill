@@ -25,7 +25,7 @@ object InitModuleTests extends TestSuite {
         errStream = new PrintStream(errStream, true)
       )
       test("no args") {
-        val results = evaluator.evaluator.executeTasks(Seq(initmodule.init(None)))
+        val results = evaluator.evaluator.execute0(Seq(initmodule.init(None))).executionResults
 
         assert(results.failing.size == 0)
 
@@ -40,9 +40,9 @@ object InitModuleTests extends TestSuite {
       }
       test("non existing example") {
         val nonExistingModuleId = "nonExistingExampleId"
-        val results = evaluator.evaluator.executeTasks(Seq(
+        val results = evaluator.evaluator.execute0(Seq(
           initmodule.init(Some(nonExistingModuleId))
-        ))
+        )).executionResults
         assert(results.failing.size == 1)
         assert(errStream.toString.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
       }

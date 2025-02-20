@@ -289,9 +289,9 @@ trait MainModule extends BaseModule {
           )
       (evaluated: @unchecked) match {
         case Result.Failure(failStr) => throw new Exception(failStr)
-        case Result.Success(Evaluator.Result(_, Result.Success(Seq((_, Some((_, jsonableResult))))))) =>
+        case Result.Success(Evaluator.Result(_, Result.Success(Seq((_, Some((_, jsonableResult))))), _)) =>
           jsonableResult
-        case Result.Success(Evaluator.Result(_, Result.Failure(failStr))) => throw new Exception(failStr)
+        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _)) => throw new Exception(failStr)
       }
     }
 
@@ -310,7 +310,7 @@ object MainModule {
       targets: Seq[String],
       log: Logger,
       watch0: Watchable => Unit
-  )(f: Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])] => ujson.Value)
+  )(f: Seq[(Any, Option[(String, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 
     // When using `show`, redirect all stdout of the evaluated tasks so the
@@ -325,11 +325,11 @@ object MainModule {
         Separated,
         selectiveExecution = evaluator.selectiveExecution
       ).flatMap {
-        case Evaluator.Result(watched, Result.Failure(err)) =>
+        case Evaluator.Result(watched, Result.Failure(err), _) =>
           watched.foreach(watch0)
           Result.Failure(err)
 
-        case Evaluator.Result(watched, Result.Success(res)) =>
+        case Evaluator.Result(watched, Result.Success(res), _) =>
           val output = f(res)
           watched.foreach(watch0)
           println(output.render(indent = 2))

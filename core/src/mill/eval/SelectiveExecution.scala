@@ -31,9 +31,10 @@ private[mill] object SelectiveExecution {
         }
         .toMap
 
-      val results = evaluator.executeTasks(Seq.from(inputTasksToLabels.keys))
+      val results = evaluator.execute0(Seq.from(inputTasksToLabels.keys))
 
       val inputHashes = results
+        .executionResults
         .results
         .flatMap { case (task, taskResult) =>
           inputTasksToLabels.get(task).map { l =>
@@ -41,7 +42,7 @@ private[mill] object SelectiveExecution {
           }
         }
 
-      new Metadata(inputHashes, evaluator.methodCodeHashSignatures) -> results.results
+      new Metadata(inputHashes, evaluator.methodCodeHashSignatures) -> results.executionResults.results
     }
   }
 
