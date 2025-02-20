@@ -5,6 +5,12 @@ import mill.constants.ProxyStream
 import utest.*
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
+
+private class TimeControl(private var currentTime: Long) {
+  def now(): Long = currentTime
+  def advance(delta: Long): Unit = currentTime += delta
+}
+
 object PromptLoggerTests extends TestSuite {
 
   def setup(now: () => Long, terminfoPath: os.Path) = {
@@ -294,6 +300,96 @@ object PromptLoggerTests extends TestSuite {
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
         "[123/456] ============================= TITLE ============================= 11s"
+      )
+    }
+
+    test("failure count") - retry(3) {
+      val timeControl = new TimeControl(0L)
+      val (baos, promptLogger, _) = setup(timeControl.now, os.temp("80 40"))
+
+      // Test initial state with no failures
+      val prefixLogger = new PrefixLogger(promptLogger, Seq("1"), failureCount = None)
+      prefixLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[123/456] ============================== TITLE =============================="
+      )
+
+      // Test with single failure
+      val singleFailureLogger = new PrefixLogger(promptLogger, Seq("1"), failureCount = Some(1))
+      singleFailureLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[123/456, 1 failed] ========================== TITLE =========================="
+      )
+
+      // Test with multiple failures
+      val multipleFailuresLogger = new PrefixLogger(promptLogger, Seq("1"), failureCount = Some(5))
+      multipleFailuresLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[123/456, 5 failed] ========================== TITLE =========================="
+      )
+
+      // Test that failure count is preserved in subloggers with different counts
+      val subLogger1 = multipleFailuresLogger.subLogger(os.pwd / "test", "sub1", "message")
+      assert(subLogger1.asInstanceOf[PrefixLogger].failureCount == Some(5))
+
+      val subLogger2 = singleFailureLogger.subLogger(os.pwd / "test", "sub2", "message")
+      assert(subLogger2.asInstanceOf[PrefixLogger].failureCount == Some(1))
+
+      // Test that failure count is preserved when changing output stream with different counts
+      val newLogger1 = multipleFailuresLogger.withOutStream(new PrintStream(new ByteArrayOutputStream()))
+      assert(newLogger1.asInstanceOf[PrefixLogger].failureCount == Some(5))
+
+      val newLogger2 = singleFailureLogger.withOutStream(new PrintStream(new ByteArrayOutputStream()))
+      assert(newLogger2.asInstanceOf[PrefixLogger].failureCount == Some(1))
+
+      // Test zero failures
+      val noFailuresLogger = new PrefixLogger(promptLogger, Seq("1"), failureCount = Some(0))
+      noFailuresLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[123/456] ============================== TITLE =============================="
+      )
+
+      // Test None failures
+      val noFailuresLogger2 = new PrefixLogger(promptLogger, Seq("1"), failureCount = None)
+      noFailuresLogger2.setPromptHeaderPrefix("123/456")
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[123/456] ============================== TITLE =============================="
+      )
+
+      // Test that failure count updates are reflected in the display
+      val updatingLogger = new PrefixLogger(promptLogger, Seq("1"), failureCount = Some(1))
+      updatingLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[123/456, 1 failed] ========================== TITLE =========================="
+      )
+
+      val updatedLogger = new PrefixLogger(promptLogger, Seq("1"), failureCount = Some(2))
+      updatedLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[123/456, 2 failed] ========================== TITLE =========================="
+      )
+
+      // Test with large numbers to ensure formatting works
+      val largeFailureLogger = new PrefixLogger(promptLogger, Seq("1"), failureCount = Some(1000))
+      largeFailureLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[123/456, 1000 failed] ========================= TITLE ========================"
+      )
+
+      // Test that header adjusts properly with different length prefixes
+      val longPrefixLogger = new PrefixLogger(promptLogger, Seq("1"), failureCount = Some(2))
+      longPrefixLogger.setPromptHeaderPrefix("123456789/987654321")
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[123456789/987654321, 2 failed] ==================== TITLE ===================="
       )
     }
   }
