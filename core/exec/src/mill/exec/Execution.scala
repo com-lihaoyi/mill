@@ -200,7 +200,9 @@ private[mill] case class Execution(
                 }
 
                 // Update logger with current failure count after task execution
-                contextLogger.asInstanceOf[PrefixLogger].updateFailureCount(Some(failureCount.get()))
+                contextLogger.asInstanceOf[PrefixLogger].updateFailureCount(Some(
+                  failureCount.get()
+                ))
 
                 val endTime = System.nanoTime() / 1000
                 val duration = endTime - startTime
