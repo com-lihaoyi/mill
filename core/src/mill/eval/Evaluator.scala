@@ -109,7 +109,7 @@ final class Evaluator private[mill] (
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
-    val selectedTargetsOrErr =
+    val selectedTasksOrErr =
       if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
         val (named, unnamed) =
           targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
@@ -123,11 +123,11 @@ final class Evaluator private[mill] (
         )
       } else (targets, Map.empty)
 
-    selectedTargetsOrErr match {
-      case (selectedTargets, selectiveResults) =>
+    selectedTasksOrErr match {
+      case (selectedTasks, selectiveResults) =>
         val evaluated: ExecutionResults =
           execution.executeTasks(
-            selectedTargets,
+            selectedTasks,
             reporter,
             testReporter,
             logger,
@@ -168,12 +168,14 @@ final class Evaluator private[mill] (
             Evaluator.Result(
               watched,
               Result.Success(evaluated.values.map(_._1.asInstanceOf[T])),
+              selectedTasks,
               evaluated
             )
           case n =>
             Evaluator.Result(
               watched,
               Result.Failure(s"$n tasks failed\n$errorStr"),
+              selectedTasks,
               evaluated
             )
         }
@@ -216,6 +218,7 @@ object Evaluator {
   case class Result[T](
       watchable: Seq[Watchable],
       values: mill.api.Result[Seq[T]],
+      selectedTasks: Seq[Task[?]],
       executionResults: ExecutionResults
   )
 

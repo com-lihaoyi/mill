@@ -293,10 +293,11 @@ trait MainModule extends BaseModule {
         case Result.Success(Evaluator.Result(
               _,
               Result.Success(Seq(_)),
+              _,
               _
             )) =>
           ()
-        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _)) =>
+        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _, _)) =>
           throw new Exception(failStr)
       }
     }
@@ -331,11 +332,11 @@ object MainModule {
         Separated,
         selectiveExecution = evaluator.selectiveExecution
       ).flatMap {
-        case Evaluator.Result(watched, Result.Failure(err), _) =>
+        case Evaluator.Result(watched, Result.Failure(err), _, _) =>
           watched.foreach(watch0)
           Result.Failure(err)
 
-        case Evaluator.Result(watched, Result.Success(res), executionResults) =>
+        case Evaluator.Result(watched, Result.Success(res), selectedTasks, executionResults) =>
           val namesAndJson = for (t <- executionResults.evaluated) yield {
             t match {
               case t: mill.define.NamedTask[_] =>
@@ -345,7 +346,12 @@ object MainModule {
               case _ => None
             }
           }
-          val output = f(res.zip(namesAndJson))
+          val output = f(
+            executionResults
+              .evaluated
+              .zip(namesAndJson)
+              .filter(t => selectedTasks.contains(t._1))
+          )
           watched.foreach(watch0)
           println(output.render(indent = 2))
           Result.Success(output)

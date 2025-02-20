@@ -246,9 +246,9 @@ class MillBuildBootstrap(
 
       case (
             Result.Success(Seq(
-              Val(runClasspath: Seq[PathRef]),
-              Val(compile: mill.scalalib.api.CompilationResult),
-              Val(methodCodeHashSignatures: Map[String, Int])
+              runClasspath: Seq[PathRef],
+              compile: mill.scalalib.api.CompilationResult,
+              methodCodeHashSignatures: Map[String, Int]
             )),
             evalWatches,
             moduleWatches
@@ -469,7 +469,7 @@ object MillBuildBootstrap {
 
     evalTaskResult match {
       case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatched)
-      case Result.Success(Evaluator.Result(watched, evaluated, _)) =>
+      case Result.Success(Evaluator.Result(watched, evaluated, _, _)) =>
         evaluated match {
           case Result.Failure(msg) =>
             (Result.Failure(msg), watched ++ addedEvalWatched, moduleWatched)
