@@ -7,6 +7,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: sbt/setup-sbt@v1
+
       - run: |
           ./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/ + mill.kotlinlib.ktlint.KtlintModule/
           ./mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/
