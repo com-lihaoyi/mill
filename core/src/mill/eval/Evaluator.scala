@@ -210,9 +210,10 @@ final class Evaluator private[mill] (
 object Evaluator {
 
   /**
-   * @param watchable
-   * @param values A sequence of untyped values returned by evaluation, boxed in [[Val]]s,
-   *               along with an optional task name and JSON-serialization for named tasks
+   * @param watchable the list of [[Watchable]]s that were generated during this evaluation,
+   *                  useful if you want to know what to watch in case you need to re-run it.
+   * @param values A sequence of values returned by evaluation.
+   * @param selectedTasks The tasks that actually were selected to be run during this evaluation
    * @param executionResults Detailed information on the results of executing each task
    */
   case class Result[T](

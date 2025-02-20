@@ -1,7 +1,5 @@
 package mill.define
 
-import mill.api.internal
-import mill.define.{NamedTask, Segment, Segments}
 
 import java.util.regex.Matcher
 
