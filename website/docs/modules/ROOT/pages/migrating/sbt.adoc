@@ -110,8 +110,9 @@ or xref:extending/thirdparty-plugins.adoc[third party] plugins
 == FAQ
 
 How to fix errors such as
-`java.lang.UnsupportedOperationException: The Security Manager is deprecated and will be removed in a future release` and
-`java.io.IOError: java.lang.RuntimeException: /packages cannot be represented as URI`
+`java.lang.UnsupportedOperationException: The Security Manager is deprecated and will be removed in a future release`,
+`java.io.IOError: java.lang.RuntimeException: /packages cannot be represented as URI`,
+and `java.lang.RuntimeException: java.lang.reflect.InvocationTargetException`
 thrown by the sbt command invoked by `mill init`?
 
 Update the project's sbt version to the latest or our tested version v1.10.7, and try again.
