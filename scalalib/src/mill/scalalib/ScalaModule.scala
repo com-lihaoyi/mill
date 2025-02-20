@@ -615,19 +615,25 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   override def semanticDbData: T[PathRef] = Task(persistent = true) {
     val sv = scalaVersion()
 
+    val hasScala = allSourceFiles().exists(_.path.ext == "scala")
+    val hasJava = allSourceFiles().exists(_.path.ext == "java")
+    val isMixedProject = hasScala && hasJava
+    // See https://github.com/com-lihaoyi/mill/issues/2981
+    val stopAfterSemanticDbOpts = if(isMixedProject) Seq.empty else Seq("-Ystop-after:semanticdb-typer")
+
+    val additionalScalacOptions = if (ZincWorkerUtil.isScala3(sv)) {
+        Seq("-Xsemanticdb", s"-sourceroot:${T.workspace}")
+      } else {
+        Seq(
+          "-Yrangepos",
+          s"-P:semanticdb:sourceroot:${T.workspace}",
+        ) ++ stopAfterSemanticDbOpts
+      }
+
     val scalacOptions = (
       allScalacOptions() ++
-        semanticDbEnablePluginScalacOptions() ++ {
-          if (ZincWorkerUtil.isScala3(sv)) {
-            Seq("-Xsemanticdb", s"-sourceroot:${Task.workspace}")
-          } else {
-            Seq(
-              "-Yrangepos",
-              s"-P:semanticdb:sourceroot:${Task.workspace}",
-              "-Ystop-after:semanticdb-typer"
-            )
-          }
-        }
+      semanticDbEnablePluginScalacOptions() ++
+      additionalScalacOptions
     )
       .filterNot(_ == "-Xfatal-warnings")
 
