@@ -619,21 +619,22 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     val hasJava = allSourceFiles().exists(_.path.ext == "java")
     val isMixedProject = hasScala && hasJava
     // See https://github.com/com-lihaoyi/mill/issues/2981
-    val stopAfterSemanticDbOpts = if(isMixedProject) Seq.empty else Seq("-Ystop-after:semanticdb-typer")
+    val stopAfterSemanticDbOpts =
+      if (isMixedProject) Seq.empty else Seq("-Ystop-after:semanticdb-typer")
 
     val additionalScalacOptions = if (ZincWorkerUtil.isScala3(sv)) {
-        Seq("-Xsemanticdb", s"-sourceroot:${T.workspace}")
-      } else {
-        Seq(
-          "-Yrangepos",
-          s"-P:semanticdb:sourceroot:${T.workspace}",
-        ) ++ stopAfterSemanticDbOpts
-      }
+      Seq("-Xsemanticdb", s"-sourceroot:${T.workspace}")
+    } else {
+      Seq(
+        "-Yrangepos",
+        s"-P:semanticdb:sourceroot:${T.workspace}"
+      ) ++ stopAfterSemanticDbOpts
+    }
 
     val scalacOptions = (
       allScalacOptions() ++
-      semanticDbEnablePluginScalacOptions() ++
-      additionalScalacOptions
+        semanticDbEnablePluginScalacOptions() ++
+        additionalScalacOptions
     )
       .filterNot(_ == "-Xfatal-warnings")
 
