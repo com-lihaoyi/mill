@@ -469,12 +469,12 @@ object MillBuildBootstrap {
 
     evalTaskResult match {
       case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatched)
-      case Result.Success(Evaluator.Result(watched, evaluated, _)) =>
+      case Result.Success(Evaluator.Result(watched, evaluated, _, _)) =>
         evaluated match {
           case Result.Failure(msg) =>
             (Result.Failure(msg), watched ++ addedEvalWatched, moduleWatched)
           case Result.Success(results) =>
-            (Result.Success(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
+            (Result.Success(results), watched ++ addedEvalWatched, moduleWatched)
         }
     }
   }

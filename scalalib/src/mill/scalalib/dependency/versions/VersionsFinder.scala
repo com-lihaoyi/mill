@@ -24,7 +24,7 @@ private[dependency] object VersionsFinder {
     val resolvedDependencies = evaluator.execute {
       val progress = new Progress(javaModules.size)
       javaModules.map(resolveDeps(progress))
-    }
+    }.values.get
 
     // Using a fixed time clock, so that the TTL cut-off is the same for all version checks,
     // and we don't run into race conditions like one check assuming a file in cache is valid,
@@ -36,7 +36,7 @@ private[dependency] object VersionsFinder {
     evaluator.execute {
       val progress = new Progress(resolvedDependencies.map(_._3.size).sum)
       resolvedDependencies.map(resolveVersions(progress, clock))
-    }
+    }.values.get
   }
 
   class Progress(val count: Int) {

@@ -26,7 +26,7 @@ import scala.util.DynamicVariable
  *
  * 1. [[resolveSegments]]/[[resolveTasks]]
  * 2. [[plan]]
- * 3. [[execute]]/[[execute0]],
+ * 3. [[execute]]/[[execute]],
  *
  * As well as [[evaluate]] which does all of these phases one after another
  */
@@ -93,25 +93,19 @@ final class Evaluator private[mill] (
    */
   def plan(tasks: Seq[Task[?]]): Plan = Plan.plan(tasks)
 
-  def execute[T](tasks: Seq[Task[T]]): Seq[T] = {
-    val res0 = execute0(tasks)
-    val results = res0.values.get
-    results.map(_._1.value.asInstanceOf[T])
-  }
-
   /**
    * @param targets
    * @param selectiveExecution
    * @return
    */
-  def execute0(
-      targets: Seq[Task[Any]],
+  def execute[T](
+      targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
-  ): Evaluator.Result = {
+  ): Evaluator.Result[T] = {
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
@@ -180,9 +174,19 @@ final class Evaluator private[mill] (
                 case _ => None
               }
             }
-            Evaluator.Result(watched, Result.Success(evaluated.values.zip(nameAndJson)), evaluated)
+            Evaluator.Result(
+              watched,
+              Result.Success(evaluated.values.map(_._1.asInstanceOf[T])),
+              Result.Success(nameAndJson),
+              evaluated
+            )
           case n =>
-            Evaluator.Result(watched, Result.Failure(s"$n tasks failed\n$errorStr"), evaluated)
+            Evaluator.Result(
+              watched,
+              Result.Failure(s"$n tasks failed\n$errorStr"),
+              Result.Failure(s"$n tasks failed\n$errorStr"),
+              evaluated
+            )
         }
     }
   }
@@ -195,7 +199,7 @@ final class Evaluator private[mill] (
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
-  ): Result[Evaluator.Result] = {
+  ): Result[Evaluator.Result[Any]] = {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(this) {
       Resolve.Tasks.resolve(
         rootModule,
@@ -205,7 +209,7 @@ final class Evaluator private[mill] (
       )
     }
     for (targets <- resolved)
-      yield execute0(Seq.from(targets), selectiveExecution = selectiveExecution)
+      yield execute(Seq.from(targets), selectiveExecution = selectiveExecution)
   }
 
   def close(): Unit = execution.close()
@@ -220,9 +224,10 @@ object Evaluator {
    *               along with an optional task name and JSON-serialization for named tasks
    * @param executionResults Detailed information on the results of executing each task
    */
-  case class Result(
+  case class Result[T](
       watchable: Seq[Watchable],
-      values: mill.api.Result[Seq[(Val, Option[(String, ujson.Value)])]],
+      values: mill.api.Result[Seq[T]],
+      namesAndJson: mill.api.Result[Seq[Option[(String, ujson.Value)]]],
       executionResults: ExecutionResults
   )
 

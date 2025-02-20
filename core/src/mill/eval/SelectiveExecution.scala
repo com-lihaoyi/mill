@@ -31,7 +31,7 @@ private[mill] object SelectiveExecution {
         }
         .toMap
 
-      val results = evaluator.execute0(Seq.from(inputTasksToLabels.keys))
+      val results = evaluator.execute(Seq.from(inputTasksToLabels.keys))
 
       val inputHashes = results
         .executionResults

@@ -291,11 +291,12 @@ trait MainModule extends BaseModule {
         case Result.Failure(failStr) => throw new Exception(failStr)
         case Result.Success(Evaluator.Result(
               _,
-              Result.Success(Seq((_, Some((_, jsonableResult))))),
+              Result.Success(Seq(_)),
+              Result.Success(Seq(Some((_, jsonableResult)))),
               _
             )) =>
           jsonableResult
-        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _)) =>
+        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _, _)) =>
           throw new Exception(failStr)
       }
     }
@@ -330,12 +331,12 @@ object MainModule {
         Separated,
         selectiveExecution = evaluator.selectiveExecution
       ).flatMap {
-        case Evaluator.Result(watched, Result.Failure(err), _) =>
+        case Evaluator.Result(watched, Result.Failure(err), _, _) =>
           watched.foreach(watch0)
           Result.Failure(err)
 
-        case Evaluator.Result(watched, Result.Success(res), _) =>
-          val output = f(res)
+        case Evaluator.Result(watched, Result.Success(res), Result.Success(namesAndJson), _) =>
+          val output = f(res.zip(namesAndJson))
           watched.foreach(watch0)
           println(output.render(indent = 2))
           Result.Success(output)
