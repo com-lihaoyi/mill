@@ -166,6 +166,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
       val linker = StandardImpl.clearableLinker(withWasm)
       val irFileCacheCache = irFileCache.newCache
+      ScalaJSWorkerImpl.cleaner.register(this, new CleaningAction(irFileCacheCache))
       (linker, irFileCacheCache)
     }
   }
@@ -390,4 +391,17 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     }
     Seq(input)
   }
+}
+
+private object ScalaJSWorkerImpl {
+  // TODO: Use a shared instance for all Mill codebase in case we need more `Cleaner`s
+  // Since it's used only here, it can live here now.
+  val cleaner = java.lang.ref.Cleaner.create()
+}
+
+// Don't make this a lambda.
+// This must not be a lambda to work correctly. It needs to be a standalone static class
+// If it holds references it gets never called
+private final class CleaningAction(cache: IRFileCache.Cache) extends Runnable {
+  def run(): Unit = cache.free()
 }
