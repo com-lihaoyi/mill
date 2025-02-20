@@ -62,24 +62,32 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
 
     println("converting sbt build")
 
-    val isWindows = Util.isWindows
-    val systemSbt = if (isWindows) "sbt.bat" else "sbt"
-
-    // resolve the sbt executable
-    // https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt
-    val sbtExecutable = if (os.exists(workspace / "sbt"))
-      "./sbt"
-    else if (os.exists(workspace / "sbtx"))
-      "./sbtx"
-    else if (
+    def systemSbtExists(sbt: String) =
       // The return code is somehow 1 instead of 0.
-      os.call((systemSbt, "--help"), check = false).exitCode == 1
-    )
-      systemSbt
-    else
-      throw new RuntimeException(
-        s"No sbt executable (`./sbt`, `./sbtx`, or system-wide `$systemSbt`) found"
-      )
+      os.call((sbt, "--help"), check = false).exitCode == 1
+
+    val isWindows = Util.isWindows
+    val sbtExecutable = if (isWindows) {
+      val systemSbt = "sbt.bat"
+      if (systemSbtExists(systemSbt))
+        systemSbt
+      else
+        throw new RuntimeException(s"No system-wide `$systemSbt` found")
+    } else {
+      val systemSbt = "sbt"
+      // resolve the sbt executable
+      // https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt
+      if (os.exists(workspace / "sbt"))
+        "./sbt"
+      else if (os.exists(workspace / "sbtx"))
+        "./sbtx"
+      else if (systemSbtExists(systemSbt))
+        systemSbt
+      else
+        throw new RuntimeException(
+          s"No sbt executable (`./sbt`, `./sbtx`, or system-wide `$systemSbt`) found"
+        )
+    }
 
     println("Running the added `millInitExportBuild` sbt task to export the build")
 

@@ -36,12 +36,14 @@ object MillInitScalaCsv200Tests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
     - 34 KB
-    - sbt 1.10.7
+    - originally sbt 1.10.0
      */
     val url = "https://github.com/tototoshi/scala-csv/archive/refs/tags/2.0.0.zip"
 
     test - integrationTest(url) { tester =>
       import tester.*
+
+      bumpSbtTo1107(workspacePath)
 
       val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
       assert(initResult.isSuccess)
@@ -97,9 +99,12 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       val compileResult = eval("compile")
       assert(compileResult.isSuccess)
 
-      // Submodules don't compile well, which seems to be due to incompatible bytecode versions in dependencies.
       val compileSubmodulesResult = eval("_.compile")
-      assert(!compileSubmodulesResult.isSuccess)
+      if (System.getProperty("java.version").split('.').head.toInt <= 11)
+        assert(compileSubmodulesResult.isSuccess)
+      else
+        // Submodules don't compile well with JDK 17 and 21, which seems to be due to incompatible bytecode versions in dependencies.
+        assert(!compileSubmodulesResult.isSuccess)
     }
   }
 }
@@ -110,12 +115,14 @@ object MillInitZioHttpTests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
     - 1.4 MB
-    - sbt 1.10.6
+    - originally sbt 1.10.0
      */
     val url = "https://github.com/zio/zio-http/archive/refs/tags/v3.0.1.zip"
 
     test - integrationTest(url) { tester =>
       import tester.*
+
+      bumpSbtTo1107(workspacePath)
 
       val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
       assert(initResult.isSuccess)
@@ -135,7 +142,7 @@ object MillInitSbtScalazTests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
     - 0.8 MB
-    - sbt 1.10.7
+    - sbt 1.9.7
      */
     val url = "https://github.com/scalaz/scalaz/archive/refs/tags/v7.3.8.zip"
 
@@ -204,12 +211,14 @@ object MillInitSbtScalaCheckTests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
     - 245 KB
-    - sbt 1.10.1
+    - originally sbt 1.10.1
      */
     val url = "https://github.com/typelevel/scalacheck/archive/refs/tags/v1.18.1.zip"
 
     test - integrationTest(url) { tester =>
       import tester.*
+
+      bumpSbtTo1107(workspacePath)
 
       val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
       assert(initResult.isSuccess)
