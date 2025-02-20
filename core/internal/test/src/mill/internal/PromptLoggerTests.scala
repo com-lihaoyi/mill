@@ -339,10 +339,12 @@ object PromptLoggerTests extends TestSuite {
       assert(subLogger2.asInstanceOf[PrefixLogger].failureCount == Some(1))
 
       // Test that failure count is preserved when changing output stream with different counts
-      val newLogger1 = multipleFailuresLogger.withOutStream(new PrintStream(new ByteArrayOutputStream()))
+      val newLogger1 =
+        multipleFailuresLogger.withOutStream(new PrintStream(new ByteArrayOutputStream()))
       assert(newLogger1.asInstanceOf[PrefixLogger].failureCount == Some(5))
 
-      val newLogger2 = singleFailureLogger.withOutStream(new PrintStream(new ByteArrayOutputStream()))
+      val newLogger2 =
+        singleFailureLogger.withOutStream(new PrintStream(new ByteArrayOutputStream()))
       assert(newLogger2.asInstanceOf[PrefixLogger].failureCount == Some(1))
 
       // Test zero failures
