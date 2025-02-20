@@ -15,7 +15,8 @@ private[mill] class PrefixLogger(
     // Disable printing the prefix, but continue reporting the `key` to `reportKey`. Used
     // for `exclusive` commands where we don't want the prefix, but we do want the header
     // above the output of every command that gets run so we can see who the output belongs to
-    noPrefix: Boolean = false
+    noPrefix: Boolean = false,
+    private[internal] val failureCount: Option[Int] = None
 ) extends ColorLogger {
   private[mill] override val logPrefixKey = logger0.logPrefixKey ++ key0
   assert(key0.forall(_.nonEmpty))
@@ -99,7 +100,8 @@ private[mill] class PrefixLogger(
     logPrefixKey,
     infoColor(tickerContext).toString(),
     outStream0 = Some(outStream),
-    errStream0 = Some(systemStreams.err)
+    errStream0 = Some(systemStreams.err),
+    failureCount = failureCount
   )
 
   private[mill] override def reportKey(callKey: Seq[String]): Unit =
@@ -107,8 +109,27 @@ private[mill] class PrefixLogger(
   private[mill] override def removePromptLine(callKey: Seq[String]): Unit =
     logger0.removePromptLine(callKey)
   private[mill] override def removePromptLine(): Unit = removePromptLine(logPrefixKey)
-  private[mill] override def setPromptHeaderPrefix(s: String): Unit =
-    logger0.setPromptHeaderPrefix(s)
+  private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
+    val prefix = failureCount match {
+      case Some(count) if count > 0 => s"$s, $count failed"
+      case _ => s
+    }
+    logger0.setPromptHeaderPrefix(prefix)
+  }
+  private[mill] def updateFailureCount(newCount: Option[Int]): Unit = {
+    val newLogger = new PrefixLogger(
+      logger0,
+      logPrefixKey,
+      tickerContext,
+      outStream0,
+      errStream0,
+      verboseKeySuffix,
+      message,
+      noPrefix,
+      newCount
+    )
+    logger0.setPromptHeaderPrefix(newLogger.linePrefix)
+  }
   override def enableTicker = logger0.enableTicker
 
   private[mill] override def subLogger(
@@ -123,7 +144,8 @@ private[mill] class PrefixLogger(
       outStream0,
       errStream0,
       verboseKeySuffix,
-      message
+      message,
+      failureCount = failureCount
     )
   }
   private[mill] override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)

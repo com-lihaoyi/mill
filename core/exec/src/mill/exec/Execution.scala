@@ -91,6 +91,7 @@ private[mill] case class Execution(
     val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
+    val failureCount = new AtomicInteger(0)
     val indexToTerminal = plan.sortedGroups.keys().toArray
 
     ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
@@ -190,6 +191,18 @@ private[mill] case class Execution(
 
                 if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
                   failed.set(true)
+
+                // Update failure count after task execution
+                res.newResults.values.foreach { result =>
+                  if (result.result.asSuccess.isEmpty) {
+                    failureCount.incrementAndGet()
+                  }
+                }
+
+                // Update logger with current failure count after task execution
+                contextLogger.asInstanceOf[PrefixLogger].updateFailureCount(Some(
+                  failureCount.get()
+                ))
 
                 val endTime = System.nanoTime() / 1000
                 val duration = endTime - startTime
