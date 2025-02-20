@@ -12,7 +12,7 @@ import mill.api.{
 }
 import mill.constants.OutFiles
 import mill.define.*
-import mill.exec.{Cached, Execution, Plan}
+import mill.exec.{Execution, Plan}
 import mill.define.internal.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
