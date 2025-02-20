@@ -1,10 +1,12 @@
 // This section sets up a basic Android project using Mill.
-// We utilize `AndroidAppKotlinModule` and `AndroidSdkModule` to streamline the process of
-// building an Android application with minimal configuration.
+// We utilize `AndroidAppKotlinModule`, `AndroidSdkModule` and `AndroidLibKotlinModule` and `PublishModule` to streamline
+// the process of building an Android application with minimal configuration that uses our coustom library that we locally publish.
 //
 // By extending `AndroidAppKotlinModule`, we inherit all Android-related tasks such as
 // resource generation, APK building, DEX conversion, and APK signing.
 // Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
+// Also `AndroidLibKotlinModule` has all the nescesarry tasks to build an Android library AAR.
+// And by using `PublishModule` we can publish our library locally.
 
 //// SNIPPET:BUILD
 package build
@@ -153,11 +155,3 @@ Publish ... to /home/.../.m2/repository/...
 ]
 ...
 */
-
-// The android tests (existing typically in androidTest directory, aka instrumented tests)
-// typically run on an android device.
-// The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
-// and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
-// against the available AVD. The stopAndroidEmulator command stops the AVD and the
-// destroyAndroidVirtualDevice command destroys the AVD.
-// The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.
