@@ -111,7 +111,7 @@ private[mill] class PrefixLogger(
   private[mill] override def removePromptLine(): Unit = removePromptLine(logPrefixKey)
   private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
     val prefix = failureCount match {
-      case Some(count) if count > 0 => s"$s ($count failed)"
+      case Some(count) if count > 0 => s"$s, $count failed"
       case _ => s
     }
     logger0.setPromptHeaderPrefix(prefix)
