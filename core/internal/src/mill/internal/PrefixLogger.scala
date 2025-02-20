@@ -116,6 +116,20 @@ private[mill] class PrefixLogger(
     }
     logger0.setPromptHeaderPrefix(prefix)
   }
+  private[mill] def updateFailureCount(newCount: Option[Int]): Unit = {
+    val newLogger = new PrefixLogger(
+      logger0,
+      logPrefixKey,
+      tickerContext,
+      outStream0,
+      errStream0,
+      verboseKeySuffix,
+      message,
+      noPrefix,
+      newCount
+    )
+    logger0.setPromptHeaderPrefix(newLogger.linePrefix)
+  }
   override def enableTicker = logger0.enableTicker
 
   private[mill] override def subLogger(
