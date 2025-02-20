@@ -279,7 +279,7 @@ trait MainModule extends BaseModule {
             SelectMode.Separated
           )
         else if (os.exists(os.pwd / "build.sbt"))
-          evaluator.resolveEvaluate(
+          evaluator.evaluate(
             Seq("mill.init.InitSbtModule/init") ++ args,
             SelectMode.Separated
           )
