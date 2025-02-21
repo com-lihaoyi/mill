@@ -24,6 +24,7 @@ care about. e.g. if you want to visualize the relationship between the various
 ```scala
 $ ./mill visualize __.compile
 ```
+image::basic/VisualizeCompiles.svg[VisualizeCompiles.svg]
 
 `visualize` renders an SVG which lets you see how the various tasks you selected depend
 (or not depend) on one another. This can be very helpful to figure out where the
