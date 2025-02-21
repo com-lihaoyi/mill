@@ -62,7 +62,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       androidSdkModule().aapt2Path().path,
       "compile",
       "--dir",
-      androidResources()._1.path, // typically your resource folder
+      androidResources()._1.path,
       "-o",
       compiledRes.toString
     ).call()
@@ -106,7 +106,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     )
     os.zip(
       dest = aarFile,
-      sources = Seq(unpackedAar) // zips the directory recursively
+      sources = Seq(unpackedAar)
     )
 
     PathRef(aarFile)
