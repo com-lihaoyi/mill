@@ -22,6 +22,10 @@ private[mill] class PrefixLogger(
   assert(key0.forall(_.nonEmpty))
   val linePrefix: String =
     if (noPrefix || logPrefixKey.isEmpty) "" else s"[${logPrefixKey.mkString("-")}] "
+  
+  // Track the current header prefix
+  private var headerPrefix: String = ""
+
   override def toString: String =
     s"PrefixLogger($logger0, $key0)"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
@@ -110,6 +114,7 @@ private[mill] class PrefixLogger(
     logger0.removePromptLine(callKey)
   private[mill] override def removePromptLine(): Unit = removePromptLine(logPrefixKey)
   private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
+    headerPrefix = s // Store the current header prefix
     val prefix = failureCount match {
       case Some(count) if count > 0 => s"$s, $count failed"
       case _ => s
@@ -128,7 +133,8 @@ private[mill] class PrefixLogger(
       noPrefix,
       newCount
     )
-    logger0.setPromptHeaderPrefix(newLogger.linePrefix)
+    // Re-apply the current header prefix with the new failure count
+    newLogger.setPromptHeaderPrefix(headerPrefix)
   }
   override def enableTicker = logger0.enableTicker
 

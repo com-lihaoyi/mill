@@ -171,7 +171,8 @@ private[mill] case class Execution(
                   key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
                   verboseKeySuffix = verboseKeySuffix,
                   message = tickerPrefix,
-                  noPrefix = exclusive
+                  noPrefix = exclusive,
+                  failureCount = Some(failureCount.get())
                 )
 
                 val res = executeGroupCached(
@@ -196,13 +197,9 @@ private[mill] case class Execution(
                 res.newResults.values.foreach { result =>
                   if (result.result.asSuccess.isEmpty) {
                     failureCount.incrementAndGet()
+                    contextLogger.asInstanceOf[PrefixLogger].updateFailureCount(Some(failureCount.get()))
                   }
                 }
-
-                // Update logger with current failure count after task execution
-                contextLogger.asInstanceOf[PrefixLogger].updateFailureCount(Some(
-                  failureCount.get()
-                ))
 
                 val endTime = System.nanoTime() / 1000
                 val duration = endTime - startTime
