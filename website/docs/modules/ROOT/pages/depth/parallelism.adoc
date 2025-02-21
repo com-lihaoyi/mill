@@ -1,0 +1,60 @@
+= Parallelism in Mill
+
+By default, Mill will evaluate all tasks in parallel, with the number of concurrent
+tasks equal to the number of cores on your machine. Note that the actual amount
+of parallelism may depend on the structure of the build in question:
+
+- Tasks and modules that depend on each other have to run sequentially
+- Tasks and modules that are independent can run in parallel
+
+In general, Mill is able to provide the most parallelism for "wide" builds
+with a lot of independent modules in a shallow hierarchy.
+
+You can use the xref:cli/flags.adoc#__jobs_j[--jobs]
+to configure explicitly how many concurrent tasks you wish to run, or `-j1` to disable
+parallelism and run on a single core.
+
+
+== Mill Chrome Profiles
+
+Every `mill` run generates an output file in `out/mill-chrome-profile.json` that can be
+loaded into the Chrome browser's `chrome://tracing` page for visualization. This can make
+it much easier to analyze your parallel runs to find out what's taking the most time:
+
+image::basic/ChromeTracing.png[ChromeTracing.png]
+
+The chrome profile is great for finding bottlenecks in your parallel builds, since you
+can usually see if there's a task taking a long time before downstream tasks can begin.
+These "long poll" tasks are usually good targets for optimization: e.g. a long `compile`
+task may be improved by breaking down its module into smaller modules that can `compile`
+independently and in parallel.
+
+== Consequences of Parallelism in Mill
+
+Mill running tasks in parallel means that you have to take care that your
+code is _thread safe_. Your build will have multiple tasks running in parallel,
+and if your tasks are using shared mutable state then there is risk of race
+conditions and non-deterministic bugs. This is usually not a problem for
+most Mill code following the standard conventions, but it is worth taking note of:
+
+* For code written in a typical Scala style, which focuses on immutable values and
+  pure functions, the code is typically thread safe by default. "Local" mutability
+  e.g. within a function does not cause issues either
+
+* For tasks writing to the filesystem, make sure you only write to `Task.dest`, which
+  is a dedicated folder assigned to each task. This ensures that you do not have multiple
+  tasks writing to the same files in parallel, allowing these filesystem writes to
+  be safe and race-free even in the presence of parallelism
+
+* For long-lived in-memory xref:fundamentals/tasks.adoc#_workers[Workers], the value is
+  _initialized_ in a single-thread, but may be _used_ from multiple threads concurrently.
+  The onus is on the implementer to ensure that the worker values are safe to be used
+  concurrently from multiple tasks: whether by wrapping mutating operations in
+  `synchronized` blocks, using concurrent data structures like ``ConcurrentHashMap``s,
+  or Mill helpers like xref:fundamentals/tasks.adoc#_cachedfactory_workers[CachedFactory].
+
+
+
+== (Experimental) Forking Concurrent Futures within Tasks
+
+include::partial$example/fundamentals/tasks/7-forking-futures.adoc[]

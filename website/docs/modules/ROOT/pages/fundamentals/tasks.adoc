@@ -54,6 +54,3 @@ include::partial$example/fundamentals/tasks/6-workers.adoc[]
 
 include::partial$example/fundamentals/tasks/3-anonymous-tasks.adoc[]
 
-== (Experimental) Forking Concurrent Futures within Tasks
-
-include::partial$example/fundamentals/tasks/7-forking-futures.adoc[]
