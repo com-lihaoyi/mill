@@ -22,7 +22,7 @@ private[mill] class PrefixLogger(
   assert(key0.forall(_.nonEmpty))
   val linePrefix: String =
     if (noPrefix || logPrefixKey.isEmpty) "" else s"[${logPrefixKey.mkString("-")}] "
-  
+
   // Track the current header prefix
   private var headerPrefix: String = ""
 
