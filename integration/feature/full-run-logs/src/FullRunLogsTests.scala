@@ -75,28 +75,41 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     }
     test("compilation-error") - integrationTest { tester =>
       import tester._
-      
+
       // Create a buffer to capture output in real-time with timestamps
       var outputWithTimestamps = Vector.empty[(Long, String)]
       val startTime = System.currentTimeMillis()
-      
+
       // Break the Java source file by introducing a syntax error
       os.write.over(
         workspacePath / "src" / "foo" / "Foo.java",
         os.read(workspacePath / "src" / "foo" / "Foo.java")
-          .replace("public class Foo{", "public class Foo extends NonExistentClass {") // Invalid inheritance
+          .replace(
+            "public class Foo{",
+            "public class Foo extends NonExistentClass {"
+          ) // Invalid inheritance
       )
 
       // Run the build with output captured line by line with timestamps
       val res = eval(
-        ("--ticker", "true", "--color", "false", "--jobs", "1", "compile"), // Force single thread to make timing predictable
+        (
+          "--ticker",
+          "true",
+          "--color",
+          "false",
+          "--jobs",
+          "1",
+          "compile"
+        ), // Force single thread to make timing predictable
         env = Map(),
         stdin = os.Inherit,
-        stdout = os.ProcessOutput.Readlines(line => 
-          outputWithTimestamps = outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
+        stdout = os.ProcessOutput.Readlines(line =>
+          outputWithTimestamps =
+            outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
         ),
-        stderr = os.ProcessOutput.Readlines(line => 
-          outputWithTimestamps = outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
+        stderr = os.ProcessOutput.Readlines(line =>
+          outputWithTimestamps =
+            outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
         ),
         mergeErrIntoOut = true,
         check = false
@@ -111,13 +124,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       firstErrorIdx >= 0 ==> true
 
       // Find progress indicators before the error that don't show failures
-      val hasProgressBeforeError = outputLines.take(firstErrorIdx).exists(l => 
+      val hasProgressBeforeError = outputLines.take(firstErrorIdx).exists(l =>
         l.matches(".*\\[\\d+/\\d+\\].*") && !l.contains("failed")
       )
       hasProgressBeforeError ==> true
 
       // Find progress indicators after the error that show failures
-      val hasFailuresAfterError = outputLines.slice(firstErrorIdx, outputLines.length).exists(l => 
+      val hasFailuresAfterError = outputLines.slice(firstErrorIdx, outputLines.length).exists(l =>
         l.matches(".*\\[\\d+/\\d+, \\d+ failed\\].*")
       )
       hasFailuresAfterError ==> true
@@ -144,16 +157,16 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         .find(_._4.isDefined)
         .map(_._1)
         .getOrElse(Long.MaxValue)
-      
+
       val totalBuildTime = outputWithTimestamps.last._1
-      
+
       // First failure should appear in first half of build
       (firstFailureTime < totalBuildTime / 2) ==> true
 
       // Verify failure count increases over time and never decreases
       val failureCounts = progressIndicators
         .flatMap { case (_, _, _, failures) => failures }
-      
+
       failureCounts.size >= 2 ==> true
       failureCounts.sliding(2).forall { case Seq(a, b) => b >= a } ==> true
 
@@ -165,28 +178,41 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     }
     test("compilation-error-interactive") - integrationTest { tester =>
       import tester._
-      
+
       // Create a buffer to capture output in real-time with timestamps
       var outputWithTimestamps = Vector.empty[(Long, String)]
       val startTime = System.currentTimeMillis()
-      
+
       // Break the Java source file by introducing a syntax error that will trigger cascading failures
       os.write.over(
         workspacePath / "src" / "foo" / "Foo.java",
         os.read(workspacePath / "src" / "foo" / "Foo.java")
-          .replace("public class Foo{", "public class Foo extends NonExistentClass {") // Invalid inheritance
+          .replace(
+            "public class Foo{",
+            "public class Foo extends NonExistentClass {"
+          ) // Invalid inheritance
       )
 
       // Run the build with output captured line by line with timestamps
       val res = eval(
-        ("--ticker", "true", "--color", "false", "--jobs", "1", "compile"), // Force single thread to make timing predictable
+        (
+          "--ticker",
+          "true",
+          "--color",
+          "false",
+          "--jobs",
+          "1",
+          "compile"
+        ), // Force single thread to make timing predictable
         env = Map(),
         stdin = os.Inherit,
-        stdout = os.ProcessOutput.Readlines(line => 
-          outputWithTimestamps = outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
+        stdout = os.ProcessOutput.Readlines(line =>
+          outputWithTimestamps =
+            outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
         ),
-        stderr = os.ProcessOutput.Readlines(line => 
-          outputWithTimestamps = outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
+        stderr = os.ProcessOutput.Readlines(line =>
+          outputWithTimestamps =
+            outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
         ),
         mergeErrIntoOut = true,
         check = false
@@ -199,7 +225,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // Verify interactive mode specific behavior:
       // 1. Progress updates on same line (contains \r)
       outputLines.exists(_.contains("\r")) ==> true
-      
+
       // 2. Ticker format with live updates
       outputLines.exists(l => l.matches(".*\\[\\d+/\\d+\\].*") && l.contains("\r")) ==> true
 
@@ -207,13 +233,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // 1. Initially shows progress without failures
       val firstErrorIdx = outputLines.indexWhere(_.contains("error: cannot find symbol"))
       firstErrorIdx >= 0 ==> true
-      val hasProgressBeforeError = outputLines.take(firstErrorIdx).exists(l => 
+      val hasProgressBeforeError = outputLines.take(firstErrorIdx).exists(l =>
         l.matches(".*\\[\\d+/\\d+\\].*") && !l.contains("failed")
       )
       hasProgressBeforeError ==> true
 
       // 2. After error, shows failure counts in progress
-      val hasFailuresAfterError = outputLines.slice(firstErrorIdx, outputLines.length).exists(l => 
+      val hasFailuresAfterError = outputLines.slice(firstErrorIdx, outputLines.length).exists(l =>
         l.matches(".*\\[\\d+/\\d+, \\d+ failed\\].*")
       )
       hasFailuresAfterError ==> true
@@ -241,9 +267,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         .find(_._4.isDefined)
         .map(_._1)
         .getOrElse(Long.MaxValue)
-      
+
       val totalBuildTime = outputWithTimestamps.last._1
-      
+
       // First failure should appear in first half of build time
       // This ensures users get early indication that something is wrong
       (firstFailureTime < totalBuildTime / 2) ==> true
@@ -251,7 +277,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // 5. Verify failure count increases over time and never decreases
       val failureCounts = progressIndicators
         .flatMap { case (_, _, _, failures) => failures }
-      
+
       failureCounts.size >= 2 ==> true
       failureCounts.sliding(2).forall { case Seq(a, b) => b >= a } ==> true
 
@@ -264,9 +290,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
     test("compilation-error-ci") - integrationTest { tester =>
       import tester._
-      
+
       var outputLines = Vector.empty[String]
-      
+
       // Break the Java source file
       os.write.over(
         workspacePath / "src" / "foo" / "Foo.java",
@@ -289,26 +315,27 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // Verify CI mode specific behavior:
       // 1. No progress updates on same line (no \r characters)
       outputLines.exists(_.contains("\r")) ==> false
-      
+
       // 2. Each progress update on new line
       val progressLines = outputLines.filter(_.matches(".*\\[\\d+/\\d+.*\\].*"))
       progressLines.size >= 2 ==> true
-      
+
       // 3. Error messages preserved in output
       val errorLines = outputLines.filter(_.contains("error:"))
       errorLines.nonEmpty ==> true
-      
+
       // 4. Failure counts shown on new lines and properly formatted for CI
       val failureLines = outputLines.filter(_.matches(".*\\[\\d+/\\d+, \\d+ failed\\].*"))
       failureLines.size >= 2 ==> true
       failureLines.forall(!_.contains("\r")) ==> true
       failureLines.forall(!_.contains("\u001b")) ==> true // No ANSI escapes
-      
+
       // 5. Verify failure counts appear before final summary
-      val firstFailureLineIdx = outputLines.indexWhere(_.matches(".*\\[\\d+/\\d+, \\d+ failed\\].*"))
+      val firstFailureLineIdx =
+        outputLines.indexWhere(_.matches(".*\\[\\d+/\\d+, \\d+ failed\\].*"))
       val finalSummaryIdx = outputLines.indexWhere(_.contains("Compilation failed"))
       (firstFailureLineIdx >= 0 && firstFailureLineIdx < finalSummaryIdx) ==> true
-      
+
       // 6. Final error summary preserved at end
       assert(res.err.contains("dist.native.compile failed"))
       assert(res.err.contains("main.init.test.compile failed"))
@@ -318,10 +345,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
     test("failure count preservation") - integrationTest { tester =>
       import tester._
-      
+
       var outputWithTimestamps = Vector.empty[(Long, String)]
       val startTime = System.currentTimeMillis()
-      
+
       // Break the Java source file
       os.write.over(
         workspacePath / "src" / "foo" / "Foo.java",
@@ -334,11 +361,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         ("--ticker", "true", "--color", "false", "--jobs", "1", "compile"),
         env = Map(),
         stdin = os.Inherit,
-        stdout = os.ProcessOutput.Readlines(line => 
-          outputWithTimestamps = outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
+        stdout = os.ProcessOutput.Readlines(line =>
+          outputWithTimestamps =
+            outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
         ),
-        stderr = os.ProcessOutput.Readlines(line => 
-          outputWithTimestamps = outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
+        stderr = os.ProcessOutput.Readlines(line =>
+          outputWithTimestamps =
+            outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
         ),
         mergeErrIntoOut = true,
         check = false
@@ -350,7 +379,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       // Verify that progress indicators show failure counts and preserve the x/y format
       val progressLines = outputLines.filter(_.matches(".*\\[\\d+/\\d+(, \\d+ failed)?\\].*"))
-      
+
       // Should have some progress lines
       progressLines.nonEmpty ==> true
 
@@ -359,16 +388,18 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       hasFailureCount ==> true
 
       // Verify format is preserved - should always be [x/y] or [x/y, z failed]
-      progressLines.forall(line => 
+      progressLines.forall(line =>
         line.matches(".*\\[\\d+/\\d+\\].*") || line.matches(".*\\[\\d+/\\d+, \\d+ failed\\].*")
       ) ==> true
 
       // Verify that failure count increases but format stays consistent
       val failureCounts = progressLines
-        .flatMap(line => "\\[(\\d+)/(\\d+), (\\d+) failed\\]".r
-          .findFirstMatchIn(line)
-          .map(m => (m.group(1).toInt, m.group(2).toInt, m.group(3).toInt)))
-      
+        .flatMap(line =>
+          "\\[(\\d+)/(\\d+), (\\d+) failed\\]".r
+            .findFirstMatchIn(line)
+            .map(m => (m.group(1).toInt, m.group(2).toInt, m.group(3).toInt))
+        )
+
       // Should have multiple progress updates with failure counts
       failureCounts.size >= 2 ==> true
 
@@ -383,28 +414,28 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
     test("comprehensive-failure-display") - integrationTest { tester =>
       import tester._
-      
+
       var outputWithTimestamps = Vector.empty[(Long, String)]
       val startTime = System.currentTimeMillis()
-      
+
       // Create multiple failure points to verify cascading failures
       os.write.over(
         workspacePath / "src" / "foo" / "Foo.java",
         """
-        |public class Foo extends NonExistentClass {
-        |  public void method1() { throw new RuntimeException(); }
-        |  public void method2() { NonExistentClass.call(); }
-        |  public void method3() { int x = "not an int"; }
-        |}
+          |public class Foo extends NonExistentClass {
+          |  public void method1() { throw new RuntimeException(); }
+          |  public void method2() { NonExistentClass.call(); }
+          |  public void method3() { int x = "not an int"; }
+          |}
         """.stripMargin
       )
 
       // Run with different configurations to ensure it works in all modes
       val configs = Seq(
-        Seq("--ticker", "true", "--color", "false", "--jobs", "1"),  // Interactive single thread
-        Seq("--ticker", "true", "--color", "false", "--jobs", "4"),  // Interactive multi thread
-        Seq("--no-ticker", "--color", "false", "--jobs", "1"),       // CI mode single thread
-        Seq("--no-ticker", "--color", "false", "--jobs", "4")        // CI mode multi thread
+        Seq("--ticker", "true", "--color", "false", "--jobs", "1"), // Interactive single thread
+        Seq("--ticker", "true", "--color", "false", "--jobs", "4"), // Interactive multi thread
+        Seq("--no-ticker", "--color", "false", "--jobs", "1"), // CI mode single thread
+        Seq("--no-ticker", "--color", "false", "--jobs", "4") // CI mode multi thread
       )
 
       for (config <- configs) {
@@ -414,11 +445,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           env = Map(),
           cwd = workspacePath,
           stdin = os.Inherit,
-          stdout = os.ProcessOutput.Readlines(line => 
-            outputWithTimestamps = outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
+          stdout = os.ProcessOutput.Readlines(line =>
+            outputWithTimestamps =
+              outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
           ),
-          stderr = os.ProcessOutput.Readlines(line => 
-            outputWithTimestamps = outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
+          stderr = os.ProcessOutput.Readlines(line =>
+            outputWithTimestamps =
+              outputWithTimestamps :+ (System.currentTimeMillis() - startTime, line)
           ),
           mergeErrIntoOut = true,
           check = false
@@ -426,13 +459,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         res.isSuccess ==> false
 
         val outputLines = outputWithTimestamps.map(_._2)
-        
+
         // 1. Verify failures appear in progress indicators
         val progressLines = outputLines.filter(_.matches(".*\\[\\d+/\\d+.*\\].*"))
         progressLines.nonEmpty ==> true
 
         // 2. Verify scale matches production environment
-        val maxTasks = progressLines.flatMap(l => 
+        val maxTasks = progressLines.flatMap(l =>
           "\\[(\\d+)/(\\d+).*\\]".r.findFirstMatchIn(l).map(m => m.group(2).toInt)
         ).max
         (maxTasks >= 10000) ==> true // Ensure we test at production scale
@@ -442,7 +475,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         firstErrorIdx >= 0 ==> true
 
         // 4. Verify no failure counts before first error
-        val preErrorProgress = outputLines.take(firstErrorIdx).filter(_.matches(".*\\[\\d+/\\d+.*\\].*"))
+        val preErrorProgress =
+          outputLines.take(firstErrorIdx).filter(_.matches(".*\\[\\d+/\\d+.*\\].*"))
         preErrorProgress.forall(!_.contains("failed")) ==> true
 
         // 5. Verify failure counts appear immediately after first error
@@ -475,9 +509,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           .find(_._2.matches(".*\\[\\d+/\\d+, \\d+ failed\\].*"))
           .map(_._1)
           .getOrElse(Long.MaxValue)
-        
+
         val totalBuildTime = outputWithTimestamps.last._1
-        
+
         // Must appear in first 25% of build time
         (firstFailureTime < totalBuildTime / 4) ==> true
 

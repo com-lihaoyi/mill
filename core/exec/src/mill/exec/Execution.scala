@@ -197,7 +197,9 @@ private[mill] case class Execution(
                 res.newResults.values.foreach { result =>
                   if (result.result.asSuccess.isEmpty) {
                     failureCount.incrementAndGet()
-                    contextLogger.asInstanceOf[PrefixLogger].updateFailureCount(Some(failureCount.get()))
+                    contextLogger.asInstanceOf[PrefixLogger].updateFailureCount(Some(
+                      failureCount.get()
+                    ))
                   }
                 }
 
