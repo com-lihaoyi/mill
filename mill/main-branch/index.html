@@ -732,11 +732,10 @@ Java platform’s performance and usability:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Performance</strong>: Mill automatically
-<a href="depth/execution-model.html#_caching_in_mill" class="xref page">caches</a>
-and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build tasks to keep local development fast,
-and avoids the long configuration times seen in other tools like Gradle or SBT.
-<a href="large/selective-execution.html" class="xref page">Selective execution</a> keeps
+<p><strong>Performance</strong>: Mill has automatically <a href="depth/execution-model.html#_caching_in_mill" class="xref page">caching</a>
+and <a href="cli/flags.html#_jobs_j" class="xref page">parallelization</a> of build tasks to keep local development fast,
+<a href="../../blog/9-mill-faster-assembly-jars.html" class="xref page">incremental assemblies</a> to speed up manual testing
+workflows, and <a href="large/selective-execution.html" class="xref page">selective execution</a> to keep
 CI validation times short by only running the tests necessary to validate a code change.</p>
 </li>
 <li>
