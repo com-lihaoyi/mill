@@ -36,28 +36,28 @@ private[mill] class PromptLogger(
   readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
   private object promptLineState extends PromptLineState(
-        titleText,
-        currentTimeMillis(),
-        () => termDimensions,
-        currentTimeMillis,
-        infoColor
-      )
+    titleText,
+    currentTimeMillis(),
+    () => termDimensions,
+    currentTimeMillis,
+    infoColor
+  )
 
   private object streamManager extends StreamManager(
-        enableTicker,
-        systemStreams0,
-        () => promptLineState.getCurrentPrompt(),
-        interactive = () => termDimensions._1.nonEmpty,
-        paused = () => runningState.paused,
-        synchronizer = this
-      )
+    enableTicker,
+    systemStreams0,
+    () => promptLineState.getCurrentPrompt(),
+    interactive = () => termDimensions._1.nonEmpty,
+    paused = () => runningState.paused,
+    synchronizer = this
+  )
 
   private object runningState extends RunningState(
-        enableTicker,
-        () => promptUpdaterThread.interrupt(),
-        clearOnPause = () => streamManager.clearOnPause(),
-        synchronizer = this
-      )
+    enableTicker,
+    () => promptUpdaterThread.interrupt(),
+    clearOnPause = () => streamManager.clearOnPause(),
+    synchronizer = this
+  )
 
   if (enableTicker) refreshPrompt()
 
@@ -99,7 +99,18 @@ private[mill] class PromptLogger(
   def error(s: String): Unit = systemStreams.err.println(s)
 
   override def setPromptHeaderPrefix(s: String): Unit = synchronized {
-    promptLineState.setHeaderPrefix(s)
+    // Extract the failure count from the header prefix if present
+    val (prefix, failures) = s match {
+      case s"[$countMsg, $failureCount failed]" => (countMsg, Some(failureCount.trim.toInt))
+      case s"[$countMsg]" => (countMsg, None)
+      case _ => (s, None)
+    }
+    
+    // Update the header prefix and failure count
+    promptLineState.setHeaderPrefix(prefix)
+    failures.foreach { count =>
+      promptLineState.setFailureCount(count)
+    }
   }
 
   override def clearPromptStatuses(): Unit = synchronized { promptLineState.clearStatuses() }
@@ -168,6 +179,9 @@ private[mill] class PromptLogger(
 }
 
 private[mill] object PromptLogger {
+
+  def apply(out: ColorLogger, context: String, tickerContext: String = ""): PrefixLogger =
+    new PrefixLogger(out, context, tickerContext)
 
   /**
    * Manages the paused/unpaused/stopped state of the prompt logger. Encapsulate in a separate
@@ -334,6 +348,7 @@ private[mill] object PromptLogger {
       .empty[Seq[String], Status](PromptLoggerUtil.seqStringOrdering)
 
     private var headerPrefix = ""
+    private var failureCount: Option[Int] = None
     // Pre-compute the prelude and current prompt as byte arrays so that
     // writing them out is fast, since they get written out very frequently
 
@@ -357,32 +372,36 @@ private[mill] object PromptLogger {
       val (termWidth0, termHeight0) = consoleDims()
       val interactive = consoleDims()._1.nonEmpty
       // don't show prompt for non-interactive terminal
-      val currentPromptLines = renderPrompt(
-        termWidth0.getOrElse(defaultTermWidth),
-        termHeight0.getOrElse(defaultTermHeight),
+      val currentPromptLines = PromptLoggerUtil.renderPrompt(
+        termWidth0.getOrElse(PromptLoggerUtil.defaultTermWidth),
+        termHeight0.getOrElse(PromptLoggerUtil.defaultTermHeight),
         now,
         startTimeMillis,
         if (headerPrefix.isEmpty) "" else s"[$headerPrefix]",
         titleText,
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
-        infoColor = infoColor
+        infoColor = infoColor,
+        failureCount = failureCount
       )
 
       val oldPromptBytes = currentPromptBytes
-      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive, ending).getBytes
+      currentPromptBytes = PromptLoggerUtil.renderPromptWrapped(currentPromptLines, interactive, ending).getBytes
       !java.util.Arrays.equals(oldPromptBytes, currentPromptBytes)
     }
 
     def clearStatuses(): Unit = { statuses.clear() }
     def setHeaderPrefix(s: String): Unit = { headerPrefix = s }
+    def setFailureCount(count: Int): Unit = { 
+      failureCount = Some(count)
+      updatePrompt()
+    }
 
     def setDetail(key: Seq[String], detail: String): Unit = {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
     def setCurrent(key: Seq[String], sOpt: Option[String]): Unit = {
-
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {
         status.beginTransitionTime + statusRemovalHideDelayMillis > now
@@ -407,5 +426,4 @@ private[mill] object PromptLogger {
       }
     }
   }
-
 }

@@ -147,7 +147,17 @@ private[mill] case class Execution(
               )
 
               val verboseKeySuffix = s"/${terminals0.size}"
-              logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
+              val currentFailures = failureCount.get()
+              val headerPrefix = s"[$countMsg$verboseKeySuffix${if (currentFailures > 0) s", $currentFailures failed" else ""}]"
+              
+              // Update all loggers in the chain
+              def updateLoggers(prefix: String): Unit = {
+                baseLogger.setPromptHeaderPrefix(prefix)
+                logger.setPromptHeaderPrefix(prefix)
+              }
+              
+              updateLoggers(headerPrefix)
+
               if (failed.get()) None
               else {
                 val upstreamResults = upstreamValues
@@ -171,8 +181,7 @@ private[mill] case class Execution(
                   key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
                   verboseKeySuffix = verboseKeySuffix,
                   message = tickerPrefix,
-                  noPrefix = exclusive,
-                  failureCount = Some(failureCount.get())
+                  noPrefix = exclusive
                 )
 
                 val res = executeGroupCached(
@@ -196,10 +205,9 @@ private[mill] case class Execution(
                 // Update failure count after task execution
                 res.newResults.values.foreach { result =>
                   if (result.result.asSuccess.isEmpty) {
-                    failureCount.incrementAndGet()
-                    contextLogger.asInstanceOf[PrefixLogger].updateFailureCount(Some(
-                      failureCount.get()
-                    ))
+                    val newFailureCount = failureCount.incrementAndGet()
+                    val updatedHeaderPrefix = s"[$countMsg$verboseKeySuffix, $newFailureCount failed]"
+                    updateLoggers(updatedHeaderPrefix)
                   }
                 }
 

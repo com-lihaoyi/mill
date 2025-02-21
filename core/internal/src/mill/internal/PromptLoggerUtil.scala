@@ -91,7 +91,8 @@ private object PromptLoggerUtil {
       titleText: String,
       statuses: Iterable[(String, Status)],
       interactive: Boolean,
-      infoColor: fansi.Attrs
+      infoColor: fansi.Attrs,
+      failureCount: Option[Int] = None
   ): List[String] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1
@@ -99,7 +100,7 @@ private object PromptLoggerUtil {
     val maxHeight = math.max(1, consoleHeight / 3 - 1)
     val headerSuffix = renderSecondsSuffix(now - startTimeMillis)
 
-    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
+    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth, failureCount)
 
     val body0 = statuses
       .flatMap {
@@ -175,9 +176,16 @@ private object PromptLoggerUtil {
       headerPrefix0: String,
       titleText0: String,
       headerSuffix0: String,
-      maxWidth: Int
+      maxWidth: Int,
+      failureCount: Option[Int] = None
   ): String = {
-    val headerPrefixStr = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
+    val headerPrefixStr = if (headerPrefix0.isEmpty) "" else {
+      val failureStr = failureCount match {
+        case Some(count) if count > 0 => s", $count failed"
+        case _ => ""
+      }
+      s"[$headerPrefix0$failureStr] "
+    }
     val headerSuffixStr = headerSuffix0
     val titleText = s" $titleText0 "
 
@@ -187,17 +195,14 @@ private object PromptLoggerUtil {
       maxWidth - headerPrefixStr.length - headerSuffixStr.length - dividerMinLength * 2
     val shortenedTitle = splitShorten(titleText, maxTitleLength)
 
+    val divLength = (maxWidth - headerPrefixStr.length - shortenedTitle.length - headerSuffixStr.length) / 2
+    val leftDiv = "=" * math.min(divLength, dividerMaxLength)
     val rightDiv = "=" * math.min(
-      dividerMaxLength,
-      (maxWidth - headerPrefixStr.length - headerSuffixStr.length - shortenedTitle.length) / 2
-    )
-    val leftDiv = "=" * math.min(
-      dividerMaxLength,
-      maxWidth - headerPrefixStr.length - headerSuffixStr.length - shortenedTitle.length - rightDiv.length
+      maxWidth - headerPrefixStr.length - shortenedTitle.length - headerSuffixStr.length - leftDiv.length,
+      dividerMaxLength
     )
 
-    val headerString = headerPrefixStr + leftDiv + shortenedTitle + rightDiv + headerSuffixStr
-    splitShorten(headerString, maxWidth)
+    headerPrefixStr + leftDiv + shortenedTitle + rightDiv + headerSuffixStr
   }
 
   def splitShorten(s: String, maxLength: Int): String = {

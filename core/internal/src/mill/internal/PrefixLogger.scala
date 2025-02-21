@@ -71,14 +71,17 @@ private[mill] class PrefixLogger(
   override def rawOutputStream = logger0.rawOutputStream
 
   override def info(s: String): Unit = {
-    reportKey(logPrefixKey)
-    logger0.info("" + infoColor(linePrefix) + s)
+    if (noPrefix) logger0.info(s)
+    else logger0.info(formatPrefix(s))
   }
   override def error(s: String): Unit = {
-    reportKey(logPrefixKey)
-    logger0.error("" + infoColor(linePrefix) + s)
+    if (noPrefix) logger0.error(s)
+    else logger0.error(formatPrefix(s))
   }
-  override def ticker(s: String): Unit = setPromptDetail(logPrefixKey, s)
+  override def ticker(s: String): Unit = {
+    if (noPrefix) logger0.ticker(s)
+    else logger0.ticker(formatPrefix(s))
+  }
   override def setPromptDetail(key: Seq[String], s: String): Unit = logger0.setPromptDetail(key, s)
 
   private[mill] override def setPromptLine(
@@ -94,8 +97,8 @@ private[mill] class PrefixLogger(
     setPromptLine(logPrefixKey, verboseKeySuffix, message)
 
   override def debug(s: String): Unit = {
-    if (debugEnabled) reportKey(logPrefixKey)
-    logger0.debug("" + infoColor(linePrefix) + s)
+    if (noPrefix) logger0.debug(s)
+    else logger0.debug(formatPrefix(s))
   }
   override def debugEnabled: Boolean = logger0.debugEnabled
 
@@ -114,27 +117,21 @@ private[mill] class PrefixLogger(
     logger0.removePromptLine(callKey)
   private[mill] override def removePromptLine(): Unit = removePromptLine(logPrefixKey)
   private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
-    headerPrefix = s // Store the current header prefix
-    val prefix = failureCount match {
-      case Some(count) if count > 0 => s"$s, $count failed"
-      case _ => s
+    // Extract the failure count from the header prefix if present
+    val (prefix, failures) = s match {
+      case s"[$countMsg, $failureCount failed]" => (countMsg, Some(failureCount.trim.toInt))
+      case s"[$countMsg]" => (countMsg, None)
+      case _ => (s, None)
     }
-    logger0.setPromptHeaderPrefix(prefix)
+    
+    // Update the header prefix and failure count
+    headerPrefix = prefix
+    
+    // Pass the original header prefix up the chain
+    logger0.setPromptHeaderPrefix(s)
   }
   private[mill] def updateFailureCount(newCount: Option[Int]): Unit = {
-    val newLogger = new PrefixLogger(
-      logger0,
-      logPrefixKey,
-      tickerContext,
-      outStream0,
-      errStream0,
-      verboseKeySuffix,
-      message,
-      noPrefix,
-      newCount
-    )
-    // Re-apply the current header prefix with the new failure count
-    newLogger.setPromptHeaderPrefix(headerPrefix)
+    // No-op as we handle failure count in Execution.scala
   }
   override def enableTicker = logger0.enableTicker
 
@@ -156,6 +153,15 @@ private[mill] class PrefixLogger(
   }
   private[mill] override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
   private[mill] override def withPromptUnpaused[T](t: => T): T = logger0.withPromptUnpaused(t)
+
+  private def formatPrefix(s: String): String = {
+    val prefix = if (key0.isEmpty) message else {
+      val key = key0.mkString(".")
+      if (message.isEmpty) s"[$key$verboseKeySuffix]"
+      else s"[$key$verboseKeySuffix] $message"
+    }
+    if (prefix.isEmpty) s else s"$prefix $s"
+  }
 }
 
 private[mill] object PrefixLogger {
