@@ -43,8 +43,8 @@ JVM build tools have a reputation for being sluggish and confusing. Mill tries t
 offer a better alternative, letting your build system take full advantage of the
 Java platform's performance and usability:
 
-* *Performance*: Mill has automatically xref:depth/execution-model.adoc#_caching_in_mill[caching]
-and xref:cli/flags.adoc#_jobs_j[parallelization] of build tasks to keep local development fast,
+* *Performance*: Mill has automatically xref:depth/caching.adoc[caching]
+and xref:depth/parallelism.adoc[parallelization] of build tasks to keep local development fast,
 xref:blog::9-mill-faster-assembly-jars.adoc[incremental assemblies] to speed up manual testing
 workflows, and xref:large/selective-execution.adoc[selective execution] to keep
 CI validation times short by only running the tests necessary to validate a code change.
