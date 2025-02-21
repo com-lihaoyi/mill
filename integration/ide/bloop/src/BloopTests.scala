@@ -37,8 +37,10 @@ object BloopTests extends UtestIntegrationTestSuite {
             .filter(_.endsWith("-sources.jar"))
             .distinct
 
+          // Look for one of Mill's own source JARs
           val millScalaLibSourceJars = sourceJars("com.lihaoyi", "mill-scalalib_")
           assert(millScalaLibSourceJars.nonEmpty)
+          // Look for a source JAR of a dependency
           val coursierCacheSourceJars = sourceJars("io.get-coursier", "coursier-cache_")
           assert(coursierCacheSourceJars.nonEmpty)
         }

@@ -56,6 +56,7 @@ object `package` extends RootModule {
           )
 
       def millIntegrationLauncher: T[PathRef]
+      /** Whether the Mill JARs are published locally alongside this Mill launcher */
       def millIntegrationIsPackagedLauncher: Task[Boolean]
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }

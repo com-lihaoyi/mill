@@ -235,7 +235,7 @@ class BloopImpl(
       case _ => false
     }
     val runtimeClasspathOpt =
-      if (isTestModule || !runtime)
+      if (isTestModule)
         Task.Anon(None)
       else
         Task.Anon {
@@ -488,8 +488,15 @@ class BloopImpl(
       artifacts(repos, coursierDeps)
     }
 
+    val addMillSources0 = addMillSources.getOrElse {
+      // We only try to resolve Mill's dependencies to get their source JARs
+      // if we're not running from sources. If Mill is running purely from its sources
+      // it's not is published in ~/.ivy2/local, so we can't get its source JARs.
+      !BloopImpl.isMillRunningFromSources
+    }
     val allBloopDependencies: Task[List[BloopConfig.Module]] =
-      if (isRootModule && !BloopImpl.isMillRunningFromSources)
+      // Add Mill source JARs to root modules
+      if (isRootModule && addMillSources0)
         Task.Anon {
           bloopDependencies() ::: millBuildDependencies()
         }
@@ -547,7 +554,10 @@ class BloopImpl(
 }
 
 object BloopImpl {
-  lazy val isMillRunningFromSources =
+  // If the class of BloopImpl is loaded from a directory rather than a JAR,
+  // then we're running from sources (the directory should be something
+  // like mill-repo/out/contrib/bloop/compile.dest/classes).
+  private lazy val isMillRunningFromSources =
     Option(classOf[BloopImpl].getProtectionDomain.getCodeSource)
       .flatMap(s => Option(s.getLocation))
       .flatMap { url =>
