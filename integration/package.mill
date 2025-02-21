@@ -49,12 +49,14 @@ object `package` extends RootModule {
           IntegrationTestModule.this.forkEnv() ++
           Map(
             "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
+            "MILL_INTEGRATION_IS_PACKAGED_LAUNCHER" -> millIntegrationIsPackagedLauncher().toString,
             "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           )
 
       def millIntegrationLauncher: T[PathRef]
+      def millIntegrationIsPackagedLauncher: Task[Boolean]
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
 
@@ -72,20 +74,26 @@ object `package` extends RootModule {
 
     object local extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.launcher()
+      def millIntegrationIsPackagedLauncher = Task(false)
     }
     object packaged extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.executable()
+      def millIntegrationIsPackagedLauncher = Task(true)
     }
     object native extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.native.executable()
+      def millIntegrationIsPackagedLauncher = Task(true)
     }
     trait IntegrationLauncherModule extends Module {
       def millIntegrationLauncher: T[PathRef]
+      def millIntegrationIsPackagedLauncher: Task[Boolean]
       object fork extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
+        def millIntegrationIsPackagedLauncher = IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
       object server extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
+        def millIntegrationIsPackagedLauncher = IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
     }
   }
