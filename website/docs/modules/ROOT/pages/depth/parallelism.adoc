@@ -65,7 +65,7 @@ most Mill code following the standard conventions, but it is worth taking note o
   be safe and race-free even in the presence of parallelism
 
 * For long-lived in-memory xref:fundamentals/tasks.adoc#_workers[Workers], the value is
-  _initialized_ in a single-thread, but may be _used_ from multiple threads concurrently.
+  __initialized__ in a single-thread, but may be __used__ from multiple threads concurrently.
   The onus is on the implementer to ensure that the worker values are safe to be used
   concurrently from multiple tasks: whether by wrapping mutating operations in
   `synchronized` blocks, using concurrent data structures like ``ConcurrentHashMap``s,
