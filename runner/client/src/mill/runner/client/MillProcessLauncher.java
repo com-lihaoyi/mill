@@ -120,7 +120,7 @@ public class MillProcessLauncher {
     String javaHome = null;
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
-      if (jvmId.equals("global")) jvmId = null;
+      if (jvmId.equals("system")) jvmId = null;
     } else {
       jvmId = "zulu:17.0.3";
     }
