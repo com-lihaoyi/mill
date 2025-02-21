@@ -11,6 +11,7 @@ import scala.annotation.nowarn
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import mill.Agg
+import mill.util.Jvm
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -379,6 +380,28 @@ object CoursierModule {
       ).getOrThrow
 
       res.orderedDependencies
+    }
+
+    def getArtifacts[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false,
+        mapDependencies: Option[Dependency => Dependency] = None,
+        customizer: Option[Resolution => Resolution] = None,
+        ctx: Option[mill.api.Ctx.Log] = None,
+        coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+        artifactTypes: Option[Set[Type]] = None,
+        resolutionParams: ResolutionParams = ResolutionParams()
+    ): coursier.Artifacts.Result = {
+      val deps0 = deps
+        .iterator
+        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .toSeq
+      Jvm.getArtifacts(
+        repositories,
+        deps0.map(_.dep),
+        sources = sources,
+        ctx = ctx
+      ).getOrThrow
     }
   }
 
