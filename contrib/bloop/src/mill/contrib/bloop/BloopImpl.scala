@@ -212,11 +212,20 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
         module.localCompileClasspath().map(_.path)
     }
 
-    val runtimeClasspath = Task.Anon {
-      module.transitiveModuleDeps.map(classes) ++
-        module.resolvedRunIvyDeps().map(_.path) ++
-        module.unmanagedClasspath().map(_.path)
+    val isTestModule = module match {
+      case _: TestModule => true
+      case _ => false
     }
+    val runtimeClasspathOpt =
+      if (isTestModule || !runtime)
+        Task.Anon(None)
+      else
+        Task.Anon {
+          val cp = module.transitiveModuleDeps.map(classes) ++
+            module.resolvedRunIvyDeps().map(_.path) ++
+            module.unmanagedClasspath().map(_.path)
+          Some(cp.map(_.toNIO).toList)
+        }
 
     val compileResources =
       Task.Anon(module.compileResources().map(_.path.toNIO).toList)
@@ -283,10 +292,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
             ),
             mainClass = module.mainClass(),
             runtimeConfig = None,
-            classpath = module match {
-              case _: TestModule => None
-              case _ => Some(runtimeClasspath().map(_.toNIO).toList)
-            },
+            classpath = runtimeClasspathOpt(),
             resources = Some(runtimeResources())
           )
         }
