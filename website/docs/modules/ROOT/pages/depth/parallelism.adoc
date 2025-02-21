@@ -1,8 +1,14 @@
 = Parallelism in Mill
 
 By default, Mill will evaluate all tasks in parallel, with the number of concurrent
-tasks equal to the number of cores on your machine. Note that the actual amount
-of parallelism may depend on the structure of the build in question:
+tasks equal to the number of cores on your machine. You can use the
+xref:cli/flags.adoc#__jobs_j[--jobs]
+to configure explicitly how many concurrent tasks you wish to run, or `-j1` to disable
+parallelism and run on a single core.
+
+== When Can Tasks Be Parallelized?
+
+The actual amount of parallelism may depend on the structure of the build in question:
 
 - Tasks and modules that depend on each other have to run sequentially
 - Tasks and modules that are independent can run in parallel
@@ -10,9 +16,20 @@ of parallelism may depend on the structure of the build in question:
 In general, Mill is able to provide the most parallelism for "wide" builds
 with a lot of independent modules in a shallow hierarchy.
 
-You can use the xref:cli/flags.adoc#__jobs_j[--jobs]
-to configure explicitly how many concurrent tasks you wish to run, or `-j1` to disable
-parallelism and run on a single core.
+If you want to visualize the structure of your build graph, you can use
+xref:cli/builtin-commands.adoc#_visualize[./mill visualize] on the tasks you
+care about. e.g. if you want to visualize the relationship between the various
+`.compile` tasks:
+
+```scala
+$ ./mill visualize __.compile
+```
+
+`visualize` renders an SVG which lets you see how the various tasks you selected depend
+(or not depend) on one another. This can be very helpful to figure out where the
+bottlenecks in your build are, and from there come up with ideas of refactoring your
+build to improve parallelism.
+
 
 
 == Mill Chrome Profiles
