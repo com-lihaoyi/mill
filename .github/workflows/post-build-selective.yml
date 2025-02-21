@@ -11,7 +11,7 @@ on:
         type: string
 
       coursierarchive:
-        default: null
+        default: "/tmp"
         required: false
         type: string
       java-version:

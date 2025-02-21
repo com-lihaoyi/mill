@@ -114,7 +114,7 @@ jobs:
       - uses: ./.github/actions/post-build-selective
         with:
           millargs: ${{ matrix.millargs }}
-          coursierarchive: null
+          coursierarchive: "/tmp"
           install-android-sdk: false
           shell: bash
 
