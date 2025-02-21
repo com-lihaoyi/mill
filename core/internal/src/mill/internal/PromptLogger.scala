@@ -36,28 +36,28 @@ private[mill] class PromptLogger(
   readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
   private object promptLineState extends PromptLineState(
-    titleText,
-    currentTimeMillis(),
-    () => termDimensions,
-    currentTimeMillis,
-    infoColor
-  )
+        titleText,
+        currentTimeMillis(),
+        () => termDimensions,
+        currentTimeMillis,
+        infoColor
+      )
 
   private object streamManager extends StreamManager(
-    enableTicker,
-    systemStreams0,
-    () => promptLineState.getCurrentPrompt(),
-    interactive = () => termDimensions._1.nonEmpty,
-    paused = () => runningState.paused,
-    synchronizer = this
-  )
+        enableTicker,
+        systemStreams0,
+        () => promptLineState.getCurrentPrompt(),
+        interactive = () => termDimensions._1.nonEmpty,
+        paused = () => runningState.paused,
+        synchronizer = this
+      )
 
   private object runningState extends RunningState(
-    enableTicker,
-    () => promptUpdaterThread.interrupt(),
-    clearOnPause = () => streamManager.clearOnPause(),
-    synchronizer = this
-  )
+        enableTicker,
+        () => promptUpdaterThread.interrupt(),
+        clearOnPause = () => streamManager.clearOnPause(),
+        synchronizer = this
+      )
 
   if (enableTicker) refreshPrompt()
 
@@ -105,7 +105,7 @@ private[mill] class PromptLogger(
       case s"[$countMsg]" => (countMsg, None)
       case _ => (s, None)
     }
-    
+
     // Update the header prefix and failure count
     promptLineState.setHeaderPrefix(prefix)
     failures.foreach { count =>
@@ -386,13 +386,14 @@ private[mill] object PromptLogger {
       )
 
       val oldPromptBytes = currentPromptBytes
-      currentPromptBytes = PromptLoggerUtil.renderPromptWrapped(currentPromptLines, interactive, ending).getBytes
+      currentPromptBytes =
+        PromptLoggerUtil.renderPromptWrapped(currentPromptLines, interactive, ending).getBytes
       !java.util.Arrays.equals(oldPromptBytes, currentPromptBytes)
     }
 
     def clearStatuses(): Unit = { statuses.clear() }
     def setHeaderPrefix(s: String): Unit = { headerPrefix = s }
-    def setFailureCount(count: Int): Unit = { 
+    def setFailureCount(count: Int): Unit = {
       failureCount = Some(count)
       updatePrompt()
     }

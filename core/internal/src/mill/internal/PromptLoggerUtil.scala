@@ -179,7 +179,8 @@ private object PromptLoggerUtil {
       maxWidth: Int,
       failureCount: Option[Int] = None
   ): String = {
-    val headerPrefixStr = if (headerPrefix0.isEmpty) "" else {
+    val headerPrefixStr = if (headerPrefix0.isEmpty) ""
+    else {
       val failureStr = failureCount match {
         case Some(count) if count > 0 => s", $count failed"
         case _ => ""
@@ -195,7 +196,8 @@ private object PromptLoggerUtil {
       maxWidth - headerPrefixStr.length - headerSuffixStr.length - dividerMinLength * 2
     val shortenedTitle = splitShorten(titleText, maxTitleLength)
 
-    val divLength = (maxWidth - headerPrefixStr.length - shortenedTitle.length - headerSuffixStr.length) / 2
+    val divLength =
+      (maxWidth - headerPrefixStr.length - shortenedTitle.length - headerSuffixStr.length) / 2
     val leftDiv = "=" * math.min(divLength, dividerMaxLength)
     val rightDiv = "=" * math.min(
       maxWidth - headerPrefixStr.length - shortenedTitle.length - headerSuffixStr.length - leftDiv.length,

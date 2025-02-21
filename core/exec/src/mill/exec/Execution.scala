@@ -148,14 +148,16 @@ private[mill] case class Execution(
 
               val verboseKeySuffix = s"/${terminals0.size}"
               val currentFailures = failureCount.get()
-              val headerPrefix = s"[$countMsg$verboseKeySuffix${if (currentFailures > 0) s", $currentFailures failed" else ""}]"
-              
+              val headerPrefix = s"[$countMsg$verboseKeySuffix${
+                  if (currentFailures > 0) s", $currentFailures failed" else ""
+                }]"
+
               // Update all loggers in the chain
               def updateLoggers(prefix: String): Unit = {
                 baseLogger.setPromptHeaderPrefix(prefix)
                 logger.setPromptHeaderPrefix(prefix)
               }
-              
+
               updateLoggers(headerPrefix)
 
               if (failed.get()) None
@@ -206,7 +208,8 @@ private[mill] case class Execution(
                 res.newResults.values.foreach { result =>
                   if (result.result.asSuccess.isEmpty) {
                     val newFailureCount = failureCount.incrementAndGet()
-                    val updatedHeaderPrefix = s"[$countMsg$verboseKeySuffix, $newFailureCount failed]"
+                    val updatedHeaderPrefix =
+                      s"[$countMsg$verboseKeySuffix, $newFailureCount failed]"
                     updateLoggers(updatedHeaderPrefix)
                   }
                 }

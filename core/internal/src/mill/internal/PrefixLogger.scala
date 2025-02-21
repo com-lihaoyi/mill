@@ -123,10 +123,10 @@ private[mill] class PrefixLogger(
       case s"[$countMsg]" => (countMsg, None)
       case _ => (s, None)
     }
-    
+
     // Update the header prefix and failure count
     headerPrefix = prefix
-    
+
     // Pass the original header prefix up the chain
     logger0.setPromptHeaderPrefix(s)
   }
@@ -155,7 +155,8 @@ private[mill] class PrefixLogger(
   private[mill] override def withPromptUnpaused[T](t: => T): T = logger0.withPromptUnpaused(t)
 
   private def formatPrefix(s: String): String = {
-    val prefix = if (key0.isEmpty) message else {
+    val prefix = if (key0.isEmpty) message
+    else {
       val key = key0.mkString(".")
       if (message.isEmpty) s"[$key$verboseKeySuffix]"
       else s"[$key$verboseKeySuffix] $message"
