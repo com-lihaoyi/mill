@@ -56,6 +56,7 @@ object `package` extends RootModule {
           )
 
       def millIntegrationLauncher: T[PathRef]
+
       /** Whether the Mill JARs are published locally alongside this Mill launcher */
       def millIntegrationIsPackagedLauncher: Task[Boolean]
 
@@ -90,11 +91,13 @@ object `package` extends RootModule {
       def millIntegrationIsPackagedLauncher: Task[Boolean]
       object fork extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
-        def millIntegrationIsPackagedLauncher = IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
+        def millIntegrationIsPackagedLauncher =
+          IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
       object server extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
-        def millIntegrationIsPackagedLauncher = IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
+        def millIntegrationIsPackagedLauncher =
+          IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
     }
   }
