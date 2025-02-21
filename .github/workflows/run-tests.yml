@@ -17,8 +17,6 @@
 #        with: { fetch-depth: 1 }
 #
 #      - run: ./mill scalalib.test mill.scalalib.LauncherTests.launcher
-#        env:
-#          COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
 #
 
 # We run full CI on push builds to main and on all pull requests
@@ -114,7 +112,6 @@ jobs:
       - uses: ./.github/actions/post-build-selective
         with:
           millargs: ${{ matrix.millargs }}
-          coursierarchive: ""
           install-android-sdk: false
           shell: bash
 
@@ -230,9 +227,6 @@ jobs:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
-      # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
-      # running the graal native image binary on windows
-      coursierarchive: "C:/coursier-arc"
       shell: powershell
 
   itest:

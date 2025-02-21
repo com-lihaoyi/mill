@@ -542,23 +542,18 @@ jobs:
       matrix:
         include:
         - os: ubuntu-latest
-          coursierarchive: ""
           publishartifacts: __.publishArtifacts
 
         - os: ubuntu-24.04-arm
-          coursierarchive: ""
           publishartifacts: dist.native.publishArtifacts
 
         - os: macos-13
-          coursierarchive: ""
           publishartifacts: dist.native.publishArtifacts
 
         - os: macos-latest
-          coursierarchive: ""
           publishartifacts: dist.native.publishArtifacts
 
         - os: windows-latest
-          coursierarchive: C:/coursier-arc
           publishartifacts: dist.native.publishArtifacts
 
         # No windows-arm support becaues Graal native image doesn't support it
@@ -572,7 +567,6 @@ jobs:
       LANG: "en_US.UTF-8"
       LC_MESSAGES: "en_US.UTF-8"
       LC_ALL: "en_US.UTF-8"
-      COURSIER_ARCHIVE_CACHE: ${{ matrix.coursierarchive }}
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
     steps:
       - uses: actions/setup-java@v4
