@@ -5,6 +5,7 @@ import mill.scalalib.*
 import mill.api.PathRef
 import mill.define.Task
 import mill.scalalib.publish.{PackagingType, PublishInfo}
+import mill.util.Jvm
 import os.RelPath
 import upickle.default.*
 
@@ -50,7 +51,10 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     val unpackedAar = dest / "unpacked-aar"
 
     val classFiles = compile().classes.path
-    os.proc("jar", "cvf", classesJar.toString, "-C", classFiles.toString, ".").call()
+    Jvm.createJar(
+      jar = classesJar,
+      inputPaths = Seq(classFiles)
+    )
 
     os.makeDir.all(compiledRes)
 
@@ -89,14 +93,21 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
 
     val tempZip = Task.dest / "library.zip"
     os.move(aarFile, tempZip)
-    os.proc("unzip", tempZip.toString, "-d", unpackedAar.toString).call()
+    os.unzip(
+      source = tempZip,
+      dest = unpackedAar
+    )
+
     os.move(classesJar, unpackedAar / "classes.jar", replaceExisting = true)
     os.move(
       androidMergedManifest().path,
       unpackedAar / "AndroidManifest.xml",
       replaceExisting = true
     )
-    os.proc("zip", "-r", aarFile.toString, ".").call(cwd = unpackedAar)
+    os.zip(
+      dest = aarFile,
+      sources = Seq(unpackedAar) // zips the directory recursively
+    )
 
     PathRef(aarFile)
   }
