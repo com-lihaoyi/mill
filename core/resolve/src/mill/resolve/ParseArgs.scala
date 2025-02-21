@@ -113,7 +113,9 @@ private[mill] object ParseArgs {
     def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross(_))
     def defaultCrossSegment = P("[]").map(_ => Segment.Cross(Seq()))
 
-    def simpleQuery = P(segment ~ ("." ~ segment | crossSegment | defaultCrossSegment).rep).map {
+    def simpleQuery = P(
+      (segment | crossSegment | defaultCrossSegment) ~ ("." ~ segment | crossSegment | defaultCrossSegment).rep
+    ).map {
       case (h, rest) => Segments(h +: rest)
     }
 

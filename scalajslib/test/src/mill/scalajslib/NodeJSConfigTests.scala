@@ -2,7 +2,7 @@ package mill.scalajslib
 
 import mill._
 import mill.define.Discover
-import mill.exec.ExecutionPaths
+import mill.define.ExecutionPaths
 import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -66,7 +66,7 @@ object NodeJSConfigTests extends TestSuite {
   def tests: Tests = Tests {
     def checkLog(command: define.Command[?], nodeArgs: List[String], notNodeArgs: List[String]) = {
       helloWorldEvaluator(command)
-      val paths = ExecutionPaths.resolveDestPaths(helloWorldEvaluator.outPath, command)
+      val paths = ExecutionPaths.resolve(helloWorldEvaluator.outPath, command)
       val log = os.read(paths.log)
       assert(
         nodeArgs.forall(log.contains),

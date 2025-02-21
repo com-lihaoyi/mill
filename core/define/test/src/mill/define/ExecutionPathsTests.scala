@@ -1,8 +1,8 @@
-package mill.exec
+package mill.define
 
 import utest.*
 
-object EvaluatorPathsTests extends TestSuite {
+object ExecutionPathsTests extends TestSuite {
 
   override def tests: Tests = Tests {
     test("sanitizedPathSegment") {

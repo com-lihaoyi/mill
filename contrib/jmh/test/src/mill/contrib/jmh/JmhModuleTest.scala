@@ -2,7 +2,7 @@ package mill
 package contrib.jmh
 
 import mill.define.Discover
-import mill.exec.ExecutionPaths
+import mill.define.ExecutionPaths
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -23,7 +23,7 @@ object JmhModuleTest extends TestSuite {
   def tests = Tests {
     test("jmh") {
       test("listJmhBenchmarks") - UnitTester(jmh, testModuleSourcesPath).scoped { eval =>
-        val paths = ExecutionPaths.resolveDestPaths(eval.outPath, jmh.listJmhBenchmarks())
+        val paths = ExecutionPaths.resolve(eval.outPath, jmh.listJmhBenchmarks())
         val outFile = paths.dest / "benchmarks.out"
         val Right(result) = eval(jmh.listJmhBenchmarks("-o", outFile.toString)): @unchecked
         val expected =
