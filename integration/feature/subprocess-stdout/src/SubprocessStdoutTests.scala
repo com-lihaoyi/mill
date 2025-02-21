@@ -76,15 +76,16 @@ object SubprocessStdoutTests extends UtestIntegrationTestSuite {
         // Note that it may be out of order, because both `print`s will be captured and logged first,
         // whereas the two `proc` outputs will get sent to their respective log files and only noticed
         // a few milliseconds later as the files are polled for updates
-        val expectedLines = """print stdoutRaw
+        val expectedLines =
+          """print stdoutRaw
             |print stderrRaw
             |proc stdoutRaw
             |proc stderrRaw""".stripMargin.replaceAll("\r\n", "\n").linesIterator.toSet
 
         val actualLines = res2.replaceAll("\r\n", "\n").linesIterator.toSet
         assert(
-          expectedLines.subsetOf(actualLines) && 
-          actualLines.count(_.trim.nonEmpty) == expectedLines.size
+          expectedLines.subsetOf(actualLines) &&
+            actualLines.count(_.trim.nonEmpty) == expectedLines.size
         )
       }
     }
