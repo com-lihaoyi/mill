@@ -555,18 +555,26 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
@@ -2432,85 +2440,6 @@ Hello
 World!</code></pre>
 </div>
 </div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_experimental_forking_concurrent_futures_within_tasks"><a class="anchor" href="#_experimental_forking_concurrent_futures_within_tasks"></a>(Experimental) Forking Concurrent Futures within Tasks</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill provides the <code>Task.fork.async</code> and <code>Task.fork.await</code> APIs for spawning async
-futures within a task and aggregating their results later. This API is used by Mill
-to support <a href="../javalib/testing.html#_test_grouping" class="xref page">parallelizing test classes</a>,
-but can be used in your own tasks as well:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-fundamentals-tasks-7-forking-futures.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0//example/fundamentals/tasks/7-forking-futures">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-
-import mill._
-
-def taskSpawningFutures = Task {
-  val f1 = Task.fork.async(dest = Task.dest / &quot;future-1&quot;, key = &quot;1&quot;, message = &quot;First Future&quot;) {
-    println(&quot;Running First Future inside &quot; + os.pwd)
-    Thread.sleep(3000)
-    val res = 1
-    println(&quot;Finished First Future&quot;)
-    res
-  }
-  val f2 = Task.fork.async(dest = Task.dest / &quot;future-2&quot;, key = &quot;2&quot;, message = &quot;Second Future&quot;) {
-    println(&quot;Running Second Future inside &quot; + os.pwd)
-    Thread.sleep(3000)
-    val res = 2
-    println(&quot;Finished Second Future&quot;)
-    res
-  }
-
-  Task.fork.await(f1) + Task.fork.await(f2)
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskSpawningFutures
-[1] Running First Future inside .../out/taskSpawningFutures.dest/future-1
-[2] Running Second Future inside .../out/taskSpawningFutures.dest/future-2
-[1] Finished First Future
-[2] Finished Second Future
-3</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>Task.fork.async</code> takes several parameters in addition to the code block to be run:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>dest</code> is a folder for which the async future is to be run, overriding <code>os.pwd</code>
-for the duration of the future</p>
-</li>
-<li>
-<p><code>key</code> is a short prefix prepended to log lines to let you easily identify the future’s
-log lines and distinguish them from logs of other futures and tasks running concurrently</p>
-</li>
-<li>
-<p><code>message</code> is a one-line description of what the future is doing</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Futures spawned by <code>Task.fork.async</code> count towards Mill’s <code>-j</code>/<code>--jobs</code> concurrency limit
-(which defaults to one-per-core), so you can freely use <code>Task.fork.async</code> without worrying
-about spawning too many concurrent threads and causing CPU or memory contention. <code>Task.fork</code>
-uses Java’s built in <code>ForkJoinPool</code> and <code>ManagedBlocker</code> infrastructure under the hood
-to effectively manage the number of running threads.</p>
-</div>
-<div class="paragraph">
-<p>While <code>scala.concurrent</code> and <code>java.util.concurrent</code> can also be used to spawn thread
-pools and run async futures, <code>Task.fork</code> provides a way to do so that integrates with Mill’s
-existing concurrency, sandboxing and logging systems. Thus you should always prefer to
-run async futures on <code>Task.fork</code> whenever possible.</p>
 </div>
 </div>
 </div>

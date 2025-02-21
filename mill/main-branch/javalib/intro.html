@@ -555,18 +555,26 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
@@ -1008,8 +1016,8 @@ you can explore the existing tasks via autocomplete in your IDE, or use the
 </div>
 <div class="paragraph">
 <p>Custom user-defined tasks in Mill such as <code>def lineCount</code> above benefit from all
-the same things that built-in tasks do: automatic caching (in the
-<a href="../fundamentals/out-dir.html" class="xref page">out/ folder</a>), parallelism (configurable via <a href="../cli/flags.html#_jobs_j" class="xref page">-j/--jobs
+the same things that built-in tasks do: automatic <a href="../depth/caching.html" class="xref page">caching</a> (in the
+<a href="../fundamentals/out-dir.html" class="xref page">out/ folder</a>), <a href="../depth/parallelism.html" class="xref page">parallelism</a> (configurable via <a href="../cli/flags.html#_jobs_j" class="xref page">-j/--jobs
 flag</a>), inspectability (via <a href="../cli/builtin-commands.html#_show" class="xref page">show</a> and <a href="../cli/builtin-commands.html#_inspect" class="xref page">inspect</a>), and so on.
 While these things may not matter for such a simple example that runs
 quickly, they ensure that custom build logic remains performant and

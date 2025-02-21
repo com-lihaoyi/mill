@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>The Mill Process Architecture :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/depth/process-architecture.html" />
-    <link rel="prev" href="execution-model.html" />
-    <link rel="next" href="design-principles.html" />
+    <link rel="prev" href="parallelism.html" />
+    <link rel="next" href="sandboxing.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -555,18 +555,26 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
+    <a class="nav-link" href="evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="parallelism.html">Parallelism in Mill</a>
   </li>
 
   <li class="nav-item is-current-page" data-depth="2">
     <a class="nav-link" href="process-architecture.html">The Mill Process Architecture</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="design-principles.html">Mill Design Principles</a>
   </li>
 
@@ -662,6 +670,26 @@ a running Mill process is shown below:</p>
 <svg width="941px" height="430px" viewBox="0.00 0.00 940.91 430.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 426.4)">
 <title>G</title>
+<g id="clust1" class="cluster">
+<title>cluster_client</title>
+<polygon fill="transparent" stroke="black" points="113.99,-261 113.99,-369 233.88,-369 233.88,-261 113.99,-261"></polygon>
+<text text-anchor="middle" x="173.93" y="-352.4" font-family="Times,serif" font-size="14.00">mill client</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_out</title>
+<polygon fill="transparent" stroke="black" points="245.88,-8 245.88,-402 372.81,-402 372.81,-8 245.88,-8"></polygon>
+<text text-anchor="middle" x="309.34" y="-385.4" font-family="Times,serif" font-size="14.00">out/</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_out_foo_folder</title>
+<polygon fill="transparent" stroke="black" points="253.88,-16 253.88,-210 364.81,-210 364.81,-16 253.88,-16"></polygon>
+<text text-anchor="middle" x="309.34" y="-193.4" font-family="Times,serif" font-size="14.00">foo/</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_mill_server_folder</title>
+<polygon fill="transparent" stroke="black" points="263.79,-218 263.79,-369 354.89,-369 354.89,-218 263.79,-218"></polygon>
+<text text-anchor="middle" x="309.34" y="-352.4" font-family="Times,serif" font-size="14.00">mill-server/</text>
+</g>
 <g id="clust5" class="cluster">
 <title>cluster_server</title>
 <polygon fill="transparent" stroke="black" points="380.81,-103 380.81,-409 924.91,-409 924.91,-103 380.81,-103"></polygon>
@@ -681,26 +709,6 @@ a running Mill process is shown below:</p>
 <title>cluster_foo</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="404.81,-127 404.81,-235 900.91,-235 900.91,-127 404.81,-127"></polygon>
 <text text-anchor="middle" x="652.86" y="-218.4" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_client</title>
-<polygon fill="transparent" stroke="black" points="113.99,-261 113.99,-369 233.88,-369 233.88,-261 113.99,-261"></polygon>
-<text text-anchor="middle" x="173.93" y="-352.4" font-family="Times,serif" font-size="14.00">mill client</text>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_out</title>
-<polygon fill="transparent" stroke="black" points="245.88,-8 245.88,-402 372.81,-402 372.81,-8 245.88,-8"></polygon>
-<text text-anchor="middle" x="309.34" y="-385.4" font-family="Times,serif" font-size="14.00">out/</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_mill_server_folder</title>
-<polygon fill="transparent" stroke="black" points="263.79,-218 263.79,-369 354.89,-369 354.89,-218 263.79,-218"></polygon>
-<text text-anchor="middle" x="309.34" y="-352.4" font-family="Times,serif" font-size="14.00">mill-server/</text>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_out_foo_folder</title>
-<polygon fill="transparent" stroke="black" points="253.88,-16 253.88,-210 364.81,-210 364.81,-16 253.88,-16"></polygon>
-<text text-anchor="middle" x="309.34" y="-193.4" font-family="Times,serif" font-size="14.00">foo/</text>
 </g>
 <!-- client&#45;stdin -->
 <g id="node1" class="node">
@@ -1073,7 +1081,7 @@ client that connects to it</p>
 </div>
 <div class="paragraph">
 <p>For a more detailed discussion of what exactly goes into &quot;execution&quot;, see
-<a href="execution-model.html" class="xref page">The Mill Execution Model</a>.</p>
+<a href="evaluation-model.html" class="xref page">The Mill Evaluation Model</a>.</p>
 </div>
 </div>
 </div>
@@ -1100,8 +1108,8 @@ found at <a href="../fundamentals/out-dir.html" class="xref page">The Output Dir
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="execution-model.html">The Mill Execution Model</a></span>
-  <span class="next"><a href="design-principles.html">Mill Design Principles</a></span>
+  <span class="prev"><a href="parallelism.html">Parallelism in Mill</a></span>
+  <span class="next"><a href="sandboxing.html">Mill Sandboxing</a></span>
 </nav>
 </article>
   </div>
