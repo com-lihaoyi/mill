@@ -185,6 +185,11 @@ and `bar.assembly`, their upstream task graph requires tasks such as `foo.compil
 `bar.compile`, as well as our custom task `bar.lineCount` and our override of `bar.resources`.
 
 
+You can use xref:cli/builtin-commands.adoc#_plan[./mill plan] to see what tasks would be
+planned out for a given selector, or look at
+xref:fundamentals/out-dir.adoc#_mill_dependency_tree_json[mill-dependency-tree.json] after
+evaluation to see how how these upstream tasks are depended upon by the tasks you selected.
+
 === Execution
 
 The last phase is execution. Execution depends not only on the tasks you selected at the

@@ -58,6 +58,26 @@ xref:depth/evaluation-model.adoc[Mill's Evaluation Model]:
   for the meta-build rather than the primary build. All the caching techniques described
   above apply the same for Mill's bootstrap builds as they do for the primary build.
 
+## Debugging Mill Caching Issues
+
+To dig into how Mill's execution caching, you can look at the following files:
+
+* xref:fundamentals/out-dir.adoc#_mill_profile_json[mill-profile.json]: this file
+is generated during every Mill evaluation, and contains a `"cached": boolean` flag
+for each task indicating whether or not that task was cached.
+
+* xref:fundamentals/out-dir.adoc#_mill_invalidation_tree_json[mill-invalidation-tree.json]:
+this file groups together the un-cached files in a tree structure according to their
+task dependencies. It is useful to find the "root" uncached tasks, which are the cause
+of downstream tasks having their caches invalidated.
+
+* xref:fundamentals/out-dir.adoc#_methodcodehashsignatures_spanninginvalidationtree[methodCodeHashSignatures spanningInvalidationTree]:
+this file contains information about tasks whose caches were invalidated due to
+__code changes in the `build.mill` or `package.mill` files__, and again shows a tree
+of invalidated method signatures organized into a tree using their call graph dependenceis.
+This is most useful to figure out why a code change in your `.mill` files ended up
+changing some task's code signature, causing it to miss the cache and be re-computed
+
 ## Consequences of Caching in Mill
 
 This approach to caching does assume a certain programming style inside your
