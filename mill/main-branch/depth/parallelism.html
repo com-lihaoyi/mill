@@ -758,8 +758,8 @@ tasks writing to the same files in parallel, allowing these filesystem writes to
 be safe and race-free even in the presence of parallelism</p>
 </li>
 <li>
-<p>For long-lived in-memory <a href="../fundamentals/tasks.html#"><em>workers&quot; class=&quot;xref page&quot;&gt;Workers</em></a>, the value is
-_initialized in a single-thread, but may be <em>used</em> from multiple threads concurrently.
+<p>For long-lived in-memory <a href="../fundamentals/tasks.html#_workers" class="xref page">Workers</a>, the value is
+<em>initialized</em> in a single-thread, but may be <em>used</em> from multiple threads concurrently.
 The onus is on the implementer to ensure that the worker values are safe to be used
 concurrently from multiple tasks: whether by wrapping mutating operations in
 <code>synchronized</code> blocks, using concurrent data structures like <code>ConcurrentHashMap</code>s,
