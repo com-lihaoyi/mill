@@ -25,6 +25,23 @@ object BloopTests extends UtestIntegrationTestSuite {
         assert(config("project")("sources").arr.exists(path =>
           os.Path(path.str).last == "build.mill"
         ))
+
+        if (isPackagedLauncher) {
+          val modules = config("project")("resolution")("modules").arr
+
+          def sourceJars(org: String, namePrefix: String) = modules
+            .filter(mod => mod("organization").str == org && mod("name").str.startsWith(namePrefix))
+            .flatMap(_("artifacts").arr)
+            .filter(_("classifier").strOpt.contains("sources"))
+            .flatMap(_("path").strOpt)
+            .filter(_.endsWith("-sources.jar"))
+            .distinct
+
+          val millScalaLibSourceJars = sourceJars("com.lihaoyi", "mill-scalalib_")
+          assert(millScalaLibSourceJars.nonEmpty)
+          val coursierCacheSourceJars = sourceJars("io.get-coursier", "coursier-cache_")
+          assert(coursierCacheSourceJars.nonEmpty)
+        }
       }
     }
   }
