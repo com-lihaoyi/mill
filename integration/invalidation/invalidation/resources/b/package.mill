@@ -1,8 +1,7 @@
 package build.b
 import mill._
-import build.b.inputD
 
 def input = Task {
-  inputD.method()
+  method()
   println("b")
 }
