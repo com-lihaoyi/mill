@@ -41,6 +41,8 @@ case class IrTrait(
     baseModule: String,
     moduleSupertypes: Seq[String],
     javacOptions: Seq[String],
+    scalaVersion: Option[String],
+    scalacOptions: Option[Seq[String]],
     pomSettings: IrPom,
     publishVersion: String,
     publishProperties: Seq[(String, String)],
@@ -75,6 +77,7 @@ case class IrLicense(
     distribution: String = "repo"
 )
 
+// TODO Consider renaming to `IrModule(Build)` to disambiguate? sbt, for example, uses `ThisBuild` and `buildSettings` to refer to the whole build.
 case class IrBuild(
     scopedDeps: IrScopedDeps,
     testModule: String,
@@ -82,6 +85,8 @@ case class IrBuild(
     dirs: Seq[String],
     repositories: Seq[String],
     javacOptions: Seq[String],
+    scalaVersion: Option[String],
+    scalacOptions: Option[Seq[String]],
     projectName: String,
     pomSettings: IrPom,
     publishVersion: String,
@@ -92,7 +97,30 @@ case class IrBuild(
     publishProperties: Seq[(String, String)]
 )
 
+object IrBuild {
+  // TODO not used
+  def empty(dirs: Seq[String]) = IrBuild(
+    IrScopedDeps(),
+    null,
+    false,
+    dirs,
+    Seq.empty,
+    Seq.empty,
+    None,
+    None,
+    dirs.last,
+    null,
+    null,
+    null,
+    null,
+    Seq.empty,
+    Seq.empty,
+    Seq.empty
+  )
+}
+
 case class IrScopedDeps(
+    // TODO The type is `Seq` and this is deduplicated and sorted in `BuildGenUtil`. Make the type `SortedMap` here for consistency?
     namedIvyDeps: Seq[(String, String)] = Nil,
     mainBomIvyDeps: SortedSet[String] = SortedSet(),
     mainIvyDeps: SortedSet[String] = SortedSet(),
@@ -111,9 +139,19 @@ case class IrScopedDeps(
 
 case class IrBaseInfo(
     javacOptions: Seq[String] = Nil,
+    scalaVersion: Option[String] = None,
+    scalacOptions: Option[Seq[String]] = None,
     repositories: Seq[String] = Nil,
     noPom: Boolean = true,
     publishVersion: String = "",
     publishProperties: Seq[(String, String)] = Nil,
     moduleTypedef: IrTrait = null
 )
+
+sealed class IrDependencyType
+object IrDependencyType {
+  case object Default extends IrDependencyType
+  case object Test extends IrDependencyType
+  case object Compile extends IrDependencyType
+  case object Run extends IrDependencyType
+}

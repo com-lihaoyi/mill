@@ -1,7 +1,6 @@
 package build.main.init
 
 import mill._
-import scala.util.matching.Regex
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
@@ -63,8 +62,16 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   }
 
   object buildgen extends build.MillPublishScalaModule {
-    def moduleDeps = Seq(build.runner)
+    def moduleDeps = Seq(build.runner /*, tree(build.Deps.scalaVersion)*/ )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
+
+    // I tried moving `Tree` into this module, but it doesn't compile with Scala 2.12.20.
+    /*
+    object tree extends Cross[TreeModule](build.Deps.sbtScalaVersion212, build.Deps.scalaVersion)
+    trait TreeModule extends build.MillPublishCrossScalaModule {
+      def ivyDeps = Agg(build.Deps.upickle)
+    }
+     */
   }
   object gradle extends build.MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
@@ -85,5 +92,54 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       build.Deps.mavenResolverTransportWagon
     )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
+  }
+
+  object sbt extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(buildgen, models(build.Deps.scalaVersion))
+
+    val sbtPluginProjectPath = millModuleBasePath.value / "sbt-mill-init-export-build"
+
+    def sbtPluginProjectSource = Task.Source { sbtPluginProjectPath }
+
+    // generateSbtPluginJar
+    def sbtPluginJarResources = Task {
+      models(build.Deps.sbtScalaVersion212).publishLocal()()
+
+      sbtPluginProjectSource()
+
+      val isWindows = System.getProperty("os.name").toLowerCase.startsWith("windows")
+      val version = build.millVersion()
+      if (
+        os.call(
+          // The version is passed to the sbt build so it correctly resolves the "models" dependency version and sets its own version.
+          if (isWindows) ("sbt.bat", s"""set version := \\"$version\\"""", "assembly")
+          else ("sbt", s"""set version := "$version"""", "assembly"),
+          cwd = sbtPluginProjectPath,
+          stdout = os.Inherit
+        ).exitCode != 0
+      )
+        throw new RuntimeException(
+          "Failed to run `sbt assembly` in the \"sbt-mill-init-export-build\" sbt project. " +
+            "Check if the project builds correctly and if you have sbt available on your system, and install it if you don't."
+        )
+
+      os.copy(
+        sbtPluginProjectPath / "target" / "scala-2.12" / "sbt-1.0" / s"sbt-mill-init-export-build-assembly-$version.jar",
+        Task.dest / "sbt-mill-init-export-build-assembly.jar"
+      )
+      PathRef(Task.dest)
+    }
+    def resources: T[Seq[PathRef]] =
+      Task.Sources(super.resources() ++ Seq(sbtPluginJarResources()))
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
+
+    // An SBT plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
+    object models
+        extends Cross[ModelsModule](build.Deps.sbtScalaVersion212, build.Deps.scalaVersion)
+    trait ModelsModule extends build.MillPublishCrossScalaModule {
+      // def moduleDeps = Seq(buildgen.tree())
+      def ivyDeps = Agg(build.Deps.upickle)
+      def compileIvyDeps = Agg(build.Deps.sbt) // for definition references only
+    }
   }
 }

@@ -21,6 +21,7 @@ import scala.jdk.CollectionConverters.*
  * ===Capabilities===
  * The conversion
  *  - handles deeply nested modules
+ *  - captures publish settings
  *  - configures dependencies for configurations:
  *    - implementation / api
  *    - compileOnly / compileOnlyApi
@@ -33,14 +34,14 @@ import scala.jdk.CollectionConverters.*
  *    - TestNG
  *
  * ===Limitations===
- * The conversion does not support
+ * The conversion does not support:
  *  - custom dependency configurations
  *  - custom tasks
  *  - non-Java sources
  */
 @mill.api.internal
-object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
-  type C = GradleBuildGenMain.Config
+object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, JavaModel.Dep] {
+  type C = Config
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
@@ -75,7 +76,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
           (Node(dirs, project), children)
         }
 
-        convertWriteOut(cfg, cfg.shared, input)
+        convertWriteOut(cfg, cfg.shared.basicConfig, input)
 
         println("converted Gradle build to Mill")
       } finally connection.close()
@@ -102,6 +103,11 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     file
   }
 
+  extension (om: ProjectModel)
+    override def toOption(): Option[ProjectModel] =
+      // TODO consider filtering out projects without the `java` plugin applied
+      Some(om)
+
   def getBaseInfo(
       input: Tree[Node[ProjectModel]],
       cfg: Config,
@@ -124,6 +130,8 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
         Option.when(null != project.maven().pom()) { "PublishModule" }
 
     val javacOptions = getJavacOptions(project)
+    val scalaVersion = None
+    val scalacOptions = None
     val repos = getRepositories(project)
     val pomSettings = extractPomSettings(project)
     val publishVersion = getPublishVersion(project)
@@ -134,13 +142,24 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       baseModule,
       supertypes,
       javacOptions,
+      scalaVersion,
+      scalacOptions,
       pomSettings,
       publishVersion,
       publishProperties,
       repos
     )
 
-    IrBaseInfo(javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)
+    IrBaseInfo(
+      javacOptions,
+      scalaVersion,
+      scalacOptions,
+      repos,
+      pomSettings == null,
+      publishVersion,
+      Seq.empty,
+      typedef
+    )
   }
 
   override def extractIrBuild(
@@ -154,11 +173,13 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     val version = getPublishVersion(project)
     IrBuild(
       scopedDeps = scopedDeps,
-      testModule = cfg.shared.testModule,
+      testModule = cfg.shared.basicConfig.testModule,
       hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
       repositories = getRepositories(project).diff(baseInfo.repositories),
       javacOptions = getJavacOptions(project).diff(baseInfo.javacOptions),
+      scalaVersion = None,
+      scalacOptions = None,
       projectName = getArtifactId(project),
       pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,
@@ -172,24 +193,25 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     )
   }
 
+  override def extraImports: Seq[String] = Seq.empty
+
   def getModuleSupertypes(cfg: Config): Seq[String] =
-    Seq(cfg.shared.baseModule.getOrElse("MavenModule"))
+    Seq(cfg.shared.basicConfig.baseModule.getOrElse("MavenModule"))
 
   def getPackage(project: ProjectModel): (String, String, String) = {
     (project.group(), project.name(), project.version())
   }
 
-  def getArtifactId(model: ProjectModel): String = model.name()
+  def getArtifactId(project: ProjectModel): String = project.name()
 
-  def getMillSourcePath(model: ProjectModel): Path = os.Path(model.directory())
+  def getMillSourcePath(project: ProjectModel): Path = os.Path(project.directory())
 
-  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] = {
+  def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] =
     Seq("RootModule") ++
       Option.when(null != build.value.maven().pom() && baseInfo.noPom) { "PublishModule" } ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
         getModuleSupertypes(cfg)
       }.toSeq.flatten
-  }
 
   def groupArtifactVersion(dep: JavaModel.Dep): (String, String, String) =
     (dep.group(), dep.name(), dep.version())
@@ -250,6 +272,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     }
   }
 
+  // TODO consider renaming to `extractConfigurationDeps` as Gradle calls them configurations instead of scopes
   def extractScopedDeps(
       project: ProjectModel,
       packages: PartialFunction[(String, String, String), String],
@@ -260,7 +283,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     val _java = project._java()
     if (null != _java) {
       val ivyDep: JavaModel.Dep => String =
-        cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
+        cfg.shared.basicConfig.depsObject.fold(interpIvy(_)) { objName => dep =>
           val depName = s"`${dep.group()}:${dep.name()}`"
           sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))
           s"$objName.$depName"

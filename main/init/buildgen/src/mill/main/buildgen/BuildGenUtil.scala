@@ -1,14 +1,15 @@
 package mill.main.buildgen
 
+import geny.Generator
 import mainargs.{Flag, arg}
-import mill.constants.OutFiles
-import mill.main.buildgen.BuildObject.Companions
 import mill.constants.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
   rootBuildFileNames,
   rootModuleAlias
 }
+import mill.constants.OutFiles
+import mill.main.buildgen.BuildObject.Companions
 import mill.runner.FileImportGraph.backtickWrap
 
 import scala.collection.immutable.SortedSet
@@ -33,6 +34,10 @@ object BuildGenUtil {
        |
        |${renderJavacOptions(javacOptions)}
        |
+       |${renderScalaVersion(scalaVersion)}
+       |
+       |${renderScalacOptions(scalacOptions)}
+       |
        |${renderPomSettings(renderIrPom(pomSettings))}
        |
        |${renderPublishVersion(publishVersion)}
@@ -45,6 +50,9 @@ object BuildGenUtil {
        |}""".stripMargin
 
   }
+
+  def takeIrPomIfNeeded(baseInfo: IrBaseInfo, irPom: IrPom): IrPom =
+    if (baseInfo.noPom || irPom != baseInfo.moduleTypedef.pomSettings) irPom else null
 
   def renderIrPom(value: IrPom): String = {
     if (value == null) ""
@@ -83,6 +91,10 @@ object BuildGenUtil {
     s"""${renderArtifactName(projectName, dirs)}
        |
        |${renderJavacOptions(javacOptions)}
+       |
+       |${renderScalaVersion(scalaVersion)}
+       |
+       |${renderScalacOptions(scalacOptions)}
        |
        |${renderRepositories(repositories)}
        |
@@ -128,9 +140,15 @@ object BuildGenUtil {
   def renderImports(
       baseModule: Option[String],
       isNested: Boolean,
-      packagesSize: Int
+      packagesSize: Int,
+      extraImports: Seq[String]
   ): SortedSet[String] = {
-    scala.collection.immutable.SortedSet("mill._", "mill.javalib._", "mill.javalib.publish._") ++
+    scala.collection.immutable.SortedSet(
+      "mill._",
+      "mill.javalib._",
+      "mill.javalib.publish._"
+    ) ++
+      extraImports ++
       (if (isNested) baseModule.map(name => s"$$file.$name")
        else if (packagesSize > 1) Seq("$packages._")
        else None)
@@ -143,9 +161,9 @@ object BuildGenUtil {
   def buildPackage(dirs: Seq[String]): String =
     (rootModuleAlias +: dirs).iterator.map(backtickWrap).mkString(".")
 
-  def buildPackages[Module, Key](input: Tree[Node[Module]])(key: Module => Key)
+  def buildPackages[Module, Key](input: Generator[Node[Module]])(key: Module => Key)
       : Map[Key, String] =
-    input.nodes()
+    input
       .map(node => (key(node.value), buildPackage(node.dirs)))
       .toSeq
       .toMap
@@ -382,6 +400,17 @@ object BuildGenUtil {
       args.iterator.map(escape)
     )
 
+  def renderScalaVersion(scalaVersion: Option[String]): String =
+    scalaVersion.fold("")(scalaVersion => s"def scalaVersion = ${escape(scalaVersion)}")
+
+  def renderScalacOptions(args: Option[IterableOnce[String]]): String =
+    args.fold("")(args =>
+      optional(
+        "def scalacOptions = super.scalacOptions() ++ Seq",
+        args.iterator.map(escape)
+      )
+    )
+
   def renderRepositories(args: IterableOnce[String]): String =
     optional(
       "def repositoriesTask = Task.Anon { super.repositoriesTask() ++ Seq(",
@@ -428,7 +457,13 @@ object BuildGenUtil {
   val testModulesByGroup: Map[String, String] = Map(
     "junit" -> "TestModule.Junit4",
     "org.junit.jupiter" -> "TestModule.Junit5",
-    "org.testng" -> "TestModule.TestNg"
+    "org.testng" -> "TestModule.TestNg",
+    "org.scalatest" -> "TestModule.ScalaTest",
+    "org.specs2" -> "TestModule.Specs2",
+    "com.lihaoyi.utest" -> "TestModule.UTest",
+    "org.scalameta" -> "TestModule.Munit",
+    "com.disneystreaming" -> "Weaver",
+    "dev.zio" -> "TestModule.ZioTest"
   )
 
   def writeBuildObject(tree: Tree[Node[BuildObject]]): Unit = {
@@ -456,20 +491,28 @@ object BuildGenUtil {
   }
 
   @mainargs.main
-  case class Config(
+  case class BasicConfig(
       @arg(doc = "name of generated base module trait defining shared settings", short = 'b')
       baseModule: Option[String] = None,
-      @arg(
-        doc = "distribution and version of custom JVM to configure in --base-module",
-        short = 'j'
-      )
-      jvmId: Option[String] = None,
       @arg(doc = "name of generated nested test module", short = 't')
       testModule: String = "test",
       @arg(doc = "name of generated companion object defining dependency constants", short = 'd')
       depsObject: Option[String] = None,
       @arg(doc = "merge build files generated for a multi-module build", short = 'm')
-      merge: Flag = Flag(),
+      merge: Flag = Flag()
+  )
+  object BasicConfig {
+    implicit def parser: mainargs.ParserForClass[BasicConfig] = mainargs.ParserForClass[BasicConfig]
+  }
+  // TODO alternative names: `MavenAndGradleConfig`, `MavenAndGradleSharedConfig`
+  @mainargs.main
+  case class Config(
+      basicConfig: BasicConfig,
+      @arg(
+        doc = "distribution and version of custom JVM to configure in --base-module",
+        short = 'j'
+      )
+      jvmId: Option[String] = None,
       @arg(doc = "capture Maven publish properties", short = 'p')
       publishProperties: Flag = Flag()
   )
