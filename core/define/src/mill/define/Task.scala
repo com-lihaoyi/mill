@@ -414,24 +414,22 @@ class Worker[+T](
 }
 
 class InputImpl[T](
-    val inputs: Seq[Task[Any]],
     val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
     val ctx0: mill.define.Ctx,
     val writer: upickle.default.Writer[?],
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
+  val inputs = Nil
   override def sideHash: Int = util.Random.nextInt()
   // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[?]] = Some(writer)
 }
 
 class SourcesImpl(
-    inputs: Seq[Task[Any]],
     evaluate0: (Seq[Any], mill.api.Ctx) => Result[Seq[PathRef]],
     ctx0: mill.define.Ctx,
     isPrivate: Option[Boolean]
 ) extends InputImpl[Seq[PathRef]](
-      inputs,
       evaluate0,
       ctx0,
       upickle.default.readwriter[Seq[PathRef]],
@@ -439,12 +437,10 @@ class SourcesImpl(
     ) {}
 
 class SourceImpl(
-    inputs: Seq[Task[Any]],
     evaluate0: (Seq[Any], mill.api.Ctx) => Result[PathRef],
     ctx0: mill.define.Ctx,
     isPrivate: Option[Boolean]
 ) extends InputImpl[PathRef](
-      inputs,
       evaluate0,
       ctx0,
       upickle.default.readwriter[PathRef],
@@ -502,7 +498,7 @@ private object TaskMacros {
       ctx: Expr[mill.define.Ctx]
   ): Expr[Target[Seq[PathRef]]] = {
     val expr = appImpl[Target, Seq[PathRef]](
-      (in, ev) => '{ new SourcesImpl($in, $ev, $ctx, ${ taskIsPrivate() }) },
+      (in, ev) => '{ new SourcesImpl($ev, $ctx, ${ taskIsPrivate() }) },
       values
     )
     Cacher.impl0(expr)
@@ -515,7 +511,7 @@ private object TaskMacros {
   ): Expr[Target[PathRef]] = {
 
     val expr = appImpl[Target, PathRef](
-      (in, ev) => '{ new SourceImpl($in, $ev, $ctx, ${ taskIsPrivate() }) },
+      (in, ev) => '{ new SourceImpl($ev, $ctx, ${ taskIsPrivate() }) },
       value
     )
     Cacher.impl0(expr)
@@ -530,7 +526,7 @@ private object TaskMacros {
   ): Expr[Target[T]] = {
 
     val expr = appImpl[Target, T](
-      (in, ev) => '{ new InputImpl[T]($in, $ev, $ctx, $w, ${ taskIsPrivate() }) },
+      (in, ev) => '{ new InputImpl[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
       value
     )
     Cacher.impl0(expr)

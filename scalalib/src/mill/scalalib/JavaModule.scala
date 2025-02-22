@@ -54,11 +54,7 @@ trait JavaModule
     override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
-    override def sources = Task.Input {
-      for (src <- outer.sources()) yield {
-        PathRef(this.moduleDir / src.path.relativeTo(outer.moduleDir))
-      }
-    }
+    override def sourcesFolders = outer.sourcesFolders
 
     override def bomIvyDeps = Task[Seq[Dep]] {
       super.bomIvyDeps() ++
