@@ -1,5 +1,5 @@
 package build
-import build.`foo-bar`.FooBar
+import build.FooBar
 
 import mill._
 

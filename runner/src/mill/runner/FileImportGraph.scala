@@ -260,7 +260,6 @@ object FileImportGraph {
         .flatMap(os.list(_))
         .filter(_.last.endsWith(s".$buildFileExtension"))
 
-      mill.constants.DebugLog.println("buildFiles ++ adjacentScripts " + (buildFiles ++ adjacentScripts))
       buildFiles ++ adjacentScripts
     }
   }
