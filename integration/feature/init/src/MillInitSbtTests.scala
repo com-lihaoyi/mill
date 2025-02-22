@@ -1,5 +1,6 @@
 package mill.integration
 
+import mill.constants.Util
 import mill.integration.testMillInit
 import utest.*
 
@@ -161,7 +162,8 @@ object MillInitSbtScalazTests extends BuildGenTestSuite {
     test - integrationTest(url) { tester =>
       import tester.*
 
-      os.call(("chmod", "+x", "sbt"), cwd = workspacePath)
+      if (!Util.isWindows)
+        os.call(("chmod", "+x", "sbt"), cwd = workspacePath)
 
       val initResult = eval(defaultInitCommand, stdout = os.Inherit, stderr = os.Inherit)
       assert(initResult.isSuccess)

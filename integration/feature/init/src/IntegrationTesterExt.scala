@@ -39,8 +39,11 @@ extension (tester: IntegrationTester)
         assert(!resolveAllTasksResult.isSuccess)
       )(expected => {
         assert(resolveAllTasksResult.isSuccess)
-        val resolvedAllTasks = resolveAllTasksResult.out.split('\n').toSet
-        Predef.assert(resolvedAllTasks == expected.all, "resolved tasks: " + resolvedAllTasks)
+        val resolvedAllTasks = resolveAllTasksResult.out.linesIterator.toSet
+        Predef.assert(
+          expected.all == resolvedAllTasks,
+          "expected: " + expected.all + ", resolved: " + resolvedAllTasks
+        )
 
         for (task <- expected.successful)
           Predef.assert(eval(task).isSuccess, s"task $task failed")
