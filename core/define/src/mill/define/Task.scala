@@ -462,7 +462,8 @@ private object TaskMacros {
       ) => Expr[M[T]],
       t: Expr[Result[T]],
       allowTaskReferences: Boolean = true
-  ): Expr[M[T]] = Applicative.impl[M, Task, Result, T, mill.api.Ctx](traverseCtx, t, allowTaskReferences)
+  ): Expr[M[T]] =
+    Applicative.impl[M, Task, Result, T, mill.api.Ctx](traverseCtx, t, allowTaskReferences)
 
   private def taskIsPrivate()(using Quotes): Expr[Option[Boolean]] =
     Cacher.withMacroOwner {

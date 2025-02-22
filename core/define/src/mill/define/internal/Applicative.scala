@@ -30,7 +30,7 @@ object Applicative {
   )(
       traverseCtx: (Expr[Seq[W[Any]]], Expr[(Seq[Any], Ctx) => Z[T]]) => Expr[M[T]],
       t: Expr[Z[T]],
-      allowTaskReferences: Boolean = true                                              
+      allowTaskReferences: Boolean = true
   ): Expr[M[T]] = {
     import quotes.reflect.*
 
