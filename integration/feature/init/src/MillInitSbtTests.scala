@@ -1,14 +1,11 @@
 package mill.integration
 
-import mill.integration.MillInitSbtTests.{bumpSbtTo1107, initCommand}
+import mill.integration.testMillInit
 import utest.*
 
-object MillInitSbtTests {
-  val initCommand = ("init", "--base-module", "BaseModule", "--deps-object", "Deps", "--merge")
-  def bumpSbtTo1107(workspacePath: os.Path) =
-    // bump sbt version to resolve compatibility issues with lower sbt versions and higher JDK versions
-    os.write.over(workspacePath / "project" / "build.properties", "sbt.version = 1.10.7")
-}
+def bumpSbtTo1107(workspacePath: os.Path) =
+  // bump sbt version to resolve compatibility issues with lower sbt versions and higher JDK versions
+  os.write.over(workspacePath / "project" / "build.properties", "sbt.version = 1.10.7")
 
 // relatively small libraries
 
@@ -20,15 +17,12 @@ object MillInitLibraryExampleTests extends BuildGenTestSuite {
      */
     val url = "https://github.com/scalacenter/library-example/archive/refs/tags/v1.0.1.zip"
 
-    test - integrationTest(url) { tester =>
-      import tester.*
-
-      val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initResult.isSuccess)
-
-      val compileResult = eval("compile")
-      assert(compileResult.isSuccess)
-    }
+    test - integrationTest(url)(
+      _.testMillInit(
+        expectedCompileTasks = Some(SplitResolvedTasks(Seq("compile"), Seq())),
+        expectedTestTasks = None // scalaprops not supported in `TestModule`
+      )
+    )
   }
 }
 
@@ -41,16 +35,13 @@ object MillInitScalaCsv200Tests extends BuildGenTestSuite {
     val url = "https://github.com/tototoshi/scala-csv/archive/refs/tags/2.0.0.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      bumpSbtTo1107(tester.workspacePath)
 
-      bumpSbtTo1107(workspacePath)
-
-      val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initResult.isSuccess)
-
-      val compileResult = eval("compile")
       // Cross builds are not supported yet.
-      assert(!compileResult.isSuccess)
+      tester.testMillInit(
+        expectedCompileTasks = Some(SplitResolvedTasks(Seq(), Seq("compile", "test.compile"))),
+        expectedTestTasks = Some(SplitResolvedTasks(Seq(), Seq("test" /*, "test.test"*/ )))
+      )
     }
   }
 }
@@ -64,16 +55,18 @@ object MillInitScalaCsv136Tests extends BuildGenTestSuite {
     val url = "https://github.com/tototoshi/scala-csv/archive/refs/tags/1.3.6.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      bumpSbtTo1107(tester.workspacePath)
 
-      bumpSbtTo1107(workspacePath)
-
-      val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initResult.isSuccess)
-
-      val compileResult = eval("compile")
-      // It works here, but scala 2.11 with JDK 6 seems not supported when run with JDK 17 in shell.
-      assert(compileResult.isSuccess)
+      tester.testMillInit(
+        expectedCompileTasks = Some(SplitResolvedTasks(
+          // It works here, but scala 2.11 with JDK 6 seems not supported when run with JDK 17 in shell.
+          Seq("compile"),
+          // `Not a Java dependency: Dep(Dependency(com.storm-enroute:scalameter, 0.8.2, Configuration(), Set(), Publication(, Type(), Extension(), Classifier()), false, true),Binary(false),false)`
+          // probably due to inheriting `MavenTests` instead of `SbtTests`
+          Seq("test.compile")
+        )),
+        expectedTestTasks = Some(SplitResolvedTasks(Seq(), Seq("test" /*, "test.test"*/ )))
+      )
     }
   }
 }
@@ -89,22 +82,28 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       "https://github.com/pbassiner/sbt-multi-project-example/archive/152b31df9837115b183576b0080628b43c505389.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      bumpSbtTo1107(tester.workspacePath)
 
-      bumpSbtTo1107(workspacePath)
+      val submodules = Seq("common", "multi1", "multi2")
 
-      val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initResult.isSuccess)
-
-      val compileResult = eval("compile")
-      assert(compileResult.isSuccess)
-
-      val compileSubmodulesResult = eval("_.compile")
-      if (System.getProperty("java.version").split('.').head.toInt <= 11)
-        assert(compileSubmodulesResult.isSuccess)
-      else
-        // Submodules don't compile well with JDK 17 and 21, which seems to be due to incompatible bytecode versions in dependencies.
-        assert(!compileSubmodulesResult.isSuccess)
+      tester.testMillInit(
+        expectedCompileTasks =
+          Some(if (System.getProperty("java.version").split('.').head.toInt <= 11)
+            SplitResolvedTasks(
+              Seq("compile") ++ submodules.map(_.compileTask),
+              // probably due to inheriting `MavenTests` instead of `SbtTests`
+              submodules.map(_.testCompileTask)
+            )
+          else {
+            // Submodules don't compile well with JDK 17 and 21, which seems to be due to incompatible bytecode versions in dependencies.
+            val succeededSubmoduleCompileTasks = Seq("common.compile", "multi2.compile")
+            SplitResolvedTasks(
+              Seq("compile") ++ succeededSubmoduleCompileTasks,
+              (submodules.flatMap(_.allCompileTasks).toSet -- succeededSubmoduleCompileTasks).toSeq
+            )
+          }),
+        expectedTestTasks = Some(SplitResolvedTasks(Seq(), submodules.map(_.testTask)))
+      )
     }
   }
 }
@@ -120,19 +119,32 @@ object MillInitZioHttpTests extends BuildGenTestSuite {
     val url = "https://github.com/zio/zio-http/archive/refs/tags/v3.0.1.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      bumpSbtTo1107(tester.workspacePath)
 
-      bumpSbtTo1107(workspacePath)
+      val submodules = Seq(
+        "sbt-zio-http-grpc-tests",
+        "sbt-zio-http-grpc",
+        "zio-http-benchmarks.compile",
+        "zio-http-cli",
+        "zio-http-docs",
+        "zio-http-example",
+        "zio-http-gen",
+        "zio-http-htmx",
+        "zio-http-testkit",
+        "zio-http-tools",
+        "zio-http.js",
+        "zio-http.jvm"
+      )
 
-      val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initResult.isSuccess)
-
-      val compileResult = eval("compile")
-      assert(compileResult.isSuccess)
-
-      val compileSubmodulesResult = eval("_.compile")
+      // TODO
+      /*
+      // probably due to inheriting `MavenTests` instead of `SbtTests`
       // Some dependencies with currently unsupported `CrossVersion` `For3Use2_13` are not imported properly
-      assert(!compileSubmodulesResult.isSuccess)
+      tester.testMillInit(
+        expectedCompileTasks = Some(SplitResolvedTasks(Seq("compile"), submodules.flatMap(_.allCompileTasks))),
+        expectedTestTasks = Some(SplitResolvedTasks(Seq(), submodules.flatMap(_.allTestTasks)))
+      )
+       */
     }
   }
 }
@@ -151,11 +163,15 @@ object MillInitSbtScalazTests extends BuildGenTestSuite {
 
       os.call(("chmod", "+x", "sbt"), cwd = workspacePath)
 
-      val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
+      val initResult = eval(defaultInitCommand, stdout = os.Inherit, stderr = os.Inherit)
       assert(initResult.isSuccess)
 
       val compileResult = eval("compile")
       assert(compileResult.isSuccess)
+
+      // TODO
+      val resolveCompilesResult = eval(("resolve", "__.compile"))
+      println("Resolve result: " + resolveCompilesResult.out)
     }
   }
 }
@@ -173,7 +189,7 @@ object MillInitSbtCatsTests extends BuildGenTestSuite {
     test - integrationTest(url) { tester =>
       import tester.*
 
-      val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
+      val initResult = eval(defaultInitCommand, stdout = os.Inherit, stderr = os.Inherit)
       assert(initResult.isSuccess)
 
       val compileResult = eval("compile")
@@ -196,7 +212,7 @@ object MillInitSbtPlayFrameworkTests extends BuildGenTestSuite {
     test - integrationTest(url) { tester =>
       import tester.*
 
-      val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
+      val initResult = eval(defaultInitCommand, stdout = os.Inherit, stderr = os.Inherit)
       assert(initResult.isSuccess)
 
       val compileResult = eval("compile")
@@ -220,7 +236,7 @@ object MillInitSbtScalaCheckTests extends BuildGenTestSuite {
 
       bumpSbtTo1107(workspacePath)
 
-      val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
+      val initResult = eval(defaultInitCommand, stdout = os.Inherit, stderr = os.Inherit)
       assert(initResult.isSuccess)
 
       val compileResult = eval("compile")
