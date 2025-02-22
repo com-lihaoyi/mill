@@ -121,7 +121,7 @@ object MillInitZioHttpTests extends BuildGenTestSuite {
     test - integrationTest(url) { tester =>
       bumpSbtTo1107(tester.workspacePath)
 
-      val submodules = Seq(
+      Seq(
         "sbt-zio-http-grpc-tests",
         "sbt-zio-http-grpc",
         "zio-http-benchmarks.compile",

@@ -39,7 +39,7 @@ extension (tester: IntegrationTester)
         assert(!resolveAllTasksResult.isSuccess)
       )(expected => {
         assert(resolveAllTasksResult.isSuccess)
-        val resolvedAllTasks =  resolveAllTasksResult.out.split('\n').toSet
+        val resolvedAllTasks = resolveAllTasksResult.out.split('\n').toSet
         Predef.assert(resolvedAllTasks == expected.all, "resolved tasks: " + resolvedAllTasks)
 
         for (task <- expected.successful)
