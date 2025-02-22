@@ -154,14 +154,12 @@ object FileImportGraph {
           errors.append(err)
 
         case Right(stmts) =>
-          val fileImports = mutable.Set.empty[os.Path]
           // we don't expect any new imports when using an empty dummy
           val transformedStmts = mutable.Buffer.empty[String]
           for ((stmt0, importTrees) <- parser.parseImportHooksWithIndices(stmts)) {
-            walkStmt(s, stmt0, importTrees, fileImports, transformedStmts)
+            walkStmt(s, stmt0, importTrees, transformedStmts)
           }
           seenScripts(s) = transformedStmts.mkString
-          fileImports.foreach(processScript(_))
       }
     }
 
@@ -169,7 +167,6 @@ object FileImportGraph {
         s: os.Path,
         stmt0: String,
         importTrees: Seq[ImportTree],
-        fileImports: mutable.Set[os.Path],
         transformedStmts: mutable.Buffer[String]
     ) = {
 
@@ -194,24 +191,6 @@ object FileImportGraph {
           case ImportTree(Seq(("$packages", _), rest @ _*), mapping, start, end) =>
             packagesImport = true
             (start, "_root_._", end)
-
-          case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
-            // Only recursively explore imports from legacy `.sc` files, as new `.mill` files
-            // do file discovery via scanning folders containing `package.mill` files
-            if (s.last.endsWith(".sc") && !s.last.endsWith(".mill.scala")) {
-              val nextPaths = mapping.map { case (lhs, rhs) =>
-                nextPathFor(s, rest.map(_._1) :+ lhs)
-              }
-              val patchString =
-                (fileImportToSegments(projectRoot, nextPaths(0) / os.up) ++ Seq())
-                  .map(backtickWrap)
-                  .mkString(".")
-              fileImports.addAll(nextPaths)
-              (start, patchString, rest.lastOption.fold(end0)(_._2))
-
-            } else {
-              (start, "", start)
-            }
         }
 
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
@@ -222,40 +201,12 @@ object FileImportGraph {
       transformedStmts.append(stmt)
     }
 
-    val rootBuildFiles = rootBuildFileNames
-      .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
-
-    val (useDummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
-      case Nil => (true, rootBuildFileNames.head)
-      case Seq(single) => (false, single)
-      case multiple =>
-        System.err.println(
-          "Multiple root build files found: " + multiple.mkString(",") +
-            ", picking " + multiple.head
-        )
-        (false, multiple.head)
-    }
-
-    val buildFileExtension =
-      buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
-
-    val nestedBuildFileName = s"package.$buildFileExtension"
+    val (useDummy, foundRootBuildFileName, buildFileExtension) = findRootBuildFiles(projectRoot)
 
     processScript(projectRoot / foundRootBuildFileName, useDummy)
     val buildFiles =
       if (!packagesImport) Nil
-      else {
-        os
-          .walk(
-            projectRoot,
-            followLinks = true,
-            skip = p =>
-              p == output ||
-                p == projectRoot / millBuild ||
-                (os.isDir(p) && !os.exists(p / nestedBuildFileName))
-          )
-          .filter(_.last == nestedBuildFileName)
-      }
+      else walkBuildFiles(projectRoot, output)
 
     val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
       .flatMap(os.list(_))
@@ -273,13 +224,42 @@ object FileImportGraph {
     )
   }
 
-  def nextPathFor(s: os.Path, rest: Seq[String]): os.Path = {
-    val restSegments = rest.map {
-      case "^" => os.up
-      case s => os.rel / s
+  def findRootBuildFiles(projectRoot: os.Path) = {
+    val rootBuildFiles = rootBuildFileNames
+      .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
+
+
+    val (dummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
+      case Nil => (true, rootBuildFileNames.head)
+      case Seq(single) => (false, single)
+      case multiple =>
+        System.err.println(
+          "Multiple root build files found: " + multiple.mkString(",") +
+            ", picking " + multiple.head
+        )
+        (false, multiple.head)
     }
 
-    s / os.up / restSegments / os.up / s"${rest.last}.sc"
+    val buildFileExtension =
+      buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
+
+    (dummy, foundRootBuildFileName, buildFileExtension)
+  }
+
+  def walkBuildFiles(projectRoot: os.Path, output: os.Path) = {
+    val (dummy, rootBuildFiles, buildFileExtension) = findRootBuildFiles(projectRoot)
+
+    val nestedBuildFileName = s"package.$buildFileExtension"
+    os
+      .walk(
+        projectRoot,
+        followLinks = true,
+        skip = p =>
+          p == output ||
+            p == projectRoot / millBuild ||
+            (os.isDir(p) && !os.exists(p / nestedBuildFileName))
+      )
+      .filter(_.last == nestedBuildFileName)
   }
 
   def fileImportToSegments(base: os.Path, s: os.Path): Seq[String] = {

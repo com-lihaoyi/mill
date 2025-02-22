@@ -46,7 +46,11 @@ abstract class MillBuildRootModule()(implicit
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
-  def scriptSources: Target[Seq[PathRef]] = ???
+  def scriptSources: Target[Seq[PathRef]] = Task.Sources(
+    FileImportGraph.walkBuildFiles(rootModuleInfo.projectRoot, rootModuleInfo.output)
+      .sorted
+      .map(Result.Success(_)) * // Ensure ordering is deterministic
+  )
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
