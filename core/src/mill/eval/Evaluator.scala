@@ -147,7 +147,7 @@ final class Evaluator private[mill] (
                 dest0 = () => null,
                 log = logger,
                 home = os.home,
-                env = sys.env,
+                env = this.execution.env,
                 reporter = reporter,
                 testReporter = testReporter,
                 workspace = workspace,

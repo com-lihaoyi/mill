@@ -31,7 +31,7 @@ private[mill] object SelectiveExecution {
             dest0 = () => null,
             log = evaluator.baseLogger,
             home = os.home,
-            env = sys.env,
+            env = evaluator.execution.env,
             reporter = _ => None,
             testReporter = mill.api.DummyTestReporter,
             workspace = evaluator.workspace,
