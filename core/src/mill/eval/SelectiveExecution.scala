@@ -33,7 +33,7 @@ private[mill] object SelectiveExecution {
             home = os.home,
             env = sys.env,
             reporter = _ => None,
-            testReporter = DummyTestReporter,
+            testReporter = mill.api.DummyTestReporter,
             workspace = evaluator.workspace,
             systemExit = null,
             fork = null
