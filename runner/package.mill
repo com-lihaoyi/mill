@@ -41,7 +41,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     // spurious errors when there are mixed Java/Scala sources
     def fix(args: String*): Command[Unit] = Task.Command {}
     def buildInfoPackageName = "mill.runner.client"
-    def moduleDeps = Seq(build.core.client)
+    def moduleDeps = Seq(build.runner.server.client)
     def ivyDeps = Agg(
       build.Deps.windowsAnsi,
       build.Deps.coursier,
@@ -63,7 +63,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     build.pythonlib,
     build.bsp,
     build.core.codesig,
-    build.core.server,
+    build.runner.server,
     client,
     `worker-api`
   )

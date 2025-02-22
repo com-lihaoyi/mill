@@ -201,7 +201,8 @@ build-related questions listed above.
 
 === The Object Hierarchy
 
-```graphviz
+[graphviz]
+....
 digraph G {
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   bgcolor=transparent
@@ -214,7 +215,7 @@ digraph G {
   foo2 -> "foo2.qux"  [style=dashed]
   foo2 -> "foo2.baz"  [style=dashed]
 }
-```
+....
 
 The module hierarchy is the graph of objects, starting from the root of the
 `build.mill` file, that extend `mill.Module`. At the leaves of the hierarchy are
@@ -240,7 +241,8 @@ are sure that it will never clash with any other ``Task``s data.
 
 === The Call Graph
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -275,7 +277,7 @@ digraph G {
     "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
   }
 }
-```
+....
 
 The Scala call graph of "which task references which other task" is core to
 how Mill operates. This graph is reified via the `Task {...}` macro to make it

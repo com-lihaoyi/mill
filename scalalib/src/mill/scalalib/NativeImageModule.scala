@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.*
-import mill.client.Util
+import mill.constants.Util
 
 import scala.util.Properties
 

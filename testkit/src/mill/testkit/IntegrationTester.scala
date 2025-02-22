@@ -1,7 +1,7 @@
 package mill.testkit
 
-import mill.client.EnvVars.MILL_TEST_SUITE
-import mill.client.OutFiles
+import mill.constants.EnvVars.MILL_TEST_SUITE
+import mill.constants.OutFiles
 import mill.define.Segments
 import mill.exec.Cached
 import mill.define.SelectMode
@@ -88,7 +88,7 @@ object IntegrationTester {
         timeout = timeout,
         check = check,
         propagateEnv = propagateEnv,
-        timeoutGracePeriod = timeoutGracePeriod
+        shutdownGracePeriod = timeoutGracePeriod
       )
 
       IntegrationTester.EvalResult(
@@ -111,7 +111,7 @@ object IntegrationTester {
        */
       def text: String = {
         val Seq((Seq(selector), _)) =
-          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
+          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).get
 
         val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)
         os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")
@@ -157,7 +157,7 @@ object IntegrationTester {
         )
       }
 
-      removeServerIdFile()
+      removeProcessIdFile()
     }
   }
 

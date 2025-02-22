@@ -10,21 +10,24 @@ with your build tool and more time to focus on the actual work you need to do.
 At a first glance, Mill looks like any other build tool. You have build files, you configure
 dependencies, you can compile, run, or test your project:
 
-```scala
+[source,scala]
+----
 // build.mill
 package build
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   object test extends JavaTests with TestModule.Junit4
 }
-```
-```bash
+----
+
+[source,bash]
+----
 > /mill foo.compile
 compiling 1 Java source...
 
@@ -35,7 +38,7 @@ compiling 1 Java source...
 Test foo.FooTest.testEscaping finished, ...
 Test foo.FooTest.testSimple finished, ...
 0 failed, 0 ignored, 2 total, ...
-```
+----
 
 Beyond the basics, Mill provides 3 major advantages over other build tools. The comparison pages
 for the respective build tool go into more detail (for xref:comparisons/maven.adoc[Maven],
@@ -53,9 +56,9 @@ these advantages are:
 
 We will discuss each one in turn.
 
-## Performance
+== Performance
 
-### Maven
+=== Maven
 
 Overall across our benchmarks, Mill is 4-10x faster than Maven for clean compiles,
 both parallel and sequential, and for many modules or for a single module:
@@ -85,7 +88,7 @@ to not require other files to re-compile. In contrast, Maven re-compiles all fil
 modules, even though only one file was touched and the change was trivial.
 
 
-### Gradle
+=== Gradle
 
 The comparison with Gradle is less stark, but still significant. Mill is 2-4x faster than Gradle
 across the various workflows:
@@ -115,7 +118,7 @@ really shine through.
 
 
 
-## Ease of Use
+== Ease of Use
 
 The second area that Mill does well compared to tools like Maven or Gradle is in its ease
 of use.This is not just in superficial things like the build file or command-line syntax,
@@ -123,7 +126,7 @@ but also in how Mill exposes how your build works and what your build is doing s
 understand it and confidently make changes. We will consider three cases: the Mill Chrome
 Profile, Mill Visualize, and Mill's IDE support
 
-### Chrome Profiles
+=== Chrome Profiles
 
 All Mill runs generate some debugging metadata files in `out/mill-*`. One of these
 is `out/mill-chrome-profile.json`, which is a file following the Chrome Profiling format.
@@ -166,7 +169,7 @@ with Chrome on it is able to load and let you explore that profile. That is a po
 help engineers understand what the build is doing: any engineer who felt a build was slow
 can trivially load it into their Chrome browser to analyze and figure out what.
 
-### Mill Visualize
+=== Mill Visualize
 
 Apart from the Mill Chrome Profile, Mill also provides the `./mill visualize` command, which
 is useful to show the logical dependency graph between tasks. For example, we can use
@@ -189,7 +192,7 @@ tools can help give greater understanding of what your build is doing and why it
 something that can be hard to come by with build tools that are often considered confusing and
 inscrutable.
 
-### IDE Support
+=== IDE Support
 
 One area that Mill does better than Gradle is providing a seamless IDE experience. For example,
 consider the snippet below where we are using Gradle to configure the javac compiler options.
@@ -254,7 +257,7 @@ polished experience to your build system - traditionally something that has been
 and hard to understand - and does so in a way that no other build tool does.
 
 
-## Extensibility
+== Extensibility
 
 Mill allows you to directly write code to configure your build, and even download libraries
 from Maven Central.
@@ -273,19 +276,20 @@ filesystem, subprocess, and dependency-management libraries. And even if you nee
 libraries from Maven Central to do Foo, you can directly import the "Foo" library and use it
 directly, without having to find a "Foo build plugin" wrapper.
 
-### Simple Custom Tasks
+=== Simple Custom Tasks
 
 The following Mill build is a minimal Java module `foo`. It contains no custom configuration, and
 so inherits all the defaults from `mill.javalib.JavaModule`: default source folder layout, default
 assembly configuration, default compiler flags, and so on.
 
-```scala
+[source,scala]
+----
 package build
 import mill._, javalib._
 
 object foo extends JavaModule {
 }
-```
+----
 ```bash
 > mill compile
 Compiling 1 Java source...
@@ -295,7 +299,8 @@ If you want to add a custom task, this is as simple as defining a method e.g.
 `def lineCount = Task { ... }`. The body of `Task` performs the action we want, and
 can depend on other tasks such as `allSourceFiles()` below:
 
-```scala
+[source,scala]
+----
 package build
 import mill._, javalib._
 
@@ -305,16 +310,17 @@ object foo extends JavaModule {
     allSourceFiles().map(f => os.read.lines(f.path).size).sum
   }
 }
-```
+----
 
 Once we define a new task, we can immediately begin using it in our build.
 `lineCount` is not used by any existing `JavaModule` tasks, but we can still
 show its value via the Mill command line to force it to evaluate:
 
-```bash
+[source,bash]
+----
 > mill show foo.lineCount
 17
-```
+----
 
 Note that as `lineCount` is a `Task`, we get automatic caching, invalidation, and
 parallelization: these are things that every `Task` gets for free, without the task
@@ -322,7 +328,7 @@ author to do anything. And although we wrote the `lineCount` logic in the main
 `build.mill` file for this example, if it grows complex enough to get messy it is
 easy to move it to your own xref:extending/writing-plugins.adoc[custom plugins]
 
-### Overriding Tasks
+=== Overriding Tasks
 
 To wire up `lineCount` into our main `JavaModule` `compile`/`test`/`run` tasks,
 one way is to take the line count value and write it to a file in `def resources`.
@@ -330,7 +336,8 @@ This file can then be read at runtime as a JVM resource. We do that below
 by overriding `def resources` and making it depend on `lineCount`, in addition
 to its existing value `super.resources()`:
 
-```scala
+[source,scala]
+----
 package build
 import mill._, javalib._
 
@@ -346,7 +353,7 @@ object foo extends JavaModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 }
-```
+----
 
 
 Because our `def resources` overrides the existing `resources` method inherited from `JavaModule`,
@@ -355,15 +362,16 @@ work. That means if you call `mill foo.run`, it will automatically pick up the n
 including the generated `line-count.txt` file and make it available to
 the application code to use e.g. to print it out at runtime:
 
-```bash
+[source,bash]
+----
 > mill foo.run
 Line Count: 18
-```
+----
 
 Next, we'll look at a more realistic example,
 which includes usage of third-party libraries in the build.
 
-### Using Third-Party JVM Libraries in Tasks
+=== Using Third-Party JVM Libraries in Tasks
 
 Earlier on we discussed possibly pre-rendering HTML pages in the build so they can be
 served at runtime. The use case for this are obvious: if a page never changes, rendering
@@ -377,8 +385,8 @@ library. Mill does not ship with a bundled HTML templating engine, but you can u
 `import $ivy` syntax to include one such as Thymeleaf, which would immediately make the
 Thymeleaf classes available for you to import and use in your build as below:
 
-
-```scala
+[source,scala]
+----
 package build
 import mill._, javalib._
 import $ivy.`org.thymeleaf:thymeleaf:3.1.1.RELEASE`
@@ -403,7 +411,7 @@ object foo extends JavaModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 }
-```
+----
 
 Once we have run `import $ivy`, we can import `TemplateEngine`, `Context`, and replace our
 `def lineCount` with a `def htmlSnippet` task that uses Thymeleaf to render  HTML. Again,
@@ -412,8 +420,8 @@ is inspectable from the Mill command line via `show`, and we wire it up into
 `def resources` so it can be inspected and used at runtime by the application
 (in this case just printed out):
 
-
-```bash
+[source,bash]
+----
 > mill show foo.htmlSnippet
 "<h1>Line count is: 17</h1>"
 
@@ -423,7 +431,7 @@ compiling 1 Java source...
 
 > mill foo.run
 generated snippet.txt resource: <h1>Line count is: 17</h1>
-```
+----
 
 Rendering HTML using the Thymeleaf templating engine is not rocket science, but what is
 interesting here is what we did _not_ need to do:
@@ -461,7 +469,7 @@ with fragile shell scripts, Mill allows your own custom logic to be implemented
 in a way that is flexible, performant, and safe, such that anyone can configure their
 build correctly and achieve maximum performance even without being a build tool expert.
 
-## Conclusion
+== Conclusion
 
 To wrap up, Mill does all the same things that other build tools like Maven or Gradle do,
 but aims to do them better: faster, easier to use, and easier to extend.

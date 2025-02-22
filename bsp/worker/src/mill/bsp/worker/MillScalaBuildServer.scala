@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsParams,
   ScalacOptionsResult
 }
-import mill.{Agg, Task}
+import mill.Task
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.util.Jvm
 import mill.scalalib.{JavaModule, ScalaModule, TestModule, UnresolvedPath}
@@ -41,7 +41,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           val compileClasspathTask =
             if (enableJvmCompileClasspathProvider) {
               // We have a dedicated request for it
-              Task.Anon { Agg.empty[UnresolvedPath] }
+              Task.Anon { Seq.empty[UnresolvedPath] }
             } else {
               m.bspCompileClasspath
             }
@@ -66,14 +66,13 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             m: JavaModule,
             (allScalacOptions, compileClasspath, classesPathTask)
           ) =>
-        val pathResolver = ev.pathsResolver
         new ScalacOptionsItem(
           id,
           allScalacOptions.asJava,
           compileClasspath.iterator
-            .map(_.resolve(pathResolver))
+            .map(_.resolve(ev.outPath))
             .map(sanitizeUri).toSeq.asJava,
-          sanitizeUri(classesPathTask.resolve(pathResolver))
+          sanitizeUri(classesPathTask.resolve(ev.outPath))
         )
       case _ => ???
     } {
@@ -119,7 +118,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       }
     ) {
       case (ev, state, id, m: TestModule, Some((classpath, testFramework, testClasspath))) =>
-        val (frameworkName, classFingerprint): (String, Agg[(Class[?], Fingerprint)]) =
+        val (frameworkName, classFingerprint): (String, Seq[(Class[?], Fingerprint)]) =
           Jvm.withClassLoader(
             classPath = classpath.map(_.path).toVector,
             sharedPrefixes = Seq("sbt.testing.")
@@ -128,7 +127,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             val discoveredTests = TestRunnerUtils.discoverTests(
               classLoader,
               framework,
-              Agg.from(testClasspath.map(_.path))
+              Seq.from(testClasspath.map(_.path))
             )
             (framework.name(), discoveredTests)
           }: @unchecked

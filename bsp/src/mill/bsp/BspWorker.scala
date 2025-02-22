@@ -1,6 +1,6 @@
 package mill.bsp
 
-import mill.api.{Logger, SystemStreams}
+import mill.api.{Logger, SystemStreams, Result}
 
 import java.io.PrintStream
 import java.net.URL
@@ -13,7 +13,7 @@ private trait BspWorker {
       logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
-  ): Either[String, BspServerHandle]
+  ): Result[BspServerHandle]
 }
 
 private object BspWorker {
@@ -25,9 +25,9 @@ private object BspWorker {
       home0: os.Path,
       log: Logger,
       workerLibs: Option[Seq[URL]] = None
-  ): Either[String, BspWorker] = boundary {
+  ): Result[BspWorker] = boundary {
     worker match {
-      case Some(x) => Right(x)
+      case Some(x) => Result.Success(x)
       case None =>
         val urls = workerLibs.map { urls =>
           log.debug("Using direct submitted worker libs")
@@ -36,7 +36,7 @@ private object BspWorker {
           // load extra classpath entries from file
           val resources = s"${Constants.serverName}-${mill.main.BuildInfo.millVersion}.resources"
           val cpFile = workspace / Constants.bspDir / resources
-          if (!os.exists(cpFile)) boundary.break(Left(
+          if (!os.exists(cpFile)) boundary.break(Result.Failure(
             "You need to run `mill mill.bsp.BSP/install` before you can use the BSP server"
           ))
 
@@ -54,7 +54,7 @@ private object BspWorker {
         val ctr = workerCls.getConstructor()
         val workerImpl = ctr.newInstance().asInstanceOf[BspWorker]
         worker = Some(workerImpl)
-        Right(workerImpl)
+        Result.Success(workerImpl)
     }
   }
 

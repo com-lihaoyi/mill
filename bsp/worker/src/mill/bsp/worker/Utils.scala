@@ -11,12 +11,12 @@ import ch.epfl.scala.bsp4j.{
   TaskId
 }
 import mill.api.{CompileProblemReporter, PathRef}
-import mill.api.Result.{Skipped, Success}
-import mill.exec.ExecResults
+import mill.api.ExecResult.{Skipped, Success}
+import mill.define.ExecutionResults
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
 private object Utils {
@@ -50,7 +50,7 @@ private object Utils {
   }
 
   // Get the execution status code given the results from Evaluator.evaluate
-  def getStatusCode(resultsLists: Seq[ExecResults]): StatusCode = {
+  def getStatusCode(resultsLists: Seq[ExecutionResults]): StatusCode = {
     val statusCodes =
       resultsLists.flatMap(r => r.results.keys.map(task => getStatusCodePerTask(r, task)).toSeq)
     if (statusCodes.contains(StatusCode.ERROR)) StatusCode.ERROR
@@ -107,7 +107,7 @@ private object Utils {
   }
 
   private def getStatusCodePerTask(
-      results: ExecResults,
+      results: ExecutionResults,
       task: mill.define.Task[?]
   ): StatusCode = {
     results.results(task).result match {

@@ -2,18 +2,22 @@ package mill.exec
 
 import mill.define.Task
 import mill.testkit.{TestBaseModule, UnitTester}
-import mill.api.Strict.Agg
+
 import utest.*
 
-class Checker[T <: mill.testkit.TestBaseModule](module: T, threadCount: Option[Int] = Some(1)) {
+class Checker[T <: mill.testkit.TestBaseModule](
+    module: T,
+    threadCount: Option[Int] = Some(1),
+    sourceRoot: os.Path = null
+) {
   // Make sure data is persisted even if we re-create the evaluator each time
 
-  val evaluator = UnitTester(module, null, threads = threadCount).evaluator
+  val execution = UnitTester(module, sourceRoot, threads = threadCount).execution
 
   def apply(
       target: Task[?],
       expValue: Any,
-      expEvaled: Agg[Task[?]],
+      expEvaled: Seq[Task[?]],
       // How many "other" tasks were evaluated other than those listed above.
       // Pass in -1 to skip the check entirely
       extraEvaled: Int = 0,
@@ -23,21 +27,22 @@ class Checker[T <: mill.testkit.TestBaseModule](module: T, threadCount: Option[I
       secondRunNoOp: Boolean = true
   ) = {
 
-    val evaled = evaluator.evaluate(Agg(target))
+    val evaled = execution.executeTasks(Seq(target))
 
     val (matchingReturnedEvaled, extra) =
-      evaled.evaluated.indexed.partition(expEvaled.contains)
+      evaled.evaluated.partition(expEvaled.contains)
 
+    val evaledValues = evaled.values.map(_.value)
     assert(
-      evaled.values.map(_.value) == Seq(expValue),
+      evaledValues == Seq(expValue),
       matchingReturnedEvaled.toSet == expEvaled.toSet,
       extraEvaled == -1 || extra.length == extraEvaled
     )
 
     // Second time the value is already cached, so no evaluation needed
     if (secondRunNoOp) {
-      val evaled2 = evaluator.evaluate(Agg(target))
-      val expectedSecondRunEvaluated = Agg()
+      val evaled2 = execution.executeTasks(Seq(target))
+      val expectedSecondRunEvaluated = Seq()
       assert(
         evaled2.values.map(_.value) == evaled.values.map(_.value),
         evaled2.evaluated == expectedSecondRunEvaluated

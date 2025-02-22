@@ -1,14 +1,14 @@
 package mill.runner
 
 import mill.internal.PrefixLogger
-import mill.define.Watchable
+import mill.define.internal.Watchable
 import mill.main.{BuildInfo, RootModule}
-import mill.client.CodeGenConstants.*
-import mill.api.{ColorLogger, PathRef, SystemStreams, Val, WorkspaceRoot, internal}
+import mill.constants.CodeGenConstants.*
+import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
 import mill.eval.Evaluator
 import mill.define.{BaseModule, Segments, SelectMode}
-import mill.exec.{ChromeProfileLogger, ProfileLogger}
-import mill.client.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
+import mill.exec.JsonArrayLogger
+import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
 
@@ -61,7 +61,7 @@ class MillBuildBootstrap(
   }
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
-    val runnerState = evaluateRec(0)(using parserBridge)
+    val runnerState = evaluateRec(0)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
@@ -78,7 +78,7 @@ class MillBuildBootstrap(
     )
   }
 
-  def evaluateRec(depth: Int)(using parser: MillScalaParser): RunnerState = {
+  def evaluateRec(depth: Int): RunnerState = {
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
@@ -112,7 +112,7 @@ class MillBuildBootstrap(
         }
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
-          parser,
+          parserBridge,
           projectRoot,
           recRoot(projectRoot, depth) / os.up,
           output
@@ -219,7 +219,7 @@ class MillBuildBootstrap(
    */
   def processRunClasspath(
       nestedState: RunnerState,
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator,
       prevFrameOpt: Option[RunnerState.Frame],
       prevOuterFrameOpt: Option[RunnerState.Frame]
@@ -230,7 +230,7 @@ class MillBuildBootstrap(
       Seq("{runClasspath,compile,methodCodeHashSignatures}"),
       selectiveExecution = false
     ) match {
-      case (Left(error), evalWatches, moduleWatches) =>
+      case (Result.Failure(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           evalWatches,
@@ -245,10 +245,10 @@ class MillBuildBootstrap(
         nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-            Right(Seq(
-              Val(runClasspath: Seq[PathRef]),
-              Val(compile: mill.scalalib.api.CompilationResult),
-              Val(methodCodeHashSignatures: Map[String, Int])
+            Result.Success(Seq(
+              runClasspath: Seq[PathRef],
+              compile: mill.scalalib.api.CompilationResult,
+              methodCodeHashSignatures: Map[String, Int]
             )),
             evalWatches,
             moduleWatches
@@ -304,7 +304,7 @@ class MillBuildBootstrap(
    */
   def processFinalTargets(
       nestedState: RunnerState,
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator
   ): RunnerState = {
 
@@ -327,7 +327,7 @@ class MillBuildBootstrap(
       Option(evaluator)
     )
 
-    nestedState.add(frame = evalState, errorOpt = evaled.left.toOption)
+    nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
   }
 
   def makeEvaluator(
@@ -349,26 +349,29 @@ class MillBuildBootstrap(
       )
 
     val outPath = recOut(output, depth)
+    val baseLogger = new PrefixLogger(logger, bootLogPrefix)
     new mill.eval.Evaluator(
-      home,
-      projectRoot,
-      outPath,
-      outPath,
-      rootModule,
-      new PrefixLogger(logger, bootLogPrefix),
-      classLoaderSigHash = millClassloaderSigHash,
-      classLoaderIdentityHash = millClassloaderIdentityHash,
-      workerCache = workerCache.to(collection.mutable.Map),
-      env = env,
-      failFast = !keepGoing,
-      threadCount = threadCount,
-      methodCodeHashSignatures = methodCodeHashSignatures,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
-      systemExit = systemExit,
-      exclusiveSystemStreams = streams0,
       selectiveExecution = selectiveExecution,
-      chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-      profileLogger = new ProfileLogger(outPath / millProfile)
+      execution = new mill.exec.Execution(
+        baseLogger = baseLogger,
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
+        profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
+        home = home,
+        workspace = projectRoot,
+        outPath = outPath,
+        externalOutPath = outPath,
+        rootModule = rootModule,
+        classLoaderSigHash = millClassloaderSigHash,
+        classLoaderIdentityHash = millClassloaderIdentityHash,
+        workerCache = workerCache.to(collection.mutable.Map),
+        env = env,
+        failFast = !keepGoing,
+        threadCount = threadCount,
+        methodCodeHashSignatures = methodCodeHashSignatures,
+        systemExit = systemExit,
+        exclusiveSystemStreams = streams0
+      )
     )
   }
 
@@ -446,15 +449,15 @@ object MillBuildBootstrap {
   }
 
   def evaluateWithWatches(
-      rootModule: BaseModule,
+      rootModule: RootModule,
       evaluator: Evaluator,
       targetsAndParams: Seq[String],
       selectiveExecution: Boolean
-  ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
+  ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
       mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
-        evaluator.evaluateTasksNamed(
+        evaluator.evaluate(
           targetsAndParams,
           SelectMode.Separated,
           selectiveExecution = selectiveExecution
@@ -465,19 +468,20 @@ object MillBuildBootstrap {
     val addedEvalWatched = rootModule.evalWatchedValues.toVector
 
     evalTaskResult match {
-      case Left(msg) => (Left(msg), Nil, moduleWatched)
-      case Right((watched, evaluated)) =>
+      case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatched)
+      case Result.Success(Evaluator.Result(watched, evaluated, _, _)) =>
         evaluated match {
-          case Left(msg) => (Left(msg), watched ++ addedEvalWatched, moduleWatched)
-          case Right(results) =>
-            (Right(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
+          case Result.Failure(msg) =>
+            (Result.Failure(msg), watched ++ addedEvalWatched, moduleWatched)
+          case Result.Success(results) =>
+            (Result.Success(results), watched ++ addedEvalWatched, moduleWatched)
         }
     }
   }
 
-  def getRootModule(runClassLoader: URLClassLoader): BaseModule = {
+  def getRootModule(runClassLoader: URLClassLoader): RootModule = {
     val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
-    buildClass.getField("MODULE$").get(buildClass).asInstanceOf[BaseModule]
+    buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
   }
 
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {

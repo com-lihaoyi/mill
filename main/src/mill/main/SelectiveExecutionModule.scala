@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.api.Result
-import mill.client.OutFiles
+import mill.constants.OutFiles
 import mill.define.{Command, Task}
 import mill.eval.{Evaluator, SelectiveExecution}
 import mill.define.SelectMode
@@ -15,18 +15,14 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def prepare(evaluator: Evaluator, tasks: String*): Command[Unit] =
     Task.Command(exclusive = true) {
-      val res: Either[String, Unit] = evaluator.resolveTasks(
+      evaluator.resolveTasks(
         if (tasks.isEmpty) Seq("__") else tasks,
         SelectMode.Multi
       ).map { resolvedTasks =>
-        SelectiveExecution.Metadata
+        val (metadata, _) = SelectiveExecution.Metadata
           .compute(evaluator, resolvedTasks)
-          .map(x => SelectiveExecution.saveMetadata(evaluator, x._1))
-      }
 
-      res match {
-        case Left(err) => Result.Failure(err)
-        case Right(res) => Result.Success(())
+        SelectiveExecution.saveMetadata(evaluator, metadata)
       }
     }
 
@@ -38,11 +34,9 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def resolve(evaluator: Evaluator, tasks: String*): Command[Array[String]] =
     Task.Command(exclusive = true) {
-      SelectiveExecution.resolve0(evaluator, tasks) match {
-        case Left(err) => Result.Failure(err)
-        case Right(success) =>
-          success.foreach(println)
-          Result.Success(success)
+      SelectiveExecution.resolve0(evaluator, tasks).map { success =>
+        success.foreach(println)
+        success
       }
     }
 
@@ -53,11 +47,9 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def resolveTree(evaluator: Evaluator, tasks: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      SelectiveExecution.resolveTree(evaluator, tasks) match {
-        case Left(err) => Result.Failure(err)
-        case Right(success) =>
-          println(success.render(indent = 2))
-          Result.Success(success)
+      SelectiveExecution.resolveTree(evaluator, tasks).map { success =>
+        println(success.render(indent = 2))
+        success
       }
     }
 
@@ -67,11 +59,9 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def resolveChanged(evaluator: Evaluator, tasks: String*): Command[Seq[String]] =
     Task.Command(exclusive = true) {
-      SelectiveExecution.resolveChanged(evaluator, tasks) match {
-        case Left(err) => Result.Failure(err)
-        case Right(success) =>
-          success.foreach(println)
-          Result.Success(success)
+      SelectiveExecution.resolveChanged(evaluator, tasks).map { success =>
+        success.foreach(println)
+        success
       }
     }
 
@@ -86,12 +76,11 @@ trait SelectiveExecutionModule extends mill.define.Module {
         Result.Failure("`selective.run` can only be run after `selective.prepare`")
       } else {
         SelectiveExecution.resolve0(evaluator, tasks).flatMap { resolved =>
-          if (resolved.isEmpty) Right((Nil, Right(Nil)))
-          else evaluator.evaluateTasksNamed(resolved.toSeq, SelectMode.Multi)
-        } match {
-          case Left(err) => Result.Failure(err)
-          case Right((watched, Left(err))) => Result.Failure(err)
-          case Right((watched, Right(res))) => Result.Success(())
+          if (resolved.isEmpty) Result.Success(())
+          else evaluator.evaluate(resolved.toSeq, SelectMode.Multi).flatMap {
+            case Evaluator.Result(watched, Result.Failure(err), _, _) => Result.Failure(err)
+            case Evaluator.Result(watched, Result.Success(res), _, _) =>
+          }
         }
       }
     }

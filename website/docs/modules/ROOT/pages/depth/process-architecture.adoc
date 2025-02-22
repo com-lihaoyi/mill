@@ -6,7 +6,8 @@ This page goes into detail of how the Mill process and application is structured
 At a high-level, a simplified version of the main components and data-flows within
 a running Mill process is shown below:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -93,7 +94,7 @@ digraph G {
   "assembly.dest" -> "foo.assembly"  [dir=both]
   "assembly.json" -> "foo.assembly"  [dir=both]
 }
-```
+....
 
 
 == The Mill Client
@@ -147,7 +148,7 @@ exit code, but the Mill server remains alive and ready to serve to the next Mill
 client that connects to it
 
 For a more detailed discussion of what exactly goes into "execution", see
-xref:depth/execution-model.adoc[].
+xref:depth/evaluation-model.adoc[].
 
 
 == The Out Folder

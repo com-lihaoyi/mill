@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.UnitTester
 import sbt.testing.Status
 import utest._
@@ -9,7 +9,7 @@ object TestRunnerScalatestTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {
     test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval(testrunner.scalatest.test()): @unchecked
+      val Right(result) = eval(testrunner.scalatest.testForked()): @unchecked
       assert(result.value._2.size == 9)
       junitReportIn(eval.outPath, "scalatest").shouldHave(9 -> Status.Success)
     }
@@ -83,7 +83,7 @@ object TestRunnerScalatestTests extends TestSuite {
         )
       )
       test("includeAndExclude") - tester.testOnly0 { (eval, mod) =>
-        val Left(Result.Failure(msg, _)) =
+        val Left(ExecResult.Failure(msg)) =
           eval.apply(mod.scalatest.testOnly(
             "mill.scalalib.ScalaTestSpec",
             "--",

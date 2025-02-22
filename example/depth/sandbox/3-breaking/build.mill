@@ -36,9 +36,9 @@ object foo extends JavaModule {
 
 > find . | grep .html
 ...
-.../out/foo/test/test.dest/sandbox/foo.html
+.../out/foo/test/testForked.dest/sandbox/foo.html
 
-> cat out/foo/test/test.dest/sandbox/foo.html
+> cat out/foo/test/testForked.dest/sandbox/foo.html
 <h1>foo</h1>
 
 */

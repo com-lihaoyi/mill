@@ -27,7 +27,7 @@ object LauncherTests extends TestSuite {
       val Right(result1) = eval.apply(executableTask): @unchecked
 
       val executable =
-        if (mill.client.Util.isWindows && copyBat) {
+        if (mill.constants.Util.isWindows && copyBat) {
           val prev = result1.value.path
           val next = prev / ".." / s"${prev.baseName}.bat"
           os.copy(prev, next)

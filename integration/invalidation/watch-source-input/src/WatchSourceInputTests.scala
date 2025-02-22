@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.client.Util
+import mill.constants.Util
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 import utest._
 
@@ -133,14 +133,14 @@ object WatchSourceTests extends WatchTests {
     test("sources") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - retry(3) {
+      test("noshow") - retry(1) {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchSource(tester, false)
           }
         }
       }
-      test("show") - retry(3) {
+      test("show") - retry(1) {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchSource(tester, true)
@@ -190,14 +190,14 @@ object WatchInputTests extends WatchTests {
     test("input") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - retry(3) {
+      test("noshow") - retry(1) {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchInput(tester, false)
           }
         }
       }
-      test("show") - /*retry(3) */ {
+      test("show") - retry(1) {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchInput(tester, true)

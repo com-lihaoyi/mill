@@ -1,8 +1,9 @@
 package mill.javalib.revapi
 
-import mill._
-import mill.javalib._
+import mill.*
+import mill.javalib.*
 import mill.javalib.revapi.RevapiModule.optional
+import mill.scalalib.api.Versions
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 
@@ -70,7 +71,7 @@ trait RevapiModule extends PublishModule {
   )
 
   /** API archive and supplement files (dependencies) to compare against */
-  def revapiOldFiles: T[Agg[PathRef]] = Task {
+  def revapiOldFiles: T[Seq[PathRef]] = Task {
     val Artifact(group, id, version) = publishSelfDependency()
     defaultResolver().resolveDeps(
       Seq(ivy"$group:$id:$version"),
@@ -79,8 +80,8 @@ trait RevapiModule extends PublishModule {
   }
 
   /** API archive and supplement files (dependencies) to compare */
-  def revapiNewFiles: T[Agg[PathRef]] = Task {
-    Agg(jar()) ++
+  def revapiNewFiles: T[Seq[PathRef]] = Task {
+    Seq(jar()) ++
       Task.traverse(recursiveModuleDeps)(_.jar)() ++
       defaultResolver().resolveDeps(
         Seq(coursierDependency),
@@ -101,14 +102,14 @@ trait RevapiModule extends PublishModule {
   }
 
   /** Classpath containing the Revapi [[revapiCliVersion CLI]] */
-  def revapiClasspath: T[Agg[PathRef]] = Task {
+  def revapiClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"org.revapi:revapi-standalone:${revapiCliVersion()}")
+      Seq(ivy"org.revapi:revapi-standalone:${revapiCliVersion()}")
     )
   }
 
   /** [[https://revapi.org/revapi-standalone/0.12.0/index.html Revapi CLI]] version */
-  def revapiCliVersion: T[String] = "0.12.0"
+  def revapiCliVersion: T[String] = Task { Versions.revApiVersion }
 
   /** JVM arguments for the Revapi [[revapiCliVersion CLI]] */
   def revapiJvmArgs: T[Seq[String]] = Seq.empty[String]

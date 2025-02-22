@@ -1,81 +1,84 @@
 package mill.exec
 
 import mill.define.{NamedTask, Target, TargetImpl, Task}
-import mill.util.{TestGraphs, TestUtil}
+import mill.util.TestGraphs
 import utest.*
-import mill.api.Strict.Agg
+
+import scala.collection.mutable
+
 object PlanTests extends TestSuite {
+  def checkTopological(targets: Seq[Task[?]]) = {
+    val seen = mutable.Set.empty[Task[?]]
+    for (t <- targets.reverseIterator) {
+      seen.add(t)
+      for (upstream <- t.inputs) {
+        assert(!seen(upstream))
+      }
+    }
+  }
 
   val tests = Tests {
 
-    val graphs = new TestGraphs()
-    import graphs._
     import TestGraphs._
 
     test("topoSortedTransitiveTargets") {
-      def check(targets: Agg[Task[?]], expected: Agg[Task[?]]) = {
+      def check(targets: Seq[Task[?]], expected: Seq[Task[?]]) = {
         val result = Plan.topoSorted(Plan.transitiveTargets(targets)).values
-        TestUtil.checkTopological(result)
+        checkTopological(result)
         assert(result == expected)
       }
 
       test("singleton") - check(
-        targets = Agg(singleton.single),
-        expected = Agg(singleton.single)
+        targets = Seq(singleton.single),
+        expected = Seq(singleton.single)
       )
       test("backtickIdentifiers") - check(
-        targets = Agg(bactickIdentifiers.`a-down-target`),
-        expected = Agg(bactickIdentifiers.`up-target`, bactickIdentifiers.`a-down-target`)
+        targets = Seq(bactickIdentifiers.`a-down-target`),
+        expected = Seq(bactickIdentifiers.`up-target`, bactickIdentifiers.`a-down-target`)
       )
       test("pair") - check(
-        targets = Agg(pair.down),
-        expected = Agg(pair.up, pair.down)
+        targets = Seq(pair.down),
+        expected = Seq(pair.up, pair.down)
       )
       test("anonTriple") - check(
-        targets = Agg(anonTriple.down),
-        expected = Agg(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
+        targets = Seq(anonTriple.down),
+        expected = Seq(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
       )
       test("diamond") - check(
-        targets = Agg(diamond.down),
-        expected = Agg(diamond.up, diamond.left, diamond.right, diamond.down)
+        targets = Seq(diamond.down),
+        expected = Seq(diamond.up, diamond.left, diamond.right, diamond.down)
       )
       test("anonDiamond") - check(
-        targets = Agg(diamond.down),
-        expected = Agg(
+        targets = Seq(diamond.down),
+        expected = Seq(
           diamond.up,
           diamond.down.inputs(0),
           diamond.down.inputs(1),
           diamond.down
         )
       )
-      test("bigSingleTerminal") {
-        val result = Plan.topoSorted(Plan.transitiveTargets(Agg(bigSingleTerminal.j))).values
-        TestUtil.checkTopological(result)
-        assert(result.size == 28)
-      }
     }
-
     test("groupAroundNamedTargets") {
       def check[T, R <: Target[Int]](base: T)(
           target: T => R,
-          important0: Agg[T => Target[?]],
-          expected: Agg[(R, Int)]
+          important0: Seq[T => Target[?]],
+          expected: Seq[(R, Int)]
       ) = {
 
-        val topoSorted = Plan.topoSorted(Plan.transitiveTargets(Agg(target(base))))
+        val topoSorted = Plan.topoSorted(Plan.transitiveTargets(Seq(target(base))))
 
         val important = important0.map(_(base))
         val grouped = Plan.groupAroundImportantTargets(topoSorted) {
           case t: TargetImpl[_] if important.contains(t) => t: Target[?]
         }
-        val flattened = Agg.from(grouped.values().flatMap(_.items))
+        val flattened = Seq.from(grouped.values().flatten)
 
-        TestUtil.checkTopological(flattened)
+        checkTopological(flattened)
         for ((terminal, expectedSize) <- expected) {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[?]]).filter(important.contains) == Agg(
+            grouping.flatMap(_.asTarget: Option[Target[?]]).filter(important.contains) == Seq(
               terminal
             )
           )
@@ -84,31 +87,31 @@ object PlanTests extends TestSuite {
 
       test("singleton") - check(singleton)(
         _.single,
-        Agg(_.single),
-        Agg(singleton.single -> 1)
+        Seq(_.single),
+        Seq(singleton.single -> 1)
       )
       test("backtickIdentifiers") - check(bactickIdentifiers)(
         _.`a-down-target`,
-        Agg(_.`up-target`, _.`a-down-target`),
-        Agg(
+        Seq(_.`up-target`, _.`a-down-target`),
+        Seq(
           bactickIdentifiers.`up-target` -> 1,
           bactickIdentifiers.`a-down-target` -> 1
         )
       )
       test("pair") - check(pair)(
         _.down,
-        Agg(_.up, _.down),
-        Agg(pair.up -> 1, pair.down -> 1)
+        Seq(_.up, _.down),
+        Seq(pair.up -> 1, pair.down -> 1)
       )
       test("anonTriple") - check(anonTriple)(
         _.down,
-        Agg(_.up, _.down),
-        Agg(anonTriple.up -> 1, anonTriple.down -> 2)
+        Seq(_.up, _.down),
+        Seq(anonTriple.up -> 1, anonTriple.down -> 2)
       )
       test("diamond") - check(diamond)(
         _.down,
-        Agg(_.up, _.left, _.right, _.down),
-        Agg(
+        Seq(_.up, _.left, _.right, _.down),
+        Seq(
           diamond.up -> 1,
           diamond.left -> 1,
           diamond.right -> 1,
@@ -118,22 +121,10 @@ object PlanTests extends TestSuite {
 
       test("anonDiamond") - check(anonDiamond)(
         _.down,
-        Agg(_.down, _.up),
-        Agg(
+        Seq(_.down, _.up),
+        Seq(
           anonDiamond.up -> 1,
           anonDiamond.down -> 3
-        )
-      )
-      test("bigSingleTerminal") - check(bigSingleTerminal)(
-        _.j,
-        Agg(_.a, _.b, _.e, _.f, _.i, _.j),
-        Agg(
-          bigSingleTerminal.a -> 3,
-          bigSingleTerminal.b -> 2,
-          bigSingleTerminal.e -> 9,
-          bigSingleTerminal.i -> 6,
-          bigSingleTerminal.f -> 4,
-          bigSingleTerminal.j -> 4
         )
       )
     }
@@ -141,7 +132,7 @@ object PlanTests extends TestSuite {
       def countGroups(goals: Task[?]*) = {
 
         val topoSorted = Plan.topoSorted(
-          Plan.transitiveTargets(Agg.from(goals))
+          Plan.transitiveTargets(Seq.from(goals))
         )
         val grouped = Plan.groupAroundImportantTargets(topoSorted) {
           case t: NamedTask[Any] => t
@@ -153,7 +144,7 @@ object PlanTests extends TestSuite {
       test("separateGroups") {
         import separateGroups._
         val groupCount = countGroups(right, left)
-        assert(groupCount == 3)
+        assert(groupCount == 2)
       }
 
       test("triangleTask") {

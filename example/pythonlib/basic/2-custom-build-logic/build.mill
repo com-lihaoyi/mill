@@ -34,7 +34,8 @@ object foo extends PythonModule {
 // provided by `PythonModule` (labelled `resources.super` below), replacing it with the
 // `destination` folder of the new `resources` task, which is wired up to `lineCount`:
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -45,7 +46,7 @@ object foo extends PythonModule {
 //   allSourceFiles [color=white]
 //   run [color=white]
 // }
-// ```
+// ....
 
 /** Usage
 

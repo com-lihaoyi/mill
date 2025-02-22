@@ -1,7 +1,8 @@
 package mill.scalalib
 
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 import mill.api.{PathRef, Result}
+import mill.api.ExecResult
 import mill.define.Discover
 import mill.eval.Evaluator
 import mill.scalalib.publish.{
@@ -70,7 +71,7 @@ object PublishModuleTests extends TestSuite {
           Seq(Developer("lefou", "Tobias Roeser", "https://github.com/lefou"))
       )
       override def versionScheme = Some(VersionScheme.EarlySemVer)
-      override def ivyDeps = Agg(
+      override def ivyDeps = Seq(
         ivy"org.slf4j:slf4j-api:2.0.7"
       )
       // ensure, these target won't be called
@@ -95,10 +96,10 @@ object PublishModuleTests extends TestSuite {
   }
   object compileAndRuntimeStuff extends TestBaseModule {
     object main extends JavaModule with TestPublishModule {
-      def ivyDeps = Agg(
+      def ivyDeps = Seq(
         ivy"org.slf4j:slf4j-api:2.0.15"
       )
-      def runIvyDeps = Agg(
+      def runIvyDeps = Seq(
         ivy"ch.qos.logback:logback-classic:1.5.12"
       )
     }
@@ -196,7 +197,7 @@ object PublishModuleTests extends TestSuite {
       test(
         "should throw exception if neither environment variables or direct argument were not passed"
       ) - UnitTester(HelloWorldWithPublish, resourcePath).scoped { eval =>
-        val Left(Result.Failure(msg, None)) =
+        val Left(ExecResult.Failure(msg)) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds("")): @unchecked
 
         assert(
@@ -267,9 +268,9 @@ object PublishModuleTests extends TestSuite {
       }
 
       val compileCp =
-        eval(compileAndRuntimeStuff.main.compileClasspath).toTry.get.value.toSeq.map(_.path)
+        eval(compileAndRuntimeStuff.main.compileClasspath).right.get.value.toSeq.map(_.path)
       val runtimeCp =
-        eval(compileAndRuntimeStuff.main.runClasspath).toTry.get.value.toSeq.map(_.path)
+        eval(compileAndRuntimeStuff.main.runClasspath).right.get.value.toSeq.map(_.path)
 
       compileClassPathCheck(compileCp)
       runtimeClassPathCheck(runtimeCp)
@@ -277,12 +278,12 @@ object PublishModuleTests extends TestSuite {
       val ivy2Repo = eval.evaluator.workspace / "ivy2Local"
       val m2Repo = eval.evaluator.workspace / "m2Local"
 
-      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).toTry.get
-      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).toTry.get
-      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).toTry.get
-      eval(compileAndRuntimeStuff.main.publishM2Local(m2Repo.toString)).toTry.get
-      eval(compileAndRuntimeStuff.transitive.publishM2Local(m2Repo.toString)).toTry.get
-      eval(compileAndRuntimeStuff.runtimeTransitive.publishM2Local(m2Repo.toString)).toTry.get
+      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.main.publishM2Local(m2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.transitive.publishM2Local(m2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishM2Local(m2Repo.toString)).right.get
 
       def localRepoCp(localRepo: coursierapi.Repository, moduleName: String, config: String) = {
         val dep = coursierapi.Dependency.of("com.lihaoyi.pubmodtests", moduleName, "0.1.0-SNAPSHOT")

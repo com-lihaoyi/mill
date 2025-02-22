@@ -1,7 +1,4 @@
-
 = Building Python with Mill
-
-
 :language: python
 :language-small: python
 

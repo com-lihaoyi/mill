@@ -137,12 +137,11 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       }
     ) {
       case (ev, _, id, _: JavaModule, compileClasspath) =>
-        val pathResolver = ev.pathsResolver
 
         new JvmCompileClasspathItem(
           id,
           compileClasspath.iterator
-            .map(_.resolve(pathResolver))
+            .map(_.resolve(ev.outPath))
             .map(sanitizeUri).toSeq.asJava
         )
       case _ => ???

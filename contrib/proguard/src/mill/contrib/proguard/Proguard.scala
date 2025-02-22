@@ -1,9 +1,8 @@
 package mill.contrib.proguard
 
 import mill.{T, Task}
-import mill.Agg
-import mill.api.{Loose, PathRef}
-import mill.client.Util
+import mill.api.{PathRef}
+import mill.constants.Util
 import mill.util.Jvm
 import mill.scalalib.{DepSyntax, ScalaModule}
 import os.{Path, Shellable}
@@ -129,9 +128,9 @@ trait Proguard extends ScalaModule {
    * The location of the proguard jar files.
    * These are downloaded from JCenter and fed to `java -cp`
    */
-  def proguardClasspath: T[Loose.Agg[PathRef]] = Task {
+  def proguardClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.guardsquare:proguard-base:${proguardVersion()}")
+      Seq(ivy"com.guardsquare:proguard-base:${proguardVersion()}")
     )
   }
 

@@ -70,7 +70,8 @@ Hello, Mill Qux!
 
 // After this step, we have a build graph that looks like this:
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -102,7 +103,7 @@ Hello, Mill Qux!
 //     "foo.mainFileName" -> "foo.run"
 //   }
 // }
-// ```
+// ....
 
 // Right now, the three ``PythonModule``s are independent. Next we will look into
 // how to allow them to depend on each other using `moduleDeps`.

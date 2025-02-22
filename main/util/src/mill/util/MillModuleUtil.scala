@@ -1,7 +1,7 @@
 package mill.util
 
 import coursier.Repository
-import mill.api.Loose.Agg
+
 import mill.api.{BuildInfo, PathRef, Result}
 
 import java.nio.file.{Files, Paths}
@@ -17,7 +17,7 @@ private[mill] object MillModuleUtil {
       repositories: Seq[Repository],
       // this should correspond to the mill runtime Scala version
       artifactSuffix: String = "_3"
-  ): Result[Agg[PathRef]] = {
+  ): Result[Seq[PathRef]] = {
 
     mill.util.Jvm.resolveDependencies(
       repositories = repositories,

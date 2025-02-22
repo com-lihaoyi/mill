@@ -14,7 +14,7 @@ object IvyTests extends TestSuite {
     val artifact =
       Artifact("com.lihaoyi", "mill-scalalib_2.12", "0.0.1")
 
-    val deps = Agg(
+    val deps = Seq(
       Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"), Scope.Compile),
       Dependency(Artifact("org.scala-sbt", "test-interface", "1.0"), Scope.Compile),
       Dependency(
@@ -72,7 +72,7 @@ object IvyTests extends TestSuite {
 
       test("dependencies") {
         val dependencies = fullIvy \ "dependencies" \ "dependency"
-        val ivyDeps = deps.indexed
+        val ivyDeps = deps
 
         assert(dependencies.size == ivyDeps.size)
 

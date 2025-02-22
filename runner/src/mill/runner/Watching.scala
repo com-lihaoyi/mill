@@ -2,7 +2,7 @@ package mill.runner
 
 import mill.api.internal
 import mill.internal.Colors
-import mill.define.Watchable
+import mill.define.internal.Watchable
 import mill.api.SystemStreams
 
 import java.io.InputStream

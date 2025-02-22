@@ -1,9 +1,10 @@
 package mill.eval
 
-import mill.api.{Strict, Val}
-import mill.client.OutFiles
-import mill.define.{InputImpl, NamedTask, Task, SelectMode}
-import mill.exec.{CodeSigUtils, ExecutionCore, Plan, TaskResult}
+import mill.api.Val
+import mill.api.Result
+import mill.constants.OutFiles
+import mill.define.{InputImpl, NamedTask, SelectMode, Task, TaskResult}
+import mill.exec.{CodeSigUtils, Execution, Plan}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 
@@ -22,7 +23,7 @@ private[mill] object SelectiveExecution {
 
     def compute0(
         evaluator: Evaluator,
-        transitiveNamed: Strict.Agg[NamedTask[?]]
+        transitiveNamed: Seq[NamedTask[?]]
     ): (Metadata, Map[Task[?], TaskResult[Val]]) = {
       val inputTasksToLabels: Map[Task[?], String] = transitiveNamed
         .collect { case task: InputImpl[_] =>
@@ -30,24 +31,26 @@ private[mill] object SelectiveExecution {
         }
         .toMap
 
-      val results = evaluator.evaluate(Strict.Agg.from(inputTasksToLabels.keys))
+      val results = evaluator.execute(Seq.from(inputTasksToLabels.keys))
+
+      val inputHashes = results
+        .executionResults
+        .results
+        .flatMap { case (task, taskResult) =>
+          inputTasksToLabels.get(task).map { l =>
+            l -> taskResult.result.get.value.hashCode
+          }
+        }
 
       new Metadata(
-        inputHashes = results
-          .results
-          .flatMap { case (task, taskResult) =>
-            inputTasksToLabels.get(task).map { l =>
-              l -> taskResult.result.getOrThrow.value.hashCode
-            }
-          }
-          .toMap,
-        methodCodeHashSignatures = evaluator.methodCodeHashSignatures
-      ) -> results.results.toMap
+        inputHashes,
+        evaluator.methodCodeHashSignatures
+      ) -> results.executionResults.results
     }
   }
 
   def computeHashCodeSignatures(
-      transitiveNamed: Strict.Agg[NamedTask[?]],
+      transitiveNamed: Seq[NamedTask[?]],
       methodCodeHashSignatures: Map[String, Int]
   ): Map[String, Int] = {
 
@@ -73,7 +76,7 @@ private[mill] object SelectiveExecution {
   }
 
   def computeDownstream(
-      transitiveNamed: Strict.Agg[NamedTask[?]],
+      transitiveNamed: Seq[NamedTask[?]],
       oldHashes: Metadata,
       newHashes: Metadata
   ): (Set[Task[?]], Seq[Task[Any]]) = {
@@ -124,7 +127,7 @@ private[mill] object SelectiveExecution {
   def computeChangedTasks(
       evaluator: Evaluator,
       tasks: Seq[String]
-  ): Either[String, ChangedTasks] = {
+  ): Result[ChangedTasks] = {
     evaluator.resolveTasks(
       tasks,
       SelectMode.Separated,
@@ -134,12 +137,12 @@ private[mill] object SelectiveExecution {
 
   def computeChangedTasks0(evaluator: Evaluator, tasks: Seq[NamedTask[?]]): ChangedTasks = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
+
     if (oldMetadataTxt == "") ChangedTasks(tasks, tasks.toSet, tasks, Map.empty)
     else {
       val transitiveNamed = Plan.transitiveNamed(tasks)
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       val (newMetadata, results) = SelectiveExecution.Metadata.compute0(evaluator, transitiveNamed)
-
       val (changedRootTasks, downstreamTasks) =
         SelectiveExecution.computeDownstream(transitiveNamed, oldMetadata, newMetadata)
 
@@ -152,7 +155,7 @@ private[mill] object SelectiveExecution {
     }
   }
 
-  def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
+  def resolve0(evaluator: Evaluator, tasks: Seq[String]): Result[Array[String]] = {
     for {
       resolved <- evaluator.resolveTasks(tasks, SelectMode.Separated)
       changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)
@@ -163,19 +166,19 @@ private[mill] object SelectiveExecution {
     }
   }
 
-  def resolveChanged(evaluator: Evaluator, tasks: Seq[String]): Either[String, Seq[String]] = {
+  def resolveChanged(evaluator: Evaluator, tasks: Seq[String]): Result[Seq[String]] = {
     for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       changedTasks.changedRootTasks.map(_.ctx.segments.render).toSeq.sorted
     }
   }
 
-  def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Either[String, ujson.Value] = {
+  def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Result[ujson.Value] = {
     for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[?]]
-      val plan = Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
+      val plan = Plan.plan(Seq.from(changedTasks.downstreamTasks))
       val indexToTerminal = plan.sortedGroups.keys().toArray.filter(t => taskSet.contains(t))
 
-      val interGroupDeps = ExecutionCore.findInterGroupDeps(plan.sortedGroups)
+      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
 
       val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 

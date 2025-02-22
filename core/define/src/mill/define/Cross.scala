@@ -158,9 +158,9 @@ object Cross {
  * }
  * }}}
  */
-class Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*)(implicit
-    ctx: mill.define.Ctx
-) extends mill.define.Module {
+trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.define.Module {
+
+  val ctx: Ctx = moduleCtx
 
   trait Item {
     def crossValues: List[Any]
@@ -184,7 +184,6 @@ class Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*)(implicit
             Option(ctx.fileName).filter(_.nonEmpty)
           )
       }
-      ctx.segments.last.pathSegments
       val module0 = new Lazy(() =>
         make(
           ctx
@@ -198,7 +197,7 @@ class Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*)(implicit
       val item = new Item {
         def crossValues = crossValues0.toList
         def crossSegments = crossSegments0.toList
-        def module = module0
+        lazy val module = module0
         def cls = cls0
       }
       seen.update(crossSegments0, crossValues0)

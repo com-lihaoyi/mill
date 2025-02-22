@@ -2,7 +2,7 @@ package mill
 package scalanativelib
 
 import mainargs.Flag
-import mill.api.Loose.Agg
+
 import mill.api.{Result, internal}
 import mill.define.{Command, Task}
 import mill.util.MillModuleUtil.millProjectModule
@@ -18,7 +18,7 @@ import mill.scalanativelib.worker.{
 }
 import mill.T
 import mill.api.PathRef
-import mill.client.EnvVars
+import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
 trait ScalaNativeModule extends ScalaModule { outer =>
@@ -50,7 +50,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         Result.Failure(s"Scala Native $v is not supported. Please update to 0.4.2+")
       case version =>
         Result.Success(
-          Agg(
+          Seq(
             ivy"org.scala-native::tools:$version",
             ivy"org.scala-native::test-runner:$version"
           )
@@ -59,25 +59,25 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     }
   }
 
-  def nativeIvyDeps: T[Agg[Dep]] = Task {
+  def nativeIvyDeps: T[Seq[Dep]] = Task {
     val scalaVersionSpecific = {
       val version =
         if (scalaNativeVersion().startsWith("0.4")) scalaNativeVersion()
         else s"${scalaVersion()}+${scalaNativeVersion()}"
 
       if (ZincWorkerUtil.isScala3(scalaVersion()))
-        Agg(ivy"org.scala-native::scala3lib::$version")
-      else Agg(ivy"org.scala-native::scalalib::$version")
+        Seq(ivy"org.scala-native::scala3lib::$version")
+      else Seq(ivy"org.scala-native::scalalib::$version")
     }
 
-    Agg(
+    Seq(
       ivy"org.scala-native::nativelib::${scalaNativeVersion()}",
       ivy"org.scala-native::javalib::${scalaNativeVersion()}",
       ivy"org.scala-native::auxlib::${scalaNativeVersion()}"
     ) ++ scalaVersionSpecific
   }
 
-  override def scalaLibraryIvyDeps: T[Agg[Dep]] = Task {
+  override def scalaLibraryIvyDeps: T[Seq[Dep]] = Task {
     super.scalaLibraryIvyDeps().map(dep =>
       dep.copy(cross = dep.cross match {
         case c: CrossVersion.Constant => c.copy(platformed = false)
@@ -92,7 +92,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     super.mandatoryIvyDeps() ++ nativeIvyDeps()
   }
 
-  def bridgeFullClassPath: T[Agg[PathRef]] = Task {
+  def bridgeFullClassPath: T[Seq[PathRef]] = Task {
     Lib.resolveDependencies(
       repositoriesTask(),
       toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
@@ -100,8 +100,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ).map(t => (scalaNativeWorkerClasspath() ++ t))
   }
 
-  override def scalacPluginIvyDeps: T[Agg[Dep]] = Task {
-    super.scalacPluginIvyDeps() ++ Agg(
+  override def scalacPluginIvyDeps: T[Seq[Dep]] = Task {
+    super.scalacPluginIvyDeps() ++ Seq(
       ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}"
     )
   }
@@ -139,7 +139,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   class ScalaNativeBridge(
       scalaNativeWorkerValue: ScalaNativeWorker,
-      bridgeFullClassPathValue: Agg[PathRef]
+      bridgeFullClassPathValue: Seq[PathRef]
   ) {
     def apply[T](block: ScalaNativeWorkerApi => T): T = {
       scalaNativeWorkerValue.withValue(bridgeFullClassPathValue) {
@@ -366,7 +366,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaNativeModule].resources
   override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
-    Task.Command { test(args*)() }
+    Task.Command { testForked(args*)() }
   override protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
@@ -386,7 +386,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
     val (doneMsg, results) = TestRunner.runTestFramework(
       _ => framework,
       runClasspath().map(_.path),
-      Agg(compile().classes.path),
+      Seq(compile().classes.path),
       args(),
       Task.testReporter,
       cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
@@ -399,7 +399,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
     close()
     res
   }
-  override def ivyDeps = super.ivyDeps() ++ Agg(
+  override def ivyDeps = super.ivyDeps() ++ Seq(
     ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
   )
   override def mainClass: T[Option[String]] = Some("scala.scalanative.testinterface.TestMain")

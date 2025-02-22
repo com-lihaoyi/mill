@@ -1,13 +1,14 @@
 package mill.resolve
 
-import utest._
+import mill.api.Result
+import utest.*
 
 object ExpandBracesTests extends TestSuite {
 
   val tests = Tests {
     test("expandBraces") {
       def check(input: String, expectedExpansion: List[String]) = {
-        val Right(expanded) = ExpandBraces.expandBraces(input): @unchecked
+        val Result.Success(expanded) = ExpandBraces.expandBraces(input): @unchecked
 
         assert(expanded == expectedExpansion)
       }
@@ -50,7 +51,7 @@ object ExpandBracesTests extends TestSuite {
         val malformed = Seq("core.{compile", "core.{compile,test]")
 
         malformed.foreach { m =>
-          val Left(error) = ExpandBraces.expandBraces(m): @unchecked
+          val Result.Failure(error) = ExpandBraces.expandBraces(m): @unchecked
           assert(error.contains("Parsing exception"))
         }
       }

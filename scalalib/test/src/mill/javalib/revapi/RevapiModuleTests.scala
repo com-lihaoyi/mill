@@ -5,7 +5,7 @@ import mill.define.Discover
 import mill.javalib.*
 import mill.scalalib.publish.{PomSettings, VersionControl}
 import mill.testkit.{TestBaseModule, UnitTester}
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 import utest.*
 import mill.main.TokenReaders._
 
@@ -73,7 +73,7 @@ object RevapiModuleTests extends TestSuite {
     object module2 extends module with RevapiModule {
       override def revapiConfigFiles: T[Seq[PathRef]] =
         Task.Sources(os.list(conf).iterator.filter(_.ext == "json").map(PathRef(_)).toSeq)
-      override def revapiClasspath: T[Agg[PathRef]] = Task {
+      override def revapiClasspath: T[Seq[PathRef]] = Task {
         super.revapiClasspath() ++ Seq(PathRef(conf))
       }
 
@@ -102,15 +102,15 @@ object RevapiModuleTests extends TestSuite {
         PomSettings("", group, "", Seq(), VersionControl(), Seq())
       override def publishVersion: T[String] = v1
 
-      override def revapiOldFiles: T[Agg[PathRef]] = Task {
+      override def revapiOldFiles: T[Seq[PathRef]] = Task {
         defaultResolver().resolveDeps(Seq(ivy"$group:$id:$v1"))
       }
-      override def revapiNewFiles: T[Agg[PathRef]] = Task {
+      override def revapiNewFiles: T[Seq[PathRef]] = Task {
         defaultResolver().resolveDeps(Seq(ivy"$group:$id:$v2"))
       }
       override def revapiConfigFiles: T[Seq[PathRef]] =
         Task.Sources(os.list(conf).iterator.filter(_.ext == "json").map(PathRef(_)).toSeq)
-      override def revapiClasspath: T[Agg[PathRef]] = Task {
+      override def revapiClasspath: T[Seq[PathRef]] = Task {
         super.revapiClasspath() ++ Seq(PathRef(conf))
       }
 

@@ -1,7 +1,5 @@
 package mill.internal
 
-import mill.api.Strict.Agg
-
 import scala.collection.mutable
 
 /**
@@ -11,15 +9,15 @@ import scala.collection.mutable
  */
 private[mill] trait MultiBiMap[K, V] {
   def containsValue(v: V): Boolean
-  def lookupKey(k: K): Agg[V]
+  def lookupKey(k: K): collection.Seq[V]
   def lookupValue(v: V): K
   def lookupValueOpt(v: V): Option[K]
   def add(k: K, v: V): Unit
-  def removeAll(k: K): Agg[V]
+  def removeAll(k: K): collection.Seq[V]
   def addAll(k: K, vs: IterableOnce[V]): Unit
   def keys(): Iterator[K]
-  def items(): Iterator[(K, Agg[V])]
-  def values(): Iterator[Agg[V]]
+  def items(): Iterator[(K, collection.Seq[V])]
+  def values(): Iterator[collection.Seq[V]]
   def keyCount: Int
 }
 
@@ -27,18 +25,18 @@ private[mill] object MultiBiMap {
 
   class Mutable[K, V]() extends MultiBiMap[K, V] {
     private val valueToKey = mutable.LinkedHashMap.empty[V, K]
-    private val keyToValues = mutable.LinkedHashMap.empty[K, Agg.Mutable[V]]
+    private val keyToValues = mutable.LinkedHashMap.empty[K, mutable.Buffer[V]]
     def containsValue(v: V): Boolean = valueToKey.contains(v)
-    def lookupKey(k: K): Agg.Mutable[V] = keyToValues(k)
-    def lookupKeyOpt(k: K): Option[Agg.Mutable[V]] = keyToValues.get(k)
+    def lookupKey(k: K): collection.Seq[V] = keyToValues(k)
+    def lookupKeyOpt(k: K): Option[collection.Seq[V]] = keyToValues.get(k)
     def lookupValue(v: V): K = valueToKey(v)
     def lookupValueOpt(v: V): Option[K] = valueToKey.get(v)
     def add(k: K, v: V): Unit = {
       valueToKey(v) = k
-      keyToValues.getOrElseUpdate(k, new Agg.Mutable[V]()).append(v)
+      keyToValues.getOrElseUpdate(k, mutable.Buffer.empty[V]).append(v)
     }
-    def removeAll(k: K): Agg[V] = keyToValues.get(k) match {
-      case None => Agg()
+    def removeAll(k: K): collection.Seq[V] = keyToValues.get(k) match {
+      case None => Seq()
       case Some(vs) =>
         vs.iterator.foreach(valueToKey.remove)
         keyToValues.remove(k)
@@ -48,9 +46,9 @@ private[mill] object MultiBiMap {
 
     def keys(): Iterator[K] = keyToValues.keysIterator
 
-    def values(): Iterator[Agg.Mutable[V]] = keyToValues.valuesIterator
+    def values(): Iterator[collection.Seq[V]] = keyToValues.valuesIterator
 
-    def items(): Iterator[(K, Agg.Mutable[V])] = keyToValues.iterator
+    def items(): Iterator[(K, collection.Seq[V])] = keyToValues.iterator
 
     def keyCount: Int = keyToValues.size
   }

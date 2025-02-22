@@ -1,4 +1,4 @@
-# What Makes Mill Unique
+= What Makes Mill Unique
 
 
 
@@ -9,7 +9,7 @@ and a unique "direct-style" design that make it easy to use and extend. This pag
 some of the most interesting design decisions in Mill, and how it sets Mill apart from
 other build tools on the market.
 
-## What is a Build Tool?
+== What is a Build Tool?
 
 A build tool is a program that coordinates the various tasks necessary to compile,
 package, test, and run a codebase: maybe you need to run a compiler, download some dependencies,
@@ -27,7 +27,7 @@ to build tools like https://maven.apache.org/[Maven], https://www.gnu.org/softwa
 https://mill-build.org/[Mill], or https://bazel.build/[Bazel]. For this article,
 we will mostly discuss Mill.
 
-## What is Mill?
+== What is Mill?
 
 The Mill build tool was started in 2017, an exploration of the ideas I
 found when learning to use Google's https://bazel.build/[Bazel] build tool.
@@ -35,26 +35,28 @@ At a glance, Mill looks similar to other build tools you may be familiar with, w
 `build.mill` file in the root of a project defining the dependencies and testing
 setup for a module:
 
-```scala
+[source,scala]
+----
 package build
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   object test extends JavaTests with TestModule.Junit4
 }
-```
+----
 
 The syntax may be a bit unfamiliar, but anyone familiar with programming can probably guess
 what this build means: a `JavaModule` with two ivy dependencies `argparse4j` and `thymeleaf`,
 and a `test` submodule supporting `Junit4`.
 This build can then be compiled, tested, run, or packaged into an assembly from the command line:
 
-```bash
+[source,bash]
+----
 > /mill foo.compile
 compiling 1 Java source...
 
@@ -71,7 +73,7 @@ Test foo.FooTest.testSimple finished, ...
 
 > ./out/foo/assembly.dest/out.jar --text hello
 <h1>hello</h1>
-```
+----
 
 Mill was originally a Scala build tool competing with https://scala-sbt.org/[SBT], and by 2023 it
 had reached around 5-10% market share in the Scala community
@@ -92,7 +94,7 @@ codebases can remain fast and responsive: Mill's own build easily manages over 4
 and the tool can likely handle thousands of modules without issue.
 
 
-## The React.js of Build Tools
+== The React.js of Build Tools
 
 We've briefly covered what Mill is above, but one question remains: why Mill?
 Why not one of the other 100 build tools out there?
@@ -131,7 +133,7 @@ or filesystem build artifacts) to your desired state in response to change in in
 not widespread among build tools today in 2024. But many of the same downstream benefits apply,
 and these ideas give Mill some unique properties as a build tool.
 
-### Direct-Style Builds
+=== Direct-Style Builds
 
 One key aspect of React.js is that you wrote your code to generate your web UI "directly":
 
@@ -173,7 +175,8 @@ but if we remove these built in classes we can see how Mill works under the hood
 the following Mill tasks that define some source files, use the `javac` executable to compile
 them into classfiles, and then the `jar` executable to package them together into an assembly:
 
-```scala
+[source,scala]
+----
 def mainClass: T[Option[String]] = Some("foo.Foo")
 
 def sources = Task.Source("src")
@@ -194,12 +197,13 @@ def assembly = Task {
 
   PathRef(Task.dest / "assembly.jar")
 }
-```
+----
 
 This code defines the following task graph, with the boxes being the tasks
 and the arrows representing the _data-flow_ between them:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -207,7 +211,7 @@ digraph G {
   resources -> assembly
   mainClass -> assembly
 }
-```
+....
 
 This example does not use any of Mill's builtin support for building Java or
 Scala projects, and instead builds a pipeline "from scratch" using Mill
@@ -249,7 +253,7 @@ classic "callbacks forests" you may have come to expect from build tools. Howeve
 both of these benefits require that the IDE and the human understands the code in the
 first place, which leads to the second major design decision:
 
-### Using a Single General Purpose Language
+=== Using a Single General Purpose Language
 
 React.js makes users use Javascript to implement their HTML UIs. While a common approach
 now in 2024, it is hard to overstate how controversial and unusual this design decision
@@ -367,7 +371,7 @@ Rather than being limited to what the build tool has built-in or what third-part
 someone on the internet has published, you have at your fingertips any library in the huge JVM
 ecosystem, and can use them in exactly the same way you would in any Java/Scala/Kotlin application.
 
-### What About Other Build Tools?
+=== What About Other Build Tools?
 
 There are existing build tools that use some of the ideas above, but perhaps none of them
 have both, which is necessary to take full advantage:
@@ -392,7 +396,7 @@ in 2014. With these two key design features, Mill makes understanding and mainta
 an order of magnitude easier than traditional tools, democratizing project builds so anyone
 can contribute without needing to be experts.
 
-## Where can Mill Go?
+== Where can Mill Go?
 
 Above, we discussed some of the unique design decisions of Mill, and the value they
 provide to users. In this section we will discuss where Mill can fit into the larger
@@ -400,7 +404,7 @@ build-tool ecosystem.
 I think Mill has legs to potentially grow 10x to 100x bigger than it is today. There are
 three main areas where I think Mill can grow into:
 
-### A Modern Java/JVM Build Tool
+=== A Modern Java/JVM Build Tool
 
 Mill is a JVM build tool, and the JVM platform hosts many rich communities and ecosystems:
 the Java folks, offshoots like Android, other languages like Kotlin and Scala. All these
@@ -448,7 +452,7 @@ Mill could be the modern Java/JVM build tool: providing 10x speedups over Maven 
 Java build experience. With some focused effort, I think Mill can be not just a _good_
 option, but the _better_ option for Java projects going forward!
 
-### An Easier Monorepo Build Tool
+=== An Easier Monorepo Build Tool
 
 Many companies are using Bazel today. Of the companies I interviewed from my Silicon Valley
 network, 25 out of 30 are using or trying to use Bazel.
@@ -480,7 +484,7 @@ functionality, but at 10% the complexity:
 * Bazel itself is not getting any simpler over time - instead is getting more complex with
   additional features and functionality, as tends to happen to projects over time
 
-Mill provides many of the same things Bazel does: automatic xref:depth/execution-model.adoc[caching],
+Mill provides many of the same things Bazel does: automatic xref:depth/evaluation-model.adoc[caching],
 parallelization, xref:depth/sandboxing.adoc[sandboxing],
 xref:extending/import-ivy-plugins.adoc[extensibility]. Mill
 can already work with a wide variety of programming languages,
@@ -497,7 +501,7 @@ by its most sophisticated users, the bulk of users operate at a somewhat smaller
 need something easier than Bazel. Mill could be that easy monorepo build tool for them to use.
 
 
-## Next Steps For Mill Going Forward
+== Next Steps For Mill Going Forward
 
 10 years ago React.js democratized front-end Web UIs: what previously took intricate
 surgery to properly wire up event handlers and UI mutations in three separate languages

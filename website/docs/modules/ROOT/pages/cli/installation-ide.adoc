@@ -88,9 +88,10 @@ JVM launcher instead.
 Mill allows you to specify the exact JVM version you want to use to run the build tool
 via a  `.mill-jvm-version` file such as:
 
-```bash
+[source,bash]
+----
 echo temurin:17.0.6 > .mill-jvm-version
-```
+----
 
 This has two benefits
 
@@ -105,7 +106,6 @@ onboarding of new developers.
 
 
 == IDE Support
-
 :link-metals: https://scalameta.org/metals/
 
 Mill supports IntelliJ and VSCode and in general any client of the standard
@@ -172,7 +172,8 @@ To generate IntelliJ IDEA project files into `.idea/`, run:
 
 This will generate the XML files IntelliJ uses to configure your project
 
-```
+[source]
+----
 .idea
 .idea/scala_settings.xml
 .idea/mill_modules
@@ -186,7 +187,7 @@ This will generate the XML files IntelliJ uses to configure your project
 .idea/modules.xml
 .idea/scala_compiler.xml
 .idea/misc.xml
-```
+----
 
 After the files are generated, you can open the folder in IntelliJ to load the project
 into your IDE. If you make changes to your Mill `build.mill`, you can update the project config
@@ -257,6 +258,7 @@ specified in `./mill`, `.config/mill-version` or `.mill-version`
 Under some circumstances (e.g. corporate firewalls), you may not have access maven central.
 The typical symptom will be error messages which look like this;
 
+[source]
 ----
 1 tasks failed
 mill.scalalib.ZincWorkerModule.classpath
@@ -277,6 +279,7 @@ To resolve this, you can set an environment variable COURSIER_REPOSITORIES (see 
 to point at your own server that mirrors the Maven Central artifacts.
 The below command should pass the environment variable to the `mill` command.
 
+[source]
 ----
 COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _
 ----
@@ -351,7 +354,6 @@ Arch Linux has an https://archlinux.org/packages/extra/any/mill/[Extra package f
 [source,bash]
 ----
 pacman -S mill
-
 ----
 
 === FreeBSD
@@ -369,7 +371,6 @@ pkg install mill
 [source,sh]
 ----
 emerge dev-java/mill-bin
-
 ----
 
 === Windows
@@ -436,8 +437,8 @@ Support by `asdf` is currently possible by using the https://github.com/asdf-com
 
 .Steps to install the `mill` plugin and Mill with `asdf`
 [source,bash]
----
+----
 asdf plugin add mill
 asdf install mill latest
 asdf global mill latest
----
+----

@@ -26,19 +26,19 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
   def jvmIndexVersion: mill.define.Target[String] =
     mill.scalalib.api.Versions.coursierJvmIndexVersion
 
-  def classpath: T[Agg[PathRef]] = Task {
+  def classpath: T[Seq[PathRef]] = Task {
     millProjectModule("mill-scalalib-worker", repositoriesTask())
   }
 
-  def scalalibClasspath: T[Agg[PathRef]] = Task {
+  def scalalibClasspath: T[Seq[PathRef]] = Task {
     millProjectModule("mill-scalalib", repositoriesTask())
   }
 
-  def testrunnerEntrypointClasspath: T[Agg[PathRef]] = Task {
+  def testrunnerEntrypointClasspath: T[Seq[PathRef]] = Task {
     millProjectModule("mill-testrunner-entrypoint", repositoriesTask(), artifactSuffix = "")
   }
 
-  def backgroundWrapperClasspath: T[Agg[PathRef]] = Task {
+  def backgroundWrapperClasspath: T[Seq[PathRef]] = Task {
     millProjectModule(
       "mill-scalalib-backgroundwrapper",
       repositoriesTask(),
@@ -61,7 +61,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
         coursierCacheCustomizer = coursierCacheCustomizer(),
         ctx = Some(implicitly[mill.api.Ctx.Log]),
         jvmIndexVersion = jvmIndexVersion()
-      ).getOrThrow
+      ).get
       PathRef(path, quick = true)
     }
   }
@@ -80,7 +80,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     val instance = cls.getConstructor(
       classOf[
         Either[
-          (ZincWorkerApi.Ctx, (String, String) => (Option[Agg[PathRef]], PathRef)),
+          (ZincWorkerApi.Ctx, (String, String) => (Option[Seq[PathRef]], PathRef)),
           String => PathRef
         ]
       ], // compilerBridge
@@ -94,12 +94,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
         Left((
           Task.ctx(),
           (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, repositoriesTask())
-              .asSuccess
-              .getOrElse(
-                throw new Exception(s"Failed to load compiler bridge for $x $y")
-              )
-              .value
+            scalaCompilerBridgeJar(x, y, repositoriesTask()).get
         )),
         jobs,
         java.lang.Boolean.FALSE,
@@ -114,7 +109,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       scalaVersion: String,
       scalaOrganization: String,
       repositories: Seq[Repository]
-  ): Result[(Option[Agg[PathRef]], PathRef)] = {
+  ): Result[(Option[Seq[PathRef]], PathRef)] = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, ZincWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -168,7 +163,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       scalaVersion: String,
       scalaOrganization: String,
       repositories: Seq[Repository]
-  ): Result[Agg[PathRef]] = {
+  ): Result[Seq[PathRef]] = {
     resolveDependencies(
       repositories = repositories,
       deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),

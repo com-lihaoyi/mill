@@ -14,7 +14,7 @@ import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
 import mill.util.Jvm
 import mill.util.MillModuleUtil.millProjectModule
-import mill.{Agg, T}
+import mill.T
 
 import java.io.File
 
@@ -52,8 +52,8 @@ trait KotlinModule extends JavaModule { outer =>
    * The dependencies of this module.
    * Defaults to add the kotlin-stdlib dependency matching the [[kotlinVersion]].
    */
-  override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
-    super.mandatoryIvyDeps() ++ Agg(
+  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
+    super.mandatoryIvyDeps() ++ Seq(
       ivy"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
     )
   }
@@ -99,22 +99,56 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
     resolveDeps(
       Task.Anon { kotlinCompilerIvyDeps().map(bindDependency()) }
-    )().toSeq ++ kotlinWorkerClasspath()
+    )() ++ kotlinWorkerClasspath()
+  }
+
+  /**
+   * Flag to use the embeddable kotlin compiler.
+   * This can be necessary to avoid classpath conflicts or ensure
+   * compatibility to the used set of plugins.
+   *
+   * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196
+   */
+  def kotlinCompilerEmbeddable: Task[Boolean] = Task { false }
+
+  /**
+   * The kotlin-compiler dependencies.
+   *
+   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
+   */
+  def kotlinCompilerDep: T[Seq[Dep]] = Task {
+    if (kotlinCompilerEmbeddable())
+      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}")
+    else
+      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}")
+  }
+
+  /**
+   * The kotlin-scripting-compiler dependencies.
+   *
+   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
+   */
+  def kotlinScriptingCompilerDep: T[Seq[Dep]] = Task {
+    if (kotlinCompilerEmbeddable())
+      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}")
+    else
+      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
   }
 
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
-   * Default is derived from [[kotlinCompilerVersion]].
+   *
+   * Default is derived from [[kotlinCompilerVersion]] and [[kotlinCompilerEmbeddable]].
    */
-  def kotlinCompilerIvyDeps: T[Agg[Dep]] = Task {
-    Agg(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
+  def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
+    kotlinCompilerDep() ++
       (
         if (
           !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
             kotlinVersion().startsWith(prefix)
           )
         )
-          Agg(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
+          kotlinScriptingCompilerDep()
         else Seq()
       )
   }
@@ -189,7 +223,7 @@ trait KotlinModule extends JavaModule { outer =>
       )
     }
 
-    PathRef(Jvm.createJar(outDir / "out.jar", Agg(dokkaDir)))
+    PathRef(Jvm.createJar(outDir / "out.jar", Seq(dokkaDir)))
   }
 
   /**
@@ -209,17 +243,17 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Classpath for running Dokka.
    */
-  private def dokkaCliClasspath: T[Agg[PathRef]] = Task {
+  private def dokkaCliClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       )
     )
   }
 
-  private def dokkaPluginsClasspath: T[Agg[PathRef]] = Task {
+  private def dokkaPluginsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(
+      Seq(
         ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
         ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
         Dep.parse(Versions.kotlinxHtmlJvmDep),
@@ -308,12 +342,7 @@ trait KotlinModule extends JavaModule { outer =>
               // also run Java compiler and use it's returned result
               compileJava
             }
-          case Result.Failure(reason, _) =>
-            Result.Failure(reason, Some(CompilationResult(analysisFile, PathRef(classes))))
-          case e: Result.Exception => e
-          case Result.Aborted => Result.Aborted
-          case Result.Skipped => Result.Skipped
-          //      case x => x
+          case Result.Failure(reason) => Result.Failure(reason)
         }
       } else {
         // it's Java only
@@ -344,7 +373,7 @@ trait KotlinModule extends JavaModule { outer =>
       worker: ZincWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
-      compileCp: Agg[os.Path],
+      compileCp: Seq[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
@@ -373,6 +402,9 @@ trait KotlinModule extends JavaModule { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends JavaTests with KotlinModule {
+
+    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
@@ -380,6 +412,8 @@ trait KotlinModule extends JavaModule { outer =>
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
+
+    override def kotlinCompilerEmbeddable: Task[Boolean] = outer.kotlinCompilerEmbeddable
   }
 
 }

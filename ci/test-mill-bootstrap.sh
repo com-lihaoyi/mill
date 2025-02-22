@@ -24,4 +24,4 @@ rm -rf out
 
 # Run tests
 ./mill-assembly.jar -i "__.compile"
-./mill-assembly.jar -i "example.scalalib.basic[1-simple].packaged.server.test"
+./mill-assembly.jar -i "example.scalalib.basic[1-simple].packaged.server.testForked"

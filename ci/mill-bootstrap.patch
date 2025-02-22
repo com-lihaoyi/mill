@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 7a8ea3a31a5..5b77aa31591 100644
+index ce02c1bc1a0..df2271c63a5 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,16 +1,16 @@
@@ -23,7 +23,7 @@ index 7a8ea3a31a5..5b77aa31591 100644
  import mill.T
  import mill.define.Cross
  
-@@ -284,19 +284,19 @@ object Deps {
+@@ -288,19 +288,19 @@ object Deps {
  }
  
  def millVersion: T[String] = Task.Input {
@@ -47,7 +47,7 @@ index 7a8ea3a31a5..5b77aa31591 100644
  }
  
  def millDownloadPrefix = Task {
-@@ -316,7 +316,7 @@ def millBinPlatform: T[String] = Task {
+@@ -320,7 +320,7 @@ def millBinPlatform: T[String] = Task {
    "0.11"
  }
  
@@ -56,7 +56,7 @@ index 7a8ea3a31a5..5b77aa31591 100644
  
  val essentialBridgeScalaVersions =
    Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)
-@@ -463,7 +463,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+@@ -468,7 +468,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  /**
   * Some custom scala settings and test convenience
   */
@@ -65,7 +65,25 @@ index 7a8ea3a31a5..5b77aa31591 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -535,7 +535,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -525,8 +525,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+     val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
+     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
+     super.scalacPluginIvyDeps() ++
+-      Agg.when(binaryVersion != "3")(Deps.acyclic) ++
+-      Agg.when(hasModuleDefs)(Deps.millModuledefsPlugin)
++      Option.when(binaryVersion != "3")(Deps.acyclic) ++
++      Option.when(hasModuleDefs)(Deps.millModuledefsPlugin)
+   }
+ 
+   def mandatoryIvyDeps = T {
+@@ -534,13 +534,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+     val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
+     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
+     super.mandatoryIvyDeps() ++
+-      Agg.when(hasModuleDefs)(Deps.millModuledefs)
++      Option.when(hasModuleDefs)(Deps.millModuledefs)
+   }
+ 
    /** Default tests module. */
    lazy val test: MillScalaTests = new MillScalaTests {}
    trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
@@ -74,7 +92,7 @@ index 7a8ea3a31a5..5b77aa31591 100644
      def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
-@@ -575,7 +575,8 @@ trait MillBaseTestsModule extends TestModule {
+@@ -580,7 +580,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
@@ -84,7 +102,7 @@ index 7a8ea3a31a5..5b77aa31591 100644
    import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -705,7 +706,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+@@ -710,7 +711,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
@@ -94,7 +112,7 @@ index 7a8ea3a31a5..5b77aa31591 100644
  
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/contrib/package.mill b/contrib/package.mill
-index 421b2955955..7277bba90ff 100644
+index 421b2955955..30c453234b9 100644
 --- a/contrib/package.mill
 +++ b/contrib/package.mill
 @@ -3,13 +3,12 @@ package build.contrib
@@ -141,6 +159,15 @@ index 421b2955955..7277bba90ff 100644
        }
  
        def scalaVersion = build.Deps.play(playBinary).scalaVersion
+@@ -139,7 +138,7 @@ object `package` extends RootModule {
+           build.Deps.scalacScoverage2Reporter,
+           build.Deps.scalacScoverage2Domain,
+           build.Deps.scalacScoverage2Serializer
+-        ) ++ Agg.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
++        ) ++ Option.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
+       }
+       def mandatoryIvyDeps = Agg.empty[Dep]
+     }
 diff --git a/core/codesig/package.mill b/core/codesig/package.mill
 index e49f218f4be..9d03aa073f3 100644
 --- a/core/codesig/package.mill
@@ -166,7 +193,7 @@ index e49f218f4be..9d03aa073f3 100644
        def ivyDeps = Task {
          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
 diff --git a/dist/package.mill b/dist/package.mill
-index fbbeacbc843..04b53aaf2f2 100644
+index fbbeacbc843..fb06c486273 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -2,15 +2,14 @@ package build.dist
@@ -232,12 +259,12 @@ index fbbeacbc843..04b53aaf2f2 100644
        }
  
 -      if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
-+      if (!mill.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
++      if (!mill.constants.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
  
        PathRef(executable)
      }
 diff --git a/example/package.mill b/example/package.mill
-index 427a6aecd74..4ff150b74d1 100644
+index 62190fd6c1e..9d4f176c915 100644
 --- a/example/package.mill
 +++ b/example/package.mill
 @@ -3,13 +3,12 @@ package build.example
@@ -456,7 +483,7 @@ index 427a6aecd74..4ff150b74d1 100644
        os.write(
          Task.dest / "example.adoc",
          parsed()
-@@ -300,7 +299,7 @@ object `package` extends RootModule with Module {
+@@ -303,7 +302,7 @@ $txt
      "gatling" -> ("gatling/gatling", "3870fda86e6bca005fbd53108c60a65db36279b6"),
      "arrow" -> ("arrow-kt/arrow", "bc9bf92cc98e01c21bdd2bf8640cf7db0f97204a")
    )
@@ -466,7 +493,7 @@ index 427a6aecd74..4ff150b74d1 100644
      val (repoPath, repoHash) = repoInfo(crossValue)
      def repoSlug = repoPath.split("/").last
 diff --git a/integration/package.mill b/integration/package.mill
-index af00b40d3f0..303bb74cbc0 100644
+index af00b40d3f0..e43343cabf1 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -3,13 +3,12 @@ package build.integration
@@ -493,7 +520,12 @@ index af00b40d3f0..303bb74cbc0 100644
  
      def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
  
-@@ -38,7 +37,7 @@ object `package` extends RootModule {
+@@ -34,11 +33,11 @@ object `package` extends RootModule {
+     def forkEnv: T[Map[String, String]]
+     def testExclusive = false
+     trait ModeModule extends build.MillBaseTestsModule {
+-      override def test(args: String*) = Task.Command(exclusive = testExclusive) {
++      override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
          testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
        }
  
@@ -518,6 +550,19 @@ index af00b40d3f0..303bb74cbc0 100644
    trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
      def forkEnv = super.forkEnv() ++ Seq(
+diff --git a/main/package.mill b/main/package.mill
+index 24a6babcdb7..1887035b5a8 100644
+--- a/main/package.mill
++++ b/main/package.mill
+@@ -82,7 +82,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
+           Some(Task.ctx()),
+           dist.coursierCacheCustomizer()
+         )
+-        result.getOrThrow.orderedDependencies
++        result.get.orderedDependencies
+           .map(_.module.repr)
+           .distinct
+           .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
 diff --git a/mill-build/build.mill b/mill-build/build.mill
 index 957d929826d..112f1aaccb8 100644
 --- a/mill-build/build.mill
@@ -539,7 +584,7 @@ index 957d929826d..112f1aaccb8 100644
      // TODO: document, why we have this dependency
      ivy"org.jsoup:jsoup:1.18.1"
 diff --git a/scalajslib/package.mill b/scalajslib/package.mill
-index cb17827974f..9270c6ca604 100644
+index 562041446af..f4cce7cebb1 100644
 --- a/scalajslib/package.mill
 +++ b/scalajslib/package.mill
 @@ -44,7 +44,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
@@ -548,11 +593,11 @@ index cb17827974f..9270c6ca604 100644
      def scalajsWorkerVersion = crossValue
 -    def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
 +    def millSourcePath: os.Path = super.moduleDir / scalajsWorkerVersion
-     def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.core.client, build.core.api)
+     def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.core.constants, build.core.api)
      def mandatoryIvyDeps = Agg.empty[Dep]
      def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
 diff --git a/scalalib/package.mill b/scalalib/package.mill
-index 05d74d4426f..e73afa90405 100644
+index d25adf2effd..6852f802156 100644
 --- a/scalalib/package.mill
 +++ b/scalalib/package.mill
 @@ -2,14 +2,13 @@ package build.scalalib
@@ -598,7 +643,7 @@ index 3b577e29c65..7f45dcaeab6 100644
    def forkEnv =
      super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString())
 diff --git a/website/package.mill b/website/package.mill
-index eb4f1515dee..8a52e72cdc9 100644
+index f88dc3fe8f6..eb1916dae76 100644
 --- a/website/package.mill
 +++ b/website/package.mill
 @@ -26,7 +26,7 @@ object `package` extends RootModule {
@@ -671,7 +716,7 @@ index eb4f1515dee..8a52e72cdc9 100644
        }
      )()
  
-@@ -161,9 +161,9 @@ object `package` extends RootModule {
+@@ -170,9 +170,9 @@ object `package` extends RootModule {
        (p, i, os.temp(s), os.temp.dir())
      }
  
@@ -680,10 +725,10 @@ index eb4f1515dee..8a52e72cdc9 100644
        "mill.main.graphviz.GraphvizTools",
 -      visualizeClassPath,
 +      classPath = visualizeClassPath.toSeq,
-       mainArgs = orderedDiagrams.map { case (p, i, src, dest) => s"$src;$dest;svg" }
-     )
- 
-@@ -173,7 +173,7 @@ object `package` extends RootModule {
+       mainArgs = orderedDiagrams.map { case (p, i, src, dest) =>
+         T.log.debug(s"Rendering graphviz: ${p} (${i}) to ${dest}")
+         s"$src;$dest;svg"
+@@ -185,7 +185,7 @@ object `package` extends RootModule {
  
    }
  
@@ -692,7 +737,7 @@ index eb4f1515dee..8a52e72cdc9 100644
  
    /**
     * The doc root ready to be built by antora for the current branch.
-@@ -216,7 +216,7 @@ object `package` extends RootModule {
+@@ -228,7 +228,7 @@ object `package` extends RootModule {
      os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
    }
  

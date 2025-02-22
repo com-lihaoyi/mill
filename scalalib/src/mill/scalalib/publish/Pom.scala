@@ -1,7 +1,5 @@
 package mill.scalalib.publish
 
-import mill.api.Loose.Agg
-
 import scala.xml.{Atom, Elem, NodeSeq, PrettyPrinter}
 
 object Pom {
@@ -27,7 +25,7 @@ object Pom {
 
   def apply(
       artifact: Artifact,
-      dependencies: Agg[Dependency],
+      dependencies: Seq[Dependency],
       name: String,
       pomSettings: PomSettings,
       properties: Map[String, String],
@@ -42,20 +40,20 @@ object Pom {
       properties,
       packagingType,
       parentProject,
-      Agg.empty[Dependency],
-      Agg.empty[Dependency]
+      Seq.empty[Dependency],
+      Seq.empty[Dependency]
     )
 
   def apply(
       artifact: Artifact,
-      dependencies: Agg[Dependency],
+      dependencies: Seq[Dependency],
       name: String,
       pomSettings: PomSettings,
       properties: Map[String, String],
       packagingType: String,
       parentProject: Option[Artifact],
-      bomDependencies: Agg[Dependency],
-      dependencyManagement: Agg[Dependency]
+      bomDependencies: Seq[Dependency],
+      dependencyManagement: Seq[Dependency]
   ): String = {
     val developersSection =
       if (pomSettings.developers.isEmpty) NodeSeq.Empty

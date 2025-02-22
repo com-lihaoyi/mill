@@ -1,7 +1,7 @@
 package mill.exec
 
-import mill.api.Result.{OuterStack, Success}
-import mill.api.Strict.Agg
+import mill.api.ExecResult.{OuterStack, Success}
+
 import mill.api.*
 import mill.define.*
 import mill.internal.MultiLogger
@@ -16,7 +16,7 @@ import scala.util.hashing.MurmurHash3
  * Logic around evaluating a single group, which is a collection of [[Task]]s
  * with a single [[Terminal]].
  */
-private[mill] trait GroupExecution {
+private trait GroupExecution {
   def home: os.Path
   def workspace: os.Path
   def outPath: os.Path
@@ -39,9 +39,9 @@ private[mill] trait GroupExecution {
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   // those result which are inputs but not contained in this terminal group
-  def evaluateGroupCached(
+  def executeGroupCached(
       terminal: Task[?],
-      group: Agg[Task[?]],
+      group: Seq[Task[?]],
       results: Map[Task[?], TaskResult[(Val, Int)]],
       countMsg: String,
       verboseKeySuffix: String,
@@ -55,7 +55,7 @@ private[mill] trait GroupExecution {
   ): GroupExecution.Results = {
     logger.withPrompt {
       val externalInputsHash = MurmurHash3.orderedHash(
-        group.items.flatMap(_.inputs).filter(!group.contains(_))
+        group.flatMap(_.inputs).filter(!group.contains(_))
           .flatMap(results(_).result.asSuccess.map(_.value._2))
       )
 
@@ -84,7 +84,7 @@ private[mill] trait GroupExecution {
 
         case labelled: NamedTask[_] =>
           val out = if (!labelled.ctx.external) outPath else externalOutPath
-          val paths = ExecutionPaths.resolveDestPaths(out, labelled.ctx.segments)
+          val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
           // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
@@ -98,7 +98,7 @@ private[mill] trait GroupExecution {
 
           cachedValueAndHash match {
             case Some((v, hashCode)) =>
-              val res = Result.Success((v, hashCode))
+              val res = ExecResult.Success((v, hashCode))
               val newResults: Map[Task[?], TaskResult[(Val, Int)]] =
                 Map(labelled -> TaskResult(res, () => res))
 
@@ -113,10 +113,10 @@ private[mill] trait GroupExecution {
 
             case _ =>
               // uncached
-              if (labelled.flushDest) os.remove.all(paths.dest)
+              if (!labelled.persistent) os.remove.all(paths.dest)
 
               val (newResults, newEvaluated) =
-                evaluateGroup(
+                executeGroup(
                   group,
                   results,
                   inputsHash,
@@ -131,12 +131,7 @@ private[mill] trait GroupExecution {
                 )
 
               val valueHash = newResults(labelled) match {
-                case TaskResult(Result.Failure(_, Some((v, _))), _) =>
-                  val valueHash = getValueHash(v, terminal, inputsHash)
-                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                  valueHash
-
-                case TaskResult(Result.Success((v, _)), _) =>
+                case TaskResult(ExecResult.Success((v, _)), _) =>
                   val valueHash = getValueHash(v, terminal, inputsHash)
                   handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
                   valueHash
@@ -160,7 +155,7 @@ private[mill] trait GroupExecution {
               )
           }
         case task =>
-          val (newResults, newEvaluated) = evaluateGroup(
+          val (newResults, newEvaluated) = executeGroup(
             group,
             results,
             inputsHash,
@@ -186,8 +181,8 @@ private[mill] trait GroupExecution {
     }
   }
 
-  private def evaluateGroup(
-      group: Agg[Task[?]],
+  private def executeGroup(
+      group: Seq[Task[?]],
       results: Map[Task[?], TaskResult[(Val, Int)]],
       inputsHash: Int,
       paths: Option[ExecutionPaths],
@@ -202,9 +197,9 @@ private[mill] trait GroupExecution {
 
     def computeAll() = {
       val newEvaluated = mutable.Buffer.empty[Task[?]]
-      val newResults = mutable.Map.empty[Task[?], Result[(Val, Int)]]
+      val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]
 
-      val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
+      val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
       val multiLogger = resolveLogger(paths.map(_.log), logger)
 
       var usedDest = Option.empty[os.Path]
@@ -212,7 +207,7 @@ private[mill] trait GroupExecution {
         newEvaluated.append(task)
         val targetInputValues = task.inputs
           .map { x => newResults.getOrElse(x, results(x).result) }
-          .collect { case Result.Success((v, _)) => v }
+          .collect { case ExecResult.Success((v, _)) => v }
 
         def makeDest() = this.synchronized {
           paths match {
@@ -226,7 +221,7 @@ private[mill] trait GroupExecution {
         }
 
         val res = {
-          if (targetInputValues.length != task.inputs.length) Result.Skipped
+          if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
           else {
             val args = new mill.api.Ctx(
               args = targetInputValues.map(_.value).toIndexedSeq,
@@ -260,11 +255,16 @@ private[mill] trait GroupExecution {
             }
 
             wrap {
-              try task.evaluate(args).map(Val(_))
-              catch {
-                case f: Result.Failing[Val] @unchecked => f
+              try {
+
+                task.evaluate(args) match {
+                  case Result.Success(v) => ExecResult.Success(Val(v))
+                  case Result.Failure(err) => ExecResult.Failure(err)
+                }
+              } catch {
+                case ex: Result.Exception => ExecResult.Failure(ex.error)
                 case NonFatal(e) =>
-                  Result.Exception(
+                  ExecResult.Exception(
                     e,
                     new OuterStack(new Exception().getStackTrace.toIndexedSeq)
                   )
@@ -445,7 +445,7 @@ private[mill] trait GroupExecution {
   }
 }
 
-private[mill] object GroupExecution {
+private object GroupExecution {
 
   case class Results(
       newResults: Map[Task[?], TaskResult[(Val, Int)]],

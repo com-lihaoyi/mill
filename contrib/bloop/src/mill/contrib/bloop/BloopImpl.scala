@@ -191,7 +191,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
     val classpath = Task.Anon {
       val transitiveCompileClasspath = Task.traverse(module.transitiveModuleCompileModuleDeps)(m =>
-        Task.Anon { m.localCompileClasspath().map(_.path) ++ Agg(classes(m)) }
+        Task.Anon { m.localCompileClasspath().map(_.path) ++ Seq(classes(m)) }
       )().flatten
 
       module.resolvedIvyDeps().map(_.path) ++
@@ -317,63 +317,45 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       import coursier._
       import coursier.util._
 
-      def source(r: Resolution) = Resolution(
-        r.dependencies
-          .map(d =>
-            d.withAttributes(
-              d.attributes.withClassifier(coursier.Classifier("sources"))
-            )
-          )
-          .toSeq
-      )
-
       import scala.concurrent.ExecutionContext.Implicits.global
-      val unresolved = Resolution(deps)
-      val fetch =
-        ResolutionProcess.fetch(repos, coursier.cache.Cache.default.fetch)
-      val gatherTask =
-        for {
-          resolved <- unresolved.process.run(fetch)
-          resolvedSources <- source(resolved).process.run(fetch)
-          all = resolved.dependencyArtifacts() ++ resolvedSources.dependencyArtifacts()
-          gathered <- Gather[Task].gather(all.distinct.map {
-            case (dep, pub, art) =>
-              coursier.cache.Cache.default.file(art).run.map(dep -> _)
-          })
-        } yield gathered
-          .collect {
-            case (dep, Right(file)) if os.Path(file).ext == "jar" =>
-              (
-                dep.module.organization,
-                dep.module.name,
-                dep.version,
-                Option(dep.attributes.classifier).filter(_.nonEmpty),
-                file
-              )
-          }
-          .groupBy {
-            case (org, mod, version, _, _) => (org, mod, version)
-          }
-          .view
-          .mapValues {
-            _.map {
-              case (_, mod, _, classifier, file) =>
-                BloopConfig.Artifact(mod.value, classifier.map(_.value), None, file.toPath)
-            }.toList
-          }
-          .map {
-            case ((org, mod, version), artifacts) =>
-              BloopConfig.Module(
-                organization = org.value,
-                name = mod.value,
-                version = version,
-                configurations = None,
-                artifacts = artifacts
-              )
-          }
-          .toList
-
-      gatherTask.unsafeRun()
+      Fetch(coursier.cache.FileCache())
+        .addRepositories(repos*)
+        .addDependencies(deps*)
+        .withMainArtifacts()
+        .addClassifiers(coursier.Classifier("sources"))
+        .runResult()
+        .fullDetailedArtifacts
+        .collect {
+          case (dep, _, _, Some(file)) if os.Path(file).ext == "jar" =>
+            (
+              dep.module.organization,
+              dep.module.name,
+              dep.version,
+              Option(dep.attributes.classifier).filter(_.nonEmpty),
+              file
+            )
+        }
+        .groupBy {
+          case (org, mod, version, _, _) => (org, mod, version)
+        }
+        .view
+        .mapValues {
+          _.map {
+            case (_, mod, _, classifier, file) =>
+              BloopConfig.Artifact(mod.value, classifier.map(_.value), None, file.toPath)
+          }.toList
+        }
+        .map {
+          case ((org, mod, version), artifacts) =>
+            BloopConfig.Module(
+              organization = org.value,
+              name = mod.value,
+              version = version,
+              configurations = None,
+              artifacts = artifacts
+            )
+        }
+        .toList
     }
 
     val bloopResolution: Task[BloopConfig.Resolution] = Task.Anon {

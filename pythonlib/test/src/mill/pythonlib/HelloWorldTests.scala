@@ -38,7 +38,7 @@ object HelloWorldTests extends TestSuite {
     test("test") {
       val eval = UnitTester(HelloWorldPython, resourcePath)
 
-      val result = eval.apply(HelloWorldPython.qux.test.test())
+      val result = eval.apply(HelloWorldPython.qux.test.testForked())
       assert(result.isRight)
     }
   }

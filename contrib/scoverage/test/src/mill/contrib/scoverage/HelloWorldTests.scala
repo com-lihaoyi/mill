@@ -1,7 +1,7 @@
 package mill.contrib.scoverage
 
 import mill.*
-import mill.api.Result
+import mill.api.ExecResult
 import mill.contrib.buildinfo.BuildInfo
 import mill.define.Discover
 import mill.scalalib.{DepSyntax, SbtModule, ScalaModule, TestModule}
@@ -35,7 +35,7 @@ trait HelloWorldTests extends utest.TestSuite {
 
       def scoverageVersion = testScoverageVersion
 
-      override def unmanagedClasspath = Agg(PathRef(unmanagedFile))
+      override def unmanagedClasspath = Seq(PathRef(unmanagedFile))
 
       override def moduleDeps = Seq(other)
 
@@ -45,7 +45,7 @@ trait HelloWorldTests extends utest.TestSuite {
       )
 
       object test extends ScoverageTests with TestModule.ScalaTest {
-        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
+        override def ivyDeps = Seq(ivy"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
 
@@ -58,7 +58,7 @@ trait HelloWorldTests extends utest.TestSuite {
       def scoverageVersion = testScoverageVersion
 
       object test extends SbtTests with ScoverageTests with TestModule.ScalaTest {
-        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
+        override def ivyDeps = Seq(ivy"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
 
@@ -90,8 +90,8 @@ trait HelloWorldTests extends utest.TestSuite {
             val Right(result) =
               eval.apply(HelloWorld.core.scoverage.ivyDeps): @unchecked
 
-            val expected = if (isScala3) Agg.empty
-            else Agg(
+            val expected = if (isScala3) Seq.empty
+            else Seq(
               ivy"org.scoverage::scalac-scoverage-runtime:${testScoverageVersion}"
             )
 
@@ -105,16 +105,16 @@ trait HelloWorldTests extends utest.TestSuite {
               eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps): @unchecked
 
             val expected = (isScov3, isScala3) match {
-              case (true, true) => Agg.empty
+              case (true, true) => Seq.empty
               case (true, false) =>
-                Agg(
+                Seq(
                   ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}",
                   ivy"org.scoverage::scalac-scoverage-domain:${testScoverageVersion}",
                   ivy"org.scoverage::scalac-scoverage-serializer:${testScoverageVersion}",
                   ivy"org.scoverage::scalac-scoverage-reporter:${testScoverageVersion}"
                 )
               case (false, _) =>
-                Agg(
+                Seq(
                   ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}"
                 )
             }
@@ -278,12 +278,13 @@ trait FailedWorldTests extends HelloWorldTests {
       val mod = HelloWorld
       test("shouldFail") {
         test("scoverageToolsCp") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(Result.Failure(msg, _)) =
+          val Left(ExecResult.Failure(msg)) =
             eval.apply(mod.core.scoverageToolsClasspath): @unchecked
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport()): @unchecked
+          val Left(ExecResult.Failure(msg)) =
+            eval.apply(mod.core.scoverage.xmlReport()): @unchecked
           assert(msg == errorMsg)
         }
       }
@@ -295,11 +296,12 @@ trait FailedWorldTests extends HelloWorldTests {
           val res = eval.apply(mod.core.scoverageToolsClasspath)
           assert(res.isLeft)
           println(s"res: ${res}")
-          val Left(Result.Failure(msg, _)) = res: @unchecked
+          val Left(ExecResult.Failure(msg)) = res: @unchecked
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport()): @unchecked
+          val Left(ExecResult.Failure(msg)) =
+            eval.apply(mod.core.scoverage.xmlReport()): @unchecked
           assert(msg == errorMsg)
         }
       }
