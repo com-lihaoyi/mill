@@ -23,6 +23,9 @@ private object ExecutionContexts {
         ctx: mill.api.Ctx
     ): Future[T] =
       Future.successful(t)
+
+    def tryDecreaseMaxThreadCount(): Boolean = false
+    def tryIncreaseMaxThreadCount(): Boolean = false
   }
 
   /**
@@ -104,6 +107,24 @@ private object ExecutionContexts {
           }
         }
       }(this)
+    }
+
+    def tryDecreaseMaxThreadCount(): Boolean = synchronized {
+      if (executor.getActiveCount() < executor.getMaximumPoolSize()) {
+        updateThreadCount(-1)
+        true
+      } else {
+        false
+      }
+    }
+
+    def tryIncreaseMaxThreadCount(): Boolean = synchronized {
+      if (executor.getMaximumPoolSize() < threadCount0) {
+        updateThreadCount(1)
+        true
+      } else {
+        false
+      }
     }
   }
 }

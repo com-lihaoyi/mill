@@ -12,6 +12,10 @@ import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.LongAdder
 
 @internal object TestRunnerUtils {
 
@@ -129,34 +133,85 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (runner, tasks)
   }
 
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
+  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner, communicator: TestMmapCommunicator)(implicit
       ctx: Ctx.Log
   ): (String, Iterator[TestResult]) = {
     val events = new ConcurrentLinkedQueue[Event]()
-    val doneMessage = {
+    val taskQueue = new ConcurrentLinkedQueue[Task]()
+    val workingCounter = new AtomicInteger(0)
+    val workCounter = new LongAdder()
 
-      val taskQueue = tasks.to(mutable.Queue)
-      while (taskQueue.nonEmpty) {
-        val next = taskQueue.dequeue().execute(
-          new EventHandler {
-            def handle(event: Event) = {
-              testReporter.logStart(event)
-              events.add(event)
-              testReporter.logFinish(event)
+    tasks.foreach(taskQueue.offer)
+
+    val executor = Executors.newCachedThreadPool()
+    var threadCount = 0
+
+    def spawnTestRunner(
+      executorService: ExecutorService,
+      index: Int 
+    ): Unit = {
+      val runnable = new Runnable {
+        def run(): Unit = {
+          workingCounter.incrementAndGet()
+          while (!taskQueue.isEmpty()) {
+            val task = taskQueue.poll()
+            if (task ne null) {
+              workCounter.increment()
+              val next = task.execute(
+                new EventHandler {
+                  def handle(event: Event) = {
+                    testReporter.logStart(event)
+                    events.add(event)
+                    workCounter.increment()
+                    testReporter.logFinish(event)
+                  }
+                },
+                Array(new Logger {
+                  def debug(msg: String) = ctx.log.outputStream.println(msg)
+                  def error(msg: String) = ctx.log.outputStream.println(msg)
+                  def ansiCodesSupported() = true
+                  def warn(msg: String) = ctx.log.outputStream.println(msg)
+                  def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
+                  def info(msg: String) = ctx.log.outputStream.println(msg)
+                })
+              )
+              next.foreach(taskQueue.offer)
             }
-          },
-          Array(new Logger {
-            def debug(msg: String) = ctx.log.outputStream.println(msg)
-            def error(msg: String) = ctx.log.outputStream.println(msg)
-            def ansiCodesSupported() = true
-            def warn(msg: String) = ctx.log.outputStream.println(msg)
-            def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
-            def info(msg: String) = ctx.log.outputStream.println(msg)
-          })
-        )
-
-        taskQueue.enqueueAll(next)
+          }
+          workingCounter.decrementAndGet()
+          if (index > 0) {
+            communicator.writeIndex(index, 1)
+          }
+        }
       }
+
+      executorService.execute(runnable)
+    }
+
+    val doneMessage = {
+      var lastWorkCount = workCounter.sum()
+      val sleepMillis = 100 + scala.util.Random.nextInt(100)
+
+      while ((workingCounter.get() > 0) || (!taskQueue.isEmpty())) {
+        if (workingCounter.get() == 0) {
+          spawnTestRunner(executor, threadCount)
+          threadCount += 1
+        }
+        val currentWorkCount = workCounter.sum()
+        if (!taskQueue.isEmpty() && lastWorkCount != 0 && currentWorkCount == lastWorkCount) {
+          val signal = communicator.readSignal()
+          if (signal == 0) {
+            communicator.writeSignal(1)
+          } else if (signal == 2) {
+            communicator.writeSignal(0)
+            spawnTestRunner(executor, threadCount)
+            threadCount += 1
+          }
+        }
+        lastWorkCount = currentWorkCount
+        Thread.sleep(sleepMillis)
+      }
+
       runner.done()
     }
 
@@ -196,14 +251,15 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       args: Seq[String],
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
-      testReporter: TestReporter
+      testReporter: TestReporter,
+      communicator: TestMmapCommunicator = TestMmapCommunicator.emptyCommunicator
   )(implicit ctx: Ctx.Log): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 
     val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
-    val (doneMessage, results) = runTasks(tasks.toSeq, testReporter, runner)
+    val (doneMessage, results) = runTasks(tasks.toSeq, testReporter, runner, communicator)
 
     (doneMessage, results.toSeq)
   }

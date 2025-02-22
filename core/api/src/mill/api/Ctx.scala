@@ -144,6 +144,9 @@ object Ctx {
       def async[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
           ctx: mill.api.Ctx
       ): Future[T]
+
+      def tryDecreaseMaxThreadCount(): Boolean
+      def tryIncreaseMaxThreadCount(): Boolean
     }
 
     trait Impl extends Api with ExecutionContext with AutoCloseable {
