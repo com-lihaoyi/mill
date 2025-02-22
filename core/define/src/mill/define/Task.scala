@@ -460,8 +460,9 @@ private object TaskMacros {
           Expr[Seq[Task[Any]]],
           Expr[(Seq[Any], mill.api.Ctx) => Result[T]]
       ) => Expr[M[T]],
-      t: Expr[Result[T]]
-  ): Expr[M[T]] = Applicative.impl[M, Task, Result, T, mill.api.Ctx](traverseCtx, t)
+      t: Expr[Result[T]],
+      allowTaskReferences: Boolean = true
+  ): Expr[M[T]] = Applicative.impl[M, Task, Result, T, mill.api.Ctx](traverseCtx, t, allowTaskReferences)
 
   private def taskIsPrivate()(using Quotes): Expr[Option[Boolean]] =
     Cacher.withMacroOwner {
@@ -499,7 +500,8 @@ private object TaskMacros {
   ): Expr[Target[Seq[PathRef]]] = {
     val expr = appImpl[Target, Seq[PathRef]](
       (in, ev) => '{ new SourcesImpl($ev, $ctx, ${ taskIsPrivate() }) },
-      values
+      values,
+      allowTaskReferences = false
     )
     Cacher.impl0(expr)
   }
@@ -512,7 +514,8 @@ private object TaskMacros {
 
     val expr = appImpl[Target, PathRef](
       (in, ev) => '{ new SourceImpl($ev, $ctx, ${ taskIsPrivate() }) },
-      value
+      value,
+      allowTaskReferences = false
     )
     Cacher.impl0(expr)
 
@@ -527,7 +530,8 @@ private object TaskMacros {
 
     val expr = appImpl[Target, T](
       (in, ev) => '{ new InputImpl[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
-      value
+      value,
+      allowTaskReferences = false
     )
     Cacher.impl0(expr)
   }
