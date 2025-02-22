@@ -322,6 +322,8 @@ def millBinPlatform: T[String] = Task {
 
 def baseDir = build.millSourcePath
 
+def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
+
 val essentialBridgeScalaVersions =
   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)
 // published compiler bridges

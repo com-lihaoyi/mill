@@ -55,7 +55,14 @@ object `package` extends RootModule {
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
 
-      def resources = IntegrationTestModule.this.resources()
+      def resources = Task {
+        for (pref <- IntegrationTestModule.this.resources()) {
+          os.copy(pref.path, Task.dest, mergeFolders = true)
+        }
+        os.copy(build.millJvmVersion().path, Task.dest / ".mill-jvm-version")
+        Seq(PathRef(Task.dest))
+      }
+
       def runClasspath = IntegrationTestModule.this.runClasspath()
       def localRunClasspath = IntegrationTestModule.this.localRunClasspath()
 
