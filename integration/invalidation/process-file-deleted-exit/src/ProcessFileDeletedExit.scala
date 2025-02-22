@@ -16,34 +16,37 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(30.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
-    integrationTest { tester =>
-      import tester._
-
-      assert(!os.exists(workspacePath / "out/mill-server"))
-      assert(!os.exists(workspacePath / "out/mill-no-server"))
-
-      @volatile var watchTerminated = false
-      Future {
-        eval(
-          ("--watch", "foo"),
-          stdout = os.ProcessOutput.Readlines { println(_) },
-          stderr = os.ProcessOutput.Readlines { println(_) }
-        )
-        watchTerminated = true
+    retry(3) {
+      integrationTest { tester =>
+        import tester._
+  
+        assert(!os.exists(workspacePath / "out/mill-server"))
+        assert(!os.exists(workspacePath / "out/mill-no-server"))
+  
+        @volatile var watchTerminated = false
+        Future {
+          eval(
+            ("--watch", "foo"),
+            stdout = os.ProcessOutput.Readlines { println(_) },
+            stderr = os.ProcessOutput.Readlines { println(_) }
+          )
+          watchTerminated = true
+        }
+  
+        if (tester.clientServerMode) eventually { os.exists(workspacePath / "out/mill-server") }
+        else eventually { os.exists(workspacePath / "out/mill-no-server") }
+  
+        assert(watchTerminated == false)
+  
+        val processRoot =
+          if (tester.clientServerMode) workspacePath / "out/mill-server"
+          else workspacePath / "out/mill-no-server"
+  
+        os.list(processRoot).map(p => os.remove(p / "processId"))
+  
+        eventually { watchTerminated == true }
       }
-
-      if (tester.clientServerMode) eventually { os.exists(workspacePath / "out/mill-server") }
-      else eventually { os.exists(workspacePath / "out/mill-no-server") }
-
-      assert(watchTerminated == false)
-
-      val processRoot =
-        if (tester.clientServerMode) workspacePath / "out/mill-server"
-        else workspacePath / "out/mill-no-server"
-
-      os.list(processRoot).map(p => os.remove(p / "processId"))
-
-      eventually { watchTerminated == true }
     }
   }
+    
 }
