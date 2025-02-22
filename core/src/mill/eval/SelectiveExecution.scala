@@ -32,8 +32,8 @@ private[mill] object SelectiveExecution {
             log = evaluator.baseLogger,
             home = os.home,
             env = sys.env,
-            reporter = null,
-            testReporter = null,
+            reporter = _ => None,
+            testReporter = DummyTestReporter,
             workspace = evaluator.workspace,
             systemExit = null,
             fork = null
