@@ -1,0 +1,24 @@
+
+name: Release
+on:
+  push:
+    tags: "*"
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: sbt/setup-sbt@v1
+        with:
+          distribution: temurin
+          java-version: 11
+          cache: sbt
+      - working-directory: ./sbt-build-extract
+        run: sbt ci-release
+        env:
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          PGP_PASSPHRASE: ${{ secrets. SONATYPE_PGP_PRIVATE_KEY_PASSWORD }}
+          PGP_SECRET: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}

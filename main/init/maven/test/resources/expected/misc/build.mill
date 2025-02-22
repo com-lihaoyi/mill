@@ -3,6 +3,7 @@ package build
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
+import mill.scalalib._
 
 object `package` extends RootModule with PublishModule with MavenModule {
 
