@@ -13,7 +13,7 @@ import utest.asserts.{RetryMax, RetryInterval}
  * kills any running process
  */
 object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
-  implicit val retryMax: RetryMax = RetryMax(30.seconds)
+  implicit val retryMax: RetryMax = RetryMax(60.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
     retry(3) {

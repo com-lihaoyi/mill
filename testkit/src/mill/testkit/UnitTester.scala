@@ -7,7 +7,7 @@ import mill.define.{InputImpl, SelectMode, TargetImpl}
 import mill.eval.Evaluator
 import mill.resolve.Resolve
 import mill.internal.PrintLogger
-import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 import java.io.{InputStream, PrintStream}
@@ -90,8 +90,8 @@ class UnitTester(
 
   val execution = new mill.exec.Execution(
     baseLogger = logger,
-    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-    profileLogger = new ProfileLogger(outPath / millProfile),
+    chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
+    profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
     home = mill.api.Ctx.defaultHome,
     workspace = module.moduleDir,
     outPath = outPath,
@@ -136,7 +136,7 @@ class UnitTester(
       tasks: Seq[Task[?]],
       dummy: DummyImplicit = null
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    val evaluated = evaluator.execution.executeTasks(tasks)
+    val evaluated = evaluator.execute(tasks).executionResults
 
     if (evaluated.failing.isEmpty) {
       Right(
@@ -168,7 +168,7 @@ class UnitTester(
       expectedRawValues: Seq[ExecResult[?]]
   ): Unit = {
 
-    val res = evaluator.execution.executeTasks(Seq(target))
+    val res = evaluator.execute(Seq(target)).executionResults
 
     val cleaned = res.rawValues.map {
       case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
@@ -182,7 +182,7 @@ class UnitTester(
 
   def check(targets: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
-    val evaluated = evaluator.execution.executeTasks(targets)
+    val evaluated = evaluator.execute(targets).executionResults
       .evaluated
       .flatMap(_.asTarget)
       .filter(module.moduleInternal.targets.contains)

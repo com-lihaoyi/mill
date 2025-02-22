@@ -484,7 +484,7 @@ functionality, but at 10% the complexity:
 * Bazel itself is not getting any simpler over time - instead is getting more complex with
   additional features and functionality, as tends to happen to projects over time
 
-Mill provides many of the same things Bazel does: automatic xref:depth/execution-model.adoc[caching],
+Mill provides many of the same things Bazel does: automatic xref:depth/evaluation-model.adoc[caching],
 parallelization, xref:depth/sandboxing.adoc[sandboxing],
 xref:extending/import-ivy-plugins.adoc[extensibility]. Mill
 can already work with a wide variety of programming languages,
