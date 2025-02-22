@@ -124,7 +124,6 @@ abstract class MillBuildRootModule()(implicit
     else {
       CodeGen.generateWrappedSources(
         rootModuleInfo.projectRoot / os.up,
-        scriptSources(),
         parsed.seenScripts,
         Task.dest,
         rootModuleInfo.enclosingClasspath,
