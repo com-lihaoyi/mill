@@ -80,4 +80,5 @@ case class PomSettings(
 object PackagingType {
   val Pom = "pom"
   val Jar = "jar"
+  val Aar = "aar"
 }

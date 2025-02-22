@@ -290,7 +290,7 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  private def defaultPublishInfos: T[Seq[PublishInfo]] = {
+  def defaultPublishInfos: T[Seq[PublishInfo]] = {
     def defaultPublishJars: Task[Seq[(PathRef, PathRef => PublishInfo)]] = {
       pomPackagingType match {
         case PackagingType.Pom => Task.Anon(Seq())
@@ -401,6 +401,15 @@ trait PublishModule extends JavaModule { outer =>
       case PackagingType.Pom => Task.Anon {
           val baseName = baseNameTask()
           Seq(
+            pom() -> s"$baseName.pom"
+          )
+        }
+      case PackagingType.Aar => Task.Anon {
+          val baseName = baseNameTask()
+          Seq(
+            jar() -> s"$baseName.aar",
+            sourceJar() -> s"$baseName-sources.jar",
+            docJar() -> s"$baseName-javadoc.jar",
             pom() -> s"$baseName.pom"
           )
         }
@@ -622,4 +631,5 @@ object PublishModule extends ExternalModule with TaskModule {
     }
 
   lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+
 }
