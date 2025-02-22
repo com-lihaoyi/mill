@@ -1,0 +1,105 @@
+// Mill supports auto-formatting Java, Kotlin and Scala code via the
+// https://github.com/diffplug/spotless[Spotless] project.
+
+package build
+
+import mill._
+import mill.javalib.JavaModule
+import mill.javalib.spotless.{SpotlessModule}
+import mill.javalib.spotless.{JavaSpotlessModule, JavaConfig, GoogleJavaFormat, PalantirJavaFormat}
+import mill.javalib.spotless.{KotlinSpotlessModule, KotlinConfig, KtfmtOptions}
+import mill.javalib.spotless.{ScalaSpotlessModule, ScalaConfig}
+
+// See https://github.com/diffplug/spotless/tree/main/plugin-gradle#java
+object `package` extends RootModule with JavaModule with JavaSpotlessModule {
+  val googleFormatter = GoogleJavaFormat(
+    version = "1.25.2",
+    aosp = true,
+    reflowLongStrings = true,
+    formatJavadoc = false,
+    reorderImports = false,
+    groupArtifact = "com.google.googlejavaformat:google-java-format"
+  )
+
+  val palantirFormatter = PalantirJavaFormat(
+    version = "2.50.0",
+    style = "GOOGLE",
+    formatJavadoc = true
+  )
+
+  def jvmLangConfig = new JavaConfig(
+    importOrder = Some(Seq()),
+    formatter = Some(
+      googleFormatter
+    ), // either `googleFormatter` or `palantirFormatter` is supported as `JavaFormatter`
+    licenseHeader = Some("/* (C) 2025. Licensed under Apache-2.0. */\n")
+  )
+}
+
+/*
+// See https://github.com/diffplug/spotless/tree/main/plugin-gradle#scalafmt
+object `package` extends RootModule with ScalaSpotlessModule {
+
+  // In Mill, ScalaConfig defaults to these values: scalafmt('3.8.1').configFile('scalafmt.conf').scalaMajorVersion('2.13')
+  def jvmLangConfig = ScalaConfig(
+    licenseHeader = Some("/* © 2025. */\n"),
+    scalafmtLibVersion = "3.8.1",
+    scalafmtConfigFile = Some("scalafmt.conf")
+  )
+}
+ */
+
+/*
+// See https://github.com/diffplug/spotless/tree/main/plugin-gradle#kotlin
+object `package` extends RootModule with KotlinSpotlessModule {
+  val ktfmtOptions = new KtfmtOptions(
+    maxWidth = Some(80),
+    blockIndent = Some(4),
+    continuationIndent = Some(4),
+    removeUnusedImports = Some(false),
+    manageTrailingCommas = Some(false)
+  )
+
+  def jvmLangConfig = KotlinConfig(
+    ktfmtFlag = true,
+    ktfmtVersion = "0.53",
+    ktfmtOptions = Some(ktfmtOptions),
+    ktlintFlag = true,
+    ktlintVersion = "1.5.0")
+}
+ */
+
+// To use this plugin in a Java/Kotlin/Scala module,
+//
+// 1. Extend `mill.javalib.spotless.SpotlessModule` or use any of `mill.javalib.spotless.{Java|Kotlin|Scala}SpotlessModule`
+// 2. Define your configuration settings like in three examples above.
+// 3. Run the `spotless` command.
+
+/** See Also: src/java/Main.java */
+
+// Spotless can  be used on a per-module basis by inheriting from
+// `SpotlessModule` and running the `spotless` command on that module.
+
+// You can also use `--check` if you want errors to be raised if code is not properly formatted.
+// This is especially useful in CI environments to ensure code is formatted before merging.
+
+/** Usage
+
+> ./mill spotless --check  # check should fail initially
+The following files had format violations:
+.../src/java/Main.java
+.../src/java/Person.java
+Run 'mill spotless ...' to fix these violations.
+
+
+> ./mill spotless  # format all Java source files
+...Formatted: .../src/java/Person.java
+...Formatted: .../src/java/Main.java
+Formatting completed successfully!
+
+> ./mill spotless --check  # check should succeed now
+Verification completed. No format violations found!
+*/
+
+// You can also use Spotless globally on all `JavaModule`s in your build by running
+// `mill.javalib.spotless.JavaSpotlessModule/`.
