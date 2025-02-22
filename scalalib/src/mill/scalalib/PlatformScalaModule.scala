@@ -1,7 +1,5 @@
 package mill.scalalib
 
-import mill.T
-
 /**
  * A [[ScalaModule]] intended for defining `.jvm`/`.js`/`.native` submodules
  * It supports additional source directories per platform, e.g. `src-jvm/` or
