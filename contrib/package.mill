@@ -87,11 +87,12 @@ object `package` extends RootModule {
       def playBinary = crossValue
       def millSourcePath: os.Path = super.millSourcePath / playBinary
 
-      def sources = Task.Sources {
+      def sharedSources = Task.Sources(millSourcePath / os.up / "src-shared")
+      def sources = Task{
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
         // just remove the shared source dir for that worker and implement directly.
-        Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
+        sharedSources() ++ super.sources()
       }
 
       def scalaVersion = build.Deps.play(playBinary).scalaVersion

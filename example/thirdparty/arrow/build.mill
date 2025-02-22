@@ -135,8 +135,8 @@ object `package` extends RootModule {
       override def sources: T[Seq[PathRef]] = Task.Sources ({
         val sourcesRootPath = moduleDir / "src"
         var sources = Seq("common", platformCrossSuffix)
-          .map(platform => PathRef(sourcesRootPath / s"${platform}Main" / "kotlin"))
-          .filter(p => os.exists(p.path))
+          .map(platform => sourcesRootPath / s"${platform}Main" / "kotlin")
+          .filter(p => os.exists(p))
         if (platformCrossSuffix != "jvm") {
           val nonJvmSourcesPath = sourcesRootPath / "nonJvmMain/kotlin"
           if (os.exists(nonJvmSourcesPath)) {
