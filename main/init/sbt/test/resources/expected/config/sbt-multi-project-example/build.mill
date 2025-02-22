@@ -100,6 +100,11 @@ object `package` extends RootModule with BaseModule {
 
     }
   }
+
+  object nested extends Module {
+
+    object nested extends BaseModule {}
+  }
 }
 
 trait BaseModule extends SbtModule with PublishModule {

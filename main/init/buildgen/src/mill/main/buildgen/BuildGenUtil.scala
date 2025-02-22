@@ -1,14 +1,15 @@
 package mill.main.buildgen
 
+import geny.Generator
 import mainargs.{Flag, arg}
-import mill.constants.OutFiles
-import mill.main.buildgen.BuildObject.Companions
 import mill.constants.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
   rootBuildFileNames,
   rootModuleAlias
 }
+import mill.constants.OutFiles
+import mill.main.buildgen.BuildObject.Companions
 import mill.runner.FileImportGraph.backtickWrap
 
 import scala.collection.immutable.SortedSet
@@ -160,9 +161,9 @@ object BuildGenUtil {
   def buildPackage(dirs: Seq[String]): String =
     (rootModuleAlias +: dirs).iterator.map(backtickWrap).mkString(".")
 
-  def buildPackages[Module, Key](input: Tree[Node[Module]])(key: Module => Key)
+  def buildPackages[Module, Key](input: Generator[Node[Module]])(key: Module => Key)
       : Map[Key, String] =
-    input.nodes()
+    input
       .map(node => (key(node.value), buildPackage(node.dirs)))
       .toSeq
       .toMap

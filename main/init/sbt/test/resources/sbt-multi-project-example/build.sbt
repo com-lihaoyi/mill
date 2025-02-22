@@ -56,6 +56,9 @@ lazy val multi2 = project
     common
   )
 
+lazy val nested = project
+  .in(file("nested/nested"))
+
 // DEPENDENCIES
 
 lazy val dependencies =

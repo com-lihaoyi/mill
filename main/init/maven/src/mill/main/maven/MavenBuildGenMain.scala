@@ -36,7 +36,7 @@ import scala.jdk.CollectionConverters.*
  *  - build profiles
  */
 @mill.api.internal
-object MavenBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[Model, Dependency] {
+object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] {
   type C = Config
 
   def main(args: Array[String]): Unit = {
@@ -58,6 +58,8 @@ object MavenBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[Model, Depe
 
     println("converted Maven build to Mill")
   }
+
+  extension (om: Model) override def toOption(): Option[Model] = Some(om)
 
   def getBaseInfo(
       input: Tree[Node[Model]],
@@ -144,7 +146,7 @@ object MavenBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[Model, Depe
 
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
-  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
+  def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
     Seq("RootModule") ++
       cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
 

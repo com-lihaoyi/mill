@@ -7,8 +7,8 @@ import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.IrDependencyType.*
 import os.Path
 
+import scala.collection.MapView
 import scala.collection.immutable.SortedSet
-import scala.collection.{MapView, View}
 
 /**
  * Converts an sbt build to Mill by generating Mill build file(s).
@@ -49,8 +49,10 @@ import scala.collection.{MapView, View}
  *  - cross builds
  */
 @mill.api.internal
-object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Project]])] {
+object SbtBuildGenMain
+    extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Option[Project]]])] {
   type C = Config
+  override type OM = Option[Project]
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
@@ -135,30 +137,17 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
 
     import scala.math.Ordering.Implicits.*
     // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
-    val projectNodesByParentDirs: Map[Option[Seq[String]], View[Node[Project]]] =
+    val projectNodes =
       buildExport.projects.view
         .map(project =>
           Node(os.Path(project.projectDirectory).subRelativeTo(workspace).segments, project)
         )
         // The projects are ordered differently in different `sbt millInitExportBuild` runs and on different OSs, which is strange.
         .sortBy(_.dirs)
-        .groupBy(node => {
-          val dirs = node.dirs
-          Option.when(dirs.nonEmpty)(dirs.dropRight(1))
-        })
 
-    /*
-    TODO This does not support converting child projects nested in a parent directory which is not a project yet.
-     Supporting this may involve refactoring `Node[Project]` into `Node[Option[Project]]`
-     or adding a subproject as a direct child with its ancestor directory project (I am not sure whether this works).
-     */
-    val input = Tree.from(projectNodesByParentDirs(None).head) { node =>
-      val dirs = node.dirs
-      val children = projectNodesByParentDirs.getOrElse(Some(dirs), Seq.empty)
-      (node, children)
-    }
+    val projectNodeTree = projectNodes.foldLeft(Tree(Node(Seq.empty, None)))(merge)
 
-    convertWriteOut(cfg, cfg.shared, (buildExport.defaultBuildInfo, input))
+    convertWriteOut(cfg, cfg.shared, (buildExport.defaultBuildInfo, projectNodeTree))
 
     println("converted sbt build to Mill")
   }
@@ -199,13 +188,17 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
       suffix = ".sbt"
     )
 
-  override def getProjectTree(input: (BuildInfo, Tree[Node[Project]])): Tree[Node[Project]] =
+  extension (om: Option[Project]) override def toOption(): Option[Project] = om
+
+  override def getModuleTree(
+      input: (BuildInfo, Tree[Node[Option[Project]]])
+  ): Tree[Node[Option[Project]]] =
     input._2
 
   def sbtSupertypes = Seq("SbtModule", "PublishModule") // always publish
 
   def getBaseInfo(
-      input: (BuildInfo, Tree[Node[Project]]),
+      input: (BuildInfo, Tree[Node[Option[Project]]]),
       cfg: Config,
       baseModule: String,
       packagesSize: Int
@@ -292,7 +285,7 @@ object SbtBuildGenMain extends BuildGenBase[Project, String, (BuildInfo, Tree[No
 
   def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
 
-  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
+  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
     Seq("RootModule") ++ getModuleSupertypes(cfg)
 
   def groupArtifactVersion(dep: Dependency): (String, String, String) =

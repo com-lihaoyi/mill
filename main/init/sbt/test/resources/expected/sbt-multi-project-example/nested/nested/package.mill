@@ -1,0 +1,58 @@
+package build.nested.nested
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib.SbtModule
+
+object `package` extends RootModule with SbtModule with PublishModule {
+
+  def scalaVersion = "2.12.3"
+
+  def scalacOptions = super.scalacOptions() ++ Seq(
+    "-unchecked",
+    "-feature",
+    "-language:existentials",
+    "-language:higherKinds",
+    "-language:implicitConversions",
+    "-language:postfixOps",
+    "-deprecation",
+    "-encoding",
+    "utf8"
+  )
+
+  def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      coursier.maven.MavenRepository(
+        "https://oss.sonatype.org/service/local/repositories/releases/content/"
+      ),
+      coursier.maven.MavenRepository(
+        "https://oss.sonatype.org/content/repositories/snapshots"
+      )
+    )
+  }
+
+  def pomSettings = PomSettings(
+    "This is an sbt sample project for testing Mill's init command.",
+    "com.pbassiner",
+    "https://github.com/com-lihaoyi/mill",
+    Seq(License(
+      "Apache-2.0",
+      "Apache-2.0",
+      "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      false,
+      false,
+      "repo"
+    )),
+    VersionControl(
+      Some("https://github.com/com-lihaoyi/mill"),
+      Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+      None,
+      None
+    ),
+    Seq(Developer("johnd", "John Doe", "https://example.com/johnd", None, None))
+  )
+
+  def publishVersion = "0.1.0-SNAPSHOT"
+
+}

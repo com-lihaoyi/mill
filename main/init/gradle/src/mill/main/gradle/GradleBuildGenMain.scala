@@ -40,7 +40,7 @@ import scala.jdk.CollectionConverters.*
  *  - non-Java sources
  */
 @mill.api.internal
-object GradleBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[ProjectModel, JavaModel.Dep] {
+object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, JavaModel.Dep] {
   type C = Config
 
   def main(args: Array[String]): Unit = {
@@ -102,6 +102,10 @@ object GradleBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[ProjectMod
     os.write(file, contents)
     file
   }
+
+  extension (om: ProjectModel) override def toOption(): Option[ProjectModel] =
+    // TODO consider filtering out projects without the `java` plugin applied
+    Some(om)
 
   def getBaseInfo(
       input: Tree[Node[ProjectModel]],
@@ -197,11 +201,11 @@ object GradleBuildGenMain extends BuildGenBase.BaseInfoFromSubproject[ProjectMod
     (project.group(), project.name(), project.version())
   }
 
-  def getArtifactId(model: ProjectModel): String = model.name()
+  def getArtifactId(project: ProjectModel): String = project.name()
 
-  def getMillSourcePath(model: ProjectModel): Path = os.Path(model.directory())
+  def getMillSourcePath(project: ProjectModel): Path = os.Path(project.directory())
 
-  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] =
+  def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] =
     Seq("RootModule") ++
       Option.when(null != build.value.maven().pom() && baseInfo.noPom) { "PublishModule" } ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {

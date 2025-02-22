@@ -97,6 +97,28 @@ case class IrBuild(
     publishProperties: Seq[(String, String)]
 )
 
+object IrBuild {
+  // TODO not used
+  def empty(dirs: Seq[String]) = IrBuild(
+    IrScopedDeps(),
+    null,
+    false,
+    dirs,
+    Seq.empty,
+    Seq.empty,
+    None,
+    None,
+    dirs.last,
+    null,
+    null,
+    null,
+    null,
+    Seq.empty,
+    Seq.empty,
+    Seq.empty
+  )
+}
+
 case class IrScopedDeps(
     // TODO The type is `Seq` and this is deduplicated and sorted in `BuildGenUtil`. Make the type `SortedMap` here for consistency?
     namedIvyDeps: Seq[(String, String)] = Nil,
