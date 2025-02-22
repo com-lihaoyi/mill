@@ -132,7 +132,7 @@ object `package` extends RootModule {
       def kotlinApiVersion = majorVersion(kotlinVersion())
       def kotlinExplicitApi = ArrowMultiplatformModule.this.kotlinExplicitApi
 
-      override def sources: T[Seq[PathRef]] = Task.Sources {
+      override def sources: T[Seq[PathRef]] = Task.Sources ({
         val sourcesRootPath = moduleDir / "src"
         var sources = Seq("common", platformCrossSuffix)
           .map(platform => PathRef(sourcesRootPath / s"${platform}Main" / "kotlin"))
@@ -140,11 +140,11 @@ object `package` extends RootModule {
         if (platformCrossSuffix != "jvm") {
           val nonJvmSourcesPath = sourcesRootPath / "nonJvmMain/kotlin"
           if (os.exists(nonJvmSourcesPath)) {
-            sources ++= Seq(PathRef(nonJvmSourcesPath))
+            sources ++= Seq(nonJvmSourcesPath)
           }
         }
-        sources
-      }
+        sources.map(mill.api.Result.Success(_))
+      }*)
 
       override def kotlincOptions =
         super.kotlincOptions() ++
@@ -160,12 +160,12 @@ object `package` extends RootModule {
           if (modulesWithTestingEnabled(multiplatformRoot)) super.testForked(args: _*)
           else Task.Command { ("", Seq.empty[TestResult]) }
 
-        override def sources: T[Seq[PathRef]] = Task.Sources {
-          val sourcesRootPath = outer.moduleDir / "src"
+        override def sources: T[Seq[PathRef]] = Task.Sources(
           Seq("common", outer.platformCrossSuffix)
-            .map(platform => PathRef(sourcesRootPath / s"${platform}Test" / "kotlin"))
-            .filter(p => os.exists(p.path))
-        }
+            .map(platform => outer.moduleDir / "src" / s"${platform}Test" / "kotlin")
+            .filter(p => os.exists(p))
+            .map(mill.api.Result.Success(_))*
+        )
       }
     }
 
