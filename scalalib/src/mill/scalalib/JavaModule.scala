@@ -741,10 +741,11 @@ trait JavaModule
    */
   def assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
 
+  def sourcesFolders: Seq[os.SubPath] = Seq("src")
   /**
    * The folders where the source files for this module live
    */
-  def sources: T[Seq[PathRef]] = Task.Sources { "src" }
+  def sources: T[Seq[PathRef]] = Task.Sources(sourcesFolders*)
 
   /**
    * The folders where the resource files for this module live.

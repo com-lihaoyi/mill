@@ -60,6 +60,12 @@ object Task extends TaskBase {
    * signature for you source files/folders and decides whether or not downstream
    * [[TargetImpl]]s need to be invalidated and re-computed.
    */
+  inline def Sources(inline values: Result[os.Path]*)(implicit
+      inline ctx: mill.define.Ctx
+  ): Target[Seq[PathRef]] = ${
+    TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
+  }
+
   inline def Sources(inline values: os.SubPath*)(implicit
       inline ctx: mill.define.Ctx,
       dummy: Boolean = true
@@ -68,6 +74,15 @@ object Task extends TaskBase {
       '{ values.map(sub => PathRef(ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub))) }
     )('ctx)
   }
+
+  /**
+   * Similar to [[Source]], but only for a single source file or folder. Defined
+   * using `Task.Source`.
+   */
+  inline def Source(inline value: Result[os.Path])(implicit
+      inline ctx: mill.define.Ctx
+  ): Target[PathRef] =
+    ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
 
   inline def Source(inline value: os.SubPath)(implicit
       inline ctx: mill.define.Ctx

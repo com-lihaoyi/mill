@@ -15,12 +15,8 @@ trait PlatformModuleBase extends JavaModule {
     .collect { case l: mill.define.Segment.Label => l.value }
     .last
 
-  override def sources: T[Seq[PathRef]] = Task.Sources {
-    super.sources().flatMap { source =>
-      val platformPath =
-        PathRef(source.path / _root_.os.up / s"${source.path.last}-${platformCrossSuffix}")
-      Seq(source, platformPath)
-    }
+  override def sourcesFolders: Seq[os.SubPath] = super.sourcesFolders.flatMap{
+    source => Seq(source, source / os.up / s"${source.last}-${platformCrossSuffix}")
   }
 
   override def artifactNameParts: T[Seq[String]] = super.artifactNameParts().dropRight(1)
