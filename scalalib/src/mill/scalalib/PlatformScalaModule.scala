@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.{PathRef, T, Task}
+import mill.T
 
 /**
  * A [[ScalaModule]] intended for defining `.jvm`/`.js`/`.native` submodules
@@ -13,8 +13,9 @@ import mill.{PathRef, T, Task}
  * built against and not something that should affect the filesystem path or
  * artifact name
  */
-trait PlatformScalaModule extends /*PlatformModuleBase with*/ ScalaModule{
+trait PlatformScalaModule extends /*PlatformModuleBase with*/ ScalaModule {
   override def moduleDir: os.Path = super.moduleDir / os.up
+
   /**
    * The platform suffix of this [[PlatformModuleBase]]. Useful if you want to
    * further customize the source paths or artifact names.

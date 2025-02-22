@@ -51,7 +51,7 @@ abstract class MillBuildRootModule()(implicit
    * @see [[generateScriptSources]]
    */
   def scriptSources: Target[Seq[PathRef]] = Task.Sources(
-    scriptSourcesPaths.map(Result.Success(_)) * // Ensure ordering is deterministic
+    scriptSourcesPaths.map(Result.Success(_))* // Ensure ordering is deterministic
   )
 
   def parseBuildFiles: T[FileImportGraph] = Task {

@@ -88,7 +88,7 @@ object `package` extends RootModule {
       def millSourcePath: os.Path = super.millSourcePath / playBinary
 
       def sharedSources = Task.Sources(millSourcePath / os.up / "src-shared")
-      def sources = Task{
+      def sources = Task {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
         // just remove the shared source dir for that worker and implement directly.

@@ -15,7 +15,7 @@ trait PlatformModuleBase extends JavaModule {
     .collect { case l: mill.define.Segment.Label => l.value }
     .last
 
-  override def sourcesFolders: Seq[os.SubPath] = super.sourcesFolders.flatMap{
+  override def sourcesFolders: Seq[os.SubPath] = super.sourcesFolders.flatMap {
     source => Seq(source, source / os.up / s"${source.last}-${platformCrossSuffix}")
   }
 

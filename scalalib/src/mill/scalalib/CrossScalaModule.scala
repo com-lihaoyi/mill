@@ -1,8 +1,5 @@
 package mill.scalalib
 
-import mill.api.PathRef
-import mill.{T, Task}
-
 /**
  * A [[ScalaModule]] which is suited to be used with [[mill.define.Cross]].
  * It supports additional source directories with the scala version pattern

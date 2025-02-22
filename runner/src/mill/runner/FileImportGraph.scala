@@ -221,7 +221,6 @@ object FileImportGraph {
     val rootBuildFiles = rootBuildFileNames
       .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
-
     val (dummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
       case Nil => (true, rootBuildFileNames.head)
       case Seq(single) => (false, single)

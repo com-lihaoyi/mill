@@ -132,7 +132,7 @@ object `package` extends RootModule {
       def kotlinApiVersion = majorVersion(kotlinVersion())
       def kotlinExplicitApi = ArrowMultiplatformModule.this.kotlinExplicitApi
 
-      override def sources: T[Seq[PathRef]] = Task.Sources ({
+      override def sources: T[Seq[PathRef]] = Task.Sources({
         val sourcesRootPath = moduleDir / "src"
         var sources = Seq("common", platformCrossSuffix)
           .map(platform => sourcesRootPath / s"${platform}Main" / "kotlin")
