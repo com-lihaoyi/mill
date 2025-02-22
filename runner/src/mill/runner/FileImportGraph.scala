@@ -201,18 +201,11 @@ object FileImportGraph {
       transformedStmts.append(stmt)
     }
 
-    val (useDummy, foundRootBuildFileName, buildFileExtension) = findRootBuildFiles(projectRoot)
+    val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
     processScript(projectRoot / foundRootBuildFileName, useDummy)
-    val buildFiles =
-      if (!packagesImport) Nil
-      else walkBuildFiles(projectRoot, output)
 
-    val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
-      .flatMap(os.list(_))
-      .filter(_.last.endsWith(s".$buildFileExtension"))
-
-    (buildFiles ++ adjacentScripts).foreach(processScript(_))
+    if (packagesImport) walkBuildFiles(projectRoot, output).foreach(processScript(_))
 
     new FileImportGraph(
       seenScripts.toMap,
@@ -240,26 +233,36 @@ object FileImportGraph {
         (false, multiple.head)
     }
 
-    val buildFileExtension =
-      buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
-
-    (dummy, foundRootBuildFileName, buildFileExtension)
+    (dummy, foundRootBuildFileName)
   }
 
-  def walkBuildFiles(projectRoot: os.Path, output: os.Path) = {
-    val (dummy, rootBuildFiles, buildFileExtension) = findRootBuildFiles(projectRoot)
+  def walkBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] = {
+    if (!os.exists(projectRoot)) Nil
+    else {
+      val (dummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
-    val nestedBuildFileName = s"package.$buildFileExtension"
-    os
-      .walk(
-        projectRoot,
-        followLinks = true,
-        skip = p =>
-          p == output ||
-            p == projectRoot / millBuild ||
-            (os.isDir(p) && !os.exists(p / nestedBuildFileName))
-      )
-      .filter(_.last == nestedBuildFileName)
+      val buildFileExtension =
+        buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
+
+      val nestedBuildFileName = s"package.$buildFileExtension"
+      val buildFiles = os
+        .walk(
+          projectRoot,
+          followLinks = true,
+          skip = p =>
+            p == output ||
+              p == projectRoot / millBuild ||
+              (os.isDir(p) && !os.exists(p / nestedBuildFileName))
+        )
+        .filter(_.last == nestedBuildFileName)
+
+
+      val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
+        .flatMap(os.list(_))
+        .filter(_.last.endsWith(s".$buildFileExtension"))
+
+      buildFiles ++ adjacentScripts
+    }
   }
 
   def fileImportToSegments(base: os.Path, s: os.Path): Seq[String] = {

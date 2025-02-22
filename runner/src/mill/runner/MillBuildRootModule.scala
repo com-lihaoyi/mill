@@ -42,14 +42,17 @@ abstract class MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
+  val scriptSourcesPaths = FileImportGraph
+    .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
+    .sorted
+  pprint.log(rootModuleInfo.projectRoot)
+  pprint.log(scriptSourcesPaths)
   /**
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
   def scriptSources: Target[Seq[PathRef]] = Task.Sources(
-    FileImportGraph.walkBuildFiles(rootModuleInfo.projectRoot, rootModuleInfo.output)
-      .sorted
-      .map(Result.Success(_)) * // Ensure ordering is deterministic
+    scriptSourcesPaths.map(Result.Success(_)) * // Ensure ordering is deterministic
   )
 
   def parseBuildFiles: T[FileImportGraph] = Task {
