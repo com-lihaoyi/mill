@@ -1,9 +1,8 @@
 package mill.eval
 
-import mill.api.Val
-import mill.api.Result
+import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles
-import mill.define.{InputImpl, NamedTask, SelectMode, Task, TaskResult}
+import mill.define.{InputImpl, NamedTask, SelectMode, Task}
 import mill.exec.{CodeSigUtils, Execution, Plan}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
@@ -17,35 +16,39 @@ private[mill] object SelectiveExecution {
     def compute(
         evaluator: Evaluator,
         tasks: Seq[NamedTask[?]]
-    ): (Metadata, Map[Task[?], TaskResult[Val]]) = {
+    ): (Metadata, Map[Task[?], ExecResult[Val]]) = {
       compute0(evaluator, Plan.transitiveNamed(tasks))
     }
 
     def compute0(
         evaluator: Evaluator,
         transitiveNamed: Seq[NamedTask[?]]
-    ): (Metadata, Map[Task[?], TaskResult[Val]]) = {
-      val inputTasksToLabels: Map[Task[?], String] = transitiveNamed
+    ): (Metadata, Map[Task[?], ExecResult[Val]]) = {
+      val results: Map[NamedTask[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: InputImpl[_] =>
-          task -> task.ctx.segments.render
+          val ctx = new mill.api.Ctx(
+            args = Vector(),
+            dest0 = () => null,
+            log = evaluator.baseLogger,
+            home = os.home,
+            env = sys.env,
+            reporter = null,
+            testReporter = null,
+            workspace = evaluator.workspace,
+            systemExit = null,
+            fork = null
+          )
+          task -> task.evaluate(ctx).map(Val(_))
         }
         .toMap
 
-      val results = evaluator.execute(Seq.from(inputTasksToLabels.keys))
-
-      val inputHashes = results
-        .executionResults
-        .results
-        .flatMap { case (task, taskResult) =>
-          inputTasksToLabels.get(task).map { l =>
-            l -> taskResult.result.get.value.hashCode
-          }
-        }
-
+      val inputHashes = results.map{
+        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.hashCode)
+      }
       new Metadata(
         inputHashes,
         evaluator.methodCodeHashSignatures
-      ) -> results.executionResults.results
+      ) -> results.map{case (k, v) => (k, ExecResult.Success(v.get))}
     }
   }
 
@@ -121,7 +124,7 @@ private[mill] object SelectiveExecution {
       resolved: Seq[NamedTask[?]],
       changedRootTasks: Set[NamedTask[?]],
       downstreamTasks: Seq[NamedTask[?]],
-      results: Map[Task[?], TaskResult[Val]]
+      results: Map[Task[?], ExecResult[Val]]
   )
 
   def computeChangedTasks(

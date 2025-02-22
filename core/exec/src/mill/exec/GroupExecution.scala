@@ -42,7 +42,7 @@ private trait GroupExecution {
   def executeGroupCached(
       terminal: Task[?],
       group: Seq[Task[?]],
-      results: Map[Task[?], TaskResult[(Val, Int)]],
+      results: Map[Task[?], ExecResult[(Val, Int)]],
       countMsg: String,
       verboseKeySuffix: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
@@ -56,7 +56,7 @@ private trait GroupExecution {
     logger.withPrompt {
       val externalInputsHash = MurmurHash3.orderedHash(
         group.flatMap(_.inputs).filter(!group.contains(_))
-          .flatMap(results(_).result.asSuccess.map(_.value._2))
+          .flatMap(results(_).asSuccess.map(_.value._2))
       )
 
       val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
@@ -99,8 +99,8 @@ private trait GroupExecution {
           cachedValueAndHash match {
             case Some((v, hashCode)) =>
               val res = ExecResult.Success((v, hashCode))
-              val newResults: Map[Task[?], TaskResult[(Val, Int)]] =
-                Map(labelled -> TaskResult(res, () => res))
+              val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
+                Map(labelled -> res)
 
               GroupExecution.Results(
                 newResults,
@@ -131,7 +131,7 @@ private trait GroupExecution {
                 )
 
               val valueHash = newResults(labelled) match {
-                case TaskResult(ExecResult.Success((v, _)), _) =>
+                case ExecResult.Success((v, _)) =>
                   val valueHash = getValueHash(v, terminal, inputsHash)
                   handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
                   valueHash
@@ -183,7 +183,7 @@ private trait GroupExecution {
 
   private def executeGroup(
       group: Seq[Task[?]],
-      results: Map[Task[?], TaskResult[(Val, Int)]],
+      results: Map[Task[?], ExecResult[(Val, Int)]],
       inputsHash: Int,
       paths: Option[ExecutionPaths],
       maybeTargetLabel: Option[String],
@@ -193,95 +193,90 @@ private trait GroupExecution {
       logger: mill.api.Logger,
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean
-  ): (Map[Task[?], TaskResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
+  ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
-    def computeAll() = {
-      val newEvaluated = mutable.Buffer.empty[Task[?]]
-      val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]
+    val newEvaluated = mutable.Buffer.empty[Task[?]]
+    val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]
 
-      val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
-      val multiLogger = resolveLogger(paths.map(_.log), logger)
+    val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
+    val multiLogger = resolveLogger(paths.map(_.log), logger)
 
-      var usedDest = Option.empty[os.Path]
-      for (task <- nonEvaluatedTargets) {
-        newEvaluated.append(task)
-        val targetInputValues = task.inputs
-          .map { x => newResults.getOrElse(x, results(x).result) }
-          .collect { case ExecResult.Success((v, _)) => v }
+    var usedDest = Option.empty[os.Path]
+    for (task <- nonEvaluatedTargets) {
+      newEvaluated.append(task)
+      val targetInputValues = task.inputs
+        .map { x => newResults.getOrElse(x, results(x)) }
+        .collect { case ExecResult.Success((v, _)) => v }
 
-        def makeDest() = this.synchronized {
-          paths match {
-            case Some(dest) =>
-              if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-              usedDest = Some(dest.dest)
-              dest.dest
+      def makeDest() = this.synchronized {
+        paths match {
+          case Some(dest) =>
+            if (usedDest.isEmpty) os.makeDir.all(dest.dest)
+            usedDest = Some(dest.dest)
+            dest.dest
 
-            case None => throw new Exception("No `dest` folder available here")
-          }
+          case None => throw new Exception("No `dest` folder available here")
         }
-
-        val res = {
-          if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
-          else {
-            val args = new mill.api.Ctx(
-              args = targetInputValues.map(_.value).toIndexedSeq,
-              dest0 = () => makeDest(),
-              log = multiLogger,
-              home = home,
-              env = env,
-              reporter = reporter,
-              testReporter = testReporter,
-              workspace = workspace,
-              systemExit = systemExit,
-              fork = executionContext
-            ) with mill.api.Ctx.Jobs {
-              override def jobs: Int = effectiveThreadCount
-            }
-
-            def wrap[T](t: => T): T = {
-              val (streams, destFunc) =
-                if (exclusive) (exclusiveSystemStreams, () => workspace)
-                else (multiLogger.systemStreams, () => makeDest())
-
-              os.dynamicPwdFunction.withValue(destFunc) {
-                SystemStreams.withStreams(streams) {
-                  if (!exclusive) t
-                  else {
-                    logger.reportKey(Seq(counterMsg))
-                    logger.withPromptPaused { t }
-                  }
-                }
-              }
-            }
-
-            wrap {
-              try {
-
-                task.evaluate(args) match {
-                  case Result.Success(v) => ExecResult.Success(Val(v))
-                  case Result.Failure(err) => ExecResult.Failure(err)
-                }
-              } catch {
-                case ex: Result.Exception => ExecResult.Failure(ex.error)
-                case NonFatal(e) =>
-                  ExecResult.Exception(
-                    e,
-                    new OuterStack(new Exception().getStackTrace.toIndexedSeq)
-                  )
-                case e: Throwable => throw e
-              }
-            }
-          }
-        }
-
-        newResults(task) = for (v <- res) yield (v, getValueHash(v, task, inputsHash))
       }
 
-      multiLogger.close()
-      (newResults, newEvaluated)
+      val res = {
+        if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
+        else {
+          val args = new mill.api.Ctx(
+            args = targetInputValues.map(_.value).toIndexedSeq,
+            dest0 = () => makeDest(),
+            log = multiLogger,
+            home = home,
+            env = env,
+            reporter = reporter,
+            testReporter = testReporter,
+            workspace = workspace,
+            systemExit = systemExit,
+            fork = executionContext
+          ) with mill.api.Ctx.Jobs {
+            override def jobs: Int = effectiveThreadCount
+          }
+
+          def wrap[T](t: => T): T = {
+            val (streams, destFunc) =
+              if (exclusive) (exclusiveSystemStreams, () => workspace)
+              else (multiLogger.systemStreams, () => makeDest())
+
+            os.dynamicPwdFunction.withValue(destFunc) {
+              SystemStreams.withStreams(streams) {
+                if (!exclusive) t
+                else {
+                  logger.reportKey(Seq(counterMsg))
+                  logger.withPromptPaused { t }
+                }
+              }
+            }
+          }
+
+          wrap {
+            try {
+
+              task.evaluate(args) match {
+                case Result.Success(v) => ExecResult.Success(Val(v))
+                case Result.Failure(err) => ExecResult.Failure(err)
+              }
+            } catch {
+              case ex: Result.Exception => ExecResult.Failure(ex.error)
+              case NonFatal(e) =>
+                ExecResult.Exception(
+                  e,
+                  new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                )
+              case e: Throwable => throw e
+            }
+          }
+        }
+      }
+
+      newResults(task) = for (v <- res) yield (v, getValueHash(v, task, inputsHash))
     }
 
-    val (newResults, newEvaluated) = computeAll()
+    multiLogger.close()
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
       val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[?]])
@@ -290,16 +285,7 @@ private trait GroupExecution {
       }
     }
 
-    (
-      newResults
-        .map { case (k, v) =>
-          val recalc = () => computeAll()._1.apply(k)
-          val taskResult = TaskResult(v, recalc)
-          (k, taskResult)
-        }
-        .toMap,
-      newEvaluated
-    )
+    (newResults.toMap, newEvaluated)
   }
 
   // Include the classloader identity hash as part of the worker hash. This is
@@ -448,7 +434,7 @@ private trait GroupExecution {
 private object GroupExecution {
 
   case class Results(
-      newResults: Map[Task[?], TaskResult[(Val, Int)]],
+      newResults: Map[Task[?], ExecResult[(Val, Int)]],
       newEvaluated: Seq[Task[?]],
       cached: java.lang.Boolean,
       inputsHash: Int,

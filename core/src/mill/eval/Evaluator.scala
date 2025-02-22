@@ -136,13 +136,26 @@ final class Evaluator private[mill] (
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
-            case (t: SourcesImpl, TaskResult(ExecResult.Success(Val(ps: Seq[PathRef])), _)) =>
+            case (t: SourcesImpl, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
               ps.map(Watchable.Path(_))
-            case (t: SourceImpl, TaskResult(ExecResult.Success(Val(p: PathRef)), _)) =>
+            case (t: SourceImpl, ExecResult.Success(Val(p: PathRef))) =>
               Seq(Watchable.Path(p))
-            case (t: InputImpl[_], TaskResult(result, recalc)) =>
+            case (t: InputImpl[_], result) =>
+
+              val ctx = new mill.api.Ctx(
+                args = Vector(),
+                dest0 = () => null,
+                log = logger,
+                home = os.home,
+                env = sys.env,
+                reporter = reporter,
+                testReporter = testReporter,
+                workspace = workspace,
+                systemExit = null,
+                fork = null
+              )
               val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
-              Seq(Watchable.Value(() => recalc().hashCode(), result.hashCode(), pretty))
+              Seq(Watchable.Value(() => t.evaluate(ctx).hashCode(), result.hashCode(), pretty))
           }
           .flatten
           .toSeq
@@ -150,7 +163,7 @@ final class Evaluator private[mill] (
         val allInputHashes = evaluated.results
           .iterator
           .collect {
-            case (t: InputImpl[_], TaskResult(ExecResult.Success(Val(value)), _)) =>
+            case (t: InputImpl[_], ExecResult.Success(Val(value))) =>
               (t.ctx.segments.render, value.##)
           }
           .toMap

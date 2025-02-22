@@ -8,7 +8,7 @@ import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result,
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, ExecutionResults, ExternalModule, NamedTask, Task, TaskResult}
+import mill.define.{Args, Discover, ExecutionResults, ExternalModule, NamedTask, Task}
 import mill.eval.Evaluator
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
@@ -476,7 +476,7 @@ private class MillBuildServer(
         logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
       )
       val response = runResult.results(runTask) match {
-        case r if r.result.asSuccess.isDefined => new RunResult(StatusCode.OK)
+        case r if r.asSuccess.isDefined => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
       }
       params.getOriginId match {
@@ -603,9 +603,9 @@ private class MillBuildServer(
             if (cleanResult.failing.size > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.results(cleanTask) match {
-                  case TaskResult(ex: ExecResult.Exception, _) => ex.toString()
-                  case TaskResult(ExecResult.Skipped, _) => "Task was skipped"
-                  case TaskResult(ExecResult.Aborted, _) => "Task was aborted"
+                  case ex: ExecResult.Exception => ex.toString()
+                  case ExecResult.Skipped => "Task was skipped"
+                  case ExecResult.Aborted => "Task was aborted"
                   case _ => "could not retrieve the failure message"
                 }),
               false
@@ -672,7 +672,7 @@ private class MillBuildServer(
         .map { case ((ev, id), ts) =>
           val results = evaluate(ev, ts)
           val failures = results.results.collect {
-            case (_, TaskResult(res: ExecResult.Failing[_], _)) => res
+            case (_, res: ExecResult.Failing[_]) => res
           }
 
           def logError(errorMsg: String): Unit = {
