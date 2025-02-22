@@ -45,8 +45,7 @@ abstract class MillBuildRootModule()(implicit
   val scriptSourcesPaths = FileImportGraph
     .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
     .sorted
-  pprint.log(rootModuleInfo.projectRoot)
-  pprint.log(scriptSourcesPaths)
+
   /**
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]

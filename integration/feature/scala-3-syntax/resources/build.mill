@@ -2,8 +2,8 @@ package build
 import $meta._
 import mill.{Task, Command, RootModule, Cross}, Task.Anon
 import $packages._
-import $file.foo.Box
-import $file.foo.{given Box[Int]}
+import build.foo.Box
+import build.foo.{given Box[Int]}
 
 
 given Cross.ToSegments[DayValue](d => List(d.toString))

@@ -1,6 +1,6 @@
 package build.b
 import mill._
-import $file.b.inputD
+import build.b.inputD
 
 def input = Task {
   inputD.method()

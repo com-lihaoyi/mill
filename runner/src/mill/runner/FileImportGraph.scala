@@ -205,7 +205,7 @@ object FileImportGraph {
 
     processScript(projectRoot / foundRootBuildFileName, useDummy)
 
-    if (packagesImport) walkBuildFiles(projectRoot, output).foreach(processScript(_))
+    walkBuildFiles(projectRoot, output).foreach(processScript(_))
 
     new FileImportGraph(
       seenScripts.toMap,
@@ -256,11 +256,11 @@ object FileImportGraph {
         )
         .filter(_.last == nestedBuildFileName)
 
-
       val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
         .flatMap(os.list(_))
         .filter(_.last.endsWith(s".$buildFileExtension"))
 
+      mill.constants.DebugLog.println("buildFiles ++ adjacentScripts " + (buildFiles ++ adjacentScripts))
       buildFiles ++ adjacentScripts
     }
   }
