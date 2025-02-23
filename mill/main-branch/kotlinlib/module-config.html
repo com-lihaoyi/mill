@@ -705,14 +705,12 @@ object `package` extends RootModule with KotlinModule {
   def mainClass = Some(&quot;foo.Foo2Kt&quot;)
 
   // Add (or replace) source folders for the module to use
-  def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(moduleDir / &quot;custom-src&quot;))
-  }
+  def customSources = Task.Sources(&quot;custom-src&quot;)
+  def sources = Task { super.sources() ++ customSources() }
 
   // Add (or replace) resource folders for the module to use
-  def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(moduleDir / &quot;custom-resources&quot;))
-  }
+  def customResources = Task.Sources(&quot;custom-resources&quot;)
+  def resources = Task { super.resources() ++ customResources() }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {

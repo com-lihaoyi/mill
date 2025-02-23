@@ -871,9 +871,9 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
-  def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(moduleDir / &quot;mill-build/src&quot;))
-  }
+  // Add (or replace) source folders for the module to use
+  def customSources = Task.Sources(&quot;mill-build/src&quot;)
+  def sources = Task { super.sources() ++ customSources() }
 }</code></pre>
 </div>
 </div>

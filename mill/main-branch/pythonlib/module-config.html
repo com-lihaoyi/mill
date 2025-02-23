@@ -690,14 +690,12 @@ object foo extends PythonModule {
   def mainScript = Task.Source { &quot;custom-src/foo2.py&quot; }
 
   // Add (or replace) source folders for the module to use
-  def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(moduleDir / &quot;custom-src&quot;))
-  }
+  def customSources = Task.Sources(&quot;custom-src&quot;)
+  def sources = Task { super.sources() ++ customSources() }
 
   // Add (or replace) resource folders for the module to use
-  def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(moduleDir / &quot;custom-resources&quot;))
-  }
+  def customResources = Task.Sources(&quot;custom-resources&quot;)
+  def resources = Task { super.resources() ++ customResources() }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {
@@ -1174,7 +1172,9 @@ import mill._, pythonlib._
 object foo extends PythonModule {
   def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
-  def resources = Task.Sources { super.resources() ++ Seq(PathRef(moduleDir / &quot;custom&quot;)) }
+  // Add (or replace) resource folders for the module to use
+  def customResources = Task.Sources(&quot;custom&quot;)
+  def resources = Task { super.resources() ++ customResources() }
 
   object test extends PythonTests with TestModule.Unittest {
 
