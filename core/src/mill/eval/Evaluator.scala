@@ -42,6 +42,7 @@ final class Evaluator private[mill] (
   private[mill] def methodCodeHashSignatures = execution.methodCodeHashSignatures
   private[mill] def rootModule = execution.rootModule
   private[mill] def workerCache = execution.workerCache
+  private[mill] def env = execution.env
 
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator = new Evaluator(
     allowPositionalCommandArgs,
