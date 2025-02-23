@@ -89,7 +89,7 @@ trait AndroidAppModule extends JavaModule {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
 
-  override def sources: T[Seq[PathRef]] = Task.Sources(moduleDir / "src/main/java")
+  override def sources: T[Seq[PathRef]] = Task.Sources("src/main/java")
 
   /**
    * Provides access to the Android SDK configuration.
@@ -1052,22 +1052,21 @@ trait AndroidAppModule extends JavaModule {
   }
 
   trait AndroidAppTests extends JavaTests {
-    private def testPath = parent.moduleDir / "src/test"
+    override def moduleDir = parent.moduleDir
 
-    override def sources: T[Seq[PathRef]] = Seq(PathRef(testPath / "java"))
+    override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
 
-    override def resources: T[Seq[PathRef]] = Task.Sources(Seq(PathRef(testPath / "res")))
+    override def resources: T[Seq[PathRef]] = Task.Sources("src/test/res")
 
     override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-      baseDirectory = Some(testPath),
+      baseDirectory = Some(moduleDir / "src/test"),
       canTest = true
     )
 
   }
 
   trait AndroidAppInstrumentedTests extends AndroidAppModule with AndroidTestModule {
-    private def androidMainSourcePath = parent.moduleDir
-    private def androidTestPath = androidMainSourcePath / "src/androidTest"
+    override def moduleDir = parent.moduleDir
 
     override def moduleDeps: Seq[JavaModule] = Seq(parent)
 
@@ -1085,15 +1084,16 @@ trait AndroidAppModule extends JavaModule {
 
     override def androidEmulatorPort: String = parent.androidEmulatorPort
 
-    override def sources: T[Seq[PathRef]] = Seq(PathRef(androidTestPath / "java"))
+    override def sources: T[Seq[PathRef]] = Task.Sources("src/androidTest/java")
 
     /** The resources in res directories of both main source and androidTest sources */
-    override def resources: T[Seq[PathRef]] = Task.Sources {
+    override def resources: T[Seq[PathRef]] = Task {
       val libResFolders = androidUnpackArchives().flatMap(_.resources)
-      libResFolders ++ Seq(PathRef(androidTestPath / "res"))
+      libResFolders ++ resources0()
     }
+    def resources0 = Task.Sources("src/androidTest/res")
 
-    override def generatedSources: T[Seq[PathRef]] = Task.Sources(Seq.empty[PathRef])
+    override def generatedSources: T[Seq[PathRef]] = Task.Sources()
 
     /* TODO on debug work, an AndroidManifest.xml with debug and instrumentation settings
      * will need to be created. Then this needs to point to the location of that debug
@@ -1157,7 +1157,7 @@ trait AndroidAppModule extends JavaModule {
 
     @internal
     override def bspBuildTarget: BspBuildTarget = super[AndroidTestModule].bspBuildTarget.copy(
-      baseDirectory = Some(androidTestPath),
+      baseDirectory = Some(moduleDir / "src/androidTest"),
       canRun = false
     )
 

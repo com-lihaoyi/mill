@@ -125,7 +125,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    * that does not get invalidated upon source file change. Mainly called
    * from module#sources in bloopInstall
    */
-  def moduleSourceMap = Task.Input {
+  def moduleSourceMap = Task {
     val sources = Task.traverse(computeModules) { m =>
       m.allSources.map { paths =>
         name(m) -> paths.map(_.path)

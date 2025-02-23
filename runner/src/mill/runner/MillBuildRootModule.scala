@@ -42,18 +42,17 @@ abstract class MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
+  val scriptSourcesPaths = FileImportGraph
+    .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
+    .sorted
+
   /**
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
-  def scriptSources: Target[Seq[PathRef]] = Task.Sources {
-    MillBuildRootModule.parseBuildFiles(compilerWorker(), rootModuleInfo)
-      .seenScripts
-      .keys
-      .toSeq
-      .sorted // Ensure ordering is deterministic
-      .map(PathRef(_))
-  }
+  def scriptSources: Target[Seq[PathRef]] = Task.Sources(
+    scriptSourcesPaths.map(Result.Success(_))* // Ensure ordering is deterministic
+  )
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
@@ -125,7 +124,6 @@ abstract class MillBuildRootModule()(implicit
     else {
       CodeGen.generateWrappedSources(
         rootModuleInfo.projectRoot / os.up,
-        scriptSources(),
         parsed.seenScripts,
         Task.dest,
         rootModuleInfo.enclosingClasspath,
@@ -240,9 +238,9 @@ abstract class MillBuildRootModule()(implicit
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
-  def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources {
-    rootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
-  }
+  def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources(
+    rootModuleInfo.enclosingClasspath.map(Result.Success(_))*
+  )
 
   /**
    * Dependencies, which should be transitively excluded.
