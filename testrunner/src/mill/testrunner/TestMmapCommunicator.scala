@@ -4,7 +4,6 @@ import java.nio.channels.FileChannel
 import java.io.RandomAccessFile
 import scala.util.Try
 import scala.util.Using
-import java.nio.ByteBuffer
 
 private[mill] sealed abstract class TestMmapCommunicator extends AutoCloseable {
 
@@ -19,14 +18,15 @@ private[mill] sealed abstract class TestMmapCommunicator extends AutoCloseable {
   def readAll(): Array[Int]
 
   def close(): Unit
-  
+
 }
 
 private[mill] object TestMmapCommunicator {
+
   /**
    * first 4 bytes: communicate signal
    * next 4092 bytes: thread specific communication slots (4 bytes each)
-   * 
+   *
    * This mean that we can give back thread at most 1023 times to the parent process.
    * Other threads will be given back when test process terminates.
    */
@@ -51,15 +51,15 @@ private[mill] object TestMmapCommunicator {
         override def readSignal(): Int = this.synchronized { buffer.getInt(0) }
         override def writeSignal(signal: Int): Unit = this.synchronized { buffer.putInt(0, signal) }
         override def readIndex(index: Int): Int = if (index < 0 || index >= 1023) {
-            -1
-          } else {
-            this.synchronized { buffer.getInt(4 + index * 4) }
-          }
+          -1
+        } else {
+          this.synchronized { buffer.getInt(4 + index * 4) }
+        }
         override def writeIndex(index: Int, value: Int): Unit = if (index < 0 || index >= 1023) {
-            ()
-          } else {
-            this.synchronized { buffer.putInt(4 + index * 4, value) }
-          }
+          ()
+        } else {
+          this.synchronized { buffer.putInt(4 + index * 4, value) }
+        }
         override def readAll(): Array[Int] = {
           val length = (BufferSize >> 2) - 1
           val array = new Array[Int](length)
@@ -72,7 +72,7 @@ private[mill] object TestMmapCommunicator {
         }
         override def close(): Unit = {
           channel.close()
-          file.close()  
+          file.close()
         }
       }
     }.getOrElse(emptyCommunicator)

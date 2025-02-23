@@ -33,7 +33,7 @@ import mill.internal.PrintLogger
           testClassfilePath = Seq.from(testArgs.testCp),
           args = testArgs.arguments,
           classFilter = cls => filter(cls.getName),
-          cl = classLoader, 
+          cl = classLoader,
           testReporter = DummyTestReporter,
           communicator = communicator
         )(ctx)

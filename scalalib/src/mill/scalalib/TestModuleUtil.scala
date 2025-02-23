@@ -61,7 +61,11 @@ private[scalalib] object TestModuleUtil {
       val sandbox = base / "sandbox"
       val communacateFile = base / "comm.dat"
       os.write(argsFile, upickle.default.write(testArgs), createFolders = true)
-      os.write(communacateFile, Array.fill[Byte](TestMmapCommunicator.BufferSize)(0.toByte), createFolders = false)
+      os.write(
+        communacateFile,
+        Array.fill[Byte](TestMmapCommunicator.BufferSize)(0.toByte),
+        createFolders = false
+      )
 
       os.makeDir.all(sandbox)
 
@@ -87,13 +91,13 @@ private[scalalib] object TestModuleUtil {
         while (subprocess.isAlive()) {
           (communicator.readSignal(): @switch) match {
             case 0 => ()
-            case 1 => 
+            case 1 =>
               if (Task.fork.tryDecreaseMaxThreadCount()) {
                 delegatedThreadCount += 1
                 communicator.writeSignal(2)
               }
             case 2 => ()
-            case other => 
+            case other =>
               communicator.writeSignal(0)
           }
           communicator.readAll().zipWithIndex.foreach { case (i, index) =>

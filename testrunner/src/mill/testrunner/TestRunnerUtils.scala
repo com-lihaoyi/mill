@@ -10,7 +10,6 @@ import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
-import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -133,7 +132,12 @@ import java.util.concurrent.atomic.LongAdder
     (runner, tasks)
   }
 
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner, communicator: TestMmapCommunicator)(implicit
+  def runTasks(
+      tasks: Seq[Task],
+      testReporter: TestReporter,
+      runner: Runner,
+      communicator: TestMmapCommunicator
+  )(implicit
       ctx: Ctx.Log
   ): (String, Iterator[TestResult]) = {
     val events = new ConcurrentLinkedQueue[Event]()
@@ -147,8 +151,8 @@ import java.util.concurrent.atomic.LongAdder
     var threadCount = 0
 
     def spawnTestRunner(
-      executorService: ExecutorService,
-      index: Int 
+        executorService: ExecutorService,
+        index: Int
     ): Unit = {
       val runnable = new Runnable {
         def run(): Unit = {
