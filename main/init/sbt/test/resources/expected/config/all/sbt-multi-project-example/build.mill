@@ -37,6 +37,27 @@ object `package` extends RootModule with BaseModule {
 
   def artifactName = "sbt-multi-project-example"
 
+  def pomSettings = PomSettings(
+    "This is an sbt sample project for testing Mill's init command.",
+    "com.pbassiner",
+    "https://github.com/com-lihaoyi/mill",
+    Seq(License(
+      "Apache-2.0",
+      "Apache-2.0",
+      "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      false,
+      false,
+      "repo"
+    )),
+    VersionControl(
+      Some("https://github.com/com-lihaoyi/mill"),
+      Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+      None,
+      None
+    ),
+    Seq(Developer("johnd", "John Doe", "https://example.com/johnd", None, None))
+  )
+
   object common extends BaseModule {
 
     def ivyDeps = super.ivyDeps() ++ Seq(
@@ -71,6 +92,29 @@ object `package` extends RootModule with BaseModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(build.common)
 
+    def pomSettings = PomSettings(
+      "This is an sbt sample project for testing Mill's init command.",
+      "com.pbassiner",
+      "https://github.com/com-lihaoyi/mill",
+      Seq(License(
+        "Apache-2.0",
+        "Apache-2.0",
+        "https://www.apache.org/licenses/LICENSE-2.0.txt",
+        false,
+        false,
+        "repo"
+      )),
+      VersionControl(
+        Some("https://github.com/com-lihaoyi/mill"),
+        Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+        None,
+        None
+      ),
+      Seq(
+        Developer("johnd", "John Doe", "https://example.com/johnd", None, None)
+      )
+    )
+
     object tests extends SbtTests with TestModule.ScalaTest {
 
       def ivyDeps = super.ivyDeps() ++
@@ -93,6 +137,29 @@ object `package` extends RootModule with BaseModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(build.common)
 
+    def pomSettings = PomSettings(
+      "This is an sbt sample project for testing Mill's init command.",
+      "com.pbassiner",
+      "https://github.com/com-lihaoyi/mill",
+      Seq(License(
+        "Apache-2.0",
+        "Apache-2.0",
+        "https://www.apache.org/licenses/LICENSE-2.0.txt",
+        false,
+        false,
+        "repo"
+      )),
+      VersionControl(
+        Some("https://github.com/com-lihaoyi/mill"),
+        Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+        None,
+        None
+      ),
+      Seq(
+        Developer("johnd", "John Doe", "https://example.com/johnd", None, None)
+      )
+    )
+
     object tests extends SbtTests with TestModule.ScalaTest {
 
       def ivyDeps = super.ivyDeps() ++
@@ -103,7 +170,36 @@ object `package` extends RootModule with BaseModule {
 
   object nested extends Module {
 
-    object nested extends BaseModule {}
+    object nested extends BaseModule {
+
+      def pomSettings = PomSettings(
+        "This is an sbt sample project for testing Mill's init command.",
+        "com.pbassiner",
+        "https://github.com/com-lihaoyi/mill",
+        Seq(License(
+          "Apache-2.0",
+          "Apache-2.0",
+          "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          false,
+          false,
+          "repo"
+        )),
+        VersionControl(
+          Some("https://github.com/com-lihaoyi/mill"),
+          Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+          None,
+          None
+        ),
+        Seq(Developer(
+          "johnd",
+          "John Doe",
+          "https://example.com/johnd",
+          None,
+          None
+        ))
+      )
+
+    }
   }
 }
 
@@ -124,7 +220,7 @@ trait BaseModule extends SbtModule with PublishModule {
   )
 
   def pomSettings = PomSettings(
-    "This is an sbt sample project for testing Mill's init command.",
+    "This is the common module.",
     "com.pbassiner",
     "https://github.com/com-lihaoyi/mill",
     Seq(License(

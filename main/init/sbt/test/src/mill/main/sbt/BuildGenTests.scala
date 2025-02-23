@@ -25,10 +25,8 @@ object BuildGenTests extends TestSuite {
       )
     }
 
-    test("config-sbt-multi-project-example") {
-      val sourceRoot = os.sub / "sbt-multi-project-example"
-      val expectedRoot = os.sub / "expected/config/sbt-multi-project-example"
-      val args = Array(
+    test("config") {
+      val commonArgs = Array(
         "--base-module",
         "BaseModule",
         "--jvm-id",
@@ -39,9 +37,24 @@ object BuildGenTests extends TestSuite {
         "Deps",
         "--merge"
       )
-      assert(
-        checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot)
-      )
+      test("sbt-multi-project-example") {
+        val sourceRoot = os.sub / "sbt-multi-project-example"
+        test("without-base-project") {
+          val expectedRoot =
+            os.sub / "expected/config/without-base-project/sbt-multi-project-example"
+          val args = commonArgs
+          assert(
+            checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot)
+          )
+        }
+        test("all") {
+          val expectedRoot = os.sub / "expected/config/all/sbt-multi-project-example"
+          val args = commonArgs ++ Array("--baseProject", "common")
+          assert(
+            checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot)
+          )
+        }
+      }
     }
   }
 }

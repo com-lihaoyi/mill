@@ -1,6 +1,6 @@
 package mill.main.sbt
 
-import mainargs.{ParserForClass, main}
+import mainargs.{ParserForClass, arg, main}
 import mill.constants.Util
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
@@ -203,7 +203,12 @@ object SbtBuildGenMain
       baseModule: String,
       packagesSize: Int
   ): IrBaseInfo = {
-    val buildInfo = input._1
+    val buildInfo = cfg.baseProject.fold(input._1)(name =>
+      // TODO This can simplified if `buildExport.projects` is passed here.
+      input._2.nodes().collectFirst(Function.unlift(_.value.flatMap(project =>
+        Option.when(project.name == name)(project)
+      ))).get.buildInfo
+    )
 
     import buildInfo.*
     val javacOptions = getJavacOptions(buildInfo)
@@ -470,6 +475,12 @@ object SbtBuildGenMain
   @main
   @mill.api.internal
   case class Config(
-      shared: BuildGenUtil.BasicConfig
+      shared: BuildGenUtil.BasicConfig,
+      @arg(
+        doc = "name of the sbt project to extract settings for --base-module, " +
+          "if not specified, settings are extracted from `ThisBuild`",
+        short = 'g'
+      )
+      baseProject: Option[String] = None
   )
 }

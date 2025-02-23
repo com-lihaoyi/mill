@@ -24,7 +24,7 @@ lazy val global = project
 lazy val common = project
   .settings(
     name := "common",
-    settings,
+    settings ++ Seq(description := "This is the common module."),
     libraryDependencies ++= commonDependencies
   )
   .disablePlugins(AssemblyPlugin)

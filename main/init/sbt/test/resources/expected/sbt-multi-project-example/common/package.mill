@@ -42,7 +42,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
   )
 
   def pomSettings = PomSettings(
-    "This is an sbt sample project for testing Mill's init command.",
+    "This is the common module.",
     "com.pbassiner",
     "https://github.com/com-lihaoyi/mill",
     Seq(License(
