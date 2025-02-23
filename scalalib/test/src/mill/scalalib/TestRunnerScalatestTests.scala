@@ -32,8 +32,20 @@ object TestRunnerScalatestTests extends TestSuite {
         3,
         Map(
           // No test grouping is triggered because we only run one test class
-          testrunner.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
-          testrunnerGrouping.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs")
+          testrunner.scalatest -> Set(
+            "out.json",
+            "sandbox",
+            "test-report.xml",
+            "testargs",
+            "comm.dat"
+          ),
+          testrunnerGrouping.scalatest -> Set(
+            "out.json",
+            "sandbox",
+            "test-report.xml",
+            "testargs",
+            "comm.dat"
+          )
         )
       )
 
@@ -42,7 +54,13 @@ object TestRunnerScalatestTests extends TestSuite {
         Seq("*"),
         9,
         Map(
-          testrunner.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunner.scalatest -> Set(
+            "out.json",
+            "sandbox",
+            "test-report.xml",
+            "testargs",
+            "comm.dat"
+          ),
           testrunnerGrouping.scalatest -> Set(
             "group-0-mill.scalalib.ScalaTestSpec",
             "mill.scalalib.ScalaTestSpec3",
@@ -74,7 +92,13 @@ object TestRunnerScalatestTests extends TestSuite {
         Seq("*", "--", "-z", "A Set 2"),
         3,
         Map(
-          testrunner.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunner.scalatest -> Set(
+            "out.json",
+            "sandbox",
+            "test-report.xml",
+            "testargs",
+            "comm.dat"
+          ),
           testrunnerGrouping.scalatest -> Set(
             "group-0-mill.scalalib.ScalaTestSpec",
             "mill.scalalib.ScalaTestSpec3",

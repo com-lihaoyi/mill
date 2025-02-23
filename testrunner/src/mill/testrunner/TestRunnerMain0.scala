@@ -7,6 +7,7 @@ import mill.internal.PrintLogger
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
       val testArgs = upickle.default.read[mill.testrunner.TestArgs](os.read(os.Path(args(1))))
+      val communicatorFile = args.lift(2).getOrElse("")
       val ctx = new Ctx.Log {
         val log = new PrintLogger(
           testArgs.colored,
@@ -26,14 +27,17 @@ import mill.internal.PrintLogger
 
       val filter = TestRunnerUtils.globFilter(testArgs.globSelectors)
 
-      val result = TestRunnerUtils.runTestFramework0(
-        frameworkInstances = Framework.framework(testArgs.framework),
-        testClassfilePath = Seq.from(testArgs.testCp),
-        args = testArgs.arguments,
-        classFilter = cls => filter(cls.getName),
-        cl = classLoader,
-        testReporter = DummyTestReporter
-      )(ctx)
+      val result = TestMmapCommunicator.using(communicatorFile) { communicator =>
+        TestRunnerUtils.runTestFramework0(
+          frameworkInstances = Framework.framework(testArgs.framework),
+          testClassfilePath = Seq.from(testArgs.testCp),
+          args = testArgs.arguments,
+          classFilter = cls => filter(cls.getName),
+          cl = classLoader,
+          testReporter = DummyTestReporter,
+          communicator = communicator
+        )(ctx)
+      }
 
       // Clear interrupted state in case some badly-behaved test suite
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
