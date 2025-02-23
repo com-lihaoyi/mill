@@ -113,6 +113,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     IrBuild(
       scopedDeps = scopedDeps,
       testModule = cfg.shared.basicConfig.testModule,
+      testModuleMainType = "MavenTests",
       hasTest = os.exists(getMillSourcePath(model) / "src/test"),
       dirs = build.dirs,
       repositories = getRepositories(model),

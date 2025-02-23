@@ -67,7 +67,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  object test extends MavenTests with TestModule.ScalaTest {
+  object test extends SbtTests with TestModule.ScalaTest {
 
     def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"org.scalacheck::scalacheck:1.13.5",

@@ -70,7 +70,7 @@ object BuildGenUtil {
       if (!hasTest) ""
       else {
         val declare =
-          BuildGenUtil.renderTestModuleDecl(testModule, scopedDeps.testModule)
+          BuildGenUtil.renderTestModuleDecl(testModule, testModuleMainType, scopedDeps.testModule)
 
         s"""$declare {
            |
@@ -482,11 +482,15 @@ object BuildGenUtil {
     }
   }
 
-  def renderTestModuleDecl(testModule: String, testModuleType: Option[String]): String = {
+  def renderTestModuleDecl(
+      testModule: String,
+      testModuleMainType: String,
+      testModuleExtraType: Option[String]
+  ): String = {
     val name = backtickWrap(testModule)
-    testModuleType match {
-      case Some(supertype) => s"object $name extends MavenTests with $supertype"
-      case None => s"trait $name extends MavenTests"
+    testModuleExtraType match {
+      case Some(supertype) => s"object $name extends $testModuleMainType with $supertype"
+      case None => s"trait $name extends $testModuleMainType"
     }
   }
 

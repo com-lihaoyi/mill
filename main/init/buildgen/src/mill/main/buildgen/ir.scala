@@ -81,6 +81,7 @@ case class IrLicense(
 case class IrBuild(
     scopedDeps: IrScopedDeps,
     testModule: String,
+    testModuleMainType: String,
     hasTest: Boolean,
     dirs: Seq[String],
     repositories: Seq[String],
@@ -101,6 +102,7 @@ object IrBuild {
   // TODO not used
   def empty(dirs: Seq[String]) = IrBuild(
     IrScopedDeps(),
+    null,
     null,
     false,
     dirs,

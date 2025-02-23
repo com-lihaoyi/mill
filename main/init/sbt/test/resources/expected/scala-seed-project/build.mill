@@ -22,7 +22,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  object test extends MavenTests with TestModule.Munit {
+  object test extends SbtTests with TestModule.Munit {
 
     def ivyDeps = super.ivyDeps() ++ Seq(ivy"org.scalameta::munit:0.7.29")
 

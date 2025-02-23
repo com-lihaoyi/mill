@@ -174,6 +174,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
     IrBuild(
       scopedDeps = scopedDeps,
       testModule = cfg.shared.basicConfig.testModule,
+      testModuleMainType = "MavenTests",
       hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
       repositories = getRepositories(project).diff(baseInfo.repositories),

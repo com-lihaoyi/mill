@@ -249,6 +249,7 @@ object SbtBuildGenMain
     IrBuild(
       scopedDeps = configurationDeps,
       testModule = cfg.shared.testModule,
+      testModuleMainType = "SbtTests",
       hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
       repositories = getRepositories(buildInfo).diff(baseInfo.repositories),
