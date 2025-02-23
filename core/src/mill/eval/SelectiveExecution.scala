@@ -34,7 +34,7 @@ private[mill] object SelectiveExecution {
             reporter = _ => None,
             testReporter = mill.api.DummyTestReporter,
             workspace = evaluator.workspace,
-            systemExit = null,
+            systemExit = () => ???,
             fork = null
           )
           task -> task.evaluate(ctx).map(Val(_))

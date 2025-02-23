@@ -151,7 +151,7 @@ final class Evaluator private[mill] (
                 reporter = reporter,
                 testReporter = testReporter,
                 workspace = workspace,
-                systemExit = null,
+                systemExit = () => ???,
                 fork = null
               )
               val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
