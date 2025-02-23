@@ -41,7 +41,7 @@ object MillInitScalaCsv200Tests extends BuildGenTestSuite {
       // Cross builds are not supported yet.
       tester.testMillInit(
         expectedCompileTasks = Some(SplitResolvedTasks(Seq(), Seq("compile", "test.compile"))),
-        expectedTestTasks = Some(SplitResolvedTasks(Seq(), Seq("test" /*, "test.test"*/ )))
+        expectedTestTasks = Some(SplitResolvedTasks(Seq(), Seq("test")))
       )
     }
   }
@@ -60,13 +60,10 @@ object MillInitScalaCsv136Tests extends BuildGenTestSuite {
 
       tester.testMillInit(
         expectedCompileTasks = Some(SplitResolvedTasks(
-          // It works here, but scala 2.11 with JDK 6 seems not supported when run with JDK 17 in shell.
-          Seq("compile"),
-          // `Not a Java dependency: Dep(Dependency(com.storm-enroute:scalameter, 0.8.2, Configuration(), Set(), Publication(, Type(), Extension(), Classifier()), false, true),Binary(false),false)`
-          // probably due to inheriting `MavenTests` instead of `SbtTests`
-          Seq("test.compile")
+          Seq("compile", "test.compile"),
+          Seq.empty
         )),
-        expectedTestTasks = Some(SplitResolvedTasks(Seq(), Seq("test" /*, "test.test"*/ )))
+        expectedTestTasks = Some(SplitResolvedTasks(Seq(), Seq("test")))
       )
     }
   }
