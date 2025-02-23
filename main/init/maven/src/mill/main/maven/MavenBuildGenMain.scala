@@ -77,7 +77,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     val publishProperties = getPublishProperties(model, cfg.shared)
 
     val typedef = IrTrait(
-      cfg.shared.jvmId,
+      cfg.shared.basicConfig.jvmId,
       baseModule,
       getModuleSupertypes(cfg),
       javacOptions,

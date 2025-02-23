@@ -55,7 +55,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
     val connector = GradleConnector.newConnector()
 
     val args =
-      cfg.shared.jvmId.map { id =>
+      cfg.shared.basicConfig.jvmId.map { id =>
         println(s"resolving Java home for jvmId $id")
         val home = Jvm.resolveJavaHome(id).get
         s"-Dorg.gradle.java.home=$home"
@@ -138,7 +138,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
     val publishProperties = getPublishProperties(project, cfg.shared)
 
     val typedef = IrTrait(
-      cfg.shared.jvmId,
+      cfg.shared.basicConfig.jvmId,
       baseModule,
       supertypes,
       javacOptions,

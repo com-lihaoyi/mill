@@ -498,6 +498,11 @@ object BuildGenUtil {
   case class BasicConfig(
       @arg(doc = "name of generated base module trait defining shared settings", short = 'b')
       baseModule: Option[String] = None,
+      @arg(
+        doc = "distribution and version of custom JVM to configure in --base-module",
+        short = 'j'
+      )
+      jvmId: Option[String] = None,
       @arg(doc = "name of generated nested test module", short = 't')
       testModule: String = "test",
       @arg(doc = "name of generated companion object defining dependency constants", short = 'd')
@@ -512,11 +517,6 @@ object BuildGenUtil {
   @mainargs.main
   case class Config(
       basicConfig: BasicConfig,
-      @arg(
-        doc = "distribution and version of custom JVM to configure in --base-module",
-        short = 'j'
-      )
-      jvmId: Option[String] = None,
       @arg(doc = "capture Maven publish properties", short = 'p')
       publishProperties: Flag = Flag()
   )

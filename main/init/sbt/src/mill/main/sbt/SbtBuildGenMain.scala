@@ -212,7 +212,7 @@ object SbtBuildGenMain
     val publishVersion = getPublishVersion(buildInfo)
 
     val typedef = IrTrait(
-      None, // There doesn't seem to be a Java version setting in sbt. See https://stackoverflow.com/a/76456295/5082913.
+      cfg.shared.jvmId, // There doesn't seem to be a Java version setting in sbt though. See https://stackoverflow.com/a/76456295/5082913.
       baseModule,
       sbtSupertypes,
       javacOptions,

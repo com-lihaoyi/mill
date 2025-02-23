@@ -31,6 +31,8 @@ object BuildGenTests extends TestSuite {
       val args = Array(
         "--base-module",
         "BaseModule",
+        "--jvm-id",
+        "11",
         "--test-module",
         "tests",
         "--deps-object",

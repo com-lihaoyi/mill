@@ -95,6 +95,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       val submodules = Seq("common", "multi1", "multi2")
 
       tester.testMillInit(
+        //initCommand = defaultInitCommand ++ Seq("--jvm-id", "11"),
         expectedCompileTasks =
           Some(if (System.getProperty("java.version").split('.').head.toInt <= 11)
             SplitResolvedTasks(
@@ -103,7 +104,17 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
               submodules.map(_.testCompileTask)
             )
           else {
-            // Submodules don't compile well with JDK 17 and 21, which seems to be due to incompatible bytecode versions in dependencies.
+            /*
+            `multi1.compile` doesn't work well when Mill is run with JDK 17 and 21:
+            ```text
+            1 tasks failed
+            multi1.compile java.io.IOError: java.lang.RuntimeException: /packages cannot be represented as URI
+                java.base/jdk.internal.jrtfs.JrtPath.toUri(JrtPath.java:175)
+                scala.tools.nsc.classpath.JrtClassPath.asURLs(DirectoryClassPath.scala:183)
+                ...
+            ```
+            Passing a `jvmId` 11 doesn't work.
+             */
             val succeededSubmoduleCompileTasks = Seq("common.compile", "multi2.compile")
             SplitResolvedTasks(
               Seq("compile") ++ succeededSubmoduleCompileTasks,
