@@ -63,7 +63,17 @@ object MillInitScalaCsv136Tests extends BuildGenTestSuite {
           Seq("compile", "test.compile"),
           Seq.empty
         )),
-        expectedTestTasks = Some(SplitResolvedTasks(Seq(), Seq("test")))
+        expectedTestTasks = Some(SplitResolvedTasks(
+          Seq(),
+          /*
+          Relative paths to the workspace are used in the test sources such as `new File("src/test/resources/simple.csv")`
+          and they seem to cause the test to fail with Mill:
+          ```text
+          java.io.FileNotFoundException: src/test/resources/simple.csv (No such file or directory)
+          ```
+           */
+          Seq("test")
+        ))
       )
     }
   }
