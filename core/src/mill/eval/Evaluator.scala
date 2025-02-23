@@ -155,7 +155,11 @@ final class Evaluator private[mill] (
                 fork = null
               )
               val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
-              Seq(Watchable.Value(() => t.evaluate(ctx).hashCode(), result.map(_.value).hashCode(), pretty))
+              Seq(Watchable.Value(
+                () => t.evaluate(ctx).hashCode(),
+                result.map(_.value).hashCode(),
+                pretty
+              ))
           }
           .flatten
           .toSeq

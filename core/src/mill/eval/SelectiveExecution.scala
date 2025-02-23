@@ -41,13 +41,13 @@ private[mill] object SelectiveExecution {
         }
         .toMap
 
-      val inputHashes = results.map{
+      val inputHashes = results.map {
         case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.hashCode)
       }
       new Metadata(
         inputHashes,
         evaluator.methodCodeHashSignatures
-      ) -> results.map{case (k, v) => (k, ExecResult.Success(v.get))}
+      ) -> results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
     }
   }
 
