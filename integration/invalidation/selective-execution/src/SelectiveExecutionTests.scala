@@ -200,8 +200,13 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
             eval(
               ("--watch", "{foo.fooCommand,bar.barCommand}"),
               check = true,
-              stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
-              stderr = os.Inherit
+              stdout = os.ProcessOutput.Readlines{line =>
+                println("stdout " + line)
+                output0 = output0 :+ line
+              },
+              stderr = os.ProcessOutput.Readlines{line =>
+                println("stderr " + line)
+              }
             )
           }
 
@@ -213,12 +218,14 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           // command being re-run, and watches on both are maintained even if in a prior run
           // one set of tasks was ignored.
           output0 = Nil
+          println("modifying bar/bar.txt")
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           eventually {
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
           output0 = Nil
+          println("modifying foo/foo.txt")
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
           eventually {
             output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
