@@ -318,11 +318,6 @@ class TaskBase {
   def log(implicit ctx: mill.api.Ctx.Log): Logger = ctx.log
 
   /**
-   * Returns the implicit [[mill.api.Ctx.Home.home]] in scope.
-   */
-  def home(implicit ctx: mill.api.Ctx.Home): os.Path = ctx.home
-
-  /**
    * `Task.env` is the environment variable map passed to the Mill command when
    * it is run; typically used inside a `Task.Input` to ensure any changes in
    * the env vars are properly detected.

@@ -147,7 +147,6 @@ final class Evaluator private[mill] (
                 args = Vector(),
                 dest0 = () => null,
                 log = logger,
-                home = os.home,
                 env = this.execution.env,
                 reporter = reporter,
                 testReporter = testReporter,

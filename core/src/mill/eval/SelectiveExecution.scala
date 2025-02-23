@@ -30,7 +30,6 @@ private[mill] object SelectiveExecution {
             args = Vector(),
             dest0 = () => null,
             log = evaluator.baseLogger,
-            home = os.home,
             env = evaluator.env,
             reporter = _ => None,
             testReporter = mill.api.DummyTestReporter,

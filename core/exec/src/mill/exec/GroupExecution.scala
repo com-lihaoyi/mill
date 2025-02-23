@@ -226,7 +226,6 @@ private trait GroupExecution {
             args = targetInputValues.map(_.value).toIndexedSeq,
             dest0 = () => makeDest(),
             log = multiLogger,
-            home = home,
             env = env,
             reporter = reporter,
             testReporter = testReporter,

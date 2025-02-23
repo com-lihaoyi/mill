@@ -177,7 +177,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       minify: Boolean,
       importMap: Seq[api.ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
-  )(implicit ctx: Ctx.Home): Result[api.Report] = {
+  ): Result[api.Report] = {
     withValue(toolsClasspath) { case (cl, bridge) =>
       bridge.link(
         runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
@@ -202,9 +202,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     }
   }
 
-  def run(toolsClasspath: Seq[mill.PathRef], config: api.JsEnvConfig, report: api.Report)(
-      implicit ctx: Ctx.Home
-  ): Unit = {
+  def run(toolsClasspath: Seq[mill.PathRef], config: api.JsEnvConfig, report: api.Report): Unit = {
     withValue(toolsClasspath) { case (cl, bridge) =>
       bridge.run(toWorkerApi(config), toWorkerApi(report))
     }
@@ -215,7 +213,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       config: api.JsEnvConfig,
       frameworkName: String,
       report: api.Report
-  )(implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
+  ): (() => Unit, sbt.testing.Framework) = {
     withValue(toolsClasspath) { case (cl, bridge) =>
       bridge.getFramework(
         toWorkerApi(config),
