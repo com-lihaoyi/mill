@@ -95,14 +95,10 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       val submodules = Seq("common", "multi1", "multi2")
 
       tester.testMillInit(
-        //initCommand = defaultInitCommand ++ Seq("--jvm-id", "11"),
+        // initCommand = defaultInitCommand ++ Seq("--jvm-id", "11"),
         expectedCompileTasks =
           Some(if (System.getProperty("java.version").split('.').head.toInt <= 11)
-            SplitResolvedTasks(
-              Seq("compile") ++ submodules.map(_.compileTask),
-              // probably due to inheriting `MavenTests` instead of `SbtTests`
-              submodules.map(_.testCompileTask)
-            )
+            SplitResolvedTasks(Seq("compile") ++ submodules.flatMap(_.allCompileTasks), Seq.empty)
           else {
             /*
             `multi1.compile` doesn't work well when Mill is run with JDK 17 and 21:
