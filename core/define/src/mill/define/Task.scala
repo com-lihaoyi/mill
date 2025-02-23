@@ -76,7 +76,7 @@ object Task extends TaskBase {
   }
 
   /**
-   * Similar to [[Source]], but only for a single source file or folder. Defined
+   * Similar to [[Sources]], but only for a single source file or folder. Defined
    * using `Task.Source`.
    */
   inline def Source(inline value: Result[os.Path])(implicit
