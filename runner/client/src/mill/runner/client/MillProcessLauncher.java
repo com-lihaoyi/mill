@@ -114,7 +114,7 @@ public class MillProcessLauncher {
   }
 
   static String javaHome() throws IOException {
-    String jvmId = null;
+    String jvmId;
     Path millJvmVersionFile = millJvmVersionFile();
 
     String javaHome = null;
@@ -122,8 +122,15 @@ public class MillProcessLauncher {
       jvmId = Files.readString(millJvmVersionFile).trim();
       if (jvmId.equals("system")) jvmId = null;
     } else {
-      jvmId = "zulu:17.0.3";
+      boolean systemJavaExists = new ProcessBuilder(isWin() ? "where" : "which", "java")
+          .start().exitValue() == 0;
+      if (systemJavaExists) {
+        jvmId = null;
+      }else{
+        jvmId = "zulu:17.0.3";
+      }
     }
+
     if (jvmId != null) {
 
       // Fast path to avoid calling `CoursierClient` and paying the classloading cost
