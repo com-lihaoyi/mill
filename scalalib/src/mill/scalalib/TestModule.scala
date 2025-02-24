@@ -157,7 +157,6 @@ trait TestModule
         outputPath = outputPath,
         colored = Task.log.colored,
         testCp = testClasspath().map(_.path),
-        home = Task.home,
         globSelectors = selectors
       )
 

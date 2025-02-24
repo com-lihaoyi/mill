@@ -1,5 +1,5 @@
-= The Mill Execution Model
-:page-aliases: The_Mill_Evaluation_Model.adoc, depth/evaluation-model.adoc
+= The Mill Evaluation Model
+:page-aliases: The_Mill_Evaluation_Model.adoc, depth/execution-model.adoc
 
 
 
@@ -185,7 +185,12 @@ and `bar.assembly`, their upstream task graph requires tasks such as `foo.compil
 `bar.compile`, as well as our custom task `bar.lineCount` and our override of `bar.resources`.
 
 
-=== Evaluation
+You can use xref:cli/builtin-commands.adoc#_plan[./mill plan] to see what tasks would be
+planned out for a given selector, or look at
+xref:fundamentals/out-dir.adoc#_mill_dependency_tree_json[mill-dependency-tree.json] after
+evaluation to see how how these upstream tasks are depended upon by the tasks you selected.
+
+=== Execution
 
 The last phase is execution. Execution depends not only on the tasks you selected at the
 command line, and those discovered during <<Resolution>>, but also what input files changed
@@ -340,7 +345,7 @@ build. For example:
    during <<Resolution>>
 
 2. You can have arbitrary code inside of ``Task``s, to perform your build
-   actions. This code runs during <<Evaluation>>
+   actions. This code runs during <<Execution>>
 
 3. *But* your code inside of ``Task``s cannot influence the shape of the task
    graph or module hierarchy, as all <<Resolution>> logic happens first
@@ -359,76 +364,3 @@ and visualize their module hierarchy and task graph without running them: using
 xref:cli/builtin-commands.adoc#_inspect[inspect], xref:cli/builtin-commands.adoc#_plan[plan],
 xref:cli/builtin-commands.adoc#_visualize[visualize], etc.. This helps keep your
 Mill build discoverable even as the `build.mill` codebase grows.
-
-== Caching in Mill
-
-Apart from fine-grained caching of ``Task``s during *Evaluation*, Mill also
-performs incremental evaluation of the other phases. This helps ensure
-the overall workflow remains fast even for large projects:
-
-1. <<Compilation>>:
-
-    * Done on-demand and incrementally using the Scala
-      incremental compiler https://github.com/sbt/zinc[Zinc].
-
-    * If some of the files `build.mill` imported changed but not others, only the
-      changed files are re-compiled before the `RootModule` is re-instantiated
-
-    * In the common case where `build.mill` was not changed at all, this step is
-      skipped entirely and the `RootModule` object simply re-used from the last
-      run.
-
-2. <<Resolution>>:
-
-    * If the `RootModule` was re-used, then all
-      previously-instantiated modules are simply-re-used
-
-    * Any modules that are lazily instantiated during <<Resolution>> are
-      also re-used.
-
-3. <<Planning>>
-
-    * Planning is relatively quick most of the time, and is not currently cached.
-
-4. <<Evaluation>>:
-
-    * ``Task``s are evaluated in dependency order
-
-    * xref:fundamentals/tasks.adoc#_tasks[Cached Task]s only re-evaluate if their input ``Task``s
-     change.
-
-    * xref:fundamentals/tasks.adoc#_persistent_tasks[Persistent Tasks]s preserve the `Task.dest`
-      folder on disk between runs, allowing for finer-grained caching than Mill's default task-by-task
-      caching and invalidation
-
-    * xref:fundamentals/tasks.adoc#_workers[Worker]s are kept in-memory between runs where possible, and only
-      invalidated if their input ``Task``s change as well.
-
-    * ``Task``s in general are invalidated if the code they depend on changes,
-      at a method-level granularity via callgraph reachability analysis. See
-      https://github.com/com-lihaoyi/mill/pull/2417[#2417] for more details
-
-This approach to caching does assume a certain programming style inside your
-Mill build:
-
-- Mill may-or-may-not instantiate the modules in your `build.mill` the first time
-  you run something (due to laziness)
-
-- Mill may-or-may-not *re*-instantiate the modules in your `build.mill` in subsequent runs
-  (due to caching)
-
-- Mill may-or-may-not re-execute any particular task depending on caching,
-  but your code needs to work either way.
-
-- Execution of any task may-or-may-not happen in parallel with other unrelated
-  tasks, and may happen in arbitrary order
-
-Your build code code needs to work regardless of which order they are executed in.
-However, for code written in a typical Scala style (which tends to avoid side effects),
-and limits filesystem operations to the `Task.dest` folder, this is not a problem at all.
-
-One thing to note is for code that runs during *Resolution*: any reading of
-external mutable state needs to be wrapped in an `interp.watchValue{...}`
-wrapper. This ensures that Mill knows where these external reads are, so that
-it can check if their value changed and if so re-instantiate `RootModule` with
-the new value.

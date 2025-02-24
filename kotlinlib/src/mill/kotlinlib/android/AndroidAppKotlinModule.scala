@@ -76,10 +76,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     )
 
     override def sources: T[Seq[PathRef]] = Task.Sources(
-      Seq(
-        PathRef(outer.moduleDir / "src/screenshotTest/kotlin"),
-        PathRef(outer.moduleDir / "src/screenshotTest/java")
-      )
+      outer.moduleDir / "src/screenshotTest/kotlin",
+      outer.moduleDir / "src/screenshotTest/java"
     )
 
     /**

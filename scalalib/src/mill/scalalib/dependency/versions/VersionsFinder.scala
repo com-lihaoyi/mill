@@ -4,7 +4,7 @@ import mill.define.{BaseModule, Task}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
 import mill.scalalib.{BoundDep, JavaModule, Lib}
-import mill.api.Ctx.{Home, Log}
+import mill.api.Ctx.Log
 
 import java.time.{Clock, Instant, ZoneId}
 import java.util.concurrent.atomic.AtomicInteger
@@ -13,7 +13,7 @@ private[dependency] object VersionsFinder {
 
   def findVersions(
       evaluator: Evaluator,
-      ctx: Log & Home,
+      ctx: Log,
       rootModule: BaseModule
   ): Seq[ModuleDependenciesVersions] = {
 
