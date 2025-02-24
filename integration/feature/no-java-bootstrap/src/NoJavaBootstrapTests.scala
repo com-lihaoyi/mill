@@ -5,6 +5,8 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
 object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
+  // Don't propagate `JAVA_HOME` to this test suite, because we want to exercise
+  // the code path where `JAVA_HOME` is not present during bootstrapping
   override def propagateJavaHome = false
   val tests: Tests = Tests {
     test - integrationTest { tester =>
