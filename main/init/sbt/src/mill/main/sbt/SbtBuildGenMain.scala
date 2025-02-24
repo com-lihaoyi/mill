@@ -302,7 +302,13 @@ object SbtBuildGenMain
      which is a `Vector` of `sbt.librarymanagement.Artifact` and `sbt.librarymanagement.InclExclRule`s.
      */
     import dependency.*
-    s"ivy\"$organization${if (crossVersion) "::" else ":"}$name:$revision\""
+    s"ivy\"$organization${
+        crossVersion match
+          case CrossVersion.Disabled => s":$name"
+          case CrossVersion.Binary => s"::$name"
+          case CrossVersion.Full => s":::$name"
+          case CrossVersion.Constant(value) => s":${name}_$value"
+      }:$revision\""
   }
 
   def extractPomSettings(buildPublicationInfo: BuildPublicationInfo): IrPom = {

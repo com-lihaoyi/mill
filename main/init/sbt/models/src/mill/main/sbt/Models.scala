@@ -131,7 +131,7 @@ object Project {
 case class Dependency(
     organization: String, // `groupId` in Maven
     name: String, // `artifactId` in Maven
-    crossVersion: Boolean = false, // TODO support `CrossVersion` types other than binary?
+    crossVersion: CrossVersion = CrossVersion.Disabled,
     revision: String,
     configurations: Option[String]
     // BOM seems not supported by sbt. See https://stackoverflow.com/questions/42032303/how-do-i-use-a-maven-bom-bill-of-materials-to-manage-my-dependencies-in-sbt.
@@ -139,4 +139,30 @@ case class Dependency(
 )
 object Dependency {
   implicit val rw: RW[Dependency] = macroRW
+}
+
+/**
+ * @see [[sbt.librarymanagement.CrossVersion]]
+ */
+sealed trait CrossVersion
+object CrossVersion {
+  case object Disabled extends CrossVersion {
+    implicit val rw: RW[Disabled.type] = macroRW
+  }
+  case object Binary extends CrossVersion {
+    implicit val rw: RW[Binary.type] = macroRW
+  }
+  case object Full extends CrossVersion {
+    implicit val rw: RW[Full.type] = macroRW
+  }
+
+  /**
+   * Including the cases [[sbt.librarymanagement.Constant]], [[sbt.librarymanagement.For2_13Use3]], and [[sbt.librarymanagement.For3Use2_13]].
+   */
+  case class Constant(value: String) extends CrossVersion
+  object Constant {
+    implicit val rw: RW[Constant] = macroRW
+  }
+
+  implicit val rw: RW[CrossVersion] = macroRW
 }
