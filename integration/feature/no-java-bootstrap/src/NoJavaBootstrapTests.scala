@@ -11,7 +11,7 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
       os.remove(tester.workspacePath / ".mill-jvm-version")
 
       val out = eval("foo")
-      assert(out == "17.0.3")
+      assert(out.out == "17.0.3")
     }
   }
 }
