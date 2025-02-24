@@ -493,7 +493,7 @@ index 62190fd6c1e..9d4f176c915 100644
      val (repoPath, repoHash) = repoInfo(crossValue)
      def repoSlug = repoPath.split("/").last
 diff --git a/integration/package.mill b/integration/package.mill
-index 8ca061474db..9271663b81e 100644
+index 53cdc15a9f6..9271663b81e 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -3,13 +3,12 @@ package build.integration
@@ -548,7 +548,7 @@ index 8ca061474db..9271663b81e 100644
 +      extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "invalidation"))
 +  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "ide"))
    object bootstrap
--    extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "bootstrap"))
+-      extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "bootstrap"))
 +      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
    trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
