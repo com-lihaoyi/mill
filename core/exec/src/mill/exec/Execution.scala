@@ -154,6 +154,15 @@ private[mill] case class Execution(
                   .flatMap(_.iterator.flatMap(_.newResults))
                   .toMap
 
+                // Count failed tasks
+                val failedCount = upstreamResults.values.count(!_.asSuccess.isDefined)
+                logger.setFailedTasksCount(failedCount)
+
+                // Update the header prefix to include failed count
+                logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix${
+                    if (failedCount > 0) s", $failedCount failed" else ""
+                  }")
+
                 val startTime = System.nanoTime() / 1000
 
                 // should we log progress?
@@ -187,6 +196,15 @@ private[mill] case class Execution(
                   forkExecutionContext,
                   exclusive
                 )
+
+                // Update failed count after execution
+                val newFailedCount =
+                  (upstreamResults ++ res.newResults).values.count(!_.asSuccess.isDefined)
+                logger.setFailedTasksCount(newFailedCount)
+                // Update the header prefix to include failed count
+                logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix${
+                    if (newFailedCount > 0) s", $newFailedCount failed" else ""
+                  }")
 
                 if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)

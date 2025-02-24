@@ -7,4 +7,12 @@ object `package` extends RootModule with JavaModule {
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
     ivy"org.slf4j:slf4j-simple:2.0.9"
   )
+
+  def testForkEnv = T {
+    Map(
+      "MILL_TEST_RESOURCE_DIR" -> resources().map(_.path).mkString(";"),
+      "MILL_EXECUTABLE_PATH" -> os.pwd.toString(),
+      "MILL_INTEGRATION_SERVER_MODE" -> "true"
+    )
+  }
 }

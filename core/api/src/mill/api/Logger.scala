@@ -86,4 +86,6 @@ trait Logger extends AutoCloseable {
 
   def withOutStream(outStream: PrintStream): Logger = this
   private[mill] def logPrefixKey: Seq[String] = Nil
+
+  private[mill] def setFailedTasksCount(count: Int): Unit = ()
 }
