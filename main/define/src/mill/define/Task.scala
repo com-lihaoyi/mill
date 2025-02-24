@@ -37,6 +37,12 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
    */
   def flushDest: Boolean = true
 
+  /**
+   * A list of paths under the `Task.dest` folder that should be considered root source directories
+   * when generating configuration for IDEs.
+   */
+  def generatedSourceRoots: Seq[os.SubPath] = Seq.empty
+
   def asTarget: Option[Target[T]] = None
   def asCommand: Option[Command[T]] = None
   def asWorker: Option[Worker[T]] = None
@@ -189,9 +195,13 @@ object Task extends TaskBase {
    */
   def apply(
       t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
-      persistent: Boolean = false
-  ): ApplyFactory = new ApplyFactory(persistent)
-  class ApplyFactory private[mill] (val persistent: Boolean) extends TaskBase.TraverseCtxHolder {
+      persistent: Boolean = false,
+      generatedSourceRoots: Seq[os.SubPath] = Seq.empty
+  ): ApplyFactory = new ApplyFactory(persistent, generatedSourceRoots)
+  class ApplyFactory private[mill] (
+      val persistent: Boolean,
+      val generatedSourceRoots: Seq[os.SubPath]
+  ) extends TaskBase.TraverseCtxHolder {
     def apply[T](t: Result[T])(implicit
         rw: RW[T],
         ctx: mill.define.Ctx
@@ -808,8 +818,18 @@ class TargetImpl[+T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
     val readWriter: RW[_],
-    val isPrivate: Option[Boolean]
+    val isPrivate: Option[Boolean],
+    override val generatedSourceRoots: Seq[os.SubPath]
 ) extends Target[T] {
+
+  // Added for bincompat
+  def this(
+      t: Task[T],
+      ctx0: mill.define.Ctx,
+      readWriter: RW[_],
+      isPrivate: Option[Boolean]
+  ) = this(t, ctx0, readWriter, isPrivate, Seq.empty)
+
   override def asTarget: Option[Target[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def readWriterOpt: Some[RW[_]] = Some(readWriter)
@@ -819,8 +839,13 @@ class PersistentImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
     readWriter: RW[_],
-    isPrivate: Option[Boolean]
-) extends TargetImpl[T](t, ctx0, readWriter, isPrivate) {
+    isPrivate: Option[Boolean],
+    generatedSourceRoots: Seq[os.SubPath]
+) extends TargetImpl[T](t, ctx0, readWriter, isPrivate, generatedSourceRoots) {
+  // Added for bincompat
+  def this(t: Task[T], ctx0: mill.define.Ctx, readWriter: RW[_], isPrivate: Option[Boolean]) =
+    this(t, ctx0, readWriter, isPrivate, Seq.empty)
+
   override def flushDest = false
 }
 

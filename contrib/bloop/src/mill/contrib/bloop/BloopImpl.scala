@@ -116,15 +116,19 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     JavaModuleUtils.transitiveModules(mod, accept)
   }
 
-  protected def computeModules: Seq[JavaModule] = {
+  private lazy val modulesToOutFolderMap: Map[JavaModule, os.Path] = {
     val evals = evs()
     evals.flatMap { eval =>
       if (eval != null)
         JavaModuleUtils.transitiveModules(eval.rootModule, accept)
-          .collect { case jm: JavaModule => jm }
+          .collect { case jm: JavaModule => (jm, eval.outPath) }
       else
         Seq.empty
-    }
+    }.toMap
+  }
+
+  protected def computeModules: Seq[JavaModule] = {
+    modulesToOutFolderMap.keys.toSeq
   }
 
   // class-based pattern matching against path-dependant types doesn't seem to work.
@@ -140,7 +144,8 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    */
   def moduleSourceMap = Task.Input {
     val sources = Task.traverse(computeModules) { m =>
-      m.allSources.map { paths =>
+      // We're not using `allSources` here, one purpose. See https://github.com/com-lihaoyi/mill/discussions/4530
+      m.sources.map { paths =>
         name(m) -> paths.map(_.path)
       }
     }()
@@ -404,12 +409,35 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     // //////////////////////////////////////////////////////////////////////////
 
     val project = Task.Anon {
+
+      /**
+       * Instead of calling `allSources` which would run code-generators eagerly,
+       * we're trusting
+       */
+      val mGeneratedSourceRoots = {
+        val tasks = mill.eval.Graph.transitiveTargets(Agg(module.allSources))
+        tasks.flatMap {
+          case task: mill.define.NamedTask[_] =>
+            val dest = mill
+              .eval
+              .EvaluatorPaths
+              .resolveDestPaths(modulesToOutFolderMap(module), task)
+              .dest
+            task.generatedSourceRoots.map { subpath =>
+              dest / subpath
+            }
+          case _ => Seq.empty
+        }
+      }.map(_.toNIO).toList
+
       val mSources = moduleSourceMap()
         .get(name(module))
         .toSeq
         .flatten
         .map(_.toNIO)
         .toList
+
+      val mAllSources = mSources ++ mGeneratedSourceRoots
 
       val tags =
         module match { case _: TestModule => List(BloopTag.Test); case _ => List(BloopTag.Library) }
