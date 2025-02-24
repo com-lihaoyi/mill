@@ -3,7 +3,7 @@ package mill.runner
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 import mill.constants.CodeGenConstants.*
-import mill.api.{PathRef, Result}
+import mill.api.Result
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
 import mill.runner.worker.api.MillScalaParser
