@@ -9,9 +9,10 @@ trait IntegrationTesterBase {
 
   def propagateJavaHome: Boolean
 
-  protected def millTestSuiteEnv: Map[String, String] =
+  def millTestSuiteEnv: Map[String, String] =
     if (propagateJavaHome) Map("JAVA_HOME" -> sys.props("java.home"))
     else Map()
+
   /**
    * The working directory of the integration test suite, which is the root of the
    * Mill build being tested. Contains the `build.mill` file, any application code, and

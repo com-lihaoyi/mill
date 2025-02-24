@@ -48,7 +48,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
       withBspServer(
         workspacePath,
-        IntegrationTester.millTestSuiteEnv
+        millTestSuiteEnv
       ) { (buildServer, initRes) =>
         val scala2Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
         val scala3Version = sys.props.getOrElse("MILL_SCALA_3_NEXT_VERSION", ???)
