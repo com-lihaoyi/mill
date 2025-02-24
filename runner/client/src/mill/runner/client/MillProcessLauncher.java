@@ -123,7 +123,7 @@ public class MillProcessLauncher {
     } else {
       boolean systemJavaExists =
           new ProcessBuilder(isWin() ? "where" : "which", "java").start().waitFor() == 0;
-      if (systemJavaExists) {
+      if (systemJavaExists && System.getenv("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA") == null) {
         jvmId = null;
       } else {
         jvmId = mill.client.BuildInfo.defaultJvmId;

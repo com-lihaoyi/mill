@@ -1,6 +1,5 @@
 package mill.testkit
 
-import mill.constants.EnvVars.MILL_TEST_SUITE
 import mill.constants.OutFiles
 import mill.define.Segments
 import mill.exec.Cached
@@ -26,15 +25,13 @@ class IntegrationTester(
     val workspaceSourcePath: os.Path,
     val millExecutable: os.Path,
     override val debugLog: Boolean = false,
-    val baseWorkspacePath: os.Path = os.pwd
+    val baseWorkspacePath: os.Path = os.pwd,
+    val propagateJavaHome: Boolean = true
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }
 
 object IntegrationTester {
-  def millTestSuiteEnv: Map[String, String] = Map(
-    MILL_TEST_SUITE -> this.getClass().toString()
-  )
 
   /**
    * A very simplified version of `os.CommandResult` meant for easily

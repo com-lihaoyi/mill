@@ -7,6 +7,7 @@ trait IntegrationTestSuite {
   protected def clientServerMode: Boolean
 
   protected def millExecutable: Path
+  protected def propagateJavaHome: Boolean = true
 
   def debugLog: Boolean = false
   def integrationTest[T](t: IntegrationTester => T): T = {
@@ -15,7 +16,8 @@ trait IntegrationTestSuite {
       workspaceSourcePath,
       millExecutable,
       debugLog,
-      baseWorkspacePath = os.pwd
+      baseWorkspacePath = os.pwd,
+      propagateJavaHome = propagateJavaHome
     )
     try t(tester)
     finally tester.close()
