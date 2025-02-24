@@ -92,6 +92,7 @@ object `package` extends RootModule {
   object invalidation
       extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "invalidation"))
   object ide extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "ide"))
+  object bootstrap extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "bootstrap"))
   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
