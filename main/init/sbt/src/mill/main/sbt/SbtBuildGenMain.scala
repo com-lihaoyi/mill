@@ -229,21 +229,12 @@ object SbtBuildGenMain
       repositories
     )
 
-    IrBaseInfo(
-      javacOptions,
-      scalaVersion,
-      scalacOptions,
-      repositories,
-      noPom = false, // always publish
-      publishVersion,
-      Seq.empty,
-      typedef
-    )
+    IrBaseInfo(typedef)
   }
 
   override def extractIrBuild(
       cfg: Config,
-      baseInfo: IrBaseInfo,
+      // baseInfo: IrBaseInfo,
       build: Node[Project],
       packages: Map[(String, String, String), String]
   ): IrBuild = {
@@ -257,18 +248,13 @@ object SbtBuildGenMain
       testModuleMainType = "SbtTests",
       hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
-      repositories = getRepositories(buildInfo).diff(baseInfo.repositories),
-      javacOptions = getJavacOptions(buildInfo).diff(baseInfo.javacOptions),
-      scalaVersion =
-        if (buildInfo.scalaVersion != baseInfo.scalaVersion) buildInfo.scalaVersion else None,
-      scalacOptions = buildInfo.scalacOptions.map(scalacOptions =>
-        baseInfo.scalacOptions.fold(scalacOptions)(baseScalacOptions =>
-          scalacOptions.diff(baseScalacOptions)
-        )
-      ),
+      repositories = getRepositories(buildInfo),
+      javacOptions = getJavacOptions(buildInfo),
+      scalaVersion = buildInfo.scalaVersion,
+      scalacOptions = buildInfo.scalacOptions,
       projectName = project.name,
-      pomSettings = takeIrPomIfNeeded(baseInfo, extractPomSettings(buildInfo.buildPublicationInfo)),
-      publishVersion = if (version == baseInfo.publishVersion) null else version,
+      pomSettings = extractPomSettings(buildInfo.buildPublicationInfo),
+      publishVersion = version,
       packaging = null, // not available in sbt as it seems
       pomParentArtifact = null, // not available
       resources = Nil,
@@ -305,7 +291,7 @@ object SbtBuildGenMain
       s"coursier.maven.MavenRepository(${escape(resolver.root)})"
     )
 
-  def getPublishVersion(buildInfo: BuildInfo): String =
+  def getPublishVersion(buildInfo: BuildInfo): String | Null =
     buildInfo.buildPublicationInfo.version.orNull
 
   // originally named `ivyInterp` in the Maven and module

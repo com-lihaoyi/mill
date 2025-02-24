@@ -150,21 +150,12 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
       repos
     )
 
-    IrBaseInfo(
-      javacOptions,
-      scalaVersion,
-      scalacOptions,
-      repos,
-      pomSettings == null,
-      publishVersion,
-      Seq.empty,
-      typedef
-    )
+    IrBaseInfo(typedef)
   }
 
   override def extractIrBuild(
       cfg: Config,
-      baseInfo: IrBaseInfo,
+      // baseInfo: IrBaseInfo,
       build: Node[ProjectModel],
       packages: Map[(String, String, String), String]
   ): IrBuild = {
@@ -177,13 +168,13 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
       testModuleMainType = "MavenTests",
       hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
-      repositories = getRepositories(project).diff(baseInfo.repositories),
-      javacOptions = getJavacOptions(project).diff(baseInfo.javacOptions),
+      repositories = getRepositories(project),
+      javacOptions = getJavacOptions(project),
       scalaVersion = None,
       scalacOptions = None,
       projectName = getArtifactId(project),
-      pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,
-      publishVersion = if (version == baseInfo.publishVersion) null else version,
+      pomSettings = extractPomSettings(project),
+      publishVersion = version,
       packaging = getPomPackaging(project),
       // not available
       pomParentArtifact = null,
@@ -209,7 +200,10 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
 
   def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] =
     Seq("RootModule") ++
-      Option.when(null != build.value.maven().pom() && baseInfo.noPom) { "PublishModule" } ++
+      Option.when(null != build.value.maven().pom() && {
+        val baseTrait = baseInfo.moduleTypedef
+        baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
+      }) { "PublishModule" } ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
         getModuleSupertypes(cfg)
       }.toSeq.flatten
@@ -242,7 +236,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
         .toSeq
     } else Seq.empty
 
-  def getPublishVersion(project: ProjectModel): String =
+  def getPublishVersion(project: ProjectModel): String | Null =
     project.version() match {
       case "" | "unspecified" => null
       case version => version
@@ -252,7 +246,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
     BuildGenUtil.renderIvyString(dep.group(), dep.name(), dep.version())
   }
 
-  def extractPomSettings(project: ProjectModel): IrPom = {
+  def extractPomSettings(project: ProjectModel): IrPom | Null = {
     val pom = project.maven.pom()
     if (null == pom) null
     else {

@@ -18,7 +18,8 @@ object `package` extends RootModule with SbtModule with PublishModule {
     "-language:postfixOps",
     "-deprecation",
     "-encoding",
-    "utf8"
+    "utf8",
+    "-V"
   )
 
   def repositoriesTask = Task.Anon {

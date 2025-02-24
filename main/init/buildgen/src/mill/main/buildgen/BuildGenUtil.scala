@@ -51,10 +51,7 @@ object BuildGenUtil {
 
   }
 
-  def takeIrPomIfNeeded(baseInfo: IrBaseInfo, irPom: IrPom): IrPom =
-    if (baseInfo.noPom || irPom != baseInfo.moduleTypedef.pomSettings) irPom else null
-
-  def renderIrPom(value: IrPom): String = {
+  def renderIrPom(value: IrPom | Null): String = {
     if (value == null) ""
     else {
       import value.*
@@ -64,8 +61,12 @@ object BuildGenUtil {
     }
   }
 
-  def renderIrBuild(value: IrBuild): String = {
-    import value.*
+  /**
+   * @param baseInfo to compare with [[build]] and render the values only if they are different.
+   */
+  def renderIrBuild(build: IrBuild, baseInfo: IrBaseInfo): String = {
+    val baseTrait = baseInfo.moduleTypedef
+    import build.*
     val testModuleTypedef =
       if (!hasTest) ""
       else {
@@ -90,13 +91,22 @@ object BuildGenUtil {
 
     s"""${renderArtifactName(projectName, dirs)}
        |
-       |${renderJavacOptions(javacOptions)}
+       |${renderJavacOptions(
+        javacOptions,
+        if (baseTrait != null) baseTrait.javacOptions else Seq.empty
+      )}
        |
-       |${renderScalaVersion(scalaVersion)}
+       |${renderScalaVersion(scalaVersion, if (baseTrait != null) baseTrait.scalaVersion else None)}
        |
-       |${renderScalacOptions(scalacOptions)}
+       |${renderScalacOptions(
+        scalacOptions,
+        if (baseTrait != null) baseTrait.scalacOptions else None
+      )}
        |
-       |${renderRepositories(repositories)}
+       |${renderRepositories(
+        repositories,
+        if (baseTrait != null) baseTrait.repositories else Seq.empty
+      )}
        |
        |${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
        |
@@ -112,9 +122,16 @@ object BuildGenUtil {
        |
        |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
        |
-       |${if (pomSettings == null) "" else renderPomSettings(renderIrPom(pomSettings))}
+       |${
+        if (pomSettings != (if (baseTrait != null) baseTrait.pomSettings else null))
+          renderPomSettings(renderIrPom(pomSettings))
+        else ""
+      }
        |
-       |${renderPublishVersion(publishVersion)}
+       |${renderPublishVersion(
+        publishVersion,
+        if (baseTrait != null) baseTrait.publishVersion else null
+      )}
        |
        |${renderPomPackaging(packaging)}
        |
@@ -303,7 +320,7 @@ object BuildGenUtil {
   def isBom(groupArtifactVersion: (String, String, String)): Boolean =
     groupArtifactVersion._2.endsWith("-bom")
 
-  def isNullOrEmpty(value: String): Boolean =
+  def isNullOrEmpty(value: String | Null): Boolean =
     null == value || value.isEmpty
 
   val linebreak: String =
@@ -347,6 +364,7 @@ object BuildGenUtil {
        |  def jvmId = "$jvmId"
        |}""".stripMargin
 
+  // TODO consider renaming to `renderOptionalDef` or `renderIfArgsNonEmpty`?
   def optional(construct: String, args: IterableOnce[String]): String =
     optional(construct + "(", args, ",", ")")
 
@@ -355,6 +373,43 @@ object BuildGenUtil {
     if (itr.isEmpty) ""
     else itr.mkString(start, sep, end)
   }
+
+  def renderStringSeqWithSuper(
+      defName: String,
+      args: Seq[String],
+      superArgs: Seq[String] = Seq.empty,
+      transform: String => String
+  ): Option[String] =
+    if (args.startsWith(superArgs)) {
+      val superLength = superArgs.length
+      if (args.length == superLength) None
+      else
+        // Note that the super def is called even when it's empty.
+        // Some super functions can be called without parentheses, but we just add it here for simplicity.
+        Some(optional(
+          s"super.$defName() ++ Seq",
+          args.iterator.drop(superLength).map(transform)
+        ))
+    } else
+      Some(optional(s"Seq", args.iterator.map(transform)))
+
+  def renderStringSeqTargetDefWithSuper(
+      defName: String,
+      args: Seq[String],
+      superArgs: Seq[String] = Seq.empty,
+      transform: String => String
+  ) =
+    renderStringSeqWithSuper(defName, args, superArgs, transform).map(s"def $defName = " + _)
+
+  def renderStringSeqTaskDefWithSuper(
+      defName: String,
+      args: Seq[String],
+      superArgs: Seq[String] = Seq.empty,
+      transform: String => String
+  ) =
+    renderStringSeqWithSuper(defName, args, superArgs, transform).map(s =>
+      s"def $defName = Task.Anon { $s }"
+    )
 
   def scalafmtConfigFile: os.Path =
     os.temp(
@@ -394,30 +449,26 @@ object BuildGenUtil {
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
 
-  def renderJavacOptions(args: IterableOnce[String]): String =
-    optional(
-      "def javacOptions = super.javacOptions() ++ Seq",
-      args.iterator.map(escape)
-    )
+  def renderJavacOptions(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
+    renderStringSeqTargetDefWithSuper("javacOptions", args, superArgs, escape).getOrElse("")
 
-  def renderScalaVersion(scalaVersion: Option[String]): String =
-    scalaVersion.fold("")(scalaVersion => s"def scalaVersion = ${escape(scalaVersion)}")
+  def renderScalaVersion(arg: Option[String], superArg: Option[String] = None): String =
+    if (arg != superArg) arg.fold("")(scalaVersion => s"def scalaVersion = ${escape(scalaVersion)}")
+    else ""
 
-  def renderScalacOptions(args: Option[IterableOnce[String]]): String =
-    args.fold("")(args =>
-      optional(
-        "def scalacOptions = super.scalacOptions() ++ Seq",
-        args.iterator.map(escape)
-      )
-    )
+  def renderScalacOptions(
+      args: Option[Seq[String]],
+      superArgs: Option[Seq[String]] = None
+  ): String =
+    renderStringSeqTargetDefWithSuper(
+      "scalacOptions",
+      args.getOrElse(Seq.empty),
+      superArgs.getOrElse(Seq.empty),
+      escape
+    ).getOrElse("")
 
-  def renderRepositories(args: IterableOnce[String]): String =
-    optional(
-      "def repositoriesTask = Task.Anon { super.repositoriesTask() ++ Seq(",
-      args,
-      ", ",
-      ") }"
-    )
+  def renderRepositories(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
+    renderStringSeqTaskDefWithSuper("repositoriesTask", args, superArgs, identity).getOrElse("")
 
   def renderResources(args: IterableOnce[os.SubPath]): String =
     optional(
@@ -438,15 +489,20 @@ object BuildGenUtil {
     if (isNullOrEmpty(artifact)) ""
     else s"def pomParentProject = Some($artifact)"
 
-  def renderPomSettings(arg: String): String =
+  def renderPomSettings(arg: String | Null, superArg: String | Null = null): String =
     if (isNullOrEmpty(arg)) ""
     else s"def pomSettings = $arg"
 
-  def renderPublishVersion(arg: String): String =
-    if (isNullOrEmpty(arg)) ""
-    else s"def publishVersion = ${escape(arg)}"
+  def renderPublishVersion(arg: String | Null, superArg: String | Null = null): String =
+    if (arg != superArg)
+      if (isNullOrEmpty(arg)) ""
+      else s"def publishVersion = ${escape(arg)}"
+    else ""
 
-  def renderPublishProperties(args: IterableOnce[(String, String)]): String = {
+  def renderPublishProperties(
+      args: Seq[(String, String)],
+      superArgs: Seq[(String, String)] = Seq.empty
+  ): String = {
     val tuples = args.iterator.map { case (k, v) => s"(${escape(k)}, ${escape(v)})" }
     optional("def publishProperties = super.publishProperties() ++ Map", tuples)
   }

@@ -43,8 +43,8 @@ case class IrTrait(
     javacOptions: Seq[String],
     scalaVersion: Option[String],
     scalacOptions: Option[Seq[String]],
-    pomSettings: IrPom,
-    publishVersion: String,
+    pomSettings: IrPom | Null,
+    publishVersion: String | Null,
     publishProperties: Seq[(String, String)],
     repositories: Seq[String]
 )
@@ -78,6 +78,7 @@ case class IrLicense(
 )
 
 // TODO Consider renaming to `IrModule(Build)` to disambiguate? sbt, for example, uses `ThisBuild` and `buildSettings` to refer to the whole build.
+// TODO reuse the members in `IrTrait`?
 case class IrBuild(
     scopedDeps: IrScopedDeps,
     testModule: String,
@@ -89,10 +90,10 @@ case class IrBuild(
     scalaVersion: Option[String],
     scalacOptions: Option[Seq[String]],
     projectName: String,
-    pomSettings: IrPom,
-    publishVersion: String,
-    packaging: String,
-    pomParentArtifact: IrArtifact,
+    pomSettings: IrPom | Null,
+    publishVersion: String | Null,
+    packaging: String | Null,
+    pomParentArtifact: IrArtifact | Null,
     resources: Seq[os.SubPath],
     testResources: Seq[os.SubPath],
     publishProperties: Seq[(String, String)]
@@ -139,7 +140,9 @@ case class IrScopedDeps(
     testCompileModuleDeps: SortedSet[String] = SortedSet()
 )
 
+// TODO remove `IrBaseInfo` and just use `IrTrait` directly?
 case class IrBaseInfo(
+    /*
     javacOptions: Seq[String] = Nil,
     scalaVersion: Option[String] = None,
     scalacOptions: Option[Seq[String]] = None,
@@ -147,7 +150,9 @@ case class IrBaseInfo(
     noPom: Boolean = true,
     publishVersion: String = "",
     publishProperties: Seq[(String, String)] = Nil,
-    moduleTypedef: IrTrait = null
+     */
+    // TODO consider renaming directly to `trait` or `baseTrait`?
+    moduleTypedef: IrTrait | Null = null
 )
 
 sealed class IrDependencyType

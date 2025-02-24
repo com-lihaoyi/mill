@@ -89,21 +89,12 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       getRepositories(model)
     )
 
-    IrBaseInfo(
-      javacOptions,
-      scalaVersion,
-      scalacOptions,
-      repositories,
-      noPom = false,
-      publishVersion,
-      publishProperties,
-      typedef
-    )
+    IrBaseInfo(typedef)
   }
 
   override def extractIrBuild(
       cfg: Config,
-      baseInfo: IrBaseInfo,
+      // baseInfo: IrBaseInfo,
       build: Node[Model],
       packages: Map[(String, String, String), String]
   ): IrBuild = {
@@ -117,12 +108,12 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       hasTest = os.exists(getMillSourcePath(model) / "src/test"),
       dirs = build.dirs,
       repositories = getRepositories(model),
-      javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model).diff(baseInfo.javacOptions),
+      javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model),
       scalaVersion = None,
       scalacOptions = None,
       projectName = getArtifactId(model),
-      pomSettings = if (baseInfo.noPom) extractPomSettings(model) else null,
-      publishVersion = if (version == baseInfo.publishVersion) null else version,
+      pomSettings = extractPomSettings(model),
+      publishVersion = version,
       packaging = model.getPackaging,
       pomParentArtifact = mkPomParent(model.getParent),
       resources =
@@ -131,7 +122,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       testResources =
         processResources(model.getBuild.getTestResources, getMillSourcePath(model))
           .filterNot(_ == mavenTestResourceDir),
-      publishProperties = getPublishProperties(model, cfg.shared).diff(baseInfo.publishProperties)
+      publishProperties = getPublishProperties(model, cfg.shared)
     )
   }
 

@@ -49,7 +49,7 @@ trait BuildGenBase[M, D, I] {
           println(s"converting module $name")
 
           val build = optionalBuild.copy(value = moduleModel)
-          val inner = extractIrBuild(cfg, baseInfo, build, packages)
+          val inner = extractIrBuild(cfg, build, packages)
 
           val isNested = optionalBuild.dirs.nonEmpty
           BuildObject(
@@ -60,7 +60,7 @@ trait BuildGenBase[M, D, I] {
                 SortedMap((name, SortedMap(inner.scopedDeps.namedIvyDeps.toSeq*)))
               ),
             supertypes = getSupertypes(cfg, baseInfo, build),
-            inner = BuildGenUtil.renderIrBuild(inner),
+            inner = BuildGenUtil.renderIrBuild(inner, baseInfo),
             outer =
               if (isNested || baseInfo.moduleTypedef == null) ""
               else BuildGenUtil.renderIrTrait(baseInfo.moduleTypedef)
@@ -87,7 +87,7 @@ trait BuildGenBase[M, D, I] {
 
   def extractIrBuild(
       cfg: C,
-      baseInfo: IrBaseInfo,
+      // baseInfo: IrBaseInfo, // `baseInfo` is no longer needed as we compare the `IrBuild` with `IrBaseInfo`/`IrTrait` in common code now.
       build: Node[M],
       packages: Map[(String, String, String), String]
   ): IrBuild

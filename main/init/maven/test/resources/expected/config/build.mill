@@ -27,6 +27,20 @@ object `package` extends RootModule with MyModule {
     def javacOptions = super.javacOptions() ++
       Seq("-source", "1.6", "-target", "1.6")
 
+    def pomSettings = PomSettings(
+      "Sample multi module Maven project with a working, deployable site.",
+      "com.example.maven-samples",
+      "http://www.example.com",
+      Seq(),
+      VersionControl(
+        Some("http://github.com/gabrielf/maven-samples"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("HEAD")
+      ),
+      Seq()
+    )
+
     def pomPackagingType = PackagingType.Pom
 
     def publishProperties = super.publishProperties() ++ Map(
@@ -38,6 +52,20 @@ object `package` extends RootModule with MyModule {
 
       def javacOptions = super.javacOptions() ++
         Seq("-source", "1.6", "-target", "1.6")
+
+      def pomSettings = PomSettings(
+        "Logic.",
+        "com.example.maven-samples",
+        "http://www.example.com/server",
+        Seq(),
+        VersionControl(
+          Some("http://github.com/gabrielf/maven-samples/server"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
+          Some("HEAD")
+        ),
+        Seq()
+      )
 
       def pomParentProject = Some(Artifact(
         "com.example.maven-samples",
@@ -72,6 +100,20 @@ object `package` extends RootModule with MyModule {
       def compileIvyDeps = super.compileIvyDeps() ++
         Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
+      def pomSettings = PomSettings(
+        "Webapp.",
+        "com.example.maven-samples",
+        "http://www.example.com/webapp",
+        Seq(),
+        VersionControl(
+          Some("http://github.com/gabrielf/maven-samples/webapp"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
+          Some("HEAD")
+        ),
+        Seq()
+      )
+
       def pomPackagingType = "war"
 
       def pomParentProject = Some(Artifact(
@@ -97,6 +139,20 @@ object `package` extends RootModule with MyModule {
 
     def ivyDeps = super.ivyDeps() ++
       Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
+
+    def pomSettings = PomSettings(
+      "Sample single module Maven project with a working, deployable site.",
+      "com.example.maven-samples",
+      "http://www.example.com",
+      Seq(),
+      VersionControl(
+        Some("http://github.com/gabrielf/maven-samples"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("HEAD")
+      ),
+      Seq()
+    )
 
     def publishProperties = super.publishProperties() ++ Map(
       ("project.build.sourceEncoding", "utf-8"),

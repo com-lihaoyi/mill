@@ -32,7 +32,7 @@ lazy val common = project
 lazy val multi1 = project
   .settings(
     name := "multi1",
-    settings,
+    settings ++ Seq(scalacOptions ++= Seq("-V")),
     assemblySettings,
     libraryDependencies ++= commonDependencies ++ Seq(
       dependencies.monocleCore,
@@ -46,7 +46,15 @@ lazy val multi1 = project
 lazy val multi2 = project
   .settings(
     name := "multi2",
-    settings,
+    settings ++ Seq(scalacOptions := Seq(
+      "-unchecked",
+      "-feature",
+      "-language:existentials",
+      "-language:higherKinds",
+      "-language:implicitConversions",
+      "-language:postfixOps",
+      "-deprecation"
+    )),
     assemblySettings,
     libraryDependencies ++= commonDependencies ++ Seq(
       dependencies.pureconfig

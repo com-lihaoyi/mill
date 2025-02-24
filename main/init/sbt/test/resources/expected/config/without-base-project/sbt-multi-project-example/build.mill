@@ -81,6 +81,8 @@ object `package` extends RootModule with BaseModule {
 
   object multi1 extends BaseModule {
 
+    def scalacOptions = super.scalacOptions() ++ Seq("-V")
+
     def ivyDeps = super.ivyDeps() ++ Seq(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.github.julien-truffaut:monocle-core`,
@@ -103,6 +105,16 @@ object `package` extends RootModule with BaseModule {
   }
 
   object multi2 extends BaseModule {
+
+    def scalacOptions = Seq(
+      "-unchecked",
+      "-feature",
+      "-language:existentials",
+      "-language:higherKinds",
+      "-language:implicitConversions",
+      "-language:postfixOps",
+      "-deprecation"
+    )
 
     def ivyDeps = super.ivyDeps() ++ Seq(
       Deps.`ch.qos.logback:logback-classic`,
