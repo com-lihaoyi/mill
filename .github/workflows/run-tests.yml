@@ -184,6 +184,8 @@ jobs:
             millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             install-android-sdk: false
 
+            # run this specifically in `native` mode to make sure our non-JVM native image
+            # launcher is able to bootstrap everything necessary without a JVM installed
           - java-version: 17
             millargs: "'integration.feature[no-java-bootstrap].native.server.test'"
             install-android-sdk: false

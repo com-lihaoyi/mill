@@ -1,6 +1,8 @@
 package build
-import mill._
+import mill._, javalib._
 
 def foo = Task {
   println(System.getProperty("java.version"))
 }
+
+object bar extends JavaModule
