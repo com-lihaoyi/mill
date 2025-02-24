@@ -120,7 +120,6 @@ public class MillProcessLauncher {
     String javaHome = null;
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
-      if (jvmId.equals("system")) jvmId = null;
     } else {
       boolean systemJavaExists = new ProcessBuilder(isWin() ? "where" : "which", "java")
           .start().waitFor() == 0;
