@@ -121,11 +121,11 @@ public class MillProcessLauncher {
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
     } else {
-      boolean systemJavaExists = new ProcessBuilder(isWin() ? "where" : "which", "java")
-          .start().waitFor() == 0;
+      boolean systemJavaExists =
+          new ProcessBuilder(isWin() ? "where" : "which", "java").start().waitFor() == 0;
       if (systemJavaExists) {
         jvmId = null;
-      }else{
+      } else {
         jvmId = mill.client.BuildInfo.defaultJvmId;
       }
     }
