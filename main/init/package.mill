@@ -109,19 +109,24 @@ object `package` extends RootModule with build.MillPublishScalaModule {
 
       val isWindows = System.getProperty("os.name").toLowerCase.startsWith("windows")
       val version = build.millVersion()
-      if (
+
+      try {
         os.call(
           // The version is passed to the sbt build so it correctly resolves the "models" dependency version and sets its own version.
           if (isWindows) ("sbt.bat", s"""set version := \\"$version\\"""", "assembly")
           else ("sbt", s"""set version := "$version"""", "assembly"),
           cwd = sbtPluginProjectPath,
           stdout = os.Inherit
-        ).exitCode != 0
-      )
-        throw new RuntimeException(
-          "Failed to run `sbt assembly` in the \"sbt-mill-init-export-build\" sbt project. " +
-            "Check if the project builds correctly and if you have sbt available on your system, and install it if you don't."
         )
+      } catch {
+        case e: os.SubprocessException =>
+          throw new RuntimeException(
+            "Failed to run `sbt assembly` in the \"sbt-mill-init-export-build\" sbt project. " +
+              "Check if the project builds correctly and if you have sbt available on your system, and install it if you don't.",
+            e
+          )
+        case t : Throwable => throw t
+      }
 
       os.copy(
         sbtPluginProjectPath / "target" / "scala-2.12" / "sbt-1.0" / s"sbt-mill-init-export-build-assembly-$version.jar",

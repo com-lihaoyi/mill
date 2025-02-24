@@ -66,6 +66,11 @@ lazy val multi2 = project
 
 lazy val nested = project
   .in(file("nested/nested"))
+  .settings(
+    libraryDependencies += ("io.netty" % "netty-transport-native-epoll" % "4.1.118.Final")
+      .artifacts(Artifact("netty-transport-native-epoll").withType("pom").withClassifier(Some("linux-x86_64")))
+      .exclude("io.netty", "netty-transport-native-epoll")
+  )
 
 // DEPENDENCIES
 

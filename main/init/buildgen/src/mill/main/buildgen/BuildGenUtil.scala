@@ -11,6 +11,7 @@ import mill.constants.CodeGenConstants.{
 import mill.constants.OutFiles
 import mill.main.buildgen.BuildObject.Companions
 import mill.runner.FileImportGraph.backtickWrap
+import mill.scalalib.CrossVersion
 
 import scala.collection.immutable.SortedSet
 import scala.util.boundary
@@ -287,11 +288,20 @@ object BuildGenUtil {
   def renderIvyString(
       group: String,
       artifact: String,
-      version: String = null,
-      tpe: String = null,
-      classifier: String = null,
+      crossVersion: Option[CrossVersion] = None,
+      version: String | Null = null,
+      tpe: String | Null = null,
+      classifier: String | Null = null,
       excludes: IterableOnce[(String, String)] = Seq.empty
   ): String = {
+    val sepArtifact = crossVersion match {
+      case None => s":$artifact"
+      case Some(value) => value match {
+          case CrossVersion.Constant(value, _) => s":${artifact}_$value"
+          case CrossVersion.Binary(_) => s"::$artifact"
+          case CrossVersion.Full(_) => s":::$artifact"
+        }
+    }
     val sepVersion =
       if (null == version) {
         println(
@@ -314,7 +324,7 @@ object BuildGenUtil {
       .map { case (group, artifact) => s";exclude=$group:$artifact" }
       .mkString
 
-    s"ivy\"$group:$artifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
+    s"ivy\"$group$sepArtifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
   }
 
   def isBom(groupArtifactVersion: (String, String, String)): Boolean =

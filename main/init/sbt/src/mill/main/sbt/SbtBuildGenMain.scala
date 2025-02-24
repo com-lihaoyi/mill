@@ -5,6 +5,7 @@ import mill.constants.Util
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.IrDependencyType.*
+import mill.scalalib.CrossVersion as MillCrossVersion
 import os.Path
 
 import scala.collection.MapView
@@ -296,19 +297,21 @@ object SbtBuildGenMain
 
   // originally named `ivyInterp` in the Maven and module
   def renderIvy(dependency: Dependency): String = {
-    /*
-    TODO `type, `classifier`, and `exclusions` are not processed yet.
-     Processing them involves extracting information from `ModuleID.explicitArtifacts`
-     which is a `Vector` of `sbt.librarymanagement.Artifact` and `sbt.librarymanagement.InclExclRule`s.
-     */
     import dependency.*
-    s"ivy\"$organization${
-        crossVersion match
-          case CrossVersion.Disabled => s":$name"
-          case CrossVersion.Binary => s"::$name"
-          case CrossVersion.Full => s":::$name"
-          case CrossVersion.Constant(value) => s":${name}_$value"
-      }:$revision\""
+    renderIvyString(
+      organization,
+      name,
+      crossVersion match {
+        case CrossVersion.Disabled => None
+        case CrossVersion.Binary => Some(MillCrossVersion.Binary(false))
+        case CrossVersion.Full => Some(MillCrossVersion.Full(false))
+        case CrossVersion.Constant(value) => Some(MillCrossVersion.Constant(value, false))
+      },
+      version = revision,
+      tpe = tpe.orNull,
+      classifier = classifier.orNull,
+      excludes = excludes
+    )
   }
 
   def extractPomSettings(buildPublicationInfo: BuildPublicationInfo): IrPom = {

@@ -243,7 +243,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
     }
 
   def interpIvy(dep: JavaModel.Dep): String = {
-    BuildGenUtil.renderIvyString(dep.group(), dep.name(), dep.version())
+    BuildGenUtil.renderIvyString(dep.group(), dep.name(), version = dep.version())
   }
 
   def extractPomSettings(project: ProjectModel): IrPom | Null = {

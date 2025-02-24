@@ -26,6 +26,9 @@ object Deps {
     ivy"com.typesafe.scala-logging::scala-logging:3.7.2"
   val `com.typesafe:config` = ivy"com.typesafe:config:1.3.1"
 
+  val `io.netty:netty-transport-native-epoll` =
+    ivy"io.netty:netty-transport-native-epoll:4.1.118.Final;type=pom;classifier=linux-x86_64;exclude=io.netty:netty-transport-native-epoll"
+
   val `net.logstash.logback:logstash-logback-encoder` =
     ivy"net.logstash.logback:logstash-logback-encoder:4.11"
   val `org.scalacheck:scalacheck` = ivy"org.scalacheck::scalacheck:1.13.5"
@@ -138,7 +141,12 @@ object `package` extends RootModule with BaseModule {
 
   object nested extends Module {
 
-    object nested extends BaseModule {}
+    object nested extends BaseModule {
+
+      def ivyDeps = super.ivyDeps() ++
+        Seq(Deps.`io.netty:netty-transport-native-epoll`)
+
+    }
   }
 }
 

@@ -133,9 +133,12 @@ case class Dependency(
     name: String, // `artifactId` in Maven
     crossVersion: CrossVersion = CrossVersion.Disabled,
     revision: String,
-    configurations: Option[String]
+    configurations: Option[String],
     // BOM seems not supported by sbt. See https://stackoverflow.com/questions/42032303/how-do-i-use-a-maven-bom-bill-of-materials-to-manage-my-dependencies-in-sbt.
     // isBom : Boolean = false
+    tpe: Option[String],
+    classifier: Option[String],
+    excludes: Seq[(String, String)]
 )
 object Dependency {
   implicit val rw: RW[Dependency] = macroRW

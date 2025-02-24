@@ -173,6 +173,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     BuildGenUtil.renderIvyString(
       dep.getGroupId,
       dep.getArtifactId,
+      None,
       dep.getVersion,
       dep.getType,
       dep.getClassifier,

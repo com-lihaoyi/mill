@@ -7,7 +7,6 @@ import sbt.{Def, CrossVersion as _, Developer as _, Project as _, Resolver as _,
 import upickle.default.*
 
 import java.io.File
-import scala.language.higherKinds
 
 object ExportBuildPlugin extends AutoPlugin {
   override def trigger = allRequirements
@@ -96,9 +95,9 @@ object ExportBuildPlugin extends AutoPlugin {
         millInitBuildInfo.value,
 
         /** See the TODO in [[sbt.Defaults]] above `allDependencies :=` for more details (v1.10.7, Lines 3210 - 3212). */
-        /*allDependencies.value*/ (projectDependencies.value ++ libraryDependencies.value).map {
-          moduleID =>
-            Dependency(
+        /*allDependencies.value*/ (projectDependencies.value ++ libraryDependencies.value).flatMap(
+          moduleID => {
+            val dependency = Dependency(
               moduleID.organization,
               moduleID.name,
               moduleID.crossVersion match {
@@ -113,9 +112,28 @@ object ExportBuildPlugin extends AutoPlugin {
                   CrossVersion.Disabled
               },
               moduleID.revision,
-              moduleID.configurations
+              moduleID.configurations,
+              None,
+              None,
+              moduleID.exclusions.map(inclExclRule =>
+                (inclExclRule.organization, inclExclRule.name)
+              )
             )
-        }
+            val explicitArtifacts = moduleID.explicitArtifacts
+            if (explicitArtifacts.isEmpty)
+              Seq(dependency)
+            else
+              explicitArtifacts.map(artifact =>
+                dependency.copy(
+                  tpe = Some(artifact.`type`) /*{
+                    val tpe = artifact.`type`
+                    Option.when(tpe != DefaultType)(tpe)
+                  }*/,
+                  classifier = artifact.classifier
+                )
+              )
+          }
+        )
       ),
     // `target.value` doesn't work in `globalSettings` and `buildSettings`, so this is added to `projectSettings.
     millInitExportBuild := {
