@@ -241,7 +241,7 @@ object FileImportGraph {
       val (dummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
       val buildFileExtension =
-        buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
+        buildFileExtensions.asScala.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
 
       val nestedBuildFileName = s"package.$buildFileExtension"
       val buildFiles = os
