@@ -66,17 +66,11 @@ trait IntegrationTesterBase {
    */
   def removeProcessIdFile(): Unit = {
     try {
-      println("removeProcessIdFile 0")
       val outDir = os.Path(out, workspacePath)
-      println("removeProcessIdFile 1")
       if (os.exists(outDir)) {
-        println("removeProcessIdFile 2")
         val serverPath0 = outDir / (if (clientServerMode) millServer else millNoServer)
-        println("removeProcessIdFile 3")
         for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / processId)
-        println("removeProcessIdFile 4")
         Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
-        println("removeProcessIdFile 5")
       }
     } catch {
       case e: Throwable =>
