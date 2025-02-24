@@ -10,7 +10,12 @@ import mill.scalalib._
  */
 object `package` extends RootModule with build.MillPublishJavaModule with BuildInfo {
   def buildInfoPackageName = "mill.client"
-  def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
+  def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
+
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("defaultJvmId", os.read(millJvmVersion().path))
+  )
 
   def moduleDeps = Seq(build.core.constants)
 

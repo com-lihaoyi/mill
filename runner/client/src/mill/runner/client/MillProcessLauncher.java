@@ -113,7 +113,7 @@ public class MillProcessLauncher {
     return System.getProperty("os.name", "").startsWith("Windows");
   }
 
-  static String javaHome() throws IOException {
+  static String javaHome() throws Exception {
     String jvmId;
     Path millJvmVersionFile = millJvmVersionFile();
 
@@ -123,11 +123,11 @@ public class MillProcessLauncher {
       if (jvmId.equals("system")) jvmId = null;
     } else {
       boolean systemJavaExists = new ProcessBuilder(isWin() ? "where" : "which", "java")
-          .start().exitValue() == 0;
+          .start().waitFor() == 0;
       if (systemJavaExists) {
         jvmId = null;
       }else{
-        jvmId = "zulu:17.0.3";
+        jvmId = mill.client.BuildInfo.defaultJvmId;
       }
     }
 
@@ -156,7 +156,7 @@ public class MillProcessLauncher {
     return javaHome;
   }
 
-  static String javaExe() throws IOException {
+  static String javaExe() throws Exception {
     String javaHome = javaHome();
     if (javaHome == null) return "java";
     else {
