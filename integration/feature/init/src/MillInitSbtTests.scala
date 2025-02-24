@@ -141,30 +141,37 @@ object MillInitSbtZioHttpTests extends BuildGenTestSuite {
     test - integrationTest(url) { tester =>
       bumpSbtTo1107(tester.workspacePath)
 
-      Seq(
-        "sbt-zio-http-grpc-tests",
-        "sbt-zio-http-grpc",
-        "zio-http-benchmarks.compile",
-        "zio-http-cli",
-        "zio-http-docs",
-        "zio-http-example",
-        "zio-http-gen",
-        "zio-http-htmx",
-        "zio-http-testkit",
-        "zio-http-tools",
-        "zio-http.js",
-        "zio-http.jvm"
-      )
+      object submodules {
+        val withTests = Seq(
+          "sbt-zio-http-grpc-tests",
+          "zio-http-cli",
+          "zio-http-gen",
+          "zio-http-htmx",
+          "zio-http-testkit",
+          "zio-http.js",
+          "zio-http.jvm"
+        )
+        val withoutTests = Seq(
+          "sbt-zio-http-grpc",
+          "zio-http-benchmarks",
+          "zio-http-docs",
+          "zio-http-example",
+          "zio-http-tools"
+        )
+      }
 
-      // TODO
-      /*
       // probably due to inheriting `MavenTests` instead of `SbtTests`
       // Some dependencies with currently unsupported `CrossVersion` `For3Use2_13` are not imported properly
       tester.testMillInit(
-        expectedCompileTasks = Some(SplitResolvedTasks(Seq("compile"), submodules.flatMap(_.allCompileTasks))),
-        expectedTestTasks = Some(SplitResolvedTasks(Seq(), submodules.flatMap(_.allTestTasks)))
+        expectedCompileTasks =
+          Some(SplitResolvedTasks(
+            Seq("compile"),
+            submodules.withTests.flatMap(_.allCompileTasks) ++
+              submodules.withoutTests.map(_.compileTask)
+          )),
+        expectedTestTasks =
+          Some(SplitResolvedTasks(Seq(), submodules.withTests.map(_.testTask)))
       )
-       */
     }
   }
 }

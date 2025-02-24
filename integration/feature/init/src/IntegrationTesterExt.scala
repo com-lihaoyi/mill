@@ -7,7 +7,7 @@ val defaultInitCommand =
   Seq("init", "--base-module", "BaseModule", "--deps-object", "Deps", "--merge")
 
 case class SplitResolvedTasks(successful: Seq[String], failed: Seq[String]) {
-  val all = (successful ++ failed).toSet
+  val all = (successful ++ failed).sorted
 }
 
 extension (tester: IntegrationTester)
@@ -39,10 +39,13 @@ extension (tester: IntegrationTester)
         assert(!resolveAllTasksResult.isSuccess)
       )(expected => {
         assert(resolveAllTasksResult.isSuccess)
-        val resolvedAllTasks = resolveAllTasksResult.out.linesIterator.toSet
+        val resolvedAllTasks = resolveAllTasksResult.out.linesIterator.toSeq.sorted
         Predef.assert(
           expected.all == resolvedAllTasks,
-          "expected: " + expected.all + ", resolved: " + resolvedAllTasks
+          s"""
+             |expected: ${expected.all}
+             |resolved: $resolvedAllTasks
+             |""".stripMargin
         )
 
         for (task <- expected.successful)
@@ -72,7 +75,4 @@ extension (module: String) {
     testModule.testTask
   def allCompileTasks: Seq[String] =
     Seq(compileTask, testCompileTask)
-  // TODO This seems not needed.
-  def allTestTasks: Seq[String] =
-    Seq(testTask, testTestTask)
 }
