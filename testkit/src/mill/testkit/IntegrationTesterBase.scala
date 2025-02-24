@@ -80,7 +80,7 @@ trait IntegrationTesterBase {
       }
     } catch {
       case e: Throwable =>
-        println(e)
+        println("removeProcessIdFile catch" + e)
         e.printStackTrace()
         throw e
     }
