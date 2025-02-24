@@ -10,7 +10,7 @@ def bumpSbtTo1107(workspacePath: os.Path) =
 
 // relatively small libraries
 
-object MillInitLibraryExampleTests extends BuildGenTestSuite {
+object MillInitSbtLibraryExampleTests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
     - 21 KB
@@ -27,7 +27,7 @@ object MillInitLibraryExampleTests extends BuildGenTestSuite {
   }
 }
 
-object MillInitScalaCsv200Tests extends BuildGenTestSuite {
+object MillInitSbtScalaCsv200Tests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
     - 34 KB
@@ -47,7 +47,7 @@ object MillInitScalaCsv200Tests extends BuildGenTestSuite {
   }
 }
 
-object MillInitScalaCsv136Tests extends BuildGenTestSuite {
+object MillInitSbtScalaCsv136Tests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
     - 28 KB
@@ -130,7 +130,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
 
 // relatively large libraries
 
-object MillInitZioHttpTests extends BuildGenTestSuite {
+object MillInitSbtZioHttpTests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
     - 1.4 MB
