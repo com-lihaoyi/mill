@@ -218,11 +218,11 @@ object FileImportGraph {
   }
 
   def findRootBuildFiles(projectRoot: os.Path) = {
-    val rootBuildFiles = rootBuildFileNames
+    val rootBuildFiles = rootBuildFileNames.asScala
       .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
     val (dummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
-      case Nil => (true, rootBuildFileNames.head)
+      case Nil => (true, rootBuildFileNames.get(0))
       case Seq(single) => (false, single)
       case multiple =>
         System.err.println(
