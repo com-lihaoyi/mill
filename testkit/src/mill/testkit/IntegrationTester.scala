@@ -144,15 +144,15 @@ object IntegrationTester {
       if (clientServerMode) {
         println("IntegrationTester.Impl#close 1")
         // try to stop the server
-        os.call(
-          cmd = (millExecutable, "--no-build-lock", "shutdown"),
-          cwd = workspacePath,
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit,
-          env = millTestSuiteEnv,
-          check = false
-        )
+        //        os.call(
+        //          cmd = (millExecutable, "--no-build-lock", "shutdown"),
+        //          cwd = workspacePath,
+        //          stdin = os.Inherit,
+        //          stdout = os.Inherit,
+        //          stderr = os.Inherit,
+        //          env = millTestSuiteEnv,
+        //          check = false
+        //        )
       }
 
       println("IntegrationTester.Impl#close 2")
