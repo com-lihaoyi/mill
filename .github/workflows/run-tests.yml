@@ -20,6 +20,17 @@ jobs:
         env:
           COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
 
+  debug-fork:
+#    runs-on: ubuntu-latest
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - run: ./mill 'integration.feature[no-java-bootstrap].native.fork.test'
+        env:
+          COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
+
 
 # We run full CI on push builds to main and on all pull requests
 #
