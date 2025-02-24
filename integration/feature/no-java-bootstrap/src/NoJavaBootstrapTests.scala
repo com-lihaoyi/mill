@@ -11,7 +11,7 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
       os.remove(tester.workspacePath / ".mill-jvm-version")
 
       // The Mill server process should use the default Mill Java version,
-      // evenw without the `.mill-jvm-version` present
+      // even without the `.mill-jvm-version` present
       val res1 = eval("foo")
       assert(res1.out == System.getProperty("java.version"))
 
