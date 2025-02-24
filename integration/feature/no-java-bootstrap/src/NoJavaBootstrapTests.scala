@@ -13,12 +13,12 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
       // The Mill server process should use the default Mill Java version,
       // evenw without the `.mill-jvm-version` present
       val res1 = eval("foo")
-      assert(res1.out == "17.0.14")
+      assert(res1.out == System.getProperty("java.version"))
 
       // Any `JavaModule`s run from the Mill server should also inherit
       // the default Mill Java version from it
       val res2 = eval("bar.run")
-      assert(res2.out == "Hello World! 17.0.14")
+      assert(res2.out == s"Hello World! ${System.getProperty("java.version")}")
     }
   }
 }
