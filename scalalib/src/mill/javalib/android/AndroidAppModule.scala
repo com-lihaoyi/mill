@@ -751,7 +751,14 @@ trait AndroidAppModule extends AndroidModule {
       throw new Exception("Device failed to boot")
   }
 
-  trait AndroidAppTests extends JavaTests {
+  trait AndroidAppTests extends AndroidAppModule with JavaTests {
+
+    override def androidCompileSdk: T[Int] = parent.androidCompileSdk
+    override def androidMinSdk: T[Int] = parent.androidMinSdk
+    override def androidTargetSdk: T[Int] = parent.androidTargetSdk
+    override def androidSdkModule = parent.androidSdkModule
+    override def androidManifest: Task[PathRef] = parent.androidManifest
+    
     override def moduleDir = parent.moduleDir
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")

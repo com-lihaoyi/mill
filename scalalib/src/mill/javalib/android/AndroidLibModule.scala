@@ -110,11 +110,10 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
 
   trait AndroidLibTests extends JavaTests {
 
-    private def testPath = parent.moduleDir / "src/test"
 
-    override def sources: T[Seq[PathRef]] = Seq(PathRef(testPath / "java"))
+    override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
 
-    override def resources: T[Seq[PathRef]] = Task.Sources(Seq(PathRef(testPath / "res")))
+    override def resources: T[Seq[PathRef]] = Task.Sources("src/test/res")
 
   }
 }
