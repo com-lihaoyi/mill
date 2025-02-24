@@ -185,7 +185,7 @@ jobs:
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'integration.feature[no-jvm-bootstrap].native.server.test'"
+            millargs: "'integration.feature[no-java-bootstrap].native.server.test'"
             install-android-sdk: false
 
             # These invalidation tests need to be exercised in both execution modes
