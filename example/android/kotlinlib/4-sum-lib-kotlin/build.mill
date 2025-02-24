@@ -36,7 +36,7 @@ object lib extends AndroidLibKotlinModule with PublishModule {
   def publishVersion = "0.0.1"
   def pomSettings = PomSettings(
     description = "sumlib",
-    organization = "io.github.irodotos7",
+    organization = "com.example.sumlib",
     url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github("lihaoyi", "example"),
@@ -71,7 +71,7 @@ object app extends AndroidAppKotlinModule {
   }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
-    ivy"io.github.irodotos7:lib:0.0.1"
+    ivy"com.example.sumlib:lib:0.0.1"
   )
 
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
@@ -121,6 +121,20 @@ object app extends AndroidAppKotlinModule {
 
 > ./mill lib.publishM2Local
 Publish ... to /home/.../.m2/repository/...
+
+> ./mill show lib.publishArtifacts
+{
+  "meta": {
+    "group": "com.example.sumlib",
+    "id": "lib",
+    "version": "0.0.1"
+  },
+  "payload": [
+    [
+      ".../out/lib/androidAar.dest/library.aar",
+      "lib-0.0.1.aar"
+    ],
+...
 
 */
 

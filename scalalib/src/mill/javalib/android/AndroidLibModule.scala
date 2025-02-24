@@ -23,16 +23,12 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       case _ => PackagingType.Aar
     }
 
-  override def jar: T[PathRef] = {
-    androidAar()
-  }
-
   override def defaultPublishInfos: T[Seq[PublishInfo]] = {
     def defaultPublishJars: Task[Seq[(PathRef, PathRef => PublishInfo)]] = {
       pomPackagingType match {
         case PackagingType.Pom => Task.Anon(Seq())
         case _ => Task.Anon(Seq(
-            (jar(), PublishInfo.aar _),
+            (androidAar(), PublishInfo.aar _),
             (sourceJar(), PublishInfo.sourcesJar _),
             (docJar(), PublishInfo.docJar _)
           ))
