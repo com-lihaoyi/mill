@@ -33,8 +33,7 @@ class IntegrationTester(
 
 object IntegrationTester {
   def millTestSuiteEnv: Map[String, String] = Map(
-    MILL_TEST_SUITE -> this.getClass().toString(),
-    "JAVA_HOME" -> sys.props("java.home")
+    MILL_TEST_SUITE -> this.getClass().toString()
   )
 
   /**
