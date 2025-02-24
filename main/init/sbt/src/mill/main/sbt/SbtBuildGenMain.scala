@@ -195,7 +195,7 @@ object SbtBuildGenMain
   ): Tree[Node[Option[Project]]] =
     input._2
 
-  def sbtSupertypes = Seq("SbtModule", "PublishModule") // always publish
+  private def sbtSupertypes = Seq("SbtModule", "PublishModule") // always publish
 
   def getBaseInfo(
       input: (BuildInfo, Tree[Node[Option[Project]]]),
