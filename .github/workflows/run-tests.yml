@@ -184,6 +184,10 @@ jobs:
             millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             install-android-sdk: false
 
+          - java-version: 17
+            millargs: "'integration.feature[no-jvm-bootstrap].native.server.test'"
+            install-android-sdk: false
+
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
