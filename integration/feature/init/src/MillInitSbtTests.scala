@@ -93,13 +93,18 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       bumpSbtTo1107(tester.workspacePath)
 
       val submodules = Seq("common", "multi1", "multi2")
-
-      tester.testMillInit(
-        // initCommand = defaultInitCommand ++ Seq("--jvm-id", "11"),
-        expectedCompileTasks =
-          Some(if (System.getProperty("java.version").split('.').head.toInt <= 11)
-            SplitResolvedTasks(Seq("compile") ++ submodules.flatMap(_.allCompileTasks), Seq.empty)
-          else {
+      if (System.getProperty("java.version").split('.').head.toInt <= 11)
+        tester.testMillInit(
+          expectedCompileTasks = Some(SplitResolvedTasks(
+            Seq("compile") ++ submodules.flatMap(_.allCompileTasks),
+            Seq.empty
+          )),
+          expectedTestTasks = Some(SplitResolvedTasks(submodules.map(_.testTask), Seq.empty))
+        )
+      else
+        tester.testMillInit(
+          // initCommand = defaultInitCommand ++ Seq("--jvm-id", "11"),
+          expectedCompileTasks = Some({
             /*
             `multi1.compile` doesn't work well when Mill is run with JDK 17 and 21:
             ```text
@@ -109,7 +114,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
                 scala.tools.nsc.classpath.JrtClassPath.asURLs(DirectoryClassPath.scala:183)
                 ...
             ```
-            Passing a `jvmId` 11 doesn't work.
+            Passing a `jvmId` 11 doesn't work here.
              */
             val succeededSubmoduleCompileTasks = Seq("common.compile", "multi2.compile")
             SplitResolvedTasks(
@@ -117,8 +122,8 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
               (submodules.flatMap(_.allCompileTasks).toSet -- succeededSubmoduleCompileTasks).toSeq
             )
           }),
-        expectedTestTasks = Some(SplitResolvedTasks(Seq(), submodules.map(_.testTask)))
-      )
+          expectedTestTasks = Some(SplitResolvedTasks(Seq.empty, submodules.map(_.testTask)))
+        )
     }
   }
 }
