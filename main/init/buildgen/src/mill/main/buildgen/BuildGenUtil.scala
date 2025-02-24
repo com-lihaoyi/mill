@@ -385,12 +385,12 @@ object BuildGenUtil {
       if (args.length == superLength) None
       else
         // Note that the super def is called even when it's empty.
-        // Some super functions can be called without parentheses, but we just add it here for simplicity.
+        // Some super functions can be called without parentheses, but we just add them here for simplicity.
         Some(args.iterator.drop(superLength).map(transform)
           .mkString(s"super.$defName() ++ Seq(", ",", ")"))
     } else
       Some(
-        if (args.isEmpty) "Seq.empty[String]" // The inference type is `Seq[Nothing]` otherwise.
+        if (args.isEmpty) "Seq.empty[String]" // The inferred type is `Seq[Nothing]` otherwise.
         else args.iterator.map(transform).mkString("Seq(", ",", ")")
       )
 
