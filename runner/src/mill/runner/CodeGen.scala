@@ -1,7 +1,7 @@
 package mill.runner
 
 import mill.constants.CodeGenConstants._
-import mill.api.{PathRef, Result}
+import mill.api.Result
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
 
@@ -12,7 +12,6 @@ object CodeGen {
 
   def generateWrappedSources(
       projectRoot: os.Path,
-      scriptSources: Seq[PathRef],
       allScriptCode: Map[os.Path, String],
       targetDest: os.Path,
       enclosingClasspath: Seq[os.Path],
@@ -21,8 +20,8 @@ object CodeGen {
       output: os.Path,
       parser: MillScalaParser
   ): Unit = {
-    for (scriptSource <- scriptSources) breakable {
-      val scriptPath = scriptSource.path
+    val scriptSources = allScriptCode.keys.toSeq.sorted
+    for (scriptPath <- scriptSources) breakable {
       val specialNames = (nestedBuildFileNames ++ rootBuildFileNames).toSet
 
       val isBuildScript = specialNames(scriptPath.last)
@@ -40,8 +39,7 @@ object CodeGen {
       val dest = targetDest / packageSegments
 
       val childNames = scriptSources
-        .flatMap { p =>
-          val path = p.path
+        .flatMap { path =>
           if (path == scriptPath) None
           else if (nestedBuildFileNames.contains(path.last)) {
             Option.when(path / os.up / os.up == scriptFolderPath) {
@@ -109,7 +107,6 @@ object CodeGen {
             markerComment,
             parser,
             scriptSources
-              .map(_.path)
               .filter(_ != scriptPath)
               .filter(p => (p / os.up) == (scriptPath / os.up))
               .map(_.last.split('.').head)

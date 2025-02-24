@@ -29,7 +29,8 @@ object Applicative {
       Quotes
   )(
       traverseCtx: (Expr[Seq[W[Any]]], Expr[(Seq[Any], Ctx) => Z[T]]) => Expr[M[T]],
-      t: Expr[Z[T]]
+      t: Expr[Z[T]],
+      allowTaskReferences: Boolean = true
   ): Expr[M[T]] = {
     import quotes.reflect.*
 
@@ -70,7 +71,7 @@ object Applicative {
 
         override def transformTerm(tree: Term)(owner: Symbol): Term = tree match
           case t @ Apply(sel @ Select(fun, "apply"), Nil)
-              if sel.symbol == targetApplySym =>
+              if sel.symbol == targetApplySym && allowTaskReferences =>
             val localDefs = extractDefs(fun)
             visitAllTrees(t) { x =>
               val sym = x.symbol

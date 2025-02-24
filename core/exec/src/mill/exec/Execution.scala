@@ -62,12 +62,12 @@ private[mill] case class Execution(
 
   private def getFailing(
       sortedGroups: MultiBiMap[Task[?], Task[?]],
-      results: Map[Task[?], TaskResult[(Val, Int)]]
+      results: Map[Task[?], ExecResult[(Val, Int)]]
   ): MultiBiMap.Mutable[Task[?], Failing[Val]] = {
     val failing = new MultiBiMap.Mutable[Task[?], ExecResult.Failing[Val]]
     for ((k, vs) <- sortedGroups.items()) {
       val failures = vs.flatMap(results.get).collect {
-        case TaskResult(f: ExecResult.Failing[(Val, Int)], _) => f.map(_._1)
+        case f: ExecResult.Failing[(Val, Int)] => f.map(_._1)
       }
 
       failing.addAll(k, Seq.from(failures))
@@ -129,8 +129,8 @@ private[mill] case class Execution(
             s"Non-exclusive task ${terminal} cannot depend on exclusive task " +
               exclusiveDeps.mkString(", ")
           )
-          val taskResults = group
-            .map(t => (t, TaskResult[(Val, Int)](failure, () => failure)))
+          val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
+            .map(t => (t, failure))
             .toMap
 
           futures(terminal) = Future.successful(
@@ -161,7 +161,7 @@ private[mill] case class Execution(
                   target <- group.toIndexedSeq.filterNot(upstreamResults.contains)
                   item <- target.inputs.filterNot(group.contains)
                 } yield upstreamResults(item).map(_._1)
-                val logRun = inputResults.forall(_.result.isInstanceOf[ExecResult.Success[?]])
+                val logRun = inputResults.forall(_.isInstanceOf[ExecResult.Success[?]])
 
                 val tickerPrefix = if (logRun && logger.enableTicker) terminal.toString else ""
 
@@ -188,7 +188,7 @@ private[mill] case class Execution(
                   exclusive
                 )
 
-                if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
+                if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)
 
                 val endTime = System.nanoTime() / 1000
@@ -246,20 +246,20 @@ private[mill] case class Execution(
       changedValueHash
     )
 
-    val results0: Vector[(Task[?], TaskResult[(Val, Int)])] = terminals0
+    val results0: Vector[(Task[?], ExecResult[(Val, Int)])] = terminals0
       .flatMap { t =>
         plan.sortedGroups.lookupKey(t).flatMap { t0 =>
           finishedOptsMap(t) match {
-            case None => Some((t0, TaskResult(Aborted, () => Aborted)))
+            case None => Some((t0, Aborted))
             case Some(res) => res.newResults.get(t0).map(r => (t0, r))
           }
         }
       }
 
-    val results: Map[Task[?], TaskResult[(Val, Int)]] = results0.toMap
+    val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
 
     Execution.Results(
-      goals.toIndexedSeq.map(results(_).map(_._1).result),
+      goals.toIndexedSeq.map(results(_).map(_._1)),
       finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
       getFailing(plan.sortedGroups, results).items().map { case (k, v) => (k, v.toSeq) }.toMap,
       results.map { case (k, v) => (k, v.map(_._1)) }
@@ -291,6 +291,6 @@ private[mill] object Execution {
       rawValues: Seq[ExecResult[Val]],
       evaluated: Seq[Task[?]],
       failing: Map[Task[?], Seq[ExecResult.Failing[Val]]],
-      results: Map[Task[?], TaskResult[Val]]
+      results: Map[Task[?], ExecResult[Val]]
   ) extends mill.define.ExecutionResults
 }

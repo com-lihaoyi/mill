@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 5c48e1e4e43..7002647e47b 100644
+index 36bf4e9a593..84fd76e6645 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,16 +1,16 @@
@@ -55,8 +55,7 @@ index 5c48e1e4e43..7002647e47b 100644
 +def baseDir = build.moduleDir
  
  def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
- 
-@@ -469,7 +469,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+
  /**
   * Some custom scala settings and test convenience
   */
@@ -65,7 +64,7 @@ index 5c48e1e4e43..7002647e47b 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -526,8 +526,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -524,8 +524,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
      val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
      val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
      super.scalacPluginIvyDeps() ++
@@ -76,7 +75,7 @@ index 5c48e1e4e43..7002647e47b 100644
    }
  
    def mandatoryIvyDeps = T {
-@@ -535,13 +535,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -533,13 +533,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
      val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
      val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
      super.mandatoryIvyDeps() ++
@@ -92,7 +91,7 @@ index 5c48e1e4e43..7002647e47b 100644
      def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
-@@ -581,7 +581,8 @@ trait MillBaseTestsModule extends TestModule {
+@@ -579,7 +579,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
@@ -102,7 +101,7 @@ index 5c48e1e4e43..7002647e47b 100644
    import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -711,7 +712,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+@@ -709,7 +710,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
@@ -112,7 +111,7 @@ index 5c48e1e4e43..7002647e47b 100644
  
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/contrib/package.mill b/contrib/package.mill
-index 421b2955955..30c453234b9 100644
+index 78dac75644b..fa53e9c7525 100644
 --- a/contrib/package.mill
 +++ b/contrib/package.mill
 @@ -3,13 +3,12 @@ package build.contrib
@@ -143,23 +142,19 @@ index 421b2955955..30c453234b9 100644
    }
  
    object testng extends JavaModule with ContribModule {
-@@ -85,13 +84,13 @@ object `package` extends RootModule {
+@@ -85,9 +84,9 @@ object `package` extends RootModule {
      object worker extends Cross[WorkerModule](build.Deps.play.keys.toSeq)
      trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
        def playBinary = crossValue
 -      def millSourcePath: os.Path = super.millSourcePath / playBinary
 +      def moduleDir: os.Path = super.moduleDir / playBinary
  
-       def sources = Task.Sources {
+-      def sharedSources = Task.Sources(millSourcePath / os.up / "src-shared")
++      def sharedSources = Task.Sources(moduleDir / os.up / "src-shared")
+       def sources = Task {
          // We want to avoid duplicating code as long as the Play APIs allow.
          // But if newer Play versions introduce incompatibilities,
-         // just remove the shared source dir for that worker and implement directly.
--        Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
-+        Seq(PathRef(moduleDir / os.up / "src-shared")) ++ super.sources()
-       }
- 
-       def scalaVersion = build.Deps.play(playBinary).scalaVersion
-@@ -139,7 +138,7 @@ object `package` extends RootModule {
+@@ -140,7 +139,7 @@ object `package` extends RootModule {
            build.Deps.scalacScoverage2Reporter,
            build.Deps.scalacScoverage2Domain,
            build.Deps.scalacScoverage2Serializer

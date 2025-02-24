@@ -3,7 +3,7 @@ package mill.scalalib.api
 import mill.api.{CompileProblemReporter, PathRef}
 
 object ZincWorkerApi {
-  type Ctx = mill.api.Ctx.Dest & mill.api.Ctx.Log & mill.api.Ctx.Home
+  type Ctx = mill.api.Ctx.Dest & mill.api.Ctx.Log
 }
 trait ZincWorkerApi {
 

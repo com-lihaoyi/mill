@@ -49,8 +49,8 @@ xref:blog::9-mill-faster-assembly-jars.adoc[incremental assemblies] to speed up 
 workflows, and xref:large/selective-execution.adoc[selective execution] to keep
 CI validation times short by only running the tests necessary to validate a code change.
 
-* *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[autoformatting],
-xref:javalib/linting.adoc#_linting_with_checkstyle[linting],
+* *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also
+xref:fundamentals/configuring-jvm-versions.adoc[managing JVM versions], xref:javalib/linting.adoc[linting],
 xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing],
 building xref:javalib/publishing.adoc#_building_executable_assemblies[executable assemblies],
 xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[native binaries]
