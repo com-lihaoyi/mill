@@ -86,7 +86,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       pomSettings,
       publishVersion,
       publishProperties,
-      getRepositories(model)
+      repositories
     )
 
     IrBaseInfo(typedef)
