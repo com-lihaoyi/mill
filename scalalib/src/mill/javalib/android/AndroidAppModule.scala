@@ -1,6 +1,5 @@
 package mill.javalib.android
 
-import coursier.Repository
 import mill._
 import mill.scalalib._
 import mill.api.{Logger, PathRef, internal}
@@ -12,7 +11,6 @@ import os.RelPath
 import upickle.default._
 
 import scala.jdk.OptionConverters.RichOptional
-import scala.xml.XML
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -758,7 +756,7 @@ trait AndroidAppModule extends AndroidModule {
     override def androidTargetSdk: T[Int] = parent.androidTargetSdk
     override def androidSdkModule = parent.androidSdkModule
     override def androidManifest: Task[PathRef] = parent.androidManifest
-    
+
     override def moduleDir = parent.moduleDir
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")

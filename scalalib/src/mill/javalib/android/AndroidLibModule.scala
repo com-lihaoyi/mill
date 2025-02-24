@@ -12,7 +12,7 @@ import upickle.default.*
 @mill.api.experimental
 trait AndroidLibModule extends AndroidModule with PublishModule {
 
-  private val parent: AndroidLibModule = this
+  this
 
   //  /**
   //   * The packaging type. See [[PackagingType]] for specially handled values.
@@ -109,7 +109,6 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
   }
 
   trait AndroidLibTests extends JavaTests {
-
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
 
