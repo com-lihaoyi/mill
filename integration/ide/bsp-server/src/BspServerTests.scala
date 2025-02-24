@@ -4,7 +4,7 @@ import ch.epfl.scala.{bsp4j => b}
 import mill.api.BuildInfo
 import mill.bsp.Constants
 import mill.integration.BspServerTestUtil._
-import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
+import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
 import scala.jdk.CollectionConverters._
