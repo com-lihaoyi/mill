@@ -10,7 +10,7 @@ trait IntegrationTestSuite {
 
   /**
    * If `true`, run Mill subprocesss normally as a client to a long-lived
-   * background server. If `false`, run the Mill subprocess with `--no-server` 
+   * background server. If `false`, run the Mill subprocess with `--no-server`
    * so it exits after every command. Both are useful depending on what you
    * are trying to test, and generally Mill builds are expected to behave the
    * same in both modes (except for performance differences due to in-memory caching)
@@ -34,7 +34,7 @@ trait IntegrationTestSuite {
   def debugLog: Boolean = false
 
   /**
-   * Run an integration test by providing an [[IntegrationTester]] to the 
+   * Run an integration test by providing an [[IntegrationTester]] to the
    * given [[block]].
    */
   def integrationTest[T](block: IntegrationTester => T): T = {
@@ -46,7 +46,7 @@ trait IntegrationTestSuite {
       baseWorkspacePath = os.pwd,
       propagateJavaHome = propagateJavaHome
     )
-    try t(tester)
+    try block(tester)
     finally tester.close()
   }
 }
