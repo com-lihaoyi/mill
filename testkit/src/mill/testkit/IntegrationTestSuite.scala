@@ -3,6 +3,7 @@ package mill.testkit
 import os.Path
 
 trait IntegrationTestSuite {
+
   /**
    * Where the project root of the Mill codebase under test is located on disk.
    */
