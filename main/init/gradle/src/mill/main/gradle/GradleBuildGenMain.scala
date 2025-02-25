@@ -41,7 +41,7 @@ import scala.jdk.CollectionConverters.*
  */
 @mill.api.internal
 object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, JavaModel.Dep] {
-  type C = Config
+  override type C = Config
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
@@ -184,8 +184,6 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
       publishProperties = getPublishProperties(project, cfg.shared)
     )
   }
-
-  override def extraImports: Seq[String] = Seq.empty
 
   def getModuleSupertypes(cfg: Config): Seq[String] =
     Seq(cfg.shared.basicConfig.baseModule.getOrElse("MavenModule"))

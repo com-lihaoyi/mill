@@ -52,7 +52,7 @@ import scala.collection.immutable.SortedSet
 @mill.api.internal
 object SbtBuildGenMain
     extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Option[Project]]])] {
-  type C = Config
+  override type C = Config
   override type OM = Option[Project]
 
   def main(args: Array[String]): Unit = {
@@ -198,7 +198,7 @@ object SbtBuildGenMain
 
   private def sbtSupertypes = Seq("SbtModule", "PublishModule") // always publish
 
-  def getBaseInfo(
+  override def getBaseInfo(
       input: (BuildInfo, Tree[Node[Option[Project]]]),
       cfg: Config,
       baseModule: String,

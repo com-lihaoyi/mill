@@ -37,7 +37,7 @@ import scala.jdk.CollectionConverters.*
  */
 @mill.api.internal
 object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] {
-  type C = Config
+  override type C = Config
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
@@ -61,7 +61,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
 
   extension (om: Model) override def toOption(): Option[Model] = Some(om)
 
-  def getBaseInfo(
+  override def getBaseInfo(
       input: Tree[Node[Model]],
       cfg: Config,
       baseModule: String,
@@ -126,19 +126,17 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     )
   }
 
-  override def extraImports: Seq[String] = Seq.empty
-
   def getModuleSupertypes(cfg: Config): Seq[String] = Seq("PublishModule", "MavenModule")
 
-  def getPackage(model: Model): (String, String, String) = {
+  override def getPackage(model: Model): (String, String, String) = {
     (model.getGroupId, model.getArtifactId, model.getVersion)
   }
 
-  def getArtifactId(model: Model): String = model.getArtifactId
+  override def getArtifactId(model: Model): String = model.getArtifactId
 
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
-  def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
+  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
     Seq("RootModule") ++
       cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
 

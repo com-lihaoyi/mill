@@ -97,5 +97,7 @@ object BuildGenBase {
   trait MavenAndGradle[M, D] extends BuildGenBase[M, D, Tree[Node[M]]] {
     override def getModuleTree(input: Tree[Node[M]]): Tree[Node[M]] = input
     override type OM = M
+
+    override def extraImports: Seq[String] = Seq.empty
   }
 }
