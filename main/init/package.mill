@@ -125,7 +125,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
               "Check if the project builds correctly and if you have sbt available on your system, and install it if you don't.",
             e
           )
-        case t : Throwable => throw t
+        case t: Throwable => throw t
       }
 
       os.copy(
