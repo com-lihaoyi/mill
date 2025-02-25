@@ -80,16 +80,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       // Test 1: Run without -k flag (default behavior)
       val resWithoutK = eval(("--ticker", "true", "compile"))
-      println(
-        s"[DEBUG] failedTasksCounter - failed build without -k isSuccess: ${resWithoutK.isSuccess}"
-      )
+      println(s"[DEBUG] failedTasksCounter - failed build without -k isSuccess: ${resWithoutK.isSuccess}")
       println(s"[DEBUG] failedTasksCounter - failed build without -k err: '${resWithoutK.err}'")
       resWithoutK.isSuccess ==> false
 
       // Verify the output shows failed tasks count in the progress indicator
       // and that only actual failures are counted (not skipped tasks)
-      val expectedPattern =
-        "\\[\\d+/\\d+,\\s*1\\s*failed\\]".r // Matches [X/Y, 1 failed] - should be exactly 1 failure
+      val expectedPattern = "\\[\\d+/\\d+,\\s*1\\s*failed\\]".r // Matches [X/Y, 1 failed] - should be exactly 1 failure
       println(
         s"[DEBUG] failedTasksCounter - pattern matches without -k: ${expectedPattern.findFirstIn(resWithoutK.err).isDefined}"
       )
@@ -121,7 +118,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         data = originalContent,
         createFolders = true
       )
-
+      
       // Create a dependency structure with multiple Java files
       // File 1: Base.java - This will have the error
       val baseJava = javaSource / "src" / "foo" / "Base.java"
@@ -137,7 +134,7 @@ public class Base {
 """,
         createFolders = true
       )
-
+      
       // File 2: Dependent1.java - Depends on Base.java
       val dependent1Java = javaSource / "src" / "foo" / "Dependent1.java"
       os.write.over(
@@ -154,7 +151,7 @@ public class Dependent1 {
 """,
         createFolders = true
       )
-
+      
       // File 3: Dependent2.java - Also depends on Base.java
       val dependent2Java = javaSource / "src" / "foo" / "Dependent2.java"
       os.write.over(
@@ -171,11 +168,11 @@ public class Dependent2 {
 """,
         createFolders = true
       )
-
+      
       // Compile once to make sure everything is working
       val cleanMultiCompile = eval(("compile"))
       cleanMultiCompile.isSuccess ==> true
-
+      
       // Now introduce an error in Base.java
       os.write.over(
         baseJava,
@@ -189,18 +186,16 @@ public class Base {
 """,
         createFolders = true
       )
-
+      
       // Run with -k flag to see if skipped tasks are counted as failures
       val resWithDeps = eval(("--ticker", "true", "-k", "compile"))
-      println(
-        s"[DEBUG] failedTasksCounter - deps build with -k isSuccess: ${resWithDeps.isSuccess}"
-      )
+      println(s"[DEBUG] failedTasksCounter - deps build with -k isSuccess: ${resWithDeps.isSuccess}")
       println(s"[DEBUG] failedTasksCounter - deps build with -k err: '${resWithDeps.err}'")
       resWithDeps.isSuccess ==> false
-
+      
       // Print the full error output to debug the actual format
       println(s"[DEBUG] FULL ERROR OUTPUT:\n${resWithDeps.err}")
-
+      
       // Check for the progress indicator pattern with exactly 1 failure
       println(
         s"[DEBUG] Progress indicator pattern matches: ${expectedPattern.findFirstIn(resWithDeps.err).isDefined}"
@@ -208,21 +203,17 @@ public class Base {
       println(
         s"[DEBUG] Progress indicator matches found: ${expectedPattern.findAllIn(resWithDeps.err).toList}"
       )
-
+      
       // Verify that only 1 task is counted as failed in the progress indicator
       // even though multiple files are affected (Base.java fails, and Dependent1.java and Dependent2.java are skipped)
       expectedPattern.findFirstIn(resWithDeps.err).isDefined ==> true
-
+      
       // Also check the final summary line
       val taskFailedPattern = "1\\s+tasks?\\s+failed".r
-      println(
-        s"[DEBUG] Task failed pattern matches: ${taskFailedPattern.findFirstIn(resWithDeps.err).isDefined}"
-      )
-      println(
-        s"[DEBUG] Task failed matches found: ${taskFailedPattern.findAllIn(resWithDeps.err).toList}"
-      )
+      println(s"[DEBUG] Task failed pattern matches: ${taskFailedPattern.findFirstIn(resWithDeps.err).isDefined}")
+      println(s"[DEBUG] Task failed matches found: ${taskFailedPattern.findAllIn(resWithDeps.err).toList}")
       taskFailedPattern.findFirstIn(resWithDeps.err).isDefined ==> true
-
+      
       // Clean up by deleting the additional files
       try {
         os.remove(baseJava)
