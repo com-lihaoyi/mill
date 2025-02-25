@@ -198,7 +198,11 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
 
   def getMillSourcePath(project: ProjectModel): Path = os.Path(project.directory())
 
-  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] =
+  override def getSupertypes(
+      cfg: Config,
+      baseInfo: IrBaseInfo,
+      build: Node[ProjectModel]
+  ): Seq[String] =
     Seq("RootModule") ++
       Option.when(null != build.value.maven().pom() && {
         val baseTrait = baseInfo.moduleTypedef
