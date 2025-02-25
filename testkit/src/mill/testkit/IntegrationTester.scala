@@ -1,6 +1,5 @@
 package mill.testkit
 
-import mill.constants.EnvVars.MILL_TEST_SUITE
 import mill.constants.OutFiles
 import mill.define.Segments
 import mill.exec.Cached
@@ -26,16 +25,13 @@ class IntegrationTester(
     val workspaceSourcePath: os.Path,
     val millExecutable: os.Path,
     override val debugLog: Boolean = false,
-    val baseWorkspacePath: os.Path = os.pwd
+    val baseWorkspacePath: os.Path = os.pwd,
+    val propagateJavaHome: Boolean = true
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }
 
 object IntegrationTester {
-  def millTestSuiteEnv: Map[String, String] = Map(
-    MILL_TEST_SUITE -> this.getClass().toString(),
-    "JAVA_HOME" -> sys.props("java.home")
-  )
 
   /**
    * A very simplified version of `os.CommandResult` meant for easily
@@ -143,22 +139,7 @@ object IntegrationTester {
      * Tears down the workspace at the end of a test run, shutting down any
      * in-process Mill background servers
      */
-    override def close(): Unit = {
-      if (clientServerMode) {
-        // try to stop the server
-        os.call(
-          cmd = (millExecutable, "--no-build-lock", "shutdown"),
-          cwd = workspacePath,
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit,
-          env = millTestSuiteEnv,
-          check = false
-        )
-      }
-
-      removeProcessIdFile()
-    }
+    override def close(): Unit = removeProcessIdFile()
   }
 
 }

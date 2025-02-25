@@ -151,7 +151,7 @@ object BuildGenUtil {
 
   }
   def buildFile(dirs: Seq[String]): os.SubPath = {
-    val name = if (dirs.isEmpty) rootBuildFileNames.head else nestedBuildFileNames.head
+    val name = if (dirs.isEmpty) rootBuildFileNames.get(0) else nestedBuildFileNames.get(0)
     os.sub / dirs / name
   }
 
@@ -167,7 +167,7 @@ object BuildGenUtil {
       "mill.javalib.publish._"
     ) ++
       extraImports ++
-      (if (isNested) baseModule.map(name => s"$$file.$name")
+      (if (isNested) baseModule.map(name => s"_root_.build_.$name")
        else if (packagesSize > 1) Seq("$packages._")
        else None)
   }

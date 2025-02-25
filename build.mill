@@ -316,16 +316,17 @@ def millDownloadUrl = Task {
 }
 
 def millBinPlatform: T[String] = Task {
-  // val tag = millLastTag()
-  // if (tag.contains("-M")) tag
-  // else {
-  //  val pos = if (tag.startsWith("0.")) 2 else 1
-  //  tag.split("[.]", pos + 1).take(pos).mkString(".")
-  // }
-  "0.11"
+  val tag = millLastTag()
+  if (tag.contains("-M")) tag
+  else {
+    val pos = if (tag.startsWith("0.")) 2 else 1
+    tag.split("[.]", pos + 1).take(pos).mkString(".")
+  }
 }
 
 def baseDir = build.millSourcePath
+
+def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
 
 val essentialBridgeScalaVersions =
   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)

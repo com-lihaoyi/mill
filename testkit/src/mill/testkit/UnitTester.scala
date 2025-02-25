@@ -103,7 +103,7 @@ class UnitTester(
     env = env,
     failFast = failFast,
     threadCount = threads,
-    methodCodeHashSignatures = Map(),
+    codeSignatures = Map(),
     systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream)
   )

@@ -110,7 +110,7 @@ private object Utils {
       results: ExecutionResults,
       task: mill.define.Task[?]
   ): StatusCode = {
-    results.results(task).result match {
+    results.results(task) match {
       case Success(_) => StatusCode.OK
       case Skipped => StatusCode.CANCELLED
       case _ => StatusCode.ERROR

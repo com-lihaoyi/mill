@@ -113,9 +113,11 @@
 // but people developing Mill plugins or working on particularly large or
 // sophisticated Mill builds will need to understand.
 * Mill In Depth
-** xref:depth/sandboxing.adoc[]
-** xref:depth/execution-model.adoc[]
+** xref:depth/evaluation-model.adoc[]
+** xref:depth/caching.adoc[]
+** xref:depth/parallelism.adoc[]
 ** xref:depth/process-architecture.adoc[]
+** xref:depth/sandboxing.adoc[]
 ** xref:depth/design-principles.adoc[]
 ** xref:depth/why-scala.adoc[]
 // Reference pages that a typical user would not typically read top-to-bottom,

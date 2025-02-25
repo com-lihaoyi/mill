@@ -1,5 +1,5 @@
 # Uncommment this to replace the rest of the file when you want to debug stuff in CI
-#
+
 #
 #name: Run Debug
 #
@@ -9,17 +9,18 @@
 #  workflow_dispatch:
 #
 #jobs:
-#  debug-windows:
+#  debug:
 ##    runs-on: ubuntu-latest
 #    runs-on: windows-latest
 #    steps:
 #      - uses: actions/checkout@v4
 #        with: { fetch-depth: 1 }
 #
-#      - run: ./mill scalalib.test mill.scalalib.LauncherTests.launcher
+#      - run: ./mill 'integration.feature[no-java-bootstrap].native.server.test'
 #        env:
 #          COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
 #
+
 
 # We run full CI on push builds to main and on all pull requests
 #
@@ -114,7 +115,7 @@ jobs:
       - uses: ./.github/actions/post-build-selective
         with:
           millargs: ${{ matrix.millargs }}
-          coursierarchive: ""
+          coursierarchive: "/tmp"
           install-android-sdk: false
           shell: bash
 
@@ -184,6 +185,12 @@ jobs:
             millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             install-android-sdk: false
 
+            # run this specifically in `native` mode to make sure our non-JVM native image
+            # launcher is able to bootstrap everything necessary without a JVM installed
+          - java-version: 17
+            millargs: "'integration.bootstrap[no-java-bootstrap].native.server.test'"
+            install-android-sdk: false
+
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
@@ -224,6 +231,9 @@ jobs:
 
           - java-version: 11 # Run this with Mill native launcher as a smoketest
             millargs: "'integration.invalidation.__.native.server.test'"
+
+          - java-version: 17
+            millargs: "'integration.bootstrap[no-java-bootstrap].native.server.test'"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:

@@ -157,7 +157,6 @@ trait TestModule
         outputPath = outputPath,
         colored = Task.log.colored,
         testCp = testClasspath().map(_.path),
-        home = Task.home,
         globSelectors = selectors
       )
 
@@ -243,8 +242,8 @@ object TestModule {
    */
   trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
-    override def ivyDeps: T[Seq[Dep]] = Task {
-      super.ivyDeps() ++ Seq(
+    override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
+      super.mandatoryIvyDeps() ++ Seq(
         ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
       )
     }
@@ -256,8 +255,8 @@ object TestModule {
    */
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
-    override def ivyDeps: T[Seq[Dep]] = Task {
-      super.ivyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
+    override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
+      super.mandatoryIvyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
 
@@ -267,8 +266,8 @@ object TestModule {
    */
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-    override def ivyDeps: T[Seq[Dep]] = Task {
-      super.ivyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
+    override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
+      super.mandatoryIvyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
 
     /**
@@ -394,6 +393,7 @@ object TestModule {
 
   trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Seq[Dep]] = Seq.empty[Dep]
+    def mandatoryIvyDeps: T[Seq[Dep]] = Seq.empty[Dep]
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
   }
 

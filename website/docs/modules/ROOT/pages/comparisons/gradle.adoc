@@ -18,7 +18,7 @@ does so with much less fixed overhead. This means less time waiting for your bui
 tool, and more time for the things that really matter to your project.
 
 * **Mill enforces best practices by default**.
-xref:depth/execution-model.adoc#_caching_in_mill[All parts of a Mill build are cached and incremental by default].
+xref:depth/evaluation-model.adoc#_caching_in_mill[All parts of a Mill build are cached and incremental by default].
 All Mill tasks write their output to xref:fundamentals/out-dir.adoc[a standard place].
 All task inter-dependencies are automatically captured without manual annotation. Where Gradle requires
 considerable effort and expertise to understand your build and set it up in the right way, Mill's

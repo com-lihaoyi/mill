@@ -1,20 +1,22 @@
 package mill.runner
 
+import scala.jdk.CollectionConverters.ListHasAsScala
+
 import coursier.Repository
-import mill._
+import mill.*
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.api.{CompilationResult, Versions}
-import mill.constants.OutFiles._
+import mill.constants.OutFiles.*
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
 import mill.runner.worker.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
-
 import scala.util.Try
+
 import mill.define.Target
 import mill.runner.worker.api.MillScalaParser
 
@@ -42,18 +44,17 @@ abstract class MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
+  val scriptSourcesPaths = FileImportGraph
+    .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
+    .sorted
+
   /**
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
-  def scriptSources: Target[Seq[PathRef]] = Task.Sources {
-    MillBuildRootModule.parseBuildFiles(compilerWorker(), rootModuleInfo)
-      .seenScripts
-      .keys
-      .toSeq
-      .sorted // Ensure ordering is deterministic
-      .map(PathRef(_))
-  }
+  def scriptSources: Target[Seq[PathRef]] = Task.Sources(
+    scriptSourcesPaths.map(Result.Success(_))* // Ensure ordering is deterministic
+  )
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
@@ -125,7 +126,6 @@ abstract class MillBuildRootModule()(implicit
     else {
       CodeGen.generateWrappedSources(
         rootModuleInfo.projectRoot / os.up,
-        scriptSources(),
         parsed.seenScripts,
         Task.dest,
         rootModuleInfo.enclosingClasspath,
@@ -138,7 +138,7 @@ abstract class MillBuildRootModule()(implicit
     }
   }
 
-  def methodCodeHashSignatures: T[Map[String, Int]] = Task(persistent = true) {
+  def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
     os.remove.all(Task.dest / "previous")
     if (os.exists(Task.dest / "current"))
       os.move.over(Task.dest / "current", Task.dest / "previous")
@@ -234,15 +234,16 @@ abstract class MillBuildRootModule()(implicit
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = Task {
-    val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions)
+    val candidates =
+      Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions.asScala)
     // We need to unlist those files, which we replaced by generating wrapper scripts
-    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.toIndexedSeq)
+    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.asScala.toSeq)
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
-  def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources {
-    rootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
-  }
+  def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources(
+    rootModuleInfo.enclosingClasspath.map(Result.Success(_))*
+  )
 
   /**
    * Dependencies, which should be transitively excluded.

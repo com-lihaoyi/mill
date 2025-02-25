@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 import mill.client.ClientUtil;
 import mill.constants.EnvVars;
 import mill.constants.ServerFiles;
@@ -44,10 +45,10 @@ public class MillProcessLauncher {
     } finally {
       if (!interrupted && Files.exists(processDir)) {
         // cleanup if process terminated for sure
-        Files.walk(processDir)
-            // depth-first
-            .sorted(Comparator.reverseOrder())
-            .forEach(p -> p.toFile().delete());
+        try (Stream<Path> stream = Files.walk(processDir)) {
+          // depth-first
+          stream.sorted(Comparator.reverseOrder()).forEach(p -> p.toFile().delete());
+        }
       }
     }
   }
@@ -113,13 +114,24 @@ public class MillProcessLauncher {
     return System.getProperty("os.name", "").startsWith("Windows");
   }
 
-  static String javaHome() throws IOException {
+  static String javaHome() throws Exception {
     String jvmId;
     Path millJvmVersionFile = millJvmVersionFile();
 
     String javaHome = null;
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
+    } else {
+      boolean systemJavaExists =
+          new ProcessBuilder(isWin() ? "where" : "which", "java").start().waitFor() == 0;
+      if (systemJavaExists && System.getenv("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA") == null) {
+        jvmId = null;
+      } else {
+        jvmId = mill.client.BuildInfo.defaultJvmId;
+      }
+    }
+
+    if (jvmId != null) {
 
       // Fast path to avoid calling `CoursierClient` and paying the classloading cost
       // when the `javaHome` JVM has already been initialized for the configured `jvmId`
@@ -144,7 +156,7 @@ public class MillProcessLauncher {
     return javaHome;
   }
 
-  static String javaExe() throws IOException {
+  static String javaExe() throws Exception {
     String javaHome = javaHome();
     if (javaHome == null) return "java";
     else {
@@ -157,7 +169,6 @@ public class MillProcessLauncher {
 
   static String[] millClasspath() throws Exception {
     String selfJars = "";
-    List<String> vmOptions = new LinkedList<>();
     String millOptionsPath = System.getProperty("MILL_OPTIONS_PATH");
     if (millOptionsPath != null) {
 

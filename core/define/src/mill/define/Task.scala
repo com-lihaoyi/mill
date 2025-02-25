@@ -66,11 +66,6 @@ object Task extends TaskBase {
     TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
   }
 
-  inline def Sources(inline values: Result[Seq[PathRef]])(implicit
-      inline ctx: mill.define.Ctx
-  ): Target[Seq[PathRef]] =
-    ${ TaskMacros.sourcesImpl('values)('ctx) }
-
   inline def Sources(inline values: os.SubPath*)(implicit
       inline ctx: mill.define.Ctx,
       dummy: Boolean = true
@@ -81,19 +76,13 @@ object Task extends TaskBase {
   }
 
   /**
-   * Similar to [[Source]], but only for a single source file or folder. Defined
+   * Similar to [[Sources]], but only for a single source file or folder. Defined
    * using `Task.Source`.
    */
   inline def Source(inline value: Result[os.Path])(implicit
       inline ctx: mill.define.Ctx
   ): Target[PathRef] =
     ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
-
-  @annotation.targetName("SourceRef")
-  inline def Source(inline value: Result[PathRef])(implicit
-      inline ctx: mill.define.Ctx
-  ): Target[PathRef] =
-    ${ TaskMacros.sourceImpl('value)('ctx) }
 
   inline def Source(inline value: os.SubPath)(implicit
       inline ctx: mill.define.Ctx
@@ -329,11 +318,6 @@ class TaskBase {
   def log(implicit ctx: mill.api.Ctx.Log): Logger = ctx.log
 
   /**
-   * Returns the implicit [[mill.api.Ctx.Home.home]] in scope.
-   */
-  def home(implicit ctx: mill.api.Ctx.Home): os.Path = ctx.home
-
-  /**
    * `Task.env` is the environment variable map passed to the Mill command when
    * it is run; typically used inside a `Task.Input` to ensure any changes in
    * the env vars are properly detected.
@@ -425,24 +409,22 @@ class Worker[+T](
 }
 
 class InputImpl[T](
-    val inputs: Seq[Task[Any]],
     val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
     val ctx0: mill.define.Ctx,
     val writer: upickle.default.Writer[?],
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
+  val inputs = Nil
   override def sideHash: Int = util.Random.nextInt()
   // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[?]] = Some(writer)
 }
 
 class SourcesImpl(
-    inputs: Seq[Task[Any]],
     evaluate0: (Seq[Any], mill.api.Ctx) => Result[Seq[PathRef]],
     ctx0: mill.define.Ctx,
     isPrivate: Option[Boolean]
 ) extends InputImpl[Seq[PathRef]](
-      inputs,
       evaluate0,
       ctx0,
       upickle.default.readwriter[Seq[PathRef]],
@@ -450,12 +432,10 @@ class SourcesImpl(
     ) {}
 
 class SourceImpl(
-    inputs: Seq[Task[Any]],
     evaluate0: (Seq[Any], mill.api.Ctx) => Result[PathRef],
     ctx0: mill.define.Ctx,
     isPrivate: Option[Boolean]
 ) extends InputImpl[PathRef](
-      inputs,
       evaluate0,
       ctx0,
       upickle.default.readwriter[PathRef],
@@ -475,8 +455,10 @@ private object TaskMacros {
           Expr[Seq[Task[Any]]],
           Expr[(Seq[Any], mill.api.Ctx) => Result[T]]
       ) => Expr[M[T]],
-      t: Expr[Result[T]]
-  ): Expr[M[T]] = Applicative.impl[M, Task, Result, T, mill.api.Ctx](traverseCtx, t)
+      t: Expr[Result[T]],
+      allowTaskReferences: Boolean = true
+  ): Expr[M[T]] =
+    Applicative.impl[M, Task, Result, T, mill.api.Ctx](traverseCtx, t, allowTaskReferences)
 
   private def taskIsPrivate()(using Quotes): Expr[Option[Boolean]] =
     Cacher.withMacroOwner {
@@ -513,8 +495,9 @@ private object TaskMacros {
       ctx: Expr[mill.define.Ctx]
   ): Expr[Target[Seq[PathRef]]] = {
     val expr = appImpl[Target, Seq[PathRef]](
-      (in, ev) => '{ new SourcesImpl($in, $ev, $ctx, ${ taskIsPrivate() }) },
-      values
+      (in, ev) => '{ new SourcesImpl($ev, $ctx, ${ taskIsPrivate() }) },
+      values,
+      allowTaskReferences = false
     )
     Cacher.impl0(expr)
   }
@@ -526,8 +509,9 @@ private object TaskMacros {
   ): Expr[Target[PathRef]] = {
 
     val expr = appImpl[Target, PathRef](
-      (in, ev) => '{ new SourceImpl($in, $ev, $ctx, ${ taskIsPrivate() }) },
-      value
+      (in, ev) => '{ new SourceImpl($ev, $ctx, ${ taskIsPrivate() }) },
+      value,
+      allowTaskReferences = false
     )
     Cacher.impl0(expr)
 
@@ -541,8 +525,9 @@ private object TaskMacros {
   ): Expr[Target[T]] = {
 
     val expr = appImpl[Target, T](
-      (in, ev) => '{ new InputImpl[T]($in, $ev, $ctx, $w, ${ taskIsPrivate() }) },
-      value
+      (in, ev) => '{ new InputImpl[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
+      value,
+      allowTaskReferences = false
     )
     Cacher.impl0(expr)
   }

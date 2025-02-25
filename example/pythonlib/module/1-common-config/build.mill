@@ -15,14 +15,12 @@ object foo extends PythonModule {
   def mainScript = Task.Source { "custom-src/foo2.py" }
 
   // Add (or replace) source folders for the module to use
-  def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(moduleDir / "custom-src"))
-  }
+  def customSources = Task.Sources("custom-src")
+  def sources = Task { super.sources() ++ customSources() }
 
   // Add (or replace) resource folders for the module to use
-  def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
-  }
+  def customResources = Task.Sources("custom-resources")
+  def resources = Task { super.resources() ++ customResources() }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {

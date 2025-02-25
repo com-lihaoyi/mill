@@ -108,7 +108,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
       // TODO consider filtering out projects without the `java` plugin applied
       Some(om)
 
-  def getBaseInfo(
+  override def getBaseInfo(
       input: Tree[Node[ProjectModel]],
       cfg: Config,
       baseModule: String,
@@ -190,15 +190,15 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
   def getModuleSupertypes(cfg: Config): Seq[String] =
     Seq(cfg.shared.basicConfig.baseModule.getOrElse("MavenModule"))
 
-  def getPackage(project: ProjectModel): (String, String, String) = {
+  override def getPackage(project: ProjectModel): (String, String, String) = {
     (project.group(), project.name(), project.version())
   }
 
-  def getArtifactId(project: ProjectModel): String = project.name()
+  override def getArtifactId(project: ProjectModel): String = project.name()
 
   def getMillSourcePath(project: ProjectModel): Path = os.Path(project.directory())
 
-  def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] =
+  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] =
     Seq("RootModule") ++
       Option.when(null != build.value.maven().pom() && {
         val baseTrait = baseInfo.moduleTypedef

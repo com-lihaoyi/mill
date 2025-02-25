@@ -47,9 +47,9 @@ private[mill] object CodeSigUtils {
     (classToTransitiveClasses, allTransitiveClassMethods)
   }
 
-  def constructorHashSignatures(methodCodeHashSignatures: Map[String, Int])
+  def constructorHashSignatures(codeSignatures: Map[String, Int])
       : Map[String, Seq[(String, Int)]] =
-    methodCodeHashSignatures
+    codeSignatures
       .toSeq
       .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
       .groupMap(_._1)(t => (t._2, t._3))
@@ -58,7 +58,7 @@ private[mill] object CodeSigUtils {
       namedTask: => NamedTask[?],
       classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
-      methodCodeHashSignatures: => Map[String, Int],
+      codeSignatures: => Map[String, Int],
       constructorHashSignatures: => Map[String, Seq[(String, Int)]]
   ): Iterable[Int] = {
 
@@ -114,8 +114,8 @@ private[mill] object CodeSigUtils {
         }
       )
 
-    methodCodeHashSignatures.get(expectedName) ++
-      methodCodeHashSignatures.get(expectedName2) ++
+    codeSignatures.get(expectedName) ++
+      codeSignatures.get(expectedName2) ++
       constructorHashes
   }
 }

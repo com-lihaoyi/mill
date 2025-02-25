@@ -83,7 +83,7 @@ trait ScalaPBModule extends ScalaModule {
     )
   }
 
-  def scalaPBIncludePath: T[Seq[PathRef]] = Task.Sources { Seq.empty[PathRef] }
+  def scalaPBIncludePath: T[Seq[PathRef]] = Task.Sources()
 
   private def scalaDepsPBIncludePath: Task[Seq[PathRef]] = scalaPBSearchDeps match {
     case true => Task.Anon { Seq(scalaPBUnpackProto()) }

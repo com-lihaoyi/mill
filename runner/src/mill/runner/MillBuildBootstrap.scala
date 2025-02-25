@@ -11,9 +11,10 @@ import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
-
 import java.io.File
 import java.net.URLClassLoader
+
+import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 
 /**
@@ -92,13 +93,13 @@ class MillBuildBootstrap(
         // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
         lazy val state = evaluateRec(depth + 1)
         if (
-          rootBuildFileNames.exists(rootBuildFileName =>
+          rootBuildFileNames.asScala.exists(rootBuildFileName =>
             os.exists(recRoot(projectRoot, depth) / rootBuildFileName)
           )
         ) state
         else {
           val msg =
-            s"No build file (${rootBuildFileNames.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
+            s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
           if (needBuildFile) {
             RunnerState(None, Nil, Some(msg), None)
           } else {
@@ -168,7 +169,7 @@ class MillBuildBootstrap(
 
         Using.resource(makeEvaluator(
           prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
-          nestedState.frames.headOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
+          nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
           rootModule,
           // We want to use the grandparent buildHash, rather than the parent
           // buildHash, because the parent build changes are instead detected
@@ -227,7 +228,7 @@ class MillBuildBootstrap(
     evaluateWithWatches(
       rootModule,
       evaluator,
-      Seq("{runClasspath,compile,methodCodeHashSignatures}"),
+      Seq("{runClasspath,compile,codeSignatures}"),
       selectiveExecution = false
     ) match {
       case (Result.Failure(error), evalWatches, moduleWatches) =>
@@ -248,7 +249,7 @@ class MillBuildBootstrap(
             Result.Success(Seq(
               runClasspath: Seq[PathRef],
               compile: mill.scalalib.api.CompilationResult,
-              methodCodeHashSignatures: Map[String, Int]
+              codeSignatures: Map[String, Int]
             )),
             evalWatches,
             moduleWatches
@@ -285,7 +286,7 @@ class MillBuildBootstrap(
           evaluator.workerCache.toMap,
           evalWatches,
           moduleWatches,
-          methodCodeHashSignatures,
+          codeSignatures,
           Some(classLoader),
           runClasspath,
           Some(compile.classes),
@@ -332,7 +333,7 @@ class MillBuildBootstrap(
 
   def makeEvaluator(
       workerCache: Map[Segments, (Int, Val)],
-      methodCodeHashSignatures: Map[String, Int],
+      codeSignatures: Map[String, Int],
       rootModule: BaseModule,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
@@ -368,7 +369,7 @@ class MillBuildBootstrap(
         env = env,
         failFast = !keepGoing,
         threadCount = threadCount,
-        methodCodeHashSignatures = methodCodeHashSignatures,
+        codeSignatures = codeSignatures,
         systemExit = systemExit,
         exclusiveSystemStreams = streams0
       )
