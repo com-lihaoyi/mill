@@ -4,11 +4,13 @@ import mill.constants.Util
 import mill.integration.testMillInit
 import utest.*
 
-def bumpSbtTo1107(workspacePath: os.Path) =
+private def bumpSbtTo1107(workspacePath: os.Path) =
   // bump sbt version to resolve compatibility issues with lower sbt versions and higher JDK versions
   os.write.over(workspacePath / "project" / "build.properties", "sbt.version = 1.10.7")
 
 // relatively small libraries
+
+private val scalaPlatforms = Seq("js", "jvm", "native")
 
 object MillInitSbtLibraryExampleTests extends BuildGenTestSuite {
   def tests: Tests = Tests {
@@ -160,8 +162,7 @@ object MillInitSbtZioHttpTests extends BuildGenTestSuite {
         )
       }
 
-      // probably due to inheriting `MavenTests` instead of `SbtTests`
-      // Some dependencies with currently unsupported `CrossVersion` `For3Use2_13` are not imported properly
+      // The sources in "zio-http/shared" in cross-builds are not supported in conversion yet, causing all dependent project's `compile` tasks to file.
       tester.testMillInit(
         expectedCompileTasks =
           Some(SplitResolvedTasks(
@@ -191,15 +192,27 @@ object MillInitSbtScalazTests extends BuildGenTestSuite {
       if (!Util.isWindows)
         os.call(("chmod", "+x", "sbt"), cwd = workspacePath)
 
-      val initResult = eval(defaultInitCommand, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initResult.isSuccess)
+      val crossDirs = Seq("core", "effect", "example", "iteratee", "scalacheck-binding", "tests")
+      val crossSubmodules = crossDirs.flatMap(dir => scalaPlatforms.map(name => s"$dir.$name"))
+      val rootModules = Seq("rootJS", "rootJVM", "rootNative")
 
-      val compileResult = eval("compile")
-      assert(compileResult.isSuccess)
-
-      // TODO
-      val resolveCompilesResult = eval(("resolve", "__.compile"))
-      println("Resolve result: " + resolveCompilesResult.out)
+      tester.testMillInit(
+        expectedCompileTasks =
+          Some(SplitResolvedTasks(
+            /*
+            These modules are converted from sbt's aggregated projects without sources or dependencies,
+            therefore, their no-op `compile` tasks succeed.
+             */
+            Seq("compile") ++ rootModules.map(_.compileTask),
+            /*
+            Common sources in directories such as "core/src" are defined as projects in and therefore not converted,
+            therefore, the tasks in modules such as "core/jvm" as common definitions are not found.
+             */
+            crossSubmodules.map(_.compileTask)
+          )),
+        // Scalaz uses ScalaCheck which is not supported in conversion yet.
+        expectedTestTasks = None
+      )
     }
   }
 }
@@ -215,13 +228,44 @@ object MillInitSbtCatsTests extends BuildGenTestSuite {
     val url = "https://github.com/typelevel/cats/archive/refs/tags/v2.13.0.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      val sbtCrossProjects = Seq(
+        "algebra-laws",
+        "alleycats-laws",
+        "kernel-laws",
+        "tests"
+      )
+      /*
+      These sbt cross projects have `CrossType.Pure` set,
+      so there platform projects have directories named ".js", ".jvm", and ".native",
+      and such modules starting with "." are not properly recognized by Mill
+       */
+      val sbtCrossProjectsWithCrossTypePure =
+        Seq("algebra-core", "alleycats-core", "core", "free", "kernel", "laws", "testkit")
 
-      val initResult = eval(defaultInitCommand, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initResult.isSuccess)
+      assert((sbtCrossProjects intersect sbtCrossProjectsWithCrossTypePure).isEmpty)
 
-      val compileResult = eval("compile")
-      assert(compileResult.isSuccess)
+      val nonCrossModules = Seq("bench", "binCompatTest", "site", "unidocs")
+      val resolvedTestModules = (scalaPlatforms.map(name => s"alleycats-laws.$name") ++
+        Seq("binCompatTest", "tests.js"))
+        .map(module => s"$module.test")
+      val submoduleCompileTasks = (sbtCrossProjects.flatMap(project =>
+        scalaPlatforms.map(platform => s"$project.$platform")
+      ) ++
+        nonCrossModules ++
+        resolvedTestModules)
+        .map(module => s"$module.compile")
+
+      tester.testMillInit(
+        expectedCompileTasks = Some({
+          val succeededSubmoduleCompileTasks =
+            Seq("tests.js.compile", "tests.jvm.compile", "unidocs.compile")
+          SplitResolvedTasks(
+            Seq("compile") ++ succeededSubmoduleCompileTasks,
+            submoduleCompileTasks diff succeededSubmoduleCompileTasks
+          )
+        }),
+        expectedTestTasks = Some(SplitResolvedTasks(Seq(), resolvedTestModules))
+      )
     }
   }
 }

@@ -144,6 +144,7 @@ object ExportBuildPlugin extends AutoPlugin {
       val outputFile = target.value / "mill-init-build-export.json"
       IO.write(outputFile, write(buildExport))
       outputFile
-    }
+    },
+    millInitExportBuild / aggregate := false
   )
 }
