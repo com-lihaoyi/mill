@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 36bf4e9a593..84fd76e6645 100644
+index 5c48e1e4e43..538e4b86e0c 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,16 +1,16 @@
@@ -54,18 +54,18 @@ index 36bf4e9a593..84fd76e6645 100644
 -def baseDir = build.millSourcePath
 +def baseDir = build.moduleDir
  
- val essentialBridgeScalaVersions =
-   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)
-@@ -467,7 +467,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+ def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
+ 
+@@ -469,7 +469,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  /**
   * Some custom scala settings and test convenience
   */
 -trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
-+trait MillScalaModule extends ScalaModule with MillJavaModule /*with ScalafixModule */{ outer =>
++trait MillScalaModule extends ScalaModule with MillJavaModule/* with ScalafixModule*/ { outer =>
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -524,8 +524,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -526,8 +526,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
      val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
      val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
      super.scalacPluginIvyDeps() ++
@@ -76,7 +76,7 @@ index 36bf4e9a593..84fd76e6645 100644
    }
  
    def mandatoryIvyDeps = T {
-@@ -533,13 +533,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -535,13 +535,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
      val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
      val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
      super.mandatoryIvyDeps() ++
@@ -92,7 +92,7 @@ index 36bf4e9a593..84fd76e6645 100644
      def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
-@@ -579,7 +579,8 @@ trait MillBaseTestsModule extends TestModule {
+@@ -581,7 +581,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
@@ -102,7 +102,7 @@ index 36bf4e9a593..84fd76e6645 100644
    import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -709,7 +710,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+@@ -711,7 +712,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
@@ -489,7 +489,7 @@ index 62190fd6c1e..9d4f176c915 100644
      val (repoPath, repoHash) = repoInfo(crossValue)
      def repoSlug = repoPath.split("/").last
 diff --git a/integration/package.mill b/integration/package.mill
-index af00b40d3f0..e43343cabf1 100644
+index 53cdc15a9f6..9271663b81e 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -3,13 +3,12 @@ package build.integration
@@ -530,7 +530,7 @@ index af00b40d3f0..e43343cabf1 100644
        def scalaVersion = build.Deps.scalaVersion
  
        def forkEnv =
-@@ -87,11 +86,11 @@ object `package` extends RootModule {
+@@ -87,13 +86,13 @@ object `package` extends RootModule {
      }
    }
  
@@ -543,6 +543,9 @@ index af00b40d3f0..e43343cabf1 100644
 -  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "ide"))
 +      extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "invalidation"))
 +  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "ide"))
+   object bootstrap
+-      extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "bootstrap"))
++      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
    trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
      def forkEnv = super.forkEnv() ++ Seq(

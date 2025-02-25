@@ -113,13 +113,24 @@ public class MillProcessLauncher {
     return System.getProperty("os.name", "").startsWith("Windows");
   }
 
-  static String javaHome() throws IOException {
+  static String javaHome() throws Exception {
     String jvmId;
     Path millJvmVersionFile = millJvmVersionFile();
 
     String javaHome = null;
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
+    } else {
+      boolean systemJavaExists =
+          new ProcessBuilder(isWin() ? "where" : "which", "java").start().waitFor() == 0;
+      if (systemJavaExists && System.getenv("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA") == null) {
+        jvmId = null;
+      } else {
+        jvmId = mill.client.BuildInfo.defaultJvmId;
+      }
+    }
+
+    if (jvmId != null) {
 
       // Fast path to avoid calling `CoursierClient` and paying the classloading cost
       // when the `javaHome` JVM has already been initialized for the configured `jvmId`
@@ -144,7 +155,7 @@ public class MillProcessLauncher {
     return javaHome;
   }
 
-  static String javaExe() throws IOException {
+  static String javaExe() throws Exception {
     String javaHome = javaHome();
     if (javaHome == null) return "java";
     else {
