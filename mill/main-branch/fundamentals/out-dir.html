@@ -937,12 +937,12 @@ one path is chosen arbitrarily to be shown in the spanning tree</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_methodcodehashsignatures_spanninginvalidationtree"><a class="anchor" href="#_methodcodehashsignatures_spanninginvalidationtree"></a><code>methodCodeHashSignatures spanningInvalidationTree</code></h3>
+<h3 id="_codesignatures_spanninginvalidationtree"><a class="anchor" href="#_codesignatures_spanninginvalidationtree"></a><code>codeSignatures spanningInvalidationTree</code></h3>
 <div class="paragraph">
 <p>Sometimes invalidation can be caused by a code change in your <code>build.mill</code>/<code>package.mill</code>
 files, rather than by a change in the project’s source files or inputs. In such cases,
 the root tasks in <code>mill-invalidation-tree.json</code> may not necessarily be inputs. In such
-cases, you can look at <code>out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json</code>
+cases, you can look at <code>out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json</code>
 to see an invalidation tree for how code changes in specfic methods propagate throughout
 the <code>build.mill</code> codebase.</p>
 </div>
@@ -952,7 +952,7 @@ the <code>build.mill</code> codebase.</p>
 
 &gt; ./mill foo.compile # compile after changing build.mill
 
-&gt; cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
+&gt; cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
 {
 ...
     &quot;def build_.package_$foo$#&lt;init&gt;(build_.package_)void&quot;: {
