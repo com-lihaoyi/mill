@@ -68,7 +68,7 @@ object MillInitSbtScalaCsv136Tests extends BuildGenTestSuite {
         expectedTestTasks = Some(SplitResolvedTasks(
           Seq(),
           /*
-          Relative paths to the workspace are used in the test sources such as `new File("src/test/resources/simple.csv")`
+          Paths relative to the workspace are used in the test sources such as `new File("src/test/resources/simple.csv")`
           and they seem to cause the test to fail with Mill:
           ```text
           java.io.FileNotFoundException: src/test/resources/simple.csv (No such file or directory)
@@ -162,7 +162,11 @@ object MillInitSbtZioHttpTests extends BuildGenTestSuite {
         )
       }
 
-      // The sources in "zio-http/shared" in cross-builds are not supported in conversion yet, causing all dependent project's `compile` tasks to file.
+      /*
+      The sources shared among multiple platforms (JVM and Scala.js) in "zio-http/shared" in cross-builds
+      are not supported in conversion yet,
+      causing all dependent project's `compile` tasks to fail.
+       */
       tester.testMillInit(
         expectedCompileTasks =
           Some(SplitResolvedTasks(
@@ -205,8 +209,9 @@ object MillInitSbtScalazTests extends BuildGenTestSuite {
              */
             Seq("compile") ++ rootModules.map(_.compileTask),
             /*
-            Common sources in directories such as "core/src" are defined as projects in and therefore not converted,
-            therefore, the tasks in modules such as "core/jvm" as common definitions are not found.
+            Common sources shared among multiple platforms (JVM, Scala.js, and Scala Native) in directories such as "core/src"
+            are not defined as sbt projects and therefore not converted.
+            This leads to modules such as "core/jvm" not compiling as common definitions are not found.
              */
             crossSubmodules.map(_.compileTask)
           )),
