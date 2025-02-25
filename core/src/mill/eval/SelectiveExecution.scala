@@ -8,7 +8,7 @@ import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 
 private[mill] object SelectiveExecution {
-  case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
+  case class Metadata(inputHashes: Map[String, Int], codeSignatures: Map[String, Int])
 
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
@@ -46,21 +46,21 @@ private[mill] object SelectiveExecution {
       }
       new Metadata(
         inputHashes,
-        evaluator.methodCodeHashSignatures
+        evaluator.codeSignatures
       ) -> results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
     }
   }
 
   def computeHashCodeSignatures(
       transitiveNamed: Seq[NamedTask[?]],
-      methodCodeHashSignatures: Map[String, Int]
+      codeSignatures: Map[String, Int]
   ): Map[String, Int] = {
 
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
 
     lazy val constructorHashSignatures = CodeSigUtils
-      .constructorHashSignatures(methodCodeHashSignatures)
+      .constructorHashSignatures(codeSignatures)
 
     transitiveNamed
       .map { namedTask =>
@@ -69,7 +69,7 @@ private[mill] object SelectiveExecution {
             namedTask,
             classToTransitiveClasses,
             allTransitiveClassMethods,
-            methodCodeHashSignatures,
+            codeSignatures,
             constructorHashSignatures
           )
           .sum
@@ -94,8 +94,8 @@ private[mill] object SelectiveExecution {
 
     val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
     val changedCodeNames = diffMap(
-      computeHashCodeSignatures(transitiveNamed, oldHashes.methodCodeHashSignatures),
-      computeHashCodeSignatures(transitiveNamed, newHashes.methodCodeHashSignatures)
+      computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
+      computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
     )
 
     val changedRootTasks = (changedInputNames ++ changedCodeNames)
