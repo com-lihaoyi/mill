@@ -116,7 +116,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     JavaModuleUtils.transitiveModules(mod, accept)
   }
 
-  private lazy val modulesToOutFolderMap: Map[JavaModule, os.Path] = {
+  private def modulesToOutFolderMap: Map[JavaModule, os.Path] = {
     val evals = evs()
     evals.flatMap { eval =>
       if (eval != null)
@@ -137,10 +137,6 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       !module.asInstanceOf[outer.Module].skipBloop
     else true
 
-  private def deferredAllSources(m: JavaModule): T[Seq[PathRef]] = Task {
-    m.sources() ++ m.generatedSources() ++ m.allDeferredSourceRoots()
-  }
-
   /**
    * Computes sources files paths for the whole project. Cached in a way
    * that does not get invalidated upon source file change. Mainly called
@@ -149,7 +145,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
   def moduleSourceMap = Task.Input {
     val sources = Task.traverse(computeModules) { m =>
       // We're not using `allSources` here, one purpose. See https://github.com/com-lihaoyi/mill/discussions/4530
-      deferredAllSources(m).map { paths =>
+      m.ideSources.map { paths =>
         name(m) -> paths.map(_.path)
       }
     }()
@@ -413,7 +409,6 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     // //////////////////////////////////////////////////////////////////////////
 
     val project = Task.Anon {
-
       val mSources = moduleSourceMap()
         .get(name(module))
         .toSeq

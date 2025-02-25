@@ -889,6 +889,13 @@ trait JavaModule
   }
 
   /**
+   * Task that IDE-configuration tasks should rely on, as they avoid eagerly
+   * running source generators referenced by [[deferredSourceGenerators]]
+   */
+  def ideSources: T[Seq[PathRef]] =
+    Task { sources() ++ generatedSources() ++ allDeferredSourceRoots() }
+
+  /**
    * The folders containing all source files fed into the compiler
    */
   def allSources: T[Seq[PathRef]] =
