@@ -138,7 +138,7 @@ abstract class MillBuildRootModule()(implicit
     }
   }
 
-  def methodCodeHashSignatures: T[Map[String, Int]] = Task(persistent = true) {
+  def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
     os.remove.all(Task.dest / "previous")
     if (os.exists(Task.dest / "current"))
       os.move.over(Task.dest / "current", Task.dest / "previous")

@@ -58,7 +58,7 @@ object RunnerState {
       workerCache: Map[Segments, (Int, Val)],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
-      methodCodeHashSignatures: Map[String, Int],
+      codeSignatures: Map[String, Int],
       classLoaderOpt: Option[RunnerState.URLClassLoader],
       runClasspath: Seq[PathRef],
       compileOutput: Option[PathRef],

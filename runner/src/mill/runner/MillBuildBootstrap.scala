@@ -169,7 +169,7 @@ class MillBuildBootstrap(
 
         Using.resource(makeEvaluator(
           prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
-          nestedState.frames.headOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
+          nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
           rootModule,
           // We want to use the grandparent buildHash, rather than the parent
           // buildHash, because the parent build changes are instead detected
@@ -228,7 +228,7 @@ class MillBuildBootstrap(
     evaluateWithWatches(
       rootModule,
       evaluator,
-      Seq("{runClasspath,compile,methodCodeHashSignatures}"),
+      Seq("{runClasspath,compile,codeSignatures}"),
       selectiveExecution = false
     ) match {
       case (Result.Failure(error), evalWatches, moduleWatches) =>
@@ -249,7 +249,7 @@ class MillBuildBootstrap(
             Result.Success(Seq(
               runClasspath: Seq[PathRef],
               compile: mill.scalalib.api.CompilationResult,
-              methodCodeHashSignatures: Map[String, Int]
+              codeSignatures: Map[String, Int]
             )),
             evalWatches,
             moduleWatches
@@ -286,7 +286,7 @@ class MillBuildBootstrap(
           evaluator.workerCache.toMap,
           evalWatches,
           moduleWatches,
-          methodCodeHashSignatures,
+          codeSignatures,
           Some(classLoader),
           runClasspath,
           Some(compile.classes),
@@ -333,7 +333,7 @@ class MillBuildBootstrap(
 
   def makeEvaluator(
       workerCache: Map[Segments, (Int, Val)],
-      methodCodeHashSignatures: Map[String, Int],
+      codeSignatures: Map[String, Int],
       rootModule: BaseModule,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
@@ -369,7 +369,7 @@ class MillBuildBootstrap(
         env = env,
         failFast = !keepGoing,
         threadCount = threadCount,
-        methodCodeHashSignatures = methodCodeHashSignatures,
+        codeSignatures = codeSignatures,
         systemExit = systemExit,
         exclusiveSystemStreams = streams0
       )

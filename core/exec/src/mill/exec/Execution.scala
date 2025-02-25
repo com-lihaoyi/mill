@@ -29,7 +29,7 @@ private[mill] case class Execution(
     env: Map[String, String],
     failFast: Boolean,
     threadCount: Option[Int],
-    methodCodeHashSignatures: Map[String, Int],
+    codeSignatures: Map[String, Int],
     systemExit: Int => Nothing,
     exclusiveSystemStreams: SystemStreams
 ) extends GroupExecution with AutoCloseable {

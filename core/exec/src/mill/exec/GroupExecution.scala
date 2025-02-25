@@ -28,12 +28,12 @@ private trait GroupExecution {
   def env: Map[String, String]
   def failFast: Boolean
   def threadCount: Option[Int]
-  def methodCodeHashSignatures: Map[String, Int]
+  def codeSignatures: Map[String, Int]
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
-    CodeSigUtils.constructorHashSignatures(methodCodeHashSignatures)
+    CodeSigUtils.constructorHashSignatures(codeSignatures)
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
@@ -69,7 +69,7 @@ private trait GroupExecution {
               namedTask,
               classToTransitiveClasses,
               allTransitiveClassMethods,
-              methodCodeHashSignatures,
+              codeSignatures,
               constructorHashSignatures
             )
           }
