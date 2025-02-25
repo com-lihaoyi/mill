@@ -11,7 +11,7 @@ import coursier.{Repository, Type}
 import mainargs.{Flag, arg}
 import mill.Agg
 import mill.api.{Ctx, JarManifest, MillException, PathRef, Result, internal}
-import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
+import mill.define.{Command, ModuleRef, NamedTask, Segment, Task, TaskModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
@@ -848,9 +848,51 @@ trait JavaModule
   def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
+   * A set of tasks producing generated code. The difference between this and
+   * [[generatedSources]] lies in the fact that IDE-related tasks
+   * (BSP/Bloop/GenIdea) will not run the tasks, but will use them to statically
+   * determine the location of the source code they will produce by looking up their
+   * [[Task#generatedSourceRoots]], knowing that these roots will be present under
+   * the dest directories once the task is run.
+   */
+  def deferredSourceGenerators: Seq[NamedTask[Unit]] = Seq.empty
+
+  private def deferredSourceRoots(task: NamedTask[Unit])(workspace: os.Path): Seq[os.Path] = {
+    val dest = mill
+      .eval
+      .EvaluatorPaths
+      .resolveDestPaths(workspace / "out", task)
+      .dest
+    val explicitSourceRoots = task.generatedSourceRoots
+    if (explicitSourceRoots.isEmpty) Seq(dest)
+    else explicitSourceRoots.map(subPath => dest / subPath)
+  }
+
+  /**
+   * Computes the list of source roots that will be produced by [[deferredSourceGenerators]] without
+   * actually running the generators in question.
+   */
+  def allDeferredSourceRoots: T[Seq[PathRef]] = T {
+    val ws = T.workspace
+    deferredSourceGenerators.flatMap(t => deferredSourceRoots(t)(ws)).map(PathRef(_))
+  }
+
+  /**
+   * Runs the lazy source generators, returning references to the expanded generated source roots
+   * they are supposed to have written code in.
+   */
+  final def deferredGeneratedSources: T[Seq[PathRef]] = T {
+    val ws = T.workspace
+    T.sequence {
+      deferredSourceGenerators.map { t => t.map((_: Unit) => deferredSourceRoots(t)) }
+    }().flatMap(_.apply(ws)).map(PathRef(_))
+  }
+
+  /**
    * The folders containing all source files fed into the compiler
    */
-  def allSources: T[Seq[PathRef]] = Task { sources() ++ generatedSources() }
+  def allSources: T[Seq[PathRef]] =
+    Task { sources() ++ generatedSources() ++ deferredGeneratedSources() }
 
   /**
    * All individual source files fed into the Java compiler

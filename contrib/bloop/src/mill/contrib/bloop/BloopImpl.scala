@@ -137,6 +137,10 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       !module.asInstanceOf[outer.Module].skipBloop
     else true
 
+  private def deferredAllSources(m: JavaModule): T[Seq[PathRef]] = Task {
+    m.sources() ++ m.generatedSources() ++ m.allDeferredSourceRoots()
+  }
+
   /**
    * Computes sources files paths for the whole project. Cached in a way
    * that does not get invalidated upon source file change. Mainly called
@@ -145,7 +149,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
   def moduleSourceMap = Task.Input {
     val sources = Task.traverse(computeModules) { m =>
       // We're not using `allSources` here, one purpose. See https://github.com/com-lihaoyi/mill/discussions/4530
-      m.sources.map { paths =>
+      deferredAllSources(m).map { paths =>
         name(m) -> paths.map(_.path)
       }
     }()
@@ -410,34 +414,12 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
     val project = Task.Anon {
 
-      /**
-       * Instead of calling `allSources` which would run code-generators eagerly,
-       * we're trusting
-       */
-      val mGeneratedSourceRoots = {
-        val tasks = mill.eval.Graph.transitiveTargets(Agg(module.allSources))
-        tasks.flatMap {
-          case task: mill.define.NamedTask[_] =>
-            val dest = mill
-              .eval
-              .EvaluatorPaths
-              .resolveDestPaths(modulesToOutFolderMap(module), task)
-              .dest
-            task.generatedSourceRoots.map { subpath =>
-              dest / subpath
-            }
-          case _ => Seq.empty
-        }
-      }.map(_.toNIO).toList
-
       val mSources = moduleSourceMap()
         .get(name(module))
         .toSeq
         .flatten
         .map(_.toNIO)
         .toList
-
-      mSources ++ mGeneratedSourceRoots
 
       val tags =
         module match { case _: TestModule => List(BloopTag.Test); case _ => List(BloopTag.Library) }
