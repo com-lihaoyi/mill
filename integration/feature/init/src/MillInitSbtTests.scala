@@ -246,7 +246,11 @@ object MillInitSbtCatsTests extends BuildGenTestSuite {
 
       val nonCrossModules = Seq("bench", "binCompatTest", "site", "unidocs")
       val resolvedTestModules = (scalaPlatforms.map(name => s"alleycats-laws.$name") ++
-        Seq("binCompatTest", "tests.js"))
+        Seq(
+          "binCompatTest",
+          // "tests.jvm" and "tests.native" don't have their own test sources, so their test modules are not converted.
+          "tests.js"
+        ))
         .map(module => s"$module.test")
       val submoduleCompileTasks = (sbtCrossProjects.flatMap(project =>
         scalaPlatforms.map(platform => s"$project.$platform")
