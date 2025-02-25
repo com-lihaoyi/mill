@@ -1,0 +1,34 @@
+name: post-build-raw
+on:
+  workflow_call:
+    inputs:
+      buildcmd:
+        default: ''
+        type: string
+      java-version:
+        required: true
+        type: string
+      os:
+        default: 'ubuntu-latest'
+        type: string
+      timeout-minutes:
+        default: 60
+        type: number
+
+jobs:
+  run:
+    runs-on: ${{ inputs.os }}
+    continue-on-error: false
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: .
+          name: ${{ inputs.os }}-artifact
+
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: ${{ inputs.java-version }}
+          os: ${{ inputs.os }}
+
+      - run: ${{ inputs.buildcmd }}

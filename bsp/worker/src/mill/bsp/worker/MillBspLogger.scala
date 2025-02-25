@@ -1,8 +1,8 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j._
-import mill.api.Logger
-import mill.util.{ColorLogger, ProxyLogger}
+import mill.api.{ColorLogger, Logger}
+import mill.internal.ProxyLogger
 
 /**
  * BSP-specialized logger class which sends `task-progress`
@@ -20,8 +20,8 @@ import mill.util.{ColorLogger, ProxyLogger}
 private class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
     extends ProxyLogger(logger)
     with ColorLogger {
-  def infoColor = fansi.Color.Blue
-  def errorColor = fansi.Color.Red
+  override def infoColor = fansi.Color.Blue
+  override def errorColor = fansi.Color.Red
 
   override def ticker(s: String): Unit = {
     try {

@@ -1,15 +1,16 @@
 package mill.main
 
 import mill.api.internal
-import mill.define.{Caller, Discover, Segments}
+import mill.define.Discover
+import scala.annotation.compileTimeOnly
 
 /**
- * Used to mark a module in your `build.sc` as a top-level module, so it's
- * targets and commands can be run directly e.g. via `mill run` rather than
+ * Used to mark a module in your `build.mill` as a top-level module, so it's
+ * tasks can be run directly e.g. via `mill run` rather than
  * prefixed by the module name `mill foo.run`.
  *
- * Only one top-level module may be defined in your `build.sc`, and it must be
- * defined at the top level of the `build.sc` and not nested in any other
+ * Only one top-level module may be defined in your `build.mill`, and it must be
+ * defined at the top level of the `build.mill` and not nested in any other
  * modules.
  */
 abstract class RootModule()(implicit
@@ -17,39 +18,45 @@ abstract class RootModule()(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
-) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0)(
-      millModuleEnclosing0,
-      millModuleLine0,
-      millFile0,
-      Caller(null)
-    ) with mill.main.MainModule {
+) extends mill.define.BaseModule(baseModuleInfo.projectRoot)
+    with mill.main.MainModule {
 
-  // Make BaseModule take the `millDiscover` as an implicit param, rather than
-  // defining it itself. That is so we can define it externally in the wrapper
-  // code and it have it automatically passed to both the wrapper BaseModule as
-  // well as any user-defined BaseModule that may be present, so the
-  // user-defined BaseModule can have a complete Discover[_] instance without
-  // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
-  override lazy val millDiscover: Discover[this.type] =
-    baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
+  // Dummy `millDiscover` defined but never actually used and overridden by codegen.
+  // Provided for IDEs to think that one is available and not show errors in
+  // build.mill/package.mill even though they can't see the codegen
+  def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")
 }
 
 @internal
 object RootModule {
-  case class Info(millSourcePath0: os.Path, discover: Discover[_])
+  class Info(
+      val enclosingClasspath: Seq[os.Path],
+      val compilerWorkerClasspath: Seq[os.Path],
+      val projectRoot: os.Path,
+      val output: os.Path,
+      val topLevelProjectRoot: os.Path
+  ) {
+    def this(
+        enclosingClasspath0: Seq[String],
+        compilerWorkerClasspath0: Seq[String],
+        projectRoot0: String,
+        output0: String,
+        topLevelProjectRoot0: String
+    ) = this(
+      enclosingClasspath0.map(os.Path(_)),
+      compilerWorkerClasspath0.map(os.Path(_)),
+      os.Path(projectRoot0),
+      os.Path(output0),
+      os.Path(topLevelProjectRoot0)
+    )
+    implicit val millMiscInfo: Info = this
+  }
 
-  abstract class Foreign(foreign0: Option[Segments])(implicit
-      baseModuleInfo: RootModule.Info,
-      millModuleEnclosing0: sourcecode.Enclosing,
-      millModuleLine0: sourcecode.Line,
-      millFile0: sourcecode.File
-  ) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0, foreign0 = foreign0)(
-        millModuleEnclosing0,
-        millModuleLine0,
-        millFile0,
-        Caller(null)
-      ) with mill.main.MainModule {
-
-    override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  object Info {
+    // Dummy `RootModule.Info` available in implicit scope but never actually used.
+    // as it is provided by the codegen. Defined for IDEs to think that one is available
+    // and not show errors in build.mill/package.mill even though they can't see the codegen
+    @compileTimeOnly("RootModule can only be instantiated in a build.mill or package.mill file")
+    implicit def dummyInfo: Info = sys.error("implicit RootModule.Info must be provided")
   }
 }

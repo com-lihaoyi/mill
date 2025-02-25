@@ -1,0 +1,16 @@
+package build.pythonlib
+
+// imports
+import mill._
+
+// TODO change MillPublishScalaModule to MillStableScalaModule after mill version with pythonlib is released,
+//  because currently there is no previous artifact version
+object `package` extends RootModule with build.MillPublishScalaModule {
+  // we depend on scalalib for re-using some common infrastructure (e.g. License
+  // management of projects), NOT for reusing build logic
+  def moduleDeps = Seq(build.main, build.scalalib)
+  def testTransitiveDeps =
+    super.testTransitiveDeps() ++ Seq(build.scalalib.backgroundwrapper.testDep())
+
+  def testModuleDeps = super.testModuleDeps ++ Seq(build.runner.server.client)
+}

@@ -1,21 +1,19 @@
 package mill
 package testng
 
-import mill.define.Target
-import mill.util.Util.millProjectModule
-import mill.scalalib._
-import mill.util.{TestEvaluator, TestUtil}
-import utest.framework.TestPath
-import utest.{TestSuite, Tests, assert, _}
+import mill.define.{Discover, Target}
+import mill.util.MillModuleUtil.millProjectModule
+import mill.scalalib.*
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
+import utest.*
 
 object TestNGTests extends TestSuite {
 
-  object demo extends TestUtil.BaseModule with JavaModule {
-    override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+  object demo extends TestBaseModule with JavaModule {
 
-    object test extends JavaModuleTests {
-      def testngClasspath = T {
+    object test extends JavaTests {
+      def testngClasspath = Task {
         millProjectModule(
           "mill-contrib-testng",
           repositoriesTask(),
@@ -23,52 +21,62 @@ object TestNGTests extends TestSuite {
         )
       }
 
-      override def runClasspath: Target[Seq[PathRef]] =
-        T { super.runClasspath() ++ testngClasspath() }
-      override def ivyDeps = T {
+      override def runClasspath: T[Seq[PathRef]] =
+        Task { super.runClasspath() ++ testngClasspath() }
+      override def ivyDeps = Task {
         super.ivyDeps() ++
-          Agg(
+          Seq(
             ivy"org.testng:testng:6.11",
             ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
           )
       }
-      override def testFramework = T {
+      override def testFramework = Task {
         "mill.testng.TestNGFramework"
       }
     }
 
-  }
+    object testng extends JavaTests with TestModule.TestNg {
+      def ivyDeps = super.ivyDeps() ++ Seq(
+        ivy"org.testng:testng:7.10.2"
+      )
+    }
 
-  val resourcePath: os.Path = os.pwd / "contrib" / "testng" / "test" / "resources" / "demo"
+    object testngGrouping extends JavaTests with TestModule.TestNg {
+      def ivyDeps = super.ivyDeps() ++ Seq(
+        ivy"org.testng:testng:7.10.2"
+      )
+      def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+    }
 
-  def workspaceTest[T, M <: TestUtil.BaseModule](
-      m: M,
-      resourcePath: os.Path = resourcePath
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
+    lazy val millDiscover = Discover[this.type]
   }
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "demo"
 
   def tests: Tests = Tests {
-    "TestNG" - {
-      "demo" - workspaceTest(demo) { eval =>
-        val Right((result, evalCount)) = eval.apply(demo.test.testFramework)
-        assert(
-          result == "mill.testng.TestNGFramework",
-          evalCount > 0
-        )
-      }
-      "Test case lookup from inherited annotations" - workspaceTest(demo) { eval =>
-        val Right((result, evalCount)) = eval.apply(demo.test.test())
-        val tres = result.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
-        assert(
-          tres._2.size == 8
-        )
-      }
+    test("demo") - UnitTester(demo, resourcePath).scoped { eval =>
+      val Right(result) = eval.apply(demo.test.testFramework): @unchecked
+      assert(
+        result.value == "mill.testng.TestNGFramework",
+        result.evalCount > 0
+      )
+    }
+    test("Test case lookup from inherited annotations") - UnitTester(demo, resourcePath).scoped {
+      eval =>
+        val Right(result) = eval.apply(demo.test.testForked()): @unchecked
+        val tres = result.value
+        assert(tres._2.size == 8)
+    }
+    test("noGrouping") - UnitTester(demo, resourcePath).scoped {
+      eval =>
+        val Right(result) = eval.apply(demo.testng.testForked()): @unchecked
+        val tres = result.value._2
+        assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
+    }
+    test("testForkGrouping") - UnitTester(demo, resourcePath).scoped {
+      eval =>
+        val Right(result) = eval.apply(demo.testngGrouping.testForked()): @unchecked
+        val tres = result.value._2
+        assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }
   }
 }

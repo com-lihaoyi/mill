@@ -1,0 +1,19 @@
+package build.app
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object `package` extends RootModule with MavenModule {
+
+  def ivyDeps = super.ivyDeps() ++ Seq(ivy"org.apache.commons:commons-text")
+
+  def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
+
+  object test extends MavenTests with TestModule.Junit5 {
+
+    def ivyDeps = super.ivyDeps() ++
+      Seq(ivy"org.junit.jupiter:junit-jupiter:5.10.3")
+
+  }
+}

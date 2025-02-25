@@ -1,7 +1,7 @@
 package mill.contrib.gitlab
 
 import scala.util.Try
-
+import mill.api.Result
 trait GitlabTokenLookup {
   import GitlabTokenLookup._
 
@@ -34,18 +34,18 @@ trait GitlabTokenLookup {
       env: Map[String, String],
       prop: Map[String, String],
       workspace: os.Path
-  ): Either[String, GitlabAuthHeaders] = {
+  ): Result[GitlabAuthHeaders] = {
 
     val token = LazyList
       .from(tokenSearchOrder)
       .map(token => buildHeaders(token, env, prop, workspace))
-      .find(_.isRight)
+      .find(_.isInstanceOf[Result.Success[_]])
       .flatMap(_.toOption)
 
     token match {
       case None =>
-        Left(s"Unable to find token from $tokenSearchOrder")
-      case Some(headers) => Right(headers)
+        Result.Failure(s"Unable to find token from $tokenSearchOrder")
+      case Some(headers) => Result.Success(headers)
     }
   }
 
@@ -55,17 +55,21 @@ trait GitlabTokenLookup {
       env: Map[String, String],
       prop: Map[String, String],
       workspace: os.Path
-  ): Either[String, GitlabAuthHeaders] = {
+  ): Result[GitlabAuthHeaders] = {
 
-    def readPath(path: os.Path): Either[String, String] =
-      Try(os.read(path)).map(_.trim).toEither.left.map(e => s"failed to read file $e")
+    def readPath(path: os.Path): Result[String] =
+      Result.fromEither(Try(os.read(path)).map(_.trim).toEither.left.map(e =>
+        s"failed to read file $e"
+      ))
 
-    def readSource(source: TokenSource): Either[String, String] =
+    def readSource(source: TokenSource): Result[String] =
       source match {
         case Env(name) =>
-          env.get(name).toRight(s"Could not read environment variable $name")
+          Result.fromEither(env.get(name).toRight(s"Could not read environment variable $name"))
         case Property(property) =>
-          prop.get(property).toRight(s"Could not read system property variable $prop")
+          Result.fromEither(
+            prop.get(property).toRight(s"Could not read system property variable $prop")
+          )
         case File(path) =>
           readPath(path)
         case WorkspaceFile(path) =>
@@ -110,12 +114,12 @@ object GitlabTokenLookup {
    *   - File =Contents of a file on local disk.
    *   - Custom = Own function
    *
-   * Possible additions, that can now be supported with Custom: KeyVault, Yaml, etc..
+   * Possible additions, that can now be supported with Custom: KeyVault, Yaml, etc.
    */
   sealed trait TokenSource
   case class Env(name: String) extends TokenSource
   case class File(path: os.Path) extends TokenSource
   case class WorkspaceFile(path: os.RelPath) extends TokenSource
   case class Property(property: String) extends TokenSource
-  case class Custom(f: () => Either[String, String]) extends TokenSource
+  case class Custom(f: () => Result[String]) extends TokenSource
 }

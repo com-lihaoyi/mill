@@ -1,13 +1,16 @@
 package mill.scalalib.scalafmt
 
 import mill._
+import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.api.Result
-import mill.define.{ExternalModule, Discover}
+import mill.define.{Discover, ExternalModule}
 import mill.scalalib._
+import mainargs.arg
+import mill.main.Tasks
 
 trait ScalafmtModule extends JavaModule {
 
-  def reformat(): Command[Unit] = T.command {
+  def reformat(): Command[Unit] = Task.Command {
     ScalafmtWorkerModule
       .worker()
       .reformat(
@@ -16,7 +19,7 @@ trait ScalafmtModule extends JavaModule {
       )
   }
 
-  def checkFormat(): Command[Unit] = T.command {
+  def checkFormat(): Command[Unit] = Task.Command {
     ScalafmtWorkerModule
       .worker()
       .checkFormat(
@@ -25,13 +28,13 @@ trait ScalafmtModule extends JavaModule {
       )
   }
 
-  def scalafmtConfig: T[Seq[PathRef]] = T.sources(
-    T.workspace / ".scalafmt.conf",
+  def scalafmtConfig: T[Seq[PathRef]] = Task.Sources(
+    Task.workspace / ".scalafmt.conf",
     os.pwd / ".scalafmt.conf"
   )
 
   // TODO: Do we want provide some defaults or write a default file?
-  private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = T.task {
+  private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = Task.Anon {
     val locs = scalafmtConfig()
     locs.find(p => os.exists(p.path)) match {
       case None => Result.Failure(
@@ -55,7 +58,9 @@ trait ScalafmtModule extends JavaModule {
       file <- {
         if (os.isDir(pathRef.path)) {
           os.walk(pathRef.path).filter(file =>
-            os.isFile(file) && (file.ext == "scala" || file.ext == "sc")
+            os.isFile(file) && (file.ext == "scala" || buildFileExtensions.exists(ex =>
+              file.last.endsWith(s".$ex")
+            ))
           )
         } else {
           Seq(pathRef.path)
@@ -66,11 +71,13 @@ trait ScalafmtModule extends JavaModule {
 
 }
 
-object ScalafmtModule extends ExternalModule with ScalafmtModule {
+object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule {
+  override def defaultCommandName(): String = "reformatAll"
 
-  def reformatAll(sources: mill.main.Tasks[Seq[PathRef]]): Command[Unit] =
-    T.command {
-      val files = T.sequence(sources.value)().flatMap(filesToFormat)
+  def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
+    Tasks.resolveMainDefault("__.sources")) =
+    Task.Command {
+      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .reformat(
@@ -79,9 +86,11 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
         )
     }
 
-  def checkFormatAll(sources: mill.main.Tasks[Seq[PathRef]]): Command[Unit] =
-    T.command {
-      val files = T.sequence(sources.value)().flatMap(filesToFormat)
+  def checkFormatAll(
+      @arg(positional = true) sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources")
+  ): Command[Unit] =
+    Task.Command {
+      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .checkFormat(
@@ -90,5 +99,5 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
         )
     }
 
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }

@@ -4,28 +4,30 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.io.File
 import java.nio.file.Path
-import mill.scalajslib.worker.api._
-import mill.scalajslib.worker.jsenv._
+import mill.scalajslib.worker.api.*
+import mill.scalajslib.worker.jsenv.*
 import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, PathOutputFile, StandardImpl}
 import org.scalajs.linker.interface.{
-  ESFeatures => ScalaJSESFeatures,
-  ESVersion => ScalaJSESVersion,
-  ModuleKind => ScalaJSModuleKind,
-  OutputPatterns => ScalaJSOutputPatterns,
-  Report => _,
-  ModuleSplitStyle => _,
-  _
+  ESFeatures as ScalaJSESFeatures,
+  ESVersion as ScalaJSESVersion,
+  ModuleKind as ScalaJSModuleKind,
+  OutputPatterns as ScalaJSOutputPatterns,
+  ModuleSplitStyle as _,
+  Report as _,
+  *
 }
 import org.scalajs.logging.{Level, Logger}
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
-import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
+import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 
 import scala.collection.mutable
 import scala.ref.SoftReference
-
 import com.armanbilge.sjsimportmap.ImportMappedIRFile
+import mill.constants.InputPumper
+
+import scala.annotation.nowarn
 
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
@@ -37,7 +39,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      dest: File
+      dest: File,
+      experimentalUseWebAssembly: Boolean
   )
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
     case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
@@ -150,10 +153,19 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         else withModuleSplitStyle
 
       val withMinify =
-        if (minorIsGreaterThanOrEqual(16)) withOutputPatterns.withMinify(input.minify)
+        if (minorIsGreaterThanOrEqual(16))
+          withOutputPatterns.withMinify(input.minify && input.isFullLinkJS)
         else withOutputPatterns
 
-      val linker = StandardImpl.clearableLinker(withMinify)
+      val withWasm =
+        (minorIsGreaterThanOrEqual(17), input.experimentalUseWebAssembly) match {
+          case (_, false) => withMinify
+          case (true, true) => withMinify.withExperimentalUseWebAssembly(true)
+          case (false, true) =>
+            throw new Exception("Emitting wasm is not supported with Scala.js < 1.17")
+        }
+
+      val linker = StandardImpl.clearableLinker(withWasm)
       val irFileCacheCache = irFileCache.newCache
       (linker, irFileCacheCache)
     }
@@ -180,7 +192,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      importMap: Seq[ESModuleImportMapping]
+      importMap: Seq[ESModuleImportMapping],
+      experimentalUseWebAssembly: Boolean
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
@@ -195,7 +208,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleSplitStyle = moduleSplitStyle,
       outputPatterns = outputPatterns,
       minify = minify,
-      dest = dest
+      dest = dest,
+      experimentalUseWebAssembly = experimentalUseWebAssembly
     ))
     val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
     val testInitializer =
@@ -297,20 +311,27 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       else runConfig0
         .withInheritErr(false)
         .withInheritOut(false)
-        .withOnOutputStream { case (Some(processOut), Some(processErr)) =>
-          val sources = Seq(
-            (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
-            (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
-          )
-
-          for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
-            val t = new Thread(
-              new mill.main.client.InputPumper(std, dest, checkAvailable, () => runningCheck()),
-              name
+        .withOnOutputStream {
+          case (Some(processOut), Some(processErr)) =>
+            val sources = Seq(
+              (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
+              (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
             )
-            t.setDaemon(true)
-            t.start()
-          }
+
+            for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
+              val t = new Thread(
+                new InputPumper(
+                  () => std,
+                  () => dest,
+                  checkAvailable,
+                  () => runningCheck()
+                ),
+                name
+              )
+              t.setDaemon(true)
+              t.start()
+            }
+          case _ => ???
         }
     Run.runInterruptible(env, input, runConfig)
   }

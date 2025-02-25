@@ -1,0 +1,221 @@
+= Mill Command-Line Flags
+
+When running Mill, keep in mind there are often _four_ things that can take command-line
+flags or options:
+
+1. The task you are running, e.g. `foo.run --text hello`. These are passed directly from the
+   command line
+
+2. The JVM running the *task* e.g. `foo.run`, which may take flags e.g. `java -Xss10m -Xmx10G`.
+   These are configured using xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags]
+
+3. The Mill build tool process, e.g. `./mill --jobs 10`. These can be passed directly after the
+   `./mill` executable name, or set in a `.mill-opts` file as shown below in
+   xref:#_repo_level_mill_options[Repo-Level Mill Options]
+
+4. The JVM running the Mill build tool process, which may take flags. e.g.
+   `java -Xss10m -Xmx10G`. These are passed via `JAVA_OPTs` or via a `.mill-jvm-opts` flag
+   as shown below in xref:#_running_mill_with_custom_jvm_options[Mill with custom JVM options]
+
+This can get confusing, so when you want to pass some flags to a Mill task, to Mill, or to
+the JVM (which one?) be clear who you want to pass the flags to so you can ensure they go
+to the right place.
+
+== Mill Flags Listing
+
+To see a cheat sheet of all the command line flags that Mill supports, you can use `./mill --help`:
+
+[source]
+----
+$ ./mill --help
+Mill Build Tool, version 0.12.5-13-0e02e6
+Usage: mill [options] task [task-options] [+ task ...]
+
+task cheat sheet:
+  mill resolve _                 # see all top-level tasks and modules
+  mill resolve __.compile        # see all `compile` tasks in any module (recursively)
+
+  mill foo.bar.compile           # compile the module `foo.bar`
+
+  mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
+  mill -i foo.console            # run the Scala console for the module `foo` (if it is a ScalaModule)
+
+  mill foo.__.test               # run tests in modules nested within `foo` (recursively)
+  mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
+  mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
+  mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
+
+  mill foo.assembly              # generate an executable assembly of the module `foo`
+  mill show foo.assembly         # print the output path of the assembly of module `foo`
+  mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+
+  mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
+  mill clean                     # delete the output of the entire build to force re-evaluation
+
+  mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
+  mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
+
+options:
+  -D --define <k=v>    Define (or overwrite) a system property.
+  --allow-positional   Allows command args to be passed positionally without `--arg` by default
+  -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
+  --bsp                Enable BSP server mode.
+  --color <bool>       Toggle colored output; by default enabled only if the console is interactive
+                       and NO_COLOR environment variable is not set
+  -d --debug           Show debug output on STDOUT
+  --disable-callgraph  Disables fine-grained invalidation of tasks based on analyzing code changes.
+                       If passed, you need to manually run `clean` yourself after build changes.
+  --disable-prompt     Disables the new multi-line status prompt used for showing thread status at
+                       the command line and falls back to the legacy ticker
+  --help               Print this help message and exit.
+  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. This implies --no-server. Must be the first argument.
+  --import <str>       Additional ivy dependencies to load into mill, e.g. plugins.
+  -j --jobs <str>      The number of parallel threads. It can be an integer e.g. `5` meaning 5
+                       threads, an expression e.g. `0.5C` meaning half as many threads as available
+                       cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables
+                       parallelism and `0` (the default) uses 1 thread per core.
+  -k --keep-going      Continue build, even after build failures.
+  --meta-level <int>   Select a meta-level to run the given tasks. Level 0 is the main project in
+                       `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc.
+  --no-server          Run without a background server. Must be the first argument.
+  -s --silent          Make ivy logs during script import resolution go silent instead of printing
+  --ticker <bool>      Enable ticker log (e.g. short-lived prints of stages and progress bars).
+  -v --version         Show mill version information and exit.
+  -w --watch           Watch and re-run the given tasks when when their inputs change.
+  task <str>...        The name or a pattern of the tasks(s) you want to build.
+
+Please see the documentation at https://mill-build.org for more details
+----
+
+== Notable Flags
+
+This section covers some of the flags that are worth discussing in more detail
+
+=== `--interactive`/`-i`/`--no-server`
+
+This flag is necessary to run any interactive terminal programs using Mill: things like
+`ScalaModule#console`, `ScalaModule#repl`, and so on.
+
+By default, Mill runs tasks in a long-lived background server. While this is good for
+performance (as it avoids paying the server startup time each command), it is incompatible
+with tasks like `.repl` which require a direct `stdin`/`stdout` forwarding connection to
+the user's terminal. `--interactive`/`-i` instead runs tasks in a short-lived background
+server with proper port pipe forwarding configured, which enables tasks like `.repl` to run
+while paying what higher startup overhead.
+
+
+
+=== `--watch`/`-w`
+
+You can use the `--watch` flag to make Mill watch a task's inputs,
+re-evaluating the task as necessary when the inputs
+change:
+
+[source,bash]
+----
+> mill --watch foo.compile
+> mill --watch foo.run
+> mill -w foo.compile
+> mill -w foo.run
+----
+
+Mill's `--watch` flag watches both the files you are building using Mill, as
+well as Mill's own `build.mill` file and anything it imports, so any changes to
+your `build.mill` will automatically get picked up.
+
+For long-running processes like web servers, you can use `runBackground` to make sure they recompile and restart when code changes,
+forcefully terminating the previous process even though it may be still alive:
+
+[source,bash]
+----
+> mill -w foo.runBackground
+----
+
+
+=== `--jobs`/`-j`
+
+Configures how much xref:depth/parallelism.adoc[Parallelism] Mill should run with.
+Defaults to the number of cores available on your system.
+
+Example: Use up to 4 parallel threads to compile all modules:
+
+[source,bash]
+----
+mill -j4 __.compile
+----
+
+You can also set Mill's parallelism to some multiple of the number of cores, e.g.
+`-j0.5C` to use half as many threads as cores, or `-j2C` to use twice as many threads as cores.
+These can be useful as xref:_repo_level_mill_options[] to configure an appropriate level
+of parallelism that scales based on the number of cores available (which might differ
+between e.g. developer laptops and CI machines)
+
+[#_repo_level_mill_options]
+== Repo-Level Mill Options
+
+Mill supports the `.mill-opts` file for passing a default set of command line
+options to Mill itself.For example, if your project's tasks are CPU heavy, you
+may want everyone using your project to run only 0.5 concurrent tasks per CPU.This
+can be done by setting `.mill-opts` to:
+
+_.mill-opts_
+
+[source]
+----
+--jobs=0.5C
+----
+
+The file name `.mill-opts` can be overridden via the `MILL_OPTS_PATH` environment variable.
+You can also pass in flags like `--jobs=10` explicitly to override the value passed in
+`.mill-opts`.
+
+NOTE: `.mill-jvm-opts` is for passing JVM options to the JVM running Mill,
+and `.mill-opts` is for passing options to Mill itself.If you want to pass JVM options
+to the project that Mill is building and running, see the section on
+xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags].
+
+[#_running_mill_with_custom_jvm_options]
+== Running Mill with custom JVM options
+
+It's possible to pass JVM options to the Mill launcher.To do this you can either set
+the `JAVA_OPTS` environment variable, or create a `.mill-jvm-opts` file in your project's
+root that contains JVM options one per line.
+
+For example, if your build requires a lot of memory and bigger stack size, you could run
+
+[source,bash]
+----
+> JAVA_OPTS='-Xss10m -Xmx10G' ./mill __.compile
+----
+
+Or you could create a `.mill-jvm-opts`:
+
+_.mill-jvm-opts_
+
+[source]
+----
+-Xss10m
+-Xmx10G
+----
+
+Note that `.mill-jvm-opts` requires each CLI token to be on a separate line, so
+`-Xss10m -Xmx10G` on a single line is not allowed (as it would pass `"-Xss10m -Xmx10G"`
+as a single token and fail argument parsing)
+
+`.mill-jvm-opts` also supports environment variable interpolation, e.g.
+
+_.mill-jvm-opts_
+
+[source]
+----
+# PWD on mac/linux
+-Dmy.jvm.property=${PWD}
+----
+
+Missing environment variables are
+converted to the empty string.
+
+The file name `.mill-jvm-opts` can be overridden via the `MILL_JVM_OPTS_PATH` environment
+variable.
+

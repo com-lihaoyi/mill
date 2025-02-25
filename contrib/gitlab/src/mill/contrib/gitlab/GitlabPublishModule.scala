@@ -16,33 +16,33 @@ trait GitlabPublishModule extends PublishModule { outer =>
 
   def gitlabHeaders(
       systemProps: Map[String, String] = sys.props.toMap
-  ): Task[GitlabAuthHeaders] = T.task {
-    val auth = tokenLookup.resolveGitlabToken(T.env, systemProps, T.workspace)
+  ): Task[GitlabAuthHeaders] = Task.Anon {
+    val auth = tokenLookup.resolveGitlabToken(Task.env, systemProps, Task.workspace)
     auth match {
-      case Left(msg) =>
+      case Result.Failure(msg) =>
         Failure(
           s"Token lookup for PUBLISH repository ($publishRepository) failed with $msg"
         ): Result[GitlabAuthHeaders]
-      case Right(value) => Success(value)
+      case Result.Success(value) => Success(value)
     }
   }
 
   def publishGitlab(
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = T.command {
+  ): define.Command[Unit] = Task.Command {
 
     val gitlabRepo = publishRepository
 
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     if (skipPublish) {
-      T.log.info(s"SkipPublish = true, skipping publishing of $artifactInfo")
+      Task.log.info(s"SkipPublish = true, skipping publishing of $artifactInfo")
     } else {
       val uploader = new GitlabUploader(gitlabHeaders()(), readTimeout, connectTimeout)
       new GitlabPublisher(
         uploader.upload,
         gitlabRepo,
-        T.log
+        Task.log
       ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
     }
 
@@ -58,11 +58,11 @@ object GitlabPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = Task.Command {
     val repo = ProjectRepository(gitlabRoot, projectId)
     val auth = GitlabAuthHeaders.privateToken(personalToken)
 
-    val artifacts = T.sequence(publishArtifacts.value)().map {
+    val artifacts = Task.sequence(publishArtifacts.value)().map {
       case data @ PublishModule.PublishData(_, _) => data.withConcretePath
     }
     val uploader = new GitlabUploader(auth, readTimeout, connectTimeout)
@@ -70,11 +70,11 @@ object GitlabPublishModule extends ExternalModule {
     new GitlabPublisher(
       uploader.upload,
       repo,
-      T.log
+      Task.log
     ).publishAll(
-      artifacts: _*
+      artifacts*
     )
   }
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
 }

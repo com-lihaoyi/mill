@@ -1,51 +1,186 @@
 package mill.util
 
-import mill.api.Loose.Agg
-import mill.api._
-import mill.main.client.InputPumper
-import os.{ProcessOutput, SubProcess}
+import mill.api.*
 
-import java.io._
-import java.lang.reflect.Modifier
+import os.ProcessOutput
+
+import java.io.*
+import java.net.URLClassLoader
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.Files
 import scala.util.Properties.isWin
 import os.CommandResult
 
+import java.util.jar.{JarEntry, JarOutputStream}
+import scala.collection.mutable
+
 object Jvm extends CoursierSupport {
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
-   * [[os.CommandResult]] with it's aggregated output and error streams
+   * [[os.CommandResult]] with it's aggregated output and error streams.
+   *
+   * @param mainClass The main class to run
+   * @param mainArgs Args passed to the `mainClass` main method
+   * @param javaHome Optional Java Home override
+   * @param jvmArgs Arguments given to the forked JVM
+   * @param classPath The classpath
+   * @param cpPassingJarPath When `None`, the `-cp` parameter is used to pass the classpath
+   *                        to the forked JVM.
+   *                        When `Some`, a temporary empty JAR is created
+   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
+   *                        This might help with long classpaths on OS'es (like Windows)
+   *                        which only supports limited command-line length
+   * @param env Environment variables used when starting the forked JVM
+   * @param propagateEnv If `true` then the current process' environment variables are propagated to subprocess
+   * @param cwd The working directory to be used by the forked JVM
+   * @param stdin Standard input
+   * @param stdout Standard output
+   * @param stderr Standard error
+   * @param mergeErrIntoOut If `true` then the error output is merged into standard output
+   * @param timeout how long to wait in milliseconds for the subprocess to complete (-1 for no timeout)
+   * @param shutdownGracePeriod if the timeout is enabled, how long in milliseconds for the subprocess
+   *                            to gracefully terminate before attempting to forcibly kill it
+   *                            (-1 for no kill, 0 for always kill immediately)
+   * @param destroyOnExit Destroy on JVM exit
+   * @param check if `true`, an exception will be thrown if process exits with a non-zero exit code
    */
-  def callSubprocess(
+  def callProcess(
       mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String] = Seq.empty,
-      envArgs: Map[String, String] = Map.empty,
-      mainArgs: Seq[String] = Seq.empty,
-      workingDir: os.Path = null,
-      streamOut: Boolean = true
-  )(implicit ctx: Ctx): CommandResult = {
+      mainArgs: Iterable[String] = Seq.empty,
+      javaHome: Option[os.Path] = None,
+      jvmArgs: Iterable[String] = Seq.empty,
+      classPath: Iterable[os.Path],
+      cpPassingJarPath: Option[os.Path] = None,
+      env: Map[String, String] = Map.empty,
+      propagateEnv: Boolean = true,
+      cwd: os.Path = null,
+      stdin: os.ProcessInput = os.Pipe,
+      stdout: ProcessOutput = os.Pipe,
+      stderr: ProcessOutput = os.Inherit,
+      mergeErrIntoOut: Boolean = false,
+      timeout: Long = -1,
+      shutdownGracePeriod: Long = 100,
+      destroyOnExit: Boolean = true,
+      check: Boolean = true
+  ): CommandResult = {
+    val cp = cpPassingJarPath match {
+      case Some(passingJarPath) if classPath.nonEmpty =>
+        createClasspathPassingJar(passingJarPath, classPath.toSeq)
+        Seq(passingJarPath)
+      case _ => classPath
+    }
 
-    val commandArgs =
-      Vector(javaExe) ++
-        jvmArgs ++
-        Vector("-cp", classPath.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
-        mainArgs
+    val commandArgs = (Vector(javaExe(javaHome)) ++
+      jvmArgs ++
+      Option.when(cp.nonEmpty)(Vector(
+        "-cp",
+        cp.mkString(java.io.File.pathSeparator)
+      )).getOrElse(Vector.empty) ++
+      Vector(mainClass) ++
+      mainArgs).filterNot(_.isBlank)
 
-    val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
-    os.makeDir.all(workingDir1)
+    if (cwd != null) os.makeDir.all(cwd)
 
-    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
+    val processResult = os.proc(commandArgs)
+      .call(
+        cwd = cwd,
+        env = env,
+        propagateEnv = propagateEnv,
+        stdin = stdin,
+        stdout = stdout,
+        stderr = stderr,
+        mergeErrIntoOut = mergeErrIntoOut,
+        timeout = timeout,
+        shutdownGracePeriod = shutdownGracePeriod,
+        destroyOnExit = destroyOnExit,
+        check = check
+      )
+    processResult
+  }
+
+  /**
+   * Runs a JVM subprocess with the given configuration and streams
+   * it's stdout and stderr to the console.
+   *
+   * @param mainClass The main class to run
+   * @param mainArgs Args passed to the `mainClass` main method
+   * @param javaHome Optional Java Home override
+   * @param jvmArgs Arguments given to the forked JVM
+   * @param classPath The classpath
+   * @param cpPassingJarPath When `None`, the `-cp` parameter is used to pass the classpath
+   *                        to the forked JVM.
+   *                        When `Some`, a temporary empty JAR is created
+   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
+   *                        This might help with long classpaths on OS'es (like Windows)
+   *                        which only supports limited command-line length
+   * @param env Environment variables used when starting the forked JVM
+   * @param propagateEnv If `true` then the current process' environment variables are propagated to subprocess
+   * @param cwd The working directory to be used by the forked JVM
+   * @param stdin Standard input override
+   * @param stdout Standard output override
+   * @param stderr Standard error override
+   * @param mergeErrIntoOut If `true` then the error output is merged into standard output
+   * @param shutdownGracePeriod if the timeout is enabled, how long in milliseconds for the subprocess
+   *                            to gracefully terminate before attempting to forcibly kill it
+   *                            (-1 for no kill, 0 for always kill immediately)
+   * @param destroyOnExit Destroy on JVM exit
+   */
+  def spawnProcess(
+      mainClass: String,
+      mainArgs: Iterable[String] = Seq.empty,
+      javaHome: Option[os.Path] = None,
+      jvmArgs: Iterable[String] = Seq.empty,
+      classPath: Iterable[os.Path],
+      cpPassingJarPath: Option[os.Path] = None,
+      env: Map[String, String] = Map.empty,
+      propagateEnv: Boolean = true,
+      cwd: os.Path = null,
+      stdin: os.ProcessInput = os.Pipe,
+      stdout: ProcessOutput = os.Pipe,
+      stderr: ProcessOutput = os.Inherit,
+      mergeErrIntoOut: Boolean = false,
+      shutdownGracePeriod: Long = 100,
+      destroyOnExit: Boolean = true
+  ): os.SubProcess = {
+    val cp = cpPassingJarPath match {
+      case Some(passingJarPath) if classPath.nonEmpty =>
+        createClasspathPassingJar(passingJarPath, classPath.toSeq)
+        Seq(passingJarPath)
+      case _ => classPath
+    }
+
+    val commandArgs = (Vector(javaExe(javaHome)) ++
+      jvmArgs ++
+      Option.when(cp.nonEmpty)(
+        Vector("-cp", cp.mkString(java.io.File.pathSeparator))
+      ).getOrElse(Vector.empty) ++
+      Vector(mainClass) ++
+      mainArgs).filterNot(_.isBlank)
+
+    if (cwd != null) os.makeDir.all(cwd)
+
+    val process = os.proc(commandArgs).spawn(
+      cwd = cwd,
+      env = env,
+      stdin = stdin,
+      stdout = stdout,
+      stderr = stderr,
+      mergeErrIntoOut = mergeErrIntoOut,
+      propagateEnv = propagateEnv,
+      shutdownGracePeriod = shutdownGracePeriod,
+      destroyOnExit = destroyOnExit
+    )
+    process
   }
 
   /**
    * Resolves a tool to a path under the currently used JDK (if known).
    */
-  def jdkTool(toolName: String): String = {
-    sys.props
-      .get("java.home")
+  def jdkTool(toolName: String, javaHome: Option[os.Path]): String = {
+    javaHome
+      .map(_.toString())
+      .orElse(sys.props.get("java.home"))
       .map(h =>
         if (isWin) new File(h, s"bin\\${toolName}.exe")
         else new File(h, s"bin/${toolName}")
@@ -55,325 +190,144 @@ object Jvm extends CoursierSupport {
 
   }
 
-  def javaExe: String = jdkTool("java")
+  def jdkTool(toolName: String): String = jdkTool(toolName, None)
 
-  def defaultBackgroundOutputs(outputDir: os.Path): Option[(ProcessOutput, ProcessOutput)] =
-    Some((outputDir / "stdout.log", outputDir / "stderr.log"))
+  def javaExe(javaHome: Option[os.Path]): String = jdkTool("java", javaHome)
 
-  /**
-   * Runs a JVM subprocess with the given configuration and streams
-   * it's stdout and stderr to the console.
-   * @param mainClass The main class to run
-   * @param classPath The classpath
-   * @param JvmArgs Arguments given to the forked JVM
-   * @param envArgs Environment variables used when starting the forked JVM
-   * @param workingDir The working directory to be used by the forked JVM
-   * @param background `true` if the forked JVM should be spawned in background
-   * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
-   *                        to the forked JVM.
-   *                        When `true`, a temporary empty JAR is created
-   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
-   *                        This might help with long classpaths on OS'es (like Windows)
-   *                        which only supports limited command-line length
-   */
-  def runSubprocess(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String] = Seq.empty,
-      envArgs: Map[String, String] = Map.empty,
-      mainArgs: Seq[String] = Seq.empty,
-      workingDir: os.Path = null,
-      background: Boolean = false,
-      useCpPassingJar: Boolean = false
-  )(implicit ctx: Ctx): Unit = {
-    runSubprocessWithBackgroundOutputs(
-      mainClass,
-      classPath,
-      jvmArgs,
-      envArgs,
-      mainArgs,
-      workingDir,
-      if (background) defaultBackgroundOutputs(ctx.dest) else None,
-      useCpPassingJar
-    )
-  }
+  def javaExe: String = javaExe(None)
 
   /**
-   * Runs a JVM subprocess with the given configuration and streams
-   * it's stdout and stderr to the console.
-   * @param mainClass The main class to run
-   * @param classPath The classpath
-   * @param JvmArgs Arguments given to the forked JVM
-   * @param envArgs Environment variables used when starting the forked JVM
-   * @param workingDir The working directory to be used by the forked JVM
-   * @param backgroundOutputs If the subprocess should run in the background, a Tuple of ProcessOutputs containing out and err respectively. Specify None for nonbackground processes.
-   * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
-   *                        to the forked JVM.
-   *                        When `true`, a temporary empty JAR is created
-   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
-   *                        This might help with long classpaths on OS'es (like Windows)
-   *                        which only supports limited command-line length
+   * Creates a `java.net.URLClassLoader` with specified parameters
+   * @param classPath URLs from which to load classes and resources
+   * @param parent parent class loader for delegation
+   * @param sharedLoader loader used for shared classes
+   * @param sharedPrefixes package prefix for classes that will be loaded by the `sharedLoader`
+   * @return new classloader
    */
-  def runSubprocessWithBackgroundOutputs(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String] = Seq.empty,
-      envArgs: Map[String, String] = Map.empty,
-      mainArgs: Seq[String] = Seq.empty,
-      workingDir: os.Path = null,
-      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None,
-      useCpPassingJar: Boolean = false
-  )(implicit ctx: Ctx): Unit = {
-
-    val cp =
-      if (useCpPassingJar && !classPath.iterator.isEmpty) {
-        val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
-        ctx.log.debug(
-          s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.iterator.map(
-              _.toNIO.toUri().toURL().toExternalForm()
-            ).mkString(" ")}"
-        )
-        createClasspathPassingJar(passingJar, classPath)
-        Agg(passingJar)
-      } else {
-        classPath
-      }
-
-    val args =
-      Vector(javaExe) ++
-        jvmArgs ++
-        Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
-        mainArgs
-
-    ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
-
-    if (backgroundOutputs.nonEmpty)
-      spawnSubprocessWithBackgroundOutputs(args, envArgs, workingDir, backgroundOutputs)
-    else
-      runSubprocess(args, envArgs, workingDir)
-  }
-
-  /**
-   * Runs a generic subprocess and waits for it to terminate.
-   */
-  def runSubprocess(
-      commandArgs: Seq[String],
-      envArgs: Map[String, String],
-      workingDir: os.Path
-  ): Unit = {
-    val process = spawnSubprocessWithBackgroundOutputs(
-      commandArgs,
-      envArgs,
-      workingDir,
-      backgroundOutputs = None
-    )
-    val shutdownHook = new Thread("subprocess-shutdown") {
-      override def run(): Unit = {
-        System.err.println("Host JVM shutdown. Forcefully destroying subprocess ...")
-        process.destroy()
-      }
+  def createClassLoader(
+      classPath: Iterable[os.Path],
+      parent: ClassLoader = null,
+      sharedLoader: ClassLoader = getClass.getClassLoader,
+      sharedPrefixes: Iterable[String] = Seq()
+  ): URLClassLoader =
+    new URLClassLoader(
+      classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
+      refinePlatformParent(parent)
+    ) {
+      override def findClass(name: String): Class[?] =
+        if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
+        else super.findClass(name)
     }
-    Runtime.getRuntime().addShutdownHook(shutdownHook)
+
+  /**
+   * @param classPath URLs from which to load classes and resources
+   * @param parent parent class loader for delegation
+   * @param sharedPrefixes package prefix for classes that will be loaded by the shared loader
+   * @param f function that will be called with newly created classloader
+   * @tparam T the return type of this function
+   * @return return value of the function `f`
+   */
+  def withClassLoader[T](
+      classPath: Iterable[os.Path],
+      parent: ClassLoader = null,
+      sharedPrefixes: Seq[String] = Seq.empty
+  )(f: ClassLoader => T): T = {
+    val oldClassloader = Thread.currentThread().getContextClassLoader
+    val newClassloader =
+      createClassLoader(classPath = classPath, parent = parent, sharedPrefixes = sharedPrefixes)
+    Thread.currentThread().setContextClassLoader(newClassloader)
     try {
-      process.waitFor()
-    } catch {
-      case e: InterruptedException =>
-        System.err.println("Interrupted. Forcefully destroying subprocess ...")
-        process.destroy()
-        // rethrow
-        throw e
+      f(newClassloader)
     } finally {
-      Runtime.getRuntime().removeShutdownHook(shutdownHook)
-    }
-    if (process.exitCode() == 0) ()
-    else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
-  }
-
-  /**
-   * Spawns a generic subprocess, streaming the stdout and stderr to the
-   * console. If the System.out/System.err have been substituted, makes sure
-   * that the subprocess's stdout and stderr streams go to the subtituted
-   * streams
-   */
-  def spawnSubprocess(
-      commandArgs: Seq[String],
-      envArgs: Map[String, String],
-      workingDir: os.Path,
-      background: Boolean = false
-  ): SubProcess = {
-    // XXX: workingDir is perhaps not the best choice for outputs, but absent a Ctx, we have
-    //      no other place to choose.
-    val backgroundOutputs = if (background) defaultBackgroundOutputs(workingDir) else None
-    spawnSubprocessWithBackgroundOutputs(commandArgs, envArgs, workingDir, backgroundOutputs)
-  }
-
-  /**
-   * Spawns a generic subprocess, streaming the stdout and stderr to the
-   * console. If the System.out/System.err have been substituted, makes sure
-   * that the subprocess's stdout and stderr streams go to the subtituted
-   * streams.
-   *
-   * If the process should be spawned in the background, destination streams for out and err
-   * respectively must be defined in the backgroundOutputs tuple. Nonbackground process should set
-   * backgroundOutputs to None
-   */
-  def spawnSubprocessWithBackgroundOutputs(
-      commandArgs: Seq[String],
-      envArgs: Map[String, String],
-      workingDir: os.Path,
-      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None
-  ): SubProcess = {
-    // If System.in is fake, then we pump output manually rather than relying
-    // on `os.Inherit`. That is because `os.Inherit` does not follow changes
-    // to System.in/System.out/System.err, so the subprocess's streams get sent
-    // to the parent process's origin outputs even if we want to direct them
-    // elsewhere
-
-    if (!SystemStreams.isOriginal()) {
-      val process = os.proc(commandArgs).spawn(
-        cwd = workingDir,
-        env = envArgs,
-        stdin = if (backgroundOutputs.isEmpty) os.Pipe else "",
-        stdout = backgroundOutputs.map(_._1).getOrElse(os.Pipe),
-        stderr = backgroundOutputs.map(_._2).getOrElse(os.Pipe)
-      )
-
-      val sources = Seq(
-        (process.stdout, System.out, "spawnSubprocess.stdout", false, () => true),
-        (process.stderr, System.err, "spawnSubprocess.stderr", false, () => true),
-        (System.in, process.stdin, "spawnSubprocess.stdin", true, () => process.isAlive())
-      )
-
-      for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
-        val t = new Thread(
-          new InputPumper(std, dest, checkAvailable, () => runningCheck()),
-          name
-        )
-        t.setDaemon(true)
-        t.start()
-      }
-
-      process
-    } else {
-      os.proc(commandArgs).spawn(
-        cwd = workingDir,
-        env = envArgs,
-        stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
-        stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
-        stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit)
-      )
+      Thread.currentThread().setContextClassLoader(oldClassloader)
+      newClassloader.close()
     }
   }
 
-  def runLocal(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      mainArgs: Seq[String] = Seq.empty
-  )(implicit ctx: Ctx): Unit = {
-    inprocess(
-      classPath,
-      classLoaderOverrideSbtTesting = false,
-      isolated = true,
-      closeContextClassLoaderWhenDone = true,
-      cl => {
-        getMainMethod(mainClass, cl).invoke(null, mainArgs.toArray)
-      }
-    )
-  }
-
-  private def getMainMethod(mainClassName: String, cl: ClassLoader) = {
-    val mainClass = cl.loadClass(mainClassName)
-    val method = mainClass.getMethod("main", classOf[Array[String]])
-    // jvm allows the actual main class to be non-public and to run a method in the non-public class,
-    //  we need to make it accessible
-    method.setAccessible(true)
-    val modifiers = method.getModifiers
-    if (!Modifier.isPublic(modifiers))
-      throw new NoSuchMethodException(mainClassName + ".main is not public")
-    if (!Modifier.isStatic(modifiers))
-      throw new NoSuchMethodException(mainClassName + ".main is not static")
-    method
-  }
-
-  def inprocess[T](
-      classPath: Agg[os.Path],
-      classLoaderOverrideSbtTesting: Boolean,
-      isolated: Boolean,
-      closeContextClassLoaderWhenDone: Boolean,
-      body: ClassLoader => T
-  )(implicit ctx: mill.api.Ctx.Home): T = {
-    val urls = classPath.map(_.toIO.toURI.toURL)
-    val cl =
-      if (classLoaderOverrideSbtTesting) {
-        mill.api.ClassLoader.create(
-          urls.iterator.toVector,
-          null,
-          sharedPrefixes = Seq("sbt.testing.")
-        )
-      } else if (isolated) {
-        mill.api.ClassLoader.create(urls.iterator.toVector, null)
-      } else {
-        mill.api.ClassLoader.create(urls.iterator.toVector, getClass.getClassLoader)
-      }
-
-    val oldCl = Thread.currentThread().getContextClassLoader
-    Thread.currentThread().setContextClassLoader(cl)
-    try {
-      body(cl)
-    } finally {
-      if (closeContextClassLoaderWhenDone) {
-        Thread.currentThread().setContextClassLoader(oldCl)
-        cl.close()
-      }
-    }
-  }
-
-  def createManifest(mainClass: Option[String]): mill.api.JarManifest = {
-    mainClass.foldLeft(mill.api.JarManifest.MillDefault)((m, c) =>
+  def createManifest(mainClass: Option[String]): JarManifest = {
+    mainClass.foldLeft(JarManifest.MillDefault)((m, c) =>
       m.add((java.util.jar.Attributes.Name.MAIN_CLASS.toString, c))
     )
   }
 
   /**
-   * Create a jar file containing all files from the specified input Paths,
-   * called out.jar in the implicit ctx.dest folder. An optional main class may
-   * be provided for the jar. An optional filter function may also be provided to
-   * selectively include/exclude specific files.
-   * @param inputPaths - `Agg` of `os.Path`s containing files to be included in the jar
-   * @param fileFilter - optional file filter to select files to be included.
-   *                   Given a `os.Path` (from inputPaths) and a `os.RelPath` for the individual file,
-   *                   return true if the file is to be included in the jar.
-   * @param ctx - implicit `Ctx.Dest` used to determine the output directory for the jar.
-   * @return - a `PathRef` for the created jar.
+   * Create a JAR file with default inflation level.
+   *
+   * @param jar The final JAR file
+   * @param inputPaths The input paths resembling the content of the JAR file.
+   *     Files will be directly included in the root of the archive,
+   *     whereas for directories their content is added to the root of the archive.
+   * @param manifest The JAR Manifest
+   * @param fileFilter A filter to support exclusions of selected files
+   * @param includeDirs If `true` the JAR archive will contain directory entries.
+   *                    According to the ZIP specification, directory entries are not required.
+   *                    In the Java ecosystem, most JARs have directory entries, so including them may reduce compatibility issues.
+   *                    Directory entry names will result with a trailing `/`.
+   * @param timestamp If specified, this timestamp is used as modification timestamp (mtime) for all entries in the JAR file.
+   *                  Having a stable timestamp may result in reproducible files, if all other content, including the JAR Manifest, keep stable.
    */
   def createJar(
-      inputPaths: Agg[os.Path],
-      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
-      fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true
-  )(implicit ctx: Ctx.Dest): PathRef = {
-    val outputPath = ctx.dest / "out.jar"
-    createJar(
-      jar = outputPath,
-      inputPaths = inputPaths,
-      manifest = manifest,
-      fileFilter = fileFilter
+      jar: os.Path,
+      inputPaths: Seq[os.Path],
+      manifest: JarManifest = JarManifest.Empty,
+      fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true,
+      includeDirs: Boolean = true,
+      timestamp: Option[Long] = None
+  ): os.Path = {
+
+    val curTime = timestamp.getOrElse(System.currentTimeMillis())
+
+    def mTime(file: os.Path) = timestamp.getOrElse(os.mtime(file))
+
+    os.makeDir.all(jar / os.up)
+    os.remove.all(jar)
+
+    val seen = mutable.Set.empty[os.RelPath]
+    val _ = seen.add(os.sub / "META-INF/MANIFEST.MF")
+
+    val jarStream = new JarOutputStream(
+      new BufferedOutputStream(Files.newOutputStream(jar.toNIO)),
+      manifest.build
     )
-    PathRef(outputPath)
+
+    try {
+      assert(inputPaths.iterator.forall(os.exists(_)))
+
+      if (includeDirs) {
+        val _ = seen.add(os.sub / "META-INF")
+        val entry = new JarEntry("META-INF/")
+        entry.setTime(curTime)
+        jarStream.putNextEntry(entry)
+        jarStream.closeEntry()
+      }
+
+      // Note: we only sort each input path, but not the whole archive
+      for {
+        p <- inputPaths
+        (file, mapping) <-
+          if (os.isFile(p)) Seq((p, os.sub / p.last))
+          else os.walk(p).map(sub => (sub, sub.subRelativeTo(p))).sorted
+        if (includeDirs || os.isFile(file)) && !seen(mapping) && fileFilter(p, mapping)
+      } {
+        val _ = seen.add(mapping)
+        val name = mapping.toString() + (if (os.isDir(file)) "/" else "")
+        val entry = new JarEntry(name)
+        entry.setTime(mTime(file))
+        jarStream.putNextEntry(entry)
+        if (os.isFile(file)) jarStream.write(os.read.bytes(file))
+        jarStream.closeEntry()
+      }
+      jar
+    } finally {
+      jarStream.close()
+    }
   }
 
-  def createJar(
-      jar: os.Path,
-      inputPaths: Agg[os.Path],
-      manifest: mill.api.JarManifest,
-      fileFilter: (os.Path, os.RelPath) => Boolean
-  ): Unit =
-    JarOps.jar(jar, inputPaths, manifest, fileFilter, includeDirs = true, timestamp = None)
-
-  def createClasspathPassingJar(jar: os.Path, classpath: Agg[os.Path]): Unit = {
+  def createClasspathPassingJar(jar: os.Path, classpath: Seq[os.Path]): Unit = {
     createJar(
       jar = jar,
-      inputPaths = Agg(),
-      manifest = mill.api.JarManifest.MillDefault.add(
+      inputPaths = Seq(),
+      manifest = JarManifest.MillDefault.add(
         "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(
           " "
         )
@@ -408,24 +362,45 @@ object Jvm extends CoursierSupport {
 
   def launcherUniversalScript(
       mainClass: String,
-      shellClassPath: Agg[String],
-      cmdClassPath: Agg[String],
+      shellClassPath: Seq[String],
+      cmdClassPath: Seq[String],
       jvmArgs: Seq[String],
-      shebang: Boolean = false
+      shebang: Boolean = false,
+      shellJvmArgs: Seq[String] = Nil,
+      cmdJvmArgs: Seq[String] = Nil
   ): String = {
+
     universalScript(
-      shellCommands =
-        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.iterator.mkString(
-            ":"
-          )}" '$mainClass' "$$@"""",
-      cmdCommands =
-        s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.iterator.mkString(
-            ";"
-          )}" $mainClass %*""",
+      shellCommands = {
+        val jvmArgsStr = (jvmArgs ++ shellJvmArgs).mkString(" ")
+        val classpathStr = shellClassPath.mkString(":")
+
+        s"""if [ -z "$$JAVA_HOME" ] ; then
+           |  JAVACMD="java"
+           |else
+           |  JAVACMD="$$JAVA_HOME/bin/java"
+           |fi
+           |
+           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $mainClass "$$@"
+           |""".stripMargin
+      },
+      cmdCommands = {
+        val jvmArgsStr = (jvmArgs ++ cmdJvmArgs).mkString(" ")
+        val classpathStr = cmdClassPath.mkString(";")
+        s"""setlocal EnableDelayedExpansion
+           |set "JAVACMD=java.exe"
+           |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
+           |
+           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $mainClass %*
+           |
+           |endlocal
+           |""".stripMargin
+      },
       shebang = shebang
     )
   }
-  def createLauncher(mainClass: String, classPath: Agg[os.Path], jvmArgs: Seq[String])(implicit
+
+  def createLauncher(mainClass: String, classPath: Seq[os.Path], jvmArgs: Seq[String])(implicit
       ctx: Ctx.Dest
   ): PathRef = {
     val isWin = scala.util.Properties.isWin
@@ -446,9 +421,44 @@ object Jvm extends CoursierSupport {
     PathRef(outputPath)
   }
 
-  @deprecated("Use mill.api.JarManifest instead", "Mill after 0.11.0-M4")
-  type JarManifest = mill.api.JarManifest
-  @deprecated("Use mill.api.JarManifest instead", "Mill after 0.11.0-M4")
-  val JarManifest = mill.api.JarManifest
+  /**
+   * Return `ClassLoader.getPlatformClassLoader` for java 9 and above, if parent class loader is null,
+   * otherwise return same parent class loader.
+   * More details: https://docs.oracle.com/javase/9/migrate/toc.htm#JSMIG-GUID-A868D0B9-026F-4D46-B979-901834343F9E
+   *
+   * `ClassLoader.getPlatformClassLoader` call is implemented via runtime reflection, cause otherwise
+   * mill could be compiled only with jdk 9 or above. We don't want to introduce this restriction now.
+   */
+  private def refinePlatformParent(parent: java.lang.ClassLoader): ClassLoader = {
+    if (parent != null) parent
+    else if (java9OrAbove) {
+      // Make sure when `parent == null`, we only delegate java.* classes
+      // to the parent getPlatformClassLoader. This is necessary because
+      // in Java 9+, somehow the getPlatformClassLoader ends up with all
+      // sorts of other non-java stuff on it's classpath, which is not what
+      // we want for an "isolated" classloader!
+      classOf[ClassLoader]
+        .getMethod("getPlatformClassLoader")
+        .invoke(null)
+        .asInstanceOf[ClassLoader]
+    } else {
+      // With Java 8 we want a clean classloader that still contains classes
+      // coming from com.sun.* etc.
+      // We get the application classloader parent which happens to be of
+      // type sun.misc.Launcher$ExtClassLoader
+      // We can't call the method directly since it would not compile on Java 9+
+      // So we load it via reflection to allow compilation in Java 9+ but only
+      // on Java 8
+      val launcherClass = getClass.getClassLoader().loadClass("sun.misc.Launcher")
+      val getLauncherMethod = launcherClass.getMethod("getLauncher")
+      val launcher = getLauncherMethod.invoke(null)
+      val getClassLoaderMethod = launcher.getClass().getMethod("getClassLoader")
+      val appClassLoader = getClassLoaderMethod.invoke(launcher).asInstanceOf[ClassLoader]
+      appClassLoader.getParent()
+    }
+  }
+
+  private val java9OrAbove: Boolean =
+    !System.getProperty("java.specification.version").startsWith("1.")
 
 }

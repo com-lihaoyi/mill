@@ -1,10 +1,10 @@
 package mill.playlib
 
-import mill.{Module, T}
+import mill.{Module, Task}
 import mill.define.{Discover, ExternalModule, Worker}
 
 trait RouteCompilerWorkerModule extends Module {
-  def routeCompilerWorker: Worker[RouteCompilerWorker] = T.worker {
+  def routeCompilerWorker: Worker[RouteCompilerWorker] = Task.Worker {
     new RouteCompilerWorker()
   }
 }
@@ -12,5 +12,5 @@ trait RouteCompilerWorkerModule extends Module {
 private[playlib] object RouteCompilerWorkerModule
     extends ExternalModule
     with RouteCompilerWorkerModule {
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }

@@ -1,0 +1,81 @@
+name: Publish Artifacts
+
+# Tags are automatically published
+#
+# Manual publishing (workflow_dispatch) from the main branch is also supported
+#
+# Separate from main test running, because we assume that anything you push a
+# tag for or trigger manually would already have passed tests, so no need to run
+# them again and deal with slowness and flakiness twice.
+
+on:
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  publish-sonatype:
+    # when in master repo, publish all tags and manual runs on main
+    if: github.repository == 'com-lihaoyi/mill'
+    runs-on: ${{ matrix.os }}
+
+    # only run one publish job for the same sha at the same time
+    # e.g. when a main-branch push is also tagged
+    concurrency: publish-sonatype-${{ matrix.os }}-${{ github.sha }}
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-latest
+          coursierarchive: ""
+          publishartifacts: __.publishArtifacts
+          uploadgithub: true
+
+        - os: ubuntu-24.04-arm
+          coursierarchive: ""
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
+
+        - os: macos-13
+          coursierarchive: ""
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
+
+        - os: macos-latest
+          coursierarchive: ""
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
+
+        - os: windows-latest
+          coursierarchive: C:/coursier-arc
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
+
+        # No windows-arm support becaues Graal native image doesn't support it
+        # https://github.com/oracle/graal/issues/9215
+    env:
+      MILL_STABLE_VERSION: 1
+      MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+      MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+      MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
+      MILL_PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY_PASSWORD }}
+      LANG: "en_US.UTF-8"
+      LC_MESSAGES: "en_US.UTF-8"
+      LC_ALL: "en_US.UTF-8"
+      COURSIER_ARCHIVE_CACHE: ${{ matrix.coursierarchive }}
+      REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - run: "echo temurin:11 > .mill-jvm-version"
+
+      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
+
+      - run: ./mill -i dist.uploadToGithub --authKey $REPO_ACCESS_TOKEN
+        if: ${{ matrix.uploadgithub }}

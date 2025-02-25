@@ -1,0 +1,109 @@
+// This example shows how to define a `PythonModule` trait for managing Python scripts
+// within multiple Mill objects. `PythonModule` takes the one-off pipeline we defined
+// earlier with `sources`, `pythonExe`, `typeCheck`, etc. and wraps it in a `trait`
+// that can be re-used.
+
+package build
+import mill._
+
+trait PythonModule extends Module {
+
+  def sources: T[PathRef] = Task.Source("src")
+  def mainFileName: T[String] = Task { "main.py" }
+
+  def pythonExe: T[PathRef] = Task {
+
+    os.call(("python3", "-m", "venv", Task.dest / "venv"))
+    val python = Task.dest / "venv/bin/python3"
+    os.call((python, "-m", "pip", "install", "mypy==1.13.0"))
+
+    PathRef(python)
+  }
+
+  def typeCheck: T[Unit] = Task {
+    os.call(
+      (pythonExe().path, "-m", "mypy", "--strict", sources().path),
+      stdout = os.Inherit
+    )
+
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    os.call(
+      (pythonExe().path, sources().path / mainFileName(), args.value),
+      stdout = os.Inherit
+    )
+  }
+
+}
+
+// Once the `trait PythonModule`, has been defined, we can re-use it in
+// three seperate objects below
+
+object foo extends PythonModule {
+  def mainFileName = "foo.py"
+  object bar extends PythonModule {
+    def mainFileName = "bar.py"
+  }
+}
+
+object qux extends PythonModule {
+  def mainFileName = "qux.py"
+}
+
+// For this example, we have three different Python Scripts
+// `foo/src/foo.py`, `foo/bar/src/bar.py`, `qux/src/qux.py`, one in each `PythonModule`.
+// The following commands run each module and display their output:
+
+/** Usage
+
+> ./mill foo.run Mill 
+Hello, Mill Foo!
+
+> ./mill foo.bar.run Mill 
+Hello, Mill Foo Bar!
+
+> ./mill qux.run Mill
+Hello, Mill Qux!
+
+*/
+
+// After this step, we have a build graph that looks like this:
+
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_3 {
+//     style=dashed
+//     label=qux
+//     "qux.pythonExe" -> "qux.typeCheck"
+//     "qux.pythonExe" -> "qux.run"
+//     "qux.sources" -> "qux.typeCheck"
+//     "qux.sources" -> "qux.run"
+//     "qux.mainFileName" -> "qux.run"
+//   }
+//   subgraph cluster_1 {
+//     subgraph cluster_2 {
+//       style=dashed
+//       label=bar
+//       "bar.pythonExe" -> "bar.typeCheck"
+//       "bar.pythonExe" -> "bar.run"
+//       "bar.sources" -> "bar.typeCheck"
+//       "bar.sources" -> "bar.run"
+//       "bar.mainFileName" -> "bar.run"
+//     }
+//     style=dashed
+//     label=foo
+//     "foo.pythonExe" -> "foo.typeCheck"
+//     "foo.pythonExe" -> "foo.run"
+//     "foo.sources" -> "foo.typeCheck"
+//     "foo.sources" -> "foo.run"
+//     "foo.mainFileName" -> "foo.run"
+//   }
+// }
+// ....
+
+// Right now, the three ``PythonModule``s are independent. Next we will look into
+// how to allow them to depend on each other using `moduleDeps`.

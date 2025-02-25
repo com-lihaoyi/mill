@@ -13,9 +13,10 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.T
+import mill.Task
 import mill.bsp.worker.Utils.sanitizeUri
-import mill.scalalib.JavaModule
+import mill.scalalib.api.CompilationResult
+import mill.scalalib.{JavaModule, TestModule}
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
@@ -50,7 +51,11 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       targetIds = _ => targetIds,
       tasks = {
         case m: JavaModule =>
-          T.task {
+          val moduleSpecificTask = m match {
+            case m: TestModule => m.getTestEnvironmentVars()
+            case _ => m.compile
+          }
+          Task.Anon {
             (
               m.runClasspath(),
               m.forkArgs(),
@@ -58,18 +63,51 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               m.forkEnv(),
               m.mainClass(),
               m.zincWorker().worker(),
-              m.compile()
+              moduleSpecificTask()
             )
           }
       }
     ) {
-      // We ignore all non-JavaModule
+      case (
+            ev,
+            state,
+            id,
+            _: (TestModule & JavaModule),
+            (
+              _,
+              forkArgs,
+              forkWorkingDir,
+              forkEnv,
+              _,
+              _,
+              testEnvVars: (String, String, String, Seq[String])
+            )
+          ) =>
+        val (mainClass, testRunnerClassPath, argsFile, classpath) = testEnvVars
+        val fullMainArgs: List[String] = List(testRunnerClassPath, argsFile)
+        val item = new JvmEnvironmentItem(
+          id,
+          classpath.asJava,
+          forkArgs.asJava,
+          forkWorkingDir.toString(),
+          forkEnv.asJava
+        )
+        item.setMainClasses(List(mainClass).map(new JvmMainClass(_, fullMainArgs.asJava)).asJava)
+        item
       case (
             ev,
             state,
             id,
             _: JavaModule,
-            (runClasspath, forkArgs, forkWorkingDir, forkEnv, mainClass, zincWorker, compile)
+            (
+              runClasspath,
+              forkArgs,
+              forkWorkingDir,
+              forkEnv,
+              mainClass,
+              zincWorker,
+              compile: CompilationResult
+            )
           ) =>
         val classpath = runClasspath.map(_.path).map(sanitizeUri)
         val item = new JvmEnvironmentItem(
@@ -83,6 +121,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val classes = mainClass.toList ++ zincWorker.discoverMainClasses(compile)
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
+      case _ => ???
     } {
       agg
     }
@@ -98,14 +137,14 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       }
     ) {
       case (ev, _, id, _: JavaModule, compileClasspath) =>
-        val pathResolver = ev.pathsResolver
 
         new JvmCompileClasspathItem(
           id,
           compileClasspath.iterator
-            .map(_.resolve(pathResolver))
+            .map(_.resolve(ev.outPath))
             .map(sanitizeUri).toSeq.asJava
         )
+      case _ => ???
     } {
       new JvmCompileClasspathResult(_)
     }

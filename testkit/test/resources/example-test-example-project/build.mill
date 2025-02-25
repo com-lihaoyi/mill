@@ -1,0 +1,26 @@
+package build
+import mill._
+
+def testSource = Task.Source("source-file.txt")
+def testTask = Task { os.read(testSource().path).toUpperCase() }
+
+/** Usage
+
+> ./mill testTask
+...compiling 1 Scala source...
+
+> cat out/testTask.json
+..."HELLO WORLD SOURCE FILE"...
+
+> sed -i.bak 's/file/file!!!/g' source-file.txt
+
+> ./mill testTask
+
+> cat out/testTask.json
+..."HELLO WORLD SOURCE FILE!!!"...
+
+> ls out/mill-server # not --no-server, make sure `mill-server` is generated
+
+> ls out/mill-no-server # --no-server, make sure `mill-no-server` is generated
+
+*/

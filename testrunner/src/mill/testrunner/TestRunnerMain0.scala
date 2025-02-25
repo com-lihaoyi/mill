@@ -1,14 +1,13 @@
 package mill.testrunner
 
-import mill.api.Loose.Agg
 import mill.api.{Ctx, DummyTestReporter, SystemStreams, internal}
-import mill.util.PrintLogger
+import mill.internal.PrintLogger
 
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
       val testArgs = upickle.default.read[mill.testrunner.TestArgs](os.read(os.Path(args(1))))
-      val ctx = new Ctx.Log with Ctx.Home {
+      val ctx = new Ctx.Log {
         val log = new PrintLogger(
           testArgs.colored,
           true,
@@ -21,7 +20,6 @@ import mill.util.PrintLogger
           context = "",
           new PrintLogger.State()
         )
-        val home = testArgs.home
       }
       ctx.log.debug(s"Setting ${testArgs.sysProps.size} system properties")
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
@@ -30,15 +28,15 @@ import mill.util.PrintLogger
 
       val result = TestRunnerUtils.runTestFramework0(
         frameworkInstances = Framework.framework(testArgs.framework),
-        testClassfilePath = Agg.from(testArgs.testCp),
+        testClassfilePath = Seq.from(testArgs.testCp),
         args = testArgs.arguments,
-        classFilter = filter,
+        classFilter = cls => filter(cls.getName),
         cl = classLoader,
         testReporter = DummyTestReporter
       )(ctx)
 
       // Clear interrupted state in case some badly-behaved test suite
-      // dirtied the thread-interrupted flag and forgot to clean up. Otherwise
+      // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
       os.write(testArgs.outputPath, upickle.default.stream(result))

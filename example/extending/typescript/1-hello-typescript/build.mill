@@ -1,0 +1,142 @@
+// This example demonstrates basic integration of https://www.typescriptlang.org/[Typescript]
+// compilation into a Mill build to compile https://nodejs.org/en[Node.js] apps. Mill
+// does not come bundled with a Typescript integration, so here we begin setting
+// one up from first principles using the https://www.npmjs.com/[NPM] command line
+// tool and package repository
+
+// === Installing TypeScript
+//
+// First, we need to use the `npm` CLI tool to install typescript and the `@types/node`
+// library necessary for accessing Node.js APIs:
+
+package build
+import mill._
+
+def npmInstall = Task {
+  os.call(("npm", "install", "--save-dev", "typescript@5.6.3", "@types/node@22.7.8"))
+  PathRef(Task.dest)
+}
+
+// The `npmInstall` task runs `npm install` to install TypeScript locally, following
+// the https://www.typescriptlang.org/download/[TypeScript installation instructions].
+// The `os.call` above by default runs inside the `npmInstall` task's unique `Task.dest`
+// output directory due to xref:depth/sandboxing.adoc[task sandboxing]. Note that we
+// use an explicit version on each of the modules to ensure the `Task` is reproducible.
+// We then return a `PathRef` to the `Task.dest` so downstream tasks can make use of it.
+//
+// Note that as written, the `npmInstall` task will never invalidate unless you change its
+// code. This is what we should expect, since `npmInstall` has no upstream tasks it depends
+// on and the versions of `typescript` and `@types/node` are fully specified in the task.
+// This assumes that the `npm` package repository always returns the same artifacts for
+// the given name and version, which is a reasonable assumption for most package repositories.
+
+// === Defining our sources
+
+// Next, we define the `sources` of our Typescript build using a
+// xref:fundamentals/tasks.adoc#_sources[source task]. Here `sources` refers to the
+// source folder, and the subsequent `allSources` walks that folder and picks up all
+// the individual typescript files within. This is a common pattern to give flexibility,
+// e.g. someone can later easily override `allSources` to add additional filtering
+// on exactly which files within the source root they wish to pick up.
+
+def sources = Task.Source("src")
+def allSources = Task {
+  os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
+}
+
+// === Compilation
+//
+// Next, we define our `compile` task. This is again a relatively straightforward subprocess
+// call invoking the `typescript/bin/tsc` executable within the `node_modules` folder from the
+// upstream `npmInstall` task, passing it the sources, `--outDir`, `--types`, and `--typeRoots`
+// Again we return a `PathRef` to the `Task.dest` folder we output the compiled JS files to
+
+def compile = Task {
+  os.call(
+    (
+      npmInstall().path / "node_modules/typescript/bin/tsc",
+      allSources().map(_.path),
+      "--outDir",
+      Task.dest,
+      "--typeRoots",
+      npmInstall().path / "node_modules/@types"
+    )
+  )
+  PathRef(Task.dest)
+}
+// At this point, we have a minimal working build, with a build graph that looks like this:
+//
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   npmInstall -> compile
+//   sources -> allSources -> compile
+// }
+// ....
+//
+// Given an input file below, we can run
+// `mill compile` and demonstrate it is installing typescript locally and using it to compile
+// the `.ts` files in out `src/` folder:
+
+/** See Also: src/hello.ts */
+
+/** Usage
+
+> mill compile
+error: .../src/hello.ts(...): error ... Property 'name' does not exist on type...
+
+> sed -i.bak 's/user.name/user.firstName/g' src/hello.ts
+
+> mill compile
+
+> cat out/compile.dest/hello.js # Output is stripped of types and converted to javascript
+var user = {
+    firstName: process.argv[2],
+    lastName: process.argv[3],
+    role: "Professor",
+};
+console.log("Hello " + user.firstName + " " + user.lastName);
+
+*/
+
+// === Running
+
+// The last step here is to allow the ability to run our compiled JavaScript file.
+// To do this, we need a `mainFileName` task to tell Mill which file should be used
+// as the program entrypoint, and a `run` command taking arguments that get used to
+// call `node` along with the main Javascript file:
+
+def mainFileName = Task { "hello.js" }
+def run(args: mill.define.Args) = Task.Command {
+  os.call(
+    ("node", compile().path / mainFileName(), args.value),
+    stdout = os.Inherit
+  )
+}
+// Note that we use `stdout = os.Inherit` since we want to display any output to
+// the user, rather than capturing it for use in our command.
+//
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   npmInstall -> compile
+//   sources -> allSources -> compile -> run
+//   mainFileName -> run
+//   mainFileName [color=green, penwidth=3]
+//   run [color=green, penwidth=3]
+// }
+// ....
+
+/** Usage
+> mill run James Bond
+Hello James Bond
+
+*/
+
+// So that's a minimal example of implementing a single TypeScript to JavaScript build
+// pipeline locally. Next, we will look at turning it into a `TypeScriptModule` that
+// can be re-used

@@ -1,22 +1,20 @@
 package mill.scalalib
 
 import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
-import mill.Agg
-import mill.api.{Ctx, IO, PathRef}
+import mill.api.PathRef
+import mill.util.JarManifest
 import os.Generator
 
 import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
-import java.net.URI
 import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{FileSystems, Files, StandardOpenOption}
+import java.nio.file.StandardOpenOption
 import java.util.Collections
 import java.util.jar.JarFile
 import java.util.regex.Pattern
 import scala.jdk.CollectionConverters._
-import scala.tools.nsc.io.Streamable
 import scala.util.Using
 
-case class Assembly(pathRef: PathRef, addedEntries: Int)
+case class Assembly(pathRef: PathRef, entries: Int)
 
 object Assembly {
 
@@ -42,18 +40,8 @@ object Assembly {
       def apply(pattern: String, separator: String): AppendPattern =
         new AppendPattern(Pattern.compile(pattern), separator)
 
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def unapply(value: AppendPattern): Option[Pattern] = Some(value.pattern)
     }
     class AppendPattern private (val pattern: Pattern, val separator: String) extends Rule {
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def this(pattern: Pattern) = this(pattern, defaultSeparator)
 
       override def productPrefix: String = "AppendPattern"
       override def productArity: Int = 2
@@ -70,11 +58,6 @@ object Assembly {
       }
       override def toString: String = scala.runtime.ScalaRunTime._toString(this)
 
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def copy(pattern: Pattern = pattern): AppendPattern = new AppendPattern(pattern, separator)
     }
 
     case class Exclude(path: String) extends Rule
@@ -127,7 +110,7 @@ object Assembly {
   type ResourceCloser = () => Unit
 
   def loadShadedClasspath(
-      inputPaths: Agg[os.Path],
+      inputPaths: Seq[os.Path],
       assemblyRules: Seq[Assembly.Rule]
   ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
     val shadeRules = assemblyRules.collect {
@@ -140,7 +123,7 @@ object Assembly {
         val shader = Shader.bytecodeShader(shadeRules, verbose = false, skipManifest = true)
         (name: String, inputStream: UnopenedInputStream) => {
           val is = inputStream()
-          shader(Streamable.bytes(is), name).map {
+          shader(is.readAllBytes(), name).map {
             case (bytes, name) =>
               name -> (() =>
                 new ByteArrayInputStream(bytes) {
@@ -192,29 +175,12 @@ object Assembly {
     def append(entry: UnopenedInputStream): GroupedEntry = this
   }
 
-  def createAssembly(
-      inputPaths: Agg[os.Path],
-      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
-      prependShellScript: String = "",
-      base: Option[os.Path] = None,
-      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
-  )(implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
-    create(
-      destJar = ctx.dest / "out.jar",
-      inputPaths = inputPaths,
-      manifest = manifest,
-      prependShellScript = Option(prependShellScript).filter(_ != ""),
-      base = base,
-      assemblyRules = assemblyRules
-    ).pathRef
-  }
-
   def create(
       destJar: os.Path,
-      inputPaths: Agg[os.Path],
-      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
+      inputPaths: Seq[os.Path],
+      manifest: JarManifest = JarManifest.MillDefault,
       prependShellScript: Option[String] = None,
-      base: Option[os.Path] = None,
+      base: Option[Assembly] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
   ): Assembly = {
     val rawJar = os.temp("out-tmp", deleteOnExit = false)
@@ -222,44 +188,46 @@ object Assembly {
     os.remove(rawJar)
 
     // use the `base` (the upstream assembly) as a start
-    val baseUri = "jar:" + rawJar.toIO.getCanonicalFile.toURI.toASCIIString
-    val hm = base.fold(Map("create" -> "true")) { b =>
-      os.copy(b, rawJar)
-      Map.empty
-    }
+    base.foreach(a => os.copy.over(a.pathRef.path, rawJar))
 
-    var addedEntryCount = 0
+    var addedEntryCount = base.map(_.entries).getOrElse(0)
 
     // Add more files by copying files to a JAR file system
-    Using.resource(FileSystems.newFileSystem(URI.create(baseUri), hm.asJava)) { zipFs =>
-      val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
-      Files.createDirectories(manifestPath.getParent)
-      val manifestOut = Files.newOutputStream(
+    Using.resource(os.zip.open(rawJar)) { zipRoot =>
+      val manifestPath = zipRoot / os.SubPath(JarFile.MANIFEST_NAME)
+      os.makeDir.all(manifestPath / os.up)
+      Using.resource(os.write.outputStream(
         manifestPath,
-        StandardOpenOption.TRUNCATE_EXISTING,
-        StandardOpenOption.CREATE
-      )
-      manifest.build.write(manifestOut)
-      manifestOut.close()
+        openOptions = Seq(
+          StandardOpenOption.TRUNCATE_EXISTING,
+          StandardOpenOption.CREATE
+        )
+      )) { manifestOut =>
+        manifest.build.write(manifestOut)
+      }
 
       val (mappings, resourceCleaner) = Assembly.loadShadedClasspath(inputPaths, assemblyRules)
       try {
         Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
           case (mapping, entry) =>
-            val path = zipFs.getPath(mapping).toAbsolutePath
+            val path = zipRoot / os.SubPath(mapping)
             entry match {
               case entry: AppendEntry =>
                 val separated = entry.inputStreams
                   .flatMap(inputStream =>
                     Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream())
                   )
-                val cleaned = if (Files.exists(path)) separated else separated.drop(1)
-                val concatenated = new SequenceInputStream(Collections.enumeration(cleaned.asJava))
-                addedEntryCount += 1
-                writeEntry(path, concatenated, append = true)
+                val cleaned = if (os.exists(path)) separated else separated.drop(1)
+                Using.resource(new SequenceInputStream(Collections.enumeration(cleaned.asJava))) {
+                  concatenated =>
+                    addedEntryCount += 1
+                    writeEntry(path, concatenated, append = true)
+                }
               case entry: WriteOnceEntry =>
                 addedEntryCount += 1
-                writeEntry(path, entry.inputStream(), append = false)
+                Using.resource(entry.inputStream()) { stream =>
+                  writeEntry(path, stream, append = false)
+                }
             }
         }
       } finally {
@@ -297,15 +265,14 @@ object Assembly {
     Assembly(PathRef(destJar), addedEntryCount)
   }
 
-  private def writeEntry(p: java.nio.file.Path, inputStream: InputStream, append: Boolean): Unit = {
-    if (p.getParent != null) Files.createDirectories(p.getParent)
+  private def writeEntry(p: os.Path, inputStream: InputStream, append: Boolean): Unit = {
+    if (p.segmentCount != 0) os.makeDir.all(p / os.up)
     val options =
       if (append) Seq(StandardOpenOption.APPEND, StandardOpenOption.CREATE)
       else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
-    val outputStream = java.nio.file.Files.newOutputStream(p, options: _*)
-    IO.stream(inputStream, outputStream)
-    outputStream.close()
-    inputStream.close()
+    Using.resource(os.write.outputStream(p, openOptions = options)) { outputStream =>
+      os.Internals.transfer(inputStream, outputStream)
+    }
   }
 }

@@ -2,53 +2,42 @@ package mill.scalajslib
 
 import mill.define.Discover
 import mill.scalajslib.api._
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 
 object TopLevelExportsTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "top-level-exports"
+  object TopLevelExportsModule extends TestBaseModule with ScalaJSModule {
+    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+    override def scalaJSVersion =
+      sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.8.0"
+    override def moduleKind = ModuleKind.ESModule
 
-  object TopLevelExportsModule extends TestUtil.BaseModule {
-
-    object topLevelExportsModule extends ScalaJSModule {
-      override def millSourcePath = workspacePath
-      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      override def scalaJSVersion =
-        sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.8.0"
-      override def moduleKind = ModuleKind.ESModule
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
     }
-
-    override lazy val millDiscover = Discover[this.type]
   }
 
-  val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "top-level-exports"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "top-level-exports"
 
-  val evaluator = TestEvaluator.static(TopLevelExportsModule)
+  val evaluator = UnitTester(TopLevelExportsModule, millSourcePath)
 
   val tests: Tests = Tests {
-    prepareWorkspace()
-
     test("top level exports") {
-      println(evaluator(TopLevelExportsModule.topLevelExportsModule.sources))
-      val Right((report, _)) =
-        evaluator(TopLevelExportsModule.topLevelExportsModule.fastLinkJS)
-      val publicModules = report.publicModules.toSeq
+      println(evaluator(TopLevelExportsModule.sources))
+      val Right(result) =
+        evaluator(TopLevelExportsModule.fastLinkJS): @unchecked
+      val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 2)
       val b = publicModules(0)
       assert(b.jsFileName == "b.js")
-      assert(os.exists(report.dest.path / "b.js"))
-      assert(os.exists(report.dest.path / "b.js.map"))
+      assert(os.exists(result.value.dest.path / "b.js"))
+      assert(os.exists(result.value.dest.path / "b.js.map"))
       val a = publicModules(1)
       assert(a.jsFileName == "a.js")
-      assert(os.exists(report.dest.path / "a.js"))
-      assert(os.exists(report.dest.path / "a.js.map"))
+      assert(os.exists(result.value.dest.path / "a.js"))
+      assert(os.exists(result.value.dest.path / "a.js.map"))
     }
   }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
-
 }

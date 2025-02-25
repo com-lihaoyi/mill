@@ -18,32 +18,6 @@ class SonatypePublisher(
     awaitTimeout: Int,
     stagingRelease: Boolean
 ) {
-  @deprecated("Use other constructor instead", since = "mill 0.10.8")
-  def this(
-      uri: String,
-      snapshotUri: String,
-      credentials: String,
-      signed: Boolean,
-      gpgArgs: Seq[String],
-      readTimeout: Int,
-      connectTimeout: Int,
-      log: Logger,
-      awaitTimeout: Int,
-      stagingRelease: Boolean = true
-  ) = this(
-    uri = uri,
-    snapshotUri = snapshotUri,
-    credentials = credentials,
-    signed = signed,
-    gpgArgs = gpgArgs,
-    readTimeout = readTimeout,
-    connectTimeout = connectTimeout,
-    log = log,
-    workspace = os.pwd,
-    env = sys.env,
-    awaitTimeout = awaitTimeout,
-    stagingRelease = stagingRelease
-  )
 
   private val api = new SonatypeHttpApi(
     uri,
@@ -114,7 +88,7 @@ class SonatypePublisher(
     val profileUri = api.getStagingProfileUri(stagingProfile)
     val stagingRepoId =
       api.createStagingRepo(profileUri, stagingProfile)
-    val baseUri = s"$uri/staging/deployByRepositoryId/$stagingRepoId/"
+    val baseUri = s"$uri/staging/deployByRepositoryId/$stagingRepoId"
 
     publishToUri(payloads, artifacts, baseUri)
 

@@ -1,0 +1,29 @@
+= Testing Scala Projects
+:page-aliases: Testing_Scala_Projects.adoc
+
+
+
+This page will discuss common topics around working with test suites using the Mill build tool
+
+== Defining Unit Test Suites
+
+include::partial$example/scalalib/testing/1-test-suite.adoc[]
+
+
+== Test Dependencies
+
+include::partial$example/scalalib/testing/2-test-deps.adoc[]
+
+== Defining Integration Test Suites
+
+include::partial$example/scalalib/testing/3-integration-suite.adoc[]
+
+== Test Grouping
+
+include::partial$example/scalalib/testing/4-test-grouping.adoc[]
+
+== Github Actions Test Reports
+
+If you use Github Actions for CI, you can use https://github.com/mikepenz/action-junit-report in
+your pipeline to render the generated `test-report.xml` files nicely on Github. See
+https://github.com/com-lihaoyi/mill/pull/4218/files for an example integration

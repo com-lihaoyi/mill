@@ -17,7 +17,7 @@ trait CodeartifactPublishModule extends PublishModule {
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ): define.Command[Unit] =
-    T.command {
+    Task.Command {
       val PublishModule.PublishData(artifactInfo, artifacts) =
         publishArtifacts()
 
@@ -27,7 +27,7 @@ trait CodeartifactPublishModule extends PublishModule {
         credentials,
         readTimeout,
         connectTimeout,
-        T.log
+        Task.log
       ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
     }
 }
@@ -41,8 +41,8 @@ object CodeartifactPublishModule extends ExternalModule {
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ) =
-    T.command {
-      val artifacts = T.sequence(publishArtifacts.value)().map {
+    Task.Command {
+      val artifacts = Task.sequence(publishArtifacts.value)().map {
         case data @ PublishModule.PublishData(_, _) => data.withConcretePath
       }
       new CodeartifactPublisher(
@@ -51,12 +51,12 @@ object CodeartifactPublishModule extends ExternalModule {
         credentials,
         readTimeout,
         connectTimeout,
-        T.log
+        Task.log
       ).publishAll(
-        artifacts: _*
+        artifacts*
       )
     }
 
-  lazy val millDiscover: mill.define.Discover[this.type] =
+  lazy val millDiscover: mill.define.Discover =
     mill.define.Discover[this.type]
 }

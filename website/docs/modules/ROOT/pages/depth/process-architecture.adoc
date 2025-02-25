@@ -1,0 +1,168 @@
+= The Mill Process Architecture
+
+
+
+This page goes into detail of how the Mill process and application is structured.
+At a high-level, a simplified version of the main components and data-flows within
+a running Mill process is shown below:
+
+[graphviz]
+....
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+
+  "client-stdin" [penwidth=0]
+  "client-stdout" [penwidth=0]
+  "client-stderr" [penwidth=0]
+  "client-exit" [penwidth=0]
+  "client-args" [penwidth=0]
+  subgraph cluster_client {
+      label = "mill client";
+      "Socket"
+      "MillClientMain"
+  }
+  "client-stdin" -> "Socket"
+  "client-stderr" -> "Socket" [dir=back]
+  "client-stdout" -> "Socket" [dir=back]
+  "client-args" -> "MillClientMain"
+  "client-exit" -> "MillClientMain" [dir=back]
+  "MillClientMain" -> "runArgs"
+  subgraph cluster_out {
+    label = "out/";
+
+
+    subgraph cluster_mill_server_folder {
+      label = "mill-server/";
+      "socketPort" [penwidth=0]
+      "exitCode" [penwidth=0]
+      "runArgs" [penwidth=0]
+    }
+        subgraph cluster_out_foo_folder {
+      label = "foo/";
+      "compile.json" [penwidth=0]
+      "compile.dest" [penwidth=0]
+      "assembly.json" [penwidth=0]
+      "assembly.dest" [penwidth=0]
+
+    }
+  }
+
+
+  subgraph cluster_server {
+    label = "mill server";
+    "PromptLogger"
+    "MillServerMain"
+    "Evaluator"
+    "ServerSocket"
+
+    "server-stdout" [penwidth=0]
+    "server-stderr" [penwidth=0]
+    subgraph cluster_classloder {
+      label = "URLClassLoader";
+      subgraph cluster_build {
+        style=dashed
+        label = "build";
+        subgraph cluster_foo {
+          style=dashed
+          label = "foo";
+
+          "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+          "foo.resources" -> "foo.assembly"
+          "foo.classPath"
+        }
+      }
+
+    }
+  }
+
+
+  "runArgs" -> "MillServerMain"
+  "MillServerMain" -> "Evaluator" [dir=both]
+  "ServerSocket" -> "PromptLogger" [dir=back]
+  "exitCode" -> "MillServerMain" [dir=back]
+  "MillClientMain" -> "exitCode" [dir=back]
+  "Socket" -> "socketPort"  [dir=both]
+  "socketPort" -> "ServerSocket"  [dir=both]
+
+  "PromptLogger" -> "server-stderr" [dir=back]
+  "PromptLogger" -> "server-stdout" [dir=back]
+  "compile.dest" -> "foo.compile"  [dir=both]
+  "compile.json" -> "foo.compile"  [dir=both]
+
+  "assembly.dest" -> "foo.assembly"  [dir=both]
+  "assembly.json" -> "foo.assembly"  [dir=both]
+}
+....
+
+
+== The Mill Client
+
+The Mill client is a small Java application that is responsible for launching
+and delegating work to the Mill server, a long-lived process. Each `./mill`
+command spawns a new Mill client, but generally re-uses the same Mill server where
+possible in order to reduce startup overhead and to allow the Mill server
+process to warm up and provide good performance
+
+* The Mill client takes all the inputs of a typical command-line application -
+stdin and command-line arguments - and proxies them to the long-lived Mill
+server process.
+
+* It then takes the outputs from the Mill server - stdout, stderr,
+and finally the exitcode - and proxies those back to the calling process or terminal.
+
+In this way, the Mill client acts and behaves for most all intents and purposes
+as a normal CLI application, except it is really a thin wrapper around logic that
+is actually running in the long-lived Mill server.
+
+The Mill server sometimes is shut down and needs to be restarted, e.g. if Mill
+version changed, or the user used `Ctrl-C` to interrupt the ongoing computation.
+In such a scenario, the Mill client will automatically restart the server the next
+time it is run, so apart from a slight performance penalty from starting a "cold"
+Mill server such shutdowns and restarts should be mostly invisibl to the user.
+
+== The Mill Server
+
+The Mill server is a long-lived process that the Mill client spawns.
+Only one Mill server should be running in a codebase at a time, and each server
+takes a filelock at startup time to enforce this mutual exclusion.
+
+The Mill server compiles your `build.mill` and `package.mill`, spawns a
+`URLClassLoader` containing the compiled classfiles, and uses that to instantiate
+the variousxref:fundamentals/modules.adoc[] and xref:fundamentals/tasks.adoc[]
+dynamically in-memory. These are then used by the `Evaluator`, which resolves,
+plans, and executes the tasks specified by the given `runArgs`
+
+During execution, both standard output
+and standard error are captured during evaluation and forwarded to the `PromptLogger`.
+`PromptLogger` annotates the output stream with the line-prefixes, prompt, and ANSI
+terminal commands necessary to generate the dynamic prompt, and then forwards both
+streams multi-plexed over a single socket stream back to the Mill client. The client
+then de-multiplexes the combined stream to split it back into output and error, which
+are then both forwarded to the process or terminal that invoked the Mill client.
+
+Lastly, when the Mill server completes its tasks, it writes the `exitCode` to a file
+that is then propagated back to the Mill client. The Mill client terminates with this
+exit code, but the Mill server remains alive and ready to serve to the next Mill
+client that connects to it
+
+For a more detailed discussion of what exactly goes into "execution", see
+xref:depth/evaluation-model.adoc[].
+
+
+== The Out Folder
+
+The `out/` directory is where most of Mill's state lives on disk, both build-task state
+such as the `foo/compile.json` metadata cache for `foo.compile`, or the `foo/compile.dest`
+which stores any generated files or binaries. It also contains `mill-server/` folder which
+is used to pass data back and forth between the client and server: the `runArgs`, `exitCode`,
+etc.
+
+Each task during evaluation reads and writes from its own designated paths in the `out/`
+folder. Each task's files are not touched by any other tasks, nor are they used in the rest
+of the Mill architecture: they are solely meant to serve each task's caching and filesystem
+needs.
+
+More documentation on what the `out/` directory contains and how to make use of it can be
+found at xref:fundamentals/out-dir.adoc[].

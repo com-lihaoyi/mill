@@ -1,0 +1,12 @@
+= Python Packaging & Publishing
+:page-aliases: Publishing_Python_Projects.adoc
+
+
+
+This page will discuss common topics around publishing your Python projects for others to use.
+
+include::partial$example/pythonlib/publishing/1-publish-module.adoc[]
+
+== Advanced Packaging
+
+include::partial$example/pythonlib/publishing/2-publish-module-advanced.adoc[]

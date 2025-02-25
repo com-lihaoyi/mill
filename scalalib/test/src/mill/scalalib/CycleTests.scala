@@ -1,13 +1,15 @@
 package mill.scalalib
 
 import mill.api.BuildScriptException
-import mill.util.{TestEvaluator, TestUtil}
-import utest.framework.TestPath
-import utest.{TestSuite, Tests, intercept, test, assert}
+import mill.define.Discover
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
+import utest.{TestSuite, Tests, assert, intercept, test}
+import mill.main.TokenReaders._
 
 object CycleTests extends TestSuite {
 
-  object CycleBase extends TestUtil.BaseModule {
+  object CycleBase extends TestBaseModule {
     // See issue: https://github.com/com-lihaoyi/mill/issues/2341
     object a extends ScalaModule {
       override def moduleDeps = Seq(a)
@@ -28,25 +30,19 @@ object CycleTests extends TestSuite {
     object f extends JavaModule {
       override def compileModuleDeps = Seq(f)
     }
-  }
 
-  def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    t(eval)
+    lazy val millDiscover = Discover[this.type]
   }
 
   override def tests: Tests = Tests {
     test("moduleDeps") {
-      test("self-reference") - workspaceTest(CycleBase) { eval =>
+      test("self-reference") - UnitTester(CycleBase, null).scoped { eval =>
         val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.a.compile)
         }
         assert(ex.getMessage.contains("a.moduleDeps: cycle detected: a -> a"))
       }
-      test("cycle-in-deps") - workspaceTest(CycleBase) { eval =>
+      test("cycle-in-deps") - UnitTester(CycleBase, null).scoped { eval =>
         val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.e.compile)
         }
@@ -54,7 +50,7 @@ object CycleTests extends TestSuite {
       }
     }
     test("compileModuleDeps") {
-      test("self-reference") - workspaceTest(CycleBase) { eval =>
+      test("self-reference") - UnitTester(CycleBase, null).scoped { eval =>
         val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.f.compile)
         }

@@ -2,75 +2,75 @@ package mill.scalajslib
 
 import mill._
 import mill.define.Discover
-import mill.eval.EvaluatorPaths
-import mill.util._
+import mill.define.ExecutionPaths
 import mill.scalalib._
+import mill.testkit.{UnitTester, TestBaseModule}
 import utest._
 object MultiModuleTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "multi-module"
-  val sourcePath = os.pwd / "scalajslib" / "test" / "resources" / "multi-module"
+  val sourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "multi-module"
 
-  object MultiModule extends TestUtil.BaseModule {
+  object MultiModule extends TestBaseModule {
     trait BaseModule extends ScalaJSModule {
       def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
     }
 
     object client extends BaseModule {
-      override def millSourcePath = workspacePath / "client"
+      override def moduleDir = MultiModule.moduleDir / "client"
       override def moduleDeps = Seq(shared)
       override def mainClass = Some("Main")
       object test extends ScalaJSTests with TestModule.Utest {
         override def ivyDeps =
-          Agg(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
+          Seq(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
       }
     }
 
     object shared extends BaseModule {
-      override def millSourcePath = workspacePath / "shared"
+      override def moduleDir = MultiModule.moduleDir / "shared"
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
-  val evaluator = TestEvaluator.static(MultiModule)
+  val evaluator = UnitTester(MultiModule, sourcePath)
 
   def tests: Tests = Tests {
-    prepareWorkspace()
-
     def checkOpt(optimize: Boolean) = {
-      val task = if (optimize) MultiModule.client.fullOpt else MultiModule.client.fastOpt
-      val Right((linked, evalCount)) = evaluator(task)
+      val task = if (optimize) MultiModule.client.fullLinkJS else MultiModule.client.fastLinkJS
+      val Right(result) = evaluator(task): @unchecked
 
-      val runOutput = ScalaJsUtils.runJS(linked.path)
+      val runOutput = ScalaJsUtils.runJS(result.value.dest.path / "main.js")
       assert(
-        evalCount > 0,
+        result.evalCount > 0,
         runOutput == "Hello from Scala.js, result is: 3\n"
       )
     }
 
-    "fastOpt" - checkOpt(optimize = false)
-    "fullOpt" - checkOpt(optimize = true)
+    test("fastOpt") - checkOpt(optimize = false)
+    test("fullOpt") - checkOpt(optimize = true)
 
     test("test") {
-      val Right(((_, testResults), evalCount)) = evaluator(MultiModule.client.test.test())
+      val Right(result) = evaluator(MultiModule.client.test.testForked()): @unchecked
 
       assert(
-        evalCount > 0,
-        testResults.size == 3,
-        testResults.forall(_.status == "Success")
+        result.evalCount > 0,
+        result.value._2.size == 3,
+        result.value._2.forall(_.status == "Success")
       )
     }
 
     test("run") {
       val command = MultiModule.client.run()
 
-      val Right((_, evalCount)) = evaluator(command)
+      val Right(result) = evaluator(command): @unchecked
 
-      val paths = EvaluatorPaths.resolveDestPaths(evaluator.outPath, command)
+      val paths = ExecutionPaths.resolve(evaluator.outPath, command)
       val log = os.read(paths.log)
       assert(
-        evalCount > 0,
+        result.evalCount > 0,
         log.contains("node")
         // TODO: re-enable somehow
         // In Scala.js 1.x, the stdout is no longer sent to the log, so this check doesn't work
@@ -78,11 +78,4 @@ object MultiModuleTests extends TestSuite {
       )
     }
   }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(sourcePath, workspacePath)
-  }
-
 }

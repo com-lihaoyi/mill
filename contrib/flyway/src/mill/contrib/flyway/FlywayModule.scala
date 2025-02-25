@@ -10,7 +10,7 @@ import org.flywaydb.core.internal.configuration.{ConfigUtils => flyway}
 import org.flywaydb.core.internal.info.MigrationInfoDumper
 import scala.jdk.CollectionConverters._
 
-import mill.{Agg, T}
+import mill.{T, Task}
 import mill.api.PathRef
 import mill.define.Command
 import mill.scalalib.{Dep, JavaModule}
@@ -22,17 +22,14 @@ trait FlywayModule extends JavaModule {
   def flywayUrl: T[String]
   def flywayUser: T[String] = T("")
   def flywayPassword: T[String] = T("")
-  def flywayFileLocations: T[Seq[PathRef]] = T {
-    resources().map(pr => PathRef(pr.path / "db" / "migration", pr.quick))
+  def flywayFileLocations: T[Seq[PathRef]] = Task {
+    resources().map(pr => PathRef(pr.path / "db/migration", pr.quick))
   }
 
-  def flywayDriverDeps: T[Agg[Dep]]
+  def flywayDriverDeps: T[Seq[Dep]]
 
-  def jdbcClasspath = T {
-    resolveDeps(T.task {
-      val bind = bindDependency()
-      flywayDriverDeps().map(bind)
-    })()
+  def jdbcClasspath = Task {
+    defaultResolver().resolveDeps(flywayDriverDeps())
   }
 
   private def strToOptPair[A](key: String, v: String) =
@@ -40,7 +37,7 @@ trait FlywayModule extends JavaModule {
       .filter(_.nonEmpty)
       .map(key -> _)
 
-  def flywayInstance = T.worker {
+  def flywayInstance = Task.Worker {
     val jdbcClassloader = new URLClassLoader(jdbcClasspath().map(_.path.toIO.toURI.toURL).toArray)
 
     val configProps = Map(flyway.URL -> flywayUrl()) ++
@@ -51,24 +48,24 @@ trait FlywayModule extends JavaModule {
 
     Flyway
       .configure(jdbcClassloader)
-      .locations(flywayFileLocations().map("filesystem:" + _.path): _*)
+      .locations(flywayFileLocations().map("filesystem:" + _.path)*)
       .configuration(configProps.asJava)
       .load
   }
 
-  def flywayMigrate(): Command[MigrateResult] = T.command {
+  def flywayMigrate(): Command[MigrateResult] = Task.Command {
     flywayInstance().migrate()
   }
 
-  def flywayClean(): Command[CleanResult] = T.command {
+  def flywayClean(): Command[CleanResult] = Task.Command {
     flywayInstance().clean()
   }
 
-  def flywayBaseline(): Command[BaselineResult] = T.command {
+  def flywayBaseline(): Command[BaselineResult] = Task.Command {
     flywayInstance().baseline()
   }
 
-  def flywayInfo(): Command[String] = T.command {
+  def flywayInfo(): Command[String] = Task.Command {
     val info = flywayInstance().info
     val current = info.current
     val currentSchemaVersion =
@@ -77,7 +74,7 @@ trait FlywayModule extends JavaModule {
     val out =
       s"""Schema version: ${currentSchemaVersion}
          |${MigrationInfoDumper.dumpToAsciiTable(info.all)}""".stripMargin
-    T.log.outputStream.println(out)
+    Task.log.outputStream.println(out)
     out
   }
 }

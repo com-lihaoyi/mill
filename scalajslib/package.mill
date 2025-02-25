@@ -1,0 +1,61 @@
+package build.scalajslib
+
+// imports
+import mill._
+import mill.scalalib._
+import mill.contrib.buildinfo.BuildInfo
+import mill.T
+import mill.define.Cross
+
+object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
+  def moduleDeps = Seq(build.scalalib, `worker-api`)
+  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker("1").testDep())
+  def buildInfoPackageName = "mill.scalajslib"
+  def buildInfoObjectName = "ScalaJSBuildInfo"
+
+  def buildInfoMembers = Task {
+    val resolve = bindDependency()
+
+    def formatDep(dep: Dep) = {
+      val d = resolve(dep)
+      s"${d.dep.module.organization.value}:${d.dep.module.name.value}:${d.dep.version}"
+    }
+
+    Seq(
+      BuildInfo.Value("scalajsEnvNodejs", formatDep(build.Deps.Scalajs_1.scalajsEnvNodejs)),
+      BuildInfo.Value(
+        "scalajsEnvJsdomNodejs",
+        formatDep(build.Deps.Scalajs_1.scalajsEnvJsdomNodejs)
+      ),
+      BuildInfo.Value(
+        "scalajsEnvExoegoJsdomNodejs",
+        formatDep(build.Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)
+      ),
+      BuildInfo.Value("scalajsEnvPhantomJs", formatDep(build.Deps.Scalajs_1.scalajsEnvPhantomjs)),
+      BuildInfo.Value("scalajsEnvSelenium", formatDep(build.Deps.Scalajs_1.scalajsEnvSelenium)),
+      BuildInfo.Value("scalajsImportMap", formatDep(build.Deps.Scalajs_1.scalajsImportMap))
+    )
+  }
+
+  object `worker-api` extends build.MillPublishScalaModule {
+    def ivyDeps = Agg(build.Deps.sbtTestInterface)
+  }
+
+  object worker extends Cross[WorkerModule]("1")
+  trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
+    def scalajsWorkerVersion = crossValue
+    def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
+    def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.core.constants, build.core.api)
+    def mandatoryIvyDeps = Agg.empty[Dep]
+    def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
+      build.Deps.Scalajs_1.scalajsLinker,
+      build.Deps.Scalajs_1.scalajsSbtTestAdapter,
+      build.Deps.Scalajs_1.scalajsEnvNodejs,
+      build.Deps.Scalajs_1.scalajsEnvJsdomNodejs,
+      build.Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
+      build.Deps.Scalajs_1.scalajsEnvPhantomjs,
+      build.Deps.Scalajs_1.scalajsEnvSelenium,
+      build.Deps.Scalajs_1.scalajsImportMap
+    )
+  }
+}

@@ -1,6 +1,6 @@
 package mill.scalalib.dependency
 
-import mill.api.Ctx.{Home, Log}
+import mill.api.Ctx.Log
 import mill.define._
 import mill.eval.Evaluator
 import mill.scalalib.dependency.updates.{
@@ -14,9 +14,9 @@ object DependencyUpdatesImpl {
 
   def apply(
       evaluator: Evaluator,
-      ctx: Log with Home,
+      ctx: Log,
       rootModule: BaseModule,
-      discover: Discover[_],
+      discover: Discover,
       allowPreRelease: Boolean
   ): Seq[ModuleDependenciesUpdates] = {
 
@@ -32,10 +32,6 @@ object DependencyUpdatesImpl {
     // 3. Return the results
     allUpdates
   }
-
-  @deprecated("Use other overload instead", "Mill after 0.11.6")
-  def showAllUpdates(updates: Seq[ModuleDependenciesUpdates]): Unit =
-    showAllUpdates(updates, format = Format.PerModule)
 
   def showAllUpdates(
       updates: Seq[ModuleDependenciesUpdates],
@@ -58,7 +54,7 @@ object DependencyUpdatesImpl {
           }
         }
       case Format.PerDependency =>
-        val acutalUpdates = theUpdates
+        val actualUpdates = theUpdates
           .view
           .flatMap(depUpdates =>
             depUpdates.dependencies
@@ -73,10 +69,10 @@ object DependencyUpdatesImpl {
           }
           .toSeq
 
-        if (acutalUpdates.isEmpty) {
+        if (actualUpdates.isEmpty) {
           println("No dependency updates found")
         } else {
-          acutalUpdates.sorted.foreach(println(_))
+          actualUpdates.sorted.foreach(println(_))
         }
 
     }

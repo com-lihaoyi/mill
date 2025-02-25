@@ -1,0 +1,20 @@
+package build
+import mill._, scalalib._
+
+object `package` extends MillBuildRootModule {
+  val scalatagsVersion = "0.13.1"
+  def ivyDeps = Seq(ivy"com.lihaoyi::scalatags:$scalatagsVersion")
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "DepVersions.scala",
+      s"""
+         |package millbuild
+         |object DepVersions{
+         |  def scalatagsVersion = "$scalatagsVersion"
+         |}
+      """.stripMargin
+    )
+    super.generatedSources() ++ Seq(PathRef(Task.dest))
+  }
+}

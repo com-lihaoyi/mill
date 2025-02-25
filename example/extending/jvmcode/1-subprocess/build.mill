@@ -1,0 +1,65 @@
+// This example demonstrates how to resolve a third-party library from Maven Central,
+// but instead of using xref:extending/import-ivy-plugins.adoc[import $ivy] (which loads the
+// library as part of the main build) we use:
+//
+// * `defaultResolver().resolveDeps` to resolve the dependencies from Maven Central,
+//   converting `org:name:version` coordinates (and their transitive dependencies) to
+//   `PathRef`s referring to files on disk
+//
+// * `Jvm.runSubprocess`, which runs the given classpath files in a subprocess, starting
+//   from specified `mainClass`
+//
+// While xref:fundamentals/bundled-libraries.adoc#_os_lib[OS-Lib]'s `os.call` and `os.spawn` APIs
+// can be used to create any processes, JVM subprocesses are common enough have enough
+// idiosyncracies (e.g. classpaths) that Mill provides helper methods specifically for them.
+
+package build
+import mill._, javalib._
+import mill.util.Jvm
+
+object foo extends JavaModule {
+  def groovyClasspath: Task[Seq[PathRef]] = Task {
+    defaultResolver().resolveDeps(Seq(ivy"org.codehaus.groovy:groovy:3.0.9"))
+  }
+
+  def groovyScript = Task.Source("generate.groovy")
+
+  def groovyGeneratedResources = Task {
+    Jvm.callProcess(
+      mainClass = "groovy.ui.GroovyMain",
+      classPath = groovyClasspath().map(_.path).toSeq,
+      mainArgs = Seq(
+        groovyScript().path.toString,
+        "Groovy!",
+        (Task.dest / "groovy-generated.html").toString
+      ),
+      cwd = Task.dest
+    )
+    PathRef(Task.dest)
+  }
+
+  def resources = super.resources() ++ Seq(groovyGeneratedResources())
+}
+
+// For this example, we use the https://groovy-lang.org/[Groovy] interpreter as our example
+// third-party library. While often used as a `groovy` CLI command, Groovy is also available
+// on Maven Central at the `org.codehaus.groovy:groovy:3.0.9` coordinates. This lets us pull
+// it into our build as a classpath comprising ``PathRef``s to files on disk, and then run the
+// Groovy JVM main method (in the class
+// https://github.com/apache/groovy/blob/48c8720c04b2c15396a7b37f140e0954418f74d3/src/main/java/groovy/ui/GroovyMain.java#L113[groovy.ui.GroovyMain])
+// passing it our script file `generate.groovy` (wired into our build using an
+// xref:fundamentals/tasks.adoc#_sources[Source Task] `groovyScript`) and arguments
+// used to configure the generated file and tell the script where to write it to. `generate.groovy`
+// generates a file on disk that we then wire into `def resources`, which is read at runtime
+// by `foo.run` and printed to the terminal output as shown below:
+
+/** Usage
+
+> ./mill foo.run
+Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Groovy!</p></body></html>
+*/
+
+// As mentioned above, `defaultResolver().resolveDeps` and `Jvm.runSubprocess` are an
+// alternative to `import $ivy`, providing you more flexibility to resolve dependencies
+// on-demand as part of your task graph only when necessary, and keeping it isolated from
+// the build in a subprocess preventing classpath collisions.

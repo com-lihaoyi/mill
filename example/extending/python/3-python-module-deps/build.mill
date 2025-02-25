@@ -1,0 +1,129 @@
+// This example shows how to add module dependencies to `PythonModule`, allowing them
+// to depend on one another.
+//
+// The main change is the addition of `def moduleDeps` to specify the inter-module dependencies.
+// We then use `Task.traverse` to aggregate the `sources` of the upstream modules and
+// make them available during `typeCheck` and `run`:
+
+package build
+import mill._
+
+trait PythonModule extends Module {
+
+  // List of module dependencies required by this module.
+  def moduleDeps: Seq[PythonModule] = Nil
+
+  def sources: T[PathRef] = Task.Source("src")
+  def mainFileName: T[String] = Task { "main.py" }
+
+  def pythonExe: T[PathRef] = Task {
+
+    os.call(("python3", "-m", "venv", Task.dest / "venv"))
+    val python = Task.dest / "venv/bin/python3"
+    os.call((python, "-m", "pip", "install", "mypy==1.13.0"))
+
+    PathRef(python)
+  }
+
+  def typeCheck: T[Unit] = Task {
+    val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
+    val pythonVenv = pythonExe().path
+
+    os.call(
+      (pythonVenv, "-m", "mypy", "--strict", sources().path),
+      stdout = os.Inherit
+    )
+
+  }
+
+  def gatherScripts(upstream: Seq[(PathRef, PythonModule)]) = {
+    for ((sourcesFolder, mod) <- upstream) {
+      val destinationPath = os.pwd / mod.moduleDir.subRelativeTo(build.moduleDir)
+      os.copy.over(sourcesFolder.path / os.up, destinationPath)
+    }
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
+
+    os.call(
+      (pythonExe().path, sources().path / mainFileName(), args.value),
+      env = Map("PYTHONPATH" -> Task.dest.toString),
+      stdout = os.Inherit
+    )
+  }
+
+}
+
+// Now we can take the three modules defined earlier and wire them up:
+// `qux` depends on `foo` and `foo.bar`, which export their APIs for use in `qux`.
+
+object foo extends PythonModule {
+  def mainFileName = "foo.py"
+  object bar extends PythonModule {
+    def mainFileName = "bar.py"
+  }
+}
+
+object qux extends PythonModule {
+  def mainFileName = "qux.py"
+  def moduleDeps = Seq(foo, foo.bar)
+}
+
+// For this example, we define the following three files, one in each module, that
+// depend on one another:
+
+/** See Also: foo/src/foo.py */
+/** See Also: foo/bar/src/bar.py */
+/** See Also: qux/src/qux.py */
+
+/** Usage
+
+> ./mill qux.run 10 20
+Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5
+
+*/
+
+// Task dependency graph, showing `foo` and `bar` tasks feeding into `qux`:
+//
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_1 {
+//     subgraph cluster_2 {
+//       style=dashed
+//       label=bar
+//       "bar.pythonExe" -> "bar.typeCheck"
+//       "bar.pythonExe" -> "bar.run"
+//       "bar.sources" -> "bar.typeCheck"
+//       "bar.sources" -> "bar.run"
+//       "bar.mainFileName" -> "bar.run"
+//     }
+//     style=dashed
+//     label=foo
+//     "foo.pythonExe" -> "foo.typeCheck"
+//     "foo.pythonExe" -> "foo.run"
+//     "foo.sources" -> "foo.typeCheck"
+//     "foo.sources" -> "foo.run"
+//     "foo.mainFileName" -> "foo.run"
+//   }
+//   subgraph cluster_3 {
+//     style=dashed
+//     label=qux
+//     "qux.pythonExe" -> "qux.typeCheck"
+//     "qux.pythonExe" -> "qux.run"
+//     "qux.sources" -> "qux.typeCheck"
+//     "qux.sources" -> "qux.run"
+//     "qux.mainFileName" -> "qux.run"
+//   }
+//   "bar.typeCheck" -> "qux.typeCheck"  [color=green, penwidth=3]
+//   "bar.sources" -> "qux.run"  [color=green, penwidth=3]
+//   "foo.typeCheck" -> "qux.typeCheck"  [color=green, penwidth=3]
+//   "foo.sources" -> "qux.run"  [color=green, penwidth=3]
+// }
+// ....
+
+// Next, we will add support for depending on external Python libraries from
+// https://pypi.org/[PyPI], and bundling via https://pypi.org/project/pex/[PEX]

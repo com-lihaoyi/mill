@@ -1,0 +1,56 @@
+name: post-build-selective
+on:
+  workflow_call:
+    inputs:
+      millargs:
+        default: ''
+        type: string
+
+      shell:
+        required: true
+        type: string
+
+      coursierarchive:
+        default: ''
+        type: string
+      java-version:
+        required: true
+        type: string
+      os:
+        default: 'ubuntu-latest'
+        type: string
+      timeout-minutes:
+        default: 60
+        type: number
+      install-android-sdk:
+        default: false
+        type: boolean
+
+jobs:
+  run:
+    runs-on: ${{ inputs.os }}
+    continue-on-error: false
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: coursier/cache-action@v6
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: .
+          name: ${{ inputs.os }}-artifact
+
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: ${{ inputs.java-version }}
+          os: ${{ inputs.os }}
+
+      - uses: ./.github/actions/setup-android
+        if: ${{ inputs.install-android-sdk }}
+
+      - uses: ./.github/actions/post-build-selective
+
+        with:
+          millargs: ${{ inputs.millargs }}
+          coursierarchive: ${{ inputs.coursierarchive }}
+          install-android-sdk: ${{ inputs.install-android-sdk }}
+          shell: ${{ inputs.shell }}

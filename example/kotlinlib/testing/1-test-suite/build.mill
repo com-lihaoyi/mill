@@ -1,0 +1,47 @@
+//// SNIPPET:BUILD1
+package build
+import mill._, kotlinlib._
+
+object foo extends KotlinModule {
+
+  def mainClass = Some("foo.FooKt")
+
+  def kotlinVersion = "1.9.24"
+
+  object test extends KotlinTests {
+    def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
+    def ivyDeps = Seq(
+      ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
+    )
+
+    // This is needed because of the "mockito-kotlin"
+    def kotlincOptions = super.kotlincOptions() ++ Seq("-jvm-target", "11")
+  }
+}
+
+/** See Also: foo/src/foo/Foo.kt */
+/** See Also: foo/test/src/foo/FooTests.kt */
+
+// This build defines a single module with a test suite, configured to use
+// "JUnit" + "Kotest" as the testing framework, along with Mockito. Test suites are themselves
+// ``KotlinModule``s, nested within the enclosing module,
+//// SNIPPET:BUILD2
+
+object bar extends KotlinModule {
+
+  def mainClass = Some("bar.BarKt")
+
+  def kotlinVersion = "1.9.24"
+
+  object test extends KotlinTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Seq(
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
+    )
+
+    // This is needed because of the "mockito-kotlin"
+    def kotlincOptions = super.kotlincOptions() ++ Seq("-jvm-target", "11")
+  }
+}

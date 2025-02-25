@@ -1,46 +1,46 @@
 package mill.scalalib.giter8
 
-import mill.util.{TestEvaluator, TestUtil}
-import utest._
-import mill.api.Loose.Agg
-import os.Path
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
+import utest.*
+
+import mill.define.Discover
 
 object Giter8Tests extends TestSuite {
 
   override def tests: Tests = Tests {
     test("init") {
       test("hello") {
-        val rootDir = os.temp.dir(prefix = "mill_giter8_test")
         val template = getClass().getClassLoader().getResource("giter8/hello.g8").toExternalForm
         val templateString =
           if (template.startsWith("file:/") && template(6) != '/') {
             template.replace("file:", "file://")
           } else template
 
-        object g8Module extends TestUtil.BaseModule with Giter8Module {
-          override def millSourcePath: Path = rootDir
+        object g8Module extends TestBaseModule with Giter8Module {
+          lazy val millDiscover = Discover[this.type]
         }
 
-        val evaluator = new TestEvaluator(g8Module)
+        val evaluator = UnitTester(g8Module, null)
 
         val giter8Args = Seq(
           templateString,
           "--name=hello", // skip user interaction
           "--description=hello_desc" // need to pass all args
         )
-        val res = evaluator.evaluator.evaluate(Agg(g8Module.init(giter8Args: _*)))
+        val res = evaluator.evaluator.execute(Seq(g8Module.init(giter8Args*))).executionResults
 
         val files = Seq(
-          os.sub / "build.sc",
+          os.sub / "build.mill",
           os.sub / "README.md",
-          os.sub / "hello" / "src" / "Hello.scala",
-          os.sub / "hello" / "test" / "src" / "MyTest.scala"
+          os.sub / "hello/src/Hello.scala",
+          os.sub / "hello/test/src/MyTest.scala"
         )
 
         assert(
-          res.failing.keyCount == 0,
+          res.failing.size == 0,
           res.values.size == 1,
-          files.forall(f => os.exists(rootDir / "hello" / f))
+          files.forall(f => os.exists(g8Module.moduleDir / "hello" / f))
         )
       }
     }

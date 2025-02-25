@@ -1,0 +1,13 @@
+name: mill
+title: Mill Documentation
+version: ???
+nav:
+  - modules/ROOT/nav.adoc
+asciidoc:
+  attributes:
+    mill-version: ???
+    mill-last-tag: ???
+    bsp-version: '2.2.0'
+    example-semanticdb-version: '4.9.7'
+    example-scala-2-13-version: '2.13.14'
+    example-utest-version: '0.8.3'

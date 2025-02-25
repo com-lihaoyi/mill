@@ -1,22 +1,27 @@
 package mill.contrib.scoverage
 
-import mill.{Agg, T}
-import mill.api.{ClassLoader, Ctx, PathRef}
-import mill.contrib.scoverage.api.ScoverageReportWorkerApi
+import mill.Task
+import mill.api.{Ctx, PathRef}
+import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
 import mill.define.{Discover, ExternalModule, Worker}
 
-class ScoverageReportWorker extends AutoCloseable {
-  private[this] var scoverageClCache = Option.empty[(Long, ClassLoader)]
+import ScoverageReportWorker.ScoverageReportWorkerApiBridge
+import ScoverageReportWorkerApi2.ReportType
+import ScoverageReportWorkerApi2.{Logger => ApiLogger}
+import ScoverageReportWorkerApi2.{Ctx => ApiCtx}
 
-  def bridge(classpath: Agg[PathRef])(implicit ctx: Ctx): ScoverageReportWorkerApi = {
+class ScoverageReportWorker extends AutoCloseable {
+  private var scoverageClCache = Option.empty[(Long, ClassLoader)]
+
+  def bridge(classpath: Seq[PathRef])(implicit ctx: Ctx): ScoverageReportWorkerApiBridge = {
 
     val classloaderSig = classpath.hashCode
     val cl = scoverageClCache match {
       case Some((sig, cl)) if sig == classloaderSig => cl
       case _ =>
-        val toolsClassPath = classpath.map(_.path.toIO.toURI.toURL).toVector
+        val toolsClassPath = classpath.map(_.path).toVector
         ctx.log.debug("Loading worker classes from\n" + toolsClassPath.mkString("\n"))
-        val cl = ClassLoader.create(
+        val cl = mill.util.Jvm.createClassLoader(
           toolsClassPath,
           getClass.getClassLoader
         )
@@ -24,11 +29,43 @@ class ScoverageReportWorker extends AutoCloseable {
         cl
     }
 
-    cl
-      .loadClass("mill.contrib.scoverage.worker.ScoverageReportWorkerImpl")
-      .getDeclaredConstructor()
-      .newInstance()
-      .asInstanceOf[api.ScoverageReportWorkerApi]
+    val worker =
+      cl
+        .loadClass("mill.contrib.scoverage.worker.ScoverageReportWorkerImpl")
+        .getDeclaredConstructor()
+        .newInstance()
+        .asInstanceOf[api.ScoverageReportWorkerApi2]
+
+    def ctx0(implicit ctx: Ctx): ApiCtx = {
+      val logger = new ApiLogger {
+        def info(msg: String): Unit = ctx.log.info(msg)
+        def error(msg: String): Unit = ctx.log.error(msg)
+        def debug(msg: String): Unit = ctx.log.debug(msg)
+      }
+      new ApiCtx {
+        def log() = logger
+        def dest() = ctx.dest.toNIO
+      }
+    }
+
+    new ScoverageReportWorkerApiBridge {
+      override def report(
+          reportType: ReportType,
+          sources: Seq[os.Path],
+          dataDirs: Seq[os.Path],
+          sourceRoot: os.Path
+      )(implicit
+          ctx: Ctx
+      ): Unit = {
+        worker.report(
+          reportType,
+          sources.map(_.toNIO).toArray,
+          dataDirs.map(_.toNIO).toArray,
+          sourceRoot.toNIO,
+          ctx0
+        )
+      }
+    }
   }
 
   override def close(): Unit = {
@@ -37,8 +74,20 @@ class ScoverageReportWorker extends AutoCloseable {
 }
 
 object ScoverageReportWorker extends ExternalModule {
+  import ScoverageReportWorkerApi2.ReportType
+
+  trait ScoverageReportWorkerApiBridge {
+    def report(
+        reportType: ReportType,
+        sources: Seq[os.Path],
+        dataDirs: Seq[os.Path],
+        sourceRoot: os.Path
+    )(implicit
+        ctx: Ctx
+    ): Unit
+  }
 
   def scoverageReportWorker: Worker[ScoverageReportWorker] =
-    T.worker { new ScoverageReportWorker() }
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    Task.Worker { new ScoverageReportWorker() }
+  lazy val millDiscover = Discover[this.type]
 }

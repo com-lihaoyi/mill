@@ -1,15 +1,13 @@
 package mill.scalalib.publish
 
-import mill.util.Jvm
-
 import java.math.BigInteger
 import java.security.MessageDigest
 
 object SonatypeHelpers {
   // http://central.sonatype.org/pages/working-with-pgp-signatures.html#signing-a-file
 
-  val USERNAME_ENV_VARIABLE_NAME = "SONATYPE_USERNAME"
-  val PASSWORD_ENV_VARIABLE_NAME = "SONATYPE_PASSWORD"
+  val USERNAME_ENV_VARIABLE_NAME = "MILL_SONATYPE_USERNAME"
+  val PASSWORD_ENV_VARIABLE_NAME = "MILL_SONATYPE_PASSWORD"
 
   private[mill] def getArtifactMappings(
       isSigned: Boolean,
@@ -54,7 +52,14 @@ object SonatypeHelpers {
     val fileName = file.toString
     val command = "gpg" +: args :+ fileName
 
-    Jvm.runSubprocess(command, env, workspace)
+    os.call(
+      command,
+      env,
+      workspace,
+      stdin = os.Inherit,
+      stdout = os.Inherit,
+      stderr = os.Inherit
+    )
     os.Path(fileName + ".asc")
   }
 

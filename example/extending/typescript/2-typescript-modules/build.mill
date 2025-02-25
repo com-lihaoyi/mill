@@ -1,0 +1,94 @@
+// In this example, we will explore how to take the one-off typescript build pipeline
+// we wrote above, and turn it into a re-usable `TypeScriptModule`.
+//
+// To do this, we take all the code we wrote earlier and surround it with
+// `trait TypeScriptModule extends Module` wrapper:
+
+package build
+import mill._
+
+trait TypeScriptModule extends Module {
+  def npmInstall = Task {
+    os.call(("npm", "install", "--save-dev", "typescript@5.6.3", "@types/node@22.7.8"))
+    PathRef(Task.dest)
+  }
+
+  def sources = Task.Source("src")
+  def allSources = Task {
+    os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
+  }
+
+  def compile = Task {
+    val tsc = npmInstall().path / "node_modules/typescript/bin/tsc"
+    val types = npmInstall().path / "node_modules/@types"
+    os.call((tsc, allSources().map(_.path), "--outDir", Task.dest, "--typeRoots", types))
+    PathRef(Task.dest)
+  }
+
+  def mainFileName = Task { s"${moduleDir.last}.js" }
+  def run(args: mill.define.Args) = Task.Command {
+    val mainFile = compile().path / mainFileName()
+    os.call(("node", mainFile, args.value), stdout = os.Inherit)
+  }
+}
+
+// We can then instantiate the module three times. Module can be adjacent or nested,
+// as shown belo:
+
+object foo extends TypeScriptModule {
+  object bar extends TypeScriptModule
+}
+object qux extends TypeScriptModule
+
+/** See Also: foo/src/foo.ts */
+/** See Also: foo/bar/src/bar.ts */
+/** See Also: qux/src/qux.ts */
+
+// And then invoke the `.run` method on each module from the command line:
+
+/** Usage
+> mill foo.run James
+Hello James Foo
+
+> mill foo.bar.run James
+Hello James Bar
+
+> mill qux.run James
+Hello James Qux
+
+*/
+
+// At this point, we have multiple ``TypeScriptModule``s, with `bar` nested inside `foo`,
+// but they are each independent and do not depend on one another.
+
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_3 {
+//     style=dashed
+//     label=qux
+//     "qux.npmInstall" -> "qux.compile"
+//     "qux.sources" -> "qux.allSources" -> "qux.compile" -> "qux.run"
+//     "qux.mainFileName" -> "qux.run"
+//   }
+//   subgraph cluster_1 {
+//     subgraph cluster_2 {
+//       style=dashed
+//       label=bar
+//       "bar.npmInstall" -> "bar.compile"
+//       "bar.sources" -> "bar.allSources" -> "bar.compile" -> "bar.run"
+//       "bar.mainFileName" -> "bar.run"
+//     }
+//     style=dashed
+//     label=foo
+//     "foo.npmInstall" -> "foo.compile"
+//     "foo.sources" -> "foo.allSources" -> "foo.compile" -> "foo.run"
+//     "foo.mainFileName" -> "foo.run"
+//   }
+// }
+// ....
+//
+// Next, we will look at how to wire them up using
+// `moduleDeps`.

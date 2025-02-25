@@ -1,0 +1,64 @@
+// Test Grouping is an opt-in feature that allows you to take a single
+// test module and group the test classes such that each group will
+// execute in parallel when you call `test`. Test grouping is enabled
+// by overriding `def testForkGrouping`, as shown below:
+
+//// SNIPPET:BUILD1
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.8"
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+    def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+  }
+}
+
+/** See Also: foo/test/src/HelloTests.scala */
+/** See Also: foo/test/src/WorldTests.scala */
+
+//// SNIPPET:END
+
+// In this example, we have one test module `foo.test`, and two test classes
+// `HelloTests` and `WorldTests`. By default, all test classes in the same
+// module run sequentially in the same JVM, but with `testForkGrouping` we can break up the
+// module and run each test class in parallel in separate JVMs, each with their own
+// separate `sandbox` folder and `.log` file:
+
+/** Usage
+
+> mill foo.test
+
+> find out/foo/test/testForked.dest
+...
+out/foo/test/testForked.dest/foo.HelloTests.log
+out/foo/test/testForked.dest/foo.HelloTests/sandbox
+out/foo/test/testForked.dest/foo.WorldTests.log
+out/foo/test/testForked.dest/foo.WorldTests/sandbox
+out/foo/test/testForked.dest/test-report.xml
+
+*/
+
+// Test grouping allows you to run tests in parallel while keeping things deterministic and
+// debuggable: parallel test groups will not write over each others files in their
+// sandbox, and each one will have a separate set of logs that can be easily read
+// without the others mixed in
+//
+// In this example, `def testForkGrouping = discoveredTestClasses().grouped(1).toSeq` assigns
+// each test class to its own group, running in its own JVM. This comes with some overhead
+// on a per-JVM basis, so if your test classes are numerous and small you may want to assign
+// multiple test classes per group. You can also configure `testForkGrouping` to choose which
+// test classes you want to run together and which to run alone:
+//
+// * If some test classes
+//   are much slower than others, you may want to put the slow test classes each in its own
+//   group to reduce latency, while grouping multiple fast test classes together to reduce the
+//   per-group overhead of spinning up a separate JVM.
+//
+// * Some test classes may have global JVM-wide or filesystem side effects that means they
+//   have to run alone, while other test classes may be better-behaved and OK to run in a group
+//
+// In general, `testForkGrouping` leaves it up to you how you want to group your tests for
+// execution, based on the unique constraints of your test suite.

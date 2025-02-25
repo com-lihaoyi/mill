@@ -1,6 +1,6 @@
 package mill.contrib.buildinfo
 
-import mill.T
+import mill.{T, Task}
 import mill.api.PathRef
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.scalanativelib.ScalaNativeModule
@@ -36,16 +36,16 @@ trait BuildInfo extends JavaModule {
   def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
 
   def resources: T[Seq[PathRef]] =
-    if (buildInfoStaticCompiled) super.resources
-    else T.sources { super.resources() ++ Seq(buildInfoResources()) }
+    if (buildInfoStaticCompiled) Task { super.resources() }
+    else Task { super.resources() ++ Seq(buildInfoResources()) }
 
-  def buildInfoResources = T {
+  def buildInfoResources = Task {
     val p = new java.util.Properties
     for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
 
     val subPath = os.SubPath(buildInfoPackageName.replace('.', '/'))
     val stream = os.write.outputStream(
-      T.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
+      Task.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
       createFolders = true
     )
 
@@ -54,16 +54,16 @@ trait BuildInfo extends JavaModule {
       s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}"
     )
     stream.close()
-    PathRef(T.dest)
+    PathRef(Task.dest)
   }
 
   private def isScala = this.isInstanceOf[ScalaModule]
 
-  override def generatedSources = T {
+  override def generatedSources = Task {
     super.generatedSources() ++ buildInfoSources()
   }
 
-  def buildInfoSources = T {
+  def buildInfoSources = Task {
     if (buildInfoMembers().isEmpty) Nil
     else {
       val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
@@ -82,11 +82,11 @@ trait BuildInfo extends JavaModule {
       val ext = if (isScala) "scala" else "java"
 
       os.write(
-        T.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
+        Task.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
         code,
         createFolders = true
       )
-      Seq(PathRef(T.dest))
+      Seq(PathRef(Task.dest))
     }
   }
 }
@@ -161,9 +161,10 @@ object BuildInfo {
         case v =>
           if (isScala)
             s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
-          else s"""${commentStr(
-              v
-            )}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
+          else {
+            val propValue = s"""buildInfoProperties.getProperty("${v.key}")"""
+            s"""${commentStr(v)}public static final java.lang.String ${v.key} = $propValue;"""
+          }
       }
       .mkString("\n\n  ")
 
@@ -172,7 +173,7 @@ object BuildInfo {
          |package ${buildInfoPackageName}
          |
          |object $buildInfoObjectName {
-         |  private[this] val buildInfoProperties: java.util.Properties = new java.util.Properties()
+         |  private val buildInfoProperties: java.util.Properties = new java.util.Properties()
          |
          |  {
          |    val buildInfoInputStream = getClass

@@ -1,0 +1,10 @@
+//// SNIPPET:BUILD
+package build
+import mill._, javalib._
+
+object `package` extends RootModule with JavaModule {
+  def unmanagedClasspath = Task {
+    if (!os.exists(moduleDir / "lib")) Seq()
+    else Seq.from(os.list(moduleDir / "lib").map(PathRef(_)))
+  }
+}

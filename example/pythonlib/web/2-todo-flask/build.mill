@@ -1,0 +1,64 @@
+// This is a `Flask`-based https://todomvc.com/[TodoMVC] application managed and built using `Mill`.
+// It allows users to `add`, `edit`, `delete`, and `view` tasks stored in a Python Data Structure.
+// Tasks can be filtered as `all`, `active`, or `completed` based on their state.
+// The application demonstrates dynamic rendering using Flask's routing and templating features.
+package build
+import mill._, pythonlib._
+
+object todo extends PythonModule {
+
+  def mainScript = Task.Source { "src/app.py" }
+
+  def pythonDeps = Seq("flask==3.1.0", "Flask-SQLAlchemy==3.1.1", "Flask-WTF==1.2.2")
+
+  object test extends PythonTests with TestModule.Unittest
+  object itest extends PythonTests with TestModule.Unittest
+
+}
+
+// Apart from running a web server, this example demonstrates:
+
+// - **Serving HTML templates** using **Jinja2** (Flask's default templating engine).
+// - **Managing static files** such as JavaScript, CSS, and images.
+// - **Filtering and managing tasks** in-memory using Python data structures.
+// - **Unit testing** using **unittest** for testing task operations.
+// - **Integration testing** using **unittest** for end-to-end application behavior.
+
+// This example also utilizes **Mill** for managing `dependencies`, `builds`, and `tests`,
+// offering an efficient development workflow.
+
+// The app is ready to serve at `http://localhost:5001`.
+
+/** Usage
+
+> ./mill todo.test
+...
+test_add_todo (test.TestTodoApp...) ... ok
+test_delete_todo (test.TestTodoApp...) ... ok
+test_edit_todo (test.TestTodoApp...) ... ok
+test_filter_todos (test.TestTodoApp...) ... ok
+test_toggle_all (test.TestTodoApp...) ... ok
+test_toggle_todo (test.TestTodoApp...) ... ok
+...Ran 6 tests...
+OK
+...
+
+> ./mill todo.itest
+...
+test_add_and_list_todos (test.TestTodoAppIntegration...) ... ok
+test_delete_todo (test.TestTodoAppIntegration...) ... ok
+test_edit_and_list_todos (test.TestTodoAppIntegration...) ... ok
+test_toggle_all_todos (test.TestTodoAppIntegration...) ... ok
+test_toggle_and_list_todos (test.TestTodoAppIntegration...) ... ok
+...Ran 5 tests...
+OK
+...
+
+> ./mill todo.runBackground
+
+> curl http://localhost:5001
+...What needs to be done...
+
+> ./mill clean todo.runBackground
+
+*/

@@ -1,0 +1,30 @@
+//// SNIPPET:BUILD
+package build
+import mill._, kotlinlib._
+
+object qux extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def moduleDeps = Seq(baz)
+
+  object test extends KotlinTests with TestModule.Junit5 {
+    def moduleDeps = super.moduleDeps ++ Seq(baz.test)
+    def ivyDeps = super.ivyDeps() ++ Seq(
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"com.google.guava:guava:33.3.0-jre"
+    )
+  }
+}
+
+object baz extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  object test extends KotlinTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Seq(
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"com.google.guava:guava:33.3.0-jre"
+    )
+  }
+}
