@@ -711,7 +711,7 @@ object foo extends KotlinModule {
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    def ivyDeps = Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }

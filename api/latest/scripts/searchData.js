@@ -2291,6 +2291,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/TestModule$.html#handleResults-fffffd0c","e":false,"i":"","n":"handleResults","t":"handleResults(doneMsg: String, results: Seq[TestResult], ctx: Env & Dest, testReportXml: Option[String], props: Option[Map[String, String]]): Result[(String, Seq[TestResult])]","d":"mill.scalalib.TestModule","k":"def","x":""},
 {"l":"mill/scalalib/TestModule$$JavaModuleBase.html#","e":false,"i":"","n":"JavaModuleBase","t":"JavaModuleBase extends BspModule","d":"mill.scalalib.TestModule","k":"trait","x":""},
 {"l":"mill/scalalib/TestModule$$JavaModuleBase.html#ivyDeps-0","e":false,"i":"","n":"ivyDeps","t":"ivyDeps: Target[Seq[Dep]]","d":"mill.scalalib.TestModule.JavaModuleBase","k":"def","x":""},
+{"l":"mill/scalalib/TestModule$$JavaModuleBase.html#mandatoryIvyDeps-0","e":false,"i":"","n":"mandatoryIvyDeps","t":"mandatoryIvyDeps: Target[Seq[Dep]]","d":"mill.scalalib.TestModule.JavaModuleBase","k":"def","x":""},
 {"l":"mill/scalalib/TestModule$$JavaModuleBase.html#resources-0","e":false,"i":"","n":"resources","t":"resources: Target[Seq[PathRef]]","d":"mill.scalalib.TestModule.JavaModuleBase","k":"def","x":""},
 {"l":"mill/scalalib/TestModule$$Junit4.html#","e":false,"i":"","n":"Junit4","t":"Junit4 extends TestModule","d":"mill.scalalib.TestModule","k":"trait","x":""},
 {"l":"mill/scalalib/TestModule$$Junit5.html#","e":false,"i":"","n":"Junit5","t":"Junit5 extends TestModule","d":"mill.scalalib.TestModule","k":"trait","x":""},
