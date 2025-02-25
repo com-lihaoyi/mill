@@ -155,7 +155,7 @@ private[mill] case class Execution(
                   .toMap
 
                 // Count failed tasks
-                val failedCount = upstreamResults.values.count(r => r.asFailing.isDefined)
+                val failedCount = upstreamResults.values.count(!_.asSuccess.isDefined)
                 logger.setFailedTasksCount(failedCount)
 
                 // Update the header prefix to include failed count
@@ -199,7 +199,7 @@ private[mill] case class Execution(
 
                 // Update failed count after execution
                 val newFailedCount =
-                  (upstreamResults ++ res.newResults).values.count(r => r.asFailing.isDefined)
+                  (upstreamResults ++ res.newResults).values.count(!_.asSuccess.isDefined)
                 logger.setFailedTasksCount(newFailedCount)
                 // Update the header prefix to include failed count
                 logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix${
