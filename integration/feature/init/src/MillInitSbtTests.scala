@@ -313,15 +313,20 @@ object MillInitSbtScalaCheckTests extends BuildGenTestSuite {
     val url = "https://github.com/typelevel/scalacheck/archive/refs/tags/v1.18.1.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      bumpSbtTo1107(tester.workspacePath)
 
-      bumpSbtTo1107(workspacePath)
-
-      val initResult = eval(defaultInitCommand, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initResult.isSuccess)
-
-      val compileResult = eval("compile")
-      assert(compileResult.isSuccess)
+      /*
+      The sources shared among multiple platforms (JVM, Scala.js, and Scala Native) in "core/shared" in cross-builds
+      are not supported in conversion yet,
+      causing all dependent project's `compile` tasks to fail.
+       */
+      val submodules = scalaPlatforms.map(platform => s"core.$platform") :+ "bench"
+      tester.testMillInit(
+        expectedCompileTasks =
+          Some(SplitResolvedTasks(Seq("compile"), submodules.map(_.compileTask))),
+        // ScalaCheck itself as a test framework is not supported in conversion yet.
+        expectedTestTasks = None
+      )
     }
   }
 }
