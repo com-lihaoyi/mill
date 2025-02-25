@@ -437,7 +437,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
         .map(_.toNIO)
         .toList
 
-      val mAllSources = mSources ++ mGeneratedSourceRoots
+      mSources ++ mGeneratedSourceRoots
 
       val tags =
         module match { case _: TestModule => List(BloopTag.Test); case _ => List(BloopTag.Library) }
