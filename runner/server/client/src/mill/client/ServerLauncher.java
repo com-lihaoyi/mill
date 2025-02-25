@@ -3,6 +3,7 @@ package mill.client;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -133,7 +134,7 @@ public abstract class ServerLauncher {
     while (ioSocket == null && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
       try {
         int port = Integer.parseInt(Files.readString(serverDir.resolve(ServerFiles.socketPort)));
-        ioSocket = new java.net.Socket("127.0.0.1", port);
+        ioSocket = new java.net.Socket(InetAddress.getLoopbackAddress(), port);
       } catch (Throwable e) {
         socketThrowable = e;
         Thread.sleep(1);

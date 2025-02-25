@@ -102,7 +102,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     file
   }
 
-  def getBaseInfo(
+  override def getBaseInfo(
       input: Tree[Node[ProjectModel]],
       cfg: Config,
       baseModule: String,
@@ -175,15 +175,19 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
   def getModuleSupertypes(cfg: Config): Seq[String] =
     Seq(cfg.shared.baseModule.getOrElse("MavenModule"))
 
-  def getPackage(project: ProjectModel): (String, String, String) = {
+  override def getPackage(project: ProjectModel): (String, String, String) = {
     (project.group(), project.name(), project.version())
   }
 
-  def getArtifactId(model: ProjectModel): String = model.name()
+  override def getArtifactId(model: ProjectModel): String = model.name()
 
   def getMillSourcePath(model: ProjectModel): Path = os.Path(model.directory())
 
-  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] = {
+  override def getSuperTypes(
+      cfg: Config,
+      baseInfo: IrBaseInfo,
+      build: Node[ProjectModel]
+  ): Seq[String] = {
     Seq("RootModule") ++
       Option.when(null != build.value.maven().pom() && baseInfo.noPom) { "PublishModule" } ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {

@@ -8,6 +8,7 @@ class MemoryLocked implements Locked {
     this.lock = lock;
   }
 
+  @Override
   public void release() throws Exception {
     lock.unlock();
   }

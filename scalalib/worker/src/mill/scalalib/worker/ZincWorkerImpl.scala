@@ -42,6 +42,7 @@ import java.io.File
 import java.net.URLClassLoader
 import java.util.Optional
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Properties.isWin
 
 @internal
@@ -715,7 +716,7 @@ object ZincWorkerImpl {
     def create(sources: Array[VirtualFile]): (xsbti.Position => xsbti.Position) | Null = {
       val buildSources0 = {
         def isBuild(vf: VirtualFile) =
-          CodeGenConstants.buildFileExtensions.exists(ex =>
+          CodeGenConstants.buildFileExtensions.asScala.exists(ex =>
             vf.id().endsWith(s".$ex")
           )
 

@@ -1,12 +1,12 @@
 package mill.runner
 
-import mill.api.{internal}
+import mill.api.internal
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.*
 import mill.runner.worker.api.{ImportTree, MillScalaParser}
-
 import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 /**
  * @param seenScripts
@@ -218,11 +218,11 @@ object FileImportGraph {
   }
 
   def findRootBuildFiles(projectRoot: os.Path) = {
-    val rootBuildFiles = rootBuildFileNames
+    val rootBuildFiles = rootBuildFileNames.asScala
       .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
     val (dummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
-      case Nil => (true, rootBuildFileNames.head)
+      case Nil => (true, rootBuildFileNames.get(0))
       case Seq(single) => (false, single)
       case multiple =>
         System.err.println(
@@ -241,7 +241,7 @@ object FileImportGraph {
       val (dummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
       val buildFileExtension =
-        buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
+        buildFileExtensions.asScala.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
 
       val nestedBuildFileName = s"package.$buildFileExtension"
       val buildFiles = os
