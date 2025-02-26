@@ -35,3 +35,5 @@ runs:
 
     - run: mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
       shell: bash
+
+    - uses: sbt/setup-sbt@v1
