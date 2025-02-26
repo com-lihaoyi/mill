@@ -80,26 +80,22 @@ def taskCallingCommand = Task {
 // For example, here is a `customPlanCommand` command which uses this
 // to traverse the module tree to find the tasks specified by the `tasks` strings,
 // and plan out what would be necessary to run them
-import mill.eval.{Evaluator, Terminal}
-import mill.resolve.{Resolve, SelectMode}
+import mill.eval.Evaluator
+import mill.define.SelectMode
 
 def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
-  Resolve.Tasks.resolve(
-    evaluator.rootModule,
-    tasks,
-    SelectMode.Multi
-  ) match {
-    case Left(err) => Left(err)
-    case Right(resolved) =>
-      val (sortedGroups, _) = evaluator.plan(resolved)
-      val plan = sortedGroups
-        .keys()
-        .collect { case r: Terminal.Labelled[_] => r.render }
-        .toArray
+  val resolved = evaluator
+    .resolveTasks(tasks, SelectMode.Multi)
+    .get
 
-      plan.foreach(println)
-      Right(())
-  }
+  val plan = evaluator.plan(resolved)
+    .sortedGroups
+    .keys()
+    .map(_.toString)
+    .toArray
+
+  plan.foreach(println)
+  ()
 }
 
 // We can call our `customPlanCommand` from the command line and pass it the
@@ -116,8 +112,8 @@ taskCallingCommand
 */
 
 // Many built-in tools are implemented as custom evaluator commands:
-// xref:scalalib/builtin-commands.adoc#_inspect[inspect],
-// xref:scalalib/builtin-commands.adoc#_resolve[resolve],
-// xref:scalalib/builtin-commands.adoc#_show[show].
+// xref:cli/builtin-commands.adoc#_inspect[inspect],
+// xref:cli/builtin-commands.adoc#_resolve[resolve],
+// xref:cli/builtin-commands.adoc#_show[show].
 // If you want a way to run Mill commands and programmatically manipulate the
 // tasks and outputs, you do so with your own evaluator command.
