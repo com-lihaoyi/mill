@@ -5,6 +5,7 @@ import mill.*
 object `package` extends RootModule with ModuleB{
   object local extends build.nested.ModuleB
   object local2 extends build.nested.ModuleC
+  def qux = Task{ build.nested.foo() }
 }
 
 trait Module0 extends mill.Module{
