@@ -26,20 +26,46 @@ import mill.internal.PrintLogger
 
       val filter = TestRunnerUtils.globFilter(testArgs.globSelectors)
 
-      val result = TestRunnerUtils.runTestFramework0(
-        frameworkInstances = Framework.framework(testArgs.framework),
-        testClassfilePath = Seq.from(testArgs.testCp),
-        args = testArgs.arguments,
-        classFilter = cls => filter(cls.getName),
-        cl = classLoader,
-        testReporter = DummyTestReporter
-      )(ctx)
+      testArgs.clusterOpt match {
+        case None => {
+          val result = TestRunnerUtils.runTestFramework0(
+            frameworkInstances = Framework.framework(testArgs.framework),
+            testClassfilePath = Seq.from(testArgs.testCp),
+            args = testArgs.arguments,
+            classFilter = cls => filter(cls.getName),
+            cl = classLoader,
+            testReporter = DummyTestReporter
+          )(ctx)
 
-      // Clear interrupted state in case some badly-behaved test suite
-      // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
-      // that flag causes writing the results to disk to fail
-      Thread.interrupted()
-      os.write(testArgs.outputPath, upickle.default.stream(result))
+          // Clear interrupted state in case some badly-behaved test suite
+          // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
+          // that flag causes writing the results to disk to fail
+          Thread.interrupted()
+          os.write(testArgs.outputPath, upickle.default.stream(result))
+        }
+        case Some(processIndex -> base) => {
+          val clusterSignals = TestClusterSignals(base)
+          Runtime.getRuntime().addShutdownHook(Thread(() => {
+            clusterSignals.writeClusterState(processIndex, TestClusterSignals.ClusterState.Stop)
+          }))
+          val result = TestRunnerUtils.runTestFrameworkInCluster0(
+            processIndex = processIndex,
+            frameworkInstances = Framework.framework(testArgs.framework),
+            startTestClasses = Seq.from(testArgs.testCp),
+            args = testArgs.arguments,
+            classFilter = cls => filter(cls.getName),
+            cl = classLoader,
+            testReporter = DummyTestReporter,
+            clusterSignals = clusterSignals
+          )(ctx)
+
+          // Clear interrupted state in case some badly-behaved test suite
+          // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
+          // that flag causes writing the results to disk to fail
+          Thread.interrupted()
+          os.write(testArgs.outputPath, upickle.default.stream(result))
+        }
+      }
     } catch {
       case e: Throwable =>
         println(e)

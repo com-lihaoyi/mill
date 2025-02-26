@@ -11,6 +11,10 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime, ZoneId}
 import scala.xml.Elem
+import mill.testrunner.TestClusterSignals
+import os.SubProcess
+import scala.collection.mutable
+import scala.util.Random
 
 private[scalalib] object TestModuleUtil {
   def runTests(
@@ -43,44 +47,192 @@ private[scalalib] object TestModuleUtil {
       EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
     )
 
+    val emptyCleanup = () => ()
+
     def runTestRunnerSubprocess(selectors2: Seq[String], base: os.Path) = {
+      val clusterSignals = TestClusterSignals(base, isClusterServer = true)
+
+      val subprocesses = scala.collection.mutable.HashMap.empty[Int, (SubProcess, () => Unit)]
+
+      Runtime.getRuntime().addShutdownHook(Thread(() => {
+        var stillHasAliveChild = true
+        while (stillHasAliveChild) {
+          stillHasAliveChild = false
+          subprocesses.filterInPlace { case (_, subprocess -> cleanup) =>
+            if (subprocess.isAlive()) {
+              stillHasAliveChild = true
+              subprocess.destroy()
+              cleanup()
+            }
+            false
+          }
+        }
+        clusterSignals.cleanup()
+      }))
+
+      def getProcessBaseFolder(processIndex: Int): os.Path = base / s"$processIndex"
+
+      def spawnProcess(
+          processIndex: Int,
+          cleanup: () => Unit,
+          testCp: Seq[os.Path]
+      ): Unit = {
+        val processBase = getProcessBaseFolder(processIndex)
+
+        val logger = ctx.log.subLogger(
+          processBase / os.up / s"${processBase.last}.log",
+          processIndex.toString,
+          s"Run tests with process $processIndex"
+        )
+
+        val outputPath = processBase / "out.json"
+
+        val testArgs = TestArgs(
+          framework = testFramework,
+          classpath = runClasspath.map(_.path),
+          arguments = args,
+          sysProps = props,
+          outputPath = outputPath,
+          colored = Task.log.colored,
+          testCp = testCp,
+          globSelectors = selectors2,
+          clusterOpt = Some(processIndex -> base)
+        )
+
+        val argsFile = processBase / s"testargs"
+        val sandbox = processBase / s"sandbox"
+
+        os.write(argsFile, upickle.default.write(testArgs), createFolders = true)
+        os.makeDir.all(sandbox)
+
+        val subprocess = logger.withPrompt {
+          mill.api.SystemStreams.withStreams(logger.systemStreams) {
+            Jvm.spawnProcess(
+              mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
+              mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
+              javaHome = javaHome,
+              jvmArgs = jvmArgs,
+              classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+              cpPassingJarPath = Option.when(useArgsFile)(
+                os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+              ),
+              env = forkEnv ++ resourceEnv,
+              cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+              stdin = os.Inherit,
+              stdout = os.Inherit
+            )
+          }
+        }
+
+        subprocesses.update(processIndex, subprocess -> cleanup)
+      }
+
+      {
+        val processIndex = subprocesses.size
+        clusterSignals.createStealingFile(processIndex)
+        spawnProcess(
+          processIndex,
+          () => clusterSignals.removeStealingFile(processIndex),
+          testClasspath.map(_.path)
+        )
+      }
+
+      var stop = false
+      val running = mutable.ArrayBuffer.empty[Int]
+      val blocking = mutable.ArrayBuffer.empty[Int]
+      val stealing = mutable.ArrayBuffer.empty[Int]
+
+      while (!stop) {
+        stop = true
+        running.clear()
+        blocking.clear()
+        stealing.clear()
+        val totalProcessCount = subprocesses.size
+        val offset = Random.nextInt(totalProcessCount)
+        Range(0, totalProcessCount).foreach { index =>
+          val processIndex = (index + offset) % totalProcessCount
+          subprocesses.updateWith(processIndex) {
+            case Some(subprocess -> cleanup) =>
+              if (subprocess.isAlive()) {
+                stop = false
+                clusterSignals.getClusterState(processIndex) match {
+                  case TestClusterSignals.ClusterState.Running => running.append(processIndex)
+                  case TestClusterSignals.ClusterState.Blocking => blocking.append(processIndex)
+                  case TestClusterSignals.ClusterState.Stealing(_) => ()
+                  case TestClusterSignals.ClusterState.RequestingStealPermission =>
+                    stealing.append(processIndex)
+                  case TestClusterSignals.ClusterState.StealPermissionApproved(_) => ()
+                  case TestClusterSignals.ClusterState.StealPermissionDenied => ()
+                  case TestClusterSignals.ClusterState.Stop => ()
+                  case TestClusterSignals.ClusterState.Unrecognize => ()
+                }
+                Some(subprocess -> cleanup)
+              } else {
+                cleanup()
+                Some(subprocess -> emptyCleanup)
+              }
+            case None => None
+          }
+        }
+        while (stealing.nonEmpty && (blocking.nonEmpty || running.nonEmpty)) {
+          val victim = if (blocking.nonEmpty) blocking.remove(0) else running.remove(0)
+          val stealer = stealing.remove(0)
+          clusterSignals.writeClusterState(
+            stealer,
+            TestClusterSignals.ClusterState.StealPermissionApproved(victim)
+          )
+        }
+        while (stealing.nonEmpty) {
+          val stealer = stealing.remove(0)
+          clusterSignals.writeClusterState(
+            stealer,
+            TestClusterSignals.ClusterState.StealPermissionDenied
+          )
+        }
+        if (!stop) {
+          if (
+            blocking.nonEmpty && stealing.isEmpty && (subprocesses.size < TestClusterSignals.MaxTestProcessCount)
+          ) {
+            Task.fork.tryTakeAsyncSlot().foreach { forkCleanup =>
+              val processIndex = subprocesses.size
+              clusterSignals.createStealingFile(processIndex)
+              spawnProcess(
+                processIndex,
+                () => {
+                  clusterSignals.removeStealingFile(processIndex)
+                  forkCleanup.close()
+                },
+                Seq.empty
+              )
+            }
+          }
+        }
+      }
+
+      val (lefts, rights) = subprocesses.map { case (processIndex, _) =>
+        val output = getProcessBaseFolder(processIndex) / "out.json"
+        if (!os.exists(output)) {
+          Left(processIndex)
+        } else {
+          val (doneMsg, results) =
+            upickle.default.read[(String, Seq[TestResult])](ujson.read(output.toIO))
+          Right(doneMsg -> results)
+        }
+      }.toSeq.partitionMap(identity)
+
       val outputPath = base / "out.json"
-      val testArgs = TestArgs(
-        framework = testFramework,
-        classpath = runClasspath.map(_.path),
-        arguments = args,
-        sysProps = props,
-        outputPath = outputPath,
-        colored = Task.log.colored,
-        testCp = testClasspath.map(_.path),
-        globSelectors = selectors2
-      )
 
-      val argsFile = base / "testargs"
-      val sandbox = base / "sandbox"
-      os.write(argsFile, upickle.default.write(testArgs), createFolders = true)
-
-      os.makeDir.all(sandbox)
-
-      Jvm.callProcess(
-        mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-        jvmArgs = jvmArgs,
-        env = forkEnv ++ resourceEnv,
-        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
-        cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
-        cpPassingJarPath = Option.when(useArgsFile)(
-          os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
-        ),
-        javaHome = javaHome,
-        stdin = os.Inherit,
-        stdout = os.Inherit
-      )
-
-      if (!os.exists(outputPath))
+      val result = if (lefts.nonEmpty) {
         Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
-      else
-        Result.Success(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
+      } else {
+        val doneMsgs = rights.map(_._1).mkString("\n")
+        val results = rights.flatMap(_._2)
+        os.write(outputPath, upickle.default.write((doneMsgs, results)))
+        Result.Success((doneMsgs, results))
+      }
+
+      clusterSignals.cleanup()
+      result
     }
 
     val globFilter = TestRunnerUtils.globFilter(selectors)
