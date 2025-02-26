@@ -140,7 +140,8 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    */
   def moduleSourceMap = Task.Input {
     val sources = Task.traverse(computeModules) { m =>
-      m.allSources.map { paths =>
+      // We're not using `allSources` here, one purpose. See https://github.com/com-lihaoyi/mill/discussions/4530
+      m.ideSources.map { paths =>
         name(m) -> paths.map(_.path)
       }
     }()

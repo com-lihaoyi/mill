@@ -152,6 +152,32 @@
     },
     {
       "id": {
+        "uri": "file:///workspace/hello-sourcegen"
+      },
+      "displayName": "hello-sourcegen",
+      "baseDirectory": "file:///workspace/hello-sourcegen",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "<java-version>"
+      }
+    },
+    {
+      "id": {
         "uri": "file:///workspace/mill-build"
       },
       "displayName": "mill-build/",
