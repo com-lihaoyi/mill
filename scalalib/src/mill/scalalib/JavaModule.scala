@@ -855,9 +855,9 @@ trait JavaModule
    * [[Task#generatedSourceRoots]], knowing that these roots will be present under
    * the dest directories once the task is run.
    */
-  def deferredSourceGenerators: Seq[NamedTask[Unit]] = Seq.empty
+  def sourceGenerators: Seq[NamedTask[_]] = Seq.empty
 
-  private def deferredSourceRoots(task: NamedTask[Unit])(workspace: os.Path): Seq[os.Path] = {
+  private def predictGeneratedSourceRoots(task: NamedTask[_])(workspace: os.Path): Seq[os.Path] = {
     val dest = mill
       .eval
       .EvaluatorPaths
@@ -869,37 +869,39 @@ trait JavaModule
   }
 
   /**
-   * Computes the list of source roots that will be produced by [[deferredSourceGenerators]] without
+   * Computes the list of source roots that will be produced by [[sourceGenerators]] without
    * actually running the generators in question.
    */
-  def allDeferredSourceRoots: T[Seq[PathRef]] = T {
+  def predictedGeneratedSourceRoots: T[Seq[PathRef]] = T {
     val ws = T.workspace
-    deferredSourceGenerators.flatMap(t => deferredSourceRoots(t)(ws)).map(PathRef(_))
+    sourceGenerators.flatMap(t => predictGeneratedSourceRoots(t)(ws)).map(PathRef(_))
   }
 
   /**
    * Runs the lazy source generators, returning references to the expanded generated source roots
    * they are supposed to have written code in.
    */
-  final def deferredGeneratedSources: T[Seq[PathRef]] = T {
+  final def generatedSourceRoots: T[Seq[PathRef]] = T {
     val ws = T.workspace
     T.sequence {
-      deferredSourceGenerators.map { t => t.map((_: Unit) => deferredSourceRoots(t)) }
+      sourceGenerators.asInstanceOf[Seq[T[Any]]].map { t =>
+        t.map((_: Any) => (ws: os.Path) => predictGeneratedSourceRoots(t)(ws))
+      }
     }().flatMap(_.apply(ws)).map(PathRef(_))
   }
 
   /**
    * Task that IDE-configuration tasks should rely on, as they avoid eagerly
-   * running source generators referenced by [[deferredSourceGenerators]]
+   * running source generators referenced by [[sourceGenerators]]
    */
   def ideSources: T[Seq[PathRef]] =
-    Task { sources() ++ generatedSources() ++ allDeferredSourceRoots() }
+    Task { sources() ++ generatedSources() ++ predictedGeneratedSourceRoots() }
 
   /**
    * The folders containing all source files fed into the compiler
    */
   def allSources: T[Seq[PathRef]] =
-    Task { sources() ++ generatedSources() ++ deferredGeneratedSources() }
+    Task { sources() ++ generatedSources() ++ generatedSourceRoots() }
 
   /**
    * All individual source files fed into the Java compiler

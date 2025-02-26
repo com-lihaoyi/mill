@@ -424,10 +424,11 @@ object Target extends TaskBase {
           val c1 = ctx.splice
           val r1 = rw.splice
           val t1 = taskIsPrivate.splice
-          if (c.prefix.splice.asInstanceOf[Task.ApplyFactory].persistent) {
-            new PersistentImpl[T](s1, c1, r1, t1)
+          val applyFactory = c.prefix.splice.asInstanceOf[Task.ApplyFactory]
+          if (applyFactory.persistent) {
+            new PersistentImpl[T](s1, c1, r1, t1, applyFactory.generatedSourceRoots)
           } else {
-            new TargetImpl[T](s1, c1, r1, t1)
+            new TargetImpl[T](s1, c1, r1, t1, applyFactory.generatedSourceRoots)
           }
         }
       )

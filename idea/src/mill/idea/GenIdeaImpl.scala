@@ -503,7 +503,7 @@ case class GenIdeaImpl(
         val Seq(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
-          allSourcesPathRefs: Seq[PathRef]
+          ideSourcesPathRefs: Seq[PathRef]
         ) = evaluator.evalOrThrow(
           exceptionFactory = r =>
             GenIdeaException(
@@ -512,11 +512,13 @@ case class GenIdeaImpl(
         )(Seq(
           mod.resources,
           mod.generatedSources,
-          mod.allSources
+          // Using `ideSources` instead of `allSources` to prevent the whole process crashing
+          // in case of mis-configured (or buggy) source-generators.
+          mod.ideSources
         ))
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
-        val normalSourcePaths = (allSourcesPathRefs
+        val normalSourcePaths = (ideSourcesPathRefs
           .map(_.path)
           .toSet -- generatedSourcePaths.toSet).toSeq
 
