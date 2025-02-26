@@ -118,4 +118,9 @@ private[mill] class MultiLogger(
       debugEnabled
     )
   }
+
+  private[mill] override def setFailedTasksCount(count: Int): Unit = {
+    logger1.setFailedTasksCount(count)
+    logger2.setFailedTasksCount(count)
+  }
 }

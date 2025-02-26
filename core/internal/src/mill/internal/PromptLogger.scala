@@ -165,6 +165,10 @@ private[mill] class PromptLogger(
     runningState.withPromptPaused0(true, t)
   private[mill] override def withPromptUnpaused[T](t: => T): T =
     runningState.withPromptPaused0(false, t)
+
+  private[mill] override def setFailedTasksCount(count: Int): Unit = synchronized {
+    promptLineState.setFailedTasksCount(count)
+  }
 }
 
 private[mill] object PromptLogger {
@@ -334,12 +338,17 @@ private[mill] object PromptLogger {
       .empty[Seq[String], Status](PromptLoggerUtil.seqStringOrdering)
 
     private var headerPrefix = ""
+    private var failedTasksCount = 0
     // Pre-compute the prelude and current prompt as byte arrays so that
     // writing them out is fast, since they get written out very frequently
 
     @volatile private var currentPromptBytes: Array[Byte] = Array[Byte]()
 
     def getCurrentPrompt() = currentPromptBytes
+
+    def setFailedTasksCount(count: Int): Unit = {
+      failedTasksCount = count
+    }
 
     def updatePrompt(ending: Boolean = false): Boolean = {
       val now = currentTimeMillis()
@@ -362,7 +371,8 @@ private[mill] object PromptLogger {
         termHeight0.getOrElse(defaultTermHeight),
         now,
         startTimeMillis,
-        if (headerPrefix.isEmpty) "" else s"[$headerPrefix]",
+        if (headerPrefix.isEmpty) ""
+        else s"[$headerPrefix${if (failedTasksCount > 0) s", $failedTasksCount failed" else ""}]",
         titleText,
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
