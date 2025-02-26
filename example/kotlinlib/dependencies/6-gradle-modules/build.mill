@@ -1,0 +1,26 @@
+//// SNIPPET:BUILD
+package build
+import mill._, kotlinlib._
+
+object `package` extends RootModule with KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def ivyDeps = Seq(
+    ivy"org.jetbrains.kotlinx:kotlinx-html-js:0.11.0" /*.addVariantAttributes(
+      "org.gradle.usage" -> "kotlin-runtime",
+      "org.jetbrains.kotlin.platform.type" -> "js",
+      "org.jetbrains.kotlin.js.compiler" -> "ir",
+      "org.gradle.category" -> "library"
+    )*/
+  )
+}
+
+//// SNIPPET:SCALAIVY
+
+//// SNIPPET:USAGE
+/** Usage
+
+> ./mill show __.compileClasspath
+
+*/

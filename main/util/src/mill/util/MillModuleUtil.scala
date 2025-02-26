@@ -30,7 +30,8 @@ private[mill] object MillModuleUtil {
           BuildInfo.millVersion
         )
       ),
-      force = Nil
+      force = Nil,
+      checkGradleModules = false
     ).map(_.map(_.withRevalidateOnce))
   }
 

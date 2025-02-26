@@ -4,6 +4,7 @@ import coursier.cache.FileCache
 import coursier.core.{BomDependency, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
+import mill.T
 import mill.define.Task
 import mill.api.{PathRef, Result}
 import mill.util.Jvm
@@ -18,6 +19,8 @@ import scala.concurrent.duration.Duration
  * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].
  */
 trait CoursierModule extends mill.Module {
+
+  def checkGradleModules: T[Boolean] = false
 
   /**
    * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)
@@ -43,7 +46,8 @@ trait CoursierModule extends mill.Module {
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
       ctx = Some(implicitly[mill.api.Ctx.Log]),
-      resolutionParams = resolutionParams()
+      resolutionParams = resolutionParams(),
+      checkGradleModules = checkGradleModules()
     )
   }
 
@@ -63,7 +67,8 @@ trait CoursierModule extends mill.Module {
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
       ctx = Some(implicitly[mill.api.Ctx.Log]),
-      resolutionParams = resolutionParams()
+      resolutionParams = resolutionParams(),
+      checkGradleModules = checkGradleModules()
     )
   }
 
@@ -181,6 +186,7 @@ object CoursierModule {
   class Resolver(
       repositories: Seq[Repository],
       bind: Dep => BoundDep,
+      checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
@@ -206,6 +212,7 @@ object CoursierModule {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
+        checkGradleModules = checkGradleModules,
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
@@ -230,6 +237,7 @@ object CoursierModule {
       Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
+        checkGradleModules = checkGradleModules,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
@@ -253,6 +261,7 @@ object CoursierModule {
       Jvm.getArtifacts(
         repositories,
         deps0.map(_.dep),
+        checkGradleModules = checkGradleModules,
         sources = sources,
         ctx = Option(logCtx).orElse(ctx)
       ).get
