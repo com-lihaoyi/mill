@@ -27,6 +27,7 @@ private[playlib] class RouteCompilerWorker extends AutoCloseable {
         )
         val bridge = cl
           .loadClass("mill.playlib.worker.RouteCompilerWorker")
+          .getDeclaredConstructor()
           .newInstance()
           .asInstanceOf[mill.playlib.api.RouteCompilerWorkerApi]
         routeCompilerInstanceCache = Some((classloaderSig, bridge))
