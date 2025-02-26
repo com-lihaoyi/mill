@@ -1,0 +1,3 @@
+package build.nested
+
+trait ModuleC extends build.ModuleA
