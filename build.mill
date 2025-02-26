@@ -1,3 +1,5 @@
+//> using mill.version 0.12.8-1-46e216-native
+
 package build
 // imports
 import com.github.lolgab.mill.mima.Mima
