@@ -122,7 +122,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       private val scalaVersionString = build.Deps.sbtScalaVersion212
       def scalaVersion = scalaVersionString
       def moduleDeps = Seq(models(scalaVersionString))
-      def ivyDeps = Agg(build.Deps.sbt) // TODO consider `compileIvyDeps`
+      def compileIvyDeps = Agg(build.Deps.sbt)
     }
   }
 }
