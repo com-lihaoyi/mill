@@ -343,7 +343,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       import scala.concurrent.ExecutionContext.Implicits.global
       val unresolved = Resolution(deps)
       val fetch =
-        ResolutionProcess.fetch(repos, coursier.cache.Cache.default.fetch)
+        ResolutionProcess.fetch0(repos, coursier.cache.Cache.default.fetch)
       val gatherTask =
         for {
           resolved <- unresolved.process.run(fetch)
