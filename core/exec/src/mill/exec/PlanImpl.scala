@@ -3,7 +3,6 @@ package mill.exec
 import mill.define.{NamedTask, Task, Plan}
 import mill.define.MultiBiMap
 
-
 private[mill] object PlanImpl {
   def plan(goals: Seq[Task[?]]): Plan = {
     val transitive = PlanImpl.transitiveTargets(goals.toIndexedSeq)

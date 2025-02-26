@@ -1,7 +1,7 @@
 package mill.eval
 import mill.define.*
 import mill.api.*
-final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator{
+final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
   override def allowPositionalCommandArgs = delegate.allowPositionalCommandArgs
   override def selectiveExecution = delegate.selectiveExecution
   override def workspace = delegate.workspace
@@ -15,47 +15,52 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator{
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
   def resolveSegments(
-                       scriptArgs: Seq[String],
-                       selectMode: SelectMode,
-                       allowPositionalCommandArgs: Boolean,
-                       resolveToModuleTasks: Boolean
-                     ): mill.api.Result[List[Segments]] = {
-    delegate.resolveSegments(scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
+  ): mill.api.Result[List[Segments]] = {
+    delegate.resolveSegments(
+      scriptArgs,
+      selectMode,
+      allowPositionalCommandArgs,
+      resolveToModuleTasks
+    )
   }
 
   def resolveTasks(
-                    scriptArgs: Seq[String],
-                    selectMode: SelectMode,
-                    allowPositionalCommandArgs: Boolean = false,
-                    resolveToModuleTasks: Boolean = false
-                  ): mill.api.Result[List[NamedTask[?]]] = {
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): mill.api.Result[List[NamedTask[?]]] = {
     delegate.resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
   def plan(tasks: Seq[Task[?]]): Plan = delegate.plan(tasks)
 
   def execute[T](
-                  targets: Seq[Task[T]],
-                  reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-                  testReporter: TestReporter = DummyTestReporter,
-                  logger: ColorLogger = baseLogger,
-                  serialCommandExec: Boolean = false,
-                  selectiveExecution: Boolean = false
-                ): Evaluator.Result[T] = {
+      targets: Seq[Task[T]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = DummyTestReporter,
+      logger: ColorLogger = baseLogger,
+      serialCommandExec: Boolean = false,
+      selectiveExecution: Boolean = false
+  ): Evaluator.Result[T] = {
     delegate.execute(
       targets,
       reporter,
       testReporter,
       logger,
       serialCommandExec,
-      selectiveExecution,
+      selectiveExecution
     )
   }
 
   def evaluate(
-                scriptArgs: Seq[String],
-                selectMode: SelectMode,
-                selectiveExecution: Boolean = false
-              ): mill.api.Result[Evaluator.Result[Any]] = {
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      selectiveExecution: Boolean = false
+  ): mill.api.Result[Evaluator.Result[Any]] = {
     delegate.evaluate(scriptArgs, selectMode, selectiveExecution)
   }
   def close = delegate.close()

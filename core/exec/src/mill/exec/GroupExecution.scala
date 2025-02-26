@@ -244,7 +244,7 @@ private trait GroupExecution {
             os.dynamicPwdFunction.withValue(destFunc) {
               SystemStreams.withStreams(streams) {
                 val exposedEvaluator = if (!exclusive) null else getEvaluator()
-                Evaluator.currentEvaluator0.withValue(exposedEvaluator){
+                Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
                   if (!exclusive) t
                   else {
                     logger.reportKey(Seq(counterMsg))

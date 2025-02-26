@@ -145,11 +145,11 @@ object Kover extends ExternalModule with KoverReportBaseModule {
   }
 
   private def koverReportTask(
-                               evaluator: Evaluator,
-                               sources: String = "__:KotlinModule:^TestModule.allSources",
-                               compiled: String = "__:KotlinModule:^TestModule.compile",
-                               binaryReports: String = "__.koverBinaryReport",
-                               reportType: ReportType
+      evaluator: Evaluator,
+      sources: String = "__:KotlinModule:^TestModule.allSources",
+      compiled: String = "__:KotlinModule:^TestModule.compile",
+      binaryReports: String = "__.koverBinaryReport",
+      reportType: ReportType
   ): Task[PathRef] = {
     val sourcesTasks: Seq[Task[Seq[PathRef]]] = resolveTasks(sources, evaluator)
     val compiledTasks: Seq[Task[CompilationResult]] = resolveTasks(compiled, evaluator)

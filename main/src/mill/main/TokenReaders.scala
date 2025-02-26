@@ -3,7 +3,7 @@ package mill.main
 import mainargs.TokensReader
 import mill.define.{Args, Evaluator, Task}
 import mill.resolve.SimpleTaskTokenReader
-import mill.eval.{EvaluatorProxy, EvaluatorImpl}
+import mill.eval.EvaluatorProxy
 
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
   def read(): Either[String, Evaluator] = Right(

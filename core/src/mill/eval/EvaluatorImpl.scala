@@ -1,6 +1,14 @@
 package mill.eval
 
-import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, ExecResult, PathRef, Result, TestReporter, Val}
+import mill.api.{
+  ColorLogger,
+  CompileProblemReporter,
+  DummyTestReporter,
+  ExecResult,
+  PathRef,
+  TestReporter,
+  Val
+}
 import mill.constants.OutFiles
 import mill.define.*
 import mill.exec.{Execution, PlanImpl}
@@ -8,20 +16,16 @@ import mill.define.internal.Watchable
 import OutFiles.*
 import mill.resolve.Resolve
 
-import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
-import scala.util.DynamicVariable
-
 /**
-* [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
-* evaluation process. The various phases of evaluation as methods they can call:
-*
-* 1. [[resolveSegments]]/[[resolveTasks]]
-* 2. [[plan]]
-* 3. [[execute]]/[[execute]],
-*
-* As well as [[evaluate]] which does all of these phases one after another
-*/
+ * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
+ * evaluation process. The various phases of evaluation as methods they can call:
+ *
+ * 1. [[resolveSegments]]/[[resolveTasks]]
+ * 2. [[plan]]
+ * 3. [[execute]]/[[execute]],
+ *
+ * As well as [[evaluate]] which does all of these phases one after another
+ */
 
 final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
@@ -215,7 +219,7 @@ final class EvaluatorImpl private[mill] (
   def close(): Unit = execution.close()
 
 }
-object EvaluatorImpl{
+object EvaluatorImpl {
 
   private[mill] def formatFailing(evaluated: ExecutionResults): String = {
     (for ((k, fs) <- evaluated.failing)
