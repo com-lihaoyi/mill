@@ -3,8 +3,7 @@ package mill.contrib.bloop
 import _root_.bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
 import mill.api.Result
-import mill.define.{Discover, ExternalModule, Module => MillModule}
-import mill.eval.Evaluator
+import mill.define.{Discover, Evaluator, ExternalModule, Module as MillModule}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.{JsEnvConfig, ModuleKind}

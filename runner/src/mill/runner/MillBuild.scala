@@ -2,7 +2,7 @@ package mill.runner
 
 import mill.{Task, given}
 import mill.define.{Command, Discover, ExternalModule, Module}
-import mill.eval.Evaluator.AllBootstrapEvaluators
+import mill.define.Evaluator.AllBootstrapEvaluators
 
 trait MillBuild extends Module {
 

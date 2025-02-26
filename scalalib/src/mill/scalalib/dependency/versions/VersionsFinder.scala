@@ -1,7 +1,6 @@
 package mill.scalalib.dependency.versions
 
-import mill.define.{BaseModule, Task}
-import mill.eval.Evaluator
+import mill.define.{BaseModule, Evaluator, Task}
 import mill.scalalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
 import mill.scalalib.{BoundDep, JavaModule, Lib}
 import mill.api.Ctx.Log

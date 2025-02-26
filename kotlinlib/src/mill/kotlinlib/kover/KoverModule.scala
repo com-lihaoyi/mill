@@ -7,8 +7,7 @@ package mill.kotlinlib.kover
 import mill.*
 import mill.api.{PathRef, Result}
 import mill.api.Result.Success
-import mill.define.{Discover, ExternalModule}
-import mill.eval.Evaluator
+import mill.define.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
 import mill.define.SelectMode
@@ -146,11 +145,11 @@ object Kover extends ExternalModule with KoverReportBaseModule {
   }
 
   private def koverReportTask(
-      evaluator: mill.eval.Evaluator,
-      sources: String = "__:KotlinModule:^TestModule.allSources",
-      compiled: String = "__:KotlinModule:^TestModule.compile",
-      binaryReports: String = "__.koverBinaryReport",
-      reportType: ReportType
+                               evaluator: Evaluator,
+                               sources: String = "__:KotlinModule:^TestModule.allSources",
+                               compiled: String = "__:KotlinModule:^TestModule.compile",
+                               binaryReports: String = "__.koverBinaryReport",
+                               reportType: ReportType
   ): Task[PathRef] = {
     val sourcesTasks: Seq[Task[Seq[PathRef]]] = resolveTasks(sources, evaluator)
     val compiledTasks: Seq[Task[CompilationResult]] = resolveTasks(compiled, evaluator)

@@ -2,7 +2,7 @@
 // are run from the command line.
 import mill._
 
-def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command {
+def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command{
   println(s"$str $i $bool")
 }
 
@@ -19,12 +19,14 @@ hello 123 true
 
 */
 
+
 // === `os.Path`
 //
 // In addition to the builtin set of types that MainArgs supports, Mill also
 // supports parsing OS-Lib ``os.Path``s from the command line:
 
-def commandTakingPath(path: os.Path) = Task.Command {
+
+def commandTakingPath(path: os.Path) = Task.Command{
   println(path)
 }
 
@@ -42,7 +44,7 @@ def commandTakingPath(path: os.Path) = Task.Command {
 // command as part of another task, while passing it the value of an upstream
 // task:
 
-def commandTakingTask(str: Task[String]) = Task.Command {
+def commandTakingTask(str: Task[String]) = Task.Command{
   val result = "arg: " + str()
   println(result)
   result
@@ -63,12 +65,14 @@ def taskCallingCommand = Task {
   commandTakingTask(upstreamTask)()
 }
 
+
 /** Usage
 
 > ./mill show taskCallingCommand
 "arg: HELLO"
 
 */
+
 
 // === Evaluator (experimental)
 //
@@ -80,22 +84,26 @@ def taskCallingCommand = Task {
 // For example, here is a `customPlanCommand` command which uses this
 // to traverse the module tree to find the tasks specified by the `tasks` strings,
 // and plan out what would be necessary to run them
-import mill.eval.Evaluator
-import mill.define.SelectMode
+import mill.eval.{Evaluator, Terminal}
+import mill.resolve.{Resolve, SelectMode}
 
-def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
-  val resolved = evaluator
-    .resolveTasks(tasks, SelectMode.Multi)
-    .get
+def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
+  Resolve.Tasks.resolve(
+    evaluator.rootModule,
+    tasks,
+    SelectMode.Multi
+  ) match{
+    case Left(err) => Left(err)
+    case Right(resolved) =>
+      val (sortedGroups, _) = evaluator.plan(resolved)
+      val plan = sortedGroups
+        .keys()
+        .collect { case r: Terminal.Labelled[_] => r.render }
+        .toArray
 
-  val plan = evaluator.plan(resolved)
-    .sortedGroups
-    .keys()
-    .map(_.toString)
-    .toArray
-
-  plan.foreach(println)
-  ()
+      plan.foreach(println)
+      Right(())
+  }
 }
 
 // We can call our `customPlanCommand` from the command line and pass it the
@@ -112,8 +120,8 @@ taskCallingCommand
 */
 
 // Many built-in tools are implemented as custom evaluator commands:
-// xref:cli/builtin-commands.adoc#_inspect[inspect],
-// xref:cli/builtin-commands.adoc#_resolve[resolve],
-// xref:cli/builtin-commands.adoc#_show[show].
+// xref:scalalib/builtin-commands.adoc#_inspect[inspect],
+// xref:scalalib/builtin-commands.adoc#_resolve[resolve],
+// xref:scalalib/builtin-commands.adoc#_show[show].
 // If you want a way to run Mill commands and programmatically manipulate the
 // tasks and outputs, you do so with your own evaluator command.

@@ -4,7 +4,8 @@ import mill.api.ExecResult.{Aborted, Failing}
 
 import mill.api._
 import mill.define._
-import mill.internal.{PrefixLogger, MultiBiMap}
+import mill.internal.PrefixLogger
+import mill.define.MultiBiMap
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -31,7 +32,8 @@ private[mill] case class Execution(
     threadCount: Option[Int],
     codeSignatures: Map[String, Int],
     systemExit: Int => Nothing,
-    exclusiveSystemStreams: SystemStreams
+    exclusiveSystemStreams: SystemStreams,
+    getEvaluator: () => Evaluator
 ) extends GroupExecution with AutoCloseable {
 
   def withBaseLogger(newBaseLogger: ColorLogger) = this.copy(baseLogger = newBaseLogger)
@@ -86,7 +88,7 @@ private[mill] case class Execution(
     os.makeDir.all(outPath)
 
     val threadNumberer = new ThreadNumberer()
-    val plan = Plan.plan(goals)
+    val plan = PlanImpl.plan(goals)
     val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
     val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
@@ -99,7 +101,7 @@ private[mill] case class Execution(
     // and the class hierarchy, so during evaluation it is cheap to look up what class
     // each target belongs to determine of the enclosing class code signature changed.
     val (classToTransitiveClasses, allTransitiveClassMethods) =
-      CodeSigUtils.precomputeMethodNamesPerClass(Plan.transitiveNamed(goals))
+      CodeSigUtils.precomputeMethodNamesPerClass(PlanImpl.transitiveNamed(goals))
 
     val uncached = new ConcurrentHashMap[Task[?], Unit]()
     val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
@@ -222,7 +224,7 @@ private[mill] case class Execution(
       case _ => true
     }
 
-    val tasksTransitive = Plan.transitiveTargets(Seq.from(tasks0)).toSet
+    val tasksTransitive = PlanImpl.transitiveTargets(Seq.from(tasks0)).toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
       case t: NamedTask[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec

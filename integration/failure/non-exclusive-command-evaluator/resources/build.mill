@@ -1,0 +1,9 @@
+package build
+
+import mill._
+import mill.eval.{Evaluator, Terminal}
+import mill.resolve.{Resolve, SelectMode}
+
+def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
+  evaluator.rootModule.toString
+}

@@ -1,20 +1,17 @@
 package mill.exec
 
-import mill.define.{NamedTask, Task}
-import mill.internal.MultiBiMap
+import mill.define.{NamedTask, Task, Plan}
+import mill.define.MultiBiMap
 
-private[mill] class Plan(
-    val transitive: IndexedSeq[Task[?]],
-    val sortedGroups: MultiBiMap[Task[?], Task[?]]
-)
-private[mill] object Plan {
+
+private[mill] object PlanImpl {
   def plan(goals: Seq[Task[?]]): Plan = {
-    val transitive = Plan.transitiveTargets(goals.toIndexedSeq)
+    val transitive = PlanImpl.transitiveTargets(goals.toIndexedSeq)
     val goalSet = goals.toSet
-    val topoSorted = Plan.topoSorted(transitive)
+    val topoSorted = PlanImpl.topoSorted(transitive)
 
     val sortedGroups: MultiBiMap[Task[?], Task[?]] =
-      Plan.groupAroundImportantTargets(topoSorted) {
+      PlanImpl.groupAroundImportantTargets(topoSorted) {
         // important: all named tasks and those explicitly requested
         case t: NamedTask[Any] => t
         case t if goalSet.contains(t) => t
@@ -27,7 +24,7 @@ private[mill] object Plan {
    * The `values` [[Agg]] is guaranteed to be topological sorted and cycle free.
    * That's why the constructor is package private.
    *
-   * @see [[Plan.topoSorted]]
+   * @see [[PlanImpl.topoSorted]]
    */
   class TopoSorted(val values: IndexedSeq[Task[?]])
 

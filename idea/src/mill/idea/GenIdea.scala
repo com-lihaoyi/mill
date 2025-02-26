@@ -3,8 +3,7 @@ package mill.idea
 import mill.given
 import mill.Task
 import mill.api.Result
-import mill.define.{Command, Discover, ExternalModule}
-import mill.eval.Evaluator
+import mill.define.{Command, Discover, Evaluator, ExternalModule}
 
 object GenIdea extends ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "idea"

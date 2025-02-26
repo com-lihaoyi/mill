@@ -3,8 +3,7 @@ package mill.testkit
 import mill.{Target, Task}
 import mill.api.ExecResult.OuterStack
 import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
-import mill.define.{InputImpl, SelectMode, TargetImpl}
-import mill.eval.Evaluator
+import mill.define.{Evaluator, InputImpl, SelectMode, TargetImpl}
 import mill.resolve.Resolve
 import mill.internal.PrintLogger
 import mill.exec.JsonArrayLogger
@@ -105,19 +104,18 @@ class UnitTester(
     threadCount = threads,
     codeSignatures = Map(),
     systemExit = _ => ???,
-    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream)
+    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
+    getEvaluator = () => ???
   )
 
-  val evaluator: Evaluator = new mill.eval.Evaluator(
+  val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
     execution = execution
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
-      Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
-    } match {
+    Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated) match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))
       case Result.Success(resolved) => apply(resolved)
     }
