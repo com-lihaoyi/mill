@@ -15,13 +15,6 @@ object BloopTests extends UtestIntegrationTestSuite {
         assert(installResult)
         assert(os.exists(workspacePath / ".bloop/root-module.json"))
       }
-      test("mill-build module bloop config should be created") - integrationTest { tester =>
-        import tester._
-        val installResult: Boolean = eval("mill.contrib.bloop.Bloop/install").isSuccess
-        val millBuildJsonFile = workspacePath / ".bloop/mill-build-.json"
-        assert(installResult)
-        assert(os.exists(millBuildJsonFile))
-      }
 
       test("mill-build config should contain build.mill source") - integrationTest { tester =>
         import tester._
@@ -32,6 +25,25 @@ object BloopTests extends UtestIntegrationTestSuite {
         assert(config("project")("sources").arr.exists(path =>
           os.Path(path.str).last == "build.mill"
         ))
+
+        if (isPackagedLauncher) {
+          val modules = config("project")("resolution")("modules").arr
+
+          def sourceJars(org: String, namePrefix: String) = modules
+            .filter(mod => mod("organization").str == org && mod("name").str.startsWith(namePrefix))
+            .flatMap(_("artifacts").arr)
+            .filter(_("classifier").strOpt.contains("sources"))
+            .flatMap(_("path").strOpt)
+            .filter(_.endsWith("-sources.jar"))
+            .distinct
+
+          // Look for one of Mill's own source JARs
+          val millScalaLibSourceJars = sourceJars("com.lihaoyi", "mill-scalalib_")
+          assert(millScalaLibSourceJars.nonEmpty)
+          // Look for a source JAR of a dependency
+          val coursierCacheSourceJars = sourceJars("io.get-coursier", "coursier-cache_")
+          assert(coursierCacheSourceJars.nonEmpty)
+        }
       }
     }
   }
