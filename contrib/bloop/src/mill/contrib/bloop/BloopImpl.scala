@@ -116,19 +116,15 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     JavaModuleUtils.transitiveModules(mod, accept)
   }
 
-  private def modulesToOutFolderMap: Map[JavaModule, os.Path] = {
+  protected def computeModules: Seq[JavaModule] = {
     val evals = evs()
     evals.flatMap { eval =>
       if (eval != null)
         JavaModuleUtils.transitiveModules(eval.rootModule, accept)
-          .collect { case jm: JavaModule => (jm, eval.outPath) }
+          .collect { case jm: JavaModule => jm }
       else
         Seq.empty
-    }.toMap
-  }
-
-  protected def computeModules: Seq[JavaModule] = {
-    modulesToOutFolderMap.keys.toSeq
+    }
   }
 
   // class-based pattern matching against path-dependant types doesn't seem to work.

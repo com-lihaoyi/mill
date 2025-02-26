@@ -30,7 +30,7 @@ object `hello-sourcegen` extends scalalib.JavaModule {
 
   /**
    * We're adding a buggy task to check its generated source folders
-   * will be configured for Bloop even if the task crashes
+   * will be configured for BSP even if the task crashes
    */
   def someBuggyGeneratedSource: T[Unit] = T {
     def crash(): Unit = throw new Exception("Boom")
