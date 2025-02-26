@@ -47,7 +47,9 @@ if [!MILL_VERSION!]==[] (
       set /p MILL_VERSION=<.config\mill-version
     ) else (
       if not "%MILL_BUILD_SCRIPT%"=="" (
-        for /f "tokens=" %%i in ('findstr /r "//> using mill.version " %MILL_BUILD_SCRIPT%') do (
+        rem can't use findstr /r since the set commnand does not support regex later
+        rem so we currently don't support variable whitespaces
+        for /f "tokens=" %%i in ('findstr "^/^/> using mill.version " %MILL_BUILD_SCRIPT%') do (
           set "MILL_VERSION=%%i"
         )
         set "MILL_VERSION=%MILL_VERSION://> using mill.version =%"
