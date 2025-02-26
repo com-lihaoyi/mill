@@ -7,6 +7,7 @@
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloidea.test.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloidea.test.iml"/>
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloideajs.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloideajs.iml"/>
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloideajs.test.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloideajs.test.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloideasourcegen.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloideasourcegen.iml"/>
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/mill-build.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/mill-build.iml"/>
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/modulea.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/modulea.iml"/>
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/moduleb.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/moduleb.iml"/>

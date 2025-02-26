@@ -28,6 +28,29 @@ object HelloIdea extends HelloIdeaModule {
   }
 }
 
+object HelloIdeaSourceGen extends scalalib.ScalaModule {
+  def scalaVersion = "2.12.5"
+
+  def someGeneratedSource = Task(generatedSourceRoots = Seq(os.SubPath("scala"))) {
+    val contents = """|package foo
+                      |
+                      |case class GeneratedFoo()
+                      |""".stripMargin
+    os.write(T.dest / "scala" / "GeneratedFoo.scala", contents)
+  }
+
+  /**
+   * We're adding a buggy task to check its generated source folders
+   * will be configured for Idea even if the task crashes
+   */
+  def someBuggyGeneratedSource: T[Unit] = T {
+    def crash(): Unit = throw new Exception("Boom")
+    crash()
+  }
+
+  def sourceGenerators = List(someGeneratedSource, someBuggyGeneratedSource)
+}
+
 object HiddenIdea extends HelloIdeaModule {
   override def skipIdea = true
 }
