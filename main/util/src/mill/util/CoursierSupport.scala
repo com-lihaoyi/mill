@@ -4,6 +4,7 @@ import coursier.cache.{CacheLogger, FileCache}
 import coursier.core.{ArtifactSource, BomDependency, Extension, Info, Module, Project, Publication}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
+import coursier.maven.MavenRepositoryLike
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
@@ -131,6 +132,7 @@ trait CoursierSupport {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
+      checkGradleModules: Boolean = false,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
@@ -143,6 +145,7 @@ trait CoursierSupport {
       repositories,
       deps,
       force,
+      checkGradleModules,
       mapDependencies,
       customizer,
       ctx,
@@ -233,6 +236,7 @@ trait CoursierSupport {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
+      checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
@@ -258,10 +262,20 @@ trait CoursierSupport {
     val testOverridesRepo =
       new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
 
+    val repositories0 =
+      if (checkGradleModules)
+        repositories.map {
+          case m: MavenRepositoryLike.WithModuleSupport =>
+            m.withCheckModule(true)
+          case other => other
+        }
+      else
+        repositories
+
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      .withRepositories(testOverridesRepo +: repositories)
+      .withRepositories(testOverridesRepo +: repositories0)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.iterator.toSeq)
