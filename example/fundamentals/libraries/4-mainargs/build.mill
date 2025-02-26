@@ -80,8 +80,7 @@ def taskCallingCommand = Task {
 // For example, here is a `customPlanCommand` command which uses this
 // to traverse the module tree to find the tasks specified by the `tasks` strings,
 // and plan out what would be necessary to run them
-import mill.eval.Evaluator
-import mill.define.SelectMode
+import mill.define.{SelectMode, Evaluator}
 
 def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
   val resolved = evaluator
