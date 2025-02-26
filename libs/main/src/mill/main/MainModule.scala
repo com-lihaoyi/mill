@@ -340,7 +340,7 @@ trait MainModule extends BaseModule with MainModuleApi {
    *
    * - `mill selective.resolve <selector>`:
    *   a dry-run version of `selective.run`,
-   *   prints out the tasks in `<selector>`` that are affected by the code changes
+   *   prints out the tasks in `<selector>` that are affected by the code changes
    *   and would have run, without actually running them.
    */
   lazy val selective: SelectiveExecutionModule = new SelectiveExecutionModule {}
