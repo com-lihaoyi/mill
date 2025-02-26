@@ -9,7 +9,7 @@ import utest._
  * all reference each other as normal, and that the code generation doesn't
  * end up messing things up
  */
-object MultiFileTests extends UtestIntegrationTestSuite {
+object MultiFileReferencesTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       import tester._
