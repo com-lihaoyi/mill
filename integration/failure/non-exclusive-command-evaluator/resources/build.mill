@@ -1,9 +1,8 @@
 package build
 
 import mill._
-import mill.eval.{Evaluator, Terminal}
-import mill.resolve.{Resolve, SelectMode}
+import mill.define.Evaluator
 
 def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
-  evaluator.rootModule.toString
+  evaluator.plan(Nil).transitive.foreach(println)
 }

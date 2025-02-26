@@ -105,7 +105,7 @@ class UnitTester(
     codeSignatures = Map(),
     systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
-    getEvaluator = () => ???
+    getEvaluator = () => evaluator
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
