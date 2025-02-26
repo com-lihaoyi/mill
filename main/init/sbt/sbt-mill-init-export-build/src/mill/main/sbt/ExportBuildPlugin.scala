@@ -1,10 +1,10 @@
 package mill.main.sbt
 
-import sbt.Keys.*
+import sbt.Keys._
 import sbt.io.IO
-import sbt.librarymanagement.{Constant, Disabled, For2_13Use3, For3Use2_13}
-import sbt.{Def, CrossVersion as _, Developer as _, Project as _, Resolver as _, ScmInfo as _, *}
-import upickle.default.*
+import sbt.librarymanagement.{Binary, Disabled, Full, MavenRepository, _}
+import sbt.{Def, CrossVersion => _, Developer => _, Project => _, Resolver => _, ScmInfo => _, _}
+import upickle.default._
 
 import java.io.File
 
@@ -23,7 +23,7 @@ object ExportBuildPlugin extends AutoPlugin {
     val millInitExportBuild = taskKey[File]("export the build in a JSON file for `mill init`")
   }
 
-  import autoImport.*
+  import autoImport._
 
   val buildInfoSetting = millInitBuildInfo := BuildInfo(
     BuildPublicationInfo(
