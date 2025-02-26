@@ -32,6 +32,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/hello-sourcegen"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/mill-build"
       },
       "outputPaths": []

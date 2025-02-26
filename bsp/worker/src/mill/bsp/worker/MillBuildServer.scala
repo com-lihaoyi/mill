@@ -232,15 +232,16 @@ private class MillBuildServer(
       targetIds = _ => sourcesParams.getTargets.asScala.toSeq,
       tasks = {
         case module: MillBuildRootModule =>
-          // TODO
           Task.Anon {
             module.sources().map(p => sourceItem(p.path, false)) ++
-              module.generatedSources().map(p => sourceItem(p.path, true))
+              module.generatedSources().map(p => sourceItem(p.path, true)) ++
+              module.predictedGeneratedSourceRoots().map(p => sourceItem(p.path, true))
           }
         case module: JavaModule =>
           Task.Anon {
             module.sources().map(p => sourceItem(p.path, false)) ++
-              module.generatedSources().map(p => sourceItem(p.path, true))
+              module.generatedSources().map(p => sourceItem(p.path, true)) ++
+              module.predictedGeneratedSourceRoots().map(p => sourceItem(p.path, true))
           }
       }
     ) {

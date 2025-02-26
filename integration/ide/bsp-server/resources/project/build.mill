@@ -7,12 +7,36 @@ object `hello-java` extends scalalib.JavaModule
 
 // testing a simple Scala module
 object `hello-scala` extends scalalib.ScalaModule {
+
   def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+
 }
 
 // testing a simple Kotlin module
 object `hello-kotlin` extends kotlinlib.KotlinModule {
   def kotlinVersion = Option(System.getenv("TEST_KOTLIN_VERSION")).getOrElse(???)
+}
+
+// testing a java module with source generators
+object `hello-sourcegen` extends scalalib.JavaModule {
+  def someGeneratedSource = Task(generatedSourceRoots = Seq(os.SubPath("java"))) {
+    val contents = """|package foo;
+                      |
+                      |class GeneratedFoo {
+                      |}
+                      |""".stripMargin
+    os.write(T.dest / "java" / "GeneratedFoo.java", contents)
+  }
+
+  /**
+   * We're adding a buggy task to check its generated source folders
+   * will be configured for Bloop even if the task crashes
+   */
+  def someBuggyGeneratedSource: T[Unit] = T {
+    def crash(): Unit = throw new Exception("Boom")
+    crash()
+  }
+  def sourceGenerators = List(someGeneratedSource, someBuggyGeneratedSource)
 }
 
 // testing a two-module setup, with one module depending on the other,
