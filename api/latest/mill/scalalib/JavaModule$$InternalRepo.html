@@ -242,7 +242,7 @@ node9 -> node2;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#completeOpt-fffff3c2" t="n" class="documentableName ">completeOpt</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$3</span>] : <span data-unresolved-link="" t="t">Monad</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>): <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Complete</span>[<span data-unresolved-link="" t="t">F</span>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#completeOpt-fffff3c2" t="n" class="documentableName ">completeOpt</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$6</span>] : <span data-unresolved-link="" t="t">Monad</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>): <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Complete</span>[<span data-unresolved-link="" t="t">F</span>]]
            </div>
           </div>
          </div>
@@ -267,12 +267,42 @@ node9 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="findMaybeInterval-fffff062" data-f-inherited="Repository">
+        <div class="documentableElement" id="find0-fffff5a7" data-f-inherited="Repository">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#findMaybeInterval-fffff062" t="n" class="documentableName ">findMaybeInterval</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$2</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">module</span>: <span data-unresolved-link="" t="t">Module</span>, <span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">F</span>: <span data-unresolved-link="" t="t">Monad</span>[<span t="t">F</span>]): <span data-unresolved-link="" t="t">EitherT</span>[<span data-unresolved-link="" t="t">F</span>, <span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">ArtifactSource</span>, <span data-unresolved-link="" t="t">Project</span>)]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#find0-fffff5a7" t="n" class="documentableName ">find0</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$1</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">module</span>: <span data-unresolved-link="" t="t">Module</span>, <span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">Version</span>, <span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">F</span>: <span data-unresolved-link="" t="t">Monad</span>[<span t="t">F</span>]): <span data-unresolved-link="" t="t">EitherT</span>[<span data-unresolved-link="" t="t">F</span>, <span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">ArtifactSource</span>, <span data-unresolved-link="" t="t">Project</span>)]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <span data-unresolved-link="">Repository</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="findFromVersionConstraint-ffffff8a" data-f-inherited="Repository">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#findFromVersionConstraint-ffffff8a" t="n" class="documentableName ">findFromVersionConstraint</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$5</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">module</span>: <span data-unresolved-link="" t="t">Module</span>, <span t="k"></span><span data-unresolved-link="" t="n">versionConstraint</span>: <span data-unresolved-link="" t="t">VersionConstraint</span>, <span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">F</span>: <span data-unresolved-link="" t="t">Monad</span>[<span t="t">F</span>]): <span data-unresolved-link="" t="t">EitherT</span>[<span data-unresolved-link="" t="t">F</span>, <span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">ArtifactSource</span>, <span data-unresolved-link="" t="t">Project</span>)]
            </div>
           </div>
          </div>
@@ -392,7 +422,7 @@ node9 -> node2;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#versions-199" t="n" class="documentableName ">versions</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$5</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">module</span>: <span data-unresolved-link="" t="t">Module</span>, <span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>, <span t="k"></span><span data-unresolved-link="" t="n">versionsCheckHasModule</span>: <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">F</span>: <span data-unresolved-link="" t="t">Monad</span>[<span t="t">F</span>]): <span data-unresolved-link="" t="t">EitherT</span>[<span data-unresolved-link="" t="t">F</span>, <span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Versions</span>, <span data-unresolved-link="" t="t">String</span>)]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#versions-199" t="n" class="documentableName ">versions</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$8</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">module</span>: <span data-unresolved-link="" t="t">Module</span>, <span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>, <span t="k"></span><span data-unresolved-link="" t="n">versionsCheckHasModule</span>: <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">F</span>: <span data-unresolved-link="" t="t">Monad</span>[<span t="t">F</span>]): <span data-unresolved-link="" t="t">EitherT</span>[<span data-unresolved-link="" t="t">F</span>, <span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Versions</span>, <span data-unresolved-link="" t="t">String</span>)]
            </div>
           </div>
          </div>
@@ -422,7 +452,7 @@ node9 -> node2;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#versions-fffff067" t="n" class="documentableName ">versions</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$4</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">module</span>: <span data-unresolved-link="" t="t">Module</span>, <span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">F</span>: <span data-unresolved-link="" t="t">Monad</span>[<span t="t">F</span>]): <span data-unresolved-link="" t="t">EitherT</span>[<span data-unresolved-link="" t="t">F</span>, <span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Versions</span>, <span data-unresolved-link="" t="t">String</span>)]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#versions-fffff067" t="n" class="documentableName ">versions</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$7</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">module</span>: <span data-unresolved-link="" t="t">Module</span>, <span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">F</span>: <span data-unresolved-link="" t="t">Monad</span>[<span t="t">F</span>]): <span data-unresolved-link="" t="t">EitherT</span>[<span data-unresolved-link="" t="t">F</span>, <span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Versions</span>, <span data-unresolved-link="" t="t">String</span>)]
            </div>
           </div>
          </div>
@@ -479,9 +509,89 @@ node9 -> node2;
         </div>
        </div>
       </section>
+      <section id="Deprecated-and-Inherited-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Deprecated and Inherited methods</h4>
+        </div>
+        <div class="documentableElement" id="findMaybeInterval-fffff062" data-f-inherited="Repository">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#findMaybeInterval-fffff062" t="n" class="documentableName deprecated">findMaybeInterval</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$4</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">module</span>: <span data-unresolved-link="" t="t">Module</span>, <span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">F</span>: <span data-unresolved-link="" t="t">Monad</span>[<span t="t">F</span>]): <span data-unresolved-link="" t="t">EitherT</span>[<span data-unresolved-link="" t="t">F</span>, <span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">ArtifactSource</span>, <span data-unresolved-link="" t="t">Project</span>)]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               <code>[Since version 2.1.25] </code>Unused by coursier
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <span data-unresolved-link="">Repository</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="findMaybeInterval-ffffff8a" data-f-inherited="Repository">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$InternalRepo.html#findMaybeInterval-ffffff8a" t="n" class="documentableName deprecated">findMaybeInterval</a>[<span t="k"></span><span data-unresolved-link="" t="t">F</span>[<span t="t">_$$3</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">module</span>: <span data-unresolved-link="" t="t">Module</span>, <span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">VersionConstraint</span>, <span t="k"></span><span data-unresolved-link="" t="n">fetch</span>: ()<span t="k"> =&gt; </span><span t="t">F</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">F</span>: <span data-unresolved-link="" t="t">Monad</span>[<span t="t">F</span>]): <span data-unresolved-link="" t="t">EitherT</span>[<span data-unresolved-link="" t="t">F</span>, <span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">ArtifactSource</span>, <span data-unresolved-link="" t="t">Project</span>)]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               <code>[Since version 2.1.25] </code>Unused by coursier
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <span data-unresolved-link="">Repository</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
      </div>
     </section>
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li><li><a href="#Deprecated-and-Inherited-methods">Deprecated and Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
