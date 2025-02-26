@@ -1142,10 +1142,9 @@ and plan out what would be necessary to run them</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.eval.Evaluator
-import mill.define.SelectMode
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.define.{SelectMode, Evaluator}
 
-def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
+def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
   val resolved = evaluator
     .resolveTasks(tasks, SelectMode.Multi)
     .get
