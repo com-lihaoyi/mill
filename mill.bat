@@ -29,6 +29,16 @@ if [!MILL_MAIN_CLI!]==[] (
 
 set "MILL_REPO_URL=https://github.com/com-lihaoyi/mill"
 
+SET MILL_BUILD_SCRIPT=
+
+IF EXIST "build.mill" (
+    SET MILL_BUILD_SCRIPT=build.mill
+) ELSE IF EXIST "build.mill.scala" (
+    SET MILL_BUILD_SCRIPT=build.mill.scala
+) ELSE IF EXIST "build.sc" (
+    SET MILL_BUILD_SCRIPT=build.sc
+)
+
 rem %~1% removes surrounding quotes
 if [%~1%]==[--mill-version] (
   if not [%~2%]==[] (
@@ -55,6 +65,13 @@ if [!MILL_VERSION!]==[] (
   ) else (
     if exist .config\mill-version (
       set /p MILL_VERSION=<.config\mill-version
+    ) else (
+      if not "%MILL_BUILD_SCRIPT%"=="" (
+        for /f "tokens=" %%i in ('findstr /r "//> using mill.version " %MILL_BUILD_SCRIPT%') do (
+          set "MILL_VERSION=%%i"
+        )
+        set "MILL_VERSION=%MILL_VERSION://> using mill.version =%"
+      )
     )
   )
 )
