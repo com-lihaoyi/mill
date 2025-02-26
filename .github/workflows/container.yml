@@ -1,0 +1,45 @@
+## https://github.com/devcontainers/ci/blob/main/docs/github-action.md
+
+## Our purpose here is only to check that the devcontainer remains valid, cached and current.
+## So
+## - We will not run the tests. We only build on push to main.
+##
+
+permissions: write-all
+
+name: 'dev_container_check'
+on:
+  push:
+    branches:
+      - main
+      - codespace
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout (GitHub)
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and run Dev Container task
+        uses: devcontainers/ci@v0.3
+        with:
+          # Change this to point to your image name
+          imageName: ghcr.io/com-lihaoyi/mill/main
+          # Change this to be your CI task/script
+          runCmd: |
+            # Add multiple commands to run if needed
+            cs version
+            mill -v
+            mill __.compile
