@@ -198,10 +198,20 @@ object Task extends TaskBase {
       persistent: Boolean = false,
       generatedSourceRoots: Seq[os.SubPath] = Seq.empty
   ): ApplyFactory = new ApplyFactory(persistent, generatedSourceRoots)
+
+  // Kept for bincompat reasons
+  protected def apply(
+      t: NamedParameterOnlyDummy,
+      persistent: Boolean
+  ): ApplyFactory = new ApplyFactory(persistent, Seq.empty)
+
   class ApplyFactory private[mill] (
       val persistent: Boolean,
       val generatedSourceRoots: Seq[os.SubPath]
   ) extends TaskBase.TraverseCtxHolder {
+    // Kept for bincompat reasons
+    protected def this(persistent: Boolean) = this(persistent, Seq.empty)
+
     def apply[T](t: Result[T])(implicit
         rw: RW[T],
         ctx: mill.define.Ctx
