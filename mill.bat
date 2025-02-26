@@ -39,26 +39,6 @@ IF EXIST "build.mill" (
     SET MILL_BUILD_SCRIPT=build.sc
 )
 
-rem %~1% removes surrounding quotes
-if [%~1%]==[--mill-version] (
-  if not [%~2%]==[] (
-    set MILL_VERSION=%~2%
-    rem shift command doesn't work within parentheses
-    set "STRIP_VERSION_PARAMS=true"
-  ) else (
-    echo You specified --mill-version without a version. 1>&2
-    echo Please provide a version that matches one provided on 1>&2
-    echo %MILL_REPO_URL%/releases 1>&2
-    exit /b 1
-  )
-)
-
-if not defined STRIP_VERSION_PARAMS GOTO AfterStripVersionParams
-rem strip the: --mill-version {version}
-shift
-shift
-:AfterStripVersionParams
-
 if [!MILL_VERSION!]==[] (
   if exist .mill-version (
       set /p MILL_VERSION=<.mill-version
@@ -231,23 +211,8 @@ if [%~1%]==[--bsp] (
 set "MILL_PARAMS=%*%"
 
 if not [!MILL_FIRST_ARG!]==[] (
-  if defined STRIP_VERSION_PARAMS (
-    for /f "tokens=1-3*" %%a in ("%*") do (
-        set "MILL_PARAMS=%%d"
-    )
-  ) else (
-    for /f "tokens=1*" %%a in ("%*") do (
-      set "MILL_PARAMS=%%b"
-    )
-  )
-) else (
-  if defined STRIP_VERSION_PARAMS (
-    for /f "tokens=1-2*" %%a in ("%*") do (
-        rem strip %%a - It's the "--mill-version" option.
-        rem strip %%b - it's the version number that comes after the option.
-        rem keep  %%c - It's the remaining options.
-        set "MILL_PARAMS=%%c"
-    )
+  for /f "tokens=1*" %%a in ("%*") do (
+    set "MILL_PARAMS=%%b"
   )
 )
 
