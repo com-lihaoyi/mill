@@ -1,0 +1,13 @@
+diff --git a/main/package.mill b/main/package.mill
+index 5d63a4081fc..43002b2ef0f 100644
+--- a/main/package.mill
++++ b/main/package.mill
+@@ -67,7 +67,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
+         }().toMap
+
+         val result = Lib.resolveDependenciesMetadataSafe(
+-          repositories = dist.repositoriesTask(),
++          repositories = dist.allRepositories(),
+           Seq(BoundDep(dist.coursierDependency, force = false)),
+           Some(dist.mapDependencies()),
+           dist.resolutionCustomizer(),
