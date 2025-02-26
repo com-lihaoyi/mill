@@ -1,6 +1,7 @@
 package build.main.init
 
 import mill._
+import mill.scalalib.ScalaModule
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
@@ -97,41 +98,9 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   object sbt extends build.MillPublishScalaModule {
     def moduleDeps = Seq(buildgen, models(build.Deps.scalaVersion))
 
-    val sbtPluginProjectPath = millModuleBasePath.value / "sbt-mill-init-export-build"
-
-    def sbtPluginProjectSource = Task.Source { sbtPluginProjectPath }
-
-    // generateSbtPluginJar
     def sbtPluginJarResources = Task {
-      models(build.Deps.sbtScalaVersion212).publishLocal()()
-
-      sbtPluginProjectSource()
-
-      val isWindows = System.getProperty("os.name").toLowerCase.startsWith("windows")
-      val version = build.millVersion()
-
-      try {
-        os.call(
-          // The version is passed to the sbt build so it correctly resolves the "models" dependency version and sets its own version.
-          if (isWindows) ("sbt.bat", s"""set version := \\"$version\\"""", "assembly")
-          else ("sbt", s"""set version := "$version"""", "assembly"),
-          cwd = sbtPluginProjectPath,
-          stdout = os.Inherit
-        )
-      } catch {
-        case e: os.SubprocessException =>
-          throw new RuntimeException(
-            "Failed to run `sbt assembly` in the \"sbt-mill-init-export-build\" sbt project. " +
-              "Check if the project builds correctly and if you have sbt available on your system, and install it if you don't.",
-            e
-          )
-        case t: Throwable => throw t
-      }
-
-      os.copy(
-        sbtPluginProjectPath / "target" / "scala-2.12" / "sbt-1.0" / s"sbt-mill-init-export-build-assembly-$version.jar",
-        Task.dest / "sbt-mill-init-export-build-assembly.jar"
-      )
+      val assemblyPathRef = `sbt-mill-init-export-build`.assembly()
+      os.copy(assemblyPathRef.path, Task.dest / "sbt-mill-init-export-build-assembly.jar")
       PathRef(Task.dest)
     }
     def resources: T[Seq[PathRef]] =
@@ -145,6 +114,15 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       // def moduleDeps = Seq(buildgen.tree())
       def ivyDeps = Agg(build.Deps.upickle)
       def compileIvyDeps = Agg(build.Deps.sbt) // for definition references only
+    }
+
+    // no need to publish this
+    // `test` fails with `build.MillScalaModule`, and since it's an SBT plugin project it's most likely not needed.
+    object `sbt-mill-init-export-build` extends ScalaModule {
+      private val scalaVersionString = build.Deps.sbtScalaVersion212
+      def scalaVersion = scalaVersionString
+      def moduleDeps = Seq(models(scalaVersionString))
+      def ivyDeps = Agg(build.Deps.sbt) // TODO consider `compileIvyDeps`
     }
   }
 }
