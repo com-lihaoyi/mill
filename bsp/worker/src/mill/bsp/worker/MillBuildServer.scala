@@ -8,8 +8,7 @@ import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result,
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, ExecutionResults, ExternalModule, NamedTask, Task}
-import mill.eval.Evaluator
+import mill.define.{Args, Discover, Evaluator, ExecutionResults, ExternalModule, NamedTask, Task}
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}

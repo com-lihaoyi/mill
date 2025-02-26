@@ -5,8 +5,7 @@ import mill.define.internal.Watchable
 import mill.main.{BuildInfo, RootModule}
 import mill.constants.CodeGenConstants.*
 import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
-import mill.eval.Evaluator
-import mill.define.{BaseModule, Segments, SelectMode}
+import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
@@ -351,7 +350,7 @@ class MillBuildBootstrap(
 
     val outPath = recOut(output, depth)
     val baseLogger = new PrefixLogger(logger, bootLogPrefix)
-    new mill.eval.Evaluator(
+    lazy val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       selectiveExecution = selectiveExecution,
       execution = new mill.exec.Execution(
@@ -371,9 +370,12 @@ class MillBuildBootstrap(
         threadCount = threadCount,
         codeSignatures = codeSignatures,
         systemExit = systemExit,
-        exclusiveSystemStreams = streams0
+        exclusiveSystemStreams = streams0,
+        getEvaluator = () => evaluator
       )
     )
+
+    evaluator
   }
 
 }

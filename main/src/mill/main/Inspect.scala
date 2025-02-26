@@ -1,9 +1,8 @@
 package mill.main
 
-import mill.eval.Evaluator
 import scala.annotation.tailrec
 import mill.api.*
-import mill.define.*
+import mill.define.{Evaluator, *}
 import scala.collection.mutable
 import pprint.{Renderer, Tree, Truncated}
 import mill.moduledefs.Scaladoc

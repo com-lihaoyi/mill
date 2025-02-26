@@ -23,7 +23,7 @@ object PlanTests extends TestSuite {
 
     test("topoSortedTransitiveTargets") {
       def check(targets: Seq[Task[?]], expected: Seq[Task[?]]) = {
-        val result = Plan.topoSorted(Plan.transitiveTargets(targets)).values
+        val result = PlanImpl.topoSorted(PlanImpl.transitiveTargets(targets)).values
         checkTopological(result)
         assert(result == expected)
       }
@@ -65,10 +65,10 @@ object PlanTests extends TestSuite {
           expected: Seq[(R, Int)]
       ) = {
 
-        val topoSorted = Plan.topoSorted(Plan.transitiveTargets(Seq(target(base))))
+        val topoSorted = PlanImpl.topoSorted(PlanImpl.transitiveTargets(Seq(target(base))))
 
         val important = important0.map(_(base))
-        val grouped = Plan.groupAroundImportantTargets(topoSorted) {
+        val grouped = PlanImpl.groupAroundImportantTargets(topoSorted) {
           case t: TargetImpl[_] if important.contains(t) => t: Target[?]
         }
         val flattened = Seq.from(grouped.values().flatten)
@@ -131,10 +131,10 @@ object PlanTests extends TestSuite {
     test("multiTerminalGroupCounts") {
       def countGroups(goals: Task[?]*) = {
 
-        val topoSorted = Plan.topoSorted(
-          Plan.transitiveTargets(Seq.from(goals))
+        val topoSorted = PlanImpl.topoSorted(
+          PlanImpl.transitiveTargets(Seq.from(goals))
         )
-        val grouped = Plan.groupAroundImportantTargets(topoSorted) {
+        val grouped = PlanImpl.groupAroundImportantTargets(topoSorted) {
           case t: NamedTask[Any] => t
           case t if goals.contains(t) => t
         }
