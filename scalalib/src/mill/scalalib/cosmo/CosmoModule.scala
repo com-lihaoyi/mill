@@ -2,6 +2,7 @@ package mill.scalalib.cosmo
 
 import mill.{T, Task}
 import mill.api.{PathRef, Result}
+import mill.define.{Discover, ExternalModule}
 import mill.scalalib._
 
 import java.nio.file.attribute.PosixFilePermission
@@ -15,41 +16,6 @@ trait CosmoModule extends mill.Module with AssemblyModule {
   def finalMainClass: T[String]
 
   def forkArgs(argv0: String): Task[Seq[String]] = Task.Anon { Seq[String]() }
-
-  def cosmoccVersion: T[String] = Task { "" }
-
-  def cosmocc: T[PathRef] = Task(persistent = true) {
-    val version = if (cosmoccVersion().isEmpty) "" else s"-${cosmoccVersion()}"
-    val versionedCosmocc = s"cosmocc${version}"
-    Task.dest / s"${versionedCosmocc}.zip"
-    val dest = Task.dest / versionedCosmocc / "bin" / "cosmocc"
-
-    if (!os.exists(dest)) {
-      os.remove.all(Task.dest / versionedCosmocc)
-      os.unzip.stream(
-        requests.get.stream(s"https://cosmo.zip/pub/cosmocc/${versionedCosmocc}.zip"),
-        Task.dest / versionedCosmocc
-      )
-
-      if (!scala.util.Properties.isWin) {
-        (
-          os.walk.stream(Task.dest / versionedCosmocc / "bin") ++
-            os.walk.stream(Task.dest / versionedCosmocc / "libexec")
-        ).filter(p => os.isFile(p) && p.ext != "c" && p.last != "cosmoranlib")
-          .foreach { p =>
-            os.perms.set(
-              p,
-              os.perms(p)
-                + PosixFilePermission.GROUP_EXECUTE
-                + PosixFilePermission.OWNER_EXECUTE
-                + PosixFilePermission.OTHERS_EXECUTE
-            )
-          }
-      }
-    }
-
-    PathRef(dest)
-  }
 
   def cosmoLauncherScript: T[String] = Task {
     val start = 1
@@ -85,7 +51,7 @@ trait CosmoModule extends mill.Module with AssemblyModule {
   def cosmoCompiledLauncherScript: T[PathRef] = Task {
     os.write(Task.dest / "launcher.c", cosmoLauncherScript())
     os.call((
-      cosmocc().path,
+      CosmoModule.cosmocc().path,
       "-mtiny",
       "-O3",
       "-o",
@@ -118,4 +84,38 @@ trait CosmoModule extends mill.Module with AssemblyModule {
       Result.Success(created.pathRef)
     }
   }
+}
+
+object CosmoModule extends ExternalModule {
+  def cosmocc: T[PathRef] = Task(persistent = true) {
+    val dest = Task.dest / "cosmocc" / "bin" / "cosmocc"
+
+    if (!os.exists(dest)) {
+      os.remove.all(Task.dest / "cosmocc")
+      os.unzip.stream(
+        requests.get.stream(s"https://cosmo.zip/pub/cosmocc/cosmocc.zip"),
+        Task.dest / "cosmocc"
+      )
+
+      if (!scala.util.Properties.isWin) {
+        (
+          os.walk.stream(Task.dest / "cosmocc" / "bin") ++
+            os.walk.stream(Task.dest / "cosmocc" / "libexec")
+        ).filter(p => os.isFile(p) && p.ext != "c" && p.last != "cosmoranlib")
+          .foreach { p =>
+            os.perms.set(
+              p,
+              os.perms(p)
+                + PosixFilePermission.GROUP_EXECUTE
+                + PosixFilePermission.OWNER_EXECUTE
+                + PosixFilePermission.OTHERS_EXECUTE
+            )
+          }
+      }
+    }
+
+    PathRef(dest)
+  }
+
+  lazy val millDiscover = Discover[this.type]
 }
