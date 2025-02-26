@@ -76,13 +76,15 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[NamedTask[?]]] = {
-    Resolve.Tasks.resolve(
-      rootModule,
-      scriptArgs,
-      selectMode,
-      allowPositionalCommandArgs,
-      resolveToModuleTasks
-    )
+    Evaluator.currentEvaluator0.withValue(this) {
+      Resolve.Tasks.resolve(
+        rootModule,
+        scriptArgs,
+        selectMode,
+        allowPositionalCommandArgs,
+        resolveToModuleTasks
+      )
+    }
   }
 
   /**
@@ -205,12 +207,14 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = Resolve.Tasks.resolve(
-      rootModule,
-      scriptArgs,
-      selectMode,
-      allowPositionalCommandArgs
-    )
+    val resolved = Evaluator.currentEvaluator0.withValue(this) {
+      Resolve.Tasks.resolve(
+        rootModule,
+        scriptArgs,
+        selectMode,
+        allowPositionalCommandArgs
+      )
+    }
 
     for (targets <- resolved)
       yield execute(Seq.from(targets), selectiveExecution = selectiveExecution)

@@ -52,7 +52,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = Task.Command {
+  ): Command[PathRef] = Task.Command(exclusive = true) {
     reportTask(evaluator, ReportType.Html, sources, dataTargets)()
   }
 
@@ -61,7 +61,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = Task.Command {
+  ): Command[PathRef] = Task.Command(exclusive = true) {
     reportTask(evaluator, ReportType.Xml, sources, dataTargets)()
   }
 
@@ -70,7 +70,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = Task.Command {
+  ): Command[PathRef] = Task.Command(exclusive = true) {
     reportTask(evaluator, ReportType.XmlCobertura, sources, dataTargets)()
   }
 
@@ -79,7 +79,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = Task.Command {
+  ): Command[PathRef] = Task.Command(exclusive = true) {
     reportTask(evaluator, ReportType.Console, sources, dataTargets)()
   }
 

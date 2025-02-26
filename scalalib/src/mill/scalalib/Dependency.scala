@@ -12,7 +12,7 @@ object Dependency extends ExternalModule {
       ev: Evaluator,
       allowPreRelease: Boolean = false
   ): Command[Seq[ModuleDependenciesUpdates]] =
-    Task.Command {
+    Task.Command(exclusive = true) {
       DependencyUpdatesImpl(
         ev,
         implicitly,
@@ -27,7 +27,7 @@ object Dependency extends ExternalModule {
       ev: Evaluator,
       allowPreRelease: Boolean = false,
       format: Format = Format.PerModule
-  ): Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command(exclusive = true) {
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)(), format)
   }
 

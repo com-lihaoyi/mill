@@ -7,9 +7,10 @@ import mill.define.{Command, Discover, Evaluator, ExternalModule}
 
 object GenIdea extends ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "idea"
-  def idea(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators): Command[Unit] = Task.Command {
-    GenIdeaImpl(evaluators = allBootstrapEvaluators.value).run()
-  }
+  def idea(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators): Command[Unit] =
+    Task.Command(exclusive = true) {
+      GenIdeaImpl(evaluators = allBootstrapEvaluators.value).run()
+    }
 
   override lazy val millDiscover = Discover[this.type]
 }
