@@ -75,7 +75,8 @@ class ExampleTester(
     val workspaceSourcePath: os.Path,
     millExecutable: os.Path,
     bashExecutable: String = ExampleTester.defaultBashExecutable(),
-    val baseWorkspacePath: os.Path
+    val baseWorkspacePath: os.Path,
+    val propagateJavaHome: Boolean = true
 ) extends IntegrationTesterBase {
 
   def processCommandBlock(commandBlock: String): Unit = {
@@ -130,7 +131,7 @@ class ExampleTester(
       stderr = os.Inherit,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = IntegrationTester.millTestSuiteEnv ++ windowsPathEnv,
+      env = millTestSuiteEnv ++ windowsPathEnv,
       check = false
     )
 

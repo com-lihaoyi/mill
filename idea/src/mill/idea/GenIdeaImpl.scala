@@ -7,8 +7,7 @@ import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import mill.api.Ctx
 import mill.api.PathRef
-import mill.define.{Ctx => _, _}
-import mill.eval.Evaluator
+import mill.define.{Evaluator, Ctx as _, *}
 import mill.main.BuildInfo
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
@@ -19,14 +18,13 @@ import java.net.URL
 import mill.scalalib._
 import mill.scalanativelib.ScalaNativeModule
 
-case class GenIdeaImpl(
+class GenIdeaImpl(
     private val evaluators: Seq[Evaluator]
 )(implicit ctx: Ctx) {
   import GenIdeaImpl._
 
   val workDir: os.Path = evaluators.head.rootModule.moduleDir
   val ideaDir: os.Path = workDir / ".idea"
-
   val ideaConfigVersion = 4
 
   def run(): Unit = {
@@ -109,7 +107,8 @@ case class GenIdeaImpl(
       if (!fetchMillModules) Nil
       else {
         val moduleRepos = modulesByEvaluator.toSeq.flatMap { case (ev, modules) =>
-          ev.evaluateValues(modules.map(_._2.allRepositories))
+          ev.execute(modules.map(_._2.allRepositories))
+            .values.get
         }
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = false)
@@ -232,10 +231,10 @@ case class GenIdeaImpl(
 
     val resolvedModules: Seq[ResolvedModule] = {
       resolveTasks.toSeq.flatMap { case (evaluator, tasks) =>
-        evaluator.execution.executeTasks(tasks) match {
+        evaluator.execute(tasks).executionResults match {
           case r if r.failing.nonEmpty =>
             throw GenIdeaException(
-              s"Failure during resolving modules: ${Evaluator.formatFailing(r)}"
+              s"Failure during resolving modules: ${mill.eval.EvaluatorImpl.formatFailing(r)}"
             )
           case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
         }
@@ -499,11 +498,11 @@ case class GenIdeaImpl(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
           allSourcesPathRefs: Seq[PathRef]
-        ) = evaluator.evaluateValues(Seq(
+        ) = evaluator.execute(Seq(
           mod.resources,
           mod.generatedSources,
           mod.allSources
-        ))
+        )).values.get
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
         val normalSourcePaths = (allSourcesPathRefs

@@ -1,10 +1,9 @@
 package mill.runner
 
 import mill.api.{PathRef, Val, internal}
-import mill.define.Segments
+import mill.define.{Evaluator, Segments}
 import mill.define.internal.Watchable
 import upickle.default.{ReadWriter, macroRW}
-import mill.eval.Evaluator
 import mill.main.RootModule
 
 /**
@@ -58,7 +57,7 @@ object RunnerState {
       workerCache: Map[Segments, (Int, Val)],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
-      methodCodeHashSignatures: Map[String, Int],
+      codeSignatures: Map[String, Int],
       classLoaderOpt: Option[RunnerState.URLClassLoader],
       runClasspath: Seq[PathRef],
       compileOutput: Option[PathRef],

@@ -2,12 +2,11 @@ package mill.main
 
 import mill.api.*
 import mill.define.*
-import mill.eval.Evaluator
-import mill.exec.ExecutionPaths
 import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.SelectMode
 import mill.define.internal.Watchable
+import mill.exec.Cached
 
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
@@ -177,9 +176,9 @@ trait MainModule extends BaseModule {
         else
           evaluator.resolveSegments(targets, SelectMode.Multi).map { ts =>
             val allPaths = ts.flatMap { segments =>
-              val evPaths = ExecutionPaths.resolveDestPaths(rootDir, segments)
+              val evPaths = ExecutionPaths.resolve(rootDir, segments)
               val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
-              val potentialModulePath = rootDir / ExecutionPaths.makeSegmentStrings(segments)
+              val potentialModulePath = rootDir / segments.parts
               if (os.exists(potentialModulePath)) {
                 // this is either because of some pre-Mill-0.10 files lying around
                 // or most likely because the segments denote a module but not a task
@@ -198,7 +197,7 @@ trait MainModule extends BaseModule {
             workerSegments <- evaluator.workerCache.keys.toList
             if allSegments.exists(workerSegments.startsWith)
             case (_, Val(closeable: AutoCloseable)) <-
-              evaluator.execution.workerCache.remove(workerSegments)
+              evaluator.workerCache.remove(workerSegments)
           } {
             closeable.close()
           }
@@ -260,11 +259,11 @@ trait MainModule extends BaseModule {
    * It prompts you to enter project name and creates a folder with that name.
    * There are lots of templates out there for many frameworks and tools!
    */
-  def init(evaluator: Evaluator, args: String*): Command[ujson.Value] =
+  def init(evaluator: Evaluator, args: String*): Command[Unit] =
     Task.Command(exclusive = true) {
       val evaluated =
         if (os.exists(os.pwd / "pom.xml"))
-          evaluator.resolveEvaluate(
+          evaluator.evaluate(
             Seq("mill.init.InitMavenModule/init") ++ args,
             SelectMode.Separated
           )
@@ -274,25 +273,31 @@ trait MainModule extends BaseModule {
           os.exists(os.pwd / "settings.gradle") ||
           os.exists(os.pwd / "settings.gradle.kts")
         )
-          evaluator.resolveEvaluate(
+          evaluator.evaluate(
             Seq("mill.init.InitGradleModule/init") ++ args,
             SelectMode.Separated
           )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
-          evaluator.resolveEvaluate(
+          evaluator.evaluate(
             Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
             SelectMode.Separated
           )
         else
-          evaluator.resolveEvaluate(
+          evaluator.evaluate(
             Seq("mill.init.InitModule/init") ++ args,
             SelectMode.Separated
           )
       (evaluated: @unchecked) match {
         case Result.Failure(failStr) => throw new Exception(failStr)
-        case Result.Success((_, Result.Success(Seq((_, Some((_, jsonableResult))))))) =>
-          jsonableResult
-        case Result.Success((_, Result.Failure(failStr))) => throw new Exception(failStr)
+        case Result.Success(Evaluator.Result(
+              _,
+              Result.Success(Seq(_)),
+              _,
+              _
+            )) =>
+          ()
+        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _, _)) =>
+          throw new Exception(failStr)
       }
     }
 
@@ -311,7 +316,7 @@ object MainModule {
       targets: Seq[String],
       log: Logger,
       watch0: Watchable => Unit
-  )(f: Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])] => ujson.Value)
+  )(f: Seq[(Any, Option[(String, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 
     // When using `show`, redirect all stdout of the evaluated tasks so the
@@ -321,17 +326,26 @@ object MainModule {
       .asInstanceOf[ColorLogger]
 
     evaluator.withBaseLogger(redirectLogger)
-      .resolveEvaluate(
+      .evaluate(
         targets,
         Separated,
         selectiveExecution = evaluator.selectiveExecution
       ).flatMap {
-        case (watched, Result.Failure(err)) =>
+        case Evaluator.Result(watched, Result.Failure(err), _, _) =>
           watched.foreach(watch0)
           Result.Failure(err)
 
-        case (watched, Result.Success(res)) =>
-          val output = f(res)
+        case Evaluator.Result(watched, Result.Success(res), selectedTasks, executionResults) =>
+          val namesAndJson = for (t <- selectedTasks) yield {
+            t match {
+              case t: mill.define.NamedTask[_] =>
+                val jsonFile = ExecutionPaths.resolve(evaluator.outPath, t).meta
+                val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
+                Some((t.toString, metadata.value))
+              case _ => None
+            }
+          }
+          val output = f(selectedTasks.zip(namesAndJson))
           watched.foreach(watch0)
           println(output.render(indent = 2))
           Result.Success(output)

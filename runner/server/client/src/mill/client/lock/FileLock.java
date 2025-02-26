@@ -14,10 +14,12 @@ class FileLock extends Lock {
     chan = raf.getChannel();
   }
 
+  @Override
   public Locked lock() throws Exception {
     return new FileLocked(chan.lock());
   }
 
+  @Override
   public TryLocked tryLock() throws Exception {
     java.nio.channels.FileLock lock = null;
     try {
@@ -28,6 +30,7 @@ class FileLock extends Lock {
     return new FileTryLocked(lock);
   }
 
+  @Override
   public boolean probe() throws Exception {
     java.nio.channels.FileLock l = chan.tryLock();
     if (l == null) return false;
@@ -43,6 +46,7 @@ class FileLock extends Lock {
     raf.close();
   }
 
+  @Override
   public void delete() throws Exception {
     close();
   }

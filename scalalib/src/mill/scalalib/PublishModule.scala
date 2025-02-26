@@ -4,6 +4,7 @@ package scalalib
 import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task}
 import mill.api.{PathRef, Result}
+import mill.javalib.android.AndroidLibModule
 import mill.util.JarManifest
 import mill.main.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
@@ -290,7 +291,7 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  private def defaultPublishInfos: T[Seq[PublishInfo]] = {
+  def defaultPublishInfos: T[Seq[PublishInfo]] = {
     def defaultPublishJars: Task[Seq[(PathRef, PathRef => PublishInfo)]] = {
       pomPackagingType match {
         case PackagingType.Pom => Task.Anon(Seq())
@@ -397,14 +398,27 @@ trait PublishModule extends JavaModule { outer =>
 
   def publishArtifacts: T[PublishModule.PublishData] = {
     val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
-    val defaultPayloadTask: Task[Seq[(PathRef, String)]] = pomPackagingType match {
-      case PackagingType.Pom => Task.Anon {
+    val defaultPayloadTask: Task[Seq[(PathRef, String)]] = (pomPackagingType, this) match {
+      case (PackagingType.Pom, _) => Task.Anon {
           val baseName = baseNameTask()
           Seq(
             pom() -> s"$baseName.pom"
           )
         }
-      case PackagingType.Jar | _ => Task.Anon {
+      case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
+          val baseName = baseNameTask()
+          Seq(
+            androidLib.androidAar() -> s"$baseName.aar",
+            sourceJar() -> s"$baseName-sources.jar",
+            docJar() -> s"$baseName-javadoc.jar",
+            pom() -> s"$baseName.pom"
+          )
+        }
+      case (PackagingType.Aar, nonAndroidModule) =>
+        throw new IllegalArgumentException(
+          s"Packaging type Aar can only be used with AndroidLibModule"
+        )
+      case (PackagingType.Jar, _) | _ => Task.Anon {
           val baseName = baseNameTask()
           Seq(
             jar() -> s"$baseName.jar",
@@ -622,4 +636,5 @@ object PublishModule extends ExternalModule with TaskModule {
     }
 
   lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+
 }

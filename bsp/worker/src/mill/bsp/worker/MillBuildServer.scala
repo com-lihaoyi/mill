@@ -1,17 +1,14 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j
-import ch.epfl.scala.bsp4j._
+import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
-
 import mill.api.ExecResult
 import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, ExternalModule, NamedTask, Task}
-import mill.eval.Evaluator
-import mill.exec.{ExecResults, TaskResult}
+import mill.define.{Args, Discover, Evaluator, ExecutionResults, ExternalModule, NamedTask, Task}
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
@@ -21,7 +18,7 @@ import mill.given
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import scala.concurrent.Promise
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
@@ -267,7 +264,7 @@ private class MillBuildServer(
       }.toSeq
 
       val ids = groupList(tasksEvaluators)(_._2)(_._1)
-        .flatMap { case (ev, ts) => ev.evaluateValues(ts) }
+        .flatMap { case (ev, ts) => ev.execute(ts).values.get }
         .flatten
 
       new InverseSourcesResult(ids.asJava)
@@ -478,7 +475,7 @@ private class MillBuildServer(
         logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
       )
       val response = runResult.results(runTask) match {
-        case r if r.result.asSuccess.isDefined => new RunResult(StatusCode.OK)
+        case r if r.asSuccess.isDefined => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
       }
       params.getOriginId match {
@@ -605,15 +602,16 @@ private class MillBuildServer(
             if (cleanResult.failing.size > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.results(cleanTask) match {
-                  case TaskResult(ex: ExecResult.Exception, _) => ex.toString()
-                  case TaskResult(ExecResult.Skipped, _) => "Task was skipped"
-                  case TaskResult(ExecResult.Aborted, _) => "Task was aborted"
+                  case ex: ExecResult.Exception => ex.toString()
+                  case ExecResult.Skipped => "Task was skipped"
+                  case ExecResult.Aborted => "Task was aborted"
                   case _ => "could not retrieve the failure message"
                 }),
               false
             )
             else {
-              val outPaths = ev.pathsResolver.resolveDest(
+              val outPaths = mill.define.ExecutionPaths.resolve(
+                ev.outPath,
                 module.moduleSegments ++ Label("compile")
               )
               val outPathSeq = Seq(outPaths.dest, outPaths.meta, outPaths.log)
@@ -673,7 +671,7 @@ private class MillBuildServer(
         .map { case ((ev, id), ts) =>
           val results = evaluate(ev, ts)
           val failures = results.results.collect {
-            case (_, TaskResult(res: ExecResult.Failing[_], _)) => res
+            case (_, res: ExecResult.Failing[_]) => res
           }
 
           def logError(errorMsg: String): Unit = {
@@ -804,7 +802,7 @@ private class MillBuildServer(
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = null
-  ): ExecResults = {
+  ): ExecutionResults = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     mill.runner.MillMain.withOutLock(
       noBuildLock = false,
@@ -816,13 +814,13 @@ private class MillBuildServer(
       },
       streams = logger0.systemStreams
     ) {
-      evaluator.execution.executeTasks(
+      evaluator.execute(
         goals,
         reporter,
         testReporter,
         logger0,
         serialCommandExec = false
-      )
+      ).executionResults
     }
   }
 }

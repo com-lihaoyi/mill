@@ -16,6 +16,7 @@ public class ProjectTreePlugin implements Plugin<Project> {
     this.registry = registry;
   }
 
+  @Override
   public void apply(Project target) {
     if (target == target.getRootProject()) {
       registry.register(new ProjectTree.Builder());

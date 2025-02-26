@@ -2,8 +2,8 @@ package mill.main
 
 import mill.api.Result
 import mill.constants.OutFiles
-import mill.define.{Command, Task}
-import mill.eval.{Evaluator, SelectiveExecution}
+import mill.define.{Command, Evaluator, Task}
+import mill.eval.SelectiveExecution
 import mill.define.SelectMode
 
 trait SelectiveExecutionModule extends mill.define.Module {
@@ -76,11 +76,11 @@ trait SelectiveExecutionModule extends mill.define.Module {
         Result.Failure("`selective.run` can only be run after `selective.prepare`")
       } else {
         SelectiveExecution.resolve0(evaluator, tasks).flatMap { resolved =>
-          if (resolved.isEmpty) Result.Success((Nil, Result.Success(Nil)))
-          else evaluator.resolveEvaluate(resolved.toSeq, SelectMode.Multi)
-        }.flatMap {
-          case (watched, Result.Failure(err)) => Result.Failure(err)
-          case (watched, Result.Success(res)) => Result.Success(())
+          if (resolved.isEmpty) Result.Success(())
+          else evaluator.evaluate(resolved.toSeq, SelectMode.Multi).flatMap {
+            case Evaluator.Result(watched, Result.Failure(err), _, _) => Result.Failure(err)
+            case Evaluator.Result(watched, Result.Success(res), _, _) =>
+          }
         }
       }
     }

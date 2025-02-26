@@ -64,7 +64,7 @@ trait Proguard extends ScalaModule {
    * Keep in sync with [[javaHome]].
    */
   def java9RtJar: T[Seq[PathRef]] = Task {
-    if (Util.isJava9OrAbove) Seq(PathRef(Task.home / Export.rtJarName))
+    if (Util.isJava9OrAbove) Seq(PathRef(os.home / Export.rtJarName))
     else Seq()
   }
 

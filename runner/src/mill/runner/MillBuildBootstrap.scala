@@ -5,15 +5,15 @@ import mill.define.internal.Watchable
 import mill.main.{BuildInfo, RootModule}
 import mill.constants.CodeGenConstants.*
 import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
-import mill.eval.Evaluator
-import mill.define.{BaseModule, Segments, SelectMode}
-import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
+import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
-
 import java.io.File
 import java.net.URLClassLoader
+
+import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 
 /**
@@ -92,13 +92,13 @@ class MillBuildBootstrap(
         // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
         lazy val state = evaluateRec(depth + 1)
         if (
-          rootBuildFileNames.exists(rootBuildFileName =>
+          rootBuildFileNames.asScala.exists(rootBuildFileName =>
             os.exists(recRoot(projectRoot, depth) / rootBuildFileName)
           )
         ) state
         else {
           val msg =
-            s"No build file (${rootBuildFileNames.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
+            s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
           if (needBuildFile) {
             RunnerState(None, Nil, Some(msg), None)
           } else {
@@ -168,7 +168,7 @@ class MillBuildBootstrap(
 
         Using.resource(makeEvaluator(
           prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
-          nestedState.frames.headOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
+          nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
           rootModule,
           // We want to use the grandparent buildHash, rather than the parent
           // buildHash, because the parent build changes are instead detected
@@ -227,7 +227,7 @@ class MillBuildBootstrap(
     evaluateWithWatches(
       rootModule,
       evaluator,
-      Seq("{runClasspath,compile,methodCodeHashSignatures}"),
+      Seq("{runClasspath,compile,codeSignatures}"),
       selectiveExecution = false
     ) match {
       case (Result.Failure(error), evalWatches, moduleWatches) =>
@@ -246,9 +246,9 @@ class MillBuildBootstrap(
 
       case (
             Result.Success(Seq(
-              Val(runClasspath: Seq[PathRef]),
-              Val(compile: mill.scalalib.api.CompilationResult),
-              Val(methodCodeHashSignatures: Map[String, Int])
+              runClasspath: Seq[PathRef],
+              compile: mill.scalalib.api.CompilationResult,
+              codeSignatures: Map[String, Int]
             )),
             evalWatches,
             moduleWatches
@@ -285,7 +285,7 @@ class MillBuildBootstrap(
           evaluator.workerCache.toMap,
           evalWatches,
           moduleWatches,
-          methodCodeHashSignatures,
+          codeSignatures,
           Some(classLoader),
           runClasspath,
           Some(compile.classes),
@@ -332,7 +332,7 @@ class MillBuildBootstrap(
 
   def makeEvaluator(
       workerCache: Map[Segments, (Int, Val)],
-      methodCodeHashSignatures: Map[String, Int],
+      codeSignatures: Map[String, Int],
       rootModule: BaseModule,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
@@ -350,13 +350,13 @@ class MillBuildBootstrap(
 
     val outPath = recOut(output, depth)
     val baseLogger = new PrefixLogger(logger, bootLogPrefix)
-    new mill.eval.Evaluator(
+    lazy val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       selectiveExecution = selectiveExecution,
       execution = new mill.exec.Execution(
         baseLogger = baseLogger,
-        chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-        profileLogger = new ProfileLogger(outPath / millProfile),
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
+        profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
         home = home,
         workspace = projectRoot,
         outPath = outPath,
@@ -368,11 +368,14 @@ class MillBuildBootstrap(
         env = env,
         failFast = !keepGoing,
         threadCount = threadCount,
-        methodCodeHashSignatures = methodCodeHashSignatures,
+        codeSignatures = codeSignatures,
         systemExit = systemExit,
-        exclusiveSystemStreams = streams0
+        exclusiveSystemStreams = streams0,
+        getEvaluator = () => evaluator
       )
     )
+
+    evaluator
   }
 
 }
@@ -457,7 +460,7 @@ object MillBuildBootstrap {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
       mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
-        evaluator.resolveEvaluate(
+        evaluator.evaluate(
           targetsAndParams,
           SelectMode.Separated,
           selectiveExecution = selectiveExecution
@@ -469,12 +472,12 @@ object MillBuildBootstrap {
 
     evalTaskResult match {
       case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatched)
-      case Result.Success((watched, evaluated)) =>
+      case Result.Success(Evaluator.Result(watched, evaluated, _, _)) =>
         evaluated match {
           case Result.Failure(msg) =>
             (Result.Failure(msg), watched ++ addedEvalWatched, moduleWatched)
           case Result.Success(results) =>
-            (Result.Success(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
+            (Result.Success(results), watched ++ addedEvalWatched, moduleWatched)
         }
     }
   }

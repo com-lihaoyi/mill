@@ -126,9 +126,9 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
-  val coursierVersion = "2.1.24"
+  val coursierVersion = "2.1.25-M2"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.27"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
     ivy"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
@@ -311,16 +311,17 @@ def millDownloadUrl = Task {
 }
 
 def millBinPlatform: T[String] = Task {
-  // val tag = millLastTag()
-  // if (tag.contains("-M")) tag
-  // else {
-  //  val pos = if (tag.startsWith("0.")) 2 else 1
-  //  tag.split("[.]", pos + 1).take(pos).mkString(".")
-  // }
-  "0.11"
+  val tag = millLastTag()
+  if (tag.contains("-M")) tag
+  else {
+    val pos = if (tag.startsWith("0.")) 2 else 1
+    tag.split("[.]", pos + 1).take(pos).mkString(".")
+  }
 }
 
 def baseDir = build.millSourcePath
+
+def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
 
 val essentialBridgeScalaVersions =
   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)

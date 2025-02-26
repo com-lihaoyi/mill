@@ -29,10 +29,12 @@ public interface JavaModel extends Serializable {
       this.configs = configs;
     }
 
+    @Override
     public List<String> javacOptions() {
       return javacOptions;
     }
 
+    @Override
     public List<Config> configs() {
       return configs;
     }
@@ -68,10 +70,12 @@ public interface JavaModel extends Serializable {
         this.deps = deps;
       }
 
+      @Override
       public String name() {
         return config;
       }
 
+      @Override
       public List<Dep> deps() {
         return deps;
       }
@@ -107,14 +111,17 @@ public interface JavaModel extends Serializable {
         this.version = version;
       }
 
+      @Override
       public String group() {
         return group;
       }
 
+      @Override
       public String name() {
         return name;
       }
 
+      @Override
       public String version() {
         return version;
       }

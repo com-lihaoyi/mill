@@ -10,7 +10,7 @@ object foo extends JavaModule {
   )
 
   object test extends JavaTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    def ivyDeps = Seq(
       ivy"com.google.guava:guava:33.3.0-jre"
     )
   }

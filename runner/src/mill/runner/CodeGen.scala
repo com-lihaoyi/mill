@@ -1,18 +1,18 @@
 package mill.runner
 
-import mill.constants.CodeGenConstants._
-import mill.api.{PathRef, Result}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
+
+import mill.constants.CodeGenConstants.*
+import mill.api.Result
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
-
 import mill.runner.worker.api.MillScalaParser
-import scala.util.control.Breaks._
+import scala.util.control.Breaks.*
 
 object CodeGen {
 
   def generateWrappedSources(
       projectRoot: os.Path,
-      scriptSources: Seq[PathRef],
       allScriptCode: Map[os.Path, String],
       targetDest: os.Path,
       enclosingClasspath: Seq[os.Path],
@@ -21,9 +21,9 @@ object CodeGen {
       output: os.Path,
       parser: MillScalaParser
   ): Unit = {
-    for (scriptSource <- scriptSources) breakable {
-      val scriptPath = scriptSource.path
-      val specialNames = (nestedBuildFileNames ++ rootBuildFileNames).toSet
+    val scriptSources = allScriptCode.keys.toSeq.sorted
+    for (scriptPath <- scriptSources) breakable {
+      val specialNames = (nestedBuildFileNames.asScala ++ rootBuildFileNames.asScala).toSet
 
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
@@ -40,8 +40,7 @@ object CodeGen {
       val dest = targetDest / packageSegments
 
       val childNames = scriptSources
-        .flatMap { p =>
-          val path = p.path
+        .flatMap { path =>
           if (path == scriptPath) None
           else if (nestedBuildFileNames.contains(path.last)) {
             Option.when(path / os.up / os.up == scriptFolderPath) {
@@ -85,10 +84,20 @@ object CodeGen {
         s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
            |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
 
+      val siblingScripts = scriptSources
+        .filter(_ != scriptPath)
+        .filter(p => (p / os.up) == (scriptPath / os.up))
+        .map(_.last.split('.').head)
+
+      val importSiblingScripts = siblingScripts
+        .filter(s => s != "build" && s != "package")
+        .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
+
       val parts =
         if (!isBuildScript) {
           s"""package $pkg
              |$aliasImports
+             |$importSiblingScripts
              |object ${backtickWrap(scriptPath.last.split('.').head)} {
              |$markerComment
              |$scriptCode
@@ -108,11 +117,8 @@ object CodeGen {
             scriptCode,
             markerComment,
             parser,
-            scriptSources
-              .map(_.path)
-              .filter(_ != scriptPath)
-              .filter(p => (p / os.up) == (scriptPath / os.up))
-              .map(_.last.split('.').head)
+            siblingScripts,
+            importSiblingScripts
           )
         }
 
@@ -134,15 +140,13 @@ object CodeGen {
       scriptCode: String,
       markerComment: String,
       parser: MillScalaParser,
-      siblingScripts: Seq[String]
+      siblingScripts: Seq[String],
+      importSiblingScripts: String
   ) = {
     val segments = scriptFolderPath.relativeTo(projectRoot).segments
 
     val exportSiblingScripts =
       siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
-
-    val importSiblingScripts = siblingScripts
-      .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
     val prelude =
       s"""import MillMiscInfo._

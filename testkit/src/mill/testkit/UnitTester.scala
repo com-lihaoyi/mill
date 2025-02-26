@@ -3,11 +3,10 @@ package mill.testkit
 import mill.{Target, Task}
 import mill.api.ExecResult.OuterStack
 import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
-import mill.define.{InputImpl, SelectMode, TargetImpl}
-import mill.eval.Evaluator
+import mill.define.{Evaluator, InputImpl, SelectMode, TargetImpl}
 import mill.resolve.Resolve
 import mill.internal.PrintLogger
-import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 import java.io.{InputStream, PrintStream}
@@ -90,8 +89,8 @@ class UnitTester(
 
   val execution = new mill.exec.Execution(
     baseLogger = logger,
-    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-    profileLogger = new ProfileLogger(outPath / millProfile),
+    chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
+    profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
     home = mill.api.Ctx.defaultHome,
     workspace = module.moduleDir,
     outPath = outPath,
@@ -103,19 +102,20 @@ class UnitTester(
     env = env,
     failFast = failFast,
     threadCount = threads,
-    methodCodeHashSignatures = Map(),
+    codeSignatures = Map(),
     systemExit = _ => ???,
-    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream)
+    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
+    getEvaluator = () => evaluator
   )
 
-  val evaluator: Evaluator = new mill.eval.Evaluator(
+  val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
     execution = execution
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
+    Evaluator.currentEvaluator0.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))
@@ -136,7 +136,7 @@ class UnitTester(
       tasks: Seq[Task[?]],
       dummy: DummyImplicit = null
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    val evaluated = evaluator.execution.executeTasks(tasks)
+    val evaluated = evaluator.execute(tasks).executionResults
 
     if (evaluated.failing.isEmpty) {
       Right(
@@ -168,7 +168,7 @@ class UnitTester(
       expectedRawValues: Seq[ExecResult[?]]
   ): Unit = {
 
-    val res = evaluator.execution.executeTasks(Seq(target))
+    val res = evaluator.execute(Seq(target)).executionResults
 
     val cleaned = res.rawValues.map {
       case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
@@ -182,7 +182,7 @@ class UnitTester(
 
   def check(targets: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
-    val evaluated = evaluator.execution.executeTasks(targets)
+    val evaluated = evaluator.execute(targets).executionResults
       .evaluated
       .flatMap(_.asTarget)
       .filter(module.moduleInternal.targets.contains)

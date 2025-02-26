@@ -1,5 +1,7 @@
 package mill.constants;
 
+import java.util.List;
+
 public class CodeGenConstants {
   /**
    * Global package prefix for Mill builds. Cannot be `build` because
@@ -20,19 +22,19 @@ public class CodeGenConstants {
   /**
    * The name of the root build file
    */
-  public static final String[] rootBuildFileNames = {"build.mill", "build.mill.scala", "build.sc"};
+  public static final List<String> rootBuildFileNames =
+      List.of("build.mill", "build.mill.scala", "build.sc");
 
   /**
    * The name of any sub-folder build files
    */
-  public static final String[] nestedBuildFileNames = {
-    "package.mill", "package.mill.scala", "package.sc"
-  };
+  public static final List<String> nestedBuildFileNames =
+      List.of("package.mill", "package.mill.scala", "package.sc");
 
   /**
    * The extensions used by build files
    */
-  public static final String[] buildFileExtensions = {"mill", "mill.scala", "sc"};
+  public static final List<String> buildFileExtensions = List.of("mill", "mill.scala", "sc");
 
   /**
    * The user-facing name for the root of the module tree.

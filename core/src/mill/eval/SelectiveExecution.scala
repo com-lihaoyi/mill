@@ -1,15 +1,14 @@
 package mill.eval
 
-import mill.api.Val
-import mill.api.Result
+import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles
-import mill.define.{InputImpl, NamedTask, Task, SelectMode}
-import mill.exec.{CodeSigUtils, Execution, Plan, TaskResult}
+import mill.define.{Evaluator, InputImpl, NamedTask, SelectMode, Task}
+import mill.exec.{CodeSigUtils, Execution, PlanImpl}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 
 private[mill] object SelectiveExecution {
-  case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
+  case class Metadata(inputHashes: Map[String, Int], codeSignatures: Map[String, Int])
 
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
@@ -17,44 +16,51 @@ private[mill] object SelectiveExecution {
     def compute(
         evaluator: Evaluator,
         tasks: Seq[NamedTask[?]]
-    ): (Metadata, Map[Task[?], TaskResult[Val]]) = {
-      compute0(evaluator, Plan.transitiveNamed(tasks))
+    ): (Metadata, Map[Task[?], ExecResult[Val]]) = {
+      compute0(evaluator, PlanImpl.transitiveNamed(tasks))
     }
 
     def compute0(
         evaluator: Evaluator,
         transitiveNamed: Seq[NamedTask[?]]
-    ): (Metadata, Map[Task[?], TaskResult[Val]]) = {
-      val inputTasksToLabels: Map[Task[?], String] = transitiveNamed
+    ): (Metadata, Map[Task[?], ExecResult[Val]]) = {
+      val results: Map[NamedTask[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: InputImpl[_] =>
-          task -> task.ctx.segments.render
+          val ctx = new mill.api.Ctx(
+            args = Vector(),
+            dest0 = () => null,
+            log = evaluator.baseLogger,
+            env = evaluator.env,
+            reporter = _ => None,
+            testReporter = mill.api.DummyTestReporter,
+            workspace = evaluator.workspace,
+            systemExit = n => ???,
+            fork = null
+          )
+          task -> task.evaluate(ctx).map(Val(_))
         }
         .toMap
 
-      val results = evaluator.execution.executeTasks(Seq.from(inputTasksToLabels.keys))
-
-      val inputHashes = results
-        .results
-        .flatMap { case (task, taskResult) =>
-          inputTasksToLabels.get(task).map { l =>
-            l -> taskResult.result.get.value.hashCode
-          }
-        }
-
-      new Metadata(inputHashes, evaluator.methodCodeHashSignatures) -> results.results
+      val inputHashes = results.map {
+        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.hashCode)
+      }
+      new Metadata(
+        inputHashes,
+        evaluator.codeSignatures
+      ) -> results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
     }
   }
 
   def computeHashCodeSignatures(
       transitiveNamed: Seq[NamedTask[?]],
-      methodCodeHashSignatures: Map[String, Int]
+      codeSignatures: Map[String, Int]
   ): Map[String, Int] = {
 
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
 
     lazy val constructorHashSignatures = CodeSigUtils
-      .constructorHashSignatures(methodCodeHashSignatures)
+      .constructorHashSignatures(codeSignatures)
 
     transitiveNamed
       .map { namedTask =>
@@ -63,7 +69,7 @@ private[mill] object SelectiveExecution {
             namedTask,
             classToTransitiveClasses,
             allTransitiveClassMethods,
-            methodCodeHashSignatures,
+            codeSignatures,
             constructorHashSignatures
           )
           .sum
@@ -88,8 +94,8 @@ private[mill] object SelectiveExecution {
 
     val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
     val changedCodeNames = diffMap(
-      computeHashCodeSignatures(transitiveNamed, oldHashes.methodCodeHashSignatures),
-      computeHashCodeSignatures(transitiveNamed, newHashes.methodCodeHashSignatures)
+      computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
+      computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
     )
 
     val changedRootTasks = (changedInputNames ++ changedCodeNames)
@@ -117,7 +123,7 @@ private[mill] object SelectiveExecution {
       resolved: Seq[NamedTask[?]],
       changedRootTasks: Set[NamedTask[?]],
       downstreamTasks: Seq[NamedTask[?]],
-      results: Map[Task[?], TaskResult[Val]]
+      results: Map[Task[?], ExecResult[Val]]
   )
 
   def computeChangedTasks(
@@ -136,7 +142,7 @@ private[mill] object SelectiveExecution {
 
     if (oldMetadataTxt == "") ChangedTasks(tasks, tasks.toSet, tasks, Map.empty)
     else {
-      val transitiveNamed = Plan.transitiveNamed(tasks)
+      val transitiveNamed = PlanImpl.transitiveNamed(tasks)
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       val (newMetadata, results) = SelectiveExecution.Metadata.compute0(evaluator, transitiveNamed)
       val (changedRootTasks, downstreamTasks) =
@@ -171,7 +177,7 @@ private[mill] object SelectiveExecution {
   def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Result[ujson.Value] = {
     for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[?]]
-      val plan = Plan.plan(Seq.from(changedTasks.downstreamTasks))
+      val plan = PlanImpl.plan(Seq.from(changedTasks.downstreamTasks))
       val indexToTerminal = plan.sortedGroups.keys().toArray.filter(t => taskSet.contains(t))
 
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
