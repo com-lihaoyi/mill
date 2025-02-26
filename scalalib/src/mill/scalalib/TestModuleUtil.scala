@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
 import mill.constants.EnvVars
-import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
+import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils, TestMmapCommunicator}
 import mill.util.Jvm
 import mill.Task
 import sbt.testing.Status
@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime, ZoneId}
 import scala.xml.Elem
+import scala.annotation.switch
 
 private[scalalib] object TestModuleUtil {
   def runTests(
@@ -58,16 +59,22 @@ private[scalalib] object TestModuleUtil {
 
       val argsFile = base / "testargs"
       val sandbox = base / "sandbox"
+      val communacateFile = base / "comm.dat"
       os.write(argsFile, upickle.default.write(testArgs), createFolders = true)
+      os.write(
+        communacateFile,
+        Array.fill[Byte](TestMmapCommunicator.BufferSize)(0.toByte),
+        createFolders = false
+      )
 
       os.makeDir.all(sandbox)
 
-      Jvm.callProcess(
+      val subprocess = Jvm.spawnProcess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = forkEnv ++ resourceEnv,
-        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
+        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString, communacateFile.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
@@ -76,6 +83,38 @@ private[scalalib] object TestModuleUtil {
         stdin = os.Inherit,
         stdout = os.Inherit
       )
+
+      TestMmapCommunicator.using(communacateFile.toString) { communicator =>
+        val sleepMillis = 100 + scala.util.Random.nextInt(100)
+        var delegatedThreadCount = 0
+
+        while (subprocess.isAlive()) {
+          (communicator.readSignal(): @switch) match {
+            case 0 => ()
+            case 1 =>
+              if (Task.fork.tryDecreaseMaxThreadCount()) {
+                delegatedThreadCount += 1
+                communicator.writeSignal(2)
+              }
+            case 2 => ()
+            case other =>
+              communicator.writeSignal(0)
+          }
+          communicator.readAll().zipWithIndex.foreach { case (i, index) =>
+            if (i == 1) {
+              Task.fork.tryIncreaseMaxThreadCount()
+              delegatedThreadCount -= 1
+              communicator.writeIndex(index, 2)
+            }
+          }
+          Thread.sleep(sleepMillis)
+        }
+
+        while (delegatedThreadCount > 0) {
+          Task.fork.tryIncreaseMaxThreadCount()
+          delegatedThreadCount -= 1
+        }
+      }
 
       if (!os.exists(outputPath))
         Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
