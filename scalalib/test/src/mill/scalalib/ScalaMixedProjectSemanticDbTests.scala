@@ -10,7 +10,7 @@ object ScalaMixedProjectSemanticDbTests extends TestSuite {
   object SemanticWorld extends TestBaseModule {
     object core extends HelloWorldTests.SemanticModule
 
-    lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-mixed"
