@@ -5,7 +5,6 @@ import mill.constants.Util
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.IrDependencyType.*
-import mill.scalalib.CrossVersion as MillCrossVersion
 import os.Path
 
 import scala.collection.MapView
@@ -300,15 +299,21 @@ object SbtBuildGenMain
       name,
       crossVersion match {
         case CrossVersion.Disabled => None
-        case CrossVersion.Binary => Some(MillCrossVersion.Binary(false))
-        case CrossVersion.Full => Some(MillCrossVersion.Full(false))
-        case CrossVersion.Constant(value) => Some(MillCrossVersion.Constant(value, false))
+        // The formatter doesn't work well for the import `import mill.scalalib.CrossVersion as MillCrossVersion` in IntelliJ IDEA, so FQNs are used here.
+        case CrossVersion.Binary => Some(mill.scalalib.CrossVersion.Binary(false))
+        case CrossVersion.Full => Some(mill.scalalib.CrossVersion.Full(false))
+        case CrossVersion.Constant(value) => Some(mill.scalalib.CrossVersion.Constant(value, false))
       },
       version = revision,
       tpe = tpe.orNull,
       classifier = classifier.orNull,
       excludes = excludes
     )
+  }
+
+  case class Deps[I, M](ivy: Seq[I], module: Seq[M])
+  object Deps {
+    val empty = Deps(Seq.empty, Seq.empty)
   }
 
   def extractPomSettings(buildPublicationInfo: BuildPublicationInfo): IrPom = {
@@ -356,73 +361,92 @@ object SbtBuildGenMain
   ): IrScopedDeps = {
     // refactored to a functional approach from the original imperative code in Maven and Gradle
 
-    val allDepsByConfiguration = project.allDependencies
-      // .view // This makes the types hard to deal with here thus commented out.
-      .filterNot(isScalaStandardLibrary)
-      .flatMap(dep =>
-        (dep.configurations match {
-          case None => Some(Default)
-          case Some(configuration) => configuration match {
-              case "compile" => Some(Default)
-              case "test" => Some(Test)
-              case "runtime" => Some(Run)
-              case "provided" | "optional" => Some(Compile)
-              case other =>
-                println(
-                  s"Dependency $dep with an unknown configuration ${escape(other)} is dropped."
-                )
-                None
-            }
-        })
-          .map(tpe => (dep, tpe))
-      )
-      .groupBy(_._2)
-      .view
-      .mapValues(_.map(_._1))
-      // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
-      .asInstanceOf[MapView[IrDependencyType, Seq[Dependency]]]
-
-    case class Deps[I, M](ivy: Seq[I], module: Seq[M])
+    // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
+    val allDepsByConfiguration: MapView[IrDependencyType, Seq[(Dependency, Option[String])]] =
+      project.allDependencies
+        // .view // This makes the types hard to deal with here thus commented out.
+        .filterNot(isScalaStandardLibrary)
+        .flatMap(dep =>
+          (dep.configurations match {
+            case None => Seq((Default, None))
+            case Some(configurations) =>
+              configurations.split(';').iterator.flatMap(configuration => {
+                val splitConfigurations = configuration.split("->")
+                (splitConfigurations(0) match {
+                  case "compile" => Some(Default)
+                  case "test" => Some(Test)
+                  case "runtime" => Some(Run)
+                  case "provided" | "optional" => Some(Compile)
+                  case other =>
+                    println(
+                      s"Dependency $dep with an unsupported configuration before `->` ${escape(other)} is dropped."
+                    )
+                    None
+                })
+                  .map(_ -> splitConfigurations.lift(1))
+              })
+          })
+            .map { case (tpe, confAfterArrow) => ((dep, confAfterArrow), tpe) }
+        )
+        .groupBy(_._2)
+        .view
+        .mapValues(_.map(_._1))
+        // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
+        .asInstanceOf[MapView[IrDependencyType, Seq[(Dependency, Option[String])]]]
 
     // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
     val ivyAndModuleDepsByConfiguration: Map[IrDependencyType, Deps[Dependency, String]] =
       allDepsByConfiguration.mapValues(deps => {
-        val tuple2 = deps.partitionMap(dep => {
+        val tuple2 = deps.partitionMap { case (dep, confAfterArrow) =>
           val id = groupArtifactVersion(dep)
-          if (packages.isDefinedAt(id)) Right(packages(id))
+          if (packages.isDefinedAt(id)) Right({
+            val dependsOnTestModule = confAfterArrow match {
+              case None => false
+              case Some(value) =>
+                value match {
+                  case "default" | "compile" | "default(compile)" => false
+                  case "test" => true
+                  case conf =>
+                    println(
+                      s"Unsupported dependency configuration after `->` ${escape(conf)} is ignored."
+                    )
+                    false
+                }
+            }
+            val moduleRef = packages(id)
+            if (dependsOnTestModule) s"$moduleRef.${cfg.shared.testModule}" else moduleRef
+          })
           else Left(dep)
-        })
+        }
         Deps(tuple2._1, tuple2._2)
       }).toMap
 
-    val testIvyAndModuleDeps = ivyAndModuleDepsByConfiguration.get(Test)
-    val testIvyDeps = testIvyAndModuleDeps.map(_.ivy)
+    val testIvyAndModuleDeps = ivyAndModuleDepsByConfiguration.getOrElse(Test, Deps.empty)
+    val testIvyDeps = testIvyAndModuleDeps.ivy
     val hasTest = os.exists(os.Path(project.projectDirectory) / "src/test")
-    val testModule = Option.when(hasTest)(
-      testIvyDeps.flatMap(_.collectFirst(Function.unlift(dep =>
-        testModulesByGroup.get(dep.organization)
-      )))
-    ).flatten
+    val testModule = Option.when(hasTest)(testIvyDeps.collectFirst(Function.unlift(dep =>
+      testModulesByGroup.get(dep.organization)
+    ))).flatten
 
     cfg.shared.depsObject.fold({
-      val default = ivyAndModuleDepsByConfiguration.get(Default)
-      val compile = ivyAndModuleDepsByConfiguration.get(Compile)
-      val run = ivyAndModuleDepsByConfiguration.get(Run)
+      val default = ivyAndModuleDepsByConfiguration.getOrElse(Default, Deps.empty)
+      val compile = ivyAndModuleDepsByConfiguration.getOrElse(Compile, Deps.empty)
+      val run = ivyAndModuleDepsByConfiguration.getOrElse(Run, Deps.empty)
       val test = testIvyAndModuleDeps
       IrScopedDeps(
         Seq.empty,
         SortedSet.empty,
         // Using `fold` here causes issues with type inference.
-        SortedSet.from(default.map(_.ivy.iterator.map(renderIvy)).getOrElse(Iterator.empty)),
-        SortedSet.from(default.map(_.module).getOrElse(Seq.empty)),
-        SortedSet.from(compile.map(_.ivy.iterator.map(renderIvy)).getOrElse(Iterator.empty)),
-        SortedSet.from(compile.map(_.module).getOrElse(Seq.empty)),
-        SortedSet.from(run.map(_.ivy.iterator.map(renderIvy)).getOrElse(Iterator.empty)),
-        SortedSet.from(run.map(_.module).getOrElse(Seq.empty)),
+        SortedSet.from(default.ivy.iterator.map(renderIvy)),
+        SortedSet.from(default.module),
+        SortedSet.from(compile.ivy.iterator.map(renderIvy)),
+        SortedSet.from(compile.module),
+        SortedSet.from(run.ivy.iterator.map(renderIvy)),
+        SortedSet.from(run.module),
         testModule,
         SortedSet.empty,
-        SortedSet.from(testIvyDeps.map(_.iterator.map(renderIvy)).getOrElse(Iterator.empty)),
-        SortedSet.from(test.map(_.module).getOrElse(Seq.empty)),
+        SortedSet.from(testIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(test.module),
         SortedSet.empty,
         SortedSet.empty
       )
@@ -441,23 +465,23 @@ object SbtBuildGenMain
             )
         }).toMap
 
-      val default = extractedIvyAndModuleDepsByConfiguration.get(Default)
-      val compile = extractedIvyAndModuleDepsByConfiguration.get(Compile)
-      val run = extractedIvyAndModuleDepsByConfiguration.get(Run)
-      val test = extractedIvyAndModuleDepsByConfiguration.get(Test)
+      val default = extractedIvyAndModuleDepsByConfiguration.getOrElse(Default, Deps.empty)
+      val compile = extractedIvyAndModuleDepsByConfiguration.getOrElse(Compile, Deps.empty)
+      val run = extractedIvyAndModuleDepsByConfiguration.getOrElse(Run, Deps.empty)
+      val test = extractedIvyAndModuleDepsByConfiguration.getOrElse(Test, Deps.empty)
       IrScopedDeps(
         extractedIvyAndModuleDepsByConfiguration.values.flatMap(_.ivy.iterator.map(_._1)).toSeq,
         SortedSet.empty,
-        SortedSet.from(default.map(_.ivy.iterator.map(_._2)).getOrElse(Iterator.empty)),
-        SortedSet.from(default.map(_.module).getOrElse(Seq.empty)),
-        SortedSet.from(compile.map(_.ivy.iterator.map(_._2)).getOrElse(Iterator.empty)),
-        SortedSet.from(compile.map(_.module).getOrElse(Seq.empty)),
-        SortedSet.from(run.map(_.ivy.iterator.map(_._2)).getOrElse(Iterator.empty)),
-        SortedSet.from(run.map(_.module).getOrElse(Seq.empty)),
+        SortedSet.from(default.ivy.iterator.map(_._2)),
+        SortedSet.from(default.module),
+        SortedSet.from(compile.ivy.iterator.map(_._2)),
+        SortedSet.from(compile.module),
+        SortedSet.from(run.ivy.iterator.map(_._2)),
+        SortedSet.from(run.module),
         testModule,
         SortedSet.empty,
-        SortedSet.from(test.map(_.ivy.iterator.map(_._2)).getOrElse(Iterator.empty)),
-        SortedSet.from(test.map(_.module).getOrElse(Seq.empty)),
+        SortedSet.from(test.ivy.iterator.map(_._2)),
+        SortedSet.from(test.module),
         SortedSet.empty,
         SortedSet.empty
       )
