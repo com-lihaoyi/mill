@@ -1,0 +1,63 @@
+package build
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = "2.12.15"
+  def ivyDeps = Seq(
+    ivy"org.apache.spark::spark-core:3.5.4"
+  )
+
+  def forkArgs = Seq(
+    "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+    "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    "--add-opens=java.base/java.util=ALL-UNNAMED",
+    "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+  )
+
+  def prependShellScript = ""
+
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq(
+      "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+      "--add-opens=java.base/java.nio=ALL-UNNAMED",
+      "--add-opens=java.base/java.util=ALL-UNNAMED",
+      "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+    )
+  }
+
+}
+
+/** Usage
+
+> ./mill run
+...
+Basic Transformations:
+Squares: 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256, 289, 324, 361, 400
+Even Squares: 4, 16, 36, 64, 100, 144, 196, 256, 324, 400
+...
+Key-Value Operations:
+ReduceByKey: (0,63), (1,70), (2,77)
+GroupByKey: (0,List(3, 6, 9, 12, 15, 18)), (1,List(1, 4, 7, 10, 13, 16, 19)), (2,List(2, 5, 8, 11, 14, 17, 20))
+...
+Advanced Operations:
+Consistent Sample: 5, 8, 17
+Distinct: 4, 1, 2, 3
+Union: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30
+...
+Final Counts:
+Total numbers: 20
+Total squares: 20
+Total pairs: 20
+...
+
+> ./mill test
+...foo.FooTests.Basic Transformations...
+...foo.FooTests.Key-Value Operations...
+...foo.FooTests.Advanced Transformations...
+...foo.FooTests.Count Operations...
+...Tests: 4, Passed: 4, Failed: 0...
+
+*/

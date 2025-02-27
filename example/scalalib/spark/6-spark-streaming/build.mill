@@ -1,0 +1,96 @@
+package build
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = "2.12.15"
+  def ivyDeps = Seq(
+    ivy"org.apache.spark::spark-core:3.5.4",
+    ivy"org.apache.spark::spark-sql:3.5.4"
+  )
+
+  def forkArgs = Seq(
+    "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+    "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    "--add-opens=java.base/java.util=ALL-UNNAMED",
+    "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+  )
+
+  def prependShellScript = ""
+
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq(
+      "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+      "--add-opens=java.base/java.nio=ALL-UNNAMED",
+      "--add-opens=java.base/java.util=ALL-UNNAMED",
+      "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+    )
+  }
+
+}
+
+/** Usage
+
+> ./mill run
+...
+Is this Streaming DataFrame : true
+...
+Schema of DataFrame
+root
+ |-- Date: string (nullable = true)
+ |-- Open: double (nullable = true)
+ |-- High: double (nullable = true)
+ |-- Low: double (nullable = true)
+ |-- Close: double (nullable = true)
+ |-- Adjusted Close: double (nullable = true)
+ |-- Volume: double (nullable = true)
+ |-- Name: string (nullable = true)
+...
+-------------------------------------------
+Batch: 0
+-------------------------------------------
++----------+------+------+------+------+--------------+-----------+----+
+|Date      |Open  |High  |Low   |Close |Adjusted Close|Volume     |Name|
++----------+------+------+------+------+--------------+-----------+----+
+|2024-06-07|248.77|249.63|246.44|247.89|246.95        |8.4809996E7|AMZN|
+|2024-06-06|247.63|248.85|247.1 |248.77|247.04        |7.4062169E7|AMZN|
+|2024-06-05|240.65|249.11|239.52|247.63|249.06        |7.3945578E7|AMZN|
++----------+------+------+------+------+--------------+-----------+----+
+only showing top 3 rows
+...
+-------------------------------------------
+Batch: 0
+-------------------------------------------
++----+-----+------+
+|Year|Name |Max   |
++----+-----+------+
+|2024|TSLA |201.41|
+|2024|GOOGL|170.26|
+|2024|AAPL |192.28|
++----+-----+------+
+only showing top 3 rows
+...
+-------------------------------------------
+Batch: 0
+-------------------------------------------
++----+-----+------+
+|Year|Name |Max   |
++----+-----+------+
+|2024|TSLA |201.41|
+|2024|GOOGL|170.26|
+|2024|AAPL |192.28|
++----+-----+------+
+only showing top 3 rows
+...
+
+> ./mill test
+...foo.FooTests.createStreamingDF should return a streaming DataFrame...
+...foo.FooTests.getFileName should extract the correct file name...
+...foo.FooTests.append mode should output raw data...
+...foo.FooTests.update mode should output aggregated data...
+...foo.FooTests.complete mode should output aggregated data...
+...Tests: 5, Passed: 5, Failed: 0...
+
+*/
