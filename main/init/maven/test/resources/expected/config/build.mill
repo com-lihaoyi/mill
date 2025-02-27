@@ -88,6 +88,7 @@ object `package` extends RootModule with MyModule {
           Deps.`org.mockito:mockito-core`
         )
 
+        def testSandboxWorkingDir = false
       }
     }
 
@@ -169,6 +170,7 @@ object `package` extends RootModule with MyModule {
         Deps.`org.mockito:mockito-core`
       )
 
+      def testSandboxWorkingDir = false
     }
   }
 }

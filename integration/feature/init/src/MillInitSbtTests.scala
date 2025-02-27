@@ -70,24 +70,6 @@ object MillInitSbtScalaCsv136Tests extends BuildGenTestSuite {
 
       testMillInit(
         tester,
-        modifyConvertedBuild = () => {
-          /*
-          Paths relative to the workspace are used in the test sources such as `new File("src/test/resources/simple.csv")`
-          and they seem to cause the test to fail with Mill without `testSandboxWorkingDir` disabled:
-          ```text
-          java.io.FileNotFoundException: src/test/resources/simple.csv (No such file or directory)
-          ```
-           */
-          // disable `testSandboxWorkingDir`
-          val buildMillFile = workspacePath / "build.mill"
-          val millBuildContents: String = os.read(buildMillFile)
-          val testObjectFirstLine = "  object test extends SbtTests with TestModule.ScalaTest {"
-          val newMillBuildContents = millBuildContents.replace(
-            testObjectFirstLine,
-            testObjectFirstLine + "\n    override def testSandboxWorkingDir = false"
-          )
-          os.write.over(buildMillFile, newMillBuildContents)
-        },
         expectedCompileTasks =
           Some(SplitResolvedTasks(successful = Seq("compile", "test.compile"), failed = Seq.empty)),
         expectedTestTasks = Some(SplitResolvedTasks(successful = Seq("test"), failed = Seq.empty))

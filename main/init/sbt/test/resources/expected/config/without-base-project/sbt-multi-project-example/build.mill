@@ -80,6 +80,7 @@ object `package` extends RootModule with BaseModule {
       def ivyDeps = super.ivyDeps() ++
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
+      def testSandboxWorkingDir = false
     }
   }
 
@@ -105,6 +106,7 @@ object `package` extends RootModule with BaseModule {
       def ivyDeps = super.ivyDeps() ++
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
+      def testSandboxWorkingDir = false
     }
   }
 
@@ -137,6 +139,7 @@ object `package` extends RootModule with BaseModule {
       def ivyDeps = super.ivyDeps() ++
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
+      def testSandboxWorkingDir = false
     }
   }
 

@@ -38,5 +38,6 @@ object `package` extends RootModule with PublishModule with MavenModule {
       ivy"org.mockito:mockito-core:1.8.5"
     )
 
+    def testSandboxWorkingDir = false
   }
 }

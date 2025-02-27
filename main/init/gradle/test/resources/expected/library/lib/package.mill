@@ -16,5 +16,6 @@ object `package` extends RootModule with MavenModule {
     def ivyDeps = super.ivyDeps() ++
       Seq(ivy"org.junit.jupiter:junit-jupiter:5.10.3")
 
+    def testSandboxWorkingDir = false
   }
 }

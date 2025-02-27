@@ -58,5 +58,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
         PathRef(moduleDir / "src/test/secrets")
       )
     }
+
+    def testSandboxWorkingDir = false
   }
 }

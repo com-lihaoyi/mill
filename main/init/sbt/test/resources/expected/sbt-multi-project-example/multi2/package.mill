@@ -72,5 +72,6 @@ object `package` extends RootModule with SbtModule with PublishModule {
       ivy"org.scalatest::scalatest:3.0.4"
     )
 
+    def testSandboxWorkingDir = false
   }
 }
