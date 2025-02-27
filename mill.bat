@@ -49,10 +49,9 @@ if [!MILL_VERSION!]==[] (
       if not "%MILL_BUILD_SCRIPT%"=="" (
         rem can't use findstr /r since the set commnand does not support regex later
         rem so we currently don't support variable whitespaces
-        for /f "tokens=" %%i in ('findstr /l "\//> using mill.version " %MILL_BUILD_SCRIPT%') do (
-          set "MILL_VERSION=%%i"
+        for /f "tokens=1-3*" %%a in ('findstr /r "[/][/][>]  *using  *mill.version  *" %MILL_BUILD_SCRIPT%') do (
+          set "MILL_VERSION=%%d"
         )
-        set "MILL_VERSION=%MILL_VERSION://> using mill.version =%"
       )
     )
   )
