@@ -177,7 +177,6 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
       "gatling-test-framework"
     )
     val submodulesWithTests = submodules diff submodulesWithoutTests
-    Seq()
 
     // The configuration "compile->compile;test->test" is not supported yet.
     test - integrationTest(url) { tester =>
