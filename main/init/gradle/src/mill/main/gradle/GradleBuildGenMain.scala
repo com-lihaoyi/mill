@@ -103,11 +103,6 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
     file
   }
 
-  extension (om: ProjectModel)
-    override def toOption(): Option[ProjectModel] =
-      // TODO consider filtering out projects without the `java` plugin applied
-      Some(om)
-
   override def getBaseInfo(
       input: Tree[Node[ProjectModel]],
       cfg: Config,

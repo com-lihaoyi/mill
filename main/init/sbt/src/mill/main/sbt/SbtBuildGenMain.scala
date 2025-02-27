@@ -53,7 +53,6 @@ import scala.collection.immutable.SortedSet
 object SbtBuildGenMain
     extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Option[Project]]])] {
   override type C = Config
-  override type OM = Option[Project]
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
@@ -188,8 +187,6 @@ object SbtBuildGenMain
       workspace / "project",
       suffix = ".sbt"
     )
-
-  extension (om: Option[Project]) override def toOption(): Option[Project] = om
 
   override def getModuleTree(
       input: (BuildInfo, Tree[Node[Option[Project]]])

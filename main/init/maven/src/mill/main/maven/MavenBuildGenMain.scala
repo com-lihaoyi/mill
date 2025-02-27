@@ -59,8 +59,6 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     println("converted Maven build to Mill")
   }
 
-  extension (om: Model) override def toOption(): Option[Model] = Some(om)
-
   override def getBaseInfo(
       input: Tree[Node[Model]],
       cfg: Config,

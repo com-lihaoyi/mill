@@ -16,13 +16,7 @@ trait BuildGenBase[M, D, I] {
     writeBuildObject(if (shared.merge.value) compactBuildTree(output) else output)
   }
 
-  /**
-   * A possibly optional module model which might be a parent directory of an actual module without its own sources.
-   */
-  type OM
-  extension (om: OM) def toOption(): Option[M]
-
-  def getModuleTree(input: I): Tree[Node[OM]]
+  def getModuleTree(input: I): Tree[Node[Option[M]]]
 
   def convert(
       input: I,
@@ -30,7 +24,7 @@ trait BuildGenBase[M, D, I] {
       shared: BuildGenUtil.BasicConfig
   ): Tree[Node[BuildObject]] = {
     val moduleTree = getModuleTree(input)
-    val moduleOptionTree = moduleTree.map(node => node.copy(value = node.value.toOption()))
+    val moduleOptionTree = moduleTree.map(node => node.copy(value = node.value))
 
     // for resolving moduleDeps
     val packages = buildPackages(
@@ -95,9 +89,9 @@ trait BuildGenBase[M, D, I] {
 
 object BuildGenBase {
   trait MavenAndGradle[M, D] extends BuildGenBase[M, D, Tree[Node[M]]] {
-    override def getModuleTree(input: Tree[Node[M]]): Tree[Node[M]] = input
-    override type OM = M
-
+    override def getModuleTree(input: Tree[Node[M]]): Tree[Node[Option[M]]] =
+      // TODO consider filtering out projects without the `java` plugin applied in Gradle too
+      input.map(node => node.copy(value = Some(node.value)))
     override def extraImports: Seq[String] = Seq.empty
   }
 }
