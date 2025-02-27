@@ -3,21 +3,26 @@
 > rm build.mill # remove any existing build file
 
 > git init .
-> git remote add -f origin https://github.com/scalacenter/library-example.git
-> git checkout v1.0.1
+> git remote add -f origin https://github.com/scala/scala3-example-project.git
+> git checkout 853808c50601e88edaa7272bcfb887b96be0e22a
 
 > ./mill init
-converting module library-example
-Dependency Dependency(com.lightbend.paradox,paradox-theme-generic,false,0.4.4,Some(paradox-theme)) with an unknown configuration "paradox-theme" is dropped.
-Dependency Dependency(com.lightbend.paradox,paradox-theme-generic,false,0.4.4,Some(paradox-theme)) with an unknown configuration "paradox-theme" is dropped.
+converting sbt build
+Running the added `millInitExportBuild` sbt task to export the build
+converting module scala3-example-project
 generated 1 Mill build file(s)
 removing existing Mill build files
 writing Mill build file to build.mill
 converted sbt build to Mill
 formatting Mill build files
 Formatting 1 Scala sources
+parsed config (v3.8.4): ...
 init completed, run "mill resolve _" to list available tasks
 
 > ./mill compile
-done compiling
+compiling 13 Scala sources to ...out/compile.dest/classes ...
+
+> ./mill test
+MySuite:
+  + example test that succeeds ...
 */
