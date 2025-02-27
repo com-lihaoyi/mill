@@ -328,12 +328,11 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     ): List[BloopConfig.Module] = {
 
       import coursier._
-      import coursier.util._
 
       import scala.concurrent.ExecutionContext.Implicits.global
       Fetch(coursier.cache.FileCache())
-        .addRepositories(repos*)
-        .addDependencies(deps*)
+        .addRepositories(repos *)
+        .addDependencies(deps *)
         .withMainArtifacts()
         .addClassifiers(coursier.Classifier("sources"))
         .runResult()
