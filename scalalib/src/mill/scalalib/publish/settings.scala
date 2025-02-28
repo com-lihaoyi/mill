@@ -69,13 +69,32 @@ case class Developer(
 case class PomSettings(
     description: String,
     organization: String,
+    organizationName: String,
     url: String,
     licenses: Seq[License],
     versionControl: VersionControl,
-    developers: Seq[Developer],
-    @deprecated("Value will be ignored. Use PublishModule.pomPackagingType instead", "Mill 0.11.8")
-    packaging: String = PackagingType.Jar
+    developers: Seq[Developer]
 ) derives RW
+
+object PomSettings {
+  @deprecated(
+    "This method is for backward compatibility. Use the one with `organizationName` instead."
+  )
+  def apply(
+      description: String,
+      organization: String,
+      url: String,
+      licenses: Seq[License],
+      versionControl: VersionControl,
+      developers: Seq[Developer],
+      @deprecated(
+        "Value will be ignored. Use PublishModule.pomPackagingType instead",
+        "Mill 0.11.8"
+      )
+      packaging: String = PackagingType.Jar
+  ): PomSettings =
+    PomSettings(description, organization, "", url, licenses, versionControl, developers)
+}
 
 object PackagingType {
   val Pom = "pom"
