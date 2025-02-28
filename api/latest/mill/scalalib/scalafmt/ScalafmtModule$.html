@@ -694,6 +694,52 @@ node24 -> node9;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="allRepositories-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies\n *\n * Unlike [[repositoriesTask]], this includes the Mill internal repositories,\n * which allow to resolve Mill internal modules (usually brought in via\n * `JavaModule#coursierDependency`).\n *\n * Beware that this needs to evaluate `JavaModule#coursierProject` of all\n * module dependencies of the current module, which itself evaluates `JavaModule#ivyDeps`\n * and related tasks. You shouldn\'t depend on this task from implementations of `ivyDeps`,\n * which would introduce cycles between Mill tasks.\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalafmtModule$.html#allRepositories-0" t="n" class="documentableName ">allRepositories</a>: <a href="../../define/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The repositories used to resolve dependencies</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The repositories used to resolve dependencies</p>
+              <p>Unlike <a href="../CoursierModule.html#repositoriesTask-0">repositoriesTask</a>, this includes the Mill internal repositories, which allow to resolve Mill internal modules (usually brought in via <code>JavaModule#coursierDependency</code>).</p>
+              <p>Beware that this needs to evaluate <code>JavaModule#coursierProject</code> of all module dependencies of the current module, which itself evaluates <code>JavaModule#ivyDeps</code> and related tasks. You shouldn't depend on this task from implementations of <code>ivyDeps</code>, which would introduce cycles between Mill tasks.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../CoursierModule.html#allRepositories-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="allSourceFiles-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -2276,6 +2322,9 @@ node24 -> node9;
         <div class="documentableElement" id="defaultResolver-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A `CoursierModule.Resolver` to resolve dependencies.\n *\n * Can be used to resolve external dependencies, if you need to download an external\n * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#resolveDeps`.\n *\n * @return `CoursierModule.Resolver` instance\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalafmtModule$.html#defaultResolver-0" t="n" class="documentableName ">defaultResolver</a>: <a href="../../define/Task.html" t="t">Task</a>[<a href="../CoursierModule$$Resolver.html" t="t">Resolver</a>]
@@ -2287,10 +2336,22 @@ node24 -> node9;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A <code>CoursierModule.Resolver</code> to resolve dependencies.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>A <code>CoursierModule.Resolver</code> to resolve dependencies.</p>
+              <p>Can be used to resolve external dependencies, if you need to download an external tool from Maven or Ivy repositories, by calling <code>CoursierModule.Resolver#resolveDeps</code>.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p><code>CoursierModule.Resolver</code> instance</p>
+              </dd>
               <dt class="body-small">
                Inherited from:
               </dt>
@@ -3126,51 +3187,6 @@ node24 -> node9;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="internalRepositories-0" data-f-inherited="JavaModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Mill internal repositories to be used during dependency resolution\n *\n * These are not meant to be modified by Mill users, unless you really know what you\'re\n * doing.\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalafmtModule$.html#internalRepositories-0" t="n" class="documentableName ">internalRepositories</a>: <a href="../../define/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Mill internal repositories to be used during dependency resolution</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Mill internal repositories to be used during dependency resolution</p>
-              <p>These are not meant to be modified by Mill users, unless you really know what you're doing.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="../JavaModule.html#internalRepositories-0">JavaModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="ivyDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -3795,6 +3811,57 @@ node24 -> node9;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="millResolver-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A `CoursierModule.Resolver` to resolve dependencies.\n *\n * Unlike `defaultResolver`, this resolver can resolve Mill modules too\n * (obtained via `JavaModule#coursierDependency`).\n *\n * @return `CoursierModule.Resolver` instance\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalafmtModule$.html#millResolver-0" t="n" class="documentableName ">millResolver</a>: <a href="../../define/Task.html" t="t">Task</a>[<a href="../CoursierModule$$Resolver.html" t="t">Resolver</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A <code>CoursierModule.Resolver</code> to resolve dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A <code>CoursierModule.Resolver</code> to resolve dependencies.</p>
+              <p>Unlike <code>defaultResolver</code>, this resolver can resolve Mill modules too (obtained via <code>JavaModule#coursierDependency</code>).</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p><code>CoursierModule.Resolver</code> instance</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../CoursierModule.html#millResolver-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="moduleCtx-0" data-f-inherited="BaseModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -4317,7 +4384,7 @@ node24 -> node9;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolved dependencies with [[resolveDeps()]].\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies with [[resolveDeps()]].\n *\n * See [[allRepositories]] if you need to resolve Mill internal modules.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -4331,11 +4398,12 @@ node24 -> node9;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The repositories used to resolved dependencies with <a href="../CoursierModule.html#resolveDeps-fffff65d">resolveDeps</a>.</p>
+             <p>The repositories used to resolve dependencies with <a href="../CoursierModule.html#resolveDeps-af">resolveDeps</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The repositories used to resolved dependencies with <a href="../CoursierModule.html#resolveDeps-fffff65d">resolveDeps</a>.</p>
+              <p>The repositories used to resolve dependencies with <a href="../CoursierModule.html#resolveDeps-af">resolveDeps</a>.</p>
+              <p>See <a href="../CoursierModule.html#allRepositories-0">allRepositories</a> if you need to resolve Mill internal modules.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -4464,7 +4532,7 @@ node24 -> node9;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="resolveDeps-fffff65d" data-f-inherited="CoursierModule">
+        <div class="documentableElement" id="resolveDeps-af" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
@@ -4472,7 +4540,7 @@ node24 -> node9;
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalafmtModule$.html#resolveDeps-fffff65d" t="n" class="documentableName ">resolveDeps</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">deps</span>: <a href="../../define/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../BoundDep.html" t="t">BoundDep</a>]], <span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">artifactTypes</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Set</span>[<span data-unresolved-link="" t="t">Type</span>]]): <a href="../../define/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../api/PathRef.html" t="t">PathRef</a>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalafmtModule$.html#resolveDeps-af" t="n" class="documentableName ">resolveDeps</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">deps</span>: <a href="../../define/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../BoundDep.html" t="t">BoundDep</a>]], <span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">artifactTypes</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Set</span>[<span data-unresolved-link="" t="t">Type</span>]], <span t="k"></span><span data-unresolved-link="" t="n">enableMillInternalDependencies</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="../../define/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../api/PathRef.html" t="t">PathRef</a>]]
            </div>
           </div>
          </div>
@@ -4521,7 +4589,7 @@ node24 -> node9;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="../CoursierModule.html#resolveDeps-fffff65d">CoursierModule</a>
+               <a href="../CoursierModule.html#resolveDeps-af">CoursierModule</a>
               </dd>
               <dt class="body-small">
                Source
