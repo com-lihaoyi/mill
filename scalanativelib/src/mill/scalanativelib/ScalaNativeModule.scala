@@ -280,7 +280,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   // Runs the native binary
   override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     os.call(
-      cmd = Vector(nativeLink().toString) ++ args().value,
+      cmd = nativeLink().path.toString +: args().value,
       env = forkEnv(),
       cwd = forkWorkingDir(),
       stdin = os.Inherit,
