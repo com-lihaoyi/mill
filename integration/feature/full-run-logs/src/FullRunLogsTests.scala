@@ -102,5 +102,61 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         createFolders = true
       )
     }
+    test("failure-messages") - integrationTest { tester =>
+      import tester._
+
+      // Create a compilation error first
+      val javaSource = os.Path(workspacePath, os.pwd)
+      val fooJava = javaSource / "src" / "foo" / "Foo.java"
+      val originalContent = os.read(fooJava)
+
+      // Introduce a compilation error
+      os.write.over(
+        fooJava,
+        data = originalContent.replace("class Foo", "class Foo {"),
+        createFolders = true
+      )
+
+      // Test without -k flag: should stop at first failure and show proper failure count
+      val res1 = eval(("--ticker", "true", "run"))  // run depends on compile, so should have downstream tasks
+      println(s"[DEBUG] res1.err: '${fansi.Str(res1.err).plainText}'")
+      assert(res1.isSuccess == false)
+      // Should show exactly one failure, not counting skipped downstream tasks
+      assert(fansi.Str(res1.err).plainText.contains("1 tasks failed"))
+      // Should not contain inflated failure counts
+      assert(!fansi.Str(res1.err).plainText.contains("2 tasks failed"))
+      assert(!fansi.Str(res1.err).plainText.contains("3 tasks failed"))
+
+      // Test with -k flag: should continue after failures but still count failures correctly
+      val res2 = eval(("--ticker", "true", "-k", "run"))
+      println(s"[DEBUG] res2.err: '${fansi.Str(res2.err).plainText}'")
+      assert(res2.isSuccess == false)
+      // Should still show exactly one failure, even though downstream tasks were attempted
+      assert(fansi.Str(res2.err).plainText.contains("1 tasks failed"))
+      // Should not contain inflated failure counts that would indicate counting skipped tasks
+      assert(!fansi.Str(res2.err).plainText.contains("2 tasks failed"))
+      assert(!fansi.Str(res2.err).plainText.contains("3 tasks failed"))
+
+      // Test non-interactive mode without -k
+      val res3 = eval(("--ticker", "false", "run"))
+      println(s"[DEBUG] res3.err: '${fansi.Str(res3.err).plainText}'")
+      assert(res3.isSuccess == false)
+      assert(fansi.Str(res3.err).plainText.contains("1 tasks failed"))
+      assert(!fansi.Str(res3.err).plainText.contains("2 tasks failed"))
+
+      // Test non-interactive mode with -k
+      val res4 = eval(("--ticker", "false", "-k", "run"))
+      println(s"[DEBUG] res4.err: '${fansi.Str(res4.err).plainText}'")
+      assert(res4.isSuccess == false)
+      assert(fansi.Str(res4.err).plainText.contains("1 tasks failed"))
+      assert(!fansi.Str(res4.err).plainText.contains("2 tasks failed"))
+
+      // Restore original content for cleanup
+      os.write.over(
+        fooJava,
+        data = originalContent,
+        createFolders = true
+      )
+    }
   }
 }
