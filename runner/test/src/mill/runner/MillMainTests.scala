@@ -95,7 +95,8 @@ object MillMainTests extends TestSuite {
       test("precedence") {
         val dir = os.temp.dir()
         val file1 = (dir / ".mill-version").tap { os.write(_, "1") }
-        val file2 = (dir / ".config" / "mill-version").tap { os.write(_, "2", createFolders = true) }
+        val file2 =
+          (dir / ".config" / "mill-version").tap { os.write(_, "2", createFolders = true) }
         val file3 = (dir / "build.mill").tap { os.write(_, "//> using mill.version   3") }
         val file4 = (dir / "build.mill.scala").tap { os.write(_, "//> using   mill.version 4") }
         val file5 = (dir / "build.sc").tap { os.write(_, "//>   using mill.version 5") }
