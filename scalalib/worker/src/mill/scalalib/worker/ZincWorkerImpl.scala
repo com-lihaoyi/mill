@@ -262,7 +262,7 @@ class ZincWorkerImpl(
     }
   }
 
-  /** Compile the SBT/Zinc compiler bridge in the `compileDest` directory */
+  /** Compile the sbt/Zinc compiler bridge in the `compileDest` directory */
   def compileZincBridge(
       ctx0: ZincWorkerApi.Ctx,
       workingDir: os.Path,

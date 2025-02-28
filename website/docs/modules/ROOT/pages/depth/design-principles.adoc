@@ -150,7 +150,7 @@ def test() = Task.Command { Task.zipMap(runDepClasspath, compile, compile) {
 
 ----
 
-This is similar to SBT's `:=`/`.value` macros, or ``scala-async``'s
+This is similar to sbt's `:=`/`.value` macros, or ``scala-async``'s
 `async`/`await`. Like those, the `Task {...}` macro should let users program most of
 their code in a "direct" style and have it "automatically" lifted into a graph
 of ``Task``s.
@@ -183,7 +183,7 @@ that would make a build tool hard to understand.
 
 Before you continue, take a moment to think: how would you answer to each of
 those questions using an existing build tool you are familiar with? Different
-tools like http://www.scala-sbt.org/[SBT],
+tools like http://www.scala-sbt.org/[sbt],
 https://fake.build[Fake], https://gradle.org/[Gradle] or
 https://gruntjs.com/[Grunt] have very different answers.
 
@@ -367,11 +367,11 @@ reduced to simply instantiating a `trait` over and over, with tweaks.
 
 == Prior Work
 
-=== SBT
+=== sbt
 
-Mill is built as a substitute for SBT, whose problems are
-http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[described here].
-Nevertheless, Mill takes on some parts of SBT (builds written in Scala, Task
+Mill is built as a substitute for sbt, whose problems are
+http://www.lihaoyi.com/post/Sowhatswrongwithsbt.html[described here].
+Nevertheless, Mill takes on some parts of sbt (builds written in Scala, Task
 graph with an Applicative "idiom bracket" macro) where it makes sense.
 
 === Bazel
@@ -381,10 +381,10 @@ single-build-hierarchy, where every Target has an on-disk-cache/output-folder
 according to their position in the hierarchy, comes from Bazel.
 
 Bazel is a bit odd in its own right. The underlying data model is good
-(hierarchy + cached dependency graph) but getting there is hell. It (like SBT) is
+(hierarchy + cached dependency graph) but getting there is hell. It (like sbt) is
 also a 3-layer interpretation model, but layers 1 & 2 are almost exactly the
 same: mutable python which performs global side effects (layer 3 is the same
-dependency-graph evaluator as SBT/mill).
+dependency-graph evaluator as sbt/mill).
 
 You end up having to deal with a non-trivial python codebase where everything
 happens via:
