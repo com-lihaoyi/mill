@@ -273,7 +273,10 @@ public class MillProcessLauncher {
       "https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/" + jansiVersion + "/jansi-" + jansiVersion + ".jar/" + jansiLibPathInArchive
     );
     if (!jansiLib.exists()) {
-      coursierapi.ArchiveCache archiveCache = coursierapi.ArchiveCache.create();
+      // coursierapi.Logger.progressBars actually falls back to non-ANSI logging when running
+      // without a terminal
+      coursierapi.Cache cache = coursierapi.Cache.create().withLogger(coursierapi.Logger.progressBars());
+      coursierapi.ArchiveCache archiveCache = coursierapi.ArchiveCache.create().withCache(cache);
       File jansiDir = archiveCache.get(coursierapi.Artifact.of("https://repo1.maven.org/maven2/org/fusesource/jansi/jansi/" + jansiVersion + "/jansi-" + jansiVersion + ".jar"));
       jansiLib = new File(jansiDir, jansiLibPathInArchive); // just in case, should be the same value as before
     }
