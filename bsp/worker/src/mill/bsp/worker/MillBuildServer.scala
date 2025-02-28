@@ -20,6 +20,7 @@ import mill.given
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
+import scala.collection.mutable
 import scala.concurrent.Promise
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -840,10 +841,27 @@ private object MillBuildServer {
    * the order of appearance of the keys from the input sequence
    */
   private def groupList[A, K, B](seq: Seq[A])(key: A => K)(f: A => B): Seq[(K, Seq[B])] = {
-    val keyIndices = seq.map(key).distinct.zipWithIndex.toMap
-    seq.groupMap(key)(f)
-      .toSeq
-      .sortBy { case (k, _) => keyIndices(k) }
+    val map = new mutable.HashMap[K, mutable.ListBuffer[B]]
+    val list = new mutable.ListBuffer[(K, mutable.ListBuffer[B])]
+    for (a <- seq) {
+      val k = key(a)
+      val b = f(a)
+      val l = map.getOrElseUpdate(
+        k, {
+          val buf = mutable.ListBuffer[B]()
+          list.append((k, buf))
+          buf
+        }
+      )
+      l.append(b)
+    }
+    list
+      .iterator
+      .map {
+        case (k, l) =>
+          (k, l.result())
+      }
+      .toList
   }
 
   def jvmBuildTarget(d: JvmBuildTarget): bsp4j.JvmBuildTarget =
