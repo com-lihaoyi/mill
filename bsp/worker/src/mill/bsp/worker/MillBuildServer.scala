@@ -676,38 +676,47 @@ private class MillBuildServer(
       }
 
       // group by evaluator (different root module)
-      val evaluated = groupList(tasksSeq.toSeq)(_._2)(_._1)
-        .map { case ((ev, id), ts) =>
-          val results = evaluate(ev, ts)
-          val failures = results.results.collect {
-            case (_, TaskResult(res: Result.Failing[_], _)) => res
+      val groups0 = groupList(tasksSeq.toSeq)(_._2._1) {
+        case (tasks, (_, id)) => (id, tasks)
+      }
+
+      val evaluated = groups0.flatMap {
+        case (ev, targetIdTasks) =>
+          val results = evaluate(ev, targetIdTasks.map(_._2))
+          lazy val idByTasks = targetIdTasks.map { case (id, task) => (task: Task[_], id) }.toMap
+          val failures = results.results.toSeq.collect {
+            case (task, TaskResult(res: Result.Failing[_], _)) =>
+              (idByTasks(task), res)
           }
 
-          def logError(errorMsg: String): Unit = {
+          def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
             val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
             debug(msg)
             client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
           }
 
-          if (failures.nonEmpty) {
-            logError(failures.mkString(", "))
+          if (failures.nonEmpty)
+            for ((id, failure) <- failures)
+              logError(id, failure.toString)
+
+          val resultsById = targetIdTasks.flatMap {
+            case (id, task) =>
+              results.results(task).result.asSuccess.map(_.value.value.asInstanceOf[W]).map((id, _))
           }
 
-          // only the successful results
-          val successes = results.values.map(_.value).asInstanceOf[Seq[W]]
-          successes
-            .flatMap { v =>
+          resultsById.flatMap {
+            case (id, values) =>
               try {
-                Seq(f(ev, state, id, state.bspModulesById(id)._1, v))
+                Seq(f(ev, state, id, state.bspModulesById(id)._1, values))
               } catch {
                 case NonFatal(e) =>
-                  logError(e.toString)
+                  logError(id, e.toString)
                   Seq()
               }
-            }
-        }
+          }
+      }
 
-      agg(evaluated.flatten.asJava, state)
+      agg(evaluated.asJava, state)
     }
   }
 
