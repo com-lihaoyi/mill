@@ -32,7 +32,8 @@ private class MillBuildServer(
     serverVersion: String,
     serverName: String,
     logStream: PrintStream,
-    canReload: Boolean
+    canReload: Boolean,
+    debugMessages: Boolean
 ) extends ExternalModule
     with BuildServer {
 
@@ -58,12 +59,16 @@ private class MillBuildServer(
     if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
       statePromise.success(
-        new State(topLevelProjectRoot, evaluators, debug)
+        new State(topLevelProjectRoot, evaluators, s => debug(s()))
       )
     }
   }
 
-  def debug(msg: String): Unit = logStream.println(msg)
+  def print(msg: String): Unit =
+    logStream.println(msg)
+  def debug(msg: => String): Unit =
+    if (debugMessages)
+      logStream.println("[debug] " + msg)
 
   def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
 
@@ -112,7 +117,7 @@ private class MillBuildServer(
         case d: JsonObject =>
           debug(s"extra data: ${d} of type ${d.getClass}")
           readVersion(d, "semanticdbVersion").foreach { version =>
-            debug(
+            print(
               s"Got client semanticdbVersion: ${version}. Enabling SemanticDB support."
             )
             clientWantsSemanticDb = true
@@ -129,27 +134,27 @@ private class MillBuildServer(
     }
 
   override def onBuildInitialized(): Unit = {
-    debug("Build initialized")
+    print("Build initialized")
   }
 
   override def buildShutdown(): CompletableFuture[Object] = {
-    debug(s"Entered buildShutdown")
+    print("Entered buildShutdown")
     shutdownRequested = true
     onSessionEnd match {
       case None =>
       case Some(onEnd) =>
-        debug("Shutdown build...")
+        print("Shutdown build...")
         onEnd(BspServerResult.Shutdown)
     }
     SemanticDbJavaModule.resetContext()
     CompletableFuture.completedFuture(null.asInstanceOf[Object])
   }
   override def onBuildExit(): Unit = {
-    debug("Entered onBuildExit")
+    print("Entered onBuildExit")
     onSessionEnd match {
       case None =>
       case Some(onEnd) =>
-        debug("Exiting build...")
+        print("Exiting build...")
         onEnd(BspServerResult.Shutdown)
     }
     SemanticDbJavaModule.resetContext()
@@ -207,7 +212,7 @@ private class MillBuildServer(
       onSessionEnd match {
         case None => "unsupportedWorkspaceReload".asInstanceOf[Object]
         case Some(onEnd) =>
-          debug("Reloading workspace...")
+          print("Reloading workspace...")
           onEnd(BspServerResult.ReloadWorkspace).asInstanceOf[Object]
       }
     }
@@ -718,12 +723,12 @@ private class MillBuildServer(
       hint: String,
       checkInitialized: Boolean = true
   )(f: State => V): CompletableFuture[V] = {
-    debug(s"Entered ${hint}")
+    print(s"Entered ${hint}")
 
     val start = System.currentTimeMillis()
     val prefix = hint.split(" ").head
     def took =
-      debug(s"${prefix} took ${System.currentTimeMillis() - start} msec")
+      print(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
     val future = new CompletableFuture[V]()
     if (checkInitialized && !initialized) {
@@ -763,11 +768,11 @@ private class MillBuildServer(
       hint: String,
       checkInitialized: Boolean = true
   )(f: => V): CompletableFuture[V] = {
-    debug(s"Entered ${hint}")
+    print(s"Entered ${hint}")
     val start = System.currentTimeMillis()
     val prefix = hint.split(" ").head
     def took =
-      debug(s"${prefix} took ${System.currentTimeMillis() - start} msec")
+      print(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
     val future = new CompletableFuture[V]()
 
