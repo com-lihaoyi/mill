@@ -44,7 +44,6 @@ public class Util {
   private static final boolean hasConsole0;
 
   static {
-
     Console console = System.console();
 
     boolean foundConsole;
