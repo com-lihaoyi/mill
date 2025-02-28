@@ -118,7 +118,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       )
 
       // Test without -k flag: should stop at first failure and show proper failure count
-      val res1 = eval(("--ticker", "true", "run"))  // run depends on compile, so should have downstream tasks
+      val res1 =
+        eval(("--ticker", "true", "run")) // run depends on compile, so should have downstream tasks
       println(s"[DEBUG] res1.err: '${fansi.Str(res1.err).plainText}'")
       assert(res1.isSuccess == false)
       // Should show exactly one failure, not counting skipped downstream tasks

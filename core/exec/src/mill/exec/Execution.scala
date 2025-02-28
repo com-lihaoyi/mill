@@ -91,7 +91,7 @@ private[mill] case class Execution(
     val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
-    val rootFailedCount = new AtomicInteger(0)  // Track only root failures
+    val rootFailedCount = new AtomicInteger(0) // Track only root failures
     val indexToTerminal = plan.sortedGroups.keys().toArray
 
     ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
@@ -160,10 +160,10 @@ private[mill] case class Execution(
 
                 // Only count failures if there are no upstream failures (i.e. this is a root failure)
                 val currentFailedCount = if (!hasUpstreamFailures) {
-                  upstreamResults.values.count(r => 
-                    !r.asSuccess.isDefined && 
-                    !r.isInstanceOf[ExecResult.Skipped.type] &&
-                    !r.isInstanceOf[ExecResult.Aborted.type]
+                  upstreamResults.values.count(r =>
+                    !r.asSuccess.isDefined &&
+                      !r.isInstanceOf[ExecResult.Skipped.type] &&
+                      !r.isInstanceOf[ExecResult.Aborted.type]
                   )
                 } else 0
 
@@ -174,8 +174,8 @@ private[mill] case class Execution(
 
                 // Always include the failed count in header if there are failures
                 val headerPrefix = s"$countMsg$verboseKeySuffix${
-                  if (rootFailedCount.get() > 0) s", ${rootFailedCount.get()} failed" else ""
-                }"
+                    if (rootFailedCount.get() > 0) s", ${rootFailedCount.get()} failed" else ""
+                  }"
                 logger.setPromptHeaderPrefix(headerPrefix)
 
                 val startTime = System.nanoTime() / 1000
@@ -214,10 +214,10 @@ private[mill] case class Execution(
 
                 // After execution, only count new failures if there were no upstream failures
                 val newFailures = if (!hasUpstreamFailures) {
-                  res.newResults.values.count(r => 
-                    !r.asSuccess.isDefined && 
-                    !r.isInstanceOf[ExecResult.Skipped.type] &&
-                    !r.isInstanceOf[ExecResult.Aborted.type]
+                  res.newResults.values.count(r =>
+                    !r.asSuccess.isDefined &&
+                      !r.isInstanceOf[ExecResult.Skipped.type] &&
+                      !r.isInstanceOf[ExecResult.Aborted.type]
                   )
                 } else 0
 
@@ -225,11 +225,11 @@ private[mill] case class Execution(
                   rootFailedCount.addAndGet(newFailures)
                 }
                 logger.setFailedTasksCount(rootFailedCount.get())
-                
+
                 // Always show failed count in header if there are failures
                 logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix${
-                  if (rootFailedCount.get() > 0) s", ${rootFailedCount.get()} failed" else ""
-                }")
+                    if (rootFailedCount.get() > 0) s", ${rootFailedCount.get()} failed" else ""
+                  }")
 
                 if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)
