@@ -1,5 +1,6 @@
 package mill.integration
 
+import mill.constants.Util
 import mill.integration.MillInitSbtUtils.bumpSbtTo1107
 import mill.integration.MillInitUtils.*
 import utest.*
@@ -170,7 +171,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
           failed = Seq(
             /*
             `...gatling-benchmarks/src/main/scala/io/gatling/Utils.scala:26:19: no arguments allowed for nullary method toString: (): String`
-            This fails to compile with sbt too.
+            This fails to compile with sbt too. See https://github.com/gatling/gatling/issues/4612.
              */
             "gatling-benchmarks.compile"
           )
@@ -186,7 +187,10 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
              */
             //
             "gatling-charts.test"
-          )
+          ) ++ (if (Util.isWindows)
+                  // This fails on Windows with sbt too.
+                  Seq("gatling-core.test")
+                else Seq.empty)
         ))
       )
     }
