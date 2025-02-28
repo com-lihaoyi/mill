@@ -18,7 +18,11 @@ object BloopTests extends TestSuite {
 
   val unitTester = UnitTester(build, null)
   val workdir = unitTester.evaluator.rootModule.millSourcePath
-  val testBloop = new BloopImpl(() => Seq(unitTester.evaluator), workdir)
+  val testBloop = new BloopImpl(
+    () => Seq(unitTester.evaluator),
+    workdir,
+    addMillSources = None
+  )
 
   object build extends TestBaseModule {
     object scalaModule extends scalalib.ScalaModule with testBloop.Module {
