@@ -410,7 +410,7 @@ private class MillBuildServer(
           (Task.Anon { () }, ev)
           val task = Task.Anon {
             Task.log.debug(
-              "Ignoring invalid compile request for test module ${m.bspBuildTarget.displayName}"
+              s"Ignoring invalid compile request for test module ${m.bspBuildTarget.displayName}"
             )
           }
           (task, ev)
