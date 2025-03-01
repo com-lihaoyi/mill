@@ -148,8 +148,8 @@ private[mill] case class Execution(
 
               val verboseKeySuffix = s"/${terminals0.size}"
               logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix${
-                mill.internal.Util.formatFailedCount(rootFailedCount.get())
-              }")
+                  mill.internal.Util.formatFailedCount(rootFailedCount.get())
+                }")
               if (failed.get()) {
                 // Even when we're in fail-fast mode and a previous task has failed,
                 // we still want to update the prompt with the failed count
