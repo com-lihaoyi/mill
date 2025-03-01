@@ -283,20 +283,21 @@ object RunModule {
         case None => useCpPassingJar0
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
-      if (background) {
-        val (stdout, stderr) = if (runBackgroundLogToConsole) {
-          // Hack to forward the background subprocess output to the Mill server process
-          // stdout/stderr files, so the output will get properly slurped up by the Mill server
-          // and shown to any connected Mill client even if the current command has completed
-          val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
-          (
-            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
-            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
-          )
-        } else {
-          (dest / "stdout.log": os.ProcessOutput, dest / "stderr.log": os.ProcessOutput)
-        }
-        os.checker.withValue(os.Checker.Nop) {
+
+      os.checker.withValue(os.Checker.Nop) {
+        if (background) {
+          val (stdout, stderr) = if (runBackgroundLogToConsole) {
+            // Hack to forward the background subprocess output to the Mill server process
+            // stdout/stderr files, so the output will get properly slurped up by the Mill server
+            // and shown to any connected Mill client even if the current command has completed
+            val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
+            (
+              os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+              os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
+            )
+          } else {
+            (dest / "stdout.log": os.ProcessOutput, dest / "stderr.log": os.ProcessOutput)
+          }
           Jvm.spawnProcess(
             mainClass = mainClass1,
             classPath = classPath,
