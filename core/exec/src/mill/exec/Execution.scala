@@ -155,8 +155,7 @@ private[mill] case class Execution(
                     mill.internal.Util.formatFailedCount(rootFailedCount.get())
                   }")
                 None
-              }
-              else {
+              } else {
                 val upstreamResults = upstreamValues
                   .iterator
                   .flatMap(_.iterator.flatMap(_.newResults))

@@ -353,9 +353,9 @@ private[mill] object PromptLogger {
     @volatile private var currentPromptBytes: Array[Byte] = Array[Byte]()
 
     def getCurrentPrompt() = currentPromptBytes
-    
+
     def getFailedTasksCount() = failedTasksCount
-    
+
     def getHeaderPrefix() = headerPrefix
 
     def setFailedTasksCount(count: Int): Unit = {
