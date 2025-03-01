@@ -239,7 +239,7 @@ private trait GroupExecution {
           val executionChecker = new os.Checker {
             def onRead(path: os.ReadablePath): Unit = ()
             def onWrite(path: os.Path): Unit = {
-              if (path.startsWith(workspace) && !path.relativeTo(workspace).segments.exists(_.endsWith(".dest"))){
+              if (!exclusive && path.startsWith(workspace) && !path.relativeTo(workspace).segments.exists(_.endsWith(".dest"))){
                 sys.error(s"Writing to disk not allowed during execution phase to $path")
               }
             }
