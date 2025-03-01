@@ -174,7 +174,7 @@ private[mill] case class Execution(
 
                 // Always include the failed count in header if there are failures
                 val headerPrefix = s"$countMsg$verboseKeySuffix${
-                    if (rootFailedCount.get() > 0) s", ${rootFailedCount.get()} failed" else ""
+                    mill.internal.Util.formatFailedCount(rootFailedCount.get())
                   }"
                 logger.setPromptHeaderPrefix(headerPrefix)
 
@@ -228,7 +228,7 @@ private[mill] case class Execution(
 
                 // Always show failed count in header if there are failures
                 logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix${
-                    if (rootFailedCount.get() > 0) s", ${rootFailedCount.get()} failed" else ""
+                    mill.internal.Util.formatFailedCount(rootFailedCount.get())
                   }")
 
                 if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
