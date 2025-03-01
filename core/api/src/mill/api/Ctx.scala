@@ -144,6 +144,14 @@ object Ctx {
       def async[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
           ctx: mill.api.Ctx
       ): Future[T]
+
+      /**
+       * Try to take an async slot.
+       *
+       * Returns `true` if a slot was successfully taken, `false` if there are no
+       * available slots.
+       */
+      def tryTakeAsyncSlot(): Option[AutoCloseable]
     }
 
     trait Impl extends Api with ExecutionContext with AutoCloseable {

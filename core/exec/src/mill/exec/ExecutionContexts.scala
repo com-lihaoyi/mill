@@ -23,6 +23,8 @@ private object ExecutionContexts {
         ctx: mill.api.Ctx
     ): Future[T] =
       Future.successful(t)
+
+    def tryTakeAsyncSlot(): Option[AutoCloseable] = None
   }
 
   /**
@@ -104,6 +106,17 @@ private object ExecutionContexts {
           }
         }
       }(this)
+    }
+
+    def tryTakeAsyncSlot(): Option[AutoCloseable] = synchronized {
+      if (executor.getActiveCount() < executor.getMaximumPoolSize()) {
+        updateThreadCount(-1)
+        Some(new AutoCloseable {
+          def close(): Unit = updateThreadCount(1)
+        })
+      } else {
+        None
+      }
     }
   }
 }

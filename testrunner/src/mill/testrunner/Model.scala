@@ -11,7 +11,8 @@ import mill.api.internal
     outputPath: os.Path,
     colored: Boolean,
     testCp: Seq[os.Path],
-    globSelectors: Seq[String]
+    globSelectors: Seq[String],
+    clusterOpt: Option[(Int, os.Path)]
 )
 
 @internal object TestArgs {
