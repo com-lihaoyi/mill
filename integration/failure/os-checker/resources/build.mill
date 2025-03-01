@@ -1,14 +1,13 @@
 package build
 import mill._
 
-if (!os.exists(moduleDir / "file.txt")) os.write(moduleDir / "file.txt", "hello", createFolders = true)
 
-def foo() = Task.Command{ println(1337) }
-
-object nested extends Module{
+object foo extends Module{
   os.write(moduleDir / "file.txt", "hello", createFolders = true)
 
   def bar() = Task.Command{ println(31337) }
 }
 
-
+def qux = Task{
+  os.write(Task.workspace / "file.txt", "hello")
+}
