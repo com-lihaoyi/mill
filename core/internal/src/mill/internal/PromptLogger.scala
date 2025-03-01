@@ -100,6 +100,10 @@ private[mill] class PromptLogger(
 
   override def setPromptHeaderPrefix(s: String): Unit = synchronized {
     promptLineState.setHeaderPrefix(s)
+    if (!enableTicker && promptLineState.getFailedTasksCount() > 0) {
+      val failedCount = promptLineState.getFailedTasksCount()
+      systemStreams.err.println(s"[$s${mill.internal.Util.formatFailedCount(failedCount)}]")
+    }
   }
 
   override def clearPromptStatuses(): Unit = synchronized { promptLineState.clearStatuses() }
@@ -168,6 +172,10 @@ private[mill] class PromptLogger(
 
   private[mill] override def setFailedTasksCount(count: Int): Unit = synchronized {
     promptLineState.setFailedTasksCount(count)
+    if (!enableTicker && count > 0) {
+      val headerPrefix = promptLineState.getHeaderPrefix()
+      systemStreams.err.println(s"[$headerPrefix${mill.internal.Util.formatFailedCount(count)}]")
+    }
   }
 }
 
@@ -345,6 +353,10 @@ private[mill] object PromptLogger {
     @volatile private var currentPromptBytes: Array[Byte] = Array[Byte]()
 
     def getCurrentPrompt() = currentPromptBytes
+    
+    def getFailedTasksCount() = failedTasksCount
+    
+    def getHeaderPrefix() = headerPrefix
 
     def setFailedTasksCount(count: Int): Unit = {
       failedTasksCount = count

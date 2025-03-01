@@ -148,7 +148,14 @@ private[mill] case class Execution(
 
               val verboseKeySuffix = s"/${terminals0.size}"
               logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
-              if (failed.get()) None
+              if (failed.get()) {
+                // Even when we're in fail-fast mode and a previous task has failed,
+                // we still want to update the prompt with the failed count
+                logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix${
+                    mill.internal.Util.formatFailedCount(rootFailedCount.get())
+                  }")
+                None
+              }
               else {
                 val upstreamResults = upstreamValues
                   .iterator
@@ -190,12 +197,9 @@ private[mill] case class Execution(
                 )
 
                 // After execution, only count new failures if there were no upstream failures
+                val hasUpstreamFailures = upstreamResults.values.exists(r => r.asFailing.isDefined)
                 val newFailures = if (!hasUpstreamFailures) {
-                  res.newResults.values.count(r =>
-                    !r.asSuccess.isDefined &&
-                      !r.isInstanceOf[ExecResult.Skipped.type] &&
-                      !r.isInstanceOf[ExecResult.Aborted.type]
-                  )
+                  res.newResults.values.count(r => r.asFailing.isDefined)
                 } else 0
 
                 if (newFailures > 0) {
@@ -207,7 +211,7 @@ private[mill] case class Execution(
                     mill.internal.Util.formatFailedCount(rootFailedCount.get())
                   }")
 
-                if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
+                if (failFast && res.newResults.values.exists(r => r.asFailing.isDefined))
                   failed.set(true)
 
                 val endTime = System.nanoTime() / 1000
