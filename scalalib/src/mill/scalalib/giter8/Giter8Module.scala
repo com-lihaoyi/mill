@@ -32,13 +32,15 @@ trait Giter8Module extends CoursierModule {
           throw e
       }
 
-    Jvm.callProcess(
-      mainClass = "giter8.Giter8",
-      classPath = giter8Dependencies.map(_.path).toVector,
-      mainArgs = args,
-      cwd = Task.workspace,
-      stdin = os.Inherit,
-      stdout = os.Inherit
-    )
+    os.checker.withValue(os.Checker.Nop) {
+      Jvm.callProcess(
+        mainClass = "giter8.Giter8",
+        classPath = giter8Dependencies.map(_.path).toVector,
+        mainArgs = args,
+        cwd = Task.workspace,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+    }
   }
 }
