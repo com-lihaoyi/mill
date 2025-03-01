@@ -10,7 +10,6 @@ import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
-import os.Checker
 
 import java.io.File
 import java.net.URLClassLoader
@@ -167,7 +166,7 @@ class MillBuildBootstrap(
           mill.constants.DebugLog.println("renderFailure " + e)
           e match {
             case e: ExceptionInInitializerError if e.getCause != null => renderFailure(e.getCause)
-            case e: NoClassDefFoundError if e.getCause != null  => renderFailure(e.getCause)
+            case e: NoClassDefFoundError if e.getCause != null => renderFailure(e.getCause)
             case _ =>
               val msg =
                 e.toString +
@@ -191,7 +190,6 @@ class MillBuildBootstrap(
         rootModuleRes match {
           case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
           case Result.Success(rootModule) =>
-
 
             Using.resource(makeEvaluator(
               prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),

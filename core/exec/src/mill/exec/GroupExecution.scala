@@ -239,7 +239,11 @@ private trait GroupExecution {
           val executionChecker = new os.Checker {
             def onRead(path: os.ReadablePath): Unit = ()
             def onWrite(path: os.Path): Unit = {
-              if (!exclusive && path.startsWith(workspace) && !path.relativeTo(workspace).segments.exists(_.endsWith(".dest"))){
+              if (
+                !exclusive && path.startsWith(
+                  workspace
+                ) && !path.relativeTo(workspace).segments.exists(_.endsWith(".dest"))
+              ) {
                 sys.error(s"Writing to disk not allowed during execution phase to $path")
               }
             }
@@ -250,7 +254,7 @@ private trait GroupExecution {
               else (multiLogger.systemStreams, () => makeDest())
 
             os.dynamicPwdFunction.withValue(destFunc) {
-              os.checker.withValue(executionChecker){
+              os.checker.withValue(executionChecker) {
                 SystemStreams.withStreams(streams) {
                   val exposedEvaluator = if (!exclusive) null else getEvaluator()
                   Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
