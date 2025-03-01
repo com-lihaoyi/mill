@@ -155,22 +155,6 @@ private[mill] case class Execution(
                   .flatMap(_.iterator.flatMap(_.newResults))
                   .toMap
 
-                // Check if this task has any upstream failures
-                val hasUpstreamFailures = upstreamResults.values.exists(r => r.asFailing.isDefined)
-
-                // Only count failures if there are no upstream failures (i.e. this is a root failure)
-                val currentFailedCount = if (!hasUpstreamFailures) {
-                  upstreamResults.values.count(r =>
-                    !r.asSuccess.isDefined &&
-                      !r.isInstanceOf[ExecResult.Skipped.type] &&
-                      !r.isInstanceOf[ExecResult.Aborted.type]
-                  )
-                } else 0
-
-                if (currentFailedCount > 0) {
-                  rootFailedCount.addAndGet(currentFailedCount)
-                }
-
                 val startTime = System.nanoTime() / 1000
 
                 // should we log progress?
