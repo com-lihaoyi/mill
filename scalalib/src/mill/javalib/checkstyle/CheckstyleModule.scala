@@ -35,15 +35,17 @@ trait CheckstyleModule extends JavaModule {
     Task.log.info("running checkstyle ...")
     Task.log.debug(s"with $args")
 
-    val exitCode = Jvm.callProcess(
-      mainClass = "com.puppycrawl.tools.checkstyle.Main",
-      classPath = checkstyleClasspath().map(_.path).toVector,
-      mainArgs = args,
-      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      check = false
-    ).exitCode
+    val exitCode = os.checker.withValue(os.Checker.Nop) {
+      Jvm.callProcess(
+        mainClass = "com.puppycrawl.tools.checkstyle.Main",
+        classPath = checkstyleClasspath().map(_.path).toVector,
+        mainArgs = args,
+        cwd = moduleDir, // allow passing relative paths for sources like src/a/b
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = false
+      ).exitCode
+    }
 
     (output, exitCode)
   }
