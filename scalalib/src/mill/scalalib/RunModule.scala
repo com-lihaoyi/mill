@@ -296,34 +296,38 @@ object RunModule {
         } else {
           (dest / "stdout.log": os.ProcessOutput, dest / "stderr.log": os.ProcessOutput)
         }
-        Jvm.spawnProcess(
-          mainClass = mainClass1,
-          classPath = classPath,
-          jvmArgs = jvmArgs,
-          env = env,
-          mainArgs = mainArgs,
-          cwd = cwd,
-          stdin = "",
-          stdout = stdout,
-          stderr = stderr,
-          cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
-          javaHome = javaHome,
-          destroyOnExit = false
-        )
-      } else {
-        Jvm.callProcess(
-          mainClass = mainClass1,
-          classPath = classPath,
-          jvmArgs = jvmArgs,
-          env = env,
-          mainArgs = mainArgs,
-          cwd = cwd,
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit,
-          cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
-          javaHome = javaHome
-        )
+        os.checker.withValue(os.Checker.Nop) {
+          Jvm.spawnProcess(
+            mainClass = mainClass1,
+            classPath = classPath,
+            jvmArgs = jvmArgs,
+            env = env,
+            mainArgs = mainArgs,
+            cwd = cwd,
+            stdin = "",
+            stdout = stdout,
+            stderr = stderr,
+            cpPassingJarPath =
+              Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+            javaHome = javaHome,
+            destroyOnExit = false
+          )
+        } else {
+          Jvm.callProcess(
+            mainClass = mainClass1,
+            classPath = classPath,
+            jvmArgs = jvmArgs,
+            env = env,
+            mainArgs = mainArgs,
+            cwd = cwd,
+            stdin = os.Inherit,
+            stdout = os.Inherit,
+            stderr = os.Inherit,
+            cpPassingJarPath =
+              Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+            javaHome = javaHome
+          )
+        }
       }
     }
   }
