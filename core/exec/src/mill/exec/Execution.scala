@@ -156,7 +156,7 @@ private[mill] case class Execution(
                   .toMap
 
                 // Check if this task has any upstream failures
-                val hasUpstreamFailures = upstreamResults.values.exists(r => !r.asSuccess.isDefined)
+                val hasUpstreamFailures = upstreamResults.values.exists(r => r.asFailing.isDefined)
 
                 // Only count failures if there are no upstream failures (i.e. this is a root failure)
                 val currentFailedCount = if (!hasUpstreamFailures) {

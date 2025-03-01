@@ -15,11 +15,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       val res = eval(("--ticker", "false", "run", "--text", "hello"))
       res.isSuccess ==> true
-      assert(res.out.contains("<h1>hello</h1>"))
+      assert(res.out == "<h1>hello</h1>")
       assert(
-        res.err.toLowerCase.replace('\\', '/').replaceAll("(\r\n)|\r", "\n").contains(
-          "compiling"
-        )
+        res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n") ==
+          s"""[build.mill] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+             |[build.mill] [info] done compiling
+             |[info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
+             |[info] done compiling""".stripMargin.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
       )
     }
     test("ticker") - integrationTest { tester =>
@@ -27,11 +29,28 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       val res = eval(("--ticker", "true", "run", "--text", "hello"))
       res.isSuccess ==> true
-      assert(res.out.contains("<h1>hello</h1>"))
+      assert("\\[\\d+\\] <h1>hello</h1>".r.matches(res.out))
 
-      val expectedErrorRegex = "(?s).*compile.*".r
+      val expectedErrorRegex = java.util.regex.Pattern
+        .quote(
+          s"""<dashes> run --text hello <dashes>
+             |[build.mill-<digits>/<digits>] compile
+             |[build.mill-<digits>] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+             |[build.mill-<digits>] [info] done compiling
+             |[<digits>/<digits>] compile
+             |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
+             |[<digits>] [info] done compiling
+             |[<digits>/<digits>] run
+             |[<digits>/<digits>] <dashes> run --text hello <dashes> <digits>s"""
+            .stripMargin
+            .replaceAll("(\r\n)|\r", "\n")
+            .replace('\\', '/')
+        )
+        .replace("<digits>", "\\E\\d+\\Q")
+        .replace("<dashes>", "\\E=+\\Q")
+
       val normErr = res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
-      assert(expectedErrorRegex.matches(normErr))
+      assert(expectedErrorRegex.r.matches(normErr))
     }
     test("show") - integrationTest { tester =>
       import tester._
@@ -58,38 +77,24 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("failedTasksCounter") - integrationTest { tester =>
       import tester._
 
-      // First ensure clean compilation works
-      val cleanBuild = eval(("compile"))
-      cleanBuild.isSuccess ==> true
-
-      // Modify the Java source to introduce a compilation error
       val javaSource = os.Path(workspacePath, os.pwd)
       val fooJava = javaSource / "src" / "foo" / "Foo.java"
       val originalContent = os.read(fooJava)
       
-      try {
-        // Introduce a compilation error by adding an unclosed brace
-        os.write.over(
-          fooJava,
-          data = originalContent.replace("class Foo", "class Foo {"),
-          createFolders = true
-        )
+      // Introduce a compilation error by adding an unclosed brace
+      os.write.over(
+        fooJava,
+        data = originalContent.replace("class Foo", "class Foo {"),
+        createFolders = true
+      )
 
-        // Run with ticker to see the failed tasks count
-        val res = eval(("--ticker", "true", "compile"))
-        res.isSuccess ==> false
+      // Run with ticker to see the failed tasks count
+      val res = eval(("--ticker", "true", "compile"))
+      res.isSuccess ==> false
 
-        // Verify the output shows failed tasks count in the progress indicator
-        val expectedPattern = "\\[\\d+/\\d+,\\s*\\d+\\s*failed\\]".r // Matches [X/Y, N failed]
-        expectedPattern.findFirstIn(res.err).isDefined ==> true
-      } finally {
-        // Always restore original content for cleanup
-        os.write.over(
-          fooJava,
-          data = originalContent,
-          createFolders = true
-        )
-      }
+      // Verify the output shows failed tasks count in the progress indicator
+      val expectedPattern = "\\[\\d+/\\d+,\\s*\\d+\\s*failed\\]".r // Matches [X/Y, N failed]
+      expectedPattern.findFirstIn(res.err).isDefined ==> true
     }
   }
 }
