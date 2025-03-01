@@ -82,19 +82,47 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       val originalContent = os.read(fooJava)
 
       // Introduce a compilation error by adding an unclosed brace
-      os.write.over(
-        fooJava,
-        data = originalContent.replace("class Foo", "class Foo {"),
-        createFolders = true
-      )
+      modifyFile(fooJava, _.replace("class Foo", "class Foo {"))
 
-      // Run with ticker to see the failed tasks count
-      val res = eval(("--ticker", "true", "compile"))
-      res.isSuccess ==> false
+      // Run with ticker to see the failed tasks count for compile
+      val compileRes = eval(("--ticker", "true", "compile"))
+      compileRes.isSuccess ==> false
 
       // Verify the output shows failed tasks count in the progress indicator
-      val expectedPattern = "\\[\\d+/\\d+,\\s*\\d+\\s*failed\\]".r // Matches [X/Y, N failed]
-      expectedPattern.findFirstIn(res.err).isDefined ==> true
+      val failedPattern = "\\[(\\d+)/(\\d+),\\s*(\\d+)\\s*failed\\]".r // Matches [X/Y, N failed]
+      val failedMatch = failedPattern.findFirstIn(compileRes.err)
+      failedMatch.isDefined ==> true
+      
+      // Extract and verify the number of failed tasks
+      val failedCount = failedPattern.findFirstMatchIn(compileRes.err).map(_.group(3).toInt).getOrElse(0)
+      failedCount ==> 1 // Expecting 1 failed task for compile
+      
+      // Run jar task with --keep-going to see upstream failures
+      val jarKeepGoingRes = eval(("--ticker", "true", "--keep-going", "jar"))
+      jarKeepGoingRes.isSuccess ==> false
+      
+      // Verify the output shows failed tasks count in the progress indicator
+      val jarKeepGoingFailedMatch = failedPattern.findFirstIn(jarKeepGoingRes.err)
+      jarKeepGoingFailedMatch.isDefined ==> true
+      
+      // Extract and verify the number of failed tasks
+      val jarKeepGoingFailedCount = failedPattern.findFirstMatchIn(jarKeepGoingRes.err).map(_.group(3).toInt).getOrElse(0)
+      jarKeepGoingFailedCount ==> 1 // Expecting 1 failed task for jar with --keep-going
+      
+      // Run jar task without --keep-going to see it fail immediately
+      val jarRes = eval(("--ticker", "true", "jar"))
+      jarRes.isSuccess ==> false
+      
+      // Verify the output shows failed tasks count in the progress indicator
+      val jarFailedMatch = failedPattern.findFirstIn(jarRes.err)
+      jarFailedMatch.isDefined ==> true
+      
+      // Extract and verify the number of failed tasks
+      val jarFailedCount = failedPattern.findFirstMatchIn(jarRes.err).map(_.group(3).toInt).getOrElse(0)
+      jarFailedCount ==> 1 // Expecting 1 failed task for jar without --keep-going
+      
+      // Restore the original content
+      modifyFile(fooJava, _ => originalContent)
     }
   }
 }
