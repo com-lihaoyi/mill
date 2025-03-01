@@ -338,7 +338,7 @@ private[mill] object PromptLogger {
       .empty[Seq[String], Status](PromptLoggerUtil.seqStringOrdering)
 
     private var headerPrefix = ""
-    private var failedTasksCount = 0
+    private val failedTasksCount = 0
     // Pre-compute the prelude and current prompt as byte arrays so that
     // writing them out is fast, since they get written out very frequently
 
@@ -349,10 +349,6 @@ private[mill] object PromptLogger {
     def getFailedTasksCount() = failedTasksCount
 
     def getHeaderPrefix() = headerPrefix
-
-    def setFailedTasksCount(count: Int): Unit = {
-      failedTasksCount = count
-    }
 
     def updatePrompt(ending: Boolean = false): Boolean = {
       val now = currentTimeMillis()
