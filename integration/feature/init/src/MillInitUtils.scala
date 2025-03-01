@@ -50,7 +50,7 @@ object MillInitUtils {
   ) = {
     import tester.*
 
-    val initResult = eval(initCommand, stdout = os.Inherit, stderr = os.Inherit)
+    val initResult = eval(initCommand)
     assert(initResult.isSuccess == expectedInitResult)
 
     modifyConvertedBuild()
