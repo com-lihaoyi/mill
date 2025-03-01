@@ -27,6 +27,7 @@ object MillInitScala3ExampleProjectTests extends BuildGenTestSuite {
     test - integrationTest(url)(
       testMillInit(
         _,
+        expectedAllSourceFileNums = Map("allSourceFiles" -> 13, "test.allSourceFiles" -> 1),
         expectedCompileTasks =
           Some(SplitResolvedTasks(successful = Seq("compile", "test.compile"), failed = Seq.empty)),
         expectedTestTasks = Some(SplitResolvedTasks(successful = Seq("test"), failed = Seq.empty))
@@ -49,6 +50,7 @@ object MillInitSbtScalaCsv200Tests extends BuildGenTestSuite {
       // Cross-builds are not supported yet.
       testMillInit(
         tester,
+        expectedAllSourceFileNums = Map("allSourceFiles" -> 10, "test.allSourceFiles" -> 6),
         expectedCompileTasks =
           Some(SplitResolvedTasks(successful = Seq(), failed = Seq("compile", "test.compile"))),
         expectedTestTasks = Some(SplitResolvedTasks(successful = Seq(), failed = Seq("test")))
@@ -71,6 +73,7 @@ object MillInitSbtScalaCsv136Tests extends BuildGenTestSuite {
 
       testMillInit(
         tester,
+        expectedAllSourceFileNums = Map("allSourceFiles" -> 11, "test.allSourceFiles" -> 6),
         expectedCompileTasks =
           Some(SplitResolvedTasks(successful = Seq("compile", "test.compile"), failed = Seq.empty)),
         expectedTestTasks = Some(SplitResolvedTasks(successful = Seq("test"), failed = Seq.empty))
@@ -108,6 +111,15 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       val submodules = Seq("common", "multi1", "multi2")
       testMillInit(
         tester,
+        expectedAllSourceFileNums = Map(
+          "allSourceFiles" -> 0,
+          "multi1.test.allSourceFiles" -> 1,
+          "multi1.allSourceFiles" -> 1,
+          "multi2.allSourceFiles" -> 1,
+          "common.test.allSourceFiles" -> 1,
+          "multi2.test.allSourceFiles" -> 1,
+          "common.allSourceFiles" -> 1
+        ),
         expectedCompileTasks = Some(SplitResolvedTasks(
           successful = Seq("compile") ++ submodules.flatMap(allCompileTasks),
           failed = Seq.empty
@@ -164,6 +176,46 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
     test - integrationTest(url) { tester =>
       testMillInit(
         tester,
+        expectedAllSourceFileNums = Map(
+          "allSourceFiles" -> 0,
+          "gatling-http.test.allSourceFiles" -> 32,
+          "gatling-jms.allSourceFiles" -> 30,
+          "gatling-jdbc.allSourceFiles" -> 2,
+          "gatling-redis.allSourceFiles" -> 2,
+          "gatling-core.allSourceFiles" -> 178,
+          "gatling-commons.allSourceFiles" -> 23,
+          "gatling-jdbc.test.allSourceFiles" -> 3,
+          "gatling-redis-java.allSourceFiles" -> 3,
+          "gatling-http-client.allSourceFiles" -> 89,
+          "gatling-quicklens.allSourceFiles" -> 3,
+          "gatling-commons.test.allSourceFiles" -> 11,
+          "gatling-http-client.test.allSourceFiles" -> 27,
+          "gatling-redis-java.test.allSourceFiles" -> 1,
+          "gatling-jdbc-java.allSourceFiles" -> 1,
+          "gatling-charts.test.allSourceFiles" -> 4,
+          "gatling-app.allSourceFiles" -> 10,
+          "gatling-jdbc-java.test.allSourceFiles" -> 1,
+          "gatling-core.test.allSourceFiles" -> 65,
+          "gatling-recorder.allSourceFiles" -> 65,
+          "gatling-netty-util.test.allSourceFiles" -> 2,
+          "gatling-http-java.allSourceFiles" -> 37,
+          "gatling-jms-java.test.allSourceFiles" -> 1,
+          "gatling-jms-java.allSourceFiles" -> 13,
+          "gatling-netty-util.allSourceFiles" -> 4,
+          "gatling-redis.test.allSourceFiles" -> 2,
+          "gatling-http.allSourceFiles" -> 169,
+          "gatling-charts.allSourceFiles" -> 60,
+          "gatling-test-framework.allSourceFiles" -> 5,
+          "gatling-recorder.test.allSourceFiles" -> 10,
+          "gatling-benchmarks.allSourceFiles" -> 3,
+          "gatling-jms.test.allSourceFiles" -> 16,
+          "gatling-core-java.test.allSourceFiles" -> 2,
+          "gatling-jsonpath.test.allSourceFiles" -> 3,
+          "gatling-jsonpath.allSourceFiles" -> 8,
+          "gatling-samples.allSourceFiles" -> 12,
+          "gatling-core-java.allSourceFiles" -> 86,
+          "gatling-http-java.test.allSourceFiles" -> 3
+        ),
         expectedCompileTasks = Some(SplitResolvedTasks(
           all = Seq("compile")
             ++ submodulesWithTests.flatMap(allCompileTasks)

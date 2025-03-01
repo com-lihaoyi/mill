@@ -1,6 +1,7 @@
 package mill.integration
 
 import mill.testkit.IntegrationTester
+import mill.testkit.IntegrationTester.EvalResult
 import utest.*
 
 object MillInitUtils {
@@ -32,6 +33,7 @@ object MillInitUtils {
   }
 
   /**
+   * @param expectedAllSourceFileNums a map from the `allSourceFiles` task to the number of files
    * @param expectedCompileTasks [[ None ]] to denote that the `resolve __.compile` task fails
    * @param expectedTestTasks [[ None ]] to denote that the `resolve __.test` task fails
    * @return
@@ -41,6 +43,7 @@ object MillInitUtils {
       initCommand: Seq[String] = defaultInitCommand,
       modifyConvertedBuild: () => Unit = () => (),
       expectedInitResult: Boolean = true,
+      expectedAllSourceFileNums: Map[String, Int],
       // expectedCompileResult: Boolean,
       expectedCompileTasks: Option[SplitResolvedTasks],
       expectedTestTasks: Option[SplitResolvedTasks]
@@ -51,6 +54,18 @@ object MillInitUtils {
     assert(initResult.isSuccess == expectedInitResult)
 
     modifyConvertedBuild()
+
+    {
+      val resolveResult = eval(("resolve", s"__.allSourceFiles"))
+      assert(resolveResult.isSuccess)
+      val numSourceFilesMap = outSeq(resolveResult).map(task => {
+        val result = eval(("show", task))
+        assert(result.isSuccess)
+        val numLines = result.out.linesIterator.size
+        task -> (if (numLines == 1) 0 else numLines - 2)
+      }).toMap
+      assert(expectedAllSourceFileNums == numSourceFilesMap)
+    }
 
     /*
     val compileResult = eval("compile")
@@ -63,7 +78,7 @@ object MillInitUtils {
         assert(!resolveAllTasksResult.isSuccess)
       )(expected => {
         assert(resolveAllTasksResult.isSuccess)
-        val resolvedAllTasks = resolveAllTasksResult.out.linesIterator.toSeq.sorted
+        val resolvedAllTasks = outSeq(resolveAllTasksResult)
         Predef.assert(
           expected.allSorted == resolvedAllTasks,
           s"""
@@ -83,6 +98,9 @@ object MillInitUtils {
     testAllResolvedTasks("compile", expectedCompileTasks)
     testAllResolvedTasks("test", expectedTestTasks)
   }
+
+  def outSeq(evalResult: EvalResult) =
+    evalResult.out.linesIterator.toSeq.sorted
 
   def compileTask(module: String): String =
     s"$module.compile"
