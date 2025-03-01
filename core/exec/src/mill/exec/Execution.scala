@@ -107,6 +107,9 @@ private[mill] case class Execution(
 
     val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
+    def formatHeaderPrefix(countMsg: String, verboseKeySuffix: String) =
+      s"$countMsg$verboseKeySuffix${mill.internal.Util.formatFailedCount(rootFailedCount.get())}"
+
     def evaluateTerminals(
         terminals: Seq[Task[?]],
         forkExecutionContext: mill.api.Ctx.Fork.Impl,
@@ -147,9 +150,7 @@ private[mill] case class Execution(
               )
 
               val verboseKeySuffix = s"/${terminals0.size}"
-              logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix${
-                  mill.internal.Util.formatFailedCount(rootFailedCount.get())
-                }")
+              logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
               if (failed.get()) {
                 None
               } else {
@@ -195,14 +196,10 @@ private[mill] case class Execution(
                 // Count new failures - if there are upstream failures, tasks should be skipped, not failed
                 val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
-                if (newFailures > 0) {
-                  rootFailedCount.addAndGet(newFailures)
-                }
+                rootFailedCount.addAndGet(newFailures)
 
                 // Always show failed count in header if there are failures
-                logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix${
-                    mill.internal.Util.formatFailedCount(rootFailedCount.get())
-                  }")
+                logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
 
                 if (failFast && res.newResults.values.exists(r => r.asFailing.isDefined))
                   failed.set(true)
