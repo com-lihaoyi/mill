@@ -37,11 +37,11 @@ trait VersionFileModule extends Module {
     writeVersionToFile(versionFile(), version())
   }
 
-  def writeVersionToFile(versionFile: mill.api.PathRef, version: Version): Unit =
-    os.write.over(
-      versionFile.path,
-      version.toString
-    )
+  def writeVersionToFile(versionFile: mill.api.PathRef, version: Version): Unit = {
+    os.checker.withValue(os.Checker.Nop) {
+      os.write.over(versionFile.path, version.toString)
+    }
+  }
 
   /** Procs for tagging current version and committing changes. */
   def tag = Task {
