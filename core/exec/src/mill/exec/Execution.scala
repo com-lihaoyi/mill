@@ -184,6 +184,7 @@ private[mill] case class Execution(
                   zincProblemReporter = reporter,
                   testReporter = testReporter,
                   logger = contextLogger,
+                  deps = deps,
                   classToTransitiveClasses,
                   allTransitiveClassMethods,
                   forkExecutionContext,

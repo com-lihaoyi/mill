@@ -48,6 +48,7 @@ private trait GroupExecution {
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger,
+      deps: Seq[Task[?]],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.api.Ctx.Fork.Api,
@@ -127,7 +128,8 @@ private trait GroupExecution {
                   testReporter,
                   logger,
                   executionContext,
-                  exclusive
+                  exclusive,
+                  deps
                 )
 
               val valueHash = newResults(labelled) match {
@@ -166,7 +168,8 @@ private trait GroupExecution {
             testReporter,
             logger,
             executionContext,
-            exclusive
+            exclusive,
+            deps
           )
           GroupExecution.Results(
             newResults,
@@ -192,7 +195,8 @@ private trait GroupExecution {
       testReporter: TestReporter,
       logger: mill.api.Logger,
       executionContext: mill.api.Ctx.Fork.Api,
-      exclusive: Boolean
+      exclusive: Boolean,
+      deps: Seq[Task[?]]
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[?]]
@@ -239,10 +243,17 @@ private trait GroupExecution {
           val executionChecker = new os.Checker {
             def onRead(path: os.ReadablePath): Unit = ()
             def onWrite(path: os.Path): Unit = {
+
+              // Tasks must be allowed to write to upstream worker's dest folders, because
+              // the point of workers is to manualy manage long-lived state which includes
+              // state on disk.
+              val validDests =
+                deps.collect { case n: Worker[?] =>
+                  ExecutionPaths.resolve(outPath, n.ctx.segments).dest
+                } ++
+                  paths.map(_.dest)
               if (
-                !exclusive && path.startsWith(
-                  workspace
-                ) && !path.relativeTo(workspace).segments.exists(_.endsWith(".dest"))
+                !exclusive && path.startsWith(workspace) && !validDests.exists(path.startsWith(_))
               ) {
                 sys.error(s"Writing to disk not allowed during execution phase to $path")
               }
