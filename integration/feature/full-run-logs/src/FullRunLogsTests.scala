@@ -66,7 +66,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       val javaSource = os.Path(workspacePath, os.pwd)
       val fooJava = javaSource / "src" / "foo" / "Foo.java"
       val originalContent = os.read(fooJava)
-      
+
       try {
         // Introduce a compilation error by adding an unclosed brace
         os.write.over(
