@@ -107,7 +107,7 @@ class GenIdeaImpl(
       if (!fetchMillModules) Nil
       else {
         val moduleRepos = modulesByEvaluator.toSeq.flatMap { case (ev, modules) =>
-          ev.execute(modules.map(_._2.repositoriesTask))
+          ev.execute(modules.map(_._2.allRepositories))
             .values.get
         }
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
@@ -154,7 +154,7 @@ class GenIdeaImpl(
             val extRunIvyDeps = mod.resolvedRunIvyDeps
 
             val externalSources = Task.Anon {
-              mod.resolveDeps(allIvyDeps, sources = true)()
+              mod.resolveDeps(allIvyDeps, sources = true, enableMillInternalDependencies = true)()
             }
 
             val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
