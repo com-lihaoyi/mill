@@ -169,14 +169,6 @@ private[mill] class PromptLogger(
     runningState.withPromptPaused0(true, t)
   private[mill] override def withPromptUnpaused[T](t: => T): T =
     runningState.withPromptPaused0(false, t)
-
-  private[mill] override def setFailedTasksCount(count: Int): Unit = synchronized {
-    promptLineState.setFailedTasksCount(count)
-    if (!enableTicker && count > 0) {
-      val headerPrefix = promptLineState.getHeaderPrefix()
-      systemStreams.err.println(s"[$headerPrefix${mill.internal.Util.formatFailedCount(count)}]")
-    }
-  }
 }
 
 private[mill] object PromptLogger {
