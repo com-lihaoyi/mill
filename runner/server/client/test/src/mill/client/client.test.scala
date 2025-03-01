@@ -1,11 +1,10 @@
 package mill.client
 
 import utest._
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, OutputStream}
-import java.nio.file.{Files, Paths}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+
 import scala.util.Random
 import mill.constants.ProxyStream
-import java.io.File
 
 object ClientTests extends TestSuite {
 
