@@ -23,7 +23,7 @@ object UtestTests extends TestSuite {
 
   def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
     runTests(
-      if (!cached) HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-utest`.test()
+      if (!cached) HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-utest`.testForked()
       else HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-utest`.testCached
     )
 
@@ -42,7 +42,7 @@ object UtestTests extends TestSuite {
 
   def checkScalaTest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
     runTests(
-      if (!cached) HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-scalatest`.test()
+      if (!cached) HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-scalatest`.testForked()
       else HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-scalatest`.testCached
     )
 

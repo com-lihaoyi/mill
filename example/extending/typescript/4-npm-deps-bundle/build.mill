@@ -127,7 +127,8 @@ Hello James Bond Professor
 // The final module tree and task graph is now as follows, with the
 // additional `npmDeps` tasks upstream and the `bundle` tasks downstream:
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -172,4 +173,4 @@ Hello James Bond Professor
 //   "foo.npmDeps" -> "qux.npmDeps" [color=green, penwidth=3]
 //   "bar.npmDeps" -> "qux.npmDeps" [color=green, penwidth=3]
 // }
-// ```
+// ....

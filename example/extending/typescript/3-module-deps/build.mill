@@ -103,7 +103,8 @@ Hello James Bond Professor
 // `foo.compile` and `bar.compile` now being fed into `qux.compile` (and
 // ultimately `qux.run`):
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -131,4 +132,4 @@ Hello James Bond Professor
 //   "bar.compile" -> "qux.compile"  [color=green, penwidth=3]
 //   "foo.compile" -> "qux.compile"  [color=green, penwidth=3]
 // }
-// ```
+// ....

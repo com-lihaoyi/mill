@@ -2,7 +2,7 @@ package mill.contrib.proguard
 
 import mill.{T, Task}
 import mill.api.{PathRef}
-import mill.client.Util
+import mill.constants.Util
 import mill.util.Jvm
 import mill.scalalib.{DepSyntax, ScalaModule}
 import os.{Path, Shellable}
@@ -64,7 +64,7 @@ trait Proguard extends ScalaModule {
    * Keep in sync with [[javaHome]].
    */
   def java9RtJar: T[Seq[PathRef]] = Task {
-    if (Util.isJava9OrAbove) Seq(PathRef(Task.home / Export.rtJarName))
+    if (Util.isJava9OrAbove) Seq(PathRef(os.home / Export.rtJarName))
     else Seq()
   }
 

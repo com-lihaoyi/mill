@@ -12,17 +12,13 @@ private[runner] object ScalaCompilerWorker {
 
   @internal
   sealed trait Resolver {
-    def resolve(classpath: Seq[os.Path])(using
-        home: mill.api.Ctx.Home
-    ): Result[ScalaCompilerWorkerApi]
+    def resolve(classpath: Seq[os.Path]): Result[ScalaCompilerWorkerApi]
   }
 
   @internal
   object Resolver {
     given defaultResolver: ScalaCompilerWorker.Resolver with {
-      def resolve(classpath: Seq[os.Path])(using
-          mill.api.Ctx.Home
-      ): Result[ScalaCompilerWorkerApi] =
+      def resolve(classpath: Seq[os.Path]): Result[ScalaCompilerWorkerApi] =
         ScalaCompilerWorker.reflect(classpath)
     }
   }
@@ -32,9 +28,7 @@ private[runner] object ScalaCompilerWorker {
     def constResolver: Resolver = {
       val local = worker // avoid capturing `this`
       new {
-        def resolve(classpath: Seq[os.Path])(using
-            mill.api.Ctx.Home
-        ): Result[ScalaCompilerWorkerApi] =
+        def resolve(classpath: Seq[os.Path]): Result[ScalaCompilerWorkerApi] =
           Result.Success(local)
       }
     }
@@ -98,9 +92,7 @@ private[runner] object ScalaCompilerWorker {
       reflectUnsafe(classpath)
     }
 
-  def reflect(classpath: IterableOnce[os.Path])(using
-      mill.api.Ctx.Home
-  ): Result[ScalaCompilerWorkerApi] =
+  def reflect(classpath: IterableOnce[os.Path]): Result[ScalaCompilerWorkerApi] =
     Result.create {
       reflectUnsafe(classpath)
     }

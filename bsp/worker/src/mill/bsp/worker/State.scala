@@ -3,8 +3,7 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import mill.scalalib.bsp.BspModule
 import mill.scalalib.internal.JavaModuleUtils
-import mill.define.Module
-import mill.eval.Evaluator
+import mill.define.{Evaluator, Module}
 
 private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: String => Unit) {
   lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModule, Evaluator))] = {

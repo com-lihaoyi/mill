@@ -4,7 +4,7 @@ import java.lang.reflect.Modifier
 import mainargs.arg
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
-import mill.client.ServerFiles
+import mill.constants.ServerFiles
 import mill.define.{Command, Task}
 import mill.util.Jvm
 import mill.{Args, T}

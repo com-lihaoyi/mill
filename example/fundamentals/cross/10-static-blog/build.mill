@@ -119,7 +119,8 @@ def dist = Task {
 // All caching, incremental re-computation, and parallelism is done using the
 // Mill task graph. For this simple example, the graph is as follows
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   node [shape=box width=0 height=0]
 //   "1 - Foo.md" -> "post[1]\nrender"
@@ -132,7 +133,7 @@ def dist = Task {
 //   "index" -> "dist"
 //
 // }
-// ```
+// ....
 //
 // This example use case is taken from the following blog post, which contains
 // some extensions and fun exercises to further familiarize yourself with Mill

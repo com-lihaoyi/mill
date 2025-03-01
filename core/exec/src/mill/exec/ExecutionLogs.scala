@@ -1,13 +1,13 @@
 package mill.exec
 
-import mill.client.OutFiles
+import mill.constants.OutFiles
 import mill.define.{InputImpl, Task}
 import mill.internal.SpanningForest
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
-private[mill] object ExecutionLogs {
+private object ExecutionLogs {
   def logDependencyTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       indexToTerminal: Array[Task[?]],

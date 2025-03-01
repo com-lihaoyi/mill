@@ -147,7 +147,7 @@ trait DockerModule { outer: JavaModule =>
          |ENTRYPOINT [$quotedEntryPointArgs]""".stripMargin
     }
 
-    private def pullAndHash = Task.Input {
+    private def pullAndHash = Task {
       val env = dockerEnv()
       def imageHash() =
         os.proc(executable(), "images", "--no-trunc", "--quiet", baseImage())

@@ -4,7 +4,8 @@ import mill.api.ExecResult.{Aborted, Failing}
 
 import mill.api._
 import mill.define._
-import mill.internal.{PrefixLogger, MultiBiMap}
+import mill.internal.PrefixLogger
+import mill.define.MultiBiMap
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -15,23 +16,24 @@ import scala.concurrent._
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
 private[mill] case class Execution(
-    val baseLogger: ColorLogger,
-    val chromeProfileLogger: ChromeProfileLogger,
-    val profileLogger: ProfileLogger,
-    val home: os.Path,
-    val workspace: os.Path,
-    val outPath: os.Path,
-    val externalOutPath: os.Path,
-    val rootModule: BaseModule,
-    val classLoaderSigHash: Int,
-    val classLoaderIdentityHash: Int,
-    val workerCache: mutable.Map[Segments, (Int, Val)],
-    val env: Map[String, String],
-    val failFast: Boolean,
-    val threadCount: Option[Int],
-    val methodCodeHashSignatures: Map[String, Int],
-    val systemExit: Int => Nothing,
-    val exclusiveSystemStreams: SystemStreams
+    baseLogger: ColorLogger,
+    chromeProfileLogger: JsonArrayLogger.ChromeProfile,
+    profileLogger: JsonArrayLogger.Profile,
+    home: os.Path,
+    workspace: os.Path,
+    outPath: os.Path,
+    externalOutPath: os.Path,
+    rootModule: BaseModule,
+    classLoaderSigHash: Int,
+    classLoaderIdentityHash: Int,
+    workerCache: mutable.Map[Segments, (Int, Val)],
+    env: Map[String, String],
+    failFast: Boolean,
+    threadCount: Option[Int],
+    codeSignatures: Map[String, Int],
+    systemExit: Int => Nothing,
+    exclusiveSystemStreams: SystemStreams,
+    getEvaluator: () => Evaluator
 ) extends GroupExecution with AutoCloseable {
 
   def withBaseLogger(newBaseLogger: ColorLogger) = this.copy(baseLogger = newBaseLogger)
@@ -47,7 +49,7 @@ private[mill] case class Execution(
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false
-  ): ExecResults = logger.withPromptUnpaused {
+  ): Execution.Results = logger.withPromptUnpaused {
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
@@ -55,19 +57,19 @@ private[mill] case class Execution(
         if (effectiveThreadCount == 1) ExecutionContexts.RunNow
         else new ExecutionContexts.ThreadPool(effectiveThreadCount)
 
-      try evaluate0(goals, logger, reporter, testReporter, ec, serialCommandExec)
+      try execute0(goals, logger, reporter, testReporter, ec, serialCommandExec)
       finally ec.close()
     }
   }
 
   private def getFailing(
       sortedGroups: MultiBiMap[Task[?], Task[?]],
-      results: Map[Task[?], TaskResult[(Val, Int)]]
+      results: Map[Task[?], ExecResult[(Val, Int)]]
   ): MultiBiMap.Mutable[Task[?], Failing[Val]] = {
     val failing = new MultiBiMap.Mutable[Task[?], ExecResult.Failing[Val]]
     for ((k, vs) <- sortedGroups.items()) {
       val failures = vs.flatMap(results.get).collect {
-        case TaskResult(f: ExecResult.Failing[(Val, Int)], _) => f.map(_._1)
+        case f: ExecResult.Failing[(Val, Int)] => f.map(_._1)
       }
 
       failing.addAll(k, Seq.from(failures))
@@ -75,18 +77,18 @@ private[mill] case class Execution(
     failing
   }
 
-  private def evaluate0(
+  private def execute0(
       goals: Seq[Task[?]],
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       ec: mill.api.Ctx.Fork.Impl,
       serialCommandExec: Boolean
-  ): ExecResults = {
+  ): Execution.Results = {
     os.makeDir.all(outPath)
 
     val threadNumberer = new ThreadNumberer()
-    val plan = Plan.plan(goals)
+    val plan = PlanImpl.plan(goals)
     val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
     val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
@@ -99,7 +101,7 @@ private[mill] case class Execution(
     // and the class hierarchy, so during evaluation it is cheap to look up what class
     // each target belongs to determine of the enclosing class code signature changed.
     val (classToTransitiveClasses, allTransitiveClassMethods) =
-      CodeSigUtils.precomputeMethodNamesPerClass(Plan.transitiveNamed(goals))
+      CodeSigUtils.precomputeMethodNamesPerClass(PlanImpl.transitiveNamed(goals))
 
     val uncached = new ConcurrentHashMap[Task[?], Unit]()
     val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
@@ -129,8 +131,8 @@ private[mill] case class Execution(
             s"Non-exclusive task ${terminal} cannot depend on exclusive task " +
               exclusiveDeps.mkString(", ")
           )
-          val taskResults = group
-            .map(t => (t, TaskResult[(Val, Int)](failure, () => failure)))
+          val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
+            .map(t => (t, failure))
             .toMap
 
           futures(terminal) = Future.successful(
@@ -161,7 +163,7 @@ private[mill] case class Execution(
                   target <- group.toIndexedSeq.filterNot(upstreamResults.contains)
                   item <- target.inputs.filterNot(group.contains)
                 } yield upstreamResults(item).map(_._1)
-                val logRun = inputResults.forall(_.result.isInstanceOf[ExecResult.Success[?]])
+                val logRun = inputResults.forall(_.isInstanceOf[ExecResult.Success[?]])
 
                 val tickerPrefix = if (logRun && logger.enableTicker) terminal.toString else ""
 
@@ -188,7 +190,7 @@ private[mill] case class Execution(
                   exclusive
                 )
 
-                if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
+                if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)
 
                 val endTime = System.nanoTime() / 1000
@@ -222,7 +224,7 @@ private[mill] case class Execution(
       case _ => true
     }
 
-    val tasksTransitive = Plan.transitiveTargets(Seq.from(tasks0)).toSet
+    val tasksTransitive = PlanImpl.transitiveTargets(Seq.from(tasks0)).toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
       case t: NamedTask[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
@@ -246,26 +248,21 @@ private[mill] case class Execution(
       changedValueHash
     )
 
-    val results0: Vector[(Task[?], TaskResult[(Val, Int)])] = terminals0
+    val results0: Vector[(Task[?], ExecResult[(Val, Int)])] = terminals0
       .flatMap { t =>
         plan.sortedGroups.lookupKey(t).flatMap { t0 =>
           finishedOptsMap(t) match {
-            case None => Some((t0, TaskResult(Aborted, () => Aborted)))
+            case None => Some((t0, Aborted))
             case Some(res) => res.newResults.get(t0).map(r => (t0, r))
           }
         }
       }
 
-    val results: Map[Task[?], TaskResult[(Val, Int)]] = results0.toMap
+    val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
 
     Execution.Results(
-      goals.toIndexedSeq.map(results(_).map(_._1).result),
-      // result of flatMap may contain non-distinct entries,
-      // so we manually clean it up before converting to a `Strict.Agg`
-      // see https://github.com/com-lihaoyi/mill/issues/2958
-      Seq.from(
-        finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).iterator.distinct
-      ),
+      goals.toIndexedSeq.map(results(_).map(_._1)),
+      finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
       getFailing(plan.sortedGroups, results).items().map { case (k, v) => (k, v.toSeq) }.toMap,
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
@@ -292,10 +289,10 @@ private[mill] object Execution {
       }
       .toMap
   }
-  case class Results(
+  private[Execution] case class Results(
       rawValues: Seq[ExecResult[Val]],
       evaluated: Seq[Task[?]],
       failing: Map[Task[?], Seq[ExecResult.Failing[Val]]],
-      results: Map[Task[?], TaskResult[Val]]
-  ) extends ExecResults
+      results: Map[Task[?], ExecResult[Val]]
+  ) extends mill.define.ExecutionResults
 }

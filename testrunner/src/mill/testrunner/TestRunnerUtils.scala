@@ -130,7 +130,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
   }
 
   def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
-      ctx: Ctx.Log & Ctx.Home
+      ctx: Ctx.Log
   ): (String, Iterator[TestResult]) = {
     val events = new ConcurrentLinkedQueue[Event]()
     val doneMessage = {
@@ -197,7 +197,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
       testReporter: TestReporter
-  )(implicit ctx: Ctx.Log & Ctx.Home): (String, Seq[TestResult]) = {
+  )(implicit ctx: Ctx.Log): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 

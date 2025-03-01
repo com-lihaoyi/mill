@@ -132,19 +132,19 @@ object `package` extends RootModule {
       def kotlinApiVersion = majorVersion(kotlinVersion())
       def kotlinExplicitApi = ArrowMultiplatformModule.this.kotlinExplicitApi
 
-      override def sources: T[Seq[PathRef]] = Task.Sources {
+      override def sources: T[Seq[PathRef]] = Task.Sources({
         val sourcesRootPath = moduleDir / "src"
         var sources = Seq("common", platformCrossSuffix)
-          .map(platform => PathRef(sourcesRootPath / s"${platform}Main" / "kotlin"))
-          .filter(p => os.exists(p.path))
+          .map(platform => sourcesRootPath / s"${platform}Main" / "kotlin")
+          .filter(p => os.exists(p))
         if (platformCrossSuffix != "jvm") {
           val nonJvmSourcesPath = sourcesRootPath / "nonJvmMain/kotlin"
           if (os.exists(nonJvmSourcesPath)) {
-            sources ++= Seq(PathRef(nonJvmSourcesPath))
+            sources ++= Seq(nonJvmSourcesPath)
           }
         }
-        sources
-      }
+        sources.map(mill.api.Result.Success(_))
+      }*)
 
       override def kotlincOptions =
         super.kotlincOptions() ++
@@ -156,16 +156,16 @@ object `package` extends RootModule {
           if (modulesWithTestingEnabled(multiplatformRoot)) super.compile
           else Task { CompilationResult(Task.dest, PathRef(Task.dest)) }
 
-        override def test(args: String*): Command[(String, Seq[TestResult])] =
-          if (modulesWithTestingEnabled(multiplatformRoot)) super.test(args: _*)
+        override def testForked(args: String*): Command[(String, Seq[TestResult])] =
+          if (modulesWithTestingEnabled(multiplatformRoot)) super.testForked(args: _*)
           else Task.Command { ("", Seq.empty[TestResult]) }
 
-        override def sources: T[Seq[PathRef]] = Task.Sources {
-          val sourcesRootPath = outer.moduleDir / "src"
+        override def sources: T[Seq[PathRef]] = Task.Sources(
           Seq("common", outer.platformCrossSuffix)
-            .map(platform => PathRef(sourcesRootPath / s"${platform}Test" / "kotlin"))
-            .filter(p => os.exists(p.path))
-        }
+            .map(platform => outer.moduleDir / "src" / s"${platform}Test" / "kotlin")
+            .filter(p => os.exists(p))
+            .map(mill.api.Result.Success(_))*
+        )
       }
     }
 
@@ -203,8 +203,8 @@ object `package` extends RootModule {
         if (modulesWithTestingEnabled(jvmRoot)) super.compile
         else Task { CompilationResult(Task.dest, PathRef(Task.dest)) }
 
-      override def test(args: String*): Command[(String, Seq[TestResult])] =
-        if (modulesWithTestingEnabled(jvmRoot)) super.test(args: _*)
+      override def testForked(args: String*): Command[(String, Seq[TestResult])] =
+        if (modulesWithTestingEnabled(jvmRoot)) super.testForked(args: _*)
         else Task.Command { ("", Seq.empty[TestResult]) }
     }
   }

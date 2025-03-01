@@ -30,7 +30,7 @@ compiling 1 ... source...
 > mill foo.test.compile
 compiling 1 ... source...
 
-> mill foo.test.test
+> mill foo.test.testForked
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
 
@@ -96,7 +96,7 @@ object bar extends ScalaModule {
 > mill foo.test
 */
 // `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
-// for `foo.test.test`, as `test` is the default task for ``TestModule``s.
+// for `foo.test.testForked`, as `testForked` is the default task for ``TestModule``s.
 
 /** Usage
 > mill foo.test.testCached

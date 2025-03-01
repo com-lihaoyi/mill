@@ -44,7 +44,7 @@ trait JavaModule
     override def resources = super[JavaModule].resources
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-      internalRepositories() ++ outer.repositoriesTask()
+      outer.repositoriesTask()
     }
 
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
@@ -54,11 +54,7 @@ trait JavaModule
     override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
-    override def sources = Task.Sources {
-      for (src <- outer.sources()) yield {
-        PathRef(this.moduleDir / src.path.relativeTo(outer.moduleDir))
-      }
-    }
+    override def sourcesFolders = outer.sourcesFolders
 
     override def bomIvyDeps = Task[Seq[Dep]] {
       super.bomIvyDeps() ++
@@ -667,7 +663,7 @@ trait JavaModule
    * These are not meant to be modified by Mill users, unless you really know what you're
    * doing.
    */
-  def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
+  private[mill] def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
     Seq(internalDependenciesRepository())
   }
 
@@ -741,10 +737,12 @@ trait JavaModule
    */
   def assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
 
+  def sourcesFolders: Seq[os.SubPath] = Seq("src")
+
   /**
    * The folders where the source files for this module live
    */
-  def sources: T[Seq[PathRef]] = Task.Sources { "src" }
+  def sources: T[Seq[PathRef]] = Task.Sources(sourcesFolders*)
 
   /**
    * The folders where the resource files for this module live.
@@ -920,7 +918,7 @@ trait JavaModule
    * Resolved dependencies
    */
   def resolvedIvyDeps: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    millResolver().resolveDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.provided),
@@ -934,6 +932,13 @@ trait JavaModule
     )
   }
 
+  def upstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
+    resolvedRunIvyDeps()
+  }
+  def upstreamLocalAssemblyClasspath: T[Seq[PathRef]] = Task {
+    transitiveLocalClasspath()
+  }
+
   /**
    * All upstream classfiles and resources necessary to build and executable
    * assembly, but without this module's contribution
@@ -943,7 +948,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    millResolver().resolveDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.runtime),
@@ -999,7 +1004,7 @@ trait JavaModule
    * on the doc tool that is actually used.
    * @see [[docSources]]
    */
-  def docResources: T[Seq[PathRef]] = Task.Sources(moduleDir / "docs")
+  def docResources: T[Seq[PathRef]] = Task.Sources("docs")
 
   /**
    * Control whether `docJar`-target should use a file to pass command line arguments to the javadoc tool.
@@ -1120,7 +1125,7 @@ trait JavaModule
       val dependencies =
         (additionalDeps() ++ Seq(BoundDep(coursierDependency, force = false))).iterator.to(Seq)
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
-        repositoriesTask(),
+        allRepositories(),
         dependencies,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
@@ -1322,7 +1327,7 @@ trait JavaModule
     val tasks =
       if (all.value) Seq(
         Task.Anon {
-          defaultResolver().resolveDeps(
+          millResolver().resolveDeps(
             Seq(
               coursierDependency.withConfiguration(cs.Configuration.provided),
               coursierDependency
@@ -1335,7 +1340,7 @@ trait JavaModule
           )
         },
         Task.Anon {
-          defaultResolver().resolveDeps(
+          millResolver().resolveDeps(
             Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
             sources = true
           )

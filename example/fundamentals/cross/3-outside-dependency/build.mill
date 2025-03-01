@@ -13,7 +13,8 @@ def bar = Task { s"hello ${foo("2.10").suffix()}" }
 
 def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -37,7 +38,7 @@ def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" 
 //   "foo[2.10].suffix" -> "qux"
 //   "foo[2.10].suffix" -> "bar"
 // }
-// ```
+// ....
 
 // Here, `def bar` uses `foo("2.10")` to reference the `"2.10"` instance of
 // `FooModule`. You can refer to whatever versions of the cross-module you want,

@@ -36,10 +36,12 @@ public interface MavenModel extends Serializable {
       this.reps = reps;
     }
 
+    @Override
     public Pom pom() {
       return pom;
     }
 
+    @Override
     public Set<URI> repositories() {
       return reps;
     }
@@ -98,22 +100,27 @@ public interface MavenModel extends Serializable {
         this.orgUrl = orgUrl;
       }
 
+      @Override
       public String id() {
         return id;
       }
 
+      @Override
       public String name() {
         return name;
       }
 
+      @Override
       public String url() {
         return url;
       }
 
+      @Override
       public String org() {
         return org;
       }
 
+      @Override
       public String orgUrl() {
         return orgUrl;
       }
@@ -144,10 +151,12 @@ public interface MavenModel extends Serializable {
         this.url = url;
       }
 
+      @Override
       public String name() {
         return name;
       }
 
+      @Override
       public String url() {
         return url;
       }
@@ -201,30 +210,37 @@ public interface MavenModel extends Serializable {
         this.properties = properties;
       }
 
+      @Override
       public String description() {
         return description;
       }
 
+      @Override
       public String url() {
         return url;
       }
 
+      @Override
       public List<License> licenses() {
         return licenses;
       }
 
+      @Override
       public Scm scm() {
         return scm;
       }
 
+      @Override
       public List<Dev> devs() {
         return devs;
       }
 
+      @Override
       public String packaging() {
         return packaging;
       }
 
+      @Override
       public List<Prop> properties() {
         return properties;
       }
@@ -261,10 +277,12 @@ public interface MavenModel extends Serializable {
         this.value = value;
       }
 
+      @Override
       public String key() {
         return key;
       }
 
+      @Override
       public String value() {
         return value;
       }
@@ -298,18 +316,22 @@ public interface MavenModel extends Serializable {
         this.tag = tag;
       }
 
+      @Override
       public String url() {
         return url;
       }
 
+      @Override
       public String connection() {
         return connection;
       }
 
+      @Override
       public String devConnection() {
         return devConnection;
       }
 
+      @Override
       public String tag() {
         return tag;
       }

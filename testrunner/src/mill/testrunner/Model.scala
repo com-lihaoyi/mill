@@ -11,7 +11,6 @@ import mill.api.internal
     outputPath: os.Path,
     colored: Boolean,
     testCp: Seq[os.Path],
-    home: os.Path,
     globSelectors: Seq[String]
 )
 

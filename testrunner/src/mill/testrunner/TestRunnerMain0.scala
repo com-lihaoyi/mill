@@ -7,7 +7,7 @@ import mill.internal.PrintLogger
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
       val testArgs = upickle.default.read[mill.testrunner.TestArgs](os.read(os.Path(args(1))))
-      val ctx = new Ctx.Log with Ctx.Home {
+      val ctx = new Ctx.Log {
         val log = new PrintLogger(
           testArgs.colored,
           true,
@@ -20,7 +20,6 @@ import mill.internal.PrintLogger
           context = "",
           new PrintLogger.State()
         )
-        val home = testArgs.home
       }
       ctx.log.debug(s"Setting ${testArgs.sysProps.size} system properties")
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }

@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
-import mill.api.{Ctx, PathRef}
+import mill.api.PathRef
 import mill.util.JarManifest
 import os.Generator
 
@@ -14,7 +14,7 @@ import java.util.regex.Pattern
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 
-case class Assembly(pathRef: PathRef, addedEntries: Int)
+case class Assembly(pathRef: PathRef, entries: Int)
 
 object Assembly {
 
@@ -175,29 +175,12 @@ object Assembly {
     def append(entry: UnopenedInputStream): GroupedEntry = this
   }
 
-  def createAssembly(
-      inputPaths: Seq[os.Path],
-      manifest: JarManifest = JarManifest.MillDefault,
-      prependShellScript: String = "",
-      base: Option[os.Path] = None,
-      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
-  )(implicit ctx: Ctx.Dest & Ctx.Log): PathRef = {
-    create(
-      destJar = ctx.dest / "out.jar",
-      inputPaths = inputPaths,
-      manifest = manifest,
-      prependShellScript = Option(prependShellScript).filter(_ != ""),
-      base = base,
-      assemblyRules = assemblyRules
-    ).pathRef
-  }
-
   def create(
       destJar: os.Path,
       inputPaths: Seq[os.Path],
       manifest: JarManifest = JarManifest.MillDefault,
       prependShellScript: Option[String] = None,
-      base: Option[os.Path] = None,
+      base: Option[Assembly] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
   ): Assembly = {
     val rawJar = os.temp("out-tmp", deleteOnExit = false)
@@ -205,9 +188,9 @@ object Assembly {
     os.remove(rawJar)
 
     // use the `base` (the upstream assembly) as a start
-    base.foreach(os.copy.over(_, rawJar))
+    base.foreach(a => os.copy.over(a.pathRef.path, rawJar))
 
-    var addedEntryCount = 0
+    var addedEntryCount = base.map(_.entries).getOrElse(0)
 
     // Add more files by copying files to a JAR file system
     Using.resource(os.zip.open(rawJar)) { zipRoot =>

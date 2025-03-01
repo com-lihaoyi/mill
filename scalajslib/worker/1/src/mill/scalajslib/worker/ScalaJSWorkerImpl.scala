@@ -25,7 +25,7 @@ import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 import scala.collection.mutable
 import scala.ref.SoftReference
 import com.armanbilge.sjsimportmap.ImportMappedIRFile
-import mill.client.InputPumper
+import mill.constants.InputPumper
 
 import scala.annotation.nowarn
 

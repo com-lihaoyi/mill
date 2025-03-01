@@ -9,7 +9,7 @@ object TestRunnerUtestTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {
     test("test case lookup") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(testrunner.utest.test()): @unchecked
+      val Right(result) = eval.apply(testrunner.utest.testForked()): @unchecked
       val test = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
       assert(
         test._2.size == 3

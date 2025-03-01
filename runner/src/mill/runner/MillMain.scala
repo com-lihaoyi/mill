@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.{ColorLogger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
-import mill.client.{OutFiles, ServerFiles, Util}
+import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
 import mill.main.BuildInfo
 import mill.runner.worker.ScalaCompilerWorker
@@ -73,11 +73,23 @@ object MillMain {
     if (Properties.isWin && Util.hasConsole())
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
+    val processId = mill.main.server.Server.computeProcessId()
+    val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
+    mill.main.server.Server.watchProcessIdFile(
+      out / OutFiles.millNoServer / processId / ServerFiles.processId,
+      processId,
+      running = () => true,
+      exit = msg => {
+        System.err.println(msg)
+        System.exit(0)
+      }
+    )
+
     val (result, _) =
       try main0(
           args = args.tail,
           stateCache = RunnerState.empty,
-          mainInteractive = mill.client.Util.hasConsole(),
+          mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = runnerStreams,
           bspLog = bspLog,
           env = System.getenv().asScala.toMap,

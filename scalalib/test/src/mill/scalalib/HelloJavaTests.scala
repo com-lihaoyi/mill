@@ -153,7 +153,7 @@ object HelloJavaTests extends TestSuite {
       val eval = testEval()
 
       val Left(ExecResult.Failure(ref1)) =
-        eval.apply(HelloJava.core.test.test()): @unchecked
+        eval.apply(HelloJava.core.test.testForked()): @unchecked
 
 //      assert(
 //        v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
@@ -164,7 +164,7 @@ object HelloJavaTests extends TestSuite {
 //        v1._2(3).status == "Failure"
 //      )
 
-      val Right(result2) = eval.apply(HelloJava.app.test.test()): @unchecked
+      val Right(result2) = eval.apply(HelloJava.app.test.testForked()): @unchecked
 
       assert(
         result2.value._2(0).fullyQualifiedName == "hello.MyAppTests.appTest",
@@ -173,7 +173,7 @@ object HelloJavaTests extends TestSuite {
         result2.value._2(1).status == "Success"
       )
 
-      val Right(result3) = eval.apply(HelloJava.app.testJunit5.test()): @unchecked
+      val Right(result3) = eval.apply(HelloJava.app.testJunit5.testForked()): @unchecked
 
       val testResults =
         result3.value._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted

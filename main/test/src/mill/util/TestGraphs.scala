@@ -1,5 +1,4 @@
 package mill.util
-import TestUtil.test
 import mainargs.arg
 import mill.testkit.TestBaseModule
 import mill.define.{Command, Cross, Discover, TaskModule}
@@ -7,43 +6,37 @@ import mill.{Module, Task}
 
 /**
  * Example dependency graphs for us to use in our test suite.
- *
- * The graphs using `test()` live in the `class` and need to be instantiated
- * every time you use them, because they are mutable (you can poke at the
- * `test`'s `counter`/`failure`/`exception` fields to test various graph
- * evaluation scenarios).
- *
- * The immutable graphs, used for testing discovery & target resolution,
- * live in the companion object.
  */
-class TestGraphs() {
-  // single
+
+object TestGraphs {
   object singleton extends TestBaseModule {
-    val single = test()
+    def single = Task { 123 }
     lazy val millDiscover = Discover[this.type]
   }
-
   object bactickIdentifiers extends TestBaseModule {
-    val `up-target` = test()
-    val `a-down-target` = test(`up-target`)
-    val `invisible&` = test()
+    def `up-target` = Task { 1 }
+    def `a-down-target` = Task { `up-target`() + 2 }
+    def `invisible&` = Task { 3 }
+
     object `nested-module` extends Module {
-      val `nested-target` = test()
+      def `nested-target` = Task { 4 }
     }
+
     lazy val millDiscover = Discover[this.type]
   }
 
   // up---down
   object pair extends TestBaseModule {
-    val up = test()
-    val down = test(up)
+    def up = Task { 1 }
+    def down = Task { up() + 10 }
     lazy val millDiscover = Discover[this.type]
   }
 
   // up---o---down
   object anonTriple extends TestBaseModule {
-    val up = test()
-    val down = test(test.anon(up))
+    def up = Task { 1 }
+    def anon = Task.Anon { up() + 10 }
+    def down = Task { anon() + 100 }
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -53,10 +46,10 @@ class TestGraphs() {
   //   \   /
   //   right
   object diamond extends TestBaseModule {
-    val up = test()
-    val left = test(up)
-    val right = test(up)
-    val down = test(left, right)
+    def up = Task { 1 }
+    def left = Task { up() + 10 }
+    def right = Task { up() + 100 }
+    def down = Task { left() + right() + 1000 }
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -66,41 +59,10 @@ class TestGraphs() {
   //   \ /
   //    o
   object anonDiamond extends TestBaseModule {
-    val up = test()
-    val down = test(test.anon(up), test.anon(up))
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  //          o   g-----o
-  //           \   \     \
-  // o          o   h-----I---o
-  //  \        / \ / \   / \   \
-  //   A---c--o   E   o-o   \   \
-  //  / \ / \    / \         o---J
-  // o   d   o--o   o       /   /
-  //      \ /        \     /   /
-  //       o          o---F---o
-  //      /          /
-  //  o--B          o
-  object bigSingleTerminal extends TestBaseModule {
-    val a = test(test.anon(), test.anon())
-    val b = test(test.anon())
-    val e = {
-      val c = test.anon(a)
-      val d = test.anon(a)
-      test(
-        test.anon(test.anon(), test.anon(c)),
-        test.anon(test.anon(c, test.anon(d, b)))
-      )
-    }
-    val f = test(test.anon(test.anon(), test.anon(e)))
-
-    val i = {
-      val g = test.anon()
-      val h = test.anon(g, e)
-      test(test.anon(g), test.anon(test.anon(h)))
-    }
-    val j = test(test.anon(i), test.anon(i, f), test.anon(f))
+    def up = Task { 1 }
+    val left = Task.Anon { up() + 10 }
+    val right = Task.Anon { up() + 100 }
+    def down = Task { left() + right() + 1000 }
     lazy val millDiscover = Discover[this.type]
   }
   //        _ left _
@@ -110,16 +72,14 @@ class TestGraphs() {
   // change - task2
   object separateGroups extends TestBaseModule {
     val task1 = Task.Anon { 1 }
-    def left = Task { task1() }
-    val change = test()
-    val task2 = Task.Anon { change() }
-    def right = Task { task1() + task2() + left() + 1 }
+    def left = Task { task1() + 10 }
+    val change = Task.Anon { 100 }
+    val task2 = Task.Anon { change() + 1000 }
+    def right = Task { task1() + task2() + left() + 10000 }
     lazy val millDiscover = Discover[this.type]
 
   }
-}
 
-object TestGraphs {
   //      _ left _
   //     /        \
   // task -------- right
@@ -241,66 +201,6 @@ object TestGraphs {
     trait Cross extends Cross.Module2[String, String] {
       val (scalaVersion, platform) = (crossValue, crossValue2)
       def suffix = Task { scalaVersion + "_" + platform }
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  object crossExtension extends TestBaseModule {
-    object myCross extends Cross[MyCrossModule]("a", "b")
-    trait MyCrossModule extends Cross.Module[String] {
-      def param1 = Task { "Param Value: " + crossValue }
-    }
-
-    object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1), ("b", 2))
-    trait MyCrossModuleExtended extends MyCrossModule with Cross.Module2[String, Int] {
-      def param2 = Task { "Param Value: " + crossValue2 }
-    }
-
-    object myCrossExtendedAgain
-        extends Cross[MyCrossModuleExtendedAgain](("a", 1, true), ("b", 2, false))
-    trait MyCrossModuleExtendedAgain extends MyCrossModuleExtended
-        with Cross.Module3[String, Int, Boolean] {
-      def param3 = Task { "Param Value: " + crossValue3 }
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  object innerCrossModule extends TestBaseModule {
-    object myCross extends Cross[MyCrossModule]("a", "b")
-    trait MyCrossModule extends Cross.Module[String] {
-      object foo extends CrossValue {
-        def bar = Task { "foo " + crossValue }
-      }
-
-      object baz extends CrossValue {
-        def bar = Task { "baz " + crossValue }
-      }
-    }
-
-    object myCross2 extends Cross[MyCrossModule2](("a", 1), ("b", 2))
-    trait MyCrossModule2 extends Cross.Module2[String, Int] {
-      object foo extends InnerCrossModule2 {
-        def bar = Task { "foo " + crossValue }
-        def qux = Task { "foo " + crossValue2 }
-      }
-      object baz extends InnerCrossModule2 {
-        def bar = Task { "baz " + crossValue }
-        def qux = Task { "baz " + crossValue2 }
-      }
-    }
-
-    object myCross3 extends Cross[MyCrossModule3](("a", 1, true), ("b", 2, false))
-    trait MyCrossModule3 extends Cross.Module3[String, Int, Boolean] {
-      object foo extends InnerCrossModule3 {
-        def bar = Task { "foo " + crossValue }
-        def qux = Task { "foo " + crossValue2 }
-        def lol = Task { "foo " + crossValue3 }
-      }
-      object baz extends InnerCrossModule3 {
-        def bar = Task { "baz " + crossValue }
-        def qux = Task { "baz " + crossValue2 }
-        def lol = Task { "baz " + crossValue3 }
-      }
     }
     lazy val millDiscover = Discover[this.type]
   }

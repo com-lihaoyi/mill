@@ -2,7 +2,7 @@ package mill.scalalib.worker
 
 import mill.util.CachedFactory
 import mill.api.{CompileProblemReporter, PathRef, Result, internal}
-import mill.client.CodeGenConstants
+import mill.constants.CodeGenConstants
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
 import os.Path
 import sbt.internal.inc.{
@@ -42,6 +42,7 @@ import java.io.File
 import java.net.URLClassLoader
 import java.util.Optional
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Properties.isWin
 
 @internal
@@ -715,7 +716,7 @@ object ZincWorkerImpl {
     def create(sources: Array[VirtualFile]): (xsbti.Position => xsbti.Position) | Null = {
       val buildSources0 = {
         def isBuild(vf: VirtualFile) =
-          CodeGenConstants.buildFileExtensions.exists(ex =>
+          CodeGenConstants.buildFileExtensions.asScala.exists(ex =>
             vf.id().endsWith(s".$ex")
           )
 

@@ -35,7 +35,7 @@ object ScalaVersionsRangesTests extends TestSuite {
       resourcePath
     ).scoped { eval =>
       ScalaVersionsRanges.core.crossModules.map { c =>
-        val Right(_) = eval(c.test.test()): @unchecked
+        val Right(_) = eval(c.test.testForked()): @unchecked
       }
     }
   }

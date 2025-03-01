@@ -200,8 +200,13 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
             eval(
               ("--watch", "{foo.fooCommand,bar.barCommand}"),
               check = true,
-              stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
-              stderr = os.Inherit
+              stdout = os.ProcessOutput.Readlines { line =>
+                println("stdout " + line)
+                output0 = output0 :+ line
+              },
+              stderr = os.ProcessOutput.Readlines { line =>
+                println("stderr " + line)
+              }
             )
           }
 
@@ -268,7 +273,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
               ("--watch", "{foo.fooCommand,bar.barCommand}"),
               check = true,
               stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
-              stderr = os.Inherit
+              stderr = os.ProcessOutput.Readlines { line => System.err.println(line) }
             )
           }
 

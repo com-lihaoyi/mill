@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.*
-import mill.client.Util
+import mill.constants.Util
 
 import scala.util.Properties
 
@@ -27,10 +27,6 @@ trait NativeImageModule extends WithZincWorker {
   /**
    * [[https://www.graalvm.org/latest/reference-manual/native-image/#from-a-class Builds a native executable]] for this
    * module with [[finalMainClass]] as the application entry point.
-   *
-   * @param args Additional options for the `native-image` Tool. Use for
-   *             - passing debug options
-   *             - passing target specific options
    */
   def nativeImage: T[PathRef] = Task {
     val dest = Task.dest
@@ -62,8 +58,6 @@ trait NativeImageModule extends WithZincWorker {
 
   /**
    * Additional options for the `native-image` Tool.
-   *
-   * @note It is recommended to restrict this list to options that can be shared across targets.
    */
   def nativeImageOptions: T[Seq[String]] = Seq.empty[String]
 

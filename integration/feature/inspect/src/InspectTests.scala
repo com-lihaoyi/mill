@@ -132,7 +132,8 @@ object InspectTests extends UtestIntegrationTestSuite {
       assert(eval(("core.ivyDepsTree", "--withCompile", "--withRuntime")).isSuccess)
       assert(eval(("core.ivyDepsTree", "--with-compile", "--with-runtime")).isSuccess)
 
-      assert(eval(("inspect", "basic")).isSuccess)
+      val basic = eval(("inspect", "basic"))
+      assert(basic.isSuccess)
       val basicInspect = out("inspect").json.str
       assertGlobMatches(
         """basic(build.mill:26)
@@ -184,11 +185,11 @@ object InspectTests extends UtestIntegrationTestSuite {
       )
 
       val core3Res = eval(("inspect", "core3"))
-      println(core3Res.err)
       assert(core3Res.isSuccess)
       val core3Inspect = out("inspect").json.str
       assertGlobMatches(
-        """core3(core3/package.mill:5)
+        """core3(core3/package.mill:6)
+          |    Subfolder Module Scaladoc
           |
           |Inherited Modules:
           |    build_.core3.package_

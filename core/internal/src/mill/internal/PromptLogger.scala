@@ -1,7 +1,7 @@
 package mill.internal
 
 import mill.api.{SystemStreams, ColorLogger}
-import mill.client.ProxyStream
+import mill.constants.ProxyStream
 import mill.internal.PromptLoggerUtil.*
 import pprint.Util.literalize
 

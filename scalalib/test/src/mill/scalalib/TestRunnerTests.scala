@@ -20,7 +20,7 @@ object TestRunnerTests extends TestSuite {
           sourceRoot = resourcePath
         ).scoped { eval =>
           val Left(ExecResult.Failure(msg)) =
-            eval(testrunner.doneMessageFailure.test()): @unchecked
+            eval(testrunner.doneMessageFailure.testForked()): @unchecked
           val stdout = new String(outStream.toByteArray)
           assert(stdout.contains("test failure done message"))
           junitReportIn(eval.outPath, "doneMessageFailure").shouldHave(1 -> Status.Failure)
@@ -33,14 +33,14 @@ object TestRunnerTests extends TestSuite {
           outStream = new PrintStream(outStream, true),
           sourceRoot = resourcePath
         ).scoped { eval =>
-          val Right(_) = eval(testrunner.doneMessageSuccess.test()): @unchecked
+          val Right(_) = eval(testrunner.doneMessageSuccess.testForked()): @unchecked
           val stdout = new String(outStream.toByteArray)
           assert(stdout.contains("test success done message"))
         }
       }
 
       test("null") - UnitTester(testrunner, resourcePath).scoped { eval =>
-        val Right(_) = eval(testrunner.doneMessageNull.test()): @unchecked
+        val Right(_) = eval(testrunner.doneMessageNull.testForked()): @unchecked
       }
     }
   }

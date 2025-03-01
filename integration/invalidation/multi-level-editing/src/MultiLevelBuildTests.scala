@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 
-import mill.client.OutFiles._
+import mill.constants.OutFiles._
 import mill.runner.RunnerState
 import utest._
 
@@ -113,7 +113,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
       val Seq(serverFolder) = os.list(tester.workspacePath / "out/mill-server")
 
       // client-server mode should never restart in these tests and preserve the same process,
-      val currentServerId = os.read(serverFolder / "serverId")
+      val currentServerId = os.read(serverFolder / "processId")
       assert(currentServerId == savedServerId || savedServerId == "")
       savedServerId = currentServerId
     }

@@ -3,8 +3,8 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.main.BuildInfo
 import mill.bsp.{BspServerHandle, BspServerResult, BspWorker, Constants}
-import mill.eval.Evaluator
 import mill.api.{Result, SystemStreams}
+import mill.define.Evaluator
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.{PrintStream, PrintWriter}

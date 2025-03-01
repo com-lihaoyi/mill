@@ -1,11 +1,12 @@
-package mill
-package javalib.palantirformat
+package mill.javalib.palantirformat
 
-import mill.api.{PathRef}
-import mill.define.{Discover, ExternalModule}
+import mill.api.{Ctx, PathRef}
+import mill.define.{Discover, ExternalModule, TaskModule}
 import mill.main.Tasks
+import mill.main.TokenReaders.*
 import mill.scalalib.JavaModule
 import mill.util.Jvm
+import mill.{Command, T, Task}
 
 /**
  * Formats Java source files using [[https://github.com/palantir/palantir-java-format Palantir Java Format]].
@@ -76,7 +77,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       options: PathRef,
       classPath: Seq[PathRef],
       jvmArgs: Seq[String]
-  )(implicit ctx: api.Ctx): Unit = {
+  )(implicit ctx: Ctx): Unit = {
 
     val javaFiles = sources
       .iterator

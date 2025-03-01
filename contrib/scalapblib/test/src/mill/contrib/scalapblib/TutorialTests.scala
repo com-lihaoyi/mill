@@ -1,8 +1,8 @@
 package mill.contrib.scalapblib
 
-import mill.{client, *}
+import mill.*
 import mill.api.PathRef
-import mill.client.Util
+import mill.constants.Util
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -98,7 +98,7 @@ object TutorialTests extends TestSuite {
 
     test("compileScalaPB") {
       test("calledDirectly") - UnitTester(Tutorial, resourcePath).scoped { eval =>
-        if (!client.Util.isWindows) {
+        if (!mill.constants.Util.isWindows) {
           val Right(result) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
 
           val outPath = protobufOutPath(eval)

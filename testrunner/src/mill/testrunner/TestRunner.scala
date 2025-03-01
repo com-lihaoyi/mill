@@ -12,7 +12,7 @@ import mill.util.Jvm
       args: Seq[String],
       testReporter: TestReporter,
       classFilter: Class[?] => Boolean = _ => true
-  )(implicit ctx: Ctx.Log & Ctx.Home): (String, Seq[mill.testrunner.TestResult]) = {
+  )(implicit ctx: Ctx.Log): (String, Seq[mill.testrunner.TestResult]) = {
     Jvm.withClassLoader(
       classPath = entireClasspath.toVector,
       sharedPrefixes = Seq("sbt.testing.")

@@ -1,8 +1,9 @@
 package mill.javalib.revapi
 
-import mill._
-import mill.javalib._
+import mill.*
+import mill.javalib.*
 import mill.javalib.revapi.RevapiModule.optional
+import mill.scalalib.api.Versions
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 
@@ -82,7 +83,7 @@ trait RevapiModule extends PublishModule {
   def revapiNewFiles: T[Seq[PathRef]] = Task {
     Seq(jar()) ++
       Task.traverse(recursiveModuleDeps)(_.jar)() ++
-      defaultResolver().resolveDeps(
+      millResolver().resolveDeps(
         Seq(coursierDependency),
         artifactTypes = Some(revapiArtifactTypes())
       )
@@ -108,7 +109,7 @@ trait RevapiModule extends PublishModule {
   }
 
   /** [[https://revapi.org/revapi-standalone/0.12.0/index.html Revapi CLI]] version */
-  def revapiCliVersion: T[String] = "0.12.0"
+  def revapiCliVersion: T[String] = Task { Versions.revApiVersion }
 
   /** JVM arguments for the Revapi [[revapiCliVersion CLI]] */
   def revapiJvmArgs: T[Seq[String]] = Seq.empty[String]
