@@ -170,13 +170,6 @@ private[mill] case class Execution(
                 if (currentFailedCount > 0) {
                   rootFailedCount.addAndGet(currentFailedCount)
                 }
-                logger.setFailedTasksCount(rootFailedCount.get())
-
-                // Always include the failed count in header if there are failures
-                val headerPrefix = s"$countMsg$verboseKeySuffix${
-                    mill.internal.Util.formatFailedCount(rootFailedCount.get())
-                  }"
-                logger.setPromptHeaderPrefix(headerPrefix)
 
                 val startTime = System.nanoTime() / 1000
 
@@ -224,7 +217,6 @@ private[mill] case class Execution(
                 if (newFailures > 0) {
                   rootFailedCount.addAndGet(newFailures)
                 }
-                logger.setFailedTasksCount(rootFailedCount.get())
 
                 // Always show failed count in header if there are failures
                 logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix${
