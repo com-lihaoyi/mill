@@ -130,14 +130,14 @@ object Kover extends ExternalModule with KoverReportBaseModule {
 
   lazy val millDiscover = Discover[this.type]
 
-  def htmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command {
+  def htmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command(exclusive = true) {
     koverReportTask(
       evaluator = evaluator,
       reportType = ReportType.Html
     )()
   }
 
-  def xmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command {
+  def xmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command(exclusive = true) {
     koverReportTask(
       evaluator = evaluator,
       reportType = ReportType.Xml
