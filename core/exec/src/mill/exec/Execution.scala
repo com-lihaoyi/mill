@@ -151,8 +151,6 @@ private[mill] case class Execution(
                   mill.internal.Util.formatFailedCount(rootFailedCount.get())
                 }")
               if (failed.get()) {
-                // Even when we're in fail-fast mode and a previous task has failed,
-                // we still want to update the prompt with the failed count
                 None
               } else {
                 val upstreamResults = upstreamValues
