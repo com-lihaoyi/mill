@@ -358,7 +358,6 @@ trait TypeScriptModule extends Module { outer =>
     os.checker.withValue(os.Checker.Nop) {
       os.write.over(bundleScript, bundleScriptBuilder())
 
-
       os.call(
         (tsnode, bundleScript),
         stdout = os.Inherit,

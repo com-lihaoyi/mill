@@ -12,15 +12,24 @@ object OsCheckerTests extends UtestIntegrationTestSuite {
 
       assert(res.isSuccess == false)
       assert(res.err.contains(
-        s"Writing to disk not allowed during resolution phase to $workspacePath/foo"
+        s"Writing to $workspacePath/foo not allowed during resolution phase"
       ))
 
       val res2 = tester.eval("qux")
 
       assert(res2.isSuccess == false)
       assert(res2.err.contains(
-        s"Writing to disk not allowed during execution phase to $workspacePath/file.txt"
+        s"Writing to $workspacePath/file.txt not allowed during execution phase"
       ))
+
+      tester.modifyFile(workspacePath / "build.mill", _.replace("if (false)", "if (true)"))
+      val res3 = tester.eval("baz")
+
+      assert(res3.isSuccess == false)
+      assert(res3.err.contains(
+        s"Writing to $workspacePath not allowed during resolution phase"
+      ))
+
     }
   }
 }

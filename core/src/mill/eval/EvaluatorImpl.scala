@@ -33,12 +33,6 @@ final class EvaluatorImpl private[mill] (
     private val execution: Execution
 ) extends Evaluator {
 
-  val resolveChecker = new os.Checker {
-    def onRead(path: os.ReadablePath): Unit = ()
-    def onWrite(path: os.Path): Unit = {
-      sys.error(s"Writing to disk not allowed during resolution phase to $path")
-    }
-  }
   private[mill] def workspace = execution.workspace
   private[mill] def baseLogger = execution.baseLogger
   private[mill] def outPath = execution.outPath
@@ -63,7 +57,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Segments]] = {
-    os.checker.withValue(resolveChecker) {
+    os.checker.withValue(EvaluatorImpl.resolveChecker) {
       Resolve.Segments.resolve(
         rootModule,
         scriptArgs,
@@ -84,7 +78,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[NamedTask[?]]] = {
-    os.checker.withValue(resolveChecker) {
+    os.checker.withValue(EvaluatorImpl.resolveChecker) {
       Evaluator.currentEvaluator0.withValue(this) {
         Resolve.Tasks.resolve(
           rootModule,
@@ -217,7 +211,7 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(resolveChecker) {
+    val resolved = os.checker.withValue(EvaluatorImpl.resolveChecker) {
       Evaluator.currentEvaluator0.withValue(this) {
         Resolve.Tasks.resolve(
           rootModule,
@@ -236,7 +230,13 @@ final class EvaluatorImpl private[mill] (
 
 }
 object EvaluatorImpl {
+  val resolveChecker = new os.Checker {
+    def onRead(path: os.ReadablePath): Unit = ()
 
+    def onWrite(path: os.Path): Unit = {
+      sys.error(s"Writing to $path not allowed during resolution phase")
+    }
+  }
   private[mill] def formatFailing(evaluated: ExecutionResults): String = {
     (for ((k, fs) <- evaluated.failing)
       yield {

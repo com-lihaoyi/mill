@@ -2,6 +2,7 @@ package build
 import mill._
 
 
+
 object foo extends Module{
   os.write(moduleDir / "file.txt", "hello", createFolders = true)
 
@@ -10,4 +11,10 @@ object foo extends Module{
 
 def qux = Task{
   os.write(Task.workspace / "file.txt", "hello")
+}
+
+def baz = Task{1}
+
+if (false) {
+  os.write(moduleDir / "file.txt", "hello", createFolders = true)
 }

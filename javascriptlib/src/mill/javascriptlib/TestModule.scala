@@ -547,18 +547,18 @@ object TestModule {
       val path = compile()._1.path / "jasmine.json"
       val specDir = compile()._2.path.subRelativeTo(Task.workspace / "out") / "src"
       os.checker.withValue(os.Checker.Nop) {
-      os.write.over(
-        path,
-        ujson.write(
-          ujson.Obj(
-            "spec_dir" -> ujson.Str(specDir.toString),
-            "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
-            "stopSpecOnExpectationFailure" -> ujson.Bool(false),
-            "random" -> ujson.Bool(false)
+        os.write.over(
+          path,
+          ujson.write(
+            ujson.Obj(
+              "spec_dir" -> ujson.Str(specDir.toString),
+              "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
+              "stopSpecOnExpectationFailure" -> ujson.Bool(false),
+              "random" -> ujson.Bool(false)
+            )
           )
         )
-      )
-        }
+      }
       PathRef(path)
     }
 

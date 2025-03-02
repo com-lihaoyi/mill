@@ -255,8 +255,8 @@ private trait GroupExecution {
             def onRead(path: os.ReadablePath): Unit = ()
             def onWrite(path: os.Path): Unit = {
               if (!isCommand) {
-                if(path.startsWith(workspace) && !validDests.exists(path.startsWith(_))) {
-                  sys.error(s"Writing to disk not allowed during execution phase to $path")
+                if (path.startsWith(workspace) && !validDests.exists(path.startsWith(_))) {
+                  sys.error(s"Writing to $path not allowed during execution phase")
                 }
               }
             }

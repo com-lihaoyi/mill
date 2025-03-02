@@ -8,6 +8,7 @@ import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot
 import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
+import mill.eval.EvaluatorImpl
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
 
@@ -510,14 +511,7 @@ object MillBuildBootstrap {
 
   def getRootModule(runClassLoader: URLClassLoader): RootModule = {
     val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
-    val resolveChecker = new os.Checker {
-      def onRead(path: os.ReadablePath): Unit = ()
-
-      def onWrite(path: os.Path): Unit = {
-        sys.error(s"Writing to disk not allowed during resolution phase to $path")
-      }
-    }
-    os.checker.withValue(resolveChecker) {
+    os.checker.withValue(EvaluatorImpl.resolveChecker) {
       buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
     }
   }
