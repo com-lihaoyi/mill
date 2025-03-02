@@ -57,13 +57,15 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Segments]] = {
-    Resolve.Segments.resolve(
-      rootModule,
-      scriptArgs,
-      selectMode,
-      allowPositionalCommandArgs,
-      resolveToModuleTasks
-    )
+    os.checker.withValue(EvaluatorImpl.resolveChecker) {
+      Resolve.Segments.resolve(
+        rootModule,
+        scriptArgs,
+        selectMode,
+        allowPositionalCommandArgs,
+        resolveToModuleTasks
+      )
+    }
   }
 
   /**
@@ -76,14 +78,16 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[NamedTask[?]]] = {
-    Evaluator.currentEvaluator0.withValue(this) {
-      Resolve.Tasks.resolve(
-        rootModule,
-        scriptArgs,
-        selectMode,
-        allowPositionalCommandArgs,
-        resolveToModuleTasks
-      )
+    os.checker.withValue(EvaluatorImpl.resolveChecker) {
+      Evaluator.currentEvaluator0.withValue(this) {
+        Resolve.Tasks.resolve(
+          rootModule,
+          scriptArgs,
+          selectMode,
+          allowPositionalCommandArgs,
+          resolveToModuleTasks
+        )
+      }
     }
   }
 
@@ -150,7 +154,7 @@ final class EvaluatorImpl private[mill] (
                 reporter = reporter,
                 testReporter = testReporter,
                 workspace = workspace,
-                systemExit = m => ???,
+                systemExit = _ => ???,
                 fork = null
               )
               val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
@@ -207,13 +211,15 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = Evaluator.currentEvaluator0.withValue(this) {
-      Resolve.Tasks.resolve(
-        rootModule,
-        scriptArgs,
-        selectMode,
-        allowPositionalCommandArgs
-      )
+    val resolved = os.checker.withValue(EvaluatorImpl.resolveChecker) {
+      Evaluator.currentEvaluator0.withValue(this) {
+        Resolve.Tasks.resolve(
+          rootModule,
+          scriptArgs,
+          selectMode,
+          allowPositionalCommandArgs
+        )
+      }
     }
 
     for (targets <- resolved)
@@ -224,7 +230,13 @@ final class EvaluatorImpl private[mill] (
 
 }
 object EvaluatorImpl {
+  val resolveChecker = new os.Checker {
+    def onRead(path: os.ReadablePath): Unit = ()
 
+    def onWrite(path: os.Path): Unit = {
+      sys.error(s"Writing to $path not allowed during resolution phase")
+    }
+  }
   private[mill] def formatFailing(evaluated: ExecutionResults): String = {
     (for ((k, fs) <- evaluated.failing)
       yield {
