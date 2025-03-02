@@ -91,7 +91,7 @@ object BloopTests extends TestSuite {
   def tests: Tests = Tests {
     test("genBloopTests") {
 
-      pprint.log(unitTester(testBloop.install()))
+      unitTester(testBloop.install())
       val scalaModuleConfig = readBloopConf("scalaModule.json")
       val scalaModule2Config = readBloopConf("scalaModule2.json")
       val scalaModule3Config = readBloopConf("scalaModule3.json")
