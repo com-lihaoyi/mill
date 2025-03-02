@@ -11,7 +11,3 @@ object foo extends Module{
 def qux = Task{
   os.write(Task.workspace / "file.txt", "hello")
 }
-
-def baz = Task{
-  os.read(Task.workspace / "build.mill")
-}

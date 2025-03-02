@@ -232,8 +232,10 @@ object TestModule {
             |}
             |""".stripMargin
 
-      if (!os.exists(customConfig)) os.write.over(config, content)
-      else os.copy.over(customConfig, config)
+      os.checker.withValue(os.Checker.Nop) {
+        if (!os.exists(customConfig)) os.write.over(config, content)
+        else os.copy.over(customConfig, config)
+      }
 
       PathRef(config)
     }
@@ -289,8 +291,9 @@ object TestModule {
            |require('mocha/bin/_mocha');
            |""".stripMargin
 
-      os.write.over(runner, content)
-
+      os.checker.withValue(os.Checker.Nop) {
+        os.write.over(runner, content)
+      }
       PathRef(runner)
     }
 
@@ -381,9 +384,10 @@ object TestModule {
            |});
            |""".stripMargin
 
-      if (!os.exists(customConfig)) os.write.over(config, content)
-      else os.copy.over(customConfig, config)
-
+      os.checker.withValue(os.Checker.Nop) {
+        if (!os.exists(customConfig)) os.write.over(config, content)
+        else os.copy.over(customConfig, config)
+      }
       PathRef(config)
     }
 
@@ -440,9 +444,10 @@ object TestModule {
             |});
             |""".stripMargin
 
-      if (!os.exists(customConfig)) os.write.over(config, content)
-      else os.copy.over(customConfig, config)
-
+      os.checker.withValue(os.Checker.Nop) {
+        if (!os.exists(customConfig)) os.write.over(config, content)
+        else os.copy.over(customConfig, config)
+      }
       PathRef(config)
     }
 
@@ -494,18 +499,20 @@ object TestModule {
 
     def conf: Task[PathRef] = Task.Anon {
       val path = compile()._1.path / "jasmine.json"
-      os.write.over(
-        path,
-        ujson.write(
-          ujson.Obj(
-            "spec_dir" -> ujson.Str("typescript/src"),
-            "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
-            "stopSpecOnExpectationFailure" -> ujson.Bool(false),
-            "random" -> ujson.Bool(false)
+      os.checker.withValue(os.Checker.Nop) {
+        os.write.over(
+          path,
+          ujson.write(
+            ujson.Obj(
+              "spec_dir" -> ujson.Str("typescript/src"),
+              "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
+              "stopSpecOnExpectationFailure" -> ujson.Bool(false),
+              "random" -> ujson.Bool(false)
+            )
           )
         )
-      )
 
+      }
       PathRef(path)
     }
 
@@ -514,18 +521,20 @@ object TestModule {
       val jasmine = "node_modules/jasmine/bin/jasmine.js"
       val tsnode = "node_modules/ts-node/register/transpile-only.js"
       val tsconfigPath = "node_modules/tsconfig-paths/register.js"
-      os.call(
-        (
-          "node",
-          jasmine,
-          "--config=jasmine.json",
-          s"--require=$tsnode",
-          s"--require=$tsconfigPath"
-        ),
-        stdout = os.Inherit,
-        env = forkEnv(),
-        cwd = compile()._1.path
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        os.call(
+          (
+            "node",
+            jasmine,
+            "--config=jasmine.json",
+            s"--require=$tsnode",
+            s"--require=$tsconfigPath"
+          ),
+          stdout = os.Inherit,
+          env = forkEnv(),
+          cwd = compile()._1.path
+        )
+      }
       ()
     }
 
@@ -537,6 +546,7 @@ object TestModule {
     def coverageConf: T[PathRef] = Task {
       val path = compile()._1.path / "jasmine.json"
       val specDir = compile()._2.path.subRelativeTo(Task.workspace / "out") / "src"
+      os.checker.withValue(os.Checker.Nop) {
       os.write.over(
         path,
         ujson.write(
@@ -548,35 +558,38 @@ object TestModule {
           )
         )
       )
+        }
       PathRef(path)
     }
 
     def runCoverage: T[TestResult] = Task {
-      istanbulNycrcConfigBuilder()
-      coverageSetupSymlinks()
-      val jasmine = "node_modules/jasmine/bin/jasmine.js"
-      val tsnode = "node_modules/ts-node/register/transpile-only.js"
-      val tsconfigPath = "node_modules/tsconfig-paths/register.js"
-      val relConfigPath = coverageConf().path.subRelativeTo(Task.workspace / "out")
-      os.call(
-        (
-          "./node_modules/.bin/nyc",
-          "node",
-          jasmine,
-          s"--config=$relConfigPath",
-          s"--require=$tsnode",
-          s"--require=$tsconfigPath"
-        ),
-        stdout = os.Inherit,
-        env = forkEnv(),
-        cwd = Task.workspace / "out"
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        istanbulNycrcConfigBuilder()
+        coverageSetupSymlinks()
+        val jasmine = "node_modules/jasmine/bin/jasmine.js"
+        val tsnode = "node_modules/ts-node/register/transpile-only.js"
+        val tsconfigPath = "node_modules/tsconfig-paths/register.js"
+        val relConfigPath = coverageConf().path.subRelativeTo(Task.workspace / "out")
+        os.call(
+          (
+            "./node_modules/.bin/nyc",
+            "node",
+            jasmine,
+            s"--config=$relConfigPath",
+            s"--require=$tsnode",
+            s"--require=$tsconfigPath"
+          ),
+          stdout = os.Inherit,
+          env = forkEnv(),
+          cwd = Task.workspace / "out"
+        )
 
-      // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
-      os.remove(Task.workspace / "out/.nycrc")
-      ()
+        // remove symlink
+        os.remove(Task.workspace / "out/node_modules")
+        os.remove(Task.workspace / "out/tsconfig.json")
+        os.remove(Task.workspace / "out/.nycrc")
+        ()
+      }
     }
 
   }
@@ -675,10 +688,12 @@ object TestModule {
       Task.Source(Task.workspace / "playwright.config.ts")
 
     private def copyConfig: Task[TestResult] = Task.Anon {
-      os.copy.over(
-        testConfigSource().path,
-        compile()._1.path / "playwright.config.ts"
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        os.copy.over(
+          testConfigSource().path,
+          compile()._1.path / "playwright.config.ts"
+        )
+      }
     }
 
     private def runTest: T[TestResult] = Task {

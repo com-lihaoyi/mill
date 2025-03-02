@@ -242,23 +242,22 @@ private trait GroupExecution {
           ) with mill.api.Ctx.Jobs {
             override def jobs: Int = effectiveThreadCount
           }
+          // Tasks must be allowed to write to upstream worker's dest folders, because
+          // the point of workers is to manualy manage long-lived state which includes
+          // state on disk.
+          val validDests =
+            deps.collect { case n: Worker[?] =>
+              ExecutionPaths.resolve(outPath, n.ctx.segments).dest
+            } ++
+              paths.map(_.dest)
 
           val executionChecker = new os.Checker {
             def onRead(path: os.ReadablePath): Unit = ()
             def onWrite(path: os.Path): Unit = {
-
-              // Tasks must be allowed to write to upstream worker's dest folders, because
-              // the point of workers is to manualy manage long-lived state which includes
-              // state on disk.
-              val validDests =
-                deps.collect { case n: Worker[?] =>
-                  ExecutionPaths.resolve(outPath, n.ctx.segments).dest
-                } ++
-                  paths.map(_.dest)
-              if (
-                !isCommand && path.startsWith(workspace) && !validDests.exists(path.startsWith(_))
-              ) {
-                sys.error(s"Writing to disk not allowed during execution phase to $path")
+              if (!isCommand) {
+                if(path.startsWith(workspace) && !validDests.exists(path.startsWith(_))) {
+                  sys.error(s"Writing to disk not allowed during execution phase to $path")
+                }
               }
             }
           }

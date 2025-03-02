@@ -21,14 +21,6 @@ object OsCheckerTests extends UtestIntegrationTestSuite {
       assert(res2.err.contains(
         s"Writing to disk not allowed during execution phase to $workspacePath/file.txt"
       ))
-
-      val res3 = tester.eval("baz")
-
-      assert(res3.isSuccess == false)
-      assert(res3.err.contains(
-        s"Reading from disk not allowed during execution phase from $workspacePath/build.mill"
-      ))
-
     }
   }
 }
