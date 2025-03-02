@@ -258,7 +258,7 @@ object BloopTests extends TestSuite {
             assert(sources == List(workdir / "scalanativeModule/src"))
             assert(version == build.scalanativeModule.sv)
             assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
-            assert(platform.config.clang == clang.value.toNIO)
+            assert(platform.config.clang == clang.value.path.toNIO)
         }
       }
       test("skipped") {
