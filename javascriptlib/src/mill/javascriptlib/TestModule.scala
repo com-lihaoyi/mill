@@ -41,10 +41,12 @@ object TestModule {
     // <rootDir> = '/out'; allow coverage resolve distributed source files.
     // & define coverage files relative to <rootDir>.
     private[TestModule] def coverageSetupSymlinks: Task[Unit] = Task.Anon {
-      os.symlink(Task.workspace / "out/node_modules", npmInstall().path / "node_modules")
-      os.symlink(Task.workspace / "out/tsconfig.json", compile()._1.path / "tsconfig.json")
-      if (os.exists(compile()._1.path / ".nycrc"))
-        os.symlink(Task.workspace / "out/.nycrc", compile()._1.path / ".nycrc")
+      os.checker.withValue(os.Checker.Nop) {
+        os.symlink(Task.workspace / "out/node_modules", npmInstall().path / "node_modules")
+        os.symlink(Task.workspace / "out/tsconfig.json", compile()._1.path / "tsconfig.json")
+        if (os.exists(compile()._1.path / ".nycrc"))
+          os.symlink(Task.workspace / "out/.nycrc", compile()._1.path / ".nycrc")
+      }
     }
 
     def istanbulNycrcConfigBuilder: Task[PathRef] = Task.Anon {
