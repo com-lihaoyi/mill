@@ -13,14 +13,12 @@ import mill.main.Tasks
 trait ScalafmtModule extends JavaModule {
 
   def reformat(): Command[Unit] = Task.Command {
-    os.checker.withValue(os.Checker.Nop) {
-      ScalafmtWorkerModule
-        .worker()
-        .reformat(
-          filesToFormat(sources()),
-          resolvedScalafmtConfig()
-        )
-    }
+    ScalafmtWorkerModule
+      .worker()
+      .reformat(
+        filesToFormat(sources()),
+        resolvedScalafmtConfig()
+      )
   }
 
   def checkFormat(): Command[Unit] = Task.Command {
@@ -80,7 +78,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
 
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")) =
-    Task.Command(exclusive = true) {
+    Task.Command {
       val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
@@ -93,7 +91,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
   def checkFormatAll(
       @arg(positional = true) sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources")
   ): Command[Unit] =
-    Task.Command(exclusive = true) {
+    Task.Command {
       val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()

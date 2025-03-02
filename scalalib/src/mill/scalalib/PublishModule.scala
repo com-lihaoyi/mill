@@ -346,14 +346,12 @@ trait PublishModule extends JavaModule { outer =>
       case Some(path) => new LocalIvyPublisher(path)
     }
     val publishInfos = defaultPublishInfos() ++ extraPublish()
-    os.checker.withValue(os.Checker.Nop) {
-      publisher.publishLocal(
-        pom = pom().path,
-        ivy = Right(ivy().path),
-        artifact = artifactMetadata(),
-        publishInfos = publishInfos
-      )
-    }
+    publisher.publishLocal(
+      pom = pom().path,
+      ivy = Right(ivy().path),
+      artifact = artifactMetadata(),
+      publishInfos = publishInfos
+    )
   }
 
   /**
@@ -388,11 +386,10 @@ trait PublishModule extends JavaModule { outer =>
   private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
     val path = m2RepoPath()
     val publishInfos = defaultPublishInfos() ++ extraPublish()
-    os.checker.withValue(os.Checker.Nop) {
-      new LocalM2Publisher(path)
-        .publish(pom().path, artifactMetadata(), publishInfos)
-        .map(PathRef(_).withRevalidateOnce)
-    }
+
+    new LocalM2Publisher(path)
+      .publish(pom().path, artifactMetadata(), publishInfos)
+      .map(PathRef(_).withRevalidateOnce)
   }
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"

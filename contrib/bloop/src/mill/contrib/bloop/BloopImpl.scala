@@ -87,13 +87,11 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       def config = Task { outer.bloopConfig(jm)() }
 
       def writeConfigFile(): Command[(String, PathRef)] = Task.Command {
-        os.checker.withValue(os.Checker.Nop) {
-          os.makeDir.all(bloopDir)
-          val path = bloopConfigPath(jm)
-          _root_.bloop.config.write(config(), path.toNIO)
-          Task.log.info(s"Wrote $path")
-          name(jm) -> PathRef(path)
-        }
+        os.makeDir.all(bloopDir)
+        val path = bloopConfigPath(jm)
+        _root_.bloop.config.write(config(), path.toNIO)
+        Task.log.info(s"Wrote $path")
+        name(jm) -> PathRef(path)
       }
 
     }

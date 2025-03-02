@@ -103,9 +103,7 @@ trait KoverModule extends KotlinModule { outer =>
     override def forkArgs: T[Seq[String]] = Task {
       val argsFile = koverDataDir().path / "kover-agent.args"
       val content = s"report.file=${koverBinaryReport().path}"
-      os.checker.withValue(os.Checker.Nop) {
-        os.write.over(argsFile, content)
-      }
+      os.write.over(argsFile, content)
 
       super.forkArgs() ++
         Seq(
@@ -132,14 +130,14 @@ object Kover extends ExternalModule with KoverReportBaseModule {
 
   lazy val millDiscover = Discover[this.type]
 
-  def htmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command(exclusive = true) {
+  def htmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command {
     koverReportTask(
       evaluator = evaluator,
       reportType = ReportType.Html
     )()
   }
 
-  def xmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command(exclusive = true) {
+  def xmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command {
     koverReportTask(
       evaluator = evaluator,
       reportType = ReportType.Xml
