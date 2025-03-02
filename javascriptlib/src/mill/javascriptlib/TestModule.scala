@@ -67,11 +67,12 @@ object TestModule {
             |}
             |""".stripMargin
 
-      if (!os.exists(customConfig)) os.write.over(config, content)
-      else os.copy.over(customConfig, config)
+      os.checker.withValue(os.Checker.Nop) {
+        if (!os.exists(customConfig)) os.write.over(config, content)
+        else os.copy.over(customConfig, config)
 
-      os.write.over(config, content)
-
+        os.write.over(config, content)
+      }
       PathRef(config)
     }
 
@@ -336,9 +337,11 @@ object TestModule {
       )
 
       // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
-      os.remove(Task.workspace / "out/.nycrc")
+      os.checker.withValue(os.Checker.Nop) {
+        os.remove(Task.workspace / "out/node_modules")
+        os.remove(Task.workspace / "out/tsconfig.json")
+        os.remove(Task.workspace / "out/.nycrc")
+      }
       ()
     }
   }
@@ -472,8 +475,10 @@ object TestModule {
         cwd = Task.workspace / "out"
       )
       // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
+      os.checker.withValue(os.Checker.Nop) {
+        os.remove(Task.workspace / "out/node_modules")
+        os.remove(Task.workspace / "out/tsconfig.json")
+      }
       ()
     }
 
