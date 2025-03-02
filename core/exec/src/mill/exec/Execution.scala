@@ -286,6 +286,7 @@ private[mill] case class Execution(
 }
 
 private[mill] object Execution {
+
   /**
    * Format a failed count as a string to be used in status messages.
    * Returns ", N failed" if count > 0, otherwise an empty string.
