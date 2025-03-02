@@ -22,7 +22,7 @@ trait BuildGenModule extends TaskModule {
 
   def buildGenScalafmtConfig: T[PathRef] = PathRef(BuildGenUtil.scalafmtConfigFile)
 
-  def init(args: String*): Command[Unit] = Task.Command {
+  def init(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     val root = moduleDir
 
     val mainClass = buildGenMainClass()

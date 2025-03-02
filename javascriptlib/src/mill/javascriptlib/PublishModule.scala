@@ -130,12 +130,11 @@ trait PublishModule extends TypeScriptModule {
   private def pubGenSources: T[Unit] = Task {
     val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
     allGeneratedSources.foreach { target =>
-      val destination = publishDir().path / "typescript/generatedSources" / target.path.last
-      os.makeDir.all(destination / os.up)
-      os.copy.over(
-        target.path,
-        destination
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        val destination = publishDir().path / "typescript/generatedSources" / target.path.last
+        os.makeDir.all(destination / os.up)
+        os.copy.over(target.path, destination)
+      }
     }
   }
 
@@ -144,12 +143,10 @@ trait PublishModule extends TypeScriptModule {
 
     targets.foreach { target =>
       val destination = publishDir().path / "typescript" / target
-      os.makeDir.all(destination / os.up)
-      os.copy(
-        Task.workspace / target,
-        destination,
-        mergeFolders = true
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        os.makeDir.all(destination / os.up)
+        os.copy(Task.workspace / target, destination, mergeFolders = true)
+      }
     }
   }
 
@@ -259,31 +256,35 @@ trait PublishModule extends TypeScriptModule {
 
   private def pubSymLink: Task[Unit] = Task {
     pubTsPatchInstall() // patch typescript compiler => use custom transformers
-    os.symlink(publishDir().path / "node_modules", npmInstall().path / "node_modules")
+    os.checker.withValue(os.Checker.Nop) {
+      os.symlink(publishDir().path / "node_modules", npmInstall().path / "node_modules")
 
-    if (os.exists(npmInstall().path / ".npmrc"))
-      os.symlink(publishDir().path / ".npmrc", npmInstall().path / ".npmrc")
+      if (os.exists(npmInstall().path / ".npmrc"))
+        os.symlink(publishDir().path / ".npmrc", npmInstall().path / ".npmrc")
+    }
   }
 
   override def compile: T[(PathRef, PathRef)] = Task {
     pubSymLink()
-    os.write(
-      publishDir().path / "tsconfig.json",
-      ujson.Obj(
-        "compilerOptions" -> ujson.Obj.from(
-          compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
-        ),
-        "files" -> pubAllSources()
+    os.checker.withValue(os.Checker.Nop) {
+      os.write(
+        publishDir().path / "tsconfig.json",
+        ujson.Obj(
+          "compilerOptions" -> ujson.Obj.from(
+            compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
+          ),
+          "files" -> pubAllSources()
+        )
       )
-    )
-    os.copy(moduleDir, publishDir().path / "typescript", mergeFolders = true)
-    pubCopyModDeps()
-    pubGenSources()
-    // Run type check, build declarations
-    os.call(
-      ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
-      cwd = publishDir().path
-    )
+      os.copy(moduleDir, publishDir().path / "typescript", mergeFolders = true)
+      pubCopyModDeps()
+      pubGenSources()
+      // Run type check, build declarations
+      os.call(
+        ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
+        cwd = publishDir().path
+      )
+    }
     (publishDir(), PathRef(publishDir().path / "typescript"))
   }
 
