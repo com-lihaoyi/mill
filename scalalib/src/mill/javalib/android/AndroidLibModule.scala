@@ -95,7 +95,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     )
 
     os.move(classesJar, unpackedAar / "classes.jar", replaceExisting = true)
-    os.move(
+    os.copy(
       androidMergedManifest().path,
       unpackedAar / "AndroidManifest.xml",
       replaceExisting = true

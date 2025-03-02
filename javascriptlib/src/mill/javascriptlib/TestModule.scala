@@ -244,23 +244,25 @@ object TestModule {
 
     def runCoverage: T[TestResult] = Task {
       coverageSetupSymlinks()
-      os.call(
-        (
-          "node",
-          "node_modules/jest/bin/jest.js",
-          "--config",
-          coverageConf().path,
-          "--coverage",
-          getPathToTest()
-        ),
-        stdout = os.Inherit,
-        env = forkEnv(),
-        cwd = Task.workspace / "out"
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        os.call(
+          (
+            "node",
+            "node_modules/jest/bin/jest.js",
+            "--config",
+            coverageConf().path,
+            "--coverage",
+            getPathToTest()
+          ),
+          stdout = os.Inherit,
+          env = forkEnv(),
+          cwd = Task.workspace / "out"
+        )
 
-      // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
+        // remove symlink
+        os.remove(Task.workspace / "out/node_modules")
+        os.remove(Task.workspace / "out/tsconfig.json")
+      }
       ()
     }
 
