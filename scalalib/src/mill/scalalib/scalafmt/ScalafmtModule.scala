@@ -13,12 +13,14 @@ import mill.main.Tasks
 trait ScalafmtModule extends JavaModule {
 
   def reformat(): Command[Unit] = Task.Command {
-    ScalafmtWorkerModule
-      .worker()
-      .reformat(
-        filesToFormat(sources()),
-        resolvedScalafmtConfig()
-      )
+    os.checker.withValue(os.Checker.Nop) {
+      ScalafmtWorkerModule
+        .worker()
+        .reformat(
+          filesToFormat(sources()),
+          resolvedScalafmtConfig()
+        )
+    }
   }
 
   def checkFormat(): Command[Unit] = Task.Command {

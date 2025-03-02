@@ -161,8 +161,10 @@ object TestModule {
             |}
             |""".stripMargin
 
-      if (!os.exists(customConfig)) os.write.over(config, content)
-      else os.copy.over(customConfig, config)
+      os.checker.withValue(os.Checker.Nop) {
+        if (!os.exists(customConfig)) os.write.over(config, content)
+        else os.copy.over(customConfig, config)
+      }
 
       PathRef(config)
     }

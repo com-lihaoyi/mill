@@ -129,6 +129,7 @@ private trait GroupExecution {
                   logger,
                   executionContext,
                   exclusive,
+                  labelled.isInstanceOf[Command[?]],
                   deps
                 )
 
@@ -169,6 +170,7 @@ private trait GroupExecution {
             logger,
             executionContext,
             exclusive,
+            task.isInstanceOf[Command[?]],
             deps
           )
           GroupExecution.Results(
@@ -196,6 +198,7 @@ private trait GroupExecution {
       logger: mill.api.Logger,
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean,
+      isCommand: Boolean,
       deps: Seq[Task[?]]
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
@@ -253,7 +256,7 @@ private trait GroupExecution {
                 } ++
                   paths.map(_.dest)
               if (
-                !exclusive && path.startsWith(workspace) && !validDests.exists(path.startsWith(_))
+                !isCommand && path.startsWith(workspace) && !validDests.exists(path.startsWith(_))
               ) {
                 sys.error(s"Writing to disk not allowed during execution phase to $path")
               }

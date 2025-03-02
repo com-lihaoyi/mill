@@ -355,17 +355,17 @@ trait TypeScriptModule extends Module { outer =>
     val bundleScript = compile()._1.path / "build.ts"
     val bundle = Task.dest / "bundle.js"
 
-    os.write.over(
-      bundleScript,
-      bundleScriptBuilder()
-    )
+    os.checker.withValue(os.Checker.Nop) {
+      os.write.over(bundleScript, bundleScriptBuilder())
 
-    os.call(
-      (tsnode, bundleScript),
-      stdout = os.Inherit,
-      env = env,
-      cwd = compile()._1.path
-    )
+
+      os.call(
+        (tsnode, bundleScript),
+        stdout = os.Inherit,
+        env = env,
+        cwd = compile()._1.path
+      )
+    }
     PathRef(bundle)
   }
 
