@@ -91,7 +91,6 @@ private[mill] case class Execution(
     val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
-    val rootFailedCount = new AtomicInteger(0) // Track only root failures
     val indexToTerminal = plan.sortedGroups.keys().toArray
 
     ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
@@ -106,9 +105,6 @@ private[mill] case class Execution(
     val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
 
     val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
-
-    def formatHeaderPrefix(countMsg: String, verboseKeySuffix: String) =
-      s"$countMsg$verboseKeySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
 
     def evaluateTerminals(
         terminals: Seq[Task[?]],
@@ -150,10 +146,9 @@ private[mill] case class Execution(
               )
 
               val verboseKeySuffix = s"/${terminals0.size}"
-              logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
-              if (failed.get()) {
-                None
-              } else {
+              logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
+              if (failed.get()) None
+              else {
                 val upstreamResults = upstreamValues
                   .iterator
                   .flatMap(_.iterator.flatMap(_.newResults))
@@ -193,15 +188,7 @@ private[mill] case class Execution(
                   exclusive
                 )
 
-                // Count new failures - if there are upstream failures, tasks should be skipped, not failed
-                val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
-
-                rootFailedCount.addAndGet(newFailures)
-
-                // Always show failed count in header if there are failures
-                logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
-
-                if (failFast && res.newResults.values.exists(r => r.asFailing.isDefined))
+                if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)
 
                 val endTime = System.nanoTime() / 1000
@@ -286,15 +273,6 @@ private[mill] case class Execution(
 }
 
 private[mill] object Execution {
-
-  /**
-   * Format a failed count as a string to be used in status messages.
-   * Returns ", N failed" if count > 0, otherwise an empty string.
-   */
-  def formatFailedCount(count: Int): String = {
-    if (count > 0) s", $count failed" else ""
-  }
-
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
       : Map[Task[?], Seq[Task[?]]] = {
     sortedGroups
