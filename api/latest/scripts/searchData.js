@@ -535,6 +535,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/eval/EvaluatorImpl.html#resolveTasks-fffffa78","e":false,"i":"","n":"resolveTasks","t":"resolveTasks(scriptArgs: Seq[String], selectMode: SelectMode, allowPositionalCommandArgs: Boolean, resolveToModuleTasks: Boolean): Result[List[NamedTask[_]]]","d":"mill.eval.EvaluatorImpl","k":"def","x":""},
 {"l":"mill/eval/EvaluatorImpl.html#withBaseLogger-fffff641","e":false,"i":"","n":"withBaseLogger","t":"withBaseLogger(newBaseLogger: ColorLogger): Evaluator","d":"mill.eval.EvaluatorImpl","k":"def","x":""},
 {"l":"mill/eval/EvaluatorImpl$.html#","e":false,"i":"","n":"EvaluatorImpl","t":"EvaluatorImpl","d":"mill.eval","k":"object","x":""},
+{"l":"mill/eval/EvaluatorImpl$.html#resolveChecker-0","e":false,"i":"","n":"resolveChecker","t":"resolveChecker: Checker","d":"mill.eval.EvaluatorImpl","k":"val","x":""},
 {"l":"mill/eval/EvaluatorProxy.html#","e":false,"i":"","n":"EvaluatorProxy","t":"EvaluatorProxy(delegate: => Evaluator) extends Evaluator","d":"mill.eval","k":"class","x":""},
 {"l":"mill/eval/EvaluatorProxy.html#close-0","e":false,"i":"","n":"close","t":"close: Unit","d":"mill.eval.EvaluatorProxy","k":"def","x":""},
 {"l":"mill/eval/EvaluatorProxy.html#evaluate-ffffff4e","e":false,"i":"","n":"evaluate","t":"evaluate(scriptArgs: Seq[String], selectMode: SelectMode, selectiveExecution: Boolean): Result[Result[Any]]","d":"mill.eval.EvaluatorProxy","k":"def","x":""},
