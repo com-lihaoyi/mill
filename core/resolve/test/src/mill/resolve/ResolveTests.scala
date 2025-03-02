@@ -21,6 +21,29 @@ object ResolveTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  // Test modules for supertask resolution
+  trait BaseModule extends TestBaseModule {
+    def baseTask = Task { "base" }
+    def multiOverride = Task { "base-multi" }
+  }
+
+  object singleOverrideModule extends BaseModule {
+    // Single override of baseTask
+    override def baseTask = Task { "single-override" }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  trait MidModule extends BaseModule {
+    // First level override of multiOverride
+    override def multiOverride = Task { "mid-override" }
+  }
+
+  object multiOverrideModule extends MidModule {
+    // Second level override of multiOverride
+    override def multiOverride = Task { "final-override" }
+    lazy val millDiscover = Discover[this.type]
+  }
+
   def isShortError(x: Result[?], s: String) =
     x.errorOpt.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
@@ -250,5 +273,49 @@ object ResolveTests extends TestSuite {
       )
     }
 
+    test("supertasks") {
+      test("singleOverride") {
+        val check = new Checker(singleOverrideModule)
+
+        // Regular task should resolve to the overridden implementation
+        test("regularTask") - check(
+          "baseTask",
+          Result.Success(Set(_.baseTask)),
+          Set("baseTask")
+        )
+
+        // Super task should resolve to the base implementation
+        test("superTask") - check(
+          "baseTask.super",
+          Result.Success(Set(_.baseTask)),
+          Set("baseTask.super")
+        )
+      }
+
+      test("multiOverride") {
+        val check = new Checker(multiOverrideModule)
+
+        // Regular task should resolve to the final overridden implementation
+        test("regularTask") - check(
+          "multiOverride",
+          Result.Success(Set(_.multiOverride)),
+          Set("multiOverride")
+        )
+
+        // Direct super task should resolve to the mid-level implementation
+        test("directSuperTask") - check(
+          "multiOverride.super",
+          Result.Success(Set(_.multiOverride)),
+          Set("multiOverride.super")
+        )
+
+        // Qualified super task should resolve to the base implementation
+        test("qualifiedSuperTask") - check(
+          "multiOverride.super.BaseModule",
+          Result.Success(Set(_.multiOverride)),
+          Set("multiOverride.super.BaseModule")
+        )
+      }
+    }
   }
 }

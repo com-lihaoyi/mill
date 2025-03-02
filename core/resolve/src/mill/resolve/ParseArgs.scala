@@ -92,8 +92,48 @@ private[mill] object ParseArgs {
       : Result[(Option[Segments], Option[Segments])] =
     parse(selectorString, selector(using _)) match {
       case f: Parsed.Failure => Result.Failure(s"Parsing exception ${f.msg}")
-      case Parsed.Success(selector, _) => Result.Success(selector)
+      case Parsed.Success(selector, _) =>
+        // Post-process the segments to handle .super suffix
+        val processedSelector = processSuperSuffix(selector)
+        Result.Success(processedSelector)
     }
+
+  private def processSuperSuffix(selector: (
+      Option[Segments],
+      Option[Segments]
+  )): (Option[Segments], Option[Segments]) = {
+    def processSegments(segments: Option[Segments]): Option[Segments] = {
+      segments.map { s =>
+        val segmentList = s.value
+
+        // Find the first "super" segment and its index
+        val superIdx = segmentList.indexWhere {
+          case Segment.Label("super") => true
+          case _ => false
+        }
+
+        // If there's no "super" segment or it's the first segment, return the original segments
+        if (superIdx == -1 || superIdx == 0) {
+          Segments(segmentList)
+        } else {
+          // Create the modified segment by appending ".super" to the segment before "super"
+          val modifiedSegment = segmentList(superIdx - 1) match {
+            case Segment.Label(label) => Segment.Label(s"$label.super")
+            case Segment.Cross(values) =>
+              // For Cross segments, we can't easily append ".super", so we just keep it as is
+              Segment.Cross(values)
+          }
+
+          // Remove the "super" segment and update the previous segment in one operation
+          val newList = segmentList.patch(superIdx, Nil, 1).updated(superIdx - 1, modifiedSegment)
+
+          Segments(newList)
+        }
+      }
+    }
+
+    (processSegments(selector._1), processSegments(selector._2))
+  }
 
   private def selector[_p: P]: P[(Option[Segments], Option[Segments])] = {
     def wildcard = P("__" | "_")
