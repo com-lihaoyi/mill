@@ -341,8 +341,6 @@ private[mill] object PromptLogger {
 
     def getCurrentPrompt() = currentPromptBytes
 
-    def getHeaderPrefix() = headerPrefix
-
     def updatePrompt(ending: Boolean = false): Boolean = {
       val now = currentTimeMillis()
       for (k <- statuses.keySet) {

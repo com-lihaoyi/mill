@@ -108,7 +108,7 @@ private[mill] case class Execution(
     val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
     def formatHeaderPrefix(countMsg: String, verboseKeySuffix: String) =
-      s"$countMsg$verboseKeySuffix${mill.internal.Util.formatFailedCount(rootFailedCount.get())}"
+      s"$countMsg$verboseKeySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
 
     def evaluateTerminals(
         terminals: Seq[Task[?]],
@@ -286,6 +286,14 @@ private[mill] case class Execution(
 }
 
 private[mill] object Execution {
+  /**
+   * Format a failed count as a string to be used in status messages.
+   * Returns ", N failed" if count > 0, otherwise an empty string.
+   */
+  def formatFailedCount(count: Int): String = {
+    if (count > 0) s", $count failed" else ""
+  }
+
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
       : Map[Task[?], Seq[Task[?]]] = {
     sortedGroups
