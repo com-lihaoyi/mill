@@ -12,8 +12,14 @@ import mill.javalib.spotless.{ScalaSpotlessModule, ScalaConfig}
 
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#java
 object `package` extends RootModule with JavaModule with JavaSpotlessModule {
+  val googleJavaFormatVersionString = "1.25.2"
+
+  def googleJavaFormatVersion: T[String] = Task {
+    googleJavaFormatVersionString
+  }
+
   val googleFormatter = GoogleJavaFormat(
-    version = "1.25.2",
+    version = googleJavaFormatVersionString,
     aosp = true,
     reflowLongStrings = true,
     formatJavadoc = false,
@@ -22,7 +28,7 @@ object `package` extends RootModule with JavaModule with JavaSpotlessModule {
   )
 
   val palantirFormatter = PalantirJavaFormat(
-    version = "2.50.0",
+    version = mill.scalalib.api.Versions.palantirFormatVersion, // "2.51.0",
     style = "GOOGLE",
     formatJavadoc = true
   )
@@ -40,11 +46,17 @@ object `package` extends RootModule with JavaModule with JavaSpotlessModule {
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#scalafmt
 object `package` extends RootModule with ScalaSpotlessModule {
 
-  // In Mill, ScalaConfig defaults to these values: scalafmt('3.8.1').configFile('scalafmt.conf').scalaMajorVersion('2.13')
+  val scalafmtVersionString = "3.8.1"
+
+  def scalafmtVersion: T[String] = Task {
+    scalafmtVersionString
+  }
+
   def jvmLangConfig = ScalaConfig(
     licenseHeader = Some("/* © 2025. */\n"),
-    scalafmtLibVersion = "3.8.1",
-    scalafmtConfigFile = Some("scalafmt.conf")
+    scalafmtLibVersion = scalafmtVersionString,
+    scalafmtConfigFile = Some("scalafmt.conf"),
+    scalafmtScalaMajorVersion = "2.13"
   )
 }
  */
@@ -52,6 +64,17 @@ object `package` extends RootModule with ScalaSpotlessModule {
 /*
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#kotlin
 object `package` extends RootModule with KotlinSpotlessModule {
+  val ktfmtVersionString = "0.53"
+  val ktlintVersionString = "1.5.0"
+
+  def ktfmtVersion: T[String] = Task {
+    ktfmtVersionString
+  }
+
+  def ktlintVersion: T[String] = Task {
+    ktlintVersionString
+  }
+
   val ktfmtOptions = new KtfmtOptions(
     maxWidth = Some(80),
     blockIndent = Some(4),
@@ -62,10 +85,10 @@ object `package` extends RootModule with KotlinSpotlessModule {
 
   def jvmLangConfig = KotlinConfig(
     ktfmtFlag = true,
-    ktfmtVersion = "0.53",
+    ktfmtVersion = ktfmtVersionString,
     ktfmtOptions = Some(ktfmtOptions),
     ktlintFlag = true,
-    ktlintVersion = "1.5.0")
+    ktlintVersion = ktlintVersionString)
 }
  */
 

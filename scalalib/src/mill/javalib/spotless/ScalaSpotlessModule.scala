@@ -15,9 +15,7 @@ trait ScalaSpotlessModule extends SpotlessModule {
   }
 
   /**
-   * Scala Format version. Defaults to `3.8.1`.
+   * Scala Format version. Must be defined in build.mill.
    */
-  def scalafmtVersion: T[String] = Task {
-    "3.8.1"
-  }
+  def scalafmtVersion: T[String]
 }

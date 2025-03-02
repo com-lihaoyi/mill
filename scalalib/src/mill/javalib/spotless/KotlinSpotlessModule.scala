@@ -20,16 +20,12 @@ trait KotlinSpotlessModule extends SpotlessModule {
   }
 
   /**
-   * Defaults to `0.53`.
+   * Defaults to the version specified in build.mill.
    */
-  def ktfmtVersion: T[String] = Task {
-    "0.53"
-  }
+  def ktfmtVersion: T[String]
 
   /**
-   * Defaults to `1.5.0`.
+   * Defaults to the version specified in build.mill.
    */
-  def ktlintVersion: T[String] = Task {
-    "1.5.0"
-  }
+  def ktlintVersion: T[String]
 }

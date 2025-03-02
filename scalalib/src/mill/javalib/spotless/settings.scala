@@ -44,25 +44,19 @@ trait JVMLangConfig {
 sealed trait JavaFormatter
 
 case class GoogleJavaFormat(
-    version: String = "1.25.2",
+    version: String,
     aosp: Boolean = false,
     reflowLongStrings: Boolean = false,
     formatJavadoc: Boolean = true,
     reorderImports: Boolean = true,
     groupArtifact: String = "com.google.googlejavaformat:google-java-format"
 ) extends JavaFormatter {}
-object GoogleJavaFormat {
-  def apply(): GoogleJavaFormat = new GoogleJavaFormat()
-}
 
 case class PalantirJavaFormat(
-    version: String = "2.50.0",
+    version: String,
     style: String = "PALANTIR",
     formatJavadoc: Boolean = false
 ) extends JavaFormatter {}
-object PalantirJavaFormat {
-  def apply(): PalantirJavaFormat = new PalantirJavaFormat()
-}
 
 case class JavaConfig(
     target: String = ".java",
@@ -142,9 +136,9 @@ case class ScalaConfig(
     target: String = ".scala",
     licenseHeader: Option[String] = None,
     licenseHeaderFile: Option[String] = None,
-    scalafmtLibVersion: String = "3.8.1",
+    scalafmtLibVersion: String,
     scalafmtConfigFile: Option[String] = None,
-    scalafmtScalaMajorVersion: String = "2.13"
+    scalafmtScalaMajorVersion: String
 ) extends JVMLangConfig {
   require(
     !(licenseHeader.isDefined && licenseHeaderFile.isDefined),
@@ -184,10 +178,10 @@ case class KotlinConfig(
     licenseHeaderFile: Option[String] = None,
     override val licenseHeaderDelimiter: String = "(package |@file|import )",
     ktfmtFlag: Boolean = false,
-    ktfmtVersion: String = "0.53",
+    ktfmtVersion: String,
     ktfmtOptions: Option[KtfmtOptions] = None,
     ktlintFlag: Boolean = false,
-    ktlintVersion: String = "1.5.0"
+    ktlintVersion: String
 ) extends JVMLangConfig {
   require(
     !(licenseHeader.isDefined && licenseHeaderFile.isDefined),

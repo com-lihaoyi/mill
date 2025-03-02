@@ -2,6 +2,7 @@ package mill.javalib.spotless
 
 import mill.{Agg, PathRef, T, Task}
 import mill.scalalib.DepSyntax
+import mill.scalalib.api.Versions
 
 trait JavaSpotlessModule extends SpotlessModule {
 
@@ -20,16 +21,14 @@ trait JavaSpotlessModule extends SpotlessModule {
   }
 
   /**
-   * Google Java Format version. Defaults to `1.25.2`.
+   * Google Java Format version. Must be defined in build.mill.
    */
-  def googleJavaFormatVersion: T[String] = Task {
-    "1.25.2"
-  }
+  def googleJavaFormatVersion: T[String]
 
   /**
-   * Google Java Format version. Defaults to `2.50.0`.
+   * Palantir Java Format version.
    */
   def palantirJavaFormatVersion: T[String] = Task {
-    "2.50.0"
+    Versions.palantirFormatVersion
   }
 }
