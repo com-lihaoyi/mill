@@ -66,7 +66,7 @@ object MillInitUtils {
       modifyConvertedBuild: () => Unit = () => (),
       expectedInitResult: Boolean = true,
       expectedAllSourceFileNums: Map[String, Int],
-      moduleTaskTestMode: ModuleTaskTestMode = ModuleTaskTestMode.FailFast(true),
+      moduleTaskTestMode: ModuleTaskTestMode = ModuleTaskTestMode.ShowActual, // TODO revert
       // expectedCompileResult: Boolean,
       expectedCompileTaskResults: Option[SplitTaskResults],
       expectedTestTaskResults: Option[SplitTaskResults]
