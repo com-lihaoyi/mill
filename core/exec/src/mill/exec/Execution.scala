@@ -201,7 +201,7 @@ private[mill] case class Execution(
                 // Always show failed count in header if there are failures
                 logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
 
-                if (failFast && res.newResults.values.exists(r => r.asFailing.isDefined))
+                if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)
 
                 val endTime = System.nanoTime() / 1000
