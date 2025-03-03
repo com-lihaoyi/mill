@@ -151,9 +151,8 @@ private[mill] case class Execution(
 
               val verboseKeySuffix = s"/${terminals0.size}"
               logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
-              if (failed.get()) {
-                None
-              } else {
+              if (failed.get()) None
+              else {
                 val upstreamResults = upstreamValues
                   .iterator
                   .flatMap(_.iterator.flatMap(_.newResults))
