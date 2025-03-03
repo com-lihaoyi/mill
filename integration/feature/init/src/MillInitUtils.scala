@@ -4,28 +4,37 @@ import mill.testkit.IntegrationTester
 import mill.testkit.IntegrationTester.EvalResult
 import utest.*
 
-object MillInitUtils {
-  val defaultInitCommand =
-    Seq("init", "--base-module", "BaseModule", "--deps-object", "Deps", "--merge")
+import scala.collection.immutable.SortedSet
 
-  case class SplitResolvedTasks(
-      all: Seq[String],
-      successful: Seq[String],
-      failed: Seq[String]
+object MillInitUtils {
+  val defaultInitCommandWithoutMerge =
+    Seq("init", "--base-module", "BaseModule", "--deps-object", "Deps")
+  val defaultInitCommand =
+    defaultInitCommandWithoutMerge :+ "--merge"
+
+  // `SortedSet` is used so it's easier when the results are compared or printed.
+  case class SplitTaskResults(
+      all: SortedSet[String],
+      successful: SortedSet[String],
+      failed: SortedSet[String]
   ) {
-    val allSorted = all.sorted
     {
-      val successfulAndFailedSorted = (successful ++ failed).sorted
-      require(allSorted == successfulAndFailedSorted, s"$allSorted != $successfulAndFailedSorted")
+      val successfulAndFailed = successful ++ failed
+      require(all == successfulAndFailed, s"$all != $successfulAndFailed")
     }
+
+    // Quotes added so the actual results can be easily copied into code.
+    override def toString: String =
+      s"SplitTaskResults(successful=${successful.map(task => s"\"$task\"")}, " +
+        s"failed=${failed.map(task => s"\"$task\"")})"
   }
-  object SplitResolvedTasks {
+  object SplitTaskResults {
     def apply(
-        all: Seq[String] | Null = null,
-        successful: Seq[String] | Null = null,
-        failed: Seq[String] | Null = null
+        all: SortedSet[String] | Null = null,
+        successful: SortedSet[String] | Null = null,
+        failed: SortedSet[String] | Null = null
     ) =
-      new SplitResolvedTasks(
+      new SplitTaskResults(
         if (all != null) all else successful ++ failed,
         if (successful != null) successful else all diff failed,
         if (failed != null) failed else all diff successful
@@ -34,9 +43,10 @@ object MillInitUtils {
 
   /**
    * @param expectedAllSourceFileNums a map from the `allSourceFiles` task to the number of files
-   * @param expectedCompileTasks [[ None ]] to denote that the `resolve __.compile` task fails
-   * @param expectedTestTasks [[ None ]] to denote that the `resolve __.test` task fails
-   * @return
+   * @param expectedCompileTaskResults [[ None ]] to denote that the `resolve __.compile` task fails
+   * @param expectedTestTaskResults [[ None ]] to denote that the `resolve __.test` task fails
+   * @param taskResultsFailFast whether to fail the whole test immediately if a `compile` or `test` task fails.
+   *                            defaults to [[ false ]] so the actual [[SplitTaskResults]] is printed for more efficient debugging when the test fails.
    */
   def testMillInit(
       tester: IntegrationTester,
@@ -44,9 +54,10 @@ object MillInitUtils {
       modifyConvertedBuild: () => Unit = () => (),
       expectedInitResult: Boolean = true,
       expectedAllSourceFileNums: Map[String, Int],
+      taskResultsFailFast: Boolean = false,
       // expectedCompileResult: Boolean,
-      expectedCompileTasks: Option[SplitResolvedTasks],
-      expectedTestTasks: Option[SplitResolvedTasks]
+      expectedCompileTaskResults: Option[SplitTaskResults],
+      expectedTestTaskResults: Option[SplitTaskResults]
   ) = {
     import tester.*
 
@@ -72,35 +83,61 @@ object MillInitUtils {
     assert(compileResult.isSuccess == expectedCompileResult)
      */
 
-    def testAllResolvedTasks(taskName: String, expected: Option[SplitResolvedTasks]) = {
-      val resolveAllTasksResult = eval(("resolve", s"__.$taskName"))
-      expected.fold(
-        assert(!resolveAllTasksResult.isSuccess)
-      )(expected => {
-        assert(resolveAllTasksResult.isSuccess)
-        val resolvedAllTasks = outSeq(resolveAllTasksResult)
-        Predef.assert(
-          expected.allSorted == resolvedAllTasks,
-          s"""
-             |expected: ${expected.allSorted}
-             |resolved: $resolvedAllTasks
-             |""".stripMargin
-        )
+    if (taskResultsFailFast) {
+      def testSplitTaskResults(taskName: String, expected: Option[SplitTaskResults]) = {
+        val resolveAllTasksResult = eval(("resolve", s"__.$taskName"))
+        expected.fold(
+          assert(!resolveAllTasksResult.isSuccess)
+        )(expected => {
+          assert(resolveAllTasksResult.isSuccess)
+          val resolvedAllTasks = outSortedSet(resolveAllTasksResult)
+          assertEqWithFailureComparisonOnSeparateLines(expected.all, resolvedAllTasks)
 
-        for (task <- expected.successful)
-          Predef.assert(eval(task).isSuccess, s"task $task failed")
+          for (task <- expected.successful)
+            Predef.assert(eval(task).isSuccess, s"task $task failed")
 
-        for (task <- expected.failed)
-          Predef.assert(!eval(task).isSuccess, s"task $task succeeded")
-      })
+          for (task <- expected.failed)
+            Predef.assert(!eval(task).isSuccess, s"task $task succeeded")
+        })
+      }
+
+      testSplitTaskResults("compile", expectedCompileTaskResults)
+      testSplitTaskResults("test", expectedTestTaskResults)
+    } else {
+      def getSplitTaskResults(taskName: String) = {
+        val resolveAllTasksResult = eval(("resolve", s"__.$taskName"))
+        Option.when(resolveAllTasksResult.isSuccess) {
+          val resolvedAllTasks = outSortedSet(resolveAllTasksResult)
+          val (successful, failed) = resolvedAllTasks.partition(task => eval(task).isSuccess)
+          SplitTaskResults(resolvedAllTasks, successful, failed)
+        }
+      }
+
+      assertEqWithFailureComparisonOnSeparateLines(
+        expectedCompileTaskResults,
+        getSplitTaskResults("compile")
+      )
+      assertEqWithFailureComparisonOnSeparateLines(
+        expectedTestTaskResults,
+        getSplitTaskResults("test")
+      )
     }
-
-    testAllResolvedTasks("compile", expectedCompileTasks)
-    testAllResolvedTasks("test", expectedTestTasks)
   }
+
+  private def assertEqWithFailureComparisonOnSeparateLines[T](expected: T, actual: T) =
+    Predef.assert(
+      expected == actual,
+      s"""
+         |expected: $expected
+         |actual: $actual
+         |""".stripMargin
+    )
 
   def outSeq(evalResult: EvalResult) =
     evalResult.out.linesIterator.toSeq.sorted
+
+  def outSortedSet(evalResult: EvalResult) =
+    SortedSet.from(evalResult.out.linesIterator)
 
   def compileTask(module: String): String =
     s"$module.compile"

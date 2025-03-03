@@ -387,10 +387,11 @@ object BuildGenUtil {
     else itr.mkString(start, sep, end)
   }
 
-  def renderStringSeqWithSuper(
+  def renderSeqWithSuper(
       defName: String,
       args: Seq[String],
       superArgs: Seq[String] = Seq.empty,
+      elementType: String,
       transform: String => String
   ): Option[String] =
     if (args.startsWith(superArgs)) {
@@ -403,25 +404,28 @@ object BuildGenUtil {
           .mkString(s"super.$defName() ++ Seq(", ",", ")"))
     } else
       Some(
-        if (args.isEmpty) "Seq.empty[String]" // The inferred type is `Seq[Nothing]` otherwise.
+        if (args.isEmpty)
+          s"Seq.empty[$elementType]" // The inferred type is `Seq[Nothing]` otherwise.
         else args.iterator.map(transform).mkString("Seq(", ",", ")")
       )
 
-  def renderStringSeqTargetDefWithSuper(
+  def renderSeqTargetDefWithSuper(
       defName: String,
       args: Seq[String],
       superArgs: Seq[String] = Seq.empty,
+      elementType: String,
       transform: String => String
   ) =
-    renderStringSeqWithSuper(defName, args, superArgs, transform).map(s"def $defName = " + _)
+    renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s"def $defName = " + _)
 
-  def renderStringSeqTaskDefWithSuper(
+  def renderSeqTaskDefWithSuper(
       defName: String,
       args: Seq[String],
       superArgs: Seq[String] = Seq.empty,
+      elementType: String,
       transform: String => String
   ) =
-    renderStringSeqWithSuper(defName, args, superArgs, transform).map(s =>
+    renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s =>
       s"def $defName = Task.Anon { $s }"
     )
 
@@ -464,7 +468,7 @@ object BuildGenUtil {
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
 
   def renderJavacOptions(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
-    renderStringSeqTargetDefWithSuper("javacOptions", args, superArgs, escape).getOrElse("")
+    renderSeqTargetDefWithSuper("javacOptions", args, superArgs, "String", escape).getOrElse("")
 
   def renderScalaVersion(arg: Option[String], superArg: Option[String] = None): String =
     if (arg != superArg) arg.fold("")(scalaVersion => s"def scalaVersion = ${escape(scalaVersion)}")
@@ -474,15 +478,22 @@ object BuildGenUtil {
       args: Option[Seq[String]],
       superArgs: Option[Seq[String]] = None
   ): String =
-    renderStringSeqTargetDefWithSuper(
+    renderSeqTargetDefWithSuper(
       "scalacOptions",
       args.getOrElse(Seq.empty),
       superArgs.getOrElse(Seq.empty),
+      "String",
       escape
     ).getOrElse("")
 
   def renderRepositories(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
-    renderStringSeqTaskDefWithSuper("repositoriesTask", args, superArgs, identity).getOrElse("")
+    renderSeqTaskDefWithSuper(
+      "repositoriesTask",
+      args,
+      superArgs,
+      "coursier.Repository",
+      identity
+    ).getOrElse("")
 
   def renderResources(args: IterableOnce[os.SubPath]): String =
     optional(

@@ -5,6 +5,8 @@ import mill.integration.MillInitSbtUtils.bumpSbtTo1107
 import mill.integration.MillInitUtils.*
 import utest.*
 
+import scala.collection.immutable.SortedSet
+
 object MillInitSbtUtils {
   def bumpSbtTo1107(workspacePath: os.Path) =
     // bump sbt version to resolve compatibility issues with lower sbt versions and higher JDK versions
@@ -28,9 +30,12 @@ object MillInitScala3ExampleProjectTests extends BuildGenTestSuite {
       testMillInit(
         _,
         expectedAllSourceFileNums = Map("allSourceFiles" -> 13, "test.allSourceFiles" -> 1),
-        expectedCompileTasks =
-          Some(SplitResolvedTasks(successful = Seq("compile", "test.compile"), failed = Seq.empty)),
-        expectedTestTasks = Some(SplitResolvedTasks(successful = Seq("test"), failed = Seq.empty))
+        expectedCompileTaskResults = Some(SplitTaskResults(
+          successful = SortedSet("compile", "test.compile"),
+          failed = SortedSet.empty
+        )),
+        expectedTestTaskResults =
+          Some(SplitTaskResults(successful = SortedSet("test"), failed = SortedSet.empty))
       )
     )
   }
@@ -51,9 +56,13 @@ object MillInitSbtScalaCsv200Tests extends BuildGenTestSuite {
       testMillInit(
         tester,
         expectedAllSourceFileNums = Map("allSourceFiles" -> 10, "test.allSourceFiles" -> 6),
-        expectedCompileTasks =
-          Some(SplitResolvedTasks(successful = Seq(), failed = Seq("compile", "test.compile"))),
-        expectedTestTasks = Some(SplitResolvedTasks(successful = Seq(), failed = Seq("test")))
+        expectedCompileTaskResults =
+          Some(SplitTaskResults(
+            successful = SortedSet(),
+            failed = SortedSet("compile", "test.compile")
+          )),
+        expectedTestTaskResults =
+          Some(SplitTaskResults(successful = SortedSet(), failed = SortedSet("test")))
       )
     }
   }
@@ -74,9 +83,13 @@ object MillInitSbtScalaCsv136Tests extends BuildGenTestSuite {
       testMillInit(
         tester,
         expectedAllSourceFileNums = Map("allSourceFiles" -> 11, "test.allSourceFiles" -> 6),
-        expectedCompileTasks =
-          Some(SplitResolvedTasks(successful = Seq("compile", "test.compile"), failed = Seq.empty)),
-        expectedTestTasks = Some(SplitResolvedTasks(successful = Seq("test"), failed = Seq.empty))
+        expectedCompileTaskResults =
+          Some(SplitTaskResults(
+            successful = SortedSet("compile", "test.compile"),
+            failed = SortedSet.empty
+          )),
+        expectedTestTaskResults =
+          Some(SplitTaskResults(successful = SortedSet("test"), failed = SortedSet.empty))
       )
     }
   }
@@ -108,7 +121,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
        */
       writeMillJvmVersionTemurin11(workspacePath)
 
-      val submodules = Seq("common", "multi1", "multi2")
+      val submodules = SortedSet("common", "multi1", "multi2")
       testMillInit(
         tester,
         expectedAllSourceFileNums = Map(
@@ -120,12 +133,12 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
           "multi2.test.allSourceFiles" -> 1,
           "common.allSourceFiles" -> 1
         ),
-        expectedCompileTasks = Some(SplitResolvedTasks(
-          successful = Seq("compile") ++ submodules.flatMap(allCompileTasks),
-          failed = Seq.empty
+        expectedCompileTaskResults = Some(SplitTaskResults(
+          successful = SortedSet("compile") ++ submodules.flatMap(allCompileTasks),
+          failed = SortedSet.empty
         )),
-        expectedTestTasks =
-          Some(SplitResolvedTasks(successful = submodules.map(testTask), failed = Seq.empty))
+        expectedTestTaskResults =
+          Some(SplitTaskResults(successful = submodules.map(testTask), failed = SortedSet.empty))
       )
     }
   }
@@ -141,7 +154,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
      */
     val url = "https://github.com/gatling/gatling/archive/refs/tags/v3.13.4.zip"
 
-    val submodules = Seq(
+    val submodules = SortedSet(
       "gatling-app",
       "gatling-benchmarks",
       "gatling-charts",
@@ -164,7 +177,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
       "gatling-samples",
       "gatling-test-framework"
     )
-    val submodulesWithoutTests = Seq(
+    val submodulesWithoutTests = SortedSet(
       "gatling-app",
       "gatling-benchmarks",
       "gatling-quicklens",
@@ -216,11 +229,11 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
           "gatling-core-java.allSourceFiles" -> 86,
           "gatling-http-java.test.allSourceFiles" -> 3
         ),
-        expectedCompileTasks = Some(SplitResolvedTasks(
-          all = Seq("compile")
+        expectedCompileTaskResults = Some(SplitTaskResults(
+          all = SortedSet("compile")
             ++ submodulesWithTests.flatMap(allCompileTasks)
             ++ submodulesWithoutTests.map(compileTask),
-          failed = Seq(
+          failed = SortedSet(
             /*
             `...gatling-benchmarks/src/main/scala/io/gatling/Utils.scala:26:19: no arguments allowed for nullary method toString: (): String`
             This fails to compile with sbt too. See https://github.com/gatling/gatling/issues/4612.
@@ -228,9 +241,9 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
             "gatling-benchmarks.compile"
           )
         )),
-        expectedTestTasks = Some(SplitResolvedTasks(
+        expectedTestTaskResults = Some(SplitTaskResults(
           all = submodulesWithTests.map(testTask),
-          failed = Seq(
+          failed = SortedSet(
             /*
             `java.util.MissingResourceException: Can't find bundle for base name gatling-version, locale ...`
             The version file in resources `gatling-commons/src/main/resources/gatling-version.properties`
