@@ -164,7 +164,6 @@ class MillBuildBootstrap(
       } else {
 
         def renderFailure(e: Throwable): String = {
-          mill.constants.DebugLog.println("renderFailure " + e)
           e match {
             case e: ExceptionInInitializerError if e.getCause != null => renderFailure(e.getCause)
             case e: NoClassDefFoundError if e.getCause != null => renderFailure(e.getCause)
