@@ -178,7 +178,6 @@ class MillBuildBootstrap(
           }
         }
 
-        mill.constants.DebugLog.println("rootModuleRes")
         val rootModuleRes = nestedState.frames.headOption match {
           case None => Result.Success(nestedState.bootstrapModuleOpt.get)
           case Some(nestedFrame) =>
