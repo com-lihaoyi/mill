@@ -92,7 +92,7 @@ object SbtBuildGenMain
 
     println("Running the added `millInitExportBuild` sbt task to export the build")
 
-    val exitCode = (
+    try {
       if (isWindows) {
         /*
         `-addPluginSbtFile` somehow doesn't work on Windows, therefore, the ".sbt" file is put directly in the sbt "project" directory.
@@ -119,14 +119,14 @@ object SbtBuildGenMain
           cwd = workspace,
           stdout = os.Inherit
         )
-    )
-    .exitCode
 
-    // println("Exit code from running the `millInitExportBuild` sbt task: " + exitCode)
-    if (exitCode != 0)
-      println(
-        "The sbt command to run the `millInitExportBuild` sbt task has likely failed, please update the project's sbt version to the latest or our tested version v1.10.7, and try again."
-      )
+    } catch {
+      case e: os.SubprocessException => throw RuntimeException(
+          "The sbt command to run the `millInitExportBuild` sbt task has failed, please update the project's sbt version to the latest or our tested version v1.10.7, and try again.",
+          e
+        )
+      case t: Throwable => throw t
+    }
 
     val buildExportPickled = os.read(workspace / "target" / "mill-init-build-export.json")
     // TODO This is mainly for debugging purposes. Comment out or uncomment this line as needed.
