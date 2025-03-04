@@ -1,0 +1,105 @@
+package build
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = "2.12.15"
+  def ivyDeps = Seq(
+    ivy"org.apache.spark::spark-core:3.5.4",
+    ivy"org.apache.spark::spark-sql:3.5.4"
+  )
+
+  def forkArgs = Seq(
+    "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+    "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    "--add-opens=java.base/java.util=ALL-UNNAMED",
+    "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+  )
+
+  def prependShellScript = ""
+
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq(
+      "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+      "--add-opens=java.base/java.nio=ALL-UNNAMED",
+      "--add-opens=java.base/java.util=ALL-UNNAMED",
+      "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+    )
+  }
+
+}
+
+/** Usage
+
+> ./mill run
+...
+Running analysis: top_products
+Results for top_products:
++----------+------------+-----------+----------+
+|product_id|product_name|total_sales|sales_rank|
++----------+------------+-----------+----------+
+|P00008    |Product 8   |4912       |1         |
+|P00016    |Product 16  |4312       |2         |
+|P00019    |Product 19  |4203       |3         |
+|P00017    |Product 17  |3995       |4         |
+|P00020    |Product 20  |3158       |5         |
+|P00013    |Product 13  |2946       |6         |
+|P00007    |Product 7   |2845       |7         |
+|P00003    |Product 3   |2744       |8         |
+|P00006    |Product 6   |2725       |9         |
+|P00005    |Product 5   |2543       |10        |
+|P00018    |Product 18  |2394       |11        |
+|P00004    |Product 4   |2361       |12        |
+|P00009    |Product 9   |2171       |13        |
+|P00002    |Product 2   |2088       |14        |
+|P00012    |Product 12  |1784       |15        |
+|P00011    |Product 11  |1605       |16        |
+|P00014    |Product 14  |1144       |17        |
+|P00010    |Product 10  |1010       |18        |
+|P00001    |Product 1   |929        |19        |
+|P00015    |Product 15  |887        |20        |
++----------+------------+-----------+----------+
+...
+Running analysis: monthly_sales_trend
+Results for monthly_sales_trend:
++----+-----+-------------+----------------+
+|year|month|monthly_sales|cumulative_sales|
++----+-----+-------------+----------------+
+|2024|2    |703          |703             |
+|2024|3    |5241         |5944            |
+|2024|4    |4741         |10685           |
+|2024|5    |6162         |16847           |
+|2024|6    |2136         |18983           |
+|2024|7    |4009         |22992           |
+|2024|8    |2527         |25519           |
+|2024|9    |2886         |28405           |
+|2024|10   |4997         |33402           |
+|2024|11   |3487         |36889           |
+|2024|12   |3219         |40108           |
+|2025|1    |3597         |43705           |
+|2025|2    |7051         |50756           |
++----+-----+-------------+----------------+
+...
+Running analysis: sales_by_region
+Results for sales_by_region:
++-------------+-----------+
+|region       |total_sales|
++-------------+-----------+
+|International|15378      |
+|West         |10796      |
+|North        |9466       |
+|East         |8147       |
+|South        |6969       |
++-------------+-----------+
+...
+
+> ./mill test
+...foo.FooTests.DataLoadingTest...
+...foo.FooTests.SalesByRegionAnalysis...
+...foo.FooTests.TopProductsAnalysis...
+...foo.FooTests.MonthlyTrendAnalysis...
+...Tests: 4, Passed: 4, Failed: 0...
+
+*/

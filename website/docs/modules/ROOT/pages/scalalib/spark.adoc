@@ -15,3 +15,23 @@ include::partial$example/scalalib/spark/1-hello-spark.adoc[]
 == Semi realistic spark project with spark submit
 
 include::partial$example/scalalib/spark/3-semi-realistic.adoc[]
+
+== Spark RDD Transformation & Action
+
+include::partial$example/scalalib/spark/4-rdd-spark.adoc[]
+
+== Spark SQL Analytics
+
+include::partial$example/scalalib/spark/5-sql-analytics.adoc[]
+
+== Spark Streaming
+
+include::partial$example/scalalib/spark/6-spark-streaming.adoc[]
+
+== Spark MLlib
+
+include::partial$example/scalalib/spark/7-spark-mllib.adoc[]
+
+== Spark GraphX
+
+include::partial$example/scalalib/spark/8-spark-graphx.adoc[]
