@@ -65,6 +65,12 @@
           "version": "<scala-version>"
         }
       ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-sourcegen"
+      },
+      "modules": []
     }
   ]
 }

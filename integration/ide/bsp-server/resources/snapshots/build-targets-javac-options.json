@@ -59,6 +59,16 @@
         "file:///workspace/hello-scala/compile-resources"
       ],
       "classDirectory": "file:///workspace/out/hello-scala/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-sourcegen"
+      },
+      "options": [],
+      "classpath": [
+        "file:///workspace/hello-sourcegen/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/hello-sourcegen/compile.dest/classes"
     }
   ]
 }
