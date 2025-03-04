@@ -264,8 +264,8 @@ trait PublishModule extends TypeScriptModule {
     }
   }
 
-  //need sandboxing bypass because we are copying moduleDir
-  def copyModuleDir = Task.Anon{
+  // need sandboxing bypass because we are copying moduleDir
+  def copyModuleDir = Task.Anon {
     os.checker.withValue(os.Checker.Nop) {
       os.copy(moduleDir, Task.dest / "typescript", mergeFolders = true)
     }
@@ -275,7 +275,7 @@ trait PublishModule extends TypeScriptModule {
     pubSymLink()
     os.checker.withValue(os.Checker.Nop) {
       os.write(
-        Task.dest  / "tsconfig.json",
+        Task.dest / "tsconfig.json",
         ujson.Obj(
           "compilerOptions" -> ujson.Obj.from(
             compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
@@ -292,7 +292,7 @@ trait PublishModule extends TypeScriptModule {
         cwd = Task.dest
       )
     }
-    (PathRef(Task.dest ), PathRef(Task.dest / "typescript"))
+    (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
 
   // Compilation Options
