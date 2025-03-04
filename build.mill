@@ -201,7 +201,7 @@ object Deps {
   val jarjarabrams =
     ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0".withDottyCompat(scalaVersion)
   val requests = ivy"com.lihaoyi::requests:0.9.0"
-  val logback = ivy"ch.qos.logback:logback-classic:1.5.16"
+  val logback = ivy"ch.qos.logback:logback-classic:1.5.17"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
   val kotlinVersion = "2.0.21"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
