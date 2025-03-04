@@ -235,13 +235,13 @@ private class MillBuildServer(
           Task.Anon {
             module.sources().map(p => sourceItem(p.path, false)) ++
               module.generatedSources().map(p => sourceItem(p.path, true)) ++
-              module.predictedGeneratedSourceRoots().map(p => sourceItem(p.path, true))
+              module.predictedGeneratedSources().map(p => sourceItem(p.path, true))
           }
         case module: JavaModule =>
           Task.Anon {
             module.sources().map(p => sourceItem(p.path, false)) ++
               module.generatedSources().map(p => sourceItem(p.path, true)) ++
-              module.predictedGeneratedSourceRoots().map(p => sourceItem(p.path, true))
+              module.predictedGeneratedSources().map(p => sourceItem(p.path, true))
           }
       }
     ) {

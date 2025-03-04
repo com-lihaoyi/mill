@@ -41,7 +41,7 @@ object BloopTests extends TestSuite {
         ivy"org.postgresql:postgresql:42.3.3"
       )
 
-      def someGeneratedSource = Task(generatedSourceRoots = Seq(os.SubPath("scala"))) {
+      def someGeneratedSource = Task(deferredGeneratedSourceRoots = Seq(os.SubPath("scala"))) {
         val contents = """|package foo
                           |
                           |case class GeneratedFoo()
@@ -58,7 +58,7 @@ object BloopTests extends TestSuite {
         crash()
       }
 
-      def sourceGenerators = List(someGeneratedSource, someBuggyGeneratedSource)
+      def deferredGeneratedSourceTasks = List(someGeneratedSource, someBuggyGeneratedSource)
 
       object test extends ScalaTests with TestModule.Utest
     }
@@ -149,7 +149,7 @@ object BloopTests extends TestSuite {
           workdir / "scalaModule/src",
           unitTester.outPath / "scalaModule" / "someGeneratedSource.dest" / "scala",
           // Despite the task being buggy, the Bloop configuration is still produced.
-          // The task is not setting `generatedSourceRoots` explicitly, which is interpreted
+          // The task is not setting `deferredGeneratedSourceRoots` explicitly, which is interpreted
           // as the corresponding T.dest being the source root.
           unitTester.outPath / "scalaModule" / "someBuggyGeneratedSource.dest"
         ))

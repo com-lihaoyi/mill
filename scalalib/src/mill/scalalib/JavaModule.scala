@@ -852,10 +852,10 @@ trait JavaModule
    * [[generatedSources]] lies in the fact that IDE-related tasks
    * (BSP/Bloop/GenIdea) will not run the tasks, but will use them to statically
    * determine the location of the source code they will produce by looking up their
-   * [[Task#generatedSourceRoots]], knowing that these roots will be present under
+   * [[Task#deferredGeneratedSourceRoots]], knowing that these roots will be present under
    * the dest directories once the task is run.
    */
-  def sourceGenerators: Seq[NamedTask[_]] = Seq.empty
+  def deferredGeneratedSourceTasks: Seq[NamedTask[_]] = Seq.empty
 
   private def predictGeneratedSourceRoots(task: NamedTask[_])(workspace: os.Path): Seq[os.Path] = {
     val dest = mill
@@ -863,28 +863,28 @@ trait JavaModule
       .EvaluatorPaths
       .resolveDestPaths(workspace / "out", task)
       .dest
-    val explicitSourceRoots = task.generatedSourceRoots
+    val explicitSourceRoots = task.deferredGeneratedSourceRoots
     if (explicitSourceRoots.isEmpty) Seq(dest)
     else explicitSourceRoots.map(subPath => dest / subPath)
   }
 
   /**
-   * Computes the list of source roots that will be produced by [[sourceGenerators]] without
+   * Computes the list of source roots that will be produced by [[deferredGeneratedSourceTasks]] without
    * actually running the generators in question.
    */
-  def predictedGeneratedSourceRoots: T[Seq[PathRef]] = T {
+  def predictedGeneratedSources: T[Seq[PathRef]] = T {
     val ws = T.workspace
-    sourceGenerators.flatMap(t => predictGeneratedSourceRoots(t)(ws)).map(PathRef(_))
+    deferredGeneratedSourceTasks.flatMap(t => predictGeneratedSourceRoots(t)(ws)).map(PathRef(_))
   }
 
   /**
    * Runs the lazy source generators, returning references to the expanded generated source roots
    * they are supposed to have written code in.
    */
-  final def generatedSourceRoots: T[Seq[PathRef]] = T {
+  final def deferredGeneratedSources: T[Seq[PathRef]] = T {
     val ws = T.workspace
     T.sequence {
-      sourceGenerators.asInstanceOf[Seq[T[Any]]].map { t =>
+      deferredGeneratedSourceTasks.asInstanceOf[Seq[T[Any]]].map { t =>
         t.map((_: Any) => (ws: os.Path) => predictGeneratedSourceRoots(t)(ws))
       }
     }().flatMap(_.apply(ws)).map(PathRef(_))
@@ -892,16 +892,16 @@ trait JavaModule
 
   /**
    * Task that IDE-configuration tasks should rely on, as they avoid eagerly
-   * running source generators referenced by [[sourceGenerators]]
+   * running source generators referenced by [[deferredGeneratedSourceTasks]]
    */
   def ideSources: T[Seq[PathRef]] =
-    Task { sources() ++ generatedSources() ++ predictedGeneratedSourceRoots() }
+    Task { sources() ++ generatedSources() ++ predictedGeneratedSources() }
 
   /**
    * The folders containing all source files fed into the compiler
    */
   def allSources: T[Seq[PathRef]] =
-    Task { sources() ++ generatedSources() ++ generatedSourceRoots() }
+    Task { sources() ++ generatedSources() ++ deferredGeneratedSources() }
 
   /**
    * All individual source files fed into the Java compiler

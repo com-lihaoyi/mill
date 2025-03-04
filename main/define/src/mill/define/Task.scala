@@ -41,7 +41,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
    * A list of paths under the `Task.dest` folder that should be considered root source directories
    * when generating configuration for IDEs.
    */
-  def generatedSourceRoots: Seq[os.SubPath] = Seq.empty
+  def deferredGeneratedSourceRoots: Seq[os.SubPath] = Seq.empty
 
   def asTarget: Option[Target[T]] = None
   def asCommand: Option[Command[T]] = None
@@ -196,8 +196,8 @@ object Task extends TaskBase {
   def apply(
       t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false,
-      generatedSourceRoots: Seq[os.SubPath] = Seq.empty
-  ): ApplyFactory = new ApplyFactory(persistent, generatedSourceRoots)
+      deferredGeneratedSourceRoots: Seq[os.SubPath] = Seq.empty
+  ): ApplyFactory = new ApplyFactory(persistent, deferredGeneratedSourceRoots)
 
   // Kept for bincompat reasons
   protected def apply(
@@ -207,7 +207,7 @@ object Task extends TaskBase {
 
   class ApplyFactory private[mill] (
       val persistent: Boolean,
-      val generatedSourceRoots: Seq[os.SubPath]
+      val deferredGeneratedSourceRoots: Seq[os.SubPath]
   ) extends TaskBase.TraverseCtxHolder {
     // Kept for bincompat reasons
     protected def this(persistent: Boolean) = this(persistent, Seq.empty)
@@ -436,9 +436,9 @@ object Target extends TaskBase {
           val t1 = taskIsPrivate.splice
           val applyFactory = c.prefix.splice.asInstanceOf[Task.ApplyFactory]
           if (applyFactory.persistent) {
-            new PersistentImpl[T](s1, c1, r1, t1, applyFactory.generatedSourceRoots)
+            new PersistentImpl[T](s1, c1, r1, t1, applyFactory.deferredGeneratedSourceRoots)
           } else {
-            new TargetImpl[T](s1, c1, r1, t1, applyFactory.generatedSourceRoots)
+            new TargetImpl[T](s1, c1, r1, t1, applyFactory.deferredGeneratedSourceRoots)
           }
         }
       )
@@ -830,7 +830,7 @@ class TargetImpl[+T](
     val ctx0: mill.define.Ctx,
     val readWriter: RW[_],
     val isPrivate: Option[Boolean],
-    override val generatedSourceRoots: Seq[os.SubPath]
+    override val deferredGeneratedSourceRoots: Seq[os.SubPath]
 ) extends Target[T] {
 
   // Added for bincompat
@@ -851,8 +851,8 @@ class PersistentImpl[+T](
     ctx0: mill.define.Ctx,
     readWriter: RW[_],
     isPrivate: Option[Boolean],
-    generatedSourceRoots: Seq[os.SubPath]
-) extends TargetImpl[T](t, ctx0, readWriter, isPrivate, generatedSourceRoots) {
+    deferredGeneratedSourceRoots: Seq[os.SubPath]
+) extends TargetImpl[T](t, ctx0, readWriter, isPrivate, deferredGeneratedSourceRoots) {
   // Added for bincompat
   def this(t: Task[T], ctx0: mill.define.Ctx, readWriter: RW[_], isPrivate: Option[Boolean]) =
     this(t, ctx0, readWriter, isPrivate, Seq.empty)
