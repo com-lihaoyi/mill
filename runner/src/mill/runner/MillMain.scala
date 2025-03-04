@@ -313,13 +313,13 @@ object MillMain {
                       }
 
                       loopRes = (isSuccess, evalStateOpt)
-                    } // while repeatForBsp
-                    bspContext.foreach { ctx =>
-                      streams.err.println(
-                        s"Exiting BSP runner loop. Stopping BSP server. Last result: ${BspContext.bspServerHandle.lastResult}"
-                      )
-                      BspContext.bspServerHandle.stop()
                     }
+                  } // while repeatForBsp
+                  bspContext.foreach { ctx =>
+                    streams.err.println(
+                      s"Exiting BSP runner loop. Stopping BSP server. Last result: ${BspContext.bspServerHandle.lastResult}"
+                    )
+                    BspContext.bspServerHandle.stop()
                   }
 
                   // return with evaluation result
