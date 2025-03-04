@@ -127,7 +127,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   // mv generated sources for base mod and its deps
-  private def pubGenSources(publishDir:os.Path): T[Unit] = Task.Anon{
+  private def pubGenSources(publishDir: os.Path): T[Unit] = Task.Anon {
     val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
     allGeneratedSources.foreach { target =>
       os.checker.withValue(os.Checker.Nop) {
@@ -138,7 +138,7 @@ trait PublishModule extends TypeScriptModule {
     }
   }
 
-  private def pubCopyModDeps(publishDir:os.Path): T[Unit] = Task.Anon {
+  private def pubCopyModDeps(publishDir: os.Path): T[Unit] = Task.Anon {
     val targets = pubModDeps()
 
     targets.foreach { target =>
@@ -254,7 +254,7 @@ trait PublishModule extends TypeScriptModule {
     ()
   }
 
-  private def pubSymLink(publishDir:os.Path): Task[Unit] = Task {
+  private def pubSymLink(publishDir: os.Path): Task[Unit] = Task {
     pubTsPatchInstall() // patch typescript compiler => use custom transformers
     os.checker.withValue(os.Checker.Nop) {
       os.symlink(publishDir / "node_modules", npmInstall().path / "node_modules")
@@ -264,7 +264,7 @@ trait PublishModule extends TypeScriptModule {
     }
   }
 
-  def copyModuleDir(publishDir:os.Path) ={
+  def copyModuleDir(publishDir: os.Path) = {
     os.copy(moduleDir, publishDir / "typescript", mergeFolders = true)
   }
 
