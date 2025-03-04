@@ -56,7 +56,9 @@ object MillInitUtils {
   }
 
   /**
-   * @param expectedAllSourceFileNums a map from the `allSourceFiles` task to the number of files
+   * @param expectedAllSourceFileNums a map from the `allSourceFiles` task to the number of files.
+   *                                  Tip: use the following regex `([\w+\.-]+)( -> \d+)` with `"$1"$2`
+   *                                  to replace string adding quotes around the task names when copying from the result.
    * @param expectedCompileTaskResults [[None]] to denote that the `resolve __.compile` task fails
    * @param expectedTestTaskResults [[None]] to denote that the `resolve __.test` task fails
    */

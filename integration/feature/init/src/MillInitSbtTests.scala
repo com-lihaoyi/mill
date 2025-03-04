@@ -152,7 +152,8 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
     - 1.8 MB
     - sbt 1.10.7
      */
-    val url = "https://github.com/gatling/gatling/archive/refs/tags/v3.13.4.zip"
+    val url =
+      "https://github.com/gatling/gatling/archive/711b8d4e7ac7aaa8d3173b2d77fb5e9c7843695a.zip"
 
     val submodules = SortedSet(
       "gatling-app",
@@ -217,7 +218,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
           "gatling-netty-util.allSourceFiles" -> 4,
           "gatling-redis.test.allSourceFiles" -> 2,
           "gatling-http.allSourceFiles" -> 169,
-          "gatling-charts.allSourceFiles" -> 60,
+          "gatling-charts.allSourceFiles" -> 58,
           "gatling-test-framework.allSourceFiles" -> 5,
           "gatling-recorder.test.allSourceFiles" -> 10,
           "gatling-benchmarks.allSourceFiles" -> 3,
@@ -230,16 +231,10 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
           "gatling-http-java.test.allSourceFiles" -> 3
         ),
         expectedCompileTaskResults = Some(SplitTaskResults(
-          all = SortedSet("compile")
+          successful = SortedSet("compile")
             ++ submodulesWithTests.flatMap(allCompileTasks)
             ++ submodulesWithoutTests.map(compileTask),
-          failed = SortedSet(
-            /*
-            `...gatling-benchmarks/src/main/scala/io/gatling/Utils.scala:26:19: no arguments allowed for nullary method toString: (): String`
-            This fails to compile with sbt too. See https://github.com/gatling/gatling/issues/4612.
-             */
-            "gatling-benchmarks.compile"
-          )
+          failed = SortedSet.empty
         )),
         expectedTestTaskResults = Some(SplitTaskResults(
           all = submodulesWithTests.map(testTask),
