@@ -68,7 +68,7 @@ object MillInitUtils {
       modifyConvertedBuild: () => Unit = () => (),
       expectedInitResult: Boolean = true,
       expectedAllSourceFileNums: Map[String, Int],
-      moduleTaskTestMode: ModuleTaskTestMode = ModuleTaskTestMode.ShowActual, // TODO revert
+      moduleTaskTestMode: ModuleTaskTestMode = ModuleTaskTestMode.FailFast(true),
       // expectedCompileResult: Boolean,
       expectedCompileTaskResults: Option[SplitTaskResults],
       expectedTestTaskResults: Option[SplitTaskResults]
@@ -103,7 +103,8 @@ object MillInitUtils {
             taskName: String,
             expectedTaskResults: Option[SplitTaskResults]
         ) = {
-          val resolveAllTasksResult = eval(("resolve", s"__.$taskName"))
+          val wildcardAllTasks = s"__.$taskName"
+          val resolveAllTasksResult = eval(("resolve", wildcardAllTasks))
           expectedTaskResults.fold(
             assert(!resolveAllTasksResult.isSuccess)
           )(expected => {
@@ -115,8 +116,12 @@ object MillInitUtils {
               val tasks = expected.successful
               if (tasks.nonEmpty)
                 assert(eval(
-                  if (tasks.size == 1) tasks.head
-                  else tasks.mkString("{", ",", "}")
+                  if (expected.failed.isEmpty)
+                    wildcardAllTasks
+                  else {
+                    if (tasks.size == 1) tasks.head
+                    else tasks.mkString("{", ",", "}")
+                  }
                 ).isSuccess)
             } else
               for (task <- expected.successful)
