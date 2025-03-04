@@ -1,4 +1,4 @@
-// This example extends `TypeScriptModule` to support `moduleDeps`.
+// This example extends `TscModule` to support `moduleDeps`.
 //
 // 1. The `def compile` task is considerably fleshed out: rather than using command
 //    line flags, we generate a `tsconfig.json` file using the `ujson.Obj`/`ujson.Arr`
@@ -7,15 +7,15 @@
 // 2. `def compile` now returns two `PathRef`s: one containing the `.js` output to use in
 //    `def run`, and one containing the `.d.ts` output to use in downstream ``compile``s.
 //
-// 2. `def moduleDeps` is used to allow different ``TypeScriptModule``s to depend on each
+// 2. `def moduleDeps` is used to allow different ``TscModule``s to depend on each
 //    other, and we use `Task.traverse` to combine the upstream `compiledDefinitions` for
 //    use in `compile`, and `compiledJavascript` for use in `run`
 
 package build
 import mill._
 
-trait TypeScriptModule extends Module {
-  def moduleDeps: Seq[TypeScriptModule] = Nil
+trait TscModule extends Module {
+  def moduleDeps: Seq[TscModule] = Nil
 
   def npmInstall = Task {
     os.call(("npm", "install", "--save-dev", "typescript@5.6.3", "@types/node@22.7.8"))
@@ -76,13 +76,13 @@ trait TypeScriptModule extends Module {
 // is a common pattern when defining language modules, whose module-level dependencies need
 // to be translated into task-level dependencies
 //
-// Again, we can instantiate `TypeScriptModule` three times, but now `foo/src/foo.ts`
+// Again, we can instantiate `TscModule` three times, but now `foo/src/foo.ts`
 // and `foo/bar/src/bar.ts` export their APIs which are then imported in `qux/src/qux.ts`:
 
-object foo extends TypeScriptModule {
-  object bar extends TypeScriptModule
+object foo extends TscModule {
+  object bar extends TscModule
 }
-object qux extends TypeScriptModule {
+object qux extends TscModule {
   def moduleDeps = Seq(foo, foo.bar)
 }
 

@@ -24,7 +24,7 @@ trait TestModule extends TaskModule {
 object TestModule {
   type TestResult = Unit
 
-  trait Coverage extends TypeScriptModule with TestModule {
+  trait Coverage extends TscModule with TestModule {
     override def npmDevDeps: T[Seq[String]] = Task {
       super.npmDevDeps() ++ Seq("serve@14.2.4")
     }
@@ -80,7 +80,7 @@ object TestModule {
     }
   }
 
-  trait Shared extends TypeScriptModule {
+  trait Shared extends TscModule {
     override def upstreamPathsBuilder: T[Seq[(String, String)]] =
       Task {
         val stuUpstreams = for {
@@ -105,8 +105,8 @@ object TestModule {
     def getPathToTest: T[String] = Task { compile()._2.path.toString + s"/$testDir" }
   }
 
-  trait IntegrationSuite extends TypeScriptModule {
-    def service: TypeScriptModule
+  trait IntegrationSuite extends TscModule {
+    def service: TscModule
 
     def port: T[String]
   }
@@ -542,7 +542,7 @@ object TestModule {
 
   }
 
-  trait Cypress extends TypeScriptModule with IntegrationSuite with TestModule {
+  trait Cypress extends TscModule with IntegrationSuite with TestModule {
     override def npmDevDeps: T[Seq[String]] = Task {
       Seq(
         "cypress@13.17.0"
@@ -623,7 +623,7 @@ object TestModule {
 
   }
 
-  trait PlayWright extends TypeScriptModule with IntegrationSuite with TestModule {
+  trait PlayWright extends TscModule with IntegrationSuite with TestModule {
     override def npmDevDeps: T[Seq[String]] = Task {
       super.npmDevDeps() ++ Seq(
         "playwright@1.49.0",

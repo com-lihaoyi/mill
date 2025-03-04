@@ -3,7 +3,7 @@ package build
 import mill._
 import mill.javascriptlib._
 
-object foo extends TypeScriptModule {
+object foo extends TscModule {
   def bundleFlags =
     Map(
       "platform" -> ujson.Str("node"),

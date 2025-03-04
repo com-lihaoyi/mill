@@ -3,7 +3,7 @@ import mill.*
 import os.*
 
 // create-react-app: https://create-react-app.dev/docs/documentation-intro
-trait ReactScriptsModule extends TypeScriptModule {
+trait ReactScriptsModule extends TscModule {
   override def npmDeps: T[Seq[String]] = Task {
     Seq(
       "react@18.3.1",

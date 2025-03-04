@@ -2,7 +2,7 @@ package build
 
 import mill._, javascriptlib._
 
-object foo extends TypeScriptModule with TsLintModule
+object foo extends TscModule with TsLintModule
 
 // Mill supports code auto formatting via `eslint` https://eslint.org and `prettier` https://prettier.io/docs/en.
 // You can reformat your projects code by providing a configuration for your preferred formtter then running

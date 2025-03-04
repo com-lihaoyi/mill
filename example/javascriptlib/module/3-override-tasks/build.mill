@@ -3,7 +3,7 @@ package build
 import mill._
 import mill.javascriptlib._
 
-object `package` extends RootModule with TypeScriptModule {
+object `package` extends RootModule with TscModule {
   def moduleName = "foo"
 
   def sources = Task {

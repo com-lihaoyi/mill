@@ -1,13 +1,13 @@
 // In this example, we will explore how to take the one-off typescript build pipeline
-// we wrote above, and turn it into a re-usable `TypeScriptModule`.
+// we wrote above, and turn it into a re-usable `TscModule`.
 //
 // To do this, we take all the code we wrote earlier and surround it with
-// `trait TypeScriptModule extends Module` wrapper:
+// `trait TscModule extends Module` wrapper:
 
 package build
 import mill._
 
-trait TypeScriptModule extends Module {
+trait TscModule extends Module {
   def npmInstall = Task {
     os.call(("npm", "install", "--save-dev", "typescript@5.6.3", "@types/node@22.7.8"))
     PathRef(Task.dest)
@@ -35,10 +35,10 @@ trait TypeScriptModule extends Module {
 // We can then instantiate the module three times. Module can be adjacent or nested,
 // as shown belo:
 
-object foo extends TypeScriptModule {
-  object bar extends TypeScriptModule
+object foo extends TscModule {
+  object bar extends TscModule
 }
-object qux extends TypeScriptModule
+object qux extends TscModule
 
 /** See Also: foo/src/foo.ts */
 /** See Also: foo/bar/src/bar.ts */
@@ -58,7 +58,7 @@ Hello James Qux
 
 */
 
-// At this point, we have multiple ``TypeScriptModule``s, with `bar` nested inside `foo`,
+// At this point, we have multiple ``TscModule``s, with `bar` nested inside `foo`,
 // but they are each independent and do not depend on one another.
 
 // ```graphviz
