@@ -271,7 +271,6 @@ trait PublishModule extends TypeScriptModule {
     }
   }
 
-  def publishDir2 = Task.Anon{Task.dest / "publishDir"}
   override def compile: T[(PathRef, PathRef)] = Task {
     pubSymLink()
     os.checker.withValue(os.Checker.Nop) {
@@ -357,6 +356,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   override def bundle: T[PathRef] = Task {
+    pubSymLink()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundleScript = compile()._1.path / "build.ts"
     val bundle = Task.dest / "bundle.js"
