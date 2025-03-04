@@ -61,10 +61,25 @@ case class Dependency(
 case class Developer(
     id: String,
     name: String,
+    email: Option[String] = None,
     url: String,
     organization: Option[String] = None,
     organizationUrl: Option[String] = None
 ) derives RW
+
+object Developer {
+  @deprecated(
+    "This method is for backward compatibility. Use the one with `email` instead."
+  )
+  def apply(
+      id: String,
+      name: String,
+      url: String,
+      organization: Option[String],
+      organizationUrl: Option[String]
+  ) =
+    new Developer(id, name, None, url, organization, organizationUrl)
+}
 
 case class PomSettings(
     description: String,
