@@ -302,32 +302,32 @@ object ResolveTests extends TestSuite {
           Set("multiOverride.super.BaseModule")
         )
       }
-      
+
       // Test for complex super task resolution
       test("complexSuperTask") {
         // Create a more complex module hierarchy to test super task resolution
         trait ComplexBase extends TestBaseModule {
           def artifactSuffix = Task { "base-suffix" }
         }
-        
+
         trait ComplexMid extends ComplexBase {
           override def artifactSuffix = Task { "mid-suffix" }
         }
-        
+
         object complexModule extends ComplexMid {
           override def artifactSuffix = Task { "final-suffix" }
           lazy val millDiscover = Discover[this.type]
         }
-        
+
         val check = new Checker(complexModule)
-        
+
         // Test direct super task resolution
         test("directSuperTask") - check(
           "artifactSuffix.super",
           Result.Success(Set(_.artifactSuffix)),
           Set("artifactSuffix.super")
         )
-        
+
         // Test qualified super task resolution
         test("qualifiedSuperTask") - check(
           "artifactSuffix.super.ComplexBase",

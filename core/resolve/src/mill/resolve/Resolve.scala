@@ -66,7 +66,7 @@ private[mill] object Resolve {
             case Segment.Label("super") => true
             case _ => false
           }
-          
+
           if (superIdx >= 0) {
             // For tasks with super, create a task with segments before the super segment
             val segmentsWithoutSuper = mill.define.Segments(r.segments.value.take(superIdx))
