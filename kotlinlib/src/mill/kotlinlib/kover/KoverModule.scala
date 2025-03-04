@@ -7,8 +7,7 @@ package mill.kotlinlib.kover
 import mill.*
 import mill.api.{PathRef, Result}
 import mill.api.Result.Success
-import mill.define.{Discover, ExternalModule}
-import mill.eval.Evaluator
+import mill.define.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
 import mill.define.SelectMode
@@ -104,8 +103,9 @@ trait KoverModule extends KotlinModule { outer =>
     override def forkArgs: T[Seq[String]] = Task {
       val argsFile = koverDataDir().path / "kover-agent.args"
       val content = s"report.file=${koverBinaryReport().path}"
-      os.write.over(argsFile, content)
-
+      os.checker.withValue(os.Checker.Nop) {
+        os.write.over(argsFile, content)
+      }
       super.forkArgs() ++
         Seq(
           s"-javaagent:${koverAgentJar().path}=file:$argsFile"
@@ -146,7 +146,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
   }
 
   private def koverReportTask(
-      evaluator: mill.eval.Evaluator,
+      evaluator: Evaluator,
       sources: String = "__:KotlinModule:^TestModule.allSources",
       compiled: String = "__:KotlinModule:^TestModule.compile",
       binaryReports: String = "__.koverBinaryReport",

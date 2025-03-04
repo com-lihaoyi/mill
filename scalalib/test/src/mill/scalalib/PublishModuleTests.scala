@@ -3,8 +3,7 @@ package mill.scalalib
 import mill.{T, Task}
 import mill.api.{PathRef, Result}
 import mill.api.ExecResult
-import mill.define.Discover
-import mill.eval.Evaluator
+import mill.define.{Discover, Evaluator}
 import mill.scalalib.publish.{
   Developer,
   License,

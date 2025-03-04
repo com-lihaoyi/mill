@@ -283,47 +283,52 @@ object RunModule {
         case None => useCpPassingJar0
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
-      if (background) {
-        val (stdout, stderr) = if (runBackgroundLogToConsole) {
-          // Hack to forward the background subprocess output to the Mill server process
-          // stdout/stderr files, so the output will get properly slurped up by the Mill server
-          // and shown to any connected Mill client even if the current command has completed
-          val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
-          (
-            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
-            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
+
+      os.checker.withValue(os.Checker.Nop) {
+        if (background) {
+          val (stdout, stderr) = if (runBackgroundLogToConsole) {
+            // Hack to forward the background subprocess output to the Mill server process
+            // stdout/stderr files, so the output will get properly slurped up by the Mill server
+            // and shown to any connected Mill client even if the current command has completed
+            val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
+            (
+              os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+              os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
+            )
+          } else {
+            (dest / "stdout.log": os.ProcessOutput, dest / "stderr.log": os.ProcessOutput)
+          }
+          Jvm.spawnProcess(
+            mainClass = mainClass1,
+            classPath = classPath,
+            jvmArgs = jvmArgs,
+            env = env,
+            mainArgs = mainArgs,
+            cwd = cwd,
+            stdin = "",
+            stdout = stdout,
+            stderr = stderr,
+            cpPassingJarPath =
+              Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+            javaHome = javaHome,
+            destroyOnExit = false
           )
         } else {
-          (dest / "stdout.log": os.ProcessOutput, dest / "stderr.log": os.ProcessOutput)
+          Jvm.callProcess(
+            mainClass = mainClass1,
+            classPath = classPath,
+            jvmArgs = jvmArgs,
+            env = env,
+            mainArgs = mainArgs,
+            cwd = cwd,
+            stdin = os.Inherit,
+            stdout = os.Inherit,
+            stderr = os.Inherit,
+            cpPassingJarPath =
+              Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+            javaHome = javaHome
+          )
         }
-        Jvm.spawnProcess(
-          mainClass = mainClass1,
-          classPath = classPath,
-          jvmArgs = jvmArgs,
-          env = env,
-          mainArgs = mainArgs,
-          cwd = cwd,
-          stdin = "",
-          stdout = stdout,
-          stderr = stderr,
-          cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
-          javaHome = javaHome,
-          destroyOnExit = false
-        )
-      } else {
-        Jvm.callProcess(
-          mainClass = mainClass1,
-          classPath = classPath,
-          jvmArgs = jvmArgs,
-          env = env,
-          mainArgs = mainArgs,
-          cwd = cwd,
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit,
-          cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
-          javaHome = javaHome
-        )
       }
     }
   }

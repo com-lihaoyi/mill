@@ -550,10 +550,18 @@ index 53cdc15a9f6..9271663b81e 100644
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
      def forkEnv = super.forkEnv() ++ Seq(
 diff --git a/main/package.mill b/main/package.mill
-index 29e5ad2d931..3b65ea7a78c 100644
+index 29e5ad2d931..362eac814cd 100644
 --- a/main/package.mill
 +++ b/main/package.mill
-@@ -80,7 +80,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
+@@ -73,14 +73,14 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
+         }().toMap
+ 
+         val result = Lib.resolveDependenciesMetadataSafe(
+-          repositories = dist.repositoriesTask(),
++          repositories = dist.allRepositories(),
+           Seq(BoundDep(dist.coursierDependency, force = false)),
+           Some(dist.mapDependencies()),
+           dist.resolutionCustomizer(),
            Some(Task.ctx()),
            dist.coursierCacheCustomizer()
          )

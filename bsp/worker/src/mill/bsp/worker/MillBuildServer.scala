@@ -8,8 +8,7 @@ import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result,
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, ExecutionResults, ExternalModule, NamedTask, Task}
-import mill.eval.Evaluator
+import mill.define.{Args, Discover, Evaluator, ExecutionResults, ExternalModule, NamedTask, Task}
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
@@ -294,7 +293,7 @@ private class MillBuildServer(
         case m: JavaModule =>
           Task.Anon {
             (
-              m.defaultResolver().resolveDeps(
+              m.millResolver().resolveDeps(
                 Seq(
                   m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
                   m.coursierDependency
@@ -302,7 +301,7 @@ private class MillBuildServer(
                 sources = true
               ),
               m.unmanagedClasspath(),
-              m.repositoriesTask()
+              m.allRepositories()
             )
           }
       }
@@ -338,7 +337,7 @@ private class MillBuildServer(
         Task.Anon {
           (
             // full list of dependencies, including transitive ones
-            m.defaultResolver().allDeps(
+            m.millResolver().allDeps(
               Seq(
                 m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
                 m.coursierDependency

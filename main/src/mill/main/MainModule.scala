@@ -2,7 +2,6 @@ package mill.main
 
 import mill.api.*
 import mill.define.*
-import mill.eval.Evaluator
 import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.SelectMode

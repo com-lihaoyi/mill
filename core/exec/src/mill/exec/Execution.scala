@@ -4,7 +4,8 @@ import mill.api.ExecResult.{Aborted, Failing}
 
 import mill.api._
 import mill.define._
-import mill.internal.{PrefixLogger, MultiBiMap}
+import mill.internal.PrefixLogger
+import mill.define.MultiBiMap
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -31,7 +32,8 @@ private[mill] case class Execution(
     threadCount: Option[Int],
     codeSignatures: Map[String, Int],
     systemExit: Int => Nothing,
-    exclusiveSystemStreams: SystemStreams
+    exclusiveSystemStreams: SystemStreams,
+    getEvaluator: () => Evaluator
 ) extends GroupExecution with AutoCloseable {
 
   def withBaseLogger(newBaseLogger: ColorLogger) = this.copy(baseLogger = newBaseLogger)
@@ -86,11 +88,12 @@ private[mill] case class Execution(
     os.makeDir.all(outPath)
 
     val threadNumberer = new ThreadNumberer()
-    val plan = Plan.plan(goals)
+    val plan = PlanImpl.plan(goals)
     val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
     val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
+    val rootFailedCount = new AtomicInteger(0) // Track only root failures
     val indexToTerminal = plan.sortedGroups.keys().toArray
 
     ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
@@ -99,12 +102,15 @@ private[mill] case class Execution(
     // and the class hierarchy, so during evaluation it is cheap to look up what class
     // each target belongs to determine of the enclosing class code signature changed.
     val (classToTransitiveClasses, allTransitiveClassMethods) =
-      CodeSigUtils.precomputeMethodNamesPerClass(Plan.transitiveNamed(goals))
+      CodeSigUtils.precomputeMethodNamesPerClass(PlanImpl.transitiveNamed(goals))
 
     val uncached = new ConcurrentHashMap[Task[?], Unit]()
     val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
 
     val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
+
+    def formatHeaderPrefix(countMsg: String, verboseKeySuffix: String) =
+      s"$countMsg$verboseKeySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
 
     def evaluateTerminals(
         terminals: Seq[Task[?]],
@@ -146,7 +152,7 @@ private[mill] case class Execution(
               )
 
               val verboseKeySuffix = s"/${terminals0.size}"
-              logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
+              logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
               if (failed.get()) None
               else {
                 val upstreamResults = upstreamValues
@@ -182,11 +188,20 @@ private[mill] case class Execution(
                   zincProblemReporter = reporter,
                   testReporter = testReporter,
                   logger = contextLogger,
+                  deps = deps,
                   classToTransitiveClasses,
                   allTransitiveClassMethods,
                   forkExecutionContext,
                   exclusive
                 )
+
+                // Count new failures - if there are upstream failures, tasks should be skipped, not failed
+                val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
+
+                rootFailedCount.addAndGet(newFailures)
+
+                // Always show failed count in header if there are failures
+                logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
 
                 if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)
@@ -222,7 +237,7 @@ private[mill] case class Execution(
       case _ => true
     }
 
-    val tasksTransitive = Plan.transitiveTargets(Seq.from(tasks0)).toSet
+    val tasksTransitive = PlanImpl.transitiveTargets(Seq.from(tasks0)).toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
       case t: NamedTask[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
@@ -273,6 +288,15 @@ private[mill] case class Execution(
 }
 
 private[mill] object Execution {
+
+  /**
+   * Format a failed count as a string to be used in status messages.
+   * Returns ", N failed" if count > 0, otherwise an empty string.
+   */
+  def formatFailedCount(count: Int): String = {
+    if (count > 0) s", $count failed" else ""
+  }
+
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
       : Map[Task[?], Seq[Task[?]]] = {
     sortedGroups

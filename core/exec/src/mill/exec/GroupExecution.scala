@@ -31,7 +31,7 @@ private trait GroupExecution {
   def codeSignatures: Map[String, Int]
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
-
+  def getEvaluator: () => Evaluator
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
@@ -48,6 +48,7 @@ private trait GroupExecution {
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger,
+      deps: Seq[Task[?]],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.api.Ctx.Fork.Api,
@@ -127,7 +128,9 @@ private trait GroupExecution {
                   testReporter,
                   logger,
                   executionContext,
-                  exclusive
+                  exclusive,
+                  labelled.isInstanceOf[Command[?]],
+                  deps
                 )
 
               val valueHash = newResults(labelled) match {
@@ -166,7 +169,9 @@ private trait GroupExecution {
             testReporter,
             logger,
             executionContext,
-            exclusive
+            exclusive,
+            task.isInstanceOf[Command[?]],
+            deps
           )
           GroupExecution.Results(
             newResults,
@@ -192,7 +197,9 @@ private trait GroupExecution {
       testReporter: TestReporter,
       logger: mill.api.Logger,
       executionContext: mill.api.Ctx.Fork.Api,
-      exclusive: Boolean
+      exclusive: Boolean,
+      isCommand: Boolean,
+      deps: Seq[Task[?]]
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[?]]
@@ -235,18 +242,41 @@ private trait GroupExecution {
           ) with mill.api.Ctx.Jobs {
             override def jobs: Int = effectiveThreadCount
           }
+          // Tasks must be allowed to write to upstream worker's dest folders, because
+          // the point of workers is to manualy manage long-lived state which includes
+          // state on disk.
+          val validDests =
+            deps.collect { case n: Worker[?] =>
+              ExecutionPaths.resolve(outPath, n.ctx.segments).dest
+            } ++
+              paths.map(_.dest)
 
+          val executionChecker = new os.Checker {
+            def onRead(path: os.ReadablePath): Unit = ()
+            def onWrite(path: os.Path): Unit = {
+              if (!isCommand) {
+                if (path.startsWith(workspace) && !validDests.exists(path.startsWith(_))) {
+                  sys.error(s"Writing to $path not allowed during execution phase")
+                }
+              }
+            }
+          }
           def wrap[T](t: => T): T = {
             val (streams, destFunc) =
               if (exclusive) (exclusiveSystemStreams, () => workspace)
               else (multiLogger.systemStreams, () => makeDest())
 
             os.dynamicPwdFunction.withValue(destFunc) {
-              SystemStreams.withStreams(streams) {
-                if (!exclusive) t
-                else {
-                  logger.reportKey(Seq(counterMsg))
-                  logger.withPromptPaused { t }
+              os.checker.withValue(executionChecker) {
+                SystemStreams.withStreams(streams) {
+                  val exposedEvaluator = if (!exclusive) null else getEvaluator()
+                  Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
+                    if (!exclusive) t
+                    else {
+                      logger.reportKey(Seq(counterMsg))
+                      logger.withPromptPaused { t }
+                    }
+                  }
                 }
               }
             }
