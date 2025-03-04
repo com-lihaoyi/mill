@@ -159,14 +159,14 @@ object SbtBuildGenMain
     // This doesn't work in integration tests when Mill is packaged.
     /*
     val sbtPluginJarUrl =
-      getClass.getResource("/sbt-mill-init-export-build-assembly.jar").toExternalForm
+      getClass.getResource("/exportplugin-assembly.jar").toExternalForm
      */
-    val sbtPluginJarName = "sbt-mill-init-export-build-assembly.jar"
+    val sbtPluginJarName = "exportplugin-assembly.jar"
     val sbtPluginJarStream = getClass.getResourceAsStream(s"/$sbtPluginJarName")
     val sbtPluginJarPath = tempDir / sbtPluginJarName
     os.write(sbtPluginJarPath, sbtPluginJarStream)
     val contents =
-      s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-sbt-mill-init-export-build" % "dummy-version" from ${
+      s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-exportplugin" % "dummy-version" from ${
           escape(sbtPluginJarPath.wrapped.toUri.toString)
         })
          |""".stripMargin

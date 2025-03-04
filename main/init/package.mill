@@ -100,8 +100,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     def moduleDeps = Seq(buildgen, models(build.Deps.scalaVersion))
 
     def sbtPluginJarResources = Task {
-      val assemblyPathRef = `sbt-mill-init-export-build`.assembly()
-      os.copy(assemblyPathRef.path, Task.dest / "sbt-mill-init-export-build-assembly.jar")
+      val assemblyPathRef = exportplugin.assembly()
+      os.copy(assemblyPathRef.path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
     }
     def resources: T[Seq[PathRef]] =
@@ -119,7 +119,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
 
     // no need to publish this
     // `test` fails with `build.MillScalaModule`, and since it's an SBT plugin project it's most likely not needed.
-    object `sbt-mill-init-export-build` extends ScalaModule {
+    object exportplugin extends ScalaModule {
       private val scalaVersionString = build.Deps.sbtScalaVersion212
       def scalaVersion = scalaVersionString
       def moduleDeps = Seq(models(scalaVersionString))
