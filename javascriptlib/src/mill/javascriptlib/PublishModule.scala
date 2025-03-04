@@ -127,22 +127,22 @@ trait PublishModule extends TypeScriptModule {
   }
 
   // mv generated sources for base mod and its deps
-  private def pubGenSources: T[Unit] = Task {
+  private def pubGenSources: T[Unit] = Task.Anon {
     val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
     allGeneratedSources.foreach { target =>
       os.checker.withValue(os.Checker.Nop) {
-        val destination = publishDir().path / "typescript/generatedSources" / target.path.last
+        val destination = Task.dest / "typescript/generatedSources" / target.path.last
         os.makeDir.all(destination / os.up)
         os.copy.over(target.path, destination)
       }
     }
   }
 
-  private def pubCopyModDeps: T[Unit] = Task {
+  private def pubCopyModDeps: T[Unit] = Task.Anon {
     val targets = pubModDeps()
 
     targets.foreach { target =>
-      val destination = publishDir().path / "typescript" / target
+      val destination = Task.dest / "typescript" / target
       os.checker.withValue(os.Checker.Nop) {
         os.makeDir.all(destination / os.up)
         os.copy(Task.workspace / target, destination, mergeFolders = true)
@@ -254,13 +254,20 @@ trait PublishModule extends TypeScriptModule {
     ()
   }
 
-  private def pubSymLink: Task[Unit] = Task {
+  private def pubSymLink: Task[Unit] = Task.Anon {
     pubTsPatchInstall() // patch typescript compiler => use custom transformers
     os.checker.withValue(os.Checker.Nop) {
-      os.symlink(publishDir().path / "node_modules", npmInstall().path / "node_modules")
+      os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
 
       if (os.exists(npmInstall().path / ".npmrc"))
-        os.symlink(publishDir().path / ".npmrc", npmInstall().path / ".npmrc")
+        os.symlink(Task.dest / ".npmrc", npmInstall().path / ".npmrc")
+    }
+  }
+
+  // need sandboxing bypass because we are copying moduleDir
+  def copyModuleDir = Task.Anon {
+    os.checker.withValue(os.Checker.Nop) {
+      os.copy(moduleDir, Task.dest / "typescript", mergeFolders = true)
     }
   }
 
@@ -268,7 +275,7 @@ trait PublishModule extends TypeScriptModule {
     pubSymLink()
     os.checker.withValue(os.Checker.Nop) {
       os.write(
-        publishDir().path / "tsconfig.json",
+        Task.dest / "tsconfig.json",
         ujson.Obj(
           "compilerOptions" -> ujson.Obj.from(
             compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
@@ -276,16 +283,16 @@ trait PublishModule extends TypeScriptModule {
           "files" -> pubAllSources()
         )
       )
-      os.copy(moduleDir, publishDir().path / "typescript", mergeFolders = true)
+      copyModuleDir()
       pubCopyModDeps()
       pubGenSources()
       // Run type check, build declarations
       os.call(
         ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
-        cwd = publishDir().path
+        cwd = Task.dest
       )
     }
-    (publishDir(), PathRef(publishDir().path / "typescript"))
+    (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
 
   // Compilation Options
@@ -349,6 +356,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   override def bundle: T[PathRef] = Task {
+    pubSymLink()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundleScript = compile()._1.path / "build.ts"
     val bundle = Task.dest / "bundle.js"
