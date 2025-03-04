@@ -38,15 +38,6 @@ object TestModule {
         coverageTask(Task.Anon { args })()
       }
 
-    // <rootDir> = '/out'; allow coverage resolve distributed source files.
-    // & define coverage files relative to <rootDir>.
-    private[TestModule] def coverageSetupSymlinks: Task[Unit] = Task.Anon {
-      os.symlink(Task.workspace / "out/node_modules", npmInstall().path / "node_modules")
-      os.symlink(Task.workspace / "out/tsconfig.json", compile()._1.path / "tsconfig.json")
-      if (os.exists(compile()._1.path / ".nycrc"))
-        os.symlink(Task.workspace / "out/.nycrc", compile()._1.path / ".nycrc")
-    }
-
     def istanbulNycrcConfigBuilder: Task[PathRef] = Task.Anon {
       val compiled = compile()._1.path
       val fileName = ".nycrc"
@@ -83,7 +74,7 @@ object TestModule {
 
     // coverage files - returnn coverage files directory
     def coverageFiles: T[PathRef] = Task {
-      val dir = Task.workspace / "out" / s"${moduleDeps.head}_coverage"
+      val dir = compileDir().path / s"${moduleDeps.head}_coverage"
       println(s"coverage files: $dir")
       PathRef(dir)
     }
@@ -93,16 +84,25 @@ object TestModule {
     override def upstreamPathsBuilder: T[Seq[(String, String)]] =
       Task {
         val stuUpstreams = for {
-          ((_, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-        } yield (
-          mod.moduleDir.subRelativeTo(Task.workspace).toString + "/test/utils/*",
-          (ts.path / "test/src/utils").toString
-        )
+          mod <- recModuleDeps
+        } yield {
+          val prefix = mod.moduleName.replaceAll("\\.", "/")
+          (
+            prefix + "/test/utils/*",
+            if (prefix == primeMod)
+              s"typescript/test/src/utils" + ":" + s"typescript/test/utils"
+            else s"typescript/$mod/test/src/utils" + ":" + s"typescript/$mod/test/utils"
+          )
+        }
 
-        stuUpstreams ++ super.upstreamPathsBuilder()
+        stuUpstreams
       }
 
-    def getPathToTest: T[String] = Task { compile()._2.path.toString }
+    private def primeMod: String = outerModuleName.getOrElse("")
+
+    def testDir: String = this.toString.split("\\.").tail.mkString
+
+    def getPathToTest: T[String] = Task { compile()._2.path.toString + s"/$testDir" }
   }
 
   trait IntegrationSuite extends TypeScriptModule {
@@ -125,7 +125,7 @@ object TestModule {
 
     override def compilerOptions: T[Map[String, ujson.Value]] =
       Task {
-        super.compilerOptions() + ("resolveJsonModule" -> ujson.Bool(true))
+        Map("resolveJsonModule" -> ujson.Bool(true))
       }
 
     def conf: Task[PathRef] = Task.Anon {
@@ -149,15 +149,16 @@ object TestModule {
             |    }, {});
             |
             |export default {
+            |roots: ["<rootDir>/typescript"],
             |preset: 'ts-jest',
             |testEnvironment: 'node',
-            |    testMatch: ['<rootDir>/**/**/**/*.test.ts', '<rootDir>/**/**/**/*.test.js'],
+            |testMatch: ["<rootDir>/typescript/$testDir/**/?(*.)+(spec|test).[jt]s?(x)"],
             |transform: ${ujson.Obj("^.+\\.(ts|tsx)$" -> ujson.Arr.from(Seq(
              ujson.Str("ts-jest"),
              ujson.Obj("tsconfig" -> "tsconfig.json")
            )))},
             |moduleFileExtensions: ${ujson.Arr.from(Seq("ts", "tsx", "js", "jsx", "json", "node"))},
-            |moduleNameMapper: pathsToModuleNameMapper(sortedModuleDeps)
+            |moduleNameMapper: pathsToModuleNameMapper(sortedModuleDeps, {prefix: "<rootDir>"})
             |}
             |""".stripMargin
 
@@ -209,18 +210,16 @@ object TestModule {
             |    }, {});
             |
             |export default {
-            |rootDir: ${ujson.Str((Task.workspace / "out").toString)},
+            |roots: ["<rootDir>/typescript"],
             |preset: 'ts-jest',
             |testEnvironment: 'node',
-            |testMatch: [${ujson.Str(
-             s"<rootDir>/${compile()._2.path.subRelativeTo(Task.workspace / "out") / "src"}/**/*.test.ts"
-           )}],
+            |testMatch: ["<rootDir>/typescript/$testDir/**/?(*.)+(spec|test).[jt]s?(x)"],
             |transform: ${ujson.Obj("^.+\\.(ts|tsx)$" -> ujson.Arr.from(Seq(
              ujson.Str("ts-jest"),
              ujson.Obj("tsconfig" -> "tsconfig.json")
            )))},
             |moduleFileExtensions: ${ujson.Arr.from(Seq("ts", "tsx", "js", "jsx", "json", "node"))},
-            |moduleNameMapper: pathsToModuleNameMapper(sortedModuleDeps),
+            |moduleNameMapper: pathsToModuleNameMapper(sortedModuleDeps, {prefix: "<rootDir>"}),
             |
             |collectCoverage: true,
             |collectCoverageFrom: ${ujson.Arr.from(coverageDirs())},
@@ -237,7 +236,6 @@ object TestModule {
     }
 
     def runCoverage: T[TestResult] = Task {
-      coverageSetupSymlinks()
       os.call(
         (
           "node",
@@ -249,12 +247,8 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = Task.workspace / "out"
+        cwd = compileDir().path
       )
-
-      // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
       ()
     }
 
@@ -313,7 +307,6 @@ object TestModule {
     // with coverage
     def runCoverage: T[TestResult] = Task {
       istanbulNycrcConfigBuilder()
-      coverageSetupSymlinks()
       os.call(
         (
           "./node_modules/.bin/nyc",
@@ -323,13 +316,8 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = Task.workspace / "out"
+        cwd = compile()._1.path
       )
-
-      // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
-      os.remove(Task.workspace / "out/.nycrc")
       ()
     }
   }
@@ -348,7 +336,7 @@ object TestModule {
 
     override def compilerOptions: T[Map[String, ujson.Value]] =
       Task {
-        super.compilerOptions() + (
+        Map(
           "target" -> ujson.Str("ESNext"),
           "module" -> ujson.Str("ESNext"),
           "moduleResolution" -> ujson.Str("Node"),
@@ -366,18 +354,18 @@ object TestModule {
       val customConfig = Task.workspace / fileName
 
       val content =
-        """|import { defineConfig } from 'vite';
-           |import tsconfigPaths from 'vite-tsconfig-paths';
-           |
-           |export default defineConfig({
-           |    plugins: [tsconfigPaths()],
-           |    test: {
-           |        globals: true,
-           |        environment: 'node',
-           |        include: ['**/**/*.test.ts']
-           |    },
-           |});
-           |""".stripMargin
+        s"""|import { defineConfig } from 'vite';
+            |import tsconfigPaths from 'vite-tsconfig-paths';
+            |
+            |export default defineConfig({
+            |    plugins: [tsconfigPaths()],
+            |    test: {
+            |        globals: true,
+            |        environment: 'node',
+            |        include: ['typescript/$testDir/**/**/*.test.ts']
+            |    },
+            |});
+            |""".stripMargin
 
       if (!os.exists(customConfig)) os.write.over(config, content)
       else os.copy.over(customConfig, config)
@@ -412,7 +400,6 @@ object TestModule {
       val fileName = "vitest.config.ts"
       val config = compiled / fileName
       val customConfig = Task.workspace / fileName
-
       val content =
         s"""|import { defineConfig } from 'vite';
             |import tsconfigPaths from 'vite-tsconfig-paths';
@@ -422,9 +409,7 @@ object TestModule {
             |    test: {
             |        globals: true,
             |        environment: 'node',
-            |        include: [${ujson.Str(
-             s"${compile()._2.path.subRelativeTo(Task.workspace / "out") / "src"}/**/*.test.ts"
-           )}],
+            |        include: ['typescript/$testDir/**/**/*.test.ts'],
             |        coverage: {
             |            provider: 'v8',
             |            reporter: ['text', 'json', 'html'],
@@ -445,7 +430,6 @@ object TestModule {
     }
 
     def runCoverage: T[TestResult] = Task {
-      coverageSetupSymlinks()
       os.call(
         (
           npmInstall().path / "node_modules/.bin/ts-node",
@@ -458,11 +442,8 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = Task.workspace / "out"
+        cwd = compile()._1.path
       )
-      // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
       ()
     }
 
@@ -482,7 +463,7 @@ object TestModule {
 
     override def compilerOptions: T[Map[String, ujson.Value]] =
       Task {
-        super.compilerOptions() + (
+        Map(
           "target" -> ujson.Str("ES5"),
           "module" -> ujson.Str("commonjs"),
           "moduleResolution" -> ujson.Str("node"),
@@ -496,8 +477,8 @@ object TestModule {
         path,
         ujson.write(
           ujson.Obj(
-            "spec_dir" -> ujson.Str("typescript/src"),
-            "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
+            "spec_dir" -> ujson.Str("typescript"),
+            "spec_files" -> ujson.Arr(ujson.Str(s"$testDir/**/*.test.ts")),
             "stopSpecOnExpectationFailure" -> ujson.Bool(false),
             "random" -> ujson.Bool(false)
           )
@@ -531,43 +512,25 @@ object TestModule {
       runTest()
     }
 
-    // with coverage
-    def coverageConf: T[PathRef] = Task {
-      val path = compile()._1.path / "jasmine.json"
-      val specDir = compile()._2.path.subRelativeTo(Task.workspace / "out") / "src"
-      os.write.over(
-        path,
-        ujson.write(
-          ujson.Obj(
-            "spec_dir" -> ujson.Str(specDir.toString),
-            "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
-            "stopSpecOnExpectationFailure" -> ujson.Bool(false),
-            "random" -> ujson.Bool(false)
-          )
-        )
-      )
-      PathRef(path)
-    }
-
     def runCoverage: T[TestResult] = Task {
       istanbulNycrcConfigBuilder()
-      coverageSetupSymlinks()
+      conf()
       val jasmine = "node_modules/jasmine/bin/jasmine.js"
       val tsnode = "node_modules/ts-node/register/transpile-only.js"
       val tsconfigPath = "node_modules/tsconfig-paths/register.js"
-      val relConfigPath = coverageConf().path.subRelativeTo(Task.workspace / "out")
+
       os.call(
         (
           "./node_modules/.bin/nyc",
           "node",
           jasmine,
-          s"--config=$relConfigPath",
+          s"--config=jasmine.json",
           s"--require=$tsnode",
           s"--require=$tsconfigPath"
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = Task.workspace / "out"
+        cwd = compile()._1.path
       )
 
       // remove symlink
@@ -591,7 +554,7 @@ object TestModule {
 
     override def compilerOptions: T[Map[String, ujson.Value]] =
       Task {
-        super.compilerOptions() + (
+        Map(
           "target" -> ujson.Str("ES5"),
           "module" -> ujson.Str("ESNext"),
           "moduleResolution" -> ujson.Str("Node"),

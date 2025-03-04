@@ -9,7 +9,7 @@ object foo extends TypeScriptModule {
     Seq(PathRef(moduleDir / "custom-src/foo2.ts"))
   }
 
-  def allSources = super.allSources() ++ customSource()
+  def sources = Task.Sources(super.sources() ++ customSource())
 
   def resources = super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
 
