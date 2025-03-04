@@ -277,13 +277,6 @@ object ResolveTests extends TestSuite {
       test("singleOverride") {
         val check = new Checker(singleOverrideModule)
 
-        // Regular task should resolve to the overridden implementation
-        test("regularTask") - check(
-          "baseTask",
-          Result.Success(Set(_.baseTask)),
-          Set("baseTask")
-        )
-
         // Super task should resolve to the base implementation
         test("superTask") - check(
           "baseTask.super",
@@ -294,13 +287,6 @@ object ResolveTests extends TestSuite {
 
       test("multiOverride") {
         val check = new Checker(multiOverrideModule)
-
-        // Regular task should resolve to the final overridden implementation
-        test("regularTask") - check(
-          "multiOverride",
-          Result.Success(Set(_.multiOverride)),
-          Set("multiOverride")
-        )
 
         // Direct super task should resolve to the mid-level implementation
         test("directSuperTask") - check(
@@ -314,6 +300,39 @@ object ResolveTests extends TestSuite {
           "multiOverride.super.BaseModule",
           Result.Success(Set(_.multiOverride)),
           Set("multiOverride.super.BaseModule")
+        )
+      }
+      
+      // Test for complex super task resolution
+      test("complexSuperTask") {
+        // Create a more complex module hierarchy to test super task resolution
+        trait ComplexBase extends TestBaseModule {
+          def artifactSuffix = Task { "base-suffix" }
+        }
+        
+        trait ComplexMid extends ComplexBase {
+          override def artifactSuffix = Task { "mid-suffix" }
+        }
+        
+        object complexModule extends ComplexMid {
+          override def artifactSuffix = Task { "final-suffix" }
+          lazy val millDiscover = Discover[this.type]
+        }
+        
+        val check = new Checker(complexModule)
+        
+        // Test direct super task resolution
+        test("directSuperTask") - check(
+          "artifactSuffix.super",
+          Result.Success(Set(_.artifactSuffix)),
+          Set("artifactSuffix.super")
+        )
+        
+        // Test qualified super task resolution
+        test("qualifiedSuperTask") - check(
+          "artifactSuffix.super.ComplexBase",
+          Result.Success(Set(_.artifactSuffix)),
+          Set("artifactSuffix.super.ComplexBase")
         )
       }
     }

@@ -216,8 +216,10 @@ trait TypeScriptModule extends Module { outer =>
   // removes need for node_modules prefix in import statements `node_modules/<some-package>`
   // import * as somepackage from "<some-package>"
   private def symLink: Task[Unit] = Task.Anon {
-    os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
-    os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
+    os.checker.withValue(os.Checker.Nop) {
+      os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
+      os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
+    }
   }
 
   def compile: T[(PathRef, PathRef)] = Task {
@@ -353,17 +355,16 @@ trait TypeScriptModule extends Module { outer =>
     val bundleScript = compile()._1.path / "build.ts"
     val bundle = Task.dest / "bundle.js"
 
-    os.write.over(
-      bundleScript,
-      bundleScriptBuilder()
-    )
+    os.checker.withValue(os.Checker.Nop) {
+      os.write.over(bundleScript, bundleScriptBuilder())
 
-    os.call(
-      (tsnode, bundleScript),
-      stdout = os.Inherit,
-      env = env,
-      cwd = compile()._1.path
-    )
+      os.call(
+        (tsnode, bundleScript),
+        stdout = os.Inherit,
+        env = env,
+        cwd = compile()._1.path
+      )
+    }
     PathRef(bundle)
   }
 

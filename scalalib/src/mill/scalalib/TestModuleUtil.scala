@@ -62,20 +62,22 @@ private[scalalib] object TestModuleUtil {
 
       os.makeDir.all(sandbox)
 
-      Jvm.callProcess(
-        mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-        jvmArgs = jvmArgs,
-        env = forkEnv ++ resourceEnv,
-        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
-        cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
-        cpPassingJarPath = Option.when(useArgsFile)(
-          os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
-        ),
-        javaHome = javaHome,
-        stdin = os.Inherit,
-        stdout = os.Inherit
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        Jvm.callProcess(
+          mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
+          classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+          jvmArgs = jvmArgs,
+          env = forkEnv ++ resourceEnv,
+          mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
+          cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+          cpPassingJarPath = Option.when(useArgsFile)(
+            os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+          ),
+          javaHome = javaHome,
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )
+      }
 
       if (!os.exists(outputPath))
         Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
