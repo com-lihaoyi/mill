@@ -1,12 +1,7 @@
 package mill.integration
 
 import mill.constants.Util
-import mill.integration.MillInitUtils.{
-  SplitTaskResults,
-  defaultInitCommand,
-  defaultInitCommandWithoutMerge,
-  testMillInit
-}
+import mill.integration.MillInitUtils.*
 import utest.*
 
 import scala.collection.immutable.{Seq, SortedSet}
@@ -84,6 +79,7 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
     test - integrationTest(url) { tester =>
       // Takes forever on windows
       if (!Util.isWindows) {
+        writeMillJvmVersionTemurin11(tester.workspacePath)
         testMillInit(
           tester,
           expectedAllSourceFileNums = Map(
@@ -137,102 +133,88 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
             "clustered.ehcache-clustered.allSourceFiles" -> 0,
             "core-spi-test.allSourceFiles" -> 43
           ),
-          expectedCompileTaskResults = Some({
-            val successfulOnLinux = SortedSet(
+          expectedCompileTaskResults = Some(SplitTaskResults(
+            successful = SortedSet(
+              "clustered.ehcache-clustered.compile",
+              "clustered.ehcache-common-api.compile",
+              "clustered.ehcache-common-api.test.compile",
+              "clustered.ehcache-common.compile",
+              "clustered.integration-test.compile",
+              "clustered.ops-tool.compile",
+              "clustered.ops-tool.test.compile",
+              "clustered.osgi-test.compile",
+              "clustered.test-utils.compile",
+              "docs.compile",
+              "ehcache-api.compile",
+              "ehcache-api.test.compile",
               "ehcache-core.compile",
               "ehcache-core.test.compile",
               "ehcache-xml.ehcache-xml-spi.compile",
-              "ehcache-xml.ehcache-xml-spi.test.compile"
+              "ehcache-xml.ehcache-xml-spi.test.compile",
+              "ehcache.compile",
+              "integration-test.compile",
+              "osgi-test.compile",
+              "spi-tester.compile"
+            ),
+            // [warn] Unexpected javac output: warning: [path] bad path element...ehcache-api/compile-resources": no such file or directory
+            // [warn] error: warnings found and -Werror specified
+            failed = SortedSet(
+              "clustered.compile",
+              "clustered.ehcache-client.compile",
+              "clustered.ehcache-client.test.compile",
+              "clustered.ehcache-common.test.compile",
+              "clustered.integration-test.test.compile",
+              "clustered.osgi-test.test.compile",
+              "clustered.server.compile",
+              "clustered.server.ehcache-entity.compile",
+              "clustered.server.ehcache-entity.test.compile",
+              "clustered.server.ehcache-service-api.compile",
+              "clustered.server.ehcache-service-api.test.compile",
+              "clustered.server.ehcache-service.compile",
+              "clustered.server.ehcache-service.test.compile",
+              "core-spi-test.compile",
+              "demos.00-NoCache.compile",
+              "demos.01-CacheAside.compile",
+              "demos.compile",
+              "ehcache-107.compile",
+              "ehcache-107.test.compile",
+              "ehcache-impl.compile",
+              "ehcache-impl.test.compile",
+              "ehcache-management.compile",
+              "ehcache-management.test.compile",
+              "ehcache-transactions.compile",
+              "ehcache-transactions.test.compile",
+              "ehcache-xml.compile",
+              "ehcache-xml.test.compile",
+              "integration-test.test.compile",
+              "osgi-test.test.compile"
             )
-            val extraSuccessful = if (Util.isLinux) successfulOnLinux else SortedSet.empty[String]
-            SplitTaskResults(
-              successful = SortedSet(
-                "clustered.ehcache-clustered.compile",
-                "clustered.ehcache-common-api.compile",
-                "clustered.ehcache-common-api.test.compile",
-                "clustered.ehcache-common.compile",
-                "clustered.integration-test.compile",
-                "clustered.ops-tool.compile",
-                "clustered.ops-tool.test.compile",
-                "clustered.osgi-test.compile",
-                "clustered.test-utils.compile",
-                "docs.compile",
-                "ehcache-api.compile",
-                "ehcache-api.test.compile",
-                "ehcache.compile",
-                "integration-test.compile",
-                "osgi-test.compile",
-                "spi-tester.compile"
-              ) ++ extraSuccessful,
-              // [warn] Unexpected javac output: warning: [path] bad path element...ehcache-api/compile-resources": no such file or directory
-              // [warn] error: warnings found and -Werror specified
-              failed = SortedSet(
-                "clustered.compile",
-                "clustered.ehcache-client.compile",
-                "clustered.ehcache-client.test.compile",
-                "clustered.ehcache-common.test.compile",
-                "clustered.integration-test.test.compile",
-                "clustered.osgi-test.test.compile",
-                "clustered.server.compile",
-                "clustered.server.ehcache-entity.compile",
-                "clustered.server.ehcache-entity.test.compile",
-                "clustered.server.ehcache-service-api.compile",
-                "clustered.server.ehcache-service-api.test.compile",
-                "clustered.server.ehcache-service.compile",
-                "clustered.server.ehcache-service.test.compile",
-                "core-spi-test.compile",
-                "demos.00-NoCache.compile",
-                "demos.01-CacheAside.compile",
-                "demos.compile",
-                "ehcache-107.compile",
-                "ehcache-107.test.compile",
-                "ehcache-core.compile",
-                "ehcache-core.test.compile",
-                "ehcache-impl.compile",
-                "ehcache-impl.test.compile",
-                "ehcache-management.compile",
-                "ehcache-management.test.compile",
-                "ehcache-transactions.compile",
-                "ehcache-transactions.test.compile",
-                "ehcache-xml.compile",
-                "ehcache-xml.ehcache-xml-spi.compile",
-                "ehcache-xml.ehcache-xml-spi.test.compile",
-                "ehcache-xml.test.compile",
-                "integration-test.test.compile",
-                "osgi-test.test.compile"
-              ) -- extraSuccessful
+          )),
+          expectedTestTaskResults = Some(SplitTaskResults(
+            successful = SortedSet(
+              "clustered.ehcache-common-api.test",
+              "clustered.ops-tool.test",
+              "ehcache-api.test",
+              "ehcache-core.test",
+              "ehcache-xml.ehcache-xml-spi.test"
+            ),
+            failed = SortedSet(
+              "clustered.ehcache-client.test",
+              "clustered.ehcache-common.test",
+              "clustered.integration-test.test",
+              "clustered.osgi-test.test",
+              "clustered.server.ehcache-entity.test",
+              "clustered.server.ehcache-service-api.test",
+              "clustered.server.ehcache-service.test",
+              "ehcache-107.test",
+              "ehcache-impl.test",
+              "ehcache-management.test",
+              "ehcache-transactions.test",
+              "ehcache-xml.test",
+              "integration-test.test",
+              "osgi-test.test"
             )
-          }),
-          expectedTestTaskResults = Some({
-            val successfulOnLinux =
-              SortedSet("ehcache-core.test", "ehcache-xml.ehcache-xml-spi.test")
-            val extraSuccessful = if (Util.isLinux) successfulOnLinux else SortedSet.empty[String]
-            SplitTaskResults(
-              successful = SortedSet(
-                "clustered.ehcache-common-api.test",
-                "clustered.ops-tool.test",
-                "ehcache-api.test"
-              ) ++ extraSuccessful,
-              failed = SortedSet(
-                "clustered.ehcache-client.test",
-                "clustered.ehcache-common.test",
-                "clustered.integration-test.test",
-                "clustered.osgi-test.test",
-                "clustered.server.ehcache-entity.test",
-                "clustered.server.ehcache-service-api.test",
-                "clustered.server.ehcache-service.test",
-                "ehcache-107.test",
-                "ehcache-core.test",
-                "ehcache-impl.test",
-                "ehcache-management.test",
-                "ehcache-transactions.test",
-                "ehcache-xml.ehcache-xml-spi.test",
-                "ehcache-xml.test",
-                "integration-test.test",
-                "osgi-test.test"
-              ) -- extraSuccessful
-            )
-          })
+          ))
         )
       }
     }
