@@ -35,7 +35,8 @@ object foo extends TscModule {
 // with the boxes representing tasks defined or overridden above and the un-boxed
 // labels representing existing Mill tasks:
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0]
@@ -49,7 +50,7 @@ object foo extends TscModule {
 //
 //   "..." [color=white]
 // }
-// ```
+// ....
 //
 // Mill lets you define new cached Tasks using the `Task {...}` syntax,
 // depending on existing Tasks e.g. `foo.sources` via the `foo.sources()`

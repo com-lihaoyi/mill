@@ -14,16 +14,16 @@ object myplugin extends ScalaModule with PublishModule {
   def platformSuffix = "_mill" + mill.main.BuildInfo.millBinPlatform
 
   // Depend on `mill-dist` so we can compile against Mill APIs
-  def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
+  def ivyDeps = Seq(ivy"com.lihaoyi:mill-dist:$millVersion")
 
   // Testing Config, with necessary setup for unit/integration/example tests
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::mill-testkit:$millVersion")
+    def ivyDeps = Seq(ivy"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Map("MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString)
 
     // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule {
-      def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
+      def ivyDeps = Seq(ivy"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
       def resources = Task {
         val p = Task.dest / "mill/local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
@@ -194,7 +194,7 @@ compiling 1 Scala source...
 > sed -i.bak 's/0.0.1/0.0.2/g' build.mill
 
 > ./mill myplugin.publishLocal
-Publishing Artifact(com.lihaoyi,myplugin_mill0.11_3,0.0.2) to ivy repo...
+Publishing Artifact(com.lihaoyi,myplugin_millSNAPSHOT_3,0.0.2) to ivy repo...
 
 */
 // Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they

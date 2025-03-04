@@ -3,7 +3,7 @@ package mill.exec
 import mill.define.{Discover, TargetImpl, Task}
 import mill.Module
 import mill.testkit.TestBaseModule
-import mill.api.Strict.Agg
+
 import utest.*
 
 object OverrideTests extends TestSuite {
@@ -100,11 +100,11 @@ object OverrideTests extends TestSuite {
       import canOverrideSuper._
 
       val checker = new Checker(canOverrideSuper)
-      checker(foo, Seq("base", "object"), Agg(foo), extraEvaled = -1)
+      checker(foo, Seq("base", "object"), Seq(foo), extraEvaled = -1)
 
-      val public = os.read(checker.evaluator.outPath / "foo.json")
+      val public = os.read(checker.execution.outPath / "foo.json")
       val overridden = os.read(
-        checker.evaluator.outPath / "foo.super/BaseModule.json"
+        checker.execution.outPath / "foo.super/BaseModule.json"
       )
       assert(
         public.contains("base"),
@@ -124,14 +124,14 @@ object OverrideTests extends TestSuite {
       checker(
         runCmd,
         Seq("base1", "object1"),
-        Agg(runCmd),
+        Seq(runCmd),
         extraEvaled = -1,
         secondRunNoOp = false
       )
 
-      val public = os.read(checker.evaluator.outPath / "cmd.json")
+      val public = os.read(checker.execution.outPath / "cmd.json")
       val overridden = os.read(
-        checker.evaluator.outPath / "cmd.super/BaseModule.json"
+        checker.execution.outPath / "cmd.super/BaseModule.json"
       )
       assert(
         public.contains("base1"),
@@ -150,19 +150,19 @@ object OverrideTests extends TestSuite {
       checker(
         m.f,
         6,
-        Agg(m.f),
+        Seq(m.f),
         extraEvaled = -1
       )
 
       assert(
-        os.read(checker.evaluator.outPath / "m/f.super/X.json")
+        os.read(checker.execution.outPath / "m/f.super/X.json")
           .contains(" 1,")
       )
       assert(
-        os.read(checker.evaluator.outPath / "m/f.super/A.json")
+        os.read(checker.execution.outPath / "m/f.super/A.json")
           .contains(" 3,")
       )
-      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
+      assert(os.read(checker.execution.outPath / "m/f.json").contains(" 6,"))
     }
     test("stackableOverrides2") {
       // When the supers have the same name, qualify them until they are distinct
@@ -172,19 +172,19 @@ object OverrideTests extends TestSuite {
       checker(
         m.f,
         6,
-        Agg(m.f),
+        Seq(m.f),
         extraEvaled = -1
       )
 
       assert(
-        os.read(checker.evaluator.outPath / "m/f.super/A/X.json")
+        os.read(checker.execution.outPath / "m/f.super/A/X.json")
           .contains(" 1,")
       )
       assert(
-        os.read(checker.evaluator.outPath / "m/f.super/B/X.json")
+        os.read(checker.execution.outPath / "m/f.super/B/X.json")
           .contains(" 3,")
       )
-      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
+      assert(os.read(checker.execution.outPath / "m/f.json").contains(" 6,"))
     }
     test("stackableOverrides3") {
       // When the supers have the same name, qualify them until they are distinct
@@ -194,19 +194,19 @@ object OverrideTests extends TestSuite {
       checker(
         m.f,
         6,
-        Agg(m.f),
+        Seq(m.f),
         extraEvaled = -1
       )
 
       assert(
-        os.read(checker.evaluator.outPath / "m/f.super/A/X.json")
+        os.read(checker.execution.outPath / "m/f.super/A/X.json")
           .contains(" 1,")
       )
       assert(
-        os.read(checker.evaluator.outPath / "m/f.super/X.json")
+        os.read(checker.execution.outPath / "m/f.super/X.json")
           .contains(" 3,")
       )
-      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
+      assert(os.read(checker.execution.outPath / "m/f.json").contains(" 6,"))
     }
     test("optionalOverride") {
       // Make sure that when a task is overriden, it always gets put in the same place on
@@ -215,16 +215,16 @@ object OverrideTests extends TestSuite {
 
       val checker = new Checker(OptionalOverride)
       test {
-        checker(m.f, 11, Agg(m.f), extraEvaled = -1)
+        checker(m.f, 11, Seq(m.f), extraEvaled = -1)
         assert(
-          os.read(checker.evaluator.outPath / "m/f.super/X.json")
+          os.read(checker.execution.outPath / "m/f.super/X.json")
             .contains(" 1,")
         )
       }
       test {
-        checker(m.g, 101, Agg(), extraEvaled = -1)
+        checker(m.g, 101, Seq(), extraEvaled = -1)
         assert(
-          os.read(checker.evaluator.outPath / "m/f.super/X.json")
+          os.read(checker.execution.outPath / "m/f.super/X.json")
             .contains(" 1,")
         )
       }
@@ -237,7 +237,7 @@ object OverrideTests extends TestSuite {
       checker(
         mod.bar,
         "foo-m1",
-        Agg(mod.bar),
+        Seq(mod.bar),
         extraEvaled = -1
       )
       // If we evaluate to "foo-m1" instead of "foo-m2",
@@ -245,7 +245,7 @@ object OverrideTests extends TestSuite {
       checker(
         mod.baz,
         "foo-m2",
-        Agg(mod.baz),
+        Seq(mod.baz),
         extraEvaled = -1
       )
     }

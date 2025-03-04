@@ -1,7 +1,6 @@
 package mill.main
 
-import mill.eval.Evaluator
-import mill.resolve.SelectMode
+import mill.define.{Evaluator, SelectMode}
 
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
@@ -14,10 +13,11 @@ object Tasks {
   private[mill] class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
     def shortName = "tasks"
     def read(s: Seq[String]): Either[String, Tasks[T]] = {
-      Evaluator.currentEvaluator.value.resolveTasks(
+      Evaluator.currentEvaluator.resolveTasks(
         s,
         SelectMode.Separated
       ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]]))
+        .toEither
     }
     override def alwaysRepeatable = false
     override def allowEmpty = false

@@ -3,14 +3,13 @@ package mill.scalanativelib
 import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
-import mill.exec.ExecutionPaths
+import mill.define.ExecutionPaths
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.util.TestUtil
 import utest._
 
 import scala.jdk.CollectionConverters._
@@ -59,7 +58,7 @@ object CompileRunTests extends TestSuite {
 
       object test extends ScalaNativeTests with TestModule.Utest {
         override def sources = Task.Sources { this.moduleDir / "src/utest" }
-        override def ivyDeps = super.ivyDeps() ++ Agg(
+        override def ivyDeps = super.ivyDeps() ++ Seq(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
       }
@@ -136,7 +135,7 @@ object CompileRunTests extends TestSuite {
           HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).nativeLink
         val Right(result) = eval(task): @unchecked
 
-        val paths = ExecutionPaths.resolveDestPaths(eval.outPath, task)
+        val paths = ExecutionPaths.resolve(eval.outPath, task)
         val stdout = os.proc(paths.dest / "out").call().out.lines()
         assert(
           stdout.contains("Hello Scala Native"),
@@ -184,15 +183,7 @@ object CompileRunTests extends TestSuite {
       if !skipScalaNative(scalaNative)
       if !skipReleaseMode(releaseMode)
     } {
-      if (scala.startsWith("2.11.")) {
-        TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't run in Java 9+")(f(
-          scala,
-          scalaNative,
-          releaseMode
-        ))
-      } else {
-        f(scala, scalaNative, releaseMode)
-      }
+      f(scala, scalaNative, releaseMode)
     }
   }
 }

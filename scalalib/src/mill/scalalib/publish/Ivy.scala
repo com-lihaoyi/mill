@@ -1,7 +1,5 @@
 package mill.scalalib.publish
 
-import mill.api.Loose.Agg
-
 import scala.xml.{Elem, PrettyPrinter}
 
 object Ivy {
@@ -22,7 +20,7 @@ object Ivy {
    */
   def apply(
       artifact: Artifact,
-      dependencies: Agg[Dependency],
+      dependencies: Seq[Dependency],
       extras: Seq[PublishInfo] = Seq.empty,
       overrides: Seq[Override] = Nil,
       hasJar: Boolean = true

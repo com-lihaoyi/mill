@@ -1,20 +1,22 @@
 package mill.runner
 
+import scala.jdk.CollectionConverters.ListHasAsScala
+
 import coursier.Repository
-import mill._
+import mill.*
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.api.{CompilationResult, Versions}
-import mill.main.client.OutFiles._
-import mill.main.client.CodeGenConstants.buildFileExtensions
+import mill.constants.OutFiles.*
+import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
 import mill.runner.worker.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
-
 import scala.util.Try
+
 import mill.define.Target
 import mill.runner.worker.api.MillScalaParser
 
@@ -42,18 +44,17 @@ abstract class MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
+  val scriptSourcesPaths = FileImportGraph
+    .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
+    .sorted
+
   /**
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
-  def scriptSources: Target[Seq[PathRef]] = Task.Sources {
-    MillBuildRootModule.parseBuildFiles(compilerWorker(), rootModuleInfo)
-      .seenScripts
-      .keys
-      .toSeq
-      .sorted // Ensure ordering is deterministic
-      .map(PathRef(_))
-  }
+  def scriptSources: Target[Seq[PathRef]] = Task.Sources(
+    scriptSourcesPaths.map(Result.Success(_))* // Ensure ordering is deterministic
+  )
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
@@ -75,10 +76,10 @@ abstract class MillBuildRootModule()(implicit
           s"buildfile `${relFile}`: import $$repo.`${repo}`"
         )
       }
-      repos.find(_.asSuccess.isEmpty) match {
+      repos.find(_.isInstanceOf[Result.Failure]) match {
         case Some(error) => error
         case None =>
-          val res = repos.flatMap(_.asSuccess).map(_.value).flatten
+          val res = repos.collect { case Result.Success(v) => v }.flatten
           Result.Success(res)
       }
     }
@@ -97,17 +98,17 @@ abstract class MillBuildRootModule()(implicit
   }
 
   override def ivyDeps = Task {
-    Agg.from(
+    Seq.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
     ) ++
-      Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+      Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
 
   override def runIvyDeps = Task {
     val imports = cliImports()
     val ivyImports = imports.collect { case s"ivy:$rest" => rest }
-    Agg.from(
+    Seq.from(
       MillIvy.processMillIvyDepSignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     )
@@ -125,7 +126,6 @@ abstract class MillBuildRootModule()(implicit
     else {
       CodeGen.generateWrappedSources(
         rootModuleInfo.projectRoot / os.up,
-        scriptSources(),
         parsed.seenScripts,
         Task.dest,
         rootModuleInfo.enclosingClasspath,
@@ -138,7 +138,7 @@ abstract class MillBuildRootModule()(implicit
     }
   }
 
-  def methodCodeHashSignatures: T[Map[String, Int]] = Task(persistent = true) {
+  def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
     os.remove.all(Task.dest / "previous")
     if (os.exists(Task.dest / "current"))
       os.move.over(Task.dest / "current", Task.dest / "previous")
@@ -234,15 +234,16 @@ abstract class MillBuildRootModule()(implicit
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = Task {
-    val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions)
+    val candidates =
+      Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions.asScala)
     // We need to unlist those files, which we replaced by generating wrapper scripts
-    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.toIndexedSeq)
+    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.asScala.toSeq)
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
-  def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources {
-    rootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
-  }
+  def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources(
+    rootModuleInfo.enclosingClasspath.map(Result.Success(_))*
+  )
 
   /**
    * Dependencies, which should be transitively excluded.
@@ -250,22 +251,34 @@ abstract class MillBuildRootModule()(implicit
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
   protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
-    Lib.millAssemblyEmbeddedDeps.toSeq.flatMap({ d =>
-      val isScala3 = ZincWorkerUtil.isScala3(scalaVersion())
-      if isScala3 && d.dep.module.name.value == "scala-library" then None
-      else Some((d.dep.module.organization.value, d.dep.module.name.value))
-    })
+    val allMillDistModules = BuildInfo.millAllDistDependencies
+      .split(',')
+      .filter(_.nonEmpty)
+      .map { str =>
+        str.split(":", 2) match {
+          case Array(org, name) => (org, name)
+          case other =>
+            sys.error(
+              s"Unexpected misshapen entry in BuildInfo.millAllDistDependencies ('$str', expected 'org:name')"
+            )
+        }
+      }
+    val isScala3 = ZincWorkerUtil.isScala3(scalaVersion())
+    if (isScala3)
+      allMillDistModules.filter(_._2 != "scala-library").toSeq
+    else
+      allMillDistModules.toSeq
   }
 
   override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
     super.bindDependency.apply().apply(dep).exclude(resolveDepsExclusions()*)
   }
 
-  override def unmanagedClasspath: T[Agg[PathRef]] = Task {
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
     enclosingClasspath()
   }
 
-  override def scalacPluginIvyDeps: T[Agg[Dep]] = Agg(
+  override def scalacPluginIvyDeps: T[Seq[Dep]] = Seq(
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
   )
 
@@ -274,15 +287,15 @@ abstract class MillBuildRootModule()(implicit
       Seq("-deprecation")
   }
 
-  override def scalacPluginClasspath: T[Agg[PathRef]] =
+  override def scalacPluginClasspath: T[Seq[PathRef]] =
     super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
 
-  override protected def semanticDbPluginClasspath: T[Agg[PathRef]] =
+  override protected def semanticDbPluginClasspath: T[Seq[PathRef]] =
     super.semanticDbPluginClasspath() ++ lineNumberPluginClasspath()
 
-  def lineNumberPluginClasspath: T[Agg[PathRef]] = Task {
+  def lineNumberPluginClasspath: T[Seq[PathRef]] = Task {
     // millProjectModule("mill-runner-linenumbers", repositoriesTask())
-    Agg.empty
+    Seq.empty
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -315,7 +328,7 @@ abstract class MillBuildRootModule()(implicit
       .worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
-        sources = Agg.from(allSourceFiles().map(_.path)),
+        sources = Seq.from(allSourceFiles().map(_.path)),
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         scalaVersion = scalaVersion(),

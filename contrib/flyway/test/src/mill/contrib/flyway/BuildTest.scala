@@ -18,7 +18,7 @@ object BuildTest extends TestSuite {
       def h2 = ivy"com.h2database:h2:2.1.214"
 
       def flywayUrl = "jdbc:h2:mem:test_db;DB_CLOSE_DELAY=-1"
-      def flywayDriverDeps = Agg(h2)
+      def flywayDriverDeps = Seq(h2)
     }
 
     val millDiscover: Discover = Discover[this.type]

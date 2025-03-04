@@ -13,7 +13,8 @@ object foo extends Module {
   }
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   "root-module" [style=dashed]
@@ -23,7 +24,7 @@ object foo extends Module {
 //   "root-module" -> foo -> "foo.qux" -> "foo.qux.baz"  [style=dashed]
 //   foo -> "foo.bar"  [style=dashed]
 // }
-// ```
+// ....
 //
 // * You can run the two tasks via `mill foo.bar` or `mill
 // foo.qux.baz`.
@@ -80,7 +81,8 @@ object foo2 extends FooModule {
 // arrows representing the module tree, and the solid boxes and arrows representing
 // the task graph
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   bgcolor=transparent
@@ -96,7 +98,7 @@ object foo2 extends FooModule {
 //   "foo1.bar" -> "foo1.super.qux" -> "foo1.qux" [constraint=false]
 //   "foo2.bar" -> "foo2.qux" -> "foo2.baz" [constraint=false]
 // }
-// ```
+// ....
 
 // Note that the `override` keyword is optional in mill, as is `T{...}` wrapper.
 
@@ -141,7 +143,8 @@ object outer extends MyModule {
   object inner extends MyModule
 }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   "root-module" [style=dashed]
@@ -156,7 +159,7 @@ object outer extends MyModule {
 //   outer -> "outer.sources"  [style=dashed]
 //   outer -> "outer.task"  [style=dashed]
 // }
-// ```
+// ....
 
 // * The `outer` module has a `moduleDir` of `outer/`, and thus a
 //   `outer.sources` referencing `outer/sources/`
@@ -255,14 +258,15 @@ trait Bar extends Foo {
 
 object bar extends Bar
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   "bar.sourceRoots.super" -> "bar.sourceRoots" -> "bar.sourceContents"
 //   "bar.additionalSources" -> "bar.sourceRoots"
 // }
-// ```
+// ....
 /** Usage
 
 > ./mill show bar.sourceContents # includes both source folders

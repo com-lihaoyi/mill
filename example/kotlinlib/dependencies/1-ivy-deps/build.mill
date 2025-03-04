@@ -8,7 +8,7 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some("foo.FooKt")
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"com.fasterxml.jackson.core:jackson-databind:2.13.4"
   )
 }

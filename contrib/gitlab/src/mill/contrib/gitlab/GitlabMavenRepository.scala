@@ -18,11 +18,11 @@ trait GitlabMavenRepository {
       .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
 
     gitlabAuth match {
-      case Left(msg) =>
+      case Result.Failure(msg) =>
         Failure(
           s"Token lookup for PACKAGE repository ($gitlabRepository) failed with $msg"
         ): Result[MavenRepository]
-      case Right(value) => Success(value)
+      case Result.Success(value) => Success(value)
     }
   }
 }

@@ -13,7 +13,7 @@ object foo extends KotlinModule {
       "OTHER_FILES_DIR" -> otherFiles().path.toString
     )
 
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }

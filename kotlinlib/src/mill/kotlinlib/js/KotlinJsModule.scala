@@ -9,7 +9,7 @@ import mill.scalalib.Lib
 import mill.scalalib.api.CompilationResult
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import mill.{Agg, Args, T}
+import mill.{Args, T}
 import sbt.testing.Status
 import upickle.default.{macroRW, ReadWriter => RW}
 
@@ -62,20 +62,20 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
-  override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
-    Agg(
+  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
+    Seq(
       ivy"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
     )
   }
 
-  override def transitiveCompileClasspath: T[Agg[PathRef]] = Task {
+  override def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         val transitiveModuleArtifactPath =
           if (m.isInstanceOf[KotlinJsModule] && m != friendModule.orNull) {
             m.asInstanceOf[KotlinJsModule].klib()
           } else m.compile().classes
-        m.localCompileClasspath() ++ Agg(transitiveModuleArtifactPath)
+        m.localCompileClasspath() ++ Seq(transitiveModuleArtifactPath)
       }
     )().flatten
   }
@@ -118,7 +118,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       artifactId = artifactId(),
       envArgs = Task.env,
       workingDir = Task.dest
-    ).map(_ => ()).getOrThrow
+    ).map(_ => ()).get
   }
 
   override def runMainLocal(
@@ -171,8 +171,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
         )
         if (processResult.exitCode == 0) Result.Success(processResult.exitCode)
         else Result.Failure(
-          "Interactive Subprocess Failed (exit code " + processResult.exitCode + ")",
-          Some(processResult.exitCode)
+          "Interactive Subprocess Failed (exit code " + processResult.exitCode + ")"
         )
       case None =>
         Result.Failure("Executable binary should have a run target selected.")
@@ -241,7 +240,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     val outputPath = Task.dest / s"${artifactId()}.klib"
     Jvm.createJar(
       outputPath,
-      Agg(compile().classes.path),
+      Seq(compile().classes.path),
       mill.util.JarManifest.MillDefault,
       fileFilter = (_, _) => true
     )
@@ -259,7 +258,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       outputMode: OutputMode,
       allKotlinSourceFiles: Seq[PathRef],
       irClasspath: Option[PathRef],
-      librariesClasspath: Agg[PathRef],
+      librariesClasspath: Seq[PathRef],
       callMain: Boolean,
       moduleKind: ModuleKind,
       produceSourceMaps: Boolean,
@@ -282,8 +281,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     if (!versionAllowed) {
       // have to put this restriction, because for older versions some compiler options either didn't exist or
       // had different names. It is possible to go to the lower version supported with a certain effort.
-      ctx.log.error("Minimum supported Kotlin version for JS target is 1.8.20.")
-      return Result.Aborted
+      return Result.Failure("Minimum supported Kotlin version for JS target is 1.8.20.")
     }
 
     // compiler options references:
@@ -407,13 +405,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
 
     workerResult match {
-      case Result.Success(_) =>
-        CompilationResult(analysisFile, PathRef(artifactLocation))
-      case Result.Failure(reason, _) =>
-        Result.Failure(reason, Some(CompilationResult(analysisFile, PathRef(artifactLocation))))
-      case e: Result.Exception => e
-      case Result.Aborted => Result.Aborted
-      case Result.Skipped => Result.Skipped
+      case Result.Success(_) => CompilationResult(analysisFile, PathRef(artifactLocation))
+      case Result.Failure(reason) => Result.Failure(reason)
     }
   }
 
@@ -523,7 +516,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
       Task.Command {
-        this.test(args*)()
+        this.testForked(args*)()
       }
 
     override protected[js] def friendModule: Option[KotlinJsModule] = Some(outer)
@@ -596,7 +589,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
              |${failedTests.mkString("\n")}
              |
              |""".stripMargin
-        Result.Failure(failureMessage, Some((doneMessage, testResults)))
+        Result.Failure(failureMessage)
       } else {
         Result.Success((doneMessage, testResults))
       }
@@ -677,7 +670,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Run tests for Kotlin/JS target using `kotlin.test` package.
    */
   trait KotlinTestPackageTests extends KotlinJsTests {
-    override def ivyDeps = Agg(
+    override def ivyDeps = Seq(
       ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
   }
@@ -691,7 +684,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     private def kotestProcessor = Task {
       defaultResolver().resolveDeps(
-        Agg(
+        Seq(
           ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
         )
       ).head
@@ -701,7 +694,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       s"-Xplugin=${kotestProcessor().path}"
     )
 
-    override def ivyDeps = Agg(
+    override def ivyDeps = Seq(
       ivy"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
       ivy"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
     )

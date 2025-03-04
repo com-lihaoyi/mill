@@ -1,7 +1,7 @@
 package mill.javalib.checkstyle
 
 import mill._
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.scalalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
 
@@ -78,9 +78,9 @@ trait CheckstyleModule extends JavaModule {
   /**
    * Classpath for running Checkstyle.
    */
-  def checkstyleClasspath: T[Loose.Agg[PathRef]] = Task {
+  def checkstyleClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
+      Seq(ivy"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
     )
   }
 

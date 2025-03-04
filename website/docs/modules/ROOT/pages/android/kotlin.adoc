@@ -7,7 +7,7 @@ This page provides an example of using Mill as a build tool for Android applicat
 This workflow is still pretty rough and nowhere near production ready, but can serve as
 a starting point for further experimentation and development.
 
-=== Relevant Modules
+*Relevant Modules*
 
 These are the main Mill Modules that are relevant for building Android apps:
 

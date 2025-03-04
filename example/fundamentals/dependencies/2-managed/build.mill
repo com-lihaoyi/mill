@@ -5,11 +5,11 @@ package build
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def depManagement = Agg(
+  def depManagement = Seq(
     ivy"com.google.protobuf:protobuf-java:4.28.3",
     ivy"io.grpc:grpc-protobuf:1.67.1"
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"io.grpc:grpc-protobuf"
   )
 }
@@ -24,11 +24,11 @@ object foo extends JavaModule {
 // One can also add exclusions via dependency management, like
 
 object bar extends JavaModule {
-  def depManagement = Agg(
+  def depManagement = Seq(
     ivy"io.grpc:grpc-protobuf:1.67.1"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"io.grpc:grpc-protobuf"
   )
 }
@@ -41,11 +41,11 @@ object bar extends JavaModule {
 // like
 
 object baz extends JavaModule {
-  def depManagement = Agg(
+  def depManagement = Seq(
     ivy"io.grpc:grpc-protobuf"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"io.grpc:grpc-protobuf:1.67.1"
   )
 }
@@ -57,11 +57,11 @@ object baz extends JavaModule {
 
 object myBom extends BomModule {
   // Importing external BOMs from our BOM module with bomIvyDeps
-  def bomIvyDeps = Agg(
+  def bomIvyDeps = Seq(
     ivy"com.google.protobuf:protobuf-bom:4.28.1"
   )
   // Managing versions directly from our BOM module with depManagement
-  def depManagement = Agg(
+  def depManagement = Seq(
     ivy"io.grpc:grpc-protobuf:1.67.1"
   )
 }
@@ -71,7 +71,7 @@ object bomUser extends JavaModule {
   def bomModuleDeps = Seq(
     myBom
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"io.grpc:grpc-protobuf"
   )
 }
@@ -80,10 +80,10 @@ object bomUser extends JavaModule {
 // packaging type `pom`, usable as a BOM from other build tools:
 
 object myPublishedBom extends BomModule with MyPublishModule {
-  def bomIvyDeps = Agg(
+  def bomIvyDeps = Seq(
     ivy"com.google.protobuf:protobuf-bom:4.28.1"
   )
-  def depManagement = Agg(
+  def depManagement = Seq(
     ivy"io.grpc:grpc-protobuf:1.67.1"
   )
 }
@@ -94,7 +94,7 @@ object publishedBomUser extends JavaModule with MyPublishModule {
   def bomModuleDeps = Seq(
     myPublishedBom
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"io.grpc:grpc-protobuf"
   )
 }

@@ -48,7 +48,7 @@ object ModuleTests extends TestSuite {
       val zresult = check.apply(Build.z)
       assert(
         zresult == Right(Result(30, 1)),
-        os.read(check.evaluator.outPath / "z.json").contains("30"),
+        os.read(check.execution.outPath / "z.json").contains("30"),
         os.read(
           check.outPath / "mill/exec/TestExternalModule/x.json"
         ).contains("13"),

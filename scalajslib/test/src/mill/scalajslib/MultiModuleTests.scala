@@ -2,7 +2,7 @@ package mill.scalajslib
 
 import mill._
 import mill.define.Discover
-import mill.exec.ExecutionPaths
+import mill.define.ExecutionPaths
 import mill.scalalib._
 import mill.testkit.{UnitTester, TestBaseModule}
 import utest._
@@ -21,7 +21,7 @@ object MultiModuleTests extends TestSuite {
       override def mainClass = Some("Main")
       object test extends ScalaJSTests with TestModule.Utest {
         override def ivyDeps =
-          Agg(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
+          Seq(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
       }
     }
 
@@ -53,7 +53,7 @@ object MultiModuleTests extends TestSuite {
     test("fullOpt") - checkOpt(optimize = true)
 
     test("test") {
-      val Right(result) = evaluator(MultiModule.client.test.test()): @unchecked
+      val Right(result) = evaluator(MultiModule.client.test.testForked()): @unchecked
 
       assert(
         result.evalCount > 0,
@@ -67,7 +67,7 @@ object MultiModuleTests extends TestSuite {
 
       val Right(result) = evaluator(command): @unchecked
 
-      val paths = ExecutionPaths.resolveDestPaths(evaluator.outPath, command)
+      val paths = ExecutionPaths.resolve(evaluator.outPath, command)
       val log = os.read(paths.log)
       assert(
         result.evalCount > 0,

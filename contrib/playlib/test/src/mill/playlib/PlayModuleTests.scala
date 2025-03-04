@@ -15,7 +15,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
       object test extends PlayTests
-      override def ivyDeps = Task { super.ivyDeps() ++ Agg(ws()) }
+      override def ivyDeps = Task { super.ivyDeps() ++ Seq(ws()) }
     }
 
     lazy val millDiscover = Discover[this.type]

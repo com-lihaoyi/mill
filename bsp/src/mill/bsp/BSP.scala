@@ -1,18 +1,17 @@
 package mill.bsp
 
 import mill.api.{Ctx, PathRef}
-import mill.{Agg, T, Task, given}
-import mill.define.{Command, Discover, ExternalModule}
+import mill.{T, Task, given}
+import mill.define.{Command, Discover, Evaluator, ExternalModule}
 import mill.main.BuildInfo
-import mill.eval.Evaluator
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.CoursierModule
 
 object BSP extends ExternalModule with CoursierModule {
 
   lazy val millDiscover = Discover[this.type]
 
-  private def bspWorkerLibs: T[Agg[PathRef]] = Task {
+  private def bspWorkerLibs: T[Seq[PathRef]] = Task {
     millProjectModule("mill-bsp-worker", repositoriesTask())
   }
 
@@ -50,7 +49,7 @@ object BSP extends ExternalModule with CoursierModule {
    * @return The server result, indicating if mill should re-run this command or just exit.
    */
   def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
-      : Command[BspServerResult] = Task.Command {
+      : Command[BspServerResult] = Task.Command(exclusive = true) {
     Task.log.errorStream.println("BSP/startSession: Starting BSP session")
     val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
     Task.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")

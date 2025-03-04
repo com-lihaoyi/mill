@@ -12,6 +12,7 @@ When invoking Mill, the simplest way to run a task is to give it with a fully qu
 
 Examples:
 
+[source,bash]
 ----
 > mill for.compile
 > mill for.run hello world
@@ -101,7 +102,7 @@ The type is matched by its name and optionally by its enclosing types and packag
 Since this is also used to separate task path segments, a type selector segment containing a `.` needs to be enclosed in parentheses.
 A fully qualified type can be denoted with the `+_root_+` package.
 
-[sh]
+[source,sh]
 ----
 > mill resolve __:TestModule.jar
 > mill resolve "(__:scalalib.TestModule).jar"
@@ -111,14 +112,14 @@ A fully qualified type can be denoted with the `+_root_+` package.
 
 If the type qualifier starts with a `^` or `!`, it's only matching types which are _not_ instances of the specified type.
 
-[sh]
+[source,sh]
 ----
 > mill resolve __:^TestModule.jar
 ----
 
 You can also add more than one type filters to a wildcard.
 
-[sh]
+[source,sh]
 ----
 > mill resolve "__:JavaModule:^ScalaModule:^TestModule.jar"
 ----
@@ -137,6 +138,7 @@ For all the former versions, Mill parses them into a complex but single task sel
 
 Whereas the `+` start a completely new selector path to which you can also provide a different parameter list. This is important when using xref:fundamentals/tasks.adoc#_commands[command tasks] which can accept their own parameters. The `JavaModule.run` command is an example.
 
+[source,sh]
 ----
 > mill foo.run hello                         # <1>
 > mill {foo,bar}.run hello                   # <2>

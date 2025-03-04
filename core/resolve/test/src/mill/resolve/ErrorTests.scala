@@ -5,6 +5,7 @@ import mill.testkit.TestBaseModule
 import mainargs.arg
 import mill.{Cross, Module, Task}
 import utest.*
+import mill.api.Result
 
 object ErrorTests extends TestSuite {
   // Wrapper class so that module initialization errors are not fatal
@@ -126,7 +127,6 @@ object ErrorTests extends TestSuite {
     }
 
     object CyclicModuleRefInitError extends TestBaseModule {
-      import mill.Agg
       def foo = Task { "foo" }
 
       // See issue: https://github.com/com-lihaoyi/mill/issues/3715
@@ -141,7 +141,7 @@ object ErrorTests extends TestSuite {
       trait A extends CommonModule
       object myB extends B
       trait B extends CommonModule {
-        override def moduleDeps = super.moduleDeps ++ Agg(a)
+        override def moduleDeps = super.moduleDeps ++ Seq(a)
       }
       lazy val millDiscover = Discover[this.type]
     }
@@ -206,11 +206,11 @@ object ErrorTests extends TestSuite {
     }
   }
 
-  def isShortError(x: Either[String, ?], s: String) =
-    x.left.exists(_.contains(s)) &&
+  def isShortError(x: Result[?], s: String) =
+    x.errorOpt.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
       // contain the entire Mill internal call stack at point of failure
-      x.left.exists(_.linesIterator.size < 25)
+      x.errorOpt.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
     val errorGraphs = new ErrorGraphs()
@@ -223,7 +223,7 @@ object ErrorTests extends TestSuite {
         // sub-modules fail to initialize
         test("rootTarget") - check.checkSeq(
           Seq("rootTarget"),
-          Right(Set(_.rootTarget)),
+          Result.Success(Set(_.rootTarget)),
           // Even though instantiating the target fails due to the module
           // failing, we can still resolve the task name, since resolving tasks
           // does not require instantiating the module
@@ -231,7 +231,7 @@ object ErrorTests extends TestSuite {
         )
         test("rootCommand") - check.checkSeq(
           Seq("rootCommand", "hello"),
-          Right(Set(_.rootCommand("hello"))),
+          Result.Success(Set(_.rootCommand("hello"))),
           Set("rootCommand")
         )
 
@@ -240,24 +240,24 @@ object ErrorTests extends TestSuite {
         test("fooTarget") - check.checkSeq0(
           Seq("foo.fooTarget"),
           isShortError(_, "Foo Boom"),
-          _ == Right(List("foo.fooTarget"))
+          _ == Result.Success(List("foo.fooTarget"))
         )
         test("fooCommand") - check.checkSeq0(
           Seq("foo.fooCommand", "hello"),
           isShortError(_, "Foo Boom"),
-          _ == Right(List("foo.fooCommand"))
+          _ == Result.Success(List("foo.fooCommand"))
         )
 
         // Sub-modules that can initialize allow tasks to be resolved, even
         // if their siblings or children are broken
         test("barTarget") - check.checkSeq(
           Seq("bar.barTarget"),
-          Right(Set(_.bar.barTarget)),
+          Result.Success(Set(_.bar.barTarget)),
           Set("bar.barTarget")
         )
         test("barCommand") - check.checkSeq(
           Seq("bar.barCommand", "hello"),
-          Right(Set(_.bar.barCommand("hello"))),
+          Result.Success(Set(_.bar.barCommand("hello"))),
           Set("bar.barCommand")
         )
 
@@ -265,12 +265,12 @@ object ErrorTests extends TestSuite {
         test("quxTarget") - check.checkSeq0(
           Seq("bar.qux.quxTarget"),
           isShortError(_, "Qux Boom"),
-          _ == Right(List("bar.qux.quxTarget"))
+          _ == Result.Success(List("bar.qux.quxTarget"))
         )
         test("quxCommand") - check.checkSeq0(
           Seq("bar.qux.quxCommand", "hello"),
           isShortError(_, "Qux Boom"),
-          _ == Right(List("bar.qux.quxCommand"))
+          _ == Result.Success(List("bar.qux.quxCommand"))
         )
       }
 
@@ -280,12 +280,12 @@ object ErrorTests extends TestSuite {
         test("fooTarget") - check.checkSeq0(
           Seq("foo.fooTarget"),
           isShortError(_, "Foo Boom"),
-          _ == Right(List("foo.fooTarget"))
+          _ == Result.Success(List("foo.fooTarget"))
         )
         test("fooCommand") - check.checkSeq0(
           Seq("foo.fooCommand", "hello"),
           isShortError(_, "Foo Boom"),
-          _ == Right(List("foo.fooCommand"))
+          _ == Result.Success(List("foo.fooCommand"))
         )
         // Even though the `bar` module doesn't throw, `barTarget` and
         // `barCommand` depend on the `fooTarget` and `fooCommand` tasks on the
@@ -294,12 +294,12 @@ object ErrorTests extends TestSuite {
         test("barTarget") - check.checkSeq0(
           Seq("bar.barTarget"),
           isShortError(_, "Foo Boom"),
-          _ == Right(List("bar.barTarget"))
+          _ == Result.Success(List("bar.barTarget"))
         )
         test("barCommand") - check.checkSeq0(
           Seq("bar.barCommand", "hello"),
           isShortError(_, "Foo Boom"),
-          _ == Right(List("bar.barCommand"))
+          _ == Result.Success(List("bar.barCommand"))
         )
       }
 
@@ -331,7 +331,7 @@ object ErrorTests extends TestSuite {
           // handle the error
           test - check.checkSeq(
             Seq("myCross[1].foo"),
-            Right(Set(_.myCross(1).foo)),
+            Result.Success(Set(_.myCross(1).foo)),
             Set("myCross[1].foo")
           )
           test - check.checkSeq0(
@@ -346,7 +346,12 @@ object ErrorTests extends TestSuite {
           test - check.checkSeq0(
             Seq("myCross._.foo"),
             isShortError(_, "MyCross Boom"),
-            _ == Right(List("myCross[1].foo", "myCross[2].foo", "myCross[3].foo", "myCross[4].foo"))
+            _ == Result.Success(List(
+              "myCross[1].foo",
+              "myCross[2].foo",
+              "myCross[3].foo",
+              "myCross[4].foo"
+            ))
           )
           test - check.checkSeq0(
             Seq("myCross[_].foo"),
@@ -356,12 +361,17 @@ object ErrorTests extends TestSuite {
           test - check.checkSeq0(
             Seq("__.foo"),
             isShortError(_, "MyCross Boom"),
-            _ == Right(List("myCross[1].foo", "myCross[2].foo", "myCross[3].foo", "myCross[4].foo"))
+            _ == Result.Success(List(
+              "myCross[1].foo",
+              "myCross[2].foo",
+              "myCross[3].foo",
+              "myCross[4].foo"
+            ))
           )
           test - check.checkSeq0(
             Seq("__"),
             isShortError(_, "MyCross Boom"),
-            _ == Right(List(
+            _ == Result.Success(List(
               "",
               "myCross",
               "myCross[1]",
@@ -424,7 +434,7 @@ object ErrorTests extends TestSuite {
       )
       test - check(
         "_",
-        Right(Set(_.foo))
+        Result.Success(Set(_.foo))
       )
       test - check.checkSeq0(
         Seq("myA.__"),
@@ -480,25 +490,25 @@ object ErrorTests extends TestSuite {
       val check = new Checker(NonCyclicModules)
       test - check(
         "__",
-        Right(Set(_.foo))
+        Result.Success(Set(_.foo))
       )
     }
     test("moduleRefWithNonModuleRefChild") {
       val check = new Checker(ModuleRefWithNonModuleRefChild)
       test - check(
         "__",
-        Right(Set(_.foo))
+        Result.Success(Set(_.foo))
       )
     }
     test("moduleRefCycle") {
       val check = new Checker(ModuleRefCycle)
       test - check(
         "__",
-        Right(Set(_.foo))
+        Result.Success(Set(_.foo))
       )
       test - check(
         "__._",
-        Right(Set(_.foo))
+        Result.Success(Set(_.foo))
       )
     }
   }

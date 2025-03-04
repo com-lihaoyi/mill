@@ -1,6 +1,6 @@
 package mill.bsp
 
-import mill.api.{DummyInputStream, Logger, SystemStreams}
+import mill.api.{DummyInputStream, Logger, Result, SystemStreams}
 
 import java.io.PrintStream
 import scala.util.control.NonFatal
@@ -27,10 +27,7 @@ private[mill] class BspContext(
         streams = streams,
         logStream = bspLogStream,
         canReload = true
-      ) match {
-        case Left(err) => sys.error(err)
-        case Right(res) => res
-      }
+      ).get
     } catch {
       case NonFatal(e) =>
         streams.err.println(s"Could not start BSP server. ${e.getMessage}")
@@ -43,7 +40,7 @@ private[mill] class BspContext(
       streams: SystemStreams,
       logStream: Option[PrintStream],
       canReload: Boolean
-  ): Either[String, BspServerHandle] = {
+  ): Result[BspServerHandle] = {
     val log: Logger = new Logger {
       override def colored: Boolean = false
       override def systemStreams: SystemStreams = new SystemStreams(

@@ -1,7 +1,7 @@
 package mill.kotlinlib.ktfmt
 
 import mill._
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.kotlinlib.{DepSyntax, Versions}
 import mill.main.Tasks
@@ -13,9 +13,9 @@ trait KtfmtBaseModule extends JavaModule {
   /**
    * Classpath for running Ktfmt.
    */
-  def ktfmtClasspath: T[Loose.Agg[PathRef]] = Task {
+  def ktfmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.facebook:ktfmt:${ktfmtVersion()}")
+      Seq(ivy"com.facebook:ktfmt:${ktfmtVersion()}")
     )
   }
 
@@ -97,7 +97,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
       format: Boolean,
       removeUnusedImports: Boolean,
       sources: IterableOnce[PathRef],
-      classPath: Loose.Agg[PathRef],
+      classPath: Seq[PathRef],
       options: Seq[String]
   )(implicit ctx: api.Ctx): Unit = {
 

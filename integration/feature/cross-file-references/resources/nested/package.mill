@@ -1,0 +1,14 @@
+package build.nested
+
+import mill.*
+
+object `package` extends RootModule with ModuleB{
+  object local extends build.ModuleB
+  object local2 extends build.ModuleC
+  def qux = Task{ build.foo() }
+}
+
+trait Module0 extends mill.Module{
+  def foo = Task{31337}
+  def bar = Task{build.foo()}
+}

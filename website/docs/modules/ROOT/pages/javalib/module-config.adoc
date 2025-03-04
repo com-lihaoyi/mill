@@ -1,8 +1,5 @@
 = Java Module Configuration
 :page-aliases: Java_Module_Config.adoc
-
-
-
 :language: Java
 :language-small: java
 
@@ -17,6 +14,7 @@ Many of the APIs covered here are listed in the API documentation:
 
 include::partial$example/javalib/module/1-common-config.adoc[]
 
+[#_compilation_execution_flags]
 == Compilation & Execution Flags
 
 include::partial$example/javalib/module/4-compilation-execution-flags.adoc[]
@@ -26,6 +24,7 @@ include::partial$example/javalib/module/4-compilation-execution-flags.adoc[]
 
 include::partial$example/javalib/module/7-resources.adoc[]
 
+[#_annotation_processors]
 == Annotation Processors
 
 include::partial$example/javalib/module/8-annotation-processors.adoc[]
@@ -48,6 +47,7 @@ include::partial$example/javalib/module/2-custom-tasks.adoc[]
 
 include::partial$example/javalib/module/3-override-tasks.adoc[]
 
+[#_native_c_code_with_jni]
 == Native C Code with JNI
 
 include::partial$example/javalib/module/15-jni.adoc[]

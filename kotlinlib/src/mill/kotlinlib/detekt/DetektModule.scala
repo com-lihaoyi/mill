@@ -1,7 +1,7 @@
 package mill.kotlinlib.detekt
 
 import mill._
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Jvm
 
@@ -59,9 +59,9 @@ trait DetektModule extends KotlinModule {
   /**
    * Classpath for running Dekekt.
    */
-  def detektClasspath: T[Loose.Agg[PathRef]] = Task {
+  def detektClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"io.gitlab.arturbosch.detekt:detekt-cli:${detektVersion()}")
+      Seq(ivy"io.gitlab.arturbosch.detekt:detekt-cli:${detektVersion()}")
     )
   }
 

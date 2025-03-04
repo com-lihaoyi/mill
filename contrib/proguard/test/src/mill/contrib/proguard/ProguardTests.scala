@@ -2,7 +2,7 @@ package mill.contrib.proguard
 
 import mill.*
 import mill.define.{Discover, Target}
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule

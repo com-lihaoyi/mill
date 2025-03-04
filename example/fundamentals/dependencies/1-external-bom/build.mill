@@ -5,10 +5,10 @@ package build
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def bomIvyDeps = Agg(
+  def bomIvyDeps = Seq(
     ivy"com.google.cloud:libraries-bom:26.50.0"
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"io.grpc:grpc-protobuf"
   )
 }

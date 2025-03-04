@@ -2,7 +2,7 @@ package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"org.eclipse.jetty:jetty-server:9.4.43.v20210629",
     ivy"javax.servlet:javax.servlet-api:4.0.1"
   )

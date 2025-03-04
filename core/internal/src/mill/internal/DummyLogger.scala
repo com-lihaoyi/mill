@@ -4,7 +4,7 @@ import mill.api.{Logger, SystemStreams}
 
 import java.io.{ByteArrayInputStream, PrintStream}
 
-object DummyLogger extends Logger {
+private[mill] object DummyLogger extends Logger {
   def colored = false
 
   val systemStreams = new SystemStreams(

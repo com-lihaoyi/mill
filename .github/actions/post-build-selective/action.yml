@@ -26,7 +26,7 @@ runs:
 
     # This generates a lot of logs and slows down the github actions UI like crazy, 
     # so only uncomment it when really necessary
-    #- run: cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
+    #- run: cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
     #  shell: bash
 
     - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}

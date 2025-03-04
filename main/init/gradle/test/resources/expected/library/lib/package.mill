@@ -6,7 +6,7 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with MavenModule {
 
-  def ivyDeps = super.ivyDeps() ++ Agg(
+  def ivyDeps = super.ivyDeps() ++ Seq(
     ivy"com.google.guava:guava:33.2.1-jre",
     ivy"org.apache.commons:commons-math3:3.6.1"
   )
@@ -14,7 +14,7 @@ object `package` extends RootModule with MavenModule {
   object test extends MavenTests with TestModule.Junit5 {
 
     def ivyDeps = super.ivyDeps() ++
-      Agg(ivy"org.junit.jupiter:junit-jupiter:5.10.3")
+      Seq(ivy"org.junit.jupiter:junit-jupiter:5.10.3")
 
   }
 }

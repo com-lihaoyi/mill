@@ -4,7 +4,7 @@ import mill.api.{ColorLogger, SystemStreams}
 
 import java.io.*
 
-class PrintLogger(
+private[mill] class PrintLogger(
     override val colored: Boolean,
     override val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
@@ -82,7 +82,7 @@ class PrintLogger(
   override def rawOutputStream: PrintStream = systemStreams.out
 }
 
-object PrintLogger {
+private[mill] object PrintLogger {
 
   def wrapSystemStreams(systemStreams0: SystemStreams, printLoggerState: State): SystemStreams = {
     new SystemStreams(

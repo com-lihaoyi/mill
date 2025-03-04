@@ -4,14 +4,13 @@
 
 package mill.kotlinlib.kover
 
-import mill._
-import mill.api.{Loose, PathRef}
+import mill.*
+import mill.api.{PathRef, Result}
 import mill.api.Result.Success
-import mill.define.{Discover, ExternalModule}
-import mill.eval.Evaluator
+import mill.define.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 import mill.scalalib.api.CompilationResult
 import mill.util.Jvm
 import os.Path
@@ -88,8 +87,8 @@ trait KoverModule extends KotlinModule { outer =>
 
   trait KoverTests extends TestModule {
 
-    private def koverAgentDep: T[Agg[Dep]] = Task {
-      Agg(ivy"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
+    private def koverAgentDep: T[Seq[Dep]] = Task {
+      Seq(ivy"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
     }
 
     /** The Kover Agent is used at test-runtime. */
@@ -104,8 +103,9 @@ trait KoverModule extends KotlinModule { outer =>
     override def forkArgs: T[Seq[String]] = Task {
       val argsFile = koverDataDir().path / "kover-agent.args"
       val content = s"report.file=${koverBinaryReport().path}"
-      os.write.over(argsFile, content)
-
+      os.checker.withValue(os.Checker.Nop) {
+        os.write.over(argsFile, content)
+      }
       super.forkArgs() ++
         Seq(
           s"-javaagent:${koverAgentJar().path}=file:$argsFile"
@@ -146,7 +146,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
   }
 
   private def koverReportTask(
-      evaluator: mill.eval.Evaluator,
+      evaluator: Evaluator,
       sources: String = "__:KotlinModule:^TestModule.allSources",
       compiled: String = "__:KotlinModule:^TestModule.compile",
       binaryReports: String = "__.koverBinaryReport",
@@ -199,7 +199,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       // will be treated as a dir in case of HTML, and as file in case of XML
       reportPath: Path,
       reportType: ReportType,
-      classpath: Loose.Agg[Path],
+      classpath: Seq[Path],
       workingDir: os.Path
   )(implicit ctx: api.Ctx): PathRef = {
     val args = Seq.newBuilder[String]
@@ -226,10 +226,8 @@ object Kover extends ExternalModule with KoverReportBaseModule {
 
   private def resolveTasks[T](tasks: String, evaluator: Evaluator): Seq[Task[T]] =
     if (tasks.trim().isEmpty) Seq.empty
-    else evaluator.resolveTasks(Seq(tasks), SelectMode.Multi) match {
-      case Left(err) => throw new Exception(err)
-      case Right(tasks) => tasks.asInstanceOf[Seq[Task[T]]]
-    }
+    else evaluator.resolveTasks(Seq(tasks), SelectMode.Multi).get.asInstanceOf[Seq[Task[T]]]
+
 }
 
 sealed trait ReportType

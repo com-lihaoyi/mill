@@ -228,12 +228,12 @@ out/mill-server
 // Again, if there are multiple paths through which one task was invalidated by another,
 // one path is chosen arbitrarily to be shown in the spanning tree
 //
-// === `methodCodeHashSignatures spanningInvalidationTree`
+// === `codeSignatures spanningInvalidationTree`
 //
 // Sometimes invalidation can be caused by a code change in your `build.mill`/`package.mill`
 // files, rather than by a change in the project's source files or inputs. In such cases,
 // the root tasks in `mill-invalidation-tree.json` may not necessarily be inputs. In such
-// cases, you can look at `out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json`
+// cases, you can look at `out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json`
 // to see an invalidation tree for how code changes in specfic methods propagate throughout
 // the `build.mill` codebase.
 
@@ -243,7 +243,7 @@ out/mill-server
 
 > ./mill foo.compile # compile after changing build.mill
 
-> cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
+> cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
 {
 ...
     "def build_.package_$foo$#<init>(build_.package_)void": {

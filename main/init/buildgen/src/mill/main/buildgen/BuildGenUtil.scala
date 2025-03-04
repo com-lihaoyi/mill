@@ -1,14 +1,14 @@
 package mill.main.buildgen
 
 import mainargs.{Flag, arg}
+import mill.constants.OutFiles
 import mill.main.buildgen.BuildObject.Companions
-import mill.main.client.CodeGenConstants.{
+import mill.constants.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
   rootBuildFileNames,
   rootModuleAlias
 }
-import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
 
 import scala.collection.immutable.SortedSet
@@ -121,7 +121,7 @@ object BuildGenUtil {
 
   }
   def buildFile(dirs: Seq[String]): os.SubPath = {
-    val name = if (dirs.isEmpty) rootBuildFileNames.head else nestedBuildFileNames.head
+    val name = if (dirs.isEmpty) rootBuildFileNames.get(0) else nestedBuildFileNames.get(0)
     os.sub / dirs / name
   }
 
@@ -131,7 +131,7 @@ object BuildGenUtil {
       packagesSize: Int
   ): SortedSet[String] = {
     scala.collection.immutable.SortedSet("mill._", "mill.javalib._", "mill.javalib.publish._") ++
-      (if (isNested) baseModule.map(name => s"$$file.$name")
+      (if (isNested) baseModule.map(name => s"_root_.build_.$name")
        else if (packagesSize > 1) Seq("$packages._")
        else None)
   }
@@ -356,22 +356,22 @@ object BuildGenUtil {
     else s"def artifactName = ${escape(name)}"
 
   def renderBomIvyDeps(args: IterableOnce[String]): String =
-    optional("def bomIvyDeps = super.bomIvyDeps() ++ Agg", args)
+    optional("def bomIvyDeps = super.bomIvyDeps() ++ Seq", args)
 
   def renderIvyDeps(args: IterableOnce[String]): String =
-    optional("def ivyDeps = super.ivyDeps() ++ Agg", args)
+    optional("def ivyDeps = super.ivyDeps() ++ Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
   def renderCompileIvyDeps(args: IterableOnce[String]): String =
-    optional("def compileIvyDeps = super.compileIvyDeps() ++ Agg", args)
+    optional("def compileIvyDeps = super.compileIvyDeps() ++ Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
   def renderRunIvyDeps(args: IterableOnce[String]): String =
-    optional("def runIvyDeps = super.runIvyDeps() ++ Agg", args)
+    optional("def runIvyDeps = super.runIvyDeps() ++ Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)

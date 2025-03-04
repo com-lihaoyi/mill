@@ -15,7 +15,7 @@ val sonatypeReleases = Seq(
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"com.lihaoyi::scalatags:0.13.1",
     ivy"com.lihaoyi::mainargs:0.6.2"
   )

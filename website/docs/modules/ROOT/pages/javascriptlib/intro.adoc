@@ -1,7 +1,4 @@
 = Building Javascript with Mill
-
-
-
 :language: Typescript
 :language-small: typescript
 

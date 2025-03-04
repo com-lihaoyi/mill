@@ -2,7 +2,7 @@ package mill.javalib.errorprone
 
 import mill.api.PathRef
 import mill.scalalib.{Dep, DepSyntax, JavaModule}
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 
 import java.io.File
 
@@ -21,8 +21,8 @@ trait ErrorProneModule extends JavaModule {
   /**
    * The dependencies of the `error-prone` compiler plugin.
    */
-  def errorProneDeps: T[Agg[Dep]] = Task {
-    Agg(
+  def errorProneDeps: T[Seq[Dep]] = Task {
+    Seq(
       ivy"com.google.errorprone:error_prone_core:${errorProneVersion()}"
     )
   }
@@ -30,7 +30,7 @@ trait ErrorProneModule extends JavaModule {
   /**
    * The classpath of the `error-prone` compiler plugin.
    */
-  def errorProneClasspath: T[Agg[PathRef]] = Task {
+  def errorProneClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(errorProneDeps())
   }
 

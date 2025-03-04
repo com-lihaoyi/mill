@@ -1,0 +1,106 @@
+= Caching in Mill
+
+Mill has a multi-layered approach to caching: every step in the
+xref:depth/evaluation-model.adoc[Mill Evaluation Model] is cached if possible,
+re-using prior results rather than computing them from scratch. This helps ensure
+the overall workflow remains fast even for large projects.
+
+## Caching Per Phase
+
+This section will discuss the caching that Mill performs in each phase of
+xref:depth/evaluation-model.adoc[Mill's Evaluation Model]:
+
+### Compilation
+
+* If there were changes in `build.mill` or `package.mill` files, compilation is done
+  incrementally using the Scala incremental compiler https://github.com/sbt/zinc[Zinc].
+  Typically, this limits compilation to the `.mill` files you changed, though the
+  exact about of caching and reuse that occurs may vary depending on the nature
+  of the code change.
+
+* If no `.mill` files were changed, this phase is skipped entirely.
+
+### Resolution
+
+* In the common case where the `build.mill` and `package.mill` files were not
+  changed - and re-compilation of th `.mill` files did not occur - any `Module`
+  objects instantiated during previous resolutions are kept around and re-used.
+
+* If re-compilation of `.mill` files did occur due to a code change, then
+  all `Module` objects are discarded along with their enclosing classloader,
+  and re-instantiated using the latest code
+
+### Planning
+
+* Planning is relatively quick most of the time, and is not currently cached.
+
+### Execution
+
+* Mill ``Task``s are evaluated in dependency order
+
+* Default cached xref:fundamentals/tasks.adoc#_tasks[Task]s only re-evaluate if their
+  input ``Task``s have their value change.
+
+* xref:fundamentals/tasks.adoc#_persistent_tasks[Persistent Tasks]s preserve the `Task.dest`
+  folder on disk between runs, allowing for finer-grained caching than Mill's default task-by-task
+  caching and invalidation
+
+* xref:fundamentals/tasks.adoc#_workers[Worker]s are kept in-memory between runs where possible, and only
+  invalidated if their input ``Task``s change as well.
+
+* ``Task``s in general are invalidated if the code they depend on changes,
+  at a method-level granularity via callgraph reachability analysis. See
+  https://github.com/com-lihaoyi/mill/pull/2417[#2417] for more details
+
+### Bootstrapping
+
+* Mill's bootstrapping process essentially involves running the four phases above, but
+  for the meta-build rather than the primary build. All the caching techniques described
+  above apply the same for Mill's bootstrap builds as they do for the primary build.
+
+## Debugging Mill Caching Issues
+
+To dig into how Mill's execution caching, you can look at the following files:
+
+* xref:fundamentals/out-dir.adoc#_mill_profile_json[mill-profile.json]: this file
+is generated during every Mill evaluation, and contains a `"cached": boolean` flag
+for each task indicating whether or not that task was cached.
+
+* xref:fundamentals/out-dir.adoc#_mill_invalidation_tree_json[mill-invalidation-tree.json]:
+this file groups together the un-cached files in a tree structure according to their
+task dependencies. It is useful to find the "root" uncached tasks, which are the cause
+of downstream tasks having their caches invalidated.
+
+* xref:fundamentals/out-dir.adoc#_codeSignatures_spanninginvalidationtree[codeSignatures spanningInvalidationTree]:
+this file contains information about tasks whose caches were invalidated due to
+__code changes in the `build.mill` or `package.mill` files__, and again shows a tree
+of invalidated method signatures organized into a tree using their call graph dependenceis.
+This is most useful to figure out why a code change in your `.mill` files ended up
+changing some task's code signature, causing it to miss the cache and be re-computed
+
+## Consequences of Caching in Mill
+
+This approach to caching does assume a certain programming style inside your
+Mill build:
+
+- Mill may-or-may-not instantiate the modules in your `build.mill` the first time
+  you run something (due to laziness)
+
+- Mill may-or-may-not *re*-instantiate the modules in your `build.mill` in subsequent runs
+  (due to caching)
+
+- Mill may-or-may-not re-execute any particular task depending on caching,
+  but your code needs to work either way.
+
+- Execution of any task may-or-may-not happen in parallel with other unrelated
+  tasks, and may happen in arbitrary order
+
+Your build code code needs to work regardless of which order they are executed in.
+However, for code written in a typical Scala style (which tends to avoid side effects),
+and limits filesystem operations to the `Task.dest` folder, this is not a problem at all.
+
+One thing to note is for code that runs during *Resolution*: any reading of
+external mutable state needs to be wrapped in an `interp.watchValue{...}`
+wrapper. This ensures that Mill knows where these external reads are, so that
+it can check if their value changed and if so re-instantiate `RootModule` with
+the new value.

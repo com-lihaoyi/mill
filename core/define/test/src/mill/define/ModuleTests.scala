@@ -11,8 +11,6 @@ object ModuleTests extends TestSuite {
 
   val tests = Tests {
 
-    object graphs extends TestGraphs()
-    import graphs._
     import TestGraphs._
 
     test("singleton") {

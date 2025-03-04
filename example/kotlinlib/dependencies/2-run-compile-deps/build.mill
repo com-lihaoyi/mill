@@ -7,7 +7,7 @@ object foo extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def moduleDeps = Seq(bar)
-  def runIvyDeps = Agg(
+  def runIvyDeps = Seq(
     ivy"javax.servlet:servlet-api:2.5",
     ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
     ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
@@ -21,7 +21,7 @@ object bar extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def compileIvyDeps = Agg(
+  def compileIvyDeps = Seq(
     ivy"javax.servlet:servlet-api:2.5",
     ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
     ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"

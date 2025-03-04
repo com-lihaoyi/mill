@@ -19,10 +19,10 @@ object `hello-kotlin` extends kotlinlib.KotlinModule {
 // involving ivyDeps, but also compile-time only and runtime only dependencies
 object lib extends scalalib.JavaModule {
   import scalalib._
-  def compileIvyDeps = Agg(
+  def compileIvyDeps = Seq(
     ivy"junit:junit:4.13.2"
   )
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"org.slf4j:slf4j-api:2.0.16"
   )
 }
@@ -30,10 +30,10 @@ object lib extends scalalib.JavaModule {
 object app extends scalalib.JavaModule {
   import scalalib._
   def moduleDeps = Seq(lib)
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"ch.qos.logback:logback-core:1.5.15"
   )
-  def runIvyDeps = Agg(
+  def runIvyDeps = Seq(
     ivy"com.mysql:mysql-connector-j:9.1.0"
   )
 }

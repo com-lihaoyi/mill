@@ -52,14 +52,6 @@ object Ctx {
     implicit def logToCtx(l: Logger): Log = new Log { def log = l }
   }
 
-  /**
-   * Access to some internal storage dir used by underlying ammonite.
-   * You should not need this in a buildscript.
-   */
-  trait Home {
-    def home: os.Path
-  }
-
   /** Access to the current system environment settings. */
   trait Env {
 
@@ -171,7 +163,6 @@ class Ctx(
     val args: IndexedSeq[?],
     dest0: () => os.Path,
     val log: Logger,
-    val home: os.Path,
     val env: Map[String, String],
     val reporter: Int => Option[CompileProblemReporter],
     val testReporter: TestReporter,
@@ -181,22 +172,9 @@ class Ctx(
 ) extends Ctx.Dest
     with Ctx.Log
     with Ctx.Args
-    with Ctx.Home
     with Ctx.Env
     with Ctx.Workspace {
 
-  def this(
-      args: IndexedSeq[?],
-      dest0: () => os.Path,
-      log: Logger,
-      home: os.Path,
-      env: Map[String, String],
-      reporter: Int => Option[CompileProblemReporter],
-      testReporter: TestReporter,
-      workspace: os.Path
-  ) = {
-    this(args, dest0, log, home, env, reporter, testReporter, workspace, _ => ???, null)
-  }
   def dest: os.Path = dest0()
   def arg[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]

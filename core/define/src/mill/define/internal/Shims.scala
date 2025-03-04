@@ -3,7 +3,7 @@ package mill.define.internal
 import scala.annotation.{experimental, nowarn}
 import scala.quoted.*
 
-trait ShimService[Q <: Quotes] {
+private[mill] trait ShimService[Q <: Quotes] {
   val innerQuotes: Q
   import innerQuotes.reflect.*
 
@@ -30,7 +30,7 @@ trait ShimService[Q <: Quotes] {
 
 }
 
-object ShimService {
+private[mill] object ShimService {
   import scala.quoted.runtime.impl.QuotesImpl
 
   def reflect(using Quotes): ShimService[quotes.type] =

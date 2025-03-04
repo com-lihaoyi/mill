@@ -1,7 +1,7 @@
 package mill.contrib.bloop
 
-import mill.eval.Evaluator
 import mill.api.WorkspaceRoot
+import mill.define.Evaluator
 
 /**
  * Usage : `mill mill.contrib.bloop.Bloop/install`

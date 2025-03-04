@@ -24,7 +24,12 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       val signalFile = workspacePath / "do-wait"
       // Kick off blocking task in background
       Future {
-        eval(("show", "blockWhileExists", "--path", signalFile), check = true)
+        eval(
+          ("show", "blockWhileExists", "--path", signalFile),
+          check = true,
+          stdout = os.Inherit,
+          stderr = os.Inherit
+        )
       }
 
       // Wait for blocking task to write signal file, to indicate it has begun

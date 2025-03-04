@@ -1,8 +1,8 @@
 package mill.scalalib.bsp
 
 import mill.define.{Cross, Discover}
-import mill.exec.ExecutionPaths
-import mill.{Agg, T}
+import mill.define.ExecutionPaths
+import mill.T
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -17,12 +17,12 @@ object BspModuleTests extends TestSuite {
   object MultiBase extends TestBaseModule {
     object HelloBsp extends ScalaModule {
       def scalaVersion = testScalaVersion
-      override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.34")
+      override def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:1.7.34")
     }
     object HelloBsp2 extends ScalaModule {
       def scalaVersion = testScalaVersion
       override def moduleDeps = Seq(HelloBsp)
-      override def ivyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.1.10")
+      override def ivyDeps = Seq(ivy"ch.qos.logback:logback-classic:1.1.10")
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -50,7 +50,7 @@ object BspModuleTests extends TestSuite {
         ): @unchecked
 
         val relResult =
-          result.value.iterator.map(_.resolve(eval.evaluator.pathsResolver).last).toSeq.sorted
+          result.value.iterator.map(_.resolve(eval.evaluator.outPath).last).toSeq.sorted
         val expected = Seq(
           "compile-resources",
           "slf4j-api-1.7.34.jar",
@@ -68,7 +68,7 @@ object BspModuleTests extends TestSuite {
         ): @unchecked
 
         val relResults: Seq[FilePath] = result.value.iterator.map { p =>
-          val path = p.resolve(eval.evaluator.pathsResolver)
+          val path = p.resolve(eval.evaluator.outPath)
           val name = path.last
           if (name.endsWith(".jar")) os.rel / name
           else path
@@ -77,7 +77,7 @@ object BspModuleTests extends TestSuite {
         val expected: Seq[FilePath] = Seq(
           MultiBase.HelloBsp.moduleDir / "compile-resources",
           MultiBase.HelloBsp2.moduleDir / "compile-resources",
-          ExecutionPaths.resolveDestPaths(eval.outPath, MultiBase.HelloBsp.compile)
+          ExecutionPaths.resolve(eval.outPath, MultiBase.HelloBsp.compile)
             .dest / "classes",
           os.rel / "slf4j-api-1.7.34.jar",
           os.rel / "logback-core-1.1.10.jar",
