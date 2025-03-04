@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.internal.PrefixLogger
+import mill.internal.{PrefixLogger, MillPathSerializer}
 import mill.define.internal.Watchable
 import mill.main.{BuildInfo, RootModule}
 import mill.constants.CodeGenConstants.*
@@ -180,7 +180,10 @@ class MillBuildBootstrap(
         val rootModuleRes = nestedState.frames.headOption match {
           case None => Result.Success(nestedState.bootstrapModuleOpt.get)
           case Some(nestedFrame) =>
-            try Result.Success(getRootModule(nestedFrame.classLoaderOpt.get))
+            try Result.Success(getRootModule(
+                nestedFrame.classLoaderOpt.get,
+                recRoot(projectRoot, depth)
+              ))
             catch {
               case e: Throwable => Result.Failure(renderFailure(e))
             }
@@ -507,10 +510,15 @@ object MillBuildBootstrap {
     }
   }
 
-  def getRootModule(runClassLoader: URLClassLoader): RootModule = {
+  def getRootModule(runClassLoader: URLClassLoader, workspace: os.Path): RootModule = {
     val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
-    os.checker.withValue(EvaluatorImpl.resolveChecker) {
-      buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
+    MillPathSerializer.setupSymlinks(os.pwd, workspace)
+    os.Path.pathSerializer.withValue(new MillPathSerializer(
+      MillPathSerializer.defaultMapping(workspace)
+    )) {
+      os.checker.withValue(EvaluatorImpl.resolveChecker) {
+        buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
+      }
     }
   }
 

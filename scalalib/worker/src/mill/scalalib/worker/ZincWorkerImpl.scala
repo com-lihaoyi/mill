@@ -11,6 +11,7 @@ import sbt.internal.inc.{
   FreshCompilerCache,
   ManagedLoggedReporter,
   MappedFileConverter,
+  MappedVirtualFile,
   ScalaInstance,
   Stamps,
   ZincUtil,
@@ -20,6 +21,8 @@ import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
+import xsbti.compile.analysis.{ReadMapper, Stamp, WriteMapper}
+import xsbti.VirtualFileRef
 import xsbti.compile.analysis.ReadWriteMappers
 import xsbti.compile.{
   AnalysisContents,
@@ -40,6 +43,7 @@ import xsbti.compile.CompileProgress
 import java.nio.charset.StandardCharsets
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.file
 import java.util.Optional
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.ListHasAsScala
@@ -491,14 +495,72 @@ class ZincWorkerImpl(
     }
   }
 
-  private def fileAnalysisStore(path: os.Path): AnalysisStore =
-    ConsistentFileAnalysisStore.binary(
-      file = path.toIO,
-      mappers = ReadWriteMappers.getEmptyMappers(),
-      reproducible = true,
-      // No need to utilize more than 8 cores to serialize a small file
-      parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
+  private def fileAnalysisStore(path: os.Path): AnalysisStore = {
+    def denormalizeVirtualFile(file: VirtualFileRef) = file match {
+      case b: MappedVirtualFile =>
+        MappedVirtualFile(os.Path.pathSerializer.value.deserialize(b.toPath).toString, Map())
+      case b => b
+    }
+    def normalizeVirtualFile(file: VirtualFileRef) = file match {
+      case b: MappedVirtualFile =>
+        MappedVirtualFile(os.Path.pathSerializer.value.serializeString(os.Path(b.toPath())), Map())
+      case b => b
+    }
+    def denormalizeNioPath(file: java.nio.file.Path) = file
+    def normalizeNioPath(file: java.nio.file.Path) = file
+    def normalizeString(str: String) = str
+    def denormalizeString(str: String) = str
+    val mappers = new ReadWriteMappers(
+      new ReadMapper {
+        override def mapSourceFile(sourceFile: VirtualFileRef): VirtualFileRef =
+          denormalizeVirtualFile(sourceFile)
+        override def mapBinaryFile(binaryFile: VirtualFileRef): VirtualFileRef =
+          denormalizeVirtualFile(binaryFile)
+        override def mapProductFile(productFile: VirtualFileRef): VirtualFileRef =
+          denormalizeVirtualFile(productFile)
+        override def mapOutputDir(outputDir: file.Path): file.Path = denormalizeNioPath(outputDir)
+        override def mapSourceDir(sourceDir: file.Path): file.Path = denormalizeNioPath(sourceDir)
+        override def mapClasspathEntry(classpathEntry: file.Path): file.Path =
+          denormalizeNioPath(classpathEntry)
+        override def mapJavacOption(javacOption: String): String = denormalizeString(javacOption)
+        override def mapScalacOption(scalacOption: String): String = denormalizeString(scalacOption)
+        override def mapBinaryStamp(file: VirtualFileRef, binaryStamp: Stamp): Stamp = binaryStamp
+        override def mapSourceStamp(file: VirtualFileRef, sourceStamp: Stamp): Stamp = sourceStamp
+        override def mapProductStamp(file: VirtualFileRef, productStamp: Stamp): Stamp =
+          productStamp
+        override def mapMiniSetup(miniSetup: MiniSetup): MiniSetup = miniSetup
+      },
+      new WriteMapper {
+        override def mapSourceFile(sourceFile: VirtualFileRef): VirtualFileRef =
+          normalizeVirtualFile(sourceFile)
+        override def mapBinaryFile(binaryFile: VirtualFileRef): VirtualFileRef =
+          normalizeVirtualFile(binaryFile)
+        override def mapProductFile(productFile: VirtualFileRef): VirtualFileRef =
+          normalizeVirtualFile(productFile)
+        override def mapOutputDir(outputDir: file.Path): file.Path = normalizeNioPath(outputDir)
+        override def mapSourceDir(sourceDir: file.Path): file.Path = normalizeNioPath(sourceDir)
+        override def mapClasspathEntry(classpathEntry: file.Path): file.Path =
+          normalizeNioPath(classpathEntry)
+        override def mapJavacOption(javacOption: String): String = normalizeString(javacOption)
+        override def mapScalacOption(scalacOption: String): String = normalizeString(scalacOption)
+        override def mapBinaryStamp(file: VirtualFileRef, binaryStamp: Stamp): Stamp = binaryStamp
+        override def mapSourceStamp(file: VirtualFileRef, sourceStamp: Stamp): Stamp = sourceStamp
+        override def mapProductStamp(file: VirtualFileRef, productStamp: Stamp): Stamp =
+          productStamp
+        override def mapMiniSetup(miniSetup: MiniSetup): MiniSetup = miniSetup
+      }
     )
+    // No need to utilize more than 8 cores to serialize a small file
+    val parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
+
+    if (false) {
+      ConsistentFileAnalysisStore
+        .text(file = path.toIO, mappers = mappers, reproducible = true, parallelism = parallelism)
+    } else {
+      ConsistentFileAnalysisStore
+        .binary(file = path.toIO, mappers = mappers, reproducible = true, parallelism = parallelism)
+    }
+  }
 
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
@@ -557,9 +619,14 @@ class ZincWorkerImpl(
     }
     val analysisMap0 = upstreamCompileOutput.map(c => c.classes.path -> c.analysisFile).toMap
 
+    val pathSerializer = os.Path.pathSerializer.value
     def analysisMap(f: VirtualFile): Optional[CompileAnalysis] = {
       val analysisFile = f match {
-        case pathBased: PathBasedFile => analysisMap0.get(os.Path(pathBased.toPath))
+        case pathBased: PathBasedFile =>
+          // This runs on a separate thread in Zinc's internal threadpool we don't control
+          os.Path.pathSerializer.withValue(pathSerializer) {
+            analysisMap0.get(os.Path(pathBased.toPath))
+          }
         case _ => None
       }
       analysisFile match {
@@ -575,10 +642,10 @@ class ZincWorkerImpl(
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
     val classpath = (compileClasspath.iterator ++ Some(classesDir))
-      .map(path => converter.toVirtualFile(path.toNIO))
+      .map(path => converter.toVirtualFile(os.Path.pathSerializer.value.serializePath(path)))
       .toArray
     val virtualSources = sources.iterator
-      .map(path => converter.toVirtualFile(path.toNIO))
+      .map(path => converter.toVirtualFile(os.Path.pathSerializer.value.serializePath(path)))
       .toArray
 
     val incOptions = IncOptions.of().withAuxiliaryClassFiles(

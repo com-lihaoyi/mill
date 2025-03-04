@@ -45,10 +45,11 @@ import scala.util.Using
     ).reverse
   }
 
-  def main(args: Array[String]): Unit = {
-    val classpath = args(0).split(",").map(os.Path(_)).toSeq
-    apply(classpath).foreach(println)
-  }
+  def main(args: Array[String]): Unit =
+    os.Path.pathSerializer.withValue(new mill.internal.MillPathSerializer(Seq(os.pwd -> os.sub))) {
+      val classpath = args(0).split(",").map(os.Path(_)).toSeq
+      apply(classpath).foreach(println)
+    }
 
   def apply(classpath: Seq[os.Path]): Seq[String] = {
     val cp = classpath.map(_.toNIO.toString()).mkString(File.pathSeparator)
