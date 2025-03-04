@@ -21,6 +21,29 @@ object ResolveTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  // Test modules for supertask resolution
+  trait BaseModule extends TestBaseModule {
+    def baseTask = Task { "base" }
+    def multiOverride = Task { "base-multi" }
+  }
+
+  object singleOverrideModule extends BaseModule {
+    // Single override of baseTask
+    override def baseTask = Task { "single-override" }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  trait MidModule extends BaseModule {
+    // First level override of multiOverride
+    override def multiOverride = Task { "mid-override" }
+  }
+
+  object multiOverrideModule extends MidModule {
+    // Second level override of multiOverride
+    override def multiOverride = Task { "final-override" }
+    lazy val millDiscover = Discover[this.type]
+  }
+
   def isShortError(x: Result[?], s: String) =
     x.errorOpt.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
@@ -250,5 +273,68 @@ object ResolveTests extends TestSuite {
       )
     }
 
+    test("supertasks") {
+      test("singleOverride") {
+        val check = new Checker(singleOverrideModule)
+
+        // Super task should resolve to the base implementation
+        test("superTask") - check(
+          "baseTask.super",
+          Result.Success(Set(_.baseTask)),
+          Set("baseTask.super")
+        )
+      }
+
+      test("multiOverride") {
+        val check = new Checker(multiOverrideModule)
+
+        // Direct super task should resolve to the mid-level implementation
+        test("directSuperTask") - check(
+          "multiOverride.super",
+          Result.Success(Set(_.multiOverride)),
+          Set("multiOverride.super")
+        )
+
+        // Qualified super task should resolve to the base implementation
+        test("qualifiedSuperTask") - check(
+          "multiOverride.super.BaseModule",
+          Result.Success(Set(_.multiOverride)),
+          Set("multiOverride.super.BaseModule")
+        )
+      }
+      
+      // Test for complex super task resolution
+      test("complexSuperTask") {
+        // Create a more complex module hierarchy to test super task resolution
+        trait ComplexBase extends TestBaseModule {
+          def artifactSuffix = Task { "base-suffix" }
+        }
+        
+        trait ComplexMid extends ComplexBase {
+          override def artifactSuffix = Task { "mid-suffix" }
+        }
+        
+        object complexModule extends ComplexMid {
+          override def artifactSuffix = Task { "final-suffix" }
+          lazy val millDiscover = Discover[this.type]
+        }
+        
+        val check = new Checker(complexModule)
+        
+        // Test direct super task resolution
+        test("directSuperTask") - check(
+          "artifactSuffix.super",
+          Result.Success(Set(_.artifactSuffix)),
+          Set("artifactSuffix.super")
+        )
+        
+        // Test qualified super task resolution
+        test("qualifiedSuperTask") - check(
+          "artifactSuffix.super.ComplexBase",
+          Result.Success(Set(_.artifactSuffix)),
+          Set("artifactSuffix.super.ComplexBase")
+        )
+      }
+    }
   }
 }
