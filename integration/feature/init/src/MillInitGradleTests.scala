@@ -135,6 +135,7 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
           ),
           expectedCompileTaskResults = Some(SplitTaskResults(
             successful = SortedSet(
+              "clustered.compile",
               "clustered.ehcache-clustered.compile",
               "clustered.ehcache-common-api.compile",
               "clustered.ehcache-common-api.test.compile",
@@ -143,7 +144,9 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
               "clustered.ops-tool.compile",
               "clustered.ops-tool.test.compile",
               "clustered.osgi-test.compile",
+              "clustered.server.compile",
               "clustered.test-utils.compile",
+              "demos.compile",
               "docs.compile",
               "ehcache-api.compile",
               "ehcache-api.test.compile",
@@ -159,13 +162,11 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
             // [warn] Unexpected javac output: warning: [path] bad path element...ehcache-api/compile-resources": no such file or directory
             // [warn] error: warnings found and -Werror specified
             failed = SortedSet(
-              "clustered.compile",
               "clustered.ehcache-client.compile",
               "clustered.ehcache-client.test.compile",
               "clustered.ehcache-common.test.compile",
               "clustered.integration-test.test.compile",
               "clustered.osgi-test.test.compile",
-              "clustered.server.compile",
               "clustered.server.ehcache-entity.compile",
               "clustered.server.ehcache-entity.test.compile",
               "clustered.server.ehcache-service-api.compile",
@@ -175,7 +176,6 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
               "core-spi-test.compile",
               "demos.00-NoCache.compile",
               "demos.01-CacheAside.compile",
-              "demos.compile",
               "ehcache-107.compile",
               "ehcache-107.test.compile",
               "ehcache-impl.compile",

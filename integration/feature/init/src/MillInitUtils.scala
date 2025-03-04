@@ -76,16 +76,16 @@ object MillInitUtils {
     import tester.*
 
     val initResult = eval(initCommand)
-    assert(initResult.isSuccess == expectedInitResult)
+    if (expectedInitResult) assertEvalSuccess(initResult) else assert(!initResult.isSuccess)
 
     modifyConvertedBuild()
 
     {
       val resolveResult = eval(("resolve", s"__.allSourceFiles"))
-      assert(resolveResult.isSuccess)
+      assertEvalSuccess(resolveResult)
       val numSourceFilesMap = outSeq(resolveResult).map(task => {
         val result = eval(("show", task))
-        assert(result.isSuccess)
+        assertEvalSuccess(result)
         val numLines = result.out.linesIterator.size
         task -> (if (numLines == 1) 0 else numLines - 2)
       }).toMap
@@ -108,24 +108,24 @@ object MillInitUtils {
           expectedTaskResults.fold(
             assert(!resolveAllTasksResult.isSuccess)
           )(expected => {
-            assert(resolveAllTasksResult.isSuccess)
+            assertEvalSuccess(resolveAllTasksResult)
             val resolvedAllTasks = outSortedSet(resolveAllTasksResult)
             assertEqWithFailureComparisonOnSeparateLines(expected.all, resolvedAllTasks)
 
             if (combineSuccessful) {
               val tasks = expected.successful
               if (tasks.nonEmpty)
-                assert(eval(
+                assertEvalSuccess(eval(
                   if (expected.failed.isEmpty)
                     wildcardAllTasks
                   else {
                     if (tasks.size == 1) tasks.head
                     else tasks.mkString("{", ",", "}")
                   }
-                ).isSuccess)
+                ))
             } else
               for (task <- expected.successful)
-                Predef.assert(eval(task).isSuccess, s"task $task failed")
+                assertEvalSuccess(eval(task), s"task $task failed")
 
             for (task <- expected.failed)
               Predef.assert(!eval(task).isSuccess, s"task $task succeeded")
@@ -163,6 +163,26 @@ object MillInitUtils {
          |actual: $actual
          |""".stripMargin
     )
+
+  private inline def commonAssertEvalSuccess(
+      evalResult: EvalResult,
+      assert: (isSuccess: Boolean) => Unit
+  ): Unit = {
+    val isSuccess = evalResult.isSuccess
+
+    if (!isSuccess) {
+      println("Evaluation result out: \n" + evalResult.out + "\n")
+      System.err.println("Evaluation result err: \n" + evalResult.err + "\n")
+    }
+
+    assert(isSuccess)
+  }
+
+  def assertEvalSuccess(evalResult: EvalResult, message: => Any) =
+    commonAssertEvalSuccess(evalResult, Predef.assert(_, message))
+
+  def assertEvalSuccess(evalResult: EvalResult) =
+    commonAssertEvalSuccess(evalResult, assert(_))
 
   def outSeq(evalResult: EvalResult) =
     evalResult.out.linesIterator.toSeq.sorted
