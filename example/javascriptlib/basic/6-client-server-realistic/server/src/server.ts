@@ -1,9 +1,8 @@
 import express, {Express} from 'express';
 import cors from 'cors';
-import path from 'path'
 import api from "./api"
 
-const Resources: string = (process.env.RESOURCESDEST || "@server/resources.dest") + "/build" // `RESOURCES` is generated on bundle
+const Resources: string = (process.env.RESOURCESDEST || "@server/resources") + "/build" // `RESOURCES` is generated on bundle
 const Client = require.resolve(`${Resources}/index.html`);
 const BuildPath = Client.replace(/index\.html$/, "");
 const app: Express = express();

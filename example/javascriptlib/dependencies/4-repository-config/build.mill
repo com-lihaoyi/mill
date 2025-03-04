@@ -1,7 +1,7 @@
 package build
 import mill._, javascriptlib._
 
-object foo extends TypeScriptModule {
+object foo extends TscModule {
   def npmDeps = Seq("lodash@4.17.21")
   def npmDevDeps = Seq("@types/lodash@4.17.13")
 }

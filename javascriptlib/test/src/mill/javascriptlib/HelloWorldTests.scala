@@ -10,15 +10,15 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 object HelloWorldTests extends TestSuite {
 
   object HelloWorldJavascript extends TestBaseModule {
-    object foo extends TypeScriptModule {
-      object bar extends TypeScriptModule {}
+    object foo extends TscModule {
+      object bar extends TscModule {}
 
-      override def moduleDeps: Seq[TypeScriptModule] = Seq(bar)
+      override def moduleDeps: Seq[TscModule] = Seq(bar)
 
     }
 
-    object qux extends TypeScriptModule {
-      override def moduleDeps: Seq[TypeScriptModule] = Seq(foo, foo.bar)
+    object qux extends TscModule {
+      override def moduleDeps: Seq[TscModule] = Seq(foo, foo.bar)
     }
 
     lazy val millDiscover = Discover[this.type]

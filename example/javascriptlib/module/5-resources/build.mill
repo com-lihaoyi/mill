@@ -3,7 +3,7 @@ package build
 import mill._, javascriptlib._
 import ujson._
 
-object foo extends TypeScriptModule {
+object foo extends TscModule {
   object test extends TypeScriptTests with TestModule.Jest {
     def otherFiles = Task.Source("other-files")
 

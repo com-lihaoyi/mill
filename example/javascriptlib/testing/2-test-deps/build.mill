@@ -2,12 +2,12 @@ package build
 
 import mill._, javascriptlib._
 
-object bar extends TypeScriptModule {
+object bar extends TscModule {
   def npmDeps = Seq("immutable@4.3.7")
   object test extends TypeScriptTests with TestModule.Jest
 }
 
-object foo extends TypeScriptModule {
+object foo extends TscModule {
   def moduleDeps = Seq(bar)
   object test extends TypeScriptTests with TestModule.Jest
 }

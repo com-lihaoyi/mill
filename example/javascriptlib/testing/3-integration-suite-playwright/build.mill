@@ -4,7 +4,7 @@ import mill._, javascriptlib._
 
 object client extends ReactScriptsModule
 
-object server extends TypeScriptModule {
+object server extends TscModule {
 
   def npmDeps =
     Seq("@types/cors@^2.8.17", "@types/express@^5.0.0", "cors@^2.8.5", "express@^4.21.1")

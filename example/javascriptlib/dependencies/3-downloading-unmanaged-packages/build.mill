@@ -6,7 +6,7 @@
 package build
 import mill._, javascriptlib._
 
-object foo extends TypeScriptModule {
+object foo extends TscModule {
   def unmanagedDeps = Task {
     val name = "lodash-4.17.21.tgz"
     val url = "https://github.com/lodash/lodash/archive/refs/tags/4.17.21.tar.gz"

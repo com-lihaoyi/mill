@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 
-const Resources: string = process.env.RESOURCESDEST || "@foo/resources.dest" // `RESOURCES` is generated on bundle
+const Resources: string = process.env.RESOURCESDEST || "@foo/resources" // `RESOURCES` is generated on bundle
 const LineCount = require.resolve(`${Resources}/line-count.txt`);
 
 export default class Foo {

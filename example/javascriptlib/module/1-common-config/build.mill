@@ -3,13 +3,13 @@ package build
 import mill._
 import mill.javascriptlib._
 
-object foo extends TypeScriptModule {
+object foo extends TscModule {
 
   def customSource = Task {
     Seq(PathRef(moduleDir / "custom-src/foo2.ts"))
   }
 
-  def allSources = super.allSources() ++ customSource()
+  def sources = Task.Sources(super.sources() ++ customSource())
 
   def resources = super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
 
