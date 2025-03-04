@@ -31,7 +31,7 @@ object HelloIdea extends HelloIdeaModule {
 object HelloIdeaSourceGen extends scalalib.ScalaModule {
   def scalaVersion = "2.12.5"
 
-  def someGeneratedSource = Task(generatedSourceRoots = Seq(os.SubPath("scala"))) {
+  def someGeneratedSource = Task(deferredGeneratedSourceRoots = Seq(os.SubPath("scala"))) {
     val contents = """|package foo
                       |
                       |case class GeneratedFoo()
@@ -48,7 +48,7 @@ object HelloIdeaSourceGen extends scalalib.ScalaModule {
     crash()
   }
 
-  def sourceGenerators = List(someGeneratedSource, someBuggyGeneratedSource)
+  override def deferredGeneratedSourceTasks = List(someGeneratedSource, someBuggyGeneratedSource)
 }
 
 object HiddenIdea extends HelloIdeaModule {

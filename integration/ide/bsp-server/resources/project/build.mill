@@ -19,7 +19,7 @@ object `hello-kotlin` extends kotlinlib.KotlinModule {
 
 // testing a java module with source generators
 object `hello-sourcegen` extends scalalib.JavaModule {
-  def someGeneratedSource = Task(generatedSourceRoots = Seq(os.SubPath("java"))) {
+  def someGeneratedSource = Task(deferredGeneratedSourceRoots = Seq(os.SubPath("java"))) {
     val contents = """|package foo;
                       |
                       |class GeneratedFoo {
@@ -36,7 +36,7 @@ object `hello-sourcegen` extends scalalib.JavaModule {
     def crash(): Unit = throw new Exception("Boom")
     crash()
   }
-  def sourceGenerators = List(someGeneratedSource, someBuggyGeneratedSource)
+  override def deferredGeneratedSourceTasks = List(someGeneratedSource, someBuggyGeneratedSource)
 }
 
 // testing a two-module setup, with one module depending on the other,

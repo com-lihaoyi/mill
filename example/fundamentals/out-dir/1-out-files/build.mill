@@ -182,7 +182,7 @@ out/mill-server
       "foo.allSources": {
         "foo.sources": {},
         "foo.generatedSources": {},
-        "foo.generatedSourceRoots": {}
+        "foo.deferredGeneratedSources": {}
       }
     },
     "foo.compileClasspath": {
