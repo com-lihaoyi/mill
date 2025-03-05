@@ -89,8 +89,14 @@ private[mill] class PrefixLogger(
   override def debugEnabled: Boolean = logger0.debugEnabled
 
   override def withOutStream(outStream: PrintStream): Logger = new ProxyLogger(this) with Logger {
+    override lazy val unprefixedStreams = new SystemStreams(
+      outStream,
+      PrefixLogger.this.unprefixedStreams.err,
+      PrefixLogger.this.unprefixedStreams.in
+    )
+
     override lazy val streams = new SystemStreams(
-      PrefixLogger.this.streams.err,
+      outStream,
       PrefixLogger.this.streams.err,
       PrefixLogger.this.streams.in
     )
