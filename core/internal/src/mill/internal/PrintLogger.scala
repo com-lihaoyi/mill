@@ -5,10 +5,10 @@ import mill.api.{Logger, SystemStreams}
 import java.io.*
 
 private[mill] class PrintLogger(
-    override val colored: Boolean,
+    colored: Boolean,
     enableTicker: Boolean,
-    override val infoColor: fansi.Attrs,
-    override val errorColor: fansi.Attrs,
+    infoColor: fansi.Attrs,
+    errorColor: fansi.Attrs,
     val streams: SystemStreams,
     debugEnabled: Boolean,
     val context: String,
@@ -32,6 +32,11 @@ private[mill] class PrintLogger(
     }
 
     override def enableTicker: Boolean = PrintLogger.this.enableTicker
+
+    override def infoColor: fansi.Attrs = PrintLogger.this.infoColor
+
+    override def errorColor: fansi.Attrs = PrintLogger.this.errorColor
+    override def colored: Boolean = PrintLogger.this.colored
   }
   def ticker(s: String): Unit = synchronized {
     if (enableTicker) {

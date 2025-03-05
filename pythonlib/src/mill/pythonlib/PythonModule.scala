@@ -132,7 +132,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     Map(
       "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
       "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
-      if (Task.log.colored) { "FORCE_COLOR" -> "1" }
+      if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
       else { "NO_COLOR" -> "1" }
     )
   }

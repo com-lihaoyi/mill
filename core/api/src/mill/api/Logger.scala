@@ -25,9 +25,6 @@ import java.io.PrintStream
  * used to display the final `show` output for easy piping.
  */
 trait Logger {
-  def infoColor: fansi.Attrs = fansi.Attrs.Empty
-  def errorColor: fansi.Attrs = fansi.Attrs.Empty
-  def colored: Boolean
 
   private[mill] def unprefixedStreams: SystemStreams = streams
   def streams: SystemStreams
@@ -60,6 +57,7 @@ object Logger {
    * to logger unchanged without any customization.
    */
   trait Prompt {
+
     private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
     private[mill] def reportKey(key: Seq[String]): Unit
     private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit
@@ -72,6 +70,11 @@ object Logger {
     def debugEnabled: Boolean
 
     def enableTicker: Boolean
+
+    def infoColor: fansi.Attrs
+
+    def errorColor: fansi.Attrs
+    def colored: Boolean
   }
   object Prompt {
     class NoOp extends Prompt {
@@ -88,6 +91,9 @@ object Logger {
       def debugEnabled: Boolean = false
 
       def enableTicker: Boolean = false
+      def infoColor: fansi.Attrs = fansi.Attrs.Empty
+      def errorColor: fansi.Attrs = fansi.Attrs.Empty
+      def colored: Boolean = false
     }
   }
 }

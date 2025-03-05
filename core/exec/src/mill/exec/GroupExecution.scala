@@ -377,9 +377,8 @@ private trait GroupExecution {
     logPath match {
       case None => (logger, None)
       case Some(path) =>
-        val fileLogger = new FileLogger(logger.colored, path)
+        val fileLogger = new FileLogger(path)
         val multiLogger = new MultiLogger(
-          logger.colored,
           logger,
           fileLogger,
           logger.streams.in
