@@ -54,7 +54,4 @@ private[mill] class FileLogger(
   }
   def enableTicker = false
   def prompt = new Logger.Prompt.NoOp
-  override def subLogger(path: os.Path, keySuffix: String, message: String): Logger = {
-    new FileLogger(colored, path, append)
-  }
 }

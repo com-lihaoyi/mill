@@ -89,8 +89,4 @@ private[mill] class PrefixLogger(
       PrefixLogger.this.streams.in
     )
   }
-
-  private[mill] override def subLogger(path: os.Path, subKey: String, message: String): Logger = {
-    new PrefixLogger(this, Seq(subKey), keySuffix, message)
-  }
 }

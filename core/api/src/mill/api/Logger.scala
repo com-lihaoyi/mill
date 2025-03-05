@@ -39,9 +39,6 @@ trait Logger {
 
   private[mill] def prompt: Logger.Prompt
 
-  private[mill] def subLogger(path: os.Path, keySuffix: String, message: String): Logger =
-    this
-
   private[mill] def withPromptLine[T](t: => T): T = {
     prompt.setPromptLine(logPrefixKey, keySuffix, message)
     try t

@@ -90,15 +90,6 @@ private[mill] class MultiLogger(
     logger2.debug(s)
   }
 
-  private[mill] override def subLogger(path: os.Path, key: String, message: String): Logger = {
-    new MultiLogger(
-      colored,
-      logger1.subLogger(path, key, message),
-      logger2.subLogger(path, key, message),
-      inStream0
-    )
-  }
-
   override def infoColor: Attrs = logger1.infoColor ++ logger2.infoColor
   override def errorColor: Attrs = logger1.errorColor ++ logger2.errorColor
   private[mill] override def logPrefixKey = logger1.logPrefixKey ++ logger2.logPrefixKey
