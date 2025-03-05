@@ -537,7 +537,7 @@ class ZincWorkerImpl(
 
     val consoleAppender = ConsoleAppender(
       "ZincLogAppender",
-      ConsoleOut.printStreamOut(ctx.log.errorStream),
+      ConsoleOut.printStreamOut(ctx.log.streams.err),
       ctx.log.colored,
       ctx.log.colored,
       _ => None

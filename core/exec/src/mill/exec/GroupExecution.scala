@@ -44,16 +44,16 @@ private trait GroupExecution {
       group: Seq[Task[?]],
       results: Map[Task[?], ExecResult[(Val, Int)]],
       countMsg: String,
-      verboseKeySuffix: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: ColorLogger,
+      logger: Logger,
+      deps: Seq[Task[?]],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean
   ): GroupExecution.Results = {
-    logger.withPrompt {
+    logger.withPromptLine {
       val externalInputsHash = MurmurHash3.orderedHash(
         group.flatMap(_.inputs).filter(!group.contains(_))
           .flatMap(results(_).asSuccess.map(_.value._2))
@@ -127,7 +127,9 @@ private trait GroupExecution {
                   testReporter,
                   logger,
                   executionContext,
-                  exclusive
+                  exclusive,
+                  labelled.isInstanceOf[Command[?]],
+                  deps
                 )
 
               val valueHash = newResults(labelled) match {
@@ -166,7 +168,9 @@ private trait GroupExecution {
             testReporter,
             logger,
             executionContext,
-            exclusive
+            exclusive,
+            task.isInstanceOf[Command[?]],
+            deps
           )
           GroupExecution.Results(
             newResults,
@@ -192,14 +196,16 @@ private trait GroupExecution {
       testReporter: TestReporter,
       logger: mill.api.Logger,
       executionContext: mill.api.Ctx.Fork.Api,
-      exclusive: Boolean
+      exclusive: Boolean,
+      isCommand: Boolean,
+      deps: Seq[Task[?]]
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[?]]
     val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]
 
     val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
-    val multiLogger = resolveLogger(paths.map(_.log), logger)
+    val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
     var usedDest = Option.empty[os.Path]
     for (task <- nonEvaluatedTargets) {
@@ -235,20 +241,40 @@ private trait GroupExecution {
           ) with mill.api.Ctx.Jobs {
             override def jobs: Int = effectiveThreadCount
           }
+          // Tasks must be allowed to write to upstream worker's dest folders, because
+          // the point of workers is to manualy manage long-lived state which includes
+          // state on disk.
+          val validDests =
+            deps.collect { case n: Worker[?] =>
+              ExecutionPaths.resolve(outPath, n.ctx.segments).dest
+            } ++
+              paths.map(_.dest)
 
+          val executionChecker = new os.Checker {
+            def onRead(path: os.ReadablePath): Unit = ()
+            def onWrite(path: os.Path): Unit = {
+              if (!isCommand) {
+                if (path.startsWith(workspace) && !validDests.exists(path.startsWith(_))) {
+                  sys.error(s"Writing to $path not allowed during execution phase")
+                }
+              }
+            }
+          }
           def wrap[T](t: => T): T = {
             val (streams, destFunc) =
               if (exclusive) (exclusiveSystemStreams, () => workspace)
-              else (multiLogger.systemStreams, () => makeDest())
+              else (multiLogger.streams, () => makeDest())
 
             os.dynamicPwdFunction.withValue(destFunc) {
-              SystemStreams.withStreams(streams) {
-                val exposedEvaluator = if (!exclusive) null else getEvaluator()
-                Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
-                  if (!exclusive) t
-                  else {
-                    logger.reportKey(Seq(counterMsg))
-                    logger.withPromptPaused { t }
+              os.checker.withValue(executionChecker) {
+                SystemStreams.withStreams(streams) {
+                  val exposedEvaluator = if (!exclusive) null else getEvaluator()
+                  Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
+                    if (!exclusive) t
+                    else {
+                      logger.prompt.reportKey(Seq(counterMsg))
+                      logger.prompt.withPromptPaused { t }
+                    }
                   }
                 }
               }
@@ -278,7 +304,7 @@ private trait GroupExecution {
       newResults(task) = for (v <- res) yield (v, getValueHash(v, task, inputsHash))
     }
 
-    multiLogger.close()
+    fileLoggerOpt.foreach(_.close())
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
       val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[?]])
@@ -344,21 +370,25 @@ private trait GroupExecution {
     }
   }
 
-  def resolveLogger(logPath: Option[os.Path], logger: mill.api.Logger): mill.api.Logger =
+  def resolveLogger(
+      logPath: Option[os.Path],
+      logger: mill.api.Logger
+  ): (mill.api.Logger, Option[AutoCloseable]) =
     logPath match {
-      case None => logger
-      case Some(path) => new MultiLogger(
+      case None => (logger, None)
+      case Some(path) =>
+        val fileLogger = new FileLogger(logger.colored, path)
+        val multiLogger = new MultiLogger(
           logger.colored,
           logger,
-          // we always enable debug here, to get some more context in log files
-          new FileLogger(logger.colored, path, debugEnabled = true),
-          logger.systemStreams.in,
-          debugEnabled = logger.debugEnabled
+          fileLogger,
+          logger.streams.in
         )
+        (multiLogger, Some(fileLogger))
     }
 
   private def loadCachedJson(
-      logger: ColorLogger,
+      logger: Logger,
       inputsHash: Int,
       labelled: NamedTask[?],
       paths: ExecutionPaths
@@ -393,7 +423,7 @@ private trait GroupExecution {
     if (task.isInstanceOf[Worker[?]]) inputsHash else v.##
   }
   private def loadUpToDateWorker(
-      logger: ColorLogger,
+      logger: Logger,
       inputsHash: Int,
       labelled: NamedTask[?],
       forceDiscard: Boolean
