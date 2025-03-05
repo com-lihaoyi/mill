@@ -13,7 +13,7 @@ import scala.concurrent.{Await, ExecutionContext, Future, duration}
 
 object GraphvizTools {
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit =
     val executor = Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors())
 
     val threadLocalJsEngines =
@@ -33,7 +33,7 @@ object GraphvizTools {
         for (arg <- args.toSeq) yield Future {
           val Array(src, dest0, commaSepExtensions) = arg.split(";")
           val extensions = commaSepExtensions.split(',')
-          val dest = os.Path(dest0)
+          val dest = os.Path(dest0, os.pwd)
 
           val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
 
@@ -45,7 +45,6 @@ object GraphvizTools {
 
       Await.result(Future.sequence(futures), duration.Duration.Inf)
     } finally executor.shutdown()
-  }
 }
 
 class V8JavascriptEngine() extends AbstractJavascriptEngine {

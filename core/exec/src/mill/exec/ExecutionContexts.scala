@@ -60,7 +60,7 @@ private object ExecutionContexts {
     def execute(runnable: Runnable): Unit = {
       // By default, any child task inherits the pwd and system streams from the
       // context which submitted it
-      lazy val submitterPwd = os.pwd
+      val submitterPwd = os.pwd
       lazy val submitterStreams = new mill.api.SystemStreams(System.out, System.err, System.in)
       threadPool.submit(new Runnable {
         def run() = {

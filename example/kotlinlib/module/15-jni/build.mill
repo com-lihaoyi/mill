@@ -30,13 +30,13 @@ object `package` extends RootModule with KotlinModule {
     PathRef(Task.dest / output)
   }
 
-  def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+  def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.wrapped.toString)
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
-    def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+    def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.wrapped.toString)
   }
 }
 

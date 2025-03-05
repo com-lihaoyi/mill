@@ -415,7 +415,7 @@ class InputImpl[T](
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
   val inputs = Nil
-  override def sideHash: Int = util.Random.nextInt()
+  override def sideHash: Int = 31337
   // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[?]] = Some(writer)
 }

@@ -46,7 +46,7 @@ import scala.util.Using
   }
 
   def main(args: Array[String]): Unit = {
-    val classpath = args(0).split(",").map(os.Path(_)).toSeq
+    val classpath = args(0).split(",").map(os.Path(_, os.pwd)).toSeq
     apply(classpath).foreach(println)
   }
 

@@ -6,7 +6,8 @@ import mill.internal.PrintLogger
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
-      val testArgs = upickle.default.read[mill.testrunner.TestArgs](os.read(os.Path(args(1))))
+      val testArgs =
+        upickle.default.read[mill.testrunner.TestArgs](os.read(os.Path(args(1), os.pwd)))
       val ctx = new Ctx.Log {
         val log = new PrintLogger(
           testArgs.colored,
@@ -40,6 +41,7 @@ import mill.internal.PrintLogger
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
       os.write(testArgs.outputPath, upickle.default.stream(result))
+
     } catch {
       case e: Throwable =>
         println(e)

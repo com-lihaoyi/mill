@@ -14,6 +14,7 @@ import mill.define.*
 import mill.exec.{Execution, PlanImpl}
 import mill.define.internal.Watchable
 import OutFiles.*
+import mill.internal.MillPathSerializer
 import mill.resolve.Resolve
 
 /**
@@ -32,7 +33,7 @@ final class EvaluatorImpl private[mill] (
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution
 ) extends Evaluator {
-
+  mill.internal.MillPathSerializer.setupSymlinks(os.pwd, workspace)
   private[mill] def workspace = execution.workspace
   private[mill] def baseLogger = execution.baseLogger
   private[mill] def outPath = execution.outPath
@@ -58,13 +59,17 @@ final class EvaluatorImpl private[mill] (
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Segments]] = {
     os.checker.withValue(EvaluatorImpl.resolveChecker) {
-      Resolve.Segments.resolve(
-        rootModule,
-        scriptArgs,
-        selectMode,
-        allowPositionalCommandArgs,
-        resolveToModuleTasks
-      )
+      os.Path.pathSerializer.withValue(new MillPathSerializer(
+        MillPathSerializer.defaultMapping(workspace)
+      )) {
+        Resolve.Segments.resolve(
+          rootModule,
+          scriptArgs,
+          selectMode,
+          allowPositionalCommandArgs,
+          resolveToModuleTasks
+        )
+      }
     }
   }
 
@@ -79,14 +84,18 @@ final class EvaluatorImpl private[mill] (
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[NamedTask[?]]] = {
     os.checker.withValue(EvaluatorImpl.resolveChecker) {
-      Evaluator.currentEvaluator0.withValue(this) {
-        Resolve.Tasks.resolve(
-          rootModule,
-          scriptArgs,
-          selectMode,
-          allowPositionalCommandArgs,
-          resolveToModuleTasks
-        )
+      os.Path.pathSerializer.withValue(new MillPathSerializer(
+        MillPathSerializer.defaultMapping(workspace)
+      )) {
+        Evaluator.currentEvaluator0.withValue(this) {
+          Resolve.Tasks.resolve(
+            rootModule,
+            scriptArgs,
+            selectMode,
+            allowPositionalCommandArgs,
+            resolveToModuleTasks
+          )
+        }
       }
     }
   }
@@ -96,6 +105,12 @@ final class EvaluatorImpl private[mill] (
    * transitive upstream tasks necessary to evaluate those provided.
    */
   def plan(tasks: Seq[Task[?]]): Plan = PlanImpl.plan(tasks)
+
+  object SetupSymlinkSpawnHook extends (os.Path => Unit) {
+    def apply(p: os.Path): Unit = MillPathSerializer.setupSymlinks(p, workspace)
+
+    override def toString(): String = "SetupSymlinkSpawnHook"
+  }
 
   /**
    * @param targets
@@ -109,96 +124,102 @@ final class EvaluatorImpl private[mill] (
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
-  ): Evaluator.Result[T] = {
+  ): Evaluator.Result[T] = os.ProcessOps.spawnHook.withValue(SetupSymlinkSpawnHook) {
+    os.Path.pathSerializer.withValue(new MillPathSerializer(
+      MillPathSerializer.defaultMapping(workspace)
+    )) {
 
-    val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
+      val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
-    val selectedTasksOrErr =
-      if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
-        val (named, unnamed) =
-          targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
-        val changedTasks = SelectiveExecution.computeChangedTasks0(this, named)
+      val selectedTasksOrErr =
+        if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
+          val (named, unnamed) =
+            targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
+          val changedTasks = SelectiveExecution.computeChangedTasks0(this, named)
 
-        val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+          val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
 
-        (
-          unnamed ++ named.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
-          changedTasks.results
-        )
-      } else (targets, Map.empty)
-
-    selectedTasksOrErr match {
-      case (selectedTasks, selectiveResults) =>
-        val evaluated: ExecutionResults =
-          execution.executeTasks(
-            selectedTasks,
-            reporter,
-            testReporter,
-            logger,
-            serialCommandExec
+          (
+            unnamed ++ named.filter(t =>
+              t.isExclusiveCommand || selectedSet(t.ctx.segments.render)
+            ),
+            changedTasks.results
           )
-        @scala.annotation.nowarn("msg=cannot be checked at runtime")
-        val watched = (evaluated.results.iterator ++ selectiveResults)
-          .collect {
-            case (t: SourcesImpl, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
-              ps.map(Watchable.Path(_))
-            case (t: SourceImpl, ExecResult.Success(Val(p: PathRef))) =>
-              Seq(Watchable.Path(p))
-            case (t: InputImpl[_], result) =>
+        } else (targets, Map.empty)
 
-              val ctx = new mill.api.Ctx(
-                args = Vector(),
-                dest0 = () => null,
-                log = logger,
-                env = this.execution.env,
-                reporter = reporter,
-                testReporter = testReporter,
-                workspace = workspace,
-                systemExit = _ => ???,
-                fork = null
+      selectedTasksOrErr match {
+        case (selectedTasks, selectiveResults) =>
+          val evaluated: ExecutionResults =
+            execution.executeTasks(
+              selectedTasks,
+              reporter,
+              testReporter,
+              logger,
+              serialCommandExec
+            )
+          @scala.annotation.nowarn("msg=cannot be checked at runtime")
+          val watched = (evaluated.results.iterator ++ selectiveResults)
+            .collect {
+              case (t: SourcesImpl, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
+                ps.map(Watchable.Path(_))
+              case (t: SourceImpl, ExecResult.Success(Val(p: PathRef))) =>
+                Seq(Watchable.Path(p))
+              case (t: InputImpl[_], result) =>
+
+                val ctx = new mill.api.Ctx(
+                  args = Vector(),
+                  dest0 = () => null,
+                  log = logger,
+                  env = this.execution.env,
+                  reporter = reporter,
+                  testReporter = testReporter,
+                  workspace = workspace,
+                  systemExit = _ => ???,
+                  fork = null
+                )
+                val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
+                Seq(Watchable.Value(
+                  () => t.evaluate(ctx).hashCode(),
+                  result.map(_.value).hashCode(),
+                  pretty
+                ))
+            }
+            .flatten
+            .toSeq
+
+          val allInputHashes = evaluated.results
+            .iterator
+            .collect {
+              case (t: InputImpl[_], ExecResult.Success(Val(value))) =>
+                (t.ctx.segments.render, value.##)
+            }
+            .toMap
+
+          if (selectiveExecutionEnabled) {
+            SelectiveExecution.saveMetadata(
+              this,
+              SelectiveExecution.Metadata(allInputHashes, codeSignatures)
+            )
+          }
+
+          val errorStr = EvaluatorImpl.formatFailing(evaluated)
+          evaluated.failing.size match {
+            case 0 =>
+              Evaluator.Result(
+                watched,
+                mill.api.Result.Success(evaluated.values.map(_._1.asInstanceOf[T])),
+                selectedTasks,
+                evaluated
               )
-              val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
-              Seq(Watchable.Value(
-                () => t.evaluate(ctx).hashCode(),
-                result.map(_.value).hashCode(),
-                pretty
-              ))
+            case n =>
+              Evaluator.Result(
+                watched,
+                mill.api.Result.Failure(s"$n tasks failed\n$errorStr"),
+                selectedTasks,
+                evaluated
+              )
           }
-          .flatten
-          .toSeq
-
-        val allInputHashes = evaluated.results
-          .iterator
-          .collect {
-            case (t: InputImpl[_], ExecResult.Success(Val(value))) =>
-              (t.ctx.segments.render, value.##)
-          }
-          .toMap
-
-        if (selectiveExecutionEnabled) {
-          SelectiveExecution.saveMetadata(
-            this,
-            SelectiveExecution.Metadata(allInputHashes, codeSignatures)
-          )
-        }
-
-        val errorStr = EvaluatorImpl.formatFailing(evaluated)
-        evaluated.failing.size match {
-          case 0 =>
-            Evaluator.Result(
-              watched,
-              mill.api.Result.Success(evaluated.values.map(_._1.asInstanceOf[T])),
-              selectedTasks,
-              evaluated
-            )
-          case n =>
-            Evaluator.Result(
-              watched,
-              mill.api.Result.Failure(s"$n tasks failed\n$errorStr"),
-              selectedTasks,
-              evaluated
-            )
-        }
+      }
     }
   }
 
@@ -211,19 +232,23 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(EvaluatorImpl.resolveChecker) {
-      Evaluator.currentEvaluator0.withValue(this) {
-        Resolve.Tasks.resolve(
-          rootModule,
-          scriptArgs,
-          selectMode,
-          allowPositionalCommandArgs
-        )
+    os.Path.pathSerializer.withValue(new MillPathSerializer(
+      MillPathSerializer.defaultMapping(workspace)
+    )) {
+      val resolved = os.checker.withValue(EvaluatorImpl.resolveChecker) {
+        Evaluator.currentEvaluator0.withValue(this) {
+          Resolve.Tasks.resolve(
+            rootModule,
+            scriptArgs,
+            selectMode,
+            allowPositionalCommandArgs
+          )
+        }
       }
-    }
 
-    for (targets <- resolved)
-      yield execute(Seq.from(targets), selectiveExecution = selectiveExecution)
+      for (targets <- resolved)
+        yield execute(Seq.from(targets), selectiveExecution = selectiveExecution)
+    }
   }
 
   def close(): Unit = execution.close()

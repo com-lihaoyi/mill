@@ -109,7 +109,7 @@ object FileImportGraph {
     var packagesImport = false
 
     def processScript(s: os.Path, useDummy: Boolean = false): Unit = {
-      val readFileEither = scala.util.Try {
+      val readFileEither = scala.util.Success {
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
         for (splitted <- parser.splitScript(content, fileName))
@@ -119,7 +119,7 @@ object FileImportGraph {
 
             val expectedImportSegments0 =
               Seq(rootModuleAlias) ++
-                (s / os.up).relativeTo(projectRoot).segments
+                os.followLink(s / os.up).getOrElse(s / os.up).relativeTo(projectRoot).segments
 
             val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
             if (
@@ -142,7 +142,7 @@ object FileImportGraph {
           }
 
       } match {
-        case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
+//        case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
         case scala.util.Success(value) => value
       }
       readFileEither match {
