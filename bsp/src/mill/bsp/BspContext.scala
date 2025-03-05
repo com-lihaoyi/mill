@@ -56,8 +56,6 @@ private[mill] class BspContext(
       override def debug(s: String): Unit = streams.err.println(s)
 
       override def debugEnabled: Boolean = true
-
-      override def rawOutputStream: PrintStream = systemStreams.out
     }
 
     BspWorker(mill.api.WorkspaceRoot.workspaceRoot, home, log).flatMap { worker =>

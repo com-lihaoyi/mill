@@ -71,8 +71,6 @@ private[mill] class MultiLogger(
     logger2.reportKey(key)
   }
 
-  override def rawOutputStream: PrintStream = systemStreams.out
-
   private[mill] override def removePromptLine(key: Seq[String]): Unit = {
     logger1.removePromptLine(key)
     logger2.removePromptLine(key)

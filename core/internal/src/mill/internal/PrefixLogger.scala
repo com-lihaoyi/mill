@@ -63,8 +63,6 @@ private[mill] class PrefixLogger(
     logger0.unprefixedSystemStreams.in
   )
 
-  override def rawOutputStream = logger0.rawOutputStream
-
   override def info(s: String): Unit = {
     reportKey(logPrefixKey)
     logger0.info("" + infoColor(linePrefix) + s)

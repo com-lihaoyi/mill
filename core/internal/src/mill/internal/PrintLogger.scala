@@ -78,8 +78,6 @@ private[mill] class PrintLogger(
       systemStreams.err.println(context + s)
     }
   }
-
-  override def rawOutputStream: PrintStream = systemStreams.out
 }
 
 private[mill] object PrintLogger {

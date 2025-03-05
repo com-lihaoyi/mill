@@ -139,8 +139,6 @@ private[mill] class PromptLogger(
 
   def debug(s: String): Unit = if (debugEnabled) systemStreams.err.println(s)
 
-  override def rawOutputStream: PrintStream = systemStreams0.out
-
   override def close(): Unit = {
     synchronized {
       if (enableTicker) refreshPrompt(ending = true)
