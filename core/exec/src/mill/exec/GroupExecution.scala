@@ -44,7 +44,6 @@ private trait GroupExecution {
       group: Seq[Task[?]],
       results: Map[Task[?], ExecResult[(Val, Int)]],
       countMsg: String,
-      verboseKeySuffix: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: Logger,

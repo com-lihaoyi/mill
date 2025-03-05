@@ -19,10 +19,10 @@ private[mill] class ProxyLogger(logger: Logger) extends Logger {
   private[mill] override def setPromptLine(): Unit = logger.setPromptLine()
   private[mill] override def setPromptLine(
       key: Seq[String],
-      verboseKeySuffix: String,
+      keySuffix: String,
       message: String
   ): Unit =
-    logger.setPromptLine(key, verboseKeySuffix, message)
+    logger.setPromptLine(key, keySuffix, message)
   def debug(s: String): Unit = logger.debug(s)
 
   override def debugEnabled: Boolean = logger.debugEnabled

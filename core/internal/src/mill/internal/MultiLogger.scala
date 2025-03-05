@@ -45,11 +45,11 @@ private[mill] class MultiLogger(
 
   private[mill] override def setPromptLine(
       key: Seq[String],
-      verboseKeySuffix: String,
+      keySuffix: String,
       message: String
   ): Unit = {
-    logger1.setPromptLine(key, verboseKeySuffix, message)
-    logger2.setPromptLine(key, verboseKeySuffix, message)
+    logger1.setPromptLine(key, keySuffix, message)
+    logger2.setPromptLine(key, keySuffix, message)
   }
 
   private[mill] override def setPromptLine(): Unit = {

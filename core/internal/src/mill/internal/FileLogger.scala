@@ -53,7 +53,7 @@ private[mill] class FileLogger(
     if (outputStreamUsed)
       streams.out.close()
   }
-  override def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger = {
+  override def subLogger(path: os.Path, keySuffix: String, message: String): Logger = {
     new FileLogger(colored, path, debugEnabled, append)
   }
 }

@@ -9,7 +9,7 @@ import java.io.PrintStream
  *
  * Generates log lines of the form
  *
- * [$logPrefixKey] $verboseKeySuffix
+ * [$logPrefixKey/$keySuffix] $message
  * [$logPrefixKey] ...logs...
  * [$logPrefixKey] ...logs...
  * [$logPrefixKey] ...logs...
@@ -21,7 +21,7 @@ import java.io.PrintStream
 private[mill] class PrefixLogger(
     val logger0: Logger,
     key0: Seq[String],
-    verboseKeySuffix: String = "",
+    keySuffix: String = "",
     message: String = "",
     // Disable printing the prefix, but continue reporting the `key` to `reportKey`. Used
     // for `exclusive` commands where we don't want the prefix, but we do want the header
@@ -72,15 +72,15 @@ private[mill] class PrefixLogger(
 
   private[mill] override def setPromptLine(
       callKey: Seq[String],
-      verboseKeySuffix: String,
+      keySuffix: String,
       message: String
   ): Unit = {
 
-    logger0.setPromptLine(callKey, verboseKeySuffix, message)
+    logger0.setPromptLine(callKey, keySuffix, message)
   }
 
   private[mill] override def setPromptLine(): Unit =
-    setPromptLine(logPrefixKey, verboseKeySuffix, message)
+    setPromptLine(logPrefixKey, keySuffix, message)
 
   override def debug(s: String): Unit = {
     if (debugEnabled) reportKey(logPrefixKey)
@@ -110,18 +110,10 @@ private[mill] class PrefixLogger(
     logger0.setPromptHeaderPrefix(s)
   override def enableTicker = logger0.enableTicker
 
-  private[mill] override def subLogger(
-      path: os.Path,
-      subKeySuffix: String,
-      message: String
-  ): Logger = {
-    new PrefixLogger(
-      this,
-      Seq(subKeySuffix),
-      verboseKeySuffix,
-      message
-    )
+  private[mill] override def subLogger(path: os.Path, subKey: String, message: String): Logger = {
+    new PrefixLogger(this, Seq(subKey), keySuffix, message)
   }
+
   private[mill] override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
   private[mill] override def withPromptUnpaused[T](t: => T): T = logger0.withPromptUnpaused(t)
 }

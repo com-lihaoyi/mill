@@ -109,7 +109,7 @@ private[mill] case class Execution(
 
     val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
-    def formatHeaderPrefix(countMsg: String, verboseKeySuffix: String) =
+    def formatHeaderPrefix(countMsg: String, keySuffix: String) =
       s"$countMsg$verboseKeySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
 
     def evaluateTerminals(
@@ -151,8 +151,8 @@ private[mill] case class Execution(
                 '0'
               )
 
-              val verboseKeySuffix = s"/${terminals0.size}"
-              logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
+              val keySuffix = s"/${terminals0.size}"
+              logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
               if (failed.get()) None
               else {
                 val upstreamResults = upstreamValues
@@ -174,7 +174,7 @@ private[mill] case class Execution(
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
                   key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
-                  verboseKeySuffix = verboseKeySuffix,
+                  keySuffix = keySuffix,
                   message = tickerPrefix,
                   noPrefix = exclusive
                 )
@@ -184,7 +184,6 @@ private[mill] case class Execution(
                   group = plan.sortedGroups.lookupKey(terminal).toSeq,
                   results = upstreamResults,
                   countMsg = countMsg,
-                  verboseKeySuffix = verboseKeySuffix,
                   zincProblemReporter = reporter,
                   testReporter = testReporter,
                   logger = contextLogger,
@@ -201,7 +200,7 @@ private[mill] case class Execution(
                 rootFailedCount.addAndGet(newFailures)
 
                 // Always show failed count in header if there are failures
-                logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
+                logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
 
                 if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)

@@ -120,7 +120,7 @@ private[mill] class PromptLogger(
         seenIdentifiers.get(key)
       }
     }
-    for ((verboseKeySuffix, message) <- res) {
+    for ((keySuffix, message) <- res) {
       if (enableTicker) {
         streams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
         streamManager.awaitPumperEmpty()
@@ -131,10 +131,10 @@ private[mill] class PromptLogger(
   def streamsAwaitPumperEmpty(): Unit = streamManager.awaitPumperEmpty()
   private val seenIdentifiers = collection.mutable.Map.empty[Seq[String], (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
-  override def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
+  override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
     synchronized {
       promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}] $message"))
-      seenIdentifiers(key) = (verboseKeySuffix, message)
+      seenIdentifiers(key) = (keySuffix, message)
     }
 
   def debug(s: String): Unit = if (debugEnabled) streams.err.println(s)
