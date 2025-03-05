@@ -8,7 +8,7 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.{ColorLogger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
+import mill.api.{Logger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
@@ -274,8 +274,8 @@ object MillMain {
                               // Enter key pressed, removing mill-selective-execution.json to
                               // ensure all tasks re-run even though no inputs may have changed
                               if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
-                              SystemStreams.withStreams(logger.systemStreams) {
-                                tailManager.withOutErr(logger.outputStream, logger.errorStream) {
+                              SystemStreams.withStreams(logger.streams) {
+                                tailManager.withOutErr(logger.streams.out, logger.streams.err) {
                                   new MillBuildBootstrap(
                                     projectRoot = WorkspaceRoot.workspaceRoot,
                                     output = out,
@@ -372,7 +372,7 @@ object MillMain {
       serverDir: os.Path,
       colored: Boolean,
       colors: Colors
-  ): ColorLogger = {
+  ): Logger with AutoCloseable = {
 
     val logger = if (config.disablePrompt.value) {
       new mill.internal.PrintLogger(
@@ -380,7 +380,7 @@ object MillMain {
         enableTicker = enableTicker.getOrElse(mainInteractive),
         infoColor = colors.info,
         errorColor = colors.error,
-        systemStreams = streams,
+        streams = streams,
         debugEnabled = config.debugLog.value,
         context = "",
         printLoggerState

@@ -1,7 +1,7 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j._
-import mill.api.{ColorLogger, Logger}
+import mill.api.{Logger}
 import mill.internal.ProxyLogger
 
 /**
@@ -19,7 +19,7 @@ import mill.internal.ProxyLogger
  */
 private class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
     extends ProxyLogger(logger)
-    with ColorLogger {
+    with Logger {
   override def infoColor = fansi.Color.Blue
   override def errorColor = fansi.Color.Red
 

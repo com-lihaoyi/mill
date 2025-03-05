@@ -16,7 +16,7 @@ import scala.concurrent._
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
 private[mill] case class Execution(
-    baseLogger: ColorLogger,
+    baseLogger: Logger,
     chromeProfileLogger: JsonArrayLogger.ChromeProfile,
     profileLogger: JsonArrayLogger.Profile,
     home: os.Path,
@@ -36,7 +36,7 @@ private[mill] case class Execution(
     getEvaluator: () => Evaluator
 ) extends GroupExecution with AutoCloseable {
 
-  def withBaseLogger(newBaseLogger: ColorLogger) = this.copy(baseLogger = newBaseLogger)
+  def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
 
   /**
    * @param goals The tasks that need to be evaluated
@@ -47,9 +47,9 @@ private[mill] case class Execution(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger,
+      logger: Logger = baseLogger,
       serialCommandExec: Boolean = false
-  ): Execution.Results = logger.withPromptUnpaused {
+  ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
@@ -79,7 +79,7 @@ private[mill] case class Execution(
 
   private def execute0(
       goals: Seq[Task[?]],
-      logger: ColorLogger,
+      logger: Logger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       ec: mill.api.Ctx.Fork.Impl,
@@ -109,8 +109,8 @@ private[mill] case class Execution(
 
     val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
-    def formatHeaderPrefix(countMsg: String, verboseKeySuffix: String) =
-      s"$countMsg$verboseKeySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
+    def formatHeaderPrefix(countMsg: String, keySuffix: String) =
+      s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
 
     def evaluateTerminals(
         terminals: Seq[Task[?]],
@@ -151,8 +151,8 @@ private[mill] case class Execution(
                 '0'
               )
 
-              val verboseKeySuffix = s"/${terminals0.size}"
-              logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
+              val keySuffix = s"/${terminals0.size}"
+              logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
               if (failed.get()) None
               else {
                 val upstreamResults = upstreamValues
@@ -169,12 +169,13 @@ private[mill] case class Execution(
                 } yield upstreamResults(item).map(_._1)
                 val logRun = inputResults.forall(_.isInstanceOf[ExecResult.Success[?]])
 
-                val tickerPrefix = if (logRun && logger.enableTicker) terminal.toString else ""
+                val tickerPrefix =
+                  if (logRun && logger.prompt.enableTicker) terminal.toString else ""
 
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
-                  key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
-                  verboseKeySuffix = verboseKeySuffix,
+                  key0 = if (!logger.prompt.enableTicker) Nil else Seq(countMsg),
+                  keySuffix = keySuffix,
                   message = tickerPrefix,
                   noPrefix = exclusive
                 )
@@ -184,7 +185,6 @@ private[mill] case class Execution(
                   group = plan.sortedGroups.lookupKey(terminal).toSeq,
                   results = upstreamResults,
                   countMsg = countMsg,
-                  verboseKeySuffix = verboseKeySuffix,
                   zincProblemReporter = reporter,
                   testReporter = testReporter,
                   logger = contextLogger,
@@ -201,7 +201,7 @@ private[mill] case class Execution(
                 rootFailedCount.addAndGet(newFailures)
 
                 // Always show failed count in header if there are failures
-                logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
+                logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
 
                 if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)
@@ -249,7 +249,7 @@ private[mill] case class Execution(
 
     val exclusiveResults = evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
 
-    logger.clearPromptStatuses()
+    logger.prompt.clearPromptStatuses()
 
     val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
