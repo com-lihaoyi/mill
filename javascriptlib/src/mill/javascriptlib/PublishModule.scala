@@ -42,7 +42,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   private def pubTypesVersion: T[Map[String, Seq[String]]] = Task {
-    pubAllSources().map { source =>
+    pubCopySourcesAndDepsSources().map { source => //todo is it ok to copy here - previously it only provided paths
       val dist = source.toString.replaceFirst("typescript", pubBundledOut())
       val declarations = source.toString.replaceFirst("typescript", pubDeclarationOut())
       ("./" + dist).replaceAll("\\.ts", "") -> Seq(declarations.replaceAll("\\.ts", ".d.ts"))
@@ -126,6 +126,18 @@ trait PublishModule extends TypeScriptModule {
     }
   }
 
+  // mv generated sources for base mod and its deps
+  private def pubGenSources: Task[Seq[os.Path]] = Task.Anon {
+    val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
+    allGeneratedSources.map { target =>
+        val destination = Task.dest / "typescript/generatedSources" / target.path.last
+        os.makeDir.all(destination / os.up)
+        os.copy.over(target.path, destination)
+        destination
+
+    }
+  }
+
   private def pubCopyModDeps: T[Unit] = Task.Anon {
     val targets = pubModDeps()
 
@@ -144,7 +156,7 @@ trait PublishModule extends TypeScriptModule {
   /**
    * Generate sources relative to publishDir / "typescript"
    */
-  private def pubAllSources: Task[IndexedSeq[os.Path]] = Task.Anon {
+  private def pubCopySourcesAndDepsSources: Task[IndexedSeq[os.Path]] = Task.Anon {
     val project = Task.workspace.toString
     val sourcesAndDepsSources = for {
       source <-
@@ -157,13 +169,8 @@ trait PublishModule extends TypeScriptModule {
       _ = os.copy.over(source, target, createFolders = true)
     } yield target
 
-    val generatedSources = (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
-      val target = Task.dest / "typescript/generatedSources" / pr.path.last
-      os.copy.over(pr.path, target, createFolders = true)
-      target
-    )
 
-    (sourcesAndDepsSources ++ generatedSources)
+    sourcesAndDepsSources
   }
 
   override def generatedSourcesPathsBuilder: T[Seq[(String, String)]] = Task {
@@ -260,17 +267,25 @@ trait PublishModule extends TypeScriptModule {
 
   override def compile: T[(PathRef, PathRef)] = Task {
     pubSymLink()
+    copyModuleDir()
+    pubCopyModDeps()
+    val genSourcesPatches = pubGenSources()
+    val sourcesAndDepsSources = pubCopySourcesAndDepsSources() //todo do we need it to copy files (previously we didnt have it)
     os.write(
       Task.dest / "tsconfig.json",
       ujson.Obj(
         "compilerOptions" -> ujson.Obj.from(
           compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
         ),
-        "files" -> pubAllSources().map(_.toString)
+        "files" -> (genSourcesPatches ++ sourcesAndDepsSources).map(_.toString)
       )
     )
-    copyModuleDir()
-    pubCopyModDeps()
+
+
+
+
+
+
 
     // Run type check, build declarations
     os.call(
