@@ -37,7 +37,7 @@ trait PublishModule extends TypeScriptModule {
 
   private def pubBuildExports: T[Map[String, PublishModule.ExportEntry]] = Task {
     pubExports().map { case (key, value) =>
-      key -> PublishModule.Export( "./" + pubBundledOut() + "/" + value)
+      key -> PublishModule.Export("./" + pubBundledOut() + "/" + value)
     }
   }
 
@@ -184,15 +184,19 @@ trait PublishModule extends TypeScriptModule {
   private def pubAllSources3: Task[IndexedSeq[os.Path]] = Task.Anon {
     val project = Task.workspace.toString
     val sourcesAndDepsSources = for {
-      source <-os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr => os.walk(pr.path))
+      source <-
+        os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr => os.walk(pr.path))
       if source.ext == "ts"
-      target = Task.dest / os.SubPath(source.toString.replaceFirst(moduleDir.toString, "typescript").replaceFirst(project, "typescript"))
+      target = Task.dest / os.SubPath(source.toString.replaceFirst(
+        moduleDir.toString,
+        "typescript"
+      ).replaceFirst(project, "typescript"))
       _ = os.copy.over(source, target, createFolders = true)
     } yield target
 
     val generatedSources = (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
       val target = Task.dest / "typescript/generatedSources" / pr.path.last
-      os.copy.over(pr.path,target, createFolders = true)
+      os.copy.over(pr.path, target, createFolders = true)
       target
     )
 
@@ -350,7 +354,7 @@ trait PublishModule extends TypeScriptModule {
           s"""    copyStaticFiles({
              |      src: ${ujson.Str(rp.toString)},
              |      dest: ${ujson.Str(
-              (Task.dest /  pubBundledOut()  / rp.last).toString
+              (Task.dest / pubBundledOut() / rp.last).toString
             )},
              |      dereference: true,
              |      preserveTimestamps: true,
