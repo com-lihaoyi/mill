@@ -63,7 +63,7 @@ object Logger {
   /**
    * APIs that allow a logger to interact with the global prompt: setting and unsetting
    * lines, enabling or disabling the prompt, etc. Normally passed through from logger
-   * to logger unchanged without any sort of customization.
+   * to logger unchanged without any customization.
    */
   trait Prompt {
     private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
