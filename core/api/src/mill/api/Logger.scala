@@ -63,7 +63,7 @@ trait Logger {
   private[mill] def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger =
     this
 
-  private[mill] def withPrompt[T](t: => T): T = {
+  private[mill] def withPromptLine[T](t: => T): T = {
     setPromptLine()
     try t
     finally removePromptLine()

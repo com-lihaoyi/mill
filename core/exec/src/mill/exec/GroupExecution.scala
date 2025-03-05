@@ -54,7 +54,7 @@ private trait GroupExecution {
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean
   ): GroupExecution.Results = {
-    logger.withPrompt {
+    logger.withPromptLine {
       val externalInputsHash = MurmurHash3.orderedHash(
         group.flatMap(_.inputs).filter(!group.contains(_))
           .flatMap(results(_).asSuccess.map(_.value._2))
