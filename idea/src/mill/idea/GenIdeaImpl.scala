@@ -502,12 +502,12 @@ case class GenIdeaImpl(
           ) =>
         val ideSources = mod match {
           case deferred: DeferredGeneratedSourcesModule => deferred.ideSources
-          case other => other.allSources
+          case other => other.allSources.map(_.map(_.path))
         }
         val Seq(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
-          ideSourcesPathRefs: Seq[PathRef]
+          ideSourcesPaths: Seq[os.Path]
         ) = evaluator.evalOrThrow(
           exceptionFactory = r =>
             GenIdeaException(
@@ -522,9 +522,7 @@ case class GenIdeaImpl(
         ))
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
-        val normalSourcePaths = (ideSourcesPathRefs
-          .map(_.path)
-          .toSet -- generatedSourcePaths.toSet).toSeq
+        val normalSourcePaths = (ideSourcesPaths.toSet -- generatedSourcePaths.toSet).toSeq
 
         val sanizedDeps: Seq[ScopedOrd[String]] = {
           resolvedDeps

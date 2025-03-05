@@ -143,11 +143,11 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       case m: DeferredGeneratedSourcesModule =>
         // We're not using `allSources` here, one purpose. See https://github.com/com-lihaoyi/mill/discussions/4530
         m.ideSources.map { paths =>
-          name(m) -> paths.map(_.path)
+          name(m) -> paths
         }
       case other =>
-        other.allSources.map { paths =>
-          name(other) -> paths.map(_.path)
+        other.allSources.map { pathRefs =>
+          name(other) -> pathRefs.map(_.path)
         }
     }()
     Result.Success(sources.toMap)

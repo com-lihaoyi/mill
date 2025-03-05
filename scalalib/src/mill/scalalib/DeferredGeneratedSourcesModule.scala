@@ -38,9 +38,9 @@ trait DeferredGeneratedSourcesModule extends JavaModule {
    * Computes the list of source roots that will be produced by [[deferredGeneratedSourceTasks]] without
    * actually running the generators in question.
    */
-  final def predictedGeneratedSources: T[Seq[PathRef]] = T {
+  final def predictedGeneratedSources: T[Seq[os.Path]] = T {
     val out = T.out
-    deferredGeneratedSourceTasks.flatMap(t => predictGeneratedSourceRoots(t)(out)).map(PathRef(_))
+    deferredGeneratedSourceTasks.flatMap(t => predictGeneratedSourceRoots(t)(out))
   }
 
   /**
@@ -60,8 +60,8 @@ trait DeferredGeneratedSourcesModule extends JavaModule {
    * Task that IDE-configuration tasks should rely on, as they avoid eagerly
    * running source generators referenced by [[deferredGeneratedSourceTasks]]
    */
-  def ideSources: T[Seq[PathRef]] =
-    Task { sources() ++ generatedSources() ++ predictedGeneratedSources() }
+  def ideSources: T[Seq[os.Path]] =
+    Task { sources().map(_.path) ++ generatedSources().map(_.path) ++ predictedGeneratedSources() }
 
   override def allSources: T[Seq[PathRef]] =
     Task { sources() ++ generatedSources() ++ deferredGeneratedSources() }

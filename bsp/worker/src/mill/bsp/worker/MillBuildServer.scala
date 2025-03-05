@@ -235,7 +235,7 @@ private class MillBuildServer(
           Task.Anon {
             module.sources().map(p => sourceItem(p.path, false)) ++
               module.generatedSources().map(p => sourceItem(p.path, true)) ++
-              module.predictedGeneratedSources().map(p => sourceItem(p.path, true))
+              module.predictedGeneratedSources().map(p => sourceItem(p, true))
           }
         case module: JavaModule =>
           Task.Anon {
