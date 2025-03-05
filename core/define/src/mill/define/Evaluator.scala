@@ -10,14 +10,14 @@ trait Evaluator extends AutoCloseable {
   private[mill] def allowPositionalCommandArgs: Boolean
   private[mill] def selectiveExecution: Boolean
   private[mill] def workspace: os.Path
-  private[mill] def baseLogger: ColorLogger
+  private[mill] def baseLogger: Logger
   private[mill] def outPath: os.Path
   private[mill] def codeSignatures: Map[String, Int]
   private[mill] def rootModule: BaseModule
   private[mill] def workerCache: mutable.Map[Segments, (Int, Val)]
   private[mill] def env: Map[String, String]
 
-  def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
+  def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(
       scriptArgs: Seq[String],
@@ -38,7 +38,7 @@ trait Evaluator extends AutoCloseable {
       targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger,
+      logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
   ): Evaluator.Result[T]

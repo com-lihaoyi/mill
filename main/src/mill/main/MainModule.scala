@@ -323,7 +323,7 @@ object MainModule {
     // printed JSON is the only thing printed to stdout.
     val redirectLogger = log
       .withOutStream(evaluator.baseLogger.streams.err)
-      .asInstanceOf[ColorLogger]
+      .asInstanceOf[Logger]
 
     evaluator.withBaseLogger(redirectLogger)
       .evaluate(

@@ -16,7 +16,7 @@ import scala.concurrent._
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
 private[mill] case class Execution(
-    baseLogger: ColorLogger,
+    baseLogger: Logger,
     chromeProfileLogger: JsonArrayLogger.ChromeProfile,
     profileLogger: JsonArrayLogger.Profile,
     home: os.Path,
@@ -36,7 +36,7 @@ private[mill] case class Execution(
     getEvaluator: () => Evaluator
 ) extends GroupExecution with AutoCloseable {
 
-  def withBaseLogger(newBaseLogger: ColorLogger) = this.copy(baseLogger = newBaseLogger)
+  def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
 
   /**
    * @param goals The tasks that need to be evaluated
@@ -47,7 +47,7 @@ private[mill] case class Execution(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger,
+      logger: Logger = baseLogger,
       serialCommandExec: Boolean = false
   ): Execution.Results = logger.withPromptUnpaused {
     os.makeDir.all(outPath)
@@ -79,7 +79,7 @@ private[mill] case class Execution(
 
   private def execute0(
       goals: Seq[Task[?]],
-      logger: ColorLogger,
+      logger: Logger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       ec: mill.api.Ctx.Fork.Impl,

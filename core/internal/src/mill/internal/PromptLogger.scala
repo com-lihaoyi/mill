@@ -1,6 +1,6 @@
 package mill.internal
 
-import mill.api.{SystemStreams, ColorLogger}
+import mill.api.{SystemStreams, Logger}
 import mill.constants.ProxyStream
 import mill.internal.PromptLoggerUtil.*
 import pprint.Util.literalize
@@ -27,7 +27,7 @@ private[mill] class PromptLogger(
     terminfoPath: os.Path,
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true
-) extends ColorLogger with AutoCloseable {
+) extends Logger with AutoCloseable {
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger.*
 

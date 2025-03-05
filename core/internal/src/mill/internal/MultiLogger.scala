@@ -1,7 +1,7 @@
 package mill.internal
 
 import fansi.Attrs
-import mill.api.{ColorLogger, Logger, SystemStreams}
+import mill.api.{Logger, SystemStreams}
 
 import java.io.{InputStream, PrintStream}
 
@@ -11,7 +11,7 @@ private[mill] class MultiLogger(
     val logger2: Logger,
     val inStream0: InputStream,
     override val debugEnabled: Boolean
-) extends ColorLogger {
+) extends Logger {
   override def toString: String = s"MultiLogger($logger1, $logger2)"
   lazy val streams = new SystemStreams(
     new MultiStream(logger1.streams.out, logger2.streams.out),
@@ -107,7 +107,7 @@ private[mill] class MultiLogger(
   override def errorColor: Attrs = logger1.errorColor ++ logger2.errorColor
   private[mill] override def logPrefixKey = logger1.logPrefixKey ++ logger2.logPrefixKey
 
-  override def withOutStream(outStream: PrintStream): ColorLogger = {
+  override def withOutStream(outStream: PrintStream): Logger = {
     new MultiLogger(
       colored,
       logger1.withOutStream(outStream),

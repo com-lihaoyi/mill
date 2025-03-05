@@ -47,7 +47,7 @@ private trait GroupExecution {
       verboseKeySuffix: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: ColorLogger,
+      logger: Logger,
       deps: Seq[Task[?]],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
@@ -385,7 +385,7 @@ private trait GroupExecution {
     }
 
   private def loadCachedJson(
-      logger: ColorLogger,
+      logger: Logger,
       inputsHash: Int,
       labelled: NamedTask[?],
       paths: ExecutionPaths
@@ -420,7 +420,7 @@ private trait GroupExecution {
     if (task.isInstanceOf[Worker[?]]) inputsHash else v.##
   }
   private def loadUpToDateWorker(
-      logger: ColorLogger,
+      logger: Logger,
       inputsHash: Int,
       labelled: NamedTask[?],
       forceDiscard: Boolean

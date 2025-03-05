@@ -1,6 +1,6 @@
 package mill.internal
 
-import mill.api.{ColorLogger, SystemStreams}
+import mill.api.{Logger, SystemStreams}
 
 import java.io.*
 
@@ -13,7 +13,7 @@ private[mill] class PrintLogger(
                                  override val debugEnabled: Boolean,
                                  val context: String,
                                  printLoggerState: PrintLogger.State
-) extends ColorLogger {
+) extends Logger {
   override def toString: String = s"PrintLogger($colored, $enableTicker)"
   def info(s: String): Unit = synchronized {
     printLoggerState.value = PrintLogger.State.Newline

@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
 import mill.api.ExecResult
-import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
+import mill.api.{Logger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
@@ -801,7 +801,7 @@ private class MillBuildServer(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = null
+      logger: Logger = null
   ): ExecutionResults = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     mill.runner.MillMain.withOutLock(

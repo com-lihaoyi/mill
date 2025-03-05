@@ -1,6 +1,6 @@
 package mill.internal
 
-import mill.api.{ColorLogger, Logger, SystemStreams}
+import mill.api.{Logger, SystemStreams}
 
 import java.io.PrintStream
 
@@ -12,7 +12,7 @@ import java.io.PrintStream
  * [$logPrefixKey] $message
  */
 private[mill] class PrefixLogger(
-    val logger0: ColorLogger,
+    val logger0: Logger,
     key0: Seq[String],
     verboseKeySuffix: String = "",
     message: String = "",
@@ -20,7 +20,7 @@ private[mill] class PrefixLogger(
     // for `exclusive` commands where we don't want the prefix, but we do want the header
     // above the output of every command that gets run so we can see who the output belongs to
     noPrefix: Boolean = false
-) extends ColorLogger {
+) extends Logger {
   private[mill] override val logPrefixKey = logger0.logPrefixKey ++ key0
   assert(key0.forall(_.nonEmpty))
   val linePrefix: String =
@@ -82,7 +82,7 @@ private[mill] class PrefixLogger(
   }
   override def debugEnabled: Boolean = logger0.debugEnabled
 
-  override def withOutStream(outStream: PrintStream): ColorLogger = new ProxyLogger(this) with ColorLogger{
+  override def withOutStream(outStream: PrintStream): Logger = new ProxyLogger(this) with Logger{
     override lazy val streams = new SystemStreams(
       PrefixLogger.this.streams.err,
       PrefixLogger.this.streams.err,
