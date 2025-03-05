@@ -793,6 +793,11 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
   def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
 
   /**
+   * This is the `os.Path` pointing to the project's `out` directory.
+   */
+  def out(implicit ctx: mill.api.Ctx): os.Path = ctx.out
+
+  /**
    * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
    * async futures within your task in a Mill-friendly manner.
    */

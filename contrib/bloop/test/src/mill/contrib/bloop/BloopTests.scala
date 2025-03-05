@@ -20,7 +20,7 @@ object BloopTests extends TestSuite {
   val workdir = unitTester.evaluator.rootModule.millSourcePath
   val testBloop = new BloopImpl(() => Seq(unitTester.evaluator), workdir)
 
-  object build extends TestBaseModule {
+  object build extends TestBaseModule with DeferredGeneratedSourcesModule {
     object scalaModule extends scalalib.ScalaModule with testBloop.Module {
       def scalaVersion = "2.12.8"
       val bloopVersion = mill.contrib.bloop.Versions.bloop
@@ -58,7 +58,8 @@ object BloopTests extends TestSuite {
         crash()
       }
 
-      def deferredGeneratedSourceTasks = List(someGeneratedSource, someBuggyGeneratedSource)
+      override def deferredGeneratedSourceTasks =
+        List(someGeneratedSource, someBuggyGeneratedSource)
 
       object test extends ScalaTests with TestModule.Utest
     }

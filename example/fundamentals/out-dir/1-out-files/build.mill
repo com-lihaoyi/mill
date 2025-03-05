@@ -181,8 +181,7 @@ out/mill-server
     "foo.allSourceFiles": {
       "foo.allSources": {
         "foo.sources": {},
-        "foo.generatedSources": {},
-        "foo.deferredGeneratedSources": {}
+        "foo.generatedSources": {}
       }
     },
     "foo.compileClasspath": {

@@ -500,6 +500,10 @@ case class GenIdeaImpl(
             evaluator,
             scalaVersion
           ) =>
+        val ideSources = mod match {
+          case deferred: DeferredGeneratedSourcesModule => deferred.ideSources
+          case other => other.allSources
+        }
         val Seq(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
@@ -514,7 +518,7 @@ case class GenIdeaImpl(
           mod.generatedSources,
           // Using `ideSources` instead of `allSources` to prevent the whole process crashing
           // in case of mis-configured (or buggy) source-generators.
-          mod.ideSources
+          ideSources
         ))
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
