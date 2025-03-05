@@ -126,18 +126,6 @@ trait PublishModule extends TypeScriptModule {
     }
   }
 
-//  // mv generated sources for base mod and its deps
-//  private def pubGenSources: T[Unit] = Task.Anon {
-//    val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
-//    allGeneratedSources.foreach { target =>
-//      os.checker.withValue(os.Checker.Nop) {
-//        val destination = Task.dest / "typescript/generatedSources" / target.path.last
-//        os.makeDir.all(destination / os.up)
-//        os.copy.over(target.path, destination)
-//      }
-//    }
-//  }
-
   private def pubCopyModDeps: T[Unit] = Task.Anon {
     val targets = pubModDeps()
 
