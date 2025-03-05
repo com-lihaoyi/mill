@@ -141,6 +141,9 @@ private object ResolveCore {
         }
 
         (head, current) match {
+          case (Segment.Label("super"), task: Resolved.NamedTask) =>
+            Success(Seq(Resolved.NamedTask(task.segments ++ Seq(head))))
+
           case (Segment.Label(singleLabel), m: Resolved.Module) =>
             val resOrErr: mill.api.Result[Seq[Resolved]] = singleLabel match {
               case "__" =>
