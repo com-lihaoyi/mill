@@ -42,7 +42,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   private def pubTypesVersion: T[Map[String, Seq[String]]] = Task {
-    pubAllSources3().map { source =>
+    pubAllSources().map { source =>
       val dist = source.toString.replaceFirst("typescript", pubBundledOut())
       val declarations = source.toString.replaceFirst("typescript", pubDeclarationOut())
       ("./" + dist).replaceAll("\\.ts", "") -> Seq(declarations.replaceAll("\\.ts", ".d.ts"))
@@ -144,7 +144,7 @@ trait PublishModule extends TypeScriptModule {
   /**
    * Generate sources relative to publishDir / "typescript"
    */
-  private def pubAllSources3: Task[IndexedSeq[os.Path]] = Task.Anon {
+  private def pubAllSources: Task[IndexedSeq[os.Path]] = Task.Anon {
     val project = Task.workspace.toString
     val sourcesAndDepsSources = for {
       source <-
@@ -260,18 +260,17 @@ trait PublishModule extends TypeScriptModule {
 
   override def compile: T[(PathRef, PathRef)] = Task {
     pubSymLink()
-    copyModuleDir()
-    pubCopyModDeps()
-//    pubGenSources()
       os.write(
         Task.dest / "tsconfig.json",
         ujson.Obj(
           "compilerOptions" -> ujson.Obj.from(
             compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
           ),
-          "files" -> pubAllSources3().map(_.toString)
+          "files" -> pubAllSources().map(_.toString)
         )
       )
+    copyModuleDir()
+    pubCopyModDeps()
 
       // Run type check, build declarations
       os.call(
@@ -299,7 +298,7 @@ trait PublishModule extends TypeScriptModule {
           s"""    copyStaticFiles({
              |      src: ${ujson.Str(rp.toString)},
              |      dest: ${ujson.Str(
-              (Task.dest / pubBundledOut() / rp.last).toString
+              Task.dest.toString + "/" + pubBundledOut() + "/" + rp.last
             )},
              |      dereference: true,
              |      preserveTimestamps: true,
@@ -362,8 +361,6 @@ trait PublishModule extends TypeScriptModule {
 
   // EsBuild - END
 
-  // publishDir; is used to process and compile files for publishing
-//  def publishDir: T[PathRef] = Task { PathRef(Task.dest) }
 
   def publish(): Command[Unit] = Task.Command {
     // build package.json
