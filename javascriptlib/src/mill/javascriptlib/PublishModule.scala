@@ -126,17 +126,17 @@ trait PublishModule extends TypeScriptModule {
     }
   }
 
-  // mv generated sources for base mod and its deps
-  private def pubGenSources: T[Unit] = Task.Anon {
-    val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
-    allGeneratedSources.foreach { target =>
-      os.checker.withValue(os.Checker.Nop) {
-        val destination = Task.dest / "typescript/generatedSources" / target.path.last
-        os.makeDir.all(destination / os.up)
-        os.copy.over(target.path, destination)
-      }
-    }
-  }
+//  // mv generated sources for base mod and its deps
+//  private def pubGenSources: T[Unit] = Task.Anon {
+//    val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
+//    allGeneratedSources.foreach { target =>
+//      os.checker.withValue(os.Checker.Nop) {
+//        val destination = Task.dest / "typescript/generatedSources" / target.path.last
+//        os.makeDir.all(destination / os.up)
+//        os.copy.over(target.path, destination)
+//      }
+//    }
+//  }
 
   private def pubCopyModDeps: T[Unit] = Task.Anon {
     val targets = pubModDeps()
@@ -158,6 +158,7 @@ trait PublishModule extends TypeScriptModule {
   /**
    * Generate sources relative to publishDir / "typescript"
    */
+  //todo actually copy these sources
   private def pubAllSources: T[IndexedSeq[String]] = Task {
     val project = Task.workspace.toString
     val fileExt: Path => Boolean = _.ext == "ts"
@@ -173,6 +174,42 @@ trait PublishModule extends TypeScriptModule {
         "typescript"
       )) ++ (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
       "typescript/generatedSources/" + pr.path.last
+    )
+
+  }
+
+  /**
+   * Generate sources relative to publishDir / "typescript"
+   */
+  //todo actually copy these sources
+  private def pubAllSources3: Task[IndexedSeq[os.Path]] = Task.Anon {
+    val project = Task.workspace.toString
+    val sourcesAndDepsSources = for {
+      source <-os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr => os.walk(pr.path))
+      if source.ext == "ts"
+      target = Task.dest / os.SubPath(source.toString.replaceFirst(moduleDir.toString, "typescript").replaceFirst(project, "typescript"))
+      _ = os.copy.over(source, target, createFolders = true)
+    } yield target
+
+    val generatedSources = (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
+      val target = Task.dest / "typescript/generatedSources" / pr.path.last
+      os.copy.over(pr.path,target, createFolders = true)
+      target
+    )
+
+    (sourcesAndDepsSources ++ generatedSources)
+  }
+
+  private def pubAllSources2: T[IndexedSeq[String]] = Task {
+    val project = Task.workspace.toString
+    val fileExt: Path => Boolean = _.ext == "ts"
+    (for {
+      source <-
+        os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr =>
+          os.walk(pr.path)
+        ).filter(fileExt)
+    } yield source.toString) ++ (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
+      pr.path.toString
     )
 
   }
@@ -273,6 +310,9 @@ trait PublishModule extends TypeScriptModule {
 
   override def compile: T[(PathRef, PathRef)] = Task {
     pubSymLink()
+    copyModuleDir()
+    pubCopyModDeps()
+//    pubGenSources()
     os.checker.withValue(os.Checker.Nop) {
       os.write(
         Task.dest / "tsconfig.json",
@@ -280,12 +320,10 @@ trait PublishModule extends TypeScriptModule {
           "compilerOptions" -> ujson.Obj.from(
             compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
           ),
-          "files" -> pubAllSources()
+          "files" -> pubAllSources3().map(_.toString)
         )
       )
-      copyModuleDir()
-      pubCopyModDeps()
-      pubGenSources()
+
       // Run type check, build declarations
       os.call(
         ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
