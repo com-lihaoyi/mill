@@ -24,7 +24,7 @@ private[mill] class BspContext(
   BspContext.bspServerHandle =
     try {
       startBspServer(
-        streams = streams,
+        streams0 = streams,
         logStream = bspLogStream,
         canReload = true
       ).get
@@ -37,15 +37,15 @@ private[mill] class BspContext(
   streams.err.println("BSP server started")
 
   def startBspServer(
-      streams: SystemStreams,
+      streams0: SystemStreams,
       logStream: Option[PrintStream],
       canReload: Boolean
   ): Result[BspServerHandle] = {
     val log: Logger = new Logger {
       override def colored: Boolean = false
       override def streams: SystemStreams = new SystemStreams(
-        out = streams.out,
-        err = streams.err,
+        out = streams0.out,
+        err = streams0.err,
         in = DummyInputStream
       )
       def prompt = new Logger.Prompt.NoOp {
