@@ -19,9 +19,9 @@ private[mill] class MultiLogger(
     inStream0
   )
 
-  private[mill] override lazy val unprefixedSystemStreams: SystemStreams = new SystemStreams(
-    new MultiStream(logger1.unprefixedSystemStreams.out, logger2.unprefixedSystemStreams.out),
-    new MultiStream(logger1.unprefixedSystemStreams.err, logger2.unprefixedSystemStreams.err),
+  private[mill] override lazy val unprefixedStreams: SystemStreams = new SystemStreams(
+    new MultiStream(logger1.unprefixedStreams.out, logger2.unprefixedStreams.out),
+    new MultiStream(logger1.unprefixedStreams.err, logger2.unprefixedStreams.err),
     inStream0
   )
 

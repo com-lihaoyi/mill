@@ -10,7 +10,7 @@ private[mill] class FileLogger(
     file: os.Path,
     override val debugEnabled: Boolean,
     append: Boolean = false
-) extends Logger with AutoCloseable{
+) extends Logger with AutoCloseable {
   override def toString: String = s"FileLogger($file)"
   private var outputStreamUsed: Boolean = false
 

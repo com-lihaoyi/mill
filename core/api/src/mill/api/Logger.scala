@@ -1,6 +1,6 @@
 package mill.api
 
-import java.io.{InputStream, PrintStream}
+import java.io.PrintStream
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -29,7 +29,7 @@ trait Logger {
   def errorColor: fansi.Attrs = fansi.Attrs.Empty
   def colored: Boolean
 
-  private[mill] def unprefixedSystemStreams: SystemStreams = streams
+  private[mill] def unprefixedStreams: SystemStreams = streams
   def streams: SystemStreams
 
   def info(s: String): Unit

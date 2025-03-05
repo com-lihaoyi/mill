@@ -371,7 +371,10 @@ private trait GroupExecution {
     }
   }
 
-  def resolveLogger(logPath: Option[os.Path], logger: mill.api.Logger): (mill.api.Logger, Option[AutoCloseable]) =
+  def resolveLogger(
+      logPath: Option[os.Path],
+      logger: mill.api.Logger
+  ): (mill.api.Logger, Option[AutoCloseable]) =
     logPath match {
       case None => (logger, None)
       case Some(path) =>

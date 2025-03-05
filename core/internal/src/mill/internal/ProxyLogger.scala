@@ -2,8 +2,6 @@ package mill.internal
 
 import mill.api.{Logger, SystemStreams}
 
-import java.io.PrintStream
-
 /**
  * A Logger that forwards all logging to another Logger.  Intended to be
  * used as a base class for wrappers that modify logging behavior.
@@ -42,5 +40,5 @@ private[mill] class ProxyLogger(logger: Logger) extends Logger {
   override def infoColor: fansi.Attrs = logger.infoColor
   override def errorColor: fansi.Attrs = logger.errorColor
   private[mill] override def logPrefixKey: Seq[String] = logger.logPrefixKey
-  private[mill] override def unprefixedSystemStreams: SystemStreams = logger.unprefixedSystemStreams
+  private[mill] override def unprefixedStreams: SystemStreams = logger.unprefixedStreams
 }

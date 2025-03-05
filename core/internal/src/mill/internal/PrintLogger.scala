@@ -5,15 +5,15 @@ import mill.api.{Logger, SystemStreams}
 import java.io.*
 
 private[mill] class PrintLogger(
-                                 override val colored: Boolean,
-                                 override val enableTicker: Boolean,
-                                 override val infoColor: fansi.Attrs,
-                                 override val errorColor: fansi.Attrs,
-                                 val streams: SystemStreams,
-                                 override val debugEnabled: Boolean,
-                                 val context: String,
-                                 printLoggerState: PrintLogger.State
-) extends Logger with AutoCloseable{
+    override val colored: Boolean,
+    override val enableTicker: Boolean,
+    override val infoColor: fansi.Attrs,
+    override val errorColor: fansi.Attrs,
+    val streams: SystemStreams,
+    override val debugEnabled: Boolean,
+    val context: String,
+    printLoggerState: PrintLogger.State
+) extends Logger with AutoCloseable {
   def close() = () // do nothing
   override def toString: String = s"PrintLogger($colored, $enableTicker)"
   def info(s: String): Unit = synchronized {
@@ -49,7 +49,6 @@ private[mill] class PrintLogger(
       printLoggerState.value = PrintLogger.State.Ticker
     }
   }
-
 
   override def withOutStream(outStream: PrintStream): PrintLogger = new PrintLogger(
     colored,

@@ -28,7 +28,6 @@ private[mill] class PrefixLogger(
   override def toString: String =
     s"PrefixLogger($logger0, $key0)"
 
-
   override def colored = logger0.colored
 
   override def infoColor = logger0.infoColor
@@ -42,15 +41,15 @@ private[mill] class PrefixLogger(
     ))
   }
   val streams = new SystemStreams(
-    out = prefixPrintStream(logger0.unprefixedSystemStreams.out),
-    err = prefixPrintStream(logger0.unprefixedSystemStreams.err),
+    out = prefixPrintStream(logger0.unprefixedStreams.out),
+    err = prefixPrintStream(logger0.unprefixedStreams.err),
     logger0.streams.in
   )
 
-  private[mill] override val unprefixedSystemStreams = new SystemStreams(
-    logger0.unprefixedSystemStreams.out,
-    logger0.unprefixedSystemStreams.err,
-    logger0.unprefixedSystemStreams.in
+  private[mill] override val unprefixedStreams = new SystemStreams(
+    logger0.unprefixedStreams.out,
+    logger0.unprefixedStreams.err,
+    logger0.unprefixedStreams.in
   )
 
   override def info(s: String): Unit = {
@@ -82,7 +81,7 @@ private[mill] class PrefixLogger(
   }
   override def debugEnabled: Boolean = logger0.debugEnabled
 
-  override def withOutStream(outStream: PrintStream): Logger = new ProxyLogger(this) with Logger{
+  override def withOutStream(outStream: PrintStream): Logger = new ProxyLogger(this) with Logger {
     override lazy val streams = new SystemStreams(
       PrefixLogger.this.streams.err,
       PrefixLogger.this.streams.err,
@@ -113,4 +112,3 @@ private[mill] class PrefixLogger(
   private[mill] override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
   private[mill] override def withPromptUnpaused[T](t: => T): T = logger0.withPromptUnpaused(t)
 }
-
