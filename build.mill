@@ -197,15 +197,15 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.3-M5"
   val upickle = ivy"com.lihaoyi::upickle:4.1.0"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
-  val sbtVersion = "1.10.7"
+  val sbtVersion = "1.10.8"
   val zinc = ivy"org.scala-sbt::zinc:$sbtVersion".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams =
-    ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0".withDottyCompat(scalaVersion)
+    ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
   val requests = ivy"com.lihaoyi::requests:0.9.0"
-  val logback = ivy"ch.qos.logback:logback-classic:1.5.16"
+  val logback = ivy"ch.qos.logback:logback-classic:1.5.17"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
   val kotlinVersion = "2.0.21"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
