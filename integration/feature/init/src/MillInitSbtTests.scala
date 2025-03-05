@@ -15,7 +15,7 @@ object MillInitSbtUtils {
   def bumpSbt(workspacePath: os.Path) =
     os.write.over(
       workspacePath / "project" / "build.properties",
-      s"sbt.version = ${sys.props("TEST_SBT_VERSION")}"
+      s"sbt.version = ${sys.props.getOrElse("TEST_SBT_VERSION", ???)}"
     )
 
   // relatively small libraries
