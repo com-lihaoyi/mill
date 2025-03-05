@@ -43,8 +43,7 @@ trait Logger extends AutoCloseable {
       key: Seq[String],
       verboseKeySuffix: String,
       message: String
-  ): Unit =
-    ticker(s"${key.mkString("-")} $message")
+  ): Unit
   private[mill] def setPromptLine(): Unit = ()
   private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
   private[mill] def clearPromptStatuses(): Unit = ()
