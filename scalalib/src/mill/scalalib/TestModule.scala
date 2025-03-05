@@ -96,14 +96,24 @@ trait TestModule
   }
 
   /**
-   * How the test classes in this module will be split into multiple JVM processes
-   * and run in parallel during testing. Defaults to all of them running in one process
-   * sequentially, but can be overridden to split them into separate groups that run
-   * in parallel.
+   * How the test classes in this module will be split.
+   * Test classes from different groups are ensured to never
+   * run on the same JVM process, and therefore can be run in parallel.
+   * When used in combination with [[useTestStealingScheduler]],
+   * every JVM test running process will guarantee to never steal tests
+   * from different test groups.
    */
   def testForkGrouping: T[Seq[Seq[String]]] = Task {
     Seq(discoveredTestClasses())
   }
+
+
+  /**
+   * Whether to use the test stealing scheduler to run tests in multiple JVM processes.
+   * When used in combination with [[testForkGrouping]], every JVM test running process
+   * will guarantee to never steal tests from different test groups.
+   */
+  def useTestStealingScheduler: T[Boolean] = T(false)
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -157,7 +167,7 @@ trait TestModule
         colored = Task.log.colored,
         testCp = testClasspath().map(_.path),
         home = Task.home,
-        globSelectors = selectors
+        globSelectors = Left(selectors)
       )
 
       val argsFile = Task.dest / "testargs"
@@ -201,6 +211,7 @@ trait TestModule
         testClasspath(),
         args(),
         testForkGrouping(),
+        useTestStealingScheduler(),
         zincWorker().testrunnerEntrypointClasspath(),
         forkEnv(),
         testSandboxWorkingDir(),

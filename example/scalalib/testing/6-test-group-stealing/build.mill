@@ -1,0 +1,59 @@
+// This example shows how to use test grouping in combination with test stealing.
+
+//// SNIPPET:BUILD1
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.8"
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+    
+    def testForkGrouping = discoveredTestClasses().grouped(10).toSeq
+    def useTestStealingScheduler = true
+  }
+}
+
+/** See Also: foo/test/src/GroupX1.scala */
+/** See Also: foo/test/src/GroupX2.scala */
+/** See Also: foo/test/src/GroupX3.scala */
+/** See Also: foo/test/src/GroupX4.scala */
+/** See Also: foo/test/src/GroupX5.scala */
+/** See Also: foo/test/src/GroupX6.scala */
+/** See Also: foo/test/src/GroupX7.scala */
+/** See Also: foo/test/src/GroupX8.scala */
+/** See Also: foo/test/src/GroupX9.scala */
+/** See Also: foo/test/src/GroupX10.scala */
+/** See Also: foo/test/src/GroupY1.scala */
+/** See Also: foo/test/src/GroupY2.scala */
+/** See Also: foo/test/src/GroupY3.scala */
+/** See Also: foo/test/src/GroupY4.scala */
+/** See Also: foo/test/src/GroupY5.scala */
+/** See Also: foo/test/src/GroupY6.scala */
+/** See Also: foo/test/src/GroupY7.scala */
+/** See Also: foo/test/src/GroupY8.scala */
+/** See Also: foo/test/src/GroupY9.scala */
+/** See Also: foo/test/src/GroupY10.scala */
+
+
+//// SNIPPET:END
+
+/** Usage
+
+> mill -j 4 foo.test # Can be flaky, but the test time will be big enough for cluster do decide to spawn all test runners
+
+> find out/foo/test/testForked.dest
+...
+out/foo/test/testForked.dest/group-0-foo.GroupX1/0.log
+out/foo/test/testForked.dest/group-0-foo.GroupX1/0
+out/foo/test/testForked.dest/group-0-foo.GroupX1/1.log
+out/foo/test/testForked.dest/group-0-foo.GroupX1/1
+out/foo/test/testForked.dest/group-1-foo.GroupY1/0.log
+out/foo/test/testForked.dest/group-1-foo.GroupY1/0
+out/foo/test/testForked.dest/group-1-foo.GroupY1/1.log
+out/foo/test/testForked.dest/group-1-foo.GroupY1/1
+out/foo/test/testForked.dest/test-report.xml
+...
+
+*/

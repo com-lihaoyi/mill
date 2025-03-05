@@ -12,7 +12,7 @@ import mill.api.internal
     colored: Boolean,
     testCp: Seq[os.Path],
     home: os.Path,
-    globSelectors: Seq[String]
+    globSelectors: Either[Seq[String], (os.Path, os.Path)]
 )
 
 @internal object TestArgs {
