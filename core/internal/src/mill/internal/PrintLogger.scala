@@ -6,11 +6,11 @@ import java.io.*
 
 private[mill] class PrintLogger(
     override val colored: Boolean,
-    override val enableTicker: Boolean,
+    enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
     val streams: SystemStreams,
-    override val debugEnabled: Boolean,
+    debugEnabled: Boolean,
     val context: String,
     printLoggerState: PrintLogger.State
 ) extends Logger with AutoCloseable {
@@ -30,6 +30,8 @@ private[mill] class PrintLogger(
     override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized {
       ticker(s)
     }
+
+    override def enableTicker: Boolean = PrintLogger.this.enableTicker
   }
   def ticker(s: String): Unit = synchronized {
     if (enableTicker) {

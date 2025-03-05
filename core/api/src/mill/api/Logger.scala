@@ -39,10 +39,6 @@ trait Logger {
 
   private[mill] def prompt: Logger.Prompt
 
-  def debugEnabled: Boolean = false
-
-  def enableTicker: Boolean = false
-
   private[mill] def subLogger(path: os.Path, keySuffix: String, message: String): Logger =
     this
 
@@ -56,6 +52,7 @@ trait Logger {
   private[mill] def message: String = ""
   private[mill] def keySuffix: String = ""
   private[mill] def logPrefixKey: Seq[String] = Nil
+  final def debugEnabled = prompt.debugEnabled
 }
 
 object Logger {
@@ -74,6 +71,10 @@ object Logger {
     private[mill] def removePromptLine(key: Seq[String]): Unit
     private[mill] def withPromptPaused[T](t: => T): T
     private[mill] def withPromptUnpaused[T](t: => T): T
+
+    def debugEnabled: Boolean
+
+    def enableTicker: Boolean
   }
   object Prompt {
     class NoOp extends Prompt {
@@ -86,6 +87,10 @@ object Logger {
       private[mill] def removePromptLine(key: Seq[String]): Unit = ()
       private[mill] def withPromptPaused[T](t: => T): T = t
       private[mill] def withPromptUnpaused[T](t: => T): T = t
+
+      def debugEnabled: Boolean = false
+
+      def enableTicker: Boolean = false
     }
   }
 }

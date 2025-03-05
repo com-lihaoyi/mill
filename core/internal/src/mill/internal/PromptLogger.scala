@@ -18,11 +18,11 @@ import java.io.*
  */
 private[mill] class PromptLogger(
     override val colored: Boolean,
-    override val enableTicker: Boolean,
+    enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
     systemStreams0: SystemStreams,
-    override val debugEnabled: Boolean,
+    debugEnabled: Boolean,
     titleText: String,
     terminfoPath: os.Path,
     currentTimeMillis: () => Long,
@@ -124,7 +124,7 @@ private[mill] class PromptLogger(
         }
       }
       for ((keySuffix, message) <- res) {
-        if (enableTicker) {
+        if (prompt.enableTicker) {
           streams.err.println(infoColor(s"[${key.mkString("-")}$keySuffix] $message"))
           streamManager.awaitPumperEmpty()
         }
@@ -142,6 +142,9 @@ private[mill] class PromptLogger(
 
     private[mill] override def withPromptUnpaused[T](t: => T): T =
       runningState.withPromptPaused0(false, t)
+
+    def enableTicker = PromptLogger.this.enableTicker
+    def debugEnabled = PromptLogger.this.debugEnabled
   }
   def ticker(s: String): Unit = ()
 

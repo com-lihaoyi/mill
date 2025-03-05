@@ -8,7 +8,6 @@ import java.nio.file.{Files, StandardOpenOption}
 private[mill] class FileLogger(
     override val colored: Boolean,
     file: os.Path,
-    override val debugEnabled: Boolean,
     append: Boolean = false
 ) extends Logger with AutoCloseable {
   override def toString: String = s"FileLogger($file)"
@@ -48,13 +47,14 @@ private[mill] class FileLogger(
   def info(s: String): Unit = streams.out.println(s)
   def error(s: String): Unit = streams.out.println(s)
   def ticker(s: String): Unit = streams.out.println(s)
-  def debug(s: String): Unit = if (debugEnabled) streams.out.println(s)
+  def debug(s: String): Unit = if (prompt.debugEnabled) streams.out.println(s)
   def close(): Unit = {
     if (outputStreamUsed)
       streams.out.close()
   }
+  def enableTicker = false
   def prompt = new Logger.Prompt.NoOp
   override def subLogger(path: os.Path, keySuffix: String, message: String): Logger = {
-    new FileLogger(colored, path, debugEnabled, append)
+    new FileLogger(colored, path, append)
   }
 }

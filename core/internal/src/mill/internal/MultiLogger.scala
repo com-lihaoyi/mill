@@ -9,8 +9,7 @@ private[mill] class MultiLogger(
     val colored: Boolean,
     val logger1: Logger,
     val logger2: Logger,
-    val inStream0: InputStream,
-    override val debugEnabled: Boolean
+    val inStream0: InputStream
 ) extends Logger {
   override def toString: String = s"MultiLogger($logger1, $logger2)"
   lazy val streams = new SystemStreams(
@@ -82,21 +81,21 @@ private[mill] class MultiLogger(
       logger1.prompt.withPromptUnpaused(logger2.prompt.withPromptUnpaused(t))
     }
 
+    override def enableTicker: Boolean = logger1.prompt.enableTicker || logger2.prompt.enableTicker
+
+    override def debugEnabled: Boolean = logger1.prompt.debugEnabled || logger2.prompt.debugEnabled
   }
   def debug(s: String): Unit = {
     logger1.debug(s)
     logger2.debug(s)
   }
 
-  override def enableTicker: Boolean = logger1.enableTicker || logger2.enableTicker
-
   private[mill] override def subLogger(path: os.Path, key: String, message: String): Logger = {
     new MultiLogger(
       colored,
       logger1.subLogger(path, key, message),
       logger2.subLogger(path, key, message),
-      inStream0,
-      debugEnabled
+      inStream0
     )
   }
 
@@ -109,8 +108,7 @@ private[mill] class MultiLogger(
       colored,
       logger1.withOutStream(outStream),
       logger2.withOutStream(outStream),
-      inStream0,
-      debugEnabled
+      inStream0
     )
   }
 }

@@ -29,6 +29,7 @@ private[mill] class PrefixLogger(
     noPrefix: Boolean = false
 ) extends Logger {
   private[mill] override val logPrefixKey = logger0.logPrefixKey ++ key0
+
   assert(key0.forall(_.nonEmpty))
   val linePrefix: String =
     if (noPrefix || logPrefixKey.isEmpty) "" else s"[${logPrefixKey.mkString("-")}] "
@@ -72,11 +73,9 @@ private[mill] class PrefixLogger(
   def prompt = logger0.prompt
 
   override def debug(s: String): Unit = {
-    if (debugEnabled) prompt.reportKey(logPrefixKey)
+    if (prompt.debugEnabled) prompt.reportKey(logPrefixKey)
     logger0.debug("" + infoColor(linePrefix) + s)
   }
-  override def debugEnabled: Boolean = logger0.debugEnabled
-
   override def withOutStream(outStream: PrintStream): Logger = new ProxyLogger(this) with Logger {
     override lazy val unprefixedStreams = new SystemStreams(
       outStream,

@@ -57,8 +57,6 @@ private[mill] class BspContext(
       override def ticker(s: String): Unit = streams.err.println(s)
 
       override def debug(s: String): Unit = streams.err.println(s)
-
-      override def debugEnabled: Boolean = true
     }
 
     BspWorker(mill.api.WorkspaceRoot.workspaceRoot, home, log).flatMap { worker =>

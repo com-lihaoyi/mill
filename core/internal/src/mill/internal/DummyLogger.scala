@@ -18,6 +18,4 @@ private[mill] object DummyLogger extends Logger {
   def ticker(s: String) = ()
   def debug(s: String) = ()
   def prompt = new Logger.Prompt.NoOp
-  override val debugEnabled: Boolean = false
-
 }
