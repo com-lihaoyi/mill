@@ -23,16 +23,7 @@ private[mill] class PrefixLogger(
     if (noPrefix || logPrefixKey.isEmpty) "" else s"[${logPrefixKey.mkString("-")}] "
   override def toString: String =
     s"PrefixLogger($logger0, $key0)"
-  def this(logger0: ColorLogger, context: String, tickerContext: String) =
-    this(logger0, Seq(context), tickerContext, None, None)
-  def this(
-      logger0: ColorLogger,
-      context: String,
-      tickerContext: String,
-      outStream0: Option[PrintStream],
-      errStream0: Option[PrintStream]
-  ) =
-    this(logger0, Seq(context), tickerContext, outStream0, errStream0, "", "")
+
 
   override def colored = logger0.colored
 
@@ -128,7 +119,3 @@ private[mill] class PrefixLogger(
   private[mill] override def withPromptUnpaused[T](t: => T): T = logger0.withPromptUnpaused(t)
 }
 
-private[mill] object PrefixLogger {
-  def apply(out: ColorLogger, context: String, tickerContext: String = ""): PrefixLogger =
-    new PrefixLogger(out, context, tickerContext)
-}
