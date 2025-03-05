@@ -350,10 +350,15 @@ trait PublishModule extends TypeScriptModule {
 
   }
 
-
-  private def bundleAnon: Task[PathRef] = Task.Anon{
+  private def bundleAnon: Task[PathRef] = Task.Anon {
     pubSymLink()
-    os.copy.over(compile()._1.path, Task.dest, followLinks = false, replaceExisting = false, createFolders = false)
+    os.copy.over(
+      compile()._1.path,
+      Task.dest,
+      followLinks = false,
+      replaceExisting = false,
+      createFolders = false
+    )
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundleScript = Task.dest / "build.ts"
     val bundle = Task.dest / "bundle.js"
