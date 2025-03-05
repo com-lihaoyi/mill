@@ -7,8 +7,16 @@ import java.io.PrintStream
 /**
  * Configures a logger that prefixes lines of logs.
  *
- * Generates a prompt line of the form
+ * Generates log lines of the form
  *
+ * [$logPrefixKey] $verboseKeySuffix
+ * [$logPrefixKey] ...logs...
+ * [$logPrefixKey] ...logs...
+ * [$logPrefixKey] ...logs...
+ *
+ * And a prompt line of the form
+ *
+ * 
  * [$logPrefixKey] $message
  */
 private[mill] class PrefixLogger(
