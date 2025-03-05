@@ -53,10 +53,8 @@ object Deps {
   // and then add to it `bridgeScalaVersions`
   val scalaVersion = "3.6.2"
   val scala2Version = "2.13.15"
-  // The Scala 2.12.x version
-  val scalaVersion212 = "2.12.20"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = scalaVersion212
+  val workerScalaVersion212 = "2.12.20"
   val sbtScalaVersion212 = workerScalaVersion212
 
   val testScala213Version = "2.13.15"
@@ -197,8 +195,7 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.3-M5"
   val upickle = ivy"com.lihaoyi::upickle:4.1.0"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
-  val sbtVersion = "1.10.8"
-  val zinc = ivy"org.scala-sbt::zinc:$sbtVersion".withDottyCompat(scalaVersion)
+  val zinc = ivy"org.scala-sbt::zinc:1.10.8".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
@@ -224,7 +221,7 @@ object Deps {
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-84-f852c6"
   val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
-  val sbt = ivy"org.scala-sbt:sbt:$sbtVersion"
+  val sbt = ivy"org.scala-sbt:sbt:1.10.8"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
@@ -729,8 +726,8 @@ trait BridgeModule extends MillPublishCrossScalaModule {
   def pomSettings = commonPomSettings(artifactName())
   def crossFullScalaVersion = true
   def ivyDeps = Agg(
-    ivy"org.scala-sbt:compiler-interface:${Deps.sbtVersion}",
-    ivy"org.scala-sbt:util-interface:${Deps.sbtVersion}"
+    ivy"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
+    ivy"org.scala-sbt:util-interface:${Deps.zinc.version}"
   ) ++ Agg(
     if (ZincWorkerUtil.isScala3(crossScalaVersion))
       ivy"org.scala-lang::scala3-compiler:${crossScalaVersion}"
@@ -745,7 +742,7 @@ trait BridgeModule extends MillPublishCrossScalaModule {
   def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
     (if (ZincWorkerUtil.isScala3(crossScalaVersion))
        ivy"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
-     else ivy"org.scala-sbt::compiler-bridge:${Deps.sbtVersion}").exclude("*" -> "*")
+     else ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}").exclude("*" -> "*")
   )
 
   def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
