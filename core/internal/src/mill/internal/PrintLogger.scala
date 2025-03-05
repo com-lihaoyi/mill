@@ -50,24 +50,13 @@ private[mill] class PrintLogger(
     }
   }
 
-  override def withOutStream(outStream: PrintStream): PrintLogger =
-    copy(systemStreams = new SystemStreams(outStream, streams.err, streams.in))
 
-  private def copy(
-                    colored: Boolean = colored,
-                    enableTicker: Boolean = enableTicker,
-                    infoColor: fansi.Attrs = infoColor,
-                    errorColor: fansi.Attrs = errorColor,
-                    systemStreams: SystemStreams = streams,
-                    debugEnabled: Boolean = debugEnabled,
-                    context: String = context,
-                    printLoggerState: PrintLogger.State = printLoggerState
-  ): PrintLogger = new PrintLogger(
+  override def withOutStream(outStream: PrintStream): PrintLogger = new PrintLogger(
     colored,
     enableTicker,
     infoColor,
     errorColor,
-    systemStreams,
+    new SystemStreams(outStream, streams.err, streams.in),
     debugEnabled,
     context,
     printLoggerState
