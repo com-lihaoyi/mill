@@ -30,8 +30,6 @@ private object ResolveCore {
     case class Module(segments: Segments, cls: Class[?]) extends Resolved
     case class NamedTask(segments: Segments) extends Resolved
     case class Command(segments: Segments) extends Resolved
-    // Special case for super tasks to distinguish them in the caller if needed
-    case class SuperTask(segments: Segments, qualifier: Option[String] = None) extends Resolved
   }
 
   sealed trait Result
@@ -93,88 +91,6 @@ private object ResolveCore {
     s"Cyclic module reference detected at ${segments.render}, " +
       s"it's required to wrap it in ModuleRef."
   }
-
-  /**
-   * Helper object to handle all SuperTask-related operations.
-   * This consolidates all SuperTask logic into a single place.
-   */
-  object SuperTaskHandler {
-    // Using private inline methods for these simple helpers for better performance
-    private inline def extractBaseTaskName(superTaskSegment: String): String =
-      superTaskSegment.stripSuffix(".super")
-
-    /**
-     * Handles SuperTask resolution during the resolve phase
-     */
-    def resolve(
-        rootModule: BaseModule,
-        singleLabel: String,
-        current: Resolved.Module,
-        tail: List[Segment],
-        querySoFar: Segments,
-        seenModules: Set[Class[?]],
-        cache: Cache
-    ): Either[NotFound, (Seq[Resolved], List[Segment])] = {
-      // Get potential qualifier from the next segment
-      val superQualifier = tail.headOption.collect { case Segment.Label(q) => q }
-
-      // Resolve the base task name first
-      resolveDirectChildren(
-        rootModule,
-        current.cls,
-        Some(extractBaseTaskName(singleLabel)),
-        current.segments,
-        cache = cache
-      ) match {
-        case mill.api.Result.Success(resolved) if resolved.nonEmpty =>
-          // Map tasks to SuperTasks with appropriate segments
-          val superTasks = resolved.collect {
-            case Resolved.NamedTask(s) =>
-              // Create a SuperTask with the appropriate segments and qualifier
-              val lastSegment = s.last.value
-              val baseSegments = s.value.init :+ Segment.Label(lastSegment + ".super")
-              val fullSegments = superQualifier.fold(Segments(baseSegments))(q =>
-                Segments(baseSegments :+ Segment.Label(q))
-              )
-              Resolved.SuperTask(fullSegments, superQualifier)
-            case other => other
-          }
-
-          // If we have a qualifier, skip it in the remaining segments
-          Right((superTasks, if (superQualifier.isDefined) tail.drop(1) else tail))
-
-        case _ =>
-          Left(notFoundResult(rootModule, querySoFar, current, Segment.Label(singleLabel), cache))
-      }
-    }
-
-    /**
-     * Handles SuperTask instantiation during the instantiateModule phase
-     */
-    def instantiate(
-        rootModule: BaseModule,
-        current: Module,
-        s: String,
-        segments: Segments,
-        cache: Cache
-    ): mill.api.Result[Module] = {
-      // Check if this is a module or a task and handle accordingly
-      resolveDirectChildren0(
-        rootModule,
-        current.moduleSegments,
-        current.getClass,
-        Some(extractBaseTaskName(s)),
-        cache = cache
-      ).flatMap {
-        case Seq((resolved: Resolved.Module, Some(f))) => f(current)
-        case Seq((resolved: Resolved.NamedTask, _)) => mill.api.Result.Success(current)
-        case unknown => sys.error(
-            s"Unable to resolve single child: rootModule: ${rootModule}, segments: ${segments.render}, current: $current, s: ${s}"
-          )
-      }
-    }
-  }
-
   def resolve(
       rootModule: BaseModule,
       remainingQuery: List[Segment],
@@ -226,92 +142,71 @@ private object ResolveCore {
 
         (head, current) match {
           case (Segment.Label(singleLabel), m: Resolved.Module) =>
-            // Check if this is a superTask segment (has .super suffix)
-            if (singleLabel.endsWith(".super")) {
-              SuperTaskHandler.resolve(
-                rootModule,
-                singleLabel,
-                m,
-                tail,
-                querySoFar,
-                seenModules,
-                cache
-              ) match {
-                case Right((superTasks, newRemainingQuery)) =>
-                  if (newRemainingQuery.isEmpty) {
-                    Success(superTasks)
-                  } else {
-                    recurse(superTasks)
-                  }
-                case Left(notFound) => notFound
-              }
-            } else {
-              val resOrErr: mill.api.Result[Seq[Resolved]] = singleLabel match {
-                case "__" =>
-                  val self = Seq(Resolved.Module(m.segments, m.cls))
-                  val transitiveOrErr =
-                    resolveTransitiveChildren(
-                      rootModule,
-                      m.cls,
-                      None,
-                      current.segments,
-                      Nil,
-                      seenModules,
-                      cache
-                    )
-
-                  transitiveOrErr.map(transitive => self ++ transitive)
-
-                case "_" =>
-                  resolveDirectChildren(
+            val resOrErr: mill.api.Result[Seq[Resolved]] = singleLabel match {
+              case "__" =>
+                val self = Seq(Resolved.Module(m.segments, m.cls))
+                val transitiveOrErr =
+                  resolveTransitiveChildren(
                     rootModule,
                     m.cls,
                     None,
                     current.segments,
-                    cache = cache
-                  )
-
-                case pattern if pattern.startsWith("__:") =>
-                  val typePattern = pattern.split(":").drop(1)
-                  val self = Seq(Resolved.Module(m.segments, m.cls))
-
-                  val transitiveOrErr = resolveTransitiveChildren(
-                    rootModule,
-                    m.cls,
-                    None,
-                    current.segments,
-                    typePattern.toSeq,
+                    Nil,
                     seenModules,
                     cache
                   )
 
-                  transitiveOrErr.map(transitive => self ++ transitive)
+                transitiveOrErr.map(transitive => self ++ transitive)
 
-                case pattern if pattern.startsWith("_:") =>
-                  val typePattern = pattern.split(":").drop(1)
-                  resolveDirectChildren(
-                    rootModule,
-                    m.cls,
-                    None,
-                    current.segments,
-                    typePattern.toSeq,
-                    cache
-                  )
+              case "_" =>
+                resolveDirectChildren(
+                  rootModule,
+                  m.cls,
+                  None,
+                  current.segments,
+                  cache = cache
+                )
 
-                case _ =>
-                  resolveDirectChildren(
-                    rootModule,
-                    m.cls,
-                    Some(singleLabel),
-                    current.segments,
-                    cache = cache
-                  )
-              }
+              case pattern if pattern.startsWith("__:") =>
+                val typePattern = pattern.split(":").drop(1)
+                val self = Seq(Resolved.Module(m.segments, m.cls))
 
-              resOrErr match {
-                case mill.api.Result.Failure(err) => Error(err)
-                case mill.api.Result.Success(res) => recurse(res.distinct)
-              }
+                val transitiveOrErr = resolveTransitiveChildren(
+                  rootModule,
+                  m.cls,
+                  None,
+                  current.segments,
+                  typePattern.toSeq,
+                  seenModules,
+                  cache
+                )
+
+                transitiveOrErr.map(transitive => self ++ transitive)
+
+              case pattern if pattern.startsWith("_:") =>
+                val typePattern = pattern.split(":").drop(1)
+                resolveDirectChildren(
+                  rootModule,
+                  m.cls,
+                  None,
+                  current.segments,
+                  typePattern.toSeq,
+                  cache
+                )
+
+              case _ =>
+                resolveDirectChildren(
+                  rootModule,
+                  m.cls,
+                  Some(singleLabel),
+                  current.segments,
+                  cache = cache
+                )
+            }
+
+            resOrErr match {
+              case mill.api.Result.Failure(err) => Error(err)
+              case mill.api.Result.Success(res) => recurse(res.distinct)
             }
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
@@ -359,26 +254,20 @@ private object ResolveCore {
       segments.value.foldLeft[mill.api.Result[Module]](mill.api.Result.Success(rootModule)) {
         case (mill.api.Result.Success(current), Segment.Label(s)) =>
           assert(s != "_", s)
-
-          if (s.endsWith(".super")) {
-            SuperTaskHandler.instantiate(rootModule, current, s, segments, cache)
-          } else {
-            // Not a super task, handle normally
-            resolveDirectChildren0(
-              rootModule,
-              current.moduleSegments,
-              current.getClass,
-              Some(s),
-              cache = cache
-            ).flatMap {
-              case Seq((_, Some(f))) => f(current)
-              case unknown =>
-                sys.error(
-                  s"Unable to resolve single child " +
-                    s"rootModule: ${rootModule}, segments: ${segments.render}," +
-                    s"current: $current, s: ${s}, unknown: $unknown"
-                )
-            }
+          resolveDirectChildren0(
+            rootModule,
+            current.moduleSegments,
+            current.getClass,
+            Some(s),
+            cache = cache
+          ).flatMap {
+            case Seq((_, Some(f))) => f(current)
+            case unknown =>
+              sys.error(
+                s"Unable to resolve single child " +
+                  s"rootModule: ${rootModule}, segments: ${segments.render}," +
+                  s"current: $current, s: ${s}, unknown: $unknown"
+              )
           }
 
         case (mill.api.Result.Success(current), Segment.Cross(vs)) =>
@@ -500,7 +389,6 @@ private object ResolveCore {
         case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
         case (Resolved.NamedTask(s), _) => Resolved.NamedTask(segments ++ s)
         case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
-        case (Resolved.SuperTask(s, qualifier), _) => Resolved.SuperTask(segments ++ s, qualifier)
       }
     }
 
