@@ -4,12 +4,16 @@ import mill.api.{ColorLogger, Logger, SystemStreams}
 
 import java.io.PrintStream
 
+/**
+ * Configures a logger that prefixes lines of logs.
+ *
+ * Generates a prompt line of the form
+ *
+ * [$logPrefixKey] $message
+ */
 private[mill] class PrefixLogger(
     val logger0: ColorLogger,
     key0: Seq[String],
-    tickerContext: String = "",
-    outStream0: Option[PrintStream] = None,
-    errStream0: Option[PrintStream] = None,
     verboseKeySuffix: String = "",
     message: String = "",
     // Disable printing the prefix, but continue reporting the `key` to `reportKey`. Used
@@ -30,27 +34,22 @@ private[mill] class PrefixLogger(
   override def infoColor = logger0.infoColor
   override def errorColor = logger0.errorColor
 
+  def prefixPrintStream(stream: java.io.OutputStream) = {
+    new PrintStream(new LinePrefixOutputStream(
+      infoColor(linePrefix).render,
+      stream,
+      () => reportKey(logPrefixKey)
+    ))
+  }
   val streams = new SystemStreams(
-    out = outStream0.getOrElse(
-      new PrintStream(new LinePrefixOutputStream(
-        infoColor(linePrefix).render,
-        logger0.unprefixedSystemStreams.out,
-        () => reportKey(logPrefixKey)
-      ))
-    ),
-    err = errStream0.getOrElse(
-      new PrintStream(new LinePrefixOutputStream(
-        infoColor(linePrefix).render,
-        logger0.unprefixedSystemStreams.err,
-        () => reportKey(logPrefixKey)
-      ))
-    ),
+    out = prefixPrintStream(logger0.unprefixedSystemStreams.out),
+    err = prefixPrintStream(logger0.unprefixedSystemStreams.err),
     logger0.streams.in
   )
 
   private[mill] override val unprefixedSystemStreams = new SystemStreams(
-    outStream0.getOrElse(logger0.unprefixedSystemStreams.out),
-    errStream0.getOrElse(logger0.unprefixedSystemStreams.err),
+    logger0.unprefixedSystemStreams.out,
+    logger0.unprefixedSystemStreams.err,
     logger0.unprefixedSystemStreams.in
   )
 
@@ -83,14 +82,13 @@ private[mill] class PrefixLogger(
   }
   override def debugEnabled: Boolean = logger0.debugEnabled
 
-  override def withOutStream(outStream: PrintStream): PrefixLogger = new PrefixLogger(
-    logger0.withOutStream(outStream),
-    logPrefixKey,
-    infoColor(tickerContext).toString(),
-    outStream0 = Some(outStream),
-    errStream0 = Some(streams.err)
-  )
-
+  override def withOutStream(outStream: PrintStream): ColorLogger = new ProxyLogger(this) with ColorLogger{
+    override lazy val streams = new SystemStreams(
+      PrefixLogger.this.streams.err,
+      PrefixLogger.this.streams.err,
+      PrefixLogger.this.streams.in
+    )
+  }
   private[mill] override def reportKey(callKey: Seq[String]): Unit =
     logger0.reportKey(callKey)
   private[mill] override def removePromptLine(callKey: Seq[String]): Unit =
@@ -108,9 +106,6 @@ private[mill] class PrefixLogger(
     new PrefixLogger(
       this,
       Seq(subKeySuffix),
-      tickerContext,
-      outStream0,
-      errStream0,
       verboseKeySuffix,
       message
     )
