@@ -372,7 +372,7 @@ object MillMain {
       serverDir: os.Path,
       colored: Boolean,
       colors: Colors
-  ): Logger = {
+  ): Logger with AutoCloseable = {
 
     val logger = if (config.disablePrompt.value) {
       new mill.internal.PrintLogger(

@@ -10,7 +10,7 @@ private[mill] class FileLogger(
     file: os.Path,
     override val debugEnabled: Boolean,
     append: Boolean = false
-) extends Logger {
+) extends Logger with AutoCloseable{
   override def toString: String = s"FileLogger($file)"
   private var outputStreamUsed: Boolean = false
 
@@ -49,7 +49,7 @@ private[mill] class FileLogger(
   def error(s: String): Unit = streams.out.println(s)
   def ticker(s: String): Unit = streams.out.println(s)
   def debug(s: String): Unit = if (debugEnabled) streams.out.println(s)
-  override def close(): Unit = {
+  def close(): Unit = {
     if (outputStreamUsed)
       streams.out.close()
   }

@@ -24,7 +24,7 @@ import java.io.{InputStream, PrintStream}
  * but when `show` is used both are forwarded to stderr and stdout is only
  * used to display the final `show` output for easy piping.
  */
-trait Logger extends AutoCloseable {
+trait Logger {
   def infoColor: fansi.Attrs = fansi.Attrs.Empty
   def errorColor: fansi.Attrs = fansi.Attrs.Empty
   def colored: Boolean
@@ -57,8 +57,6 @@ trait Logger extends AutoCloseable {
    */
   // We only default-implement it to keep binary compatibility in 0.10.x
   def debugEnabled: Boolean = false
-
-  def close(): Unit = ()
 
   def enableTicker: Boolean = false
 

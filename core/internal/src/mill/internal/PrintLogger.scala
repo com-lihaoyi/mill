@@ -13,7 +13,8 @@ private[mill] class PrintLogger(
                                  override val debugEnabled: Boolean,
                                  val context: String,
                                  printLoggerState: PrintLogger.State
-) extends Logger {
+) extends Logger with AutoCloseable{
+  def close() = () // do nothing
   override def toString: String = s"PrintLogger($colored, $enableTicker)"
   def info(s: String): Unit = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
@@ -81,44 +82,6 @@ private[mill] class PrintLogger(
 }
 
 private[mill] object PrintLogger {
-
-  def wrapSystemStreams(systemStreams0: SystemStreams, printLoggerState: State): SystemStreams = {
-    new SystemStreams(
-      new PrintStream(new PrintLogger.StateStream(systemStreams0.out, printLoggerState.value = _)),
-      new PrintStream(new PrintLogger.StateStream(systemStreams0.err, printLoggerState.value = _)),
-      systemStreams0.in
-    )
-  }
-  class StateStream(wrapped: OutputStream, setprintLoggerState0: State.Value => Unit)
-      extends OutputStream {
-
-    private def setprintLoggerState(c: Char) = setprintLoggerState0(
-      c match {
-        case '\n' => State.Newline
-        case '\r' => State.Newline
-        case _ => State.Middle
-      }
-    )
-
-    override def write(b: Array[Byte]): Unit = synchronized {
-      if (b.nonEmpty) setprintLoggerState(b(b.length - 1).toChar)
-      wrapped.write(b)
-    }
-
-    override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
-      if (len != 0) setprintLoggerState(b(off + len - 1).toChar)
-      wrapped.write(b, off, len)
-    }
-
-    override def write(b: Int): Unit = synchronized {
-      setprintLoggerState(b.toChar)
-      wrapped.write(b)
-    }
-
-    override def flush(): Unit = synchronized {
-      wrapped.flush()
-    }
-  }
 
   class State {
     var value: State.Value = State.Newline

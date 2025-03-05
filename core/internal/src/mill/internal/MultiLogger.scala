@@ -62,10 +62,6 @@ private[mill] class MultiLogger(
     logger2.debug(s)
   }
 
-  override def close(): Unit = {
-    logger1.close()
-    logger2.close()
-  }
   private[mill] override def reportKey(key: Seq[String]): Unit = {
     logger1.reportKey(key)
     logger2.reportKey(key)

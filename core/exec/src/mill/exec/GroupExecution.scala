@@ -206,7 +206,7 @@ private trait GroupExecution {
     val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]
 
     val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
-    val multiLogger = resolveLogger(paths.map(_.log), logger)
+    val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
     var usedDest = Option.empty[os.Path]
     for (task <- nonEvaluatedTargets) {
@@ -305,7 +305,7 @@ private trait GroupExecution {
       newResults(task) = for (v <- res) yield (v, getValueHash(v, task, inputsHash))
     }
 
-    multiLogger.close()
+    fileLoggerOpt.foreach(_.close())
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
       val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[?]])
@@ -371,17 +371,19 @@ private trait GroupExecution {
     }
   }
 
-  def resolveLogger(logPath: Option[os.Path], logger: mill.api.Logger): mill.api.Logger =
+  def resolveLogger(logPath: Option[os.Path], logger: mill.api.Logger): (mill.api.Logger, Option[AutoCloseable]) =
     logPath match {
-      case None => logger
-      case Some(path) => new MultiLogger(
+      case None => (logger, None)
+      case Some(path) =>
+        val fileLogger = new FileLogger(logger.colored, path, debugEnabled = true)
+        val multiLogger = new MultiLogger(
           logger.colored,
           logger,
-          // we always enable debug here, to get some more context in log files
-          new FileLogger(logger.colored, path, debugEnabled = true),
+          fileLogger,
           logger.streams.in,
           debugEnabled = logger.debugEnabled
         )
+        (multiLogger, Some(fileLogger))
     }
 
   private def loadCachedJson(
