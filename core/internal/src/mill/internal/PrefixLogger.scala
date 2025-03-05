@@ -21,8 +21,8 @@ import java.io.PrintStream
 private[mill] class PrefixLogger(
     val logger0: Logger,
     key0: Seq[String],
-    keySuffix: String = "",
-    message: String = "",
+    override val keySuffix: String = "",
+    override val message: String = "",
     // Disable printing the prefix, but continue reporting the `key` to `reportKey`. Used
     // for `exclusive` commands where we don't want the prefix, but we do want the header
     // above the output of every command that gets run so we can see who the output belongs to
@@ -79,9 +79,6 @@ private[mill] class PrefixLogger(
     logger0.setPromptLine(callKey, keySuffix, message)
   }
 
-  private[mill] override def setPromptLine(): Unit =
-    setPromptLine(logPrefixKey, keySuffix, message)
-
   override def debug(s: String): Unit = {
     if (debugEnabled) reportKey(logPrefixKey)
     logger0.debug("" + infoColor(linePrefix) + s)
@@ -103,9 +100,10 @@ private[mill] class PrefixLogger(
   }
   private[mill] override def reportKey(callKey: Seq[String]): Unit =
     logger0.reportKey(callKey)
+
   private[mill] override def removePromptLine(callKey: Seq[String]): Unit =
     logger0.removePromptLine(callKey)
-  private[mill] override def removePromptLine(): Unit = removePromptLine(logPrefixKey)
+
   private[mill] override def setPromptHeaderPrefix(s: String): Unit =
     logger0.setPromptHeaderPrefix(s)
   override def enableTicker = logger0.enableTicker

@@ -110,7 +110,7 @@ private[mill] case class Execution(
     val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
     def formatHeaderPrefix(countMsg: String, keySuffix: String) =
-      s"$countMsg$verboseKeySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
+      s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
 
     def evaluateTerminals(
         terminals: Seq[Task[?]],

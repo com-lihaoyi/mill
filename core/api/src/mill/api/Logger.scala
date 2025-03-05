@@ -40,11 +40,9 @@ trait Logger {
   private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ticker(s)
   private[mill] def reportKey(key: Seq[String]): Unit = ()
   private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit = ()
-  private[mill] def setPromptLine(): Unit = ()
   private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
   private[mill] def clearPromptStatuses(): Unit = ()
   private[mill] def removePromptLine(key: Seq[String]): Unit = ()
-  private[mill] def removePromptLine(): Unit = ()
   private[mill] def withPromptPaused[T](t: => T): T = t
   private[mill] def withPromptUnpaused[T](t: => T): T = t
 
@@ -60,11 +58,13 @@ trait Logger {
     this
 
   private[mill] def withPromptLine[T](t: => T): T = {
-    setPromptLine()
+    setPromptLine(logPrefixKey, keySuffix, message)
     try t
-    finally removePromptLine()
+    finally removePromptLine(logPrefixKey)
   }
 
   def withOutStream(outStream: PrintStream): Logger = this
+  private[mill] def message: String = ""
+  private[mill] def keySuffix: String = ""
   private[mill] def logPrefixKey: Seq[String] = Nil
 }

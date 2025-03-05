@@ -52,11 +52,6 @@ private[mill] class MultiLogger(
     logger2.setPromptLine(key, keySuffix, message)
   }
 
-  private[mill] override def setPromptLine(): Unit = {
-    logger1.setPromptLine()
-    logger2.setPromptLine()
-  }
-
   def debug(s: String): Unit = {
     logger1.debug(s)
     logger2.debug(s)
@@ -71,10 +66,7 @@ private[mill] class MultiLogger(
     logger1.removePromptLine(key)
     logger2.removePromptLine(key)
   }
-  private[mill] override def removePromptLine(): Unit = {
-    logger1.removePromptLine()
-    logger2.removePromptLine()
-  }
+
   private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
     logger1.setPromptHeaderPrefix(s)
     logger2.setPromptHeaderPrefix(s)
