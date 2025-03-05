@@ -131,8 +131,8 @@ trait PublishModule extends TypeScriptModule {
 
     targets.foreach { target =>
       val destination = Task.dest / "typescript" / target
-        os.makeDir.all(destination / os.up)
-        os.copy(Task.workspace / target, destination, mergeFolders = true)
+      os.makeDir.all(destination / os.up)
+      os.copy(Task.workspace / target, destination, mergeFolders = true)
     }
   }
 
@@ -245,10 +245,10 @@ trait PublishModule extends TypeScriptModule {
 
   private def pubSymLink: Task[Unit] = Task.Anon {
     pubTsPatchInstall() // patch typescript compiler => use custom transformers
-      os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
+    os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
 
-      if (os.exists(npmInstall().path / ".npmrc"))
-        os.symlink(Task.dest / ".npmrc", npmInstall().path / ".npmrc")
+    if (os.exists(npmInstall().path / ".npmrc"))
+      os.symlink(Task.dest / ".npmrc", npmInstall().path / ".npmrc")
   }
 
   // need sandboxing bypass because we are copying moduleDir
@@ -260,23 +260,23 @@ trait PublishModule extends TypeScriptModule {
 
   override def compile: T[(PathRef, PathRef)] = Task {
     pubSymLink()
-      os.write(
-        Task.dest / "tsconfig.json",
-        ujson.Obj(
-          "compilerOptions" -> ujson.Obj.from(
-            compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
-          ),
+    os.write(
+      Task.dest / "tsconfig.json",
+      ujson.Obj(
+        "compilerOptions" -> ujson.Obj.from(
+          compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
+        ),
           "files" -> pubAllSources().map(_.toString)
-        )
       )
+    )
     copyModuleDir()
     pubCopyModDeps()
 
-      // Run type check, build declarations
-      os.call(
-        ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
-        cwd = Task.dest
-      )
+    // Run type check, build declarations
+    os.call(
+      ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
+      cwd = Task.dest
+    )
     (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
 
