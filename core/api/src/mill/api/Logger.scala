@@ -39,10 +39,6 @@ trait Logger {
 
   private[mill] def prompt: Logger.Prompt
 
-  /**
-   * @since Mill 0.10.5
-   */
-  // We only default-implement it to keep binary compatibility in 0.10.x
   def debugEnabled: Boolean = false
 
   def enableTicker: Boolean = false
