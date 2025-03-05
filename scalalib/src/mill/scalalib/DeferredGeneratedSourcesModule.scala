@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import mill._
+import mill.api.experimental
 import mill.define.NamedTask
 
 /**
@@ -11,6 +12,7 @@ import mill.define.NamedTask
  * This is useful for preventing IDE-integration (BSP/Idea/Bloop) from
  * failing when the code-generation task fails for one reason or another.
  */
+@experimental
 trait DeferredGeneratedSourcesModule extends JavaModule {
 
   /**
