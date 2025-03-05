@@ -109,11 +109,11 @@ trait PublishModule extends TscModule {
     ()
   }
 
-  private def pubSymLink: Task[Unit] = Task {
+  private def pubSymLink: Task[Unit] = Task.Anon {
     pubTsPatchInstall() // patch typescript compiler => use custom transformers
 
     if (os.exists(npmInstall().path / ".npmrc"))
-      os.symlink(compileDir().path / ".npmrc", npmInstall().path / ".npmrc")
+      os.symlink(T.dest / ".npmrc", npmInstall().path / ".npmrc")
   }
 
   override def compile: T[(PathRef, PathRef)] = Task {
@@ -138,7 +138,7 @@ trait PublishModule extends TscModule {
           s"""    copyStaticFiles({
              |      src: ${ujson.Str(rp.toString)},
              |      dest: ${ujson.Str(
-              compileDir().path.toString + "/" + pubBundledOut() + "/" + rp.last
+              compile()._1.path.toString + "/" + pubBundledOut() + "/" + rp.last
             )},
              |      dereference: true,
              |      preserveTimestamps: true,
@@ -202,13 +202,13 @@ trait PublishModule extends TscModule {
 
   def publish(): Command[Unit] = Task.Command {
     // build package.json
-    os.move(pubPackageJson().path / "package.json", compileDir().path / "package.json")
+    os.move(pubPackageJson().path / "package.json", compile()._1.path / "package.json")
 
     // bundle code for publishing
     bundle()
 
     // run npm publish
-    os.call(("npm", "publish"), stdout = os.Inherit, cwd = compileDir().path)
+    os.call(("npm", "publish"), stdout = os.Inherit, cwd = compile()._1.path)
     ()
   }
 

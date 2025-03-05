@@ -74,7 +74,7 @@ object TestModule {
 
     // coverage files - returnn coverage files directory
     def coverageFiles: T[PathRef] = Task {
-      val dir = compileDir().path / s"${moduleDeps.head}_coverage"
+      val dir = compile()._1.path / s"${moduleDeps.head}_coverage"
       println(s"coverage files: $dir")
       PathRef(dir)
     }
@@ -247,7 +247,7 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compileDir().path
+        cwd = compile()._1.path
       )
       ()
     }

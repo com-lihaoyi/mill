@@ -5,11 +5,9 @@ import mill.javascriptlib._
 
 object foo extends TscModule {
 
-  def customSource = Task {
-    Seq(PathRef(moduleDir / "custom-src/foo2.ts"))
-  }
+  def customSource = Task.Sources("custom-src/foo2.ts")
 
-  def sources = Task.Sources(super.sources() ++ customSource())
+  def sources = Task { super.sources() ++ customSource() }
 
   def resources = super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
 

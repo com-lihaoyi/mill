@@ -115,8 +115,8 @@ trait TscModule extends Module { outer =>
         )
       }
 
-  def tscCopySources: T[Unit] = Task {
-    val dest = compileDir().path / "typescript"
+  def tscCopySources: Task[Unit] = Task.Anon {
+    val dest = T.dest / "typescript"
     val coreTarget = dest / "src"
 
     if (!os.exists(dest)) os.makeDir.all(dest)
@@ -167,12 +167,12 @@ trait TscModule extends Module { outer =>
 
   }
 
-  private def tscCopyModDeps: T[Unit] = Task {
+  private def tscCopyModDeps: Task[Unit] = Task.Anon {
     val targets =
       recModuleDeps.map { _.moduleDir.subRelativeTo(Task.workspace).segments.head }.distinct
 
     targets.foreach { target =>
-      val destination = compileDir().path / "typescript" / target
+      val destination = T.dest / "typescript" / target
       os.makeDir.all(destination / os.up)
       os.copy(
         Task.workspace / target,
@@ -183,9 +183,9 @@ trait TscModule extends Module { outer =>
   }
 
   // mv generated sources for base mod and its deps
-  private def tscCopyGenSources: T[Unit] = Task {
+  private def tscCopyGenSources: Task[Unit] = Task.Anon {
     tscCoreGenSources().foreach { target =>
-      val destination = compileDir().path / "typescript" / "generatedSources" / target.path.last
+      val destination = T.dest / "typescript" / "generatedSources" / target.path.last
       os.makeDir.all(destination / os.up)
       os.copy.over(
         target.path,
@@ -197,7 +197,7 @@ trait TscModule extends Module { outer =>
       source_.foreach { target =>
         val modDir = mod.path.relativeTo(Task.workspace)
         val destination =
-          compileDir().path / "typescript" / modDir / "generatedSources" / target.path.last
+          T.dest / "typescript" / modDir / "generatedSources" / target.path.last
         os.makeDir.all(destination / os.up)
         os.copy.over(
           target.path,
@@ -212,8 +212,8 @@ trait TscModule extends Module { outer =>
    * Link all external resources eg: `out/<mod>/resources.dest`
    * to `moduleDir / src / resources`
    */
-  private def tscLinkResources: T[Unit] = Task {
-    val dest = compileDir().path / "typescript/resources"
+  private def tscLinkResources: Task[Unit] = Task.Anon {
+    val dest = T.dest / "typescript/resources"
     if (!os.exists(dest)) os.makeDir.all(dest)
 
     val externalResource: PathRef => Boolean = p =>
@@ -232,7 +232,7 @@ trait TscModule extends Module { outer =>
 
     tscModDepsResources().foreach { case (mod, r) =>
       val modDir = mod.path.relativeTo(Task.workspace)
-      val modDest = compileDir().path / "typescript" / modDir / "resources"
+      val modDest = T.dest / "typescript" / modDir / "resources"
       if (!os.exists(modDest)) os.makeDir.all(modDest)
       linkResource(r, modDest)
     }
@@ -425,17 +425,15 @@ trait TscModule extends Module { outer =>
    * removes need for node_modules prefix in import statements `node_modules/<some-package>`
    * import * as somepackage from "<some-package>"
    */
-  private def symLink: T[Unit] = Task {
-    os.symlink(compileDir().path / "node_modules", npmInstall().path / "node_modules")
-    os.symlink(compileDir().path / "package-lock.json", npmInstall().path / "package-lock.json")
+  private def symLink: Task[Unit] = Task.Anon {
+    os.symlink(T.dest / "node_modules", npmInstall().path / "node_modules")
+    os.symlink(T.dest / "package-lock.json", npmInstall().path / "package-lock.json")
   }
-
-  def compileDir: T[PathRef] = Task { PathRef(Task.dest) }
 
   def compile: T[(PathRef, PathRef)] = Task {
     symLink()
     os.write(
-      compileDir().path / "tsconfig.json",
+      T.dest / "tsconfig.json",
       ujson.Obj(
         "compilerOptions" -> ujson.Obj.from(
           compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
@@ -448,12 +446,10 @@ trait TscModule extends Module { outer =>
     tscCopyModDeps()
     tscCopyGenSources()
     tscLinkResources()
+
     // Run type check, build declarations
-    os.call(
-      ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
-      cwd = compileDir().path
-    )
-    (PathRef(compileDir().path), PathRef(compileDir().path / "typescript"))
+    os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
+    (PathRef(T.dest), PathRef(T.dest / "typescript"))
   }
 
   // compile
@@ -633,7 +629,7 @@ trait TscModule extends Module { outer =>
     override def outerModuleName: Option[String] = Some(outer.moduleName)
 
     override def declarationDir: T[ujson.Value] = Task {
-      ujson.Str((outer.compileDir().path / "declarations").toString)
+      ujson.Str((outer.compile()._1.path / "declarations").toString)
     }
 
     override def sources: T[Seq[PathRef]] = Task.Sources(moduleDir)
@@ -678,14 +674,15 @@ trait TscModule extends Module { outer =>
     }
 
     override def compile: T[(PathRef, PathRef)] = Task {
-      outer.compile()
+      val out = outer.compile()
 
-      val files: IndexedSeq[String] = allSources()
-        .map(x => "typescript/test/" + x.path.relativeTo(moduleDir)) ++
-        outer.tscAllSources()
+      val files: IndexedSeq[String] =
+        allSources()
+          .map(x => "typescript/test/" + x.path.relativeTo(moduleDir)) ++
+          outer.tscAllSources()
 
-      // mv compileDir<outer> to compilerDir<test>
-      os.list(outer.compileDir().path)
+      // mv compile<outer> to compile<test>
+      os.list(out._1.path)
         .filter(item =>
           item.last != "tsconfig.json" &&
             item.last != "package-lock.json" &&
@@ -693,14 +690,14 @@ trait TscModule extends Module { outer =>
               item
             ))
         )
-        .foreach(item => os.copy.over(item, compileDir().path / item.last, createFolders = true))
+        .foreach(item => os.copy.over(item, T.dest / item.last, createFolders = true))
 
-      os.symlink(compileDir().path / "node_modules", npmInstall().path / "node_modules")
-      os.symlink(compileDir().path / "package-lock.json", npmInstall().path / "package-lock.json")
+      os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
+      os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
 
-      // inject test specific tsconfig into compileDir<outer> test config
+      // inject test specific tsconfig into <outer> tsconfig
       os.write(
-        compileDir().path / "tsconfig.json",
+        Task.dest / "tsconfig.json",
         ujson.Obj(
           "compilerOptions" -> ujson.Obj.from(
             compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> outer.typeRoots())
@@ -709,7 +706,7 @@ trait TscModule extends Module { outer =>
         )
       )
 
-      (PathRef(compileDir().path), PathRef(compileDir().path / "typescript"))
+      (PathRef(T.dest), PathRef(T.dest / "typescript"))
     }
 
     override def npmInstall: T[PathRef] = Task {
