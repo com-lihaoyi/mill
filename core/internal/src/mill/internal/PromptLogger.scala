@@ -13,7 +13,7 @@ import java.io.*
  *
  * Most operations that update mutable state *or* writes to parent [[systemStreams0]] is
  * synchronized under the [[PromptLogger]] object. Notably, child writes to
- * [[systemStreams]] are *not* synchronized, and instead goes into a [[PipeStreams]]
+ * [[streams]] are *not* synchronized, and instead goes into a [[PipeStreams]]
  * buffer to be read out and handled asynchronously.
  */
 private[mill] class PromptLogger(
@@ -94,9 +94,9 @@ private[mill] class PromptLogger(
 
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
-  def info(s: String): Unit = systemStreams.err.println(s)
+  def info(s: String): Unit = streams.err.println(s)
 
-  def error(s: String): Unit = systemStreams.err.println(s)
+  def error(s: String): Unit = streams.err.println(s)
 
   override def setPromptHeaderPrefix(s: String): Unit = synchronized {
     promptLineState.setHeaderPrefix(s)
@@ -122,7 +122,7 @@ private[mill] class PromptLogger(
     }
     for ((verboseKeySuffix, message) <- res) {
       if (enableTicker) {
-        systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
+        streams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
         streamManager.awaitPumperEmpty()
       }
     }
@@ -137,7 +137,7 @@ private[mill] class PromptLogger(
       seenIdentifiers(key) = (verboseKeySuffix, message)
     }
 
-  def debug(s: String): Unit = if (debugEnabled) systemStreams.err.println(s)
+  def debug(s: String): Unit = if (debugEnabled) streams.err.println(s)
 
   override def close(): Unit = {
     synchronized {
@@ -157,7 +157,7 @@ private[mill] class PromptLogger(
     promptUpdaterThread.join()
   }
 
-  def systemStreams = streamManager.proxySystemStreams
+  def streams = streamManager.proxySystemStreams
 
   private[mill] override def withPromptPaused[T](t: => T): T =
     runningState.withPromptPaused0(true, t)

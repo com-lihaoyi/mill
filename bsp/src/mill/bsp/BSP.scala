@@ -50,9 +50,9 @@ object BSP extends ExternalModule with CoursierModule {
    */
   def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
       : Command[BspServerResult] = Task.Command(exclusive = true) {
-    Task.log.errorStream.println("BSP/startSession: Starting BSP session")
+    Task.log.streams.err.println("BSP/startSession: Starting BSP session")
     val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
-    Task.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
+    Task.log.streams.err.println(s"BSP/startSession: Finished BSP session, result: ${res}")
     res
   }
 

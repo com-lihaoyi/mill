@@ -62,11 +62,11 @@ object PromptLoggerTests extends TestSuite {
 
       now += 10000
 
-      prefixLogger.outputStream.println("HELLO")
+      prefixLogger.streams.out.println("HELLO")
 
       promptLogger.refreshPrompt()
 
-      prefixLogger.outputStream.println("WORLD")
+      prefixLogger.streams.out.println("WORLD")
 
       promptLogger.removePromptLine(Seq("1"))
 
@@ -113,7 +113,7 @@ object PromptLoggerTests extends TestSuite {
 
       now += 10000
 
-      prefixLogger.outputStream.println("HELLO")
+      prefixLogger.streams.out.println("HELLO")
 
       promptLogger.refreshPrompt() // Need to call `refreshPrompt()` for prompt to change
       // First time we log with the prefix `[1]`, make sure we print out the title line
@@ -125,7 +125,7 @@ object PromptLoggerTests extends TestSuite {
         "[1] my-task 10s"
       )
 
-      prefixLogger.outputStream.println("WORLD")
+      prefixLogger.streams.out.println("WORLD")
       // Prompt doesn't change, no need to call `refreshPrompt()` for it to be
       // re-rendered below the latest prefixed output. Subsequent log line with `[1]`
       // prefix does not re-render title line `[1/456] ...`
@@ -142,15 +142,15 @@ object PromptLoggerTests extends TestSuite {
       // to ensure it is meaningful to read and not just something that will flash and disappear
       val newPrefixLogger2 = new PrefixLogger(promptLogger, Seq("2"))
       newPrefixLogger2.setPromptLine(Seq("2"), "/456", "my-task-new")
-      newPrefixLogger2.errorStream.println("I AM COW")
-      newPrefixLogger2.errorStream.println("HEAR ME MOO")
+      newPrefixLogger2.streams.err.println("I AM COW")
+      newPrefixLogger2.streams.err.println("HEAR ME MOO")
 
       // For short-lived ticker entries that are removed quickly, they never
       // appear in the prompt at all even though they can run and generate logs
       val newPrefixLogger3 = new PrefixLogger(promptLogger, Seq("3"))
       newPrefixLogger3.setPromptLine(Seq("3"), "/456", "my-task-short-lived")
-      newPrefixLogger3.errorStream.println("hello short lived")
-      newPrefixLogger3.errorStream.println("goodbye short lived")
+      newPrefixLogger3.streams.err.println("hello short lived")
+      newPrefixLogger3.streams.err.println("goodbye short lived")
 
       // my-task-new does not appear yet because it is too new
       promptLogger.refreshPrompt()

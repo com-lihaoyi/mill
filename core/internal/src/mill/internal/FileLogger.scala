@@ -44,14 +44,14 @@ private[mill] class FileLogger(
     })
   }
 
-  val systemStreams = new SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
-  def info(s: String): Unit = outputStream.println(s)
-  def error(s: String): Unit = outputStream.println(s)
-  def ticker(s: String): Unit = outputStream.println(s)
-  def debug(s: String): Unit = if (debugEnabled) outputStream.println(s)
+  val streams = new SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
+  def info(s: String): Unit = streams.out.println(s)
+  def error(s: String): Unit = streams.out.println(s)
+  def ticker(s: String): Unit = streams.out.println(s)
+  def debug(s: String): Unit = if (debugEnabled) streams.out.println(s)
   override def close(): Unit = {
     if (outputStreamUsed)
-      outputStream.close()
+      streams.out.close()
   }
   override def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger = {
     new FileLogger(colored, path, debugEnabled, append)

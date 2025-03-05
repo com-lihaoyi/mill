@@ -264,7 +264,7 @@ private trait GroupExecution {
           def wrap[T](t: => T): T = {
             val (streams, destFunc) =
               if (exclusive) (exclusiveSystemStreams, () => workspace)
-              else (multiLogger.systemStreams, () => makeDest())
+              else (multiLogger.streams, () => makeDest())
 
             os.dynamicPwdFunction.withValue(destFunc) {
               os.checker.withValue(executionChecker) {
@@ -379,7 +379,7 @@ private trait GroupExecution {
           logger,
           // we always enable debug here, to get some more context in log files
           new FileLogger(logger.colored, path, debugEnabled = true),
-          logger.systemStreams.in,
+          logger.streams.in,
           debugEnabled = logger.debugEnabled
         )
     }

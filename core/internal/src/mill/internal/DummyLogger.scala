@@ -7,7 +7,7 @@ import java.io.{ByteArrayInputStream, PrintStream}
 private[mill] object DummyLogger extends Logger {
   def colored = false
 
-  val systemStreams = new SystemStreams(
+  val streams = new SystemStreams(
     new PrintStream(_ => ()),
     new PrintStream(_ => ()),
     new ByteArrayInputStream(Array())

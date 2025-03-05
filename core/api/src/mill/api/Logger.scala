@@ -29,13 +29,8 @@ trait Logger extends AutoCloseable {
   def errorColor: fansi.Attrs = fansi.Attrs.Empty
   def colored: Boolean
 
-  private[mill] def unprefixedSystemStreams: SystemStreams = systemStreams
-  def systemStreams: SystemStreams
-
-  def errorStream: PrintStream = systemStreams.err
-  def outputStream: PrintStream = systemStreams.out
-
-  def inStream: InputStream = systemStreams.in
+  private[mill] def unprefixedSystemStreams: SystemStreams = streams
+  def streams: SystemStreams
 
   def info(s: String): Unit
   def debug(s: String): Unit

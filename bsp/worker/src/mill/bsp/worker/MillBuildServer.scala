@@ -812,7 +812,7 @@ private class MillBuildServer(
         case n: NamedTask[_] => n.label
         case t => t.toString
       },
-      streams = logger0.systemStreams
+      streams = logger0.streams
     ) {
       evaluator.execute(
         goals,

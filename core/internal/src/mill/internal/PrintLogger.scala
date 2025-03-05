@@ -5,24 +5,24 @@ import mill.api.{ColorLogger, SystemStreams}
 import java.io.*
 
 private[mill] class PrintLogger(
-    override val colored: Boolean,
-    override val enableTicker: Boolean,
-    override val infoColor: fansi.Attrs,
-    override val errorColor: fansi.Attrs,
-    val systemStreams: SystemStreams,
-    override val debugEnabled: Boolean,
-    val context: String,
-    printLoggerState: PrintLogger.State
+                                 override val colored: Boolean,
+                                 override val enableTicker: Boolean,
+                                 override val infoColor: fansi.Attrs,
+                                 override val errorColor: fansi.Attrs,
+                                 val streams: SystemStreams,
+                                 override val debugEnabled: Boolean,
+                                 val context: String,
+                                 printLoggerState: PrintLogger.State
 ) extends ColorLogger {
   override def toString: String = s"PrintLogger($colored, $enableTicker)"
   def info(s: String): Unit = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
-    systemStreams.err.println(infoColor(context + s))
+    streams.err.println(infoColor(context + s))
   }
 
   def error(s: String): Unit = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
-    systemStreams.err.println((infoColor(context) ++ errorColor(s)).render)
+    streams.err.println((infoColor(context) ++ errorColor(s)).render)
   }
 
   override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized { ticker(s) }
@@ -30,12 +30,12 @@ private[mill] class PrintLogger(
     if (enableTicker) {
       printLoggerState.value match {
         case PrintLogger.State.Newline =>
-          systemStreams.err.println(infoColor(s))
+          streams.err.println(infoColor(s))
         case PrintLogger.State.Middle =>
-          systemStreams.err.println()
-          systemStreams.err.println(infoColor(s))
+          streams.err.println()
+          streams.err.println(infoColor(s))
         case PrintLogger.State.Ticker =>
-          val p = new PrintWriter(systemStreams.err)
+          val p = new PrintWriter(streams.err)
           // Need to make this more "atomic"
           val nav = new AnsiNav(p)
           nav.up(1)
@@ -43,24 +43,24 @@ private[mill] class PrintLogger(
           nav.left(9999)
           p.flush()
 
-          systemStreams.err.println(infoColor(s))
+          streams.err.println(infoColor(s))
       }
       printLoggerState.value = PrintLogger.State.Ticker
     }
   }
 
   override def withOutStream(outStream: PrintStream): PrintLogger =
-    copy(systemStreams = new SystemStreams(outStream, systemStreams.err, systemStreams.in))
+    copy(systemStreams = new SystemStreams(outStream, streams.err, streams.in))
 
   private def copy(
-      colored: Boolean = colored,
-      enableTicker: Boolean = enableTicker,
-      infoColor: fansi.Attrs = infoColor,
-      errorColor: fansi.Attrs = errorColor,
-      systemStreams: SystemStreams = systemStreams,
-      debugEnabled: Boolean = debugEnabled,
-      context: String = context,
-      printLoggerState: PrintLogger.State = printLoggerState
+                    colored: Boolean = colored,
+                    enableTicker: Boolean = enableTicker,
+                    infoColor: fansi.Attrs = infoColor,
+                    errorColor: fansi.Attrs = errorColor,
+                    systemStreams: SystemStreams = streams,
+                    debugEnabled: Boolean = debugEnabled,
+                    context: String = context,
+                    printLoggerState: PrintLogger.State = printLoggerState
   ): PrintLogger = new PrintLogger(
     colored,
     enableTicker,
@@ -75,7 +75,7 @@ private[mill] class PrintLogger(
   def debug(s: String): Unit = synchronized {
     if (debugEnabled) {
       printLoggerState.value = PrintLogger.State.Newline
-      systemStreams.err.println(context + s)
+      streams.err.println(context + s)
     }
   }
 }

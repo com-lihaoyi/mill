@@ -12,7 +12,7 @@ private[mill] class ProxyLogger(logger: Logger) extends Logger {
   override def toString: String = s"ProxyLogger($logger)"
   def colored = logger.colored
 
-  lazy val systemStreams = logger.systemStreams
+  lazy val streams = logger.streams
 
   def info(s: String): Unit = logger.info(s)
   def error(s: String): Unit = logger.error(s)

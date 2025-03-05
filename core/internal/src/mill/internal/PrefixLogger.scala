@@ -39,7 +39,7 @@ private[mill] class PrefixLogger(
   override def infoColor = logger0.infoColor
   override def errorColor = logger0.errorColor
 
-  val systemStreams = new SystemStreams(
+  val streams = new SystemStreams(
     out = outStream0.getOrElse(
       new PrintStream(new LinePrefixOutputStream(
         infoColor(linePrefix).render,
@@ -54,7 +54,7 @@ private[mill] class PrefixLogger(
         () => reportKey(logPrefixKey)
       ))
     ),
-    logger0.systemStreams.in
+    logger0.streams.in
   )
 
   private[mill] override val unprefixedSystemStreams = new SystemStreams(
@@ -97,7 +97,7 @@ private[mill] class PrefixLogger(
     logPrefixKey,
     infoColor(tickerContext).toString(),
     outStream0 = Some(outStream),
-    errStream0 = Some(systemStreams.err)
+    errStream0 = Some(streams.err)
   )
 
   private[mill] override def reportKey(callKey: Seq[String]): Unit =

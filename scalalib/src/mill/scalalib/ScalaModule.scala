@@ -506,7 +506,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Use [[ammoniteVersion]] to customize the Ammonite version to use.
    */
   def repl(replOptions: String*): Command[Unit] = Task.Command(exclusive = true) {
-    if (Task.log.inStream == DummyInputStream) {
+    if (Task.log.streams.in == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     } else {
       val mainClass = ammoniteMainClass()

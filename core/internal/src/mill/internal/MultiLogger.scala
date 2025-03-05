@@ -13,9 +13,9 @@ private[mill] class MultiLogger(
     override val debugEnabled: Boolean
 ) extends ColorLogger {
   override def toString: String = s"MultiLogger($logger1, $logger2)"
-  lazy val systemStreams = new SystemStreams(
-    new MultiStream(logger1.systemStreams.out, logger2.systemStreams.out),
-    new MultiStream(logger1.systemStreams.err, logger2.systemStreams.err),
+  lazy val streams = new SystemStreams(
+    new MultiStream(logger1.streams.out, logger2.streams.out),
+    new MultiStream(logger1.streams.err, logger2.streams.err),
     inStream0
   )
 
