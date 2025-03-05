@@ -266,7 +266,7 @@ trait PublishModule extends TypeScriptModule {
         "compilerOptions" -> ujson.Obj.from(
           compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
         ),
-          "files" -> pubAllSources().map(_.toString)
+        "files" -> pubAllSources().map(_.toString)
       )
     )
     copyModuleDir()
@@ -360,7 +360,6 @@ trait PublishModule extends TypeScriptModule {
   }
 
   // EsBuild - END
-
 
   def publish(): Command[Unit] = Task.Command {
     // build package.json
