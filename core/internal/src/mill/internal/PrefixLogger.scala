@@ -16,7 +16,6 @@ import java.io.PrintStream
  *
  * And a prompt line of the form
  *
- * 
  * [$logPrefixKey] $message
  */
 private[mill] class PrefixLogger(
