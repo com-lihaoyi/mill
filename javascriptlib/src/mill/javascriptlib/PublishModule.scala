@@ -37,14 +37,14 @@ trait PublishModule extends TypeScriptModule {
 
   private def pubBuildExports: T[Map[String, PublishModule.ExportEntry]] = Task {
     pubExports().map { case (key, value) =>
-      key -> PublishModule.Export("./" + pubBundledOut() + "/" + value)
+      key -> PublishModule.Export( "./" + pubBundledOut() + "/" + value)
     }
   }
 
   private def pubTypesVersion: T[Map[String, Seq[String]]] = Task {
-    pubAllSources().map { source =>
-      val dist = source.replaceFirst("typescript", pubBundledOut())
-      val declarations = source.replaceFirst("typescript", pubDeclarationOut())
+    pubAllSources3().map { source =>
+      val dist = source.toString.replaceFirst("typescript", pubBundledOut())
+      val declarations = source.toString.replaceFirst("typescript", pubDeclarationOut())
       ("./" + dist).replaceAll("\\.ts", "") -> Seq(declarations.replaceAll("\\.ts", ".d.ts"))
     }.toMap
   }
@@ -155,33 +155,32 @@ trait PublishModule extends TypeScriptModule {
     Seq(PathRef(moduleDir / "resources")) ++ modDepsResources
   }
 
+//  /**
+//   * Generate sources relative to publishDir / "typescript"
+//   */
+//  //todo actually copy these sources
+//  private def pubAllSources: T[IndexedSeq[String]] = Task {
+//    val project = Task.workspace.toString
+//    val fileExt: Path => Boolean = _.ext == "ts"
+//    (for {
+//      source <-
+//        os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr =>
+//          os.walk(pr.path)
+//        ).filter(fileExt)
+//    } yield source.toString
+//      .replaceFirst(moduleDir.toString, "typescript")
+//      .replaceFirst(
+//        project,
+//        "typescript"
+//      )) ++ (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
+//      "typescript/generatedSources/" + pr.path.last
+//    )
+//
+//  }
+
   /**
    * Generate sources relative to publishDir / "typescript"
    */
-  //todo actually copy these sources
-  private def pubAllSources: T[IndexedSeq[String]] = Task {
-    val project = Task.workspace.toString
-    val fileExt: Path => Boolean = _.ext == "ts"
-    (for {
-      source <-
-        os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr =>
-          os.walk(pr.path)
-        ).filter(fileExt)
-    } yield source.toString
-      .replaceFirst(moduleDir.toString, "typescript")
-      .replaceFirst(
-        project,
-        "typescript"
-      )) ++ (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
-      "typescript/generatedSources/" + pr.path.last
-    )
-
-  }
-
-  /**
-   * Generate sources relative to publishDir / "typescript"
-   */
-  //todo actually copy these sources
   private def pubAllSources3: Task[IndexedSeq[os.Path]] = Task.Anon {
     val project = Task.workspace.toString
     val sourcesAndDepsSources = for {
@@ -200,19 +199,19 @@ trait PublishModule extends TypeScriptModule {
     (sourcesAndDepsSources ++ generatedSources)
   }
 
-  private def pubAllSources2: T[IndexedSeq[String]] = Task {
-    val project = Task.workspace.toString
-    val fileExt: Path => Boolean = _.ext == "ts"
-    (for {
-      source <-
-        os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr =>
-          os.walk(pr.path)
-        ).filter(fileExt)
-    } yield source.toString) ++ (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
-      pr.path.toString
-    )
-
-  }
+//  private def pubAllSources2: T[IndexedSeq[String]] = Task {
+//    val project = Task.workspace.toString
+//    val fileExt: Path => Boolean = _.ext == "ts"
+//    (for {
+//      source <-
+//        os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr =>
+//          os.walk(pr.path)
+//        ).filter(fileExt)
+//    } yield source.toString) ++ (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
+//      pr.path.toString
+//    )
+//
+//  }
 
   override def generatedSourcesPathsBuilder: T[Seq[(String, String)]] = Task {
     Seq("@generated/*" -> "typescript/generatedSources")
@@ -351,7 +350,7 @@ trait PublishModule extends TypeScriptModule {
           s"""    copyStaticFiles({
              |      src: ${ujson.Str(rp.toString)},
              |      dest: ${ujson.Str(
-              publishDir().path.toString + "/" + pubBundledOut() + "/" + rp.last
+              (Task.dest /  pubBundledOut()  / rp.last).toString
             )},
              |      dereference: true,
              |      preserveTimestamps: true,
@@ -415,17 +414,17 @@ trait PublishModule extends TypeScriptModule {
   // EsBuild - END
 
   // publishDir; is used to process and compile files for publishing
-  def publishDir: T[PathRef] = Task { PathRef(Task.dest) }
+//  def publishDir: T[PathRef] = Task { PathRef(Task.dest) }
 
   def publish(): Command[Unit] = Task.Command {
     // build package.json
-    os.move(pubbPackageJson().path / "package.json", publishDir().path / "package.json")
+    os.move(pubbPackageJson().path / "package.json", Task.dest / "package.json")
 
     // bundle code for publishing
     bundle()
 
     // run npm publish
-    os.call(("npm", "publish"), stdout = os.Inherit, cwd = publishDir().path)
+    os.call(("npm", "publish"), stdout = os.Inherit, cwd = Task.dest)
     ()
   }
 
