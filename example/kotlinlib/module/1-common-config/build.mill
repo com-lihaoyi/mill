@@ -4,7 +4,7 @@ import mill._, kotlinlib._
 
 object `package` extends RootModule with KotlinModule {
   // You can have arbitrary numbers of third-party dependencies
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 
@@ -14,14 +14,12 @@ object `package` extends RootModule with KotlinModule {
   def mainClass = Some("foo.Foo2Kt")
 
   // Add (or replace) source folders for the module to use
-  def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
-  }
+  def customSources = Task.Sources("custom-src")
+  def sources = Task { super.sources() ++ customSources() }
 
   // Add (or replace) resource folders for the module to use
-  def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
-  }
+  def customResources = Task.Sources("custom-resources")
+  def resources = Task { super.resources() ++ customResources() }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {

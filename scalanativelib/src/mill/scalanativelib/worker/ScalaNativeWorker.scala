@@ -2,15 +2,15 @@ package mill.scalanativelib.worker
 
 import mill.api.Ctx
 import mill.define.{Discover, Worker}
-import mill.{Agg, PathRef, Task}
+import mill.{PathRef, Task}
 import mill.scalanativelib.worker.{api => workerApi}
 import mill.util.CachedFactory
 
 import java.net.URLClassLoader
 
 private[scalanativelib] class ScalaNativeWorker(jobs: Int)
-    extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaNativeWorkerApi)] {
-  override def setup(key: Agg[PathRef]) = {
+    extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, workerApi.ScalaNativeWorkerApi)] {
+  override def setup(key: Seq[PathRef]) = {
     val cl = mill.util.Jvm.createClassLoader(
       key.map(_.path).toVector,
       getClass.getClassLoader
@@ -24,7 +24,7 @@ private[scalanativelib] class ScalaNativeWorker(jobs: Int)
   }
 
   override def teardown(
-      key: Agg[PathRef],
+      key: Seq[PathRef],
       value: (URLClassLoader, workerApi.ScalaNativeWorkerApi)
   ): Unit = {
     value._1.close()

@@ -29,8 +29,8 @@ object ScalaDoc3Tests extends TestSuite {
     object multidocs extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
       def docResources = Task.Sources(
-        millSourcePath / "docs1",
-        millSourcePath / "docs2"
+        moduleDir / "docs1",
+        moduleDir / "docs2"
       )
     }
     lazy val millDiscover = Discover[this.type]

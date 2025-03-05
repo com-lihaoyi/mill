@@ -60,7 +60,7 @@ Audit done.
 // // incorrect paths will cause a command failure
 // ./mill checkstyle a/b
 //
-// // you can specify paths relative to millSourcePath
+// // you can specify paths relative to moduleDir
 // ./mill checkstyle src/a/b
 //
 // // process a single file
@@ -149,7 +149,7 @@ Audit done.
 //     override def checkstyleXsltReports = Task {
 //       Set(
 //         CheckstyleXsltReport(
-//           PathRef(millSourcePath / "checkstyle-no-frames.xml"),
+//           PathRef(moduleDir / "checkstyle-no-frames.xml"),
 //           PathRef(Task.dest / "checkstyle-no-frames.html"),
 //         )
 //       )

@@ -1,13 +1,13 @@
 package mill.exec
 
-import mill.api.{BuildInfo, MillException, Strict}
-import mill.define.NamedTask
+import mill.api.{BuildInfo, MillException}
+import mill.define.{NamedTask, Segment}
 
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
 
 private[mill] object CodeSigUtils {
-  def precomputeMethodNamesPerClass(transitiveNamed: Strict.Agg[NamedTask[?]])
+  def precomputeMethodNamesPerClass(transitiveNamed: Seq[NamedTask[?]])
       : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
     def resolveTransitiveParents(c: Class[?]): Iterator[Class[?]] = {
       Iterator(c) ++
@@ -47,9 +47,9 @@ private[mill] object CodeSigUtils {
     (classToTransitiveClasses, allTransitiveClassMethods)
   }
 
-  def constructorHashSignatures(methodCodeHashSignatures: Map[String, Int])
+  def constructorHashSignatures(codeSignatures: Map[String, Int])
       : Map[String, Seq[(String, Int)]] =
-    methodCodeHashSignatures
+    codeSignatures
       .toSeq
       .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
       .groupMap(_._1)(t => (t._2, t._3))
@@ -58,11 +58,18 @@ private[mill] object CodeSigUtils {
       namedTask: => NamedTask[?],
       classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
-      methodCodeHashSignatures: => Map[String, Int],
+      codeSignatures: => Map[String, Int],
       constructorHashSignatures: => Map[String, Seq[(String, Int)]]
   ): Iterable[Int] = {
 
-    val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
+    val superTaskName = namedTask.ctx.segments.value.collectFirst {
+      case Segment.Label(s"$v.super") => v
+    }
+
+    val encodedTaskName = superTaskName match {
+      case Some(v) => v
+      case None => encode(namedTask.ctx.segments.last.pathSegments.head)
+    }
 
     val methodOpt = for {
       parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
@@ -77,9 +84,8 @@ private[mill] object CodeSigUtils {
       ))
       .getDeclaringClass.getName
 
-    val name = namedTask.ctx.segment.pathSegments.last
-    val expectedName = methodClass + "#" + name + "()mill.define.Target"
-    val expectedName2 = methodClass + "#" + name + "()mill.define.Command"
+    val expectedName = methodClass + "#" + encodedTaskName + "()mill.define.Target"
+    val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.define.Command"
 
     // We not only need to look up the code hash of the Target method being called,
     // but also the code hash of the constructors required to instantiate the Module
@@ -91,7 +97,7 @@ private[mill] object CodeSigUtils {
       case ctx =>
         ctx.enclosingModule match {
           case null => None
-          case m: mill.define.Module => Some((m, m.millOuterCtx))
+          case m: mill.define.Module => Some((m, m.moduleCtx))
           case unknown =>
             throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
         }
@@ -108,8 +114,8 @@ private[mill] object CodeSigUtils {
         }
       )
 
-    methodCodeHashSignatures.get(expectedName) ++
-      methodCodeHashSignatures.get(expectedName2) ++
+    codeSignatures.get(expectedName) ++
+      codeSignatures.get(expectedName2) ++
       constructorHashes
   }
 }

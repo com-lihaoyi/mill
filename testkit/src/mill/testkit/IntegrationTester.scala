@@ -1,10 +1,9 @@
 package mill.testkit
 
-import mill.main.client.EnvVars.MILL_TEST_SUITE
+import mill.constants.OutFiles
 import mill.define.Segments
 import mill.exec.Cached
-import mill.main.client.OutFiles
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 import ujson.Value
 
 /**
@@ -26,16 +25,13 @@ class IntegrationTester(
     val workspaceSourcePath: os.Path,
     val millExecutable: os.Path,
     override val debugLog: Boolean = false,
-    val baseWorkspacePath: os.Path = os.pwd
+    val baseWorkspacePath: os.Path = os.pwd,
+    val propagateJavaHome: Boolean = true
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }
 
 object IntegrationTester {
-  def millTestSuiteEnv: Map[String, String] = Map(
-    MILL_TEST_SUITE -> this.getClass().toString(),
-    "JAVA_HOME" -> sys.props("java.home")
-  )
 
   /**
    * A very simplified version of `os.CommandResult` meant for easily
@@ -88,7 +84,7 @@ object IntegrationTester {
         timeout = timeout,
         check = check,
         propagateEnv = propagateEnv,
-        timeoutGracePeriod = timeoutGracePeriod
+        shutdownGracePeriod = timeoutGracePeriod
       )
 
       IntegrationTester.EvalResult(
@@ -111,7 +107,7 @@ object IntegrationTester {
        */
       def text: String = {
         val Seq((Seq(selector), _)) =
-          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
+          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).get
 
         val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)
         os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")
@@ -143,22 +139,7 @@ object IntegrationTester {
      * Tears down the workspace at the end of a test run, shutting down any
      * in-process Mill background servers
      */
-    override def close(): Unit = {
-      if (clientServerMode) {
-        // try to stop the server
-        os.call(
-          cmd = (millExecutable, "--no-build-lock", "shutdown"),
-          cwd = workspacePath,
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit,
-          env = millTestSuiteEnv,
-          check = false
-        )
-      }
-
-      removeServerIdFile()
-    }
+    override def close(): Unit = removeProcessIdFile()
   }
 
 }

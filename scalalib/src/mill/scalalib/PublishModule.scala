@@ -3,7 +3,9 @@ package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task}
-import mill.api.{JarManifest, PathRef, Result}
+import mill.api.{PathRef, Result}
+import mill.javalib.android.AndroidLibModule
+import mill.util.JarManifest
 import mill.main.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.SonatypeHelpers.{
@@ -27,14 +29,13 @@ trait PublishModule extends JavaModule { outer =>
       )
   }
 
-  // TODO Add this when we can break bin-compat. See also below in publishXmlBomDeps.
-  // override def bomModuleDeps: Seq[BomModule with PublishModule] = super.bomModuleDeps.map {
-  //   case m: BomModule with PublishModule => m
-  //   case other =>
-  //     throw new Exception(
-  //       s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
-  //     )
-  // }
+  override def bomModuleDeps: Seq[BomModule with PublishModule] = super.bomModuleDeps.map {
+    case m: BomModule with PublishModule => m
+    case other =>
+      throw new Exception(
+        s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
+      )
+  }
 
   /**
    * The packaging type. See [[PackagingType]] for specially handled values.
@@ -83,7 +84,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def publishIvyDeps
-      : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Agg[Dependency]] =
+      : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Seq[Dependency]] =
     Task.Anon {
       (rootDepVersions: Map[coursier.core.Module, String], bomDepMgmt: DependencyManagement.Map) =>
         val bindDependency0 = bindDependency()
@@ -135,7 +136,7 @@ trait PublishModule extends JavaModule { outer =>
           runModulePomDeps.map(Dependency(_, Scope.Runtime))
     }
 
-  def publishXmlDeps: Task[Agg[Dependency]] = Task.Anon {
+  def publishXmlDeps: Task[Seq[Dependency]] = Task.Anon {
     val ivyPomDeps =
       allIvyDeps()
         .map(resolvePublishDependency.apply().apply(_))
@@ -169,30 +170,20 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * BOM dependency to specify in the POM
    */
-  def publishXmlBomDeps: Task[Agg[Dependency]] = Task.Anon {
+  def publishXmlBomDeps: Task[Seq[Dependency]] = Task.Anon {
     val fromBomMods = Task.traverse(
-      bomModuleDepsChecked
-        // TODO When we can break bin-compat, add the bomModuleDeps override above,
-        // and change the .map to this .collect:
-        // .collect { case p: PublishModule => p }
-        .map {
-          case p: PublishModule => p
-          case other =>
-            throw new Exception(
-              s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
-            )
-        }
+      bomModuleDepsChecked.collect { case p: PublishModule => p }
     )(_.artifactMetadata)().map { a =>
       Dependency(a, Scope.Import)
     }
-    Agg(fromBomMods*) ++
+    Seq(fromBomMods*) ++
       bomIvyDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
   /**
    * Dependency management to specify in the POM
    */
-  def publishXmlDepMgmt: Task[Agg[Dependency]] = Task.Anon {
+  def publishXmlDepMgmt: Task[Seq[Dependency]] = Task.Anon {
     depManagement().map(resolvePublishDependency.apply().apply(_))
   }
 
@@ -230,7 +221,7 @@ trait PublishModule extends JavaModule { outer =>
    * @return
    */
   private def ivy(hasJar: Boolean): Task[String] = Task.Anon {
-    val (results, bomDepMgmt) = defaultResolver().processDeps(
+    val (results, bomDepMgmt) = millResolver().processDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(Configuration.runtime),
@@ -300,7 +291,7 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  private def defaultPublishInfos: T[Seq[PublishInfo]] = {
+  def defaultPublishInfos: T[Seq[PublishInfo]] = {
     def defaultPublishJars: Task[Seq[(PathRef, PathRef => PublishInfo)]] = {
       pomPackagingType match {
         case PackagingType.Pom => Task.Anon(Seq())
@@ -407,14 +398,27 @@ trait PublishModule extends JavaModule { outer =>
 
   def publishArtifacts: T[PublishModule.PublishData] = {
     val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
-    val defaultPayloadTask: Task[Seq[(PathRef, String)]] = pomPackagingType match {
-      case PackagingType.Pom => Task.Anon {
+    val defaultPayloadTask: Task[Seq[(PathRef, String)]] = (pomPackagingType, this) match {
+      case (PackagingType.Pom, _) => Task.Anon {
           val baseName = baseNameTask()
           Seq(
             pom() -> s"$baseName.pom"
           )
         }
-      case PackagingType.Jar | _ => Task.Anon {
+      case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
+          val baseName = baseNameTask()
+          Seq(
+            androidLib.androidAar() -> s"$baseName.aar",
+            sourceJar() -> s"$baseName-sources.jar",
+            docJar() -> s"$baseName-javadoc.jar",
+            pom() -> s"$baseName.pom"
+          )
+        }
+      case (PackagingType.Aar, nonAndroidModule) =>
+        throw new IllegalArgumentException(
+          s"Packaging type Aar can only be used with AndroidLibModule"
+        )
+      case (PackagingType.Jar, _) | _ => Task.Anon {
           val baseName = baseNameTask()
           Seq(
             jar() -> s"$baseName.jar",
@@ -632,4 +636,5 @@ object PublishModule extends ExternalModule with TaskModule {
     }
 
   lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+
 }

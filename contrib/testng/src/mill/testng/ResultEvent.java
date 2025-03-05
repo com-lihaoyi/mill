@@ -27,7 +27,7 @@ public class ResultEvent {
       }
 
       public Selector selector() {
-        return new SuiteSelector();
+        return new TestSelector(testNGResult.getName());
       }
 
       public Status status() {

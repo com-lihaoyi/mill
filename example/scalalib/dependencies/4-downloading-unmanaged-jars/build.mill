@@ -16,7 +16,7 @@ object `package` extends RootModule with ScalaModule {
         "https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar"
       )
     )
-    Agg(PathRef(Task.dest / "fastjavaio.jar"))
+    Seq(PathRef(Task.dest / "fastjavaio.jar"))
   }
 }
 

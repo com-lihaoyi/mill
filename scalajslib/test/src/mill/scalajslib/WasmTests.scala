@@ -1,6 +1,6 @@
 package mill.scalajslib
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -78,7 +78,7 @@ object WasmTests extends TestSuite {
 
     test("should throw for older scalaJS versions") {
       val evaluator = UnitTester(OldWasmModule, millSourcePath)
-      val Left(Result.Exception(ex, _)) = evaluator(OldWasmModule.fastLinkJS): @unchecked
+      val Left(ExecResult.Exception(ex, _)) = evaluator(OldWasmModule.fastLinkJS): @unchecked
       val error = ex.getMessage
       assert(error == "Emitting wasm is not supported with Scala.js < 1.17")
     }

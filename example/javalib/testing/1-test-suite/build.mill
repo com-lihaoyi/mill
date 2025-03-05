@@ -5,7 +5,7 @@ import mill._, javalib._
 object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = "com.novocode.junit.JUnitFramework"
-    def ivyDeps = Agg(
+    def ivyDeps = Seq(
       ivy"com.novocode:junit-interface:0.11",
       ivy"org.mockito:mockito-core:4.6.1"
     )
@@ -22,7 +22,7 @@ object foo extends JavaModule {
 
 object bar extends JavaModule {
   object test extends JavaTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"org.mockito:mockito-core:4.6.1"
     )
   }

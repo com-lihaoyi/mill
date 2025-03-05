@@ -2,10 +2,9 @@ package mill.pythonlib
 
 import mill._
 import mill.api.Result
-import mill.util.Util
-import mill.util.Jvm
+import mill.util.{Jvm}
 import mill.api.Ctx
-import mill.main.client.ServerFiles
+import mill.constants.ServerFiles
 
 trait PythonModule extends PipModule with TaskModule { outer =>
 
@@ -177,29 +176,31 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(Task.dest)
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
-    Jvm.spawnProcess(
-      mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
-      classPath = mill.scalalib.ZincWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
-      jvmArgs = Nil,
-      env = runnerEnvTask(),
-      mainArgs = Seq(
-        procUuidPath.toString,
-        procLockfile.toString,
-        procUuid,
-        "500",
-        "<subprocess>",
-        pythonExe().path.toString,
-        mainScript().path.toString
-      ) ++ args.value,
-      cwd = Task.workspace,
-      stdin = "",
-      // Hack to forward the background subprocess output to the Mill server process
-      // stdout/stderr files, so the output will get properly slurped up by the Mill server
-      // and shown to any connected Mill client even if the current command has completed
-      stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
-      stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
-      javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path)
-    )
+    os.checker.withValue(os.Checker.Nop) {
+      Jvm.spawnProcess(
+        mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
+        classPath = mill.scalalib.ZincWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+        jvmArgs = Nil,
+        env = runnerEnvTask(),
+        mainArgs = Seq(
+          procUuidPath.toString,
+          procLockfile.toString,
+          procUuid,
+          "500",
+          "<subprocess>",
+          pythonExe().path.toString,
+          mainScript().path.toString
+        ) ++ args.value,
+        cwd = Task.workspace,
+        stdin = "",
+        // Hack to forward the background subprocess output to the Mill server process
+        // stdout/stderr files, so the output will get properly slurped up by the Mill server
+        // and shown to any connected Mill client even if the current command has completed
+        stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+        stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
+        javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path)
+      )
+    }
     ()
   }
 
@@ -210,7 +211,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * for you to test and operate your code interactively.
    */
   def console(): Command[Unit] = Task.Command(exclusive = true) {
-    if (!Util.isInteractive()) {
+    if (!mill.constants.Util.hasConsole()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
       runner().run()

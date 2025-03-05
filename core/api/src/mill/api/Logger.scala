@@ -1,6 +1,6 @@
 package mill.api
 
-import java.io.{InputStream, PrintStream}
+import java.io.PrintStream
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -24,66 +24,73 @@ import java.io.{InputStream, PrintStream}
  * but when `show` is used both are forwarded to stderr and stdout is only
  * used to display the final `show` output for easy piping.
  */
-trait Logger extends AutoCloseable {
+trait Logger {
   def infoColor: fansi.Attrs = fansi.Attrs.Empty
   def errorColor: fansi.Attrs = fansi.Attrs.Empty
   def colored: Boolean
 
-  private[mill] def unprefixedSystemStreams: SystemStreams = systemStreams
-  def systemStreams: SystemStreams
-
-  def errorStream: PrintStream = systemStreams.err
-  def outputStream: PrintStream = systemStreams.out
-
-  /**
-   * [[rawOutputStream]] is intended to be a version of [[outputStream]]
-   * without decoration: colors, prefixes, timestamps, etc. It is intended
-   * for the use of tasks like `show` which output data in a way that is
-   * easily readable by downstream programs.
-   */
-  def rawOutputStream: PrintStream = systemStreams.out
-  def inStream: InputStream = systemStreams.in
+  private[mill] def unprefixedStreams: SystemStreams = streams
+  def streams: SystemStreams
 
   def info(s: String): Unit
   def debug(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
 
-  private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ticker(s)
-  private[mill] def reportKey(key: Seq[String]): Unit = ()
-  private[mill] def setPromptLine(
-      key: Seq[String],
-      verboseKeySuffix: String,
-      message: String
-  ): Unit =
-    ticker(s"${key.mkString("-")} $message")
-  private[mill] def setPromptLine(): Unit = ()
-  private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
-  private[mill] def clearPromptStatuses(): Unit = ()
-  private[mill] def removePromptLine(key: Seq[String]): Unit = ()
-  private[mill] def removePromptLine(): Unit = ()
-  private[mill] def withPromptPaused[T](t: => T): T = t
-  private[mill] def withPromptUnpaused[T](t: => T): T = t
+  private[mill] def prompt: Logger.Prompt
 
-  /**
-   * @since Mill 0.10.5
-   */
-  // We only default-implement it to keep binary compatibility in 0.10.x
-  def debugEnabled: Boolean = false
-
-  def close(): Unit = ()
-
-  def enableTicker: Boolean = false
-
-  private[mill] def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger =
+  private[mill] def subLogger(path: os.Path, keySuffix: String, message: String): Logger =
     this
 
-  private[mill] def withPrompt[T](t: => T): T = {
-    setPromptLine()
+  private[mill] def withPromptLine[T](t: => T): T = {
+    prompt.setPromptLine(logPrefixKey, keySuffix, message)
     try t
-    finally removePromptLine()
+    finally prompt.removePromptLine(logPrefixKey)
   }
 
   def withOutStream(outStream: PrintStream): Logger = this
+  private[mill] def message: String = ""
+  private[mill] def keySuffix: String = ""
   private[mill] def logPrefixKey: Seq[String] = Nil
+  final def debugEnabled = prompt.debugEnabled
+}
+
+object Logger {
+
+  /**
+   * APIs that allow a logger to interact with the global prompt: setting and unsetting
+   * lines, enabling or disabling the prompt, etc. Normally passed through from logger
+   * to logger unchanged without any customization.
+   */
+  trait Prompt {
+    private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
+    private[mill] def reportKey(key: Seq[String]): Unit
+    private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit
+    private[mill] def setPromptHeaderPrefix(s: String): Unit
+    private[mill] def clearPromptStatuses(): Unit
+    private[mill] def removePromptLine(key: Seq[String]): Unit
+    private[mill] def withPromptPaused[T](t: => T): T
+    private[mill] def withPromptUnpaused[T](t: => T): T
+
+    def debugEnabled: Boolean
+
+    def enableTicker: Boolean
+  }
+  object Prompt {
+    class NoOp extends Prompt {
+      private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ()
+      private[mill] def reportKey(key: Seq[String]): Unit = ()
+      private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
+        ()
+      private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
+      private[mill] def clearPromptStatuses(): Unit = ()
+      private[mill] def removePromptLine(key: Seq[String]): Unit = ()
+      private[mill] def withPromptPaused[T](t: => T): T = t
+      private[mill] def withPromptUnpaused[T](t: => T): T = t
+
+      def debugEnabled: Boolean = false
+
+      def enableTicker: Boolean = false
+    }
+  }
 }

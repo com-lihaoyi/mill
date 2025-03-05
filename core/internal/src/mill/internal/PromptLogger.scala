@@ -1,8 +1,8 @@
 package mill.internal
 
-import mill.api.{SystemStreams, ColorLogger}
+import mill.api.{SystemStreams, Logger}
+import mill.constants.ProxyStream
 import mill.internal.PromptLoggerUtil.*
-import mill.main.client.ProxyStream
 import pprint.Util.literalize
 
 import java.io.*
@@ -13,21 +13,21 @@ import java.io.*
  *
  * Most operations that update mutable state *or* writes to parent [[systemStreams0]] is
  * synchronized under the [[PromptLogger]] object. Notably, child writes to
- * [[systemStreams]] are *not* synchronized, and instead goes into a [[PipeStreams]]
+ * [[streams]] are *not* synchronized, and instead goes into a [[PipeStreams]]
  * buffer to be read out and handled asynchronously.
  */
 private[mill] class PromptLogger(
     override val colored: Boolean,
-    override val enableTicker: Boolean,
+    enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
     systemStreams0: SystemStreams,
-    override val debugEnabled: Boolean,
+    debugEnabled: Boolean,
     titleText: String,
     terminfoPath: os.Path,
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true
-) extends ColorLogger with AutoCloseable {
+) extends Logger with AutoCloseable {
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger.*
 
@@ -94,52 +94,65 @@ private[mill] class PromptLogger(
 
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
-  def info(s: String): Unit = systemStreams.err.println(s)
+  def info(s: String): Unit = streams.err.println(s)
 
-  def error(s: String): Unit = systemStreams.err.println(s)
+  def error(s: String): Unit = streams.err.println(s)
 
-  override def setPromptHeaderPrefix(s: String): Unit = synchronized {
-    promptLineState.setHeaderPrefix(s)
+  object prompt extends Logger.Prompt {
+    override def setPromptHeaderPrefix(s: String): Unit = synchronized {
+      promptLineState.setHeaderPrefix(s)
+    }
+
+    override def clearPromptStatuses(): Unit = synchronized {
+      promptLineState.clearStatuses()
+    }
+
+    override def removePromptLine(key: Seq[String]): Unit = synchronized {
+      promptLineState.setCurrent(key, None)
+    }
+
+    override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized {
+      promptLineState.setDetail(key, s)
+    }
+
+    override def reportKey(key: Seq[String]): Unit = {
+      val res = synchronized {
+        if (reportedIdentifiers(key)) None
+        else {
+          reportedIdentifiers.add(key)
+          seenIdentifiers.get(key)
+        }
+      }
+      for ((keySuffix, message) <- res) {
+        if (prompt.enableTicker) {
+          streams.err.println(infoColor(s"[${key.mkString("-")}$keySuffix] $message"))
+          streamManager.awaitPumperEmpty()
+        }
+      }
+    }
+
+    override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
+      synchronized {
+        promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}] $message"))
+        seenIdentifiers(key) = (keySuffix, message)
+      }
+
+    private[mill] override def withPromptPaused[T](t: => T): T =
+      runningState.withPromptPaused0(true, t)
+
+    private[mill] override def withPromptUnpaused[T](t: => T): T =
+      runningState.withPromptPaused0(false, t)
+
+    def enableTicker = PromptLogger.this.enableTicker
+    def debugEnabled = PromptLogger.this.debugEnabled
   }
-
-  override def clearPromptStatuses(): Unit = synchronized { promptLineState.clearStatuses() }
-  override def removePromptLine(key: Seq[String]): Unit = synchronized {
-    promptLineState.setCurrent(key, None)
-  }
-
   def ticker(s: String): Unit = ()
-  override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized {
-    promptLineState.setDetail(key, s)
-  }
-
-  override def reportKey(key: Seq[String]): Unit = {
-    val res = synchronized {
-      if (reportedIdentifiers(key)) None
-      else {
-        reportedIdentifiers.add(key)
-        seenIdentifiers.get(key)
-      }
-    }
-    for ((verboseKeySuffix, message) <- res) {
-      if (enableTicker) {
-        systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
-        streamManager.awaitPumperEmpty()
-      }
-    }
-  }
 
   def streamsAwaitPumperEmpty(): Unit = streamManager.awaitPumperEmpty()
   private val seenIdentifiers = collection.mutable.Map.empty[Seq[String], (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
-  override def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
-    synchronized {
-      promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}] $message"))
-      seenIdentifiers(key) = (verboseKeySuffix, message)
-    }
 
-  def debug(s: String): Unit = if (debugEnabled) systemStreams.err.println(s)
-
-  override def rawOutputStream: PrintStream = systemStreams0.out
+  def debug(s: String): Unit = if (debugEnabled) streams.err.println(s)
 
   override def close(): Unit = {
     synchronized {
@@ -159,12 +172,7 @@ private[mill] class PromptLogger(
     promptUpdaterThread.join()
   }
 
-  def systemStreams = streamManager.proxySystemStreams
-
-  private[mill] override def withPromptPaused[T](t: => T): T =
-    runningState.withPromptPaused0(true, t)
-  private[mill] override def withPromptUnpaused[T](t: => T): T =
-    runningState.withPromptPaused0(false, t)
+  def streams = streamManager.proxySystemStreams
 }
 
 private[mill] object PromptLogger {

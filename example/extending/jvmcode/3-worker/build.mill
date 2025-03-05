@@ -15,8 +15,8 @@ import mill.util.Jvm
 
 object coursierModule extends CoursierModule
 
-def groovyClasspath: Task[Agg[PathRef]] = Task {
-  coursierModule.defaultResolver().resolveDeps(Agg(ivy"org.codehaus.groovy:groovy:3.0.9"))
+def groovyClasspath: Task[Seq[PathRef]] = Task {
+  coursierModule.defaultResolver().resolveDeps(Seq(ivy"org.codehaus.groovy:groovy:3.0.9"))
 }
 
 def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {

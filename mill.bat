@@ -77,8 +77,12 @@ REM Check if MILL_VERSION contains MILL_NATIVE_SUFFIX
 echo %MILL_VERSION% | findstr /C:"%MILL_NATIVE_SUFFIX%" >nul
 if %errorlevel% equ 0 (
     set "MILL_VERSION=%MILL_VERSION:-native=%"
-    set "ARTIFACT_SUFFIX=-native-windows-amd64"
-    set "MILL_EXT=.exe"
+    REM -native images compiled with graal do not support windows-arm
+    REM https://github.com/oracle/graal/issues/9215
+    IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+        set "ARTIFACT_SUFFIX=-native-windows-amd64"
+        set "MILL_EXT=.exe"
+    )
 )
 
 set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
@@ -136,7 +140,7 @@ if not exist "%MILL%" (
 
     for /F "delims=- tokens=1" %%A in ("!MILL_VERSION!") do set MILL_VERSION_BASE=%%A
     for /F "delims=- tokens=2" %%A in ("!MILL_VERSION!") do set MILL_VERSION_MILESTONE=%%A
-	set VERSION_MILESTONE_START=!MILL_VERSION_MILESTONE:~0,1!
+    set VERSION_MILESTONE_START=!MILL_VERSION_MILESTONE:~0,1!
     if [!VERSION_MILESTONE_START!]==[M] (
         set MILL_VERSION_TAG="!MILL_VERSION_BASE!-!MILL_VERSION_MILESTONE!"
     ) else (
@@ -158,7 +162,7 @@ if not exist "%MILL%" (
     rem curl is bundled with recent Windows 10
     rem but I don't think we can expect all the users to have it in 2019
     where /Q curl
-    if %ERRORLEVEL% EQU 0 (
+    if !ERRORLEVEL! EQU 0 (
         curl -f -L "!DOWNLOAD_URL!" -o "!DOWNLOAD_FILE!"
     ) else (
         rem bitsadmin seems to be available on Windows 7

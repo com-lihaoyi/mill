@@ -2,4 +2,5 @@ package build.core3
 
 import mill.javalib.JavaModule
 
+/** Subfolder Module Scaladoc */
 object `package` extends RootModule with JavaModule

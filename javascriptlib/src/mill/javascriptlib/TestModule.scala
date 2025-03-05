@@ -5,7 +5,7 @@ import mill.*
 trait TestModule extends TaskModule {
   import TestModule.TestResult
 
-  def test(args: String*): Command[TestResult] =
+  def testForked(args: String*): Command[TestResult] =
     Task.Command {
       testTask(Task.Anon { args })()
     }
@@ -18,7 +18,7 @@ trait TestModule extends TaskModule {
 
   protected def testTask(args: Task[Seq[String]]): Task[TestResult]
 
-  override def defaultCommandName() = "test"
+  override def defaultCommandName() = "testForked"
 }
 
 object TestModule {
@@ -41,10 +41,12 @@ object TestModule {
     // <rootDir> = '/out'; allow coverage resolve distributed source files.
     // & define coverage files relative to <rootDir>.
     private[TestModule] def coverageSetupSymlinks: Task[Unit] = Task.Anon {
-      os.symlink(Task.workspace / "out/node_modules", npmInstall().path / "node_modules")
-      os.symlink(Task.workspace / "out/tsconfig.json", compile()._1.path / "tsconfig.json")
-      if (os.exists(compile()._1.path / ".nycrc"))
-        os.symlink(Task.workspace / "out/.nycrc", compile()._1.path / ".nycrc")
+      os.checker.withValue(os.Checker.Nop) {
+        os.symlink(Task.workspace / "out/node_modules", npmInstall().path / "node_modules")
+        os.symlink(Task.workspace / "out/tsconfig.json", compile()._1.path / "tsconfig.json")
+        if (os.exists(compile()._1.path / ".nycrc"))
+          os.symlink(Task.workspace / "out/.nycrc", compile()._1.path / ".nycrc")
+      }
     }
 
     def istanbulNycrcConfigBuilder: Task[PathRef] = Task.Anon {
@@ -65,11 +67,12 @@ object TestModule {
             |}
             |""".stripMargin
 
-      if (!os.exists(customConfig)) os.write.over(config, content)
-      else os.copy.over(customConfig, config)
+      os.checker.withValue(os.Checker.Nop) {
+        if (!os.exists(customConfig)) os.write.over(config, content)
+        else os.copy.over(customConfig, config)
 
-      os.write.over(config, content)
-
+        os.write.over(config, content)
+      }
       PathRef(config)
     }
 
@@ -95,7 +98,7 @@ object TestModule {
         val stuUpstreams = for {
           ((_, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
         } yield (
-          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/test/utils/*",
+          mod.moduleDir.subRelativeTo(Task.workspace).toString + "/test/utils/*",
           (ts.path / "test/src/utils").toString
         )
 
@@ -161,8 +164,10 @@ object TestModule {
             |}
             |""".stripMargin
 
-      if (!os.exists(customConfig)) os.write.over(config, content)
-      else os.copy.over(customConfig, config)
+      os.checker.withValue(os.Checker.Nop) {
+        if (!os.exists(customConfig)) os.write.over(config, content)
+        else os.copy.over(customConfig, config)
+      }
 
       PathRef(config)
     }
@@ -230,31 +235,35 @@ object TestModule {
             |}
             |""".stripMargin
 
-      if (!os.exists(customConfig)) os.write.over(config, content)
-      else os.copy.over(customConfig, config)
+      os.checker.withValue(os.Checker.Nop) {
+        if (!os.exists(customConfig)) os.write.over(config, content)
+        else os.copy.over(customConfig, config)
+      }
 
       PathRef(config)
     }
 
     def runCoverage: T[TestResult] = Task {
       coverageSetupSymlinks()
-      os.call(
-        (
-          "node",
-          "node_modules/jest/bin/jest.js",
-          "--config",
-          coverageConf().path,
-          "--coverage",
-          getPathToTest()
-        ),
-        stdout = os.Inherit,
-        env = forkEnv(),
-        cwd = Task.workspace / "out"
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        os.call(
+          (
+            "node",
+            "node_modules/jest/bin/jest.js",
+            "--config",
+            coverageConf().path,
+            "--coverage",
+            getPathToTest()
+          ),
+          stdout = os.Inherit,
+          env = forkEnv(),
+          cwd = Task.workspace / "out"
+        )
 
-      // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
+        // remove symlink
+        os.remove(Task.workspace / "out/node_modules")
+        os.remove(Task.workspace / "out/tsconfig.json")
+      }
       ()
     }
 
@@ -287,8 +296,9 @@ object TestModule {
            |require('mocha/bin/_mocha');
            |""".stripMargin
 
-      os.write.over(runner, content)
-
+      os.checker.withValue(os.Checker.Nop) {
+        os.write.over(runner, content)
+      }
       PathRef(runner)
     }
 
@@ -327,9 +337,11 @@ object TestModule {
       )
 
       // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
-      os.remove(Task.workspace / "out/.nycrc")
+      os.checker.withValue(os.Checker.Nop) {
+        os.remove(Task.workspace / "out/node_modules")
+        os.remove(Task.workspace / "out/tsconfig.json")
+        os.remove(Task.workspace / "out/.nycrc")
+      }
       ()
     }
   }
@@ -379,9 +391,10 @@ object TestModule {
            |});
            |""".stripMargin
 
-      if (!os.exists(customConfig)) os.write.over(config, content)
-      else os.copy.over(customConfig, config)
-
+      os.checker.withValue(os.Checker.Nop) {
+        if (!os.exists(customConfig)) os.write.over(config, content)
+        else os.copy.over(customConfig, config)
+      }
       PathRef(config)
     }
 
@@ -438,9 +451,10 @@ object TestModule {
             |});
             |""".stripMargin
 
-      if (!os.exists(customConfig)) os.write.over(config, content)
-      else os.copy.over(customConfig, config)
-
+      os.checker.withValue(os.Checker.Nop) {
+        if (!os.exists(customConfig)) os.write.over(config, content)
+        else os.copy.over(customConfig, config)
+      }
       PathRef(config)
     }
 
@@ -461,8 +475,10 @@ object TestModule {
         cwd = Task.workspace / "out"
       )
       // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
+      os.checker.withValue(os.Checker.Nop) {
+        os.remove(Task.workspace / "out/node_modules")
+        os.remove(Task.workspace / "out/tsconfig.json")
+      }
       ()
     }
 
@@ -492,18 +508,20 @@ object TestModule {
 
     def conf: Task[PathRef] = Task.Anon {
       val path = compile()._1.path / "jasmine.json"
-      os.write.over(
-        path,
-        ujson.write(
-          ujson.Obj(
-            "spec_dir" -> ujson.Str("typescript/src"),
-            "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
-            "stopSpecOnExpectationFailure" -> ujson.Bool(false),
-            "random" -> ujson.Bool(false)
+      os.checker.withValue(os.Checker.Nop) {
+        os.write.over(
+          path,
+          ujson.write(
+            ujson.Obj(
+              "spec_dir" -> ujson.Str("typescript/src"),
+              "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
+              "stopSpecOnExpectationFailure" -> ujson.Bool(false),
+              "random" -> ujson.Bool(false)
+            )
           )
         )
-      )
 
+      }
       PathRef(path)
     }
 
@@ -512,18 +530,20 @@ object TestModule {
       val jasmine = "node_modules/jasmine/bin/jasmine.js"
       val tsnode = "node_modules/ts-node/register/transpile-only.js"
       val tsconfigPath = "node_modules/tsconfig-paths/register.js"
-      os.call(
-        (
-          "node",
-          jasmine,
-          "--config=jasmine.json",
-          s"--require=$tsnode",
-          s"--require=$tsconfigPath"
-        ),
-        stdout = os.Inherit,
-        env = forkEnv(),
-        cwd = compile()._1.path
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        os.call(
+          (
+            "node",
+            jasmine,
+            "--config=jasmine.json",
+            s"--require=$tsnode",
+            s"--require=$tsconfigPath"
+          ),
+          stdout = os.Inherit,
+          env = forkEnv(),
+          cwd = compile()._1.path
+        )
+      }
       ()
     }
 
@@ -535,46 +555,50 @@ object TestModule {
     def coverageConf: T[PathRef] = Task {
       val path = compile()._1.path / "jasmine.json"
       val specDir = compile()._2.path.subRelativeTo(Task.workspace / "out") / "src"
-      os.write.over(
-        path,
-        ujson.write(
-          ujson.Obj(
-            "spec_dir" -> ujson.Str(specDir.toString),
-            "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
-            "stopSpecOnExpectationFailure" -> ujson.Bool(false),
-            "random" -> ujson.Bool(false)
+      os.checker.withValue(os.Checker.Nop) {
+        os.write.over(
+          path,
+          ujson.write(
+            ujson.Obj(
+              "spec_dir" -> ujson.Str(specDir.toString),
+              "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
+              "stopSpecOnExpectationFailure" -> ujson.Bool(false),
+              "random" -> ujson.Bool(false)
+            )
           )
         )
-      )
+      }
       PathRef(path)
     }
 
     def runCoverage: T[TestResult] = Task {
-      istanbulNycrcConfigBuilder()
-      coverageSetupSymlinks()
-      val jasmine = "node_modules/jasmine/bin/jasmine.js"
-      val tsnode = "node_modules/ts-node/register/transpile-only.js"
-      val tsconfigPath = "node_modules/tsconfig-paths/register.js"
-      val relConfigPath = coverageConf().path.subRelativeTo(Task.workspace / "out")
-      os.call(
-        (
-          "./node_modules/.bin/nyc",
-          "node",
-          jasmine,
-          s"--config=$relConfigPath",
-          s"--require=$tsnode",
-          s"--require=$tsconfigPath"
-        ),
-        stdout = os.Inherit,
-        env = forkEnv(),
-        cwd = Task.workspace / "out"
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        istanbulNycrcConfigBuilder()
+        coverageSetupSymlinks()
+        val jasmine = "node_modules/jasmine/bin/jasmine.js"
+        val tsnode = "node_modules/ts-node/register/transpile-only.js"
+        val tsconfigPath = "node_modules/tsconfig-paths/register.js"
+        val relConfigPath = coverageConf().path.subRelativeTo(Task.workspace / "out")
+        os.call(
+          (
+            "./node_modules/.bin/nyc",
+            "node",
+            jasmine,
+            s"--config=$relConfigPath",
+            s"--require=$tsnode",
+            s"--require=$tsconfigPath"
+          ),
+          stdout = os.Inherit,
+          env = forkEnv(),
+          cwd = Task.workspace / "out"
+        )
 
-      // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
-      os.remove(Task.workspace / "out/.nycrc")
-      ()
+        // remove symlink
+        os.remove(Task.workspace / "out/node_modules")
+        os.remove(Task.workspace / "out/tsconfig.json")
+        os.remove(Task.workspace / "out/.nycrc")
+        ()
+      }
     }
 
   }
@@ -673,10 +697,12 @@ object TestModule {
       Task.Source(Task.workspace / "playwright.config.ts")
 
     private def copyConfig: Task[TestResult] = Task.Anon {
-      os.copy.over(
-        testConfigSource().path,
-        compile()._1.path / "playwright.config.ts"
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        os.copy.over(
+          testConfigSource().path,
+          compile()._1.path / "playwright.config.ts"
+        )
+      }
     }
 
     private def runTest: T[TestResult] = Task {

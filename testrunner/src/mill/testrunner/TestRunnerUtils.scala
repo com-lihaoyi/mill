@@ -1,6 +1,6 @@
 package mill.testrunner
 
-import mill.api.{Ctx, Loose, TestReporter, internal}
+import mill.api.{Ctx, TestReporter, internal}
 import os.Path
 import sbt.testing._
 
@@ -35,8 +35,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
   def discoverTests(
       cl: ClassLoader,
       framework: Framework,
-      classpath: Loose.Agg[os.Path]
-  ): Loose.Agg[(Class[?], Fingerprint)] = {
+      classpath: Seq[os.Path]
+  ): Seq[(Class[?], Fingerprint)] = {
 
     val fingerprints = framework.fingerprints()
 
@@ -45,7 +45,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       // the tests to run Instead just don't run anything
       .filter(os.exists(_))
       .flatMap { base =>
-        Loose.Agg.from[(Class[?], Fingerprint)](
+        Seq.from[(Class[?], Fingerprint)](
           listClassFiles(base).map { path =>
             val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
             val publicConstructorCount =
@@ -110,7 +110,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       args: Seq[String],
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
-      testClassfilePath: Loose.Agg[Path]
+      testClassfilePath: Seq[Path]
   ): (Runner, Array[Task]) = {
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
@@ -130,7 +130,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
   }
 
   def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
-      ctx: Ctx.Log & Ctx.Home
+      ctx: Ctx.Log
   ): (String, Iterator[TestResult]) = {
     val events = new ConcurrentLinkedQueue[Event]()
     val doneMessage = {
@@ -146,12 +146,12 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
             }
           },
           Array(new Logger {
-            def debug(msg: String) = ctx.log.outputStream.println(msg)
-            def error(msg: String) = ctx.log.outputStream.println(msg)
+            def debug(msg: String) = ctx.log.streams.out.println(msg)
+            def error(msg: String) = ctx.log.streams.out.println(msg)
             def ansiCodesSupported() = true
-            def warn(msg: String) = ctx.log.outputStream.println(msg)
-            def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
-            def info(msg: String) = ctx.log.outputStream.println(msg)
+            def warn(msg: String) = ctx.log.streams.out.println(msg)
+            def trace(t: Throwable) = t.printStackTrace(ctx.log.streams.out)
+            def info(msg: String) = ctx.log.streams.out.println(msg)
           })
         )
 
@@ -162,9 +162,9 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
     if (doneMessage != null && doneMessage.nonEmpty) {
       if (doneMessage.endsWith("\n"))
-        ctx.log.outputStream.print(doneMessage)
+        ctx.log.streams.out.print(doneMessage)
       else
-        ctx.log.outputStream.println(doneMessage)
+        ctx.log.streams.out.println(doneMessage)
     }
 
     val results = for (e <- events.iterator().asScala) yield {
@@ -192,12 +192,12 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
   def runTestFramework0(
       frameworkInstances: ClassLoader => Framework,
-      testClassfilePath: Loose.Agg[Path],
+      testClassfilePath: Seq[Path],
       args: Seq[String],
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
       testReporter: TestReporter
-  )(implicit ctx: Ctx.Log & Ctx.Home): (String, Seq[TestResult]) = {
+  )(implicit ctx: Ctx.Log): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 
@@ -210,7 +210,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
   def getTestTasks0(
       frameworkInstances: ClassLoader => Framework,
-      testClassfilePath: Loose.Agg[Path],
+      testClassfilePath: Seq[Path],
       args: Seq[String],
       classFilter: Class[?] => Boolean,
       cl: ClassLoader

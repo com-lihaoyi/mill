@@ -7,29 +7,28 @@ import utest._
 object BasePathTests extends TestSuite {
 
   object overriddenBasePath extends TestBaseModule {
-    override def millSourcePath = os.pwd / "overriddenBasePathRootValue"
+    override def moduleDir = os.pwd / "overriddenBasePathRootValue"
     object nested extends Module {
-      override def millSourcePath = super.millSourcePath / "overriddenBasePathNested"
+      override def moduleDir = super.moduleDir / "overriddenBasePathNested"
       object nested extends Module {
-        override def millSourcePath = super.millSourcePath / "overriddenBasePathDoubleNested"
+        override def moduleDir = super.moduleDir / "overriddenBasePathDoubleNested"
       }
     }
 
     lazy val millDiscover = Discover[this.type]
   }
 
-  val testGraphs = new TestGraphs
   val tests = Tests {
     def checkMillSourcePath[T <: Module](m: T)(f: T => Module, segments: String*): Unit = {
       val sub = f(m)
-      val remaining = sub.millSourcePath.relativeTo(m.millSourcePath).segments
+      val remaining = sub.moduleDir.relativeTo(m.moduleDir).segments
       assert(remaining == segments)
     }
     test("singleton") {
-      checkMillSourcePath(testGraphs.singleton)(identity)
+      checkMillSourcePath(TestGraphs.singleton)(identity)
     }
     test("backtickIdentifiers") {
-      checkMillSourcePath(testGraphs.bactickIdentifiers)(
+      checkMillSourcePath(TestGraphs.bactickIdentifiers)(
         _.`nested-module`,
         "nested-module"
       )
@@ -68,9 +67,9 @@ object BasePathTests extends TestSuite {
     }
     test("overridden") {
       assert(
-        overriddenBasePath.millSourcePath == os.pwd / "overriddenBasePathRootValue",
-        overriddenBasePath.nested.millSourcePath == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested",
-        overriddenBasePath.nested.nested.millSourcePath == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested/nested/overriddenBasePathDoubleNested"
+        overriddenBasePath.moduleDir == os.pwd / "overriddenBasePathRootValue",
+        overriddenBasePath.nested.moduleDir == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested",
+        overriddenBasePath.nested.nested.moduleDir == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested/nested/overriddenBasePathDoubleNested"
       )
     }
 

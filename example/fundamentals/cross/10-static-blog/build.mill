@@ -21,12 +21,12 @@ def mdNameToTitle(s: String) =
   s.split('-').drop(1).mkString(" ").stripSuffix(".md")
 
 val posts = interp.watchValue {
-  os.list(millSourcePath / "post").map(_.last).sorted
+  os.list(moduleDir / "post").map(_.last).sorted
 }
 
 object post extends Cross[PostModule](posts)
 trait PostModule extends Cross.Module[String] {
-  def source = Task.Source(millSourcePath / crossValue)
+  def source = Task.Source(moduleDir / crossValue)
   def render = Task {
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
@@ -119,7 +119,8 @@ def dist = Task {
 // All caching, incremental re-computation, and parallelism is done using the
 // Mill task graph. For this simple example, the graph is as follows
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   node [shape=box width=0 height=0]
 //   "1 - Foo.md" -> "post[1]\nrender"
@@ -132,7 +133,7 @@ def dist = Task {
 //   "index" -> "dist"
 //
 // }
-// ```
+// ....
 //
 // This example use case is taken from the following blog post, which contains
 // some extensions and fun exercises to further familiarize yourself with Mill

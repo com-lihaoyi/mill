@@ -15,7 +15,7 @@ class TwirlWorker {
 
   private var twirlInstanceCache = Option.empty[(Int, (TwirlWorkerApi, Class[?]))]
 
-  private def twirlCompilerAndClass(twirlClasspath: Agg[PathRef]): (TwirlWorkerApi, Class[?]) = {
+  private def twirlCompilerAndClass(twirlClasspath: Seq[PathRef]): (TwirlWorkerApi, Class[?]) = {
     val classloaderSig = twirlClasspath.hashCode
     twirlInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
@@ -121,13 +121,13 @@ class TwirlWorker {
     }
   }
 
-  private def twirl(twirlClasspath: Agg[PathRef]): TwirlWorkerApi =
+  private def twirl(twirlClasspath: Seq[PathRef]): TwirlWorkerApi =
     twirlCompilerAndClass(twirlClasspath)._1
 
-  private def twirlClass(twirlClasspath: Agg[PathRef]): Class[?] =
+  private def twirlClass(twirlClasspath: Seq[PathRef]): Class[?] =
     twirlCompilerAndClass(twirlClasspath)._2
 
-  def defaultImports(twirlClasspath: Agg[PathRef]): Seq[String] =
+  def defaultImports(twirlClasspath: Seq[PathRef]): Seq[String] =
     twirlClass(twirlClasspath).getField("DEFAULT_IMPORTS")
       .get(null).asInstanceOf[java.util.Set[String]].asScala.toSeq
 
@@ -140,7 +140,7 @@ class TwirlWorker {
     )
 
   def compile(
-      twirlClasspath: Agg[PathRef],
+      twirlClasspath: Seq[PathRef],
       sourceDirectories: Seq[os.Path],
       dest: os.Path,
       imports: Seq[String],

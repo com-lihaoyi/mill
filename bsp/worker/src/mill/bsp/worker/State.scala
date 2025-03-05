@@ -3,8 +3,7 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import mill.scalalib.bsp.BspModule
 import mill.scalalib.internal.JavaModuleUtils
-import mill.define.Module
-import mill.eval.Evaluator
+import mill.define.{Evaluator, Module}
 
 private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: String => Unit) {
   lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModule, Evaluator))] = {
@@ -16,7 +15,7 @@ private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: St
         modules.collect {
           case m: BspModule =>
             val uri = Utils.sanitizeUri(
-              rootModule.millSourcePath / m.millModuleSegments.parts
+              rootModule.moduleDir / m.moduleSegments.parts
             )
 
             (new BuildTargetIdentifier(uri), (m, eval))

@@ -1,10 +1,9 @@
 // tag::header[]
 
-# How To Manage Flaky Tests in your CI Workflows
-
-
+= How To Manage Flaky Tests in your CI Workflows
 :author: Li Haoyi
 :revdate: 1 January 2025
+
 _{author}, {revdate}_
 
 
@@ -23,13 +22,13 @@ is all about.
 
 // end::header[]
 
-## What Causes Flaky Tests?
+== What Causes Flaky Tests?
 
 A flaky test is a test that sometimes passes and sometimes fails, non-deterministically.
 
 Flaky tests can be caused by a whole range of issues:
 
-### Race conditions within tests
+=== Race conditions within tests
 
 Often this manifest as `sleep`/`time.sleep`/`Thread.sleep` calls in your test
 expecting some concurrent code path to complete, which may or may not wait
@@ -37,14 +36,14 @@ long enough depending on how much CPU contention there is slowing down your test
 But any multi-threaded or multi-process code has the potential for race conditions or
 concurrency bugs, and these days most systems make use of multiple cores.
 
-### Race conditions between tests
+=== Race conditions between tests
 
 Two tests both reading and writing
 to the same global variables or files (e.g. in `~/.cache`) causing non-deterministic
 outcomes. These can be tricky, because every test may pass when run alone, and the
 test that fails when run in parallel may not be the one that is misbehaving!
 
-### Test ordering dependencies
+=== Test ordering dependencies
 
 Even in the absence of parallelism, tests may interfere
 with one another by mutating global variables or files on disk. Depending on the exact
@@ -56,7 +55,7 @@ xref:3-selective-testing.adoc[Selective Testing] may cause this kind of issue,
 or dynamic load-balancing of tests between parallel workers to minimize total wall
 clock time (which https://github.com/dropbox/changes[Dropbox's Changes CI system] did)
 
-### Resource contention
+=== Resource contention
 
 Depending on exactly how your tests are run, they may rely
 on process memory, disk space, file descriptors, ports, or other limited
@@ -64,7 +63,7 @@ physical resources. These are subject to noisy neighbour problems, e.g. an
 overloaded linux system with too many processes using memory will start OOM-Killing
 processes at random.
 
-### External flakiness
+=== External flakiness
 
 Integration or end-to-end tests often
 interact with third-party services, and it is not uncommon for the service
@@ -77,9 +76,9 @@ code being tested, which may manifest as real flakiness when customers are tryin
 to use your software. Both scenarios manifest the same to developers - a test passing
 and failing non-deterministically when run locally or in CI.
 
-## Why Are Flaky Tests Problematic?
+== Why Are Flaky Tests Problematic?
 
-### Development Slowdown
+=== Development Slowdown
 
 Flaky tests generally make it impossible to know the state of your test suite,
 which in turns makes it impossible to know whether the software you are working on
@@ -124,7 +123,7 @@ the retries alone may be enough to increase your testing latencies and infrastru
 170%, on top of the manual work needed to triage and investigate the test failures!
 
 
-### Inter-team Conflict
+=== Inter-team Conflict
 
 One fundamental issue with flaky tests is organizational:
 
@@ -148,7 +147,7 @@ and as long as flaky tests are allowed to exist, this will result in
 endless debates or arguments between teams about who needs to fix their flaky tests,
 wasting enormous amounts of time and energy.
 
-## Mitigating Flaky Tests
+== Mitigating Flaky Tests
 
 In general it is impossible to completely avoid flaky tests, but you can take steps to
 mitigate them:
@@ -196,24 +195,25 @@ tests that tend to be stable and fewer integration/end-to-end/UI tests that tend
 But you should also accept that despite your best efforts, flaky tests _will_ appear, and so you
 will need some plan or strategy to deal with them when they do.
 
-## How Not To Manage Flaky Tests
+== How Not To Manage Flaky Tests
 
 Flaky test management can be surprisingly counter-intuitive. Below we discuss some common
 mistakes people make when they first start dealing with flaky tests.
 
-### Do Not Block Code Changes on Flaky Tests
+[#_do_not_block_code_changes_on_flaky_tests]
+=== Do Not Block Code Changes on Flaky Tests
 
 The most important thing to take note of is that you should not block
 code changes on flaky tests: merging pull-requests, deploying services, etc.
 
 That is despite blocking code changes being the default and most obvious behavior: e.g.
 if you wait for a fully-green test run before merging a code change, and a flaky test
-makes the test run red, then it blocks the merge. However, this is not a good workflow
+makes the test run red, then it blocks the merge.However, this is not a good workflow
 for a variety of reasons:
 
 1. A flaky failure when testing a code change does not indicate the code change caused
-   that breakage. So blocking the merge on the flaky failure just prevents progress
-   without actually helping increase system quality.
+that breakage.So blocking the merge on the flaky failure just prevents progress
+without actually helping increase system quality.
 
 2. The flaky test may be in a part of the system totally unrelated to the code change
    being tested, which means the individual working on the code change has zero context
@@ -228,7 +228,7 @@ for a variety of reasons:
 Although _"all tests should pass before merging"_ is a common requirement, it is ultimately
 unhelpful when you are dealing with flaky tests.
 
-### Preventing Flaky Tests From Being Introduced Is Hard
+=== Preventing Flaky Tests From Being Introduced Is Hard
 
 It can be tempting to try and "https://en.wikipedia.org/wiki/Shift-left_testing[Shift Left]"
 your flaky test management, to try and catch them before they end up landing in your codebase.
@@ -266,14 +266,14 @@ In general, it is very hard to block flaky tests "up front". You have to accept 
 over time some parts of your test suite will become flaky, and then make plans on how
 to respond and manage those flaky tests when they inevitably appear.
 
-## Managing Flaky Tests
+== Managing Flaky Tests
 
 Once flaky tests start appearing in your test suite, you need to do something about them.
 This generally involves (a) noticing that flaky tests exist, (b) identifying which tests
 are flaky, and (c) mitigating those specific problematic test to prevent them from
 causing pain to your developers.
 
-### Monitor Flaky Tests Asynchronously
+=== Monitor Flaky Tests Asynchronously
 
 As mentioned earlier, <<Preventing Flaky Tests From Being Introduced Is Hard>>.
 Thus, you must assume that flaky tests _will_ make their way into your test suite,
@@ -304,7 +304,7 @@ by looking for failures at times when you wouldn't expect failures to occur.
 
 Once you have noticed a test is flaky, there are two main options: retries and quarantine
 
-### Retrying Flaky Tests
+=== Retrying Flaky Tests
 
 Retries are always controversial. A common criticism is that they can mask real flakiness
 in the system that can cause real problems to customers, which is true. However,
@@ -326,7 +326,7 @@ So even one or two retries is enough to make most flaky tests stable enough to n
 
 Retrying flaky tests has two weaknesses:
 
-#### Retries can be expensive for real failures
+==== Retries can be expensive for real failures
 
 If you retry a test twice, that
 means that an actually-failed test would run three times before giving up.
@@ -337,7 +337,7 @@ and latency penalty
 To mitigate this, you should generally avoid "blanket" retries, and only add
 retries around specific tests that you have detected as being flaky
 
-#### Retries may not work if not coarse grained enough
+==== Retries may not work if not coarse grained enough
 
 For example, if `test_a` fails
 due to interference with `test_b` running concurrently, retrying `test_a`
@@ -348,7 +348,7 @@ it is run on a completely new machine with a clean filesystem.
 This failure mode can be mitigated by retrying the failed tests only after the
 entire test suite has completed, possibly on a clean test machine.
 
-### Auto-Quarantining Flaky Tests
+=== Auto-Quarantining Flaky Tests
 
 Quarantine involves detecting that a test is flaky, and simply not counting it when deciding
 whether or not to accept a code change for merge or deployment.
@@ -363,7 +363,7 @@ flaky tests, and to avoid the inevitable back-and-forth between the people
 quarantining the tests and the people whose tests are getting quarantined.
 
 
-#### Why Quarantine?
+==== Why Quarantine?
 
 The obvious value of quarantining flaky tests is that it unblocks merging of code changes
 by ignoring flaky tests that are probably not relevant. Quarantime basically automates what
@@ -383,7 +383,7 @@ to suffer anyway. It simply saves a lot of manual effort in having your develope
 deciding which test failures to ignore based on what tests they remember to be flaky, since
 now the quarantine system remembers the flaky tests and ignores them on your behalf.
 
-#### Why Quarantine? Part 2
+==== Why Quarantine? Part 2
 
 The non-obvious value of quarantining flaky tests is that it aligns incentives across a
 development team or organization:
@@ -407,7 +407,7 @@ test has been truly fixed or not, but it turns out it doesn't matter. If you try
 take it out of quarantine, and it turns out to be still flaky, the auto-quarantine system will
 just put it back into quarantine for you to take another look at it.
 
-## Implementing Flaky Test Management Systems
+== Implementing Flaky Test Management Systems
 
 So far, all the discussion in this article has been at a high level. Exactly how to implement
 it is left as an exercise to the reader, but is usually a mix of:

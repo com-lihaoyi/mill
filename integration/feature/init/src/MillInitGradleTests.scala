@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.main.client.Util
+import mill.constants.Util
 import utest._
 
 object MillInitGradleJCommanderTests extends BuildGenTestSuite {

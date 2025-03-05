@@ -3,6 +3,8 @@ package mill.resolve
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse._
 
+import mill.api.Result
+
 private object ExpandBraces {
   private sealed trait Fragment
   private object Fragment {
@@ -29,11 +31,11 @@ private object ExpandBraces {
       }
   }
 
-  def expandBraces(selectorString: String): Either[String, Seq[String]] = {
+  def expandBraces(selectorString: String): mill.api.Result[Seq[String]] = {
     parse(selectorString, parser(using _)) match {
-      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
+      case f: Parsed.Failure => Result.Failure(s"Parsing exception ${f.msg}")
       case Parsed.Success(fragmentLists, _) =>
-        Right(expandRec(fragmentLists.toList).map(_.mkString))
+        Result.Success(expandRec(fragmentLists.toList).map(_.mkString))
     }
   }
 

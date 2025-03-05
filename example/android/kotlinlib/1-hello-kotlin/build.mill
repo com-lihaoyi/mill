@@ -38,7 +38,7 @@ object app extends AndroidAppKotlinModule {
   override def androidEmulatorPort: String = "5556"
 
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"junit:junit:4.13.2"
     )
   }
@@ -51,7 +51,7 @@ object app extends AndroidAppKotlinModule {
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"androidx.test.ext:junit:1.2.1".exclude((
         "org.jetbrains.kotlinx",
         "kotlinx-coroutines-core-jvm"
@@ -108,8 +108,11 @@ object app extends AndroidAppKotlinModule {
 > ./mill show app.test
 ...Compiling 2 Kotlin sources...
 
-> cat out/app/test/test.dest/out.json
-["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"},{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}]]
+> cat out/app/test/testForked.dest/out.json
+["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"}...]]
+
+> cat out/app/test/testForked.dest/out.json
+["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}...]]
 
 */
 

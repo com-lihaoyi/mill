@@ -4,7 +4,7 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.12.17"
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"com.lihaoyi::upickle:3.1.0",
     ivy"com.lihaoyi::pprint:0.8.1",
     ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}"
@@ -15,7 +15,7 @@ object `package` extends RootModule with ScalaModule {
 // You can define the `ivyDeps` field to add ivy dependencies to your module,
 // named after the https://ant.apache.org/ivy/history/latest-milestone/settings/resolvers.html[Ivy Dependency Resolver]
 // and JVM package repository format. The `Agg` factory function constructs an
-// `Agg[Dep]` collection, which is a collection of `Dep`s without duplicates,
+// `Seq[Dep]` collection, which is a collection of `Dep`s without duplicates,
 // a type common in Mill builds.
 //
 // * Single `:` syntax (e.g. `"ivy"org.testng:testng:6.11"`) defines Java

@@ -1,5 +1,6 @@
 package build
-import mill._, mill.eval.Evaluator
+import mill._
+import mill.define.Evaluator
 
 def foo = Task{1}
 def cleanClientWrong(ev: Evaluator) = Task.Command {

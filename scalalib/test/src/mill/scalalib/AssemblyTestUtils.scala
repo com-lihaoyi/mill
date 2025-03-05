@@ -13,7 +13,7 @@ trait AssemblyTestUtils {
 
       def sources = Task.Sources(Task.workspace / "src")
 
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"com.lihaoyi::scalatags:0.8.2",
         ivy"com.lihaoyi::mainargs:0.4.0",
         ivy"org.apache.avro:avro:1.11.1"
@@ -21,7 +21,7 @@ trait AssemblyTestUtils {
     }
 
     trait ExtraDeps extends ScalaModule {
-      def ivyDeps = super.ivyDeps() ++ Agg(
+      def ivyDeps = super.ivyDeps() ++ Seq(
         ivy"dev.zio::zio:2.0.15",
         ivy"org.typelevel::cats-core:2.9.0",
         ivy"org.apache.spark::spark-core:3.4.0",

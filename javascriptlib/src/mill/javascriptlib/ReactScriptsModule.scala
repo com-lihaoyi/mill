@@ -27,7 +27,7 @@ trait ReactScriptsModule extends TypeScriptModule {
     )
   }
 
-  override def sources: Target[PathRef] = Task.Source(millSourcePath)
+  override def sources: Target[PathRef] = Task.Source(moduleDir)
 
   def packageJestOptions: Target[ujson.Obj] = Task {
     ujson.Obj(

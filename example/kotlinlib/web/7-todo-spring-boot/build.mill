@@ -5,7 +5,7 @@ object `package` extends RootModule with KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def mainClass = Some("com.example.TodomvcApplicationKt")
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
     ivy"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
     ivy"org.springframework.boot:spring-boot-starter-validation:2.5.4",
@@ -19,19 +19,19 @@ object `package` extends RootModule with KotlinModule {
 
   trait HelloTests extends KotlinTests with TestModule.Junit5 {
     def mainClass = Some("com.example.TodomvcApplicationKt")
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 
   object test extends HelloTests {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"com.h2database:h2:2.3.230"
     )
   }
 
   object integration extends HelloTests {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"org.testcontainers:testcontainers:1.18.0",
       ivy"org.testcontainers:junit-jupiter:1.18.0",
       ivy"org.testcontainers:postgresql:1.18.0",

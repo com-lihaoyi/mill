@@ -2,7 +2,7 @@ package mill
 package contrib.scalapblib
 
 import coursier.core.Version
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 
@@ -16,9 +16,9 @@ trait ScalaPBModule extends ScalaModule {
 
   override def ivyDeps = Task {
     super.ivyDeps() ++
-      Agg(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
-      (if (!scalaPBGrpc()) Agg()
-       else Agg(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
+      Seq(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
+      (if (!scalaPBGrpc()) Seq()
+       else Seq(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
   }
 
   def scalaPBVersion: T[String]
@@ -54,7 +54,7 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBProtocPath: T[Option[String]] = Task { None }
 
   def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
-    millSourcePath / "protobuf"
+    moduleDir / "protobuf"
   }
 
   def scalaPBOptions: T[String] = Task {
@@ -75,7 +75,7 @@ trait ScalaPBModule extends ScalaModule {
     ).mkString(",")
   }
 
-  def scalaPBClasspath: T[Loose.Agg[PathRef]] = Task {
+  def scalaPBClasspath: T[Seq[PathRef]] = Task {
     resolveDependencies(
       repositoriesTask(),
       Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
@@ -83,7 +83,7 @@ trait ScalaPBModule extends ScalaModule {
     )
   }
 
-  def scalaPBIncludePath: T[Seq[PathRef]] = Task.Sources { Seq.empty[PathRef] }
+  def scalaPBIncludePath: T[Seq[PathRef]] = Task.Sources()
 
   private def scalaDepsPBIncludePath: Task[Seq[PathRef]] = scalaPBSearchDeps match {
     case true => Task.Anon { Seq(scalaPBUnpackProto()) }
@@ -91,7 +91,7 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    millResolver().resolveDeps(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),
         coursierDependency

@@ -1,0 +1,3 @@
+package build
+
+trait ModuleB extends Module0

@@ -65,11 +65,11 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
    * This setting is useful when your build contains dependencies that have only
    * been published with Scala 2.x, if you have:
    * {{{
-   * def ivyDeps = Agg(ivy"a::b:c")
+   * def ivyDeps = Seq(ivy"a::b:c")
    * }}}
    * you can replace it by:
    * {{{
-   * def ivyDeps = Agg(ivy"a::b:c".withDottyCompat(scalaVersion()))
+   * def ivyDeps = Seq(ivy"a::b:c".withDottyCompat(scalaVersion()))
    * }}}
    * This will have no effect when compiling with Scala 2.x, but when compiling
    * with Dotty this will change the cross-version to a Scala 2.x one. This

@@ -3,8 +3,7 @@ package mill.contrib.bloop
 import _root_.bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
 import mill.api.Result
-import mill.define.{Discover, ExternalModule, Module => MillModule}
-import mill.eval.Evaluator
+import mill.define.{Discover, Evaluator, ExternalModule, Module as MillModule}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
@@ -82,7 +81,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    * that traverse only their transitive dependencies.
    */
   private implicit class BloopOps(jm: JavaModule) extends MillModule {
-    override def millOuterCtx = jm.millOuterCtx
+    override def moduleCtx = jm.moduleCtx
 
     object bloop extends MillModule {
       def config = Task { outer.bloopConfig(jm)() }
@@ -125,7 +124,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    * that does not get invalidated upon source file change. Mainly called
    * from module#sources in bloopInstall
    */
-  def moduleSourceMap = Task.Input {
+  def moduleSourceMap = Task {
     val sources = Task.traverse(computeModules) { m =>
       m.allSources.map { paths =>
         name(m) -> paths.map(_.path)
@@ -191,7 +190,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
     val classpath = Task.Anon {
       val transitiveCompileClasspath = Task.traverse(module.transitiveModuleCompileModuleDeps)(m =>
-        Task.Anon { m.localCompileClasspath().map(_.path) ++ Agg(classes(m)) }
+        Task.Anon { m.localCompileClasspath().map(_.path) ++ Seq(classes(m)) }
       )().flatten
 
       module.resolvedIvyDeps().map(_.path) ++
@@ -245,8 +244,8 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
               },
               gc = m.nativeGC(),
               targetTriple = m.nativeTarget(),
-              clang = m.nativeClang().toNIO,
-              clangpp = m.nativeClangPP().toNIO,
+              clang = m.nativeClang().path.toNIO,
+              clangpp = m.nativeClangPP().path.toNIO,
               options = Config.NativeOptions(
                 m.nativeLinkingOptions().toList,
                 m.nativeCompileOptions().toList
@@ -317,67 +316,49 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       import coursier._
       import coursier.util._
 
-      def source(r: Resolution) = Resolution(
-        r.dependencies
-          .map(d =>
-            d.withAttributes(
-              d.attributes.withClassifier(coursier.Classifier("sources"))
-            )
-          )
-          .toSeq
-      )
-
       import scala.concurrent.ExecutionContext.Implicits.global
-      val unresolved = Resolution(deps)
-      val fetch =
-        ResolutionProcess.fetch(repos, coursier.cache.Cache.default.fetch)
-      val gatherTask =
-        for {
-          resolved <- unresolved.process.run(fetch)
-          resolvedSources <- source(resolved).process.run(fetch)
-          all = resolved.dependencyArtifacts() ++ resolvedSources.dependencyArtifacts()
-          gathered <- Gather[Task].gather(all.distinct.map {
-            case (dep, pub, art) =>
-              coursier.cache.Cache.default.file(art).run.map(dep -> _)
-          })
-        } yield gathered
-          .collect {
-            case (dep, Right(file)) if os.Path(file).ext == "jar" =>
-              (
-                dep.module.organization,
-                dep.module.name,
-                dep.version,
-                Option(dep.attributes.classifier).filter(_.nonEmpty),
-                file
-              )
-          }
-          .groupBy {
-            case (org, mod, version, _, _) => (org, mod, version)
-          }
-          .view
-          .mapValues {
-            _.map {
-              case (_, mod, _, classifier, file) =>
-                BloopConfig.Artifact(mod.value, classifier.map(_.value), None, file.toPath)
-            }.toList
-          }
-          .map {
-            case ((org, mod, version), artifacts) =>
-              BloopConfig.Module(
-                organization = org.value,
-                name = mod.value,
-                version = version,
-                configurations = None,
-                artifacts = artifacts
-              )
-          }
-          .toList
-
-      gatherTask.unsafeRun()
+      Fetch(coursier.cache.FileCache())
+        .addRepositories(repos*)
+        .addDependencies(deps*)
+        .withMainArtifacts()
+        .addClassifiers(coursier.Classifier("sources"))
+        .runResult()
+        .fullDetailedArtifacts
+        .collect {
+          case (dep, _, _, Some(file)) if os.Path(file).ext == "jar" =>
+            (
+              dep.module.organization,
+              dep.module.name,
+              dep.version,
+              Option(dep.attributes.classifier).filter(_.nonEmpty),
+              file
+            )
+        }
+        .groupBy {
+          case (org, mod, version, _, _) => (org, mod, version)
+        }
+        .view
+        .mapValues {
+          _.map {
+            case (_, mod, _, classifier, file) =>
+              BloopConfig.Artifact(mod.value, classifier.map(_.value), None, file.toPath)
+          }.toList
+        }
+        .map {
+          case ((org, mod, version), artifacts) =>
+            BloopConfig.Module(
+              organization = org.value,
+              name = mod.value,
+              version = version,
+              configurations = None,
+              artifacts = artifacts
+            )
+        }
+        .toList
     }
 
     val bloopResolution: Task[BloopConfig.Resolution] = Task.Anon {
-      val repos = module.repositoriesTask()
+      val repos = module.allRepositories()
       // same as input of resolvedIvyDeps
       val coursierDeps = Seq(
         module.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
@@ -403,7 +384,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
       BloopConfig.Project(
         name = name(module),
-        directory = module.millSourcePath.toNIO,
+        directory = module.moduleDir.toNIO,
         workspaceDir = Some(wd.toNIO),
         sources = mSources,
         sourcesGlobs = None,

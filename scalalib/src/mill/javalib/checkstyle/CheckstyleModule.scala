@@ -1,7 +1,7 @@
 package mill.javalib.checkstyle
 
 import mill._
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.scalalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
 
@@ -39,7 +39,7 @@ trait CheckstyleModule extends JavaModule {
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
       classPath = checkstyleClasspath().map(_.path).toVector,
       mainArgs = args,
-      cwd = millSourcePath, // allow passing relative paths for sources like src/a/b
+      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
       stdin = os.Inherit,
       stdout = os.Inherit,
       check = false
@@ -78,9 +78,9 @@ trait CheckstyleModule extends JavaModule {
   /**
    * Classpath for running Checkstyle.
    */
-  def checkstyleClasspath: T[Loose.Agg[PathRef]] = Task {
+  def checkstyleClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
+      Seq(ivy"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
     )
   }
 

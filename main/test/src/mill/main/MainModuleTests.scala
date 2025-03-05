@@ -1,9 +1,9 @@
 package mill.main
 
-import mill.api.{PathRef, Result, Val}
-import mill.{Agg, Task, given}
+import mill.api.{ExecResult, PathRef, Result, Val}
+import mill.constants.OutFiles
+import mill.{Task, given}
 import mill.define.{Cross, Discover, Module, TaskModule}
-import mill.main.client.OutFiles
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, test}
@@ -142,20 +142,25 @@ object MainModuleTests extends TestSuite {
 
     test("inspect") {
       test("single") - UnitTester(mainModule, null).scoped { eval =>
-        val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
-        val Result.Success(Val(value: String)) = res.rawValues.head: @unchecked
+        val res =
+          eval.evaluator.execute(Seq(mainModule.inspect(eval.evaluator, "hello"))).executionResults
+        val ExecResult.Success(Val(value: String)) = res.rawValues.head: @unchecked
         assert(
-          res.failing.keyCount == 0,
+          res.failing.size == 0,
           value.startsWith("hello("),
           value.contains("MainModuleTests.scala:")
         )
       }
       test("multi") - UnitTester(mainModule, null).scoped { eval =>
         val res =
-          eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello", "hello2")))
-        val Result.Success(Val(value: String)) = res.rawValues.head: @unchecked
+          eval.evaluator.execute(Seq(mainModule.inspect(
+            eval.evaluator,
+            "hello",
+            "hello2"
+          ))).executionResults
+        val ExecResult.Success(Val(value: String)) = res.rawValues.head: @unchecked
         assert(
-          res.failing.keyCount == 0,
+          res.failing.size == 0,
           value.startsWith("hello("),
           value.contains("MainModuleTests.scala:"),
           value.contains("\n\nhello2(")
@@ -211,11 +216,14 @@ object MainModuleTests extends TestSuite {
       )
       test("single") {
         val results =
-          evaluator.evaluator.evaluate(Agg(mainModule.show(evaluator.evaluator, "hello")))
+          evaluator.evaluator.execute(Seq(mainModule.show(
+            evaluator.evaluator,
+            "hello"
+          ))).executionResults
 
-        assert(results.failing.keyCount == 0)
+        assert(results.failing.size == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
 
         val shown = ujson.read(outStream.toByteArray)
         val expected = ujson.Arr.from(Seq("hello", "world"))
@@ -234,16 +242,16 @@ object MainModuleTests extends TestSuite {
       }
       test("multi") {
         val results =
-          evaluator.evaluator.evaluate(Agg(mainModule.show(
+          evaluator.evaluator.execute(Seq(mainModule.show(
             evaluator.evaluator,
             "hello",
             "+",
             "hello2"
-          )))
+          ))).executionResults
 
-        assert(results.failing.keyCount == 0)
+        assert(results.failing.size == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
 
         val shown = ujson.read(outStream.toByteArray)
 
@@ -266,7 +274,7 @@ object MainModuleTests extends TestSuite {
       }
 
       test("command") {
-        val Left(Result.Failure(failureMsg, _)) =
+        val Left(ExecResult.Failure(failureMsg)) =
           evaluator.apply("show", "helloCommand"): @unchecked
         assert(
           failureMsg.contains("Expected Signature: helloCommand"),
@@ -293,11 +301,14 @@ object MainModuleTests extends TestSuite {
       val evaluator = UnitTester(mainModule, null)
       test("single") {
         val results =
-          evaluator.evaluator.evaluate(Agg(mainModule.showNamed(evaluator.evaluator, "hello")))
+          evaluator.evaluator.execute(Seq(mainModule.showNamed(
+            evaluator.evaluator,
+            "hello"
+          ))).executionResults
 
-        assert(results.failing.keyCount == 0)
+        assert(results.failing.size == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world"))
@@ -305,16 +316,16 @@ object MainModuleTests extends TestSuite {
       }
       test("multi") {
         val results =
-          evaluator.evaluator.evaluate(Agg(mainModule.showNamed(
+          evaluator.evaluator.execute(Seq(mainModule.showNamed(
             evaluator.evaluator,
             "hello",
             "+",
             "hello2"
-          )))
+          ))).executionResults
 
-        assert(results.failing.keyCount == 0)
+        assert(results.failing.size == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world")),
@@ -346,18 +357,18 @@ object MainModuleTests extends TestSuite {
       }
 
       test("all") {
-        val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
-        assert(r1.failing.keyCount == 0)
+        val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
+        assert(r1.failing.size == 0)
         checkExists(true)(os.sub / "foo")
 
-        val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator)))
-        assert(r2.failing.keyCount == 0)
+        val r2 = ev.evaluator.execute(Seq(cleanModule.clean(ev.evaluator))).executionResults
+        assert(r2.failing.size == 0)
         checkExists(false)(os.sub / "foo")
       }
 
       test("single-target") {
-        val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
-        assert(r1.failing.keyCount == 0)
+        val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
+        assert(r1.failing.size == 0)
         checkExists(true)(
           os.sub / "foo/target.json",
           os.sub / "foo/target.dest/dummy.txt",
@@ -365,8 +376,9 @@ object MainModuleTests extends TestSuite {
           os.sub / "bar/target.dest/dummy.txt"
         )
 
-        val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator, "foo.target")))
-        assert(r2.failing.keyCount == 0)
+        val r2 =
+          ev.evaluator.execute(Seq(cleanModule.clean(ev.evaluator, "foo.target"))).executionResults
+        assert(r2.failing.size == 0)
         checkExists(false)(
           os.sub / "foo/target.log",
           os.sub / "foo/target.json",
@@ -379,8 +391,8 @@ object MainModuleTests extends TestSuite {
       }
 
       test("single-module") {
-        val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
-        assert(r1.failing.keyCount == 0)
+        val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
+        assert(r1.failing.size == 0)
         checkExists(true)(
           os.sub / "foo/target.json",
           os.sub / "foo/target.dest/dummy.txt",
@@ -388,8 +400,8 @@ object MainModuleTests extends TestSuite {
           os.sub / "bar/target.dest/dummy.txt"
         )
 
-        val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator, "bar")))
-        assert(r2.failing.keyCount == 0)
+        val r2 = ev.evaluator.execute(Seq(cleanModule.clean(ev.evaluator, "bar"))).executionResults
+        assert(r2.failing.size == 0)
         checkExists(true)(
           os.sub / "foo/target.json",
           os.sub / "foo/target.dest/dummy.txt"
@@ -407,12 +419,12 @@ object MainModuleTests extends TestSuite {
         val workerModule = new WorkerModule(workers)
         val ev = UnitTester(workerModule, null)
 
-        val r1 = ev.evaluator.evaluate(Agg(workerModule.all))
-        assert(r1.failing.keyCount == 0)
+        val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
+        assert(r1.failing.size == 0)
         assert(workers.size == 5)
 
-        val r2 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator)))
-        assert(r2.failing.keyCount == 0)
+        val r2 = ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator))).executionResults
+        assert(r2.failing.size == 0)
         assert(workers.isEmpty)
       }
 
@@ -421,20 +433,29 @@ object MainModuleTests extends TestSuite {
         val workerModule = new WorkerModule(workers)
         val ev = UnitTester(workerModule, null)
 
-        val r1 = ev.evaluator.evaluate(Agg(workerModule.all))
-        assert(r1.failing.keyCount == 0)
+        val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
+        assert(r1.failing.size == 0)
         assert(workers.size == 5)
 
-        val r2 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "foo.theWorker")))
-        assert(r2.failing.keyCount == 0)
+        val r2 = ev.evaluator.execute(Seq(workerModule.clean(
+          ev.evaluator,
+          "foo.theWorker"
+        ))).executionResults
+        assert(r2.failing.size == 0)
         assert(workers.size == 4)
 
-        val r3 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bar.theWorker")))
-        assert(r3.failing.keyCount == 0)
+        val r3 = ev.evaluator.execute(Seq(workerModule.clean(
+          ev.evaluator,
+          "bar.theWorker"
+        ))).executionResults
+        assert(r3.failing.size == 0)
         assert(workers.size == 3)
 
-        val r4 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bazz[1].theWorker")))
-        assert(r4.failing.keyCount == 0)
+        val r4 = ev.evaluator.execute(Seq(workerModule.clean(
+          ev.evaluator,
+          "bazz[1].theWorker"
+        ))).executionResults
+        assert(r4.failing.size == 0)
         assert(workers.size == 2)
       }
 
@@ -443,36 +464,36 @@ object MainModuleTests extends TestSuite {
         val workerModule = new WorkerModule(workers)
         val ev = UnitTester(workerModule, null)
 
-        ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+        ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 1)
 
         val originalFooWorker = workers.head
 
-        ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+        ev.evaluator.execute(Seq(workerModule.bar.theWorker)).executionResults
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 2)
         assert(workers.exists(_ eq originalFooWorker))
 
         val originalBarWorker = workers.filter(_ ne originalFooWorker).head
 
-        ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+        ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 2)
         assert(workers.exists(_ eq originalFooWorker))
 
-        ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+        ev.evaluator.execute(Seq(workerModule.bar.theWorker)).executionResults
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 2)
         assert(workers.exists(_ eq originalBarWorker))
 
-        val outDir = os.Path(OutFiles.out, workerModule.millSourcePath)
+        val outDir = os.Path(OutFiles.out, workerModule.moduleDir)
 
         assert(!originalFooWorker.closed)
         os.remove(outDir / "foo/theWorker.json")
 
-        ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+        ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 2)
         assert(!workers.exists(_ eq originalFooWorker))
         assert(originalFooWorker.closed)
@@ -480,8 +501,8 @@ object MainModuleTests extends TestSuite {
         assert(!originalBarWorker.closed)
         os.remove(outDir / "bar/theWorker.json")
 
-        ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
-          .ensuring(_.failing.keyCount == 0)
+        ev.evaluator.execute(Seq(workerModule.bar.theWorker)).executionResults
+          .ensuring(_.failing.size == 0)
         assert(workers.size == 2)
         assert(!workers.exists(_ eq originalBarWorker))
         assert(originalBarWorker.closed)
@@ -492,20 +513,23 @@ object MainModuleTests extends TestSuite {
         val workerModule = new WorkerModule(workers)
         val ev = UnitTester(workerModule, null)
 
-        val r1 = ev.evaluator.evaluate(Agg(workerModule.all))
-        assert(r1.failing.keyCount == 0)
+        val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
+        assert(r1.failing.size == 0)
         assert(workers.size == 5)
 
-        val r2 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "foo")))
-        assert(r2.failing.keyCount == 0)
+        val r2 =
+          ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "foo"))).executionResults
+        assert(r2.failing.size == 0)
         assert(workers.size == 4)
 
-        val r3 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bar")))
-        assert(r3.failing.keyCount == 0)
+        val r3 =
+          ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "bar"))).executionResults
+        assert(r3.failing.size == 0)
         assert(workers.size == 3)
 
-        val r4 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bazz[1]")))
-        assert(r4.failing.keyCount == 0)
+        val r4 =
+          ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "bazz[1]"))).executionResults
+        assert(r4.failing.size == 0)
         assert(workers.size == 2)
       }
     }

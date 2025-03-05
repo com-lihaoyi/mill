@@ -2,6 +2,15 @@ package build.core.codesig
 import mill._
 import mill.scalalib._
 
+/**
+ * The CodeSig module implements a conservative call-graph analyzer at the JVM
+ * bytecode level that generates hashes for methods and their dependencies and uses
+ * them to invalidate Targets in a fine-grained manner in response to code changes.
+ *
+ * See the PR description for a detailed explanation of how this works:
+ *
+ * - https://github.com/com-lihaoyi/mill/pull/2417
+ */
 object `package` extends RootModule with build.MillPublishScalaModule {
   override def ivyDeps = Agg(build.Deps.asmTree, build.Deps.osLib, build.Deps.pprint)
   def moduleDeps = Seq(build.core.internal)

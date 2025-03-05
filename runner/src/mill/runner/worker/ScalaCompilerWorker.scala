@@ -1,10 +1,10 @@
 package mill.runner.worker
 
-import mill.{Agg, PathRef}
+import mill.PathRef
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.api.Result
 
-import mill.api.Result.catchWrapException
+import mill.api.ExecResult.catchWrapException
 import mill.api.internal
 
 @internal
@@ -12,17 +12,13 @@ private[runner] object ScalaCompilerWorker {
 
   @internal
   sealed trait Resolver {
-    def resolve(classpath: Seq[os.Path])(using
-        home: mill.api.Ctx.Home
-    ): Result[ScalaCompilerWorkerApi]
+    def resolve(classpath: Seq[os.Path]): Result[ScalaCompilerWorkerApi]
   }
 
   @internal
   object Resolver {
     given defaultResolver: ScalaCompilerWorker.Resolver with {
-      def resolve(classpath: Seq[os.Path])(using
-          mill.api.Ctx.Home
-      ): Result[ScalaCompilerWorkerApi] =
+      def resolve(classpath: Seq[os.Path]): Result[ScalaCompilerWorkerApi] =
         ScalaCompilerWorker.reflect(classpath)
     }
   }
@@ -32,9 +28,7 @@ private[runner] object ScalaCompilerWorker {
     def constResolver: Resolver = {
       val local = worker // avoid capturing `this`
       new {
-        def resolve(classpath: Seq[os.Path])(using
-            mill.api.Ctx.Home
-        ): Result[ScalaCompilerWorkerApi] =
+        def resolve(classpath: Seq[os.Path]): Result[ScalaCompilerWorkerApi] =
           Result.Success(local)
       }
     }
@@ -61,7 +55,7 @@ private[runner] object ScalaCompilerWorker {
     }
   }
 
-  private def bootstrapWorkerClasspath(): Result[Agg[PathRef]] = {
+  private def bootstrapWorkerClasspath(): Result[Seq[PathRef]] = {
     val repositories = Result.create {
       import scala.concurrent.ExecutionContext.Implicits.global
       import scala.concurrent.Await
@@ -80,9 +74,7 @@ private[runner] object ScalaCompilerWorker {
     }
   }
 
-  private def reflectUnsafe(classpath: IterableOnce[os.Path])(using
-      mill.api.Ctx.Home
-  ): ScalaCompilerWorkerApi =
+  private def reflectUnsafe(classpath: IterableOnce[os.Path]): ScalaCompilerWorkerApi =
     val cl = mill.util.Jvm.createClassLoader(
       classpath.toVector,
       getClass.getClassLoader
@@ -94,30 +86,19 @@ private[runner] object ScalaCompilerWorker {
       .asInstanceOf[ScalaCompilerWorkerApi]
     bridge
 
-  private def reflectEither(classpath: IterableOnce[os.Path])(using
-      mill.api.Ctx.Home
-  ): Either[String, ScalaCompilerWorkerApi] =
+  private def reflectEither(classpath: IterableOnce[os.Path])
+      : Result[ScalaCompilerWorkerApi] =
     catchWrapException {
       reflectUnsafe(classpath)
     }
 
-  def reflect(classpath: IterableOnce[os.Path])(using
-      mill.api.Ctx.Home
-  ): Result[ScalaCompilerWorkerApi] =
+  def reflect(classpath: IterableOnce[os.Path]): Result[ScalaCompilerWorkerApi] =
     Result.create {
       reflectUnsafe(classpath)
     }
 
-  def bootstrapWorker(home0: os.Path): Either[String, ResolvedWorker] = {
-    given mill.api.Ctx.Home = new mill.api.Ctx.Home {
-      def home = home0
-    }
-    val classpath = bootstrapWorkerClasspath() match {
-      case Result.Success(value) => Right(value)
-      case Result.Failure(msg, _) => Left(msg)
-      case err: Result.Exception => Left(err.toString)
-      case res => Left(s"could not resolve worker classpath: $res")
-    }
+  def bootstrapWorker(): Result[ResolvedWorker] = {
+    val classpath = bootstrapWorkerClasspath()
     classpath.flatMap { cp =>
       val resolvedCp = cp.iterator.map(_.path).toVector
       reflectEither(resolvedCp).map(worker => ResolvedWorker(resolvedCp, worker))

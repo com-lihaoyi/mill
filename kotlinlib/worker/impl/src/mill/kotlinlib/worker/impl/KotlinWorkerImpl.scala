@@ -22,7 +22,7 @@ class KotlinWorkerImpl extends KotlinWorker {
       case KotlinWorkerTarget.Jvm => new K2JVMCompiler()
       case KotlinWorkerTarget.Js => new K2JSCompiler()
     }
-    val exitCode = compiler.exec(ctx.log.errorStream, args*)
+    val exitCode = compiler.exec(ctx.log.streams.err, args*)
     if (exitCode.getCode != 0) {
       Result.Failure(s"Kotlin compiler failed with exit code ${exitCode.getCode} ($exitCode)")
     } else {

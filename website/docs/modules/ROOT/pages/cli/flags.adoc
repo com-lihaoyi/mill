@@ -25,7 +25,8 @@ to the right place.
 
 To see a cheat sheet of all the command line flags that Mill supports, you can use `./mill --help`:
 
-```scala
+[source]
+----
 $ ./mill --help
 Mill Build Tool, version 0.12.5-13-0e02e6
 Usage: mill [options] task [task-options] [+ task ...]
@@ -85,7 +86,7 @@ options:
   task <str>...        The name or a pattern of the tasks(s) you want to build.
 
 Please see the documentation at https://mill-build.org for more details
-```
+----
 
 == Notable Flags
 
@@ -113,10 +114,10 @@ change:
 
 [source,bash]
 ----
-$ mill --watch foo.compile
-$ mill --watch foo.run
-$ mill -w foo.compile
-$ mill -w foo.run
+> mill --watch foo.compile
+> mill --watch foo.run
+> mill -w foo.compile
+> mill -w foo.run
 ----
 
 Mill's `--watch` flag watches both the files you are building using Mill, as
@@ -128,15 +129,14 @@ forcefully terminating the previous process even though it may be still alive:
 
 [source,bash]
 ----
-$ mill -w foo.runBackground
+> mill -w foo.runBackground
 ----
 
 
 === `--jobs`/`-j`
 
-By default, Mill will evaluate all tasks in parallel, with the number of concurrent
-tasks equal to the number of cores on your machine. You can use the `--jobs` (`-j`) to configure
-explicitly how many concurrent tasks you wish to run. To disable parallel execution use `-j1`.
+Configures how much xref:depth/parallelism.adoc[Parallelism] Mill should run with.
+Defaults to the number of cores available on your system.
 
 Example: Use up to 4 parallel threads to compile all modules:
 
@@ -151,26 +151,17 @@ These can be useful as xref:_repo_level_mill_options[] to configure an appropria
 of parallelism that scales based on the number of cores available (which might differ
 between e.g. developer laptops and CI machines)
 
-Every `mill` run generates an output file in `out/mill-chrome-profile.json` that can be
-loaded into the Chrome browser's `chrome://tracing` page for visualization.
-This can make it much easier to analyze your parallel runs to find out what's
-taking the most time:
-
-image::basic/ChromeTracing.png[ChromeTracing.png]
-
-Note that the maximal possible parallelism depends both on the number of cores
-available as well as the task and module structure of your project, as tasks that
-depend on one another other cannot be processed in parallel
-
-
+[#_repo_level_mill_options]
 == Repo-Level Mill Options
 
 Mill supports the `.mill-opts` file for passing a default set of command line
-options to Mill itself. For example, if your project's tasks are CPU heavy, you
-may want everyone using your project to run only 0.5 concurrent tasks per CPU. This
+options to Mill itself.For example, if your project's tasks are CPU heavy, you
+may want everyone using your project to run only 0.5 concurrent tasks per CPU.This
 can be done by setting `.mill-opts` to:
 
 _.mill-opts_
+
+[source]
 ----
 --jobs=0.5C
 ----
@@ -180,25 +171,29 @@ You can also pass in flags like `--jobs=10` explicitly to override the value pas
 `.mill-opts`.
 
 NOTE: `.mill-jvm-opts` is for passing JVM options to the JVM running Mill,
-and `.mill-opts` is for passing options to Mill itself. If you want to pass JVM options
+and `.mill-opts` is for passing options to Mill itself.If you want to pass JVM options
 to the project that Mill is building and running, see the section on
 xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags].
 
+[#_running_mill_with_custom_jvm_options]
 == Running Mill with custom JVM options
 
-It's possible to pass JVM options to the Mill launcher. To do this you can either set
-the `JAVA_OPTS` environment variable, or  create a `.mill-jvm-opts` file in your project's
+It's possible to pass JVM options to the Mill launcher.To do this you can either set
+the `JAVA_OPTS` environment variable, or create a `.mill-jvm-opts` file in your project's
 root that contains JVM options one per line.
 
 For example, if your build requires a lot of memory and bigger stack size, you could run
 
-```bash
+[source,bash]
+----
 > JAVA_OPTS='-Xss10m -Xmx10G' ./mill __.compile
-```
+----
 
 Or you could create a `.mill-jvm-opts`:
 
 _.mill-jvm-opts_
+
+[source]
 ----
 -Xss10m
 -Xmx10G
@@ -211,6 +206,8 @@ as a single token and fail argument parsing)
 `.mill-jvm-opts` also supports environment variable interpolation, e.g.
 
 _.mill-jvm-opts_
+
+[source]
 ----
 # PWD on mac/linux
 -Dmy.jvm.property=${PWD}

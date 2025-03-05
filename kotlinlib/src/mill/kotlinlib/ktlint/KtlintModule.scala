@@ -2,7 +2,7 @@ package mill.kotlinlib.ktlint
 
 import mainargs.arg
 import mill._
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.javalib.JavaModule
 import mill.kotlinlib.DepSyntax
@@ -30,9 +30,9 @@ trait KtlintModule extends JavaModule {
   /**
    * Classpath for running Ktlint.
    */
-  def ktlintClasspath: T[Loose.Agg[PathRef]] = Task {
+  def ktlintClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
+      Seq(ivy"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
     )
   }
 
@@ -100,7 +100,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       filesToFormat: Seq[PathRef],
       config: Option[PathRef],
       options: Seq[String],
-      classPath: Loose.Agg[PathRef]
+      classPath: Seq[PathRef]
   )(implicit ctx: api.Ctx): Unit = {
     if (ktlintArgs.check) {
       ctx.log.info("checking format in kotlin sources ...")
@@ -122,15 +122,17 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
       .map(_.toString())
 
-    val exitCode = Jvm.callProcess(
-      mainClass = "com.pinterest.ktlint.Main",
-      classPath = classPath.map(_.path).toVector,
-      mainArgs = args.result(),
-      cwd = millSourcePath,
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      check = false
-    ).exitCode
+    val exitCode = os.checker.withValue(os.Checker.Nop) {
+      Jvm.callProcess(
+        mainClass = "com.pinterest.ktlint.Main",
+        classPath = classPath.map(_.path).toVector,
+        mainArgs = args.result(),
+        cwd = moduleDir,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = false
+      ).exitCode
+    }
 
     if (exitCode == 0) {} // do nothing
     else {

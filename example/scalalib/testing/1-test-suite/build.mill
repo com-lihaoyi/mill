@@ -5,7 +5,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -30,7 +30,7 @@ compiling 1 ... source...
 > mill foo.test.compile
 compiling 1 ... source...
 
-> mill foo.test.test
+> mill foo.test.testForked
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
 
@@ -64,7 +64,7 @@ object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
   }
 }
 
@@ -96,7 +96,7 @@ object bar extends ScalaModule {
 > mill foo.test
 */
 // `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
-// for `foo.test.test`, as `test` is the default task for ``TestModule``s.
+// for `foo.test.testForked`, as `testForked` is the default task for ``TestModule``s.
 
 /** Usage
 > mill foo.test.testCached

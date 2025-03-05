@@ -37,11 +37,11 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.7"
+    "0.12.8"
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-      Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5", "0.12.6", "0.12.7")
+      0.to(8).map("0.12." + _)
 
   val graalvmJvmId = "graalvm-community:23.0.1"
 }
@@ -121,14 +121,14 @@ object Deps {
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.15"
-  val ammoniteVersion = "3.0.1"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.16"
+  val ammoniteVersion = "3.0.2"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
-  val coursierVersion = "2.1.24"
+  val coursierVersion = "2.1.25-M2"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.27"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
     ivy"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
@@ -158,10 +158,10 @@ object Deps {
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = ivy"commons-io:commons-io:2.18.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.3"
-  val osLib = ivy"com.lihaoyi::os-lib:0.11.4-M6"
+  val osLib = ivy"com.lihaoyi::os-lib:0.11.5-M2"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
-  val millModuledefsVersion = "0.11.3-M3"
+  val millModuledefsVersion = "0.11.3-M4"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -194,14 +194,14 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.3-M5"
   val upickle = ivy"com.lihaoyi::upickle:4.1.0"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
-  val zinc = ivy"org.scala-sbt::zinc:1.10.7".withDottyCompat(scalaVersion)
+  val zinc = ivy"org.scala-sbt::zinc:1.10.8".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams =
-    ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0".withDottyCompat(scalaVersion)
+    ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
   val requests = ivy"com.lihaoyi::requests:0.9.0"
-  val logback = ivy"ch.qos.logback:logback-classic:1.5.16"
+  val logback = ivy"ch.qos.logback:logback-classic:1.5.17"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
   val kotlinVersion = "2.0.21"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
@@ -238,6 +238,8 @@ object Deps {
     val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
     val ktfmt = ivy"com.facebook:ktfmt:0.53"
     val ktlint = ivy"com.pinterest.ktlint:ktlint-core:0.49.1"
+    val palantirFormat = ivy"com.palantir.javaformat:palantir-java-format:2.51.0"
+    val revApi = ivy"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
 
     def all = Seq(
@@ -253,6 +255,8 @@ object Deps {
       koverJvmAgent,
       ktfmt,
       ktlint,
+      palantirFormat,
+      revApi,
       sbtTestInterface
     )
   }
@@ -307,16 +311,17 @@ def millDownloadUrl = Task {
 }
 
 def millBinPlatform: T[String] = Task {
-  // val tag = millLastTag()
-  // if (tag.contains("-M")) tag
-  // else {
-  //  val pos = if (tag.startsWith("0.")) 2 else 1
-  //  tag.split("[.]", pos + 1).take(pos).mkString(".")
-  // }
-  "0.11"
+  val tag = millLastTag()
+  if (tag.contains("-M")) tag
+  else {
+    val pos = if (tag.startsWith("0.")) 2 else 1
+    tag.split("[.]", pos + 1).take(pos).mkString(".")
+  }
 }
 
 def baseDir = build.millSourcePath
+
+def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
 
 val essentialBridgeScalaVersions =
   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)
@@ -392,6 +397,7 @@ trait MillJavaModule extends JavaModule {
   }
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
+  def testForkEnv: T[Map[String, String]] = forkEnv()
   def testModuleDeps: Seq[JavaModule] =
     if (this == build.main) Seq(build.main)
     else Seq(this, build.main.test)
@@ -540,7 +546,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
-    def forkEnv = super.forkEnv() ++ outer.forkEnv()
+    def forkEnv = super.forkEnv() ++ outer.testForkEnv()
     override def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
 }
@@ -761,26 +767,6 @@ def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(build.scalalib, build.runner)
-}
-
-private def resolveTasks[T](taskNames: String*): Seq[NamedTask[T]] = {
-  mill.resolve.Resolve.Tasks.resolve(
-    build,
-    taskNames,
-    SelectMode.Separated
-  ).map(x => x.asInstanceOf[Seq[mill.define.NamedTask[T]]]).getOrElse(???)
-}
-
-def validate(): Command[Unit] = {
-  val tasks = resolveTasks("__.compile", "__.minaReportBinaryIssues")
-  val sources = resolveTasks("__.sources")
-
-  Task.Command {
-    Task.sequence(tasks)()
-    mill.scalalib.scalafmt.ScalafmtModule.checkFormatAll(Tasks(sources))()
-    build.website.localPages()
-    ()
-  }
 }
 
 val dummyDeps: Seq[Dep] = Seq(

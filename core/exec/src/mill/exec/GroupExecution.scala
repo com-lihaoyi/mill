@@ -1,7 +1,7 @@
 package mill.exec
 
-import mill.api.Result.{OuterStack, Success}
-import mill.api.Strict.Agg
+import mill.api.ExecResult.{OuterStack, Success}
+
 import mill.api.*
 import mill.define.*
 import mill.internal.MultiLogger
@@ -16,7 +16,7 @@ import scala.util.hashing.MurmurHash3
  * Logic around evaluating a single group, which is a collection of [[Task]]s
  * with a single [[Terminal]].
  */
-private[mill] trait GroupExecution {
+private trait GroupExecution {
   def home: os.Path
   def workspace: os.Path
   def outPath: os.Path
@@ -28,35 +28,35 @@ private[mill] trait GroupExecution {
   def env: Map[String, String]
   def failFast: Boolean
   def threadCount: Option[Int]
-  def methodCodeHashSignatures: Map[String, Int]
+  def codeSignatures: Map[String, Int]
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
-
+  def getEvaluator: () => Evaluator
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
-    CodeSigUtils.constructorHashSignatures(methodCodeHashSignatures)
+    CodeSigUtils.constructorHashSignatures(codeSignatures)
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   // those result which are inputs but not contained in this terminal group
-  def evaluateGroupCached(
+  def executeGroupCached(
       terminal: Task[?],
-      group: Agg[Task[?]],
-      results: Map[Task[?], TaskResult[(Val, Int)]],
+      group: Seq[Task[?]],
+      results: Map[Task[?], ExecResult[(Val, Int)]],
       countMsg: String,
-      verboseKeySuffix: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: ColorLogger,
+      logger: Logger,
+      deps: Seq[Task[?]],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean
   ): GroupExecution.Results = {
-    logger.withPrompt {
+    logger.withPromptLine {
       val externalInputsHash = MurmurHash3.orderedHash(
-        group.items.flatMap(_.inputs).filter(!group.contains(_))
-          .flatMap(results(_).result.asSuccess.map(_.value._2))
+        group.flatMap(_.inputs).filter(!group.contains(_))
+          .flatMap(results(_).asSuccess.map(_.value._2))
       )
 
       val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
@@ -69,7 +69,7 @@ private[mill] trait GroupExecution {
               namedTask,
               classToTransitiveClasses,
               allTransitiveClassMethods,
-              methodCodeHashSignatures,
+              codeSignatures,
               constructorHashSignatures
             )
           }
@@ -84,7 +84,7 @@ private[mill] trait GroupExecution {
 
         case labelled: NamedTask[_] =>
           val out = if (!labelled.ctx.external) outPath else externalOutPath
-          val paths = ExecutionPaths.resolveDestPaths(out, labelled.ctx.segments)
+          val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
           // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
@@ -98,9 +98,9 @@ private[mill] trait GroupExecution {
 
           cachedValueAndHash match {
             case Some((v, hashCode)) =>
-              val res = Result.Success((v, hashCode))
-              val newResults: Map[Task[?], TaskResult[(Val, Int)]] =
-                Map(labelled -> TaskResult(res, () => res))
+              val res = ExecResult.Success((v, hashCode))
+              val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
+                Map(labelled -> res)
 
               GroupExecution.Results(
                 newResults,
@@ -113,10 +113,10 @@ private[mill] trait GroupExecution {
 
             case _ =>
               // uncached
-              if (labelled.flushDest) os.remove.all(paths.dest)
+              if (!labelled.persistent) os.remove.all(paths.dest)
 
               val (newResults, newEvaluated) =
-                evaluateGroup(
+                executeGroup(
                   group,
                   results,
                   inputsHash,
@@ -127,16 +127,13 @@ private[mill] trait GroupExecution {
                   testReporter,
                   logger,
                   executionContext,
-                  exclusive
+                  exclusive,
+                  labelled.isInstanceOf[Command[?]],
+                  deps
                 )
 
               val valueHash = newResults(labelled) match {
-                case TaskResult(Result.Failure(_, Some((v, _))), _) =>
-                  val valueHash = getValueHash(v, terminal, inputsHash)
-                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                  valueHash
-
-                case TaskResult(Result.Success((v, _)), _) =>
+                case ExecResult.Success((v, _)) =>
                   val valueHash = getValueHash(v, terminal, inputsHash)
                   handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
                   valueHash
@@ -160,7 +157,7 @@ private[mill] trait GroupExecution {
               )
           }
         case task =>
-          val (newResults, newEvaluated) = evaluateGroup(
+          val (newResults, newEvaluated) = executeGroup(
             group,
             results,
             inputsHash,
@@ -171,7 +168,9 @@ private[mill] trait GroupExecution {
             testReporter,
             logger,
             executionContext,
-            exclusive
+            exclusive,
+            task.isInstanceOf[Command[?]],
+            deps
           )
           GroupExecution.Results(
             newResults,
@@ -186,9 +185,9 @@ private[mill] trait GroupExecution {
     }
   }
 
-  private def evaluateGroup(
-      group: Agg[Task[?]],
-      results: Map[Task[?], TaskResult[(Val, Int)]],
+  private def executeGroup(
+      group: Seq[Task[?]],
+      results: Map[Task[?], ExecResult[(Val, Int)]],
       inputsHash: Int,
       paths: Option[ExecutionPaths],
       maybeTargetLabel: Option[String],
@@ -197,91 +196,115 @@ private[mill] trait GroupExecution {
       testReporter: TestReporter,
       logger: mill.api.Logger,
       executionContext: mill.api.Ctx.Fork.Api,
-      exclusive: Boolean
-  ): (Map[Task[?], TaskResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
+      exclusive: Boolean,
+      isCommand: Boolean,
+      deps: Seq[Task[?]]
+  ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
-    def computeAll() = {
-      val newEvaluated = mutable.Buffer.empty[Task[?]]
-      val newResults = mutable.Map.empty[Task[?], Result[(Val, Int)]]
+    val newEvaluated = mutable.Buffer.empty[Task[?]]
+    val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]
 
-      val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
-      val multiLogger = resolveLogger(paths.map(_.log), logger)
+    val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
+    val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
-      var usedDest = Option.empty[os.Path]
-      for (task <- nonEvaluatedTargets) {
-        newEvaluated.append(task)
-        val targetInputValues = task.inputs
-          .map { x => newResults.getOrElse(x, results(x).result) }
-          .collect { case Result.Success((v, _)) => v }
+    var usedDest = Option.empty[os.Path]
+    for (task <- nonEvaluatedTargets) {
+      newEvaluated.append(task)
+      val targetInputValues = task.inputs
+        .map { x => newResults.getOrElse(x, results(x)) }
+        .collect { case ExecResult.Success((v, _)) => v }
 
-        def makeDest() = this.synchronized {
-          paths match {
-            case Some(dest) =>
-              if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-              usedDest = Some(dest.dest)
-              dest.dest
+      def makeDest() = this.synchronized {
+        paths match {
+          case Some(dest) =>
+            if (usedDest.isEmpty) os.makeDir.all(dest.dest)
+            usedDest = Some(dest.dest)
+            dest.dest
 
-            case None => throw new Exception("No `dest` folder available here")
-          }
+          case None => throw new Exception("No `dest` folder available here")
         }
+      }
 
-        val res = {
-          if (targetInputValues.length != task.inputs.length) Result.Skipped
-          else {
-            val args = new mill.api.Ctx(
-              args = targetInputValues.map(_.value).toIndexedSeq,
-              dest0 = () => makeDest(),
-              log = multiLogger,
-              home = home,
-              env = env,
-              reporter = reporter,
-              testReporter = testReporter,
-              workspace = workspace,
-              systemExit = systemExit,
-              fork = executionContext
-            ) with mill.api.Ctx.Jobs {
-              override def jobs: Int = effectiveThreadCount
+      val res = {
+        if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
+        else {
+          val args = new mill.api.Ctx(
+            args = targetInputValues.map(_.value).toIndexedSeq,
+            dest0 = () => makeDest(),
+            log = multiLogger,
+            env = env,
+            reporter = reporter,
+            testReporter = testReporter,
+            workspace = workspace,
+            systemExit = systemExit,
+            fork = executionContext
+          ) with mill.api.Ctx.Jobs {
+            override def jobs: Int = effectiveThreadCount
+          }
+          // Tasks must be allowed to write to upstream worker's dest folders, because
+          // the point of workers is to manualy manage long-lived state which includes
+          // state on disk.
+          val validDests =
+            deps.collect { case n: Worker[?] =>
+              ExecutionPaths.resolve(outPath, n.ctx.segments).dest
+            } ++
+              paths.map(_.dest)
+
+          val executionChecker = new os.Checker {
+            def onRead(path: os.ReadablePath): Unit = ()
+            def onWrite(path: os.Path): Unit = {
+              if (!isCommand) {
+                if (path.startsWith(workspace) && !validDests.exists(path.startsWith(_))) {
+                  sys.error(s"Writing to $path not allowed during execution phase")
+                }
+              }
             }
+          }
+          def wrap[T](t: => T): T = {
+            val (streams, destFunc) =
+              if (exclusive) (exclusiveSystemStreams, () => workspace)
+              else (multiLogger.streams, () => makeDest())
 
-            def wrap[T](t: => T): T = {
-              val (streams, destFunc) =
-                if (exclusive) (exclusiveSystemStreams, () => workspace)
-                else (multiLogger.systemStreams, () => makeDest())
-
-              os.dynamicPwdFunction.withValue(destFunc) {
+            os.dynamicPwdFunction.withValue(destFunc) {
+              os.checker.withValue(executionChecker) {
                 SystemStreams.withStreams(streams) {
-                  if (!exclusive) t
-                  else {
-                    logger.reportKey(Seq(counterMsg))
-                    logger.withPromptPaused { t }
+                  val exposedEvaluator = if (!exclusive) null else getEvaluator()
+                  Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
+                    if (!exclusive) t
+                    else {
+                      logger.prompt.reportKey(Seq(counterMsg))
+                      logger.prompt.withPromptPaused { t }
+                    }
                   }
                 }
               }
             }
+          }
 
-            wrap {
-              try task.evaluate(args).map(Val(_))
-              catch {
-                case f: Result.Failing[Val] @unchecked => f
-                case NonFatal(e) =>
-                  Result.Exception(
-                    e,
-                    new OuterStack(new Exception().getStackTrace.toIndexedSeq)
-                  )
-                case e: Throwable => throw e
+          wrap {
+            try {
+
+              task.evaluate(args) match {
+                case Result.Success(v) => ExecResult.Success(Val(v))
+                case Result.Failure(err) => ExecResult.Failure(err)
               }
+            } catch {
+              case ex: Result.Exception => ExecResult.Failure(ex.error)
+              case NonFatal(e) =>
+                ExecResult.Exception(
+                  e,
+                  new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                )
+              case e: Throwable => throw e
             }
           }
         }
-
-        newResults(task) = for (v <- res) yield (v, getValueHash(v, task, inputsHash))
       }
 
-      multiLogger.close()
-      (newResults, newEvaluated)
+      newResults(task) = for (v <- res) yield (v, getValueHash(v, task, inputsHash))
     }
 
-    val (newResults, newEvaluated) = computeAll()
+    fileLoggerOpt.foreach(_.close())
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
       val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[?]])
@@ -290,16 +313,7 @@ private[mill] trait GroupExecution {
       }
     }
 
-    (
-      newResults
-        .map { case (k, v) =>
-          val recalc = () => computeAll()._1.apply(k)
-          val taskResult = TaskResult(v, recalc)
-          (k, taskResult)
-        }
-        .toMap,
-      newEvaluated
-    )
+    (newResults.toMap, newEvaluated)
   }
 
   // Include the classloader identity hash as part of the worker hash. This is
@@ -356,21 +370,25 @@ private[mill] trait GroupExecution {
     }
   }
 
-  def resolveLogger(logPath: Option[os.Path], logger: mill.api.Logger): mill.api.Logger =
+  def resolveLogger(
+      logPath: Option[os.Path],
+      logger: mill.api.Logger
+  ): (mill.api.Logger, Option[AutoCloseable]) =
     logPath match {
-      case None => logger
-      case Some(path) => new MultiLogger(
+      case None => (logger, None)
+      case Some(path) =>
+        val fileLogger = new FileLogger(logger.colored, path)
+        val multiLogger = new MultiLogger(
           logger.colored,
           logger,
-          // we always enable debug here, to get some more context in log files
-          new FileLogger(logger.colored, path, debugEnabled = true),
-          logger.systemStreams.in,
-          debugEnabled = logger.debugEnabled
+          fileLogger,
+          logger.streams.in
         )
+        (multiLogger, Some(fileLogger))
     }
 
   private def loadCachedJson(
-      logger: ColorLogger,
+      logger: Logger,
       inputsHash: Int,
       labelled: NamedTask[?],
       paths: ExecutionPaths
@@ -405,7 +423,7 @@ private[mill] trait GroupExecution {
     if (task.isInstanceOf[Worker[?]]) inputsHash else v.##
   }
   private def loadUpToDateWorker(
-      logger: ColorLogger,
+      logger: Logger,
       inputsHash: Int,
       labelled: NamedTask[?],
       forceDiscard: Boolean
@@ -445,10 +463,10 @@ private[mill] trait GroupExecution {
   }
 }
 
-private[mill] object GroupExecution {
+private object GroupExecution {
 
   case class Results(
-      newResults: Map[Task[?], TaskResult[(Val, Int)]],
+      newResults: Map[Task[?], ExecResult[(Val, Int)]],
       newEvaluated: Seq[Task[?]],
       cached: java.lang.Boolean,
       inputsHash: Int,

@@ -100,7 +100,7 @@ override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
     CustomHeader("my-header", Custom(myCustomTokenSource))
   )
 
-  def myCustomTokenSource(): Either[String, String] = Right("foo")
+  def myCustomTokenSource(): Result[String] = Right("foo")
 }
 ----
 
@@ -112,7 +112,7 @@ Secondly, after token type plugin needs information where to load token from. Th
 2. `Property`: From system property
 3. `File`: From file
 4. `WorkspaceFile`: File relative to workspace root.
-5. `Custom`: Any `() => Either[String, String]` function
+5. `Custom`: Any `() => Result[String]` function
 
 Content of `File` and `WorkspaceFile` is trimmed, (usually at least \n at the end is present).
 

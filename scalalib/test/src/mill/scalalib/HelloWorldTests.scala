@@ -5,9 +5,9 @@ import java.util.jar.JarFile
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
 import mill.*
-import mill.api.Result
+import mill.api.ExecResult
 import mill.define.Discover
-import mill.exec.ExecutionPaths
+import mill.define.ExecutionPaths
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
@@ -220,18 +220,18 @@ object HelloWorldTests extends TestSuite {
         val Right(result) = eval.apply(HelloWorld.core.compile): @unchecked
         assert(result.evalCount > 0)
 
-        os.write.append(HelloWorld.millSourcePath / "core/src/Main.scala", "\n")
+        os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "\n")
 
         val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
         assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
       }
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        os.write.append(HelloWorld.millSourcePath / "core/src/Main.scala", "val x: ")
+        os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
 
-        val Left(Result.Failure("Compilation failed", _)) =
+        val Left(ExecResult.Failure("Compilation failed")) =
           eval.apply(HelloWorld.core.compile): @unchecked
 
-        val paths = ExecutionPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
+        val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
 
         assert(
           os.walk(paths.dest / "classes").isEmpty,
@@ -239,8 +239,8 @@ object HelloWorldTests extends TestSuite {
         )
         // Works when fixed
         os.write.over(
-          HelloWorld.millSourcePath / "core/src/Main.scala",
-          os.read(HelloWorld.millSourcePath / "core/src/Main.scala").dropRight(
+          HelloWorld.moduleDir / "core/src/Main.scala",
+          os.read(HelloWorld.moduleDir / "core/src/Main.scala").dropRight(
             "val x: ".length
           )
         )
@@ -252,7 +252,7 @@ object HelloWorldTests extends TestSuite {
         sourceRoot = resourcePath
       ).scoped { eval =>
         // compilation fails because of "-Xfatal-warnings" flag
-        val Left(Result.Failure("Compilation failed", _)) =
+        val Left(ExecResult.Failure("Compilation failed")) =
           eval.apply(HelloWorldFatalWarnings.core.compile): @unchecked
       }
     }

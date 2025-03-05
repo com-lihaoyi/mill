@@ -24,10 +24,10 @@ object app extends AndroidAppModule {
   def androidCompileSdk = 35
 
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
-  def androidLintConfigPath = Task { Some(PathRef(millSourcePath / "lint.xml")) }
+  def androidLintConfigPath = Task { Some(PathRef(moduleDir / "lint.xml")) }
 
   // Set path to the custom `baseline.xml` file. It is usually at the root of the project
-  def androidLintBaselinePath = Task { Some(PathRef(millSourcePath / "lint-baseline.xml")) }
+  def androidLintBaselinePath = Task { Some(PathRef(moduleDir / "lint-baseline.xml")) }
 
   // Set the linting report to be generated as both text and html files
   def androidLintReportFormat =

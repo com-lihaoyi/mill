@@ -23,7 +23,7 @@ object foo extends PythonModule {
 > ./mill foo.run
 Hello World
 
-> ./mill foo.test.test
+> ./mill foo.test.testForked
 test_hello (test_foo.TestScript...) ... ok
 test_mock (test_foo.TestScript...) ... ok
 test_world (test_foo.TestScript...) ... ok
@@ -97,7 +97,7 @@ OK
 */
 
 // * `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
-//   for `foo.test.test`, as `test` is the default task for ``TestModule``s.
+//   for `foo.test.testForked`, as `testForked` is the default task for ``TestModule``s.
 
 /** Usage
 

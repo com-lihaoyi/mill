@@ -10,7 +10,7 @@ class ScalaPBWorker extends AutoCloseable {
 
   private var scalaPBInstanceCache = Option.empty[(Long, ScalaPBWorkerApi)]
 
-  private def scalaPB(scalaPBClasspath: Agg[PathRef])(implicit ctx: mill.api.Ctx) = {
+  private def scalaPB(scalaPBClasspath: Seq[PathRef])(implicit ctx: mill.api.Ctx) = {
     val classloaderSig = scalaPBClasspath.hashCode
     scalaPBInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
@@ -74,7 +74,7 @@ class ScalaPBWorker extends AutoCloseable {
    * @return execute result with path ref to `dest`
    */
   def compile(
-      scalaPBClasspath: Agg[PathRef],
+      scalaPBClasspath: Seq[PathRef],
       scalaPBSources: Seq[os.Path],
       scalaPBOptions: String,
       dest: os.Path,

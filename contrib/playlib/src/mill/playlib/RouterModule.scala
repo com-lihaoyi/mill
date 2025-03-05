@@ -1,11 +1,11 @@
 package mill.playlib
 
 import mill.api.PathRef
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
 import mill.scalalib.api._
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 
 trait RouterModule extends ScalaModule with Version {
 
@@ -45,15 +45,15 @@ trait RouterModule extends ScalaModule with Version {
    */
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
-  def routerClasspath: T[Agg[PathRef]] = Task {
+  def routerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       playMinorVersion() match {
         case "2.6" | "2.7" | "2.8" =>
-          Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}")
+          Seq(ivy"com.typesafe.play::routes-compiler:${playVersion()}")
         case "2.9" =>
-          Agg(ivy"com.typesafe.play::play-routes-compiler:${playVersion()}")
+          Seq(ivy"com.typesafe.play::play-routes-compiler:${playVersion()}")
         case _ =>
-          Agg(ivy"org.playframework::play-routes-compiler:${playVersion()}")
+          Seq(ivy"org.playframework::play-routes-compiler:${playVersion()}")
       }
     )
   }

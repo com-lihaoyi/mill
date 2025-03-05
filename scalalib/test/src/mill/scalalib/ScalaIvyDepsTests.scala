@@ -9,11 +9,11 @@ object ScalaIvyDepsTests extends TestSuite {
 
   object HelloWorldIvyDeps extends TestBaseModule {
     object moduleA extends HelloWorldTests.HelloWorldModule {
-      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.3")
+      override def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.1.3")
     }
     object moduleB extends HelloWorldTests.HelloWorldModule {
       override def moduleDeps = Seq(moduleA)
-      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
+      override def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.1.4")
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -21,8 +21,8 @@ object ScalaIvyDepsTests extends TestSuite {
 
   object TransitiveRunIvyDeps extends TestBaseModule {
     object upstream extends JavaModule {
-      def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:2.0.16")
-      def runIvyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.5.10")
+      def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:2.0.16")
+      def runIvyDeps = Seq(ivy"ch.qos.logback:logback-classic:1.5.10")
     }
 
     object downstream extends JavaModule {
@@ -35,13 +35,41 @@ object ScalaIvyDepsTests extends TestSuite {
 
   object TransitiveRunIvyDeps2 extends TestBaseModule {
     object upstream extends JavaModule {
-      def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:2.0.16")
-      def runIvyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.5.10")
+      def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:2.0.16")
+      def runIvyDeps = Seq(ivy"ch.qos.logback:logback-classic:1.5.10")
     }
 
     object downstream extends JavaModule {
       // Make sure both ivyDeps and runIvyDeps are transitively picked up from `runModuleDeps`
       def runModuleDeps = Seq(upstream)
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object IvyDepsRepositoriesTaskDep extends TestBaseModule {
+    object module extends JavaModule {
+      def repositoriesTask = Task.Anon {
+        super.repositoriesTask() ++ Seq(
+          coursier.Repositories.google
+        )
+      }
+      // ivyDeps depends on repositoriesTask task, like can be the case sometimes
+      // (like in mill-scalablytyped as of writing this). Eval'ing both tasks shouldn't
+      // be a problem.
+      // This used to be a problem at some point because of the
+      // JavaModule#coursierProject / CoursierModule#internalRepositories stuff,
+      // where repositoriesTask needed to evaluate coursierProject, itself needing ivyDeps,
+      // in order to get the internal repository for Mill modules.
+      // If users add a dependency the other way around, like here, this used to trigger
+      // a stackoverflow. This isn't a problem anymore since the introduction of
+      // CoursierModule#{allRepositories,millResolver}.
+      def ivyDeps = Task {
+        if (repositoriesTask().contains(coursier.Repositories.google))
+          Agg(ivy"com.google.protobuf:protobuf-java:2.6.1")
+        else
+          Agg.empty
+      }
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -79,6 +107,16 @@ object ScalaIvyDepsTests extends TestSuite {
           result2.value.exists(_.path.last == "logback-classic-1.5.10.jar"),
           result2.value.exists(_.path.last == "slf4j-api-2.0.16.jar")
         )
+    }
+
+    test("ivyDepsNeedsRepositoriesTask") - UnitTester(IvyDepsRepositoriesTaskDep, null).scoped {
+      eval =>
+        val ivyDeps = eval.apply(IvyDepsRepositoriesTaskDep.module.ivyDeps)
+          .get.fold(_.throwException, identity)
+        val repositories = eval.apply(IvyDepsRepositoriesTaskDep.module.repositoriesTask)
+          .get.fold(_.throwException, identity)
+        assert(ivyDeps.value.contains(ivy"com.google.protobuf:protobuf-java:2.6.1"))
+        assert(repositories.value.contains(coursier.Repositories.google))
     }
 
   }

@@ -55,7 +55,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
       }
     }
 
-    os.zip(Task.dest / "bundle.zip", os.list(baseDir).map(ZipSource.fromPath))
+    os.zip(Task.dest / "bundle.zip", Seq(baseDir))
 
     PathRef(Task.dest / "bundle.zip")
   }

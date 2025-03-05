@@ -5,7 +5,7 @@ import scalatags.Text.all._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.4"
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}",
     ivy"com.lihaoyi::os-lib:0.10.7"
   )
