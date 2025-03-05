@@ -115,7 +115,9 @@ How to fix errors such as
 and `java.lang.RuntimeException: java.lang.reflect.InvocationTargetException`
 thrown by the sbt command invoked by `mill init`?
 
-Update the project's sbt version to the latest or our tested version v1.10.7, and try again.
+Update the project's sbt version to the latest or our tested version v1.10.10,
+and check whether you have the appropriate Java version,
+and try again.
 
 How to fix test compilation errors?
 

@@ -1,16 +1,21 @@
 package mill.integration
 
 import mill.constants.Util
-import mill.integration.MillInitSbtUtils.bumpSbtTo1107
+import mill.integration.MillInitSbtUtils.bumpSbt
 import mill.integration.MillInitUtils.*
 import utest.*
 
 import scala.collection.immutable.SortedSet
 
 object MillInitSbtUtils {
-  def bumpSbtTo1107(workspacePath: os.Path) =
-    // bump sbt version to resolve compatibility issues with lower sbt versions and higher JDK versions
-    os.write.over(workspacePath / "project" / "build.properties", "sbt.version = 1.10.7")
+  /**
+   * bump sbt version to our tested version to resolve compatibility issues with lower sbt versions and higher JDK versions
+   */
+  def bumpSbt(workspacePath: os.Path) =
+    os.write.over(
+      workspacePath / "project" / "build.properties",
+      s"sbt.version = ${sys.props("TEST_SBT_VERSION")}"
+    )
 
   // relatively small libraries
 
@@ -50,7 +55,7 @@ object MillInitSbtScalaCsv200Tests extends BuildGenTestSuite {
     val url = "https://github.com/tototoshi/scala-csv/archive/refs/tags/2.0.0.zip"
 
     test - integrationTest(url) { tester =>
-      bumpSbtTo1107(tester.workspacePath)
+      bumpSbt(tester.workspacePath)
 
       // Cross-builds are not supported yet.
       testMillInit(
@@ -78,7 +83,7 @@ object MillInitSbtScalaCsv136Tests extends BuildGenTestSuite {
 
     test - integrationTest(url) { tester =>
       import tester.*
-      bumpSbtTo1107(workspacePath)
+      bumpSbt(workspacePath)
 
       testMillInit(
         tester,
@@ -107,7 +112,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
 
     test - integrationTest(url) { tester =>
       import tester.*
-      bumpSbtTo1107(workspacePath)
+      bumpSbt(workspacePath)
       /*
       `multi1.compile` doesn't work well when Mill is run with JDK 17 and 21:
       ```text
