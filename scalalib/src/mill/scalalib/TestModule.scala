@@ -157,7 +157,7 @@ trait TestModule
         outputPath = outputPath,
         colored = Task.log.prompt.colored,
         testCp = testClasspath().map(_.path),
-        globSelectors = selectors
+        globSelectors = Left(selectors)
       )
 
       val argsFile = Task.dest / "testargs"

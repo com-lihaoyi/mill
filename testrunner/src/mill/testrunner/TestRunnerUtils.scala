@@ -12,6 +12,8 @@ import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
+import scala.util.Random
+import java.io.PrintStream
 
 @internal object TestRunnerUtils {
 
@@ -129,50 +131,39 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (runner, tasks)
   }
 
-  def runTasks(
-      tasks: Seq[Task],
-      testReporter: TestReporter,
-      runner: Runner
-  ): (String, Iterator[TestResult]) = {
-    // Capture this value outside of the task event handler so it
-    // isn't affected by a test framework's stream redirects
-    val systemOut = System.out
-    val events = new ConcurrentLinkedQueue[Event]()
-    val doneMessage = {
+  private def executeTasks(
+    tasks: Seq[Task],
+    testReporter: TestReporter,
+    runner: Runner,
+    events: ConcurrentLinkedQueue[Event],
+    systemOut: PrintStream
+  ): Unit = {
+    val taskQueue = tasks.to(mutable.Queue)
+    while (taskQueue.nonEmpty) {
+      val next = taskQueue.dequeue().execute(
+        new EventHandler {
+          def handle(event: Event) = {
+            testReporter.logStart(event)
+            events.add(event)
+            testReporter.logFinish(event)
+          }
+        },
+        Array(new Logger {
+          def debug(msg: String) = systemOut.println(msg)
+          def error(msg: String) = systemOut.println(msg)
+          def ansiCodesSupported() = true
+          def warn(msg: String) = systemOut.println(msg)
+          def trace(t: Throwable) = t.printStackTrace(systemOut)
+          def info(msg: String) = systemOut.println(msg)
+        })
+      )
 
-      val taskQueue = tasks.to(mutable.Queue)
-      while (taskQueue.nonEmpty) {
-        val next = taskQueue.dequeue().execute(
-          new EventHandler {
-            def handle(event: Event) = {
-              testReporter.logStart(event)
-              events.add(event)
-              testReporter.logFinish(event)
-            }
-          },
-          Array(new Logger {
-            def debug(msg: String) = systemOut.println(msg)
-            def error(msg: String) = systemOut.println(msg)
-            def ansiCodesSupported() = true
-            def warn(msg: String) = systemOut.println(msg)
-            def trace(t: Throwable) = t.printStackTrace(systemOut)
-            def info(msg: String) = systemOut.println(msg)
-          })
-        )
-
-        taskQueue.enqueueAll(next)
-      }
-      runner.done()
+      taskQueue.enqueueAll(next)
     }
+  }
 
-    if (doneMessage != null && doneMessage.nonEmpty) {
-      if (doneMessage.endsWith("\n"))
-        println(doneMessage.stripSuffix("\n"))
-      else
-        println(doneMessage)
-    }
-
-    val results = for (e <- events.iterator().asScala) yield {
+  def parseRunTaskResults(events: Iterator[Event]): Iterator[TestResult] = {
+    for (e <- events) yield {
       val ex =
         if (e.throwable().isDefined) Some(e.throwable().get) else None
       mill.testrunner.TestResult(
@@ -191,6 +182,26 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
         ex.map(_.getStackTrace.toIndexedSeq)
       )
     }
+  }
+
+  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner): (String, Iterator[TestResult]) = {
+    // Capture this value outside of the task event handler so it
+    // isn't affected by a test framework's stream redirects
+    val systemOut = System.out
+    val events = new ConcurrentLinkedQueue[Event]()
+    val doneMessage = {
+      executeTasks(tasks, testReporter, runner, events, systemOut)
+      runner.done()
+    }
+
+    if (doneMessage != null && doneMessage.nonEmpty) {
+      if (doneMessage.endsWith("\n"))
+        println(doneMessage.stripSuffix("\n"))
+      else
+        println(doneMessage)
+    }
+
+    val results = parseRunTaskResults(events.iterator().asScala)
 
     (doneMessage, results)
   }
@@ -209,6 +220,109 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
     val (doneMessage, results) = runTasks(tasks.toSeq, testReporter, runner)
+
+    (doneMessage, results.toSeq)
+  }
+
+  private def stealTaskFromSelectorFolder(
+    testClasses: Seq[(Class[?], Fingerprint)],
+    runner: Runner,
+    stealFolder: os.Path,
+    selectorFolder: os.Path
+  ): Array[Task] = {
+    while (true) {
+      val files = os.list(selectorFolder)
+      if (files.nonEmpty) {
+        val offset = Random.nextInt(files.size)
+        val stole = try {
+          os.move(
+            files(offset),
+            stealFolder / s"selector-stolen",
+            atomicMove = true
+          )
+          true
+        } catch {
+          case e: Exception => false
+        }
+        if (stole) {
+          val selectors = os.read.lines(stealFolder / s"selector-stolen")
+          val classFilter = TestRunnerUtils.globFilter(selectors)
+          val tasks = runner.tasks(
+            for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls.getName))
+              yield new TaskDef(
+                cls.getName.stripSuffix("$"),
+                fingerprint,
+                false,
+                Array(new SuiteSelector)
+              )
+          )
+          os.remove(stealFolder / s"selector-stolen")
+          return tasks
+        }
+      } else {
+        return Array.empty[Task]
+      }
+    }
+
+    // Compiler doesn't know that we returned from above, add this as a sanity check and assertion
+    ???
+  }
+
+  def stealTasks(
+    testClasses: Seq[(Class[?], Fingerprint)],
+    testReporter: TestReporter,
+    runner: Runner,
+    stealFolder: os.Path,
+    selectorFolder: os.Path
+  ): (String, Iterator[TestResult]) = {
+    // Capture this value outside of the task event handler so it
+    // isn't affected by a test framework's stream redirects
+    val systemOut = System.out
+    val events = new ConcurrentLinkedQueue[Event]()
+    val doneMessage = {
+
+      while ({
+        val tasks = stealTaskFromSelectorFolder(testClasses, runner, stealFolder, selectorFolder)
+        if (tasks.nonEmpty) {
+          executeTasks(tasks, testReporter, runner, events, systemOut)
+          true
+        } else {
+          false
+        }
+      })()
+
+      runner.done()
+    }
+
+    if (doneMessage != null && doneMessage.nonEmpty) {
+      if (doneMessage.endsWith("\n"))
+        println(doneMessage.stripSuffix("\n"))
+      else
+        println(doneMessage)
+    }
+
+    val results = parseRunTaskResults(events.iterator().asScala)
+
+    (doneMessage, results)
+  }
+
+  def stealTestFramework0(
+      frameworkInstances: ClassLoader => Framework,
+      testClassfilePath: Seq[Path],
+      args: Seq[String],
+      selectorFolder: os.Path,
+      stealFolder: os.Path,
+      cl: ClassLoader,
+      testReporter: TestReporter
+  ): (String, Seq[TestResult]) = {
+
+    val framework = frameworkInstances(cl)
+    
+    val runner = framework.runner(args.toArray, Array[String](), cl)
+
+    val testClasses = discoverTests(cl, framework, testClassfilePath)
+
+    val (doneMessage, results) = stealTasks(testClasses, testReporter, runner, stealFolder, selectorFolder)
 
     (doneMessage, results.toSeq)
   }

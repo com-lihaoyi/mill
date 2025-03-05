@@ -8,16 +8,28 @@ import mill.api.{DummyTestReporter, internal}
       val testArgs = upickle.default.read[mill.testrunner.TestArgs](os.read(os.Path(args(1))))
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
-      val filter = TestRunnerUtils.globFilter(testArgs.globSelectors)
-
-      val result = TestRunnerUtils.runTestFramework0(
-        frameworkInstances = Framework.framework(testArgs.framework),
-        testClassfilePath = Seq.from(testArgs.testCp),
-        args = testArgs.arguments,
-        classFilter = cls => filter(cls.getName),
-        cl = classLoader,
-        testReporter = DummyTestReporter
-      )
+      val result = testArgs.globSelectors match {
+        case Left(selectors) =>
+          val filter = TestRunnerUtils.globFilter(selectors)
+          TestRunnerUtils.runTestFramework0(
+            frameworkInstances = Framework.framework(testArgs.framework),
+            testClassfilePath = Seq.from(testArgs.testCp),
+            args = testArgs.arguments,
+            classFilter = cls => filter(cls.getName),
+            cl = classLoader,
+            testReporter = DummyTestReporter
+          )
+        case Right((selectorFolder, stealFolder)) =>
+          TestRunnerUtils.stealTestFramework0(
+            frameworkInstances = Framework.framework(testArgs.framework),
+            testClassfilePath = Seq.from(testArgs.testCp),
+            args = testArgs.arguments,
+            selectorFolder = selectorFolder,
+            stealFolder = stealFolder,
+            cl = classLoader,
+            testReporter = DummyTestReporter,
+          )
+      }
 
       // Clear interrupted state in case some badly-behaved test suite
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,

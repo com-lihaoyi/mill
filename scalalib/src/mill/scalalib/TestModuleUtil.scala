@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime, ZoneId}
 import scala.xml.Elem
+import scala.collection.mutable
 
 private[scalalib] object TestModuleUtil {
   def runTests(
@@ -43,46 +44,63 @@ private[scalalib] object TestModuleUtil {
       EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
     )
 
-    def runTestRunnerSubprocess(selectors2: Seq[String], base: os.Path) = {
-      val outputPath = base / "out.json"
-      val testArgs = TestArgs(
-        framework = testFramework,
-        classpath = runClasspath.map(_.path),
-        arguments = args,
-        sysProps = props,
-        outputPath = outputPath,
-        colored = Task.log.prompt.colored,
-        testCp = testClasspath.map(_.path),
-        globSelectors = selectors2
-      )
-
-      val argsFile = base / "testargs"
-      val sandbox = base / "sandbox"
-      os.write(argsFile, upickle.default.write(testArgs), createFolders = true)
-
-      os.makeDir.all(sandbox)
-
-      os.checker.withValue(os.Checker.Nop) {
-        Jvm.callProcess(
-          mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-          classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-          jvmArgs = jvmArgs,
-          env = forkEnv ++ resourceEnv,
-          mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
-          cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
-          cpPassingJarPath = Option.when(useArgsFile)(
-            os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
-          ),
-          javaHome = javaHome,
-          stdin = os.Inherit,
-          stdout = os.Inherit
-        )
+    def prepareTestSelectorFolder(selectors2: Seq[String], base: os.Path): os.Path = {
+      val selectorFolder = base / "selectors"
+      os.makeDir.all(selectorFolder)
+      selectors2.zipWithIndex.foreach { case (s, i) =>
+        os.write.over(selectorFolder / s, s)
       }
+      selectorFolder
+    }
 
-      if (!os.exists(outputPath))
-        Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
-      else
-        Result.Success(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
+    def runTestRunnerSubprocess(base: os.Path, selectorFolder: os.Path, force: Boolean) = {
+      if (force || os.list(selectorFolder).nonEmpty) {
+        os.makeDir.all(base)
+
+        val outputPath = base / "out.json"
+        val testArgs = TestArgs(
+          framework = testFramework,
+          classpath = runClasspath.map(_.path),
+          arguments = args,
+          sysProps = props,
+          outputPath = outputPath,
+          colored = Task.log.prompt.colored,
+          testCp = testClasspath.map(_.path),
+          globSelectors = Right(selectorFolder -> base)
+        )
+
+        val argsFile = base / "testargs"
+        val sandbox = base / "sandbox"
+        os.write(argsFile, upickle.default.write(testArgs), createFolders = true)
+
+        os.makeDir.all(sandbox)
+
+        os.checker.withValue(os.Checker.Nop) {
+          Jvm.callProcess(
+            mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
+            classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+            jvmArgs = jvmArgs,
+            env = forkEnv ++ resourceEnv,
+            mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
+            cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+            cpPassingJarPath = Option.when(useArgsFile)(
+              os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+            ),
+            javaHome = javaHome,
+            stdin = os.Inherit,
+            stdout = os.Inherit
+          )
+        }
+
+        val result = if (!os.exists(outputPath))
+          Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
+        else
+          Result.Success(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
+        
+        Some(result)
+      } else {
+        None
+      }
     }
 
     val globFilter = TestRunnerUtils.globFilter(selectors)
@@ -136,20 +154,18 @@ private[scalalib] object TestModuleUtil {
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    val subprocessResult: Result[(String, Seq[TestResult])] = filteredClassLists match {
-      // When no tests at all are discovered, run at least one test JVM
-      // process to go through the test framework setup/teardown logic
-      case Nil => runTestRunnerSubprocess(Nil, Task.dest)
-      case Seq(singleTestClassList) => runTestRunnerSubprocess(singleTestClassList, Task.dest)
+    val subprocessFolderData = filteredClassLists match {
+      case Nil => Seq((Task.dest, prepareTestSelectorFolder(Nil, Task.dest), "", 0))
+      case Seq(singleTestClassList) =>
+        val promptMessage = singleTestClassList match {
+          case Seq(single) => single
+          case multiple =>
+            collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
+        }
+        Seq((Task.dest, prepareTestSelectorFolder(singleTestClassList, Task.dest), promptMessage, singleTestClassList.length))
       case multipleTestClassLists =>
         val maxLength = multipleTestClassLists.length.toString.length
-        val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
-          val groupPromptMessage = testClassList match {
-            case Seq(single) => single
-            case multiple =>
-              collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
-          }
-
+        multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
           val paddedIndex = mill.internal.Util.leftPad(i.toString, maxLength, '0')
           val folderName = testClassList match {
             case Seq(single) => single
@@ -157,20 +173,65 @@ private[scalalib] object TestModuleUtil {
               s"group-$paddedIndex-${multiple.head}"
           }
 
-          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage) {
-            (folderName, runTestRunnerSubprocess(testClassList, Task.dest / folderName))
+          val groupPromptMessage = testClassList match {
+            case Seq(single) => single
+            case multiple =>
+              collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
           }
+          
+          (Task.dest / folderName, prepareTestSelectorFolder(testClassList, Task.dest / folderName), groupPromptMessage, testClassList.length)
         }
+    }
 
-        val outputs = Task.fork.awaitAll(futures)
+    val jobs = Task.ctx() match {
+      case j: Ctx.Jobs => j.jobs
+      case _ => 1
+    }
 
-        val (lefts, rights) = outputs.partitionMap {
-          case (name, Result.Failure(v)) => Left(name + " " + v)
-          case (name, Result.Success((msg, results))) => Right((name + " " + msg, results))
+    val maxProcessLength = jobs.toString.length
+    val folderLength = subprocessFolderData.length
+    val maxFolderLength = folderLength.toString.length
+
+    val subprocessFutures = for {
+      processIndex <- 0 until jobs
+      folderIndex <- 0 until folderLength
+      (baseFolder, selectorFolder, promptMessage, numTests) = subprocessFolderData(folderIndex)
+      if (processIndex == 0) || (processIndex < numTests)
+    } yield {
+      val paddedFolderIndex = mill.internal.Util.leftPad(folderIndex.toString, maxFolderLength, '0')
+      val paddedProcessIndex = mill.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
+      val processFolder = baseFolder / processIndex.toString
+
+      Task.fork.async(processFolder, s"${paddedFolderIndex}-${paddedProcessIndex}", promptMessage) {
+        // force run when processIndex == 0 (first subprocess), even if there are no tests to run
+        // to force the process to go through the test framework setup/teardown logic
+        s"${baseFolder.last}" -> runTestRunnerSubprocess(processFolder, selectorFolder, force = processIndex == 0)
+      }
+    }
+
+    val outputs = Task.fork.awaitAll(subprocessFutures)
+
+    val subprocessResult = {
+      val failMap = mutable.Map.empty[String, String]
+      val successMap = mutable.Map.empty[String, (String, Seq[TestResult])]
+
+      outputs.foreach {
+        case (name, Some(Result.Failure(v))) => failMap.updateWith(name) {
+          case Some(old) => Some(old + " " + v)
+          case None => Some(v)
         }
-
-        if (lefts.nonEmpty) Result.Failure(lefts.mkString("\n"))
-        else Result.Success((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
+        case (name, Some(Result.Success((msg, results)))) => successMap.updateWith(name) {
+          case Some((oldMsg, oldResults)) => Some((oldMsg + " " + msg, oldResults ++ results))
+          case None => Some((msg, results))
+        }
+        case _ => ()
+      }
+      
+      if (failMap.nonEmpty) {
+        Result.Failure(failMap.values.mkString("\n"))
+      } else {
+        Result.Success((successMap.values.map(_._1).mkString("\n"), successMap.values.flatMap(_._2).toSeq))
+      }
     }
 
     subprocessResult match {
