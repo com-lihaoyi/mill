@@ -20,8 +20,9 @@ object BloopTests extends TestSuite {
   val workdir = unitTester.evaluator.rootModule.millSourcePath
   val testBloop = new BloopImpl(() => Seq(unitTester.evaluator), workdir)
 
-  object build extends TestBaseModule with DeferredGeneratedSourcesModule {
-    object scalaModule extends scalalib.ScalaModule with testBloop.Module {
+  object build extends TestBaseModule {
+    object scalaModule extends scalalib.ScalaModule with testBloop.Module
+        with DeferredGeneratedSourcesModule {
       def scalaVersion = "2.12.8"
       val bloopVersion = mill.contrib.bloop.Versions.bloop
       override def mainClass = Some("foo.bar.Main")
