@@ -8,7 +8,6 @@ import mill.define.{
   Discover,
   Module,
   NamedTask,
-  Segment,
   Segments,
   Segment,
   TaskModule,
@@ -29,10 +28,7 @@ private[mill] object Resolve {
         resolveToModuleTasks: Boolean,
         cache: ResolveCore.Cache
     ) = {
-      // For qualified super tasks (super.Something), return the original selector
-      // Otherwise, return the resolved segments
-      val hasQualifiedSuper = selector.render.contains(".super.")
-      Result.Success(if (hasQualifiedSuper) Seq(selector) else resolved.map(_.segments))
+      Result.Success(resolved.map(_.segments))
     }
 
     private[mill] override def deduplicate(items: List[Segments]): List[Segments] = items.distinct
@@ -63,33 +59,10 @@ private[mill] object Resolve {
 
       val taskList: Seq[Result[Option[NamedTask[?]]]] = resolved.map {
         case r: Resolved.NamedTask =>
-          val superIdx = r.segments.value.indexWhere {
-            case Segment.Label("super") => true
-            case _ => false
-          }
-          
-          if (superIdx >= 0) {
-            // For tasks with super, create a task with segments before the super segment
-            val segmentsWithoutSuper = mill.define.Segments(r.segments.value.take(superIdx))
-            Result.Success(Some(new NamedTask[Any] {
-              override def ctx0 = mill.define.Ctx.makeRoot(
-                millModuleEnclosing0 = rootModule.moduleCtx.enclosing,
-                millModuleLine0 = rootModule.moduleCtx.lineNum,
-                millSourcePath = rootModule.moduleCtx.millSourcePath,
-                segments0 = segmentsWithoutSuper,
-                external0 = rootModule.moduleCtx.external,
-                fileName = rootModule.moduleCtx.fileName
-              )
-              override def isPrivate = None
-              override val inputs = Nil
-              override def evaluate0 = ???
-            }))
-          } else {
-            val instantiated = ResolveCore
-              .instantiateModule(rootModule, r.segments.init, cache)
-              .flatMap(instantiateNamedTask(r, _, cache))
-            instantiated.map(Some(_))
-          }
+          val instantiated = ResolveCore
+            .instantiateModule(rootModule, r.segments.init, cache)
+            .flatMap(instantiateNamedTask(r, _, cache))
+          instantiated.map(Some(_))
 
         case r: Resolved.SuperTask =>
           val instantiated = ResolveCore

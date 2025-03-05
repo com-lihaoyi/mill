@@ -154,13 +154,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     )
   }
   // Location of the clang compiler
-  def nativeClang: T[PathRef] = Task {
-    PathRef(os.Path(withScalaNativeBridge.apply().apply(_.discoverClang())))
+  def nativeClang = Task {
+    os.Path(withScalaNativeBridge.apply().apply(_.discoverClang()))
   }
 
   // Location of the clang++ compiler
-  def nativeClangPP: T[PathRef] = Task {
-    PathRef(os.Path(withScalaNativeBridge.apply().apply(_.discoverClangPP())))
+  def nativeClangPP = Task {
+    os.Path(withScalaNativeBridge.apply().apply(_.discoverClangPP()))
   }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
@@ -231,8 +231,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       finalMainClassOpt(),
       classpath.map(_.toIO),
       nativeWorkdir().toIO,
-      nativeClang().path.toIO,
-      nativeClangPP().path.toIO,
+      nativeClang().toIO,
+      nativeClangPP().toIO,
       nativeTarget(),
       nativeCompileOptions(),
       nativeLinkingOptions(),
@@ -270,17 +270,17 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     }
 
   // Generates native binary
-  def nativeLink: T[PathRef] = Task {
-    PathRef(os.Path(withScalaNativeBridge.apply().apply(_.nativeLink(
+  def nativeLink = Task {
+    os.Path(withScalaNativeBridge.apply().apply(_.nativeLink(
       nativeConfig().config,
       Task.dest.toIO
-    ))))
+    )))
   }
 
   // Runs the native binary
   override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     os.call(
-      cmd = nativeLink().path.toString +: args().value,
+      cmd = Vector(nativeLink().toString) ++ args().value,
       env = forkEnv(),
       cwd = forkWorkingDir(),
       stdin = os.Inherit,
@@ -373,7 +373,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   ): Task[(String, Seq[TestResult])] = Task.Anon {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
-      nativeLink().path.toIO,
+      nativeLink().toIO,
       forkEnv() ++
         Map(
           EnvVars.MILL_TEST_RESOURCE_DIR -> resources().map(_.path).mkString(";"),

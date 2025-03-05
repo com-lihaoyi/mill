@@ -33,12 +33,10 @@ def lol = Task {
 
 def writeCompletionMarker(name: String) = {
 
-  os.checker.withValue(os.Checker.Nop) {
-    Range(0, 10)
-      .map(i => mill.api.WorkspaceRoot.workspaceRoot / "out" / s"$name$i")
-      .find(!os.exists(_))
-      .foreach(os.write(_, ""))
-  }
+  Range(0, 10)
+    .map(i => mill.api.WorkspaceRoot.workspaceRoot / "out" / s"$name$i")
+    .find(!os.exists(_))
+    .foreach(os.write(_, ""))
 }
 
 writeCompletionMarker("initialized")

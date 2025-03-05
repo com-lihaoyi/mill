@@ -8,12 +8,11 @@ import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot
 import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
-import mill.eval.EvaluatorImpl
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
-
 import java.io.File
 import java.net.URLClassLoader
+
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 
@@ -162,70 +161,46 @@ class MillBuildBootstrap(
         )
         nestedState.add(frame = evalState, errorOpt = None)
       } else {
-
-        def renderFailure(e: Throwable): String = {
-          e match {
-            case e: ExceptionInInitializerError if e.getCause != null => renderFailure(e.getCause)
-            case e: NoClassDefFoundError if e.getCause != null => renderFailure(e.getCause)
-            case _ =>
-              val msg =
-                e.toString +
-                  "\n" +
-                  e.getStackTrace.dropRight(new Exception().getStackTrace.length).mkString("\n")
-
-              msg
-          }
+        val rootModule = nestedState.frames.headOption match {
+          case None => nestedState.bootstrapModuleOpt.get
+          case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
         }
 
-        val rootModuleRes = nestedState.frames.headOption match {
-          case None => Result.Success(nestedState.bootstrapModuleOpt.get)
-          case Some(nestedFrame) =>
-            try Result.Success(getRootModule(nestedFrame.classLoaderOpt.get))
-            catch {
-              case e: Throwable => Result.Failure(renderFailure(e))
-            }
-        }
-
-        rootModuleRes match {
-          case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
-          case Result.Success(rootModule) =>
-
-            Using.resource(makeEvaluator(
-              prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
-              nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+        Using.resource(makeEvaluator(
+          prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
+          nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+          rootModule,
+          // We want to use the grandparent buildHash, rather than the parent
+          // buildHash, because the parent build changes are instead detected
+          // by analyzing the scriptImportGraph in a more fine-grained manner.
+          nestedState
+            .frames
+            .dropRight(1)
+            .headOption
+            .map(_.runClasspath)
+            .getOrElse(millBootClasspathPathRefs)
+            .map(p => (p.path, p.sig))
+            .hashCode(),
+          nestedState
+            .frames
+            .headOption
+            .flatMap(_.classLoaderOpt)
+            .map(_.hashCode())
+            .getOrElse(0),
+          depth,
+          actualBuildFileName = nestedState.buildFile
+        )) { evaluator =>
+          if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator)
+          else if (depth <= requestedDepth) nestedState
+          else {
+            processRunClasspath(
+              nestedState,
               rootModule,
-              // We want to use the grandparent buildHash, rather than the parent
-              // buildHash, because the parent build changes are instead detected
-              // by analyzing the scriptImportGraph in a more fine-grained manner.
-              nestedState
-                .frames
-                .dropRight(1)
-                .headOption
-                .map(_.runClasspath)
-                .getOrElse(millBootClasspathPathRefs)
-                .map(p => (p.path, p.sig))
-                .hashCode(),
-              nestedState
-                .frames
-                .headOption
-                .flatMap(_.classLoaderOpt)
-                .map(_.hashCode())
-                .getOrElse(0),
-              depth,
-              actualBuildFileName = nestedState.buildFile
-            )) { evaluator =>
-              if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator)
-              else if (depth <= requestedDepth) nestedState
-              else {
-                processRunClasspath(
-                  nestedState,
-                  rootModule,
-                  evaluator,
-                  prevFrameOpt,
-                  prevOuterFrameOpt
-                )
-              }
-            }
+              evaluator,
+              prevFrameOpt,
+              prevOuterFrameOpt
+            )
+          }
         }
       }
 
@@ -509,9 +484,7 @@ object MillBuildBootstrap {
 
   def getRootModule(runClassLoader: URLClassLoader): RootModule = {
     val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
-    os.checker.withValue(EvaluatorImpl.resolveChecker) {
-      buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
-    }
+    buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
   }
 
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
