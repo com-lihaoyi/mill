@@ -355,10 +355,12 @@ trait PublishModule extends TypeScriptModule {
 
   }
 
-  override def bundle: T[PathRef] = Task {
+
+  private def bundleAnon: Task[PathRef] = Task.Anon{
     pubSymLink()
+    os.copy.over(compile()._1.path, Task.dest, followLinks = false, replaceExisting = false, createFolders = false)
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-    val bundleScript = compile()._1.path / "build.ts"
+    val bundleScript = Task.dest / "build.ts"
     val bundle = Task.dest / "bundle.js"
 
     os.write.over(
@@ -369,19 +371,23 @@ trait PublishModule extends TypeScriptModule {
     os.call(
       (tsnode, bundleScript),
       stdout = os.Inherit,
-      cwd = compile()._1.path
+      cwd = Task.dest
     )
     PathRef(bundle)
+  }
+  override def bundle: T[PathRef] = Task {
+    bundleAnon()
   }
 
   // EsBuild - END
 
   def publish(): Command[Unit] = Task.Command {
+//    pubSymLink()
     // build package.json
     os.move(pubbPackageJson().path / "package.json", Task.dest / "package.json")
 
     // bundle code for publishing
-    bundle()
+    bundleAnon()
 
     // run npm publish
     os.call(("npm", "publish"), stdout = os.Inherit, cwd = Task.dest)
