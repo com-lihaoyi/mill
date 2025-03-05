@@ -143,10 +143,8 @@ trait PublishModule extends TypeScriptModule {
 
     targets.foreach { target =>
       val destination = Task.dest / "typescript" / target
-      os.checker.withValue(os.Checker.Nop) {
         os.makeDir.all(destination / os.up)
         os.copy(Task.workspace / target, destination, mergeFolders = true)
-      }
     }
   }
 
@@ -154,29 +152,6 @@ trait PublishModule extends TypeScriptModule {
     val modDepsResources = moduleDeps.map { x => PathRef(x.moduleDir / "resources") }
     Seq(PathRef(moduleDir / "resources")) ++ modDepsResources
   }
-
-//  /**
-//   * Generate sources relative to publishDir / "typescript"
-//   */
-//  //todo actually copy these sources
-//  private def pubAllSources: T[IndexedSeq[String]] = Task {
-//    val project = Task.workspace.toString
-//    val fileExt: Path => Boolean = _.ext == "ts"
-//    (for {
-//      source <-
-//        os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr =>
-//          os.walk(pr.path)
-//        ).filter(fileExt)
-//    } yield source.toString
-//      .replaceFirst(moduleDir.toString, "typescript")
-//      .replaceFirst(
-//        project,
-//        "typescript"
-//      )) ++ (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
-//      "typescript/generatedSources/" + pr.path.last
-//    )
-//
-//  }
 
   /**
    * Generate sources relative to publishDir / "typescript"
@@ -198,20 +173,6 @@ trait PublishModule extends TypeScriptModule {
 
     (sourcesAndDepsSources ++ generatedSources)
   }
-
-//  private def pubAllSources2: T[IndexedSeq[String]] = Task {
-//    val project = Task.workspace.toString
-//    val fileExt: Path => Boolean = _.ext == "ts"
-//    (for {
-//      source <-
-//        os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr =>
-//          os.walk(pr.path)
-//        ).filter(fileExt)
-//    } yield source.toString) ++ (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
-//      pr.path.toString
-//    )
-//
-//  }
 
   override def generatedSourcesPathsBuilder: T[Seq[(String, String)]] = Task {
     Seq("@generated/*" -> "typescript/generatedSources")
@@ -292,12 +253,10 @@ trait PublishModule extends TypeScriptModule {
 
   private def pubSymLink: Task[Unit] = Task.Anon {
     pubTsPatchInstall() // patch typescript compiler => use custom transformers
-    os.checker.withValue(os.Checker.Nop) {
       os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
 
       if (os.exists(npmInstall().path / ".npmrc"))
         os.symlink(Task.dest / ".npmrc", npmInstall().path / ".npmrc")
-    }
   }
 
   // need sandboxing bypass because we are copying moduleDir
@@ -312,7 +271,6 @@ trait PublishModule extends TypeScriptModule {
     copyModuleDir()
     pubCopyModDeps()
 //    pubGenSources()
-    os.checker.withValue(os.Checker.Nop) {
       os.write(
         Task.dest / "tsconfig.json",
         ujson.Obj(
@@ -328,7 +286,6 @@ trait PublishModule extends TypeScriptModule {
         ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
         cwd = Task.dest
       )
-    }
     (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
 
