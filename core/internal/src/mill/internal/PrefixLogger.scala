@@ -44,7 +44,7 @@ private[mill] class PrefixLogger(
     new PrintStream(new LinePrefixOutputStream(
       infoColor(linePrefix).render,
       stream,
-      () => reportKey(logPrefixKey)
+      () => prompt.reportKey(logPrefixKey)
     ))
   }
   val streams = new SystemStreams(
@@ -60,27 +60,19 @@ private[mill] class PrefixLogger(
   )
 
   override def info(s: String): Unit = {
-    reportKey(logPrefixKey)
+    prompt.reportKey(logPrefixKey)
     logger0.info("" + infoColor(linePrefix) + s)
   }
   override def error(s: String): Unit = {
-    reportKey(logPrefixKey)
+    prompt.reportKey(logPrefixKey)
     logger0.error("" + infoColor(linePrefix) + s)
   }
-  override def ticker(s: String): Unit = setPromptDetail(logPrefixKey, s)
-  override def setPromptDetail(key: Seq[String], s: String): Unit = logger0.setPromptDetail(key, s)
+  override def ticker(s: String): Unit = prompt.setPromptDetail(logPrefixKey, s)
 
-  private[mill] override def setPromptLine(
-      callKey: Seq[String],
-      keySuffix: String,
-      message: String
-  ): Unit = {
-
-    logger0.setPromptLine(callKey, keySuffix, message)
-  }
+  def prompt = logger0.prompt
 
   override def debug(s: String): Unit = {
-    if (debugEnabled) reportKey(logPrefixKey)
+    if (debugEnabled) prompt.reportKey(logPrefixKey)
     logger0.debug("" + infoColor(linePrefix) + s)
   }
   override def debugEnabled: Boolean = logger0.debugEnabled
@@ -98,20 +90,8 @@ private[mill] class PrefixLogger(
       PrefixLogger.this.streams.in
     )
   }
-  private[mill] override def reportKey(callKey: Seq[String]): Unit =
-    logger0.reportKey(callKey)
-
-  private[mill] override def removePromptLine(callKey: Seq[String]): Unit =
-    logger0.removePromptLine(callKey)
-
-  private[mill] override def setPromptHeaderPrefix(s: String): Unit =
-    logger0.setPromptHeaderPrefix(s)
-  override def enableTicker = logger0.enableTicker
 
   private[mill] override def subLogger(path: os.Path, subKey: String, message: String): Logger = {
     new PrefixLogger(this, Seq(subKey), keySuffix, message)
   }
-
-  private[mill] override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
-  private[mill] override def withPromptUnpaused[T](t: => T): T = logger0.withPromptUnpaused(t)
 }

@@ -272,8 +272,8 @@ private trait GroupExecution {
                   Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
                     if (!exclusive) t
                     else {
-                      logger.reportKey(Seq(counterMsg))
-                      logger.withPromptPaused { t }
+                      logger.prompt.reportKey(Seq(counterMsg))
+                      logger.prompt.withPromptPaused { t }
                     }
                   }
                 }

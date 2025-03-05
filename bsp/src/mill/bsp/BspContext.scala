@@ -48,11 +48,14 @@ private[mill] class BspContext(
         err = streams.err,
         in = DummyInputStream
       )
+      def prompt = new Logger.Prompt.NoOp {
+        override def setPromptDetail(key: Seq[String], s: String): Unit = streams.err.println(s)
+      }
 
       override def info(s: String): Unit = streams.err.println(s)
       override def error(s: String): Unit = streams.err.println(s)
       override def ticker(s: String): Unit = streams.err.println(s)
-      override def setPromptDetail(key: Seq[String], s: String): Unit = streams.err.println(s)
+
       override def debug(s: String): Unit = streams.err.println(s)
 
       override def debugEnabled: Boolean = true

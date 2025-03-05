@@ -15,24 +15,11 @@ private[mill] class ProxyLogger(logger: Logger) extends Logger {
   def info(s: String): Unit = logger.info(s)
   def error(s: String): Unit = logger.error(s)
   def ticker(s: String): Unit = logger.ticker(s)
-  override def setPromptDetail(key: Seq[String], s: String): Unit = logger.setPromptDetail(key, s)
-  private[mill] override def setPromptLine(
-      key: Seq[String],
-      keySuffix: String,
-      message: String
-  ): Unit =
-    logger.setPromptLine(key, keySuffix, message)
   def debug(s: String): Unit = logger.debug(s)
 
   override def debugEnabled: Boolean = logger.debugEnabled
 
-  private[mill] override def reportKey(key: Seq[String]): Unit = logger.reportKey(key)
-
-  private[mill] override def removePromptLine(key: Seq[String]): Unit = logger.removePromptLine(key)
-  private[mill] override def setPromptHeaderPrefix(s: String): Unit =
-    logger.setPromptHeaderPrefix(s)
-  private[mill] override def withPromptPaused[T](t: => T): T = logger.withPromptPaused(t)
-  private[mill] override def withPromptUnpaused[T](t: => T): T = logger.withPromptUnpaused(t)
+  def prompt = logger.prompt
 
   override def enableTicker = logger.enableTicker
   override def infoColor: fansi.Attrs = logger.infoColor

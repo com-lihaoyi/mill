@@ -26,7 +26,11 @@ private[mill] class PrintLogger(
     streams.err.println((infoColor(context) ++ errorColor(s)).render)
   }
 
-  override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized { ticker(s) }
+  def prompt = new Logger.Prompt.NoOp {
+    override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized {
+      ticker(s)
+    }
+  }
   def ticker(s: String): Unit = synchronized {
     if (enableTicker) {
       printLoggerState.value match {

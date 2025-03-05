@@ -57,8 +57,8 @@ object PromptLoggerTests extends TestSuite {
 
       val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp())
 
-      promptLogger.setPromptHeaderPrefix("123/456")
-      promptLogger.setPromptLine(Seq("1"), "/456", "my-task")
+      promptLogger.prompt.setPromptHeaderPrefix("123/456")
+      promptLogger.prompt.setPromptLine(Seq("1"), "/456", "my-task")
 
       now += 10000
 
@@ -68,7 +68,7 @@ object PromptLoggerTests extends TestSuite {
 
       prefixLogger.streams.out.println("WORLD")
 
-      promptLogger.removePromptLine(Seq("1"))
+      promptLogger.prompt.removePromptLine(Seq("1"))
 
       now += 10000
       promptLogger.refreshPrompt()
@@ -104,12 +104,12 @@ object PromptLoggerTests extends TestSuite {
       var now = 0L
       val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
 
-      promptLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
         "[123/456] ============================== TITLE =============================="
       )
-      promptLogger.setPromptLine(Seq("1"), "/456", "my-task")
+      promptLogger.prompt.setPromptLine(Seq("1"), "/456", "my-task")
 
       now += 10000
 
@@ -141,14 +141,14 @@ object PromptLoggerTests extends TestSuite {
       // Only after some time has passed do we start displaying the new ticker entry,
       // to ensure it is meaningful to read and not just something that will flash and disappear
       val newPrefixLogger2 = new PrefixLogger(promptLogger, Seq("2"))
-      newPrefixLogger2.setPromptLine(Seq("2"), "/456", "my-task-new")
+      newPrefixLogger2.prompt.setPromptLine(Seq("2"), "/456", "my-task-new")
       newPrefixLogger2.streams.err.println("I AM COW")
       newPrefixLogger2.streams.err.println("HEAR ME MOO")
 
       // For short-lived ticker entries that are removed quickly, they never
       // appear in the prompt at all even though they can run and generate logs
       val newPrefixLogger3 = new PrefixLogger(promptLogger, Seq("3"))
-      newPrefixLogger3.setPromptLine(Seq("3"), "/456", "my-task-short-lived")
+      newPrefixLogger3.prompt.setPromptLine(Seq("3"), "/456", "my-task-short-lived")
       newPrefixLogger3.streams.err.println("hello short lived")
       newPrefixLogger3.streams.err.println("goodbye short lived")
 
@@ -168,7 +168,7 @@ object PromptLoggerTests extends TestSuite {
         "[1] my-task 10s"
       )
 
-      newPrefixLogger3.removePromptLine(Seq("3"))
+      newPrefixLogger3.prompt.removePromptLine(Seq("3"))
 
       now += 1000
 
@@ -189,7 +189,7 @@ object PromptLoggerTests extends TestSuite {
         "[2] my-task-new 1s"
       )
 
-      promptLogger.removePromptLine(Seq("1"))
+      promptLogger.prompt.removePromptLine(Seq("1"))
 
       now += 10
 
@@ -272,10 +272,10 @@ object PromptLoggerTests extends TestSuite {
       @volatile var now = 0L
       val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
 
-      promptLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.refreshPrompt()
 
-      promptLogger.setPromptLine(Seq("1"), "/456", "my-task")
+      promptLogger.prompt.setPromptLine(Seq("1"), "/456", "my-task")
       prefixLogger.ticker("detail")
       now += 1000
       promptLogger.refreshPrompt()
@@ -289,7 +289,7 @@ object PromptLoggerTests extends TestSuite {
         "[123/456] ============================== TITLE ============================= 1s",
         "[1] my-task 1s detail-too-long-gets-truncated...fghijklmnopqrstuvwxyz1234567890"
       )
-      promptLogger.removePromptLine(Seq("1"))
+      promptLogger.prompt.removePromptLine(Seq("1"))
       now += 10000
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(

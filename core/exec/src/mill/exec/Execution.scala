@@ -49,7 +49,7 @@ private[mill] case class Execution(
       testReporter: TestReporter = DummyTestReporter,
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false
-  ): Execution.Results = logger.withPromptUnpaused {
+  ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
@@ -152,7 +152,7 @@ private[mill] case class Execution(
               )
 
               val keySuffix = s"/${terminals0.size}"
-              logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+              logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
               if (failed.get()) None
               else {
                 val upstreamResults = upstreamValues
@@ -200,7 +200,7 @@ private[mill] case class Execution(
                 rootFailedCount.addAndGet(newFailures)
 
                 // Always show failed count in header if there are failures
-                logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+                logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
 
                 if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)
@@ -248,7 +248,7 @@ private[mill] case class Execution(
 
     val exclusiveResults = evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
 
-    logger.clearPromptStatuses()
+    logger.prompt.clearPromptStatuses()
 
     val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 

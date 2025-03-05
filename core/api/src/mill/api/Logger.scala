@@ -37,14 +37,7 @@ trait Logger {
   def error(s: String): Unit
   def ticker(s: String): Unit
 
-  private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ticker(s)
-  private[mill] def reportKey(key: Seq[String]): Unit = ()
-  private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit = ()
-  private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
-  private[mill] def clearPromptStatuses(): Unit = ()
-  private[mill] def removePromptLine(key: Seq[String]): Unit = ()
-  private[mill] def withPromptPaused[T](t: => T): T = t
-  private[mill] def withPromptUnpaused[T](t: => T): T = t
+  private[mill] def prompt: Logger.Prompt
 
   /**
    * @since Mill 0.10.5
@@ -58,13 +51,45 @@ trait Logger {
     this
 
   private[mill] def withPromptLine[T](t: => T): T = {
-    setPromptLine(logPrefixKey, keySuffix, message)
+    prompt.setPromptLine(logPrefixKey, keySuffix, message)
     try t
-    finally removePromptLine(logPrefixKey)
+    finally prompt.removePromptLine(logPrefixKey)
   }
 
   def withOutStream(outStream: PrintStream): Logger = this
   private[mill] def message: String = ""
   private[mill] def keySuffix: String = ""
   private[mill] def logPrefixKey: Seq[String] = Nil
+}
+
+object Logger {
+
+  /**
+   * APIs that allow a logger to interact with the global prompt: setting and unsetting
+   * lines, enabling or disabling the prompt, etc. Normally passed through from logger
+   * to logger unchanged without any sort of customization.
+   */
+  trait Prompt {
+    private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
+    private[mill] def reportKey(key: Seq[String]): Unit
+    private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit
+    private[mill] def setPromptHeaderPrefix(s: String): Unit
+    private[mill] def clearPromptStatuses(): Unit
+    private[mill] def removePromptLine(key: Seq[String]): Unit
+    private[mill] def withPromptPaused[T](t: => T): T
+    private[mill] def withPromptUnpaused[T](t: => T): T
+  }
+  object Prompt {
+    class NoOp extends Prompt {
+      private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ()
+      private[mill] def reportKey(key: Seq[String]): Unit = ()
+      private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
+        ()
+      private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
+      private[mill] def clearPromptStatuses(): Unit = ()
+      private[mill] def removePromptLine(key: Seq[String]): Unit = ()
+      private[mill] def withPromptPaused[T](t: => T): T = t
+      private[mill] def withPromptUnpaused[T](t: => T): T = t
+    }
+  }
 }

@@ -38,45 +38,54 @@ private[mill] class MultiLogger(
     logger2.ticker(s)
   }
 
-  override def setPromptDetail(key: Seq[String], s: String): Unit = {
-    logger1.setPromptDetail(key, s)
-    logger2.setPromptDetail(key, s)
-  }
+  def prompt: Logger.Prompt = new Logger.Prompt {
 
-  private[mill] override def setPromptLine(
-      key: Seq[String],
-      keySuffix: String,
-      message: String
-  ): Unit = {
-    logger1.setPromptLine(key, keySuffix, message)
-    logger2.setPromptLine(key, keySuffix, message)
-  }
+    override def setPromptDetail(key: Seq[String], s: String): Unit = {
+      logger1.prompt.setPromptDetail(key, s)
+      logger2.prompt.setPromptDetail(key, s)
+    }
 
+    private[mill] override def setPromptLine(
+        key: Seq[String],
+        keySuffix: String,
+        message: String
+    ): Unit = {
+      logger1.prompt.setPromptLine(key, keySuffix, message)
+      logger2.prompt.setPromptLine(key, keySuffix, message)
+    }
+
+    private[mill] override def reportKey(key: Seq[String]): Unit = {
+      logger1.prompt.reportKey(key)
+      logger2.prompt.reportKey(key)
+    }
+
+    private[mill] override def clearPromptStatuses(): Unit = {
+      logger1.prompt.clearPromptStatuses()
+      logger2.prompt.clearPromptStatuses()
+    }
+
+    private[mill] override def removePromptLine(key: Seq[String]): Unit = {
+      logger1.prompt.removePromptLine(key)
+      logger2.prompt.removePromptLine(key)
+    }
+
+    private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
+      logger1.prompt.setPromptHeaderPrefix(s)
+      logger2.prompt.setPromptHeaderPrefix(s)
+    }
+
+    private[mill] override def withPromptPaused[T](t: => T): T = {
+      logger1.prompt.withPromptPaused(logger2.prompt.withPromptPaused(t))
+    }
+
+    private[mill] override def withPromptUnpaused[T](t: => T): T = {
+      logger1.prompt.withPromptUnpaused(logger2.prompt.withPromptUnpaused(t))
+    }
+
+  }
   def debug(s: String): Unit = {
     logger1.debug(s)
     logger2.debug(s)
-  }
-
-  private[mill] override def reportKey(key: Seq[String]): Unit = {
-    logger1.reportKey(key)
-    logger2.reportKey(key)
-  }
-
-  private[mill] override def removePromptLine(key: Seq[String]): Unit = {
-    logger1.removePromptLine(key)
-    logger2.removePromptLine(key)
-  }
-
-  private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
-    logger1.setPromptHeaderPrefix(s)
-    logger2.setPromptHeaderPrefix(s)
-  }
-
-  private[mill] override def withPromptPaused[T](t: => T): T = {
-    logger1.withPromptPaused(logger2.withPromptPaused(t))
-  }
-  private[mill] override def withPromptUnpaused[T](t: => T): T = {
-    logger1.withPromptUnpaused(logger2.withPromptUnpaused(t))
   }
 
   override def enableTicker: Boolean = logger1.enableTicker || logger2.enableTicker
