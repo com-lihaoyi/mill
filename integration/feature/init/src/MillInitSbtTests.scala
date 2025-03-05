@@ -8,6 +8,7 @@ import utest.*
 import scala.collection.immutable.SortedSet
 
 object MillInitSbtUtils {
+
   /**
    * bump sbt version to our tested version to resolve compatibility issues with lower sbt versions and higher JDK versions
    */
