@@ -1,6 +1,7 @@
 package build.main.init
 
 import mill._
+import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
 
@@ -96,7 +97,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
   }
 
-  object sbt extends build.MillPublishScalaModule {
+  object sbt extends build.MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(buildgen, models(build.Deps.scalaVersion))
 
     def sbtPluginJarResources = Task {
@@ -107,6 +108,12 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     def resources: T[Seq[PathRef]] =
       Task.Sources(super.resources() ++ Seq(sbtPluginJarResources()))
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
+
+    def buildInfoPackageName = "mill.main.sbt"
+    def buildInfoObjectName: String = "Versions"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("sbtVersion", build.Deps.sbt.version, "Version of sbt.")
+    )
 
     // An SBT plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
     object models
