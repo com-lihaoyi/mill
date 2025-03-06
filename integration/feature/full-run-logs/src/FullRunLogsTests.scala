@@ -80,7 +80,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         .replace("<digits>", "\\E\\d+\\Q")
         .replace("<dashes>", "\\E=+\\Q")
 
-
       val normErr = res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
       assert(expectedErrorRegex.r.matches(normErr))
     }

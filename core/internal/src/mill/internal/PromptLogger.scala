@@ -315,7 +315,7 @@ private[mill] object PromptLogger {
               .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
               .getBytes
           )
-        } else{
+        } else {
           dest.write(new String(buf, 0, end).getBytes)
         }
       }
