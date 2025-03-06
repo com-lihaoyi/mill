@@ -28,12 +28,12 @@ private[mill] class PrefixLogger(
     // above the output of every command that gets run so we can see who the output belongs to
     noPrefix: Boolean = false
 ) extends Logger {
-  private[mill] override val logPrefixKey = logger0.logPrefixKey ++ key0
+  private[mill] override val logKey = logger0.logKey ++ key0
 
   assert(key0.forall(_.nonEmpty))
   val linePrefix: String =
-    if (noPrefix || logPrefixKey.isEmpty || !prompt.enableTicker) ""
-    else s"[${logPrefixKey.mkString("-")}] "
+    if (noPrefix || logKey.isEmpty || !prompt.enableTicker) ""
+    else s"[${logKey.mkString("-")}] "
   override def toString: String =
     s"PrefixLogger($logger0, $key0)"
 
@@ -41,7 +41,7 @@ private[mill] class PrefixLogger(
     new PrintStream(new LinePrefixOutputStream(
       prompt.infoColor(linePrefix).render,
       stream,
-      () => prompt.reportKey(logPrefixKey)
+      () => prompt.reportKey(logKey)
     ))
   }
   val streams = new SystemStreams(
@@ -57,19 +57,19 @@ private[mill] class PrefixLogger(
   )
 
   override def info(s: String): Unit = {
-    prompt.reportKey(logPrefixKey)
+    prompt.reportKey(logKey)
     logger0.info("" + prompt.infoColor(linePrefix) + s)
   }
   override def error(s: String): Unit = {
-    prompt.reportKey(logPrefixKey)
+    prompt.reportKey(logKey)
     logger0.error("" + prompt.infoColor(linePrefix) + s)
   }
-  override def ticker(s: String): Unit = prompt.setPromptDetail(logPrefixKey, s)
+  override def ticker(s: String): Unit = prompt.setPromptDetail(logKey, s)
 
   def prompt = logger0.prompt
 
   override def debug(s: String): Unit = {
-    if (prompt.debugEnabled) prompt.reportKey(logPrefixKey)
+    if (prompt.debugEnabled) prompt.reportKey(logKey)
     logger0.debug("" + prompt.infoColor(linePrefix) + s)
   }
   override def withOutStream(outStream: PrintStream): Logger = new ProxyLogger(this) with Logger {

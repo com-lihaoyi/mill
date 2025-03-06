@@ -94,7 +94,7 @@ private[mill] class MultiLogger(
     logger2.debug(s)
   }
 
-  private[mill] override def logPrefixKey = logger1.logPrefixKey ++ logger2.logPrefixKey
+  private[mill] override def logKey = logger1.logKey ++ logger2.logKey
 
   override def withOutStream(outStream: PrintStream): Logger = {
     new MultiLogger(
