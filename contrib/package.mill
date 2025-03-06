@@ -118,7 +118,7 @@ object `package` extends RootModule {
     def testArgs = Task {
       super.testArgs() ++
         Seq(
-          s"-DMILL_SCOVERAGE2_VERSION=${build.Deps.scalacScoverage2Plugin.dep.version}"
+          s"-DMILL_SCOVERAGE2_VERSION=${build.Deps.scalacScoverage2Plugin.version}"
         )
     }
 
@@ -179,7 +179,7 @@ object `package` extends RootModule {
 
     def buildInfoPackageName = "mill.contrib.bloop"
     def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Seq(BuildInfo.Value("bloop", build.Deps.bloopConfig.dep.version))
+    def buildInfoMembers = Seq(BuildInfo.Value("bloop", build.Deps.bloopConfig.version))
   }
 
   object artifactory extends ContribModule {
