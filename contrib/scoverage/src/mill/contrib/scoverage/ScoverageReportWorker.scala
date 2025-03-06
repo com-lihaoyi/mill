@@ -41,6 +41,7 @@ class ScoverageReportWorker extends AutoCloseable {
         def info(msg: String): Unit = ctx.log.info(msg)
         def warn(msg: String): Unit = ctx.log.warn(msg)
         def error(msg: String): Unit = ctx.log.error(msg)
+        def warn(msg: String): Unit = ctx.log.warn(msg)
         def debug(msg: String): Unit = ctx.log.debug(msg)
       }
       new ApiCtx {
