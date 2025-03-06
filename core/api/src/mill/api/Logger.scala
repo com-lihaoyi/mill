@@ -101,7 +101,7 @@ trait Logger {
   final def debugEnabled = prompt.debugEnabled
 }
 
-object Logger {
+private[mill] object Logger {
 
   /**
    * APIs that allow a logger to interact with the global prompt: setting and unsetting
