@@ -129,9 +129,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (runner, tasks)
   }
 
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
-      ctx: Ctx.Log
-  ): (String, Iterator[TestResult]) = {
+  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner): (String, Iterator[TestResult]) = {
     val events = new ConcurrentLinkedQueue[Event]()
     val doneMessage = {
 
@@ -146,12 +144,12 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
             }
           },
           Array(new Logger {
-            def debug(msg: String) = ctx.log.streams.out.println(msg)
-            def error(msg: String) = ctx.log.streams.out.println(msg)
+            def debug(msg: String) = println(msg)
+            def error(msg: String) = println(msg)
             def ansiCodesSupported() = true
-            def warn(msg: String) = ctx.log.streams.out.println(msg)
-            def trace(t: Throwable) = t.printStackTrace(ctx.log.streams.out)
-            def info(msg: String) = ctx.log.streams.out.println(msg)
+            def warn(msg: String) = println(msg)
+            def trace(t: Throwable) = t.printStackTrace(System.out)
+            def info(msg: String) = println(msg)
           })
         )
 
@@ -162,9 +160,9 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
     if (doneMessage != null && doneMessage.nonEmpty) {
       if (doneMessage.endsWith("\n"))
-        ctx.log.streams.out.print(doneMessage)
+        println(doneMessage.stripSuffix("\n"))
       else
-        ctx.log.streams.out.println(doneMessage)
+        println(doneMessage)
     }
 
     val results = for (e <- events.iterator().asScala) yield {
@@ -197,7 +195,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
       testReporter: TestReporter
-  )(implicit ctx: Ctx.Log): (String, Seq[TestResult]) = {
+  ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 

@@ -14,7 +14,7 @@ import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
 import mill.main.BuildInfo
 import mill.runner.worker.ScalaCompilerWorker
-import mill.internal.{Colors, PrintLogger, PromptLogger}
+import mill.internal.{Colors, PromptLogger}
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
