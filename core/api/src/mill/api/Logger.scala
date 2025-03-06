@@ -82,20 +82,20 @@ trait Logger {
    * line is generated. Useful for cross-referencing the short [[logKey]] with a more
    * meaningful module path and task name.
    */
-  private[mill] def message: String = ""
+  private[mill] def message: String = ???
 
   /**
    * A suffix appended to the [[logKey]] when the [[message]] is printed. Usually
    * the total task count, so the task ID in [[logKey]] can be compared to the total
    * task count to judge how much of the build has been completed
    */
-  private[mill] def keySuffix: String = ""
+  private[mill] def keySuffix: String = ???
 
   /**
    * Creates a new logger identical to this one but with stdout redirected
    * to the given stream; typically used to redirect out to err in `mill show`
    */
-  def withOutStream(outStream: PrintStream): Logger = this
+  def withOutStream(outStream: PrintStream): Logger = ???
 
   /**
    * Whether the `--debug` flag was passed to Mill. Used to turn on additional
