@@ -51,7 +51,7 @@ private[scalalib] object TestModuleUtil {
         arguments = args,
         sysProps = props,
         outputPath = outputPath,
-        colored = Task.log.colored,
+        colored = Task.log.prompt.colored,
         testCp = testClasspath.map(_.path),
         globSelectors = selectors2
       )

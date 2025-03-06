@@ -1,5 +1,6 @@
 package mill.exec
 
+import mill.internal.{FileLogger, MultiLogger, PrefixLogger}
 import os.Path
 
 import scala.concurrent.{Await, Future}
@@ -84,7 +85,11 @@ private object ExecutionContexts {
     def async[T](dest: Path, key: String, message: String)(t: => T)(implicit
         ctx: mill.api.Ctx
     ): Future[T] = {
-      val logger = ctx.log.subLogger(dest / os.up / s"${dest.last}.log", key, message)
+      val logger = new MultiLogger(
+        new PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),
+        new FileLogger(dest / os.up / s"${dest.last}.log", false),
+        ctx.log.streams.in
+      )
 
       var destInitialized: Boolean = false
       def makeDest() = synchronized {

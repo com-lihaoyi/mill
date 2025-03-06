@@ -8,7 +8,6 @@ import mill.api.{Logger, SystemStreams}
  */
 private[mill] class ProxyLogger(logger: Logger) extends Logger {
   override def toString: String = s"ProxyLogger($logger)"
-  def colored = logger.colored
 
   lazy val streams = logger.streams
 
@@ -19,8 +18,6 @@ private[mill] class ProxyLogger(logger: Logger) extends Logger {
 
   def prompt = logger.prompt
 
-  override def infoColor: fansi.Attrs = logger.infoColor
-  override def errorColor: fansi.Attrs = logger.errorColor
   private[mill] override def logPrefixKey: Seq[String] = logger.logPrefixKey
   private[mill] override def unprefixedStreams: SystemStreams = logger.unprefixedStreams
 }

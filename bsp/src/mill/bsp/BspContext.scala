@@ -42,7 +42,6 @@ private[mill] class BspContext(
       canReload: Boolean
   ): Result[BspServerHandle] = {
     val log: Logger = new Logger {
-      override def colored: Boolean = false
       override def streams: SystemStreams = new SystemStreams(
         out = streams0.out,
         err = streams0.err,

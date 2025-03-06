@@ -6,7 +6,6 @@ import java.io.{OutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
 
 private[mill] class FileLogger(
-    override val colored: Boolean,
     file: os.Path,
     append: Boolean = false
 ) extends Logger with AutoCloseable {
@@ -52,9 +51,5 @@ private[mill] class FileLogger(
     if (outputStreamUsed)
       streams.out.close()
   }
-  def enableTicker = false
   def prompt = new Logger.Prompt.NoOp
-  override def subLogger(path: os.Path, keySuffix: String, message: String): Logger = {
-    new FileLogger(colored, path, append)
-  }
 }

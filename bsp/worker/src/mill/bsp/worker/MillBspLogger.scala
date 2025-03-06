@@ -20,8 +20,6 @@ import mill.internal.ProxyLogger
 private class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
     extends ProxyLogger(logger)
     with Logger {
-  override def infoColor = fansi.Color.Blue
-  override def errorColor = fansi.Color.Red
 
   override def ticker(s: String): Unit = {
     try {

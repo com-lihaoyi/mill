@@ -9,14 +9,14 @@ import java.io.PrintStream
  *
  * Generates log lines of the form
  *
- * [$logPrefixKey/$keySuffix] $message
- * [$logPrefixKey] ...logs...
- * [$logPrefixKey] ...logs...
- * [$logPrefixKey] ...logs...
+ * [$parentKeys-$key0/$keySuffix] $message
+ * [$parentKeys-$key0] ...logs...
+ * [$parentKeys-$key0] ...logs...
+ * [$parentKeys-$key0] ...logs...
  *
  * And a prompt line of the form
  *
- * [$logPrefixKey] $message
+ * [$parentKeys-$key0] $message
  */
 private[mill] class PrefixLogger(
     val logger0: Logger,
@@ -36,14 +36,9 @@ private[mill] class PrefixLogger(
   override def toString: String =
     s"PrefixLogger($logger0, $key0)"
 
-  override def colored = logger0.colored
-
-  override def infoColor = logger0.infoColor
-  override def errorColor = logger0.errorColor
-
   def prefixPrintStream(stream: java.io.OutputStream) = {
     new PrintStream(new LinePrefixOutputStream(
-      infoColor(linePrefix).render,
+      prompt.infoColor(linePrefix).render,
       stream,
       () => prompt.reportKey(logPrefixKey)
     ))
@@ -62,11 +57,11 @@ private[mill] class PrefixLogger(
 
   override def info(s: String): Unit = {
     prompt.reportKey(logPrefixKey)
-    logger0.info("" + infoColor(linePrefix) + s)
+    logger0.info("" + prompt.infoColor(linePrefix) + s)
   }
   override def error(s: String): Unit = {
     prompt.reportKey(logPrefixKey)
-    logger0.error("" + infoColor(linePrefix) + s)
+    logger0.error("" + prompt.infoColor(linePrefix) + s)
   }
   override def ticker(s: String): Unit = prompt.setPromptDetail(logPrefixKey, s)
 
@@ -74,7 +69,7 @@ private[mill] class PrefixLogger(
 
   override def debug(s: String): Unit = {
     if (prompt.debugEnabled) prompt.reportKey(logPrefixKey)
-    logger0.debug("" + infoColor(linePrefix) + s)
+    logger0.debug("" + prompt.infoColor(linePrefix) + s)
   }
   override def withOutStream(outStream: PrintStream): Logger = new ProxyLogger(this) with Logger {
     override lazy val unprefixedStreams = new SystemStreams(
@@ -88,9 +83,5 @@ private[mill] class PrefixLogger(
       PrefixLogger.this.streams.err,
       PrefixLogger.this.streams.in
     )
-  }
-
-  private[mill] override def subLogger(path: os.Path, subKey: String, message: String): Logger = {
-    new PrefixLogger(this, Seq(subKey), keySuffix, message)
   }
 }

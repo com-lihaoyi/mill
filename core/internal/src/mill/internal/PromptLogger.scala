@@ -17,10 +17,10 @@ import java.io.*
  * buffer to be read out and handled asynchronously.
  */
 private[mill] class PromptLogger(
-    override val colored: Boolean,
+    colored: Boolean,
     enableTicker: Boolean,
-    override val infoColor: fansi.Attrs,
-    override val errorColor: fansi.Attrs,
+    infoColor: fansi.Attrs,
+    errorColor: fansi.Attrs,
     systemStreams0: SystemStreams,
     debugEnabled: Boolean,
     titleText: String,
@@ -145,6 +145,10 @@ private[mill] class PromptLogger(
 
     def enableTicker = PromptLogger.this.enableTicker
     def debugEnabled = PromptLogger.this.debugEnabled
+
+    def infoColor: fansi.Attrs = PromptLogger.this.infoColor
+    def errorColor: fansi.Attrs = PromptLogger.this.errorColor
+    def colored: Boolean = PromptLogger.this.colored
   }
   def ticker(s: String): Unit = ()
 
