@@ -74,7 +74,7 @@ class UnitTester(
         debugEnabled = debugEnabled,
         titleText = "",
         terminfoPath = os.temp(),
-        currentTimeMillis = () => System.currentTimeMillis(),
+        currentTimeMillis = () => System.currentTimeMillis()
       ) {
     val prefix: String = {
       val idx = fullName.value.lastIndexOf(".")

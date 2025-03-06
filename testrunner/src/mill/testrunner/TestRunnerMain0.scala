@@ -1,6 +1,6 @@
 package mill.testrunner
 
-import mill.api.{Logger, Ctx, DummyTestReporter, SystemStreams, internal}
+import mill.api.{DummyTestReporter, internal}
 
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {

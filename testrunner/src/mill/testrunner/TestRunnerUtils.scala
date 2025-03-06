@@ -1,6 +1,6 @@
 package mill.testrunner
 
-import mill.api.{Ctx, TestReporter, internal}
+import mill.api.{TestReporter, internal}
 import os.Path
 import sbt.testing._
 
@@ -129,7 +129,11 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (runner, tasks)
   }
 
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner): (String, Iterator[TestResult]) = {
+  def runTasks(
+      tasks: Seq[Task],
+      testReporter: TestReporter,
+      runner: Runner
+  ): (String, Iterator[TestResult]) = {
     val events = new ConcurrentLinkedQueue[Event]()
     val doneMessage = {
 
