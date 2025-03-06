@@ -261,8 +261,6 @@ trait PublishModule extends TypeScriptModule {
       os.symlink(Task.dest / ".npmrc", npmInstall().path / ".npmrc")
   }
 
-
-
   override def compile: T[(PathRef, PathRef)] = Task {
     pubSymLink()
     os.write(
@@ -348,8 +346,15 @@ trait PublishModule extends TypeScriptModule {
 
   private def bundleAnon: Task[PathRef] = Task.Anon {
 
-    //copy compile.dest contents to path.dest
-    os.copy(compile()._1.path,Task.dest,replaceExisting = false,followLinks = false,mergeFolders = true,createFolders = false)
+    // copy compile.dest contents to path.dest
+    os.copy(
+      compile()._1.path,
+      Task.dest,
+      replaceExisting = false,
+      followLinks = false,
+      mergeFolders = true,
+      createFolders = false
+    )
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundleScript = Task.dest / "build.ts"
     val bundle = Task.dest / "bundle.js"
