@@ -9,14 +9,14 @@ import java.io.PrintStream
  *
  * Generates log lines of the form
  *
- * [$logPrefixKey/$keySuffix] $message
- * [$logPrefixKey] ...logs...
- * [$logPrefixKey] ...logs...
- * [$logPrefixKey] ...logs...
+ * [$parentKeys-$key0/$keySuffix] $message
+ * [$parentKeys-$key0] ...logs...
+ * [$parentKeys-$key0] ...logs...
+ * [$parentKeys-$key0] ...logs...
  *
  * And a prompt line of the form
  *
- * [$logPrefixKey] $message
+ * [$parentKeys-$key0] $message
  */
 private[mill] class PrefixLogger(
     val logger0: Logger,
