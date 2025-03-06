@@ -81,6 +81,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         .replace("<dashes>", "\\E=+\\Q")
 
       val normErr = res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
+      pprint.log(expectedErrorRegex)
+      pprint.log(normErr)
       assert(expectedErrorRegex.r.matches(normErr))
     }
     test("show") - integrationTest { tester =>
