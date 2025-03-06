@@ -152,7 +152,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/Logger$$Prompt.html#","e":false,"i":"","n":"Prompt","t":"Prompt","d":"mill.api.Logger","k":"trait","x":""},
 {"l":"mill/api/Logger$$Prompt.html#colored-0","e":false,"i":"","n":"colored","t":"colored: Boolean","d":"mill.api.Logger.Prompt","k":"def","x":""},
 {"l":"mill/api/Logger$$Prompt.html#debugEnabled-0","e":false,"i":"","n":"debugEnabled","t":"debugEnabled: Boolean","d":"mill.api.Logger.Prompt","k":"def","x":""},
-{"l":"mill/api/Logger$$Prompt.html#enableTicker-0","e":false,"i":"","n":"enableTicker","t":"enableTicker: Boolean","d":"mill.api.Logger.Prompt","k":"def","x":""},
 {"l":"mill/api/Logger$$Prompt.html#errorColor-0","e":false,"i":"","n":"errorColor","t":"errorColor: Attrs","d":"mill.api.Logger.Prompt","k":"def","x":""},
 {"l":"mill/api/Logger$$Prompt.html#infoColor-0","e":false,"i":"","n":"infoColor","t":"infoColor: Attrs","d":"mill.api.Logger.Prompt","k":"def","x":""},
 {"l":"mill/api/MillException.html#","e":false,"i":"","n":"MillException","t":"MillException(msg: String) extends Exception","d":"mill.api","k":"class","x":""},
