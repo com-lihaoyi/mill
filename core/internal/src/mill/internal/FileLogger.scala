@@ -44,6 +44,7 @@ private[mill] class FileLogger(
 
   val streams = new SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
   def info(s: String): Unit = streams.out.println(s)
+  def warn(s: String): Unit = streams.out.println(s)
   def error(s: String): Unit = streams.out.println(s)
   def ticker(s: String): Unit = streams.out.println(s)
   def debug(s: String): Unit = if (prompt.debugEnabled) streams.out.println(s)

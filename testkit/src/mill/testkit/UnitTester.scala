@@ -69,6 +69,7 @@ class UnitTester(
         colored = true,
         enableTicker = false,
         infoColor = mill.internal.Colors.Default.info,
+        warnColor = mill.internal.Colors.Default.warn,
         errorColor = mill.internal.Colors.Default.error,
         systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,

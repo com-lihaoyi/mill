@@ -52,6 +52,7 @@ private[mill] class BspContext(
       }
 
       override def info(s: String): Unit = streams.err.println(s)
+      override def warn(s: String): Unit = streams.err.println(s)
       override def error(s: String): Unit = streams.err.println(s)
       override def ticker(s: String): Unit = streams.err.println(s)
 

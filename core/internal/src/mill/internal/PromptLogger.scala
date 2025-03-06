@@ -20,6 +20,7 @@ private[mill] class PromptLogger(
     colored: Boolean,
     enableTicker: Boolean,
     infoColor: fansi.Attrs,
+    warnColor: fansi.Attrs,
     errorColor: fansi.Attrs,
     systemStreams0: SystemStreams,
     debugEnabled: Boolean,
@@ -96,6 +97,8 @@ private[mill] class PromptLogger(
 
   def info(s: String): Unit = streams.err.println(s)
 
+  def warn(s: String): Unit = streams.err.println(s)
+
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
@@ -147,6 +150,7 @@ private[mill] class PromptLogger(
     def debugEnabled = PromptLogger.this.debugEnabled
 
     def infoColor: fansi.Attrs = PromptLogger.this.infoColor
+    def warnColor: fansi.Attrs = PromptLogger.this.warnColor
     def errorColor: fansi.Attrs = PromptLogger.this.errorColor
     def colored: Boolean = PromptLogger.this.colored
   }

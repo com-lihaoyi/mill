@@ -14,6 +14,7 @@ private[mill] object DummyLogger extends Logger {
   )
 
   def info(s: String) = ()
+  def warn(s: String) = ()
   def error(s: String) = ()
   def ticker(s: String) = ()
   def debug(s: String) = ()
