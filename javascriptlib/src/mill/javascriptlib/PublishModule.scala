@@ -154,7 +154,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   /**
-   * Generate sources path strings relativised to publishDir
+   * Generate sources relative to publishDir / "typescript"
    */
   private def pubAllSources: Task[Seq[String]] = Task.Anon {
     val project = Task.workspace.toString
@@ -346,8 +346,7 @@ trait PublishModule extends TypeScriptModule {
 
   }
 
-
-  private def bundleAnon: Task[PathRef] = Task.Anon{
+  private def bundleAnon: Task[PathRef] = Task.Anon {
 
     //copy compile.dest contents to path.dest
     os.copy(compile()._1.path,Task.dest,replaceExisting = false,followLinks = false,mergeFolders = true,createFolders = false)
