@@ -305,15 +305,19 @@ private[mill] object PromptLogger {
           promptShown = false
         }
 
-        // Clear each line as they are drawn, rather than relying on clearing
-        // the entire screen before each batch of writes, to try and reduce the
-        // amount of terminal flickering in slow terminals (e.g. windows)
-        // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
-        dest.write(
-          new String(buf, 0, end)
-            .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
-            .getBytes
-        )
+        if (enableTicker) {
+          // Clear each line as they are drawn, rather than relying on clearing
+          // the entire screen before each batch of writes, to try and reduce the
+          // amount of terminal flickering in slow terminals (e.g. windows)
+          // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
+          dest.write(
+            new String(buf, 0, end)
+              .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
+              .getBytes
+          )
+        } else{
+          dest.write(new String(buf, 0, end).getBytes)
+        }
       }
     }
 
