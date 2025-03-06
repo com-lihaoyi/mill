@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
 
-      - run: ./mill 'integration.feature[subprocess-stdout].local.server.test'
+      - run: ./mill 'integration.feature[{full-run-logs,subprocess-stdout}].packaged.server.test'
         env:
           COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
 
