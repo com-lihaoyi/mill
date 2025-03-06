@@ -45,7 +45,11 @@ trait Logger {
 
   /**
    * Prints short-lived logging output where consecutive lines over-write
-   * each other; useful for information which is transient and disposable
+   * each other; this shows up in the logger's prompt line in the multi-line
+   * prompt when [[withPromptLine]] is running.
+   *
+   * Useful for information which is transient and disposable, e.g. progress
+   * indicators.
    */
   def ticker(s: String): Unit
 
