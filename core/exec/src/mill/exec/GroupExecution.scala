@@ -250,7 +250,7 @@ private trait GroupExecution {
             } ++
               paths.map(_.dest)
 
-          val executionChecker = new os.Checker {
+          new os.Checker {
             def onRead(path: os.ReadablePath): Unit = ()
             def onWrite(path: os.Path): Unit = {
               if (!isCommand) {
