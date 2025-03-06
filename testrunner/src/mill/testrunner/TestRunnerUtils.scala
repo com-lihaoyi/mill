@@ -146,12 +146,12 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
             }
           },
           Array(new Logger {
-            def debug(msg: String) = ctx.log.outputStream.println(msg)
-            def error(msg: String) = ctx.log.outputStream.println(msg)
+            def debug(msg: String) = ctx.log.streams.out.println(msg)
+            def error(msg: String) = ctx.log.streams.out.println(msg)
             def ansiCodesSupported() = true
-            def warn(msg: String) = ctx.log.outputStream.println(msg)
-            def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
-            def info(msg: String) = ctx.log.outputStream.println(msg)
+            def warn(msg: String) = ctx.log.streams.out.println(msg)
+            def trace(t: Throwable) = t.printStackTrace(ctx.log.streams.out)
+            def info(msg: String) = ctx.log.streams.out.println(msg)
           })
         )
 
@@ -162,9 +162,9 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
     if (doneMessage != null && doneMessage.nonEmpty) {
       if (doneMessage.endsWith("\n"))
-        ctx.log.outputStream.print(doneMessage)
+        ctx.log.streams.out.print(doneMessage)
       else
-        ctx.log.outputStream.println(doneMessage)
+        ctx.log.streams.out.println(doneMessage)
     }
 
     val results = for (e <- events.iterator().asScala) yield {

@@ -6,11 +6,9 @@ import java.io.{OutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
 
 private[mill] class FileLogger(
-    override val colored: Boolean,
     file: os.Path,
-    override val debugEnabled: Boolean,
     append: Boolean = false
-) extends Logger {
+) extends Logger with AutoCloseable {
   override def toString: String = s"FileLogger($file)"
   private var outputStreamUsed: Boolean = false
 
@@ -44,17 +42,14 @@ private[mill] class FileLogger(
     })
   }
 
-  val systemStreams = new SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
-  def info(s: String): Unit = outputStream.println(s)
-  def error(s: String): Unit = outputStream.println(s)
-  def ticker(s: String): Unit = outputStream.println(s)
-  def debug(s: String): Unit = if (debugEnabled) outputStream.println(s)
-  override def close(): Unit = {
+  val streams = new SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
+  def info(s: String): Unit = streams.out.println(s)
+  def error(s: String): Unit = streams.out.println(s)
+  def ticker(s: String): Unit = streams.out.println(s)
+  def debug(s: String): Unit = if (prompt.debugEnabled) streams.out.println(s)
+  def close(): Unit = {
     if (outputStreamUsed)
-      outputStream.close()
+      streams.out.close()
   }
-  override def rawOutputStream: PrintStream = outputStream
-  override def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger = {
-    new FileLogger(colored, path, debugEnabled, append)
-  }
+  def prompt = new Logger.Prompt.NoOp
 }

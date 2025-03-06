@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.{
-  ColorLogger,
+  Logger,
   CompileProblemReporter,
   DummyTestReporter,
   ExecResult,
@@ -41,7 +41,7 @@ final class EvaluatorImpl private[mill] (
   private[mill] def workerCache = execution.workerCache
   private[mill] def env = execution.env
 
-  def withBaseLogger(newBaseLogger: ColorLogger): Evaluator = new EvaluatorImpl(
+  def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger)
@@ -106,7 +106,7 @@ final class EvaluatorImpl private[mill] (
       targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger,
+      logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {

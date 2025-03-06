@@ -12,7 +12,7 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
   override def workerCache = delegate.workerCache
   override def env = delegate.env
 
-  def withBaseLogger(newBaseLogger: ColorLogger): Evaluator = delegate.withBaseLogger(newBaseLogger)
+  def withBaseLogger(newBaseLogger: Logger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
   def resolveSegments(
       scriptArgs: Seq[String],
@@ -42,7 +42,7 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
       targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger,
+      logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {
