@@ -367,7 +367,7 @@ object MillMain {
       serverDir: os.Path,
       colored: Boolean,
       colors: Colors
-  ): Logger with AutoCloseable = {
+  ): Logger & AutoCloseable = {
     new PromptLogger(
       colored = colored,
       enableTicker = enableTicker.getOrElse(true),
