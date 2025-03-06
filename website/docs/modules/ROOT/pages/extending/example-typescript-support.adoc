@@ -15,11 +15,11 @@ implementing language toolchains.
 
 include::partial$example/extending/typescript/1-hello-typescript.adoc[]
 
-== Re-usable TypeScriptModule
+== Re-usable TscModule
 
 include::partial$example/extending/typescript/2-typescript-modules.adoc[]
 
-== TypeScriptModule `moduleDeps`
+== TscModule `moduleDeps`
 
 include::partial$example/extending/typescript/3-module-deps.adoc[]
 
