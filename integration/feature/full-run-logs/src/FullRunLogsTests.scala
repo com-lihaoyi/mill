@@ -56,7 +56,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("keepGoingFailure") - integrationTest { tester =>
       import tester._
 
-      modifyFile(workspacePath / "src/foo/Foo.java", _ + "}")
+      modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar")
       val res = eval(("--ticker", "true", "--keep-going", "jar"))
       res.isSuccess ==> false
 
@@ -68,7 +68,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
              |[build.mill-<digits>] [info] done compiling
              |[<digits>/<digits>] compile
              |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
-             |[<digits>] [error] ${tester.workspacePath}/src/foo/Foo.java:36:1: class, interface, enum, or record expected
+             |[<digits>] [error] ${tester.workspacePath}/src/foo/Foo.java:36:10: reached end of file while parsing
              |[<digits>] compile failed
              |[<digits>/<digits>, 1 failed] <dashes> jar <dashes> <digits>s
              |1 tasks failed
@@ -81,8 +81,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         .replace("<dashes>", "\\E=+\\Q")
 
       val normErr = res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
-      pprint.log(expectedErrorRegex)
-      pprint.log(normErr)
       assert(expectedErrorRegex.r.matches(normErr))
     }
     test("show") - integrationTest { tester =>
