@@ -1,4 +1,4 @@
-import {Calculator} from 'bar/calculator';
+import {Calculator} from '../../../src/calculator';
 
 describe('Calculator', () => {
     const calculator = new Calculator();
