@@ -36,7 +36,7 @@ trait Logger {
 
   private[mill] def prompt: Logger.Prompt
 
-  private[mill] def withPromptLine[T](t: => T): T = {
+  private[mill] final def withPromptLine[T](t: => T): T = {
     prompt.setPromptLine(logPrefixKey, keySuffix, message)
     try t
     finally prompt.removePromptLine(logPrefixKey)
