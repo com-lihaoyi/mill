@@ -169,12 +169,11 @@ private[mill] case class Execution(
                 } yield upstreamResults(item).map(_._1)
                 val logRun = inputResults.forall(_.isInstanceOf[ExecResult.Success[?]])
 
-                val tickerPrefix =
-                  if (logRun && logger.prompt.enableTicker) terminal.toString else ""
+                val tickerPrefix = if (logRun) terminal.toString else ""
 
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
-                  key0 = if (!logger.prompt.enableTicker) Nil else Seq(countMsg),
+                  key0 = Seq(countMsg),
                   keySuffix = keySuffix,
                   message = tickerPrefix,
                   noPrefix = exclusive
