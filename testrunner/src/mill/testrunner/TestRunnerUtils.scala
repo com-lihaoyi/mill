@@ -134,6 +134,9 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       testReporter: TestReporter,
       runner: Runner
   ): (String, Iterator[TestResult]) = {
+    // Capture this value outside of the task event handler so it
+    // isn't affected by a test framework's stream redirects
+    val systemOut = System.out
     val events = new ConcurrentLinkedQueue[Event]()
     val doneMessage = {
 
@@ -148,12 +151,12 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
             }
           },
           Array(new Logger {
-            def debug(msg: String) = println(msg)
-            def error(msg: String) = println(msg)
+            def debug(msg: String) = systemOut.println(msg)
+            def error(msg: String) = systemOut.println(msg)
             def ansiCodesSupported() = true
-            def warn(msg: String) = println(msg)
-            def trace(t: Throwable) = t.printStackTrace(System.out)
-            def info(msg: String) = println(msg)
+            def warn(msg: String) = systemOut.println(msg)
+            def trace(t: Throwable) = t.printStackTrace(systemOut)
+            def info(msg: String) = systemOut.println(msg)
           })
         )
 
