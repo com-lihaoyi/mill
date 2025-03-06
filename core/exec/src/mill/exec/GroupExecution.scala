@@ -307,9 +307,9 @@ private trait GroupExecution {
     fileLoggerOpt.foreach(_.close())
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
-      val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[?]])
+      val taskFailed = newResults.exists(task => task._2.isInstanceOf[ExecResult.Failing[?]])
       if (taskFailed) {
-        logger.error(s"[$counterMsg] $targetLabel failed")
+        logger.error(s"$targetLabel failed")
       }
     }
 

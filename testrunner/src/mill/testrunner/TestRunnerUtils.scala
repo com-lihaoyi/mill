@@ -1,6 +1,6 @@
 package mill.testrunner
 
-import mill.api.{Ctx, TestReporter, internal}
+import mill.api.{TestReporter, internal}
 import os.Path
 import sbt.testing._
 
@@ -129,9 +129,14 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (runner, tasks)
   }
 
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
-      ctx: Ctx.Log
+  def runTasks(
+      tasks: Seq[Task],
+      testReporter: TestReporter,
+      runner: Runner
   ): (String, Iterator[TestResult]) = {
+    // Capture this value outside of the task event handler so it
+    // isn't affected by a test framework's stream redirects
+    val systemOut = System.out
     val events = new ConcurrentLinkedQueue[Event]()
     val doneMessage = {
 
@@ -146,12 +151,12 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
             }
           },
           Array(new Logger {
-            def debug(msg: String) = ctx.log.streams.out.println(msg)
-            def error(msg: String) = ctx.log.streams.out.println(msg)
+            def debug(msg: String) = systemOut.println(msg)
+            def error(msg: String) = systemOut.println(msg)
             def ansiCodesSupported() = true
-            def warn(msg: String) = ctx.log.streams.out.println(msg)
-            def trace(t: Throwable) = t.printStackTrace(ctx.log.streams.out)
-            def info(msg: String) = ctx.log.streams.out.println(msg)
+            def warn(msg: String) = systemOut.println(msg)
+            def trace(t: Throwable) = t.printStackTrace(systemOut)
+            def info(msg: String) = systemOut.println(msg)
           })
         )
 
@@ -162,9 +167,9 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
     if (doneMessage != null && doneMessage.nonEmpty) {
       if (doneMessage.endsWith("\n"))
-        ctx.log.streams.out.print(doneMessage)
+        println(doneMessage.stripSuffix("\n"))
       else
-        ctx.log.streams.out.println(doneMessage)
+        println(doneMessage)
     }
 
     val results = for (e <- events.iterator().asScala) yield {
@@ -197,7 +202,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
       testReporter: TestReporter
-  )(implicit ctx: Ctx.Log): (String, Seq[TestResult]) = {
+  ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 

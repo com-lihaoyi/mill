@@ -69,7 +69,7 @@ object Logger {
 
     def debugEnabled: Boolean
 
-    def enableTicker: Boolean
+    private[mill] def enableTicker: Boolean
 
     def infoColor: fansi.Attrs
 
