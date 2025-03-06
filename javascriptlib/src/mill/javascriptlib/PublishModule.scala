@@ -42,11 +42,10 @@ trait PublishModule extends TypeScriptModule {
   }
 
   private def pubTypesVersion: T[Map[String, Seq[String]]] = Task {
-    pubCopySourcesAndDepsSources().map {
-      source => // todo is it ok to copy here - previously it only provided paths
-        val dist = source.toString.replaceFirst("typescript", pubBundledOut())
-        val declarations = source.toString.replaceFirst("typescript", pubDeclarationOut())
-        ("./" + dist).replaceAll("\\.ts", "") -> Seq(declarations.replaceAll("\\.ts", ".d.ts"))
+    pubAllSources().map { source =>
+      val dist = source.replaceFirst("typescript", pubBundledOut())
+      val declarations = source.replaceFirst("typescript", pubDeclarationOut())
+      ("./" + dist).replaceAll("\\.ts", "") -> Seq(declarations.replaceAll("\\.ts", ".d.ts"))
     }.toMap
   }
 
@@ -128,9 +127,9 @@ trait PublishModule extends TypeScriptModule {
   }
 
   // mv generated sources for base mod and its deps
-  private def pubGenSources: Task[Seq[os.Path]] = Task.Anon {
+  private def pubGenSources: Task[Unit] = Task.Anon {
     val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
-    allGeneratedSources.map { target =>
+    allGeneratedSources.foreach { target =>
       val destination = Task.dest / "typescript/generatedSources" / target.path.last
       os.makeDir.all(destination / os.up)
       os.copy.over(target.path, destination)
@@ -139,7 +138,7 @@ trait PublishModule extends TypeScriptModule {
     }
   }
 
-  private def pubCopyModDeps: T[Unit] = Task.Anon {
+  private def pubCopyModDeps: Task[Unit] = Task.Anon {
     val targets = pubModDeps()
 
     targets.foreach { target =>
@@ -155,22 +154,26 @@ trait PublishModule extends TypeScriptModule {
   }
 
   /**
-   * Generate sources relative to publishDir / "typescript"
+   * Generate sources path strings relativised to publishDir
    */
-  private def pubCopySourcesAndDepsSources: Task[IndexedSeq[os.Path]] = Task.Anon {
+  private def pubAllSources: Task[Seq[String]] = Task.Anon {
     val project = Task.workspace.toString
     val sourcesAndDepsSources = for {
       source <-
         os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr => os.walk(pr.path))
       if source.ext == "ts"
-      target = Task.dest / os.SubPath(source.toString.replaceFirst(
+      target = source.toString.replaceFirst(
         moduleDir.toString,
         "typescript"
-      ).replaceFirst(project, "typescript"))
-      _ = os.copy.over(source, target, createFolders = true)
+      ).replaceFirst(project, "typescript")
     } yield target
 
-    sourcesAndDepsSources
+    val generatedSources = (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
+      val target = "typescript/generatedSources/" + pr.path.last
+      target
+    )
+
+    (sourcesAndDepsSources ++ generatedSources)
   }
 
   override def generatedSourcesPathsBuilder: T[Seq[(String, String)]] = Task {
@@ -258,29 +261,22 @@ trait PublishModule extends TypeScriptModule {
       os.symlink(Task.dest / ".npmrc", npmInstall().path / ".npmrc")
   }
 
-  // need sandboxing bypass because we are copying moduleDir
-  def copyModuleDir = Task.Anon {
-    os.checker.withValue(os.Checker.Nop) {
-      os.copy(moduleDir, Task.dest / "typescript", mergeFolders = true)
-    }
-  }
+
 
   override def compile: T[(PathRef, PathRef)] = Task {
     pubSymLink()
-    copyModuleDir()
-    pubCopyModDeps()
-    val genSourcesPatches = pubGenSources()
-    val sourcesAndDepsSources =
-      pubCopySourcesAndDepsSources() // todo do we need it to copy files (previously we didnt have it)
     os.write(
       Task.dest / "tsconfig.json",
       ujson.Obj(
         "compilerOptions" -> ujson.Obj.from(
           compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
         ),
-        "files" -> (genSourcesPatches ++ sourcesAndDepsSources).map(_.toString)
+        "files" -> pubAllSources()
       )
     )
+    os.copy(moduleDir, Task.dest / "typescript", mergeFolders = true)
+    pubCopyModDeps()
+    pubGenSources()
 
     // Run type check, build declarations
     os.call(
@@ -352,8 +348,9 @@ trait PublishModule extends TypeScriptModule {
 
 
   private def bundleAnon: Task[PathRef] = Task.Anon{
-    pubSymLink()
-    os.copy.over(compile()._1.path, Task.dest, followLinks = false, replaceExisting = false, createFolders = false)
+
+    //copy compile.dest contents to path.dest
+    os.copy(compile()._1.path,Task.dest,replaceExisting = false,followLinks = false,mergeFolders = true,createFolders = false)
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundleScript = Task.dest / "build.ts"
     val bundle = Task.dest / "bundle.js"
@@ -377,7 +374,6 @@ trait PublishModule extends TypeScriptModule {
   // EsBuild - END
 
   def publish(): Command[Unit] = Task.Command {
-//    pubSymLink()
     // build package.json
     os.move(pubbPackageJson().path / "package.json", Task.dest / "package.json")
 
