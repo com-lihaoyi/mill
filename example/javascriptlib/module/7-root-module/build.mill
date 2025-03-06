@@ -1,0 +1,51 @@
+// You can use ``object `package` extends RootModule`` to use a `Module`
+// as the root module of the file:
+
+package build
+
+import mill._, javascriptlib._
+
+object `package` extends RootModule with TscModule {
+  def moduleName = "foo"
+  def npmDeps = Seq("immutable@4.3.7")
+  object test extends TypeScriptTests with TestModule.Jest
+}
+
+// Since our ``object `package` extends RootModule``, its files live in a
+// top-level `src/` folder.
+
+// Mill will ordinarily use the name of the singleton object, as
+// the default value for the `moduleName` task.
+
+// For exmaple:
+
+// The `moduleName` for the singleton `bar` defined as
+// `object bar extends TscModule` would be `bar`,
+// with the expected source directory in `bar/src`.
+
+// For this example, since we use the `RootModule` we would need to manually define our
+// `moduleName`.
+//
+// The `moduleName` is used in the generated `tsconfig` files `compilerOptions['paths']`
+// as the modules `src/` path mapping and to define the default `mainFileName`, which is
+// the modules entry file.
+// The generated mapping for this example would be `"foo/*": [...]`. and its expected main file
+// woudld be `foo.ts` located in top-level `src/`
+
+/** Usage
+> mill run James Bond prof
+Hello James Bond Professor
+
+> mill test
+PASS .../foo.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
+
+> mill show bundle
+Build succeeded!
+
+> node out/bundle.dest/bundle.js James Bond prof
+Hello James Bond Professor
+*/
