@@ -255,8 +255,8 @@ abstract class MillBuildRootModule()(implicit
       .split(',')
       .filter(_.nonEmpty)
       .map { str =>
-        str.split(":", 2) match {
-          case Array(org, name) => (org, name)
+        str.split(":", 3) match {
+          case Array(org, name, _) => (org, name)
           case other =>
             sys.error(
               s"Unexpected misshapen entry in BuildInfo.millAllDistDependencies ('$str', expected 'org:name')"

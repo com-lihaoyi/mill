@@ -121,16 +121,12 @@ trait CoursierSupport {
   }
 
   /**
-   * Resolve dependencies using Coursier.
-   *
-   * We do not bother breaking this out into the separate ZincWorkerApi classpath,
-   * because Coursier is already bundled with mill/Ammonite to support the
-   * `import $ivy` syntax.
+   * Resolve dependencies using Coursier, and return very detailed info about their artifacts.
    */
-  def resolveDependencies(
+  def getArtifacts(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
+      force: IterableOnce[Dependency] = Nil,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
@@ -138,7 +134,7 @@ trait CoursierSupport {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
-  ): Result[Seq[PathRef]] = {
+  ): Result[coursier.Artifacts.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -172,14 +168,46 @@ trait CoursierSupport {
             s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
           )
         case Right(res) =>
-          Result.Success(
-            res.files
-              .map(os.Path(_))
-              .map(PathRef(_, quick = true))
-          )
+          Result.Success(res)
       }
     }
   }
+
+  /**
+   * Resolve dependencies using Coursier.
+   *
+   * We do not bother breaking this out into the separate ZincWorkerApi classpath,
+   * because Coursier is already bundled with mill/Ammonite to support the
+   * `import $ivy` syntax.
+   */
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      sources: Boolean = false,
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[Resolution => Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      artifactTypes: Option[Set[Type]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
+  ): Result[Seq[PathRef]] =
+    getArtifacts(
+      repositories,
+      deps,
+      force,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      artifactTypes,
+      resolutionParams
+    ).map { res =>
+      res.files
+        .map(os.Path(_))
+        .map(PathRef(_, quick = true))
+    }
 
   def jvmIndex(
       ctx: Option[mill.api.Ctx.Log] = None,
