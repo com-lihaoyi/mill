@@ -14,12 +14,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       import tester._
 
       val res = eval(("--ticker", "false", "run", "--text", "hello"))
+
       res.isSuccess ==> true
       assert(res.out == "<h1>hello</h1>")
       assert(
         res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n") ==
-          s"""[build.mill] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
-             |[build.mill] [info] done compiling
+          s"""[info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+             |[info] done compiling
              |[info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
              |[info] done compiling""".stripMargin.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
       )

@@ -162,21 +162,11 @@ private[mill] case class Execution(
 
                 val startTime = System.nanoTime() / 1000
 
-                // should we log progress?
-                val inputResults = for {
-                  target <- group.toIndexedSeq.filterNot(upstreamResults.contains)
-                  item <- target.inputs.filterNot(group.contains)
-                } yield upstreamResults(item).map(_._1)
-                val logRun = inputResults.forall(_.isInstanceOf[ExecResult.Success[?]])
-
-                val tickerPrefix =
-                  if (logRun && logger.prompt.enableTicker) terminal.toString else ""
-
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
-                  key0 = if (!logger.prompt.enableTicker) Nil else Seq(countMsg),
+                  key0 = Seq(countMsg),
                   keySuffix = keySuffix,
-                  message = tickerPrefix,
+                  message = terminal.toString,
                   noPrefix = exclusive
                 )
 
