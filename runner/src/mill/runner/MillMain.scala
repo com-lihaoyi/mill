@@ -434,9 +434,7 @@ object MillMain {
     case f if os.exists(f) =>
       os.read.lines(f)
         .takeWhile(_.startsWith("//>"))
-        .to(LazyList)
         .collectFirst {
-//          case s"//> using mill.version $version" => version
           case usingMillVersionPattern(version) => version
         }
     case _ => None
