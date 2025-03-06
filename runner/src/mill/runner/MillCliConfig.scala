@@ -132,6 +132,7 @@ case class MillCliConfig(
         status at the command line and falls back to the legacy ticker
       """
     )
+    @deprecated("No longer used", "Mill 0.13.0")
     disablePrompt: Flag = Flag(),
     @arg(
       hidden = true,
