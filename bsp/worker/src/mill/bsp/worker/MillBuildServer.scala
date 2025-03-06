@@ -14,7 +14,7 @@ import mill.eval.Evaluator.TaskResult
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
-import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
+import mill.scalalib.{JavaModule, DeferredGeneratedSourcesModule, SemanticDbJavaModule, TestModule}
 import mill.util.ColorLogger
 import mill.given
 
@@ -231,10 +231,11 @@ private class MillBuildServer(
       hint = s"buildTargetSources ${sourcesParams}",
       targetIds = _ => sourcesParams.getTargets.asScala.toSeq,
       tasks = {
-        case module: MillBuildRootModule =>
+        case module: DeferredGeneratedSourcesModule =>
           Task.Anon {
             module.sources().map(p => sourceItem(p.path, false)) ++
-              module.generatedSources().map(p => sourceItem(p.path, true))
+              module.generatedSources().map(p => sourceItem(p.path, true)) ++
+              module.predictedGeneratedSources().map(p => sourceItem(p, true))
           }
         case module: JavaModule =>
           Task.Anon {

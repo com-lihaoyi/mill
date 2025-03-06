@@ -1,0 +1,20 @@
+<module type="JAVA_MODULE" version="4">
+    <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../../out/HelloIdeaSourceGen/ideaCompileOutput.dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../../out/HelloIdeaSourceGen/someBuggyGeneratedSource.dest">
+            <sourceFolder url="file://$MODULE_DIR$/../../out/HelloIdeaSourceGen/someBuggyGeneratedSource.dest" isTestSource="false"/>
+        </content>
+        <content url="file://$MODULE_DIR$/../../out/HelloIdeaSourceGen/someGeneratedSource.dest/scala">
+            <sourceFolder url="file://$MODULE_DIR$/../../out/HelloIdeaSourceGen/someGeneratedSource.dest/scala" isTestSource="false"/>
+        </content>
+        <content url="file://$MODULE_DIR$/../../HelloIdeaSourceGen">
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdeaSourceGen/src" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdeaSourceGen/resources" type="java-resource"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="scala-SDK-2.12.5" level="project"/>
+        <orderEntry type="library" name="scala-library-2.12.5.jar" level="project"/>
+    </component>
+</module>

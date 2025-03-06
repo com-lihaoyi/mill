@@ -99,6 +99,17 @@ object Ctx {
     def workspace: os.Path
   }
 
+  /**
+   * Access to the project out directory.
+   */
+  trait Out {
+
+    /**
+     * This is the path pointing to the `out` directory.
+     */
+    def out: os.Path
+  }
+
   def defaultHome: os.Path = os.home / ".mill/ammonite"
 
   /**
@@ -177,6 +188,7 @@ class Ctx(
     val reporter: Int => Option[CompileProblemReporter],
     val testReporter: TestReporter,
     val workspace: os.Path,
+    val out: os.Path,
     val systemExit: Int => Nothing,
     @experimental val fork: Ctx.Fork.Api
 ) extends Ctx.Dest
@@ -184,6 +196,7 @@ class Ctx(
     with Ctx.Args
     with Ctx.Home
     with Ctx.Env
+    with Ctx.Out
     with Ctx.Workspace {
 
   def this(
@@ -196,7 +209,46 @@ class Ctx(
       testReporter: TestReporter,
       workspace: os.Path
   ) = {
-    this(args, dest0, log, home, env, reporter, testReporter, workspace, _ => ???, null)
+    this(
+      args,
+      dest0,
+      log,
+      home,
+      env,
+      reporter,
+      testReporter,
+      workspace,
+      workspace / "out",
+      _ => ???,
+      null
+    )
+  }
+
+  def this(
+      args: IndexedSeq[?],
+      dest0: () => os.Path,
+      log: Logger,
+      home: os.Path,
+      env: Map[String, String],
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      workspace: os.Path,
+      systemExit: Int => Nothing,
+      fork: Ctx.Fork.Api
+  ) = {
+    this(
+      args,
+      dest0,
+      log,
+      home,
+      env,
+      reporter,
+      testReporter,
+      workspace,
+      workspace / "out",
+      systemExit,
+      fork
+    )
   }
   def dest: os.Path = dest0()
   def arg[T](index: Int): T = {

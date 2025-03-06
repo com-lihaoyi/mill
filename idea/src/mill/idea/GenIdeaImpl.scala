@@ -500,10 +500,14 @@ case class GenIdeaImpl(
             evaluator,
             scalaVersion
           ) =>
+        val ideSources = mod match {
+          case deferred: DeferredGeneratedSourcesModule => deferred.ideSources
+          case other => other.allSources.map(_.map(_.path))
+        }
         val Seq(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
-          allSourcesPathRefs: Seq[PathRef]
+          ideSourcesPaths: Seq[os.Path]
         ) = evaluator.evalOrThrow(
           exceptionFactory = r =>
             GenIdeaException(
@@ -512,13 +516,13 @@ case class GenIdeaImpl(
         )(Seq(
           mod.resources,
           mod.generatedSources,
-          mod.allSources
+          // Using `ideSources` instead of `allSources` to prevent the whole process crashing
+          // in case of mis-configured (or buggy) source-generators.
+          ideSources
         ))
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
-        val normalSourcePaths = (allSourcesPathRefs
-          .map(_.path)
-          .toSet -- generatedSourcePaths.toSet).toSeq
+        val normalSourcePaths = (ideSourcesPaths.toSet -- generatedSourcePaths.toSet).toSeq
 
         val sanizedDeps: Seq[ScopedOrd[String]] = {
           resolvedDeps
