@@ -99,7 +99,7 @@ object `package` extends RootModule {
     def forkEnv = super.forkEnv() ++ Seq(
       "MILL_PROJECT_ROOT" -> Task.workspace.toString,
       "TEST_SCALA_2_13_VERSION" -> build.Deps.testScala213Version,
-      "TEST_KOTLIN_VERSION" -> build.Deps.kotlinCompiler.dep.version
+      "TEST_KOTLIN_VERSION" -> build.Deps.kotlinCompiler.version
     )
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {
