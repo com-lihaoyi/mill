@@ -477,41 +477,40 @@ trait TscModule extends Module { outer =>
 
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
     val mainFile = mainFilePath()
-    val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-    val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
     val env = forkEnv()
 
-    val execFlags: Seq[String] = executionFlags().map {
-      case (key, "") => s"--$key"
-      case (key, value) => s"--$key=$value"
-      case _ => ""
-    }.toSeq
+    val tsnode: String =
+      if (enableEsm()) "ts-node/esm"
+      else (npmInstall().path / "node_modules/.bin/ts-node").toString
 
-    val shellable: Shellable = if (!enableEsm()) (
+    val `tsconfig-paths`: Seq[String] =
+      Seq(
+        if (enableEsm()) Some("tsconfig-paths/register")
+        else Some((npmInstall().path / "node_modules/tsconfig-paths/register").toString),
+        if (enableEsm()) Some("--no-warnings=ExperimentalWarning") else None
+      ).flatten
+
+    val flags: Seq[String] =
+      (executionFlags()
+        .map {
+          case (key, "") => Some(s"--$key")
+          case (key, value) => Some(s"--$key=$value")
+          case _ => None
+        }.toSeq ++ Seq(if (enableEsm()) Some("--loader") else None)).flatten
+
+    val runnable: Shellable = (
       "node",
-      execFlags,
+      flags,
       tsnode,
       "-r",
-      tsconfigpaths,
-      mainFile,
-      computedArgs(),
-      args.value
-    )
-    else (
-      "node",
-      execFlags,
-      "--loader",
-      "ts-node/esm",
-      "-r",
-      "tsconfig-paths/register",
-      "--no-warnings=ExperimentalWarning",
+      `tsconfig-paths`,
       mainFile,
       computedArgs(),
       args.value
     )
 
     os.call(
-      shellable,
+      runnable,
       stdout = os.Inherit,
       env = env,
       cwd = compile()._1.path
