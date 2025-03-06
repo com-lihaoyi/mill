@@ -1212,9 +1212,9 @@ object `package` extends RootModule with KotlinModule {
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for (ivyDep &lt;- ivyDeps()) yield {
-      val org = ivyDep.dep.module.organization.value
-      val name = ivyDep.dep.module.name.value
-      val version = ivyDep.dep.version
+      val org = ivyDep.organization
+      val name = ivyDep.name
+      val version = ivyDep.version
       s&quot;&quot;&quot; &quot;$org:$name:$version&quot; &quot;&quot;&quot;
     }
     val ivyDepsString = prettyIvyDeps.mkString(&quot; + \&quot;\\n\&quot; + \n&quot;)
