@@ -38,6 +38,12 @@ trait Logger {
   def debug(s: String): Unit
 
   /**
+   * Prints logging output which represents warnings the user should care
+   * about
+   */
+  def warn(s: String): Unit
+
+  /**
    * Prints logging output which represents problems the user should care
    * about
    */
@@ -128,7 +134,7 @@ private[mill] object Logger {
     private[mill] def enableTicker: Boolean
 
     def infoColor: fansi.Attrs
-
+    def warnColor: fansi.Attrs
     def errorColor: fansi.Attrs
     def colored: Boolean
   }
@@ -148,6 +154,7 @@ private[mill] object Logger {
 
       def enableTicker: Boolean = false
       def infoColor: fansi.Attrs = fansi.Attrs.Empty
+      def warnColor: fansi.Attrs = fansi.Attrs.Empty
       def errorColor: fansi.Attrs = fansi.Attrs.Empty
       def colored: Boolean = false
     }

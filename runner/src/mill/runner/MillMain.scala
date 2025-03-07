@@ -372,6 +372,7 @@ object MillMain {
       colored = colored,
       enableTicker = enableTicker.getOrElse(true),
       infoColor = colors.info,
+      warnColor = colors.warn,
       errorColor = colors.error,
       systemStreams0 = streams,
       debugEnabled = config.debugLog.value,

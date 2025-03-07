@@ -69,6 +69,7 @@ class UnitTester(
         colored = true,
         enableTicker = false,
         infoColor = mill.internal.Colors.Default.info,
+        warnColor = mill.internal.Colors.Default.warn,
         errorColor = mill.internal.Colors.Default.error,
         systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
@@ -82,6 +83,7 @@ class UnitTester(
       else fullName.value
     }
     override def error(s: String): Unit = super.error(s"${prefix}: ${s}")
+    override def warn(s: String): Unit = super.warn(s"${prefix}: ${s}")
     override def info(s: String): Unit = super.info(s"${prefix}: ${s}")
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")

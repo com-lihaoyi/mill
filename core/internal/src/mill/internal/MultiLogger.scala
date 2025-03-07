@@ -27,6 +27,10 @@ private[mill] class MultiLogger(
     logger1.info(s)
     logger2.info(s)
   }
+  def warn(s: String): Unit = {
+    logger1.warn(s)
+    logger2.warn(s)
+  }
   def error(s: String): Unit = {
     logger1.error(s)
     logger2.error(s)
@@ -85,7 +89,7 @@ private[mill] class MultiLogger(
     override def debugEnabled: Boolean = logger1.prompt.debugEnabled || logger2.prompt.debugEnabled
 
     override def infoColor: Attrs = logger1.prompt.infoColor ++ logger2.prompt.infoColor
-
+    override def warnColor: Attrs = logger1.prompt.warnColor ++ logger2.prompt.warnColor
     override def errorColor: Attrs = logger1.prompt.errorColor ++ logger2.prompt.errorColor
     override def colored: Boolean = logger1.prompt.colored || logger2.prompt.colored
   }

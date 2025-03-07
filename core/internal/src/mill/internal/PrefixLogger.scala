@@ -60,6 +60,10 @@ private[mill] class PrefixLogger(
     prompt.reportKey(logKey)
     logger0.info("" + prompt.infoColor(linePrefix) + s)
   }
+  override def warn(s: String): Unit = {
+    prompt.reportKey(logKey)
+    logger0.warn("" + prompt.warnColor(linePrefix) + s)
+  }
   override def error(s: String): Unit = {
     prompt.reportKey(logKey)
     logger0.error("" + prompt.infoColor(linePrefix) + s)
