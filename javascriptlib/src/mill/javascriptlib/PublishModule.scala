@@ -179,7 +179,7 @@ trait PublishModule extends TscModule {
         |""".stripMargin
 
   }
-  
+
   // EsBuild - END
 
   def publish(): Command[Unit] = Task.Command {
