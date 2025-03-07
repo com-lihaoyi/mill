@@ -44,13 +44,11 @@ trait TscModule extends Module { outer =>
     Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
   }
 
-  def transitiveNpmDevDeps: T[Seq[String]] = Task {
+  def transitiveNpmDevDeps: T[Seq[String]] =
     Task.traverse(moduleDeps)(_.npmDevDeps)().flatten ++ npmDevDeps()
-  }
 
-  def transitiveUnmanagedDeps: T[Seq[PathRef]] = Task {
+  def transitiveUnmanagedDeps: T[Seq[PathRef]] =
     Task.traverse(moduleDeps)(_.unmanagedDeps)().flatten ++ unmanagedDeps()
-  }
 
   def npmInstall: T[PathRef] = Task {
     Try(os.copy.over(Task.workspace / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
@@ -184,28 +182,23 @@ trait TscModule extends Module { outer =>
 
   // mv generated sources for base mod and its deps
   private def tscCopyGenSources: Task[Unit] = Task.Anon {
+    def copyGeneratedSources(sourcePath: os.Path, destinationPath: os.Path): Unit = {
+      os.makeDir.all(destinationPath / os.up)
+      os.copy.over(sourcePath, destinationPath)
+    }
+
     tscCoreGenSources().foreach { target =>
       val destination = T.dest / "typescript" / "generatedSources" / target.path.last
-      os.makeDir.all(destination / os.up)
-      os.copy.over(
-        target.path,
-        destination
-      )
+      copyGeneratedSources(target.path, destination)
     }
 
     tscModDepsGenSources().foreach { case (mod, source_) =>
       source_.foreach { target =>
         val modDir = mod.path.relativeTo(Task.workspace)
-        val destination =
-          T.dest / "typescript" / modDir / "generatedSources" / target.path.last
-        os.makeDir.all(destination / os.up)
-        os.copy.over(
-          target.path,
-          destination
-        )
+        val destination = T.dest / "typescript" / modDir / "generatedSources" / target.path.last
+        copyGeneratedSources(target.path, destination)
       }
     }
-
   }
 
   /**
@@ -425,9 +418,12 @@ trait TscModule extends Module { outer =>
    * removes need for node_modules prefix in import statements `node_modules/<some-package>`
    * import * as somepackage from "<some-package>"
    */
-  private def symLink: Task[Unit] = Task.Anon {
-    os.symlink(T.dest / "node_modules", npmInstall().path / "node_modules")
-    os.symlink(T.dest / "package-lock.json", npmInstall().path / "package-lock.json")
+  private[javascriptlib] def symLink: Task[Unit] = Task.Anon {
+    if (!os.exists(T.dest / "node_modules"))
+      os.symlink(T.dest / "node_modules", npmInstall().path / "node_modules")
+
+    if (!os.exists(T.dest / "package-lock.json"))
+      os.symlink(T.dest / "package-lock.json", npmInstall().path / "package-lock.json")
   }
 
   def compile: T[(PathRef, PathRef)] = Task {
@@ -595,21 +591,25 @@ trait TscModule extends Module { outer =>
   }
 
   def bundle: T[PathRef] = Task {
+    symLink()
     val env = forkEnv()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-    val bundleScript = compile()._1.path / "build.ts"
     val bundle = Task.dest / "bundle.js"
+    val out = compile()._1.path
 
-    os.write.over(
-      bundleScript,
+    os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
+      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
+    
+    os.write(
+      T.dest / "build.ts",
       bundleScriptBuilder()
     )
 
     os.call(
-      (tsnode, bundleScript),
+      (tsnode, T.dest / "build.ts"),
       stdout = os.Inherit,
       env = env,
-      cwd = compile()._1.path
+      cwd = out
     )
     PathRef(bundle)
   }
@@ -690,9 +690,6 @@ trait TscModule extends Module { outer =>
             ))
         )
         .foreach(item => os.copy.over(item, T.dest / item.last, createFolders = true))
-
-      os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
-      os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
 
       // inject test specific tsconfig into <outer> tsconfig
       os.write(

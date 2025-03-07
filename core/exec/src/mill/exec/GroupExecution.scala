@@ -250,7 +250,7 @@ private trait GroupExecution {
             } ++
               paths.map(_.dest)
 
-          new os.Checker {
+          val executionChecker = new os.Checker {
             def onRead(path: os.ReadablePath): Unit = ()
             def onWrite(path: os.Path): Unit = {
               if (!isCommand) {
@@ -266,18 +266,18 @@ private trait GroupExecution {
               else (multiLogger.streams, () => makeDest())
 
             os.dynamicPwdFunction.withValue(destFunc) {
-              //  os.checker.withValue(executionChecker) {
-              SystemStreams.withStreams(streams) {
-                val exposedEvaluator = if (!exclusive) null else getEvaluator()
-                Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
-                  if (!exclusive) t
-                  else {
-                    logger.prompt.reportKey(Seq(counterMsg))
-                    logger.prompt.withPromptPaused { t }
+              os.checker.withValue(executionChecker) {
+                SystemStreams.withStreams(streams) {
+                  val exposedEvaluator = if (!exclusive) null else getEvaluator()
+                  Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
+                    if (!exclusive) t
+                    else {
+                      logger.prompt.reportKey(Seq(counterMsg))
+                      logger.prompt.withPromptPaused { t }
+                    }
                   }
                 }
               }
-              // }
             }
           }
 

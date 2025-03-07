@@ -39,9 +39,8 @@ object TestModule {
       }
 
     def istanbulNycrcConfigBuilder: Task[PathRef] = Task.Anon {
-      val compiled = compile()._1.path
       val fileName = ".nycrc"
-      val config = compiled / fileName
+      val config = T.dest / fileName
       val customConfig = Task.workspace / fileName
 
       val content =
@@ -129,9 +128,8 @@ object TestModule {
       }
 
     def conf: Task[PathRef] = Task.Anon {
-      val compiled = compile()._1.path
       val fileName = "jest.config.ts"
-      val config = compiled / fileName
+      val config = T.dest / fileName
       val customConfig = Task.workspace / fileName
 
       val content =
@@ -168,18 +166,27 @@ object TestModule {
       PathRef(config)
     }
 
+    override def compile: T[(PathRef, PathRef)] = Task {
+      conf()
+      coverageConf()
+      symLink()
+      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+
+      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+    }
+
     private def runTest: T[TestResult] = Task {
+      val compileDir = compile()._1.path
       os.call(
         (
-          "node",
-          npmInstall().path / "node_modules/jest/bin/jest.js",
+          "node_modules/.bin/jest",
           "--config",
-          conf().path,
+          compileDir / "jest.config.ts",
           getPathToTest()
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compileDir
       )
       ()
     }
@@ -190,9 +197,8 @@ object TestModule {
 
     // with coverage
     def coverageConf: Task[PathRef] = Task.Anon {
-      val compiled = compile()._1.path
-      val fileName = "jest.config.ts"
-      val config = compiled / fileName
+      val fileName = "jest.config.coverage.ts"
+      val config = T.dest / fileName
       val customConfig = Task.workspace / fileName
 
       val content =
@@ -236,18 +242,19 @@ object TestModule {
     }
 
     def runCoverage: T[TestResult] = Task {
+      val compileDir = compile()._1.path
       os.call(
         (
           "node",
           "node_modules/jest/bin/jest.js",
           "--config",
-          coverageConf().path,
+          compileDir / "jest.config.coverage.ts",
           "--coverage",
           getPathToTest()
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compileDir
       )
       ()
     }
@@ -270,10 +277,18 @@ object TestModule {
     override def getPathToTest: T[String] =
       Task { super.getPathToTest() + "/**/**/*.test.ts" }
 
+    override def compile: T[(PathRef, PathRef)] = Task {
+      conf()
+      istanbulNycrcConfigBuilder()
+      symLink()
+      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+
+      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+    }
+
     // test-runner.js: run tests on ts files
     def conf: Task[PathRef] = Task.Anon {
-      val compiled = compile()._1.path
-      val runner = compiled / "test-runner.js"
+      val runner = T.dest / "test-runner.js"
 
       val content =
         """|require('ts-node/register');
@@ -287,15 +302,16 @@ object TestModule {
     }
 
     private def runTest: T[Unit] = Task {
+      val compileDir = compile()._1.path
       os.call(
         (
           "node",
-          conf().path,
+          compileDir / "test-runner.js",
           getPathToTest()
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compileDir
       )
       ()
     }
@@ -306,17 +322,17 @@ object TestModule {
 
     // with coverage
     def runCoverage: T[TestResult] = Task {
-      istanbulNycrcConfigBuilder()
+      val compileDir = compile()._1.path
       os.call(
         (
           "./node_modules/.bin/nyc",
           "node",
-          conf().path,
+          compileDir / "test-runner.js",
           getPathToTest()
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compileDir
       )
       ()
     }
@@ -348,9 +364,8 @@ object TestModule {
       }
 
     def conf: Task[PathRef] = Task.Anon {
-      val compiled = compile()._1.path
       val fileName = "vitest.config.ts"
-      val config = compiled / fileName
+      val config = T.dest / fileName
       val customConfig = Task.workspace / fileName
 
       val content =
@@ -373,19 +388,29 @@ object TestModule {
       PathRef(config)
     }
 
+    override def compile: T[(PathRef, PathRef)] = Task {
+      conf()
+      coverageConf()
+      symLink()
+      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+
+      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+    }
+
     private def runTest: T[TestResult] = Task {
+      val compileDir = compile()._1.path
       os.call(
         (
           npmInstall().path / "node_modules/.bin/ts-node",
           npmInstall().path / "node_modules/.bin/vitest",
           "--run",
           "--config",
-          conf().path,
+          compileDir / "vitest.config.ts",
           getPathToTest()
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compileDir
       )
       ()
     }
@@ -396,9 +421,8 @@ object TestModule {
 
     // coverage
     def coverageConf: Task[PathRef] = Task.Anon {
-      val compiled = compile()._1.path
-      val fileName = "vitest.config.ts"
-      val config = compiled / fileName
+      val fileName = "vitest.config.coverage.ts"
+      val config = T.dest / fileName
       val customConfig = Task.workspace / fileName
       val content =
         s"""|import { defineConfig } from 'vite';
@@ -430,19 +454,20 @@ object TestModule {
     }
 
     def runCoverage: T[TestResult] = Task {
+      val compileDir = compile()._1.path
       os.call(
         (
           npmInstall().path / "node_modules/.bin/ts-node",
           npmInstall().path / "node_modules/.bin/vitest",
           "--run",
           "--config",
-          coverageConf().path,
+          compileDir / "vitest.config.coverage.ts",
           "--coverage",
           getPathToTest()
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compileDir
       )
       ()
     }
@@ -472,7 +497,7 @@ object TestModule {
       }
 
     def conf: Task[PathRef] = Task.Anon {
-      val path = compile()._1.path / "jasmine.json"
+      val path = T.dest / "jasmine.json"
       os.write.over(
         path,
         ujson.write(
@@ -488,8 +513,16 @@ object TestModule {
       PathRef(path)
     }
 
-    private def runTest: T[Unit] = Task {
+    override def compile: T[(PathRef, PathRef)] = Task {
       conf()
+      istanbulNycrcConfigBuilder()
+      symLink()
+      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+
+      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+    }
+
+    private def runTest: T[Unit] = Task {
       val jasmine = "node_modules/jasmine/bin/jasmine.js"
       val tsnode = "node_modules/ts-node/register/transpile-only.js"
       val tsconfigPath = "node_modules/tsconfig-paths/register.js"
@@ -513,8 +546,6 @@ object TestModule {
     }
 
     def runCoverage: T[TestResult] = Task {
-      istanbulNycrcConfigBuilder()
-      conf()
       val jasmine = "node_modules/jasmine/bin/jasmine.js"
       val tsnode = "node_modules/ts-node/register/transpile-only.js"
       val tsconfigPath = "node_modules/tsconfig-paths/register.js"
@@ -532,11 +563,6 @@ object TestModule {
         env = forkEnv(),
         cwd = compile()._1.path
       )
-
-      // remove symlink
-      os.remove(Task.workspace / "out/node_modules")
-      os.remove(Task.workspace / "out/tsconfig.json")
-      os.remove(Task.workspace / "out/.nycrc")
       ()
     }
 

@@ -179,25 +179,7 @@ trait PublishModule extends TscModule {
         |""".stripMargin
 
   }
-
-  override def bundle: T[PathRef] = Task {
-    val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-    val bundleScript = compile()._1.path / "build.ts"
-    val bundle = Task.dest / "bundle.js"
-
-    os.write.over(
-      bundleScript,
-      bundleScriptBuilder()
-    )
-
-    os.call(
-      (tsnode, bundleScript),
-      stdout = os.Inherit,
-      cwd = compile()._1.path
-    )
-    PathRef(bundle)
-  }
-
+  
   // EsBuild - END
 
   def publish(): Command[Unit] = Task.Command {
