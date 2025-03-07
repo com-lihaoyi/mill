@@ -21,17 +21,21 @@ private[mill] class LinePrefixOutputStream(
   private var isNewLine = true
   val buffer = new ByteArrayOutputStream()
 
-  // Make sure we preserve the end-of-line ANSI colors every time we write out the buffer, and
-  // re-apply them after every line prefix. This helps ensure the line prefix color/resets does
-  // not muck up the rendering of color sequences that affect multiple lines in the terminal
-  private var endOfLastLineColor: Long = 0
+  // Track both start and end colors for each line to properly handle multiline ANSI sequences
+  private var currentLineStartColor: Long = 0
+  private var currentLineEndColor: Long = 0
+  private var escapeSequenceBuffer = new StringBuilder()
+  private var inEscapeSequence = false
+
   override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
+
   private def writeLinePrefixIfNecessary(): Unit = {
     if (isNewLine && linePrefixNonEmpty) {
       isNewLine = false
       buffer.write(linePrefixBytes)
-      if (linePrefixNonEmpty)
-        buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
+      // Apply the color state from the start of the current line
+      if (linePrefixNonEmpty && currentLineStartColor != 0)
+        buffer.write(fansi.Attrs.emitAnsiCodes(0, currentLineStartColor).getBytes())
     }
   }
 
@@ -42,11 +46,41 @@ private[mill] class LinePrefixOutputStream(
       val bufferString = buffer.toString
       if (bufferString.length > 0) {
         val s = fansi.Str.apply(bufferString, errorMode = fansi.ErrorMode.Sanitize)
-        endOfLastLineColor = s.getColor(s.length - 1)
+        // Update both start and end colors for the current line
+        currentLineEndColor = s.getColor(s.length - 1)
+        if (isNewLine) {
+          currentLineStartColor = currentLineEndColor
+        }
       }
     }
     out.synchronized { buffer.writeTo(out) }
     buffer.reset()
+  }
+
+  private def processEscapeSequence(b: Int): Unit = {
+    if (inEscapeSequence) {
+      escapeSequenceBuffer.append(b.toChar)
+      // Check if this is the end of the escape sequence
+      if ((b >= 0x40 && b <= 0x7E) && b != '[') {
+        inEscapeSequence = false
+        val sequence = escapeSequenceBuffer.toString
+        // Process the complete escape sequence
+        if (sequence.contains("m")) { // Color code
+          val s = fansi.Str.apply("\u001b" + sequence, errorMode = fansi.ErrorMode.Sanitize)
+          if (s.length > 0) {
+            currentLineEndColor = s.getColor(s.length - 1)
+            if (isNewLine) {
+              currentLineStartColor = currentLineEndColor
+            }
+          }
+        }
+        escapeSequenceBuffer.clear()
+      }
+    } else if (b == 0x1b) { // ESC
+      inEscapeSequence = true
+      escapeSequenceBuffer.clear()
+      escapeSequenceBuffer.append(b.toChar)
+    }
   }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
@@ -55,6 +89,8 @@ private[mill] class LinePrefixOutputStream(
     val max = off + len
     while (i < max) {
       writeLinePrefixIfNecessary()
+      processEscapeSequence(b(i))
+      
       if (b(i) == '\n') {
         i += 1 // +1 to include the newline
         buffer.write(b, start, i - start)
@@ -71,11 +107,11 @@ private[mill] class LinePrefixOutputStream(
       buffer.write(b, start, math.min(i, max) - start)
       if (b(max - 1) == '\n') writeOutBuffer()
     }
-
   }
 
   override def write(b: Int): Unit = synchronized {
     writeLinePrefixIfNecessary()
+    processEscapeSequence(b)
     buffer.write(b)
     if (b == '\n') {
       writeOutBuffer()
