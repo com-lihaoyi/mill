@@ -61,7 +61,7 @@ private[mill] class LinePrefixOutputStream(
     if (inEscapeSequence) {
       escapeSequenceBuffer.append(b.toChar)
       // Check if this is the end of the escape sequence
-      if ((b >= 0x40 && b <= 0x7E) && b != '[') {
+      if ((b >= 0x40 && b <= 0x7e) && b != '[') {
         inEscapeSequence = false
         val sequence = escapeSequenceBuffer.toString
         // Process the complete escape sequence
@@ -90,7 +90,7 @@ private[mill] class LinePrefixOutputStream(
     while (i < max) {
       writeLinePrefixIfNecessary()
       processEscapeSequence(b(i))
-      
+
       if (b(i) == '\n') {
         i += 1 // +1 to include the newline
         buffer.write(b, start, i - start)
