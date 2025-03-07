@@ -142,7 +142,7 @@ trait ReactScriptsModule extends TscModule {
     os.call(
       (
         "node",
-        (compiled / "node_modules" / "react-scripts" / "bin" / "react-scripts.js").toString,
+        (compiled / "node_modules/react-scripts/bin/react-scripts.js").toString,
         "test",
         "--watchAll=false"
       ),
