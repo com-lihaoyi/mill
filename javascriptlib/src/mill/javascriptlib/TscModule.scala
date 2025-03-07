@@ -599,7 +599,7 @@ trait TscModule extends Module { outer =>
 
     os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
-    
+
     os.write(
       T.dest / "build.ts",
       bundleScriptBuilder()
