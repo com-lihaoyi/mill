@@ -122,8 +122,8 @@ object Deps {
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.15"
-  val ammoniteVersion = "3.0.1"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.16"
+  val ammoniteVersion = "3.0.2"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
@@ -424,7 +424,7 @@ trait MillJavaModule extends JavaModule {
         f.dep.module.organization.value == dep.module.organization.value &&
           f.dep.module.name.value == dep.module.name.value
       ).map { forced =>
-        val newDep = dep.withVersion(forced.dep.version)
+        val newDep = dep.withVersion(forced.version)
         Task.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
         newDep
       }.getOrElse(dep)
@@ -566,13 +566,13 @@ trait MillBaseTestsModule extends TestModule {
       s"-DTEST_SCALA_3_3_VERSION=${Deps.testScala33Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_0_5_VERSION=${Deps.Scalanative_0_5.scalanativeVersion}",
-      s"-DTEST_UTEST_VERSION=${Deps.TestDeps.utest.dep.version}",
-      s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
-      s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.dep.version}",
-      s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.dep.version}",
-      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}",
-      s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.dep.version}",
-      s"-DTEST_SBT_VERSION=${Deps.sbt.dep.version}"
+      s"-DTEST_UTEST_VERSION=${Deps.TestDeps.utest.version}",
+      s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.version}",
+      s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.version}",
+      s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.version}",
+      s"-DTEST_ZINC_VERSION=${Deps.zinc.version}",
+      s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.version}",
+      s"-DTEST_SBT_VERSION=${Deps.sbt.version}"
     )
   }
 

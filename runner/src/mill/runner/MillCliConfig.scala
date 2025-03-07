@@ -126,11 +126,13 @@ case class MillCliConfig(
     metaLevel: Option[Int] = None,
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag(),
+    @deprecated("No longer used", "Mill 0.13.0")
     @arg(
       doc = """
         Disables the new multi-line status prompt used for showing thread
         status at the command line and falls back to the legacy ticker
-      """
+      """,
+      hidden = true
     )
     disablePrompt: Flag = Flag(),
     @arg(

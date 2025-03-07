@@ -8,13 +8,13 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.{ColorLogger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
+import mill.api.{Logger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
 import mill.main.BuildInfo
 import mill.runner.worker.ScalaCompilerWorker
-import mill.internal.{Colors, PrintLogger, PromptLogger}
+import mill.internal.{Colors, PromptLogger}
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
@@ -121,7 +121,6 @@ object MillMain {
       systemExit: Int => Nothing,
       serverDir: os.Path
   ): (Boolean, RunnerState) = {
-    val printLoggerState = new PrintLogger.State()
     val streams = streams0
     SystemStreams.withStreams(streams) {
       os.SubProcess.env.withValue(env) {
@@ -261,12 +260,10 @@ object MillMain {
                             Using.resource(getLogger(
                               streams,
                               config,
-                              mainInteractive,
                               enableTicker =
                                 config.ticker
                                   .orElse(config.enableTicker)
                                   .orElse(Option.when(config.disableTicker.value)(false)),
-                              printLoggerState,
                               serverDir,
                               colored = colored,
                               colors = colors
@@ -274,8 +271,8 @@ object MillMain {
                               // Enter key pressed, removing mill-selective-execution.json to
                               // ensure all tasks re-run even though no inputs may have changed
                               if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
-                              SystemStreams.withStreams(logger.systemStreams) {
-                                tailManager.withOutErr(logger.outputStream, logger.errorStream) {
+                              SystemStreams.withStreams(logger.streams) {
+                                tailManager.withOutErr(logger.streams.out, logger.streams.err) {
                                   new MillBuildBootstrap(
                                     projectRoot = WorkspaceRoot.workspaceRoot,
                                     output = out,
@@ -366,40 +363,23 @@ object MillMain {
   def getLogger(
       streams: SystemStreams,
       config: MillCliConfig,
-      mainInteractive: Boolean,
       enableTicker: Option[Boolean],
-      printLoggerState: PrintLogger.State,
       serverDir: os.Path,
       colored: Boolean,
       colors: Colors
-  ): ColorLogger = {
-
-    val logger = if (config.disablePrompt.value) {
-      new mill.internal.PrintLogger(
-        colored = colored,
-        enableTicker = enableTicker.getOrElse(mainInteractive),
-        infoColor = colors.info,
-        errorColor = colors.error,
-        systemStreams = streams,
-        debugEnabled = config.debugLog.value,
-        context = "",
-        printLoggerState
-      )
-    } else {
-      new PromptLogger(
-        colored = colored,
-        enableTicker = enableTicker.getOrElse(true),
-        infoColor = colors.info,
-        errorColor = colors.error,
-        systemStreams0 = streams,
-        debugEnabled = config.debugLog.value,
-        titleText = config.leftoverArgs.value.mkString(" "),
-        terminfoPath = serverDir / ServerFiles.terminfo,
-        currentTimeMillis = () => System.currentTimeMillis()
-      )
-    }
-
-    logger
+  ): Logger & AutoCloseable = {
+    new PromptLogger(
+      colored = colored,
+      enableTicker = enableTicker.getOrElse(true),
+      infoColor = colors.info,
+      warnColor = colors.warn,
+      errorColor = colors.error,
+      systemStreams0 = streams,
+      debugEnabled = config.debugLog.value,
+      titleText = config.leftoverArgs.value.mkString(" "),
+      terminfoPath = serverDir / ServerFiles.terminfo,
+      currentTimeMillis = () => System.currentTimeMillis()
+    )
   }
 
   /**

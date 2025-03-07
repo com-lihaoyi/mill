@@ -4,7 +4,7 @@ import mill.internal.PrefixLogger
 import mill.define.internal.Watchable
 import mill.main.{BuildInfo, RootModule}
 import mill.constants.CodeGenConstants.*
-import mill.api.{ColorLogger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
+import mill.api.{Logger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
 import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
@@ -43,7 +43,7 @@ class MillBuildBootstrap(
     threadCount: Option[Int],
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
-    logger: ColorLogger,
+    logger: Logger,
     needBuildFile: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,

@@ -5,7 +5,6 @@ import mill.api.ExecResult.OuterStack
 import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
 import mill.define.{Evaluator, InputImpl, SelectMode, TargetImpl}
 import mill.resolve.Resolve
-import mill.internal.PrintLogger
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
@@ -66,15 +65,17 @@ class UnitTester(
     }
   }
 
-  object logger extends mill.internal.PrintLogger(
+  object logger extends mill.internal.PromptLogger(
         colored = true,
         enableTicker = false,
-        mill.internal.Colors.Default.info,
-        mill.internal.Colors.Default.error,
-        new SystemStreams(out = outStream, err = errStream, in = inStream),
+        infoColor = mill.internal.Colors.Default.info,
+        warnColor = mill.internal.Colors.Default.warn,
+        errorColor = mill.internal.Colors.Default.error,
+        systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
-        context = "",
-        new PrintLogger.State()
+        titleText = "",
+        terminfoPath = os.temp(),
+        currentTimeMillis = () => System.currentTimeMillis()
       ) {
     val prefix: String = {
       val idx = fullName.value.lastIndexOf(".")
@@ -82,6 +83,7 @@ class UnitTester(
       else fullName.value
     }
     override def error(s: String): Unit = super.error(s"${prefix}: ${s}")
+    override def warn(s: String): Unit = super.warn(s"${prefix}: ${s}")
     override def info(s: String): Unit = super.info(s"${prefix}: ${s}")
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")

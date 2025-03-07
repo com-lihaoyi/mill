@@ -1,27 +1,11 @@
 package mill.testrunner
 
-import mill.api.{Ctx, DummyTestReporter, SystemStreams, internal}
-import mill.internal.PrintLogger
+import mill.api.{DummyTestReporter, internal}
 
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
       val testArgs = upickle.default.read[mill.testrunner.TestArgs](os.read(os.Path(args(1))))
-      val ctx = new Ctx.Log {
-        val log = new PrintLogger(
-          testArgs.colored,
-          true,
-          if (testArgs.colored) fansi.Color.Blue
-          else fansi.Attrs.Empty,
-          if (testArgs.colored) fansi.Color.Red
-          else fansi.Attrs.Empty,
-          new SystemStreams(System.out, System.err, System.in),
-          debugEnabled = false,
-          context = "",
-          new PrintLogger.State()
-        )
-      }
-      ctx.log.debug(s"Setting ${testArgs.sysProps.size} system properties")
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
       val filter = TestRunnerUtils.globFilter(testArgs.globSelectors)
@@ -33,7 +17,7 @@ import mill.internal.PrintLogger
         classFilter = cls => filter(cls.getName),
         cl = classLoader,
         testReporter = DummyTestReporter
-      )(ctx)
+      )
 
       // Clear interrupted state in case some badly-behaved test suite
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,

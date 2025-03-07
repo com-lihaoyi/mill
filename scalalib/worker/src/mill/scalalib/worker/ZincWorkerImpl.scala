@@ -537,9 +537,9 @@ class ZincWorkerImpl(
 
     val consoleAppender = ConsoleAppender(
       "ZincLogAppender",
-      ConsoleOut.printStreamOut(ctx.log.errorStream),
-      ctx.log.colored,
-      ctx.log.colored,
+      ConsoleOut.printStreamOut(ctx.log.streams.err),
+      ctx.log.prompt.colored,
+      ctx.log.prompt.colored,
       _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
@@ -548,12 +548,12 @@ class ZincWorkerImpl(
     def mkNewReporter(mapper: (xsbti.Position => xsbti.Position) | Null) = reporter match {
       case None =>
         new ManagedLoggedReporter(10, logger) with RecordingReporter
-          with TransformingReporter(ctx.log.colored, mapper) {}
+          with TransformingReporter(ctx.log.prompt.colored, mapper) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(10, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
-          with TransformingReporter(ctx.log.colored, mapper) {}
+          with TransformingReporter(ctx.log.prompt.colored, mapper) {}
     }
     val analysisMap0 = upstreamCompileOutput.map(c => c.classes.path -> c.analysisFile).toMap
 
@@ -645,7 +645,7 @@ class ZincWorkerImpl(
     val scalaColorProp = "scala.color"
     val previousScalaColor = sys.props(scalaColorProp)
     try {
-      sys.props(scalaColorProp) = if (ctx.log.colored) "true" else "false"
+      sys.props(scalaColorProp) = if (ctx.log.prompt.colored) "true" else "false"
       val newResult = ic.compile(
         in = inputs,
         logger = logger

@@ -176,7 +176,7 @@ trait JavaModule
   def allBomDeps: Task[Seq[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
       bomIvyDeps().map(bindDependency()).map { bomDep =>
-        val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
+        val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
         else
@@ -455,7 +455,7 @@ trait JavaModule
     // This is exclusive to avoid scrambled output
     Task.Command(exclusive = true) {
       val asString = formatModuleDeps(recursive, true)()
-      Task.log.outputStream.println(asString)
+      Task.log.streams.out.println(asString)
     }
   }
 
