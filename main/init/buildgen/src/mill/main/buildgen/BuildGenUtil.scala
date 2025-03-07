@@ -541,9 +541,9 @@ object BuildGenUtil {
     "org.testng" -> "TestModule.TestNg",
     "org.scalatest" -> "TestModule.ScalaTest",
     "org.specs2" -> "TestModule.Specs2",
-    "com.lihaoyi.utest" -> "TestModule.UTest",
+    "com.lihaoyi" -> "TestModule.UTest",
     "org.scalameta" -> "TestModule.Munit",
-    "com.disneystreaming" -> "Weaver",
+    "com.disneystreaming" -> "TestModule.Weaver",
     "dev.zio" -> "TestModule.ZioTest"
   )
 
