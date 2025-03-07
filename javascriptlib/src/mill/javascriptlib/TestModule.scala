@@ -24,7 +24,7 @@ trait TestModule extends TaskModule {
 object TestModule {
   type TestResult = Unit
 
-  private def symlinkContents(from:os.Path,to:os.Path): Seq[os.Path] =  {
+  private def symlinkContents(from: os.Path, to: os.Path): Seq[os.Path] = {
     os.list(from).map { p =>
       os.symlink(to / p.last, p)
       to / p.last
@@ -515,23 +515,23 @@ object TestModule {
 
     def conf: Task[PathRef] = Task.Anon {
       val path = Task.dest / "jasmine.json"
-        os.write.over(
-          path,
-          ujson.write(
-            ujson.Obj(
-              "spec_dir" -> ujson.Str("typescript/src"),
-              "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
-              "stopSpecOnExpectationFailure" -> ujson.Bool(false),
-              "random" -> ujson.Bool(false)
-            )
+      os.write.over(
+        path,
+        ujson.write(
+          ujson.Obj(
+            "spec_dir" -> ujson.Str("typescript/src"),
+            "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
+            "stopSpecOnExpectationFailure" -> ujson.Bool(false),
+            "random" -> ujson.Bool(false)
           )
         )
+      )
 
       PathRef(path)
     }
 
     private def symlinkCompileContents: Task[Seq[os.Path]] = Task.Anon {
-      symlinkContents(compile()._1.path,Task.dest)
+      symlinkContents(compile()._1.path, Task.dest)
     }
 
     private def runTest: T[Unit] = Task {
@@ -706,14 +706,14 @@ object TestModule {
       Task.Source(Task.workspace / "playwright.config.ts")
 
     private def copyConfig: Task[TestResult] = Task.Anon {
-        os.copy.over(
-          testConfigSource().path,
-          Task.dest / "playwright.config.ts"
-        )
+      os.copy.over(
+        testConfigSource().path,
+        Task.dest / "playwright.config.ts"
+      )
     }
 
     private def symlinkCompileContents: Task[Seq[os.Path]] = Task.Anon {
-      symlinkContents(compile()._1.path,Task.dest)
+      symlinkContents(compile()._1.path, Task.dest)
     }
 
     private def runTest: T[TestResult] = Task {
