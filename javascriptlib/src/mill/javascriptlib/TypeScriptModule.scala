@@ -216,8 +216,8 @@ trait TypeScriptModule extends Module { outer =>
   // removes need for node_modules prefix in import statements `node_modules/<some-package>`
   // import * as somepackage from "<some-package>"
   private def symLink: Task[Unit] = Task.Anon {
-      os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
-      os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
+    os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
+    os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
   }
 
   def compile: T[(PathRef, PathRef)] = Task {
@@ -352,27 +352,28 @@ trait TypeScriptModule extends Module { outer =>
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundleScript = Task.dest / "build.ts"
     val bundle = Task.dest / "bundle.js"
-    
-   //create symlinks to compiled content, to avoid copying or running in compile.dest as cwd
+
+    // create symlinks to compiled content, to avoid copying or running in compile.dest as cwd
     val symlinks = os.list(compile()._1.path).map {
-      p => os.symlink(Task.dest / p.last, p)
-      Task.dest / p.last
+      p =>
+        os.symlink(Task.dest / p.last, p)
+        Task.dest / p.last
     }
-    
+
     os.write.over(bundleScript, bundleScriptBuilder())
 
-      os.call(
-        (tsnode, bundleScript),
-        stdout = os.Inherit,
-        env = env,
-        cwd = Task.dest
-      )
+    os.call(
+      (tsnode, bundleScript),
+      stdout = os.Inherit,
+      env = env,
+      cwd = Task.dest
+    )
 
-    //remove symlinks
+    // remove symlinks
     symlinks.foreach(os.remove)
-    //remove bundle script
+    // remove bundle script
     os.remove(bundleScript)
-    
+
     PathRef(bundle)
   }
 
