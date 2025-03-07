@@ -31,22 +31,22 @@ import mill.util.PrintLogger
           val filter = TestRunnerUtils.globFilter(selectors)
           TestRunnerUtils.runTestFramework0(
             frameworkInstances = Framework.framework(testArgs.framework),
-            testClassfilePath = Seq.from(testArgs.testCp),
+            testClassfilePath = Agg.from(testArgs.testCp),
             args = testArgs.arguments,
             classFilter = cls => filter(cls.getName),
             cl = classLoader,
             testReporter = DummyTestReporter
-          )
-        case Right((selectorFolder, stealFolder)) =>
+          )(ctx)
+        case Right((testClassesFolder, stealFolder)) =>
           TestRunnerUtils.stealTestFramework0(
             frameworkInstances = Framework.framework(testArgs.framework),
-            testClassfilePath = Seq.from(testArgs.testCp),
+            testClassfilePath = Agg.from(testArgs.testCp),
             args = testArgs.arguments,
-            selectorFolder = selectorFolder,
+            testClassesFolder = testClassesFolder,
             stealFolder = stealFolder,
             cl = classLoader,
             testReporter = DummyTestReporter,
-          )
+          )(ctx)
       }
 
       // Clear interrupted state in case some badly-behaved test suite

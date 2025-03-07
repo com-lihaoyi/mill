@@ -14,27 +14,27 @@ import scala.xml.{Elem, NodeSeq, XML}
 object TestRunnerTestUtils {
   object testrunner extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = Seq(x)
-    def withTestStealingScheduler = false
+    def enableWorkStealing = false
   }
 
   object testrunnerGrouping extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = x.sorted.grouped(2).toSeq
-    def withTestStealingScheduler = false
+    def enableWorkStealing = false
   }
 
   object testrunnerWorkStealing extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = Seq(x)
-    def withTestStealingScheduler = true
+    def enableWorkStealing = true
   }
 
   trait TestRunnerTestModule extends TestBaseModule with ScalaModule {
     def computeTestForkGrouping(x: Seq[String]): Seq[Seq[String]]
-    def withTestStealingScheduler: Boolean
+    def enableWorkStealing: Boolean
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object utest extends ScalaTests with TestModule.Utest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
-      override def useTestStealingScheduler = withTestStealingScheduler
+      override def testEnableWorkStealing = enableWorkStealing
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
@@ -44,7 +44,7 @@ object TestRunnerTestUtils {
 
     object scalatest extends ScalaTests with TestModule.ScalaTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
-      override def useTestStealingScheduler = withTestStealingScheduler
+      override def testEnableWorkStealing = enableWorkStealing
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
@@ -72,7 +72,7 @@ object TestRunnerTestUtils {
 
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
-      override def useTestStealingScheduler = withTestStealingScheduler
+      override def testEnableWorkStealing = enableWorkStealing
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",

@@ -1,7 +1,10 @@
-// Test stealing is an opt-in feature that allows you to take a single
-// test module and spawn many test runner subprocesses that do work stealing
-// when you call `test`. Test stealing is enabled
-// by overriding `def useTestStealingScheduler`, as shown below:
+// Test stealing is an opt-in, powerful feature that enables parallel test execution.
+// When enabled, Mill automatically distributes your test classes across multiple JVM subprocesses.
+// This is especially useful when you have multiple test classes that can be run in parallel.
+// Work stealing scheduler ensures throughput is maximized: no "slow" tests can block "fast" tests.
+// This feature is expected to be enabled by default in future versions of Mill.
+//
+// Test stealing can be enabled by overriding def testEnableWorkStealing, as demonstrated below.
 
 //// SNIPPET:BUILD1
 package build
@@ -10,55 +13,30 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
     
-    def useTestStealingScheduler = true
+    def testEnableWorkStealing = true
   }
 }
-
-/** See Also: foo/test/src/RandomTestsA.scala */
-/** See Also: foo/test/src/RandomTestsB.scala */
-/** See Also: foo/test/src/RandomTestsC.scala */
-/** See Also: foo/test/src/RandomTestsD.scala */
-/** See Also: foo/test/src/RandomTestsE.scala */
-/** See Also: foo/test/src/RandomTestsF.scala */
-/** See Also: foo/test/src/RandomTestsG.scala */
-/** See Also: foo/test/src/RandomTestsH.scala */
-/** See Also: foo/test/src/RandomTestsI.scala */
-/** See Also: foo/test/src/RandomTestsJ.scala */
 
 
 //// SNIPPET:END
 
-// In this example, we have one test module `foo.test`, and a bunch of test classes in test/src folder.
-// By default, all test classes will run sequentially in the same JVM, but with `useTestStealingScheduler`
-// we can set up a cluster of JVM subprocesses that do work stealing on those test classes, all run in parallel,
-// and each will have its own separate `sandbox` folder and `.log` file:
-
 /** Usage
 
-> mill -j 3 foo.test # Can be flaky, but the test time will be big enough for cluster do decide to spawn all test runners
+> mill -j 3 foo.test
 
-> find out/foo/test/testForked.dest
+> find out/foo/test/test.dest
 ...
-out/foo/test/testForked.dest/0.log
-out/foo/test/testForked.dest/0
-out/foo/test/testForked.dest/1.log
-out/foo/test/testForked.dest/1
-out/foo/test/testForked.dest/2.log
-out/foo/test/testForked.dest/2
-out/foo/test/testForked.dest/test-report.xml
+out/foo/test/test.dest/worker-0.log
+out/foo/test/test.dest/worker-0
+out/foo/test/test.dest/worker-1.log
+out/foo/test/test.dest/worker-1
+out/foo/test/test.dest/worker-2.log
+out/foo/test/test.dest/worker-2
+out/foo/test/test.dest/test-classes
+out/foo/test/test.dest/test-report.xml
 ...
 
 */
-
-// Test stealing allows you to run tests in parallel while keeping things deterministic and
-// debuggable: parallel test groups will not write over each others files in their
-// sandbox, and each one will have a separate set of logs that can be easily read
-// without the others mixed in
-//
-// By the nature of work stealing, you can run tests in parallel without worrying about fast/slow tests
-//
-// Test stealing can be use in combination with test grouping. In that case, test subprocesses will never
-// steal tests from different groups.
