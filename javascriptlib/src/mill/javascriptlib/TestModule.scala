@@ -575,7 +575,7 @@ object TestModule {
       )
     }
 
-    def testConfigSource: T[PathRef] =
+    def configSource: T[PathRef] =
       Task.Source(Task.workspace / "cypress.config.ts")
 
     override def compilerOptions: T[Map[String, ujson.Value]] =
@@ -595,7 +595,7 @@ object TestModule {
       val tsc = npmInstall().path / "node_modules/.bin/tsc"
       os.call((
         tsc,
-        testConfigSource().path.toString,
+        configSource().path.toString,
         "--outDir",
         compile()._1.path,
         "--target",
@@ -658,14 +658,22 @@ object TestModule {
       )
     }
 
-    def testConfigSource: T[PathRef] =
+    def configSource: T[PathRef] =
       Task.Source(Task.workspace / "playwright.config.ts")
 
-    private def copyConfig: Task[TestResult] = Task.Anon {
+    def conf: Task[TestResult] = Task.Anon {
       os.copy.over(
-        testConfigSource().path,
-        compile()._1.path / "playwright.config.ts"
+        configSource().path,
+        T.dest / configSource().path.last
       )
+    }
+
+    override def compile: T[(PathRef, PathRef)] = Task {
+      conf()
+      symLink()
+      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+
+      (PathRef(T.dest), PathRef(T.dest / "typescript"))
     }
 
     private def runTest: T[TestResult] = Task {
@@ -681,7 +689,6 @@ object TestModule {
         cwd = service.compile()._1.path
       )
 
-      copyConfig()
       os.call(
         (
           "node",
