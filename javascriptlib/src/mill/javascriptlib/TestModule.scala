@@ -540,17 +540,17 @@ object TestModule {
 
     def conf: Task[PathRef] = Task.Anon {
       val path = Task.dest / "jasmine.json"
-        os.write.over(
-          path,
-          ujson.write(
-            ujson.Obj(
-              "spec_dir" -> ujson.Str("typescript/src"),
-              "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
-              "stopSpecOnExpectationFailure" -> ujson.Bool(false),
-              "random" -> ujson.Bool(false)
-            )
+      os.write.over(
+        path,
+        ujson.write(
+          ujson.Obj(
+            "spec_dir" -> ujson.Str("typescript/src"),
+            "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
+            "stopSpecOnExpectationFailure" -> ujson.Bool(false),
+            "random" -> ujson.Bool(false)
           )
         )
+      )
 
       PathRef(path)
     }
@@ -727,10 +727,10 @@ object TestModule {
       Task.Source(Task.workspace / "playwright.config.ts")
 
     private def copyConfig: Task[TestResult] = Task.Anon {
-        os.copy.over(
-          testConfigSource().path,
-          Task.dest / "playwright.config.ts"
-        )
+      os.copy.over(
+        testConfigSource().path,
+        Task.dest / "playwright.config.ts"
+      )
     }
 
     private def callServiceProcess:Task[SubProcess] = Task.Anon{
