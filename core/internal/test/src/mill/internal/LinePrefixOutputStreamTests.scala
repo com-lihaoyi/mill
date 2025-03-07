@@ -78,7 +78,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
       val baos = new ByteArrayOutputStream()
       val lpos = new LinePrefixOutputStream("PREFIX", baos)
       
-      // Test with color spanning multiple lines
+      // Test with color spanning multiple lines.
       val redStart = "\u001b[31m" // Red color
       val reset = "\u001b[0m"     // Reset color
       val input = s"${redStart}hello\nworld\n!${reset}"
@@ -94,7 +94,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
       val baos = new ByteArrayOutputStream()
       val lpos = new LinePrefixOutputStream("PREFIX", baos)
       
-      // Write the ANSI sequence in parts
+      // Write the ANSI sequence in parts.
       lpos.write("\u001b".getBytes())
       lpos.write("[".getBytes())
       lpos.write("31".getBytes())
