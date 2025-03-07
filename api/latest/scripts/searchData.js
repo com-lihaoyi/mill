@@ -140,6 +140,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/Logger.html#info-571","e":false,"i":"","n":"info","t":"info(s: String): Unit","d":"mill.api.Logger","k":"def","x":""},
 {"l":"mill/api/Logger.html#streams-0","e":false,"i":"","n":"streams","t":"streams: SystemStreams","d":"mill.api.Logger","k":"def","x":""},
 {"l":"mill/api/Logger.html#ticker-571","e":false,"i":"","n":"ticker","t":"ticker(s: String): Unit","d":"mill.api.Logger","k":"def","x":""},
+{"l":"mill/api/Logger.html#warn-571","e":false,"i":"","n":"warn","t":"warn(s: String): Unit","d":"mill.api.Logger","k":"def","x":""},
 {"l":"mill/api/Logger.html#withOutStream-c05","e":false,"i":"","n":"withOutStream","t":"withOutStream(outStream: PrintStream): Logger","d":"mill.api.Logger","k":"def","x":""},
 {"l":"mill/api/MillException.html#","e":false,"i":"","n":"MillException","t":"MillException(msg: String) extends Exception","d":"mill.api","k":"class","x":""},
 {"l":"mill/api/Mirrors$.html#","e":false,"i":"","n":"Mirrors","t":"Mirrors","d":"mill.api","k":"object","x":""},
