@@ -24,6 +24,13 @@ trait TestModule extends TaskModule {
 object TestModule {
   type TestResult = Unit
 
+  private def symlinkContents(from:os.Path,to:os.Path): Seq[os.Path] =  {
+    os.list(from).map { p =>
+      os.symlink(to / p.last, p)
+      to / p.last
+    }
+  }
+
   trait Coverage extends TypeScriptModule with TestModule {
     override def npmDevDeps: T[Seq[String]] = Task {
       super.npmDevDeps() ++ Seq("serve@14.2.4")
@@ -507,8 +514,7 @@ object TestModule {
       }
 
     def conf: Task[PathRef] = Task.Anon {
-      val path = compile()._1.path / "jasmine.json"
-      os.checker.withValue(os.Checker.Nop) {
+      val path = Task.dest / "jasmine.json"
         os.write.over(
           path,
           ujson.write(
@@ -521,8 +527,11 @@ object TestModule {
           )
         )
 
-      }
       PathRef(path)
+    }
+
+    private def symlinkCompileContents: Task[Seq[os.Path]] = Task.Anon {
+      symlinkContents(compile()._1.path,Task.dest)
     }
 
     private def runTest: T[Unit] = Task {
@@ -530,20 +539,20 @@ object TestModule {
       val jasmine = "node_modules/jasmine/bin/jasmine.js"
       val tsnode = "node_modules/ts-node/register/transpile-only.js"
       val tsconfigPath = "node_modules/tsconfig-paths/register.js"
-      os.checker.withValue(os.Checker.Nop) {
-        os.call(
-          (
-            "node",
-            jasmine,
-            "--config=jasmine.json",
-            s"--require=$tsnode",
-            s"--require=$tsconfigPath"
-          ),
-          stdout = os.Inherit,
-          env = forkEnv(),
-          cwd = compile()._1.path
-        )
-      }
+      val symlinks = symlinkCompileContents()
+      os.call(
+        (
+          "node",
+          jasmine,
+          "--config=jasmine.json",
+          s"--require=$tsnode",
+          s"--require=$tsconfigPath"
+        ),
+        stdout = os.Inherit,
+        env = forkEnv(),
+        cwd = Task.dest
+      )
+      symlinks.foreach(os.remove)
       ()
     }
 
@@ -697,12 +706,14 @@ object TestModule {
       Task.Source(Task.workspace / "playwright.config.ts")
 
     private def copyConfig: Task[TestResult] = Task.Anon {
-      os.checker.withValue(os.Checker.Nop) {
         os.copy.over(
           testConfigSource().path,
-          compile()._1.path / "playwright.config.ts"
+          Task.dest / "playwright.config.ts"
         )
-      }
+    }
+
+    private def symlinkCompileContents: Task[Seq[os.Path]] = Task.Anon {
+      symlinkContents(compile()._1.path,Task.dest)
     }
 
     private def runTest: T[TestResult] = Task {
@@ -718,6 +729,7 @@ object TestModule {
         cwd = service.compile()._1.path
       )
 
+      val symlinks = symlinkCompileContents()
       copyConfig()
       os.call(
         (
@@ -727,9 +739,10 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = Task.dest
       )
 
+      symlinks.foreach(os.remove)
       serviceProcess.destroy()
     }
 
