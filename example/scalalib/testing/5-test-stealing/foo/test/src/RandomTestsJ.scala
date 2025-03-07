@@ -1,24 +1,9 @@
 package foo
 import utest._
-object RandomTestsJ extends TestSuite {
+object RandomTestsJ extends RandomTestsUtils {
   def tests = Tests {
-    test("test1") {
-      val result = Foo.greet("Storm")
-      assert(result == "Hello Storm")
-      Thread.sleep(44)
-      result
-    }
-    test("test2") {
-      val result = Foo.greet("True")
-      assert(result == "Hello True")
-      Thread.sleep(67)
-      result
-    }
-    test("test3") {
-      val result = Foo.greet("Vale")
-      assert(result == "Hello Vale")
-      Thread.sleep(25)
-      result
-    }
+    test("test1") { testGreeting("Storm", 38) }
+    test("test2") { testGreeting("True", 32) }
+    test("test3") { testGreeting("Vale", 28) }
   }
 } 

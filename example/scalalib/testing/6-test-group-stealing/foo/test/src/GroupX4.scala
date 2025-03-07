@@ -1,36 +1,11 @@
 package foo
 import utest._
-object GroupX4 extends TestSuite {
+object GroupX4 extends RandomTestsUtils {
   def tests = Tests {
-    test("test1") {
-      val result = Foo.greet("Janus")
-      assert(result == "Hello Janus")
-      Thread.sleep(45)
-      result
-    }
-    test("test2") {
-      val result = Foo.greet("Kratos")
-      assert(result == "Hello Kratos")
-      Thread.sleep(68)
-      result
-    }
-    test("test3") {
-      val result = Foo.greet("Luna")
-      assert(result == "Hello Luna")
-      Thread.sleep(29)
-      result
-    }
-    test("test4") {
-      val result = Foo.greet("Maia")
-      assert(result == "Hello Maia")
-      Thread.sleep(52)
-      result
-    }
-    test("test5") {
-      val result = Foo.greet("Nyx")
-      assert(result == "Hello Nyx")
-      Thread.sleep(34)
-      result
-    }
+    test("test1") { testGreeting("Janus", 21) }
+    test("test2") { testGreeting("Kratos", 18) }
+    test("test3") { testGreeting("Luna", 19) }
+    test("test4") { testGreeting("Maia", 22) }
+    test("test5") { testGreeting("Nyx", 17) }
   }
 } 

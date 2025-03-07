@@ -1,7 +1,7 @@
 // Test stealing is an opt-in feature that allows you to take a single
 // test module and spawn many test runner subprocesses that do work stealing
 // when you call `test`. Test stealing is enabled
-// by overriding `def useTestStealingScheduler`, as shown below:
+// by overriding `def testEnableWorkStealing`, as shown below:
 
 //// SNIPPET:BUILD1
 package build
@@ -13,26 +13,15 @@ object foo extends ScalaModule {
     def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
     
-    def useTestStealingScheduler = true
+    def testEnableWorkStealing = true
   }
 }
-
-/** See Also: foo/test/src/RandomTestsA.scala */
-/** See Also: foo/test/src/RandomTestsB.scala */
-/** See Also: foo/test/src/RandomTestsC.scala */
-/** See Also: foo/test/src/RandomTestsD.scala */
-/** See Also: foo/test/src/RandomTestsE.scala */
-/** See Also: foo/test/src/RandomTestsF.scala */
-/** See Also: foo/test/src/RandomTestsG.scala */
-/** See Also: foo/test/src/RandomTestsH.scala */
-/** See Also: foo/test/src/RandomTestsI.scala */
-/** See Also: foo/test/src/RandomTestsJ.scala */
 
 
 //// SNIPPET:END
 
 // In this example, we have one test module `foo.test`, and a bunch of test classes in test/src folder.
-// By default, all test classes will run sequentially in the same JVM, but with `useTestStealingScheduler`
+// By default, all test classes will run sequentially in the same JVM, but with `testEnableWorkStealing`
 // we can set up a cluster of JVM subprocesses that do work stealing on those test classes, all run in parallel,
 // and each will have its own separate `sandbox` folder and `.log` file:
 
@@ -48,6 +37,7 @@ out/foo/test/testForked.dest/1.log
 out/foo/test/testForked.dest/1
 out/foo/test/testForked.dest/2.log
 out/foo/test/testForked.dest/2
+out/foo/test/testForked.dest/selectors
 out/foo/test/testForked.dest/test-report.xml
 ...
 

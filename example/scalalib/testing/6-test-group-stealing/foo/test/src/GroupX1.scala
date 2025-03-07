@@ -1,18 +1,8 @@
 package foo
 import utest._
-object GroupX1 extends TestSuite {
+object GroupX1 extends RandomTestsUtils {
   def tests = Tests {
-    test("test1") {
-      val result = Foo.greet("Aether")
-      assert(result == "Hello Aether")
-      Thread.sleep(42)
-      result
-    }
-    test("test2") {
-      val result = Foo.greet("Boreas")
-      assert(result == "Hello Boreas")
-      Thread.sleep(18)
-      result
-    }
+    test("test1") { testGreeting("Aether", 55) }
+    test("test2") { testGreeting("Boreas", 43) }
   }
 }
