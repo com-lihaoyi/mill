@@ -100,9 +100,9 @@ object TestModule {
     }
   }
 
-  trait CommonTypescript { self :TypeScriptModule  =>
+  trait CommonTypescript { self: TypeScriptModule =>
 
-    protected [TestModule] def symlinkCompileContents: Task[Seq[os.Path]] = Task.Anon {
+    protected[TestModule] def symlinkCompileContents: Task[Seq[os.Path]] = Task.Anon {
 
       os.list(compile()._1.path).map { p =>
         os.symlink(Task.dest / p.last, p)
@@ -112,7 +112,7 @@ object TestModule {
     }
 
   }
-  trait CommonIntegration { self :TypeScriptModule & IntegrationSuite =>
+  trait CommonIntegration { self: TypeScriptModule & IntegrationSuite =>
 
     protected[TestModule] def symlinkServiceCompileContents: Task[Seq[os.Path]] = Task.Anon {
 
@@ -714,7 +714,8 @@ object TestModule {
 
   }
 
-  trait PlayWright extends TypeScriptModule with IntegrationSuite with TestModule with CommonIntegration {
+  trait PlayWright extends TypeScriptModule with IntegrationSuite with TestModule
+      with CommonIntegration {
     override def npmDevDeps: T[Seq[String]] = Task {
       super.npmDevDeps() ++ Seq(
         "playwright@1.49.0",
@@ -733,19 +734,19 @@ object TestModule {
       )
     }
 
-    private def callServiceProcess:Task[SubProcess] = Task.Anon{
+    private def callServiceProcess: Task[SubProcess] = Task.Anon {
 
-        val mainFile = service.mainFilePath()
-        val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-        val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
-        val port_ = port()
-        val env = service.forkEnv() + ("PORT" -> port_)
+      val mainFile = service.mainFilePath()
+      val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
+      val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
+      val port_ = port()
+      val env = service.forkEnv() + ("PORT" -> port_)
 
-        os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
-          stdout = os.Inherit,
-          env = env,
-          cwd = service.compile()._1.path
-        )
+      os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
+        stdout = os.Inherit,
+        env = env,
+        cwd = service.compile()._1.path
+      )
     }
 
     private def runTest: T[TestResult] = Task {
