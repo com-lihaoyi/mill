@@ -166,6 +166,16 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
+   * Provides the path for the r8 tool, used for code shrinking and optimization.
+   *
+   * @return A task containing a [[PathRef]] pointing to the r8 directory.
+   */
+  def r8Path: T[PathRef] = Task {
+    PathRef(sdkPath().path / "cmdline-tools/latest/bin/r8")
+  }
+
+
+  /**
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
    *
    * For more details on the `sdkmanager` tool, refer to:

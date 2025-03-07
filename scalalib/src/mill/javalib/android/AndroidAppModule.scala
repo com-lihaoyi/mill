@@ -1,14 +1,14 @@
 package mill.javalib.android
 
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 import mill.api.{Logger, PathRef, internal}
 import mill.define.{ModuleRef, Task}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import os.RelPath
-import upickle.default._
+import os.{Path, RelPath}
+import upickle.default.*
 
 import scala.jdk.OptionConverters.RichOptional
 
@@ -54,7 +54,89 @@ trait AndroidAppModule extends AndroidModule {
 
   private val parent: AndroidAppModule = this
 
-  /**
+  trait r8OptimizationsModule extends AndroidAppModule {
+
+    /** Whether we are building an application (APK) or a library (AAR) */
+    def isApplication: T[Boolean] = Task {
+      true
+    }
+
+    def androidMinSdk: T[Int] = parent.androidMinSdk()
+
+    /** ProGuard/R8 rules configuration files (user-provided and generated) */
+    def proguardConfigs: T[Seq[PathRef]] = {
+      Seq(PathRef(moduleDir / "../proguard-rules.pro"))
+    }
+
+    def proguardOutput: T[PathRef] = Task {
+      val outputDir = Task.dest / "proguard"
+      os.makeDir(outputDir)
+      PathRef(outputDir)
+    }
+
+    /** Toggle desugaring in R8 (usually true for full R8 mode when minSdk < 24) */
+    def enableDesugaring: T[Boolean] = Task {
+      true
+    }
+
+    def r8Desugaring: T[String] = Task {
+      if (!enableDesugaring()) "--no-desugaring"
+      else ""
+    }
+
+    def r8Application: T[String] = Task {
+      if (isApplication()) s"--min-api=${androidMinSdk().toString}"
+      else "--classfile"
+    }
+
+    def runR8: T[PathRef] = Task {
+      // Prepare output directories
+      val destDir = Task.dest / "minify"
+      os.makeDir.all(destDir)
+
+      // Determine primary output: 
+      // For apps, R8 will output DEX files into destDir (classes.dex, classes2.dex, ...).
+      // For libraries, R8 outputs a shrunk class jar.
+      val outputPath = if (isApplication()) destDir
+      else destDir / "classes-shrunk.jar"
+
+      // Set up paths for diagnostic outputs
+      val mappingTxt = destDir / "mapping.txt"
+      val seedsTxt = destDir / "seeds.txt"
+      val usageTxt = destDir / "usage.txt"
+      val configTxt = destDir / "configuration.txt"
+      val missingRulesTxt = destDir / "missing_rules.txt"
+      val rewrittenProfileTxt = destDir / "baseline-profile-rewritten.txt"
+
+      val classfiles: Path = compile().classes.path
+      //  ++ classfiles.map(pathref => pathref.path.toString)
+      T.log.debug(s"classfiles: ${classfiles}")
+
+
+      val args = collection.mutable.Buffer[String]()
+      // NA MIN EINAI TASK APO TO PARENT
+      val r8 = Seq(
+        androidSdkModule().r8Path().path.toString,
+        "--debug",
+        //        "--release",
+        "--output",
+        outputPath.toString,
+        //        r8Application(),
+        r8Desugaring()
+      ) ++ Seq(classfiles.toString) ++ Seq(
+        "--pg-conf"
+      ) ++ proguardConfigs().map(_.path.toString)
+
+      T.log.info(s"Calling r8 with arguments: ${r8.mkString(" ")}")
+
+      os.call(r8)
+
+      PathRef(outputPath)
+    }
+  }
+
+
+    /**
    * Specifies the file format(s) of the lint report. Available file formats are defined in AndroidLintReportFormat,
    * such as [[AndroidLintReportFormat.Html]], [[AndroidLintReportFormat.Xml]], [[AndroidLintReportFormat.Txt]],
    * and [[AndroidLintReportFormat.Sarif]].
@@ -748,7 +830,7 @@ trait AndroidAppModule extends AndroidModule {
     else
       throw new Exception("Device failed to boot")
   }
-
+  
   trait AndroidAppTests extends AndroidAppModule with JavaTests {
 
     override def androidCompileSdk: T[Int] = parent.androidCompileSdk

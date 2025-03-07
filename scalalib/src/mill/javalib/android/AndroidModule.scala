@@ -5,13 +5,15 @@ import mill.api.PathRef
 import mill.define.{ModuleRef, Target, Task}
 import mill.T
 import mill.scalalib.*
+import mill.scalalib.api.CompilationResult
 import mill.util.Jvm
-import os.RelPath
+import os.{Path, RelPath}
 
 import scala.xml.XML
 
 trait AndroidModule extends JavaModule {
 
+  private val parent: AndroidModule = this
   private val rClassDirName = "RClass"
   private val compiledResourcesDirName = "compiled-resources"
 
@@ -706,4 +708,189 @@ trait AndroidModule extends JavaModule {
     PathRef(signedApk)
   }
 
-}
+//  trait r8OptimizationsModule extends AndroidModule{
+//
+//    /** Whether we are building an application (APK) or a library (AAR) */
+//    def isApplication: T[Boolean] = Task { true }
+//
+//    def androidMinSdk : T[Int] = parent.androidMinSdk()
+//
+//    /** ProGuard/R8 rules configuration files (user-provided and generated) */
+//    def proguardConfigs: T[Seq[PathRef]] = {
+//      Seq(PathRef(moduleDir / "../proguard-rules.pro"))
+//    }
+//
+//    def proguardOutput: T[PathRef] = Task {
+//      val outputDir = Task.dest / "proguard"
+//      os.makeDir(outputDir)
+//      PathRef(outputDir)
+//    }
+//
+//    /** Toggle desugaring in R8 (usually true for full R8 mode when minSdk < 24) */
+//    def enableDesugaring: T[Boolean] = Task {
+//      true
+//    }
+//
+//    def r8Desugaring: T[String] = Task {
+//      if(!enableDesugaring()) "--no-desugaring"
+//      else ""
+//    }
+//
+//    def r8Application: T[String] = Task {
+//      if(isApplication()) s"--min-api=${androidMinSdk().toString}"
+//      else "--classfile"
+//    }
+//
+//    def runR8: T[PathRef] = Task {
+//      // Prepare output directories
+//      val destDir = Task.dest / "minify"
+//      os.makeDir.all(destDir)
+//
+//      // Determine primary output: 
+//      // For apps, R8 will output DEX files into destDir (classes.dex, classes2.dex, ...).
+//      // For libraries, R8 outputs a shrunk class jar.
+//      val outputPath = if (isApplication()) destDir
+//      else destDir / "classes-shrunk.jar"
+//
+//      // Set up paths for diagnostic outputs
+//      val mappingTxt = destDir / "mapping.txt"
+//      val seedsTxt = destDir / "seeds.txt"
+//      val usageTxt = destDir / "usage.txt"
+//      val configTxt = destDir / "configuration.txt"
+//      val missingRulesTxt = destDir / "missing_rules.txt"
+//      val rewrittenProfileTxt = destDir / "baseline-profile-rewritten.txt"
+//
+//      val classfiles: Path = compile().classes.path
+//      //  ++ classfiles.map(pathref => pathref.path.toString)
+//      T.log.debug(s"classfiles: ${classfiles}")
+//
+//      val inheritedClassFiles = compileClasspath().map(_.path).filter(os.isDir)
+//        .flatMap(os.walk(_))
+//        .filter(os.isFile)
+//        .filter(_.ext == "class")
+//        .map(_.toString())
+//
+//      val appCompiledFiles = os.walk(compile().classes.path)
+//        .filter(_.ext == "class")
+//        .map(_.toString) ++ inheritedClassFiles
+//
+//      T.log.debug(s"appCompiledFiles: ${appCompiledFiles}")
+//
+//      val args = collection.mutable.Buffer[String]()
+//      // NA MIN EINAI TASK APO TO PARENT
+//      val r8 = Seq(
+//        androidSdkModule().r8Path().path.toString,
+//        "--debug",
+////        "--release",
+//        "--output",
+//        outputPath.toString,
+////        r8Application(),
+//        r8Desugaring()
+//      ) ++ appCompiledFiles ++ Seq(
+//        "--pg-conf"
+//      ) ++ proguardConfigs().map(_.path.toString)
+//
+//      T.log.info(s"Calling r8 with arguments: ${r8.mkString(" ")}")
+//
+//      os.call(r8)
+//
+//
+////      // Boot classpath libraries (android.jar etc.)
+////      bootClasspath().foreach(bc => args.append("--lib", bc.path.toString))
+////      // Library class inputs (if any, these won't be shrunk/obfuscated, just provided as references)
+////      libraryClasses().foreach(lib => args.append("--lib", lib.path.toString))
+////      // Program class inputs: all classes to be processed by R8 (including deps for apps)
+////      programClasses().foreach(pc => args.append(pc.path.toString))
+////
+////      // Multi-dex configuration (if legacy multidex)
+////      mainDexRules().foreach(ruleFile => args.append("--main-dex-rules", ruleFile.path.toString))
+////      mainDexList().foreach(listFile => args.append("--main-dex-list", listFile.path.toString))
+////
+////      // Dynamic feature splits support: if building an app bundle with feature modules,
+////      // you could add feature jars with their own outputs (not fully shown here, but example):
+////      // val featureJars: Seq[(PathRef, String)] = Seq()  // (featureJar, outputDexFolderName)
+////      // featureJars.foreach { case (featJar, outputName) =>
+////      //   val featureOutput = destDir / outputName
+////      //   os.makeDir.all(featureOutput)
+////      //   args.append("--feature", s"${featJar.path}:${featureOutput}")
+////      // }
+////
+////      // Mapping output (obfuscation map) – use R8 flag to direct output
+////      args.append("--pg-map-output", mappingTxt.toString)
+////      // Output the merged configuration for reference
+////      args.append("--pg-conf-output", configTxt.toString)
+////
+////      // Unfortunately, R8 has no direct flags for seeds/usage, so we inject ProGuard directives for these:
+////      // We create a temporary rules file to request printing seeds and usage.
+////      val extraRules = destDir / "extra-rules.pro"
+////      val extraContent =
+////        s"""
+////           |-printseeds ${seedsTxt.toString}
+////           |-printusage ${usageTxt.toString}
+////           |""".stripMargin
+////      os.write(extraRules, extraContent)
+////      args.append("--pg-conf", extraRules.toString)
+////
+////      // Baseline profile rewriting if provided:
+////      baselineProfile().foreach { profile =>
+////        args.append("--art-profile", profile.path.toString, rewrittenProfileTxt.toString)
+////      }
+////
+////      // Invoke R8 via os.proc and capture output
+////      val result = os.proc(args).call(cwd = destDir)
+////      if (result.exitCode != 0) {
+////        // If R8 encountered missing classes, it might produce missing_rules.txt with suggestions&#8203;:contentReference[oaicite:1]{index=1}.
+////        // We treat missing_rules.txt presence as a diagnostic (not failing caching).
+////        if (os.exists(missingRulesTxt)) {
+////          println("R8 generated missing keep rules at " + missingRulesTxt)
+////        }
+////        // If exit code non-zero and not just missing rules, throw to indicate failure
+////        else throw new RuntimeException("R8 execution failed. See logs for details.")
+////      }
+////
+////      // Return the primary output as a PathRef for caching
+//      PathRef(outputPath)
+//    }
+
+
+  }
+
+
+
+
+//  def runProguard: T[Unit] = Task {
+//    val configFiles = proguardConfigFiles.map(_.path)
+//    val outputDir = proguardOutput().path
+////     Add logic to run ProGuard with the specified configuration files
+////     and output directory
+//    T.log.info(s"Running ProGuard with config files: $configFiles")
+//    T.log.info(s"Output directory: $outputDir")
+//    PathRef(outputDir)
+//  }
+//
+//  def r8ConfigFiles: T[Seq[PathRef]] = Task {
+//    proguardConfigFiles
+//  }
+//
+//  def r8Output: T[PathRef] = Task {
+//    val outputDir = T.ctx().dest / "r8"
+//    os.makeDir.all(outputDir)
+//    PathRef(outputDir)
+//  }
+//
+//  def runR8: T[Unit] = Task {
+//    val configFiles = r8ConfigFiles().map(_.path)
+//    val outputDir = r8Output().path
+//    // Add logic to run R8 with the specified configuration files
+//    // and output directory
+//    T.log.info(s"Running R8 with config files: $configFiles")
+//    T.log.info(s"Output directory: $outputDir")
+//  }
+
+//  override def compile: T[CompilationResult] = T {
+//    super.compile()
+//    runProguard()
+//    runR8()
+//    CompilationResult(T.ctx().dest / "analysis", PathRef(T.ctx().dest))
+//  }
+
