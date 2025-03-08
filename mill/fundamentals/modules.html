@@ -601,7 +601,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.8</span>
+    <span class="version">0.12.8</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -611,13 +611,10 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.8</a>
+          <a href="../index.html">0.12.8</a>
         </li>
         <li class="version">
-          <a href="../0.12.x/index.html">0.12.x</a>
-        </li>
-        <li class="version">
-          <a href="../0.11.x/index.html">0.11.x</a>
+          <a href="../0.11.x/index.html">0.11.13</a>
         </li>
         <li class="version">
           <a href="../0.10.15/index.html">0.10.15</a>
@@ -681,7 +678,7 @@ path you would use to run tasks within that module from the command line. e.g.
 for the following <code>build.mill</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-fundamentals-modules-6-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/fundamentals/modules/6-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-fundamentals-modules-6-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/fundamentals/modules/6-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1317,7 +1314,7 @@ object bar extends Bar</code></pre>
 as the root module of the file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-fundamentals-modules-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/fundamentals/modules/7-root-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-fundamentals-modules-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/fundamentals/modules/7-root-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1402,7 +1399,7 @@ so far into a worked example: implementing our own minimal version of
 <code>mill.scalalib.JavaModule</code> from first principles.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-fundamentals-modules-8-diy-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/fundamentals/modules/8-diy-java-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-fundamentals-modules-8-diy-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/fundamentals/modules/8-diy-java-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1586,15 +1583,15 @@ according to our overrides for <code>moduleDeps</code></p>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="289.27,-81 289.27,-189 831.08,-189 831.08,-81 289.27,-81"/>
 <text text-anchor="middle" x="560.17" y="-172.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
-<g id="clust1" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-197 8,-262 567.65,-262 567.65,-197 8,-197"/>
-<text text-anchor="middle" x="287.82" y="-245.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="157.76,-8 157.76,-73 698.19,-73 698.19,-8 157.76,-8"/>
 <text text-anchor="middle" x="427.98" y="-56.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-197 8,-262 567.65,-262 567.65,-197 8,-197"/>
+<text text-anchor="middle" x="287.82" y="-245.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
 </g>
 <!-- foo.bar.sources -->
 <g id="node1" class="node">
@@ -1842,7 +1839,7 @@ developed, so you can define your own custom modules when the need arises.</p>
 allows them to be run directly without needing the task name provided explicitly:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-fundamentals-modules-12-default-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/fundamentals/modules/12-default-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-fundamentals-modules-12-default-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/fundamentals/modules/12-default-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1883,7 +1880,7 @@ task to run, e.g. Mill <code>TestModule`s have `test</code> as the default comma
 <h2 id="_backticked_names"><a class="anchor" href="#_backticked_names"></a>Backticked Names</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-fundamentals-modules-9-backticked-names.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/fundamentals/modules/9-backticked-names">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-fundamentals-modules-9-backticked-names.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/fundamentals/modules/9-backticked-names">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1983,7 +1980,7 @@ shorthand aliases for external modules that have long names, such as
 <code>mill.javalib.palantirformat.PalantirFormatModule</code> below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-fundamentals-modules-10-external-module-aliases.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/fundamentals/modules/10-external-module-aliases">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-fundamentals-modules-10-external-module-aliases.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/fundamentals/modules/10-external-module-aliases">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -2024,7 +2021,7 @@ a <code>ModuleRef(&#8230;&#8203;)</code> to wrap the abstract module, such that 
 not participate in task query resolution:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-fundamentals-modules-11-abstract-module-ref.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8//example/fundamentals/modules/11-abstract-module-ref">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-fundamentals-modules-11-abstract-module-ref.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/fundamentals/modules/11-abstract-module-ref">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
