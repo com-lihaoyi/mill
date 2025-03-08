@@ -295,14 +295,14 @@ object `package` extends RootModule {
       build.Settings.docTags.map { v =>
         val xVersion = v.split('.').dropRight(1).mkString(".") + ".x"
         (v, xVersion, xVersion)
-      } ++
+      }.dropRight(1) ++
         // Set the latest stable branch as the "master" docs that people default to
-        Seq((build.Settings.docTags.last, "master", s"latest-${build.Settings.docTags.last}"))
+        Seq((build.Settings.docTags.last, "master", build.Settings.docTags.last))
 
-    for ((millLastTag, version, displayVersion) <- versionLabels) yield {
+    for ((millVersion, antoraVersion, displayVersion) <- versionLabels) yield {
       val checkout = Task.dest / displayVersion
       os.proc("git", "clone", Task.workspace / ".git", checkout).call(stdout = os.Inherit)
-      os.proc("git", "checkout", millLastTag).call(cwd = checkout, stdout = os.Inherit)
+      os.proc("git", "checkout", millVersion).call(cwd = checkout, stdout = os.Inherit)
       val outputFolder = checkout / "out/docs/source.dest"
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
       expandDiagramsInDirectoryAdocFile(
@@ -310,18 +310,16 @@ object `package` extends RootModule {
         mill.main.VisualizeModule.classpath().map(_.path)
       )
 
+      val useOldDownloadUrl = Ordering.Implicits.seqOrdering[Seq, String].lt(
+        millVersion.split('.'),
+        Seq("0", "12", "6")
+      )
+
       val millDownloadUrl =
-        if (
-          Ordering.Implicits.seqOrdering[Seq, String].lt(
-            millLastTag.split('.'),
-            Seq("0", "12", "6")
-          )
-        ) {
-          s"${build.Settings.projectUrl}/releases/download/$millLastTag"
-        } else {
-          build.millDownloadUrl()
-        }
-      sanitizeAntoraYml(outputFolder, version, displayVersion, millLastTag, millDownloadUrl)
+        if (useOldDownloadUrl) s"${build.Settings.projectUrl}/releases/download/$millVersion"
+        else s"${build.millDownloadPrefix()}/$millVersion"
+
+      sanitizeAntoraYml(outputFolder, antoraVersion, displayVersion, millVersion, millDownloadUrl)
       PathRef(outputFolder)
     }
   }
