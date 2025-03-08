@@ -135,7 +135,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   override def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
     if (args().value.nonEmpty) {
-      Task.log.error("Passing command line arguments to run is not supported by Scala.js.")
+      Task.log.warn("Passing command line arguments to run is not supported by Scala.js.")
     }
     finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
