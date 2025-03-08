@@ -25,4 +25,172 @@ approaches to the problem.
 
 // end::header[]
 
-## Example JVM Application
+## Source File and Code Change Invalidation
+
+To illustrate this problem, consider the following `build.mill` config:
+
+```scala
+def fooSource = Task.Source("foo.txt")
+def fooTask: T[String] = Task{
+  println("evaluating fooTask")
+  os.read(fooSource().path).toUpperCase
+}
+
+def barSource = Task.Source("bar.txt")
+def barHelper(s: String) = s.toUpperCase
+def barTask: T[String] = Task{
+  println("evaluating barTask")
+  barHelper(os.read(barSource().path))
+}
+```
+
+
+This generates a build graph that looks like the following:
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  fooSource -> fooTask
+  barSource -> barTask
+}
+```
+
+If you run this for the first time, you can see the `println`s indicating both
+tasks evaluated:
+
+```bash
+> ./mill show '{fooTask,barTask}'
+evaluating fooTask
+evaluating barTask
+{
+  "fooTask": "FOO.TXT CONTENTS",
+  "barTask": "BAR.TXT CONTENTS"
+}
+```
+
+If you then run it again after changing `foo.txt`, you will see that only `fooTask` re-evaluates,
+and `barTask` does not:
+
+```bash
+> echo " changed" >> foo.txt
+
+> ./mill '{fooTask,barTask}'
+evaluating fooTask
+{
+  "fooTask": "FOO.TXT CONTENTS CHANGED",
+  "barTask": "BAR.TXT CONTENTS"
+}
+```
+
+So far so good. But what if instead of changing the `foo.txt` or `bar.txt` source files,
+we instead change the `build.mill` configuration itself?
+
+For example, we may change the `.toUpperCase` to `toLowerCase`:
+
+```diff
+ def fooTask: T[String] = Task{
+   println("evaluating fooTask")
+-   os.read(fooSource().path).toUpperCase
++   os.read(fooSource().path).toLowerCase
+ }
+```
+
+If you make this change, you would want `fooTask` to re-evaluate since its implementation
+changed, but `barTask` to not re-evaluate since because nothing we changed affected it:
+
+```bash
+> ./mill show '{fooTask,barTask}'
+evaluating fooTask
+{
+  "fooTask": "foo.txt contents",
+  "barTask": "BAR.TXT CONTENTS"
+}
+```
+
+Consider another case: what if instead of changing `fooTask`, I change `barHelper`:
+
+```diff
+-def barHelper(s: String) = s.toUpperCase
++def barHelper(s: String) = s.toLowerCase
+```
+
+This isn't directly changing any of the tasks `fooTask` or `barTask`, but instead
+changes the `barHelper` helper method that is called by `barTask`. Again, we would
+want `barTask` to re-evaluate to make use of the new helper method, but `fooTask`
+should not re-evaluate because nothing we changed affected it.
+
+```bash
+> ./mill show '{fooTask,barTask}'
+evaluating barTask
+{
+  "fooTask": "FOO.TXT CONTENTS",
+  "barTask": "bar.txt contents"
+}
+```
+
+That looks straightforward enough, so what's the issue?
+
+## Why Code Change Invalidation is Hard
+
+Mill `build.mill` files run on the JVM; the source code is written in Scala, but it
+compiles to the same JVM bytecode that Java or Kotlin or any other JVM languages do.
+When you look at the definition of a task such as:
+
+```scala
+def fooTask: T[String] = Task{
+  println("evaluating fooTask")
+  os.read(fooSource().path).toUpperCase
+}
+```
+
+`Task` takes a "by-name" block argument of type `=> T`.
+
+```scala
+def Task[T](block: => T): Task[T] = ???
+```
+
+Essentially, this means when you call `Task{ ... }`, the `...` is wrapped in a zero-argument
+function `() => ...` of type `Function0[T]` that you can call via `.apply(): T`:
+
+```scala
+def fooTask: T[String] = Task{ () =>
+  println("evaluating fooTask")
+  os.read(fooSource().path).toUpperCase
+}
+```
+
+"By-name" parameters are just a convenient way to define blocks of runnable code without
+needing to tediously repeat the `() =>` in front of every one, but for all intents and
+purposes the effect is the same: you get a `Function0[T]` that you can call via `.apply`
+to get the value out of it. This `Function0` is what lets Mill decide whether or not it
+needs to run the code in the block: if the inputs to the task are unchanged, Mill can
+simply re-use the previous value and avoid running the `Function0`, but if the inputs to
+the task were modified then Mill can call `.apply` on the `Function0` to compute the latest
+value.
+
+So far so good. But the only thing that the `Function0` class lets you do is call `.apply()`
+to compute the result value of type `T`! In particular, `Function0` does not let you inspect
+the function to look at its source code or implementation: like function values in any
+language all that is encapsulated and hidden away from you. How then can Mill detect that
+the `.toUpperCase` in `fooTask` was replaced by `.toLowerCase`, so Mill knows to re-evaluate
+`fooTask` even though `fooSource` was not modified? Or in the case of modifying `barHelper`,
+how would Mill know to re-evaluate `barTask` even though `barSource` was not changed, and
+even `barTask`'s own code block was not changed?
+
+## Common Approximations
+
+Because deciding whether or not a code block or method implementation has changed is difficult,
+most build tools punt on the problem entirely:
+
+1. Early versions of Mill simply invalidated all caches globally if a build file was changed.
+   This is conservatively correct - it will never invalidate too few caches! - but was definitely
+   overkill since most changes to build files did not affect most tasks
+
+2. Most other build tools like Maven, Gradle or SBT simply do not automate caching and invalidation,
+   and leave it up to the implementor of the task to do so. That means the implementor has to do
+   their own book-keeping keeping track of code versions and invalidating their own caches when
+   the version changes. This is tedious and error prone, and often results in tasks not being cached
+   or the cache invalidation being buggy (because deciding whether or not your code changes require
+   caches to be invalidated can be very subtle and tricky!)
+
