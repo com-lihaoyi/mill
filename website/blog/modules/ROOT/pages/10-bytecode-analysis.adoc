@@ -1,0 +1,28 @@
+// tag::header[]
+
+# Using callgraph analysis on JVM bytecode to invalidate build caches on build code changes
+
+:author: Li Haoyi
+:revdate: ??? March 2025
+
+_{author}, {revdate}_
+
+Build tools often cache your task outputs and invalidate them when the input
+files change, and build tools often let you implement tasks using blocks of arbitrary
+code in some general-purpose language. But the combination of these raises a
+question: if your tasks can contain arbitrary code, how can you detect when that code
+is changed, and invalidate the task's caches? In most programming languages, "blocks
+of arbitrary code" are opaque - and the only thing you can do is run them - so
+this problem is unsolvable.
+
+This blog post explores how Mill extends its JVM runtime by analyzing the callgraph of your
+build logic at a JVM-bytecode level. This allows Mill to analyze a task's code-block to detect
+when the implementation of a task is affected by changes in its source code or
+transitively-called methods, allowing us to invalidate task caches when the code used by a
+task is modified. We'll discuss the implementation and limitations of this bytecode analyses,
+and show empirically how this is able to provide a significant improvement over more naive
+approaches to the problem.
+
+// end::header[]
+
+## Example JVM Application
