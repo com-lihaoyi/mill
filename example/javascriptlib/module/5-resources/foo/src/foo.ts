@@ -3,8 +3,6 @@ import * as fs from 'fs/promises';
 const Resources: string = process.env.RESOURCES || "@foo/resources" // `RESOURCES` is generated on bundle
 const File = require.resolve(`${Resources}/file.txt`);
 
-console.log(File);
-
 export default class Foo {
     static async resourceText(): Promise<string> {
         return await fs.readFile(File, 'utf8')
