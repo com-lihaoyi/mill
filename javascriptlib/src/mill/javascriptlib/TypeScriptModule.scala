@@ -18,8 +18,8 @@ trait TypeScriptModule extends Module { outer =>
   def recModuleDeps: Seq[TypeScriptModule] = {
     @tailrec
     def recModuleDeps_(
-                        t: Seq[TypeScriptModule],
-                        acc: Seq[TypeScriptModule]
+        t: Seq[TypeScriptModule],
+        acc: Seq[TypeScriptModule]
     ): Seq[TypeScriptModule] = {
       if (t.isEmpty) acc
       else {
