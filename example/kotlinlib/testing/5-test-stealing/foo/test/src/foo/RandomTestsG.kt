@@ -14,4 +14,4 @@ class RandomTestsG : RandomTestsUtils() {
     fun test2() {
         testGreeting("Gray", 52)
     }
-} 
+}

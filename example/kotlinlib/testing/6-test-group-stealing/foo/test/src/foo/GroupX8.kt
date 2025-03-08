@@ -26,4 +26,4 @@ class GroupX8 : RandomTestsUtils() {
     fun test4() {
         testGreeting("Xipe", 24)
     }
-} 
+}

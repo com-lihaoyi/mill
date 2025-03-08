@@ -20,4 +20,4 @@ class RandomTestsJ : RandomTestsUtils() {
     fun test3() {
         testGreeting("Vale", 28)
     }
-} 
+}

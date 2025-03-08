@@ -14,4 +14,4 @@ class GroupX1 : RandomTestsUtils() {
     fun test2() {
         testGreeting("Boreas", 43)
     }
-} 
+}

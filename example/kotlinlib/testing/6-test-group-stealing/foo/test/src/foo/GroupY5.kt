@@ -26,4 +26,4 @@ class GroupY5 : RandomTestsUtils() {
     fun test4() {
         testGreeting("Aegir", 25)
     }
-} 
+}

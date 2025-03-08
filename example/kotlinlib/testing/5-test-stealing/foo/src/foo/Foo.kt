@@ -8,4 +8,4 @@ object Foo {
 
     @JvmStatic
     fun greet(name: String): String = "Hello $name"
-} 
+}

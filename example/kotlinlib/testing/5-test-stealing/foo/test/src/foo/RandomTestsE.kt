@@ -26,4 +26,4 @@ class RandomTestsE : RandomTestsUtils() {
     fun test4() {
         testGreeting("Violet", 20)
     }
-} 
+}

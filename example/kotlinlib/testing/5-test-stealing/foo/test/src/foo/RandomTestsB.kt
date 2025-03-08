@@ -38,4 +38,4 @@ class RandomTestsB : RandomTestsUtils() {
     fun test6() {
         testGreeting("Isaac", 14)
     }
-} 
+}

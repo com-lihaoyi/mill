@@ -32,4 +32,4 @@ class GroupY9 : RandomTestsUtils() {
     fun test5() {
         testGreeting("Qebui", 17)
     }
-} 
+}
