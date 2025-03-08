@@ -1,0 +1,38 @@
+// Test stealing is an opt-in, powerful feature that enables parallel test execution while maintaining complete reliability and debuggability.
+// When enabled, Mill automatically distributes your test classes across multiple JVM subprocesses for optimal performance.
+//
+// Test stealing can be enabled by overriding def testEnableWorkStealing, as demonstrated below.
+
+//// SNIPPET:BUILD1
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.8"
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def testEnableWorkStealing = true
+  }
+}
+
+//// SNIPPET:END
+
+/** Usage
+
+> mill -j 3 foo.test
+
+> find out/foo/test/testForked.dest
+...
+out/foo/test/testForked.dest/worker-0.log
+out/foo/test/testForked.dest/worker-0
+out/foo/test/testForked.dest/worker-1.log
+out/foo/test/testForked.dest/worker-1
+out/foo/test/testForked.dest/worker-2.log
+out/foo/test/testForked.dest/worker-2
+out/foo/test/testForked.dest/test-classes
+out/foo/test/testForked.dest/test-report.xml
+...
+
+*/
