@@ -16,6 +16,7 @@ trait Evaluator extends AutoCloseable {
   private[mill] def rootModule: BaseModule
   private[mill] def workerCache: mutable.Map[Segments, (Int, Val)]
   private[mill] def env: Map[String, String]
+  private[mill] def effectiveThreadCount: Int
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
