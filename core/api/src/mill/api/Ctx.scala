@@ -25,7 +25,7 @@ trait Ctx extends Ctx.Dest
  */
 object Ctx {
 
-  private class Impl(
+  private[mill] class Impl(
       val args: IndexedSeq[?],
       dest0: () => os.Path,
       val log: Logger,
