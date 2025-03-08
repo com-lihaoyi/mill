@@ -127,26 +127,24 @@ trait PublishModule extends TypeScriptModule {
   }
 
   // mv generated sources for base mod and its deps
-  private def pubGenSources: T[Unit] = Task {
+  private def pubGenSources: Task[Unit] = Task.Anon {
     val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
     allGeneratedSources.foreach { target =>
-      os.checker.withValue(os.Checker.Nop) {
-        val destination = publishDir().path / "typescript/generatedSources" / target.path.last
-        os.makeDir.all(destination / os.up)
-        os.copy.over(target.path, destination)
-      }
+      val destination = Task.dest / "typescript/generatedSources" / target.path.last
+      os.makeDir.all(destination / os.up)
+      os.copy.over(target.path, destination)
+      destination
+
     }
   }
 
-  private def pubCopyModDeps: T[Unit] = Task {
+  private def pubCopyModDeps: Task[Unit] = Task.Anon {
     val targets = pubModDeps()
 
     targets.foreach { target =>
-      val destination = publishDir().path / "typescript" / target
-      os.checker.withValue(os.Checker.Nop) {
-        os.makeDir.all(destination / os.up)
-        os.copy(Task.workspace / target, destination, mergeFolders = true)
-      }
+      val destination = Task.dest / "typescript" / target
+      os.makeDir.all(destination / os.up)
+      os.copy(Task.workspace / target, destination, mergeFolders = true)
     }
   }
 
@@ -158,23 +156,24 @@ trait PublishModule extends TypeScriptModule {
   /**
    * Generate sources relative to publishDir / "typescript"
    */
-  private def pubAllSources: T[IndexedSeq[String]] = Task {
+  private def pubAllSources: Task[Seq[String]] = Task.Anon {
     val project = Task.workspace.toString
-    val fileExt: Path => Boolean = _.ext == "ts"
-    (for {
+    val sourcesAndDepsSources = for {
       source <-
-        os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr =>
-          os.walk(pr.path)
-        ).filter(fileExt)
-    } yield source.toString
-      .replaceFirst(moduleDir.toString, "typescript")
-      .replaceFirst(
-        project,
+        os.walk(sources().path) ++ pubModDepsSources().toIndexedSeq.flatMap(pr => os.walk(pr.path))
+      if source.ext == "ts"
+      target = source.toString.replaceFirst(
+        moduleDir.toString,
         "typescript"
-      )) ++ (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
-      "typescript/generatedSources/" + pr.path.last
+      ).replaceFirst(project, "typescript")
+    } yield target
+
+    val generatedSources = (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
+      val target = "typescript/generatedSources/" + pr.path.last
+      target
     )
 
+    (sourcesAndDepsSources ++ generatedSources)
   }
 
   override def generatedSourcesPathsBuilder: T[Seq[(String, String)]] = Task {
@@ -254,38 +253,35 @@ trait PublishModule extends TypeScriptModule {
     ()
   }
 
-  private def pubSymLink: Task[Unit] = Task {
+  private def pubSymLink: Task[Unit] = Task.Anon {
     pubTsPatchInstall() // patch typescript compiler => use custom transformers
-    os.checker.withValue(os.Checker.Nop) {
-      os.symlink(publishDir().path / "node_modules", npmInstall().path / "node_modules")
+    os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
 
-      if (os.exists(npmInstall().path / ".npmrc"))
-        os.symlink(publishDir().path / ".npmrc", npmInstall().path / ".npmrc")
-    }
+    if (os.exists(npmInstall().path / ".npmrc"))
+      os.symlink(Task.dest / ".npmrc", npmInstall().path / ".npmrc")
   }
 
   override def compile: T[(PathRef, PathRef)] = Task {
     pubSymLink()
-    os.checker.withValue(os.Checker.Nop) {
-      os.write(
-        publishDir().path / "tsconfig.json",
-        ujson.Obj(
-          "compilerOptions" -> ujson.Obj.from(
-            compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
-          ),
-          "files" -> pubAllSources()
-        )
+    os.write(
+      Task.dest / "tsconfig.json",
+      ujson.Obj(
+        "compilerOptions" -> ujson.Obj.from(
+          compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
+        ),
+        "files" -> pubAllSources()
       )
-      os.copy(moduleDir, publishDir().path / "typescript", mergeFolders = true)
-      pubCopyModDeps()
-      pubGenSources()
-      // Run type check, build declarations
-      os.call(
-        ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
-        cwd = publishDir().path
-      )
-    }
-    (publishDir(), PathRef(publishDir().path / "typescript"))
+    )
+    os.copy(moduleDir, Task.dest / "typescript", mergeFolders = true)
+    pubCopyModDeps()
+    pubGenSources()
+
+    // Run type check, build declarations
+    os.call(
+      ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
+      cwd = Task.dest
+    )
+    (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
 
   // Compilation Options
@@ -306,7 +302,7 @@ trait PublishModule extends TypeScriptModule {
           s"""    copyStaticFiles({
              |      src: ${ujson.Str(rp.toString)},
              |      dest: ${ujson.Str(
-              publishDir().path.toString + "/" + pubBundledOut() + "/" + rp.last
+              Task.dest.toString + "/" + pubBundledOut() + "/" + rp.last
             )},
              |      dereference: true,
              |      preserveTimestamps: true,
@@ -348,9 +344,19 @@ trait PublishModule extends TypeScriptModule {
 
   }
 
-  override def bundle: T[PathRef] = Task {
+  private def bundleAnon: Task[PathRef] = Task.Anon {
+
+    // copy compile.dest contents to path.dest
+    os.copy(
+      compile()._1.path,
+      Task.dest,
+      replaceExisting = false,
+      followLinks = false,
+      mergeFolders = true,
+      createFolders = false
+    )
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-    val bundleScript = compile()._1.path / "build.ts"
+    val bundleScript = Task.dest / "build.ts"
     val bundle = Task.dest / "bundle.js"
 
     os.write.over(
@@ -361,25 +367,25 @@ trait PublishModule extends TypeScriptModule {
     os.call(
       (tsnode, bundleScript),
       stdout = os.Inherit,
-      cwd = compile()._1.path
+      cwd = Task.dest
     )
     PathRef(bundle)
+  }
+  override def bundle: T[PathRef] = Task {
+    bundleAnon()
   }
 
   // EsBuild - END
 
-  // publishDir; is used to process and compile files for publishing
-  def publishDir: T[PathRef] = Task { PathRef(Task.dest) }
-
   def publish(): Command[Unit] = Task.Command {
     // build package.json
-    os.move(pubbPackageJson().path / "package.json", publishDir().path / "package.json")
+    os.move(pubbPackageJson().path / "package.json", Task.dest / "package.json")
 
     // bundle code for publishing
-    bundle()
+    bundleAnon()
 
     // run npm publish
-    os.call(("npm", "publish"), stdout = os.Inherit, cwd = publishDir().path)
+    os.call(("npm", "publish"), stdout = os.Inherit, cwd = Task.dest)
     ()
   }
 

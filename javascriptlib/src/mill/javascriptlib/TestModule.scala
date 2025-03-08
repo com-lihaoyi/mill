@@ -1,6 +1,7 @@
 package mill.javascriptlib
 
 import mill.*
+import os.SubProcess
 
 trait TestModule extends TaskModule {
   import TestModule.TestResult
@@ -23,6 +24,13 @@ trait TestModule extends TaskModule {
 
 object TestModule {
   type TestResult = Unit
+
+//  private def symlinkContents(from:os.Path,to:os.Path): Seq[os.Path] =  {
+//    os.list(from).map { p =>
+//      os.symlink(to / p.last, p)
+//      to / p.last
+//    }
+//  }
 
   trait Coverage extends TypeScriptModule with TestModule {
     override def npmDevDeps: T[Seq[String]] = Task {
@@ -92,6 +100,30 @@ object TestModule {
     }
   }
 
+  trait CommonTypescript { self: TypeScriptModule =>
+
+    protected[TestModule] def symlinkCompileContents: Task[Seq[os.Path]] = Task.Anon {
+
+      os.list(compile()._1.path).map { p =>
+        os.symlink(Task.dest / p.last, p)
+        Task.dest / p.last
+      }
+
+    }
+
+  }
+  trait CommonIntegration { self: TypeScriptModule & IntegrationSuite =>
+
+    protected[TestModule] def symlinkServiceCompileContents: Task[Seq[os.Path]] = Task.Anon {
+
+      os.list(service.compile()._1.path).map { p =>
+        os.symlink(Task.dest / p.last, p)
+        Task.dest / p.last
+      }
+
+    }
+
+  }
   trait Shared extends TypeScriptModule {
     override def upstreamPathsBuilder: T[Seq[(String, String)]] =
       Task {
@@ -484,7 +516,7 @@ object TestModule {
 
   }
 
-  trait Jasmine extends Coverage with Shared {
+  trait Jasmine extends Coverage with Shared with CommonTypescript {
     override def npmDevDeps: T[Seq[String]] =
       Task {
         super.npmDevDeps() ++ Seq(
@@ -507,21 +539,19 @@ object TestModule {
       }
 
     def conf: Task[PathRef] = Task.Anon {
-      val path = compile()._1.path / "jasmine.json"
-      os.checker.withValue(os.Checker.Nop) {
-        os.write.over(
-          path,
-          ujson.write(
-            ujson.Obj(
-              "spec_dir" -> ujson.Str("typescript/src"),
-              "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
-              "stopSpecOnExpectationFailure" -> ujson.Bool(false),
-              "random" -> ujson.Bool(false)
-            )
+      val path = Task.dest / "jasmine.json"
+      os.write.over(
+        path,
+        ujson.write(
+          ujson.Obj(
+            "spec_dir" -> ujson.Str("typescript/src"),
+            "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
+            "stopSpecOnExpectationFailure" -> ujson.Bool(false),
+            "random" -> ujson.Bool(false)
           )
         )
+      )
 
-      }
       PathRef(path)
     }
 
@@ -530,20 +560,20 @@ object TestModule {
       val jasmine = "node_modules/jasmine/bin/jasmine.js"
       val tsnode = "node_modules/ts-node/register/transpile-only.js"
       val tsconfigPath = "node_modules/tsconfig-paths/register.js"
-      os.checker.withValue(os.Checker.Nop) {
-        os.call(
-          (
-            "node",
-            jasmine,
-            "--config=jasmine.json",
-            s"--require=$tsnode",
-            s"--require=$tsconfigPath"
-          ),
-          stdout = os.Inherit,
-          env = forkEnv(),
-          cwd = compile()._1.path
-        )
-      }
+      val symlinks = symlinkCompileContents()
+      os.call(
+        (
+          "node",
+          jasmine,
+          "--config=jasmine.json",
+          s"--require=$tsnode",
+          s"--require=$tsconfigPath"
+        ),
+        stdout = os.Inherit,
+        env = forkEnv(),
+        cwd = Task.dest
+      )
+      symlinks.foreach(os.remove)
       ()
     }
 
@@ -684,7 +714,8 @@ object TestModule {
 
   }
 
-  trait PlayWright extends TypeScriptModule with IntegrationSuite with TestModule {
+  trait PlayWright extends TypeScriptModule with IntegrationSuite with TestModule
+      with CommonIntegration {
     override def npmDevDeps: T[Seq[String]] = Task {
       super.npmDevDeps() ++ Seq(
         "playwright@1.49.0",
@@ -697,26 +728,32 @@ object TestModule {
       Task.Source(Task.workspace / "playwright.config.ts")
 
     private def copyConfig: Task[TestResult] = Task.Anon {
-      os.checker.withValue(os.Checker.Nop) {
-        os.copy.over(
-          testConfigSource().path,
-          compile()._1.path / "playwright.config.ts"
-        )
-      }
+      os.copy.over(
+        testConfigSource().path,
+        Task.dest / "playwright.config.ts"
+      )
     }
 
-    private def runTest: T[TestResult] = Task {
+    private def callServiceProcess: Task[SubProcess] = Task.Anon {
+
       val mainFile = service.mainFilePath()
       val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
       val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
       val port_ = port()
       val env = service.forkEnv() + ("PORT" -> port_)
 
-      val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
+      os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
         stdout = os.Inherit,
         env = env,
         cwd = service.compile()._1.path
       )
+    }
+
+    private def runTest: T[TestResult] = Task {
+
+      val serviceProcess = callServiceProcess()
+
+      val symlinks = symlinkServiceCompileContents()
 
       copyConfig()
       os.call(
@@ -727,9 +764,10 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = Task.dest
       )
 
+      symlinks.foreach(os.remove)
       serviceProcess.destroy()
     }
 
