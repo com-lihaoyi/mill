@@ -19,12 +19,12 @@ import mill.api.{DummyTestReporter, internal}
             cl = classLoader,
             testReporter = DummyTestReporter
           )
-        case Right((selectorFolder, stealFolder)) =>
+        case Right((testClassesFolder, stealFolder)) =>
           TestRunnerUtils.stealTestFramework0(
             frameworkInstances = Framework.framework(testArgs.framework),
             testClassfilePath = Seq.from(testArgs.testCp),
             args = testArgs.arguments,
-            selectorFolder = selectorFolder,
+            testClassesFolder = testClassesFolder,
             stealFolder = stealFolder,
             cl = classLoader,
             testReporter = DummyTestReporter,

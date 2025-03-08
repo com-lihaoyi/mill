@@ -200,7 +200,7 @@ trait TestModule
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] =
     Task.Anon {
-      TestModuleUtil.runTests(
+      val testModuleUtil = new TestModuleUtil(
         testUseArgsFile(),
         forkArgs(),
         globSelectors(),
@@ -219,6 +219,7 @@ trait TestModule
         zincWorker().javaHome().map(_.path),
         testEnableWorkStealing()
       )
+      testModuleUtil.runTests()
     }
 
   /**
