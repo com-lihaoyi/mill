@@ -207,7 +207,7 @@ object `package` extends RootModule {
       dest: os.Path,
       version: String,
       displayVersion: String,
-      millLastTag: String,
+      millVersion: String,
       millDownloadUrl: String
   ): Unit = {
     val isPreRelease = version == "main-branch" || Seq("-M", "-RC").exists(version.contains)
@@ -215,14 +215,13 @@ object `package` extends RootModule {
     val lines = os.read(dest / "antora.yml").linesIterator.map {
       case s"version:$_" =>
         s"version: '$version'\ndisplay-version: '$displayVersion'$preReleaseSuffix"
-      case s"    mill-version:$_" => s"    mill-version: '$millLastTag'"
-      case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
+      case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
       case l => l
     }
 
     val newLines = Seq(
       s"    mill-download-url: $millDownloadUrl",
-      s"    mill-example-url: ${build.Settings.projectUrl}/blob/$millLastTag/"
+      s"    mill-example-url: ${build.Settings.projectUrl}/blob/$millVersion"
     )
 
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
@@ -293,14 +292,13 @@ object `package` extends RootModule {
   def oldDocSources: T[Seq[PathRef]] = Task {
     val versionLabels =
       build.Settings.docTags.map { v =>
-        val xVersion = v.split('.').dropRight(1).mkString(".") + ".x"
-        (v, xVersion, xVersion)
+        (v, v.split('.').dropRight(1).mkString(".") + ".x")
       }.dropRight(1) ++
         // Set the latest stable branch as the "master" docs that people default to
-        Seq((build.Settings.docTags.last, "master", build.Settings.docTags.last))
+        Seq((build.Settings.docTags.last, "master"))
 
-    for ((millVersion, antoraVersion, displayVersion) <- versionLabels) yield {
-      val checkout = Task.dest / displayVersion
+    for ((millVersion, antoraVersion) <- versionLabels) yield {
+      val checkout = Task.dest / millVersion
       os.proc("git", "clone", Task.workspace / ".git", checkout).call(stdout = os.Inherit)
       os.proc("git", "checkout", millVersion).call(cwd = checkout, stdout = os.Inherit)
       val outputFolder = checkout / "out/docs/source.dest"
@@ -319,7 +317,7 @@ object `package` extends RootModule {
         if (useOldDownloadUrl) s"${build.Settings.projectUrl}/releases/download/$millVersion"
         else s"${build.millDownloadPrefix()}/$millVersion"
 
-      sanitizeAntoraYml(outputFolder, antoraVersion, displayVersion, millVersion, millDownloadUrl)
+      sanitizeAntoraYml(outputFolder, antoraVersion, millVersion, millVersion, millDownloadUrl)
       PathRef(outputFolder)
     }
   }

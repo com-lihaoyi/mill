@@ -304,10 +304,10 @@ def millLastTag: T[String] = Task.Input {
 }
 
 def millDownloadPrefix = Task {
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/"
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist"
 }
 def millDownloadUrl = Task {
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${millLastTag()}"
+  s"${millDownloadPrefix()}/${millLastTag()}"
 }
 
 def millBinPlatform: T[String] = Task {
