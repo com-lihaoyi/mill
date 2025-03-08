@@ -227,56 +227,50 @@ import java.io.PrintStream
     (doneMessage, results.toSeq)
   }
 
-  private def stealTaskFromSelectorFolder(
+  private def stealTaskFromTestClassesFolder(
     globSelectorCache: Map[String, ClassWithFingerprint],
     runner: Runner,
     stealFolder: os.Path,
-    selectorFolder: os.Path
+    testClassesFolder: os.Path
   ): Array[Task] = {
-    val stealLog = stealFolder / os.up / "steal.log"
-    while (true) {
-      val files = os.list(selectorFolder)
-      if (files.nonEmpty) {
-        val offset = Random.nextInt(files.size)
-        val file = files(offset)
-        val stolenFile = stealFolder / file.last
-        val stole = try {
-          if (os.isFile(file)) {
-            os.move(
-              file,
-              stolenFile,
-              atomicMove = true
-            )
-            true
-          } else {
-            false
-          }
-        } catch {
-          case e: Exception => false
+    // append only log, used to communicate with parent about what test is being stolen
+    // so that the parent can log the stolen test's name to its logger
+    val stealLog = stealFolder / os.up / s"${stealFolder.last}.log"
+    val files = os.list.stream(testClassesFolder).toBuffer
+    while (files.nonEmpty) {
+      val file = files.remove(0)
+      val stolenFile = stealFolder / file.last
+      val stole = try {
+        // we can check for existence of stolenFile first, but it'll require another os call.
+        // it just better to let this call failed in that case.
+        os.move(
+          file,
+          stolenFile,
+          atomicMove = true
+        )
+        true
+      } catch {
+        case e: Exception => false
+      }
+      if (stole) {
+        val selector = stolenFile.last
+        os.write.append(stealLog, s"$selector\n")
+        val taskDefs = globSelectorCache.get(stolenFile.last) match {
+          case Some((cls, fingerprint)) =>
+            Array(new TaskDef(
+              cls.getName.stripSuffix("$"),
+              fingerprint,
+              false,
+              Array(new SuiteSelector)
+            ))
+          case None => Array.empty[TaskDef]
         }
-        if (stole) {
-          val selector = stolenFile.last
-          os.write.append(stealLog, s"$selector\n")
-          val taskDefs = globSelectorCache.get(stolenFile.last) match {
-            case Some((cls, fingerprint)) =>
-              Array(new TaskDef(
-                cls.getName.stripSuffix("$"),
-                fingerprint,
-                false,
-                Array(new SuiteSelector)
-              ))
-            case None => Array.empty[TaskDef]
-          }
-          val tasks = runner.tasks(taskDefs)
-          return tasks
-        }
-      } else {
-        return Array.empty[Task]
+        val tasks = runner.tasks(taskDefs)
+        return tasks
       }
     }
 
-    // Compiler doesn't know that we'll return from while loop above, add this to please in, and also serve as an assertion
-    ???
+    Array.empty[Task]
   }
 
   def stealTasks(
@@ -284,7 +278,7 @@ import java.io.PrintStream
     testReporter: TestReporter,
     runner: Runner,
     stealFolder: os.Path,
-    selectorFolder: os.Path
+    testClassesFolder: os.Path
   ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
@@ -292,7 +286,7 @@ import java.io.PrintStream
     val events = new ConcurrentLinkedQueue[Event]()
     val globSelectorCache = testClasses.view.map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }.toMap
     while ({
-      val tasks = stealTaskFromSelectorFolder(globSelectorCache, runner, stealFolder, selectorFolder)
+      val tasks = stealTaskFromTestClassesFolder(globSelectorCache, runner, stealFolder, testClassesFolder)
       if (tasks.nonEmpty) {
         executeTasks(tasks, testReporter, runner, events, systemOut)
         true
@@ -307,7 +301,7 @@ import java.io.PrintStream
       frameworkInstances: ClassLoader => Framework,
       testClassfilePath: Seq[Path],
       args: Seq[String],
-      selectorFolder: os.Path,
+      testClassesFolder: os.Path,
       stealFolder: os.Path,
       cl: ClassLoader,
       testReporter: TestReporter
@@ -319,7 +313,7 @@ import java.io.PrintStream
 
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-    val (doneMessage, results) = stealTasks(testClasses, testReporter, runner, stealFolder, selectorFolder)
+    val (doneMessage, results) = stealTasks(testClasses, testReporter, runner, stealFolder, testClassesFolder)
 
     (doneMessage, results.toSeq)
   }

@@ -22,6 +22,14 @@ include::partial$example/scalalib/testing/3-integration-suite.adoc[]
 
 include::partial$example/scalalib/testing/4-test-grouping.adoc[]
 
+== Test Work Stealing Scheduler
+
+include::partial$example/scalalib/testing/5-test-stealing.adoc[]
+
+== Test Grouping & Test Work Stealing
+
+include::partial$example/scalalib/testing/6-test-group-stealing.adoc[]
+
 == Github Actions Test Reports
 
 If you use Github Actions for CI, you can use https://github.com/mikepenz/action-junit-report in

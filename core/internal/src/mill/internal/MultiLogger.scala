@@ -96,6 +96,10 @@ private[mill] class MultiLogger(
 
   private[mill] override def logKey = logger1.logKey ++ logger2.logKey
 
+  private[mill] override def message = logger1.message ++ logger2.message
+
+  private[mill] override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
+
   override def withOutStream(outStream: PrintStream): Logger = {
     new MultiLogger(
       logger1.withOutStream(outStream),
