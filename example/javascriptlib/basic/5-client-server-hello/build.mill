@@ -3,7 +3,7 @@ import mill._, javascriptlib._
 
 object client extends ReactScriptsModule
 
-object server extends TscModule {
+object server extends TypeScriptModule {
 
   /** Bundle client as resource */
   def resources = Task {

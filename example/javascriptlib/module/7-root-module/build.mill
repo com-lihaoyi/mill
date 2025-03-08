@@ -5,7 +5,7 @@ package build
 
 import mill._, javascriptlib._
 
-object `package` extends RootModule with TscModule {
+object `package` extends RootModule with TypeScriptModule {
   def moduleName = "foo"
   def npmDeps = Seq("immutable@4.3.7")
   object test extends TypeScriptTests with TestModule.Jest
@@ -20,7 +20,7 @@ object `package` extends RootModule with TscModule {
 // For exmaple:
 
 // The `moduleName` for the singleton `bar` defined as
-// `object bar extends TscModule` would be `bar`,
+// `object bar extends TypeScriptModule` would be `bar`,
 // with the expected source directory in `bar/src`.
 
 // For this example, since we use the `RootModule` we would need to manually define our

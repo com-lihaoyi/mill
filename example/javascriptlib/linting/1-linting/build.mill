@@ -2,7 +2,7 @@ package build
 
 import mill._, javascriptlib._
 
-object foo extends TscModule with TsLintModule
+object foo extends TypeScriptModule with TsLintModule
 
 // Mill supports code linting via `eslint` https://eslint.org out of the box.
 // You can lint your projects code by providing a configuration for eslint and running `mill _.checkFormatAll`.

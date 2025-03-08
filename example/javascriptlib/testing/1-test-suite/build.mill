@@ -2,19 +2,19 @@ package build
 
 import mill._, javascriptlib._
 
-object bar extends TscModule {
+object bar extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Jest
 }
 
-object baz extends TscModule {
+object baz extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Vitest
 }
 
-object foo extends TscModule {
+object foo extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Mocha
 }
 
-object qux extends TscModule {
+object qux extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Jasmine
 }
 

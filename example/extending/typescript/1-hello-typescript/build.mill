@@ -138,5 +138,5 @@ Hello James Bond
 */
 
 // So that's a minimal example of implementing a single TypeScript to JavaScript build
-// pipeline locally. Next, we will look at turning it into a `TscModule` that
+// pipeline locally. Next, we will look at turning it into a `TypeScriptModule` that
 // can be re-used

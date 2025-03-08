@@ -4,7 +4,7 @@ import mill.*
 import os.*
 import mill.scalalib.publish.licenseFormat
 
-trait PublishModule extends TscModule {
+trait PublishModule extends TypeScriptModule {
 
   /**
    * Metadata about your project, required to publish.

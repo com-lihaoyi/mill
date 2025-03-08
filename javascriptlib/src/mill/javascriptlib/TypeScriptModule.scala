@@ -6,21 +6,21 @@ import os.*
 import scala.annotation.tailrec
 import scala.util.Try
 
-trait TscModule extends Module { outer =>
+trait TypeScriptModule extends Module { outer =>
   // custom module names
   def moduleName: String = super.toString
 
   override def toString: String = moduleName
 
-  def moduleDeps: Seq[TscModule] = Nil
+  def moduleDeps: Seq[TypeScriptModule] = Nil
 
   // recursively retrieve dependecies of all module dependencies
-  def recModuleDeps: Seq[TscModule] = {
+  def recModuleDeps: Seq[TypeScriptModule] = {
     @tailrec
     def recModuleDeps_(
-        t: Seq[TscModule],
-        acc: Seq[TscModule]
-    ): Seq[TscModule] = {
+                        t: Seq[TypeScriptModule],
+                        acc: Seq[TypeScriptModule]
+    ): Seq[TypeScriptModule] = {
       if (t.isEmpty) acc
       else {
         val currentMod = t.head
@@ -622,8 +622,8 @@ trait TscModule extends Module { outer =>
 
   private[javascriptlib] def outerModuleName: Option[String] = None
 
-  trait TypeScriptTests extends TscModule {
-    override def moduleDeps: Seq[TscModule] = Seq(outer) ++ outer.moduleDeps
+  trait TypeScriptTests extends TypeScriptModule {
+    override def moduleDeps: Seq[TypeScriptModule] = Seq(outer) ++ outer.moduleDeps
 
     override def outerModuleName: Option[String] = Some(outer.moduleName)
 

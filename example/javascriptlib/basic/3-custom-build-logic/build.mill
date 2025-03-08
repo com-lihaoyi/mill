@@ -2,7 +2,7 @@ package build
 
 import mill._, javascriptlib._
 
-object foo extends TscModule {
+object foo extends TypeScriptModule {
 
   /** Total number of lines in module source files */
   def lineCount: T[Int] = Task {
