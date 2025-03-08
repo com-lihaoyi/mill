@@ -406,8 +406,13 @@ object MillMain {
       projectDir / ".config/mill-version",
       projectDir / ".mill-version"
     ).collectFirst {
-      case f if os.exists(f) =>
-        (f, os.read.lines(f).find(l => l.trim().nonEmpty).get)
+      case f if os.exists(f) => {
+        val rawBytes = os.read.bytes(f).toSeq
+        val decodedLines = new String(rawBytes.toArray, StandardCharsets.UTF_16)
+          .split(System.lineSeparator())
+          .toSeq
+        (f, decodedLines.find(l => l.trim().nonEmpty).get)
+      }
     }.foreach { case (file, version) =>
       if (BuildInfo.millVersion != version.stripSuffix("-native")) {
         val msg =
