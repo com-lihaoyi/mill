@@ -1,3 +1,4 @@
+//> mill-version =
 package build
 // imports
 import com.github.lolgab.mill.mima.Mima
