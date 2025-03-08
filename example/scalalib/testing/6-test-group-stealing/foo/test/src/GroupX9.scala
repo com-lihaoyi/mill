@@ -9,4 +9,4 @@ object GroupX9 extends RandomTestsUtils {
     test("test5") { testGreeting("Ceres", 17) }
     test("test6") { testGreeting("Diana", 15) }
   }
-} 
+}

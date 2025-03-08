@@ -5,4 +5,4 @@ object GroupX10 extends RandomTestsUtils {
     test("test1") { testGreeting("Echo", 52) }
     test("test2") { testGreeting("Faunus", 47) }
   }
-} 
+}

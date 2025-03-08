@@ -9,4 +9,4 @@ object RandomTestsB extends RandomTestsUtils {
     test("test5") { testGreeting("Harper", 20) }
     test("test6") { testGreeting("Isaac", 14) }
   }
-} 
+}

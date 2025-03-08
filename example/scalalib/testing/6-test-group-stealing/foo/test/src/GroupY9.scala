@@ -8,4 +8,4 @@ object GroupY9 extends RandomTestsUtils {
     test("test4") { testGreeting("Pan", 22) }
     test("test5") { testGreeting("Qebui", 17) }
   }
-} 
+}

@@ -6,4 +6,4 @@ object GroupX6 extends RandomTestsUtils {
     test("test2") { testGreeting("Quirinus", 32) }
     test("test3") { testGreeting("Rhea", 33) }
   }
-} 
+}

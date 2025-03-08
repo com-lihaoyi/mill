@@ -11,4 +11,4 @@ abstract class RandomTestsUtils extends TestSuite {
     Thread.sleep(sleepTime)
     assert(greeted == s"Hello $name")
   }
-} 
+}

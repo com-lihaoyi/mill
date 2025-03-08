@@ -7,4 +7,4 @@ object GroupX8 extends RandomTestsUtils {
     test("test3") { testGreeting("Woden", 26) }
     test("test4") { testGreeting("Xipe", 24) }
   }
-} 
+}

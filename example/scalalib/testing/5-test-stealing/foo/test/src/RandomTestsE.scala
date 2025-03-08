@@ -7,4 +7,4 @@ object RandomTestsE extends RandomTestsUtils {
     test("test3") { testGreeting("Urban", 25) }
     test("test4") { testGreeting("Violet", 20) }
   }
-} 
+}

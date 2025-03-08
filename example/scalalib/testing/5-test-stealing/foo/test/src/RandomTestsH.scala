@@ -8,4 +8,4 @@ object RandomTestsH extends RandomTestsUtils {
     test("test4") { testGreeting("Kit", 15) }
     test("test5") { testGreeting("Lake", 21) }
   }
-} 
+}

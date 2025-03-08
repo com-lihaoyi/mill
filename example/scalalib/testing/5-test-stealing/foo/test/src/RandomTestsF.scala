@@ -12,4 +12,4 @@ object RandomTestsF extends RandomTestsUtils {
     test("test8") { testGreeting("Dawn", 12) }
     test("test9") { testGreeting("Echo", 8) }
   }
-} 
+}

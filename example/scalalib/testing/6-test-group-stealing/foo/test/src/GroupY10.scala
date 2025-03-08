@@ -7,4 +7,4 @@ object GroupY10 extends RandomTestsUtils {
     test("test3") { testGreeting("Thoth", 26) }
     test("test4") { testGreeting("Ukko", 24) }
   }
-} 
+}

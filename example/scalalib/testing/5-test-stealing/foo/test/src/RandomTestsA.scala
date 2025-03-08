@@ -6,4 +6,4 @@ object RandomTestsA extends RandomTestsUtils {
     test("test2") { testGreeting("Bella", 25) }
     test("test3") { testGreeting("Cameron", 32) }
   }
-} 
+}

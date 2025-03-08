@@ -5,4 +5,4 @@ object RandomTestsG extends RandomTestsUtils {
     test("test1") { testGreeting("Finn", 45) }
     test("test2") { testGreeting("Gray", 52) }
   }
-} 
+}

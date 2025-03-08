@@ -5,9 +5,13 @@ import org.junit.jupiter.api.Test
 class GroupX10 : RandomTestsUtils() {
     @Test
     @Throws(Exception::class)
-    fun test1() { testGreeting("Echo", 52) }
-    
+    fun test1() {
+        testGreeting("Echo", 52)
+    }
+
     @Test
     @Throws(Exception::class)
-    fun test2() { testGreeting("Faunus", 47) }
+    fun test2() {
+        testGreeting("Faunus", 47)
+    }
 } 

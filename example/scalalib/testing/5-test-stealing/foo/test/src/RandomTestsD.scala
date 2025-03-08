@@ -11,4 +11,4 @@ object RandomTestsD extends RandomTestsUtils {
     test("test7") { testGreeting("Quinn", 14) }
     test("test8") { testGreeting("River", 11) }
   }
-} 
+}
