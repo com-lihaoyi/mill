@@ -25,14 +25,17 @@ chmod +x mill
 echo {mill-version} > .mill-version
 
 # Windows
-
-# warning: this does *not* work in PowerShell 5.1, which ships with Windows 10 and 11,
-# and produces UTF-16LE-encoded files, but DOES work with PowerShell 7, which defaults to UTF-8
-# it is recommended that you install the latest version of PowerShell to use Mill
-
 curl -L {mill-download-url}/mill.bat -o mill.bat
 echo {mill-version} > .mill-version
 ----
+
+[CAUTION]
+--
+*Don't use PowerShell 5.1 to install Mill!*
+ +
+PowerShell 5.1 is known to produce `UTF-16LE` encoded `.mill-version` files, which can't be read by Mill.
+You should update to Powershell 7 or newer.
+--
 
 Downloading a `mill` bootstrap script to the root of your project repository helps make it easier for
 new contributors to build your project, as they don't have to install Mill before they can start.
