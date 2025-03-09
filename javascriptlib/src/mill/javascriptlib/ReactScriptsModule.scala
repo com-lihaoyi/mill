@@ -108,7 +108,7 @@ trait ReactScriptsModule extends TypeScriptModule {
   override def bundle: Target[PathRef] = Task {
     val compiled = compile()._1.path
     os.call(
-      ("node", compiled / "node_modules" / "react-scripts" / "bin" / "react-scripts.js", "build"),
+      ("node", compiled / "node_modules/react-scripts/bin/react-scripts.js", "build"),
       cwd = compiled,
       stdout = os.Inherit,
       env = forkEnv()

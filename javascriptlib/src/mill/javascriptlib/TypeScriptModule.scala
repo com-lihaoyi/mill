@@ -479,7 +479,7 @@ trait TypeScriptModule extends Module { outer =>
       if (enableEsm()) "ts-node/esm"
       else (npmInstall().path / "node_modules/.bin/ts-node").toString
 
-    val `tsconfig-paths`: Seq[String] =
+    val tsconfigPaths: Seq[String] =
       Seq(
         if (enableEsm()) Some("tsconfig-paths/register")
         else Some((npmInstall().path / "node_modules/tsconfig-paths/register").toString),
@@ -499,7 +499,7 @@ trait TypeScriptModule extends Module { outer =>
       flags,
       tsnode,
       "-r",
-      `tsconfig-paths`,
+      tsconfigPaths,
       mainFile,
       computedArgs(),
       args.value
