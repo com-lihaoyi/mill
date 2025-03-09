@@ -1,6 +1,6 @@
 // tag::header[]
 
-# Using callgraph analysis on JVM bytecode to invalidate build caches on build code changes
+# Invalidating build caches using JVM bytecode callgraph analysis
 
 :author: Li Haoyi
 :revdate: ??? March 2025
@@ -176,7 +176,7 @@ language all that is encapsulated and hidden away from you. How then can Mill de
 the `.toUpperCase` in `fooTask` was replaced by `.toLowerCase`, so Mill knows to re-evaluate
 `fooTask` even though `fooSource` was not modified? Or in the case of modifying `barHelper`,
 how would Mill know to re-evaluate `barTask` even though `barSource` was not changed, and
-even `barTask`'s own code block was not changed?
+even ``barTask``'s own code block was not changed?
 
 ## Common Approximations
 
@@ -194,3 +194,180 @@ most build tools punt on the problem entirely:
    or the cache invalidation being buggy (because deciding whether or not your code changes require
    caches to be invalidated can be very subtle and tricky!)
 
+Both approaches are problematic: (1) is basically maximally conservative and pessimistic,
+while (2) is basically maximally lasse-faire and optimistic. Neither approach is fatal -
+and indeed people have lived with build tools working like this for decades - but we can
+do better
+
+## Basic Callgraph Analysis
+
+The basic idea behind Mill's callgraph analysis is that JVM `Function0` objects
+aren't actually opaque: if you would like to you could pull up the `.class` file
+describing each object on disk. For example, consider `barTask`:
+
+```scala
+def barTask: T[String] = Task{
+  println("evaluating barTask")
+  barHelper(os.read(barSource().path))
+}
+```
+
+We mentioned earlier that body of the `Task` block is wrapped in an anonymous `Function0`
+`() => ...`. This anonymous function compiles to an `$$anonfun` method in the the bytecode
+below:
+
+```java
+  private final mill.api.Result barTask$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq, mill.api.Ctx);
+    Code:
+       0: getstatic     #183                // Field mill/api/Result$.MODULE$:Lmill/api/Result$;
+       3: getstatic     #314                // Field scala/Predef$.MODULE$:Lscala/Predef$;
+       6: ldc_w         #394                // String evaluating barTask
+       9: invokevirtual #320                // Method scala/Predef$.println:(Ljava/lang/Object;)V
+      12: aload_0
+      13: getstatic     #325                // Field os/read$.MODULE$:Los/read$;
+      16: aload_1
+      17: iconst_0
+      18: invokeinterface #330,  2          // InterfaceMethod scala/collection/immutable/Seq.apply:(I)Ljava/lang/Object;
+      23: checkcast     #14                 // class mill/api/PathRef
+      26: invokevirtual #334                // Method mill/api/PathRef.path:()Los/Path;
+      29: invokevirtual #337                // Method os/read$.apply:(Los/ReadablePath;)Ljava/lang/String;
+      32: invokevirtual #396                // Method barHelper:(Ljava/lang/String;)Ljava/lang/String;
+      35: invokevirtual #278                // Method mill/api/Result$.create:(Ljava/lang/Object;)Lmill/api/Result;
+      38: areturn
+```
+
+This bytecode contains a lot of `invokevirtual` and `invokeinterface` methods that specify,
+after all the compiler's work is done, which methods in the JVM bytecode actually need to be
+called. We can see the invocation of `scala/Predef$.println` and `os/read$` in the bytecode,
+some `mill/api` helper methods, and also the call to `barHelper`.
+
+```java
+      32: invokevirtual #396                // Method barHelper:(Ljava/lang/String;)Ljava/lang/String;
+```
+
+We can also look at the `barHelper` method in the bytecode, which is defined as follows:
+
+
+```java
+  public java.lang.String barHelper(java.lang.String);
+    Code:
+       0: aload_1
+       1: invokevirtual #165                // Method java/lang/String.toUpperCase:()Ljava/lang/String;
+       4: areturn
+```
+
+``barHelper``'s bytecode contains a single call to `java/lang/String.toUpperCase`, which
+is what we expect given its definition in the source code.
+
+Just like the _build graph_ of tasks we described earlier, the calls between tasks and
+normal methods in our build codebase also form a graph: a _call graph_. For the small
+example snippet above, the (simplified) callgraph looks like this
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  fooTask
+  barHelper -> barTask
+}
+```
+
+The last thing we need to do is for each method, to do a breadth-first search to
+find all transitively called methods, and hash their contents (the bytecode shown above).
+For example, the change we saw earlier to the `barHelper` source code:
+
+```diff
+-def barHelper(s: String) = s.toUpperCase
++def barHelper(s: String) = s.toLowerCase
+```
+
+Would result in a corresponding change in the `barHelper` bytecode:
+
+```diff
+  public java.lang.String barHelper(java.lang.String);
+    Code:
+       0: aload_1
+-      1: invokevirtual #165                // Method java/lang/String.toUpperCase:()Ljava/lang/String;
++      1: invokevirtual #165                // Method java/lang/String.toLowerCase:()Ljava/lang/String;
+       4: areturn
+```
+
+The bytecode for a method is typically much more stable than the source code: it is not
+affected by formatting, comments, some local variable names, etc.. This means that if
+the bytecode for a method changes, it likely means the implementation changed, and any
+tasks that call that method (directly or transitively) need to be re-evaluated.
+
+
+## Object Oriented Callgraphs
+Although the basic callgraph analysis on static methods shown above is straightforward,
+in real code there is a lot of detail that needs to be dealt with. In particular, JVM
+languages like Java and Scala make heavy use of objects, classes, and subclassing. These
+add complications and complexity that aren't present in the static helper methods used
+in earlier eamples
+
+
+
+### Instance Methods
+
+e.g. when the behavior of a `qux.baz()` may differ based on
+how `qux` was instantiated? This turns out to work pretty well by default because the fact
+that you have `qux` means that you must have called its constructor and passed in arguments
+(directly or indirectly), and any changes to the constructor or the arguments passed in would
+get captured in the transitive call graph.
+
+### Virtual Methods
+
+A single call to `java/io/InputStream.read()` may
+call out to any number of methods various subclasses of `InputStream`. To resolve this,
+you need to do a class hierarchy analysis
+on the various classes in your program, so you can resolve such virtual callsite to possible
+call definition sites in all possible subclasses.
+
+There are varying degrees of precision for which you can analyze virtual methods, e.g.
+_Class Hierarchy Analysis_ and _Rapid Type Analysis_ described in
+[Fast Static Analysis of C++ Virtual Calls, OOPSLA96](https://courses.cs.washington.edu/courses/cse501/04wi/papers/bacon-oopsla96.pdf)
+
+
+## Other Complications
+
+
+
+### Reflection
+
+e.g. `getClass.getMethod(methodName).invoke()`? In this case
+it may be impossible to statically determine what `methodName` is, because it is dynamically
+computed at runtime. Thankfully in typical Scala code (which `build.mill` files are written in)
+runtime reflection is rare, so although this is a weakness it is not a problem in practice.
+
+### Library Methods
+
+In particular, we don't want to have to analyze the entire Java
+standard library, because that would be very expensive. Mill thus only constructs a call graph
+for local code, using a conservative approximation of calls to upstream libraries
+(similar to that discussed in [Averroes: Whole-Program Analysis without the Whole Program,
+ECOOP 2013](https://plg.uwaterloo.ca/~olhotak/pubs/ecoop13.pdf))
+
+## Evaluation
+
+### Precision
+
+
+
+### Performance
+
+
+Performance-wise, ad-hoc benchmarks on com-lihaoyi/mill's own build show a
+~5% increase in build.sc compilation times due to this. Not nothing, but probably
+acceptable: the cost is only paid when the build.sc is re-compiled, and it will
+likely end up saving much more time in tasks that we can avoid running (e.g. a
+single no-op Zinc incremental compile may be 100s of milliseconds)
+
+|===
+| | methodCodeHashSignatures | compile
+| Cold | 685ms | 12,148ms
+| Hot | 253ms | 4,143ms
+|===
+
+## Further Reading
+
+Implementation PR https://github.com/com-lihaoyi/mill/pull/2417
