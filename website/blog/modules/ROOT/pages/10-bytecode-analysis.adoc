@@ -447,11 +447,22 @@ _Class Hierarchy Analysis_ and _Rapid Type Analysis_ described in
 [Fast Static Analysis of C++ Virtual Calls, OOPSLA96](https://courses.cs.washington.edu/courses/cse501/04wi/papers/bacon-oopsla96.pdf),
 or even more sophisticated dataflow approaches such as [Points-To Analysis](https://en.wikipedia.org/wiki/Pointer_analysis)
 
-At a high level, the distinction between these is as follows:
+At a high level, the distinction between these is in how they look for subclasses
+that may provide an implementation for a virtual method. In order of increasing precision:
 
-1. Class Hierarchy Analysis considers for each virtual method call and considers the
-   possibility that it might call any class that implements that method globall
+1. *Class Hierarchy Analysis*: Any class that implements that method globally in your codebase
 
+2. *Rapid Type Analysis*: Any class that implements that method _that is instantiated as
+   part of the program starting from the `main` entrypoint_
+
+3. *Points-To Analysis*: Any class that
+   implements that method that is _instantiated and passed to this specific callsite_
+
+Mill uses a variant of (2) Rapid Type Analysis, with the tweak that with Mill `Task` may
+serve as the entrypoint, rather than having a single global `main` method. This is less
+precise than running the analysis separately for every `Task`, but has the advantage that
+it can be done for the entire build in one pass rather than needing to repeat the analysis
+for every `Task` separately.
 
 ## Other Complications
 
