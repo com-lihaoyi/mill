@@ -148,14 +148,20 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
     IrBaseInfo(typedef)
   }
 
+  // TODO `Unit` when the code is refactored to use `ProjectDependency`
+  override type ModuleFqnMap = Map[(String, String, String), String]
+  override def getModuleFqnMap(moduleNodes: Seq[Node[ProjectModel]])
+      : Map[(String, String, String), String] =
+    buildModuleFqnMap(moduleNodes)(getGav)
+
   override def extractIrBuild(
       cfg: Config,
       // baseInfo: IrBaseInfo,
       build: Node[ProjectModel],
-      packages: Map[(String, String, String), String]
+      moduleFqnMap: Map[(String, String, String), String]
   ): IrBuild = {
     val project = build.value
-    val scopedDeps = extractScopedDeps(project, packages, cfg)
+    val scopedDeps = extractScopedDeps(project, moduleFqnMap, cfg)
     val version = getPublishVersion(project)
     IrBuild(
       scopedDeps = scopedDeps,
@@ -183,7 +189,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
   def getModuleSupertypes(cfg: Config): Seq[String] =
     Seq(cfg.shared.basicConfig.baseModule.getOrElse("MavenModule"))
 
-  override def getPackage(project: ProjectModel): (String, String, String) = {
+  override def getGav(project: ProjectModel): (String, String, String) = {
     (project.group(), project.name(), project.version())
   }
 
@@ -205,6 +211,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Java
         getModuleSupertypes(cfg)
       }.toSeq.flatten
 
+  // TODO remove when the code is refactored to use `ProjectDependency`
   def groupArtifactVersion(dep: JavaModel.Dep): (String, String, String) =
     (dep.group(), dep.name(), dep.version())
 
