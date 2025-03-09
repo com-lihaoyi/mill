@@ -4,9 +4,47 @@ import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
 
 /**
+ * Represents the data and utilities that are contextually available inside the
+ * implementation of a `Task`.
+ */
+trait Ctx extends Ctx.Dest
+    with Ctx.Log
+    with Ctx.Args
+    with Ctx.Env
+    with Ctx.Workspace
+    with Ctx.Fork
+    with Ctx.Jobs {
+  def reporter: Int => Option[CompileProblemReporter]
+
+  def testReporter: TestReporter
+  def systemExit: Int => Nothing
+}
+
+/**
  * Provides access to various resources in the context of a current execution Target.
  */
 object Ctx {
+
+  private[mill] class Impl(
+      val args: IndexedSeq[?],
+      dest0: () => os.Path,
+      val log: Logger,
+      val env: Map[String, String],
+      val reporter: Int => Option[CompileProblemReporter],
+      val testReporter: TestReporter,
+      val workspace: os.Path,
+      val systemExit: Int => Nothing,
+      val fork: Ctx.Fork.Api,
+      val jobs: Int
+  ) extends Ctx {
+    def dest: os.Path = dest0()
+
+    def arg[T](index: Int): T = {
+      if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
+      else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
+    }
+  }
+
   @compileTimeOnly(
     "Target.ctx() / Task.ctx() / Task.* APIs can only be used with a Task{...} block"
   )
@@ -68,6 +106,7 @@ object Ctx {
 
   trait Args {
     def args: IndexedSeq[?]
+    def arg[T](index: Int): T
   }
 
   /**
@@ -108,7 +147,7 @@ object Ctx {
      * logging prefixes and prompt so a user can easily see what futures are running
      * and what logs belong to each future.
      */
-    def fork: Fork.Impl
+    def fork: Fork.Api
   }
 
   @experimental
@@ -152,32 +191,5 @@ object Ctx {
         await(Future.sequence(t))
       }
     }
-  }
-}
-
-/**
- * Represents the data and utilities that are contextually available inside the
- * implementation of a `Task`.
- */
-class Ctx(
-    val args: IndexedSeq[?],
-    dest0: () => os.Path,
-    val log: Logger,
-    val env: Map[String, String],
-    val reporter: Int => Option[CompileProblemReporter],
-    val testReporter: TestReporter,
-    val workspace: os.Path,
-    val systemExit: Int => Nothing,
-    @experimental val fork: Ctx.Fork.Api
-) extends Ctx.Dest
-    with Ctx.Log
-    with Ctx.Args
-    with Ctx.Env
-    with Ctx.Workspace {
-
-  def dest: os.Path = dest0()
-  def arg[T](index: Int): T = {
-    if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
-    else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
   }
 }

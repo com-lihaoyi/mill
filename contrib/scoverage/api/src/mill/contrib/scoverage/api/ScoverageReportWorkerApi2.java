@@ -8,11 +8,11 @@ import java.nio.file.Path;
 public interface ScoverageReportWorkerApi2 {
 
   interface Logger {
-    void info(String msg);
+    void error(String msg);
 
     void warn(String msg);
 
-    void error(String msg);
+    void info(String msg);
 
     void debug(String msg);
   }

@@ -47,7 +47,7 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
               ctx.log.info(s"Branch coverage....: ${coverage.branchCoverageFormatted}%")
           }
         case None =>
-          ctx.log.error(s"No coverage data found in [${dataDirs.mkString(", ")}]")
+          ctx.log.warn(s"No coverage data found in [${dataDirs.mkString(", ")}]")
       }
     } catch {
       case e: Throwable =>

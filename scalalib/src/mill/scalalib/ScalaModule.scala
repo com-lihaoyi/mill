@@ -264,7 +264,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   // Keep in sync with [[bspCompileClassesPath]]
   override def compile: T[CompilationResult] = Task(persistent = true) {
     val sv = scalaVersion()
-    if (sv == "2.12.4") Task.log.error(
+    if (sv == "2.12.4") Task.log.warn(
       """Attention: Zinc is known to not work properly for Scala version 2.12.4.
         |You may want to select another version. Upgrading to a more recent Scala version is recommended.
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin

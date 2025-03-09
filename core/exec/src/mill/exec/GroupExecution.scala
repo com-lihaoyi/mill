@@ -228,7 +228,7 @@ private trait GroupExecution {
       val res = {
         if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
-          val args = new mill.api.Ctx(
+          val args = new mill.api.Ctx.Impl(
             args = targetInputValues.map(_.value).toIndexedSeq,
             dest0 = () => makeDest(),
             log = multiLogger,
@@ -237,10 +237,9 @@ private trait GroupExecution {
             testReporter = testReporter,
             workspace = workspace,
             systemExit = systemExit,
-            fork = executionContext
-          ) with mill.api.Ctx.Jobs {
-            override def jobs: Int = effectiveThreadCount
-          }
+            fork = executionContext,
+            jobs = effectiveThreadCount
+          )
           // Tasks must be allowed to write to upstream worker's dest folders, because
           // the point of workers is to manualy manage long-lived state which includes
           // state on disk.
