@@ -691,6 +691,23 @@ curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/mill.bat 
 echo 0.13.0-M0 &gt; .mill-version</code></pre>
 </div>
 </div>
+<div class="admonitionblock caution">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Don’t use PowerShell 5.1 to install Mill!</strong>
+<br />
+PowerShell 5.1 is known to produce <code>UTF-16LE</code> encoded <code>.mill-version</code> files, which can’t be read by Mill.
+You should update to Powershell 7 or newer.</p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
 <div class="paragraph">
 <p>Downloading a <code>mill</code> bootstrap script to the root of your project repository helps make it easier for
 new contributors to build your project, as they don’t have to install Mill before they can start.
