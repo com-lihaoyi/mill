@@ -25,6 +25,11 @@ chmod +x mill
 echo {mill-version} > .mill-version
 
 # Windows
+
+# warning: this does *not* work in PowerShell 5.1, which ships with Windows 10 and 11,
+# and produces UTF-16LE-encoded files, but DOES work with PowerShell 7.1, which defaults to UTF-8
+# it is recommended that you install the latest version of PowerShell to use Mill
+
 curl -L {mill-download-url}/mill.bat -o mill.bat
 echo {mill-version} > .mill-version
 ----
