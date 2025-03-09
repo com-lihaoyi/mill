@@ -8,4 +8,4 @@ class GroupX2 : RandomTestsUtils() {
     fun test1() {
         testGreeting("Chronos", 35)
     }
-} 
+}
