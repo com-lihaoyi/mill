@@ -15,11 +15,10 @@ object foo extends ScalaModule {
   object test extends ScalaTests {
     def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
-    
+
     def testEnableWorkStealing = true
   }
 }
-
 
 //// SNIPPET:END
 

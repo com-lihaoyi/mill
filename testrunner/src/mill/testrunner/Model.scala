@@ -16,7 +16,7 @@ import mill.api.internal
     // - Left(selectors: Seq[String]): - list of glob selectors, testrunner is given a list of glob selectors to run directly
     // - Right((selectorFolder: os.Path, baseFolder: os.Path)): - a pair of paths, testrunner will try to steal test glob from selectorFolder
     // and move it actomatically in to baseFolder and run it from there.
-    globSelectors: Either[Seq[String], (os.Path, os.Path)],
+    globSelectors: Either[Seq[String], (os.Path, os.Path)]
 )
 
 @internal object TestArgs {

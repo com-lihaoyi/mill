@@ -12,7 +12,6 @@ import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
-import scala.util.Random
 import java.io.PrintStream
 
 @internal object TestRunnerUtils {
@@ -134,11 +133,11 @@ import java.io.PrintStream
   }
 
   private def executeTasks(
-    tasks: Seq[Task],
-    testReporter: TestReporter,
-    runner: Runner,
-    events: ConcurrentLinkedQueue[Event],
-    systemOut: PrintStream
+      tasks: Seq[Task],
+      testReporter: TestReporter,
+      runner: Runner,
+      events: ConcurrentLinkedQueue[Event],
+      systemOut: PrintStream
   ): Unit = {
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
@@ -186,7 +185,10 @@ import java.io.PrintStream
     }
   }
 
-  private def handleRunnerDone(runner: Runner, events: ConcurrentLinkedQueue[Event]): (String, Iterator[TestResult]) = {
+  private def handleRunnerDone(
+      runner: Runner,
+      events: ConcurrentLinkedQueue[Event]
+  ): (String, Iterator[TestResult]) = {
     val doneMessage = runner.done()
     if (doneMessage != null && doneMessage.nonEmpty) {
       if (doneMessage.endsWith("\n"))
@@ -200,7 +202,11 @@ import java.io.PrintStream
     (doneMessage, results)
   }
 
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner): (String, Iterator[TestResult]) = {
+  def runTasks(
+      tasks: Seq[Task],
+      testReporter: TestReporter,
+      runner: Runner
+  ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val systemOut = System.out
@@ -228,10 +234,10 @@ import java.io.PrintStream
   }
 
   private def stealTaskFromTestClassesFolder(
-    globSelectorCache: Map[String, ClassWithFingerprint],
-    runner: Runner,
-    stealFolder: os.Path,
-    testClassesFolder: os.Path
+      globSelectorCache: Map[String, ClassWithFingerprint],
+      runner: Runner,
+      stealFolder: os.Path,
+      testClassesFolder: os.Path
   ): Array[Task] = {
     // append only log, used to communicate with parent about what test is being stolen
     // so that the parent can log the stolen test's name to its logger
@@ -240,18 +246,19 @@ import java.io.PrintStream
     while (files.nonEmpty) {
       val file = files.remove(0)
       val stolenFile = stealFolder / file.last
-      val stole = try {
-        // we can check for existence of stolenFile first, but it'll require another os call.
-        // it just better to let this call failed in that case.
-        os.move(
-          file,
-          stolenFile,
-          atomicMove = true
-        )
-        true
-      } catch {
-        case e: Exception => false
-      }
+      val stole =
+        try {
+          // we can check for existence of stolenFile first, but it'll require another os call.
+          // it just better to let this call failed in that case.
+          os.move(
+            file,
+            stolenFile,
+            atomicMove = true
+          )
+          true
+        } catch {
+          case e: Exception => false
+        }
       if (stole) {
         val selector = stolenFile.last
         os.write.append(stealLog, s"$selector\n")
@@ -274,26 +281,29 @@ import java.io.PrintStream
   }
 
   def stealTasks(
-    testClasses: Seq[ClassWithFingerprint],
-    testReporter: TestReporter,
-    runner: Runner,
-    stealFolder: os.Path,
-    testClassesFolder: os.Path
+      testClasses: Seq[ClassWithFingerprint],
+      testReporter: TestReporter,
+      runner: Runner,
+      stealFolder: os.Path,
+      testClassesFolder: os.Path
   ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val systemOut = System.out
     val events = new ConcurrentLinkedQueue[Event]()
-    val globSelectorCache = testClasses.view.map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }.toMap
+    val globSelectorCache = testClasses.view.map { case (cls, fingerprint) =>
+      cls.getName.stripSuffix("$") -> (cls, fingerprint)
+    }.toMap
     while ({
-      val tasks = stealTaskFromTestClassesFolder(globSelectorCache, runner, stealFolder, testClassesFolder)
+      val tasks =
+        stealTaskFromTestClassesFolder(globSelectorCache, runner, stealFolder, testClassesFolder)
       if (tasks.nonEmpty) {
         executeTasks(tasks, testReporter, runner, events, systemOut)
         true
       } else {
         false
       }
-    })()
+    }) ()
     handleRunnerDone(runner, events)
   }
 
@@ -308,12 +318,13 @@ import java.io.PrintStream
   ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
-    
+
     val runner = framework.runner(args.toArray, Array[String](), cl)
 
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-    val (doneMessage, results) = stealTasks(testClasses, testReporter, runner, stealFolder, testClassesFolder)
+    val (doneMessage, results) =
+      stealTasks(testClasses, testReporter, runner, stealFolder, testClassesFolder)
 
     (doneMessage, results.toSeq)
   }

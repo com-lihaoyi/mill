@@ -5,5 +5,7 @@ import org.junit.jupiter.api.Test
 class GroupY10 : RandomTestsUtils() {
     @Test
     @Throws(Exception::class)
-    fun test1() { testGreeting("Rama", 25) }
+    fun test1() {
+        testGreeting("Rama", 25)
+    }
 } 

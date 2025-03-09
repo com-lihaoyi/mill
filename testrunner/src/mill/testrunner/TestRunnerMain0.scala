@@ -27,7 +27,7 @@ import mill.api.{DummyTestReporter, internal}
             testClassesFolder = testClassesFolder,
             stealFolder = stealFolder,
             cl = classLoader,
-            testReporter = DummyTestReporter,
+            testReporter = DummyTestReporter
           )
       }
 
