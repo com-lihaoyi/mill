@@ -309,11 +309,130 @@ in earlier eamples
 
 ### Instance Methods
 
-e.g. when the behavior of a `qux.baz()` may differ based on
-how `qux` was instantiated? This turns out to work pretty well by default because the fact
-that you have `qux` means that you must have called its constructor and passed in arguments
-(directly or indirectly), and any changes to the constructor or the arguments passed in would
-get captured in the transitive call graph.
+Consider the following example, replacing `barHelper` with a `classQux` containing a `def bazHelper`:
+
+```scala
+def barSource = Task.Source("bar.txt")
+class Qux(suffix0: String) {
+  val suffix = suffix0 + suffix0 + suffix0
+  def bazHelper(s: String) = s.toUpperCase + suffix
+}
+
+def barTask: T[String] = Task{
+  println("evaluating barTask")
+  val qux = new Qux("!")
+  qux.bazHelper(os.read(barSource().path))
+} // BAR.TXT CONTENTS!!!
+```
+
+In this example, we are calling `bazHelper` on the value in `barTask`, but the behavior of
+a `qux.bazHelper()` doesn't just depend on the implementation of `bazHelper`, but also:
+
+1. The value `suffix` that was passed in when `new Qux` was constructed, in this case `!`
+2. and the implementation of the `Qux#<init>` constructor, which assigns
+   `val suffix = suffix0 + suffix0 + suffix0` to construct the `suffix` used in `bazHelper`
+
+This turns out to work pretty well by default: the fact that you have `qux` means that you
+must have called its constructor and passed in arguments (directly or indirectly):
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  "Qux#bazHelper" -> barTask
+  "Qux#<init>" -> barTask
+}
+```
+
+* Changes to the `Qux` constructor param `"!"` are part of the `barTask` task body
+* Changes to the `Qux#<init>` constructor are captured because `Qux#<init>` is called by `barTask`
+  to construct `qux` before using it
+* Changes to `Qux#bazHelper` are captured because `bazHelper` is called by `barTask`
+
+Thus, the existing callgraph is sufficient to detect any changes that affect instance methods
+
+### Instance Fields
+
+A similar approach can be take to analyzing fields, which are defined via the `val` keyword
+in contrast to methods defined via `def`:
+
+```scala
+def barSource = Task.Source("bar.txt")
+class Qux(suffix0: String) {
+  var suffix = suffix0
+  def doubleSuffix() = {
+    suffix = suffix + suffix
+  }
+}
+
+def barTask: T[String] = Task{
+  println("evaluating barTask")
+  val qux = new Qux("!")
+  qux.doubleSuffix()
+  qux.doubleSuffix()
+  os.read(barSource().path) + qux.suffix
+} // BAR.TXT CONTENTS!!!!
+```
+
+In this case, `barTask` references the `suffix` field directly, without going through
+a `bazHelper` method. Method call graph analysis does not track fields, but it doesn't
+need to: a field can only get its value from the methods that set it, whether
+the constructor (above setting `var suffix = suffix0`) or other methods (e.g. `def doubleSuffix`,
+which sets `suffix = suffix + suffix`).
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  "Qux#<init>" -> barTask
+  "Qux#doubleSuffix" -> barTask
+}
+```
+
+Since these methods are all already captured as part of the normal callgraph analysis
+as a conservative approximation it's fine to ignore fields entirely: you will never
+miss a code change that affects a field value because such code changes must occur in
+methods which we already track.
+
+### Enclosing Fields
+
+A follow up example is what happens if the task block relies on a field (`val`) rather
+than a method (`def`) in an enclosing object?
+
+```scala
+object enclosing extends Module{
+  def barSource = Task.Source("bar.txt")
+  val suffix = "???"
+  def barTask: T[String] = Task{
+    println("evaluating barTask")
+    os.read(barSource().path) + suffix
+  } // bar.txt contents???
+}
+```
+
+In this case, it is clear that the transitive callgraph of `barTask` is not sufficient,
+because not only do we need to call `barTask`, we first need to instantiate `object enclosing`
+as well. This is similar to the <<Instance Methods>> case we looked at above, but instead of
+relying on some object instance that `barTask` instantiates and calls, we are looking at
+``barTask``'s _own_ object instance. But in both cases, we need to account for the constructor
+code for the object on which we are calling the method.
+
+In practice, this is straightforward: we just need to add an edge from the `enclosing#<init>`
+(and any other enclosing objects) to `barTask` when constructing the callgraph:
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  "Qux#bazHelper" -> barTask
+  "Qux#<init>" -> barTask
+  "enclosing#<init>" -> barTask
+}
+```
+
+Mill task methods can only live in ``Module``s, and ``Module``s instances can only be singleton
+objects as part of the module tree. Thus they will all have a zero-arg `<init>` constructor
+method.
 
 ### Virtual Methods
 
@@ -325,19 +444,19 @@ call definition sites in all possible subclasses.
 
 There are varying degrees of precision for which you can analyze virtual methods, e.g.
 _Class Hierarchy Analysis_ and _Rapid Type Analysis_ described in
-[Fast Static Analysis of C++ Virtual Calls, OOPSLA96](https://courses.cs.washington.edu/courses/cse501/04wi/papers/bacon-oopsla96.pdf)
+[Fast Static Analysis of C++ Virtual Calls, OOPSLA96](https://courses.cs.washington.edu/courses/cse501/04wi/papers/bacon-oopsla96.pdf),
+or even more sophisticated dataflow approaches such as [Points-To Analysis](https://en.wikipedia.org/wiki/Pointer_analysis)
+
+At a high level, the distinction between these is as follows:
+
+1. Class Hierarchy Analysis considers for each virtual method call and considers the
+   possibility that it might call any class that implements that method globall
 
 
 ## Other Complications
 
 
 
-### Reflection
-
-e.g. `getClass.getMethod(methodName).invoke()`? In this case
-it may be impossible to statically determine what `methodName` is, because it is dynamically
-computed at runtime. Thankfully in typical Scala code (which `build.mill` files are written in)
-runtime reflection is rare, so although this is a weakness it is not a problem in practice.
 
 ### Library Methods
 
@@ -346,6 +465,143 @@ standard library, because that would be very expensive. Mill thus only construct
 for local code, using a conservative approximation of calls to upstream libraries
 (similar to that discussed in [Averroes: Whole-Program Analysis without the Whole Program,
 ECOOP 2013](https://plg.uwaterloo.ca/~olhotak/pubs/ecoop13.pdf))
+
+## Limitations
+
+### No Data Flow analysis
+
+The biggest limitation of using method _callgraph analysis_ to detect code changes affecting
+tasks is the lack of _dataflow analysis_: we are simply aggregating all methods that get
+called (transitively) by a task, but we don't actually know if those methods actually
+affect the task output. For example, consider the following snippet:
+
+```scala
+def barSource = Task.Source("bar.txt")
+class Qux(suffix0: String) {
+  val suffix = suffix0 + suffix0 + suffix0
+  def bazHelper(s: String) = s.toUpperCase + suffix
+}
+
+def barTask: T[String] = Task{
+  println("evaluating barTask")
+  val qux = new Qux("!")
+  qux.bazHelper(os.read(barSource().path))
+} // BAR.TXT CONTENTS!!!
+```
+
+The `Qux#<init>` method has the following bytecode:
+
+```java
+  public Qux(java.lang.String);
+       0: aload_0
+       1: invokespecial #13                 // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: new           #15                 // class java/lang/StringBuilder
+       8: dup
+       9: ldc           #16                 // int 0
+      11: invokespecial #19                 // Method java/lang/StringBuilder."<init>":(I)V
+      14: aload_1
+      15: invokevirtual #23                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      18: aload_1
+      19: invokevirtual #23                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      22: aload_1
+      23: invokevirtual #23                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      26: invokevirtual #27                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      29: putfield      #29                 // Field suffix:Ljava/lang/String;
+      32: return
+```
+
+If we modify this by adding a second unused field:
+
+```diff
+ class Qux(suffix0: String) {
+   val suffix = suffix0 + suffix0 + suffix0
++  val otherSuffix = suffix0 + suffix0
+   def bazHelper(s: String) = s.toUpperCase + suffix
+ }
+```
+
+This results in a corresponding change to the bytecode to initialize the new field:
+
+```diff
+  public Qux(java.lang.String);
+       0: aload_0
+       1: invokespecial #14                 // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: new           #16                 // class java/lang/StringBuilder
+       8: dup
+       9: ldc           #17                 // int 0
+      11: invokespecial #20                 // Method java/lang/StringBuilder."<init>":(I)V
+      14: aload_1
+      15: invokevirtual #24                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      18: aload_1
+      19: invokevirtual #24                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      22: aload_1
+      23: invokevirtual #24                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      26: invokevirtual #28                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      29: putfield      #30                 // Field suffix:Ljava/lang/String;
++     32: aload_0
++     33: new           #16                 // class java/lang/StringBuilder
++     36: dup
++     37: ldc           #17                 // int 0
++     39: invokespecial #20                 // Method java/lang/StringBuilder."<init>":(I)V
++     42: aload_1
++     43: invokevirtual #24                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
++     46: aload_1
++     47: invokevirtual #24                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
++     50: invokevirtual #28                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
++     53: putfield      #32                 // Field otherSuffix:Ljava/lang/String;
+      56: return
+```
+
+Which affects `barTask`, because our callgraph has `Qux#<init>` being called by `barTask`
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  "Qux#bazHelper" -> barTask
+  "Qux#<init>" [penwidth=3 color=red]
+  barTask [penwidth=3 color=red]
+  "Qux#<init>" -> barTask [penwidth=3 color=red]
+}
+```
+
+However, if you actually track the dataflow of the code, we would realize that
+the field `otherSuffix` is not used by `barTask` at all! Only `suffix` is used.
+Thus although our `Qux#<init>` was affected by the code change, `barTask` isn't
+actually affected, and so invalidating `barTask` and forcing a re-evaluation would
+be wasteful.
+
+This is perhaps the largest gap in the callgraph analysis we present here: while
+we are able to analyze the dependencies between _methods_ based on how they call each
+other via `invokevirtual` or `invokespecial` bytecodes, we are unable to analyze
+the dependencies between the _fields_ that those methods set. This can result in
+false positives where changes to constructors or other methods cause our tasks
+to invalidate unnecessarily.
+
+
+### Reflection
+
+Another major limitation in this analysis is that it assumes that all method calls
+in your program are statically specified in the bytecode. This is not true of JVM applications
+in general: anyone can call `getClass.getMethod(methodName).invoke()` with a dynamically
+computed `methodName: String`, leaving static bytecode analysis with no way to figure out
+what method is actually being called. Unlike the limitation above that results in false
+positives, this limitation can result in false negatives where a method called by a
+task changes and the task does not re-evaluate, because the method call happened via
+`getMethod.invoke` which our analyzer cannot understand.
+
+Although in theory this could be an issue, in typical Scala code (which `build.mill` files
+are written in) runtime reflection is relatively rare. Scala codebases and libraries tend
+to perform a lot of their work at compile-time: inferring types, resolving implicit parameters,
+expanding macros, and so on. Although Scala's compile-time complexity is no less complicated than
+the runtime reflection/classloading/classpath-scanning present in Java codebases, it has the
+advantage that by the time we are looking at the JVM bytecode all the magic has already been
+removed. Thus, we can analyze the JVM bytecode emitted by a Scala program with high confidence
+that the callgraph defined in the bytecode gives a complete and accurate picture of how
+the methods in the program call each other.
+
 
 ## Evaluation
 
