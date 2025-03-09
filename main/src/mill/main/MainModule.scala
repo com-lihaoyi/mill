@@ -4,7 +4,6 @@ import mill.api.*
 import mill.define.*
 import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
-import mill.define.SelectMode
 import mill.define.internal.Watchable
 import mill.exec.Cached
 

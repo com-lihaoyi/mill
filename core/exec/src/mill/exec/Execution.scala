@@ -5,7 +5,6 @@ import mill.api.ExecResult.{Aborted, Failing}
 import mill.api._
 import mill.define._
 import mill.internal.PrefixLogger
-import mill.define.MultiBiMap
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
