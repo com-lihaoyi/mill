@@ -61,6 +61,7 @@ case class Dependency(
 case class Developer(
     id: String,
     name: String,
+    email: Option[String] = None,
     url: String,
     organization: Option[String] = None,
     organizationUrl: Option[String] = None
