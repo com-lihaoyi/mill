@@ -107,7 +107,6 @@ trait TestModule
     Seq(discoveredTestClasses())
   }
 
-
   /**
    * Whether to use the test stealing scheduler to run tests in multiple JVM processes.
    * When used in combination with [[testForkGrouping]], every JVM test running process

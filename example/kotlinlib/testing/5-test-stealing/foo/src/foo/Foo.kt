@@ -5,9 +5,7 @@ object Foo {
     fun main(args: Array<String>) {
         println(greet("World"))
     }
-    
+
     @JvmStatic
-    fun greet(name: String): String {
-        return "Hello $name"
-    }
+    fun greet(name: String): String = "Hello $name"
 } 

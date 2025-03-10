@@ -45,7 +45,7 @@ import mill.util.PrintLogger
             testClassesFolder = testClassesFolder,
             stealFolder = stealFolder,
             cl = classLoader,
-            testReporter = DummyTestReporter,
+            testReporter = DummyTestReporter
           )(ctx)
       }
 
