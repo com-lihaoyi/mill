@@ -64,7 +64,6 @@ object `package` extends RootModule {
           mill.scalalib.api.CompilationResult(null, null)
         } // binary compatibility stub, not used
 
-      def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     }
 
     object local extends IntegrationLauncherModule {
