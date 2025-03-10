@@ -1,5 +1,5 @@
 
-* xref:10-bytecode-analysis.adoc[]
+* xref:10-bytecode-callgraph-analysis.adoc[]
 * xref:9-mill-faster-assembly-jars.adoc[]
 * xref:8-what-is-a-build-tool.adoc[]
 * xref:7-graal-native-executables.adoc[]
