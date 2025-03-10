@@ -76,6 +76,7 @@ trait CoursierModule extends mill.Module {
    */
   def resolveDeps(
       deps: Task[Seq[BoundDep]],
+      checkGradleModules: Boolean = false,
       sources: Boolean = false,
       artifactTypes: Option[Set[Type]] = None,
       enableMillInternalDependencies: Boolean = false
@@ -87,6 +88,7 @@ trait CoursierModule extends mill.Module {
       Lib.resolveDependencies(
         repositories = repositoriesTask0(),
         deps = deps(),
+        checkGradleModules = checkGradleModules,
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = Some(mapDependencies()),
@@ -222,6 +224,7 @@ object CoursierModule {
 
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
+        checkGradleModules: Boolean = false,
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
@@ -229,6 +232,7 @@ object CoursierModule {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
+        checkGradleModules = checkGradleModules,
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = mapDependencies,
@@ -254,6 +258,7 @@ object CoursierModule {
      */
     def processDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
+        checkGradleModules: Boolean = false,
         resolutionParams: ResolutionParams = ResolutionParams(),
         boms: IterableOnce[BomDependency] = Nil
     ): (Seq[coursier.core.Dependency], DependencyManagement.Map) = {
@@ -265,6 +270,7 @@ object CoursierModule {
       val res = Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
+        checkGradleModules = checkGradleModules,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
@@ -298,7 +304,8 @@ object CoursierModule {
      * @return full - ordered - list of dependencies pulled by `deps`
      */
     def allDeps[T: CoursierModule.Resolvable](
-        deps: IterableOnce[T]
+        deps: IterableOnce[T],
+        checkGradleModules: Boolean = false
     ): Seq[coursier.core.Dependency] = {
       val deps0 = deps
         .iterator
@@ -307,6 +314,7 @@ object CoursierModule {
       val res = Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
+        checkGradleModules = checkGradleModules,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
