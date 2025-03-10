@@ -275,12 +275,6 @@ object SbtBuildGenMain
   def getModuleSupertypes(cfg: Config): Seq[String] =
     cfg.shared.baseModule.fold(sbtSupertypes)(Seq(_))
 
-  // TODO remove
-  def getGav(project: Project): (String, String, String) = {
-    val buildPublicationInfo = project.buildInfo.buildPublicationInfo
-    (buildPublicationInfo.organization.orNull, project.name, buildPublicationInfo.version.orNull)
-  }
-
   def getArtifactId(project: Project): String = project.name
 
   def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)

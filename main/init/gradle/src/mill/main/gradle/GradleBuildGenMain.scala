@@ -189,10 +189,6 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
   def getModuleSupertypes(cfg: Config): Seq[String] =
     Seq(cfg.shared.basicConfig.baseModule.getOrElse("MavenModule"))
 
-  override def getGav(project: ProjectModel): (String, String, String) = {
-    (project.group(), project.name(), project.version())
-  }
-
   override def getArtifactId(project: ProjectModel): String = project.name()
 
   def getMillSourcePath(project: ProjectModel): Path = os.Path(project.directory())
@@ -211,7 +207,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
         getModuleSupertypes(cfg)
       }.toSeq.flatten
 
-  def groupArtifactVersion(dep: ExternalDep): (String, String, String) =
+  def getDepGav(dep: ExternalDep): (String, String, String) =
     (dep.group(), dep.name(), dep.version())
 
   def getJavacOptions(project: ProjectModel): Seq[String] = {
@@ -297,7 +293,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
             sd = onPackage(getModuleFqn(dep.projectDep().path()))
           else {
             val externalDep = dep.externalDep()
-            val id = groupArtifactVersion(externalDep)
+            val id = getDepGav(externalDep)
             val ivy = ivyDep(externalDep)
             sd = onIvy(ivy, id)
           }
@@ -358,7 +354,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
               val depString = if (dep.isProjectDepOrExternalDep)
                 escape(dep.projectDep().path())
               else
-                groupArtifactVersion(dep.externalDep()).toString()
+                getDepGav(dep.externalDep()).toString()
               println(s"ignoring $name dependency $depString")
             }
         }

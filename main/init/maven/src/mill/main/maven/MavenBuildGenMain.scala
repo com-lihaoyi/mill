@@ -93,7 +93,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   override type ModuleFqnMap = Map[(String, String, String), String]
   override def getModuleFqnMap(moduleNodes: Seq[Node[Model]])
       : Map[(String, String, String), String] =
-    buildModuleFqnMap(moduleNodes)(getGav)
+    buildModuleFqnMap(moduleNodes)(getProjectGav)
 
   override def extractIrBuild(
       cfg: Config,
@@ -131,7 +131,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
 
   def getModuleSupertypes(cfg: Config): Seq[String] = Seq("PublishModule", "MavenModule")
 
-  override def getGav(model: Model): (String, String, String) =
+  def getProjectGav(model: Model): (String, String, String) =
     (model.getGroupId, model.getArtifactId, model.getVersion)
 
   override def getArtifactId(model: Model): String = model.getArtifactId

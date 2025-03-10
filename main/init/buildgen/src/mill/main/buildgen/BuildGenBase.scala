@@ -90,9 +90,6 @@ trait BuildGenBase[M, D, I] {
       packagesSize: Int
   ): IrBaseInfo
 
-  // TODO remove from here
-  def getGav(moduleModel: M): (String, String, String)
-
   def getArtifactId(moduleModel: M): String
 
   def extractIrBuild(
