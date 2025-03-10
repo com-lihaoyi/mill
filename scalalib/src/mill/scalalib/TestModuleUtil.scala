@@ -287,8 +287,6 @@ private final class TestModuleUtil(
     val groupLength = groupFolderData.length
     val maxGroupLength = groupLength.toString.length
 
-    mill.constants.DebugLog.println("groupFolderData " + groupFolderData)
-
     // We got "--jobs" threads, and "groupLength" test groups, so we will spawn at most jobs * groupLength runners here
     // In most case, this is more than necessary, and runner creation is expensive,
     // but we have a check for non-empty test-classes folder before really spawning a new runner, so in practice the overhead is low
