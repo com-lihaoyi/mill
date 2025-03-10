@@ -11,15 +11,15 @@ Build tools often cache your task outputs and invalidate them when the input
 files change, and build tools often let you implement tasks using blocks of arbitrary
 code in some general-purpose language. But the combination of these raises a
 question: if your tasks can contain arbitrary code, how can you detect when that code
-is changed, and invalidate the task's caches? In most programming languages, "blocks
-of arbitrary code" are opaque - and the only thing you can do is run them - so
-this problem is unsolvable.
+has changed, and appropriately invalidate the task's caches? In most programming
+languages, "blocks of arbitrary code" are opaque - and the only thing you can do is
+run them - so this problem is unsolvable.
 
 This blog post explores how Mill extends its JVM runtime by analyzing the callgraph of your
 build logic at a bytecode level. This lets Mill analyze a task's code-block to detect
-changes in its implementation or that of transitively-called methods, allowing us to
+changes in its implementation or that of transitively-called methods, letting us automatically
 invalidate task caches when the code is modified. We'll discuss the implementation and
-limitations of this bytecode analyses, and show empirically how this is able to provide
+limitations of this bytecode analysis, and show empirically how this is able to provide
 a significant improvement over more naive approaches to the problem.
 
 // end::header[]
@@ -30,14 +30,14 @@ To illustrate this problem, consider the following `build.mill` config:
 
 ```scala
 def fooSource = Task.Source("foo.txt")
-def fooTask: T[String] = Task{
+def fooTask = Task{
   println("evaluating fooTask")
   os.read(fooSource().path).toUpperCase
 }
 
 def barSource = Task.Source("bar.txt")
 def barHelper(s: String) = s.toUpperCase
-def barTask: T[String] = Task{
+def barTask = Task{
   println("evaluating barTask")
   barHelper(os.read(barSource().path))
 }
@@ -82,6 +82,22 @@ evaluating fooTask
 }
 ```
 
+This is what you would expect, since `foo.txt` is watched by `fooSources`, which is then
+in turn used by `fooTask`. So we would expect changes to `foo.txt` to invalidate ``fooTask``'s
+cache and force `fooTask` to re-evaluate:
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  barSource -> barTask
+  fooSource [color=red penwidth=3]
+  fooTask [color=red penwidth=3]
+  fooSource -> fooTask [color=red penwidth=3]
+}
+```
+
+
 Similarly, if we change `bar.txt`, we would expect to see `barTask` re-evaluate while `fooTask` is cached.
 
 So far so good. But what if instead of changing the `foo.txt` or `bar.txt` source files,
@@ -89,7 +105,7 @@ we instead change the `build.mill` configuration itself? For example, we may cha
 to `toLowerCase`:
 
 ```diff
- def fooTask: T[String] = Task{
+ def fooTask = Task{
    println("evaluating fooTask")
 -   os.read(fooSource().path).toUpperCase
 +   os.read(fooSource().path).toLowerCase
@@ -132,14 +148,14 @@ evaluating barTask
 
 That looks straightforward enough, so what's the issue?
 
-## Why Code Change Invalidation is Hard
+### Why Code Change Invalidation is Hard
 
 Mill `build.mill` files run on the JVM; the source code is written in Scala, but it
 compiles to the same JVM bytecode that Java or Kotlin or any other JVM languages do.
 When you look at the definition of a task such as:
 
 ```scala
-def fooTask: T[String] = Task{
+def fooTask = Task{
   println("evaluating fooTask")
   os.read(fooSource().path).toUpperCase
 }
@@ -155,7 +171,7 @@ Essentially, this means when you call `Task{ ... }`, the `...` is wrapped in a z
 function `() => ...` of type `Function0[T]` that you can call via `.apply()` returning a `T`:
 
 ```scala
-def fooTask: T[String] = Task{ () =>
+def fooTask = Task{ () =>
   println("evaluating fooTask")
   os.read(fooSource().path).toUpperCase
 }
@@ -172,56 +188,56 @@ needs to run the code in the block:
 
 * If the inputs to
   the task were modified then Mill can call `.apply` on the `Function0` to compute the latest
-  value.
+  value, and cache it.
 
-So far so good. But the _only_ thing that the `Function0` class lets you do is call `.apply()`
-to compute the result value of type `T`! In particular, `Function0` does not let you inspect
+The problem is, the _only_ thing that a `Function0` lets you do is call `.apply()`!
+In particular, `Function0` does not let you inspect
 the function to look at its source code or implementation: like function values in any
-language all that is encapsulated and hidden away from you. How then can Mill detect that
-the `.toUpperCase` in `fooTask` was replaced by `.toLowerCase`? Or in the case of modifying
+language, all that is encapsulated and hidden away from you. How then can Mill detect that
+the `.toUpperCase` in `fooTask` was replaced by `.toLowerCase`? Or that modifying
 `barHelper` affects `barTask`, even if ``barTask``'s own code block is unchanged?
 
 ### Common Approximations
 
-Because deciding whether or not a code block or method implementation has changed is difficult,
+Because deciding whether a code block has changed is difficult,
 most build tools punt on the problem entirely:
 
 1. Early versions of Mill simply invalidated all caches globally if a build file was changed.
    This is conservatively correct - it will never invalidate too few caches! - but was definitely
    overkill since most changes to build files did not affect most tasks
 
-2. Most other build tools like Maven, Gradle or SBT simply do not automate caching and invalidation,
+2. Many other build tools like Maven, Gradle or SBT simply do not automate caching and invalidation,
    and leave it up to the implementor of the task to do so. That means the implementor has to do
-   their own book-keeping to track versions of both the task inputs and its implementation, making
-   sure to manually invalidate caches when the something changes. This is tedious and error prone,
-   and often results in tasks not being cached or the cache invalidation being buggy. It is from
-   this kind of widespread cache invalidation problems lead to workflows like
-   https://stackoverflow.com/questions/4662452/in-maven-why-run-mvn-clean[_"always run mvn clean"_].
+   their own book-keeping to track versions of both the task inputs and task implementations, making
+   sure to manually invalidate caches when the either changes. This is tedious and error prone,
+   resulting in cache invalidation problems ubiquitous enough that
+   https://stackoverflow.com/questions/4662452/in-maven-why-run-mvn-clean[_"always run mvn clean"_]
+   has become a common practice.
 
 3. Some build tools like Bazel split the problem: the "arbitrary code" in StarLark is not cached,
    and the "cached" actions can only run in sub-processes with fixed executables and input flags
-   without access to the StarLark codebase.
+   without access to the StarLark codebase. This works, but introduces an awkward boundary in
+   the middle of your build logic, forcing it to be written in two
+   languages and serializing data to send it back and forth across the process boundary.
 
 All these approaches are problematic: (1) is maximally conservative and pessimistic,
-while (2) is maximally lasse-faire and optimistic. (3) splits the difference, which works, but
-introduces an awkward boundary in the middle of your build, forcing it to be written in two
-(or more) languages and serializing data to send it back and forth across the process boundary.
-
-None of these approaches are fatal - indeed people have lived with build tools working
+while (2) is maximally lasse-faire and optimistic, while (3) is workable but awkward.
+None of these approaches are fatal - people have lived with build tools working
 like this for decades - but we can do better.
 
 ## Basic Callgraph Analysis
 
 The basic idea behind Mill's callgraph analysis is that JVM `Function0` objects
 aren't _completely_ opaque: if you would like to you could pull up the `.class` file
-describing each object on disk.
+describing each object on disk, and get some understanding of what the code block
+or method is doing to do.
 
 ### Looking at the Bytecode
 
 For example, consider `barTask`:
 
 ```scala
-def barTask: T[String] = Task{
+def barTask = Task{
   println("evaluating barTask")
   barHelper(os.read(barSource().path))
 }
@@ -253,8 +269,8 @@ below, which can be rendered using the `javap -c -p` command on the relevant com
 
 This bytecode contains a lot of `invokevirtual` and `invokeinterface` methods that specify,
 after all the compiler's work is done, which methods in the JVM bytecode actually need to be
-called. We can see the invocation of `scala/Predef$.println` and `os/read$` in the bytecode,
-some `mill/api` helper methods, and also the call to `barHelper`.
+called when this function is actually run. We can see the invocation of `scala/Predef$.println` and
+`os/read$` in the bytecode, some `mill/api` helper methods, and also the call to `barHelper`.
 
 ```java
       32: invokevirtual #396        // Method barHelper:(Ljava/lang/String;)Ljava/lang/String;
@@ -291,10 +307,8 @@ digraph G {
 ```
 
 With this call graph, it is straightforward to do a breadth-first search starting from each task
-to find all transitively called methods, and hash their contents (the bytecode shown above),
-providing a hash representing not just the task itself but also all transitively called methods.
-
-Any change to this hash would indicate that the task's implementation changed, and any tasks that
+to find all transitively called methods and hash their contents (the bytecode shown above).
+Any change to this hash would indicate that a method's implementation changed, and any tasks that
 depend on it needs to re-evaluate. For example, the change we saw earlier to the `barHelper`
 source code:
 
@@ -314,8 +328,8 @@ Would result in a corresponding change in the `barHelper` bytecode:
        4: areturn
 ```
 
-From the callgraph, we can then see that `barHelper` is used by `barTask`, and so `barTask`
-needs to be invalidated
+This would change the hash of `barHelper`, and from the callgraph
+we can then see that `barTask` depends on `barHelper` and needs to be invalidated
 
 ```graphviz
 digraph G {
@@ -331,21 +345,20 @@ digraph G {
 
 
 The bytecode for a method is typically much more stable than the source code: it is not
-affected by formatting, comments, some local variable names, etc.. This means that if
-the bytecode for a method changes, it likely means the implementation changed, and any
+affected by formatting, comments, local variable names, etc.. This means that if
+the bytecode hash for a method changed, it likely means the implementation changed, and any
 tasks that call that method (directly or transitively) need to be re-evaluated.
 
 ## Object Oriented Callgraphs
 
-Although the basic callgraph analysis on static methods shown above is straightforward,
-in real code there is a lot of detail that needs to be dealt with. In particular, JVM
-languages like Java and Scala make heavy use of objects, classes, and subclassing. These
-add complications and complexity that aren't present in the static helper methods used
-in earlier eamples
+Although callgraph analysis on the static methods shown above is simple,
+JVM languages like Java and Scala make heavy use of objects, classes, and subclassing.
+Mill's callgraph analyzer working on Scala sources compiled to JVM bytecode thus need
+to handle these object-oriented language features.
 
 ### Instance Methods
 
-Consider the following example, replacing `barHelper` with a `classQux` containing a `def bazHelper`:
+Consider the following example:
 
 ```scala
 class Qux(suffix0: String) {
@@ -353,20 +366,21 @@ class Qux(suffix0: String) {
   def bazHelper(s: String) = s.toUpperCase + suffix
 }
 
-def barTask: T[String] = Task{
+def barTask = Task{
   val qux = new Qux("!")
   qux.bazHelper(os.read(barSource().path))
 } // BAR.TXT CONTENTS!!!
 ```
 
-In this example, we are calling `bazHelper` on the value in `barTask`, but the behavior of
-a `qux.bazHelper()` doesn't just depend on the implementation of `bazHelper`, but also:
+Here, we are calling `bazHelper` on the value in `barTask`. But the behavior of
+a `qux.bazHelper()` doesn't just depend on the implementation of `bazHelper` itself, but also:
 
-1. The value `suffix` that was passed in when `new Qux` was constructed, in this case `!`
-2. and the implementation of the `Qux#<init>` constructor, which assigns
-   `val suffix = suffix0 + suffix0 + suffix0` to construct the `suffix` used in `bazHelper`
+1. The value `suffix` that was passed in when `new Qux` was constructed, in this case `"!"`
+2. The implementation of the `new Qux` constructor (often called `Qux#<init>` on the JVM)
+   which assigns `val suffix = suffix0 + suffix0 + suffix0` to construct the `suffix` used in
+   `bazHelper`
 
-This turns out to work pretty well by default: the fact that you have `qux` means that you
+This actually turns out to work: the fact that you have `qux` means that you
 must have called its constructor and passed in arguments (directly or indirectly):
 
 ```graphviz
@@ -383,7 +397,8 @@ digraph G {
   to construct `qux` before using it
 * Changes to `Qux#bazHelper` are captured because `bazHelper` is called by `barTask`
 
-Thus, the existing callgraph is sufficient to detect any changes that affect instance methods
+Thus, the existing callgraph analysis above is sufficient to handle the various cases around
+instance methods without modification.
 
 ### Instance Fields
 
@@ -398,7 +413,7 @@ class Qux(suffix0: String) {
   }
 }
 
-def barTask: T[String] = Task{
+def barTask = Task{
   val qux = new Qux("!")
   qux.doubleSuffix()
   qux.doubleSuffix()
@@ -422,7 +437,7 @@ digraph G {
 ```
 
 Since these methods are all already captured as part of the normal callgraph analysis,
-as a conservative approximation it's fine to ignore fields entirely: you will never
+it's fine to ignore fields entirely: you will never
 miss a code change that affects a field value because such code changes must occur in
 methods which we already track.
 
@@ -434,23 +449,18 @@ than a method (`def`) in an enclosing `object`?
 ```scala
 object enclosing extends Module{
   val suffix = "???"
-  def barTask: T[String] = Task{
+  def barTask = Task{
     os.read(barSource().path) + suffix
   } // bar.txt contents???
 }
 ```
-
-Scala ``object``s are just singletons stored in a hidden static `$MODULE` field. In the
-example above, the implementation of `barTask` references the `val suffix` field defined
-on the `enclosing` class's static `$MODULE` field, which is an instance of `enclosing`
-that was lazily initialized.
 
 The problem here is that the transitive callgraph of `barTask` is not sufficient:
 not only do we need to call `barTask`, we first need to instantiate `object enclosing`
 as well. This is similar to the <<Instance Methods>> case we looked at above, but instead of
 relying on some object instance that `barTask` instantiates and calls, we are looking at
 ``barTask``'s _own_ object instance, that must have been instantiated earlier. Singleton
-`object`s do not take constructor _parameters_, but in both cases
+``object``s do not take constructor _parameters_, but in both cases
 we need to account for the constructor _code_ for the object on which we are calling the method.
 
 In practice, this is straightforward: we just need to add an edge from the `enclosing#<init>`
@@ -466,14 +476,11 @@ digraph G {
 }
 ```
 
-And if the enclosing ``object``'s constructor ends up calling other methods, that
-part of the callgraph will be handled similarly to any other method calls.
-
 ### Virtual Methods
 
 The JVM bytecode has direct support for virtual method calls via `invokevirtual`: e.g.
 a single call to `Qux.bazHelper()` may call out to any number of methods
-various subclasses of `Qux`:
+defined in various subclasses of `Qux`:
 
 ```scala
 abstract class Qux {
@@ -488,13 +495,13 @@ class Qux2(prefix: String) extends Qux {
   def bazHelper(s: String) = prefix + s.toUpperCase
 }
 
-def barTask: T[String] = Task{
+def barTask = Task{
   val qux: Qux = if (math.random() > 0.5) new Qux1("!") else new Qux2("!")
   qux.bazHelper(os.read(barSource().path))
 }
 ```
 
-In this example, it is not obvious what implementation `qux.bazHelper` will end up calling: indeed
+It is not always obvious what implementation `qux.bazHelper` will end up calling: indeed
 in this example it may end up calling different implementations when run at different times!
 To resolve this, you need to analyze the various classes in your program,
 so you can resolve such virtual callsites to possible definition sites in subclasses.
@@ -504,7 +511,7 @@ _Class Hierarchy Analysis_ and _Rapid Type Analysis_ described in
 https://courses.cs.washington.edu/courses/cse501/04wi/papers/bacon-oopsla96.pdf[Fast Static Analysis of C++ Virtual Calls, OOPSLA96],
 or even more sophisticated dataflow approaches such as https://en.wikipedia.org/wiki/Pointer_analysis[Points-To Analysis].
 At a high level, the distinction between these is in how they look for subclasses
-that may provide an implementation for a virtual method. In order of increasing precision:
+that may provide an implementation for a virtual method:
 
 1. *Class Hierarchy Analysis*: Any class that implements that method _globally in your codebase_
 
@@ -514,9 +521,8 @@ that may provide an implementation for a virtual method. In order of increasing 
 3. *Points-To Analysis*: Any class that
    implements that method that is _instantiated and passed to this specific callsite_
 
-Mill uses a hybrid of (1) _Class Hierarchy Analysis_ and (2) _Rapid Type Analysis_: we treat
-every Mill `Task` as a potential entrypoint, and find all classes instantiated across your
-build codebase in one pass.
+Mill uses a variant of (1) _Class Hierarchy Analysis_: we treat every Mill `Task` as a
+potential entrypoint, and find all classes instantiated across your build codebase in one pass.
 This is less precise than running the analysis separately for every `Task` that _Rapid Type
 Analysis_ would require, but is more precise than a naive _Class Hierarchy Analysis_ that
 doesn't consider whether a class is instantiated or not.
@@ -543,20 +549,34 @@ class Qux3(prefixSuffix: String) extends Qux {
   def bazHelper(s: String) = prefixSuffix + s.toUpperCase + prefixSuffix
 }
 
-def barTask: T[String] = Task{
+def barTask = Task{
   val qux: Qux = if (math.random() > 0.5) new Qux1("!") else new Qux2("!")
   qux.bazHelper(os.read(barSource().path))
 }
 ```
 
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  "Qux#bazHelper" -> barTask
+  "Qux1#<init>" -> barTask
+  "Qux2#<init>" -> barTask
+  "Qux1#bazHelper" -> "Qux#bazHelper"
+  "Qux2#bazHelper" -> "Qux#bazHelper"
+}
+```
 
-## Library Methods
+## Other Complications
+
+
+### Library Methods
 
 Performance is a big constraint in Mill's analysis. In particular, we don't want to have
 to analyze the entire Java or Scala standard libraries, because that would be very
 expensive. Mill thus only constructs a call graph for code written and compiled locally
 as part of your build, modelling upstream libraries in a simplified fashion
-(similar to that discussed in
+(similar to
 https://plg.uwaterloo.ca/~olhotak/pubs/ecoop13.pdf[Whole-Program Analysis without the Whole Program, ECOOP 2013]).
 In practice this means:
 
@@ -576,13 +596,13 @@ class MyException extends Exception{
   override def printStackTrace(ps: java.io.PrintStream) = {ps.println("dummy")}
 }
 
-val ex: Exception = new MyException
+class MyOutputStream extends java.io.OutputStream{ def write(b: Int) = println(b) }
 
-def foo(b: Int) = println(b)
-class MyOutputStream extends java.io.OutputStream{ def write(b: Int) = foo(b) }
-val stream: OutputStream = new MyOutputStream
-
-ex.printStackTrace(new java.io.PrintStream(b))
+def barTask = Task{
+  val ex: Exception = new MyException
+  val stream: OutputStream = new MyOutputStream
+  ex.printStackTrace(new java.io.PrintStream(b))
+}
 ```
 
 Here we are defining our own subclass of `Exception` and `OutputStream`, with their own
@@ -600,12 +620,116 @@ of these calls:
    subclass of `Exception` in our local code, hence `MyException#printStackTrace` is callable
    from here
 
-Since Mill does not do _Points-To Analysis_ or other _Data-flow Analysis_, it isn't able
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  "MyException#<init>" -> barTask
+  "MyOutputStream#<init>" -> barTask
+  "PrintStream#<init>" -> barTask
+  "Exception#printStackTrace" -> barTask
+  "MyOutputStream#write" -> "PrintStream#<init>"
+  "MyException#printStackTrace" -> "Exception#printStackTrace"
+}
+```
+
+Since Mill does not do _Points-To Analysis_ or other _Data-flow Analyses_, it isn't able
 to determine that the value `ex` is of class `MyException`, or that the value `stream`
 is of class `MyOutputStream`, and so it must treat them broadly as `Exception` and `OutputStream`
 instances that could be of any sub-class. This may result in false positives with Mill treating method as callable
 when it really isn't, invalidating more caches than it needs to, but it will never result in
 Mill missing a potential call and failing to invalidate a task cache when it should have done so.
+
+
+### Lambdas and Single-Abstract-Methods
+
+Mill special-cases handling of inline functions (e.g. `() => ...`) and single-abstract method
+instances (e.g. `new Runnable{ def run() = ... }`) and treats them as if they were called
+immediately at their definition site.
+
+Ideally, we would consider each method called if there is
+a call-site that could reach it _and_ if its defining class is instantiated, but analyzing
+that precisely (also called _Rapid Type Analysis_) would be too expensive.
+
+For most methods, our simpler _Class Hierarchy Analysis_ only considers whether a call-site
+could reach a definition, without caring about whether the defining class is instantiated. But
+this has a pathological case for widely-used simple interfaces. Consider the following example
+where `fooTask` calls `fooHelper` in a lambda, and `barTask` calls `barHelper` is a lambda:
+
+```scala
+def fooHelper(s: String) = s.toLowerCase
+def fooTask = Task{
+  println("evaluating fooTask")
+  os.read.lines(fooSource().path).map(s => fooHelper(s))
+}
+
+def barHelper(s: String) = s.toUpperCase
+def barTask = Task{
+  println("evaluating barTask")
+  os.read.lines(barSource().path).map(s => barHelper(s))
+}
+```
+
+If we handled lambdas via _Class Hierarchy Analysis_, with our simplified handling of
+<<Library Methods>>, then:
+
+1. Every lambda that takes a single parameter is a subclass of `Function1` with an `apply` method
+2. Every callsite of `.map` from the standard library receives a `Function1`, and
+   thus may call `apply` on any definition of `Function` in user code
+
+This results in a callgraph as follows, where every lambda callsite could potentially call
+every lambda. This is conservatively correct, but imprecise enough to be useless.
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  fooHelper -> "Function0#apply" -> fooTask
+  barHelper -> "Function0#apply" -> barTask
+}
+```
+
+
+As a compromise, for lambdas and SAM types, we instead use the other heuristic: we instead
+consider them called _once they are instantiated_, ignoring whether or not there is a callsite.
+This is still conservatively correct, and can still have false positives if someone instantiates
+a lambda or SAM they never call. But people generally don't do that, and so empirically it
+provides a much more precise callgraph.
+
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  fooHelper -> fooTask
+  barHelper -> barTask
+}
+```
+
+
+With the adjusted handling of lambdas and SAM types, with the various lambdas assumed to
+be called immediately where-ever they were defined, the callgraph becomes a lot more
+precise and useful,
+
+
+
+### Task-returning Methods
+
+We special case methods that return `Task` to not participate in the callgraph analysis.
+By removing `Task` methods from the callgraph analysis, we are essentially making the
+assumption that these methods do not have side effects, and any change will be tracked at
+runtime anyway by the _build graph_ we discussed at the start of this article.
+
+Allowing `Task` methods to participate is problematic because these methods are often
+defined as part of ``abstract class``s or ``trait``s in upstream libraries with many
+such methods. With the simplified handling of <<Library Methods>> above, this results
+in any call to a `Task` method potentially calling every other `Task` method, which
+again while conservatively correct renders the callgraph imprecise enough to be useless.
+
+The assumption that methods returning `Task` do not have side effects is
+not enforced: there is nothing to stop you from performing side effects and mutating
+variables in a method that returns a `Task`. But in practice nobody does that, so this
+turns out to be a fine assumption to make.
 
 
 ## Limitations
@@ -624,7 +748,7 @@ class Qux(suffix0: String) {
   def bazHelper(s: String) = s.toUpperCase + suffix
 }
 
-def barTask: T[String] = Task{
+def barTask = Task{
   println("evaluating barTask")
   val qux = new Qux("!")
   qux.bazHelper(os.read(barSource().path))
@@ -658,7 +782,7 @@ If we modify this by adding a second unused field:
 ```diff
  class Qux(suffix0: String) {
    val suffix = suffix0 + suffix0 + suffix0
-+  val otherSuffix = suffix0 + suffix0
++  val otherSuffix = suffix0
    def bazHelper(s: String) = s.toUpperCase + suffix
  }
 ```
@@ -683,17 +807,9 @@ This results in a corresponding change to the bytecode to initialize the new fie
       26: invokevirtual #28         // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
       29: putfield      #30         // Field suffix:Ljava/lang/String;
 +     32: aload_0
-+     33: new           #16         // class java/lang/StringBuilder
-+     36: dup
-+     37: ldc           #17         // int 0
-+     39: invokespecial #20         // Method java/lang/StringBuilder."<init>":(I)V
-+     42: aload_1
-+     43: invokevirtual #24         // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
-+     46: aload_1
-+     47: invokevirtual #24         // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
-+     50: invokevirtual #28         // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
-+     53: putfield      #32         // Field otherSuffix:Ljava/lang/String;
-      56: return
++     33: aload_1
++     34: putfield      #32         // Field otherSuffix:Ljava/lang/String;
+      37: return
 ```
 
 Which affects `barTask`, because our callgraph has `Qux#<init>` being called by `barTask`
@@ -713,7 +829,7 @@ However, if you actually track the dataflow of the code, we would realize that
 the field `otherSuffix` is not used by `barTask` at all! Only `suffix` is used.
 Thus although our `Qux#<init>` was affected by the code change, `barTask` isn't
 actually affected, and so invalidating `barTask` and forcing a re-evaluation would
-be wasteful.
+be wasteful and unnecessary.
 
 This is perhaps the largest gap in the callgraph analysis we present here: while
 we are able to analyze the dependencies between _methods_ based on how they call each
@@ -727,7 +843,7 @@ methods cause our tasks to invalidate unnecessarily.
 
 Another major limitation in this analysis is that it assumes that all method calls
 in your program are statically specified in the bytecode. This is not true of JVM applications
-in general: anyone can call `loadClass.getMethod(methodName).invoke()` with a dynamically
+in general: anyone can call `Class.getMethod(methodName).invoke()` with a dynamically
 computed `methodName: String`, leaving static bytecode analysis with no way to figure out
 what method is actually being called:
 
@@ -738,7 +854,7 @@ class Qux(suffix0: String) {
   def bazHelper(s: String) = s.toUpperCase + suffix
 }
 
-def barTask: T[String] = Task{
+def barTask = Task{
   println("evaluating barTask")
   val qux = new Qux("!")
   val b = "baz"
@@ -751,8 +867,8 @@ def barTask: T[String] = Task{
 
 In this example, the `getMethod` call takes the method name as `b + h.capitalize`, but in
 general it could require arbitrary runtime computation to decide what method to call. While
-it is possible to figure out this out in some cases (e.g. the Graal Native Image analyzer does a
-https://www.graalvm.org/jdk21/reference-manual/native-image/dynamic-features/Reflection/#automatic-detection[best effort attempt])
+it is possible to figure out this out in some cases (e.g. the Graal Native Image analyzer gives a
+https://www.graalvm.org/jdk21/reference-manual/native-image/dynamic-features/Reflection/#automatic-detection[best effort attempt] at doing so)
 there will always be scenarios where the reflection cannot be figured out statically.
 
 Unlike the limitation above that results in false
@@ -763,7 +879,7 @@ task changes and the task does not re-evaluate, because the method call happened
 Although in theory this could be an issue, in typical Scala code (which `build.mill` files
 are written in) runtime reflection is relatively rare. Scala codebases and libraries tend
 to perform a lot of their work at compile-time: inferring types, resolving implicit parameters,
-expanding macros, and so on. While that means the compiler is more complicated, it means
+expanding macros, and so on. While that means the compiler is more complicated, it also means
 the bytecode that gets output by the compiler is much simpler, without
 the runtime reflection/classloading/classpath-scanning logic often present in Java codebases.
 Thus, Mill can analyze the JVM bytecode emitted by a Scala program with high confidence
@@ -800,19 +916,27 @@ the callgraph analysis, using Mill's own Mill build as the test case.
    changes the constructor of build which could potentially affect any module nested within it, and
    Mill has <<No Data Flow Analysis>> to determine that this change in the module constructor has no effect.
 
-In general, the fine-grained invalidation that Mill's bytecode callgraph analysis enabled
+
+In general, Mill's fine-grained task invalidation via bytecode callgraph analysis
 works as expected: in many cases where the change is trivial it is able to narrow down the
 effect of the change and reduce the number of tasks we need to invalidate, although for
 wide-ranging changes (e.g. `Deps.scalaVersion`) it still ends up invalidating a large number
 of tasks, and there are some known limitations around the treatment of `val` fields where the
-invalidation is less fine grained than it could be. But despite its shortcomings, it is a huge
-improvement over the "invalidate everything when any build file is touched" approach that
-Mill took in previous versions.
+invalidation is less fine grained than it could be. Compared to earlier versions of Mill
+which aggressively invalidated all caches on every single change, this was a big improvement!
 
 ### Performance
 
 Performance-wise, ad-hoc benchmarks on com-lihaoyi/mill's own build show a
-~5% increase in build.sc compilation times due to this:
+~5% increase in `build.mill` compilation times due to the cost of the bytecode callgraph analysis.
+
+
+Mill's callgraph analysis is written as a post-processing step on the `.class` files that are
+generated by the Scala compiler that Mill uses to compile it's `build.mill` and `package.mill`
+files. The analysis computes a hash for every method representing its own implementation and that
+of transitively called methods, and saves that to a `methodCodeHashSignatures.json` file for
+the Mill evaluator to include in Task cache keys at runtime. Thus it is easy to separate
+the time taken for each phase, which I have done below:
 
 
 |===
@@ -823,10 +947,10 @@ Performance-wise, ad-hoc benchmarks on com-lihaoyi/mill's own build show a
 
 
 This slowdown is not negligible, but it is
-acceptable: the cost is only paid when the build.sc is re-compiled, and it will
+acceptable: the cost is only paid when the `build.mill` is re-compiled, and it will
 likely end up saving much more time in tasks that we can avoid running (e.g. a
-single no-op Zinc incremental compile may be 100s of milliseconds). The analysis
-can likely be further optimized in future if necessary.
+single no-op Zinc incremental compile may be 100s of milliseconds). The bytecode callgraph
+analysis can likely be further optimized in future if necessary.
 
 ## Conclusion
 
@@ -834,14 +958,8 @@ Mill's callgraph bytecode analysis landed in https://github.com/com-lihaoyi/mill
 in Mill https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#0112---2023-08-28[0.11.2].
 The implementation is surprisingly small: ~1k lines of code for the main implementation using
 the https://asm.ow2.io/[OW2 ASM library] for bytecode parsing, and ~6k lines
-of test cases. It has basically worked without issue since then, without any major issues.
-
-This callgraph analysis is written as a post-processing step on the `.class` files that are
-generated by the Scala compiler that Mill uses to compile it's `build.mill` and `package.mill`
-files. The analysis computes a hash for every method representing its own implementation and that
-of transitively called methods, and saves that to a `methodCodeHashSignatures.json` file for
-the Mill evaluator to include in Task cache keys at runtime.
-
+of test cases. That small amount of code took several months to research and write and debug,
+but since then it has worked great without any major issues.
 
 One nice side effect of working on JVM classfiles and bytecode is that the analysis
 did not need to change when upgrading from Scala 2 to Scala 3, whereas an approach based
