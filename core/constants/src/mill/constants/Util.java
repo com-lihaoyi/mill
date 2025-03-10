@@ -10,8 +10,12 @@ import java.util.Locale;
 
 public class Util {
 
-  public static boolean isWindows =
-      System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
+  private static String lowerCaseOsName() {
+    return System.getProperty("os.name").toLowerCase(Locale.ROOT);
+  }
+
+  public static boolean isWindows = lowerCaseOsName().startsWith("windows");
+  public static boolean isLinux = lowerCaseOsName().equals("linux");
   public static boolean isJava9OrAbove =
       !System.getProperty("java.specification.version").startsWith("1.");
 

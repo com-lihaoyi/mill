@@ -3,12 +3,17 @@ package mill.main.gradle;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.util.internal.VersionNumber;
 
 /**
  * A model containing the <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Gradle Java Plugin<a/> settings for a project.
@@ -47,8 +52,11 @@ public interface JavaModel extends Serializable {
           .named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile.class)
           .map(task -> task.getOptions().getAllCompilerArgs())
           .getOrElse(Collections.emptyList());
-      List<Config> configs =
-          project.getConfigurations().stream().map(Config::from).collect(Collectors.toList());
+      VersionNumber gradleVersionNumber =
+          VersionNumber.parse(project.getGradle().getGradleVersion());
+      List<Config> configs = project.getConfigurations().stream()
+          .map(conf -> Config.from(conf, gradleVersionNumber))
+          .collect(Collectors.toList());
       return new Impl(javacOptions, configs);
     }
     return null;
@@ -81,26 +89,103 @@ public interface JavaModel extends Serializable {
       }
     }
 
-    static Config from(Configuration conf) {
+    static Config from(Configuration conf, VersionNumber gradleVersionNumber) {
       String name = conf.getName();
       List<Dep> deps = conf.getDependencies().stream()
-          .map(Dep::from)
-          // discovered when testing project Moshi
-          .filter(dep -> !(null == dep.group() && "unspecified".equals(dep.name())))
+          .map(dep -> Dep.from(dep, gradleVersionNumber))
+          .filter(Objects::nonNull)
           .collect(Collectors.toList());
       return new Impl(name, deps);
     }
   }
 
+  /*
+  Serializing `ProjectDep`s and `ExternalDep`s as subtypes of `Dep` doesn't work well with serialization.
+  `instanceOf`/`isInstanceOf` checks on the deserialized objects wouldn't work as expected.
+  */
   interface Dep extends Serializable {
+    boolean isProjectDepOrExternalDep();
 
+    ProjectDep projectDep();
+
+    ExternalDep externalDep();
+
+    class Impl implements Dep {
+      private final ProjectDep projectDep;
+      private final ExternalDep externalDep;
+
+      public Impl(ProjectDep projectDep) {
+        this.projectDep = projectDep;
+        this.externalDep = null;
+      }
+
+      public Impl(ExternalDep externalDep) {
+        this.projectDep = null;
+        this.externalDep = externalDep;
+      }
+
+      @Override
+      public boolean isProjectDepOrExternalDep() {
+        return projectDep != null;
+      }
+
+      @Override
+      public ProjectDep projectDep() {
+        return projectDep;
+      }
+
+      @Override
+      public ExternalDep externalDep() {
+        return externalDep;
+      }
+    }
+
+    static @Nullable Dep from(Dependency dep, VersionNumber gradleVersionNumber) {
+      if (dep instanceof ProjectDependency)
+        return new Impl(ProjectDep.from((ProjectDependency) dep, gradleVersionNumber));
+      else if (dep instanceof ExternalDependency)
+        return new Impl(ExternalDep.from((ExternalDependency) dep));
+      else {
+        System.out.println(
+            "Gradle dependency " + dep + " with unsupported type " + dep.getClass() + " dropped");
+        return null;
+      }
+    }
+  }
+
+  interface ProjectDep extends Serializable /*extends Dep*/ {
+    String path();
+
+    class Impl implements ProjectDep {
+      private final String path;
+
+      public Impl(String path) {
+        this.path = path;
+      }
+
+      @Override
+      public String path() {
+        return path;
+      }
+    }
+
+    static ProjectDep from(ProjectDependency dep, VersionNumber gradleVersionNumber) {
+      //noinspection deprecation
+      return new Impl(
+          gradleVersionNumber.compareTo(VersionNumber.parse("8.11")) >= 0
+              ? dep.getPath()
+              : dep.getDependencyProject().getPath());
+    }
+  }
+
+  interface ExternalDep extends Serializable /*extends Dep*/ {
     String group();
 
     String name();
 
     String version();
 
-    class Impl implements Dep {
+    class Impl implements ExternalDep {
       private final String group;
       private final String name;
       private final String version;
@@ -127,7 +212,7 @@ public interface JavaModel extends Serializable {
       }
     }
 
-    static Dep from(Dependency dep) {
+    static ExternalDep from(ExternalDependency dep) {
       return new Impl(dep.getGroup(), dep.getName(), dep.getVersion());
     }
   }
