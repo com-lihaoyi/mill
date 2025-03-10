@@ -64,7 +64,6 @@ object `package` extends RootModule {
           mill.scalalib.api.CompilationResult(null, null)
         } // binary compatibility stub, not used
 
-      def testEnableWorkStealing = true
     }
 
     object local extends IntegrationLauncherModule {

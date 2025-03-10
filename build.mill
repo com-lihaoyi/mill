@@ -547,7 +547,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
     def forkEnv = super.forkEnv() ++ outer.testForkEnv()
-    def testEnableWorkStealing = true
   }
 }
 
@@ -574,7 +573,7 @@ trait MillBaseTestsModule extends TestModule {
   }
 
   def testFramework = "mill.UTestFramework"
-  def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+  def testEnableWorkStealing = true
 }
 
 /** Published module which does not contain strictly handled API. */
