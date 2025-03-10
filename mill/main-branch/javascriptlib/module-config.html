@@ -668,11 +668,9 @@ import mill.javascriptlib._
 
 object foo extends TypeScriptModule {
 
-  def customSource = Task {
-    Seq(PathRef(moduleDir / &quot;custom-src/foo2.ts&quot;))
-  }
+  def customSource = Task.Sources(&quot;custom-src/foo2.ts&quot;)
 
-  def allSources = super.allSources() ++ customSource()
+  def sources = Task { super.sources() ++ customSource() }
 
   def resources = super.resources() ++ Seq(PathRef(moduleDir / &quot;custom-resources&quot;))
 
@@ -761,8 +759,12 @@ import mill._, javascriptlib._
 object foo extends TypeScriptModule {
 
   /** Total number of lines in module source files */
-  def lineCount = Task {
-    allSources().map(f =&gt; os.read.lines(f.path).size).sum
+  def lineCount: T[Int] = Task {
+    sources()
+      .flatMap(pathRef =&gt; os.walk(pathRef.path))
+      .filter(_.ext == &quot;ts&quot;)
+      .map(os.read.lines(_).size)
+      .sum
   }
 
   def generatedSources = Task {
@@ -915,7 +917,9 @@ Line count: 9</code></pre>
 import mill._
 import mill.javascriptlib._
 
-object foo extends TypeScriptModule {
+object `package` extends RootModule with TypeScriptModule {
+  def moduleName = &quot;foo&quot;
+
   def sources = Task {
     val srcPath = Task.dest / &quot;src&quot;
     val filePath = srcPath / &quot;foo.ts&quot;
@@ -930,7 +934,7 @@ object foo extends TypeScriptModule {
       &quot;&quot;&quot;.stripMargin
     )
 
-    PathRef(Task.dest)
+    Seq(PathRef(Task.dest))
   }
 
   def compile = Task {
@@ -970,7 +974,7 @@ override <code>sources</code> and use <code>super</code> to include the original
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run &quot;added tags&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run &quot;added tags&quot;
 Compiling...
 Hello World!
 Running... added tags</code></pre>
@@ -1169,6 +1173,75 @@ Build succeeded!
 
 &gt; node out/foo/bundle.dest/bundle.js
 Hello World!</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_root_module"><a class="anchor" href="#_root_module"></a>Root Module</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use <code>object <code>package</code> extends RootModule</code> to use a <code>Module</code>
+as the root module of the file:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-javascriptlib-module-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/javascriptlib/module/7-root-module">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._, javascriptlib._
+
+object `package` extends RootModule with TypeScriptModule {
+  def moduleName = &quot;foo&quot;
+  def npmDeps = Seq(&quot;immutable@4.3.7&quot;)
+  object test extends TypeScriptTests with TestModule.Jest
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Since our <code>object <code>package</code> extends RootModule</code>, its files live in a
+top-level <code>src/</code> folder.</p>
+</div>
+<div class="paragraph">
+<p>Mill will ordinarily use the name of the singleton object, as
+the default value for the <code>moduleName</code> task.</p>
+</div>
+<div class="paragraph">
+<p>For exmaple:</p>
+</div>
+<div class="paragraph">
+<p>The <code>moduleName</code> for the singleton <code>bar</code> defined as
+<code>object bar extends TypeScriptModule</code> would be <code>bar</code>,
+with the expected source directory in <code>bar/src</code>.</p>
+</div>
+<div class="paragraph">
+<p>For this example, since we use the <code>RootModule</code> we would need to manually define our
+<code>moduleName</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>moduleName</code> is used in the generated <code>tsconfig</code> files <code>compilerOptions['paths']</code>
+as the modules <code>src/</code> path mapping and to define the default <code>mainFileName</code>, which is
+the modules entry file.
+The generated mapping for this example would be <code>&quot;foo/*&quot;: […​]</code>. and its expected main file
+woudld be <code>foo.ts</code> located in top-level <code>src/</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run James Bond prof
+Hello James Bond Professor
+
+&gt; mill test
+PASS .../foo.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
+
+&gt; mill show bundle
+Build succeeded!
+
+&gt; node out/bundle.dest/bundle.js James Bond prof
+Hello James Bond Professor</code></pre>
 </div>
 </div>
 </div>
