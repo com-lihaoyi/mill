@@ -8,4 +8,4 @@ class RandomTestsA : RandomTestsUtils() {
     fun test1() {
         testGreeting("Storm", 38)
     }
-} 
+}
