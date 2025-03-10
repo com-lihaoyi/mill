@@ -609,7 +609,7 @@ trait TypeScriptModule extends Module { outer =>
       (tsnode, T.dest / "build.ts"),
       stdout = os.Inherit,
       env = env,
-      cwd = out
+      cwd = T.dest
     )
     PathRef(bundle)
   }

@@ -22,7 +22,7 @@ trait PublishModule extends TypeScriptModule {
 
   // main file; defined with mainFileName
   def pubMain: T[String] =
-    Task { pubBundledOut() + "/src/" + mainFileName().replaceAll("\\.ts", "js") }
+    Task { pubBundledOut() + "/src/" + mainFileName().replaceAll("\\.ts", ".js") }
 
   private def pubMainType: T[String] = Task {
     pubMain().replaceFirst(pubBundledOut(), pubDeclarationOut()).replaceAll("\\.js", ".d.ts")
@@ -184,10 +184,13 @@ trait PublishModule extends TypeScriptModule {
 
   def publish(): Command[Unit] = Task.Command {
     // build package.json
-    os.move(pubPackageJson().path / "package.json", compile()._1.path / "package.json")
+    os.copy.over(pubPackageJson().path / "package.json", Task.dest / "package.json")
 
-    // bundle code for publishing
-    bundle()
+    // bundled code for publishing
+    val bundled = bundle().path / os.up
+
+    os.walk(bundled, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
+      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(bundled), createFolders = true))
 
     // run npm publish
     os.call(("npm", "publish"), stdout = os.Inherit, cwd = compile()._1.path)
