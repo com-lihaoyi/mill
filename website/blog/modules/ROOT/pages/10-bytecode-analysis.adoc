@@ -297,15 +297,13 @@ affected by formatting, comments, some local variable names, etc.. This means th
 the bytecode for a method changes, it likely means the implementation changed, and any
 tasks that call that method (directly or transitively) need to be re-evaluated.
 
-
 ## Object Oriented Callgraphs
+
 Although the basic callgraph analysis on static methods shown above is straightforward,
 in real code there is a lot of detail that needs to be dealt with. In particular, JVM
 languages like Java and Scala make heavy use of objects, classes, and subclassing. These
 add complications and complexity that aren't present in the static helper methods used
 in earlier eamples
-
-
 
 ### Instance Methods
 
@@ -444,8 +442,8 @@ call definition sites in all possible subclasses.
 
 There are varying degrees of precision for which you can analyze virtual methods, e.g.
 _Class Hierarchy Analysis_ and _Rapid Type Analysis_ described in
-[Fast Static Analysis of C++ Virtual Calls, OOPSLA96](https://courses.cs.washington.edu/courses/cse501/04wi/papers/bacon-oopsla96.pdf),
-or even more sophisticated dataflow approaches such as [Points-To Analysis](https://en.wikipedia.org/wiki/Pointer_analysis)
+https://courses.cs.washington.edu/courses/cse501/04wi/papers/bacon-oopsla96.pdf[Fast Static Analysis of C++ Virtual Calls, OOPSLA96],
+or even more sophisticated dataflow approaches such as https://en.wikipedia.org/wiki/Pointer_analysis[Points-To Analysis]
 
 At a high level, the distinction between these is in how they look for subclasses
 that may provide an implementation for a virtual method. In order of increasing precision:
@@ -458,24 +456,66 @@ that may provide an implementation for a virtual method. In order of increasing 
 3. *Points-To Analysis*: Any class that
    implements that method that is _instantiated and passed to this specific callsite_
 
-Mill uses a variant of (2) Rapid Type Analysis, with the tweak that with Mill `Task` may
-serve as the entrypoint, rather than having a single global `main` method. This is less
-precise than running the analysis separately for every `Task`, but has the advantage that
-it can be done for the entire build in one pass rather than needing to repeat the analysis
-for every `Task` separately.
+Mill uses a hybrid of (1) _Class Hierarchy Analysis_ and (2) _Rapid Type Analysis_: we treat
+every Mill `Task` as a potential entrypoint, and analyze the whole program in one pass.
+This is less precise than running the analysis separately for every `Task` that _Rapid Type
+Analysis_ would require, but is more precise than a naive _Class Hierarchy Analysis_ that
+doesn't consider whether a class is instantiated or not.
 
-## Other Complications
+## Library Methods
 
-
-
-
-### Library Methods
-
+As mentioned earlier, performance is a big constraint in Mill's analysis.
 In particular, we don't want to have to analyze the entire Java
 standard library, because that would be very expensive. Mill thus only constructs a call graph
 for local code, using a conservative approximation of calls to upstream libraries
-(similar to that discussed in [Averroes: Whole-Program Analysis without the Whole Program,
-ECOOP 2013](https://plg.uwaterloo.ca/~olhotak/pubs/ecoop13.pdf))
+(similar to that discussed in
+https://plg.uwaterloo.ca/~olhotak/pubs/ecoop13.pdf[Averroes: Whole-Program Analysis without the Whole Program, ECOOP 2013]).
+In practice this means:
+
+1. We avoid generating a detailed callgraph of methods in upstream libraries. Instead, we only
+   capture the class inheritance hierarchies of classes whose methods are called from your Mill build
+
+2. For calls to external methods for which we did not analyze the bytecode, we conservatively assume that
+   they could potentially call any other external methods defined in the receiver class, the function parameter
+   types, or any of their superclasses, and thus any locally-defined overrides for those external methods.
+
+For example, consider the following case:
+
+```scala
+class MyException extends Exception{
+  override def printStackTrace(ps: java.io.PrintStream) = {ps.println("dummy")}
+}
+
+val ex: Exception = new MyException
+
+def foo(b: Int) = println(b)
+class MyOutputStream extends java.io.OutputStream{ def write(b: Int) = foo(b) }
+val stream: OutputStream = new MyOutputStream
+
+ex.printStackTrace(new java.io.PrintStream(b))
+```
+
+Here we are defining our own subclass of `Exception` and `OutputStream`, with their own
+overrides of `def printStackTrace` and `def write` respectively. However, when we end up
+calling `ex.printStackTrace`, we are calling `printStackTrace` on the super-type `Exception`,
+and `def write` is not called at all in our code since its calls live upstream in the
+super-type `OutputStream`! Hence the rules described above:
+
+1. The call to `new PrintStream(b: OutputStream)` we treat as being able to call any method
+   on `PrintStream` or `OutputStream`, and in any sub-classes, hence `MyOutputStream#write`
+   is callable from here
+
+2. The call to `Exception#printStackTrace` may reach any `def printStackTrace` defined in a
+   subclass of `Exception` in our local code, hence `MyException#printStackTrace` is callable
+   from here
+
+Since Mill does not do _Points-To Analysis_ or other _Data-flow Analysis_, it isn't able
+to determine that the value `ex` is of class `MyException`, or that the value`stream`
+is of class `MyOutputStream`, and so it must treat them broadly as `Exception` and `OutputStream`
+instances that could be of any sub-class. This may result in Mill treating method as callable
+when it really isn't, invalidating more caches than it needs to, but it will never result in
+Mill missing a potential call and failing to invalidate a task cache when it should have done so.
+
 
 ## Limitations
 
@@ -500,7 +540,8 @@ def barTask: T[String] = Task{
 } // BAR.TXT CONTENTS!!!
 ```
 
-The `Qux#<init>` method has the following bytecode:
+The `Qux#<init>` method has the following bytecode, which can be rendered using the `javap -c -p`
+command ont the relevant `.class` file:
 
 ```java
   public Qux(java.lang.String);
@@ -596,9 +637,35 @@ to invalidate unnecessarily.
 
 Another major limitation in this analysis is that it assumes that all method calls
 in your program are statically specified in the bytecode. This is not true of JVM applications
-in general: anyone can call `getClass.getMethod(methodName).invoke()` with a dynamically
+in general: anyone can call `loadClass.getMethod(methodName).invoke()` with a dynamically
 computed `methodName: String`, leaving static bytecode analysis with no way to figure out
-what method is actually being called. Unlike the limitation above that results in false
+what method is actually being called:
+
+```scala
+def barSource = Task.Source("bar.txt")
+class Qux(suffix0: String) {
+  val suffix = suffix0 + suffix0 + suffix0
+  def bazHelper(s: String) = s.toUpperCase + suffix
+}
+
+def barTask: T[String] = Task{
+  println("evaluating barTask")
+  val qux = new Qux("!")
+  val b = "baz"
+  val h = "helper"
+  classOf[Qux]
+    .getMethod(b + h.capitalize, classOf[String])
+    .invoke(qux, os.read(barSource().path))
+} // BAR.TXT CONTENTS!!!
+```
+
+In this example, the `getMethod` call takes the method name as `b + h.capitalize`, but in
+general it could require arbitrary runtime computation to decide what method to call. While
+it is possible to figure out this out in some cases (e.g. the Graal Native Image analyzer does a
+https://www.graalvm.org/jdk21/reference-manual/native-image/dynamic-features/Reflection/#automatic-detection[best effort attempt])
+there will always be scenarios where the reflection cannot be figured out statically.
+
+Unlike the limitation above that results in false
 positives, this limitation can result in false negatives where a method called by a
 task changes and the task does not re-evaluate, because the method call happened via
 `getMethod.invoke` which our analyzer cannot understand.
@@ -618,22 +685,47 @@ the methods in the program call each other.
 
 ### Precision
 
+To test out how well this works in practice, I ran a number of manual tests to exercise
+the callgraph analysis on real builds.
+
+#### Upickle
+
+https://github.com/com-lihaoyi/upickle[uPickle] is a JSON and binary serialization library
+that is widely used and part of the Scala Toolkit. It is built using Mill across different
+Scala versions (2.12.x, 2.13.x, 3.x) and platforms (JS, JVM, Native) which at the time
+resulted in ~100 submodules defining ~3695 tasks.
+
+We tested two cases:
+
+- Changing the implementation of the `bench.scalaJSVersion` task from `1.13.0` to `1.13.1` invalidated 28/3695 targets
+
+- Changing `CommonJsModule#scalaJSVersion` task from `1.13.0` to `1.13.1` invalidated 412/3695 targets
+
+Both these results are as expected: changing `bench.scalaJSVersion` is only expected to affect the tasks downstream
+in the `bench` module, while changing `CommonJsModule#scalaJSVersion` is expected to affect every task
+downstream in a `ScalaJSModule`
+
+
+#### Mill
 
 
 ### Performance
 
-
 Performance-wise, ad-hoc benchmarks on com-lihaoyi/mill's own build show a
-~5% increase in build.sc compilation times due to this. Not nothing, but probably
-acceptable: the cost is only paid when the build.sc is re-compiled, and it will
-likely end up saving much more time in tasks that we can avoid running (e.g. a
-single no-op Zinc incremental compile may be 100s of milliseconds)
+~5% increase in build.sc compilation times due to this:
+
 
 |===
 | | methodCodeHashSignatures | compile
 | Cold | 685ms | 12,148ms
 | Hot | 253ms | 4,143ms
 |===
+
+
+This slowdown is not negligible, but it is
+acceptable: the cost is only paid when the build.sc is re-compiled, and it will
+likely end up saving much more time in tasks that we can avoid running (e.g. a
+single no-op Zinc incremental compile may be 100s of milliseconds)
 
 ## Further Reading
 
