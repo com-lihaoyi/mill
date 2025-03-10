@@ -71,9 +71,9 @@ trait PublishModule extends TypeScriptModule {
       devDependencies = transitiveNpmDeps().map { deps => splitDeps(deps) }.toMap
     ).toJsonClean
 
-    os.write.over(Task.dest / "package.json", updatedJson)
+    os.write.over(T.dest / "package.json", updatedJson)
 
-    PathRef(Task.dest)
+    PathRef(T.dest)
   }
 
   // Package.Json construction
@@ -184,7 +184,7 @@ trait PublishModule extends TypeScriptModule {
 
   def publish(): Command[Unit] = Task.Command {
     // build package.json
-    os.copy.over(pubPackageJson().path / "package.json", Task.dest / "package.json")
+    os.copy.over(pubPackageJson().path / "package.json", T.dest / "package.json")
 
     // bundled code for publishing
     val bundled = bundle().path / os.up
@@ -193,7 +193,7 @@ trait PublishModule extends TypeScriptModule {
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(bundled), createFolders = true))
 
     // run npm publish
-    os.call(("npm", "publish"), stdout = os.Inherit, cwd = compile()._1.path)
+    os.call(("npm", "publish"), stdout = os.Inherit, cwd = T.dest)
     ()
   }
 
