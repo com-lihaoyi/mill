@@ -47,13 +47,13 @@ object bar extends MyModule
 /** Usage
 
 > find . | grep generated.html
-.../out/foo/test/testForked.dest/sandbox/generated.html
-.../out/bar/test/testForked.dest/sandbox/generated.html
+.../out/foo/test/testForked.dest/worker-0/sandbox/generated.html
+.../out/bar/test/testForked.dest/worker-0/sandbox/generated.html
 
-> cat out/foo/test/testForked.dest/sandbox/generated.html
+> cat out/foo/test/testForked.dest/worker-0/sandbox/generated.html
 <h1>hello</h1>
 
-> cat out/bar/test/testForked.dest/sandbox/generated.html
+> cat out/bar/test/testForked.dest/worker-0/sandbox/generated.html
 <p>world</p>
 
 */

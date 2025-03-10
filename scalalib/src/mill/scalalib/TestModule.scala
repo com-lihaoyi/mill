@@ -113,7 +113,7 @@ trait TestModule
    * When used in combination with [[testForkGrouping]], every JVM test running process
    * will guarantee to never steal tests from different test groups.
    */
-  def testEnableWorkStealing: T[Boolean] = T(false)
+  def testEnableWorkStealing: T[Boolean] = T(true)
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
