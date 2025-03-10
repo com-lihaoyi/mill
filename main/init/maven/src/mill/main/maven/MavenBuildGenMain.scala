@@ -90,14 +90,19 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     IrBaseInfo(typedef)
   }
 
+  override type ModuleFqnMap = Map[(String, String, String), String]
+  override def getModuleFqnMap(moduleNodes: Seq[Node[Model]])
+      : Map[(String, String, String), String] =
+    buildModuleFqnMap(moduleNodes)(getGav)
+
   override def extractIrBuild(
       cfg: Config,
       // baseInfo: IrBaseInfo,
       build: Node[Model],
-      packages: Map[(String, String, String), String]
+      moduleFqnMap: Map[(String, String, String), String]
   ): IrBuild = {
     val model = build.value
-    val scopedDeps = extractScopedDeps(model, packages, cfg)
+    val scopedDeps = extractScopedDeps(model, moduleFqnMap, cfg)
     val version = model.getVersion
     IrBuild(
       scopedDeps = scopedDeps,
@@ -126,9 +131,8 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
 
   def getModuleSupertypes(cfg: Config): Seq[String] = Seq("PublishModule", "MavenModule")
 
-  override def getPackage(model: Model): (String, String, String) = {
+  override def getGav(model: Model): (String, String, String) =
     (model.getGroupId, model.getArtifactId, model.getVersion)
-  }
 
   override def getArtifactId(model: Model): String = model.getArtifactId
 

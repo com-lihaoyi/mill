@@ -179,18 +179,18 @@ object BuildGenUtil {
     os.walk.stream(workspace, skip = (workspace / OutFiles.out).equals)
       .filter(file => buildFileExtensions.contains(file.ext))
 
-  def buildPackage(dirs: Seq[String]): String =
+  def buildModuleFqn(dirs: Seq[String]): String =
     (rootModuleAlias +: dirs).iterator.map(backtickWrap).mkString(".")
 
-  def buildPackages[Module, Key](input: Generator[Node[Module]])(key: Module => Key)
+  def buildModuleFqnMap[Module, Key](input: Generator[Node[Module]])(key: Module => Key)
       : Map[Key, String] =
     input
-      .map(node => (key(node.value), buildPackage(node.dirs)))
+      .map(node => (key(node.value), buildModuleFqn(node.dirs)))
       .toSeq
       .toMap
 
   def renderBuildSource(node: Node[BuildObject]): os.Source = {
-    val pkg = buildPackage(node.dirs)
+    val pkg = buildModuleFqn(node.dirs)
     val BuildObject(imports, companions, supertypes, inner, outer) = node.value
     val importStatements = imports.iterator.map("import " + _).mkString(linebreak)
     val companionTypedefs = companions.iterator.map {

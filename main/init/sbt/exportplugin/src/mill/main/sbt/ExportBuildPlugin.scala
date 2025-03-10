@@ -16,9 +16,6 @@ object ExportBuildPlugin extends AutoPlugin {
     val millInitBuildInfo = taskKey[BuildInfo](
       "get the `mill.main.sbt.BuildInfo` model of this build or this project"
     )
-    // not used anymore
-    val millInitAllDependencies =
-      taskKey[Seq[Dependency]]("get the all the `mill.main.sbt.Dependency`s of this project")
     val millInitProject = taskKey[Project]("get the `mill.main.sbt.Project` model of this project")
     val millInitExportBuild = taskKey[File]("export the build in a JSON file for `mill init`")
   }
@@ -54,11 +51,11 @@ object ExportBuildPlugin extends AutoPlugin {
     })
   )
 
-  override lazy val buildSettings: Seq[Def.Setting[?]] = Seq(
+  override lazy val buildSettings: Seq[Def.Setting[_]] = Seq(
     buildInfoSetting
   )
 
-  override lazy val projectSettings: Seq[Setting[?]] = Seq(
+  override lazy val projectSettings: Seq[Setting[_]] = Seq(
     buildInfoSetting,
     millInitProject :=
       Project(
@@ -67,6 +64,7 @@ object ExportBuildPlugin extends AutoPlugin {
         // version.value,
         // baseDirectory.value.relativeTo((ThisBuild / baseDirectory).value).get.getPath.split(File.separator),
         baseDirectory.value.getPath,
+        thisProjectRef.value.project,
         /*{
           // keep the project `BuildInfo` members only when they are different
           val defaultBi = (ThisBuild / millInitBuildInfo).value
@@ -93,11 +91,13 @@ object ExportBuildPlugin extends AutoPlugin {
           )
         }*/
         millInitBuildInfo.value,
-
-        /** See the TODO in [[sbt.Defaults]] above `allDependencies :=` for more details (v1.10.7, Lines 3210 - 3212). */
-        /*allDependencies.value*/ (projectDependencies.value ++ libraryDependencies.value).flatMap(
-          moduleID => {
-            val dependency = Dependency(
+        AllDependencies(
+          buildDependencies.value.classpath(thisProjectRef.value).map(classpathDep => {
+            val depProject = classpathDep.project
+            InterProjectDependency(depProject.project, classpathDep.configuration)
+          }),
+          libraryDependencies.value.flatMap(moduleID => {
+            val dependency = LibraryDependency(
               moduleID.organization,
               moduleID.name,
               moduleID.crossVersion match {
@@ -132,7 +132,7 @@ object ExportBuildPlugin extends AutoPlugin {
                   classifier = artifact.classifier
                 )
               )
-          }
+          })
         )
       ),
     // `target.value` doesn't work in `globalSettings` and `buildSettings`, so this is added to `projectSettings.

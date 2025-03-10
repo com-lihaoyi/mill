@@ -7,7 +7,6 @@ import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.IrDependencyType.*
 import os.Path
 
-import scala.collection.MapView
 import scala.collection.immutable.SortedSet
 
 /**
@@ -232,15 +231,23 @@ object SbtBuildGenMain
     IrBaseInfo(typedef)
   }
 
+  /**
+   * From the [[Project.projectRefProject]] to the package string built by [[BuildGenUtil.buildModuleFqn]].
+   */
+  override type ModuleFqnMap = Map[String, String]
+
+  override def getModuleFqnMap(moduleNodes: Seq[Node[Project]]): Map[String, String] =
+    buildModuleFqnMap(moduleNodes)(_.projectRefProject)
+
   override def extractIrBuild(
       cfg: Config,
       // baseInfo: IrBaseInfo,
       build: Node[Project],
-      packages: Map[(String, String, String), String]
+      moduleFqnMap: ModuleFqnMap
   ): IrBuild = {
     val project = build.value
     val buildInfo = project.buildInfo
-    val configurationDeps = extractConfigurationDeps(project, packages, cfg)
+    val configurationDeps = extractConfigurationDeps(project, moduleFqnMap, cfg)
     val version = getPublishVersion(buildInfo)
     IrBuild(
       scopedDeps = configurationDeps,
@@ -268,7 +275,8 @@ object SbtBuildGenMain
   def getModuleSupertypes(cfg: Config): Seq[String] =
     cfg.shared.baseModule.fold(sbtSupertypes)(Seq(_))
 
-  def getPackage(project: Project): (String, String, String) = {
+  // TODO remove
+  def getGav(project: Project): (String, String, String) = {
     val buildPublicationInfo = project.buildInfo.buildPublicationInfo
     (buildPublicationInfo.organization.orNull, project.name, buildPublicationInfo.version.orNull)
   }
@@ -279,9 +287,6 @@ object SbtBuildGenMain
 
   override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
     Seq("RootModule") ++ getModuleSupertypes(cfg)
-
-  def groupArtifactVersion(dep: Dependency): (String, String, String) =
-    (dep.organization, dep.name, dep.revision)
 
   def getJavacOptions(buildInfo: BuildInfo): Seq[String] =
     buildInfo.javacOptions.getOrElse(Seq.empty)
@@ -295,7 +300,7 @@ object SbtBuildGenMain
     buildInfo.buildPublicationInfo.version.orNull
 
   // originally named `ivyInterp` in the Maven and module
-  def renderIvy(dependency: Dependency): String = {
+  def renderIvy(dependency: LibraryDependency): String = {
     import dependency.*
     renderIvyString(
       organization,
@@ -312,11 +317,6 @@ object SbtBuildGenMain
       classifier = classifier.orNull,
       excludes = excludes
     )
-  }
-
-  case class Deps[I, M](ivy: Seq[I], module: Seq[M])
-  object Deps {
-    val empty = Deps(Seq.empty, Seq.empty)
   }
 
   def extractPomSettings(buildPublicationInfo: BuildPublicationInfo): IrPom = {
@@ -353,138 +353,145 @@ object SbtBuildGenMain
     )
   }
 
-  private def isScalaStandardLibrary(dep: Dependency) =
+  private def isScalaStandardLibrary(dep: LibraryDependency) =
     Seq("ch.epfl.lamp", "org.scala-lang").contains(dep.organization) &&
       Seq("scala-library", "dotty-library", "scala3-library").contains(dep.name)
 
+  /**
+   * @param toModuleFqn see [[ModuleFqnMap]].
+   */
   def extractConfigurationDeps(
       project: Project,
-      packages: PartialFunction[(String, String, String), String],
+      toModuleFqn: PartialFunction[String, String],
       cfg: Config
   ): IrScopedDeps = {
     // refactored to a functional approach from the original imperative code in Maven and Gradle
 
-    // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
-    val allDepsByConfiguration: MapView[IrDependencyType, Seq[(Dependency, Option[String])]] =
-      project.allDependencies
-        // .view // This makes the types hard to deal with here thus commented out.
-        .filterNot(isScalaStandardLibrary)
-        .flatMap(dep =>
-          (dep.configurations match {
-            case None => Seq((Default, None))
-            case Some(configurations) =>
-              configurations.split(';').iterator.flatMap(configuration => {
-                val splitConfigurations = configuration.split("->")
-                (splitConfigurations(0) match {
-                  case "compile" => Some(Default)
-                  case "test" => Some(Test)
-                  case "runtime" => Some(Run)
-                  case "provided" | "optional" => Some(Compile)
-                  case other =>
-                    println(
-                      s"Dependency $dep with an unsupported configuration before `->` ${escape(other)} is dropped."
-                    )
-                    None
-                })
-                  .map(_ -> splitConfigurations.lift(1))
-              })
+    case class DepTypeAndConf(tpe: IrDependencyType, confAfterArrow: Option[String])
+    def parseConfigurations(dep: Dependency): Iterator[DepTypeAndConf] =
+      dep.configurations match {
+        case None => Iterator(DepTypeAndConf(Default, None))
+        case Some(configurations) =>
+          configurations.split(';').iterator.flatMap(configuration => {
+            val splitConfigurations = configuration.split("->")
+            (splitConfigurations(0) match {
+              case "compile" => Some(Default)
+              case "test" => Some(Test)
+              case "runtime" => Some(Run)
+              case "provided" | "optional" => Some(Compile)
+              case other =>
+                println(
+                  s"Dependency $dep with an unsupported configuration before `->` ${escape(other)} is dropped."
+                )
+                None
+            })
+              .map(DepTypeAndConf(_, splitConfigurations.lift(1)))
           })
-            .map { case (tpe, confAfterArrow) => ((dep, confAfterArrow), tpe) }
-        )
-        .groupBy(_._2)
-        .view
-        .mapValues(_.map(_._1))
-        // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
-        .asInstanceOf[MapView[IrDependencyType, Seq[(Dependency, Option[String])]]]
+      }
 
-    // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
-    val ivyAndModuleDepsByConfiguration: Map[IrDependencyType, Deps[Dependency, String]] =
-      allDepsByConfiguration.mapValues(deps => {
-        val tuple2 = deps.partitionMap { case (dep, confAfterArrow) =>
-          val id = groupArtifactVersion(dep)
-          if (packages.isDefinedAt(id)) Right({
-            val dependsOnTestModule = confAfterArrow match {
-              case None => false
-              case Some(value) =>
-                value match {
-                  case "default" | "compile" | "default(compile)" => false
-                  case "test" => true
-                  case conf =>
-                    println(
-                      s"Unsupported dependency configuration after `->` ${escape(conf)} is ignored."
-                    )
-                    false
-                }
-            }
-            val moduleRef = packages(id)
-            if (dependsOnTestModule) s"$moduleRef.${cfg.shared.testModule}" else moduleRef
-          })
-          else Left(dep)
+    val allDependencies = project.allDependencies
+
+    val moduleDepsByType = allDependencies.projectDependencies.flatMap(dep =>
+      parseConfigurations(dep).map { case DepTypeAndConf(tpe, confAfterArrow) =>
+        tpe -> {
+          val dependsOnTestModule = confAfterArrow match {
+            case None => false
+            case Some(value) =>
+              value match {
+                case "default" | "compile" | "default(compile)" => false
+                case "test" => true
+                case conf =>
+                  println(
+                    s"Unsupported dependency configuration after `->` in project dependency $dep ${escape(conf)} is ignored."
+                  )
+                  false
+              }
+          }
+          val moduleRef = toModuleFqn(dep.projectRefProject)
+          if (dependsOnTestModule) s"$moduleRef.${cfg.shared.testModule}" else moduleRef
         }
-        Deps(tuple2._1, tuple2._2)
-      }).toMap
+      }
+    ).groupMap(_._1)(_._2)
 
-    val testIvyAndModuleDeps = ivyAndModuleDepsByConfiguration.getOrElse(Test, Deps.empty)
-    val testIvyDeps = testIvyAndModuleDeps.ivy
+    val ivyDepsByType = allDependencies.libraryDependencies
+      .iterator
+      .filterNot(isScalaStandardLibrary)
+      .flatMap(dep =>
+        parseConfigurations(dep).map { case DepTypeAndConf(tpe, confAfterArrow) =>
+          confAfterArrow match {
+            case None => ()
+            case Some(value) =>
+              value match {
+                case "default" | "compile" | "default(compile)" => ()
+                case conf =>
+                  println(
+                    s"Unsupported dependency configuration after `->` in library dependency $dep ${escape(conf)} is ignored."
+                  )
+              }
+          }
+          tpe -> dep
+        }
+      )
+      .toSeq
+      .groupMap(_._1)(_._2)
+
+    val defaultModuleDeps = moduleDepsByType.getOrElse(Default, Seq.empty)
+    val compileModuleDeps = moduleDepsByType.getOrElse(Compile, Seq.empty)
+    val runModuleDeps = moduleDepsByType.getOrElse(Run, Seq.empty)
+    val testModuleDeps = moduleDepsByType.getOrElse(Test, Seq.empty)
+
+    val testIvyDeps = ivyDepsByType.getOrElse(Test, Seq.empty)
+
     val hasTest = os.exists(os.Path(project.projectDirectory) / "src/test")
     val testModule = Option.when(hasTest)(testIvyDeps.collectFirst(Function.unlift(dep =>
       testModulesByGroup.get(dep.organization)
     ))).flatten
 
     cfg.shared.depsObject.fold({
-      val default = ivyAndModuleDepsByConfiguration.getOrElse(Default, Deps.empty)
-      val compile = ivyAndModuleDepsByConfiguration.getOrElse(Compile, Deps.empty)
-      val run = ivyAndModuleDepsByConfiguration.getOrElse(Run, Deps.empty)
-      val test = testIvyAndModuleDeps
+      val defaultIvyDeps = ivyDepsByType.getOrElse(Default, Seq.empty)
+      val compileIvyDeps = ivyDepsByType.getOrElse(Compile, Seq.empty)
+      val runIvyDeps = ivyDepsByType.getOrElse(Run, Seq.empty)
+
       IrScopedDeps(
         Seq.empty,
         SortedSet.empty,
-        // Using `fold` here causes issues with type inference.
-        SortedSet.from(default.ivy.iterator.map(renderIvy)),
-        SortedSet.from(default.module),
-        SortedSet.from(compile.ivy.iterator.map(renderIvy)),
-        SortedSet.from(compile.module),
-        SortedSet.from(run.ivy.iterator.map(renderIvy)),
-        SortedSet.from(run.module),
+        SortedSet.from(defaultIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(defaultModuleDeps),
+        SortedSet.from(compileIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(compileModuleDeps),
+        SortedSet.from(runIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(runModuleDeps),
         testModule,
         SortedSet.empty,
         SortedSet.from(testIvyDeps.iterator.map(renderIvy)),
-        SortedSet.from(test.module),
+        SortedSet.from(testModuleDeps),
         SortedSet.empty,
         SortedSet.empty
       )
     })(objectName => {
-      // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
-      val extractedIvyAndModuleDepsByConfiguration
-          : Map[IrDependencyType, Deps[((String, String), String), String]] =
-        ivyAndModuleDepsByConfiguration.view.mapValues({
-          case Deps(ivy, module) =>
-            Deps(
-              ivy.map(dep => {
-                val depName = s"`${dep.organization}:${dep.name}`"
-                ((depName, renderIvy(dep)), s"$objectName.$depName")
-              }),
-              module
-            )
-        }).toMap
+      val extractedIvyDeps = ivyDepsByType.view.mapValues(_.map(dep => {
+        val depName = s"`${dep.organization}:${dep.name}`"
+        ((depName, renderIvy(dep)), s"$objectName.$depName")
+      }))
 
-      val default = extractedIvyAndModuleDepsByConfiguration.getOrElse(Default, Deps.empty)
-      val compile = extractedIvyAndModuleDepsByConfiguration.getOrElse(Compile, Deps.empty)
-      val run = extractedIvyAndModuleDepsByConfiguration.getOrElse(Run, Deps.empty)
-      val test = extractedIvyAndModuleDepsByConfiguration.getOrElse(Test, Deps.empty)
+      val extractedDefaultIvyDeps = extractedIvyDeps.getOrElse(Default, Seq.empty)
+      val extractedCompileIvyDeps = extractedIvyDeps.getOrElse(Compile, Seq.empty)
+      val extractedRunIvyDeps = extractedIvyDeps.getOrElse(Run, Seq.empty)
+      val extractedTestIvyDeps = extractedIvyDeps.getOrElse(Test, Seq.empty)
+
       IrScopedDeps(
-        extractedIvyAndModuleDepsByConfiguration.values.flatMap(_.ivy.iterator.map(_._1)).toSeq,
+        extractedIvyDeps.values.flatMap(_.map(_._1)).toSeq,
         SortedSet.empty,
-        SortedSet.from(default.ivy.iterator.map(_._2)),
-        SortedSet.from(default.module),
-        SortedSet.from(compile.ivy.iterator.map(_._2)),
-        SortedSet.from(compile.module),
-        SortedSet.from(run.ivy.iterator.map(_._2)),
-        SortedSet.from(run.module),
+        SortedSet.from(extractedDefaultIvyDeps.iterator.map(_._2)),
+        SortedSet.from(defaultModuleDeps),
+        SortedSet.from(extractedCompileIvyDeps.iterator.map(_._2)),
+        SortedSet.from(compileModuleDeps),
+        SortedSet.from(extractedRunIvyDeps.iterator.map(_._2)),
+        SortedSet.from(runModuleDeps),
         testModule,
         SortedSet.empty,
-        SortedSet.from(test.ivy.iterator.map(_._2)),
-        SortedSet.from(test.module),
+        SortedSet.from(extractedTestIvyDeps.iterator.map(_._2)),
+        SortedSet.from(testModuleDeps),
         SortedSet.empty,
         SortedSet.empty
       )

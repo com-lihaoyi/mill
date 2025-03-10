@@ -117,18 +117,46 @@ object Resolver {
 
 case class Project(
     // organization: String, // `groupId` in Maven, moved inside `buildInfo`
+    /** @see [[sbt.Keys.name]] */
     name: String, // `artifactId` in Maven
     // version: String, // `groupId` in Maven, moved inside `buildInfo`
     // dirs: ProjectDirs, // relative
     projectDirectory: String,
+    /** @see [[sbt.ProjectRef.project]] */
+    projectRefProject: String,
     buildInfo: BuildInfo,
-    allDependencies: Seq[Dependency]
+    allDependencies: AllDependencies
 )
 object Project {
   implicit val rw: RW[Project] = macroRW
 }
 
-case class Dependency(
+case class AllDependencies(
+    projectDependencies: Seq[InterProjectDependency],
+    libraryDependencies: Seq[LibraryDependency]
+)
+object AllDependencies {
+  implicit val rw: RW[AllDependencies] = macroRW
+}
+
+sealed trait Dependency {
+  def configurations: Option[String]
+}
+
+case class InterProjectDependency(
+    /** @see [[sbt.ProjectRef.project]] */
+    projectRefProject: String,
+    /** @see [[sbt.ClasspathDep.configuration]] */
+    configurations: Option[String]
+) extends Dependency
+object InterProjectDependency {
+  implicit val rw: RW[InterProjectDependency] = macroRW
+}
+
+/**
+ * @see [[sbt.librarymanagement.ModuleID]]
+ */
+case class LibraryDependency(
     organization: String, // `groupId` in Maven
     name: String, // `artifactId` in Maven
     crossVersion: CrossVersion = CrossVersion.Disabled,
@@ -139,9 +167,9 @@ case class Dependency(
     tpe: Option[String],
     classifier: Option[String],
     excludes: Seq[(String, String)]
-)
-object Dependency {
-  implicit val rw: RW[Dependency] = macroRW
+) extends Dependency
+object LibraryDependency {
+  implicit val rw: RW[LibraryDependency] = macroRW
 }
 
 /**

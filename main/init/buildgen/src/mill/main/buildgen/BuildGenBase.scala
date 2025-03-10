@@ -1,6 +1,6 @@
 package mill.main.buildgen
 
-import mill.main.buildgen.BuildGenUtil.{buildPackages, compactBuildTree, writeBuildObject}
+import mill.main.buildgen.BuildGenUtil.{compactBuildTree, writeBuildObject}
 
 import scala.collection.immutable.{SortedMap, SortedSet}
 
@@ -18,6 +18,16 @@ trait BuildGenBase[M, D, I] {
 
   def getModuleTree(input: I): Tree[Node[Option[M]]]
 
+  /**
+   * A [[Map]] mapping from a key retrieved from the original build tool
+   * (for example, the GAV coordinate for Maven, `ProjectRef.project` for sbt)
+   * to the module FQN reference string in code such as `parentModule.childModule`.
+   *
+   * If there is no need for such a map, override it with [[Unit]].
+   */
+  type ModuleFqnMap
+  def getModuleFqnMap(moduleNodes: Seq[Node[M]]): ModuleFqnMap
+
   def convert(
       input: I,
       cfg: C,
@@ -27,12 +37,12 @@ trait BuildGenBase[M, D, I] {
     val moduleOptionTree = moduleTree.map(node => node.copy(value = node.value))
 
     // for resolving moduleDeps
-    val packages = buildPackages(
-      moduleOptionTree.nodes().flatMap(node => node.value.map(m => node.copy(value = m)))
-    )(getPackage)
+    val moduleNodes =
+      moduleOptionTree.nodes().flatMap(node => node.value.map(m => node.copy(value = m))).toSeq
+    val moduleRefMap = getModuleFqnMap(moduleNodes)
 
     val baseInfo =
-      shared.baseModule.fold(IrBaseInfo()) { getBaseInfo(input, cfg, _, packages.size) }
+      shared.baseModule.fold(IrBaseInfo()) { getBaseInfo(input, cfg, _, moduleNodes.size) }
 
     moduleOptionTree.map(optionalBuild =>
       optionalBuild.copy(value =
@@ -43,12 +53,17 @@ trait BuildGenBase[M, D, I] {
           println(s"converting module $name")
 
           val build = optionalBuild.copy(value = moduleModel)
-          val inner = extractIrBuild(cfg, build, packages)
+          val inner = extractIrBuild(cfg, build, moduleRefMap)
 
           val isNested = optionalBuild.dirs.nonEmpty
           BuildObject(
             imports =
-              BuildGenUtil.renderImports(shared.baseModule, isNested, packages.size, extraImports),
+              BuildGenUtil.renderImports(
+                shared.baseModule,
+                isNested,
+                moduleNodes.size,
+                extraImports
+              ),
             companions =
               shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
                 SortedMap((name, SortedMap(inner.scopedDeps.namedIvyDeps.toSeq*)))
@@ -75,7 +90,8 @@ trait BuildGenBase[M, D, I] {
       packagesSize: Int
   ): IrBaseInfo
 
-  def getPackage(moduleModel: M): (String, String, String)
+  // TODO remove from here
+  def getGav(moduleModel: M): (String, String, String)
 
   def getArtifactId(moduleModel: M): String
 
@@ -83,7 +99,7 @@ trait BuildGenBase[M, D, I] {
       cfg: C,
       // baseInfo: IrBaseInfo, // `baseInfo` is no longer needed as we compare the `IrBuild` with `IrBaseInfo`/`IrTrait` in common code now.
       build: Node[M],
-      packages: Map[(String, String, String), String]
+      moduleFqnMap: ModuleFqnMap
   ): IrBuild
 }
 
