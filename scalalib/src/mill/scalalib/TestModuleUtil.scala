@@ -280,7 +280,9 @@ private final class TestModuleUtil(
 
 
     def jobsProcessLength(numTests: Int) = Task.ctx() match {
-      case j: Ctx.Jobs => (j.jobs, Math.max(Math.min(j.jobs, numTests), 1))
+      case j: Ctx.Jobs =>
+        val cappedJobs = Math.min(j.jobs, numTests)
+        (cappedJobs, Math.max(cappedJobs, 1))
       case _ => (1, 1)
     }
 
