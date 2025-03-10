@@ -1,0 +1,82 @@
+package build
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = "2.12.15"
+  def ivyDeps = Seq(
+    ivy"org.apache.spark::spark-core:3.5.4",
+    ivy"org.apache.spark::spark-sql:3.5.4",
+    ivy"org.apache.spark:spark-graphx_2.12:3.5.4"
+  )
+
+  def forkArgs = Seq(
+    "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+    "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    "--add-opens=java.base/java.util=ALL-UNNAMED",
+    "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+  )
+
+  def prependShellScript = ""
+
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq(
+      "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+      "--add-opens=java.base/java.nio=ALL-UNNAMED",
+      "--add-opens=java.base/java.util=ALL-UNNAMED",
+      "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+    )
+  }
+
+}
+
+/** Usage
+
+> ./mill run
+...
+Triangle Counting Results:
++--------+-------------+
+|    Name|TriangleCount|
++--------+-------------+
+| Contact|            0|
+|    Blog|            0|
+|   About|            1|
+|    Home|            1|
+|Products|            1|
+|     FAQ|            0|
++--------+-------------+
+...
+PageRank Results:
++--------+--------+
+|    Name|PageRank|
++--------+--------+
+| Contact|  0.9077|
+|    Blog|  0.9077|
+|   About|  0.5468|
+|    Home|  0.9334|
+|Products|  1.7828|
+|     FAQ|  0.9215|
++--------+--------+
+...
+Connected Components Results:
++--------+---------+
+|    Name|Component|
++--------+---------+
+| Contact|        1|
+|    Blog|        1|
+|   About|        1|
+|    Home|        1|
+|Products|        1|
+|     FAQ|        1|
++--------+---------+
+...
+
+> ./mill test
+...foo.FooTests.loadVertices should load vertices correctly...  
+...foo.FooTests.loadEdges should load edges correctly...  
+...foo.FooTests.analyzeGraph should compute triangles, ranks, and components correctly...
+...Tests: 3, Passed: 3, Failed: 0...
+
+*/
