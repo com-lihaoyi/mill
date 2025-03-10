@@ -38,7 +38,8 @@ object TestRunnerUtestTests extends TestSuite {
         Map(
           testrunner.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
           // When there is only one test group with test classes, we do not put it in a subfolder
-          testrunnerGrouping.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs")
+          testrunnerGrouping.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunnerWorkStealing.utest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("multi") - tester.testOnly(
@@ -52,7 +53,8 @@ object TestRunnerUtestTests extends TestSuite {
             "mill.scalalib.BarTests",
             "mill.scalalib.FoobarTests",
             "test-report.xml"
-          )
+          ),
+          testrunnerWorkStealing.utest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("all") - tester.testOnly(
@@ -67,7 +69,8 @@ object TestRunnerUtestTests extends TestSuite {
             "group-0-mill.scalalib.BarTests",
             "mill.scalalib.FoobarTests",
             "test-report.xml"
-          )
+          ),
+          testrunnerWorkStealing.utest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("noMatch") - tester.testOnly0 { (eval, mod) =>
