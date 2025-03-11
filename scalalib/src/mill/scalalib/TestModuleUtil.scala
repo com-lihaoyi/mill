@@ -298,7 +298,7 @@ private final class TestModuleUtil(
           Task.fork.async(
             processFolder,
             paddedProcessIndex,
-            s"worker-$paddedProcessIndex",
+            "",
             logger =>
               // force run when processIndex == 0 (first subprocess), even if there are no tests to run
               // to force the process to go through the test framework setup/teardown logic
@@ -326,7 +326,7 @@ private final class TestModuleUtil(
           Task.fork.async(
             processFolder,
             s"${paddedGroupIndex}-${paddedProcessIndex}",
-            s"worker-${paddedGroupIndex}-${paddedProcessIndex}",
+            "",
             logger =>
               // force run when processIndex == 0 (first subprocess), even if there are no tests to run
               // to force the process to go through the test framework setup/teardown logic
