@@ -58,7 +58,7 @@ private final class TestModuleUtil(
     val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
     val filteredClassLists =
-      if (filteredClassLists0.size == 1) filteredClassLists0
+      if (filteredClassLists0.size == 1 && !testParallelism) filteredClassLists0
       else {
         // If test grouping is enabled and multiple test groups are detected, we need to
         // run test discovery via the test framework's own argument parsing and filtering
