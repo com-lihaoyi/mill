@@ -9,22 +9,12 @@ public class InputPumper implements Runnable {
   private Supplier<OutputStream> dest0;
 
   private Boolean checkAvailable;
-  private java.util.function.BooleanSupplier runningCheck;
 
   public InputPumper(
       Supplier<InputStream> src, Supplier<OutputStream> dest, Boolean checkAvailable) {
-    this(src, dest, checkAvailable, () -> true);
-  }
-
-  public InputPumper(
-      Supplier<InputStream> src,
-      Supplier<OutputStream> dest,
-      Boolean checkAvailable,
-      java.util.function.BooleanSupplier runningCheck) {
     this.src0 = src;
     this.dest0 = dest;
     this.checkAvailable = checkAvailable;
-    this.runningCheck = runningCheck;
   }
 
   boolean running = true;
@@ -37,12 +27,10 @@ public class InputPumper implements Runnable {
     byte[] buffer = new byte[1024];
     try {
       while (running) {
-        if (!runningCheck.getAsBoolean()) {
-          running = false;
-          // We need to check `.available` and avoid calling `.read`, because if we call `.read`
-          // and there is nothing to read, it can unnecessarily delay the JVM exit by 350ms
-          // https://stackoverflow.com/questions/48951611/blocking-on-stdin-makes-java-process-take-350ms-more-to-exit
-        } else if (checkAvailable && src.available() == 0) Thread.sleep(1);
+        // We need to check `.available` and avoid calling `.read`, because if we call `.read`
+        // and there is nothing to read, it can unnecessarily delay the JVM exit by 350ms
+        // https://stackoverflow.com/questions/48951611/blocking-on-stdin-makes-java-process-take-350ms-more-to-exit
+        if (checkAvailable && src.available() == 0) Thread.sleep(1);
         else {
           int n;
           try {
