@@ -79,6 +79,7 @@ object `package` extends RootModule with BaseModule {
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
+      def testEnableWorkStealing = false
     }
   }
 
@@ -128,6 +129,7 @@ object `package` extends RootModule with BaseModule {
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
+      def testEnableWorkStealing = false
     }
   }
 
@@ -184,6 +186,7 @@ object `package` extends RootModule with BaseModule {
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
+      def testEnableWorkStealing = false
     }
   }
 

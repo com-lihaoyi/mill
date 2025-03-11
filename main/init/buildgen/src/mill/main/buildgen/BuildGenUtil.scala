@@ -90,6 +90,7 @@ object BuildGenUtil {
            |${renderResources(testResources)}
            |
            |def testSandboxWorkingDir = false
+           |def testEnableWorkStealing = false
            |}""".stripMargin
       }
 

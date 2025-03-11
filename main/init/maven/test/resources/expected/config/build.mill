@@ -89,6 +89,7 @@ object `package` extends RootModule with MyModule {
         )
 
         def testSandboxWorkingDir = false
+        def testEnableWorkStealing = false
       }
     }
 
@@ -171,6 +172,7 @@ object `package` extends RootModule with MyModule {
       )
 
       def testSandboxWorkingDir = false
+      def testEnableWorkStealing = false
     }
   }
 }

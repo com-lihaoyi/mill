@@ -77,5 +77,6 @@ object `package` extends RootModule with SbtModule with PublishModule {
     )
 
     def testSandboxWorkingDir = false
+    def testEnableWorkStealing = false
   }
 }
