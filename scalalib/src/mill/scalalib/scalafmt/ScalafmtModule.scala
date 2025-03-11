@@ -102,6 +102,9 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
         )
     }
 
+  /**
+   * Class path of the scalafmt CLI
+   */
   def scalafmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Seq(
@@ -110,8 +113,18 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
     )
   }
 
+  /**
+   * Main class of the scalafmt CLI
+   *
+   * Added in case the main class changes in the future, and users need to change it.
+   */
   protected def scalafmtMainClass: String = "org.scalafmt.cli.Cli"
 
+  /**
+   * Runs the scalafmt CLI with the given arguments in an external process.
+   *
+   * Note that this runs the scalafmt CLI on the JVM, rather than a native launcher of the CLI.
+   */
   def scalafmt(args: String*): Command[Unit] = Task.Command {
     Jvm.callProcess(
       scalafmtMainClass,
