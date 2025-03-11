@@ -558,6 +558,19 @@ index b04b1bfeb9b..60f317b422d 100644
    trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
      def forkEnv = super.forkEnv() ++ Seq(
+diff --git a/main/package.mill b/main/package.mill
+index 73c8cd24f9c..362eac814cd 100644
+--- a/main/package.mill
++++ b/main/package.mill
+@@ -80,7 +80,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
+           Some(Task.ctx()),
+           dist.coursierCacheCustomizer()
+         )
+-        result.getOrThrow.orderedDependencies
++        result.get.orderedDependencies
+           .map(_.module.repr)
+           .distinct
+           .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
 diff --git a/mill-build/build.mill b/mill-build/build.mill
 index 957d929826d..112f1aaccb8 100644
 --- a/mill-build/build.mill
