@@ -20,7 +20,7 @@ object foo extends KotlinModule {
       discoveredTestClasses().groupMapReduce(_.contains("GroupX"))(Seq(_))(_ ++ _).toSeq.sortBy(
         data => !data._1
       ).map(_._2)
-    def testWorkStealingParallelism = true
+    def testProcessPoolParallelism = true
   }
 }
 //// SNIPPET:END
