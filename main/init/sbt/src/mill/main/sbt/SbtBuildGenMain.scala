@@ -125,9 +125,12 @@ object SbtBuildGenMain
     } catch {
       case e: os.SubprocessException => throw RuntimeException(
           "The sbt command to run the `millInitExportBuild` sbt task has failed, " +
-            s"please update the project's sbt version to the latest or our tested version v${Versions.sbtVersion}, " +
-            "and check whether you have the appropriate Java version, " +
-            "and try again.",
+            s"please check out the following solutions and try again:\n" +
+            s"1. check whether your existing sbt build works properly;\n" +
+            s"2. make sure there are no other sbt processes running;\n" +
+            s"3. clear your build output and cache;\n" +
+            s"4. update the project's sbt version to the latest or our tested version v${Versions.sbtVersion};\n" +
+            "5. check whether you have the appropriate Java version.\n",
           e
         )
       case t: Throwable => throw t
