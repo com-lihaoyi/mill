@@ -242,8 +242,11 @@ class ZincWorkerImpl(
         // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
         // requires the ContextClassLoader to be set appropriately
         mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader) {
-          val scaladocClass =
+          // Not sure why dotty scaladoc is flaky, but add retries to workaround it
+          // https://github.com/com-lihaoyi/mill/issues/4556
+          val scaladocClass = mill.util.Retry(count = 2) {
             compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
+          }
           val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
           val reporter =
             scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
