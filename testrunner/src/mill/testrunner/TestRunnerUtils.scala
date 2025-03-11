@@ -237,8 +237,8 @@ import java.io.PrintStream
       testClasses: Seq[ClassWithFingerprint],
       testReporter: TestReporter,
       runner: Runner,
-      queueFolder: os.Path,
-      testClassesFolder: os.Path
+      claimFolder: os.Path,
+      testClassQueueFolder: os.Path
   ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
@@ -250,10 +250,10 @@ import java.io.PrintStream
 
     // append only log, used to communicate with parent about what test is being claimed
     // so that the parent can log the claimed test's name to its logger
-    val queueLog = queueFolderFolder / os.up / s"${queueFolderFolder.last}.log"
-    for (file <- os.list(testClassesFolder)) {
+    val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
+    for (file <- os.list(testClassQueueFolder)) {
       val testClassName = file.last
-      val claimedFile = queueFolderFolder / testClassName
+      val claimedFile = claimFolder / testClassName
 
       // we can check for existence of claimedFile first, but it'll require another os call.
       // it just better to let this call failed in that case.
@@ -262,7 +262,7 @@ import java.io.PrintStream
           scala.util.Try(os.move(file, claimedFile, atomicMove = true)).isSuccess
 
       if (claimed) {
-        os.write.append(queueLog, s"$testClassName\n")
+        os.write.append(claimLog, s"$testClassName\n")
         val taskDefs = globSelectorCache
           .get(testClassName)
           .map { case (cls, fingerprint) =>
@@ -281,8 +281,8 @@ import java.io.PrintStream
       frameworkInstances: ClassLoader => Framework,
       testClassfilePath: Seq[Path],
       args: Seq[String],
-      testClassesFolder: os.Path,
-      queueFolder: os.Path,
+      testClassQueueFolder: os.Path,
+      claimFolder: os.Path,
       cl: ClassLoader,
       testReporter: TestReporter
   ): (String, Seq[TestResult]) = {
@@ -294,7 +294,7 @@ import java.io.PrintStream
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
     val (doneMessage, results) =
-      queueTasks(testClasses, testReporter, runner, queueFolder, testClassesFolder)
+      runTasksFromQueue(testClasses, testReporter, runner, claimFolder, testClassQueueFolder)
 
     (doneMessage, results.toSeq)
   }

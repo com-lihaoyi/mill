@@ -237,15 +237,15 @@ private final class TestModuleUtil(
     ) = {
       // Check if we really need to spawn a new runner
       if (force || os.list(testClassesFolder).nonEmpty) {
-        val queueFolder = base / "queue"
-        os.makeDir.all(queueFolder)
+        val claimFolder = base / "claim"
+        os.makeDir.all(claimFolder)
         // queue.log file will be appended by the runner with the stolen test class's name
         // it can be used to check the order of test classes of the runner
-        val queueLog = queueFolder / os.up / s"${queueFolder.last}.log"
-        os.write.over(queueLog, Array.empty[Byte])
-        workerStatusMap.put(queueLog, logger.ticker)
-        val result = callTestRunnerSubprocess(base, Right(testClassesFolder, queueFolder))
-        workerStatusMap.remove(queueLog)
+        val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
+        os.write.over(claimLog, Array.empty[Byte])
+        workerStatusMap.put(claimLog, logger.ticker)
+        val result = callTestRunnerSubprocess(base, Right(testClassesFolder, claimFolder))
+        workerStatusMap.remove(claimLog)
         Some(result)
       } else {
         None
