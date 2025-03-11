@@ -100,7 +100,7 @@ private final class TestModuleUtil(
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
     val result = if (testParallelism) {
-      runTestStealingScheduler(filteredClassLists)
+      runTestQueueScheduler(filteredClassLists)
     } else {
       runTestDefault(filteredClassLists)
     }
@@ -120,7 +120,7 @@ private final class TestModuleUtil(
       baseFolder: os.Path,
       // either:
       // - Left(selectors: Seq[String]): - list of glob selectors to feed to the test runner directly.
-      // - Right((testClassesFolder: os.Path, stealFolder: os.Path)): - folder containing test classes for test runner to steal from, and the stealer's base folder.
+      // - Right((testClassesFolder: os.Path, claimFolder: os.Path)): - folder containing test classes for test runner to claim from, and the worker's base folder.
       selector: Either[Seq[String], (os.Path, os.Path)]
   )(implicit ctx: mill.api.Ctx) = {
     os.makeDir.all(baseFolder)
@@ -210,14 +210,14 @@ private final class TestModuleUtil(
     subprocessResult
   }
 
-  private def runTestStealingScheduler(
+  private def runTestQueueScheduler(
       filteredClassLists: Seq[Seq[String]]
   )(implicit ctx: mill.api.Ctx) = {
 
     val workerStatusMap = new java.util.concurrent.ConcurrentHashMap[os.Path, String => Unit]()
 
     def prepareTestClassesFolder(selectors2: Seq[String], base: os.Path): os.Path = {
-      // test-classes folder is used to store the test classes for the children test runners to steal from
+      // test-classes folder is used to store the test classes for the children test runners to claim from
       val testClassesFolder = base / "test-classes"
       os.makeDir.all(testClassesFolder)
       selectors2.zipWithIndex.foreach { case (s, i) =>
@@ -234,15 +234,15 @@ private final class TestModuleUtil(
     ) = {
       // Check if we really need to spawn a new runner
       if (force || os.list(testClassesFolder).nonEmpty) {
-        val stealFolder = base / "steal"
-        os.makeDir.all(stealFolder)
-        // steal.log file will be appended by the runner with the stolen test class's name
+        val claimFolder = base / "claim"
+        os.makeDir.all(claimFolder)
+        // claim.log file will be appended by the runner with the claimed test class's name
         // it can be used to check the order of test classes of the runner
-        val stealLog = stealFolder / os.up / s"${stealFolder.last}.log"
-        os.write.over(stealLog, Array.empty[Byte])
-        workerStatusMap.put(stealLog, logger.ticker)
-        val result = callTestRunnerSubprocess(base, Right(testClassesFolder -> stealFolder))
-        workerStatusMap.remove(stealLog)
+        val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
+        os.write.over(claimLog, Array.empty[Byte])
+        workerStatusMap.put(claimLog, logger.ticker)
+        val result = callTestRunnerSubprocess(base, Right(testClassesFolder -> claimFolder))
+        workerStatusMap.remove(claimLog)
         Some(result)
       } else {
         None
@@ -342,14 +342,14 @@ private final class TestModuleUtil(
     val executor = Executors.newScheduledThreadPool(1)
     val outputs =
       try {
-        // Periodically check the stealLog file of every runner, and tick the executing test name
+        // Periodically check the claimLog file of every runner, and tick the executing test name
         executor.scheduleWithFixedDelay(
           () => {
-            workerStatusMap.forEach { (stealLog, callback) =>
+            workerStatusMap.forEach { (claimLog, callback) =>
               {
                 try {
                   // the last one is always the latest
-                  os.read.lines(stealLog).lastOption.foreach(callback)
+                  os.read.lines(claimLog).lastOption.foreach(callback)
                 } finally ()
               }
             }
