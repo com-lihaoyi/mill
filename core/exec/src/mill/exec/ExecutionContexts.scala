@@ -6,6 +6,7 @@ import os.Path
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import java.util.concurrent.{ExecutorService, LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
+import mill.api.Logger
 
 private object ExecutionContexts {
 
@@ -20,10 +21,10 @@ private object ExecutionContexts {
     def reportFailure(cause: Throwable): Unit = {}
     def close(): Unit = () // do nothing
 
-    def async[T](dest: Path, key: String, message: String)(t: => T)(implicit
+    def async[T](dest: Path, key: String, message: String)(t: Logger => T)(implicit
         ctx: mill.api.Ctx
     ): Future[T] =
-      Future.successful(t)
+      Future.successful(t(ctx.log))
   }
 
   /**
@@ -82,7 +83,7 @@ private object ExecutionContexts {
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
-    def async[T](dest: Path, key: String, message: String)(t: => T)(implicit
+    def async[T](dest: Path, key: String, message: String)(t: Logger => T)(implicit
         ctx: mill.api.Ctx
     ): Future[T] = {
       val logger = new MultiLogger(
@@ -104,7 +105,7 @@ private object ExecutionContexts {
         logger.withPromptLine {
           os.dynamicPwdFunction.withValue(() => makeDest()) {
             mill.api.SystemStreams.withStreams(logger.streams) {
-              t
+              t(logger)
             }
           }
         }

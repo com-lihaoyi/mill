@@ -500,7 +500,7 @@ index fd3a934c8ff..56e35add240 100644
      val (repoPath, repoHash) = repoInfo(crossValue)
      def repoSlug = repoPath.split("/").last
 diff --git a/integration/package.mill b/integration/package.mill
-index 4b27b722fdb..8a1df6bf598 100644
+index b04b1bfeb9b..60f317b422d 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -3,13 +3,12 @@ package build.integration
@@ -541,7 +541,7 @@ index 4b27b722fdb..8a1df6bf598 100644
        def scalaVersion = build.Deps.scalaVersion
  
        def forkEnv =
-@@ -87,13 +86,13 @@ object `package` extends RootModule {
+@@ -86,13 +85,13 @@ object `package` extends RootModule {
      }
    }
  
@@ -561,18 +561,10 @@ index 4b27b722fdb..8a1df6bf598 100644
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
      def forkEnv = super.forkEnv() ++ Seq(
 diff --git a/main/package.mill b/main/package.mill
-index 29e5ad2d931..362eac814cd 100644
+index 73c8cd24f9c..362eac814cd 100644
 --- a/main/package.mill
 +++ b/main/package.mill
-@@ -73,14 +73,14 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
-         }().toMap
- 
-         val result = Lib.resolveDependenciesMetadataSafe(
--          repositories = dist.repositoriesTask(),
-+          repositories = dist.allRepositories(),
-           Seq(BoundDep(dist.coursierDependency, force = false)),
-           Some(dist.mapDependencies()),
-           dist.resolutionCustomizer(),
+@@ -80,7 +80,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
            Some(Task.ctx()),
            dist.coursierCacheCustomizer()
          )
@@ -755,7 +747,7 @@ index 8c7cc0641db..52ab881d38c 100644
  
    /**
     * The doc root ready to be built by antora for the current branch.
-@@ -228,7 +228,7 @@ object `package` extends RootModule {
+@@ -227,7 +227,7 @@ object `package` extends RootModule {
      os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
    }
  
@@ -764,7 +756,7 @@ index 8c7cc0641db..52ab881d38c 100644
    def blogFolder = Task {
      os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
      expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
-@@ -332,21 +332,21 @@ object `package` extends RootModule {
+@@ -328,21 +328,21 @@ object `package` extends RootModule {
  
    def localPages: T[PathRef] = Task {
      val pages = generatePages(authorMode = true).apply().apply(oldDocSources().map(_.path))
@@ -789,7 +781,7 @@ index 8c7cc0641db..52ab881d38c 100644
      // dependency to sources
      source()
      val docSite = Task.dest
-@@ -357,7 +357,7 @@ object `package` extends RootModule {
+@@ -353,7 +353,7 @@ object `package` extends RootModule {
        data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
        createFolders = true
      )
@@ -798,7 +790,7 @@ index 8c7cc0641db..52ab881d38c 100644
      runAntora(
        npmDir = npmBase(),
        workDir = docSite,
-@@ -373,12 +373,12 @@ object `package` extends RootModule {
+@@ -369,12 +369,12 @@ object `package` extends RootModule {
      os.write(siteDir / ".nojekyll", "")
  
      // sanitize devAntora source URLs

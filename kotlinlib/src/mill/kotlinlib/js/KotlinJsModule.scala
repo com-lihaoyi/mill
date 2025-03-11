@@ -153,7 +153,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       moduleKind == ModuleKind.NoModule &&
       binaryDir.toIO.listFiles().count(_.getName.endsWith(".js")) > 1
     ) {
-      Task.log.info("No module type is selected for the executable, but multiple .js files found in the output folder." +
+      Task.log.warn("No module type is selected for the executable, but multiple .js files found in the output folder." +
         " This will probably lead to the dependency resolution failure.")
     }
 
