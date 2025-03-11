@@ -251,7 +251,9 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
       // we can check for existence of claimedFile first, but it'll require another os call.
       // it just better to let this call failed in that case.
-      val claimed = scala.util.Try(os.move(file, claimedFile, atomicMove = true)).isSuccess
+      val claimed =
+        os.exists(file) &&
+          scala.util.Try(os.move(file, claimedFile, atomicMove = true)).isSuccess
 
       if (claimed) {
         os.write.append(queueLog, s"$testClassName\n")
