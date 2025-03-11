@@ -670,7 +670,7 @@ object Jvm {
   }
 
   // Parse a list of repositories from their string representation
-  def repoFromString(str: String, origin: String): Result[Seq[Repository]] = {
+  private[mill] def repoFromString(str: String, origin: String): Result[Seq[Repository]] = {
     val spaceSep = "\\s+".r
 
     val repoList =
