@@ -40,6 +40,7 @@ import scala.collection.immutable.SortedSet
  *      - MUnit
  *      - Weaver
  *      - ZIOTest
+ *      - ScalaCheck
  * ===Limitations===
  * The conversion does not support:
  *  - custom dependency configurations

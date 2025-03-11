@@ -544,7 +544,8 @@ object BuildGenUtil {
     "com.lihaoyi" -> "TestModule.UTest",
     "org.scalameta" -> "TestModule.Munit",
     "com.disneystreaming" -> "TestModule.Weaver",
-    "dev.zio" -> "TestModule.ZioTest"
+    "dev.zio" -> "TestModule.ZioTest",
+    "org.scalacheck" -> "TestModule.ScalaCheck"
   )
 
   def writeBuildObject(tree: Tree[Node[BuildObject]]): Unit = {

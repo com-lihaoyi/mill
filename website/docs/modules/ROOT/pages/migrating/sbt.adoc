@@ -46,6 +46,7 @@ The conversion
 *** MUnit
 *** Weaver
 *** ZIOTest
+*** ScalaCheck
 
 [#arguments]
 === Command line arguments
