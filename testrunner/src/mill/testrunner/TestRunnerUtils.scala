@@ -232,7 +232,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       testClasses: Loose.Agg[ClassWithFingerprint],
       testReporter: TestReporter,
       runner: Runner,
-      queueFolderFolder: os.Path,
+      queueFolder: os.Path,
       testClassQueueFolder: os.Path
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
@@ -244,10 +244,10 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
     // append only log, used to communicate with parent about what test is being claimed
     // so that the parent can log the claimed test's name to its logger
-    val queueLog = queueFolderFolder / os.up / s"${queueFolderFolder.last}.log"
+    val queueLog = queueFolder / os.up / s"${queueFolder.last}.log"
     for (file <- os.list(testClassQueueFolder)) {
       val testClassName = file.last
-      val claimedFile = queueFolderFolder / testClassName
+      val claimedFile = queueFolder / testClassName
 
       // we can check for existence of claimedFile first, but it'll require another os call.
       // it just better to let this call failed in that case.

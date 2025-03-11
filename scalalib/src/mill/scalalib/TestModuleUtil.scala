@@ -312,7 +312,8 @@ private final class TestModuleUtil(
         }
       case multipleGroupFolderData =>
         for {
-          ((groupFolder, testClassQueueFolder, numTests), groupIndex) <- groupFolderData.zipWithIndex
+          ((groupFolder, testClassQueueFolder, numTests), groupIndex) <-
+            groupFolderData.zipWithIndex
           // Don't have re-calculate for every processes
           groupName = groupFolder.last
           paddedGroupIndex = mill.util.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
