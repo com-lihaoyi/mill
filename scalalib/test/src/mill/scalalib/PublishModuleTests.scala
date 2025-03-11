@@ -383,6 +383,105 @@ object PublishModuleTests extends TestSuite {
       assert(!repoHasSourcesJar())
       assert(!repoHasDocJar())
     }
+
+    test("transitive") - UnitTester(compileAndRuntimeStuff, null).scoped { eval =>
+      val ivy2Repo = eval.evaluator.workspace / "ivy2Local"
+      val mainModuleName = "main"
+      val transitiveModuleName = "transitive"
+      val runtimeTransitiveModuleName = "runtimeTransitive"
+      def subDir(moduleName: String) =
+        os.sub / compileAndRuntimeStuff.organization / moduleName / compileAndRuntimeStuff.version
+      def repoHasIvyXml(moduleName: String): Boolean =
+        os.isFile(ivy2Repo / subDir(moduleName) / "ivys/ivy.xml")
+      def repoHasJar(moduleName: String): Boolean =
+        os.isFile(ivy2Repo / subDir(moduleName) / "jars" / s"$moduleName.jar")
+      def repoHasSourcesJar(moduleName: String): Boolean =
+        os.isFile(ivy2Repo / subDir(moduleName) / "srcs" / s"$moduleName-sources.jar")
+      def repoHasDocJar(moduleName: String): Boolean =
+        os.isFile(ivy2Repo / subDir(moduleName) / "docs" / s"$moduleName-javadoc.jar")
+      def clearRepo(): Unit =
+        os.remove.all(ivy2Repo)
+
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).toTry.get
+      assert(!repoHasIvyXml(mainModuleName))
+      assert(!repoHasJar(mainModuleName))
+      assert(!repoHasSourcesJar(mainModuleName))
+      assert(!repoHasDocJar(mainModuleName))
+      assert(repoHasIvyXml(transitiveModuleName))
+      assert(repoHasJar(transitiveModuleName))
+      assert(repoHasSourcesJar(transitiveModuleName))
+      assert(repoHasDocJar(transitiveModuleName))
+
+      clearRepo()
+
+      eval(compileAndRuntimeStuff.transitive.publishLocal(
+        ivy2Repo.toString,
+        transitive = true
+      )).toTry.get
+      assert(repoHasIvyXml(mainModuleName))
+      assert(repoHasJar(mainModuleName))
+      assert(repoHasSourcesJar(mainModuleName))
+      assert(repoHasDocJar(mainModuleName))
+      assert(repoHasIvyXml(transitiveModuleName))
+      assert(repoHasJar(transitiveModuleName))
+      assert(repoHasSourcesJar(transitiveModuleName))
+      assert(repoHasDocJar(transitiveModuleName))
+
+      clearRepo()
+
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString, doc = false)).toTry.get
+      assert(!repoHasIvyXml(mainModuleName))
+      assert(!repoHasJar(mainModuleName))
+      assert(!repoHasSourcesJar(mainModuleName))
+      assert(!repoHasDocJar(mainModuleName))
+      assert(repoHasIvyXml(transitiveModuleName))
+      assert(repoHasJar(transitiveModuleName))
+      assert(repoHasSourcesJar(transitiveModuleName))
+      assert(!repoHasDocJar(transitiveModuleName))
+
+      clearRepo()
+
+      eval(compileAndRuntimeStuff.transitive.publishLocal(
+        ivy2Repo.toString,
+        doc = false,
+        transitive = true
+      )).toTry.get
+      assert(repoHasIvyXml(mainModuleName))
+      assert(repoHasJar(mainModuleName))
+      assert(repoHasSourcesJar(mainModuleName))
+      assert(!repoHasDocJar(mainModuleName))
+      assert(repoHasIvyXml(transitiveModuleName))
+      assert(repoHasJar(transitiveModuleName))
+      assert(repoHasSourcesJar(transitiveModuleName))
+      assert(!repoHasDocJar(transitiveModuleName))
+
+      clearRepo()
+
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).toTry.get
+      assert(!repoHasIvyXml(mainModuleName))
+      assert(!repoHasJar(mainModuleName))
+      assert(!repoHasSourcesJar(mainModuleName))
+      assert(!repoHasDocJar(mainModuleName))
+      assert(repoHasIvyXml(runtimeTransitiveModuleName))
+      assert(repoHasJar(runtimeTransitiveModuleName))
+      assert(repoHasSourcesJar(runtimeTransitiveModuleName))
+      assert(repoHasDocJar(runtimeTransitiveModuleName))
+
+      clearRepo()
+
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(
+        ivy2Repo.toString,
+        transitive = true
+      )).toTry.get
+      assert(repoHasIvyXml(mainModuleName))
+      assert(repoHasJar(mainModuleName))
+      assert(repoHasSourcesJar(mainModuleName))
+      assert(repoHasDocJar(mainModuleName))
+      assert(repoHasIvyXml(runtimeTransitiveModuleName))
+      assert(repoHasJar(runtimeTransitiveModuleName))
+      assert(repoHasSourcesJar(runtimeTransitiveModuleName))
+      assert(repoHasDocJar(runtimeTransitiveModuleName))
+    }
   }
 
 }
