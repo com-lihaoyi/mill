@@ -344,6 +344,10 @@ trait PublishModule extends JavaModule { outer =>
    * Publish artifacts to a local ivy repository.
    * @param localIvyRepo The local ivy repository.
    *                     If not defined, the default resolution is used (probably `$HOME/.ivy2/local`).
+   * @param sources whether to generate and publish a sources JAR
+   * @param doc whether to generate and publish a javadoc JAR
+   * @param transitive if true, also publish locally the transitive module dependencies of this module
+   *                   (this includes the runtime transitive module dependencies)
    */
   def publishLocal(
       localIvyRepo: String = null,
