@@ -15,5 +15,7 @@ object `package` extends RootModule with MavenModule {
     def ivyDeps = super.ivyDeps() ++
       Agg(ivy"org.junit.jupiter:junit-jupiter:5.10.3")
 
+    def testSandboxWorkingDir = false
+    def testEnableWorkStealing = false
   }
 }

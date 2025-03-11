@@ -27,6 +27,8 @@ object `package` extends RootModule {
       def ivyDeps = super.ivyDeps() ++
         Agg(Deps.`org.junit.jupiter:junit-jupiter`)
 
+      def testSandboxWorkingDir = false
+      def testEnableWorkStealing = false
     }
   }
 
@@ -37,6 +39,8 @@ object `package` extends RootModule {
       def ivyDeps = super.ivyDeps() ++
         Agg(Deps.`org.junit.jupiter:junit-jupiter`)
 
+      def testSandboxWorkingDir = false
+      def testEnableWorkStealing = false
     }
   }
 

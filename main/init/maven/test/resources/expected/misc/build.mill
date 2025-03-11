@@ -58,5 +58,8 @@ object `package` extends RootModule with PublishModule with MavenModule {
         PathRef(millSourcePath / "src/test/secrets")
       )
     }
+
+    def testSandboxWorkingDir = false
+    def testEnableWorkStealing = false
   }
 }
