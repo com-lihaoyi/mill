@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 42be8622781..ecb84c31089 100644
+index b3cbbf54ebb..a37452856c7 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,16 +1,16 @@
@@ -92,7 +92,7 @@ index 42be8622781..ecb84c31089 100644
      def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
-@@ -581,7 +581,8 @@ trait MillBaseTestsModule extends TestModule {
+@@ -580,7 +580,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
@@ -102,7 +102,7 @@ index 42be8622781..ecb84c31089 100644
    import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -711,7 +712,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+@@ -710,7 +711,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
@@ -112,7 +112,7 @@ index 42be8622781..ecb84c31089 100644
  
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/contrib/package.mill b/contrib/package.mill
-index 78dac75644b..fa53e9c7525 100644
+index b68c27a1ef8..01a3e9da2c0 100644
 --- a/contrib/package.mill
 +++ b/contrib/package.mill
 @@ -3,13 +3,12 @@ package build.contrib
@@ -498,7 +498,7 @@ index 62190fd6c1e..9d4f176c915 100644
      val (repoPath, repoHash) = repoInfo(crossValue)
      def repoSlug = repoPath.split("/").last
 diff --git a/integration/package.mill b/integration/package.mill
-index 53cdc15a9f6..9271663b81e 100644
+index b04b1bfeb9b..60f317b422d 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -3,13 +3,12 @@ package build.integration
@@ -539,7 +539,7 @@ index 53cdc15a9f6..9271663b81e 100644
        def scalaVersion = build.Deps.scalaVersion
  
        def forkEnv =
-@@ -87,13 +86,13 @@ object `package` extends RootModule {
+@@ -86,13 +85,13 @@ object `package` extends RootModule {
      }
    }
  
@@ -559,18 +559,10 @@ index 53cdc15a9f6..9271663b81e 100644
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
      def forkEnv = super.forkEnv() ++ Seq(
 diff --git a/main/package.mill b/main/package.mill
-index 29e5ad2d931..362eac814cd 100644
+index 73c8cd24f9c..362eac814cd 100644
 --- a/main/package.mill
 +++ b/main/package.mill
-@@ -73,14 +73,14 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
-         }().toMap
- 
-         val result = Lib.resolveDependenciesMetadataSafe(
--          repositories = dist.repositoriesTask(),
-+          repositories = dist.allRepositories(),
-           Seq(BoundDep(dist.coursierDependency, force = false)),
-           Some(dist.mapDependencies()),
-           dist.resolutionCustomizer(),
+@@ -80,7 +80,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
            Some(Task.ctx()),
            dist.coursierCacheCustomizer()
          )
@@ -600,7 +592,7 @@ index 957d929826d..112f1aaccb8 100644
      // TODO: document, why we have this dependency
      ivy"org.jsoup:jsoup:1.18.1"
 diff --git a/scalajslib/package.mill b/scalajslib/package.mill
-index 562041446af..f4cce7cebb1 100644
+index ee6663745f9..09b545ca7a5 100644
 --- a/scalajslib/package.mill
 +++ b/scalajslib/package.mill
 @@ -44,7 +44,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
@@ -613,7 +605,7 @@ index 562041446af..f4cce7cebb1 100644
      def mandatoryIvyDeps = Agg.empty[Dep]
      def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
 diff --git a/scalalib/package.mill b/scalalib/package.mill
-index d25adf2effd..6852f802156 100644
+index df9a8c206ba..aa7da099928 100644
 --- a/scalalib/package.mill
 +++ b/scalalib/package.mill
 @@ -2,14 +2,13 @@ package build.scalalib
@@ -659,7 +651,7 @@ index 3b577e29c65..7f45dcaeab6 100644
    def forkEnv =
      super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString())
 diff --git a/website/package.mill b/website/package.mill
-index f88dc3fe8f6..2e2d2be3716 100644
+index b63b7edab38..906167fbbe9 100644
 --- a/website/package.mill
 +++ b/website/package.mill
 @@ -26,7 +26,7 @@ object `package` extends RootModule {
@@ -753,7 +745,7 @@ index f88dc3fe8f6..2e2d2be3716 100644
  
    /**
     * The doc root ready to be built by antora for the current branch.
-@@ -228,7 +228,7 @@ object `package` extends RootModule {
+@@ -227,7 +227,7 @@ object `package` extends RootModule {
      os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
    }
  
@@ -762,7 +754,7 @@ index f88dc3fe8f6..2e2d2be3716 100644
    def blogFolder = Task {
      os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
      expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
-@@ -332,21 +332,21 @@ object `package` extends RootModule {
+@@ -328,21 +328,21 @@ object `package` extends RootModule {
  
    def localPages: T[PathRef] = Task {
      val pages = generatePages(authorMode = true).apply().apply(oldDocSources().map(_.path))
@@ -787,7 +779,7 @@ index f88dc3fe8f6..2e2d2be3716 100644
      // dependency to sources
      source()
      val docSite = Task.dest
-@@ -357,7 +357,7 @@ object `package` extends RootModule {
+@@ -353,7 +353,7 @@ object `package` extends RootModule {
        data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
        createFolders = true
      )
@@ -796,7 +788,7 @@ index f88dc3fe8f6..2e2d2be3716 100644
      runAntora(
        npmDir = npmBase(),
        workDir = docSite,
-@@ -373,12 +373,12 @@ object `package` extends RootModule {
+@@ -369,12 +369,12 @@ object `package` extends RootModule {
      os.write(siteDir / ".nojekyll", "")
  
      // sanitize devAntora source URLs
