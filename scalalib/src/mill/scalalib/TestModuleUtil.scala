@@ -300,13 +300,14 @@ private final class TestModuleUtil(
 
       val paddedProcessIndex =
         mill.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
-      val processFolder = groupFolder / s"worker-$paddedProcessIndex"
 
       val label =
         if (groupFolderData.size == 1) paddedProcessIndex
         else s"$paddedGroupIndex-$paddedProcessIndex"
 
-      Task.fork.async(processFolder, label, s"worker-$label") { logger =>
+      val processFolder = groupFolder / s"worker-$label"
+
+      Task.fork.async(processFolder, label, "") { logger =>
         // force run when processIndex == 0 (first subprocess), even if there are no tests to run
         // to force the process to go through the test framework setup/teardown logic
         groupName -> runTestRunnerSubprocess(
