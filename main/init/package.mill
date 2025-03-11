@@ -105,7 +105,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       os.copy(assemblyPathRef.path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
     }
-    def resources: T[Seq[PathRef]] = Task{ super.resources() ++ Seq(sbtPluginJarResources()) }
+    def resources: T[Seq[PathRef]] = Task { super.resources() ++ Seq(sbtPluginJarResources()) }
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
 
     def buildInfoPackageName = "mill.main.sbt"
