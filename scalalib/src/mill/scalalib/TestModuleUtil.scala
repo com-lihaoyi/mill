@@ -303,11 +303,11 @@ private final class TestModuleUtil(
       val paddedProcessIndex =
         mill.util.Util.leftPad(processIndex.toString, maxProcessLength, '0')
 
+      val processFolder = groupFolder / s"worker-$paddedProcessIndex"
+
       val label =
         if (groupFolderData.size == 1) paddedProcessIndex
         else s"$paddedGroupIndex-$paddedProcessIndex"
-
-      val processFolder = groupFolder / s"worker-$label"
 
       Task.fork.async(
         processFolder,
