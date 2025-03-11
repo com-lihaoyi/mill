@@ -26,16 +26,28 @@ import mill.util.PrintLogger
       ctx.log.debug(s"Setting ${testArgs.sysProps.size} system properties")
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
-      val filter = TestRunnerUtils.globFilter(testArgs.globSelectors)
-
-      val result = TestRunnerUtils.runTestFramework0(
-        frameworkInstances = Framework.framework(testArgs.framework),
-        testClassfilePath = Agg.from(testArgs.testCp),
-        args = testArgs.arguments,
-        classFilter = cls => filter(cls.getName),
-        cl = classLoader,
-        testReporter = DummyTestReporter
-      )(ctx)
+      val result = testArgs.globSelectors match {
+        case Left(selectors) =>
+          val filter = TestRunnerUtils.globFilter(selectors)
+          TestRunnerUtils.runTestFramework0(
+            frameworkInstances = Framework.framework(testArgs.framework),
+            testClassfilePath = Agg.from(testArgs.testCp),
+            args = testArgs.arguments,
+            classFilter = cls => filter(cls.getName),
+            cl = classLoader,
+            testReporter = DummyTestReporter
+          )(ctx)
+        case Right((testClassQueueFolder, claimFolder)) =>
+          TestRunnerUtils.queueTestFramework0(
+            frameworkInstances = Framework.framework(testArgs.framework),
+            testClassfilePath = Agg.from(testArgs.testCp),
+            args = testArgs.arguments,
+            testClassQueueFolder = testClassQueueFolder,
+            queueFolder = claimFolder,
+            cl = classLoader,
+            testReporter = DummyTestReporter
+          )(ctx)
+      }
 
       // Clear interrupted state in case some badly-behaved test suite
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,

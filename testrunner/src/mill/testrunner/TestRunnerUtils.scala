@@ -15,6 +15,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 @internal object TestRunnerUtils {
 
+  private type ClassWithFingerprint = (Class[?], Fingerprint)
+
   def listClassFiles(base: os.Path): geny.Generator[String] = {
     if (os.isDir(base)) {
       os.walk.stream(base).filter(_.ext == "class").map(_.relativeTo(base).toString)
@@ -36,7 +38,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       cl: ClassLoader,
       framework: Framework,
       classpath: Loose.Agg[os.Path]
-  ): Loose.Agg[(Class[_], Fingerprint)] = {
+  ): Loose.Agg[ClassWithFingerprint] = {
 
     val fingerprints = framework.fingerprints()
 
@@ -45,7 +47,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       // the tests to run Instead just don't run anything
       .filter(os.exists(_))
       .flatMap { base =>
-        Loose.Agg.from[(Class[_], Fingerprint)](
+        Loose.Agg.from[ClassWithFingerprint](
           listClassFiles(base).map { path =>
             val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
             val publicConstructorCount =
@@ -85,7 +87,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       cls: Class[_],
       fingerprints: Array[Fingerprint],
       isModule: Boolean
-  ): Option[(Class[_], Fingerprint)] = {
+  ): Option[ClassWithFingerprint] = {
     fingerprints.find {
       case f: SubclassFingerprint =>
         f.isModule == isModule &&
@@ -129,45 +131,38 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (runner, tasks)
   }
 
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
-      ctx: Ctx.Log with Ctx.Home
-  ): (String, Iterator[TestResult]) = {
-    val events = new ConcurrentLinkedQueue[Event]()
-    val doneMessage = {
+  private def executeTasks(
+      tasks: Seq[Task],
+      testReporter: TestReporter,
+      runner: Runner,
+      events: ConcurrentLinkedQueue[Event]
+  )(implicit ctx: Ctx.Log with Ctx.Home): Unit = {
+    val taskQueue = tasks.to(mutable.Queue)
+    while (taskQueue.nonEmpty) {
+      val next = taskQueue.dequeue().execute(
+        new EventHandler {
+          def handle(event: Event) = {
+            testReporter.logStart(event)
+            events.add(event)
+            testReporter.logFinish(event)
+          }
+        },
+        Array(new Logger {
+          def debug(msg: String) = ctx.log.outputStream.println(msg)
+          def error(msg: String) = ctx.log.outputStream.println(msg)
+          def ansiCodesSupported() = true
+          def warn(msg: String) = ctx.log.outputStream.println(msg)
+          def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
+          def info(msg: String) = ctx.log.outputStream.println(msg)
+        })
+      )
 
-      val taskQueue = tasks.to(mutable.Queue)
-      while (taskQueue.nonEmpty) {
-        val next = taskQueue.dequeue().execute(
-          new EventHandler {
-            def handle(event: Event) = {
-              testReporter.logStart(event)
-              events.add(event)
-              testReporter.logFinish(event)
-            }
-          },
-          Array(new Logger {
-            def debug(msg: String) = ctx.log.outputStream.println(msg)
-            def error(msg: String) = ctx.log.outputStream.println(msg)
-            def ansiCodesSupported() = true
-            def warn(msg: String) = ctx.log.outputStream.println(msg)
-            def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
-            def info(msg: String) = ctx.log.outputStream.println(msg)
-          })
-        )
-
-        taskQueue.enqueueAll(next)
-      }
-      runner.done()
+      taskQueue.enqueueAll(next)
     }
+  }
 
-    if (doneMessage != null && doneMessage.nonEmpty) {
-      if (doneMessage.endsWith("\n"))
-        ctx.log.outputStream.print(doneMessage)
-      else
-        ctx.log.outputStream.println(doneMessage)
-    }
-
-    val results = for (e <- events.iterator().asScala) yield {
+  def parseRunTaskResults(events: Iterator[Event]): Iterator[TestResult] = {
+    for (e <- events) yield {
       val ex =
         if (e.throwable().isDefined) Some(e.throwable().get) else None
       mill.testrunner.TestResult(
@@ -186,8 +181,33 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
         ex.map(_.getStackTrace.toIndexedSeq)
       )
     }
+  }
+
+  private def handleRunnerDone(
+      runner: Runner,
+      events: ConcurrentLinkedQueue[Event]
+  ): (String, Iterator[TestResult]) = {
+    val doneMessage = runner.done()
+    if (doneMessage != null && doneMessage.nonEmpty) {
+      if (doneMessage.endsWith("\n"))
+        println(doneMessage.stripSuffix("\n"))
+      else
+        println(doneMessage)
+    }
+
+    val results = parseRunTaskResults(events.iterator().asScala)
 
     (doneMessage, results)
+  }
+
+  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
+      ctx: Ctx.Log with Ctx.Home
+  ): (String, Iterator[TestResult]) = {
+    // Capture this value outside of the task event handler so it
+    // isn't affected by a test framework's stream redirects
+    val events = new ConcurrentLinkedQueue[Event]()
+    executeTasks(tasks, testReporter, runner, events)
+    handleRunnerDone(runner, events)
   }
 
   def runTestFramework0(
@@ -204,6 +224,72 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
     val (doneMessage, results) = runTasks(tasks, testReporter, runner)
+
+    (doneMessage, results.toSeq)
+  }
+
+  def runTasksFromQueue(
+      testClasses: Loose.Agg[ClassWithFingerprint],
+      testReporter: TestReporter,
+      runner: Runner,
+      queueFolder: os.Path,
+      testClassQueueFolder: os.Path
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Iterator[TestResult]) = {
+    // Capture this value outside of the task event handler so it
+    // isn't affected by a test framework's stream redirects
+    val events = new ConcurrentLinkedQueue[Event]()
+    val globSelectorCache = testClasses.view
+      .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
+      .toMap
+
+    // append only log, used to communicate with parent about what test is being claimed
+    // so that the parent can log the claimed test's name to its logger
+    val queueLog = queueFolder / os.up / s"${queueFolder.last}.log"
+    for (file <- os.list(testClassQueueFolder)) {
+      val testClassName = file.last
+      val claimedFile = queueFolder / testClassName
+
+      // we can check for existence of claimedFile first, but it'll require another os call.
+      // it just better to let this call failed in that case.
+      val claimed =
+        os.exists(file) &&
+          scala.util.Try(os.move(file, claimedFile, atomicMove = true)).isSuccess
+
+      if (claimed) {
+        os.write.append(queueLog, s"$testClassName\n")
+        val taskDefs = globSelectorCache
+          .get(testClassName)
+          .map { case (cls, fingerprint) =>
+            val clsName = cls.getName.stripSuffix("$")
+            new TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
+          }
+
+        val tasks = runner.tasks(taskDefs.toArray)
+        executeTasks(tasks, testReporter, runner, events)
+      }
+    }
+
+    handleRunnerDone(runner, events)
+  }
+
+  def queueTestFramework0(
+      frameworkInstances: ClassLoader => Framework,
+      testClassfilePath: Loose.Agg[Path],
+      args: Seq[String],
+      testClassQueueFolder: os.Path,
+      queueFolder: os.Path,
+      cl: ClassLoader,
+      testReporter: TestReporter
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
+
+    val framework = frameworkInstances(cl)
+
+    val runner = framework.runner(args.toArray, Array[String](), cl)
+
+    val testClasses = discoverTests(cl, framework, testClassfilePath)
+
+    val (doneMessage, results) =
+      runTasksFromQueue(testClasses, testReporter, runner, queueFolder, testClassQueueFolder)
 
     (doneMessage, results.toSeq)
   }

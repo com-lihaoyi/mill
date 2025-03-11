@@ -37,6 +37,12 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
    */
   def flushDest: Boolean = true
 
+  /**
+   * A list of paths under the `Task.dest` folder that should be considered root source directories
+   * when generating configuration for IDEs.
+   */
+  def deferredGeneratedSourceRoots: Seq[os.SubPath] = Seq.empty
+
   def asTarget: Option[Target[T]] = None
   def asCommand: Option[Command[T]] = None
   def asWorker: Option[Worker[T]] = None
@@ -189,9 +195,23 @@ object Task extends TaskBase {
    */
   def apply(
       t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
-      persistent: Boolean = false
-  ): ApplyFactory = new ApplyFactory(persistent)
-  class ApplyFactory private[mill] (val persistent: Boolean) extends TaskBase.TraverseCtxHolder {
+      persistent: Boolean = false,
+      deferredGeneratedSourceRoots: Seq[os.SubPath] = Seq.empty
+  ): ApplyFactory = new ApplyFactory(persistent, deferredGeneratedSourceRoots)
+
+  // Kept for bincompat reasons
+  protected def apply(
+      t: NamedParameterOnlyDummy,
+      persistent: Boolean
+  ): ApplyFactory = new ApplyFactory(persistent, Seq.empty)
+
+  class ApplyFactory private[mill] (
+      val persistent: Boolean,
+      val deferredGeneratedSourceRoots: Seq[os.SubPath]
+  ) extends TaskBase.TraverseCtxHolder {
+    // Kept for bincompat reasons
+    protected def this(persistent: Boolean) = this(persistent, Seq.empty)
+
     def apply[T](t: Result[T])(implicit
         rw: RW[T],
         ctx: mill.define.Ctx
@@ -414,10 +434,11 @@ object Target extends TaskBase {
           val c1 = ctx.splice
           val r1 = rw.splice
           val t1 = taskIsPrivate.splice
-          if (c.prefix.splice.asInstanceOf[Task.ApplyFactory].persistent) {
-            new PersistentImpl[T](s1, c1, r1, t1)
+          val applyFactory = c.prefix.splice.asInstanceOf[Task.ApplyFactory]
+          if (applyFactory.persistent) {
+            new PersistentImpl[T](s1, c1, r1, t1, applyFactory.deferredGeneratedSourceRoots)
           } else {
-            new TargetImpl[T](s1, c1, r1, t1)
+            new TargetImpl[T](s1, c1, r1, t1, applyFactory.deferredGeneratedSourceRoots)
           }
         }
       )
@@ -772,6 +793,11 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
   def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
 
   /**
+   * This is the `os.Path` pointing to the project's `out` directory.
+   */
+  def out(implicit ctx: mill.api.Ctx): os.Path = ctx.out
+
+  /**
    * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
    * async futures within your task in a Mill-friendly manner.
    */
@@ -808,8 +834,18 @@ class TargetImpl[+T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
     val readWriter: RW[_],
-    val isPrivate: Option[Boolean]
+    val isPrivate: Option[Boolean],
+    override val deferredGeneratedSourceRoots: Seq[os.SubPath]
 ) extends Target[T] {
+
+  // Added for bincompat
+  def this(
+      t: Task[T],
+      ctx0: mill.define.Ctx,
+      readWriter: RW[_],
+      isPrivate: Option[Boolean]
+  ) = this(t, ctx0, readWriter, isPrivate, Seq.empty)
+
   override def asTarget: Option[Target[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def readWriterOpt: Some[RW[_]] = Some(readWriter)
@@ -819,8 +855,13 @@ class PersistentImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
     readWriter: RW[_],
-    isPrivate: Option[Boolean]
-) extends TargetImpl[T](t, ctx0, readWriter, isPrivate) {
+    isPrivate: Option[Boolean],
+    deferredGeneratedSourceRoots: Seq[os.SubPath]
+) extends TargetImpl[T](t, ctx0, readWriter, isPrivate, deferredGeneratedSourceRoots) {
+  // Added for bincompat
+  def this(t: Task[T], ctx0: mill.define.Ctx, readWriter: RW[_], isPrivate: Option[Boolean]) =
+    this(t, ctx0, readWriter, isPrivate, Seq.empty)
+
   override def flushDest = false
 }
 

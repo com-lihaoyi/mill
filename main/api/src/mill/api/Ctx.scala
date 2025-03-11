@@ -99,6 +99,17 @@ object Ctx {
     def workspace: os.Path
   }
 
+  /**
+   * Access to the project out directory.
+   */
+  trait Out {
+
+    /**
+     * This is the path pointing to the `out` directory.
+     */
+    def out: os.Path
+  }
+
   def defaultHome: os.Path = os.home / ".mill/ammonite"
 
   /**
@@ -150,9 +161,13 @@ object Ctx {
        *                terminal prompt to display what this future is currently computing.
        * @param t The body of the async future
        */
-      def async[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
+      def async[T](dest: os.Path, key: String, message: String, t: Logger => T)(implicit
           ctx: mill.api.Ctx
       ): Future[T]
+
+      def async[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
+          ctx: mill.api.Ctx
+      ): Future[T] = async(dest, key, message, _ => t)(ctx)
     }
 
     trait Impl extends Api with ExecutionContext with AutoCloseable {
@@ -177,6 +192,7 @@ class Ctx(
     val reporter: Int => Option[CompileProblemReporter],
     val testReporter: TestReporter,
     val workspace: os.Path,
+    val out: os.Path,
     val systemExit: Int => Nothing,
     @experimental val fork: Ctx.Fork.Api
 ) extends Ctx.Dest
@@ -184,6 +200,7 @@ class Ctx(
     with Ctx.Args
     with Ctx.Home
     with Ctx.Env
+    with Ctx.Out
     with Ctx.Workspace {
 
   def this(
@@ -196,7 +213,46 @@ class Ctx(
       testReporter: TestReporter,
       workspace: os.Path
   ) = {
-    this(args, dest0, log, home, env, reporter, testReporter, workspace, _ => ???, null)
+    this(
+      args,
+      dest0,
+      log,
+      home,
+      env,
+      reporter,
+      testReporter,
+      workspace,
+      workspace / "out",
+      _ => ???,
+      null
+    )
+  }
+
+  def this(
+      args: IndexedSeq[?],
+      dest0: () => os.Path,
+      log: Logger,
+      home: os.Path,
+      env: Map[String, String],
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      workspace: os.Path,
+      systemExit: Int => Nothing,
+      fork: Ctx.Fork.Api
+  ) = {
+    this(
+      args,
+      dest0,
+      log,
+      home,
+      env,
+      reporter,
+      testReporter,
+      workspace,
+      workspace / "out",
+      systemExit,
+      fork
+    )
   }
   def dest: os.Path = dest0()
   def arg[T](index: Int): T = {

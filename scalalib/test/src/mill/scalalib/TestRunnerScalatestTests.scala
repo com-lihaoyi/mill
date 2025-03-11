@@ -33,7 +33,8 @@ object TestRunnerScalatestTests extends TestSuite {
         Map(
           // No test grouping is triggered because we only run one test class
           testrunner.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
-          testrunnerGrouping.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs")
+          testrunnerGrouping.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunnerParallel.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
 
@@ -47,7 +48,8 @@ object TestRunnerScalatestTests extends TestSuite {
             "group-0-mill.scalalib.ScalaTestSpec",
             "mill.scalalib.ScalaTestSpec3",
             "test-report.xml"
-          )
+          ),
+          testrunnerParallel.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("include") - tester.testOnly(
@@ -79,7 +81,8 @@ object TestRunnerScalatestTests extends TestSuite {
             "group-0-mill.scalalib.ScalaTestSpec",
             "mill.scalalib.ScalaTestSpec3",
             "test-report.xml"
-          )
+          ),
+          testrunnerParallel.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("includeAndExclude") - tester.testOnly0 { (eval, mod) =>

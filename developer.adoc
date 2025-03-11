@@ -168,7 +168,7 @@ To test bootstrapping of Mill's own Mill build using a version of Mill built fro
 ci/patch-mill-bootstrap.sh
 ----
 
-This creates a standalone assembly at `target/mill-release` you can use, which references jars
+This creates a standalone assembly at `mill-assembly.jar` you can use, which references jars
 published locally in your `~/.ivy2/local` cache, and applies any necessary patches to
 `build.mill` to deal with changes in Mill between the version specified in `.config/mill-version`
 that is normally used to build Mill and the `HEAD` version your assembly was created from.
