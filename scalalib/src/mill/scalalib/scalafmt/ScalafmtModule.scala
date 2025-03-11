@@ -9,6 +9,7 @@ import mill.define.{Discover, ExternalModule}
 import mill.scalalib.*
 import mainargs.arg
 import mill.main.Tasks
+import mill.util.Jvm
 
 trait ScalafmtModule extends JavaModule {
 
@@ -100,6 +101,27 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
           resolvedScalafmtConfig()
         )
     }
+
+  def scalafmtClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().resolveDeps(
+      Seq(
+        ivy"org.scalameta:scalafmt-cli_2.13:${mill.scalalib.api.Versions.scalafmtVersion}"
+      )
+    )
+  }
+
+  protected def scalafmtMainClass: String = "org.scalafmt.cli.Cli"
+
+  def scalafmt(args: String*): Command[Unit] = Task.Command {
+    Jvm.callProcess(
+      scalafmtMainClass,
+      args,
+      classPath = scalafmtClasspath().map(_.path),
+      cwd = T.workspace,
+      stdin = os.Inherit,
+      stdout = os.Inherit
+    )
+  }
 
   lazy val millDiscover = Discover[this.type]
 }
