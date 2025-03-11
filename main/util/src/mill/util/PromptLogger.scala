@@ -123,7 +123,7 @@ private[mill] class PromptLogger(
     }
     for ((verboseKeySuffix, message) <- res) {
       if (enableTicker) {
-        systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
+        systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix]${spaceNonEmpty(message)}"))
         streamManager.awaitPumperEmpty()
       }
     }
@@ -134,7 +134,7 @@ private[mill] class PromptLogger(
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
   override def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
     synchronized {
-      promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${PromptLoggerUtil.spaceNonEmpty(message)}"))
+      promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
       seenIdentifiers(key) = (verboseKeySuffix, message)
     }
 
