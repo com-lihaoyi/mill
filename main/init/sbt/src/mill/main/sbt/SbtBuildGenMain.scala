@@ -68,27 +68,29 @@ object SbtBuildGenMain
       os.call((sbt, "--help"), check = false).exitCode == 1
 
     val isWindows = Util.isWindows
-    val sbtExecutable = if (isWindows) {
-      val systemSbt = "sbt.bat"
-      if (systemSbtExists(systemSbt))
-        systemSbt
-      else
-        throw new RuntimeException(s"No system-wide `$systemSbt` found")
-    } else {
-      val systemSbt = "sbt"
-      // resolve the sbt executable
-      // https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt
-      if (os.exists(workspace / "sbt"))
-        "./sbt"
-      else if (os.exists(workspace / "sbtx"))
-        "./sbtx"
-      else if (systemSbtExists(systemSbt))
-        systemSbt
-      else
-        throw new RuntimeException(
-          s"No sbt executable (`./sbt`, `./sbtx`, or system-wide `$systemSbt`) found"
-        )
-    }
+    val sbtExecutable = cfg.customSbt.getOrElse(
+      if (isWindows) {
+        val systemSbt = "sbt.bat"
+        if (systemSbtExists(systemSbt))
+          systemSbt
+        else
+          throw new RuntimeException(s"No system-wide `$systemSbt` found")
+      } else {
+        val systemSbt = "sbt"
+        // resolve the sbt executable
+        // https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt
+        if (os.exists(workspace / "sbt"))
+          "./sbt"
+        else if (os.exists(workspace / "sbtx"))
+          "./sbtx"
+        else if (systemSbtExists(systemSbt))
+          systemSbt
+        else
+          throw new RuntimeException(
+            s"No sbt executable (`./sbt`, `./sbtx`, or system-wide `$systemSbt`) found"
+          )
+      }
+    )
 
     println("Running the added `millInitExportBuild` sbt task to export the build")
 
@@ -502,6 +504,8 @@ object SbtBuildGenMain
           "if not specified, settings are extracted from `ThisBuild`",
         short = 'g'
       )
-      baseProject: Option[String] = None
+      baseProject: Option[String] = None,
+      @arg(doc = "the custom sbt executable location")
+      customSbt: Option[String] = None
   )
 }
