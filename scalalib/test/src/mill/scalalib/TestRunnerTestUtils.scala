@@ -34,7 +34,7 @@ object TestRunnerTestUtils {
 
     object utest extends ScalaTests with TestModule.Utest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
-      override def testProcessPoolParallelism = enableWorkStealing
+      override def testParallelism = enableWorkStealing
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
@@ -44,7 +44,7 @@ object TestRunnerTestUtils {
 
     object scalatest extends ScalaTests with TestModule.ScalaTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
-      override def testProcessPoolParallelism = enableWorkStealing
+      override def testParallelism = enableWorkStealing
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
@@ -72,7 +72,7 @@ object TestRunnerTestUtils {
 
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
-      override def testProcessPoolParallelism = enableWorkStealing
+      override def testParallelism = enableWorkStealing
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",

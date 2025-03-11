@@ -9,7 +9,7 @@ object foo extends JavaModule {
       ivy"com.novocode:junit-interface:0.11",
       ivy"org.mockito:mockito-core:4.6.1"
     )
-    def testProcessPoolParallelism = true
+    def testParallelism = true
   }
 }
 //// SNIPPET:END
