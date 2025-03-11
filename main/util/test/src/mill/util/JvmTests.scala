@@ -1,6 +1,5 @@
 package mill.util
 
-import mill.Agg
 import utest.{TestSuite, Tests, test}
 
 import java.util.jar.{Attributes, JarFile}
@@ -19,7 +18,7 @@ object JvmTests extends TestSuite {
       os.write(dep1, "JAR 1")
       os.write(dep2, "JAR 2")
 
-      Jvm.createClasspathPassingJar(aJar, Agg(dep1, dep2))
+      Jvm.createClasspathPassingJar(aJar, Seq(dep1, dep2))
       assert(os.exists(aJar))
 
       val jar = new JarFile(aJar.toIO)

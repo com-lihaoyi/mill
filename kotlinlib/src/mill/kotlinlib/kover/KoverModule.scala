@@ -4,14 +4,13 @@
 
 package mill.kotlinlib.kover
 
-import mill._
-import mill.api.{Loose, PathRef}
+import mill.*
+import mill.api.{PathRef, Result}
 import mill.api.Result.Success
-import mill.define.{Discover, ExternalModule}
-import mill.eval.Evaluator
+import mill.define.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
-import mill.resolve.{Resolve, SelectMode}
+import mill.define.SelectMode
 import mill.scalalib.api.CompilationResult
 import mill.util.Jvm
 import os.Path
@@ -56,21 +55,21 @@ trait KoverModule extends KotlinModule { outer =>
    * Reads the Kover version from system environment variable `KOVER_VERSION` or defaults to a hardcoded version.
    */
   def koverVersion: T[String] = Task.Input {
-    Success[String](T.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
+    Success[String](Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
   }
 
   def koverBinaryReport: T[PathRef] = Task(persistent = true) {
     PathRef(koverDataDir().path / "kover-report.ic")
   }
 
-  def koverDataDir: T[PathRef] = Task(persistent = true) { PathRef(T.dest) }
+  def koverDataDir: T[PathRef] = Task(persistent = true) { PathRef(Task.dest) }
 
   object kover extends Module with KoverReportBaseModule {
 
     private def doReport(
         reportType: ReportType
     ): Task[PathRef] = Task.Anon {
-      val reportPath = PathRef(T.dest).path / reportName
+      val reportPath = PathRef(Task.dest).path / reportName
       Kover.runKoverCli(
         sourcePaths = outer.allSources().map(_.path),
         compiledPaths = Seq(outer.compile().classes.path),
@@ -78,7 +77,7 @@ trait KoverModule extends KotlinModule { outer =>
         reportPath = reportPath,
         reportType = reportType,
         koverCliClasspath().map(_.path),
-        T.dest
+        Task.dest
       )
     }
 
@@ -88,8 +87,8 @@ trait KoverModule extends KotlinModule { outer =>
 
   trait KoverTests extends TestModule {
 
-    private def koverAgentDep: T[Agg[Dep]] = Task {
-      Agg(ivy"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
+    private def koverAgentDep: T[Seq[Dep]] = Task {
+      Seq(ivy"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
     }
 
     /** The Kover Agent is used at test-runtime. */
@@ -104,8 +103,9 @@ trait KoverModule extends KotlinModule { outer =>
     override def forkArgs: T[Seq[String]] = Task {
       val argsFile = koverDataDir().path / "kover-agent.args"
       val content = s"report.file=${koverBinaryReport().path}"
-      os.write.over(argsFile, content)
-
+      os.checker.withValue(os.Checker.Nop) {
+        os.write.over(argsFile, content)
+      }
       super.forkArgs() ++
         Seq(
           s"-javaagent:${koverAgentJar().path}=file:$argsFile"
@@ -129,7 +129,7 @@ trait KoverModule extends KotlinModule { outer =>
  */
 object Kover extends ExternalModule with KoverReportBaseModule {
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   def htmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command {
     koverReportTask(
@@ -146,7 +146,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
   }
 
   private def koverReportTask(
-      evaluator: mill.eval.Evaluator,
+      evaluator: Evaluator,
       sources: String = "__:KotlinModule:^TestModule.allSources",
       compiled: String = "__:KotlinModule:^TestModule.compile",
       binaryReports: String = "__.koverBinaryReport",
@@ -159,26 +159,26 @@ object Kover extends ExternalModule with KoverReportBaseModule {
     Task.Anon {
 
       val sourcePaths: Seq[Path] =
-        T.sequence(sourcesTasks)().flatten.map(_.path).filter(
+        Task.sequence(sourcesTasks)().flatten.map(_.path).filter(
           os.exists
         )
       val compiledPaths: Seq[Path] =
-        T.sequence(compiledTasks)().map(_.classes.path).filter(
+        Task.sequence(compiledTasks)().map(_.classes.path).filter(
           os.exists
         )
       val binaryReportsPaths: Seq[Path] =
-        T.sequence(binaryReportTasks)().map(_.path)
+        Task.sequence(binaryReportTasks)().map(_.path)
           .filter(path => {
             val exists = os.exists(path)
             if (!exists) {
-              T.log.error(
+              Task.log.error(
                 s"Kover binary report $path doesn't exist. Did you run tests for the module?."
               )
             }
             exists
           })
 
-      val reportDir = PathRef(T.dest).path / reportName
+      val reportDir = PathRef(Task.dest).path / reportName
 
       runKoverCli(
         sourcePaths,
@@ -187,7 +187,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
         reportDir,
         reportType,
         koverCliClasspath().map(_.path),
-        T.dest
+        Task.dest
       )
     }
   }
@@ -199,7 +199,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       // will be treated as a dir in case of HTML, and as file in case of XML
       reportPath: Path,
       reportType: ReportType,
-      classpath: Loose.Agg[Path],
+      classpath: Seq[Path],
       workingDir: os.Path
   )(implicit ctx: api.Ctx): PathRef = {
     val args = Seq.newBuilder[String]
@@ -212,26 +212,26 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       s"${reportPath.toString()}.xml"
     } else reportPath.toString()
     args ++= Seq(s"--${reportType.toString.toLowerCase(Locale.US)}", output)
-    Jvm.runSubprocess(
+    Jvm.callProcess(
       mainClass = "kotlinx.kover.cli.MainKt",
-      classPath = classpath,
+      classPath = classpath.toVector,
       jvmArgs = Seq.empty[String],
       mainArgs = args.result(),
-      workingDir = workingDir
+      cwd = workingDir,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
     PathRef(os.Path(output))
   }
 
   private def resolveTasks[T](tasks: String, evaluator: Evaluator): Seq[Task[T]] =
     if (tasks.trim().isEmpty) Seq.empty
-    else Resolve.Tasks.resolve(evaluator.rootModule, Seq(tasks), SelectMode.Multi) match {
-      case Left(err) => throw new Exception(err)
-      case Right(tasks) => tasks.asInstanceOf[Seq[Task[T]]]
-    }
+    else evaluator.resolveTasks(Seq(tasks), SelectMode.Multi).get.asInstanceOf[Seq[Task[T]]]
+
 }
 
 sealed trait ReportType
 object ReportType {
-  final case object Html extends ReportType
-  final case object Xml extends ReportType
+  case object Html extends ReportType
+  case object Xml extends ReportType
 }

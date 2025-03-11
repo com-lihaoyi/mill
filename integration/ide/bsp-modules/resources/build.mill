@@ -15,15 +15,13 @@ object HelloBsp extends HelloBspModule {
   // Explicitly depends on proj2
   def compileModuleDeps: Seq[JavaModule] = Seq(build.proj2)
   // Implicitly depends on proj3 via a task
-  override def unmanagedClasspath: T[Agg[PathRef]] = Agg(build.proj3.jar())
+  override def unmanagedClasspath: T[Seq[PathRef]] = Seq(build.proj3.jar())
 }
 
 def validate() = Task.Command {
   val transitiveModules = mill.scalalib.internal.JavaModuleUtils.transitiveModules(build)
   val file = Task.dest / "transitive-modules.json"
-  val moduleNames = transitiveModules.map(m =>
-    mill.scalalib.internal.ModuleUtils.moduleDisplayName(m)
-  ).mkString("\n")
+  val moduleNames = transitiveModules.map(_.moduleSegments.render).mkString("\n")
   val content =
     s"""${moduleNames}
        |""".stripMargin

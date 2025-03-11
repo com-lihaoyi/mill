@@ -2,10 +2,12 @@ package mill
 package contrib.docker
 
 import mill.scalalib.JavaModule
+import mill.api.ExecResult
+import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.Path
-import utest._
+import utest.*
 import utest.framework.TestPath
 
 object DockerModuleTest extends TestSuite {
@@ -41,6 +43,12 @@ object DockerModuleTest extends TestSuite {
       override def executable = testExecutable
       override def jvmOptions = Seq("-Xmx1024M")
     }
+
+    object dockerEnv extends DockerConfig {
+      override def dockerEnv = Map("DOCKER_HOST" -> "wrong_host")
+    }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val testArtifactName = "mill-docker-contrib-test"
@@ -78,19 +86,28 @@ object DockerModuleTest extends TestSuite {
 
     test("docker build") {
       test("default options") - workspaceTest(Docker) { eval =>
-        val Right(result) = eval(Docker.dockerDefault.build)
+        val Right(result) = eval(Docker.dockerDefault.build): @unchecked
         assert(result.value == List(testArtifactName))
       }
 
       test("all options") - workspaceTest(Docker) { eval =>
-        val Right(result) = eval(Docker.dockerAll.build)
+        val Right(result) = eval(Docker.dockerAll.build): @unchecked
         assert(result.value == List(testArtifactName))
+      }
+
+      "dockerEnv" - workspaceTest(Docker) { eval =>
+        // since stdout and stderr are inherited we can only test
+        // that docker fails with wrong DOCKER_HOST
+        val Left(ExecResult.Exception(error: os.SubprocessException, _)) =
+          eval(Docker.dockerEnv.build): @unchecked
+        val message = error.getMessage
+        assert(message == "Result of docker…: 1\n")
       }
     }
 
     test("dockerfile contents") {
       test("default options") - UnitTester(Docker, null).scoped { eval =>
-        val Right(result) = eval(Docker.dockerDefault.dockerfile)
+        val Right(result) = eval(Docker.dockerDefault.dockerfile): @unchecked
         val expected = multilineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest
@@ -106,7 +123,7 @@ object DockerModuleTest extends TestSuite {
       }
 
       test("all options") - UnitTester(Docker, null).scoped { eval =>
-        val Right(result) = eval(Docker.dockerAll.dockerfile)
+        val Right(result) = eval(Docker.dockerAll.dockerfile): @unchecked
         val expected = multilineRegex.replaceAllIn(
           """
             |FROM docker.io/openjdk:11
@@ -131,7 +148,7 @@ object DockerModuleTest extends TestSuite {
       }
 
       test("extra jvm options") - UnitTester(Docker, null).scoped { eval =>
-        val Right(result) = eval(Docker.dockerJvmOptions.dockerfile)
+        val Right(result) = eval(Docker.dockerJvmOptions.dockerfile): @unchecked
         val expected = multilineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest

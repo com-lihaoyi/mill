@@ -10,7 +10,7 @@ object `package` extends RootModule with KotlinModule with KoverModule {
       super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
 
     }
-    override def ivyDeps = super.ivyDeps() ++ Agg(
+    override def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }

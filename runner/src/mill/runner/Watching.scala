@@ -1,7 +1,8 @@
 package mill.runner
 
 import mill.api.internal
-import mill.util.{Colors, Watchable}
+import mill.internal.Colors
+import mill.define.internal.Watchable
 import mill.api.SystemStreams
 
 import java.io.InputStream
@@ -20,12 +21,13 @@ object Watching {
       watch: Boolean,
       streams: SystemStreams,
       setIdle: Boolean => Unit,
-      evaluate: Option[T] => Result[T],
+      evaluate: (Boolean, Option[T]) => Result[T],
       colors: Colors
   ): (Boolean, T) = {
     var prevState: Option[T] = None
+    var enterKeyPressed = false
     while (true) {
-      val Result(watchables, errorOpt, result) = evaluate(prevState)
+      val Result(watchables, errorOpt, result) = evaluate(enterKeyPressed, prevState)
       prevState = Some(result)
       errorOpt.foreach(streams.err.println)
       if (ringBell) {
@@ -42,8 +44,9 @@ object Watching {
       }
 
       val alreadyStale = watchables.exists(!_.validate())
+      enterKeyPressed = false
       if (!alreadyStale) {
-        Watching.watchAndWait(streams, setIdle, streams.in, watchables, colors)
+        enterKeyPressed = Watching.watchAndWait(streams, setIdle, streams.in, watchables, colors)
       }
     }
     ???
@@ -55,7 +58,7 @@ object Watching {
       stdin: InputStream,
       watched: Seq[Watchable],
       colors: Colors
-  ): Unit = {
+  ): Boolean = {
     setIdle(true)
     val watchedPaths = watched.collect { case p: Watchable.Path => p.p.path }
     val watchedValues = watched.size - watchedPaths.size
@@ -68,21 +71,24 @@ object Watching {
       ).toString
     )
 
-    statWatchWait(watched, stdin)
+    val enterKeyPressed = statWatchWait(watched, stdin)
     setIdle(false)
+    enterKeyPressed
   }
 
-  def statWatchWait(watched: Seq[Watchable], stdin: InputStream): Unit = {
+  // Returns `true` if enter key is pressed to re-run tasks explicitly
+  def statWatchWait(watched: Seq[Watchable], stdin: InputStream): Boolean = {
     val buffer = new Array[Byte](4 * 1024)
 
-    @tailrec def statWatchWait0(): Unit = {
+    @tailrec def statWatchWait0(): Boolean = {
       if (watched.forall(_.validate())) {
-        if (lookForEnterKey()) ()
-        else {
+        if (lookForEnterKey()) {
+          true
+        } else {
           Thread.sleep(100)
           statWatchWait0()
         }
-      }
+      } else false
     }
 
     @tailrec def lookForEnterKey(): Boolean = {

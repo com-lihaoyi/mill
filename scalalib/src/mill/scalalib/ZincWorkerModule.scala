@@ -8,7 +8,7 @@ import mill.define.{Discover, ExternalModule, Task}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{Versions, ZincWorkerApi, ZincWorkerUtil}
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 
 /**
  * A default implementation of [[ZincWorkerModule]]
@@ -26,19 +26,19 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
   def jvmIndexVersion: mill.define.Target[String] =
     mill.scalalib.api.Versions.coursierJvmIndexVersion
 
-  def classpath: T[Agg[PathRef]] = Task {
+  def classpath: T[Seq[PathRef]] = Task {
     millProjectModule("mill-scalalib-worker", repositoriesTask())
   }
 
-  def scalalibClasspath: T[Agg[PathRef]] = Task {
+  def scalalibClasspath: T[Seq[PathRef]] = Task {
     millProjectModule("mill-scalalib", repositoriesTask())
   }
 
-  def testrunnerEntrypointClasspath: T[Agg[PathRef]] = Task {
+  def testrunnerEntrypointClasspath: T[Seq[PathRef]] = Task {
     millProjectModule("mill-testrunner-entrypoint", repositoriesTask(), artifactSuffix = "")
   }
 
-  def backgroundWrapperClasspath: T[Agg[PathRef]] = Task {
+  def backgroundWrapperClasspath: T[Seq[PathRef]] = Task {
     millProjectModule(
       "mill-scalalib-backgroundwrapper",
       repositoriesTask(),
@@ -46,7 +46,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     )
   }
 
-  def zincLogDebug: T[Boolean] = Task.Input(T.ctx().log.debugEnabled)
+  def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   /**
    * Optional custom Java Home for the ZincWorker to use
@@ -61,18 +61,16 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
         coursierCacheCustomizer = coursierCacheCustomizer(),
         ctx = Some(implicitly[mill.api.Ctx.Log]),
         jvmIndexVersion = jvmIndexVersion()
-      ).getOrThrow
+      ).get
       PathRef(path, quick = true)
     }
   }
 
   def worker: Worker[ZincWorkerApi] = Task.Worker {
-    val jobs = T.ctx() match {
-      case j: Ctx.Jobs => j.jobs
-      case _ => 1
-    }
-    val cl = mill.api.ClassLoader.create(
-      classpath().map(_.path.toNIO.toUri.toURL).iterator.to(Vector),
+    val jobs = Task.ctx().jobs
+
+    val cl = mill.util.Jvm.createClassLoader(
+      classpath().map(_.path).toSeq,
       getClass.getClassLoader
     )
 
@@ -80,30 +78,27 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     val instance = cls.getConstructor(
       classOf[
         Either[
-          (ZincWorkerApi.Ctx, (String, String) => (Option[Agg[PathRef]], PathRef)),
+          (ZincWorkerApi.Ctx, (String, String) => (Option[Seq[PathRef]], PathRef)),
           String => PathRef
         ]
       ], // compilerBridge
       classOf[Int], // jobs
       classOf[Boolean], // compileToJar
       classOf[Boolean], // zincLogDebug
-      classOf[Option[PathRef]] // javaHome
+      classOf[Option[PathRef]], // javaHome
+      classOf[() => Unit]
     )
       .newInstance(
         Left((
-          T.ctx(),
+          Task.ctx(),
           (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, repositoriesTask())
-              .asSuccess
-              .getOrElse(
-                throw new Exception(s"Failed to load compiler bridge for $x $y")
-              )
-              .value
+            scalaCompilerBridgeJar(x, y, repositoriesTask()).get
         )),
         jobs,
         java.lang.Boolean.FALSE,
         java.lang.Boolean.valueOf(zincLogDebug()),
-        javaHome()
+        javaHome(),
+        () => cl.close()
       )
     instance.asInstanceOf[ZincWorkerApi]
   }
@@ -112,7 +107,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       scalaVersion: String,
       scalaOrganization: String,
       repositories: Seq[Repository]
-  ): Result[(Option[Agg[PathRef]], PathRef)] = {
+  ): Result[(Option[Seq[PathRef]], PathRef)] = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, ZincWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -166,7 +161,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       scalaVersion: String,
       scalaOrganization: String,
       repositories: Seq[Repository]
-  ): Result[Agg[PathRef]] = {
+  ): Result[Seq[PathRef]] = {
     resolveDependencies(
       repositories = repositories,
       deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),

@@ -14,7 +14,7 @@ object JavaModuleUtils {
       if (!accept(mod) || found.contains(mod))
         found
       else {
-        val subMods = mod.millModuleDirectChildren ++ (mod match {
+        val subMods = mod.moduleDirectChildren ++ (mod match {
           case jm: JavaModule => jm.moduleDepsChecked ++ jm.compileModuleDepsChecked
           case other => Seq.empty
         })

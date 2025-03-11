@@ -6,7 +6,7 @@ import mill._, javalib._, util.Jvm
 
 object `package` extends RootModule with JavaModule {
   // Additional source folder to put C sources
-  def nativeSources = Task.Sources(millSourcePath / "native-src")
+  def nativeSources = Task.Sources("native-src")
 
   // Auto-generate JNI `.h` files from Java classes using Javac
   def nativeHeaders = Task {

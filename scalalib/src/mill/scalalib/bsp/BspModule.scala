@@ -2,13 +2,12 @@ package mill.scalalib.bsp
 
 import mill.api.internal
 import mill.define.Task
-import mill.scalalib.internal.ModuleUtils
 import mill._
 
 trait BspModule extends Module {
   import BspModule._
 
-  def bspDisplayName0: String = ModuleUtils.moduleDisplayName(this)
+  def bspDisplayName0: String = this.moduleSegments.render
 
   def bspDisplayName: String = bspDisplayName0 match {
     case "" => "root-module"
@@ -19,7 +18,7 @@ trait BspModule extends Module {
   @internal
   def bspBuildTarget: BspBuildTarget = BspBuildTarget(
     displayName = Some(bspDisplayName),
-    baseDirectory = Some(millSourcePath),
+    baseDirectory = Some(moduleDir),
     tags = Seq(Tag.Library, Tag.Application),
     languageIds = Seq(),
     canCompile = false,

@@ -1,6 +1,8 @@
 package mill.scalajslib.api
 
 import upickle.default.{ReadWriter => RW, macroRW}
+import mill.api.Mirrors
+import mill.api.Mirrors.autoMirror
 
 sealed trait ModuleKind
 object ModuleKind {
@@ -12,6 +14,9 @@ object ModuleKind {
   implicit def rwCommonJSModule: RW[CommonJSModule.type] = macroRW
   implicit def rwESModule: RW[ESModule.type] = macroRW
   implicit def rw: RW[ModuleKind] = macroRW
+
+  private given Root_ModuleKind: Mirrors.Root[ModuleKind] =
+    Mirrors.autoRoot[ModuleKind]
 }
 
 sealed trait ESVersion
@@ -34,6 +39,9 @@ object ESVersion {
   implicit val rw5_1: RW[ES5_1.type] = macroRW
 
   implicit val rw: RW[ESVersion] = macroRW[ESVersion]
+
+  private given Root_ESVersion: Mirrors.Root[ESVersion] =
+    Mirrors.autoRoot[ESVersion]
 }
 
 case class ESFeatures private (
@@ -79,6 +87,9 @@ object JsEnvConfig {
   implicit def rwPhantom: RW[Phantom] = macroRW
   implicit def rwSelenium: RW[Selenium] = macroRW
   implicit def rw: RW[JsEnvConfig] = macroRW
+
+  private given Root_JsEnvConfig: Mirrors.Root[JsEnvConfig] =
+    Mirrors.autoRoot[JsEnvConfig]
 
   /**
    * JavaScript environment to run on Node.js
@@ -133,6 +144,9 @@ object JsEnvConfig {
   ) extends JsEnvConfig
   object Selenium {
     implicit def rwCapabilities: RW[Capabilities] = macroRW
+
+    private given Root_Capabilities: Mirrors.Root[Capabilities] =
+      Mirrors.autoRoot[Capabilities]
 
     def apply(capabilities: Capabilities): Selenium =
       new Selenium(capabilities = capabilities)
@@ -269,6 +283,9 @@ object OutputPatterns {
   // scalalfix:on
 
   implicit val rw: RW[OutputPatterns] = macroRW[OutputPatterns]
+
+  private given Root_OutputPatterns: Mirrors.Root[OutputPatterns] =
+    Mirrors.autoRoot[OutputPatterns]
 }
 
 sealed trait ESModuleImportMapping

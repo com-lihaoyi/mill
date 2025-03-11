@@ -145,7 +145,7 @@ object Version {
   )(implicit
       ordering: Ordering[Version]
   ): String =
-    chooseNewest(parse(version), versions.map(parse): _*).toString()
+    chooseNewest(parse(version), versions.map(parse)*).toString()
 
   def chooseNewest(
       version: Version,

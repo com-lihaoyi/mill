@@ -1,6 +1,6 @@
 package mill.scalajslib
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -53,7 +53,7 @@ object EsModuleRemapTests extends TestSuite {
     test("should remap the esmodule") {
       val evaluator = UnitTester(EsModuleRemap, millSourcePath)
       val Right(result) =
-        evaluator(EsModuleRemap.fastLinkJS)
+        evaluator(EsModuleRemap.fastLinkJS): @unchecked
       val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 1)
       val main = publicModules.head
@@ -66,7 +66,7 @@ object EsModuleRemapTests extends TestSuite {
 
     test("should throw for older scalaJS versions") {
       val evaluator = UnitTester(EsModuleRemap, millSourcePath)
-      val Left(Result.Exception(ex, _)) = evaluator(OldJsModule.fastLinkJS)
+      val Left(ExecResult.Exception(ex, _)) = evaluator(OldJsModule.fastLinkJS): @unchecked
       val error = ex.getMessage
       assert(error == "scalaJSImportMap is not supported with Scala.js < 1.16.")
     }

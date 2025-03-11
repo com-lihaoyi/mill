@@ -33,26 +33,29 @@ trait JmhModule extends JavaModule {
   def jmhCoreVersion: T[String]
   def jmhGeneratorByteCodeVersion: T[String] = jmhCoreVersion
 
-  def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
+  def ivyDeps = super.ivyDeps() ++ Seq(ivy"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
 
   def runJmh(args: String*) =
     Task.Command {
       val (_, resources) = generateBenchmarkSources()
-      Jvm.runSubprocess(
-        "org.openjdk.jmh.Main",
+      Jvm.callProcess(
+        mainClass = "org.openjdk.jmh.Main",
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
           Seq(compileGeneratedSources().path, resources),
         mainArgs = args,
-        workingDir = T.ctx().dest,
-        javaHome = zincWorker().javaHome().map(_.path)
+        cwd = Task.ctx().dest,
+        javaHome = zincWorker().javaHome().map(_.path),
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
+      ()
     }
 
-  def listJmhBenchmarks(args: String*) = runJmh(("-l" +: args): _*)
+  def listJmhBenchmarks(args: String*) = runJmh(("-l" +: args)*)
 
   def compileGeneratedSources =
     Task {
-      val dest = T.ctx().dest
+      val dest = Task.ctx().dest
       val (sourcesDir, _) = generateBenchmarkSources()
       val sources = os.walk(sourcesDir).filter(os.isFile)
 
@@ -72,7 +75,7 @@ trait JmhModule extends JavaModule {
   // returns sources and resources directories
   def generateBenchmarkSources =
     Task {
-      val dest = T.ctx().dest
+      val dest = Task.ctx().dest
       val forkedArgs = forkArgs().toSeq
       val sourcesDir = dest / "jmh_sources"
       val resourcesDir = dest / "jmh_resources"
@@ -82,9 +85,9 @@ trait JmhModule extends JavaModule {
       os.remove.all(resourcesDir)
       os.makeDir.all(resourcesDir)
 
-      Jvm.runSubprocess(
-        "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
-        (runClasspath() ++ generatorDeps()).map(_.path),
+      Jvm.callProcess(
+        mainClass = "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
+        classPath = (runClasspath() ++ generatorDeps()).map(_.path),
         mainArgs = Seq(
           compile().classes.path.toString,
           sourcesDir.toString,
@@ -92,7 +95,9 @@ trait JmhModule extends JavaModule {
           "default"
         ),
         javaHome = zincWorker().javaHome().map(_.path),
-        jvmArgs = forkedArgs
+        jvmArgs = forkedArgs,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
 
       (sourcesDir, resourcesDir)
@@ -100,7 +105,7 @@ trait JmhModule extends JavaModule {
 
   def generatorDeps = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
+      Seq(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
     )
   }
 }

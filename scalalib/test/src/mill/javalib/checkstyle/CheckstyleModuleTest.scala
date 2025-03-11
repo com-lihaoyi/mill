@@ -2,6 +2,7 @@ package mill.javalib.checkstyle
 
 import mill._
 import mainargs.Leftover
+import mill.define.Discover
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest._
@@ -139,13 +140,14 @@ object CheckstyleModuleTest extends TestSuite {
       override def checkstyleFormat: T[String] = format
       override def checkstyleOptions: T[Seq[String]] = options
       override def checkstyleVersion: T[String] = version
+      lazy val millDiscover = Discover[this.type]
     }
 
     testModule(
       module,
       modulePath,
       violations,
-      CheckstyleArgs(check, stdout, Leftover(sources: _*))
+      CheckstyleArgs(check, stdout, Leftover(sources*))
     )
   }
 
@@ -165,33 +167,31 @@ object CheckstyleModuleTest extends TestSuite {
       override def checkstyleOptions: T[Seq[String]] = options
       override def checkstyleVersion: T[String] = version
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
+      lazy val millDiscover = Discover[this.type]
     }
 
     testModule(
       module,
       modulePath,
       violations,
-      CheckstyleArgs(check, stdout, Leftover(sources: _*))
+      CheckstyleArgs(check, stdout, Leftover(sources*))
     )
   }
 
   def testModule(
-      module: TestBaseModule with CheckstyleModule,
+      module: TestBaseModule & CheckstyleModule,
       modulePath: os.Path,
       violations: Seq[String],
       args: CheckstyleArgs
   ): Boolean = {
     val eval = UnitTester(module, modulePath)
     eval(module.checkstyle(args)).fold(
-      {
-        case api.Result.Exception(cause, _) => throw cause
-        case failure => throw failure
-      },
+      _.throwException,
       numViolations => {
 
         numViolations.value == violations.length && {
 
-          val Right(report) = eval(module.checkstyleOutput)
+          val Right(report) = eval(module.checkstyleOutput): @unchecked
 
           if (os.exists(report.value.path)) {
             violations.isEmpty || {

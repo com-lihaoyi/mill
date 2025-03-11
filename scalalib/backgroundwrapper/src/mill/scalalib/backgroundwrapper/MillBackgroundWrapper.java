@@ -2,10 +2,7 @@ package mill.scalalib.backgroundwrapper;
 
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 
 public class MillBackgroundWrapper {
   public static void main(String[] args) throws Exception {
@@ -55,6 +52,27 @@ public class MillBackgroundWrapper {
     // Actually start the Java main method we wanted to run in the background
     String realMain = args[4];
     String[] realArgs = java.util.Arrays.copyOfRange(args, 5, args.length);
-    Class.forName(realMain).getMethod("main", String[].class).invoke(null, (Object) realArgs);
+    if (!realMain.equals("<subprocess>")) {
+      Class.forName(realMain).getMethod("main", String[].class).invoke(null, (Object) realArgs);
+    } else {
+      Process subprocess = new ProcessBuilder().command(realArgs).inheritIO().start();
+
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        subprocess.destroy();
+
+        long now = System.currentTimeMillis();
+
+        while (subprocess.isAlive() && System.currentTimeMillis() - now < 100) {
+          try {
+            Thread.sleep(1);
+          } catch (InterruptedException e) {
+          }
+          if (subprocess.isAlive()) {
+            subprocess.destroyForcibly();
+          }
+        }
+      }));
+      System.exit(subprocess.waitFor());
+    }
   }
 }

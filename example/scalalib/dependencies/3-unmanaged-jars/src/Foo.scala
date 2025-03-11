@@ -2,7 +2,7 @@ package foo
 
 import com.grack.nanojson.JsonParser
 import com.grack.nanojson.JsonObject
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 object Foo {
 
   def main(args: Array[String]): Unit = {

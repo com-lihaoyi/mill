@@ -1,15 +1,15 @@
 package mill.playlib
 
 import mill.api.PathRef
-import mill.util.Util.millProjectModule
+import mill.util.MillModuleUtil.millProjectModule
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
 import mill.scalalib.api._
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 
 trait RouterModule extends ScalaModule with Version {
 
-  def routes: T[Seq[PathRef]] = Task.Sources { millSourcePath / "routes" }
+  def routes: T[Seq[PathRef]] = Task.Sources { "routes" }
 
   def routeFiles = Task {
     val paths = routes().flatMap(file => os.walk(file.path))
@@ -45,15 +45,15 @@ trait RouterModule extends ScalaModule with Version {
    */
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
-  def routerClasspath: T[Agg[PathRef]] = Task {
+  def routerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       playMinorVersion() match {
         case "2.6" | "2.7" | "2.8" =>
-          Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}")
+          Seq(ivy"com.typesafe.play::routes-compiler:${playVersion()}")
         case "2.9" =>
-          Agg(ivy"com.typesafe.play::play-routes-compiler:${playVersion()}")
+          Seq(ivy"com.typesafe.play::play-routes-compiler:${playVersion()}")
         case _ =>
-          Agg(ivy"org.playframework::play-routes-compiler:${playVersion()}")
+          Seq(ivy"org.playframework::play-routes-compiler:${playVersion()}")
       }
     )
   }
@@ -61,7 +61,7 @@ trait RouterModule extends ScalaModule with Version {
   protected val routeCompilerWorker: RouteCompilerWorkerModule = RouteCompilerWorkerModule
 
   def compileRouter: T[CompilationResult] = Task(persistent = true) {
-    T.log.debug(s"compiling play routes with ${playVersion()} worker")
+    Task.log.debug(s"compiling play routes with ${playVersion()} worker")
     routeCompilerWorker.routeCompilerWorker().compile(
       routerClasspath = playRouterToolsClasspath(),
       files = routeFiles().map(_.path),
@@ -70,7 +70,7 @@ trait RouterModule extends ScalaModule with Version {
       reverseRouter = generateReverseRouter,
       namespaceReverseRouter = namespaceReverseRouter,
       generatorType = generatorType,
-      dest = T.dest
+      dest = Task.dest
     )
   }
 
@@ -81,7 +81,7 @@ trait RouterModule extends ScalaModule with Version {
       artifactSuffix = playMinorVersion() match {
         case "2.6" => "_2.12"
         case "2.7" | "2.8" => "_2.13"
-        case _ => "_2.13"
+        case _ => "_3"
       }
     )
   }

@@ -1,8 +1,11 @@
 package mill.scalalib
 
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
+import mill.main.TokenReaders._
+
 object ScalaFlagsTests extends TestSuite {
 
   object HelloWorldFlags extends TestBaseModule {
@@ -13,6 +16,8 @@ object ScalaFlagsTests extends TestSuite {
         "-Ypartial-unification"
       )
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
@@ -23,7 +28,7 @@ object ScalaFlagsTests extends TestSuite {
         HelloWorldFlags,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-flags"
       ).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldFlags.core.runMain("Main"))
+        val Right(result) = eval.apply(HelloWorldFlags.core.runMain("Main")): @unchecked
         assert(result.evalCount > 0)
       }
       // make sure flags are passed during ScalaDoc generation
@@ -31,7 +36,7 @@ object ScalaFlagsTests extends TestSuite {
         HelloWorldFlags,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-flags"
       ).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldFlags.core.docJar)
+        val Right(result) = eval.apply(HelloWorldFlags.core.docJar): @unchecked
         assert(result.evalCount > 0)
       }
     }

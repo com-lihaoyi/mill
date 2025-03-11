@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.main.client.OutFiles
+import mill.constants.OutFiles
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
@@ -14,12 +14,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       import tester._
 
       val res = eval(("--ticker", "false", "run", "--text", "hello"))
+
       res.isSuccess ==> true
       assert(res.out == "<h1>hello</h1>")
       assert(
         res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n") ==
-          s"""[build.mill] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
-             |[build.mill] [info] done compiling
+          s"""[info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+             |[info] done compiling
              |[info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
              |[info] done compiling""".stripMargin.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
       )
@@ -34,7 +35,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       val expectedErrorRegex = java.util.regex.Pattern
         .quote(
           s"""<dashes> run --text hello <dashes>
-             |<dashes>
              |[build.mill-<digits>/<digits>] compile
              |[build.mill-<digits>] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
              |[build.mill-<digits>] [info] done compiling
@@ -42,8 +42,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
              |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
              |[<digits>] [info] done compiling
              |[<digits>/<digits>] run
-             |[<digits>/<digits>] <dashes> run --text hello <dashes> <digits>s
-             |<dashes>"""
+             |[<digits>/<digits>] <dashes> run --text hello <dashes> <digits>s"""
             .stripMargin
             .replaceAll("(\r\n)|\r", "\n")
             .replace('\\', '/')
@@ -51,7 +50,38 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         .replace("<digits>", "\\E\\d+\\Q")
         .replace("<dashes>", "\\E=+\\Q")
 
-      assert(expectedErrorRegex.r.matches(res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")))
+      val normErr = res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
+      assert(expectedErrorRegex.r.matches(normErr))
+    }
+    test("keepGoingFailure") - integrationTest { tester =>
+      import tester._
+
+      modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar")
+      val res = eval(("--ticker", "true", "--keep-going", "jar"))
+      res.isSuccess ==> false
+
+      val expectedErrorRegex = java.util.regex.Pattern
+        .quote(
+          s"""<dashes> jar <dashes>
+             |[build.mill-<digits>/<digits>] compile
+             |[build.mill-<digits>] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+             |[build.mill-<digits>] [info] done compiling
+             |[<digits>/<digits>] compile
+             |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
+             |[<digits>] [error] ${tester.workspacePath}/src/foo/Foo.java:36:10: reached end of file while parsing
+             |[<digits>] compile failed
+             |[<digits>/<digits>, 1 failed] <dashes> jar <dashes> <digits>s
+             |1 tasks failed
+             |compile javac returned non-zero exit code"""
+            .stripMargin
+            .replaceAll("(\r\n)|\r", "\n")
+            .replace('\\', '/')
+        )
+        .replace("<digits>", "\\E\\d+\\Q")
+        .replace("<dashes>", "\\E=+\\Q")
+
+      val normErr = res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
+      assert(expectedErrorRegex.r.matches(normErr))
     }
     test("show") - integrationTest { tester =>
       import tester._

@@ -5,13 +5,13 @@ import scalatags.Text.all._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.4"
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}",
     ivy"com.lihaoyi::os-lib:0.10.7"
   )
 
   def htmlSnippet = Task { h1("hello").toString }
-  def resources = Task.Sources {
+  def resources = Task {
     os.write(Task.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(Task.dest))
   }

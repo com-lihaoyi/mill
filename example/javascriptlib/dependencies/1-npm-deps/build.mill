@@ -1,0 +1,16 @@
+package build
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+  def npmDeps = Seq("lodash@4.17.21")
+  def npmDevDeps = Seq("@types/lodash@4.17.13")
+}
+
+// You can define `npmDeps` field to add dependencies to your module and
+// define `npmDevDeps` field to add dev dependencies to your module, which will be installed
+// via configured registry.
+
+/** Usage
+> mill foo.run e b k a l m o p
+Sorted with lodash: [a,b,e,k,l,m,o,p]
+*/

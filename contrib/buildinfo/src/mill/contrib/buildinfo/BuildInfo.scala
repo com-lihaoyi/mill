@@ -36,8 +36,8 @@ trait BuildInfo extends JavaModule {
   def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
 
   def resources: T[Seq[PathRef]] =
-    if (buildInfoStaticCompiled) super.resources
-    else Task.Sources { super.resources() ++ Seq(buildInfoResources()) }
+    if (buildInfoStaticCompiled) Task { super.resources() }
+    else Task { super.resources() ++ Seq(buildInfoResources()) }
 
   def buildInfoResources = Task {
     val p = new java.util.Properties
@@ -45,7 +45,7 @@ trait BuildInfo extends JavaModule {
 
     val subPath = os.SubPath(buildInfoPackageName.replace('.', '/'))
     val stream = os.write.outputStream(
-      T.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
+      Task.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
       createFolders = true
     )
 
@@ -54,7 +54,7 @@ trait BuildInfo extends JavaModule {
       s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}"
     )
     stream.close()
-    PathRef(T.dest)
+    PathRef(Task.dest)
   }
 
   private def isScala = this.isInstanceOf[ScalaModule]
@@ -82,11 +82,11 @@ trait BuildInfo extends JavaModule {
       val ext = if (isScala) "scala" else "java"
 
       os.write(
-        T.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
+        Task.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
         code,
         createFolders = true
       )
-      Seq(PathRef(T.dest))
+      Seq(PathRef(Task.dest))
     }
   }
 }

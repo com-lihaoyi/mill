@@ -9,7 +9,7 @@ import mill.scalalib.Lib
 import mill.scalalib.api.CompilationResult
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import mill.{Agg, Args, T}
+import mill.{Args, T}
 import sbt.testing.Status
 import upickle.default.{macroRW, ReadWriter => RW}
 
@@ -62,20 +62,20 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
-  override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
-    Agg(
+  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
+    Seq(
       ivy"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
     )
   }
 
-  override def transitiveCompileClasspath: T[Agg[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(m =>
+  override def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
+    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         val transitiveModuleArtifactPath =
           if (m.isInstanceOf[KotlinJsModule] && m != friendModule.orNull) {
             m.asInstanceOf[KotlinJsModule].klib()
           } else m.compile().classes
-        m.localCompileClasspath() ++ Agg(transitiveModuleArtifactPath)
+        m.localCompileClasspath() ++ Seq(transitiveModuleArtifactPath)
       }
     )().flatten
   }
@@ -97,7 +97,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       splitPerModule = splitPerModule(),
       esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
-      destinationRoot = T.dest,
+      destinationRoot = Task.dest,
       artifactId = artifactId(),
       explicitApi = kotlinExplicitApi(),
       extraKotlinArgs = kotlincOptions(),
@@ -116,9 +116,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
       binaryDir = linkBinary().classes.path,
       runTarget = kotlinJsRunTarget(),
       artifactId = artifactId(),
-      envArgs = T.env,
-      workingDir = T.dest
-    ).map(_ => ()).getOrThrow
+      envArgs = Task.env,
+      workingDir = Task.dest
+    ).map(_ => ()).get
   }
 
   override def runMainLocal(
@@ -153,7 +153,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       moduleKind == ModuleKind.NoModule &&
       binaryDir.toIO.listFiles().count(_.getName.endsWith(".js")) > 1
     ) {
-      T.log.info("No module type is selected for the executable, but multiple .js files found in the output folder." +
+      Task.log.warn("No module type is selected for the executable, but multiple .js files found in the output folder." +
         " This will probably lead to the dependency resolution failure.")
     }
 
@@ -161,15 +161,18 @@ trait KotlinJsModule extends KotlinModule { outer =>
       case Some(RunTarget.Node) =>
         val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
           .toIO.getAbsolutePath
-        Jvm.runSubprocessWithResult(
-          commandArgs = Seq(
-            "node"
-          ) ++ args.value ++ Seq(binaryPath),
-          envArgs = envArgs,
-          workingDir = workingDir
+        val processResult = os.call(
+          cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
+          env = envArgs,
+          cwd = workingDir,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          check = false
         )
-      case Some(x) =>
-        Result.Failure(s"Run target $x is not supported")
+        if (processResult.exitCode == 0) Result.Success(processResult.exitCode)
+        else Result.Failure(
+          "Interactive Subprocess Failed (exit code " + processResult.exitCode + ")"
+        )
       case None =>
         Result.Failure("Executable binary should have a run target selected.")
     }
@@ -194,7 +197,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       splitPerModule = splitPerModule(),
       esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
-      destinationRoot = T.dest,
+      destinationRoot = Task.dest,
       artifactId = artifactId(),
       explicitApi = kotlinExplicitApi(),
       extraKotlinArgs = kotlincOptions() ++ extraKotlinArgs,
@@ -221,7 +224,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       splitPerModule = splitPerModule(),
       esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
-      destinationRoot = T.dest,
+      destinationRoot = Task.dest,
       artifactId = artifactId(),
       explicitApi = kotlinExplicitApi(),
       extraKotlinArgs = kotlincOptions(),
@@ -234,11 +237,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * without those from upstream modules and dependencies
    */
   def klib: T[PathRef] = Task {
-    val outputPath = T.dest / s"${artifactId()}.klib"
+    val outputPath = Task.dest / s"${artifactId()}.klib"
     Jvm.createJar(
       outputPath,
-      Agg(compile().classes.path),
-      mill.api.JarManifest.MillDefault,
+      Seq(compile().classes.path),
+      mill.util.JarManifest.MillDefault,
       fileFilter = (_, _) => true
     )
     PathRef(outputPath)
@@ -255,7 +258,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       outputMode: OutputMode,
       allKotlinSourceFiles: Seq[PathRef],
       irClasspath: Option[PathRef],
-      librariesClasspath: Agg[PathRef],
+      librariesClasspath: Seq[PathRef],
       callMain: Boolean,
       moduleKind: ModuleKind,
       produceSourceMaps: Boolean,
@@ -278,8 +281,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     if (!versionAllowed) {
       // have to put this restriction, because for older versions some compiler options either didn't exist or
       // had different names. It is possible to go to the lower version supported with a certain effort.
-      ctx.log.error("Minimum supported Kotlin version for JS target is 1.8.20.")
-      return Result.Aborted
+      return Result.Failure("Minimum supported Kotlin version for JS target is 1.8.20.")
     }
 
     // compiler options references:
@@ -309,6 +311,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           case ModuleKind.PlainModule => "plain"
           case ModuleKind.ESModule => "es"
           case ModuleKind.CommonJSModule => "commonjs"
+          case ModuleKind.NoModule => ???
         }
       )
     }
@@ -382,15 +385,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     val compileDestination = os.Path(outputArgs.last)
     if (irClasspath.isEmpty) {
-      T.log.info(
+      Task.log.info(
         s"Compiling ${allKotlinSourceFiles.size} Kotlin sources to $compileDestination ..."
       )
     } else {
-      T.log.info(s"Linking IR to $compileDestination")
+      Task.log.info(s"Linking IR to $compileDestination")
     }
     val workerResult = worker.compile(KotlinWorkerTarget.Js, compilerArgs)
 
-    val analysisFile = T.dest / "kotlin.analysis.dummy"
+    val analysisFile = Task.dest / "kotlin.analysis.dummy"
     if (!os.exists(analysisFile)) {
       os.write(target = analysisFile, data = "", createFolders = true)
     }
@@ -402,13 +405,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
 
     workerResult match {
-      case Result.Success(_) =>
-        CompilationResult(analysisFile, PathRef(artifactLocation))
-      case Result.Failure(reason, _) =>
-        Result.Failure(reason, Some(CompilationResult(analysisFile, PathRef(artifactLocation))))
-      case e: Result.Exception => e
-      case Result.Aborted => Result.Aborted
-      case Result.Skipped => Result.Skipped
+      case Result.Success(_) => CompilationResult(analysisFile, PathRef(artifactLocation))
+      case Result.Failure(reason) => Result.Failure(reason)
     }
   }
 
@@ -434,11 +432,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
           .anyMatch(entry => entry.getName.endsWith(".meta.js") || entry.getName.endsWith(".kjsm"))
       } catch {
         case e: Throwable =>
-          T.log.error(s"Couldn't open ${path.toIO.getAbsolutePath} as archive.\n${e.toString}")
+          Task.log.error(s"Couldn't open ${path.toIO.getAbsolutePath} as archive.\n${e.toString}")
           false
       }
     } else {
-      T.log.debug(s"${path.toIO.getAbsolutePath} is not a Kotlin/JS library, ignoring it.")
+      Task.log.debug(s"${path.toIO.getAbsolutePath} is not a Kotlin/JS library, ignoring it.")
       false
     }
   }
@@ -474,23 +472,25 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO may be optimized if there is a single folder for all modules
     // but may be problematic if modules use different NPM packages versions
     private def nodeModulesDir = Task(persistent = true) {
-      Jvm.runSubprocess(
-        commandArgs = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
-        envArgs = T.env,
-        workingDir = T.dest
+      os.call(
+        cmd = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
+        env = Task.env,
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     // NB: for the packages below it is important to use specific version
     // otherwise with random versions there is a possibility to have conflict
     // between the versions of the shared transitive deps
     private def mochaModule = Task {
-      PathRef(nodeModulesDir().path / "node_modules" / "mocha" / "bin" / "mocha.js")
+      PathRef(nodeModulesDir().path / "node_modules/mocha/bin/mocha.js")
     }
 
     private def sourceMapSupportModule = Task {
-      PathRef(nodeModulesDir().path / "node_modules" / "source-map-support" / "register.js")
+      PathRef(nodeModulesDir().path / "node_modules/source-map-support/register.js")
     }
 
     // endregion
@@ -516,7 +516,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
       Task.Command {
-        this.test(args: _*)()
+        this.testForked(args*)()
       }
 
     override protected[js] def friendModule: Option[KotlinJsModule] = Some(outer)
@@ -551,14 +551,14 @@ trait KotlinJsModule extends KotlinModule { outer =>
         binaryDir = linkBinary().classes.path,
         runTarget = runTarget,
         artifactId = artifactId(),
-        envArgs = T.env,
-        workingDir = T.dest
+        envArgs = Task.env,
+        workingDir = Task.dest
       )
 
       // we don't care about the result returned above (because node will return exit code = 1 when tests fail), what
       // matters is if test results file exists
       val xmlReportName = testReportXml().getOrElse(defaultXmlReportName)
-      val xmlReportPath = T.dest / xmlReportName
+      val xmlReportPath = Task.dest / xmlReportName
       val testResults = parseTestResults(xmlReportPath)
       val totalCount = testResults.length
       val passedCount = testResults.count(_.status == Status.Success.name())
@@ -589,7 +589,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
              |${failedTests.mkString("\n")}
              |
              |""".stripMargin
-        Result.Failure(failureMessage, Some((doneMessage, testResults)))
+        Result.Failure(failureMessage)
       } else {
         Result.Success((doneMessage, testResults))
       }
@@ -612,7 +612,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
               val lines = content.split("\n")
               val exceptionMessage = lines.head
               val exceptionType = lines(1).splitAt(lines(1).indexOf(":"))._1
-              val trace = parseTrace(lines.drop(2))
+              val trace = parseTrace(lines.toIndexedSeq.drop(2))
               (Status.Failure, Some(exceptionType), Some(exceptionMessage), Some(trace))
             } else if (node.child.exists(_.label == "skipped")) {
               (Status.Skipped, None, None, None)
@@ -670,7 +670,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Run tests for Kotlin/JS target using `kotlin.test` package.
    */
   trait KotlinTestPackageTests extends KotlinJsTests {
-    override def ivyDeps = Agg(
+    override def ivyDeps = Seq(
       ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
   }
@@ -684,7 +684,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     private def kotestProcessor = Task {
       defaultResolver().resolveDeps(
-        Agg(
+        Seq(
           ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
         )
       ).head
@@ -694,7 +694,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       s"-Xplugin=${kotestProcessor().path}"
     )
 
-    override def ivyDeps = Agg(
+    override def ivyDeps = Seq(
       ivy"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
       ivy"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
     )

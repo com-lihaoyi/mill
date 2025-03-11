@@ -22,11 +22,12 @@ trait ReactScriptsModule extends TypeScriptModule {
       "@testing-library/jest-dom@5.17.0",
       "@testing-library/react@16.0.1",
       "@testing-library/user-event@13.5.0",
-      "@types/jest@27.5.2"
+      "@types/jest@27.5.2",
+      "@babel/plugin-proposal-private-property-in-object@7.21.11"
     )
   }
 
-  override def sources: Target[PathRef] = Task.Source(millSourcePath)
+  override def sources: Target[Seq[PathRef]] = Task.Sources(moduleDir)
 
   def packageJestOptions: Target[ujson.Obj] = Task {
     ujson.Obj(
@@ -41,7 +42,7 @@ trait ReactScriptsModule extends TypeScriptModule {
     )
   }
 
-  override def compilerOptions: Task[Map[String, ujson.Value]] = Task.Anon {
+  override def compilerOptions: T[Map[String, ujson.Value]] = Task {
     Map(
       "declaration" -> ujson.Bool(false),
       "typeRoots" -> ujson.Arr(),
@@ -63,8 +64,8 @@ trait ReactScriptsModule extends TypeScriptModule {
     )
   }
 
-  override def compilerOptionsPaths: Task[Map[String, String]] =
-    Task.Anon { Map("app/*" -> "src/app/*") }
+  override def compilerOptionsPaths: T[Map[String, String]] =
+    Task { Map("app/*" -> "src/app/*") }
 
   override def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
     val npm = npmInstall().path
@@ -83,7 +84,7 @@ trait ReactScriptsModule extends TypeScriptModule {
   // build react project via react scripts
   override def compile: T[(PathRef, PathRef)] = Task {
     // copy src files
-    os.copy(sources().path, Task.dest, mergeFolders = true)
+    sources().foreach(source => os.copy(source.path, Task.dest, mergeFolders = true))
     copyNodeModules()
 
     // mk tsconfig.json
@@ -91,7 +92,7 @@ trait ReactScriptsModule extends TypeScriptModule {
       Task.dest / "tsconfig.json",
       ujson.Obj(
         "compilerOptions" -> ujson.Obj.from(compilerOptionsBuilder().toSeq),
-        "include" -> ujson.Arr((sources().path / "src").toString)
+        "include" -> ujson.Arr(sources().map(source => (source.path / "src").toString))
       )
     )
 
@@ -107,17 +108,17 @@ trait ReactScriptsModule extends TypeScriptModule {
   override def bundle: Target[PathRef] = Task {
     val compiled = compile()._1.path
     os.call(
-      ("node", compiled / "node_modules" / "react-scripts" / "bin" / "react-scripts.js", "build"),
+      ("node", compiled / "node_modules/react-scripts/bin/react-scripts.js", "build"),
       cwd = compiled,
       stdout = os.Inherit,
-      env = mkENV()
+      env = forkEnv()
     )
 
     compile()._2
   }
 
-  override def mkENV =
-    Task.Anon {
+  override def forkEnv =
+    Task {
       Map("NODE_PATH" -> Seq(
         ".",
         compile()._1.path,
@@ -141,13 +142,13 @@ trait ReactScriptsModule extends TypeScriptModule {
     os.call(
       (
         "node",
-        (compiled / "node_modules" / "react-scripts" / "bin" / "react-scripts.js").toString,
+        (compiled / "node_modules/react-scripts/bin/react-scripts.js").toString,
         "test",
         "--watchAll=false"
       ),
       cwd = compiled,
       stdout = os.Inherit,
-      env = mkENV()
+      env = forkEnv()
     )
   }
 

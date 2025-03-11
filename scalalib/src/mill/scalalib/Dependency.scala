@@ -1,8 +1,7 @@
 package mill.scalalib
 
-import mill.Task
-import mill.define.{Command, Discover, ExternalModule}
-import mill.eval.Evaluator
+import mill.{Task, given}
+import mill.define.{Command, Discover, Evaluator, ExternalModule}
 import mill.scalalib.dependency.{DependencyUpdatesImpl, Format}
 import mill.scalalib.dependency.updates.ModuleDependenciesUpdates
 
@@ -13,12 +12,12 @@ object Dependency extends ExternalModule {
       ev: Evaluator,
       allowPreRelease: Boolean = false
   ): Command[Seq[ModuleDependenciesUpdates]] =
-    Task.Command {
+    Task.Command(exclusive = true) {
       DependencyUpdatesImpl(
         ev,
         implicitly,
         ev.rootModule,
-        ev.rootModule.millDiscover,
+        ev.rootModule.moduleCtx.discover,
         allowPreRelease
       )
     }
@@ -28,13 +27,9 @@ object Dependency extends ExternalModule {
       ev: Evaluator,
       allowPreRelease: Boolean = false,
       format: Format = Format.PerModule
-  ): Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command(exclusive = true) {
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)(), format)
   }
 
-  @deprecated("Use other overload instead", "Mill after 0.11.6")
-  def showUpdates(ev: Evaluator, allowPreRelease: Boolean): Command[Unit] =
-    Dependency.showUpdates(ev, allowPreRelease, Format.PerModule)
-
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }

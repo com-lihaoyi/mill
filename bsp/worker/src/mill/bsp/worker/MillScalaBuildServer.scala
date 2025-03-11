@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsParams,
   ScalacOptionsResult
 }
-import mill.{Agg, Task}
+import mill.Task
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.util.Jvm
 import mill.scalalib.{JavaModule, ScalaModule, TestModule, UnresolvedPath}
@@ -41,7 +41,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           val compileClasspathTask =
             if (enableJvmCompileClasspathProvider) {
               // We have a dedicated request for it
-              Task.Anon { Agg.empty[UnresolvedPath] }
+              Task.Anon { Seq.empty[UnresolvedPath] }
             } else {
               m.bspCompileClasspath
             }
@@ -66,15 +66,15 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             m: JavaModule,
             (allScalacOptions, compileClasspath, classesPathTask)
           ) =>
-        val pathResolver = ev.pathsResolver
         new ScalacOptionsItem(
           id,
           allScalacOptions.asJava,
           compileClasspath.iterator
-            .map(_.resolve(pathResolver))
+            .map(_.resolve(ev.outPath))
             .map(sanitizeUri).toSeq.asJava,
-          sanitizeUri(classesPathTask.resolve(pathResolver))
+          sanitizeUri(classesPathTask.resolve(ev.outPath))
         )
+      case _ => ???
     } {
       new ScalacOptionsResult(_)
     }
@@ -118,22 +118,19 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       }
     ) {
       case (ev, state, id, m: TestModule, Some((classpath, testFramework, testClasspath))) =>
-        val (frameworkName, classFingerprint): (String, Agg[(Class[_], Fingerprint)]) =
-          Jvm.inprocess(
-            classpath.map(_.path),
-            classLoaderOverrideSbtTesting = true,
-            isolated = true,
-            closeContextClassLoaderWhenDone = false,
-            cl => {
-              val framework = Framework.framework(testFramework)(cl)
-              val discoveredTests = TestRunnerUtils.discoverTests(
-                cl,
-                framework,
-                Agg.from(testClasspath.map(_.path))
-              )
-              (framework.name(), discoveredTests)
-            }
-          )(new mill.api.Ctx.Home { def home = os.home })
+        val (frameworkName, classFingerprint): (String, Seq[(Class[?], Fingerprint)]) =
+          Jvm.withClassLoader(
+            classPath = classpath.map(_.path).toVector,
+            sharedPrefixes = Seq("sbt.testing.")
+          ) { classLoader =>
+            val framework = Framework.framework(testFramework)(classLoader)
+            val discoveredTests = TestRunnerUtils.discoverTests(
+              classLoader,
+              framework,
+              Seq.from(testClasspath.map(_.path))
+            )
+            (framework.name(), discoveredTests)
+          }: @unchecked
         val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
         new ScalaTestClassesItem(id, classes.asJava).tap { it =>
           it.setFramework(frameworkName)

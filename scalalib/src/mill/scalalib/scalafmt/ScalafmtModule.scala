@@ -1,10 +1,12 @@
 package mill.scalalib.scalafmt
 
-import mill._
-import mill.main.client.CodeGenConstants.buildFileExtensions
+import scala.jdk.CollectionConverters.CollectionHasAsScala
+
+import mill.*
+import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.api.Result
 import mill.define.{Discover, ExternalModule}
-import mill.scalalib._
+import mill.scalalib.*
 import mainargs.arg
 import mill.main.Tasks
 
@@ -29,7 +31,7 @@ trait ScalafmtModule extends JavaModule {
   }
 
   def scalafmtConfig: T[Seq[PathRef]] = Task.Sources(
-    T.workspace / ".scalafmt.conf",
+    Task.workspace / ".scalafmt.conf",
     os.pwd / ".scalafmt.conf"
   )
 
@@ -58,7 +60,7 @@ trait ScalafmtModule extends JavaModule {
       file <- {
         if (os.isDir(pathRef.path)) {
           os.walk(pathRef.path).filter(file =>
-            os.isFile(file) && (file.ext == "scala" || buildFileExtensions.exists(ex =>
+            os.isFile(file) && (file.ext == "scala" || buildFileExtensions.asScala.exists(ex =>
               file.last.endsWith(s".$ex")
             ))
           )
@@ -77,7 +79,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")) =
     Task.Command {
-      val files = T.sequence(sources.value)().flatMap(filesToFormat)
+      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .reformat(
@@ -86,10 +88,11 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
         )
     }
 
-  def checkFormatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
-    Tasks.resolveMainDefault("__.sources")): Command[Unit] =
+  def checkFormatAll(
+      @arg(positional = true) sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources")
+  ): Command[Unit] =
     Task.Command {
-      val files = T.sequence(sources.value)().flatMap(filesToFormat)
+      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .checkFormat(
@@ -98,5 +101,5 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
         )
     }
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }

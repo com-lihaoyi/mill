@@ -31,7 +31,7 @@ object OutputPatternsTests extends TestSuite {
   val tests: Tests = Tests {
     test("output patterns") {
       val Right(result) =
-        evaluator(OutputPatternsModule.build.fastLinkJS)
+        evaluator(OutputPatternsModule.build.fastLinkJS): @unchecked
       val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 1)
       val main = publicModules(0)

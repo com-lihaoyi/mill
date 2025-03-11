@@ -19,7 +19,7 @@ object foo extends JavaModule {
     )
   }
 
-  def resources = Task.Sources {
+  def resources = Task {
     os.write(Task.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(Task.dest))
   }

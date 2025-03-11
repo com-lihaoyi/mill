@@ -8,5 +8,6 @@ public class Foo {
     InputStream inputStream = Foo.class.getClassLoader().getResourceAsStream("application.conf");
     String conf = new String(inputStream.readAllBytes());
     System.out.println("Loaded application.conf from resources: " + conf);
+    System.out.println("Loaded test.property: " + System.getProperty("test.property"));
   }
 }

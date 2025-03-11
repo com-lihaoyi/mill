@@ -8,7 +8,7 @@ object BspInstallDebugTests extends UtestIntegrationTestSuite {
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
 
-  val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
+  val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", Constants.bspProtocolVersion)
   // we purposely enable debugging in this simulated test env
   override val debugLog: Boolean = true
 

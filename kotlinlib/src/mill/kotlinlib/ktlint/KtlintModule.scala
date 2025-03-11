@@ -1,10 +1,12 @@
 package mill.kotlinlib.ktlint
 
+import mainargs.arg
 import mill._
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.javalib.JavaModule
 import mill.kotlinlib.DepSyntax
+import mill.main.Tasks
 import mill.util.Jvm
 
 /**
@@ -16,15 +18,21 @@ trait KtlintModule extends JavaModule {
    * Runs [[https://pinterest.github.io/ktlint/latest/install/integrations/ Ktlint]]
    */
   def ktlint(@mainargs.arg ktlintArgs: KtlintArgs): Command[Unit] = Task.Command {
-    KtlintModule.ktlintAction(ktlintArgs, ktlintConfig(), ktlintOptions(), ktlintClasspath())
+    KtlintModule.ktlintAction(
+      ktlintArgs,
+      sources(),
+      ktlintConfig(),
+      ktlintOptions(),
+      ktlintClasspath()
+    )
   }
 
   /**
    * Classpath for running Ktlint.
    */
-  def ktlintClasspath: T[Loose.Agg[PathRef]] = Task {
+  def ktlintClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
+      Seq(ivy"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
     )
   }
 
@@ -53,19 +61,18 @@ trait KtlintModule extends JavaModule {
 object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
   override def defaultCommandName(): String = "reformatAll"
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   /**
    * Reformats Kotlin source files.
-   *
-   * @param check if an exception should be raised when formatting errors are found
-   *              - when set, files are not formatted
    */
   def reformatAll(
-      check: mainargs.Flag = mainargs.Flag(value = false)
+      @arg(positional = true) sources: Tasks[Seq[PathRef]] =
+        Tasks.resolveMainDefault("__.sources")
   ): Command[Unit] = Task.Command {
     ktlintAction(
-      KtlintArgs(format = true, check = check.value),
+      KtlintArgs(format = true, check = true),
+      Task.sequence(sources.value)().flatten,
       ktlintConfig(),
       ktlintOptions(),
       ktlintClasspath()
@@ -74,15 +81,14 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
 
   /**
    * Checks the Kotlin source files formatting without reformatting the files.
-   *
-   * @param check if an exception should be raised when formatting errors are found
-   *              - when set, files are not formatted
    */
   def checkFormatAll(
-      check: mainargs.Flag = mainargs.Flag(value = false)
+      @arg(positional = true) sources: Tasks[Seq[PathRef]] =
+        Tasks.resolveMainDefault("__.sources")
   ): Command[Unit] = Task.Command {
     ktlintAction(
-      KtlintArgs(format = false, check = check.value),
+      KtlintArgs(format = false, check = true),
+      Task.sequence(sources.value)().flatten,
       ktlintConfig(),
       ktlintOptions(),
       ktlintClasspath()
@@ -91,9 +97,10 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
 
   private def ktlintAction(
       ktlintArgs: KtlintArgs,
+      filesToFormat: Seq[PathRef],
       config: Option[PathRef],
       options: Seq[String],
-      classPath: Loose.Agg[PathRef]
+      classPath: Seq[PathRef]
   )(implicit ctx: api.Ctx): Unit = {
     if (ktlintArgs.check) {
       ctx.log.info("checking format in kotlin sources ...")
@@ -111,15 +118,21 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
     args ++= options
     args ++= configArgument
     args ++= formatArgument
+    args ++= filesToFormat.map(_.path)
+      .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
+      .map(_.toString())
 
-    val exitCode = Jvm.callSubprocess(
-      mainClass = "com.pinterest.ktlint.Main",
-      classPath = classPath.map(_.path),
-      mainArgs = args.result(),
-      workingDir = millSourcePath, // allow passing relative paths for sources like src/a/b
-      streamOut = true,
-      check = false
-    ).exitCode
+    val exitCode = os.checker.withValue(os.Checker.Nop) {
+      Jvm.callProcess(
+        mainClass = "com.pinterest.ktlint.Main",
+        classPath = classPath.map(_.path).toVector,
+        mainArgs = args.result(),
+        cwd = moduleDir,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = false
+      ).exitCode
+    }
 
     if (exitCode == 0) {} // do nothing
     else {

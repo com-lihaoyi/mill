@@ -1,0 +1,71 @@
+// You can use `pythonDeps` to declare dependencies in test modules,
+// and test modules can use their `moduleDeps` to also depend on each other
+
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+
+  def mainScript = Task.Source { "src/foo.py" }
+
+  def moduleDeps = Seq(bar)
+
+  def pythonDeps = Seq("jinja2==3.1.4")
+
+  object test extends PythonTests with TestModule.Unittest {
+    def moduleDeps = super.moduleDeps ++ Seq(bar.test)
+
+    def pythonDeps = Seq("MarkupSafe==3.0.2")
+
+  }
+
+}
+
+object bar extends PythonModule {
+
+  def mainScript = Task.Source { "src/bar.py" }
+
+  object test extends PythonTests with TestModule.Unittest
+
+}
+
+// In this example, not only does `foo` depend on `bar`, but we also make
+// `foo.test` depend on `bar.test`.
+//
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0]
+//   "bar" -> "bar.test" -> "foo.test"
+//   "bar" -> "foo" -> "foo.test"
+// }
+// ....
+//
+// That lets `foo.test` make use of the
+// `BarTestUtils` class that `bar.test` defines, allowing us to re-use this
+// test helper throughout multiple modules test suites
+
+/** Usage
+
+> ./mill foo.test
+...Using BarTestUtils.bar_assert_equals...
+...test_equal_string (test.TestScript...)...
+...ok...
+...Ran 1 test...
+...OK...
+
+> ./mill bar.test
+...Using BarTestUtils.bar_assert_equals...
+...test_mean (test.TestScript...)...
+...ok...
+...Ran 1 test...
+...OK...
+
+> ./mill foo.run
+<h1><XYZ></h1>
+
+> ./mill bar.run
+123
+
+*/

@@ -1,0 +1,13 @@
+= Multi-File Builds
+:page-aliases: Structuring_Large_Builds.adoc
+
+
+
+include::partial$example/large/multi/10-multi-file-builds.adoc[]
+
+== Helper Files
+
+include::partial$example/large/multi/11-helper-files.adoc[]
+
+
+

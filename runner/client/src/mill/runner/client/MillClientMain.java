@@ -3,13 +3,13 @@ package mill.runner.client;
 import static mill.runner.client.MillProcessLauncher.millOptsFile;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
-import mill.main.client.OutFiles;
-import mill.main.client.ServerCouldNotBeStarted;
-import mill.main.client.ServerLauncher;
-import mill.main.client.Util;
-import mill.main.client.lock.Locks;
+import mill.client.*;
+import mill.client.lock.Locks;
+import mill.constants.OutFiles;
+import mill.constants.Util;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
@@ -35,11 +35,11 @@ public class MillClientMain {
 
     if (runNoServer) {
       // start in no-server mode
-      MillNoServerLauncher.runMain(args);
+      System.exit(MillProcessLauncher.launchMillNoServer(args));
     } else
       try {
         // start in client-server mode
-        java.util.List<String> optsArgs = Util.readOptsFileLines(millOptsFile());
+        java.util.List<String> optsArgs = ClientUtil.readOptsFileLines(millOptsFile());
         Collections.addAll(optsArgs, args);
 
         ServerLauncher launcher =
@@ -57,12 +57,16 @@ public class MillClientMain {
               }
 
               public void preRun(Path serverDir) throws Exception {
-                MillProcessLauncher.runTermInfoThread(serverDir);
+                MillProcessLauncher.prepareMillRunFolder(serverDir);
               }
             };
-        int exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;
-        if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;
+
+        final String versionAndJvmHomeEncoding =
+            Util.md5hex(mill.client.BuildInfo.millVersion + MillProcessLauncher.javaHome());
+        Path serverDir0 = Paths.get(OutFiles.out, OutFiles.millServer, versionAndJvmHomeEncoding);
+        int exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
+        if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
+          exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
         }
         System.exit(exitCode);
       } catch (ServerCouldNotBeStarted e) {
@@ -71,14 +75,11 @@ public class MillClientMain {
             + "This could be caused by too many already running Mill instances "
             + "or by an unsupported platform.\n"
             + e.getMessage() + "\n");
-        if (MillNoServerLauncher.load().canLoad) {
-          System.err.println("Trying to run Mill in-process ...");
-          MillNoServerLauncher.runMain(args);
-        } else {
-          System.err.println(
-              "Loading Mill in-process isn't possible.\n" + "Please check your Mill installation!");
-          throw e;
-        }
+
+        System.err.println(
+            "Loading Mill in-process isn't possible.\n" + "Please check your Mill installation!");
+        throw e;
+
       } catch (Exception e) {
         System.err.println("Mill client failed with unknown exception");
         e.printStackTrace();

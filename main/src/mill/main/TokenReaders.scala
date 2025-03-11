@@ -1,35 +1,14 @@
 package mill.main
 
 import mainargs.TokensReader
-import mill.eval.Evaluator
-import mill.define.{Args, Target, Task}
-import mill.resolve.{Resolve, SelectMode}
+import mill.define.{Args, Evaluator, Task}
 import mill.resolve.SimpleTaskTokenReader
-
-case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
-
-object Tasks {
-  def resolveMainDefault[T](tokens: String*): Tasks[T] = {
-    new Tasks.TokenReader[T]()
-      .read(tokens)
-      .getOrElse(sys.error("Unable to resolve: " + tokens.mkString(" ")))
-  }
-  private[mill] class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
-    def shortName = "tasks"
-    def read(s: Seq[String]): Either[String, Tasks[T]] = {
-      Resolve.Tasks.resolve(
-        Evaluator.currentEvaluator.value.rootModule,
-        s,
-        SelectMode.Separated
-      ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]]))
-    }
-    override def alwaysRepeatable = false
-    override def allowEmpty = false
-  }
-}
+import mill.eval.EvaluatorProxy
 
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
-  def read(): Either[String, Evaluator] = Right(Evaluator.currentEvaluator.value)
+  def read(): Either[String, Evaluator] = Right(
+    new EvaluatorProxy(Evaluator.currentEvaluator)
+  )
 }
 private[mill] class AllEvaluatorsTokenReader[T]()
     extends mainargs.TokensReader.Constant[Evaluator.AllBootstrapEvaluators] {
@@ -37,10 +16,10 @@ private[mill] class AllEvaluatorsTokenReader[T]()
     Right(Evaluator.allBootstrapEvaluators.value)
 }
 
-private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
+private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, ?])
     extends mainargs.TokensReader.Leftover[Task[T], T] {
   def read(strs: Seq[String]): Either[String, Task[T]] =
-    tokensReaderOfT.read(strs).map(t => Target.task(t))
+    tokensReaderOfT.read(strs).map(t => mill.define.Task.Anon(t))
   def shortName = tokensReaderOfT.shortName
 }
 
@@ -69,5 +48,5 @@ trait TokenReaders0 {
     case t: TokensReader.Leftover[_, _] => new LeftoverTaskTokenReader[T](t)
   }
 
-  def given = () // dummy for scala 2/3 compat
+  def `given` = () // dummy for scala 2/3 compat
 }

@@ -4,14 +4,14 @@
 // and also escapes the input strings on your behalf:
 
 import mill._, scalalib._
-import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
+import $ivy.`com.lihaoyi::scalatags:0.13.1`, scalatags.Text.all._
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7")
+  def ivyDeps = Seq(ivy"com.lihaoyi::os-lib:0.10.7")
   def htmlSnippet = Task { div(h1("hello"), p("world")).toString }
-  def resources = Task.Sources {
+  def resources = Task {
     os.write(Task.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(Task.dest))
   }

@@ -1,10 +1,17 @@
 package mill.testkit
-import mill.api.Retry
-import mill.main.client.OutFiles.{millServer, out}
-import mill.main.client.ServerFiles.serverId
+import mill.constants.OutFiles.{millServer, millNoServer, out}
+import mill.constants.ServerFiles.processId
+import mill.util.Retry
 
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
+  def clientServerMode: Boolean
+
+  def propagateJavaHome: Boolean
+
+  def millTestSuiteEnv: Map[String, String] =
+    if (propagateJavaHome) Map("JAVA_HOME" -> sys.props("java.home"))
+    else Map()
 
   /**
    * The working directory of the integration test suite, which is the root of the
@@ -57,15 +64,13 @@ trait IntegrationTesterBase {
   /**
    * Remove any ID files to try and force them to exit
    */
-  def removeServerIdFile(): Unit = {
+  def removeProcessIdFile(): Unit = {
     val outDir = os.Path(out, workspacePath)
     if (os.exists(outDir)) {
-      val serverIdFiles = for {
-        outPath <- os.list.stream(outDir)
-        if outPath.last.startsWith(millServer)
-      } yield outPath / serverId
+      val serverPath0 = outDir / (if (clientServerMode) millServer else millNoServer)
 
-      serverIdFiles.foreach(os.remove(_))
+      for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / processId)
+
       Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
     }
   }

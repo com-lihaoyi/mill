@@ -3,22 +3,22 @@ package mill.scalalib
 import coursier.maven.MavenRepository
 import mill.api.Result.{Failure, Success}
 import mill.api.{PathRef, Result}
-import mill.api.Loose.Agg
-import mill.define.Task
-import mill.testkit.{UnitTester, TestBaseModule}
-import utest._
 
+import mill.define.{Discover, Task}
+import mill.testkit.{TestBaseModule, UnitTester}
+import utest.*
+import mill.main.TokenReaders._
 object ResolveDepsTests extends TestSuite {
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val repos =
     Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
 
-  def evalDeps(deps: Agg[Dep]): Result[Agg[PathRef]] = Lib.resolveDependencies(
+  def evalDeps(deps: Seq[Dep]): Result[Seq[PathRef]] = Lib.resolveDependencies(
     repos,
     deps.map(Lib.depToBoundDep(_, scala212Version, ""))
   )
 
-  def assertRoundTrip(deps: Agg[Dep], simplified: Boolean) = {
+  def assertRoundTrip(deps: Seq[Dep], simplified: Boolean) = {
     for (dep <- deps) {
       val unparsed = Dep.unparse(dep)
       if (simplified) {
@@ -33,7 +33,7 @@ object ResolveDepsTests extends TestSuite {
 
   object TestCase extends TestBaseModule {
     object pomStuff extends JavaModule {
-      def ivyDeps = Agg(
+      def ivyDeps = Seq(
         // Dependency whose packaging is "pom", as it's meant to be used
         // as a "parent dependency" by other dependencies, rather than be pulled
         // as we do here. We do it anyway, to check that pulling the "pom" artifact
@@ -45,7 +45,7 @@ object ResolveDepsTests extends TestSuite {
     }
 
     object scope extends JavaModule {
-      def ivyDeps = Agg(
+      def ivyDeps = Seq(
         ivy"androidx.compose.animation:animation-core:1.1.1",
         ivy"androidx.compose.ui:ui:1.1.1"
       )
@@ -54,84 +54,86 @@ object ResolveDepsTests extends TestSuite {
       }
       def artifactTypes = super.artifactTypes() + coursier.core.Type("aar")
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val tests = Tests {
     test("resolveValidDeps") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3")
-      val Success(paths) = evalDeps(deps)
+      val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3")
+      val Success(paths) = evalDeps(deps): @unchecked
       assert(paths.nonEmpty)
     }
 
     test("resolveValidDepsWithClassifier") {
-      val deps = Agg(ivy"org.lwjgl:lwjgl:3.1.1;classifier=natives-macos")
+      val deps = Seq(ivy"org.lwjgl:lwjgl:3.1.1;classifier=natives-macos")
       assertRoundTrip(deps, simplified = true)
-      val Success(paths) = evalDeps(deps)
+      val Success(paths) = evalDeps(deps): @unchecked
       assert(paths.nonEmpty)
-      assert(paths.items.next().path.toString.contains("natives-macos"))
+      assert(paths.head.path.toString.contains("natives-macos"))
     }
 
     test("resolveTransitiveRuntimeDeps") {
-      val deps = Agg(ivy"org.mockito:mockito-core:2.7.22")
+      val deps = Seq(ivy"org.mockito:mockito-core:2.7.22")
       assertRoundTrip(deps, simplified = true)
-      val Success(paths) = evalDeps(deps)
+      val Success(paths) = evalDeps(deps): @unchecked
       assert(paths.nonEmpty)
       assert(paths.exists(_.path.toString.contains("objenesis")))
       assert(paths.exists(_.path.toString.contains("byte-buddy")))
     }
 
     test("excludeTransitiveDeps") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
+      val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
       assertRoundTrip(deps, simplified = true)
-      val Success(paths) = evalDeps(deps)
+      val Success(paths) = evalDeps(deps): @unchecked
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
 
     test("excludeTransitiveDepsByOrg") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
+      val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
       assertRoundTrip(deps, simplified = true)
-      val Success(paths) = evalDeps(deps)
+      val Success(paths) = evalDeps(deps): @unchecked
       assert(!paths.exists(path =>
         path.path.toString.contains("com/lihaoyi") && !path.path.toString.contains("pprint_2.12")
       ))
     }
 
     test("excludeTransitiveDepsByName") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeName("fansi_2.12"))
+      val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3".excludeName("fansi_2.12"))
       assertRoundTrip(deps, simplified = true)
-      val Success(paths) = evalDeps(deps)
+      val Success(paths) = evalDeps(deps): @unchecked
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
 
     test("errOnInvalidOrgDeps") {
-      val deps = Agg(ivy"xxx.yyy.invalid::pprint:0.5.3")
+      val deps = Seq(ivy"xxx.yyy.invalid::pprint:0.5.3")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg, _) = evalDeps(deps)
+      val Failure(errMsg) = evalDeps(deps): @unchecked
       assert(errMsg.contains("xxx.yyy.invalid"))
     }
 
     test("errOnInvalidVersionDeps") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:invalid.version.num")
+      val deps = Seq(ivy"com.lihaoyi::pprint:invalid.version.num")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg, _) = evalDeps(deps)
+      val Failure(errMsg) = evalDeps(deps): @unchecked
       assert(errMsg.contains("invalid.version.num"))
     }
 
     test("errOnPartialSuccess") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3", ivy"fake::fake:fake")
+      val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3", ivy"fake::fake:fake")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg, _) = evalDeps(deps)
+      val Failure(errMsg) = evalDeps(deps): @unchecked
       assert(errMsg.contains("fake"))
     }
 
     test("pomArtifactType") {
       val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "pomArtifactType"
       UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
-        val Right(compileResult) = eval(TestCase.pomStuff.compileClasspath)
+        val Right(compileResult) = eval(TestCase.pomStuff.compileClasspath): @unchecked
         val compileCp = compileResult.value.toSeq.map(_.path)
         assert(compileCp.exists(_.lastOpt.contains("hadoop-yarn-server-3.4.0.pom")))
 
-        val Right(runResult) = eval(TestCase.pomStuff.runClasspath)
+        val Right(runResult) = eval(TestCase.pomStuff.runClasspath): @unchecked
         val runCp = runResult.value.toSeq.map(_.path)
         assert(runCp.exists(_.lastOpt.contains("hadoop-yarn-server-3.4.0.pom")))
       }
@@ -140,11 +142,11 @@ object ResolveDepsTests extends TestSuite {
     test("scopes") {
       UnitTester(TestCase, null).scoped { eval =>
         val compileCp = eval(TestCase.scope.compileClasspath)
-          .toTry.get.value.toSeq.map(_.path)
+          .right.get.value.toSeq.map(_.path)
         val runtimeCp = eval(TestCase.scope.upstreamAssemblyClasspath)
-          .toTry.get.value.toSeq.map(_.path)
+          .right.get.value.toSeq.map(_.path)
         val runCp = eval(TestCase.scope.runClasspath)
-          .toTry.get.value.toSeq.map(_.path)
+          .right.get.value.toSeq.map(_.path)
 
         val runtimeOnlyJars = Seq(
           "lifecycle-common-2.3.0.jar",

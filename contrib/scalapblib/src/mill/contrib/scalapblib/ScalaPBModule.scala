@@ -2,7 +2,7 @@ package mill
 package contrib.scalapblib
 
 import coursier.core.Version
-import mill.api.{IO, Loose, PathRef}
+import mill.api.{PathRef}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 
@@ -16,9 +16,9 @@ trait ScalaPBModule extends ScalaModule {
 
   override def ivyDeps = Task {
     super.ivyDeps() ++
-      Agg(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
-      (if (!scalaPBGrpc()) Agg()
-       else Agg(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
+      Seq(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
+      (if (!scalaPBGrpc()) Seq()
+       else Seq(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
   }
 
   def scalaPBVersion: T[String]
@@ -33,6 +33,8 @@ trait ScalaPBModule extends ScalaModule {
 
   /** ScalaPB enables lenses by default, this option allows you to disable it. */
   def scalaPBLenses: T[Boolean] = Task { true }
+
+  def scalaPBScala3Sources: T[Boolean] = Task { false }
 
   def scalaPBSearchDeps: Boolean = false
 
@@ -52,7 +54,7 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBProtocPath: T[Option[String]] = Task { None }
 
   def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
-    millSourcePath / "protobuf"
+    moduleDir / "protobuf"
   }
 
   def scalaPBOptions: T[String] = Task {
@@ -68,11 +70,12 @@ trait ScalaPBModule extends ScalaModule {
             else
               Seq("single_line_to_string")
           }
-        )
+        ) ++
+        (if (scalaPBScala3Sources()) Seq("scala3_sources") else Seq.empty)
     ).mkString(",")
   }
 
-  def scalaPBClasspath: T[Loose.Agg[PathRef]] = Task {
+  def scalaPBClasspath: T[Seq[PathRef]] = Task {
     resolveDependencies(
       repositoriesTask(),
       Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
@@ -80,18 +83,25 @@ trait ScalaPBModule extends ScalaModule {
     )
   }
 
-  def scalaPBIncludePath: T[Seq[PathRef]] = Task.Sources { Seq.empty[PathRef] }
+  def scalaPBIncludePath: T[Seq[PathRef]] = Task.Sources()
 
-  private def scalaDepsPBIncludePath = if (scalaPBSearchDeps) Task { Seq(scalaPBUnpackProto()) }
-  else Task { Seq.empty[PathRef] }
+  private def scalaDepsPBIncludePath: Task[Seq[PathRef]] = scalaPBSearchDeps match {
+    case true => Task.Anon { Seq(scalaPBUnpackProto()) }
+    case false => Task.Anon { Seq.empty[PathRef] }
+  }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
+    millResolver().resolveDeps(
+      Seq(
+        coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+        coursierDependency
+      )
+    )
   }
 
   def scalaPBUnpackProto: T[PathRef] = Task {
     val cp = scalaPBProtoClasspath()
-    val dest = T.dest
+    val dest = Task.dest
     cp.iterator.foreach { ref =>
       Using(new ZipInputStream(ref.path.getInputStream)) { zip =>
         while ({
@@ -101,9 +111,9 @@ trait ScalaPBModule extends ScalaModule {
               if (entry.getName.endsWith(".proto")) {
                 val protoDest = dest / os.SubPath(entry.getName)
                 if (os.exists(protoDest))
-                  T.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
+                  Task.log.warn(s"Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
                 Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
-                  IO.stream(zip, os)
+                  _root_.os.Internals.transfer(zip, os, close = false)
                 }
               }
               zip.closeEntry()
@@ -132,7 +142,7 @@ trait ScalaPBModule extends ScalaModule {
         scalaPBClasspath(),
         scalaPBSources().map(_.path),
         scalaPBOptions(),
-        T.dest,
+        Task.dest,
         scalaPBCompileOptions()
       )
   }

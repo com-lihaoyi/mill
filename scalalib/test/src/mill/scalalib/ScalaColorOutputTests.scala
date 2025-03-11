@@ -1,11 +1,13 @@
 package mill.scalalib
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
-import HelloWorldTests._
+import HelloWorldTests.*
+import mill.define.Discover
+import mill.main.TokenReaders._
 object ScalaColorOutputTests extends TestSuite {
 
   object HelloWorldColorOutput extends TestBaseModule {
@@ -16,6 +18,7 @@ object ScalaColorOutputTests extends TestSuite {
         "-Vimplicits"
       )
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
@@ -28,8 +31,8 @@ object ScalaColorOutputTests extends TestSuite {
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-color-output",
         errStream = new PrintStream(errStream, true)
       ).scoped { eval =>
-        val Left(Result.Failure("Compilation failed", _)) =
-          eval.apply(HelloWorldColorOutput.core.compile)
+        val Left(ExecResult.Failure("Compilation failed")) =
+          eval.apply(HelloWorldColorOutput.core.compile): @unchecked
         val output = errStream.toString
         assert(output.contains(s"${Console.RED}!${Console.RESET}${Console.BLUE}I"))
         assert(output.contains(

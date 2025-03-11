@@ -27,7 +27,7 @@ object TopLevelExportsTests extends TestSuite {
     test("top level exports") {
       println(evaluator(TopLevelExportsModule.sources))
       val Right(result) =
-        evaluator(TopLevelExportsModule.fastLinkJS)
+        evaluator(TopLevelExportsModule.fastLinkJS): @unchecked
       val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 2)
       val b = publicModules(0)

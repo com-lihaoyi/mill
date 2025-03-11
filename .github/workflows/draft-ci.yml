@@ -1,0 +1,31 @@
+name: Draft CI
+
+permissions: write-all
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      # We want to always create a status, even if the PR is not a draft, so that  
+      # if there was a previous `pending` draft status it can get over-written by a
+      # `success` when it is ready for review
+      - run: |
+          curl --request POST \
+          --url ${{ github.event.pull_request.statuses_url }} \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "state": "${{(github.event.action != 'ready_for_review' && github.event.pull_request.draft) && 'pending' || 'success'}}",
+            "context": "Draft CI",
+            "target_url": ${{(github.event.action != 'ready_for_review' && github.event.pull_request.draft) && format('"{0}/commits/{1}"', github.event.pull_request.head.repo.html_url, github.event.pull_request.head.ref) || 'null'}},
+            "description": "${{(github.event.action != 'ready_for_review' && github.event.pull_request.draft) && 'use CI on your repo fork (link on right) until this PR is ready for review' || 'PR is ready for review, running CI in Mill repo'}}"
+            }' \
+          --fail-with-body

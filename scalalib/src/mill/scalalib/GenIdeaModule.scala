@@ -10,7 +10,7 @@ import os.SubPath
 trait GenIdeaModule extends Module {
   import GenIdeaModule._
 
-  def intellijModulePath: os.Path = millSourcePath
+  def intellijModulePath: os.Path = moduleDir
 
   /**
    * Skip Idea project file generation.
@@ -32,7 +32,7 @@ trait GenIdeaModule extends Module {
     Task.Anon { Seq[IdeaConfigFile]() }
 
   def ideaCompileOutput: T[PathRef] = Task(persistent = true) {
-    PathRef(T.dest / "classes")
+    PathRef(Task.dest / "classes")
   }
 
 }

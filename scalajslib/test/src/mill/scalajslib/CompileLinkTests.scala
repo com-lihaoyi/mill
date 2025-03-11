@@ -44,16 +44,16 @@ object CompileLinkTests extends TestSuite {
       )
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
-        override def sources = Task.Sources { this.millSourcePath / "src/utest" }
+        override def sources = Task.Sources { this.moduleDir / "src/utest" }
         val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
-        override def ivyDeps = Agg(
+        override def ivyDeps = Seq(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
       }
 
       object `test-scalatest` extends ScalaJSTests with TestModule.ScalaTest {
-        override def sources = Task.Sources { this.millSourcePath / "src/scalatest" }
-        override def ivyDeps = Agg(
+        override def sources = Task.Sources { this.moduleDir / "src/scalatest" }
+        override def ivyDeps = Seq(
           ivy"org.scalatest::scalatest::3.1.2"
         )
       }
@@ -85,12 +85,12 @@ object CompileLinkTests extends TestSuite {
     val module = HelloJSWorld.build(scalaVersion, scalaJSVersion)
     val jsFile =
       if (legacy) {
-        val task = if (optimize) module.fullOpt else module.fastOpt
-        val Right(result) = eval(task)
-        result.value.path
+        val task = if (optimize) module.fullLinkJS else module.fastLinkJS
+        val Right(result) = eval(task): @unchecked
+        result.value.dest.path
       } else {
         val task = if (optimize) module.fullLinkJS else module.fastLinkJS
-        val Right(result) = eval(task)
+        val Right(result) = eval(task): @unchecked
         result.value.dest.path / result.value.publicModules.head.jsFileName
       }
     val output = ScalaJsUtils.runJS(jsFile)
@@ -109,7 +109,7 @@ object CompileLinkTests extends TestSuite {
     test("compile") - UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
       def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
         val Right(result) =
-          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
+          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile): @unchecked
 
         val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath)
@@ -121,7 +121,7 @@ object CompileLinkTests extends TestSuite {
 
         // don't recompile if nothing changed
         val Right(result2) =
-          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
+          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile): @unchecked
         assert(result2.evalCount == 0)
       }
 

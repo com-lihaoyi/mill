@@ -10,7 +10,7 @@ import org.flywaydb.core.internal.configuration.{ConfigUtils => flyway}
 import org.flywaydb.core.internal.info.MigrationInfoDumper
 import scala.jdk.CollectionConverters._
 
-import mill.{Agg, T, Task}
+import mill.{T, Task}
 import mill.api.PathRef
 import mill.define.Command
 import mill.scalalib.{Dep, JavaModule}
@@ -26,7 +26,7 @@ trait FlywayModule extends JavaModule {
     resources().map(pr => PathRef(pr.path / "db/migration", pr.quick))
   }
 
-  def flywayDriverDeps: T[Agg[Dep]]
+  def flywayDriverDeps: T[Seq[Dep]]
 
   def jdbcClasspath = Task {
     defaultResolver().resolveDeps(flywayDriverDeps())
@@ -48,7 +48,7 @@ trait FlywayModule extends JavaModule {
 
     Flyway
       .configure(jdbcClassloader)
-      .locations(flywayFileLocations().map("filesystem:" + _.path): _*)
+      .locations(flywayFileLocations().map("filesystem:" + _.path)*)
       .configuration(configProps.asJava)
       .load
   }
@@ -74,7 +74,7 @@ trait FlywayModule extends JavaModule {
     val out =
       s"""Schema version: ${currentSchemaVersion}
          |${MigrationInfoDumper.dumpToAsciiTable(info.all)}""".stripMargin
-    T.log.outputStream.println(out)
+    Task.log.streams.out.println(out)
     out
   }
 }

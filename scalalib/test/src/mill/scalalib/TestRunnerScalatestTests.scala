@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.UnitTester
 import sbt.testing.Status
 import utest._
@@ -9,12 +9,12 @@ object TestRunnerScalatestTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {
     test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval(testrunner.scalatest.test())
+      val Right(result) = eval(testrunner.scalatest.testForked()): @unchecked
       assert(result.value._2.size == 9)
       junitReportIn(eval.outPath, "scalatest").shouldHave(9 -> Status.Success)
     }
     test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(testrunner.scalatest.discoveredTestClasses)
+      val Right(result) = eval.apply(testrunner.scalatest.discoveredTestClasses): @unchecked
       val expected = Seq(
         "mill.scalalib.ScalaTestSpec",
         "mill.scalalib.ScalaTestSpec2",
@@ -33,7 +33,8 @@ object TestRunnerScalatestTests extends TestSuite {
         Map(
           // No test grouping is triggered because we only run one test class
           testrunner.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
-          testrunnerGrouping.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs")
+          testrunnerGrouping.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
 
@@ -47,7 +48,8 @@ object TestRunnerScalatestTests extends TestSuite {
             "group-0-mill.scalalib.ScalaTestSpec",
             "mill.scalalib.ScalaTestSpec3",
             "test-report.xml"
-          )
+          ),
+          testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("include") - tester.testOnly(
@@ -79,11 +81,12 @@ object TestRunnerScalatestTests extends TestSuite {
             "group-0-mill.scalalib.ScalaTestSpec",
             "mill.scalalib.ScalaTestSpec3",
             "test-report.xml"
-          )
+          ),
+          testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("includeAndExclude") - tester.testOnly0 { (eval, mod) =>
-        val Left(Result.Failure(msg, _)) =
+        val Left(ExecResult.Failure(msg)) =
           eval.apply(mod.scalatest.testOnly(
             "mill.scalalib.ScalaTestSpec",
             "--",
@@ -91,7 +94,7 @@ object TestRunnerScalatestTests extends TestSuite {
             "tagged",
             "-l",
             "tagged"
-          ))
+          )): @unchecked
         assert(msg.contains("Test selector does not match any test"))
       }
     }

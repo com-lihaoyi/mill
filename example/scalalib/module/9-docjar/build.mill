@@ -1,6 +1,5 @@
-// To generate API documenation you can use the `docJar` task on the module you'd
-// like to create the documentation for, configured via `scalaDocOptions` or
-// `javadocOptions`:
+// To generate API documentation you can use the `docJar` task on the module you'd
+// like to create the docs for, configured via `{language-small}DocOptions`:
 
 //// SNIPPET:BUILD
 package build

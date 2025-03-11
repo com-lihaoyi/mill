@@ -1,5 +1,6 @@
 package mill.testkit
-import mill.api.Retry
+
+import mill.util.Retry
 import utest._
 
 import scala.concurrent.duration.DurationInt

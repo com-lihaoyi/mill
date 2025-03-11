@@ -106,7 +106,9 @@ case class MillCliConfig(
       doc = """The name or a pattern of the tasks(s) you want to build."""
     )
     leftoverArgs: Leftover[String] = Leftover(),
-    @arg(doc = """Toggle colored output; by default enabled only if the console is interactive""")
+    @arg(doc =
+      """Toggle colored output; by default enabled only if the console is interactive and NO_COLOR environment variable is not set"""
+    )
     color: Option[Boolean] = None,
     @arg(
       name = "disable-callgraph",
@@ -124,11 +126,13 @@ case class MillCliConfig(
     metaLevel: Option[Int] = None,
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag(),
+    @deprecated("No longer used", "Mill 0.13.0")
     @arg(
       doc = """
         Disables the new multi-line status prompt used for showing thread
         status at the command line and falls back to the legacy ticker
-      """
+      """,
+      hidden = true
     )
     disablePrompt: Flag = Flag(),
     @arg(
@@ -186,7 +190,7 @@ options:
 
   import mill.api.JsonFormatters._
 
-  private[this] lazy val parser: ParserForClass[MillCliConfig] =
+  private lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]
 
   lazy val shortUsageText: String =
@@ -201,14 +205,14 @@ options:
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
       "\nPlease see the documentation at https://mill-build.org for more details"
 
-  def parse(args: Array[String]): Either[String, MillCliConfig] = {
-    parser.constructEither(
+  def parse(args: Array[String]): mill.api.Result[MillCliConfig] = {
+    mill.api.Result.fromEither(parser.constructEither(
       args.toIndexedSeq,
       allowRepeats = true,
       autoPrintHelpAndExit = None,
       customName = customName,
       customDoc = customDoc
-    )
+    ))
   }
 
 }

@@ -1,11 +1,10 @@
 package mill.scalalib
 
-import coursier.util.StringInterpolators.SafeModule
-import mill.Agg
-import mill.define.Task
+import mill.define.{Discover, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import mill.main.TokenReaders._
+import utest.*
 
 object CoursierParametersTests extends TestSuite {
 
@@ -15,18 +14,25 @@ object CoursierParametersTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = "2.13.12"
       def ivyDeps = Task {
-        Agg(ivy"com.lihaoyi::pprint:0.9.0")
+        Seq(ivy"com.lihaoyi::pprint:0.9.0")
       }
       def resolutionParams = Task.Anon {
         super.resolutionParams()
-          .addForceVersion((mod"com.lihaoyi:pprint_2.13", "0.8.1"))
+          .addForceVersion((
+            coursier.Module(
+              coursier.Organization("com.lihaoyi"),
+              coursier.ModuleName("pprint_2.13")
+            ),
+            "0.8.1"
+          ))
       }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
     test("coursierParams") - UnitTester(CoursierTest, null).scoped { eval =>
-      val Right(result) = eval.apply(CoursierTest.core.compileClasspath)
+      val Right(result) = eval.apply(CoursierTest.core.compileClasspath): @unchecked
       val classPath = result.value.toSeq.map(_.path)
       val pprintVersion = classPath
         .map(_.last)

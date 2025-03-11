@@ -1,0 +1,31 @@
+= Python Library Dependencies
+
+
+
+
+This page goes into more detail about configuring third party dependencies
+for ``PythonModule``s.
+
+== Adding Dependencies
+
+include::partial$example/pythonlib/dependencies/1-pip-deps.adoc[]
+
+=== Adding Dependencies via requirements.txt files
+
+include::partial$example/pythonlib/dependencies/2-pip-requirements.adoc[]
+
+== Unmanaged Wheels
+
+include::partial$example/pythonlib/dependencies/3-unmanaged-wheels.adoc[]
+
+== Downloading Unmanaged Wheels
+
+include::partial$example/pythonlib/dependencies/4-downloading-unmanaged-wheels.adoc[]
+
+== Using Custom Package Indexes
+
+include::partial$example/pythonlib/dependencies/5-repository-config.adoc[]
+
+== Debugging
+
+include::partial$example/pythonlib/dependencies/6-debugging.adoc[]

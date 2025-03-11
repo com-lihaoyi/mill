@@ -1,9 +1,8 @@
 package mill.contrib.proguard
 
-import mill.java9rtexport.Export
 import mill.{T, Task}
-import mill.Agg
-import mill.api.{Loose, PathRef}
+import mill.api.{PathRef}
+import mill.constants.Util
 import mill.util.Jvm
 import mill.scalalib.{DepSyntax, ScalaModule}
 import os.{Path, Shellable}
@@ -23,7 +22,7 @@ trait Proguard extends ScalaModule {
    * https://mvnrepository.com/artifact/com.guardsquare/proguard-base
    */
   def proguardVersion: T[String] = Task {
-    T.log.error(
+    Task.log.error(
       "Using default proguard version is deprecated. Please override target proguardVersion to specify the version."
     )
     "7.2.2"
@@ -65,7 +64,7 @@ trait Proguard extends ScalaModule {
    * Keep in sync with [[javaHome]].
    */
   def java9RtJar: T[Seq[PathRef]] = Task {
-    if (mill.main.client.Util.isJava9OrAbove) Seq(PathRef(T.home / Export.rtJarName))
+    if (Util.isJava9OrAbove) Seq(PathRef(os.home / Export.rtJarName))
     else Seq()
   }
 
@@ -76,7 +75,7 @@ trait Proguard extends ScalaModule {
   def libraryJars: T[Seq[PathRef]] = Task {
     val javaJars =
       os.list(javaHome().path / "lib", sort = false).filter(_.ext == "jar").toSeq.map(PathRef(_))
-    javaJars ++ java9RtJar()
+    javaJars
   }
 
   /**
@@ -87,7 +86,7 @@ trait Proguard extends ScalaModule {
    *  The output jar is written to `dest/our.jar`.
    */
   def proguard: T[PathRef] = Task {
-    val outJar = T.dest / "out.jar"
+    val outJar = Task.dest / "out.jar"
 
     val args = Seq[Shellable](
       steps(),
@@ -96,23 +95,28 @@ trait Proguard extends ScalaModule {
       "-outjars",
       outJar,
       "-libraryjars",
-      libraryJars().map(_.path).mkString(java.io.File.pathSeparator),
+      (
+        libraryJars().map(_.path) ++
+          Seq("<java.home>/jmods/java.base.jmod(!**.jar;!module-info.class)")
+      ).mkString(java.io.File.pathSeparator),
       entryPoint(),
       additionalOptions()
     ).flatMap(_.value)
 
-    T.log.debug(s"Running: ${args.mkString(" ")}")
-//    T.log.debug(s"stdout: ${T.dest / "stdout.txt"}")
-//    T.log.debug(s"stderr: ${T.dest / "stderr.txt"}")
+    Task.log.debug(s"Running: ${args.mkString(" ")}")
+//    Task.log.debug(s"stdout: ${Task.dest / "stdout.txt"}")
+//    Task.log.debug(s"stderr: ${Task.dest / "stderr.txt"}")
 
-//    val result = os.proc(cmd).call(stdout = T.dest / "stdout.txt", stderr = T.dest / "stderr.txt")
-//    T.log.debug(s"result: ${result}")
+//    val result = os.proc(cmd).call(stdout = Task.dest / "stdout.txt", stderr = Task.dest / "stderr.txt")
+//    Task.log.debug(s"result: ${result}")
 
-    Jvm.runSubprocess(
+    Jvm.callProcess(
       mainClass = "proguard.ProGuard",
-      classPath = proguardClasspath().map(_.path),
+      classPath = proguardClasspath().map(_.path).toVector,
       mainArgs = args,
-      workingDir = T.dest
+      cwd = Task.dest,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
 
     // the call above already throws an exception on a non-zero exit code,
@@ -124,9 +128,9 @@ trait Proguard extends ScalaModule {
    * The location of the proguard jar files.
    * These are downloaded from JCenter and fed to `java -cp`
    */
-  def proguardClasspath: T[Loose.Agg[PathRef]] = Task {
+  def proguardClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.guardsquare:proguard-base:${proguardVersion()}")
+      Seq(ivy"com.guardsquare:proguard-base:${proguardVersion()}")
     )
   }
 
@@ -157,9 +161,15 @@ trait Proguard extends ScalaModule {
    * These are fed as-is to the proguard command.
    */
   def additionalOptions: T[Seq[String]] = Task {
-    T.log.error(
+    Task.log.error(
       "Proguard is set to not warn about message: can't find referenced method 'void invoke()' in library class java.lang.invoke.MethodHandle"
     )
-    Seq[String]("-dontwarn java.lang.invoke.MethodHandle")
+    T.log.error(
+      """Proguard is set to not warn about message: "scala.quoted.Type: can't find referenced class scala.AnyKind""""
+    )
+    Seq[String](
+      "-dontwarn java.lang.invoke.MethodHandle",
+      "-dontwarn scala.AnyKind"
+    )
   }
 }

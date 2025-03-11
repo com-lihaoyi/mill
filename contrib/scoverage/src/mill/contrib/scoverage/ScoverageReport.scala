@@ -1,9 +1,8 @@
 package mill.contrib.scoverage
 
+import mill.api.Result
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
-import mill.define.{Command, Module, Task}
-import mill.eval.Evaluator
-import mill.resolve.{Resolve, SelectMode}
+import mill.define.{Command, Evaluator, Module, SelectMode, Task}
 import mill.{PathRef, T}
 import os.Path
 
@@ -53,7 +52,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = Task.Command {
+  ): Command[PathRef] = Task.Command(exclusive = true) {
     reportTask(evaluator, ReportType.Html, sources, dataTargets)()
   }
 
@@ -62,7 +61,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = Task.Command {
+  ): Command[PathRef] = Task.Command(exclusive = true) {
     reportTask(evaluator, ReportType.Xml, sources, dataTargets)()
   }
 
@@ -71,7 +70,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = Task.Command {
+  ): Command[PathRef] = Task.Command(exclusive = true) {
     reportTask(evaluator, ReportType.XmlCobertura, sources, dataTargets)()
   }
 
@@ -80,7 +79,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = Task.Command {
+  ): Command[PathRef] = Task.Command(exclusive = true) {
     reportTask(evaluator, ReportType.Console, sources, dataTargets)()
   }
 
@@ -90,31 +89,24 @@ trait ScoverageReport extends Module {
       sources: String,
       dataTargets: String
   ): Task[PathRef] = {
-    val sourcesTasks: Seq[Task[Seq[PathRef]]] = Resolve.Tasks.resolve(
-      evaluator.rootModule,
+    val sourcesTasks: Seq[Task[Seq[PathRef]]] = evaluator.resolveTasks(
       Seq(sources),
       SelectMode.Separated
-    ) match {
-      case Left(err) => throw new Exception(err)
-      case Right(tasks) => tasks.asInstanceOf[Seq[Task[Seq[PathRef]]]]
-    }
-    val dataTasks: Seq[Task[PathRef]] = Resolve.Tasks.resolve(
-      evaluator.rootModule,
+    ).get.asInstanceOf[Seq[Task[Seq[PathRef]]]]
+
+    val dataTasks: Seq[Task[PathRef]] = evaluator.resolveTasks(
       Seq(dataTargets),
       SelectMode.Separated
-    ) match {
-      case Left(err) => throw new Exception(err)
-      case Right(tasks) => tasks.asInstanceOf[Seq[Task[PathRef]]]
-    }
+    ).get.asInstanceOf[Seq[Task[PathRef]]]
 
     Task.Anon {
-      val sourcePaths: Seq[Path] = T.sequence(sourcesTasks)().flatten.map(_.path)
-      val dataPaths: Seq[Path] = T.sequence(dataTasks)().map(_.path)
+      val sourcePaths: Seq[Path] = Task.sequence(sourcesTasks)().flatten.map(_.path)
+      val dataPaths: Seq[Path] = Task.sequence(dataTasks)().map(_.path)
       scoverageReportWorkerModule
         .scoverageReportWorker()
         .bridge(workerModule.scoverageToolsClasspath())
-        .report(reportType, sourcePaths, dataPaths, T.workspace)
-      PathRef(T.dest)
+        .report(reportType, sourcePaths, dataPaths, Task.workspace)
+      PathRef(Task.dest)
     }
   }
 }

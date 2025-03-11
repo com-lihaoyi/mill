@@ -10,7 +10,7 @@ import mill.api.{Ctx, Result}
 trait KotlinWorker {
 
   def compile(target: KotlinWorkerTarget, args: Seq[String])(implicit ctx: Ctx): Result[Unit]
-
+  val x = 1
 }
 
 sealed class KotlinWorkerTarget

@@ -36,15 +36,11 @@ import java.io.{PrintWriter, StringWriter}
  * @param taskId    The unique taskId associated with the
  *                  test task that will trigger this reporter
  *                  to log testing events.
- * @param arguments compilation arguments as part of the BSP context,
- *                  in case special arguments need to be passed to
- *                  the compiler before running the test task.
  */
 private class BspTestReporter(
     client: BuildClient,
     targetId: BuildTargetIdentifier,
-    taskId: TaskId,
-    arguments: Seq[String]
+    taskId: TaskId
 ) extends TestReporter {
 
   var passed = 0
@@ -65,7 +61,7 @@ private class BspTestReporter(
 
   // Compute the display name of the test / test suite
   // to which the given event relates
-  private[this] def getDisplayName(e: Event): String = {
+  private def getDisplayName(e: Event): String = {
     e.selector() match {
       case s: NestedSuiteSelector => s.suiteId()
       case s: NestedTestSelector => s.suiteId() + "." + s.testName()

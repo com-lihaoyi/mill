@@ -60,7 +60,7 @@ Audit done.
 // // incorrect paths will cause a command failure
 // ./mill checkstyle a/b
 //
-// // you can specify paths relative to millSourcePath
+// // you can specify paths relative to moduleDir
 // ./mill checkstyle src/a/b
 //
 // // process a single file
@@ -96,7 +96,7 @@ Audit done.
 //   trait MyModule extends JavaModule with CheckstyleModule {
 //
 //     override def checkstyleConfig = Task {
-//       api.PathRef(T.workspace / "checkstyle-config.xml")
+//       api.PathRef(Task.workspace / "checkstyle-config.xml")
 //     }
 //   }
 // }
@@ -149,8 +149,8 @@ Audit done.
 //     override def checkstyleXsltReports = Task {
 //       Set(
 //         CheckstyleXsltReport(
-//           PathRef(millSourcePath / "checkstyle-no-frames.xml"),
-//           PathRef(T.dest / "checkstyle-no-frames.html"),
+//           PathRef(moduleDir / "checkstyle-no-frames.xml"),
+//           PathRef(Task.dest / "checkstyle-no-frames.html"),
 //         )
 //       )
 //   }

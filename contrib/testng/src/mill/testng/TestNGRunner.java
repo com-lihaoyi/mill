@@ -1,12 +1,17 @@
 package mill.testng;
 
 import com.beust.jcommander.JCommander;
+import java.util.ArrayList;
+import java.util.List;
 import org.testng.CommandLineArgs;
 import sbt.testing.EventHandler;
 import sbt.testing.Logger;
 import sbt.testing.Runner;
+import sbt.testing.Selector;
+import sbt.testing.SuiteSelector;
 import sbt.testing.Task;
 import sbt.testing.TaskDef;
+import sbt.testing.TestSelector;
 
 class TestNGTask implements Task {
 
@@ -55,9 +60,23 @@ public class TestNGRunner implements Runner {
       CommandLineArgs cliArgs = new CommandLineArgs();
       new JCommander(cliArgs).parse(args); // args is an output parameter of the constructor!
       cliArgs.testClass = taskDefs[i].fullyQualifiedName();
+      cliArgs.commandLineMethods =
+          testMethods(taskDefs[i].selectors(), taskDefs[i].fullyQualifiedName());
       returnTasks[i] = new TestNGTask(taskDefs[i], testClassLoader, cliArgs);
     }
     return returnTasks;
+  }
+
+  private List<String> testMethods(Selector[] selectors, String testClass) {
+    ArrayList<String> testMethods = new ArrayList<String>();
+    for (int i = 0; i < selectors.length; i += 1) {
+      if (selectors[i] instanceof TestSelector) {
+        testMethods.add(testClass + "." + ((TestSelector) selectors[i]).testName());
+      } else if (selectors[i] instanceof SuiteSelector) {
+        return new ArrayList<String>();
+      }
+    }
+    return testMethods;
   }
 
   public String done() {

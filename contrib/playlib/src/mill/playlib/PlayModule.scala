@@ -3,7 +3,7 @@ package mill.playlib
 import mill.define.Task
 import mill.playlib.api.Versions
 import mill.scalalib._
-import mill.{Agg, Args, T}
+import mill.{Args, T}
 import mill.api.PathRef
 import mill.define.Target
 
@@ -17,15 +17,27 @@ trait PlayApiModule extends Dependencies with Router with Server {
         case Versions.PLAY_2_9 => "6.0.0"
         case _ => "7.0.0"
       }
-      Agg(ivy"org.scalatestplus.play::scalatestplus-play::${scalatestPlusPlayVersion}")
+      Seq(ivy"org.scalatestplus.play::scalatestplus-play::${scalatestPlusPlayVersion}")
     }
-    override def sources: Target[Seq[PathRef]] = Task.Sources { millSourcePath }
+    override def sources: Target[Seq[PathRef]] = Task.Sources { moduleDir }
   }
 
   def start(args: Task[Args] = Task.Anon(Args())) = Task.Command { run(args)() }
 
 }
 trait PlayModule extends PlayApiModule with Static with Twirl {
+  override def twirlScalaVersion: T[String] = Task {
+    if scalaVersion().startsWith("2.13.") then
+      // TODO: This determines which version of `twirl-compiler` library
+      // will be used to source-generate scala files from twirl sources,
+      // which will then be further compiled by the Scala compiler corresponding to `scalaVersion`.
+      // The Scala 3 version of `twirl-compiler` generates code that
+      // is not source compatible with scala 2 - so we should downgrade it to 2.13 version.
+      mill.main.BuildInfo.workerScalaVersion213
+    else
+      super.twirlScalaVersion()
+  }
+
   override def twirlVersion: T[String] = Task {
     playMinorVersion() match {
       case "2.6" => "1.3.16"

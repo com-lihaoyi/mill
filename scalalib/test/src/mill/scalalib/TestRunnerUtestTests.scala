@@ -1,17 +1,15 @@
 package mill.scalalib
 
-import mill.api.Result
+import mill.api.ExecResult
 import mill.testkit.UnitTester
 import sbt.testing.Status
 import utest._
-
-import java.io.{ByteArrayOutputStream, PrintStream}
 
 object TestRunnerUtestTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {
     test("test case lookup") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(testrunner.utest.test())
+      val Right(result) = eval.apply(testrunner.utest.testForked()): @unchecked
       val test = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
       assert(
         test._2.size == 3
@@ -19,7 +17,7 @@ object TestRunnerUtestTests extends TestSuite {
       junitReportIn(eval.outPath, "utest").shouldHave(3 -> Status.Success)
     }
     test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(testrunner.utest.discoveredTestClasses)
+      val Right(result) = eval.apply(testrunner.utest.discoveredTestClasses): @unchecked
       val expected = Seq(
         "mill.scalalib.BarTests",
         "mill.scalalib.FooTests",
@@ -38,7 +36,8 @@ object TestRunnerUtestTests extends TestSuite {
         Map(
           testrunner.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
           // When there is only one test group with test classes, we do not put it in a subfolder
-          testrunnerGrouping.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs")
+          testrunnerGrouping.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunnerWorkStealing.utest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("multi") - tester.testOnly(
@@ -52,7 +51,8 @@ object TestRunnerUtestTests extends TestSuite {
             "mill.scalalib.BarTests",
             "mill.scalalib.FoobarTests",
             "test-report.xml"
-          )
+          ),
+          testrunnerWorkStealing.utest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("all") - tester.testOnly(
@@ -67,12 +67,13 @@ object TestRunnerUtestTests extends TestSuite {
             "group-0-mill.scalalib.BarTests",
             "mill.scalalib.FoobarTests",
             "test-report.xml"
-          )
+          ),
+          testrunnerWorkStealing.utest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("noMatch") - tester.testOnly0 { (eval, mod) =>
-        val Left(Result.Failure(msg, _)) =
-          eval.apply(mod.utest.testOnly("noMatch", "noMatch*2"))
+        val Left(ExecResult.Failure(msg)) =
+          eval.apply(mod.utest.testOnly("noMatch", "noMatch*2")): @unchecked
         assert(
           msg == "Test selector does not match any test: noMatch noMatch*2\nRun discoveredTestClasses to see available tests"
         )

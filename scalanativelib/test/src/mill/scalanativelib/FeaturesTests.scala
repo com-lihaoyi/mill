@@ -11,15 +11,15 @@ object FeaturesTests extends TestSuite {
     def scalaNativeVersion = "0.5.0"
     def scalaVersion = "2.13.10"
     def nativeIncrementalCompilation = true
-    override lazy val millDiscover: Discover = Discover[this.type]
+    override lazy val millDiscover = Discover[this.type]
   }
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "features"
 
   val tests: Tests = Tests {
     test("incremental compilation works") - UnitTester(Features, millSourcePath).scoped { eval =>
-      val Right(_) = eval(Features.nativeLink)
-      val Right(result) = eval(Features.nativeWorkdir)
+      val Right(_) = eval(Features.nativeLink): @unchecked
+      val Right(result) = eval(Features.nativeWorkdir): @unchecked
       assert(os.walk(result.value).exists(_.ext == "ll"))
     }
   }

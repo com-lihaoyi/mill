@@ -1,0 +1,10 @@
+package build.bar
+
+import mill._
+import scalalib._
+
+object `package` extends RootModule with Cross[FooModule]("3.6.2", "2.13.16") {}
+
+trait FooModule extends CrossScalaModule {
+  def foo = Task { true }
+}

@@ -1,0 +1,6 @@
+package build
+
+class Box[T](name: String):
+  override def toString = s"Box[$name]"
+
+given Box[Int]("Int")

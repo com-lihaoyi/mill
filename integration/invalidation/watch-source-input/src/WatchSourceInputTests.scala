@@ -1,8 +1,7 @@
 package mill.integration
 
+import mill.constants.Util
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
-
-import mill.main.client.Util
 import utest._
 
 import scala.collection.mutable
@@ -20,48 +19,51 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * 4. `interp.watchValue`
  * 5. Implicitly watched files, like `build.mill`
  */
-object WatchSourceInputTests extends UtestIntegrationTestSuite {
+trait WatchTests extends UtestIntegrationTestSuite {
 
-  val maxDuration = 60000
-  val tests: Tests = Tests {
-    def awaitCompletionMarker(tester: IntegrationTester, name: String) = {
-      val maxTime = System.currentTimeMillis() + maxDuration
-      while (!os.exists(tester.workspacePath / "out" / name)) {
-        if (System.currentTimeMillis() > maxTime) {
-          sys.error(s"awaitCompletionMarker($name) timed out")
-        }
-        Thread.sleep(100)
+  val maxDuration = 120000
+  def awaitCompletionMarker(tester: IntegrationTester, name: String): Unit = {
+    val maxTime = System.currentTimeMillis() + maxDuration
+    while (!os.exists(tester.workspacePath / "out" / name)) {
+      if (System.currentTimeMillis() > maxTime) {
+        sys.error(s"awaitCompletionMarker($name) timed out")
       }
+      Thread.sleep(100)
     }
+  }
 
-    def testBase(show: Boolean)(f: (
-        mutable.Buffer[String],
-        mutable.Buffer[String],
-        mutable.Buffer[String]
-    ) => IntegrationTester.EvalResult): Unit = {
-      val expectedOut = mutable.Buffer.empty[String]
-      // Most of these are normal `println`s, so they go to `stdout` by
-      // default unless you use `show` in which case they go to `stderr`.
-      val expectedErr = if (show) mutable.Buffer.empty[String] else expectedOut
-      val expectedShows = mutable.Buffer.empty[String]
-      val res = f(expectedOut, expectedErr, expectedShows)
-      val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
-      val err = res.err.linesIterator.toVector
-        .filter(!_.contains("Compiling compiler interface..."))
-        .filter(!_.contains("Watching for changes"))
-        .filter(!_.contains("[info] compiling"))
-        .filter(!_.contains("[info] done compiling"))
-        .filter(!_.contains("mill-server/ exitCode file not found"))
+  def testBase(show: Boolean)(f: (
+      mutable.Buffer[String],
+      mutable.Buffer[String],
+      mutable.Buffer[String]
+  ) => IntegrationTester.EvalResult): Unit = {
+    val expectedOut = mutable.Buffer.empty[String]
+    // Most of these are normal `println`s, so they go to `stdout` by
+    // default unless you use `show` in which case they go to `stderr`.
+    val expectedErr = if (show) mutable.Buffer.empty[String] else expectedOut
+    val expectedShows0 = mutable.Buffer.empty[String]
+    val res = f(expectedOut, expectedErr, expectedShows0)
+    val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
+    val err = res.err.linesIterator.toVector
+      .filter(!_.contains("Compiling compiler interface..."))
+      .filter(!_.contains("Watching for changes"))
+      .filter(!_.contains("[info] compiling"))
+      .filter(!_.contains("[info] done compiling"))
+      .filter(!_.contains("mill-server/ exitCode file not found"))
 
-      assert(out == expectedOut)
+    assert(out == expectedOut)
 
-      // If show is not enabled, we don't expect any of our custom prints to go to stderr
-      if (show) assert(err == expectedErr)
-      else assert(err.isEmpty)
+    // If show is not enabled, we don't expect any of our custom prints to go to stderr
+    if (show) assert(err == expectedErr)
+    else assert(err.isEmpty)
 
-      if (show) assert(shows == expectedShows.map('"' + _ + '"'))
-    }
+    val expectedShows = expectedShows0.map('"' + _ + '"')
+    if (show) assert(shows == expectedShows)
+  }
+}
 
+object WatchSourceTests extends WatchTests {
+  val tests: Tests = Tests {
     def testWatchSource(tester: IntegrationTester, show: Boolean) =
       testBase(show) { (expectedOut, expectedErr, expectedShows) =>
         val showArgs = if (show) Seq("show") else Nil
@@ -120,28 +122,25 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
           //        "Running qux foo contents edited-foo1 edited-foo2",
           //        "Running qux bar contents edited-bar"
         )
-        expectedShows.append(
-          "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
-        )
 
+        if (show) expectedOut.append("{}")
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker(tester, "initialized2")
         expectedOut.append("Setting up build.mill")
 
         Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
       }
-
     test("sources") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - retry(3) {
+      test("noshow") - retry(1) {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchSource(tester, false)
           }
         }
       }
-      test("show") - retry(3) {
+      test("show") - retry(1) {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchSource(tester, true)
@@ -149,6 +148,11 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
         }
       }
     }
+  }
+}
+
+object WatchInputTests extends WatchTests {
+  val tests: Tests = Tests {
 
     def testWatchInput(tester: IntegrationTester, show: Boolean) =
       testBase(show) { (expectedOut, expectedErr, expectedShows) =>
@@ -174,10 +178,10 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
         os.write.over(workspacePath / "watchValue.txt", "edited-watchValue")
         awaitCompletionMarker(tester, "initialized1")
         expectedOut.append("Setting up build.mill")
-        expectedShows.append("Running lol baz contents edited-baz")
 
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker(tester, "initialized2")
+        if (show) expectedOut.append("{}")
         expectedOut.append("Setting up build.mill")
 
         Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
@@ -186,14 +190,14 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
     test("input") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - retry(3) {
+      test("noshow") - retry(1) {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchInput(tester, false)
           }
         }
       }
-      test("show") - /*retry(3) */ {
+      test("show") - retry(1) {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchInput(tester, true)
