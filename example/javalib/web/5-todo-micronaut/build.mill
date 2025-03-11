@@ -31,7 +31,7 @@ object `package` extends RootModule with MicronautModule {
     )
 
     // Micronaut test not compatible with running in parallel
-    def testProcessPoolParallelism = false
+    def testParallelism = false
   }
 }
 

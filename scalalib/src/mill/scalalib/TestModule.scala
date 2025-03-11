@@ -100,7 +100,7 @@ trait TestModule
    * How the test classes in this module will be split.
    * Test classes from different groups are ensured to never
    * run on the same JVM process, and therefore can be run in parallel.
-   * When used in combination with [[testProcessPoolParallelism]],
+   * When used in combination with [[testParallelism]],
    * every JVM test running process will guarantee to never steal tests
    * from different test groups.
    */
@@ -113,7 +113,7 @@ trait TestModule
    * When used in combination with [[testForkGrouping]], every JVM test running process
    * will guarantee to never steal tests from different test groups.
    */
-  def testProcessPoolParallelism: T[Boolean] = T(true)
+  def testParallelism: T[Boolean] = T(true)
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -216,7 +216,7 @@ trait TestModule
         forkWorkingDir(),
         testReportXml(),
         zincWorker().javaHome().map(_.path),
-        testProcessPoolParallelism()
+        testParallelism()
       )
       testModuleUtil.runTests()
     }

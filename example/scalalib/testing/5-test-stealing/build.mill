@@ -4,7 +4,7 @@
 // Work stealing scheduler ensures throughput is maximized: no "slow" tests can block "fast" tests.
 // This feature is expected to be enabled by default in future versions of Mill.
 //
-// Test stealing can be enabled by overriding def testProcessPoolParallelism, as demonstrated below.
+// Test stealing can be enabled by overriding def testParallelism, as demonstrated below.
 
 //// SNIPPET:BUILD1
 package build
@@ -16,7 +16,7 @@ object foo extends ScalaModule {
     def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
 
-    def testProcessPoolParallelism = true
+    def testParallelism = true
   }
 }
 

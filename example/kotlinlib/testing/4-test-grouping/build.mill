@@ -17,7 +17,7 @@ object foo extends KotlinModule {
     )
 
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
-    def testProcessPoolParallelism = false
+    def testParallelism = false
   }
 }
 
