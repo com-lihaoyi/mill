@@ -32,7 +32,7 @@ private final class TestModuleUtil(
     forkWorkingDir: os.Path,
     testReportXml: Option[String],
     javaHome: Option[os.Path],
-    testEnableWorkStealing: Boolean
+    testWorkStealingParallelism: Boolean
 )(implicit ctx: mill.api.Ctx) {
 
   private val (jvmArgs, props: Map[String, String]) =
@@ -99,7 +99,7 @@ private final class TestModuleUtil(
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    val result = if (testEnableWorkStealing) {
+    val result = if (testWorkStealingParallelism) {
       runTestStealingScheduler(filteredClassLists)
     } else {
       runTestDefault(filteredClassLists)
