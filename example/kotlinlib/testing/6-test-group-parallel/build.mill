@@ -16,7 +16,11 @@ object foo extends KotlinModule {
       ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
-    def testEnableWorkStealing = true
+    def testForkGrouping =
+      discoveredTestClasses().groupMapReduce(_.contains("GroupX"))(Seq(_))(_ ++ _).toSeq.sortBy(
+        data => !data._1
+      ).map(_._2)
+    def testParallelism = true
   }
 }
 //// SNIPPET:END

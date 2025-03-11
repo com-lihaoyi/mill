@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index b3cbbf54ebb..a37452856c7 100644
+index b3cbbf54ebb..b69d3ef4940 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,16 +1,16 @@
@@ -92,7 +92,15 @@ index b3cbbf54ebb..a37452856c7 100644
      def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
-@@ -580,7 +580,8 @@ trait MillBaseTestsModule extends TestModule {
+@@ -573,14 +573,15 @@ trait MillBaseTestsModule extends TestModule {
+   }
+ 
+   def testFramework = "mill.UTestFramework"
+-  def testEnableWorkStealing = true
++  def testParallelism = true
+ }
+ 
+ /** Published module which does not contain strictly handled API. */
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
