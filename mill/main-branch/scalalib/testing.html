@@ -1026,6 +1026,7 @@ object foo extends ScalaModule {
     def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+    def testEnableWorkStealing = false
   }
 }</code></pre>
 </div>

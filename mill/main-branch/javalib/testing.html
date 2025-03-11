@@ -1043,6 +1043,7 @@ object foo extends JavaModule {
       ivy&quot;org.mockito:mockito-core:4.6.1&quot;
     )
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+    def testEnableWorkStealing = false
   }
 }</code></pre>
 </div>
