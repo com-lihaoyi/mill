@@ -134,7 +134,7 @@ private[mill] class PromptLogger(
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
   override def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
     synchronized {
-      promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}] $message"))
+      promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${PromptLoggerUtil.spaceNonEmpty(message)}"))
       seenIdentifiers(key) = (verboseKeySuffix, message)
     }
 
