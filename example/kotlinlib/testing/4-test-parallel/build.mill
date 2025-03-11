@@ -16,7 +16,7 @@ object foo extends KotlinModule {
       ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
-    def testEnableWorkStealing = true
+    def testParallelism = true
   }
 }
 //// SNIPPET:END

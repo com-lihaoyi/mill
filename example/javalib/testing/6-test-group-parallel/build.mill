@@ -13,7 +13,7 @@ object foo extends JavaModule {
       discoveredTestClasses().groupMapReduce(_.contains("GroupX"))(Seq(_))(_ ++ _).toSeq.sortBy(
         data => !data._1
       ).map(_._2)
-    def testEnableWorkStealing = true
+    def testParallelism = true
   }
 }
 //// SNIPPET:END

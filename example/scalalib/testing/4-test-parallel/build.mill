@@ -1,10 +1,11 @@
-// Test stealing is an opt-in, powerful feature that enables parallel test execution.
+// Test parallelism is an opt-in, powerful feature that enables parallel test execution.
 // When enabled, Mill automatically distributes your test classes across multiple JVM subprocesses.
 // This is especially useful when you have multiple test classes that can be run in parallel.
-// Work stealing scheduler ensures throughput is maximized: no "slow" tests can block "fast" tests.
+// The parallel scheduler ensures throughput is maximized: no "slow" tests can block "fast" tests,
+// tests are run in parallel for performance, while overhead of JVM creation overhead is minimized.
 // This feature is expected to be enabled by default in future versions of Mill.
 //
-// Test stealing can be enabled by overriding def testEnableWorkStealing, as demonstrated below.
+// Test parallelism can be enabled by overriding def `testParallelism`, as demonstrated below.
 
 //// SNIPPET:BUILD1
 package build
@@ -16,7 +17,7 @@ object foo extends ScalaModule {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
 
-    def testEnableWorkStealing = true
+    def testParallelism = true
   }
 }
 
