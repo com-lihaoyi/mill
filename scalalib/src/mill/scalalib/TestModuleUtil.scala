@@ -278,12 +278,9 @@ private final class TestModuleUtil(
         }
     }
 
-
-    def jobsProcessLength(numTests: Int) = Task.ctx() match {
-      case j: Ctx.Jobs =>
-        val cappedJobs = Math.min(j.jobs, numTests)
-        (cappedJobs, Math.max(cappedJobs, 1))
-      case _ => (1, 1)
+    def jobsProcessLength(numTests: Int) = {
+      val cappedJobs = Math.max(Math.min(Task.ctx().jobs, numTests), 1)
+      (cappedJobs, cappedJobs.toString.length)
     }
 
     val groupLength = groupFolderData.length
@@ -305,7 +302,10 @@ private final class TestModuleUtil(
         mill.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
       val processFolder = groupFolder / s"worker-$paddedProcessIndex"
 
-      val label = if(groupFolderData.size == 1) paddedProcessIndex else s"${paddedGroupIndex}-${paddedProcessIndex}"
+      val label =
+        if (groupFolderData.size == 1) paddedProcessIndex
+        else s"$paddedGroupIndex-$paddedProcessIndex"
+
       Task.fork.async(processFolder, label, s"worker-$label") { logger =>
         // force run when processIndex == 0 (first subprocess), even if there are no tests to run
         // to force the process to go through the test framework setup/teardown logic
