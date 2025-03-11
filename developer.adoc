@@ -222,8 +222,7 @@ rm -rf out/
 To run all autofixes and autoformatters:
 
 ```bash
-./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/ + mill.kotlinlib.ktlint.KtlintModule/
-./mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/
+./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/scalafmt + mill.kotlinlib.ktlint.KtlintModule/
 ```
 
 These are run automatically on pull requests, so feel free to `pull` down the changes if you want
