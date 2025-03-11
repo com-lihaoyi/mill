@@ -12,9 +12,23 @@ import scala.util.Properties.isWin
 import os.CommandResult
 
 import java.util.jar.{JarEntry, JarOutputStream}
-import scala.collection.mutable
+import coursier.cache.FileCache
+import coursier.core.{BomDependency, Module}
+import coursier.error.FetchError.DownloadingArtifacts
+import coursier.error.ResolutionError.CantDownloadModule
+import coursier.params.ResolutionParams
+import coursier.parse.RepositoryParser
+import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
+import coursier.util.Task
+import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 
-object Jvm extends CoursierSupport {
+import mill.api.{Ctx, PathRef, Result}
+
+import scala.collection.mutable
+import scala.util.chaining.scalaUtilChainingOps
+import coursier.cache.ArchiveCache
+
+object Jvm {
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -461,4 +475,224 @@ object Jvm extends CoursierSupport {
   private val java9OrAbove: Boolean =
     !System.getProperty("java.specification.version").startsWith("1.")
 
+  private def coursierCache(
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
+  ) =
+    FileCache[Task]()
+      .pipe { cache =>
+        coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
+      }
+      .pipe { cache =>
+        ctx.fold(cache)(c => cache.withLogger(new CoursierTickerResolutionLogger(c)))
+      }
+
+  /**
+   * Resolve dependencies using Coursier.
+   *
+   * We do not bother breaking this out into the separate ZincWorkerApi classpath,
+   * because Coursier is already bundled with mill/Ammonite to support the
+   * `import $ivy` syntax.
+   */
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      sources: Boolean = false,
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[Resolution => Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      artifactTypes: Option[Set[Type]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
+  ): Result[Seq[PathRef]] = {
+    val resolutionRes = resolveDependenciesMetadataSafe(
+      repositories,
+      deps,
+      force,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      resolutionParams
+    )
+
+    resolutionRes.flatMap { resolution =>
+      val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+
+      val artifactsResultOrError = Artifacts(coursierCache0)
+        .withResolution(resolution)
+        .withClassifiers(
+          if (sources) Set(Classifier("sources"))
+          else Set.empty
+        )
+        .withArtifactTypesOpt(artifactTypes)
+        .eitherResult()
+
+      artifactsResultOrError match {
+        case Left(error: DownloadingArtifacts) =>
+          val errorDetails = error.errors
+            .map(_._2)
+            .map(e => s"${System.lineSeparator()}  ${e.describe}")
+            .mkString
+          Result.Failure(
+            s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
+          )
+        case Right(res) =>
+          Result.Success(
+            res.files
+              .map(os.Path(_))
+              .map(PathRef(_, quick = true))
+          )
+      }
+    }
+  }
+
+  def jvmIndex(
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+  ): JvmIndex = {
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    jvmIndex0(ctx, coursierCacheCustomizer).unsafeRun()(coursierCache0.ec)
+  }
+
+  def jvmIndex0(
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      jvmIndexVersion: String = "latest.release"
+  ): Task[JvmIndex] = {
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    JvmIndex.load(
+      cache = coursierCache0, // the coursier.cache.Cache instance to use
+      repositories = Resolve().repositories, // repositories to use
+      indexChannel = JvmChannel.module(
+        JvmChannel.centralModule(),
+        version = jvmIndexVersion
+      ) // use new indices published to Maven Central
+    )
+  }
+
+  /**
+   * Resolve java home using Coursier.
+   *
+   * The id string has format "$DISTRIBUTION:$VERSION". e.g. graalvm-community:23.0.0
+   */
+  def resolveJavaHome(
+      id: String,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      jvmIndexVersion: String = "latest.release"
+  ): Result[os.Path] = {
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    val jvmCache = JvmCache()
+      .withArchiveCache(
+        ArchiveCache().withCache(coursierCache0)
+      )
+      .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
+    val javaHome = JavaHome()
+      .withCache(jvmCache)
+    val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
+    Result.Success(os.Path(file))
+
+  }
+
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[Resolution => Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      boms: IterableOnce[BomDependency] = Nil
+  ): Result[Resolution] = {
+
+    val rootDeps = deps.iterator
+      .map(d => mapDependencies.fold(d)(_.apply(d)))
+      .toSeq
+
+    val forceVersions = force.iterator
+      .map(mapDependencies.getOrElse(identity[Dependency](_)))
+      .map { d => d.module -> d.version }
+      .toMap
+
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+
+    val resolutionParams0 = resolutionParams
+      .addForceVersion(forceVersions.toSeq*)
+
+    val testOverridesRepo =
+      new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
+
+    val resolve = Resolve()
+      .withCache(coursierCache0)
+      .withDependencies(rootDeps)
+      .withRepositories(testOverridesRepo +: repositories)
+      .withResolutionParams(resolutionParams0)
+      .withMapDependenciesOpt(mapDependencies)
+      .withBoms(boms.iterator.toSeq)
+
+    resolve.either() match {
+      case Left(error) =>
+        val cantDownloadErrors = error.errors.collect {
+          case cantDownload: CantDownloadModule => cantDownload
+        }
+        if (error.errors.length == cantDownloadErrors.length) {
+          val header =
+            s"""|
+                |Resolution failed for ${cantDownloadErrors.length} modules:
+                |--------------------------------------------
+                |""".stripMargin
+
+          val helpMessage =
+            s"""|
+                |--------------------------------------------
+                |
+                |For additional information on library dependencies, see the docs at
+                |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
+
+          val errLines = cantDownloadErrors
+            .map { err =>
+              s"  ${err.module.trim}:${err.version} \n\t" +
+                err.perRepositoryErrors.mkString("\n\t")
+            }
+            .mkString("\n")
+          val msg = header + errLines + "\n" + helpMessage + "\n"
+          Result.Failure(msg)
+        } else {
+          throw error
+        }
+      case Right(resolution0) =>
+        val resolution = customizer.fold(resolution0)(_.apply(resolution0))
+        Result.Success(resolution)
+    }
+  }
+
+  // Parse a list of repositories from their string representation
+  def repoFromString(str: String, origin: String): Result[Seq[Repository]] = {
+    val spaceSep = "\\s+".r
+
+    val repoList =
+      if (spaceSep.findFirstIn(str).isEmpty)
+        str
+          .split('|')
+          .toSeq
+          .filter(_.nonEmpty)
+      else
+        spaceSep
+          .split(str)
+          .toSeq
+          .filter(_.nonEmpty)
+
+    RepositoryParser.repositories(repoList).either match {
+      case Left(errs) =>
+        val msg =
+          s"Invalid repository string in $origin:" + System.lineSeparator() +
+            errs.map("  " + _ + System.lineSeparator()).mkString
+        Result.Failure(msg)
+      case Right(repos) =>
+        Result.Success(repos)
+    }
+  }
 }
