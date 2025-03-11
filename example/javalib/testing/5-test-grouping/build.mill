@@ -9,11 +9,12 @@ object foo extends JavaModule {
       ivy"com.novocode:junit-interface:0.11",
       ivy"org.mockito:mockito-core:4.6.1"
     )
-    def testForkGrouping =
-      discoveredTestClasses().groupMapReduce(_.contains("GroupX"))(Seq(_))(_ ++ _).toSeq.sortBy(
-        data => !data._1
-      ).map(_._2)
-    def testEnableWorkStealing = true
+    def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+    def testParallelism = false
   }
 }
+
+/** See Also: foo/test/src/foo/HelloTests.java */
+/** See Also: foo/test/src/foo/WorldTests.java */
+
 //// SNIPPET:END
