@@ -1006,6 +1006,56 @@ object qux extends ScalaModule {
 </div>
 </div>
 <div class="sect1">
+<h2 id="_test_parallelism"><a class="anchor" href="#_test_parallelism"></a>Test Parallelism</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Test parallelism is an opt-in, powerful feature that enables parallel test execution.
+When enabled, Mill automatically distributes your test classes across multiple JVM subprocesses.
+This is especially useful when you have multiple test classes that can be run in parallel.
+Test parallelism scheduler ensures throughput is maximized: no &quot;slow&quot; tests can block &quot;fast&quot; tests,
+tests are run in parallel for performance, while overhead of JVM creation overhead is minimized.
+This feature is expected to be enabled by default in future versions of Mill.</p>
+</div>
+<div class="paragraph">
+<p>Test parallelism can be enabled by overriding def testParallelism, as demonstrated below.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-scalalib-testing-4-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/testing/4-test-parallel">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+
+    def testParallelism = true
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill -j 3 foo.test
+
+&gt; find out/foo/test/testForked.dest
+...
+out/foo/test/testForked.dest/worker-0.log
+out/foo/test/testForked.dest/worker-0
+out/foo/test/testForked.dest/worker-1.log
+out/foo/test/testForked.dest/worker-1
+out/foo/test/testForked.dest/worker-2.log
+out/foo/test/testForked.dest/worker-2
+out/foo/test/testForked.dest/test-classes
+out/foo/test/testForked.dest/test-report.xml
+...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_test_grouping"><a class="anchor" href="#_test_grouping"></a>Test Grouping</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1015,7 +1065,7 @@ execute in parallel when you call <code>test</code>. Test grouping is enabled
 by overriding <code>def testForkGrouping</code>, as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-scalalib-testing-4-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/testing/4-test-grouping">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-scalalib-testing-5-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/testing/5-test-grouping">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1026,13 +1076,13 @@ object foo extends ScalaModule {
     def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
-    def testEnableWorkStealing = false
+    def testParallelism = false
   }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/HelloTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/testing/4-test-grouping/foo/test/src/HelloTests.scala">browse</a>)</div>
+<div class="title">foo/test/src/HelloTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/testing/5-test-grouping/foo/test/src/HelloTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 import utest._
@@ -1051,7 +1101,7 @@ object HelloTests extends TestSuite {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/WorldTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/testing/4-test-grouping/foo/test/src/WorldTests.scala">browse</a>)</div>
+<div class="title">foo/test/src/WorldTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/testing/5-test-grouping/foo/test/src/WorldTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 import utest._
@@ -1123,62 +1173,13 @@ execution, based on the unique constraints of your test suite.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_test_work_stealing_scheduler"><a class="anchor" href="#_test_work_stealing_scheduler"></a>Test Work Stealing Scheduler</h2>
+<h2 id="_test_grouping_test_parallelism_together"><a class="anchor" href="#_test_grouping_test_parallelism_together"></a>Test Grouping &amp; Test Parallelism together</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Test stealing is an opt-in, powerful feature that enables parallel test execution.
-When enabled, Mill automatically distributes your test classes across multiple JVM subprocesses.
-This is especially useful when you have multiple test classes that can be run in parallel.
-Work stealing scheduler ensures throughput is maximized: no &quot;slow&quot; tests can block &quot;fast&quot; tests.
-This feature is expected to be enabled by default in future versions of Mill.</p>
-</div>
-<div class="paragraph">
-<p>Test stealing can be enabled by overriding def testEnableWorkStealing, as demonstrated below.</p>
+<p><code>testParallelism</code> respects <code>testForkGrouping</code>, allowing you to use both features in a test module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-scalalib-testing-5-test-stealing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/testing/5-test-stealing">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-
-object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
-  object test extends ScalaTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
-
-    def testEnableWorkStealing = true
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill -j 3 foo.test
-
-&gt; find out/foo/test/testForked.dest
-...
-out/foo/test/testForked.dest/worker-0.log
-out/foo/test/testForked.dest/worker-0
-out/foo/test/testForked.dest/worker-1.log
-out/foo/test/testForked.dest/worker-1
-out/foo/test/testForked.dest/worker-2.log
-out/foo/test/testForked.dest/worker-2
-out/foo/test/testForked.dest/test-classes
-out/foo/test/testForked.dest/test-report.xml
-...</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_test_grouping_test_work_stealing"><a class="anchor" href="#_test_grouping_test_work_stealing"></a>Test Grouping &amp; Test Work Stealing</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p><code>testEnableWorkStealing</code> respects <code>testForkGrouping</code>, allowing you to use both features in a test module.</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-scalalib-testing-6-test-group-stealing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/testing/6-test-group-stealing">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-scalalib-testing-6-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/testing/6-test-group-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1194,7 +1195,7 @@ object foo extends ScalaModule {
       discoveredTestClasses().groupMapReduce(_.contains(&quot;GroupX&quot;))(Seq(_))(_ ++ _).toSeq.sortBy(
         data =&gt; !data._1
       ).map(_._2)
-    def testEnableWorkStealing = true
+    def testParallelism = true
   }
 }</code></pre>
 </div>
@@ -1221,13 +1222,13 @@ out/foo/test/testForked.dest/test-report.xml
 </div>
 <div class="paragraph">
 <p>This example sets <code>testForkGrouping</code> to group test classes into two categories: <code>GroupX</code> and <code>GroupY</code>.
-Additionally, <code>testEnableWorkStealing</code> is enabled.
-Mill ensures each subprocess exclusively steals and runs tests from either <code>GroupX</code> or <code>GroupY</code>, preventing them from mixing.
+Additionally, <code>testParallelism</code> is enabled.
+Mill ensures each subprocess exclusively claims and runs tests from either <code>GroupX</code> or <code>GroupY</code>, preventing them from mixing.
 Test classes from <code>GroupX</code> and <code>GroupY</code> will never share the same test runner.</p>
 </div>
 <div class="paragraph">
 <p>This is useful when you have incompatible tests that cannot run within the same JVM.
-Test Grouping combined with Test Stealing Scheduler maintains their isolation while maximizing performance through parallel test execution.</p>
+Test Grouping combined with Test Parallel Scheduler maintains their isolation while maximizing performance through parallel test execution.</p>
 </div>
 </div>
 </div>

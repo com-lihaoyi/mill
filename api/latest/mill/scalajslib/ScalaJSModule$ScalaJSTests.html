@@ -8374,55 +8374,11 @@ node26 -> node23;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="testEnableWorkStealing-0" data-f-inherited="TestModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether to use the test stealing scheduler to run tests in multiple JVM processes.\n * When used in combination with [[testForkGrouping]], every JVM test running process\n * will guarantee to never steal tests from different test groups.\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaJSModule$ScalaJSTests.html#testEnableWorkStealing-0" t="n" class="documentableName ">testEnableWorkStealing</a>: <a href="../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">Boolean</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Whether to use the test stealing scheduler to run tests in multiple JVM processes. When used in combination with <a href="../scalalib/TestModule.html#testForkGrouping-0">testForkGrouping</a>, every JVM test running process will guarantee to never steal tests from different test groups.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Whether to use the test stealing scheduler to run tests in multiple JVM processes. When used in combination with <a href="../scalalib/TestModule.html#testForkGrouping-0">testForkGrouping</a>, every JVM test running process will guarantee to never steal tests from different test groups.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="../scalalib/TestModule.html#testEnableWorkStealing-0">TestModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/TestModule.scala" target="_blank">TestModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="testForkGrouping-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * How the test classes in this module will be split.\n * Test classes from different groups are ensured to never\n * run on the same JVM process, and therefore can be run in parallel.\n * When used in combination with [[testEnableWorkStealing]],\n * every JVM test running process will guarantee to never steal tests\n * from different test groups.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * How the test classes in this module will be split.\n * Test classes from different groups are ensured to never\n * run on the same JVM process, and therefore can be run in parallel.\n * When used in combination with [[testParallelism]],\n * every JVM test running process will guarantee to never claim tests\n * from different test groups.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -8436,11 +8392,11 @@ node26 -> node23;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>How the test classes in this module will be split. Test classes from different groups are ensured to never run on the same JVM process, and therefore can be run in parallel. When used in combination with <a href="../scalalib/TestModule.html#testEnableWorkStealing-0">testEnableWorkStealing</a>, every JVM test running process will guarantee to never steal tests from different test groups.</p>
+             <p>How the test classes in this module will be split. Test classes from different groups are ensured to never run on the same JVM process, and therefore can be run in parallel. When used in combination with <a href="../scalalib/TestModule.html#testParallelism-0">testParallelism</a>, every JVM test running process will guarantee to never claim tests from different test groups.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>How the test classes in this module will be split. Test classes from different groups are ensured to never run on the same JVM process, and therefore can be run in parallel. When used in combination with <a href="../scalalib/TestModule.html#testEnableWorkStealing-0">testEnableWorkStealing</a>, every JVM test running process will guarantee to never steal tests from different test groups.</p>
+              <p>How the test classes in this module will be split. Test classes from different groups are ensured to never run on the same JVM process, and therefore can be run in parallel. When used in combination with <a href="../scalalib/TestModule.html#testParallelism-0">testParallelism</a>, every JVM test running process will guarantee to never claim tests from different test groups.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -8596,6 +8552,50 @@ node26 -> node23;
               </dt>
               <dd class="body-medium">
                <a href="../scalalib/TestModule.html#testOnly-5ff">TestModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/TestModule.scala" target="_blank">TestModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="testParallelism-0" data-f-inherited="TestModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether to use the test parallelism to run tests in multiple JVM processes.\n * When used in combination with [[testForkGrouping]], every JVM test running process\n * will guarantee to never claim tests from different test groups.\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaJSModule$ScalaJSTests.html#testParallelism-0" t="n" class="documentableName ">testParallelism</a>: <a href="../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">Boolean</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Whether to use the test parallelism to run tests in multiple JVM processes. When used in combination with <a href="../scalalib/TestModule.html#testForkGrouping-0">testForkGrouping</a>, every JVM test running process will guarantee to never claim tests from different test groups.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Whether to use the test parallelism to run tests in multiple JVM processes. When used in combination with <a href="../scalalib/TestModule.html#testForkGrouping-0">testForkGrouping</a>, every JVM test running process will guarantee to never claim tests from different test groups.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../scalalib/TestModule.html#testParallelism-0">TestModule</a>
               </dd>
               <dt class="body-small">
                Source
