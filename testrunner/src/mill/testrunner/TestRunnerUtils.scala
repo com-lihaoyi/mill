@@ -228,11 +228,11 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (doneMessage, results.toSeq)
   }
 
-  def stealTasks(
+  def runTasksFromQueue(
       testClasses: Loose.Agg[ClassWithFingerprint],
       testReporter: TestReporter,
       runner: Runner,
-      stealFolder: os.Path,
+      queueFolderFolder: os.Path,
       testClassesFolder: os.Path
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
@@ -242,19 +242,19 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
       .toMap
 
-    // append only log, used to communicate with parent about what test is being stolen
-    // so that the parent can log the stolen test's name to its logger
-    val stealLog = stealFolder / os.up / s"${stealFolder.last}.log"
+    // append only log, used to communicate with parent about what test is being claimed
+    // so that the parent can log the claimed test's name to its logger
+    val queueLog = queueFolderFolder / os.up / s"${queueFolderFolder.last}.log"
     for (file <- os.list(testClassesFolder)) {
       val testClassName = file.last
-      val stolenFile = stealFolder / testClassName
+      val claimedFile = queueFolderFolder / testClassName
 
-      // we can check for existence of stolenFile first, but it'll require another os call.
+      // we can check for existence of claimedFile first, but it'll require another os call.
       // it just better to let this call failed in that case.
-      val stole = scala.util.Try(os.move(file, stolenFile, atomicMove = true)).isSuccess
+      val claimed = scala.util.Try(os.move(file, claimedFile, atomicMove = true)).isSuccess
 
-      if (stole) {
-        os.write.append(stealLog, s"$testClassName\n")
+      if (claimed) {
+        os.write.append(queueLog, s"$testClassName\n")
         val taskDefs = globSelectorCache
           .get(testClassName)
           .map { case (cls, fingerprint) =>
@@ -270,12 +270,12 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     handleRunnerDone(runner, events)
   }
 
-  def stealTestFramework0(
+  def queueTestFramework0(
       frameworkInstances: ClassLoader => Framework,
       testClassfilePath: Loose.Agg[Path],
       args: Seq[String],
       testClassesFolder: os.Path,
-      stealFolder: os.Path,
+      queueFolder: os.Path,
       cl: ClassLoader,
       testReporter: TestReporter
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
@@ -287,7 +287,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
     val (doneMessage, results) =
-      stealTasks(testClasses, testReporter, runner, stealFolder, testClassesFolder)
+      runTasksFromQueue(testClasses, testReporter, runner, queueFolder, testClassesFolder)
 
     (doneMessage, results.toSeq)
   }
