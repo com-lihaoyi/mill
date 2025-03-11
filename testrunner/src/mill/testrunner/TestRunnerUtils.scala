@@ -228,53 +228,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (doneMessage, results.toSeq)
   }
 
-  private def stealTaskFromTestClassesFolder(
-      globSelectorCache: Map[String, ClassWithFingerprint],
-      runner: Runner,
-      stealFolder: os.Path,
-      testClassesFolder: os.Path
-  ): Array[Task] = {
-    // append only log, used to communicate with parent about what test is being stolen
-    // so that the parent can log the stolen test's name to its logger
-    val stealLog = stealFolder / os.up / s"${stealFolder.last}.log"
-    val files = os.list.stream(testClassesFolder).toBuffer
-    while (files.nonEmpty) {
-      val file = files.remove(0)
-      val stolenFile = stealFolder / file.last
-      val stole =
-        try {
-          // we can check for existence of stolenFile first, but it'll require another os call.
-          // it just better to let this call failed in that case.
-          os.move(
-            file,
-            stolenFile,
-            atomicMove = true
-          )
-          true
-        } catch {
-          case e: Exception => false
-        }
-      if (stole) {
-        val selector = stolenFile.last
-        os.write.append(stealLog, s"$selector\n")
-        val taskDefs = globSelectorCache.get(stolenFile.last) match {
-          case Some((cls, fingerprint)) =>
-            Array(new TaskDef(
-              cls.getName.stripSuffix("$"),
-              fingerprint,
-              false,
-              Array(new SuiteSelector)
-            ))
-          case None => Array.empty[TaskDef]
-        }
-        val tasks = runner.tasks(taskDefs)
-        return tasks
-      }
-    }
-
-    Array.empty[Task]
-  }
-
   def stealTasks(
       testClasses: Loose.Agg[ClassWithFingerprint],
       testReporter: TestReporter,
@@ -285,19 +238,35 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val events = new ConcurrentLinkedQueue[Event]()
-    val globSelectorCache = testClasses.view.map { case (cls, fingerprint) =>
-      cls.getName.stripSuffix("$") -> (cls, fingerprint)
-    }.toMap
-    while ({
-      val tasks =
-        stealTaskFromTestClassesFolder(globSelectorCache, runner, stealFolder, testClassesFolder)
-      if (tasks.nonEmpty) {
+    val globSelectorCache = testClasses.view
+      .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
+      .toMap
+
+    // append only log, used to communicate with parent about what test is being stolen
+    // so that the parent can log the stolen test's name to its logger
+    val stealLog = stealFolder / os.up / s"${stealFolder.last}.log"
+    for (file <- os.list(testClassesFolder)) {
+      val testClassName = file.last
+      val stolenFile = stealFolder / testClassName
+
+      // we can check for existence of stolenFile first, but it'll require another os call.
+      // it just better to let this call failed in that case.
+      val stole = scala.util.Try(os.move(file, stolenFile, atomicMove = true)).isSuccess
+
+      if (stole) {
+        os.write.append(stealLog, s"$testClassName\n")
+        val taskDefs = globSelectorCache
+          .get(testClassName)
+          .map { case (cls, fingerprint) =>
+            val clsName = cls.getName.stripSuffix("$")
+            new TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
+          }
+
+        val tasks = runner.tasks(taskDefs.toArray)
         executeTasks(tasks, testReporter, runner, events)
-        true
-      } else {
-        false
       }
-    }) ()
+    }
+
     handleRunnerDone(runner, events)
   }
 
