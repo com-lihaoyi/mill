@@ -14,27 +14,27 @@ import scala.xml.{Elem, NodeSeq, XML}
 object TestRunnerTestUtils {
   object testrunner extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = Seq(x)
-    def enableWorkStealing = false
+    def enableParallelism = false
   }
 
   object testrunnerGrouping extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = x.sorted.grouped(2).toSeq
-    def enableWorkStealing = false
+    def enableParallelism = false
   }
 
-  object testrunnerWorkStealing extends TestRunnerTestModule {
+  object testrunnerParallel extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = Seq(x)
-    def enableWorkStealing = true
+    def enableParallelism = true
   }
 
   trait TestRunnerTestModule extends TestBaseModule with ScalaModule {
     def computeTestForkGrouping(x: Seq[String]): Seq[Seq[String]]
-    def enableWorkStealing: Boolean
+    def enableParallelism: Boolean
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object utest extends ScalaTests with TestModule.Utest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
-      override def testParallelism = enableWorkStealing
+      override def testParallelism = enableParallelism
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
@@ -44,7 +44,7 @@ object TestRunnerTestUtils {
 
     object scalatest extends ScalaTests with TestModule.ScalaTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
-      override def testParallelism = enableWorkStealing
+      override def testParallelism = enableParallelism
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
@@ -72,7 +72,7 @@ object TestRunnerTestUtils {
 
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
-      override def testParallelism = enableWorkStealing
+      override def testParallelism = enableParallelism
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
@@ -86,7 +86,7 @@ object TestRunnerTestUtils {
 
   class TestOnlyTester(m: TestRunnerTestModule => TestModule) {
     def testOnly0(f: (UnitTester, TestRunnerTestModule) => Unit) = {
-      for (mod <- Seq(testrunner, testrunnerGrouping, testrunnerWorkStealing)) {
+      for (mod <- Seq(testrunner, testrunnerGrouping, testrunnerParallel)) {
         UnitTester(mod, resourcePath).scoped { eval => f(eval, mod) }
       }
     }
