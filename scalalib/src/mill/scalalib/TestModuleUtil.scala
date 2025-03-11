@@ -355,8 +355,8 @@ private final class TestModuleUtil(
             }
           },
           0,
-          1,
-          java.util.concurrent.TimeUnit.SECONDS
+          100,
+          java.util.concurrent.TimeUnit.MILLISECONDS
         )
 
         Task.fork.awaitAll(subprocessFutures)
