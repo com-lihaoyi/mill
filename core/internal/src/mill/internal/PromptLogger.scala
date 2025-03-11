@@ -128,7 +128,7 @@ private[mill] class PromptLogger(
       }
       for ((keySuffix, message) <- res) {
         if (prompt.enableTicker) {
-          streams.err.println(infoColor(s"[${key.mkString("-")}$keySuffix] $message"))
+          streams.err.println(infoColor(s"[${key.mkString("-")}$keySuffix]${PromptLoggerUtil.spaceNonEmpty(message)}"))
           streamManager.awaitPumperEmpty()
         }
       }
