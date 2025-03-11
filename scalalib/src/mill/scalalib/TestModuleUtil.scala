@@ -355,7 +355,7 @@ private final class TestModuleUtil(
             }
           },
           0,
-          100,
+          50,
           java.util.concurrent.TimeUnit.MILLISECONDS
         )
 
