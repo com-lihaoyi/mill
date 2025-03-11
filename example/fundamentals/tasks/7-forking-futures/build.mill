@@ -29,10 +29,10 @@ def taskSpawningFutures = Task {
 /** Usage
 
 > ./mill show taskSpawningFutures
-[1] Running First Future inside .../out/taskSpawningFutures.dest/future-1
-[2] Running Second Future inside .../out/taskSpawningFutures.dest/future-2
-[1] Finished First Future
-[2] Finished Second Future
+Running First Future inside .../out/taskSpawningFutures.dest/future-1
+Running Second Future inside .../out/taskSpawningFutures.dest/future-2
+Finished First Future
+Finished Second Future
 3
 
 */

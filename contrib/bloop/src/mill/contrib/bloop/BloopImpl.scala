@@ -265,8 +265,8 @@ class BloopImpl(
               },
               gc = m.nativeGC(),
               targetTriple = m.nativeTarget(),
-              clang = m.nativeClang().toNIO,
-              clangpp = m.nativeClangPP().toNIO,
+              clang = m.nativeClang().path.toNIO,
+              clangpp = m.nativeClangPP().path.toNIO,
               options = Config.NativeOptions(
                 m.nativeLinkingOptions().toList,
                 m.nativeCompileOptions().toList

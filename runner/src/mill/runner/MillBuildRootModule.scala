@@ -7,7 +7,7 @@ import mill.*
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
-import mill.util.CoursierSupport
+import mill.util.Jvm
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.constants.OutFiles.*
@@ -71,7 +71,7 @@ abstract class MillBuildRootModule()(implicit
         val relFile = Try {
           srcFile.relativeTo(Task.workspace)
         }.recover { case _ => srcFile }.get
-        CoursierSupport.repoFromString(
+        Jvm.repoFromString(
           repo,
           s"buildfile `${relFile}`: import $$repo.`${repo}`"
         )

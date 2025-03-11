@@ -22,5 +22,5 @@ def getEnvJvmOpts() = Task.Command {
 }
 
 def getNonJvmOpts() = Task.Command {
-  Task.ctx().asInstanceOf[mill.api.Ctx.Jobs].jobs
+  Task.ctx().jobs
 }

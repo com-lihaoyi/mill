@@ -314,18 +314,13 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         .withOnOutputStream {
           case (Some(processOut), Some(processErr)) =>
             val sources = Seq(
-              (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
-              (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
+              (processOut, System.out, "spawnSubprocess.stdout", false),
+              (processErr, System.err, "spawnSubprocess.stderr", false)
             )
 
-            for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
+            for ((std, dest, name, checkAvailable) <- sources) {
               val t = new Thread(
-                new InputPumper(
-                  () => std,
-                  () => dest,
-                  checkAvailable,
-                  () => runningCheck()
-                ),
+                new InputPumper(() => std, () => dest, checkAvailable),
                 name
               )
               t.setDaemon(true)

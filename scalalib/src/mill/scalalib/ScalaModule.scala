@@ -264,7 +264,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   // Keep in sync with [[bspCompileClassesPath]]
   override def compile: T[CompilationResult] = Task(persistent = true) {
     val sv = scalaVersion()
-    if (sv == "2.12.4") Task.log.error(
+    if (sv == "2.12.4") Task.log.warn(
       """Attention: Zinc is known to not work properly for Scala version 2.12.4.
         |You may want to select another version. Upgrading to a more recent Scala version is recommended.
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
@@ -506,7 +506,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Use [[ammoniteVersion]] to customize the Ammonite version to use.
    */
   def repl(replOptions: String*): Command[Unit] = Task.Command(exclusive = true) {
-    if (Task.log.inStream == DummyInputStream) {
+    if (Task.log.streams.in == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     } else {
       val mainClass = ammoniteMainClass()

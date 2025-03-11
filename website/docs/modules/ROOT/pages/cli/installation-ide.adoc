@@ -22,12 +22,20 @@ bootstrap script, included. You can also download the boostrap script manually:
 # Mac/Linux
 curl -L {mill-download-url}/mill -o mill
 chmod +x mill
-echo {mill-last-tag} > .mill-version
+echo {mill-version} > .mill-version
 
 # Windows
 curl -L {mill-download-url}/mill.bat -o mill.bat
-echo {mill-last-tag} > .mill-version
+echo {mill-version} > .mill-version
 ----
+
+[CAUTION]
+--
+*Don't use PowerShell 5.1 to install Mill!*
+ +
+PowerShell 5.1 is known to produce `UTF-16LE` encoded `.mill-version` files, which can't be read by Mill.
+You should update to Powershell 7 or newer.
+--
 
 Downloading a `mill` bootstrap script to the root of your project repository helps make it easier for
 new contributors to build your project, as they don't have to install Mill before they can start.
@@ -63,7 +71,7 @@ Mill version:
 
 [source,bash,subs="verbatim,attributes"]
 ----
-echo {mill-last-tag}-native > .mill-version
+echo {version}-native > .mill-version
 ----
 
 Using the `-native` suffix should provide a faster CLI experience than using Mill's default
@@ -376,7 +384,7 @@ emerge dev-java/mill-bin
 === Windows
 
 To get started, download Mill from
-{mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-assembly[Github releases], and save it as `mill.bat`.
+{mill-github-url}/releases/download/{version}/{version}-assembly[Github releases], and save it as `mill.bat`.
 
 If you're using https://scoop.sh[Scoop] you can install Mill via
 
@@ -421,7 +429,7 @@ To get started, download Mill and install it into your HOME ".local/bin" via the
 
 [source,bash,subs="verbatim,attributes"]
 ----
-sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > ~/.local/bin/mill && chmod +x ~/.local/bin/mill"
+sh -c "curl -L {mill-github-url}/releases/download/{version}/{version} > ~/.local/bin/mill && chmod +x ~/.local/bin/mill"
 ----
 
 === Coursier (unsupported)

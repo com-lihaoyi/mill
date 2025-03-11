@@ -26,7 +26,7 @@ private[mill] object SelectiveExecution {
     ): (Metadata, Map[Task[?], ExecResult[Val]]) = {
       val results: Map[NamedTask[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: InputImpl[_] =>
-          val ctx = new mill.api.Ctx(
+          val ctx = new mill.api.Ctx.Impl(
             args = Vector(),
             dest0 = () => null,
             log = evaluator.baseLogger,
@@ -35,7 +35,8 @@ private[mill] object SelectiveExecution {
             testReporter = mill.api.DummyTestReporter,
             workspace = evaluator.workspace,
             systemExit = n => ???,
-            fork = null
+            fork = null,
+            jobs = evaluator.effectiveThreadCount
           )
           task -> task.evaluate(ctx).map(Val(_))
         }

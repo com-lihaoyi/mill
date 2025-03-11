@@ -153,7 +153,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       moduleKind == ModuleKind.NoModule &&
       binaryDir.toIO.listFiles().count(_.getName.endsWith(".js")) > 1
     ) {
-      Task.log.info("No module type is selected for the executable, but multiple .js files found in the output folder." +
+      Task.log.warn("No module type is selected for the executable, but multiple .js files found in the output folder." +
         " This will probably lead to the dependency resolution failure.")
     }
 
@@ -612,7 +612,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
               val lines = content.split("\n")
               val exceptionMessage = lines.head
               val exceptionType = lines(1).splitAt(lines(1).indexOf(":"))._1
-              val trace = parseTrace(lines.drop(2))
+              val trace = parseTrace(lines.toIndexedSeq.drop(2))
               (Status.Failure, Some(exceptionType), Some(exceptionMessage), Some(trace))
             } else if (node.child.exists(_.label == "skipped")) {
               (Status.Skipped, None, None, None)
