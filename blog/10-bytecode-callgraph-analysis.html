@@ -1882,6 +1882,12 @@ of test cases. That small amount of code took several months to research and wri
 but since then it has worked great without any major issues.</p>
 </div>
 <div class="paragraph">
+<p>Although the callgraph analysis can be imprecise and sometimes unpredictable, as long as it
+is conservatively correct it won’t cause any semantic problems. Mill builds are already meant
+to be composed of pure build tasks, so a task re-evaluating spuriously won’t cause any behavioral
+changes other than having to wait slightly longer for your CLI commands to finish.</p>
+</div>
+<div class="paragraph">
 <p>One nice side effect of working on JVM classfiles and bytecode is that the analysis
 did not need to change when upgrading from Scala 2 to Scala 3, whereas an approach based
 on Scala compiler internals (e.g. <a href="https://plg.uwaterloo.ca/~olhotak/pubs/ecoop14.pdf">Constructing Call Graphs of Scala Programs, ECOOP 2014</a>)
