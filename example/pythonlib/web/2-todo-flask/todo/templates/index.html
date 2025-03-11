@@ -1,0 +1,31 @@
+<header class="header">
+    <h1>todos</h1>
+    <input class="new-todo" placeholder="What needs to be done?" autofocus>
+</header>
+<section class="main">
+    <input id="toggle-all" class="toggle-all" type="checkbox" {% if todos|length> 0 and todos|selectattr('checked')|list|length == todos|length %}checked{% endif %}>
+    <ul class="todo-list">
+        {% for todo in todos %}
+        <li class="{% if todo.checked %}completed{% endif %}">
+            <div class="view">
+                <input class="toggle" type="checkbox" {% if todo.checked %}checked{% endif %} data-todo-index="{{ loop.index0 }}">
+                <label>{{ todo.text }}</label>
+                <button class="destroy" data-todo-index="{{ loop.index0 }}"></button>
+            </div>
+            <input class="edit" value="{{ todo.text }}">
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+<footer class="footer">
+    <span class="todo-count">
+        <strong>{{ todos|selectattr('checked', 'equalto', False)|list|length }}</strong> items left
+    </span>
+    <ul class="filters">
+        <li class="todo-all"><a href="#" class="{% if state == 'all' %}selected{% endif %}">All</a></li>
+        <li class="todo-active"><a href="#" class="{% if state == 'active' %}selected{% endif %}">Active</a></li>
+        <li class="todo-completed"><a href="#" class="{% if state == 'completed' %}selected{% endif %}">Completed</a>
+        </li>
+    </ul>
+    <button class="clear-completed" {% if todos|selectattr( 'checked' )|list|length==0 %}style="display:none;" {% endif %}>Clear completed</button>
+</footer>

@@ -1,0 +1,12 @@
+= Linting Android Projects
+:page-aliases: Linting_Android_Projects.adoc
+
+
+
+This page covers essential practices for maintaining and enforcing code quality
+in Android projects using the Mill build tool. Proper linting helps detect
+and resolve potential issues early, promoting better performance, security,
+and user experience.
+
+
+include::partial$example/android/javalib/3-linting.adoc[]

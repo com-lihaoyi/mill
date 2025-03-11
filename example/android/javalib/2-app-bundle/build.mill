@@ -1,0 +1,59 @@
+// This Example provides the basic setup for building Android App Bundle using Mill Build Tool.
+
+// By extending `AndroidAppBundle`, we inherit all Android Bundle tasks such as
+// Android Bundle zip generation, Bundle Creation and Bundle signing.
+// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
+
+//// SNIPPET:BUILD
+package build
+
+import mill._
+import mill.javalib.android.{AndroidSdkModule, AndroidAppBundle}
+
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+object bundle extends AndroidAppBundle {
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidCompileSdk = 35
+
+  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+}
+
+////SNIPPET:END
+
+/** Usage
+
+> ./mill show bundle.androidBundle
+".../out/bundle/androidBundle.dest/signedBundle.aab"
+
+*/
+
+// This command triggers the App Bundle Build process, which installs Bundle Tool then resource compilation,
+// and then building Android Bundle Zip then Creation of Android App Bundle and finally signs it.
+//
+// This Mill build configuration is designed to build a simple "Hello World" Android App Bundle.
+// By extending `AndroidAppBundle`, we leverage its predefined Android App Bundle build tasks,
+// ensuring that all necessary steps (generation, creation, and signing) are executed automatically.
+//
+// #### Project Structure:
+// The project follows the standard Android App Bundle layout. Below is a typical project folder structure:
+//
+// ----
+// .
+//bundle/
+//└── src
+//    ├── main
+//    │   ├── AndroidManifest.xml
+//    │   └── java/com/helloworld/app/MainActivity.java
+//    └── res
+//        └── values
+//            ├── colors.xml
+//            └── strings.xml
+//
+// ----
+//

@@ -1,0 +1,8 @@
+[
+  {
+    "extension": "revapi.reporter.text",
+    "configuration": {
+      "minSeverity": "BREAKING"
+    }
+  }
+]

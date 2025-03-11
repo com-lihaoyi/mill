@@ -1,0 +1,99 @@
+package build
+
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+  object bar extends TypeScriptModule {
+    def npmDeps = Seq("immutable@4.3.7")
+  }
+
+}
+
+object qux extends PublishModule {
+  def moduleDeps = Seq(foo, foo.bar)
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "qux.generated.ts",
+      s"""export default class QuxGen {
+         |  static value: number = 123
+         |}
+      """.stripMargin
+    )
+
+    Seq(PathRef(Task.dest))
+  }
+
+  def exports = Map(
+    "./qux/generate_user" -> "src/generate_user.js",
+    "./foo" -> "foo/src/foo.js",
+    "./foo/bar" -> "foo/bar/src/bar.js"
+  )
+
+  def publishMeta = PublishMeta(
+    name = "mill-realistic",
+    version = "1.0.3",
+    description = "A simple Node.js command-line tool",
+    files = Seq("README.md"),
+    bin = Map(
+      "qux" -> "src/qux.js"
+    )
+  )
+
+  object test extends TypeScriptTests with TestModule.Jest
+}
+
+// In this example, we define multiple exports for our application with the `export` task
+// The package.json generated for this lib publish:
+
+//// SNIPPET:BUILD
+// [source,json]
+// ----
+// {
+//  "name": "mill-realistic",
+//  "version": "1.0.3",
+//  "description": "A simple Node.js command-line tool",
+//  "license": "MIT",
+//  "main": "dist/src/qux.js",
+//  "types": "declarations/src/qux.d.ts",
+//  "files": [
+//    "README.md",
+//    "dist",
+//    "declarations"
+//  ],
+//  "bin": {
+//    "qux": "./dist/src/qux.js"
+//  },
+//  "dependencies": {
+//    "immutable": "4.3.7"
+//  },
+//  "devDependencies": {
+//    "immutable": "4.3.7"
+//  },
+//  "exports": {
+//    ".": "./dist/src/qux.js",
+//    "./qux/generate_user": "./dist/src/generate_user.js",
+//    "./foo": "./dist/foo/src/foo.js",
+//    "./foo/bar": "./dist/foo/bar/src/bar.js"
+//  },
+//  "typesVersions": {
+//    "*": { ... }
+//  }
+//}
+// ----
+//// SNIPPET:END
+
+/** Usage
+> mill qux.test
+PASS .../qux.test.ts
+...
+
+> npm i -g mill-realistic
+...
+
+> qux James Bond prof
+{ prof: 'Professor' }
+prof
+Professor
+Hello James Bond Professor
+*/

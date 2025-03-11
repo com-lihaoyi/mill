@@ -1,0 +1,140 @@
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+  def mainScript = Task.Source { "src/foo.py" }
+  object test extends PythonTests with TestModule.Unittest {
+    def mainScript = Task.Source { "src/test_foo.py" }
+  }
+}
+
+/** See Also: foo/src/foo.py */
+/** See Also: foo/test/src/test_foo.py */
+
+// This build defines a single module with a test suite, configured to use
+// `Unittest` as the testing framework. Test suites are themselves ``PythonModule``s,
+// nested within the enclosing module, and have all the normal tasks
+// available to run, but with an additional `.test` task
+// that runs the tests. You can also run the test suite directly, in which case
+// it will run the `.test` task as the default task for that module.
+
+/** Usage
+
+> ./mill foo.run
+Hello World
+
+> ./mill foo.test.testForked
+test_hello (test_foo.TestScript...) ... ok
+test_mock (test_foo.TestScript...) ... ok
+test_world (test_foo.TestScript...) ... ok
+...Ran 3 tests...
+OK
+
+> ./mill foo.test # same as above, `.test` is the default task for the `test` module
+...Ran 3 tests...
+OK
+
+> ./mill foo.test test_foo.TestScript.test_mock # explicitly select the test class you wish to run 
+test_mock (test_foo.TestScript...) ... ok
+...Ran 1 test...
+OK
+
+*/
+
+// For convenience, you can also use one of the predefined test frameworks:
+//
+// * `TestModule.Pytest`, using https://pytest.org[Pytest]
+// * `TestModule.Unittest`, using https://docs.python.org/3/library/unittest.html[Unittest]
+//
+// Each testing framework has their own flags and configuration options that are
+// documented on their respective websites, so please see the links above for more
+// details on how to use each one from the command line.
+
+object bar extends PythonModule {
+  def mainScript = Task.Source { "src/bar.py" }
+  object test extends PythonTests with TestModule.Pytest
+}
+
+/** Usage
+
+> ./mill bar.test
+...test_bar.py::test_hello PASSED...
+...test_bar.py::test_world PASSED...
+...test_bar.py::test_mock PASSED...
+...3 passed...
+
+*/
+
+// You can also select multiple test suites in one command using Mill's
+// xref:cli/query-syntax.adoc[Task Query Syntax]
+
+/** Usage
+
+> ./mill __.test
+test_hello (test_foo.TestScript...) ... ok
+test_mock (test_foo.TestScript...) ... ok
+test_world (test_foo.TestScript...) ... ok
+...Ran 3 tests...
+OK
+...test_bar.py::test_hello PASSED...
+...test_bar.py::test_world PASSED...
+...test_bar.py::test_mock PASSED...
+...3 passed...
+
+*/
+
+// Mill provides multiple ways of running tests
+
+/** Usage
+
+> ./mill foo.test
+test_hello (test_foo.TestScript...) ... ok
+test_mock (test_foo.TestScript...) ... ok
+test_world (test_foo.TestScript...) ... ok
+...Ran 3 tests...
+OK
+
+*/
+
+// * `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
+//   for `foo.test.testForked`, as `testForked` is the default task for ``TestModule``s.
+
+/** Usage
+
+> ./mill foo.test.testCached
+test_hello (test_foo.TestScript...) ... ok
+test_mock (test_foo.TestScript...) ... ok
+test_world (test_foo.TestScript...) ... ok
+...Ran 3 tests...
+OK
+
+*/
+
+// * `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
+//   if successful. This can be handy if you are you working on some upstream modules and only
+//   want to run downstream tests which are affected: using `testCached`, downstream tests which
+//   are not affected will be cached after the first run and not re-run unless you change some
+//   file upstream of them.
+//
+// It is common to run tests with xref:cli/flags.adoc#_watch_w[-w/--watch]
+// enabled, so that once you save a file to disk the selected tests get re-run.
+//
+// NOTE: Mill runs tests with the working directory set to an empty
+// xref:depth/sandboxing.adoc[sandbox/ folder] by default.
+// Additional paths can be provided to test via `forkEnv`. See
+// xref:pythonlib/module-config.adoc#_pythonpath_and_filesystem_resources[Pythonpath and Filesystem Resources]
+// for more details.
+//
+// If you want to pass any arguments to the test framework, you can pass them after
+// `foo.test` in the command line. e.g. https://pytest.org[Pytest]
+// lets you pass in a selector to decide which test to run, which in Mill would be:
+
+/** Usage
+
+> ./mill bar.test bar/test/src/test_bar.py::test_mock # explicitly select the test class you wish to run 
+...test_bar.py::test_mock PASSED...
+...1 passed...
+
+*/
+
+// This command only runs the `test_mock` test case in the `bar.test` test suite class.

@@ -1,26 +1,26 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._, scalalib._
+import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object foo extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
   def mainClass = Some("foo.FooKt")
 
-  /** Total number of lines in module's source files */
-  def lineCount = T{
+  /** Total number of lines in module source files */
+  def lineCount = Task {
     allSourceFiles().map(f => os.read.lines(f.path).size).sum
   }
 
   /** Generate resources using lineCount of sources */
-  override def resources = T{
-    os.write(T.dest / "line-count.txt", "" + lineCount())
-    Seq(PathRef(T.dest))
+  override def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+  object test extends KotlinTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }

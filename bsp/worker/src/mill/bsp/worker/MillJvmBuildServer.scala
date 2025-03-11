@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.T
+import mill.Task
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.{JavaModule, TestModule}
@@ -55,7 +55,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             case m: TestModule => m.getTestEnvironmentVars()
             case _ => m.compile
           }
-          T.task {
+          Task.Anon {
             (
               m.runClasspath(),
               m.forkArgs(),
@@ -72,7 +72,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             ev,
             state,
             id,
-            _: TestModule with JavaModule,
+            _: (TestModule & JavaModule),
             (
               _,
               forkArgs,
@@ -121,6 +121,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val classes = mainClass.toList ++ zincWorker.discoverMainClasses(compile)
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
+      case _ => ???
     } {
       agg
     }
@@ -136,14 +137,14 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       }
     ) {
       case (ev, _, id, _: JavaModule, compileClasspath) =>
-        val pathResolver = ev.pathsResolver
 
         new JvmCompileClasspathItem(
           id,
           compileClasspath.iterator
-            .map(_.resolve(pathResolver))
+            .map(_.resolve(ev.outPath))
             .map(sanitizeUri).toSeq.asJava
         )
+      case _ => ???
     } {
       new JvmCompileClasspathResult(_)
     }

@@ -1,12 +1,13 @@
 package mill.twirllib
 
+import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.framework.TestPath
-import utest.{TestSuite, Tests, assert, _}
+import utest.{TestSuite, Tests, assert, *}
 
 trait HelloWorldTests extends TestSuite {
   val testTwirlVersion: String
+  val wildcard: String
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
     def twirlVersion = testTwirlVersion
@@ -20,6 +21,7 @@ trait HelloWorldTests extends TestSuite {
       override def twirlConstructorAnnotations: Seq[String] = testConstructorAnnotations
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithInclusiveDot extends TestBaseModule {
@@ -29,9 +31,10 @@ trait HelloWorldTests extends TestSuite {
       override def twirlFormats = super.twirlFormats() ++ Map("svg" -> "play.twirl.api.HtmlFormat")
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
-  def resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+  def resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
   def compileClassfiles: Seq[os.RelPath] = Seq[os.RelPath](
     os.rel / "html/hello.template.scala",
     os.rel / "html/wrapper.template.scala",
@@ -39,8 +42,8 @@ trait HelloWorldTests extends TestSuite {
   )
 
   def expectedDefaultImports: Seq[String] = Seq(
-    "import _root_.play.twirl.api.TwirlFeatureImports._",
-    "import _root_.play.twirl.api.TwirlHelperImports._",
+    s"import _root_.play.twirl.api.TwirlFeatureImports.$wildcard",
+    s"import _root_.play.twirl.api.TwirlHelperImports.$wildcard",
     "import _root_.play.twirl.api.Html",
     "import _root_.play.twirl.api.JavaScript",
     "import _root_.play.twirl.api.Txt",
@@ -48,8 +51,8 @@ trait HelloWorldTests extends TestSuite {
   )
 
   def testAdditionalImports: Seq[String] = Seq(
-    "mill.twirl.test.AdditionalImport1._",
-    "mill.twirl.test.AdditionalImport2._"
+    s"mill.twirl.test.AdditionalImport1.$wildcard",
+    s"mill.twirl.test.AdditionalImport2.$wildcard"
   )
 
   def testConstructorAnnotations = Seq(
@@ -68,7 +71,7 @@ trait HelloWorldTests extends TestSuite {
 
       test("fromBuild") - UnitTester(HelloWorld, resourcePath / "hello-world").scoped { eval =>
         val Right(result) =
-          eval.apply(HelloWorld.core.twirlVersion)
+          eval.apply(HelloWorld.core.twirlVersion): @unchecked
 
         assert(
           result.value == testTwirlVersion,
@@ -81,7 +84,7 @@ trait HelloWorldTests extends TestSuite {
         UnitTester(HelloWorld, resourcePath / "hello-world", debugEnabled = true).scoped { eval =>
           val res = eval.apply(HelloWorld.core.compileTwirl)
           assert(res.isRight)
-          val Right(result) = res
+          val Right(result) = res: @unchecked
 
           val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
           val expectedClassfiles = compileClassfiles.map(
@@ -109,7 +112,7 @@ trait HelloWorldTests extends TestSuite {
 
           // don't recompile if nothing changed
           val Right(result2) =
-            eval.apply(HelloWorld.core.compileTwirl)
+            eval.apply(HelloWorld.core.compileTwirl): @unchecked
 
           assert(result2.evalCount == 0)
         }
@@ -122,7 +125,7 @@ trait HelloWorldTests extends TestSuite {
           HelloWorldWithInclusiveDot,
           sourceRoot = resourcePath / "hello-world-inclusive-dot"
         ).scoped { eval =>
-          val Right(result) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
+          val Right(result) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl): @unchecked
 
           val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
           val expectedClassfiles = compileClassfiles.map(name =>
@@ -148,7 +151,7 @@ trait HelloWorldTests extends TestSuite {
 
           // don't recompile if nothing changed
           val Right(result2) =
-            eval.apply(HelloWorld.core.compileTwirl)
+            eval.apply(HelloWorld.core.compileTwirl): @unchecked
 
           assert(result2.evalCount == 0)
         }
@@ -159,13 +162,17 @@ trait HelloWorldTests extends TestSuite {
 
 object HelloWorldTests1_3 extends HelloWorldTests {
   override val testTwirlVersion = "1.3.16"
+  override val wildcard = "_"
 }
 object HelloWorldTests1_5 extends HelloWorldTests {
   override val testTwirlVersion = "1.5.2"
+  override val wildcard = "_"
 }
 object HelloWorldTests1_6 extends HelloWorldTests {
   override val testTwirlVersion = "1.6.2"
+  override val wildcard = "*"
 }
 object HelloWorldTests2_0 extends HelloWorldTests {
   override val testTwirlVersion = "2.0.1"
+  override val wildcard = "*"
 }

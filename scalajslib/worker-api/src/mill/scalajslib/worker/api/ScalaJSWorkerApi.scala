@@ -18,7 +18,8 @@ private[scalajslib] trait ScalaJSWorkerApi {
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      importMap: Seq[ESModuleImportMapping]
+      importMap: Seq[ESModuleImportMapping],
+      experimentalUseWebAssembly: Boolean
   ): Either[String, Report]
 
   def run(config: JsEnvConfig, report: Report): Unit

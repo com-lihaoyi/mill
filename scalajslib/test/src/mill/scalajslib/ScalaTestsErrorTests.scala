@@ -3,7 +3,6 @@ package mill.scalajslib
 import mill.define.Discover
 import mill.scalalib.TestModule
 import mill.testkit.TestBaseModule
-import mill.util.TestUtil
 import utest._
 
 object ScalaTestsErrorTests extends TestSuite {
@@ -16,7 +15,10 @@ object ScalaTestsErrorTests extends TestSuite {
         override def hierarchyChecks(): Unit = {}
       }
     }
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
   def tests: Tests = Tests {

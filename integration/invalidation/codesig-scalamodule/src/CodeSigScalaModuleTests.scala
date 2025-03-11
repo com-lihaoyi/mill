@@ -36,8 +36,8 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
           )
       )
 
-      // Changing the body of a T{...} block directly invalidates that target
-      // and any downstream targets
+      // Changing the body of a Task{...} block directly invalidates that task
+      // and any downstream tasks
       modifyFile(workspacePath / "build.mill", _.replace("Foo running...", "FOO RUNNING"))
       val mangledFoo = eval("foo.run")
       assert(filterLines(mangledFoo.out) == Set("Foo Hello World", "FOO RUNNING"))
@@ -101,14 +101,18 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
       )
 
       // Adding newlines in various places doesn't invalidate anything
+      // (preserving the indentation to avoid warnings in Scala 3).
       modifyFile(
         workspacePath / "build.mill",
         s =>
           "\n\n\n" +
-            s.replace("def scalaVersion", "\ndef scalaVersion\n")
-              .replace("def sources", "\ndef sources\n")
-              .replace("def compile", "\ndef compile\n")
-              .replace("def run", "\ndef run\n")
+            s.replace("\n  def scalaVersion", "\n\n  def scalaVersion")
+              .replace("\n  def sources = T{\n", "\n\n  def sources = T{\n\n")
+              .replace("\n  def compile = T {\n", "\n\n  def compile = T {\n\n")
+              .replace(
+                "\n  def run(args: Task[Args] = T.task(Args())) = T.command {\n",
+                "\n\n  def run(args: Task[Args] = T.task(Args())) = T.command {\n\n"
+              )
       )
       val mangledFoo6 = eval("foo.run")
       assert(
@@ -120,6 +124,14 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
       )
     }
 
+  }
+}
+
+object CodeSigScalaModuleMultipleTests extends UtestIntegrationTestSuite {
+  val tests: Tests = Tests {
+    def filterLines(out: String) = {
+      out.linesIterator.filter(!_.contains("[info]")).toSet
+    }
     test("multiple") - integrationTest { tester =>
       import tester._
       // Tests for fine-grained method-based invalidation between multiple ScalaModules,
@@ -148,11 +160,11 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
       assert(filterLines(cached.out) == Set())
 
       // Changing the implementation of foo.compile or foo.generatedSources
-      // without changing its return value causes that specific target to
-      // invalidate, but does not cause downstream targets to invalidate.
+      // without changing its return value causes that specific task to
+      // invalidate, but does not cause downstream tasks to invalidate.
       //
       // This is because the callgraph analyzer ignores calls from the downstream
-      // target methods to the upstream target method because it will get handled
+      // task methods to the upstream task method because it will get handled
       // later by the runtime build graph evaluation, and the runtime build graph
       // evaluation can see the return value was not changed and avoid invalidation
       modifyFile(workspacePath / "build.mill", _.replace("Foo compiling...", "FOO COMPILING"))
@@ -167,8 +179,8 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
       assert(filterLines(mangledFoo3.out) == Set("FOO generating sources"))
 
       // Changing the implementation of foo.generatedSources in a way that changes
-      // its return value does cause downstream targets in foo and bar to invalidate,
-      // but unrelated targets (bar.generatedSources and qux.*) are not invalidated
+      // its return value does cause downstream tasks in foo and bar to invalidate,
+      // but unrelated tasks (bar.generatedSources and qux.*) are not invalidated
       modifyFile(
         workspacePath / "build.mill",
         _.replace("""fooMsg = "Hello World"""", """fooMsg = "HELLO WORLD"""")

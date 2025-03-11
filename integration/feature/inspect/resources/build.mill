@@ -1,0 +1,63 @@
+package build
+import mill._
+import mill.scalalib._
+import $packages._
+
+trait JUnitTests extends TestModule.Junit4 {
+
+  /**
+   * Overridden ivyDeps Docs!!!
+   */
+  def ivyDeps = Seq(ivy"com.novocode:junit-interface:0.11")
+  def task = Task {
+    "???"
+  }
+
+  /**
+   * *The worker*
+   */
+  def theWorker = Task.Worker {
+    ()
+  }
+}
+
+trait foo
+
+object basic extends Module with foo
+
+/**
+ * The Core Module Docz!
+ */
+object core extends JavaModule {
+  object test extends JavaTests with JUnitTests {
+    /**
+     * -> The worker <-
+     */
+    def theWorker = Task.Worker {
+      ()
+    }
+  }
+
+  /**
+   * Core Task Docz!
+   */
+  def task = Task {
+    import scala.jdk.CollectionConverters._
+    println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
+    "Hello!"
+  }
+}
+
+object core2 extends JavaModule
+
+object MyJavaTaskModule extends JavaModule {
+  override def moduleDeps: Seq[JavaModule] = Seq(core, core2)
+  def lineCount = Task {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
+  def task = Task {
+    import scala.jdk.CollectionConverters._
+    println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
+    "Hello!"
+  }
+}

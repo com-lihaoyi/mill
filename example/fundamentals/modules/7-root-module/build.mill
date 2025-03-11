@@ -1,0 +1,69 @@
+// You can use ``object `package` extends RootModule`` to use a `Module`
+// as the root module of the file:
+
+package build
+import mill._, javalib._
+
+object `package` extends RootModule with JavaModule {
+  def ivyDeps = Seq(
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  )
+
+  object test extends JavaTests with TestModule.Junit4 {
+    def ivyDeps = super.ivyDeps() ++ Seq(
+      ivy"com.google.guava:guava:33.3.0-jre"
+    )
+  }
+}
+
+// Since our ``object `package` extends RootModule``, its files live in a
+// top-level `src/` folder, and you can call its tasks via un-prefixed `bar`
+
+// ----
+// build.mill
+// src/
+//     foo/Foo.java
+// resources/
+//     ...
+// test/
+//     src/
+//         foo/FooTest.java
+// out/
+//     compile.json
+//     compile.dest/
+//     ...
+//     test/
+//         compile.json
+//         compile.dest/
+//         ...
+// ----
+
+/** Usage
+> ./mill compile # compile sources into classfiles
+...
+compiling 1 Java source to...
+
+> ./mill run # run the main method, if any
+error: argument -t/--text is required
+...
+
+> ./mill run --text hello
+<h1>hello</h1>
+
+> ./mill test
+...
+Test foo.FooTest.testEscaping finished, ...
+Test foo.FooTest.testSimple finished, ...
+Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
+
+*/
+
+// `RootModule` is useful when you want not only to define top-level tasks yourself,
+// but to have the top-level tasks inherited from some pre-defined `trait` (in this
+// case `JavaModule`).
+//
+// ``RootModule``s can only have the name `package` and be defined at the top-level of
+// a `build.mill` or `package.mill` file. If a `RootModule` is defined, all other
+// tasks or modules in that file must be defined within it, as it is the root of the
+// module hierarchy.

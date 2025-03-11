@@ -15,10 +15,13 @@ object SmallModulesForTests extends TestSuite {
     override def moduleKind = ModuleKind.ESModule
     override def moduleSplitStyle = ModuleSplitStyle.SmallModulesFor(List("app"))
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
-  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "small-modules-for"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "small-modules-for"
 
   val evaluator = UnitTester(SmallModulesForModule, millSourcePath)
 
@@ -26,7 +29,7 @@ object SmallModulesForTests extends TestSuite {
     test("ModuleSplitStyle.SmallModulesFor") {
       println(evaluator(SmallModulesForModule.sources))
 
-      val Right(result) = evaluator(SmallModulesForModule.fastLinkJS)
+      val Right(result) = evaluator(SmallModulesForModule.fastLinkJS): @unchecked
       val publicModules = result.value.publicModules
       test("it should have a single publicModule") {
         assert(publicModules.size == 1)

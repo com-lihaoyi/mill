@@ -1,0 +1,90 @@
+// All packaging and publishing functionality is defined in `PublishModule`.
+// Start by extending it.
+
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule with PublishModule {
+
+  // information about dependencies will be included in the published package
+  def pythonDeps = Seq("jinja2==3.1.4")
+
+  def publishMeta = PublishMeta(
+    name = "testpkg-mill",
+    description = "an example package",
+    requiresPython = ">= 3.12",
+    license = License.MIT,
+    authors = Seq(Developer("John Doe", "jdoe@example.org"))
+  )
+
+  // the version under which the package will be published
+  def publishVersion = "0.0.2"
+
+}
+
+// You'll need to define some metadata in the `publishMeta` and `publishVersion`
+// tasks. This metadata is roughly equivalent to what you'd define in a
+// https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#basic-information[`pyproject.toml` file].
+//
+// You'll also need to create a `readme` file, which will be bundled in the
+// final package and serves as the landing page seen on PyPI. By default, Mill
+// assumes a file starting with the string `readme` (in any capitalization), but
+// you can override it to whatever you please.
+
+// [NOTE]
+// ====
+// The version of your package is not included in `publishMeta`, but
+// rather in its own `publishVersion` task. This is done so that you can easily
+// override the task to automate the version, such as deriving it from source
+// control.
+// ====
+
+// == Building packages locally ==
+//
+// You can build a source distribution or wheel by running the following tasks:
+
+/** Usage
+> mill show sdist
+".../out/sdist.dest/dist/testpkg_mill-0.0.2.tar.gz"
+
+> mill show wheel
+".../out/wheel.dest/dist/testpkg_mill-0.0.2-py3-none-any.whl"
+*/
+
+// These files can then be `pip-installed` by other projects, or, if you're using Mill, you can
+// include them in your xref:pythonlib/dependencies.adoc#_unmanaged_wheels[unmanagedWheels] task.
+// Usually however, you'd want to publish them to a package index such as PyPI or your
+// organization's internal package repository.
+
+// == Uploading your packages to PyPI (or other repository)
+//
+// Uploading your packages to PyPI can be done by running `mill __.publish`.
+//
+// Mill uses https://twine.readthedocs.io/en/stable/[`twine`] to upload packages, and respects its
+// configuration. You can also configure it with environment variables, prefixed with `MILL_`.
+//
+// [source,bash]
+// ----
+// export MILL_TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/
+// export MILL_TWINE_USERNAME=<username, not necessary for PyPI>
+// export MILL_TWINE_PASSWORD=<apitoken>
+// mill __.publish
+// ----
+//
+// [NOTE]
+// ====
+// Mill does not transitively upload all your packages, hence we
+// recommended to use `mill __.publish`, instead of `mill <module>.publish`.
+// While it's technically possible to upload packages of individual Mill modules
+// by calling their `publish` tasks separately, you'd usually want to ensure all
+// your dependencies are also published.
+// ====
+//
+// === Check before uploading
+//
+// Twine has a nice feature to check your artifacts before uploading them. You
+// can also do this with Mill, by running:
+
+/** Usage
+> mill __.checkPublish
+... PASSED
+*/

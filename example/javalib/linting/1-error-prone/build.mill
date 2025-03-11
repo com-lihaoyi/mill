@@ -1,18 +1,19 @@
-// When adding the xref:contrib/errorprone.adoc[`ErrorPromeModule`] to your `JavaModule`,
-// the `error-prone` compiler plugin automatically detects various kind of programming errors.
-
+// https://errorprone.info/index[Error Prone] augments the Java compiler's type
+// checker and detect common mistakes at compile time. Mill supports ErrorProne via
+// `ErrorProneModule`: mix `ErrorProneModule` into your `JavaModule` and it will
+// automatically run with every compilation.
 
 package build
-import mill._, javalib._
-import mill.contrib.errorprone._
-
-import $ivy.`com.lihaoyi::mill-contrib-errorprone:`
+import mill._, javalib._, errorprone._
 
 object `package` extends RootModule with JavaModule with ErrorProneModule {
   def errorProneOptions = Seq("-XepAllErrorsAsWarnings")
 }
 
 /** See Also: src/example/ShortSet.java */
+
+// When adding the `ErrorProneModule` to your `JavaModule`,
+// the `error-prone` compiler plugin automatically detects various kind of programming errors.
 
 /** Usage
 
@@ -29,4 +30,31 @@ object `package` extends RootModule with JavaModule with ErrorProneModule {
 [warn]               ^
 */
 
-// Find more details on the xref:contrib/errorprone.adoc[ErrorProne plugin page].
+// :page-aliases: Plugin_ErrorProne.adoc
+//
+//
+// .`build.mill.scala`: Enable `ErrorProne` in a module
+// [source,scala]
+// ----
+// package build
+// import mill._, scalalib._
+//
+// import $ivy.`com.lihaoyi::mill-contrib-errorprone:`
+// import mill.contrib.errorprone.ErrorProneModule
+//
+// object foo extends JavaModule with ErrorProneModule {
+// }
+// ----
+//
+// === Configuration
+//
+// The following configuration options exist:
+//
+// `def errorProneVersion: T[String]`::
+// The `error-prone` version to use.
+// Find the list of versions and changlog at https://github.com/google/error-prone/releases
+//
+// `def errorProneOptions: T[Seq[String]]`::
+//  Options directly given to the `error-prone` processor.
+// Those are documented as "flags" at https://errorprone.info/docs/flags
+//

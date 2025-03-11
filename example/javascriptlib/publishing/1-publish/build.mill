@@ -1,0 +1,63 @@
+package build
+
+import mill._, javascriptlib._
+
+object foo extends PublishModule {
+  def publishMeta = Task {
+    PublishMeta(
+      name = "mill-simple",
+      version = "1.0.0",
+      description = "A simple Node.js command-line tool",
+      files = Seq("README.md"),
+      bin = Map(
+        "greet" -> "src/foo.js"
+      )
+    )
+  }
+}
+
+// You'll need to define some metadata in the `publishMeta` tasks.
+// This metadata is roughly equivalent to what you'd define in a
+// https://docs.npmjs.com/cli/v11/configuring-npm/package-json[`package.json` file].
+
+// Important `package.json` info required for publishing are auto-magically generated.
+// `main` file is by default the file defined in the `mainFileName` task, it can be modified if needed.
+
+// Use the `.npmrc` file to include authentication tokens for publishing to npm or
+// change the regsitry to publish to a private registry.
+
+// The package.json generated for this simple publish:
+
+//// SNIPPET:BUILD
+// [source,json]
+// ----
+//{
+//  "name": "mill-simple",
+//  "version": "1.0.0",
+//  "description": "A simple Node.js command-line tool",
+//  "license": "MIT",
+//  "main": "dist/src/foo.js",
+//  "types": "declarations/src/foo.d.ts",
+//  "files": ["README.md", "dist", "declarations"],
+//  "bin": {
+//    "greet": "./dist/src/foo.js"
+//  },
+//  "exports": {
+//    ".": "./dist/src/foo.js"
+//  },
+//  "typesVersions": {
+//    "*": {
+//    "./dist/src/foo": ["declarations/src/foo.d.ts"]
+//    }
+//  }
+//}
+// ----
+//// SNIPPET:END
+
+/** Usage
+> npm i -g mill-simple # install the executable file globally
+...
+
+> greet "James Bond"
+Hello James Bond!
+*/

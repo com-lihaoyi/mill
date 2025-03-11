@@ -1,3 +1,0 @@
-= Built-in Commands
-
-include::example/javalib/basic/4-builtin-commands.adoc[]

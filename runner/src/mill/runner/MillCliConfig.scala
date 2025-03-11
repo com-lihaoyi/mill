@@ -12,7 +12,7 @@ case class MillCliConfig(
     )
     home: os.Path = mill.api.Ctx.defaultHome,
     // We need to keep it, otherwise, a given --repl would be silently parsed as target and result in misleading error messages.
-    // Instead we fail programmatically when this flag is set.
+    // Instead, we fail programmatically when this flag is set.
     @deprecated("No longer supported.", "Mill 0.11.0-M8")
     @arg(
       hidden = true,
@@ -106,7 +106,9 @@ case class MillCliConfig(
       doc = """The name or a pattern of the tasks(s) you want to build."""
     )
     leftoverArgs: Leftover[String] = Leftover(),
-    @arg(doc = """Toggle colored output; by default enabled only if the console is interactive""")
+    @arg(doc =
+      """Toggle colored output; by default enabled only if the console is interactive and NO_COLOR environment variable is not set"""
+    )
     color: Option[Boolean] = None,
     @arg(
       name = "disable-callgraph",
@@ -123,20 +125,42 @@ case class MillCliConfig(
     )
     metaLevel: Option[Int] = None,
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
-    allowPositional: Flag = Flag()
+    allowPositional: Flag = Flag(),
+    @deprecated("No longer used", "Mill 0.13.0")
+    @arg(
+      doc = """
+        Disables the new multi-line status prompt used for showing thread
+        status at the command line and falls back to the legacy ticker
+      """,
+      hidden = true
+    )
+    disablePrompt: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc =
+        """Evaluate tasks / commands without acquiring an exclusive lock on the Mill output directory"""
+    )
+    noBuildLock: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc =
+        """Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands."""
+    )
+    noWaitForBuildLock: Flag = Flag()
 )
 
 import mainargs.ParserForClass
 
 // We want this in a separate source file, but to avoid stale --help output due
-// to undercompilation, we have it in this file
+// to under-compilation, we have it in this file
 // see https://github.com/com-lihaoyi/mill/issues/2315
 object MillCliConfigParser {
   val customName: String = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
   val customDoc = """
 Usage: mill [options] task [task-options] [+ task ...]
 """
-  val cheatSheet = """
+  val cheatSheet =
+    """
 task cheat sheet:
   mill resolve _                 # see all top-level tasks and modules
   mill resolve __.compile        # see all `compile` tasks in any module (recursively)
@@ -166,7 +190,7 @@ options:
 
   import mill.api.JsonFormatters._
 
-  private[this] lazy val parser: ParserForClass[MillCliConfig] =
+  private lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]
 
   lazy val shortUsageText: String =
@@ -181,14 +205,14 @@ options:
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
       "\nPlease see the documentation at https://mill-build.org for more details"
 
-  def parse(args: Array[String]): Either[String, MillCliConfig] = {
-    parser.constructEither(
+  def parse(args: Array[String]): mill.api.Result[MillCliConfig] = {
+    mill.api.Result.fromEither(parser.constructEither(
       args.toIndexedSeq,
       allowRepeats = true,
       autoPrintHelpAndExit = None,
       customName = customName,
       customDoc = customDoc
-    )
+    ))
   }
 
 }

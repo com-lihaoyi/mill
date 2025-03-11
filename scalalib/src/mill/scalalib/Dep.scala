@@ -28,8 +28,8 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
         exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
     )
   )
-  def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*"): _*)
-  def excludeName(names: String*): Dep = exclude(names.map("*" -> _): _*)
+  def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*")*)
+  def excludeName(names: String*): Dep = exclude(names.map("*" -> _)*)
   def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String): Dependency =
     dep.withModule(
       dep.module.withName(
@@ -65,11 +65,11 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
    * This setting is useful when your build contains dependencies that have only
    * been published with Scala 2.x, if you have:
    * {{{
-   * def ivyDeps = Agg(ivy"a::b:c")
+   * def ivyDeps = Seq(ivy"a::b:c")
    * }}}
    * you can replace it by:
    * {{{
-   * def ivyDeps = Agg(ivy"a::b:c".withDottyCompat(scalaVersion()))
+   * def ivyDeps = Seq(ivy"a::b:c".withDottyCompat(scalaVersion()))
    * }}}
    * This will have no effect when compiling with Scala 2.x, but when compiling
    * with Dotty this will change the cross-version to a Scala 2.x one. This
@@ -118,6 +118,8 @@ object Dep {
     }
 
     (module.split(':') match {
+      case Array(a, b) => Dep(a, b, "", cross = empty(platformed = false))
+      case Array(a, "", b) => Dep(a, b, "", cross = Binary(platformed = false))
       case Array(a, b, c) => Dep(a, b, c, cross = empty(platformed = false))
       case Array(a, b, "", c) => Dep(a, b, c, cross = empty(platformed = true))
       case Array(a, "", b, c) => Dep(a, b, c, cross = Binary(platformed = false))
@@ -126,7 +128,7 @@ object Dep {
       case Array(a, "", "", b, "", c) => Dep(a, b, c, cross = Full(platformed = true))
       case _ => throw new Exception(s"Unable to parse signature: [$signature]")
     })
-      .exclude(exclusions.sorted: _*)
+      .exclude(exclusions.sorted*)
       .configure(attributes = attributes)
   }
 
@@ -172,11 +174,11 @@ object Dep {
     (dep: Dep) =>
       unparse(dep) match {
         case Some(s) => ujson.Str(s)
-        case None => upickle.default.writeJs[Dep](dep)(rw0)
+        case None => upickle.default.writeJs[Dep](dep)(using rw0)
       },
     {
       case s: ujson.Str => parse(s.value)
-      case v: ujson.Value => upickle.default.read[Dep](v)(rw0)
+      case v: ujson.Value => upickle.default.read[Dep](v)(using rw0)
     }
   )
 
@@ -191,7 +193,7 @@ object Dep {
       coursier.Dependency(
         coursier.Module(coursier.Organization(org), coursier.ModuleName(name)),
         version
-      ).withConfiguration(DefaultConfiguration),
+      ),
       cross,
       force
     )
@@ -279,7 +281,7 @@ object BoundDep {
     upickle.default.readwriter[ujson.Value].bimap[BoundDep](
       bdep => {
         Dep.unparse(Dep(bdep.dep, CrossVersion.Constant("", false), bdep.force)) match {
-          case None => upickle.default.writeJs(bdep)(jsonify0)
+          case None => upickle.default.writeJs(bdep)(using jsonify0)
           case Some(s) => ujson.Str(s)
         }
       },
@@ -287,7 +289,7 @@ object BoundDep {
         case ujson.Str(s) =>
           val dep = Dep.parse(s)
           BoundDep(dep.dep, dep.force)
-        case v => upickle.default.read[BoundDep](v)(jsonify0)
+        case v => upickle.default.read[BoundDep](v)(using jsonify0)
       }
     )
 }

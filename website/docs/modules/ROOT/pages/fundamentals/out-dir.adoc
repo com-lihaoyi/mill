@@ -1,0 +1,11 @@
+= The Output Directory
+:page-aliases: Out_Dir.adoc
+
+
+
+
+include::partial$example/fundamentals/out-dir/1-out-files.adoc[]
+
+== Using another location than the `out/` directory
+
+include::partial$example/fundamentals/out-dir/2-custom-out.adoc[]

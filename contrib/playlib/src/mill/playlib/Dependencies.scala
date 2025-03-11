@@ -1,21 +1,21 @@
 package mill.playlib
 
-import mill.{Agg, T}
+import mill.Task
 import mill.scalalib._
 
 private[playlib] trait Dependencies extends ScalaModule with Version {
-  def core = T { component("play") }
-  def guice = T { component("play-guice") }
-  def server = T { component("play-server") }
-  def logback = T { component("play-logback") }
-  def evolutions = T { component("play-jdbc-evolutions") }
-  def jdbc = T { component("play-jdbc") }
-  def filters = T { component("filters-helpers") }
-  def ws = T { component("play-ahc-ws") }
-  def caffeine = T { component("play-caffeine-cache") }
+  def core = Task { component("play")() }
+  def guice = Task { component("play-guice")() }
+  def server = Task { component("play-server")() }
+  def logback = Task { component("play-logback")() }
+  def evolutions = Task { component("play-jdbc-evolutions")() }
+  def jdbc = Task { component("play-jdbc")() }
+  def filters = Task { component("filters-helpers")() }
+  def ws = Task { component("play-ahc-ws")() }
+  def caffeine = Task { component("play-caffeine-cache")() }
 
-  override def ivyDeps = T {
-    super.ivyDeps() ++ Agg(
+  override def ivyDeps = Task {
+    super.ivyDeps() ++ Seq(
       core(),
       guice(),
       server(),

@@ -1,11 +1,12 @@
 package mill.runner
 
 import mill.api.internal
-import mill.main.client.CodeGenConstants._
-import mill.main.client.OutFiles._
-
+import mill.constants.CodeGenConstants.*
+import mill.constants.OutFiles.*
+import mill.runner.worker.api.{ImportTree, MillScalaParser}
 import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 /**
  * @param seenScripts
@@ -13,7 +14,7 @@ import scala.collection.mutable
  * @param ivyDeps
  * @param importGraphEdges
  * @param errors
- * @param millImport If `true`, a meta-build is enabled
+ * @param metaBuild If `true`, a meta-build is enabled
  */
 @internal
 case class FileImportGraph(
@@ -21,7 +22,8 @@ case class FileImportGraph(
     repos: Seq[(String, os.Path)],
     ivyDeps: Set[String],
     errors: Seq[String],
-    millImport: Boolean
+    metaBuild: Boolean,
+    buildFile: String
 )
 
 /**
@@ -30,9 +32,59 @@ case class FileImportGraph(
  */
 @internal
 object FileImportGraph {
+
+  val alphaKeywords: Set[String] = Set(
+    "abstract",
+    "case",
+    "catch",
+    "class",
+    "def",
+    "do",
+    "else",
+    "enum",
+    "export",
+    "extends",
+    "false",
+    "final",
+    "finally",
+    "forSome",
+    "for",
+    "given",
+    "if",
+    "implicit",
+    "import",
+    "lazy",
+    "match",
+    "new",
+    "null",
+    "object",
+    "override",
+    "package",
+    "private",
+    "protected",
+    "return",
+    "sealed",
+    "super",
+    "then",
+    "this",
+    "throw",
+    "trait",
+    "try",
+    "true",
+    "type",
+    "val",
+    "var",
+    "while",
+    "with",
+    "yield",
+    "_",
+    "macro"
+  )
+
   def backtickWrap(s: String): String = s match {
     case s"`$v`" => s
-    case _ => if (encode(s) == s) s else "`" + s + "`"
+    case _ => if (encode(s) == s && !alphaKeywords.contains(s)) s
+      else "`" + s + "`"
   }
 
   import mill.api.JsonFormatters.pathReadWrite
@@ -43,18 +95,24 @@ object FileImportGraph {
    * starting from `build.mill`, collecting the information necessary to
    * instantiate the [[MillRootModule]]
    */
-  def parseBuildFiles(topLevelProjectRoot: os.Path, projectRoot: os.Path): FileImportGraph = {
+  def parseBuildFiles(
+      parser: MillScalaParser,
+      topLevelProjectRoot: os.Path,
+      projectRoot: os.Path,
+      output: os.Path
+  ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val seenIvy = mutable.Set.empty[String]
     val seenRepo = mutable.ListBuffer.empty[(String, os.Path)]
     val errors = mutable.Buffer.empty[String]
     var millImport = false
+    var packagesImport = false
 
     def processScript(s: os.Path, useDummy: Boolean = false): Unit = {
       val readFileEither = scala.util.Try {
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
-        for (splitted <- Parsers.splitScript(content, fileName))
+        for (splitted <- parser.splitScript(content, fileName))
           yield {
             val (pkgs, stmts) = splitted
             val importSegments = pkgs.mkString(".")
@@ -96,14 +154,12 @@ object FileImportGraph {
           errors.append(err)
 
         case Right(stmts) =>
-          val fileImports = mutable.Set.empty[os.Path]
           // we don't expect any new imports when using an empty dummy
           val transformedStmts = mutable.Buffer.empty[String]
-          for ((stmt0, importTrees) <- Parsers.parseImportHooksWithIndices(stmts)) {
-            walkStmt(s, stmt0, importTrees, fileImports, transformedStmts)
+          for ((stmt0, importTrees) <- parser.parseImportHooksWithIndices(stmts)) {
+            walkStmt(s, stmt0, importTrees, transformedStmts)
           }
           seenScripts(s) = transformedStmts.mkString
-          fileImports.foreach(processScript(_))
       }
     }
 
@@ -111,7 +167,6 @@ object FileImportGraph {
         s: os.Path,
         stmt0: String,
         importTrees: Seq[ImportTree],
-        fileImports: mutable.Set[os.Path],
         transformedStmts: mutable.Buffer[String]
     ) = {
 
@@ -133,38 +188,41 @@ object FileImportGraph {
             millImport = true
             (start, "_root_._", end)
 
-          case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
-            // Only recursively explore imports from legacy `.sc` files, as new `.mill` files
-            // do file discovery via scanning folders containing `package.mill` files
-            if (s.last.endsWith(".sc") && !s.last.endsWith(".mill.scala")) {
-              val nextPaths = mapping.map { case (lhs, rhs) =>
-                nextPathFor(s, rest.map(_._1) :+ lhs)
-              }
-              val patchString =
-                (fileImportToSegments(projectRoot, nextPaths(0) / os.up) ++ Seq())
-                  .map(backtickWrap)
-                  .mkString(".")
-              fileImports.addAll(nextPaths)
-              (start, patchString, rest.lastOption.fold(end0)(_._2))
-
-            } else {
-              (start, "", start)
-            }
+          case ImportTree(Seq(("$packages", _), rest @ _*), mapping, start, end) =>
+            packagesImport = true
+            (start, "_root_._", end)
         }
 
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
 
-        stmt = stmt.patch(start, patchString + mill.util.Util.newLine * numNewLines, end - start)
+        stmt = stmt.patch(start, patchString + System.lineSeparator() * numNewLines, end - start)
       }
 
       transformedStmts.append(stmt)
     }
 
-    val rootBuildFiles = rootBuildFileNames
+    val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
+
+    processScript(projectRoot / foundRootBuildFileName, useDummy)
+
+    walkBuildFiles(projectRoot, output).foreach(processScript(_))
+
+    new FileImportGraph(
+      seenScripts.toMap,
+      seenRepo.toSeq,
+      seenIvy.toSet,
+      errors.toSeq,
+      millImport,
+      foundRootBuildFileName
+    )
+  }
+
+  def findRootBuildFiles(projectRoot: os.Path) = {
+    val rootBuildFiles = rootBuildFileNames.asScala
       .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
-    val (useDummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
-      case Nil => (true, rootBuildFileNames.head)
+    val (dummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
+      case Nil => (true, rootBuildFileNames.get(0))
       case Seq(single) => (false, single)
       case multiple =>
         System.err.println(
@@ -174,49 +232,35 @@ object FileImportGraph {
         (false, multiple.head)
     }
 
-    val buildFileExtension =
-      buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
-
-    val nestedBuildFileName = s"package.$buildFileExtension"
-
-    processScript(projectRoot / foundRootBuildFileName, useDummy)
-    val buildFiles = os
-      .walk(
-        projectRoot,
-        followLinks = true,
-        skip = p =>
-          p == projectRoot / out ||
-            p == projectRoot / millBuild ||
-            (os.isDir(p) && !os.exists(p / nestedBuildFileName))
-      )
-      .filter(_.last == nestedBuildFileName)
-
-    val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
-      .flatMap(os.list(_))
-      .filter(_.last.endsWith(s".$buildFileExtension"))
-
-    (buildFiles ++ adjacentScripts).foreach(processScript(_))
-
-    new FileImportGraph(
-      seenScripts.toMap,
-      seenRepo.toSeq,
-      seenIvy.toSet,
-      errors.toSeq,
-      millImport
-    )
+    (dummy, foundRootBuildFileName)
   }
 
-  def nextPathFor(s: os.Path, rest: Seq[String]): os.Path = {
-    // Manually do the foldLeft to work around bug in os-lib
-    // https://github.com/com-lihaoyi/os-lib/pull/160
-    val restSegments = rest
-      .map {
-        case "^" => os.up
-        case s => os.rel / s
-      }
-      .foldLeft(os.rel)(_ / _)
+  def walkBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] = {
+    if (!os.exists(projectRoot)) Nil
+    else {
+      val (dummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
-    s / os.up / restSegments / os.up / s"${rest.last}.sc"
+      val buildFileExtension =
+        buildFileExtensions.asScala.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
+
+      val nestedBuildFileName = s"package.$buildFileExtension"
+      val buildFiles = os
+        .walk(
+          projectRoot,
+          followLinks = true,
+          skip = p =>
+            p == output ||
+              p == projectRoot / millBuild ||
+              (os.isDir(p) && !os.exists(p / nestedBuildFileName))
+        )
+        .filter(_.last == nestedBuildFileName)
+
+      val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
+        .flatMap(os.list(_))
+        .filter(_.last.endsWith(s".$buildFileExtension"))
+
+      buildFiles ++ adjacentScripts
+    }
   }
 
   def fileImportToSegments(base: os.Path, s: os.Path): Seq[String] = {

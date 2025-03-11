@@ -1,0 +1,37 @@
+# action.yml
+inputs:
+  java-version:
+    required: true
+    type: string
+
+  timeout-minutes:
+    default: 60
+    type: number
+
+  os:
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+      shell: bash
+
+    # Need to fix cached artifact file permissions because github actions screws it up
+    # https://github.com/actions/upload-artifact/issues/38
+    - run: "chmod -R 777 ."
+      shell: bash
+
+    - run: git config --global user.email "you@example.com"
+      shell: bash
+
+    - run: git config --global user.name "Your Name"
+      shell: bash
+
+    - uses: actions/download-artifact@v4
+      with:
+        path: out/mill-selective-execution
+        name: ${{ inputs.os }}-selective-execution-artifact
+
+    - run: mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
+      shell: bash

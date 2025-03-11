@@ -1,0 +1,36 @@
+// This example demonstrates a minimal `Django` application managed with Mill.
+// It features a simple view that returns `<h1>Hello, Mill!</h1>` and
+// includes `Django's` core functionality for `testing` and `running` a development server.
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+
+  def mainScript = Task.Source { "src/manage.py" }
+
+  def pythonDeps = Seq("django==5.1.4")
+
+}
+// Using `Mill`, we can easily manage dependencies, run `Django tests`, and `launch the server`.
+// With just a few commands, the app is ready to serve at `http://localhost:5002`.
+
+/** Usage
+
+> ./mill foo.run test main -v 2 # using inbuilt `django test`, `main` is the app name, `-v 2` is verbosity level 2
+...
+System check identified no issues (0 silenced).
+test_index_view (main.tests.TestScript...)
+Test that the index view returns a 200 status code ... ok
+...
+Ran 1 test...
+OK
+...
+
+> ./mill foo.runBackground runserver 5002
+
+> curl http://localhost:5002
+...<h1>Hello, Mill!</h1>...
+
+> ./mill clean foo.runBackground
+
+*/

@@ -1,16 +1,17 @@
 package mill.testkit
 
-import utest._
+import utest.*
 
-object IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
-  def clientServerMode = true
+trait IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
+
   def workspaceSourcePath =
-    os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "integration-test-example-project"
+    os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "integration-test-example-project"
   def millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
   def tests: Tests = Tests {
 
     test("integration") {
-      integrationTest { tester =>
+
+      val workspacePath = integrationTest { tester =>
         val res1 = tester.eval("testTask")
         assert(res1.isSuccess)
         assert(res1.err.contains("compiling 1 Scala source")) // compiling the `build.mill`
@@ -21,8 +22,27 @@ object IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
         val res2 = tester.eval("testTask")
         assert(!res2.err.contains("compiling 1 Scala source")) // no need to re-compile `build.mill`
         assert(tester.out("testTask").value[String] == "HELLO WORLD SOURCE FILE!!!")
+
+        val suffix = if (clientServerMode) "mill-server" else "mill-no-server"
+        assert(os.exists(tester.workspacePath / "out" / suffix))
+
+        // Make sure processId file(s) is present while the test is running
+        val processIdFiles = TestkitTestUtils.getProcessIdFiles(tester.workspacePath)
+        assert(processIdFiles.nonEmpty)
+        tester.workspacePath
       }
+
+      // Make sure processId file is correctly removed to ensure the Mill
+      // server process shuts down
+      val processIdFiles = TestkitTestUtils.getProcessIdFiles(workspacePath)
+      assert(processIdFiles.isEmpty)
 
     }
   }
+}
+object IntegrationTesterTestsServer extends IntegrationTesterTests {
+  def clientServerMode = true
+}
+object IntegrationTesterTestsFork extends IntegrationTesterTests {
+  def clientServerMode = false
 }

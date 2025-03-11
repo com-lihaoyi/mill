@@ -1,0 +1,32 @@
+{{!
+override this template to add is-active to top-level <li> where `level` is not defined
+
+This lets us open up the first-level tree nodes by default, letting us use tree
+nodes to organize things while keeping them open and easily browsable/discoverable.
+
+We leave the first 3 items (0, 1, 2) to only open on demand, since the
+`Build $LANGUAGE with Mill` entries are pretty repetitive and we do not need to
+show all of them all the time
+}}
+{{#if navigation.length}}
+<ul class="nav-list">
+  {{#each navigation}}
+
+  <li class="nav-item{{#if (eq ./url @root.page.url)}} is-current-page{{/if}}{{#if (and (not ../../level) (gt @index 3))}} is-active{{/if}}" data-depth="{{or ../level 0}}">
+    {{#if ./content}}
+    {{#if ./items.length}}
+    <button class="nav-item-toggle"></button>
+    {{/if}}
+    {{#if ./url}}
+    <a class="nav-link" href="
+      {{~#if (eq ./urlType 'internal')}}{{{relativize ./url}}}
+      {{~else}}{{{./url}}}{{~/if}}">{{{./content}}}</a>
+    {{else}}
+    <span class="nav-text">{{{./content}}}</span>
+    {{/if}}
+    {{/if}}
+{{> nav-tree navigation=./items level=(increment ../level)}}
+  </li>
+  {{/each}}
+</ul>
+{{/if}}

@@ -2,7 +2,7 @@ package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"org.eclipse.jetty:jetty-server:9.4.43.v20210629",
     ivy"javax.servlet:javax.servlet-api:4.0.1"
   )
@@ -12,7 +12,6 @@ object `package` extends RootModule with JavaModule {
 
 // This example demonstrates how to set up a simple Jetty webserver,
 // able to handle a single HTTP request at `/` and reply with a single response.
-
 
 /** Usage
 

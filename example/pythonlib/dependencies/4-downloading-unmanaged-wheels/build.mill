@@ -1,0 +1,37 @@
+// You can also override `unmanagedWheels` to point it at wheels that you want to
+// download from arbitrary URLs.
+// `requests.get` comes from the https://github.com/com-lihaoyi/requests-scala[Requests-Scala]
+// library, one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries].
+//
+package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+  def unmanagedWheels = Task {
+    val name = "jinja2-3.1.4-py3-none-any.whl"
+    val url = s"https://github.com/pallets/jinja/releases/download/3.1.4/$name"
+    os.write(Task.dest / name, requests.get.stream(url))
+    Seq(PathRef(Task.dest / name))
+  }
+}
+
+/** Usage
+
+> ./mill run
+Hello, world!
+
+*/
+
+// Tasks like `unmanagedWheels` and `pythonDeps` are cached, so your wheel is downloaded only
+// once and re-used indefinitely after that. This is usually not a problem, because usually URLs
+// follow the rule that https://www.w3.org/Provider/Style/URI[Cool URIs don't change], and so files
+// downloaded from the same URL will always contain the same contents.
+//
+// NOTE: An unmanaged wheel downloaded via `requests.get` is still unmanaged: even though you
+// downloaded it from somewhere, `requests.get` does not know how to pull in transitive
+// dependencies or de-duplicate different versions on the classpath. All the same caveats you need
+// to worry about when dealing with xref:#_unmanaged_wheels[unmanaged wheels] apply here as well. In
+// case you **do** want mill to take care of managing dependencies of a package which is not
+// available on PyPI, you shouldn't get that package in `unmanagedWheels` (like we did in the
+// example above). Instead, you can declare the dependency as a regular `pythonDep`
+// https://peps.python.org/pep-0440/#direct-references[as a direct URL that pip understands].

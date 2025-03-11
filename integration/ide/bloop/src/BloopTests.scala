@@ -11,8 +11,8 @@ object BloopTests extends UtestIntegrationTestSuite {
 
       test("root module bloop config should be created") - integrationTest { tester =>
         import tester._
-        val installResult: Boolean = eval("mill.contrib.bloop.Bloop/install").isSuccess
-        assert(installResult)
+        val res = eval("mill.contrib.bloop.Bloop/install")
+        assert(res.isSuccess)
         assert(os.exists(workspacePath / ".bloop/root-module.json"))
       }
       test("mill-build module bloop config should be created") - integrationTest { tester =>

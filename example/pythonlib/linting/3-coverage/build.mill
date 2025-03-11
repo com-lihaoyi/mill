@@ -1,0 +1,44 @@
+// Mill's support for code coverage analysis is implemented by
+// https://coverage.readthedocs.io/[the coverage.py package].
+//
+// You can use it by extending `CoverageTests` in your test module.
+
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+
+  object test extends PythonTests with TestModule.Pytest with CoverageTests
+
+}
+
+/** See Also: src/main.py */
+
+/** See Also: test/src/test_main.py */
+
+// You can generate a coverage report with the `coverageReport` task.
+
+/** Usage
+> mill test.coverageReport
+Name ...                        Stmts   Miss  Cover
+...------------------------------------------------
+.../src/main.py                 4      1    75%
+.../test/src/test_main.py       5      0   100%
+...------------------------------------------------
+TOTAL ...                       9      1    89%
+*/
+
+// The task also supports any arguments understood by the `coverage.py` module.
+// For example, you can use it to fail if a coverage threshold is not met:
+
+/** Usage
+> mill test.coverageReport --fail-under 90
+error: ...
+error: Coverage failure: total of 89 is less than fail-under=90
+*/
+
+// Other forms of reports can be generated:
+//
+// * `coverageHtml`
+// * `coverageJson`
+// * `coverageXml`
+// * `coverageLcov`

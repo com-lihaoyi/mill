@@ -1,8 +1,6 @@
 package mill.scalalib
 
-import mill.T
-
-import scala.annotation.nowarn
+import mill.Task
 
 /**
  * A [[JavaModule]] with a Maven compatible directory layout.
@@ -11,25 +9,14 @@ import scala.annotation.nowarn
  */
 trait MavenModule extends JavaModule { outer =>
 
-  override def sources = T.sources(
-    millSourcePath / "src/main/java"
-  )
-  override def resources = T.sources {
-    millSourcePath / "src/main/resources"
-  }
+  override def sources = Task.Sources("src/main/java")
+  override def resources = Task.Sources("src/main/resources")
 
-  @nowarn
-  type MavenTests = MavenModuleTests
-  @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
-  trait MavenModuleTests extends JavaTests {
-    override def millSourcePath = outer.millSourcePath
-    override def intellijModulePath: os.Path = outer.millSourcePath / "src/test"
+  trait MavenTests extends JavaTests {
+    override def moduleDir = outer.moduleDir
+    override def intellijModulePath: os.Path = outer.moduleDir / "src/test"
 
-    override def sources = T.sources(
-      millSourcePath / "src/test/java"
-    )
-    override def resources = T.sources {
-      millSourcePath / "src/test/resources"
-    }
+    override def sources = Task.Sources("src/test/java")
+    override def resources = Task.Sources("src/test/resources")
   }
 }

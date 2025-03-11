@@ -1,17 +1,20 @@
 /*
- * Copyright 2020-Present Original lefou/mill-kotlin repository contributors.
+ * Original code copied from https://github.com/lefou/mill-kotlin
+ * Original code published under the Apache License Version 2
+ * Original Copyright 2020-2024 Tobias Roeser
  */
-
 package mill
 package kotlinlib
 
-import mill.api.{PathRef, Result}
+import mill.api.{PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Task}
-import mill.kotlinlib.worker.api.KotlinWorker
+import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
-import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib, ZincWorkerModule}
-import mill.util.Util.millProjectModule
-import mill.{Agg, T}
+import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
+import mill.util.Jvm
+import mill.util.MillModuleUtil.millProjectModule
+import mill.T
 
 import java.io.File
 
@@ -20,7 +23,7 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * All individual source files fed into the compiler.
    */
-  override def allSourceFiles = T {
+  override def allSourceFiles: T[Seq[PathRef]] = Task {
     Lib.findSourceFiles(allSources(), Seq("kt", "kts", "java")).map(PathRef(_))
   }
 
@@ -28,7 +31,7 @@ trait KotlinModule extends JavaModule { outer =>
    * All individual Java source files fed into the compiler.
    * Subset of [[allSourceFiles]].
    */
-  def allJavaSourceFiles = T {
+  def allJavaSourceFiles: T[Seq[PathRef]] = Task {
     allSourceFiles().filter(_.path.ext.toLowerCase() == "java")
   }
 
@@ -36,8 +39,8 @@ trait KotlinModule extends JavaModule { outer =>
    * All individual Kotlin source files fed into the compiler.
    * Subset of [[allSourceFiles]].
    */
-  def allKotlinSourceFiles = T {
-    allSourceFiles().filter(path => Seq("kt", "kts").exists(path.path.ext.toLowerCase() == _))
+  def allKotlinSourceFiles: T[Seq[PathRef]] = Task {
+    allSourceFiles().filter(path => Seq("kt", "kts").contains(path.path.ext.toLowerCase()))
   }
 
   /**
@@ -49,8 +52,8 @@ trait KotlinModule extends JavaModule { outer =>
    * The dependencies of this module.
    * Defaults to add the kotlin-stdlib dependency matching the [[kotlinVersion]].
    */
-  override def mandatoryIvyDeps: T[Agg[Dep]] = T {
-    super.mandatoryIvyDeps() ++ Agg(
+  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
+    super.mandatoryIvyDeps() ++ Seq(
       ivy"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
     )
   }
@@ -59,7 +62,22 @@ trait KotlinModule extends JavaModule { outer =>
    * The version of the Kotlin compiler to be used.
    * Default is derived from [[kotlinVersion]].
    */
-  def kotlinCompilerVersion: T[String] = T { kotlinVersion() }
+  def kotlinCompilerVersion: T[String] = Task { kotlinVersion() }
+
+  /**
+   * The compiler language version. Default is not set.
+   */
+  def kotlinLanguageVersion: T[String] = Task { "" }
+
+  /**
+   * The compiler API version. Default is not set.
+   */
+  def kotlinApiVersion: T[String] = Task { "" }
+
+  /**
+   * Flag to use explicit API check in the compiler. Default is `false`.
+   */
+  def kotlinExplicitApi: T[Boolean] = Task { false }
 
   type CompileProblemReporter = mill.api.CompileProblemReporter
 
@@ -67,11 +85,10 @@ trait KotlinModule extends JavaModule { outer =>
 
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
-  private[kotlinlib] def kotlinWorkerClasspath = T {
+  private[kotlinlib] def kotlinWorkerClasspath = Task {
     millProjectModule(
       "mill-kotlinlib-worker-impl",
-      repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-kotlinlib-worker-impl")
+      repositoriesTask()
     )
   }
 
@@ -79,49 +96,71 @@ trait KotlinModule extends JavaModule { outer =>
    * The Java classpath resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerIvyDeps]].
    */
-  def kotlinCompilerClasspath: T[Seq[PathRef]] = T {
+  def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
     resolveDeps(
-      T.task { kotlinCompilerIvyDeps().map(bindDependency()) }
-    )().toSeq ++ kotlinWorkerClasspath()
+      Task.Anon { kotlinCompilerIvyDeps().map(bindDependency()) }
+    )() ++ kotlinWorkerClasspath()
+  }
+
+  /**
+   * Flag to use the embeddable kotlin compiler.
+   * This can be necessary to avoid classpath conflicts or ensure
+   * compatibility to the used set of plugins.
+   *
+   * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196
+   */
+  def kotlinCompilerEmbeddable: Task[Boolean] = Task { false }
+
+  /**
+   * The kotlin-compiler dependencies.
+   *
+   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
+   */
+  def kotlinCompilerDep: T[Seq[Dep]] = Task {
+    if (kotlinCompilerEmbeddable())
+      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}")
+    else
+      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}")
+  }
+
+  /**
+   * The kotlin-scripting-compiler dependencies.
+   *
+   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
+   */
+  def kotlinScriptingCompilerDep: T[Seq[Dep]] = Task {
+    if (kotlinCompilerEmbeddable())
+      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}")
+    else
+      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
   }
 
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
-   * Default is derived from [[kotlinCompilerVersion]].
+   *
+   * Default is derived from [[kotlinCompilerVersion]] and [[kotlinCompilerEmbeddable]].
    */
-  def kotlinCompilerIvyDeps: T[Agg[Dep]] = T {
-    Agg(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
-//      (
-//        if (Seq("1.0.", "1.1.", "1.2").exists(prefix => kotlinVersion().startsWith(prefix)))
-//          Agg(ivy"org.jetbrains.kotlin:kotlin-runtime:${kotlinCompilerVersion()}")
-//        else Seq()
-//      ) ++
+  def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
+    kotlinCompilerDep() ++
       (
         if (
           !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
             kotlinVersion().startsWith(prefix)
           )
         )
-          Agg(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
+          kotlinScriptingCompilerDep()
         else Seq()
       )
-//    ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-impl:${kotlinCompilerVersion()}",
-//    ivy"org.jetbrains.kotlin:kotlin-scripting-common:${kotlinCompilerVersion()}",
   }
 
-//  @Deprecated("Use kotlinWorkerTask instead, as this does not need to be cached as Worker")
-//  def kotlinWorker: Worker[KotlinWorker] = T.worker {
-//    kotlinWorkerTask()
-//  }
-
-  def kotlinWorkerTask: Task[KotlinWorker] = T.task {
+  def kotlinWorkerTask: Task[KotlinWorker] = Task.Anon {
     kotlinWorkerRef().kotlinWorkerManager().get(kotlinCompilerClasspath())
   }
 
   /**
    * Compiles all the sources to JVM class files.
    */
-  override def compile: T[CompilationResult] = T {
+  override def compile: T[CompilationResult] = Task {
     kotlinCompileTask()()
   }
 
@@ -129,10 +168,102 @@ trait KotlinModule extends JavaModule { outer =>
    * Runs the Kotlin compiler with the `-help` argument to show you the built-in cmdline help.
    * You might want to add additional arguments like `-X` to see extra help.
    */
-  def kotlincHelp(args: String*): Command[Unit] = T.command {
+  def kotlincHelp(args: String*): Command[Unit] = Task.Command {
     kotlinCompileTask(Seq("-help") ++ args)()
     ()
   }
+
+  /**
+   * The documentation jar, containing all the Dokka HTML files, for
+   * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
+   * and option by using [[dokkaOptions]].
+   */
+  override def docJar: T[PathRef] = T[PathRef] {
+    val outDir = Task.dest
+
+    val dokkaDir = outDir / "dokka"
+    os.makeDir.all(dokkaDir)
+
+    val files = Lib.findSourceFiles(docSources(), Seq("java", "kt"))
+
+    if (files.nonEmpty) {
+      val pluginClasspathOption = Seq(
+        "-pluginsClasspath",
+        // `;` separator is used on all platforms!
+        dokkaPluginsClasspath().map(_.path).mkString(";")
+      )
+      val depClasspath = (compileClasspath() ++ runClasspath())
+        .filter(p => os.exists(p.path))
+        .map(_.path.toString()).mkString(";")
+
+      // TODO need to provide a dedicated source set for common sources in case of Multiplatform
+      // platforms supported: jvm, js, wasm, native, common
+      val options = dokkaOptions() ++
+        Seq("-outputDir", dokkaDir.toString()) ++
+        pluginClasspathOption ++
+        Seq(
+          s"-sourceSet",
+          Seq(
+            s"-src ${docSources().map(_.path).filter(os.exists).mkString(";")}",
+            s"-displayName $dokkaSourceSetDisplayName",
+            s"-classpath $depClasspath",
+            s"-analysisPlatform $dokkaAnalysisPlatform"
+          ).mkString(" ")
+        )
+
+      Task.log.info("dokka options: " + options)
+
+      Jvm.callProcess(
+        mainClass = "",
+        classPath = Seq.empty,
+        jvmArgs = Seq("-jar", dokkaCliClasspath().head.path.toString()),
+        mainArgs = options,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+    }
+
+    PathRef(Jvm.createJar(outDir / "out.jar", Seq(dokkaDir)))
+  }
+
+  /**
+   * Additional options to be used by the Dokka tool.
+   * You should not set the `-outputDir` setting for specifying the target directory,
+   * as that is done in the [[docJar]] target.
+   */
+  def dokkaOptions: T[Seq[String]] = Task { Seq[String]() }
+
+  /**
+   * Dokka version.
+   */
+  def dokkaVersion: T[String] = Task {
+    Versions.dokkaVersion
+  }
+
+  /**
+   * Classpath for running Dokka.
+   */
+  private def dokkaCliClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().resolveDeps(
+      Seq(
+        ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
+      )
+    )
+  }
+
+  private def dokkaPluginsClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().resolveDeps(
+      Seq(
+        ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
+        ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
+        Dep.parse(Versions.kotlinxHtmlJvmDep),
+        Dep.parse(Versions.freemarkerDep)
+      )
+    )
+  }
+
+  protected def dokkaAnalysisPlatform: String = "jvm"
+  protected def dokkaSourceSetDisplayName: String = "jvm"
 
   protected def when(cond: Boolean)(args: String*): Seq[String] = if (cond) args else Seq()
 
@@ -140,8 +271,8 @@ trait KotlinModule extends JavaModule { outer =>
    * The actual Kotlin compile task (used by [[compile]] and [[kotlincHelp]]).
    */
   protected def kotlinCompileTask(extraKotlinArgs: Seq[String] = Seq()): Task[CompilationResult] =
-    T.task {
-      val ctx = T.ctx()
+    Task.Anon {
+      val ctx = Task.ctx()
       val dest = ctx.dest
       val classes = dest / "classes"
       os.makeDir.all(classes)
@@ -178,19 +309,25 @@ trait KotlinModule extends JavaModule { outer =>
         )
         val compilerArgs: Seq[String] = Seq(
           // destdir
-          Seq("-d", classes.toIO.getAbsolutePath()),
+          Seq("-d", classes.toString()),
+          // apply multi-platform support (expect/actual)
+          // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
+          Seq("-Xmulti-platform"),
           // classpath
           when(compileCp.iterator.nonEmpty)(
             "-classpath",
             compileCp.iterator.mkString(File.pathSeparator)
           ),
+          when(kotlinExplicitApi())(
+            "-Xexplicit-api=strict"
+          ),
           kotlincOptions(),
           extraKotlinArgs,
           // parameters
-          (kotlinSourceFiles ++ javaSourceFiles).map(_.toIO.getAbsolutePath())
+          (kotlinSourceFiles ++ javaSourceFiles).map(_.toString())
         ).flatten
 
-        val workerResult = kotlinWorkerTask().compile(compilerArgs: _*)
+        val workerResult = kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
 
         val analysisFile = dest / "kotlin.analysis.dummy"
         os.write(target = analysisFile, data = "", createFolders = true)
@@ -205,12 +342,7 @@ trait KotlinModule extends JavaModule { outer =>
               // also run Java compiler and use it's returned result
               compileJava
             }
-          case Result.Failure(reason, _) =>
-            Result.Failure(reason, Some(CompilationResult(analysisFile, PathRef(classes))))
-          case e: Result.Exception => e
-          case Result.Aborted => Result.Aborted
-          case Result.Skipped => Result.Skipped
-          //      case x => x
+          case Result.Failure(reason) => Result.Failure(reason)
         }
       } else {
         // it's Java only
@@ -221,21 +353,27 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
-  def kotlincOptions: T[Seq[String]] = T {
-    Seq("-no-stdlib") ++
-      when(!kotlinVersion().startsWith("1.0"))(
-        "-language-version",
-        kotlinVersion().split("[.]", 3).take(2).mkString("."),
-        "-api-version",
-        kotlinVersion().split("[.]", 3).take(2).mkString(".")
-      )
+  def kotlincOptions: T[Seq[String]] = Task {
+    val options = Seq.newBuilder[String]
+    options += "-no-stdlib"
+    val languageVersion = kotlinLanguageVersion()
+    if (!languageVersion.isBlank) {
+      options += "-language-version"
+      options += languageVersion
+    }
+    val kotlinkotlinApiVersion = kotlinApiVersion()
+    if (!kotlinkotlinApiVersion.isBlank) {
+      options += "-api-version"
+      options += kotlinkotlinApiVersion
+    }
+    options.result()
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
       worker: ZincWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
-      compileCp: Agg[os.Path],
+      compileCp: Seq[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
@@ -246,20 +384,36 @@ trait KotlinModule extends JavaModule { outer =>
       compileClasspath = compileCp,
       javacOptions = javacOptions,
       reporter = compileProblemReporter,
-      reportCachedProblems = reportOldProblems
+      reportCachedProblems = reportOldProblems,
+      incrementalCompilation = true
     )
   }
 
   private[kotlinlib] def internalReportOldProblems: Task[Boolean] = zincReportCachedProblems
 
+  @internal
+  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+    languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Kotlin),
+    canCompile = true,
+    canRun = true
+  )
+
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
-  trait KotlinModuleTests extends JavaModuleTests with KotlinModule {
-    override def kotlinVersion: T[String] = T { outer.kotlinVersion() }
-    override def kotlinCompilerVersion: T[String] = T { outer.kotlinCompilerVersion() }
-    override def kotlincOptions: T[Seq[String]] = T { outer.kotlincOptions() }
-    override def defaultCommandName(): String = super.defaultCommandName()
+  trait KotlinTests extends JavaTests with KotlinModule {
+
+    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
+    override def kotlinExplicitApi: T[Boolean] = false
+    override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
+    override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
+    override def kotlincOptions: T[Seq[String]] = Task {
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
+        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+    }
+
+    override def kotlinCompilerEmbeddable: Task[Boolean] = outer.kotlinCompilerEmbeddable
   }
 
 }

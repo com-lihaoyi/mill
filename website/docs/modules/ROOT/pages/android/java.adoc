@@ -1,0 +1,69 @@
+= Android Java Projects
+:page-aliases: android_app_examples.adoc
+
+
+
+This page provides an example of using Mill as a build tool for Android applications.
+This workflow is still pretty rough and nowhere near production ready, but can serve as
+a starting point for further experimentation and development.
+
+*Relevant Modules*
+
+These are the main Mill Modules that are relevant for building Android apps:
+
+* {mill-doc-url}/api/latest/mill/javalib/android/AndroidSdkModule.html[`mill.javalib.android.AndroidSdkModule`]: Handles Android SDK management and tools.
+* {mill-doc-url}/api/latest/mill/javalib/android/AndroidAppModule.html[`mill.javalib.android.AndroidAppModule`]: Provides a framework for building Android applications.
+* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[`mill.javalib.JavaModule`]: General Java build tasks like compiling Java code and creating JAR files.
+
+== Simple Android Hello World Application
+
+include::partial$example/android/javalib/1-hello-world.adoc[]
+
+This example demonstrates how to create a basic "Hello World" Android application
+using the Mill build tool. It outlines the minimum setup required to compile Java code,
+package it into an APK, and run the app on an Android device.
+
+== Understanding `AndroidSdkModule` and `AndroidAppModule`
+
+The two main modules you need to understand when building Android apps with Mill
+are `AndroidSdkModule` and `AndroidAppModule`.
+
+`AndroidSdkModule`:
+
+* This module manages the installation and configuration of the Android SDK, which includes
+tools like `aapt`, `d8`, `zipalign`, and `apksigner`. These tools are used
+for compiling, packaging, and signing Android applications.
+
+`AndroidAppModule`:
+This module provides the step-by-step workflow for building an Android app. It handles
+everything from compiling the code to generating a signed APK for distribution.
+
+1. **Compiling Java code**: The module compiles your Java code into `.class` files, which is the first step in creating an Android app.
+2. **Packaging into JAR**: It then packages the compiled `.class` files into a JAR file, which is necessary before converting to Android's format.
+3. **Converting to DEX format**: The JAR file is converted into DEX format, which is the executable format for Android applications.
+4. **Creating an APK**: The DEX files and Android resources (like layouts and strings) are packaged together into an APK file, which is the installable file for Android devices.
+5. **Optimizing with zipalign**: The APK is optimized using `zipalign` to ensure better performance on Android devices.
+6. **Signing the APK**: Finally, the APK is signed with a digital signature, allowing it to be distributed and installed on Android devices.
+
+After creating Simple Android Application now let's focus on how to create Android App Bundle Using Mill Build Tool
+
+== Android App Bundle
+
+include::partial$example/android/javalib/2-app-bundle.adoc[]
+
+==  Understanding `AndroidAppBundle`
+
+The `AndroidAppBundle` trait is used to create and manage Android App Bundles (AAB) in Mill. It provides tasks for creating, building, and signing an AAB from Android resources and DEX files.
+
+* {mill-doc-url}/api/latest/mill/javalib/android/AndroidAppBundle.html[`mill.javalib.android.AndroidAppBundle`]: Provides a framework for building Android App Bundle.
+
+=== Key Functions
+
+- **androidAaptOptions:** Here, Overrides `androidAaptOptions` to add the `--proto-format` option to AAPT commands, enabling protocol buffer format for assets.
+
+- **androidBundleZip:** Creates a zip archive containing: `Compiled DEX files`, `Resources`, `libraries`, and `assets`, The `Android manifest`.
+    This zip follows the Android App Bundle format, as outlined in the official documentation.
+
+- **androidUnsignedBundle:** Uses the `bundleTool` to build an unsigned AAB from the bundle zip.
+
+- **androidBundle:** Signs the AAB using a specified keystore with the `jarsigner` tool, producing a signed Android App Bundle (AAB).

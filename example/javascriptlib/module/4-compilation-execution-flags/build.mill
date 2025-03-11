@@ -1,0 +1,31 @@
+package build
+
+import mill._
+import mill.javascriptlib._
+
+object foo extends TypeScriptModule {
+  def compilerOptions =
+    super.compilerOptions() + (
+      "skipLibCheck" -> ujson.True,
+      "module" -> ujson.Str("commonjs"),
+      "target" -> ujson.Str("es6")
+    )
+
+  def executionFlags =
+    Map(
+      "inspect" -> "",
+      "max-old-space-size" -> "4096"
+    )
+
+}
+
+// This example demonstrates defining typescript compiler options and node.js execution flags
+
+/** Usage
+
+> mill foo.run
+Debugger listening on ws://...
+...
+Foo:
+Hello World!
+*/

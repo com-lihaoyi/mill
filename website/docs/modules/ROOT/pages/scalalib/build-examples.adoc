@@ -1,0 +1,36 @@
+= Scala Build Examples
+:page-aliases: Scala_Build_Examples.adoc
+
+
+
+
+
+== Example Builds for Real Projects
+
+Mill comes bundled with example builds for real-world open-source projects,
+demonstrating how Mill can be used to build code outside of tiny example codebases:
+
+=== Acyclic
+
+include::partial$example/thirdparty/acyclic.adoc[]
+
+=== Fansi
+
+include::partial$example/thirdparty/fansi.adoc[]
+
+== Real World Mill Builds
+
+=== Ammonite
+
+https://github.com/com-lihaoyi/Ammonite[Ammonite] is an ergonomic Scala REPL.
+
+=== Scala-CLI
+
+https://github.com/VirtusLab/scala-cli[Scala-CLI] is the primary CLI tool that
+runs when you enter `scala` in the terminal. It is able to compile, test, run,
+and package your Scala code in a variety of different ways
+
+=== Coursier
+
+https://github.com/coursier/coursier[Coursier] is a fast JVM dependency resolver,
+used in many build tools down resolve and download third party dependencies

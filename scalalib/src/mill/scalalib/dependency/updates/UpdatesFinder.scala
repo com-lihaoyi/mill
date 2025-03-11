@@ -74,5 +74,5 @@ private[dependency] object UpdatesFinder {
     case (_, _) => false
   }
 
-  private def isUpdate(current: Version) = current < _
+  private def isUpdate(current: Version) = current < (_: Version)
 }
