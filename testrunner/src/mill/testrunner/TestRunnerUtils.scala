@@ -233,7 +233,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       testReporter: TestReporter,
       runner: Runner,
       queueFolderFolder: os.Path,
-      testClassesFolder: os.Path
+      testClassQueueFolder: os.Path
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
@@ -245,7 +245,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     // append only log, used to communicate with parent about what test is being claimed
     // so that the parent can log the claimed test's name to its logger
     val queueLog = queueFolderFolder / os.up / s"${queueFolderFolder.last}.log"
-    for (file <- os.list(testClassesFolder)) {
+    for (file <- os.list(testClassQueueFolder)) {
       val testClassName = file.last
       val claimedFile = queueFolderFolder / testClassName
 
@@ -276,7 +276,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       frameworkInstances: ClassLoader => Framework,
       testClassfilePath: Loose.Agg[Path],
       args: Seq[String],
-      testClassesFolder: os.Path,
+      testClassQueueFolder: os.Path,
       queueFolder: os.Path,
       cl: ClassLoader,
       testReporter: TestReporter
@@ -289,7 +289,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
     val (doneMessage, results) =
-      runTasksFromQueue(testClasses, testReporter, runner, queueFolder, testClassesFolder)
+      runTasksFromQueue(testClasses, testReporter, runner, queueFolder, testClassQueueFolder)
 
     (doneMessage, results.toSeq)
   }

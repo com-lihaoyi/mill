@@ -120,7 +120,7 @@ private final class TestModuleUtil(
       baseFolder: os.Path,
       // either:
       // - Left(selectors: Seq[String]): - list of glob selectors to feed to the test runner directly.
-      // - Right((testClassesFolder: os.Path, claimFolder: os.Path)): - folder containing test classes for test runner to claim from, and the worker's base folder.
+      // - Right((testClassQueueFolder: os.Path, claimFolder: os.Path)): - folder containing test classes for test runner to claim from, and the worker's base folder.
       selector: Either[Seq[String], (os.Path, os.Path)]
   )(implicit ctx: mill.api.Ctx) = {
     os.makeDir.all(baseFolder)
@@ -216,24 +216,24 @@ private final class TestModuleUtil(
 
     val workerStatusMap = new java.util.concurrent.ConcurrentHashMap[os.Path, String => Unit]()
 
-    def prepareTestClassesFolder(selectors2: Seq[String], base: os.Path): os.Path = {
+    def preparetestClassQueueFolder(selectors2: Seq[String], base: os.Path): os.Path = {
       // test-classes folder is used to store the test classes for the children test runners to claim from
-      val testClassesFolder = base / "test-classes"
-      os.makeDir.all(testClassesFolder)
+      val testClassQueueFolder = base / "test-classes"
+      os.makeDir.all(testClassQueueFolder)
       selectors2.zipWithIndex.foreach { case (s, i) =>
-        os.write.over(testClassesFolder / s, Array.empty[Byte])
+        os.write.over(testClassQueueFolder / s, Array.empty[Byte])
       }
-      testClassesFolder
+      testClassQueueFolder
     }
 
     def runTestRunnerSubprocess(
         base: os.Path,
-        testClassesFolder: os.Path,
+        testClassQueueFolder: os.Path,
         force: Boolean,
         logger: Logger
     ) = {
       // Check if we really need to spawn a new runner
-      if (force || os.list(testClassesFolder).nonEmpty) {
+      if (force || os.list(testClassQueueFolder).nonEmpty) {
         val claimFolder = base / "claim"
         os.makeDir.all(claimFolder)
         // claim.log file will be appended by the runner with the claimed test class's name
@@ -241,7 +241,7 @@ private final class TestModuleUtil(
         val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
         os.write.over(claimLog, Array.empty[Byte])
         workerStatusMap.put(claimLog, logger.ticker)
-        val result = callTestRunnerSubprocess(base, Right(testClassesFolder -> claimFolder))
+        val result = callTestRunnerSubprocess(base, Right(testClassQueueFolder -> claimFolder))
         workerStatusMap.remove(claimLog)
         Some(result)
       } else {
@@ -250,11 +250,11 @@ private final class TestModuleUtil(
     }
 
     val groupFolderData = filteredClassLists match {
-      case Nil => Seq((Task.dest, prepareTestClassesFolder(Nil, Task.dest), 0))
+      case Nil => Seq((Task.dest, preparetestClassQueueFolder(Nil, Task.dest), 0))
       case Seq(singleTestClassList) =>
         Seq((
           Task.dest,
-          prepareTestClassesFolder(singleTestClassList, Task.dest),
+          preparetestClassQueueFolder(singleTestClassList, Task.dest),
           singleTestClassList.length
         ))
       case multipleTestClassLists =>
@@ -269,7 +269,7 @@ private final class TestModuleUtil(
 
           (
             Task.dest / folderName,
-            prepareTestClassesFolder(testClassList, Task.dest / folderName),
+            preparetestClassQueueFolder(testClassList, Task.dest / folderName),
             testClassList.length
           )
         }
@@ -289,7 +289,7 @@ private final class TestModuleUtil(
     // but we have a check for non-empty test-classes folder before really spawning a new runner, so in practice the overhead is low
     val subprocessFutures = groupFolderData match {
       case Seq(singleGroupFolderData) =>
-        val (groupFolder, testClassesFolder, numTests) = singleGroupFolderData
+        val (groupFolder, testClassQueueFolder, numTests) = singleGroupFolderData
         val groupName = groupFolder.last
         for (processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)) yield {
           val paddedProcessIndex =
@@ -304,7 +304,7 @@ private final class TestModuleUtil(
               // to force the process to go through the test framework setup/teardown logic
               groupName -> runTestRunnerSubprocess(
                 processFolder,
-                testClassesFolder,
+                testClassQueueFolder,
                 force = processIndex == 0,
                 logger
               )
@@ -312,7 +312,7 @@ private final class TestModuleUtil(
         }
       case multipleGroupFolderData =>
         for {
-          ((groupFolder, testClassesFolder, numTests), groupIndex) <- groupFolderData.zipWithIndex
+          ((groupFolder, testClassQueueFolder, numTests), groupIndex) <- groupFolderData.zipWithIndex
           // Don't have re-calculate for every processes
           groupName = groupFolder.last
           paddedGroupIndex = mill.util.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
@@ -331,7 +331,7 @@ private final class TestModuleUtil(
               // to force the process to go through the test framework setup/teardown logic
               groupName -> runTestRunnerSubprocess(
                 processFolder,
-                testClassesFolder,
+                testClassQueueFolder,
                 force = processIndex == 0,
                 logger
               )
