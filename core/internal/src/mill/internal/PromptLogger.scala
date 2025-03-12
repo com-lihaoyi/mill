@@ -114,9 +114,10 @@ private[mill] class PromptLogger(
       promptLineState.setCurrent(key, None)
     }
 
-    override def setPromptDetail(key: Seq[String], s: String): Unit = PromptLogger.this.synchronized {
-      promptLineState.setDetail(key, s)
-    }
+    override def setPromptDetail(key: Seq[String], s: String): Unit =
+      PromptLogger.this.synchronized {
+        promptLineState.setDetail(key, s)
+      }
 
     override def reportKey(key: Seq[String]): Unit = {
       val res = PromptLogger.this.synchronized {
