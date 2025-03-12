@@ -17,7 +17,7 @@ object `package` extends RootModule with KotlinModule with KoverModule {
 
   def kotlinVersion = "1.9.24"
 
-  override def koverVersion = "0.8.3"
+  override def koverVersion = "0.9.1"
 
   object test extends KotlinTests with KotestTests with KoverTests
 
