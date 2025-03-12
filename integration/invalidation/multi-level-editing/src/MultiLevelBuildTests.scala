@@ -293,8 +293,8 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
         // exactly which files get watched here can be non-deterministic depending on
         // how far evaluation gets before it terminates due to the task failure
 
-        // evalCheckErr(tester, "\n1 tasks failed", "\ngenerateScriptSources build.mill")
-        checkWatchedFiles(tester, Nil, buildPaths(tester), Nil, Nil)
+        evalCheckErr(tester, "\n1 tasks failed", "\ngenerateScriptSources build.mill")
+        // checkWatchedFiles(tester, Nil, buildPaths(tester), Nil, Nil)
 
         // When one of the meta-builds still has parse errors, all classloaders
         // remain null, because none of the meta-builds can evaluate. Only once
