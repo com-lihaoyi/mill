@@ -430,15 +430,25 @@ trait TypeScriptModule extends Module { outer =>
 
   def compile: T[(PathRef, PathRef)] = Task {
     symLink()
+    val default: Map[String, ujson.Value] = Map(
+      "compilerOptions" -> ujson.Obj.from(
+        compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
+      ),
+      "files" -> tscAllSources()
+    )
+
     os.write(
       T.dest / "tsconfig.json",
-      ujson.Obj(
-        "compilerOptions" -> ujson.Obj.from(
-          compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
-        ),
-        "files" -> tscAllSources()
-      )
+      ujson.Obj.from(default.toSeq ++ options().toSeq)
     )
+
+    if (enableEsm())
+      os.write.over(
+        Task.dest / "package.json",
+        ujson.Obj(
+          "type" -> ujson.Str("module")
+        )
+      )
 
     tscCopySources()
     tscCopyModDeps()
