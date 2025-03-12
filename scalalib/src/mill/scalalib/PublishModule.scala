@@ -347,7 +347,7 @@ trait PublishModule extends JavaModule { outer =>
    * @param sources whether to generate and publish a sources JAR
    * @param doc whether to generate and publish a javadoc JAR
    * @param transitive if true, also publish locally the transitive module dependencies of this module
-   *                   (this includes the runtime transitive module dependencies)
+   *                   (this includes the runtime transitive module dependencies, but not the compile-only ones)
    */
   def publishLocal(
       localIvyRepo: String = null,
