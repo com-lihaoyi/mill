@@ -65,6 +65,7 @@ object TestRunnerTestUtils {
           ivy"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
         )
       }
+      override def testParallelism = enableParallelism
     }
     object doneMessageSuccess extends DoneMessage {
       def testFramework = "mill.scalalib.DoneMessageSuccessFramework"

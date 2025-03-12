@@ -129,7 +129,9 @@ private[mill] class PromptLogger(
       }
       for ((keySuffix, message) <- res) {
         if (prompt.enableTicker) {
-          streams.err.println(infoColor(s"[${key.mkString("-")}$keySuffix] $message"))
+          streams.err.println(
+            infoColor(s"[${key.mkString("-")}$keySuffix]${spaceNonEmpty(message)}")
+          )
           streamManager.awaitPumperEmpty()
         }
       }
@@ -137,7 +139,7 @@ private[mill] class PromptLogger(
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
-        promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}] $message"))
+        promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
         seenIdentifiers(key) = (keySuffix, message)
       }
 
