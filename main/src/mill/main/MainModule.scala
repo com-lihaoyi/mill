@@ -1,7 +1,7 @@
 package mill.main
 
-import mill.api.*
-import mill.define.*
+import mill.api._
+import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
