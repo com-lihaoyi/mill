@@ -366,6 +366,12 @@ trait PublishModule extends JavaModule { outer =>
     Result.Success(())
   }
 
+  // bin-compat shim
+  def publishLocal(
+      localIvyRepo: String
+  ): define.Command[Unit] =
+    publishLocal(localIvyRepo, sources = true, doc = true, transitive = false)
+
   /**
    * Publish artifacts the local ivy repository.
    */
