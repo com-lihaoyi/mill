@@ -1,5 +1,5 @@
 = Case Study: Mill vs sbt
-:page-aliases: Case_Study_Mill_vs_sbt.adoc
+:page-aliases: Case_Study_Mill_vs_sbt.adoc, Case_Study_Mill_vs_SBT.adoc
 
 
 
