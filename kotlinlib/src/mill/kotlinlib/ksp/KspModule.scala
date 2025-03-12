@@ -39,7 +39,7 @@ trait KspModule extends KotlinModule { outer =>
    *
    * @return
    */
-  def kspPlugins: T[Agg[Dep]] = Task {
+  def kspPlugins: T[Seq[Dep]] = Task {
     Agg(
       ivy"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
       ivy"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${kspVersion()}"
@@ -47,10 +47,10 @@ trait KspModule extends KotlinModule { outer =>
   }
 
   override def generatedSources: T[Seq[PathRef]] = Task {
-    generateSourcesWithKSP() ++ super.generatedSources()
+    super.generatedSources() ++ generateSourcesWithKSP()
   }
 
-  def kspPluginsResolved: T[Agg[PathRef]] = Task {
+  def kspPluginsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(kspPlugins())
   }
 
@@ -58,11 +58,11 @@ trait KspModule extends KotlinModule { outer =>
    * The symbol processors to be used by the Kotlin compiler.
    * Default is empty.
    */
-  def kotlinSymbolProcessors: T[Agg[Dep]] = Task {
+  def kotlinSymbolProcessors: T[Seq[Dep]] = Task {
     Agg.empty[Dep]
   }
 
-  def kotlinSymbolProcessorsResolved: T[Agg[PathRef]] = Task {
+  def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().resolveDeps(
       kotlinSymbolProcessors()
     )
@@ -76,6 +76,23 @@ trait KspModule extends KotlinModule { outer =>
   private val kspPluginId: String =
     "com.google.devtools.ksp.symbol-processing"
 
+  /** The KSP ap classpath
+   *
+   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
+   */
+  def kspApClasspath: T[Seq[PathRef]] = Task {
+    kotlinSymbolProcessorsResolved()
+  }
+
+  /**
+   * The classpath when running Kotlin Symbol processing
+   *
+   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
+   */
+  def kspClasspath: T[Seq[PathRef]] = Task {
+    compileClasspath()
+  }
+
   /**
    * The Kotlin compile task with KSP.
    * This task should run as part of the [[generatedSources]] task to
@@ -85,7 +102,7 @@ trait KspModule extends KotlinModule { outer =>
   def generateSourcesWithKSP: Target[Seq[PathRef]] = Task {
     val sourceFiles = sources().map(_.path)
 
-    val compileCp = compileClasspath().map(_.path).filter(os.exists)
+    val compileCp = kspClasspath().map(_.path).filter(os.exists)
 
     val pluginArgs: String = kspPluginsResolved().map(_.path)
       .mkString(",")
@@ -94,7 +111,7 @@ trait KspModule extends KotlinModule { outer =>
 
     val pluginOpt = s"plugin:${kspPluginId}"
 
-    val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
+    val apClasspath = kspApClasspath().map(_.path).mkString(File.pathSeparator)
 
     val kspProjectBasedDir = moduleDir
     val kspOutputDir = T.dest / "generated/ksp/main"

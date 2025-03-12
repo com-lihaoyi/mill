@@ -2,7 +2,7 @@ package mill.kotlinlib.android
 
 import mill.{T, Task}
 import mill.api.PathRef
-import mill.kotlinlib.{DepSyntax, KotlinModule}
+import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 
 trait AndroidKotlinModule extends KotlinModule {
 
@@ -11,7 +11,7 @@ trait AndroidKotlinModule extends KotlinModule {
       Seq(
         // TODO expose Compose configuration options
         // https://kotlinlang.org/docs/compose-compiler-options.html possible options
-        s"-Xplugin=${composeProcessor().path}"
+        s"-Xplugin=${androidComposeProcessorResolvedDeps().path}"
       )
     } else Seq.empty
   }
@@ -21,15 +21,19 @@ trait AndroidKotlinModule extends KotlinModule {
    */
   def androidEnableCompose: T[Boolean] = false
 
-  def composeProcessor = Task {
+  def androidComposeProcessorResolvedDeps = Task {
     // cut-off usages for Kotlin 1.x, because of the need to maintain the table of
     // Compose compiler version -> Kotlin version
     if (kotlinVersion().startsWith("1"))
       throw new IllegalStateException("Compose can be used only with Kotlin version 2 or newer.")
     defaultResolver().resolveDeps(
-      Seq(
-        ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
-      )
+      androidKotlinComposeCompilerPlugin()
     ).head
+  }
+
+  def androidKotlinComposeCompilerPlugin: T[Seq[Dep]] = Task {
+    Seq(
+      ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
+    )
   }
 }
