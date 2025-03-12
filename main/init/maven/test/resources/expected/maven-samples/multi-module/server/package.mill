@@ -9,8 +9,16 @@ object `package` extends RootModule with PublishModule with MavenModule {
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.6", "-target", "1.6")
 
-  def bomDeps = super.bomDeps() ++
-    Agg(ivy"com.example.maven-samples:multi-module-parent:1.0-SNAPSHOT")
+  def depManagement = super.depManagement() ++ Seq(
+    ivy"javax.servlet.jsp:jsp-api:2.2",
+    ivy"javax.servlet:servlet-api:2.5",
+    ivy"junit:junit-dep:4.10",
+    ivy"org.hamcrest:hamcrest-core:1.2.1",
+    ivy"org.hamcrest:hamcrest-library:1.2.1",
+    ivy"org.mockito:mockito-core:1.8.5"
+  )
+
+  def bomModuleDeps = super.bomModuleDeps ++ Seq(build.`multi-module`)
 
   def pomSettings = PomSettings(
     "Logic.",
@@ -27,10 +35,6 @@ object `package` extends RootModule with PublishModule with MavenModule {
   )
 
   def publishVersion = "1.0-SNAPSHOT"
-
-  def pomParentProject = Some(
-    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
-  )
 
   object test extends MavenTests with TestModule.Junit4 {
 

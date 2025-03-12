@@ -88,6 +88,8 @@ object BuildGenUtil {
        |
        |${renderRepositories(repositories)}
        |
+       |${renderDepManagement(scopedDeps.depManagement)}
+       |
        |${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
        |
        |${renderIvyDeps(scopedDeps.mainIvyDeps)}
@@ -353,6 +355,9 @@ object BuildGenUtil {
   def renderArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
+
+  def renderDepManagement(args: IterableOnce[String]): String =
+    optional("def depManagement = super.depManagement() ++ Seq", args)
 
   def renderBomIvyDeps(args: IterableOnce[String]): String =
     optional("def bomIvyDeps = super.bomIvyDeps() ++ Seq", args)

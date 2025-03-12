@@ -15,18 +15,27 @@ object Deps {
   val `org.mockito:mockito-core` = ivy"org.mockito:mockito-core:1.8.5"
 }
 
-object `package` extends RootModule with MyModule {
+object `package` extends RootModule with BomModule with MyModule {
 
   def artifactName = "parent"
 
   def pomPackagingType = PackagingType.Pom
 
-  object `multi-module` extends MyModule {
+  object `multi-module` extends BomModule with MyModule {
 
     def artifactName = "multi-module-parent"
 
     def javacOptions = super.javacOptions() ++
       Seq("-source", "1.6", "-target", "1.6")
+
+    def depManagement = super.depManagement() ++ Seq(
+      Deps.`javax.servlet.jsp:jsp-api`,
+      Deps.`javax.servlet:servlet-api`,
+      Deps.`junit:junit-dep`,
+      Deps.`org.hamcrest:hamcrest-core`,
+      Deps.`org.hamcrest:hamcrest-library`,
+      Deps.`org.mockito:mockito-core`
+    )
 
     def pomPackagingType = PackagingType.Pom
 
@@ -40,11 +49,16 @@ object `package` extends RootModule with MyModule {
       def javacOptions = super.javacOptions() ++
         Seq("-source", "1.6", "-target", "1.6")
 
-      def pomParentProject = Some(Artifact(
-        "com.example.maven-samples",
-        "multi-module-parent",
-        "1.0-SNAPSHOT"
-      ))
+      def depManagement = super.depManagement() ++ Seq(
+        Deps.`javax.servlet.jsp:jsp-api`,
+        Deps.`javax.servlet:servlet-api`,
+        Deps.`junit:junit-dep`,
+        Deps.`org.hamcrest:hamcrest-core`,
+        Deps.`org.hamcrest:hamcrest-library`,
+        Deps.`org.mockito:mockito-core`
+      )
+
+      def bomModuleDeps = super.bomModuleDeps ++ Seq(build.`multi-module`)
 
       def publishProperties = super.publishProperties() ++ Map(
         ("project.build.sourceEncoding", "utf-8"),
@@ -68,18 +82,23 @@ object `package` extends RootModule with MyModule {
       def javacOptions = super.javacOptions() ++
         Seq("-source", "1.6", "-target", "1.6")
 
+      def depManagement = super.depManagement() ++ Seq(
+        Deps.`javax.servlet.jsp:jsp-api`,
+        Deps.`javax.servlet:servlet-api`,
+        Deps.`junit:junit-dep`,
+        Deps.`org.hamcrest:hamcrest-core`,
+        Deps.`org.hamcrest:hamcrest-library`,
+        Deps.`org.mockito:mockito-core`
+      )
+
+      def bomModuleDeps = super.bomModuleDeps ++ Seq(build.`multi-module`)
+
       def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
       def compileIvyDeps = super.compileIvyDeps() ++
         Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
       def pomPackagingType = "war"
-
-      def pomParentProject = Some(Artifact(
-        "com.example.maven-samples",
-        "multi-module-parent",
-        "1.0-SNAPSHOT"
-      ))
 
       def publishProperties = super.publishProperties() ++ Map(
         ("project.build.sourceEncoding", "utf-8"),

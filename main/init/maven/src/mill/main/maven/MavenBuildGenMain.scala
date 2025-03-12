@@ -127,7 +127,9 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
   def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] = {
-    Seq("RootModule") ++
+    val isBom = build.value.getPackaging == "pom"
+    val bomType = if (isBom) Seq("BomModule") else Nil
+    Seq("RootModule") ++ bomType ++
       cfg.shared.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
   }
 
@@ -168,11 +170,11 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       dep.getExclusions.iterator().asScala.map(x => (x.getGroupId, x.getArtifactId))
     )
 
-  def interpParentIvy(dep: Parent): String =
+  def interpParentIvy(parent: Parent): String =
     BuildGenUtil.renderIvyString(
-      dep.getGroupId,
-      dep.getArtifactId,
-      dep.getVersion
+      parent.getGroupId,
+      parent.getArtifactId,
+      parent.getVersion
     )
 
   def extractPomSettings(model: Model): IrPom = {
@@ -208,7 +210,9 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
     val ivyDep: Dependency => String = {
       cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
-        {
+        if (dep.getVersion == null)
+          interpIvy(dep)
+        else {
           val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
           sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))
           s"$objName.$depName"
@@ -218,9 +222,9 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
     val parentIvyDep: Parent => String = {
       cfg.shared.depsObject.fold(interpParentIvy(_)) { objName => parent =>
         {
-          val depName = s"`${parent.getGroupId}:${parent.getArtifactId}`"
-          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpParentIvy(parent)))
-          s"$objName.$depName"
+          val parentName = s"`${parent.getGroupId}:${parent.getArtifactId}`"
+          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (parentName, interpParentIvy(parent)))
+          s"$objName.$parentName"
         }
       }
     }
@@ -229,8 +233,10 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       val id = (parent.getGroupId, parent.getArtifactId, parent.getVersion)
       if (packages.isDefinedAt(id))
         sd = sd.copy(mainBomModuleDeps = sd.mainBomModuleDeps + packages(id))
-      else
-        sd = sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + parentIvyDep(parent))
+      else {
+        val dep = parentIvyDep(parent)
+        sd = sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + dep)
+      }
     }
 
     model.getDependencies.forEach { dep =>
@@ -275,8 +281,10 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
         case "import" =>
           if (packages.isDefinedAt(id))
             sd = sd.copy(mainBomModuleDeps = sd.mainBomModuleDeps + packages(id))
-          else
-            sd = sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + ivyDep(dep))
+          else {
+            val ivyDep0 = ivyDep(dep)
+            sd = sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + ivyDep0)
+          }
 
         case scope =>
           println(s"ignoring $scope dependency $id")
@@ -286,6 +294,24 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
         sd = sd.copy(testModule = testModulesByGroup.get(dep.getGroupId))
       }
     }
+
+    if (model.getDependencyManagement != null)
+      model.getDependencyManagement.getDependencies.forEach { dep =>
+        val id = (dep.getGroupId, dep.getArtifactId, dep.getVersion)
+        if (!packages.isDefinedAt(id)) {
+          val ivy = ivyDep(dep)
+          if (dep.getScope == "import") {
+            sd = sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + ivy)
+          } else {
+            if (dep.getScope != null && dep.getScope != "compile")
+              println(
+                s"ignoring scope '${dep.getScope}' of dependency $id in dependency management"
+              )
+            sd = sd.copy(depManagement = sd.depManagement + ivy)
+          }
+        }
+      }
+
     sd
   }
 

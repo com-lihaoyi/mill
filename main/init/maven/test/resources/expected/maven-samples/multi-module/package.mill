@@ -4,12 +4,22 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 
-object `package` extends RootModule with PublishModule with MavenModule {
+object `package`
+    extends RootModule with BomModule with PublishModule with MavenModule {
 
   def artifactName = "multi-module-parent"
 
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.6", "-target", "1.6")
+
+  def depManagement = super.depManagement() ++ Seq(
+    ivy"javax.servlet.jsp:jsp-api:2.2",
+    ivy"javax.servlet:servlet-api:2.5",
+    ivy"junit:junit-dep:4.10",
+    ivy"org.hamcrest:hamcrest-core:1.2.1",
+    ivy"org.hamcrest:hamcrest-library:1.2.1",
+    ivy"org.mockito:mockito-core:1.8.5"
+  )
 
   def pomSettings = PomSettings(
     "Sample multi module Maven project with a working, deployable site.",

@@ -107,7 +107,8 @@ case class IrScopedDeps(
     testBomModuleDeps: SortedSet[String] = SortedSet(),
     testModuleDeps: SortedSet[String] = SortedSet(),
     testCompileIvyDeps: SortedSet[String] = SortedSet(),
-    testCompileModuleDeps: SortedSet[String] = SortedSet()
+    testCompileModuleDeps: SortedSet[String] = SortedSet(),
+    depManagement: SortedSet[String] = SortedSet()
 )
 
 case class IrBaseInfo(
