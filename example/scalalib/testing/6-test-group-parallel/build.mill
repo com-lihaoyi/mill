@@ -27,15 +27,9 @@ object foo extends ScalaModule {
 
 > find out/foo/test/test.dest
 ...
-out/foo/test/test.dest/group-0-foo.GroupX1/worker-0.log
-out/foo/test/test.dest/group-0-foo.GroupX1/worker-0
-out/foo/test/test.dest/group-0-foo.GroupX1/worker-1.log
-out/foo/test/test.dest/group-0-foo.GroupX1/worker-1
+out/foo/test/test.dest/group-0-foo.GroupX1/worker-...
 out/foo/test/test.dest/group-0-foo.GroupX1/test-classes
-out/foo/test/test.dest/group-1-foo.GroupY1/worker-0.log
-out/foo/test/test.dest/group-1-foo.GroupY1/worker-0
-out/foo/test/test.dest/group-1-foo.GroupY1/worker-1.log
-out/foo/test/test.dest/group-1-foo.GroupY1/worker-1
+out/foo/test/test.dest/group-1-foo.GroupY1/worker-...
 out/foo/test/test.dest/group-1-foo.GroupY1/test-classes
 out/foo/test/test.dest/test-report.xml
 ...
