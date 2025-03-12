@@ -1,0 +1,38 @@
+= SBOM file
+:page-aliases: Plugin_SBOM.adoc
+
+This plugin creates Software Bill of Materials (SBOM)
+
+This module has some limitations at the moment:
+
+- Minimal SBOM, various properties of libraries are missing. e.g. the license.
+- Only JVM ecosystem libraries are reported.
+- Only the CycloneDX JSON format is supported
+
+To declare a module that generates an SBT extend the `mill.contrib.sbom.CycloneDXModuleTests` trait when defining your module.
+
+Quickstart:
+
+.`build.mill`
+[source,scala]
+----
+package build
+import mill.javalib.*
+import $ivy.`com.lihaoyi::mill-contrib-sbom:`
+import mill.contrib.sbom.CycloneDXModule
+
+object `sbom-demo` extends JavaModule with CycloneDXModule {
+  // An example dependency
+  override def ivyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.5.12")
+}
+----
+
+This will provide you with the `sbomJson` task that produces a CycloneDX JSON file:
+
+[source,bash]
+----
+$ mill show sbom-demo.sbomJsonFile # Creates the SBOM file in the JSON format
+----
+
+==
+

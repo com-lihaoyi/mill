@@ -6,6 +6,8 @@ import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
 import mill.api.PathRef
+import mill.util.Jvm
+import mill.util.Jvm.ResolvedDependency
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -226,9 +228,22 @@ object CoursierModule {
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
     ): Seq[PathRef] = {
-      Lib.resolveDependencies(
+      resolveDepsExtendInfo(deps, sources, artifactTypes)
+        .map(_.path.withRevalidateOnce)
+    }
+
+    def resolveDepsExtendInfo[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false,
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
+    ): Seq[ResolvedDependency] = {
+      val boundDeps =
+        deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)).toSeq
+      Jvm.resolveDependenciesExtendInfo(
         repositories = repositories,
-        deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
+        deps = boundDeps.map(_.dep),
+        force = boundDeps.filter(_.force).map(_.dep),
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = mapDependencies,

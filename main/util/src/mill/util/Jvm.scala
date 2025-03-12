@@ -1,7 +1,6 @@
 package mill.util
 
 import mill.api.*
-
 import os.ProcessOutput
 
 import java.io.*
@@ -18,10 +17,18 @@ import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
-import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
+import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.util.Task
-import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
-
+import coursier.{
+  Artifacts,
+  Classifier,
+  Dependency,
+  Repository,
+  Resolution,
+  Resolve,
+  Type,
+  VersionConstraint
+}
 import mill.api.{Ctx, PathRef, Result}
 
 import scala.collection.mutable
@@ -506,6 +513,35 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Seq[PathRef]] = {
+    resolveDependenciesExtendInfo(
+      repositories,
+      deps,
+      force,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      artifactTypes,
+      resolutionParams
+    ).map(_.map(_.path))
+  }
+
+  /**
+   * Same as [[resolveDependencies]], but also returns the meta information abou the dependency
+   */
+  def resolveDependenciesExtendInfo(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      sources: Boolean = false,
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[Resolution => Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      artifactTypes: Option[Set[Type]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
+  ): Result[Seq[ResolvedDependency]] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -539,13 +575,37 @@ object Jvm {
             s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
           )
         case Right(res) =>
-          Result.Success(
-            res.files
-              .map(os.Path(_))
-              .map(PathRef(_, quick = true))
-          )
+          val distinctDeps = res.fullDetailedArtifacts
+            .flatMap { case (dep, _, _, path) =>
+              path.map(p => {
+                val license = findLicense(resolution, dep.module, dep.versionConstraint)
+                ResolvedDependency(PathRef(os.Path(p), quick = true), dep, license)
+              })
+            }
+            // Result.files does eliminate duplicates: Do the same
+            .distinctBy(_.path)
+          distinctDeps
       }
     }
+  }
+
+  private def findLicense(
+      resolution: Resolution,
+      module: Module,
+      version: VersionConstraint
+  ): Seq[coursier.Info.License] = {
+    val projects = resolution.projectCache0
+    val project = projects.get(module -> version)
+    project match
+      case None => Seq.empty
+      case Some((_, proj)) =>
+        val licences = proj.info.licenseInfo
+        if (licences.nonEmpty) {
+          licences
+        } else {
+          proj.parent0.map((pm, v) => findLicense(resolution, pm, VersionConstraint.fromVersion(v)))
+            .getOrElse(Seq.empty)
+        }
   }
 
   def jvmIndex(
@@ -694,5 +754,16 @@ object Jvm {
       case Right(repos) =>
         Result.Success(repos)
     }
+  }
+
+  // TODO: Should we expose the Coursier dependency here? The API is large and confusing.
+  // On the other hand: We already expose it via Deps and other APIs. And wrapping is just boiler plate
+  case class ResolvedDependency(
+      path: PathRef,
+      dependency: Dependency,
+      licenses: Seq[coursier.Info.License]
+  ) {
+    // TODO: For review: Unclear to me if that even needs to be an option, or if we can always return a 'revalidate once' path??
+    def withRevalidateOnce: ResolvedDependency = copy(path = path.withRevalidateOnce)
   }
 }
