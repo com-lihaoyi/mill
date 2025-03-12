@@ -59,7 +59,7 @@ private object PromptLoggerUtil {
   private[mill] val clearScreenToEndBytes: Array[Byte] =
     (AnsiNav.clearScreen(0) + AnsiNav.up(1) + "\n").getBytes
 
-  def spaceNonEmpty(s: String) = if (s.isEmpty) "" else s" $s"
+  def spaceNonEmpty(s: String): String = if (s.isEmpty) "" else s" $s"
   private def renderSecondsSuffix(millis: Long) = (millis / 1000).toInt match {
     case 0 => ""
     case n => s" ${n}s"
