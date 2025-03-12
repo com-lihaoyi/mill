@@ -6,6 +6,6 @@ class RandomTestsA : RandomTestsUtils() {
     @Test
     @Throws(Exception::class)
     fun test1() {
-        testGreeting("Storm", 38)
+        testGreeting("Storm", 380)
     }
 }

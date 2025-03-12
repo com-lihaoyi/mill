@@ -262,6 +262,7 @@ import java.io.PrintStream
           scala.util.Try(os.move(file, claimedFile, atomicMove = true)).isSuccess
 
       if (claimed) {
+        System.err.println(s"Running Test Class $testClassName")
         os.write.append(claimLog, s"$testClassName\n")
         val taskDefs = globSelectorCache
           .get(testClassName)

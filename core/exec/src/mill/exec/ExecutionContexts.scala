@@ -5,7 +5,7 @@ import os.Path
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.{ExecutorService, LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{ExecutorService, LinkedBlockingDeque, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
 
 private object ExecutionContexts {
@@ -38,7 +38,15 @@ private object ExecutionContexts {
       threadCount0,
       0,
       TimeUnit.SECONDS,
-      new LinkedBlockingQueue[Runnable]()
+      // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
+      // operations reversed, providing elements in a LIFO order. This ensures that
+      // child `fork.async` tasks always take priority over parent tasks, avoiding
+      // large numbers of blocked parent tasks from piling up
+      new LinkedBlockingDeque[Runnable]() {
+        override def poll(): Runnable = super.pollLast()
+        override def poll(timeout: Long, unit: TimeUnit): Runnable = super.pollLast(timeout, unit)
+        override def take(): Runnable = super.takeLast()
+      }
     )
 
     val threadPool: ExecutorService = executor

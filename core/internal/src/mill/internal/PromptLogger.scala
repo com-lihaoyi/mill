@@ -102,24 +102,25 @@ private[mill] class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
-    override def setPromptHeaderPrefix(s: String): Unit = synchronized {
+    override def setPromptHeaderPrefix(s: String): Unit = PromptLogger.this.synchronized {
       promptLineState.setHeaderPrefix(s)
     }
 
-    override def clearPromptStatuses(): Unit = synchronized {
+    override def clearPromptStatuses(): Unit = PromptLogger.this.synchronized {
       promptLineState.clearStatuses()
     }
 
-    override def removePromptLine(key: Seq[String]): Unit = synchronized {
+    override def removePromptLine(key: Seq[String]): Unit = PromptLogger.this.synchronized {
       promptLineState.setCurrent(key, None)
     }
 
-    override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized {
-      promptLineState.setDetail(key, s)
-    }
+    override def setPromptDetail(key: Seq[String], s: String): Unit =
+      PromptLogger.this.synchronized {
+        promptLineState.setDetail(key, s)
+      }
 
     override def reportKey(key: Seq[String]): Unit = {
-      val res = synchronized {
+      val res = PromptLogger.this.synchronized {
         if (reportedIdentifiers(key)) None
         else {
           reportedIdentifiers.add(key)
@@ -128,15 +129,17 @@ private[mill] class PromptLogger(
       }
       for ((keySuffix, message) <- res) {
         if (prompt.enableTicker) {
-          streams.err.println(infoColor(s"[${key.mkString("-")}$keySuffix] $message"))
+          streams.err.println(
+            infoColor(s"[${key.mkString("-")}$keySuffix]${spaceNonEmpty(message)}")
+          )
           streamManager.awaitPumperEmpty()
         }
       }
     }
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
-      synchronized {
-        promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}] $message"))
+      PromptLogger.this.synchronized {
+        promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
         seenIdentifiers(key) = (keySuffix, message)
       }
 
