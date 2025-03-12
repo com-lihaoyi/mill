@@ -32,7 +32,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
     )
   }
 
-  def ivyDeps = super.ivyDeps() ++ Seq(
+  def ivyDeps = super.ivyDeps() ++ Agg(
     ivy"io.netty:netty-transport-native-epoll:4.1.118.Final;type=pom;classifier=linux-x86_64;exclude=io.netty:netty-transport-native-epoll"
   )
 

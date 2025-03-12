@@ -30,9 +30,9 @@ object MillInitUtils {
   }
   object SplitTaskResults {
     def apply(
-        all: SortedSet[String] | Null = null,
-        successful: SortedSet[String] | Null = null,
-        failed: SortedSet[String] | Null = null
+        all: SortedSet[String] = null,
+        successful: SortedSet[String] = null,
+        failed: SortedSet[String] = null
     ) =
       new SplitTaskResults(
         if (all != null) all else successful ++ failed,
@@ -41,18 +41,19 @@ object MillInitUtils {
       )
   }
 
-  enum ModuleTaskTestMode {
+  sealed abstract class ModuleTaskTestMode
+  object ModuleTaskTestMode {
 
     /**
      * Fail the whole test immediately if a `compile` or `test` task fails.
      * @param combineSuccessful combine the expected successful tasks into one command to run to speed up the process, especially on CI
      */
-    case FailFast(combineSuccessful: Boolean)
+    case class FailFast(combineSuccessful: Boolean) extends ModuleTaskTestMode
 
     /**
      * Print the actual [[SplitTaskResults]] for more efficient debugging when the test fails.
      */
-    case ShowActual
+    case object ShowActual extends ModuleTaskTestMode
   }
 
   /**
@@ -164,9 +165,10 @@ object MillInitUtils {
          |""".stripMargin
     )
 
-  private inline def commonAssertEvalSuccess(
+  @inline
+  private def commonAssertEvalSuccess(
       evalResult: EvalResult,
-      assert: (isSuccess: Boolean) => Unit
+      assert: Boolean => Unit
   ): Unit = {
     val isSuccess = evalResult.isSuccess
 

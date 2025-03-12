@@ -34,7 +34,7 @@ object BuildObject {
  * @param value build module
  */
 @mill.api.experimental
-case class Node[T](dirs: Seq[String], value: T)
+case class Node[+T](dirs: Seq[String], value: T)
 
 case class IrTrait(
     jvmId: Option[String],
@@ -43,8 +43,8 @@ case class IrTrait(
     javacOptions: Seq[String],
     scalaVersion: Option[String],
     scalacOptions: Option[Seq[String]],
-    pomSettings: IrPom | Null,
-    publishVersion: String | Null,
+    pomSettings: IrPom,
+    publishVersion: String,
     publishProperties: Seq[(String, String)],
     repositories: Seq[String]
 )
@@ -90,10 +90,10 @@ case class IrBuild(
     scalaVersion: Option[String],
     scalacOptions: Option[Seq[String]],
     projectName: String,
-    pomSettings: IrPom | Null,
-    publishVersion: String | Null,
-    packaging: String | Null,
-    pomParentArtifact: IrArtifact | Null,
+    pomSettings: IrPom,
+    publishVersion: String,
+    packaging: String,
+    pomParentArtifact: IrArtifact,
     resources: Seq[os.SubPath],
     testResources: Seq[os.SubPath],
     publishProperties: Seq[(String, String)]
@@ -152,7 +152,7 @@ case class IrBaseInfo(
     publishProperties: Seq[(String, String)] = Nil,
      */
     // TODO consider renaming directly to `trait` or `baseTrait`?
-    moduleTypedef: IrTrait | Null = null
+    moduleTypedef: IrTrait = null
 )
 
 sealed class IrDependencyType

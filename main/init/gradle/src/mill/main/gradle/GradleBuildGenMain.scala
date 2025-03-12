@@ -58,7 +58,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     val args =
       cfg.shared.basicConfig.jvmId.map { id =>
         println(s"resolving Java home for jvmId $id")
-        val home = Jvm.resolveJavaHome(id).get
+        val home = Jvm.resolveJavaHome(id).getOrThrow
         s"-Dorg.gradle.java.home=$home"
       } ++ Seq("--init-script", writeGradleInitScript.toString())
 
@@ -235,7 +235,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
         .toSeq
     } else Seq.empty
 
-  def getPublishVersion(project: ProjectModel): String | Null =
+  def getPublishVersion(project: ProjectModel): String =
     project.version() match {
       case "" | "unspecified" => null
       case version => version
@@ -245,7 +245,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     BuildGenUtil.renderIvyString(dep.group(), dep.name(), version = dep.version())
   }
 
-  def extractPomSettings(project: ProjectModel): IrPom | Null = {
+  def extractPomSettings(project: ProjectModel): IrPom = {
     val pom = project.maven.pom()
     if (null == pom) null
     else {

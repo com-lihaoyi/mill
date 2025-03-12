@@ -1,5 +1,6 @@
 package build
 
+import _root_.build_.MyModule
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
@@ -97,7 +98,7 @@ object `package` extends RootModule with MyModule {
       def javacOptions = super.javacOptions() ++
         Seq("-source", "1.6", "-target", "1.6")
 
-      def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
+      def moduleDeps = super.moduleDeps ++ Agg(build.`multi-module`.server)
 
       def compileIvyDeps = super.compileIvyDeps() ++
         Agg(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)

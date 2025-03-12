@@ -2,19 +2,18 @@ package mill.main.buildgen
 
 import geny.Generator
 import mainargs.{Flag, arg}
-import mill.constants.CodeGenConstants.{
+import mill.main.buildgen.BuildObject.Companions
+import mill.main.client.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
   rootBuildFileNames,
   rootModuleAlias
 }
-import mill.constants.OutFiles
-import mill.main.buildgen.BuildObject.Companions
+import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
 import mill.scalalib.CrossVersion
 
 import scala.collection.immutable.SortedSet
-import scala.util.boundary
 
 @mill.api.internal
 object BuildGenUtil {
@@ -52,7 +51,7 @@ object BuildGenUtil {
 
   }
 
-  def renderIrPom(value: IrPom | Null): String = {
+  def renderIrPom(value: IrPom): String = {
     if (value == null) ""
     else {
       import value.*
@@ -155,7 +154,7 @@ object BuildGenUtil {
 
   }
   def buildFile(dirs: Seq[String]): os.SubPath = {
-    val name = if (dirs.isEmpty) rootBuildFileNames.get(0) else nestedBuildFileNames.get(0)
+    val name = if (dirs.isEmpty) rootBuildFileNames.head else nestedBuildFileNames.head
     os.sub / dirs / name
   }
 
@@ -221,7 +220,7 @@ object BuildGenUtil {
        |""".stripMargin
   }
 
-  def compactBuildTree(tree: Tree[Node[BuildObject]]): Tree[Node[BuildObject]] = boundary {
+  def compactBuildTree(tree: Tree[Node[BuildObject]]): Tree[Node[BuildObject]] = {
     println("compacting Mill build tree")
 
     def merge(parentCompanions: Companions, childCompanions: Companions): Companions = {
@@ -232,7 +231,7 @@ object BuildGenUtil {
         if (null == parentConstants) mergedParentCompanions += entry
         else {
           if (childConstants.exists { case (k, v) => v != parentConstants.getOrElse(k, v) })
-            boundary.break(null)
+            return null
           else mergedParentCompanions += ((objectName, parentConstants ++ childConstants))
         }
       }
@@ -293,9 +292,9 @@ object BuildGenUtil {
       group: String,
       artifact: String,
       crossVersion: Option[CrossVersion] = None,
-      version: String | Null = null,
-      tpe: String | Null = null,
-      classifier: String | Null = null,
+      version: String = null,
+      tpe: String = null,
+      classifier: String = null,
       excludes: IterableOnce[(String, String)] = Seq.empty
   ): String = {
     val sepArtifact = crossVersion match {
@@ -334,7 +333,7 @@ object BuildGenUtil {
   def isBom(groupArtifactVersion: (String, String, String)): Boolean =
     groupArtifactVersion._2.endsWith("-bom")
 
-  def isNullOrEmpty(value: String | Null): Boolean =
+  def isNullOrEmpty(value: String): Boolean =
     null == value || value.isEmpty
 
   val linebreak: String =
@@ -448,25 +447,25 @@ object BuildGenUtil {
     else s"def artifactName = ${escape(name)}"
 
   def renderBomIvyDeps(args: IterableOnce[String]): String =
-    optional("def bomIvyDeps = super.bomIvyDeps() ++ Seq", args)
+    optional("def bomIvyDeps = super.bomIvyDeps() ++ Agg", args)
 
   def renderIvyDeps(args: IterableOnce[String]): String =
-    optional("def ivyDeps = super.ivyDeps() ++ Seq", args)
+    optional("def ivyDeps = super.ivyDeps() ++ Agg", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
-    optional("def moduleDeps = super.moduleDeps ++ Seq", args)
+    optional("def moduleDeps = super.moduleDeps ++ Agg", args)
 
   def renderCompileIvyDeps(args: IterableOnce[String]): String =
-    optional("def compileIvyDeps = super.compileIvyDeps() ++ Seq", args)
+    optional("def compileIvyDeps = super.compileIvyDeps() ++ Agg", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
-    optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
+    optional("def compileModuleDeps = super.compileModuleDeps ++ Agg", args)
 
   def renderRunIvyDeps(args: IterableOnce[String]): String =
-    optional("def runIvyDeps = super.runIvyDeps() ++ Seq", args)
+    optional("def runIvyDeps = super.runIvyDeps() ++ Agg", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
-    optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
+    optional("def runModuleDeps = super.runModuleDeps ++ Agg", args)
 
   def renderJavacOptions(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
     renderSeqTargetDefWithSuper("javacOptions", args, superArgs, "String", escape).getOrElse("")
@@ -499,7 +498,7 @@ object BuildGenUtil {
   def renderResources(args: IterableOnce[os.SubPath]): String =
     optional(
       "def resources = Task.Sources { super.resources() ++ Seq(",
-      args.iterator.map(sub => s"PathRef(moduleDir / ${escape(sub.toString())})"),
+      args.iterator.map(sub => s"PathRef(millSourcePath / ${escape(sub.toString())})"),
       ", ",
       ") }"
     )
@@ -515,11 +514,11 @@ object BuildGenUtil {
     if (isNullOrEmpty(artifact)) ""
     else s"def pomParentProject = Some($artifact)"
 
-  def renderPomSettings(arg: String | Null, superArg: String | Null = null): String =
+  def renderPomSettings(arg: String, superArg: String = null): String =
     if (isNullOrEmpty(arg)) ""
     else s"def pomSettings = $arg"
 
-  def renderPublishVersion(arg: String | Null, superArg: String | Null = null): String =
+  def renderPublishVersion(arg: String, superArg: String = null): String =
     if (arg != superArg)
       if (isNullOrEmpty(arg)) ""
       else s"def publishVersion = ${escape(arg)}"

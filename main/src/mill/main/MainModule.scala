@@ -1,7 +1,7 @@
 package mill.main
 
-import mill.api._
-import mill.define._
+import mill.api.*
+import mill.define.*
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
@@ -586,7 +586,8 @@ trait MainModule extends BaseModule0 {
             SelectMode.Separated
           )
         else if (os.exists(os.pwd / "build.sbt"))
-          evaluator.evaluate(
+          RunScript.evaluateTasksNamed(
+            evaluator,
             Seq("mill.init.InitSbtModule/init") ++ args,
             SelectMode.Separated
           )

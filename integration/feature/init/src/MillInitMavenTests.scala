@@ -1,12 +1,12 @@
 package mill.integration
 
-import mill.constants.Util
 import mill.integration.MillInitUtils.{
   SplitTaskResults,
   defaultInitCommand,
   defaultInitCommandWithoutMerge,
   testMillInit
 }
+import mill.main.client.Util
 import utest.*
 
 import scala.collection.immutable.SortedSet

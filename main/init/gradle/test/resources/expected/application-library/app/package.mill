@@ -8,7 +8,7 @@ object `package` extends RootModule with MavenModule {
 
   def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.apache.commons:commons-text")
 
-  def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
+  def moduleDeps = super.moduleDeps ++ Agg(build.utilities)
 
   object test extends MavenTests with TestModule.Junit5 {
 

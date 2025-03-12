@@ -1,10 +1,11 @@
 package mill.main.sbt
 
 import mainargs.{ParserForClass, arg, main}
-import mill.constants.Util
+import mill.main.client.Util
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.IrDependencyType.*
+import mill.main.buildgen.OptionNodeTreeUtils.merge
 import os.Path
 
 import scala.collection.immutable.SortedSet
@@ -123,7 +124,7 @@ object SbtBuildGenMain
         )
 
     } catch {
-      case e: os.SubprocessException => throw RuntimeException(
+      case e: os.SubprocessException => throw new RuntimeException(
           "The sbt command to run the `millInitExportBuild` sbt task has failed, " +
             s"please check out the following solutions and try again:\n" +
             s"1. check whether your existing sbt build works properly;\n" +
@@ -152,7 +153,7 @@ object SbtBuildGenMain
         // The projects are ordered differently in different `sbt millInitExportBuild` runs and on different OSs, which is strange.
         .sortBy(_.dirs)
 
-    val projectNodeTree = projectNodes.foldLeft(Tree(Node(Seq.empty, None)))(merge)
+    val projectNodeTree = projectNodes.foldLeft(Tree(Node[Option[Project]](Seq.empty, None)))(merge)
 
     convertWriteOut(cfg, cfg.shared, (buildExport.defaultBuildInfo, projectNodeTree))
 
@@ -296,7 +297,7 @@ object SbtBuildGenMain
       s"coursier.maven.MavenRepository(${escape(resolver.root)})"
     )
 
-  def getPublishVersion(buildInfo: BuildInfo): String | Null =
+  def getPublishVersion(buildInfo: BuildInfo): String =
     buildInfo.buildPublicationInfo.version.orNull
 
   // originally named `ivyInterp` in the Maven and module

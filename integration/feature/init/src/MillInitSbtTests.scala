@@ -1,8 +1,8 @@
 package mill.integration
 
-import mill.constants.Util
 import mill.integration.MillInitSbtUtils.bumpSbt
 import mill.integration.MillInitUtils.*
+import mill.main.client.Util
 import utest.*
 
 import scala.collection.immutable.SortedSet
