@@ -370,7 +370,7 @@ reduced to simply instantiating a `trait` over and over, with tweaks.
 === sbt
 
 Mill is built as a substitute for sbt, whose problems are
-http://www.lihaoyi.com/post/Sowhatswrongwithsbt.html[described here].
+http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[described here].
 Nevertheless, Mill takes on some parts of sbt (builds written in Scala, Task
 graph with an Applicative "idiom bracket" macro) where it makes sense.
 
