@@ -29,26 +29,20 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       }
     )
   }
-  
+
   def androidHiltGeneratedSources: T[PathRef] = Task {
     val directory = Task.dest / "generated" / "hilt"
     os.makeDir.all(directory)
     PathRef(directory)
   }
 
-  override def generatedSources: T[Seq[PathRef]] = super.generatedSources() ++ 
-    super.generateSourcesWithKSP() ++
-    Seq(androidHiltGeneratedSources())
-
-  def kotlincOptions: T[Seq[String]] = Task {
-    super.kotlincOptions() ++
+  override def kspPluginParameters: T[Seq[String]] = Task {
+    super.kspPluginParameters() ++
       Seq(
-        "-P", "plugin:com.google.devtools.ksp.symbol-processing:apoption=dagger.fastInit=enabled",
-        "-P", "plugin:com.google.devtools.ksp.symbol-processing:apoption=dagger.hilt.android.internal.disableAndroidSuperclassValidation=true",
-        "-P", "plugin:com.google.devtools.ksp.symbol-processing:apoption=dagger.hilt.android.internal.projectType=APP",
-        "-P", "plugin:com.google.devtools.ksp.symbol-processing:apoption=dagger.hilt.internal.useAggregatingRootProcessor=false",
-        "-opt-in=kotlin.RequiresOptIn",
-        "-opt-in=kotlin.Experimental",
+        s"apoption=dagger.fastInit=enabled",
+        s"apoption=dagger.hilt.android.internal.disableAndroidSuperclassValidation=true",
+        s"apoption=dagger.hilt.android.internal.projectType=APP",
+        s"apoption=dagger.hilt.internal.useAggregatingRootProcessor=false"
       )
   }
 

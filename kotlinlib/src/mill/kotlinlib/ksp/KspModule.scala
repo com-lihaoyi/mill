@@ -94,15 +94,32 @@ trait KspModule extends KotlinModule { outer =>
   }
 
   /**
+   * Kotlinc arguments used with KSP
+   * @return
+   */
+  def kspKotlinc: T[Seq[String]] = Seq(
+    "-Xallow-unstable-dependencies",
+    "-no-jdk",
+    "-no-reflect",
+    "-language-version",
+    "1.9"
+  )
+
+
+  def kspPluginParameters: T[Seq[String]] = Task {
+    Seq.empty
+  }
+
+  /**
    * The Kotlin compile task with KSP.
    * This task should run as part of the [[generatedSources]] task to
    * so that the generated  sources are in the [[compileClasspath]]
    * for the main compile task.
    */
   def generateSourcesWithKSP: Target[Seq[PathRef]] = Task {
-    val sourceFiles = sources().map(_.path)
+    val sourceFiles = sources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "kt")
 
-    val compileCp = kspClasspath().map(_.path).filter(os.exists)
+    val compileCp = kspClasspath().map(_.path)
 
     val pluginArgs: String = kspPluginsResolved().map(_.path)
       .mkString(",")
@@ -128,12 +145,13 @@ trait KspModule extends KotlinModule { outer =>
       s"$pluginOpt:kspOutputDir=${kspOutputDir}",
       s"$pluginOpt:cachesDir=${kspCachesDir}",
       s"$pluginOpt:incremental=true",
+      s"${pluginOpt}:incrementalLog=false",
       s"$pluginOpt:allWarningsAsErrors=false",
       s"$pluginOpt:returnOkOnError=true",
       s"$pluginOpt:mapAnnotationArgumentsInJava=false"
-    ).mkString(",")
+    ) ++ kspPluginParameters().map(p => s"$pluginOpt:$p")
 
-    val kspCompilerArgs = Seq(xPluginArg) ++ Seq("-P", pluginConfigs)
+    val kspCompilerArgs = kspKotlinc() ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
 
     Task.log.info(
       s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOutputDir} ..."
@@ -152,6 +170,8 @@ trait KspModule extends KotlinModule { outer =>
       // parameters
       sourceFiles.map(_.toString())
     ).flatten
+
+    T.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
     kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
 
