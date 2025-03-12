@@ -5,7 +5,7 @@ import os.Path
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.{ExecutorService, LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{ExecutorService, LinkedBlockingDeque, LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
 
 private object ExecutionContexts {
@@ -38,7 +38,11 @@ private object ExecutionContexts {
       threadCount0,
       0,
       TimeUnit.SECONDS,
-      new LinkedBlockingQueue[Runnable]()
+      new LinkedBlockingDeque[Runnable](){
+        override def poll(): Runnable = super.pollLast()
+        override def poll(timeout: Long, unit: TimeUnit): Runnable = super.pollLast(timeout, unit)
+        override def take(): Runnable = super.takeLast()
+      }
     )
 
     val threadPool: ExecutorService = executor
