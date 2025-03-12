@@ -5,6 +5,6 @@ import org.junit.Test;
 public class GroupY2 extends RandomTestsUtils {
   @Test
   public void test1() throws Exception {
-    testGreeting("Odin", 34);
+    testGreeting("Odin", 340);
   }
 }
