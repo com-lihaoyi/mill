@@ -257,6 +257,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
       if (claimed) {
         os.write.append(queueLog, s"$testClassName\n")
+        System.err.println(s"Running Test Class $testClassName")
         val taskDefs = globSelectorCache
           .get(testClassName)
           .map { case (cls, fingerprint) =>
