@@ -239,9 +239,9 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
             "gatling-http-java.test.allSourceFiles" -> 3
           ),
           expectedCompileTaskResults = Some(SplitTaskResults(
-            successful = SortedSet("compile")
-              ++ submodulesWithTests.flatMap(allCompileTasks)
-              ++ submodulesWithoutTests.map(compileTask),
+            successful = SortedSet("compile") ++
+              submodulesWithTests.flatMap(allCompileTasks) ++
+              submodulesWithoutTests.map(compileTask),
             failed = SortedSet.empty
           )),
           expectedTestTaskResults = Some(SplitTaskResults(
