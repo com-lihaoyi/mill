@@ -96,8 +96,7 @@ index b3cbbf54ebb..b69d3ef4940 100644
    }
  
    def testFramework = "mill.UTestFramework"
--  def testEnableWorkStealing = true
-+  def testParallelism = true
+   def testParallelism = true
  }
  
  /** Published module which does not contain strictly handled API. */
