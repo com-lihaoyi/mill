@@ -138,6 +138,15 @@ jobs:
             millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
             install-android-sdk: false
 
+          - java-version: 21
+            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
+          - java-version: 21
+            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
+          - java-version: 23
+            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
+          - java-version: 23
+            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
+
           - java-version: 17
             millargs: "contrib.__.test"
             install-android-sdk: false
