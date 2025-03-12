@@ -7,9 +7,9 @@ import utest.*
 import scala.collection.immutable.SortedSet
 
 object MillInitUtils {
-  val defaultInitCommandWithoutMerge =
+  val defaultInitCommandWithoutMerge: Seq[String] =
     Seq("init", "--base-module", "BaseModule", "--deps-object", "Deps")
-  val defaultInitCommand =
+  val defaultInitCommand: Seq[String] =
     defaultInitCommandWithoutMerge :+ "--merge"
 
   // `SortedSet` is used so it's easier when the results are compared or printed.
@@ -73,7 +73,7 @@ object MillInitUtils {
       // expectedCompileResult: Boolean,
       expectedCompileTaskResults: Option[SplitTaskResults],
       expectedTestTaskResults: Option[SplitTaskResults]
-  ) = {
+  ): Unit = {
     import tester.*
 
     val initResult = eval(initCommand)
@@ -180,16 +180,16 @@ object MillInitUtils {
     assert(isSuccess)
   }
 
-  def assertEvalSuccess(evalResult: EvalResult, message: => Any) =
+  def assertEvalSuccess(evalResult: EvalResult, message: => Any): Unit =
     commonAssertEvalSuccess(evalResult, Predef.assert(_, message))
 
-  def assertEvalSuccess(evalResult: EvalResult) =
+  def assertEvalSuccess(evalResult: EvalResult): Unit =
     commonAssertEvalSuccess(evalResult, assert(_))
 
   def outSeq(evalResult: EvalResult) =
     evalResult.out.linesIterator.toSeq.sorted
 
-  def outSortedSet(evalResult: EvalResult) =
+  def outSortedSet(evalResult: EvalResult): SortedSet[String] =
     SortedSet.from(evalResult.out.linesIterator)
 
   def compileTask(module: String): String =
@@ -205,8 +205,8 @@ object MillInitUtils {
   def allCompileTasks(module: String): Seq[String] =
     Seq(compileTask(module), testCompileTask(module))
 
-  def writeMillJvmVersion(workspace: os.Path, jvmId: String) =
+  def writeMillJvmVersion(workspace: os.Path, jvmId: String): Unit =
     os.write(workspace / ".mill-jvm-version", jvmId)
-  def writeMillJvmVersionTemurin11(workspace: os.Path) =
+  def writeMillJvmVersionTemurin11(workspace: os.Path): Unit =
     writeMillJvmVersion(workspace, "temurin:11")
 }

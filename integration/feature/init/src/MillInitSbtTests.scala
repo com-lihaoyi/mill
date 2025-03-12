@@ -12,7 +12,7 @@ object MillInitSbtUtils {
   /**
    * bump sbt version to our tested version to resolve compatibility issues with lower sbt versions and higher JDK versions
    */
-  def bumpSbt(workspacePath: os.Path) =
+  def bumpSbt(workspacePath: os.Path): Unit =
     os.write.over(
       workspacePath / "project" / "build.properties",
       s"sbt.version = ${sys.props.getOrElse("TEST_SBT_VERSION", ???)}"
@@ -20,7 +20,7 @@ object MillInitSbtUtils {
 
   // relatively small libraries
 
-  val scalaPlatforms = Seq("js", "jvm", "native")
+  val scalaPlatforms: Seq[String] = Seq("js", "jvm", "native")
 }
 
 object MillInitScala3ExampleProjectTests extends BuildGenTestSuite {

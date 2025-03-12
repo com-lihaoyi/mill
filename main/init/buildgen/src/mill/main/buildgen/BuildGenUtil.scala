@@ -415,7 +415,7 @@ object BuildGenUtil {
       superArgs: Seq[String] = Seq.empty,
       elementType: String,
       transform: String => String
-  ) =
+  ): Option[String] =
     renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s"def $defName = " + _)
 
   def renderSeqTaskDefWithSuper(
@@ -424,7 +424,7 @@ object BuildGenUtil {
       superArgs: Seq[String] = Seq.empty,
       elementType: String,
       transform: String => String
-  ) =
+  ): Option[String] =
     renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s =>
       s"def $defName = Task.Anon { $s }"
     )

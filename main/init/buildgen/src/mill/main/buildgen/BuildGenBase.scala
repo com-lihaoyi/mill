@@ -66,7 +66,7 @@ trait BuildGenBase[M, D, I] {
               ),
             companions =
               shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-                SortedMap((name, SortedMap(inner.scopedDeps.namedIvyDeps.toSeq*)))
+                SortedMap((name, SortedMap(inner.scopedDeps.namedIvyDeps.toSeq *)))
               ),
             supertypes = getSupertypes(cfg, baseInfo, build),
             inner = BuildGenUtil.renderIrBuild(inner, baseInfo),

@@ -101,7 +101,7 @@ case class IrBuild(
 
 object IrBuild {
   // TODO not used
-  def empty(dirs: Seq[String]) = IrBuild(
+  def empty(dirs: Seq[String]): IrBuild = IrBuild(
     IrScopedDeps(),
     null,
     null,
