@@ -204,6 +204,10 @@ object MillInitUtils {
     compileTask(testModule(module))
   def allCompileTasks(module: String): Seq[String] =
     Seq(compileTask(module), testCompileTask(module))
+  def testModuleSaneNameTaskAndTestTask(testModuleAndTestTask: String): Seq[String] =
+    Seq(testModuleAndTestTask, testTask(testModuleAndTestTask))
+  def allTestTasks(module: String): Seq[String] =
+    testModuleSaneNameTaskAndTestTask(testModuleOrTask(module))
 
   def writeMillJvmVersion(workspace: os.Path, jvmId: String): Unit =
     os.write(workspace / ".mill-jvm-version", jvmId)

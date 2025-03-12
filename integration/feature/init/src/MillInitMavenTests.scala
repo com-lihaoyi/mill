@@ -1,11 +1,6 @@
 package mill.integration
 
-import mill.integration.MillInitUtils.{
-  SplitTaskResults,
-  defaultInitCommand,
-  defaultInitCommandWithoutMerge,
-  testMillInit
-}
+import mill.integration.MillInitUtils.{SplitTaskResults, defaultInitCommand, defaultInitCommandWithoutMerge, testMillInit, testModuleSaneNameTaskAndTestTask}
 import mill.main.client.Util
 import utest.*
 
@@ -325,7 +320,7 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "resolver.test",
               "transport-native-unix-common.test",
               "transport-udt.test"
-            ),
+            ).flatMap(testModuleSaneNameTaskAndTestTask),
             failed = SortedSet(
               "codec-dns.test",
               "codec-haproxy.test",
@@ -353,7 +348,7 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "transport-native-kqueue.test",
               "transport-sctp.test",
               "transport.test"
-            )
+            ).flatMap(testModuleSaneNameTaskAndTestTask)
           ))
         )
       }

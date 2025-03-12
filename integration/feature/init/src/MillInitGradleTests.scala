@@ -26,7 +26,10 @@ object MillInitGradleJCommanderTests extends BuildGenTestSuite {
             failed = SortedSet("test.compile")
           )),
         expectedTestTaskResults =
-          Some(SplitTaskResults(successful = SortedSet(), failed = SortedSet("test")))
+          Some(SplitTaskResults(
+            successful = SortedSet(),
+            failed = SortedSet("test").flatMap(testModuleSaneNameTaskAndTestTask)
+          ))
       )
     )
   }
@@ -61,7 +64,10 @@ object MillInitGradleFastCsvTests extends BuildGenTestSuite {
           )
         )),
         expectedTestTaskResults =
-          Some(SplitTaskResults(successful = SortedSet(), failed = SortedSet("lib.test")))
+          Some(SplitTaskResults(
+            successful = SortedSet(),
+            failed = SortedSet.from(allTestTasks("lib"))
+          ))
       )
     )
   }
@@ -197,7 +203,7 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
               "ehcache-api.test",
               "ehcache-core.test",
               "ehcache-xml.ehcache-xml-spi.test"
-            ),
+            ).flatMap(testModuleSaneNameTaskAndTestTask),
             failed = SortedSet(
               "clustered.ehcache-client.test",
               "clustered.ehcache-common.test",
@@ -213,7 +219,7 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
               "ehcache-xml.test",
               "integration-test.test",
               "osgi-test.test"
-            )
+            ).flatMap(testModuleSaneNameTaskAndTestTask)
           ))
         )
       }
@@ -292,7 +298,8 @@ object MillInitGradleMoshiTests extends BuildGenTestSuite {
             )
           )),
           expectedTestTaskResults = Some(SplitTaskResults(
-            successful = SortedSet("moshi-adapters.test"),
+            successful =
+              SortedSet("moshi-adapters.test").flatMap(testModuleSaneNameTaskAndTestTask),
             failed = SortedSet(
               "kotlin.tests.codegen-only.test",
               "kotlin.tests.test",
@@ -300,7 +307,7 @@ object MillInitGradleMoshiTests extends BuildGenTestSuite {
               "moshi-kotlin.test",
               "moshi.records-tests.test",
               "moshi.test"
-            )
+            ).flatMap(testModuleSaneNameTaskAndTestTask)
           ))
         )
       )

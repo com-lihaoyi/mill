@@ -41,7 +41,10 @@ object MillInitScala3ExampleProjectTests extends BuildGenTestSuite {
           failed = SortedSet.empty
         )),
         expectedTestTaskResults =
-          Some(SplitTaskResults(successful = SortedSet("test"), failed = SortedSet.empty))
+          Some(SplitTaskResults(
+            successful = SortedSet("test").flatMap(testModuleSaneNameTaskAndTestTask),
+            failed = SortedSet.empty
+          ))
       )
     )
   }
@@ -68,7 +71,10 @@ object MillInitSbtScalaCsv200Tests extends BuildGenTestSuite {
             failed = SortedSet("compile", "test.compile")
           )),
         expectedTestTaskResults =
-          Some(SplitTaskResults(successful = SortedSet(), failed = SortedSet("test")))
+          Some(SplitTaskResults(
+            successful = SortedSet(),
+            failed = SortedSet("test").flatMap(testModuleSaneNameTaskAndTestTask)
+          ))
       )
     }
   }
@@ -95,7 +101,10 @@ object MillInitSbtScalaCsv136Tests extends BuildGenTestSuite {
             failed = SortedSet.empty
           )),
         expectedTestTaskResults =
-          Some(SplitTaskResults(successful = SortedSet("test"), failed = SortedSet.empty))
+          Some(SplitTaskResults(
+            successful = SortedSet("test").flatMap(testModuleSaneNameTaskAndTestTask),
+            failed = SortedSet.empty
+          ))
       )
     }
   }
@@ -144,7 +153,10 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
           failed = SortedSet.empty
         )),
         expectedTestTaskResults =
-          Some(SplitTaskResults(successful = submodules.map(testTask), failed = SortedSet.empty))
+          Some(SplitTaskResults(
+            successful = submodules.flatMap(allTestTasks),
+            failed = SortedSet.empty
+          ))
       )
     }
   }
@@ -245,8 +257,8 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
             failed = SortedSet.empty
           )),
           expectedTestTaskResults = Some(SplitTaskResults(
-            all = submodulesWithTests.map(testTask),
-            failed = SortedSet(
+            all = submodulesWithTests.flatMap(allTestTasks),
+            failed = (SortedSet(
               /*
               `java.util.MissingResourceException: Can't find bundle for base name gatling-version, locale ...`
               The version file in resources `gatling-commons/src/main/resources/gatling-version.properties`
@@ -255,10 +267,12 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
                */
               //
               "gatling-charts.test"
-            ) ++ (if (Util.isWindows)
-                    // This fails on Windows with sbt too.
-                    Seq("gatling-core.test")
-                  else Seq.empty)
+            ) ++
+              (if (Util.isWindows)
+                 // This fails on Windows with sbt too.
+                 Seq("gatling-core.test")
+               else Seq.empty))
+              .flatMap(testModuleSaneNameTaskAndTestTask)
           ))
         )
     }
