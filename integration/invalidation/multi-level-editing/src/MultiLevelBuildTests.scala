@@ -290,7 +290,6 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
         checkChangedClassloaders(tester, null, true, true, true)
 
         causeParseError(workspacePath / "build.mill")
-        
         evalCheckErr(tester, "\n1 tasks failed", "\ngenerateScriptSources build.mill")
         // exactly which files get watched here can be non-deterministic depending on
         // how far evaluation gets before it terminates due to the task failure
