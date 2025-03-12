@@ -1,0 +1,56 @@
+package build
+
+import mill._, javascriptlib._
+import os._
+
+object `package` extends RootModule with TypeScriptModule with TsLintModule {
+  def npmDeps = Seq("whatwg-fetch@3.6.20")
+  def npmDevDeps = Seq(
+    "@swc/core@1.10.12",
+    "@types/whatwg-fetch@0.0.33",
+    "unbuild@2.0.0"
+  )
+
+  def options =
+    super.options() + (
+      "ts-node" -> ujson.Obj(
+        "swc" -> ujson.True,
+        "esm" -> ujson.True
+      )
+    )
+
+  def compilerOptions =
+    super.compilerOptions() + (
+      "noImplicitAny" -> ujson.True,
+      "noImplicitThis" -> ujson.True,
+      "strictNullChecks" -> ujson.True,
+      "declarationMap" -> ujson.True,
+      "skipLibCheck" -> ujson.True,
+      "strict" -> ujson.True,
+      "forceConsistentCasingInFileNames" -> ujson.True,
+      "module" -> ujson.Str("ES2022"),
+      "target" -> ujson.Str("es6"),
+      "lib" -> ujson.Arr.from(Seq("es6", "es2018.asyncgenerator", "dom"))
+    )
+
+  object test extends TypeScriptTests with TestModule.Vitest
+
+}
+
+//// The Ollama JavaScript library provides the easiest way to integrate
+//// your JavaScript project with Ollama. https://github.com/ollama/ollama
+//
+//// Project home: https://github.com/ollama/ollama-js
+
+/** Usage
+
+> ./mill compile
+
+> ./mill test
+...
+.../index.test.ts (15 tests) ...
+...
+...Test Files  1 passed (1)
+...     Tests  15 passed (15)
+...
+*/

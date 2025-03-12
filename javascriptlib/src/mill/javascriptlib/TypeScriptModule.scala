@@ -55,6 +55,8 @@ trait TypeScriptModule extends Module { outer =>
     os.call((
       "npm",
       "install",
+      "--prefix",
+      ".",
       "--userconfig",
       ".npmrc",
       "--save-dev",

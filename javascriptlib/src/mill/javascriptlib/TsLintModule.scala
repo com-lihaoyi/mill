@@ -17,6 +17,8 @@ trait TsLintModule extends Module {
     os.call((
       "npm",
       "install",
+      "--prefix",
+      ".",
       "--userconfig",
       ".npmrc",
       "--save-dev",
