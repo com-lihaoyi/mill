@@ -87,7 +87,6 @@ object TestRunnerTestUtils {
           ivy"dev.zio::zio-test-sbt:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
         )
       }
-      override def testParallelism = enableParallelism
     }
   }
 
