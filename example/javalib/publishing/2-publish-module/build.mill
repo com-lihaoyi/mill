@@ -29,7 +29,7 @@ Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
 */
 
 // `publishLocal` accepts options like `--doc=false` and `--sources=false`,
-// to disable publishing javadoc JAR and source JARs, which are generated and
+// to disable publishing javadoc JARs and source JARs, which are generated and
 // published by default.
 
 // `publishLocal` also accepts `--transitive=true`, to also publish locally the
