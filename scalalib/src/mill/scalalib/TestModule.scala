@@ -100,8 +100,8 @@ trait TestModule
    * How the test classes in this module will be split.
    * Test classes from different groups are ensured to never
    * run on the same JVM process, and therefore can be run in parallel.
-   * When used in combination with [[testEnableWorkStealing]],
-   * every JVM test running process will guarantee to never steal tests
+   * When used in combination with [[testParallelism]],
+   * every JVM test running process will guarantee to never claim tests
    * from different test groups.
    */
   def testForkGrouping: T[Seq[Seq[String]]] = Task {
@@ -109,11 +109,11 @@ trait TestModule
   }
 
   /**
-   * Whether to use the test stealing scheduler to run tests in multiple JVM processes.
+   * Whether to use the test parallelism to run tests in multiple JVM processes.
    * When used in combination with [[testForkGrouping]], every JVM test running process
-   * will guarantee to never steal tests from different test groups.
+   * will guarantee to never claim tests from different test groups.
    */
-  def testEnableWorkStealing: T[Boolean] = T(true)
+  def testParallelism: T[Boolean] = T(true)
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -216,7 +216,7 @@ trait TestModule
         forkWorkingDir(),
         testReportXml(),
         zincWorker().javaHome().map(_.path),
-        testEnableWorkStealing()
+        testParallelism()
       )
       testModuleUtil.runTests()
     }

@@ -6,7 +6,7 @@ lazy val root = (project in file("."))
     scalaVersion := "2.12.19",
     libraryDependencies ++= Seq(
       "org.apache.spark" %% "spark-core" % "3.5.4",
-      "org.apache.spark" %% "spark-sql" % "3.5.4",
+      "org.apache.spark" %% "spark-sql" % "3.5.4"
     ),
     assembly / assemblyMergeStrategy := {
       case PathList("META-INF", "services", _*) => MergeStrategy.concat

@@ -18,17 +18,17 @@ include::partial$example/javalib/testing/2-test-deps.adoc[]
 
 include::partial$example/javalib/testing/3-integration-suite.adoc[]
 
+== Test Parallelism
+
+include::partial$example/javalib/testing/4-test-parallel.adoc[]
+
 == Test Grouping
 
-include::partial$example/javalib/testing/4-test-grouping.adoc[]
+include::partial$example/javalib/testing/5-test-grouping.adoc[]
 
-== Test Work Stealing Scheduler
+== Test Grouping & Test Parallelism together
 
-include::partial$example/javalib/testing/5-test-stealing.adoc[]
-
-== Test Grouping & Test Work Stealing
-
-include::partial$example/javalib/testing/6-test-group-stealing.adoc[]
+include::partial$example/javalib/testing/6-test-group-parallel.adoc[]
 
 == Github Actions Test Reports
 
