@@ -4,10 +4,8 @@ import os.Path
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.{ExecutorService, PriorityBlockingQueue, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{ExecutorService, LinkedBlockingDeque, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
-
-import java.util.Comparator
 
 private object ExecutionContexts {
 
@@ -28,29 +26,27 @@ private object ExecutionContexts {
       Future.successful(t(ctx.log))
   }
 
-  trait HighPriorityRunnable extends Runnable
-
   /**
    * A simple thread-pool-based ExecutionContext with configurable thread count
    * and AutoCloseable support
    */
   class ThreadPool(threadCount0: Int) extends mill.api.Ctx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
-    val queue = new PriorityBlockingQueue[Runnable](
-      1,
-      new Comparator[Runnable] {
-        def compare(o1: Runnable, o2: Runnable): Int = {
-          (o1, o2) match {
-            case (_: HighPriorityRunnable, _: HighPriorityRunnable) => 0
-            case (_: HighPriorityRunnable, _) => -1
-            case (_, _: HighPriorityRunnable) => 1
-            case _ => 0
-          }
-        }
+    val executor: ThreadPoolExecutor = new ThreadPoolExecutor(
+      threadCount0,
+      threadCount0,
+      0,
+      TimeUnit.SECONDS,
+      // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
+      // operations reversed, providing elements in a LIFO order. This ensures that
+      // child `fork.async` tasks always take priority over parent tasks, avoiding
+      // large numbers of blocked parent tasks from piling up
+      new LinkedBlockingDeque[Runnable](){
+        override def poll(): Runnable = super.pollLast()
+        override def poll(timeout: Long, unit: TimeUnit): Runnable = super.pollLast(timeout, unit)
+        override def take(): Runnable = super.takeLast()
       }
     )
-    val executor: ThreadPoolExecutor =
-      new ThreadPoolExecutor(threadCount0, threadCount0, 0, TimeUnit.SECONDS, queue)
 
     val threadPool: ExecutorService = executor
 
@@ -75,7 +71,7 @@ private object ExecutionContexts {
       // context which submitted it
       lazy val submitterPwd = os.pwd
       lazy val submitterStreams = new mill.api.SystemStreams(System.out, System.err, System.in)
-      threadPool.submit(new HighPriorityRunnable {
+      threadPool.submit(new Runnable {
         def run() = {
           os.dynamicPwdFunction.withValue(() => submitterPwd) {
             mill.api.SystemStreams.withStreams(submitterStreams) {
