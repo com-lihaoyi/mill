@@ -404,6 +404,32 @@ trait AndroidModule extends JavaModule {
     (PathRef(T.dest), compiledResources.toSeq.map(PathRef(_)))
   }
 
+  /**
+   * Creates an intermediate R.jar that includes all the resources from the application and its dependencies.
+   */
+  def androidProcessResources: Target[PathRef] = Task {
+
+    val sources = androidLibsRClasses()
+
+    val rJar = Task.dest / "R.jar"
+
+    val classesDest = zincWorker()
+      .worker()
+      .compileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = sources.map(_.path),
+        compileClasspath = Seq.empty,
+        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        reporter = Task.reporter.apply(hashCode),
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
+      ).get.classes.path
+
+    os.zip(rJar, Seq(classesDest))
+
+    PathRef(rJar)
+  }
+
   // TODO alias, keystore pass and pass below are sensitive credentials and shouldn't be leaked to disk/console.
   // In the current state they are leaked, because Task dumps output to the json.
   // Should be fixed ASAP.
