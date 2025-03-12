@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.integration.MillInitUtils.{SplitTaskResults, defaultInitCommand, defaultInitCommandWithoutMerge, testMillInit, testModuleSaneNameTaskAndTestTask}
+import mill.integration.MillInitUtils.*
 import mill.main.client.Util
 import utest.*
 
