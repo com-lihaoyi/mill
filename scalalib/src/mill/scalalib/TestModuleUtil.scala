@@ -58,7 +58,7 @@ private final class TestModuleUtil(
     val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
     val filteredClassLists =
-      if (filteredClassLists0.size == 1) filteredClassLists0
+      if (filteredClassLists0.size == 1 && !testParallelism) filteredClassLists0
       else {
         // If test grouping is enabled and multiple test groups are detected, we need to
         // run test discovery via the test framework's own argument parsing and filtering
@@ -275,69 +275,54 @@ private final class TestModuleUtil(
         }
     }
 
-    val jobs = Task.ctx() match {
-      case j: Ctx.Jobs => j.jobs
-      case _ => 1
+    def jobsProcessLength(numTests: Int) = {
+      val jobs = Task.ctx() match {
+        case j: Ctx.Jobs => j.jobs
+        case _ => 1
+      }
+
+      val cappedJobs = Math.max(Math.min(jobs, numTests), 1)
+      (cappedJobs, cappedJobs.toString.length)
     }
 
-    val maxProcessLength = jobs.toString.length
     val groupLength = groupFolderData.length
     val maxGroupLength = groupLength.toString.length
 
     // We got "--jobs" threads, and "groupLength" test groups, so we will spawn at most jobs * groupLength runners here
     // In most case, this is more than necessary, and runner creation is expensive,
     // but we have a check for non-empty test-classes folder before really spawning a new runner, so in practice the overhead is low
-    val subprocessFutures = groupFolderData match {
-      case Seq(singleGroupFolderData) =>
-        val (groupFolder, testClassQueueFolder, numTests) = singleGroupFolderData
-        val groupName = groupFolder.last
-        for (processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)) yield {
-          val paddedProcessIndex =
-            mill.util.Util.leftPad(processIndex.toString, maxProcessLength, '0')
-          val processFolder = groupFolder / s"worker-$paddedProcessIndex"
-          Task.fork.async(
-            processFolder,
-            paddedProcessIndex,
-            s"worker-$paddedProcessIndex",
-            logger =>
-              // force run when processIndex == 0 (first subprocess), even if there are no tests to run
-              // to force the process to go through the test framework setup/teardown logic
-              groupName -> runTestRunnerSubprocess(
-                processFolder,
-                testClassQueueFolder,
-                force = processIndex == 0,
-                logger
-              )
-          )
-        }
-      case multipleGroupFolderData =>
-        for {
-          ((groupFolder, testClassQueueFolder, numTests), groupIndex) <-
-            groupFolderData.zipWithIndex
-          // Don't have re-calculate for every processes
-          groupName = groupFolder.last
-          paddedGroupIndex = mill.util.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
-          processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
-        } yield {
-          val paddedProcessIndex =
-            mill.util.Util.leftPad(processIndex.toString, maxProcessLength, '0')
-          val processFolder = groupFolder / s"worker-$paddedProcessIndex"
+    val subprocessFutures = for {
+      ((groupFolder, testClassesFolder, numTests), groupIndex) <- groupFolderData.zipWithIndex
+      // Don't have re-calculate for every processes
+      groupName = groupFolder.last
+      (jobs, maxProcessLength) = jobsProcessLength(numTests)
+      paddedGroupIndex = mill.util.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
+      processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
+    } yield {
 
-          Task.fork.async(
+      val paddedProcessIndex =
+        mill.util.Util.leftPad(processIndex.toString, maxProcessLength, '0')
+
+      val processFolder = groupFolder / s"worker-$paddedProcessIndex"
+
+      val label =
+        if (groupFolderData.size == 1) paddedProcessIndex
+        else s"$paddedGroupIndex-$paddedProcessIndex"
+
+      Task.fork.async(
+        processFolder,
+        label,
+        "",
+        logger =>
+          // force run when processIndex == 0 (first subprocess), even if there are no tests to run
+          // to force the process to go through the test framework setup/teardown logic
+          groupName -> runTestRunnerSubprocess(
             processFolder,
-            s"${paddedGroupIndex}-${paddedProcessIndex}",
-            s"worker-${paddedGroupIndex}-${paddedProcessIndex}",
-            logger =>
-              // force run when processIndex == 0 (first subprocess), even if there are no tests to run
-              // to force the process to go through the test framework setup/teardown logic
-              groupName -> runTestRunnerSubprocess(
-                processFolder,
-                testClassQueueFolder,
-                force = processIndex == 0,
-                logger
-              )
+            testClassesFolder,
+            force = processIndex == 0,
+            logger
           )
-        }
+      )
     }
 
     val executor = Executors.newScheduledThreadPool(1)
