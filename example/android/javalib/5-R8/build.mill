@@ -20,7 +20,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Actual android application
-object app extends AndroidAppModule with r8OptimizationsModule{
+object app extends AndroidAppModule{
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
@@ -32,13 +32,6 @@ object app extends AndroidAppModule with r8OptimizationsModule{
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDeviceIdentifier: String = "java-test"
-
-//  object minify extends r8OptimizationsModule{
-//    def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
-//    def androidMinSdk = 19
-//    def androidCompileSdk = 35
-//    def isApplication = true
-//  }
 
   object test extends AndroidAppTests with TestModule.Junit4 {
     def testFramework = "com.novocode.junit.JUnitFramework"
