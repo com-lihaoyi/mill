@@ -6,6 +6,6 @@ class GroupY5 : RandomTestsUtils() {
     @Test
     @Throws(Exception::class)
     fun test1() {
-        testGreeting("Xiuhtecuhtli", 26)
+        testGreeting("Xiuhtecuhtli", 260)
     }
 }
