@@ -254,6 +254,8 @@ public class MillProcessLauncher {
 
   static {
     // Load jansi native library
+
+    // First, fast-path code.
     // We pre-compute the library location in the coursier archive cache, so that
     // we don't need to load the whole of coursier upfront if the native library file
     // is already in cache.
@@ -274,6 +276,10 @@ public class MillProcessLauncher {
         archiveCacheLocation,
         "https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/" + jansiVersion + "/jansi-"
             + jansiVersion + ".jar/" + jansiLibPathInArchive);
+
+    // Seems the jansi native library isn't in cache. We proceed to download it using
+    // coursier, which is more heavyweight.
+    // That's the slow path of our jansi-loading logic, that we try to avoid when we can.
     if (!jansiLib.exists()) {
       // coursierapi.Logger.progressBars actually falls back to non-ANSI logging when running
       // without a terminal
@@ -286,6 +292,8 @@ public class MillProcessLauncher {
       jansiLib = new File(
           jansiDir, jansiLibPathInArchive); // just in case, should be the same value as before
     }
+
+    // We have the jansi native library, we proceed to load it.
     System.load(jansiLib.getAbsolutePath());
 
     // Tell jansi not to attempt to load a native library on its own
