@@ -38,6 +38,10 @@ private object ExecutionContexts {
       threadCount0,
       0,
       TimeUnit.SECONDS,
+      // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
+      // operations reversed, providing elements in a LIFO order. This ensures that
+      // child `fork.async` tasks always take priority over parent tasks, avoiding
+      // large numbers of blocked parent tasks from piling up
       new LinkedBlockingDeque[Runnable](){
         override def poll(): Runnable = super.pollLast()
         override def poll(timeout: Long, unit: TimeUnit): Runnable = super.pollLast(timeout, unit)
