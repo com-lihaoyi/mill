@@ -29,12 +29,12 @@ object `package` extends RootModule with BomModule with MyModule {
       Seq("-source", "1.6", "-target", "1.6")
 
     def depManagement = super.depManagement() ++ Seq(
-      Deps.`javax.servlet.jsp:jsp-api`,
-      Deps.`javax.servlet:servlet-api`,
-      Deps.`junit:junit-dep`,
-      Deps.`org.hamcrest:hamcrest-core`,
-      Deps.`org.hamcrest:hamcrest-library`,
-      Deps.`org.mockito:mockito-core`
+      ivy"javax.servlet.jsp:jsp-api:2.2",
+      ivy"javax.servlet:servlet-api:2.5",
+      ivy"junit:junit-dep:4.10",
+      ivy"org.hamcrest:hamcrest-core:1.2.1",
+      ivy"org.hamcrest:hamcrest-library:1.2.1",
+      ivy"org.mockito:mockito-core:1.8.5"
     )
 
     def pomPackagingType = PackagingType.Pom
@@ -50,12 +50,12 @@ object `package` extends RootModule with BomModule with MyModule {
         Seq("-source", "1.6", "-target", "1.6")
 
       def depManagement = super.depManagement() ++ Seq(
-        Deps.`javax.servlet.jsp:jsp-api`,
-        Deps.`javax.servlet:servlet-api`,
-        Deps.`junit:junit-dep`,
-        Deps.`org.hamcrest:hamcrest-core`,
-        Deps.`org.hamcrest:hamcrest-library`,
-        Deps.`org.mockito:mockito-core`
+        ivy"javax.servlet.jsp:jsp-api:2.2",
+        ivy"javax.servlet:servlet-api:2.5",
+        ivy"junit:junit-dep:4.10",
+        ivy"org.hamcrest:hamcrest-core:1.2.1",
+        ivy"org.hamcrest:hamcrest-library:1.2.1",
+        ivy"org.mockito:mockito-core:1.8.5"
       )
 
       def bomModuleDeps = super.bomModuleDeps ++ Seq(build.`multi-module`)
@@ -83,12 +83,12 @@ object `package` extends RootModule with BomModule with MyModule {
         Seq("-source", "1.6", "-target", "1.6")
 
       def depManagement = super.depManagement() ++ Seq(
-        Deps.`javax.servlet.jsp:jsp-api`,
-        Deps.`javax.servlet:servlet-api`,
-        Deps.`junit:junit-dep`,
-        Deps.`org.hamcrest:hamcrest-core`,
-        Deps.`org.hamcrest:hamcrest-library`,
-        Deps.`org.mockito:mockito-core`
+        ivy"javax.servlet.jsp:jsp-api:2.2",
+        ivy"javax.servlet:servlet-api:2.5",
+        ivy"junit:junit-dep:4.10",
+        ivy"org.hamcrest:hamcrest-core:1.2.1",
+        ivy"org.hamcrest:hamcrest-library:1.2.1",
+        ivy"org.mockito:mockito-core:1.8.5"
       )
 
       def bomModuleDeps = super.bomModuleDeps ++ Seq(build.`multi-module`)

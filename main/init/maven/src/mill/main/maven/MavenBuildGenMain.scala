@@ -298,18 +298,24 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
     if (model.getDependencyManagement != null)
       model.getDependencyManagement.getDependencies.forEach { dep =>
         val id = (dep.getGroupId, dep.getArtifactId, dep.getVersion)
-        if (!packages.isDefinedAt(id)) {
-          val ivy = ivyDep(dep)
+        // packages.isDefinedAt(id) means dep refers to a module of the current build.
+        // Not sure what to do if we run into such a module in dep management.
+        if (!packages.isDefinedAt(id))
           if (dep.getScope == "import") {
+            val ivy = ivyDep(dep)
             sd = sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + ivy)
           } else {
+            // Short-circuit ivyDep by calling interpIvy directly.
+            // This prevents depManagement to be filled with things like 'Deps.thing'.
+            // depManagement is also meant to centralize dependencies, so there's no need
+            // to add an extra redirection.
+            val ivy = interpIvy(dep)
             if (dep.getScope != null && dep.getScope != "compile")
               println(
                 s"ignoring scope '${dep.getScope}' of dependency $id in dependency management"
               )
             sd = sd.copy(depManagement = sd.depManagement + ivy)
           }
-        }
       }
 
     sd
