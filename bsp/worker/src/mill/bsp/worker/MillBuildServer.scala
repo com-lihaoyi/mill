@@ -683,9 +683,9 @@ private class MillBuildServer(
       val evaluated = groups0.flatMap {
         case (ev, targetIdTasks) =>
           val results = evaluate(ev, targetIdTasks.map(_._2))
-          lazy val idByTasks = targetIdTasks.map { case (id, task) => (task: Task[_], id) }.toMap
+          val idByTasks = targetIdTasks.map { case (id, task) => (task: Task[_], id) }.toMap
           val failures = results.results.toSeq.collect {
-            case (task, TaskResult(res: Result.Failing[_], _)) =>
+            case (task, TaskResult(res: Result.Failing[_], _)) if idByTasks.contains(task) =>
               (idByTasks(task), res)
           }
 
