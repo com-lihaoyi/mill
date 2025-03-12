@@ -5,7 +5,6 @@ import $packages._
 import build.Box
 import build.{given Box[Int]}
 
-
 given Cross.ToSegments[DayValue](d => List(d.toString))
 
 given mainargs.TokensReader.Simple[DayValue] with
@@ -25,7 +24,6 @@ object `package` extends RootModule:
   def someTopLevelCommand(): Command[Unit] = Task.Command:
     println(s"Hello, world! ${summon[Box[Int]]} ${build.sub.subTask()}")
   end someTopLevelCommand
-
 
   object day extends Cross[DayModule](DayValue.values.toSeq)
 

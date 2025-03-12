@@ -30,6 +30,7 @@ object basic extends Module with foo
  */
 object core extends JavaModule {
   object test extends JavaTests with JUnitTests {
+
     /**
      * -> The worker <-
      */
