@@ -58,7 +58,7 @@ private final class TestModuleUtil(
     val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
     val filteredClassLists =
-      if (filteredClassLists0.size == 1) filteredClassLists0
+      if (filteredClassLists0.size == 1 && !testParallelism) filteredClassLists0
       else {
         // If test grouping is enabled and multiple test groups are detected, we need to
         // run test discovery via the test framework's own argument parsing and filtering
@@ -300,13 +300,14 @@ private final class TestModuleUtil(
 
       val paddedProcessIndex =
         mill.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
+
       val processFolder = groupFolder / s"worker-$paddedProcessIndex"
 
       val label =
         if (groupFolderData.size == 1) paddedProcessIndex
         else s"$paddedGroupIndex-$paddedProcessIndex"
 
-      Task.fork.async(processFolder, label, s"worker-$label") { logger =>
+      Task.fork.async(processFolder, label, "") { logger =>
         // force run when processIndex == 0 (first subprocess), even if there are no tests to run
         // to force the process to go through the test framework setup/teardown logic
         groupName -> runTestRunnerSubprocess(
