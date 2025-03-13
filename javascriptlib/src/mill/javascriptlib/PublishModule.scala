@@ -41,8 +41,8 @@ trait PublishModule extends TypeScriptModule {
 
   private def pubTypesVersion: T[Map[String, Seq[String]]] = Task {
     tscAllSources().map { source =>
-      val dist = source.replaceFirst("typescript", pubBundledOut())
-      val declarations = source.replaceFirst("typescript", pubDeclarationOut())
+      val dist = pubBundledOut() + source // source.replaceFirst("t-", )
+      val declarations = pubDeclarationOut() + source // source.replaceFirst("t-", )
       ("./" + dist).replaceAll("\\.ts", "") -> Seq(declarations.replaceAll("\\.ts", ".d.ts"))
     }.toMap
   }
@@ -84,7 +84,7 @@ trait PublishModule extends TypeScriptModule {
       "declarationMap" -> ujson.Bool(true),
       "esModuleInterop" -> ujson.Bool(true),
       "baseUrl" -> ujson.Str("."),
-      "rootDir" -> ujson.Str("typescript"),
+      "rootDir" -> ujson.Str("."),
       "declaration" -> ujson.Bool(true),
       "outDir" -> ujson.Str(pubBundledOut()),
       "plugins" -> ujson.Arr(

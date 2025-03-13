@@ -116,10 +116,9 @@ trait TypeScriptModule extends Module { outer =>
       }
 
   def tscCopySources: Task[Unit] = Task.Anon {
-    val dest = T.dest / "typescript"
-    val coreTarget = dest / "src"
+    val coreTarget = T.dest / "src"
 
-    if (!os.exists(dest)) os.makeDir.all(dest)
+    if (!os.exists(T.dest)) os.makeDir.all(T.dest)
 
     // Copy everything except "build.mill" and the "/out" directory from Task.workspace
     os.walk(moduleDir, skip = _.last == "out")
@@ -127,7 +126,7 @@ trait TypeScriptModule extends Module { outer =>
       .filter(_.last != "mill")
       .foreach { path =>
         val relativePath = path.relativeTo(moduleDir)
-        val destination = dest / relativePath
+        val destination = T.dest / relativePath
 
         if (os.isDir(path)) os.makeDir.all(destination)
         else os.copy.over(path, destination)
@@ -165,7 +164,7 @@ trait TypeScriptModule extends Module { outer =>
     // mod deps
     tscModDepsSources()
       .foreach { case (mod, sources_) =>
-        copyOutSources(sources_, dest / mod.path.relativeTo(Task.workspace) / "src")
+        copyOutSources(sources_, T.dest / mod.path.relativeTo(Task.workspace) / "src")
       }
 
   }
@@ -175,7 +174,7 @@ trait TypeScriptModule extends Module { outer =>
       recModuleDeps.map { _.moduleDir.subRelativeTo(Task.workspace).segments.head }.distinct
 
     targets.foreach { target =>
-      val destination = T.dest / "typescript" / target
+      val destination = T.dest / target
       os.makeDir.all(destination / os.up)
       os.copy(
         Task.workspace / target,
@@ -193,14 +192,14 @@ trait TypeScriptModule extends Module { outer =>
     }
 
     tscCoreGenSources().foreach { target =>
-      val destination = T.dest / "typescript" / "generatedSources" / target.path.last
+      val destination = T.dest / "generatedSources" / target.path.last
       copyGeneratedSources(target.path, destination)
     }
 
     tscModDepsGenSources().foreach { case (mod, source_) =>
       source_.foreach { target =>
         val modDir = mod.path.relativeTo(Task.workspace)
-        val destination = T.dest / "typescript" / modDir / "generatedSources" / target.path.last
+        val destination = T.dest / modDir / "generatedSources" / target.path.last
         copyGeneratedSources(target.path, destination)
       }
     }
@@ -211,7 +210,7 @@ trait TypeScriptModule extends Module { outer =>
    * to `moduleDir / src / resources`
    */
   private def tscLinkResources: Task[Unit] = Task.Anon {
-    val dest = T.dest / "typescript/resources"
+    val dest = T.dest / "resources"
     if (!os.exists(dest)) os.makeDir.all(dest)
 
     val externalResource: PathRef => Boolean = p =>
@@ -230,7 +229,7 @@ trait TypeScriptModule extends Module { outer =>
 
     tscModDepsResources().foreach { case (mod, r) =>
       val modDir = mod.path.relativeTo(Task.workspace)
-      val modDest = T.dest / "typescript" / modDir / "resources"
+      val modDest = T.dest / modDir / "resources"
       if (!os.exists(modDest)) os.makeDir.all(modDest)
       linkResource(r, modDest)
     }
@@ -241,8 +240,8 @@ trait TypeScriptModule extends Module { outer =>
 
     def relativeToTS(base: Path, path: Path, prefix: Option[String] = None): Option[String] =
       prefix match {
-        case Some(value) => Some(s"typescript/$value/${path.relativeTo(base)}")
-        case None => Some(s"typescript/${path.relativeTo(base)}")
+        case Some(value) => Some(s"$value/${path.relativeTo(base)}")
+        case None => Some(s"${path.relativeTo(base)}")
       }
 
     def handleOutTS(base: Path, path: Path, prefix: Option[String] = None): Option[String] = {
@@ -255,7 +254,7 @@ trait TypeScriptModule extends Module { outer =>
     }
 
     def relativeToTypescript(base: Path, path: Path, prefix: String): Option[String] =
-      Some(s"typescript/$prefix/${path.relativeTo(base)}")
+      Some(s"$prefix/${path.relativeTo(base)}")
 
     def handleOutPath(base: Path, path: Path, prefix: String): Option[String] = {
       val segments = path.relativeTo(base).segments
@@ -303,13 +302,13 @@ trait TypeScriptModule extends Module { outer =>
 
     val coreGenSources = tscCoreGenSources()
       .toIndexedSeq
-      .map(pr => "typescript/generatedSources/" + pr.path.last)
+      .map(pr => "generatedSources/" + pr.path.last)
 
     val modGenSources = tscModDepsGenSources()
       .toIndexedSeq
       .flatMap { case (mod, source_) =>
         val modDir = mod.path.relativeTo(Task.workspace)
-        source_.map(s"typescript/$modDir/generatedSources/" + _.path.last)
+        source_.map(s"$modDir/generatedSources/" + _.path.last)
       }
 
     cores ++ modDeps ++ coreGenSources ++ modGenSources
@@ -329,7 +328,7 @@ trait TypeScriptModule extends Module { outer =>
       "declaration" -> ujson.Bool(true),
       "emitDeclarationOnly" -> ujson.Bool(true),
       "baseUrl" -> ujson.Str("."),
-      "rootDir" -> ujson.Str("typescript")
+      "rootDir" -> ujson.Str(".")
     ) ++ Seq(
       if (enableEsm()) Some("module" -> ujson.Str("nodenext")) else None,
       if (enableEsm()) Some("moduleResolution" -> ujson.Str("nodenext")) else None
@@ -353,15 +352,15 @@ trait TypeScriptModule extends Module { outer =>
         .filter(customResource)
         .map { pathRef =>
           val resourceRoot = pathRef.path.last
-          s"@$prefix/$resourceRoot/*" -> s"typescript/$prefix/$resourceRoot"
+          s"@$prefix/$resourceRoot/*" -> s"$prefix/$resourceRoot"
         }
 
       Seq(
         (
           prefix + "/*",
-          s"typescript/$prefix/src" + ":" + s"declarations/$prefix"
+          s"$prefix/src" + ":" + s"declarations/$prefix"
         ),
-        (s"@$prefix/resources/*", s"typescript/$prefix/resources")
+        (s"@$prefix/resources/*", s"$prefix/resources")
       ) ++ customResources
 
     }).flatten
@@ -379,12 +378,12 @@ trait TypeScriptModule extends Module { outer =>
       .filter(customResource)
       .map { pathRef =>
         val resourceRoot = pathRef.path.last
-        s"@$moduleName/$resourceRoot/*" -> s"typescript/$resourceRoot"
+        s"@$moduleName/$resourceRoot/*" -> s"$resourceRoot"
       }
 
     Seq(
-      (s"$moduleName/*", "typescript/src" + ":" + "declarations"),
-      (s"@$moduleName/resources/*", "typescript/resources")
+      (s"$moduleName/*", "src" + ":" + "declarations"),
+      (s"@$moduleName/resources/*", "resources")
     ) ++ customResources
   }
 
@@ -396,7 +395,7 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   def generatedSourcesPathsBuilder: T[Seq[(String, String)]] = Task {
-    Seq(("@generated/*", "typescript/generatedSources"))
+    Seq(("@generated/*", "generatedSources"))
   }
 
   def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
@@ -460,7 +459,7 @@ trait TypeScriptModule extends Module { outer =>
 
     // Run type check, build declarations
     os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
-    (PathRef(T.dest), PathRef(T.dest / "typescript"))
+    (PathRef(T.dest), PathRef(T.dest))
   }
 
   // compile
@@ -478,7 +477,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def mainFileName: T[String] = Task { s"$moduleName.ts" }
 
-  def mainFilePath: T[Path] = Task { compile()._2.path / "src" / mainFileName() }
+  def mainFilePath: T[Path] = Task { compile()._1.path / "src" / mainFileName() }
 
   def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
 
@@ -661,7 +660,7 @@ trait TypeScriptModule extends Module { outer =>
     def testResourcesPath: T[Seq[(String, String)]] = Task {
       Seq((
         "@test/resources/*",
-        s"typescript/test/resources"
+        s"test/resources"
       ))
     }
 
@@ -692,7 +691,7 @@ trait TypeScriptModule extends Module { outer =>
 
       val files: IndexedSeq[String] =
         allSources()
-          .map(x => "typescript/test/" + x.path.relativeTo(moduleDir)) ++
+          .map(x => "test/" + x.path.relativeTo(moduleDir)) ++
           outer.tscAllSources()
 
       // mv compile<outer> to compile<test>
@@ -717,7 +716,7 @@ trait TypeScriptModule extends Module { outer =>
         )
       )
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      (PathRef(T.dest), PathRef(T.dest))
     }
 
     override def npmInstall: T[PathRef] = Task {

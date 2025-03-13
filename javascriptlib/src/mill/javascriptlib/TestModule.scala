@@ -89,8 +89,8 @@ object TestModule {
           (
             prefix + "/test/utils/*",
             if (prefix == primeMod)
-              s"typescript/test/src/utils" + ":" + s"typescript/test/utils"
-            else s"typescript/$mod/test/src/utils" + ":" + s"typescript/$mod/test/utils"
+              s"test/src/utils" + ":" + s"test/utils"
+            else s"$mod/test/src/utils" + ":" + s"$mod/test/utils"
           )
         }
 
@@ -99,9 +99,12 @@ object TestModule {
 
     private def primeMod: String = outerModuleName.getOrElse("")
 
-    def testDir: String = this.toString.split("\\.").tail.mkString
+    def testDir: String = {
+      val dir = this.toString.split("\\.").tail.mkString
+      if (dir.isEmpty) dir else dir + "/"
+    }
 
-    def getPathToTest: T[String] = Task { compile()._2.path.toString + s"/$testDir" }
+    def getPathToTest: T[String] = Task { compile()._1.path.toString + "/" + testDir }
   }
 
   trait IntegrationSuite extends TypeScriptModule {
@@ -147,10 +150,10 @@ object TestModule {
             |    }, {});
             |
             |export default {
-            |roots: ["<rootDir>/typescript"],
+            |roots: ["<rootDir>"],
             |preset: 'ts-jest',
             |testEnvironment: 'node',
-            |testMatch: ["<rootDir>/typescript/$testDir/**/?(*.)+(spec|test).[jt]s?(x)"],
+            |testMatch: ["<rootDir>/$testDir**/?(*.)+(spec|test).[jt]s?(x)"],
             |transform: ${ujson.Obj("^.+\\.(ts|tsx)$" -> ujson.Arr.from(Seq(
              ujson.Str("ts-jest"),
              ujson.Obj("tsconfig" -> "tsconfig.json")
@@ -172,7 +175,7 @@ object TestModule {
       symLink()
       os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      (PathRef(T.dest), PathRef(T.dest))
     }
 
     private def runTest: T[TestResult] = Task {
@@ -216,10 +219,10 @@ object TestModule {
             |    }, {});
             |
             |export default {
-            |roots: ["<rootDir>/typescript"],
+            |roots: ["<rootDir>"],
             |preset: 'ts-jest',
             |testEnvironment: 'node',
-            |testMatch: ["<rootDir>/typescript/$testDir/**/?(*.)+(spec|test).[jt]s?(x)"],
+            |testMatch: ["<rootDir>/$testDir**/?(*.)+(spec|test).[jt]s?(x)"],
             |transform: ${ujson.Obj("^.+\\.(ts|tsx)$" -> ujson.Arr.from(Seq(
              ujson.Str("ts-jest"),
              ujson.Obj("tsconfig" -> "tsconfig.json")
@@ -275,7 +278,7 @@ object TestModule {
     }
 
     override def getPathToTest: T[String] =
-      Task { super.getPathToTest() + "/**/**/*.test.ts" }
+      Task { super.getPathToTest() + "/**/*.test.ts" }
 
     override def compile: T[(PathRef, PathRef)] = Task {
       conf()
@@ -283,7 +286,7 @@ object TestModule {
       symLink()
       os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      (PathRef(T.dest), PathRef(T.dest))
     }
 
     // test-runner.js: run tests on ts files
@@ -377,7 +380,7 @@ object TestModule {
             |    test: {
             |        globals: true,
             |        environment: 'node',
-            |        include: ['typescript/$testDir/**/**/*.test.ts']
+            |        include: ['$testDir**/*.test.ts']
             |    },
             |});
             |""".stripMargin
@@ -394,7 +397,7 @@ object TestModule {
       symLink()
       os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      (PathRef(T.dest), PathRef(T.dest))
     }
 
     private def runTest: T[TestResult] = Task {
@@ -433,7 +436,7 @@ object TestModule {
             |    test: {
             |        globals: true,
             |        environment: 'node',
-            |        include: ['typescript/$testDir/**/**/*.test.ts'],
+            |        include: ['$testDir**/*.test.ts'],
             |        coverage: {
             |            provider: 'v8',
             |            reporter: ['text', 'json', 'html'],
@@ -502,8 +505,8 @@ object TestModule {
         path,
         ujson.write(
           ujson.Obj(
-            "spec_dir" -> ujson.Str("typescript"),
-            "spec_files" -> ujson.Arr(ujson.Str(s"$testDir/**/*.test.ts")),
+            "spec_dir" -> ujson.Str("."),
+            "spec_files" -> ujson.Arr(ujson.Str(s"$testDir**/*.test.ts")),
             "stopSpecOnExpectationFailure" -> ujson.Bool(false),
             "random" -> ujson.Bool(false)
           )
@@ -519,7 +522,7 @@ object TestModule {
       symLink()
       os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      (PathRef(T.dest), PathRef(T.dest))
     }
 
     private def runTest: T[Unit] = Task {
@@ -673,7 +676,7 @@ object TestModule {
       symLink()
       os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      (PathRef(T.dest), PathRef(T.dest))
     }
 
     private def runTest: T[TestResult] = Task {
