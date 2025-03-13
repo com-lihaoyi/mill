@@ -372,7 +372,7 @@ private final class TestModuleUtil(
               if (os.exists(t._1)) os.list(t._1 / "claim").size else 0
             )
             val expectedCounts = filteredClassLists.map(_.size)
-            claimedCounts.sum < expectedCounts.sum || subprocessFutures.exists(!_.isCompleted)
+            !(claimedCounts.sum == expectedCounts.sum || subprocessFutures.forall(_.isCompleted))
           }) Thread.sleep(1)
         }
         subprocessFutures.flatMap(_.value).map(_.get)
