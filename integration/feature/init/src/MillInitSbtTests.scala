@@ -58,10 +58,12 @@ object MillInitSbtFs2Tests extends MillInitSbtTests {
     test - integrationTestGitRepo("https://github.com/typelevel/fs2", "tags/v3.11.0") { tester =>
       import tester.*
 
-      // meta-build fails:
-      // The package name `reactive-streams` will be encoded on the classpath, and can lead to undefined behaviour.
       val initRes = eval(initCmd(), stdout = os.Inherit, stderr = os.Inherit)
-      assert(!initRes.isSuccess)
+      assert(initRes.isSuccess)
+
+      // TODO resolve cross deps
+      val compileRes = eval("__.compile", stdout = os.Inherit, stderr = os.Inherit)
+      assert(!compileRes.isSuccess) // TODO check out
     }
   }
 }
