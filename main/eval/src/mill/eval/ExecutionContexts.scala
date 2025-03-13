@@ -137,7 +137,7 @@ private object ExecutionContexts {
       }
       val promise = concurrent.Promise[T]
       val runnable = new PriorityRunnable(
-        priority = 0,
+        priority = priority,
         run0 = () => {
           val result = scala.util.Try(logger.withPrompt {
             os.dynamicPwdFunction.withValue(() => makeDest()) {
