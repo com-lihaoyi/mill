@@ -63,7 +63,7 @@ object SystemStreams {
   private class PumpedProcessOutput(dest: OutputStream) extends os.ProcessOutput {
     def redirectTo = ProcessBuilder.Redirect.PIPE
     def processOutput(processOut: => os.SubProcess.OutputStream): Some[InputPumper] =
-      Some(new InputPumper(() => processOut.wrapped, () => dest, false, () => true))
+      Some(new InputPumper(() => processOut.wrapped, () => dest, false))
   }
   def withStreams[T](systemStreams: SystemStreams)(t: => T): T = {
     // If we are setting a stream back to its original value, make sure we reset

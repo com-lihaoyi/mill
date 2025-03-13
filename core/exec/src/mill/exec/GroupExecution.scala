@@ -228,7 +228,7 @@ private trait GroupExecution {
       val res = {
         if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
-          val args = new mill.api.Ctx(
+          val args = new mill.api.Ctx.Impl(
             args = targetInputValues.map(_.value).toIndexedSeq,
             dest0 = () => makeDest(),
             log = multiLogger,
@@ -237,10 +237,9 @@ private trait GroupExecution {
             testReporter = testReporter,
             workspace = workspace,
             systemExit = systemExit,
-            fork = executionContext
-          ) with mill.api.Ctx.Jobs {
-            override def jobs: Int = effectiveThreadCount
-          }
+            fork = executionContext,
+            jobs = effectiveThreadCount
+          )
           // Tasks must be allowed to write to upstream worker's dest folders, because
           // the point of workers is to manualy manage long-lived state which includes
           // state on disk.
@@ -307,9 +306,9 @@ private trait GroupExecution {
     fileLoggerOpt.foreach(_.close())
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
-      val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[?]])
+      val taskFailed = newResults.exists(task => task._2.isInstanceOf[ExecResult.Failing[?]])
       if (taskFailed) {
-        logger.error(s"[$counterMsg] $targetLabel failed")
+        logger.error(s"$targetLabel failed")
       }
     }
 
@@ -377,9 +376,8 @@ private trait GroupExecution {
     logPath match {
       case None => (logger, None)
       case Some(path) =>
-        val fileLogger = new FileLogger(logger.colored, path)
+        val fileLogger = new FileLogger(path)
         val multiLogger = new MultiLogger(
-          logger.colored,
           logger,
           fileLogger,
           logger.streams.in

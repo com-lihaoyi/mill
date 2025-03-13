@@ -6,7 +6,6 @@ import mill.api.{Logger, SystemStreams}
 import java.io.{InputStream, PrintStream}
 
 private[mill] class MultiLogger(
-    val colored: Boolean,
     val logger1: Logger,
     val logger2: Logger,
     val inStream0: InputStream
@@ -27,6 +26,10 @@ private[mill] class MultiLogger(
   def info(s: String): Unit = {
     logger1.info(s)
     logger2.info(s)
+  }
+  def warn(s: String): Unit = {
+    logger1.warn(s)
+    logger2.warn(s)
   }
   def error(s: String): Unit = {
     logger1.error(s)
@@ -84,28 +87,25 @@ private[mill] class MultiLogger(
     override def enableTicker: Boolean = logger1.prompt.enableTicker || logger2.prompt.enableTicker
 
     override def debugEnabled: Boolean = logger1.prompt.debugEnabled || logger2.prompt.debugEnabled
+
+    override def infoColor: Attrs = logger1.prompt.infoColor ++ logger2.prompt.infoColor
+    override def warnColor: Attrs = logger1.prompt.warnColor ++ logger2.prompt.warnColor
+    override def errorColor: Attrs = logger1.prompt.errorColor ++ logger2.prompt.errorColor
+    override def colored: Boolean = logger1.prompt.colored || logger2.prompt.colored
   }
   def debug(s: String): Unit = {
     logger1.debug(s)
     logger2.debug(s)
   }
 
-  private[mill] override def subLogger(path: os.Path, key: String, message: String): Logger = {
-    new MultiLogger(
-      colored,
-      logger1.subLogger(path, key, message),
-      logger2.subLogger(path, key, message),
-      inStream0
-    )
-  }
+  private[mill] override def logKey = logger1.logKey ++ logger2.logKey
 
-  override def infoColor: Attrs = logger1.infoColor ++ logger2.infoColor
-  override def errorColor: Attrs = logger1.errorColor ++ logger2.errorColor
-  private[mill] override def logPrefixKey = logger1.logPrefixKey ++ logger2.logPrefixKey
+  private[mill] override def message = logger1.message ++ logger2.message
+
+  private[mill] override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
 
   override def withOutStream(outStream: PrintStream): Logger = {
     new MultiLogger(
-      colored,
       logger1.withOutStream(outStream),
       logger2.withOutStream(outStream),
       inStream0

@@ -67,10 +67,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
   }
 
   def worker: Worker[ZincWorkerApi] = Task.Worker {
-    val jobs = Task.ctx() match {
-      case j: Ctx.Jobs => j.jobs
-      case _ => 1
-    }
+    val jobs = Task.ctx().jobs
+
     val cl = mill.util.Jvm.createClassLoader(
       classpath().map(_.path).toSeq,
       getClass.getClassLoader

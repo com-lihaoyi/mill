@@ -121,7 +121,7 @@ object Deps {
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.16"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.18"
   val ammoniteVersion = "3.0.2"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
@@ -161,7 +161,7 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.11.5-M2"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
-  val millModuledefsVersion = "0.11.3-M4"
+  val millModuledefsVersion = "0.11.3-M5"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -304,10 +304,10 @@ def millLastTag: T[String] = Task.Input {
 }
 
 def millDownloadPrefix = Task {
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/"
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist"
 }
 def millDownloadUrl = Task {
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${millLastTag()}"
+  s"${millDownloadPrefix()}/${millLastTag()}"
 }
 
 def millBinPlatform: T[String] = Task {
@@ -422,7 +422,7 @@ trait MillJavaModule extends JavaModule {
         f.dep.module.organization.value == dep.module.organization.value &&
           f.dep.module.name.value == dep.module.name.value
       ).map { forced =>
-        val newDep = dep.withVersion(forced.dep.version)
+        val newDep = dep.withVersion(forced.version)
         Task.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
         newDep
       }.getOrElse(dep)
@@ -547,7 +547,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
     def forkEnv = super.forkEnv() ++ outer.testForkEnv()
-    override def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
 }
 
@@ -564,17 +563,17 @@ trait MillBaseTestsModule extends TestModule {
       s"-DTEST_SCALA_3_3_VERSION=${Deps.testScala33Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_0_5_VERSION=${Deps.Scalanative_0_5.scalanativeVersion}",
-      s"-DTEST_UTEST_VERSION=${Deps.TestDeps.utest.dep.version}",
-      s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
-      s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.dep.version}",
-      s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.dep.version}",
-      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}",
-      s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.dep.version}"
+      s"-DTEST_UTEST_VERSION=${Deps.TestDeps.utest.version}",
+      s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.version}",
+      s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.version}",
+      s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.version}",
+      s"-DTEST_ZINC_VERSION=${Deps.zinc.version}",
+      s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.version}"
     )
   }
 
   def testFramework = "mill.UTestFramework"
-  def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+  def testParallelism = true
 }
 
 /** Published module which does not contain strictly handled API. */

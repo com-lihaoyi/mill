@@ -62,7 +62,7 @@ object BSP extends ExternalModule with CoursierModule {
   )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
     // we create a json connection file
     val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
-    if (os.exists(bspFile)) ctx.log.info(s"Overwriting BSP connection file: ${bspFile}")
+    if (os.exists(bspFile)) ctx.log.warn(s"Overwriting BSP connection file: ${bspFile}")
     else ctx.log.info(s"Creating BSP connection file: ${bspFile}")
     val withDebug = ctx.log.debugEnabled
     if (withDebug) ctx.log.debug(

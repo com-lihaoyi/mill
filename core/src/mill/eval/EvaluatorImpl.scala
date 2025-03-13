@@ -40,6 +40,7 @@ final class EvaluatorImpl private[mill] (
   private[mill] def rootModule = execution.rootModule
   private[mill] def workerCache = execution.workerCache
   private[mill] def env = execution.env
+  private[mill] def effectiveThreadCount = execution.effectiveThreadCount
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
@@ -146,7 +147,7 @@ final class EvaluatorImpl private[mill] (
               Seq(Watchable.Path(p))
             case (t: InputImpl[_], result) =>
 
-              val ctx = new mill.api.Ctx(
+              val ctx = new mill.api.Ctx.Impl(
                 args = Vector(),
                 dest0 = () => null,
                 log = logger,
@@ -155,7 +156,8 @@ final class EvaluatorImpl private[mill] (
                 testReporter = testReporter,
                 workspace = workspace,
                 systemExit = _ => ???,
-                fork = null
+                fork = null,
+                jobs = execution.effectiveThreadCount
               )
               val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
               Seq(Watchable.Value(

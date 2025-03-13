@@ -42,7 +42,6 @@ private[mill] class BspContext(
       canReload: Boolean
   ): Result[BspServerHandle] = {
     val log: Logger = new Logger {
-      override def colored: Boolean = false
       override def streams: SystemStreams = new SystemStreams(
         out = streams0.out,
         err = streams0.err,
@@ -53,6 +52,7 @@ private[mill] class BspContext(
       }
 
       override def info(s: String): Unit = streams.err.println(s)
+      override def warn(s: String): Unit = streams.err.println(s)
       override def error(s: String): Unit = streams.err.println(s)
       override def ticker(s: String): Unit = streams.err.println(s)
 

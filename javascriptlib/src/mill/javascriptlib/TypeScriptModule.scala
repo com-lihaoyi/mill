@@ -3,12 +3,38 @@ package mill.javascriptlib
 import mill.*
 import os.*
 
+import scala.annotation.tailrec
 import scala.util.Try
 
 trait TypeScriptModule extends Module { outer =>
+  // custom module names
+  def moduleName: String = super.toString
+
+  override def toString: String = moduleName
+
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
+  // recursively retrieve dependecies of all module dependencies
+  def recModuleDeps: Seq[TypeScriptModule] = {
+    @tailrec
+    def recModuleDeps_(
+        t: Seq[TypeScriptModule],
+        acc: Seq[TypeScriptModule]
+    ): Seq[TypeScriptModule] = {
+      if (t.isEmpty) acc
+      else {
+        val currentMod = t.head
+        val cmModDeps = currentMod.moduleDeps
+        recModuleDeps_(t.tail ++ cmModDeps, cmModDeps ++ acc)
+      }
+    }
+
+    recModuleDeps_(moduleDeps, moduleDeps).distinct
+  }
+
   def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
+
+  def enableEsm: T[Boolean] = Task { false }
 
   def npmDevDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
@@ -18,13 +44,11 @@ trait TypeScriptModule extends Module { outer =>
     Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
   }
 
-  def transitiveNpmDevDeps: T[Seq[String]] = Task {
+  def transitiveNpmDevDeps: T[Seq[String]] =
     Task.traverse(moduleDeps)(_.npmDevDeps)().flatten ++ npmDevDeps()
-  }
 
-  def transitiveUnmanagedDeps: T[Seq[PathRef]] = Task {
+  def transitiveUnmanagedDeps: T[Seq[PathRef]] =
     Task.traverse(moduleDeps)(_.unmanagedDeps)().flatten ++ unmanagedDeps()
-  }
 
   def npmInstall: T[PathRef] = Task {
     Try(os.copy.over(Task.workspace / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
@@ -43,6 +67,7 @@ trait TypeScriptModule extends Module { outer =>
       "@esbuild-plugins/tsconfig-paths@0.1.2",
       "esbuild-copy-static-files@0.1.0",
       "tsconfig-paths@4.2.0",
+      Seq(if (enableEsm()) Some("@swc/core@1.10.12") else None).flatten,
       transitiveNpmDeps(),
       transitiveNpmDevDeps(),
       transitiveUnmanagedDeps().map(_.path.toString)
@@ -50,147 +75,323 @@ trait TypeScriptModule extends Module { outer =>
     PathRef(Task.dest)
   }
 
-  def sources: T[PathRef] = Task.Source("src")
+  // sources :)
+  def sources: T[Seq[PathRef]] = Task.Sources(moduleDir / "src")
 
   def resources: T[Seq[PathRef]] = Task { Seq(PathRef(moduleDir / "resources")) }
 
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
-  def allSources: T[IndexedSeq[PathRef]] =
-    Task {
-      val fileExt: Path => Boolean = _.ext == "ts"
-      os.walk(sources().path).filter(fileExt).map(PathRef(_))
-    }
+  private def tscModDepsResources: T[Seq[(PathRef, Seq[PathRef])]] =
+    Task
+      .traverse(recModuleDeps)(_.resources)()
+      .zip(recModuleDeps)
+      .map { case (r, m) => (PathRef(m.moduleDir), r) }
 
-  // Generate coverage directories for TestModule
-  private[javascriptlib] def coverageDirs: T[Seq[String]] = Task {
-    Task.traverse(moduleDeps)(mod => {
-      Task.Anon {
-        val comp = mod.compile()
-        val generated = mod.generatedSources()
-        val combined = Seq(comp._2) ++ generated
+  private def tscModDepsSources: T[Seq[(PathRef, Seq[PathRef])]] =
+    Task
+      .traverse(recModuleDeps)(_.sources)()
+      .zip(recModuleDeps)
+      .map { case (s, m) => (PathRef(m.moduleDir), s) }
 
-        combined.map(_.path.subRelativeTo(Task.workspace / "out").toString + "/**/**/*.ts")
-      }
-    })().flatten
-  }
-
-  private[javascriptlib] def compiledSources: Task[IndexedSeq[PathRef]] = Task.Anon {
-    val generated = for {
+  private def tscCoreGenSources: T[Seq[PathRef]] = Task {
+    for {
       pr <- generatedSources()
       file <- os.walk(pr.path)
       if file.ext == "ts"
-    } yield file
+    } yield PathRef(file)
+  }
 
-    val typescriptOut = Task.dest / "typescript"
-    val core = for {
-      file <- allSources()
-    } yield file.path match {
-      case coreS if coreS.startsWith(moduleDir) =>
-        // core - regular sources
-        // expected to exist within boundaries of `millSourcePath`
-        typescriptOut / coreS.relativeTo(moduleDir)
-      case otherS =>
-        // sources defined by a modified source task
-        // mv to compile source
-        val destinationDir = Task.dest / "typescript/src"
-        val fileName = otherS.last
-        val destinationFile = destinationDir / fileName
-        os.makeDir.all(destinationDir)
-        os.copy.over(otherS, destinationFile)
-        destinationFile
+  private def tscModDepsGenSources: T[Seq[(PathRef, Seq[PathRef])]] =
+    Task
+      .traverse(recModuleDeps)(_.generatedSources)()
+      .zip(recModuleDeps)
+      .map { case (s, m) =>
+        (
+          PathRef(m.moduleDir),
+          s.flatMap { genS => os.walk(genS.path).filter(_.ext == "ts").map(PathRef(_)) }
+        )
+      }
+
+  def tscCopySources: Task[Unit] = Task.Anon {
+    val dest = T.dest / "typescript"
+    val coreTarget = dest / "src"
+
+    if (!os.exists(dest)) os.makeDir.all(dest)
+
+    // Copy everything except "build.mill" and the "/out" directory from Task.workspace
+    os.walk(moduleDir, skip = _.last == "out").filter(_.last != "build.mill").foreach { path =>
+      val relativePath = path.relativeTo(moduleDir)
+      val destination = dest / relativePath
+
+      if (os.isDir(path)) os.makeDir.all(destination)
+      else os.copy.over(path, destination)
     }
 
-    // symlink node_modules for generated sources
-    // remove `node_module/<package>` package import format
-    generatedSources().foreach(source =>
-      os.call(
-        ("ln", "-s", npmInstall().path.toString + "/node_modules/", "node_modules"),
-        cwd = source.path
-      )
-    )
+    object IsSrcDirectory {
+      def unapply(path: Path): Option[Path] =
+        if (os.isDir(path) && path.last == "src") Some(path) else None
+    }
 
-    (core ++ generated).map(PathRef(_))
+    // handle copy `/out/<mod>/<source.dest>/src` directories
+    def copySrcDirectory(srcDir: Path, targetDir: Path): Unit = {
+      os.list(srcDir).foreach { srcFile =>
+        os.copy.over(srcFile, targetDir / srcFile.last, createFolders = true)
+      }
+    }
+
+    //  handle sources generated in /out (eg: `out/<mod>/sources.dest`)
+    def copyOutSources(sources: Seq[PathRef], target: Path): Unit = {
+
+      def copySource(source: PathRef): Unit = {
+        if (!source.path.startsWith(Task.workspace / "out")) () // Guard clause
+        else os.list(source.path).foreach {
+          case IsSrcDirectory(srcDir) => copySrcDirectory(srcDir, target)
+          case path => os.copy.over(path, target / path.last, createFolders = true)
+        }
+      }
+
+      sources.foreach(copySource)
+    }
+
+    // core
+    copyOutSources(sources(), coreTarget)
+
+    // mod deps
+    tscModDepsSources()
+      .foreach { case (mod, sources_) =>
+        copyOutSources(sources_, dest / mod.path.relativeTo(Task.workspace) / "src")
+      }
+
   }
+
+  private def tscCopyModDeps: Task[Unit] = Task.Anon {
+    val targets =
+      recModuleDeps.map { _.moduleDir.subRelativeTo(Task.workspace).segments.head }.distinct
+
+    targets.foreach { target =>
+      val destination = T.dest / "typescript" / target
+      os.makeDir.all(destination / os.up)
+      os.copy(
+        Task.workspace / target,
+        destination,
+        mergeFolders = true
+      )
+    }
+  }
+
+  // mv generated sources for base mod and its deps
+  private def tscCopyGenSources: Task[Unit] = Task.Anon {
+    def copyGeneratedSources(sourcePath: os.Path, destinationPath: os.Path): Unit = {
+      os.makeDir.all(destinationPath / os.up)
+      os.copy.over(sourcePath, destinationPath)
+    }
+
+    tscCoreGenSources().foreach { target =>
+      val destination = T.dest / "typescript" / "generatedSources" / target.path.last
+      copyGeneratedSources(target.path, destination)
+    }
+
+    tscModDepsGenSources().foreach { case (mod, source_) =>
+      source_.foreach { target =>
+        val modDir = mod.path.relativeTo(Task.workspace)
+        val destination = T.dest / "typescript" / modDir / "generatedSources" / target.path.last
+        copyGeneratedSources(target.path, destination)
+      }
+    }
+  }
+
+  /**
+   * Link all external resources eg: `out/<mod>/resources.dest`
+   * to `moduleDir / src / resources`
+   */
+  private def tscLinkResources: Task[Unit] = Task.Anon {
+    val dest = T.dest / "typescript/resources"
+    if (!os.exists(dest)) os.makeDir.all(dest)
+
+    val externalResource: PathRef => Boolean = p =>
+      p.path.startsWith(Task.workspace / "out") &&
+        os.exists(p.path) &&
+        os.isDir(p.path)
+
+    def linkResource(resources_ : Seq[PathRef], dest: Path): Unit = {
+      resources_
+        .filter(externalResource)
+        .flatMap(p => os.list(p.path)) // Get all items from valid directories
+        .foreach(item => os.copy.over(item, dest / item.last, createFolders = true))
+    }
+
+    linkResource(resources(), dest)
+
+    tscModDepsResources().foreach { case (mod, r) =>
+      val modDir = mod.path.relativeTo(Task.workspace)
+      val modDest = T.dest / "typescript" / modDir / "resources"
+      if (!os.exists(modDest)) os.makeDir.all(modDest)
+      linkResource(r, modDest)
+    }
+  }
+
+  def tscAllSources: T[IndexedSeq[String]] = Task {
+    val fileExt: Path => Boolean = _.ext == "ts"
+
+    def relativeToTS(base: Path, path: Path, prefix: Option[String] = None): Option[String] =
+      prefix match {
+        case Some(value) => Some(s"typescript/$value/${path.relativeTo(base)}")
+        case None => Some(s"typescript/${path.relativeTo(base)}")
+      }
+
+    def handleOutTS(base: Path, path: Path, prefix: Option[String] = None): Option[String] = {
+      val segments = path.relativeTo(base).segments
+      val externalSourceDir = base / segments.head
+      prefix match {
+        case Some(_) => relativeToTS(externalSourceDir, path, prefix)
+        case None => relativeToTS(externalSourceDir, path)
+      }
+    }
+
+    def relativeToTypescript(base: Path, path: Path, prefix: String): Option[String] =
+      Some(s"typescript/$prefix/${path.relativeTo(base)}")
+
+    def handleOutPath(base: Path, path: Path, prefix: String): Option[String] = {
+      val segments = path.relativeTo(base).segments
+      val externalSourceDir = base / segments.head
+      relativeToTypescript(externalSourceDir, path, prefix)
+    }
+
+    val cores = sources()
+      .toIndexedSeq
+      .flatMap(pr => if (isDir(pr.path)) os.walk(pr.path) else Seq(pr.path))
+      .filter(fileExt)
+      .flatMap { p =>
+        p match {
+          case _ if p.startsWith(moduleDir) && !p.startsWith(moduleDir / "out") =>
+            relativeToTS(moduleDir, p)
+          case _ if p.startsWith(Task.workspace / "out" / moduleName) =>
+            handleOutTS(Task.workspace / "out" / moduleName, p)
+          case _ if p.startsWith(Task.workspace / "out") =>
+            handleOutTS(Task.workspace / "out", p)
+          case _ => None
+        }
+      }
+
+    val modDeps = tscModDepsSources()
+      .toIndexedSeq
+      .flatMap { case (mod, source_) =>
+        source_
+          .flatMap(pr => if (isDir(pr.path)) os.walk(pr.path) else Seq(pr.path))
+          .filter(fileExt)
+          .flatMap { p =>
+            val modDir = mod.path.relativeTo(Task.workspace)
+            val modmoduleDir = Task.workspace / modDir
+            val modOutPath = Task.workspace / "out" / modDir
+
+            p match {
+              case _ if p.startsWith(modmoduleDir) =>
+                relativeToTypescript(modmoduleDir, p, modDir.toString)
+              case _ if p.startsWith(modOutPath) =>
+                handleOutPath(modOutPath, p, modDir.toString)
+              case _ => None
+            }
+
+          }
+      }
+
+    val coreGenSources = tscCoreGenSources()
+      .toIndexedSeq
+      .map(pr => "typescript/generatedSources/" + pr.path.last)
+
+    val modGenSources = tscModDepsGenSources()
+      .toIndexedSeq
+      .flatMap { case (mod, source_) =>
+        val modDir = mod.path.relativeTo(Task.workspace)
+        source_.map(s"typescript/$modDir/generatedSources/" + _.path.last)
+      }
+
+    cores ++ modDeps ++ coreGenSources ++ modGenSources
+
+  }
+
+  // sources
+
+  // compile :)
+  def declarationDir: T[ujson.Value] = Task { ujson.Str("declarations") }
 
   // specify tsconfig.compilerOptions
   def compilerOptions: T[Map[String, ujson.Value]] = Task {
     Map(
+      "skipLibCheck" -> ujson.Bool(true),
       "esModuleInterop" -> ujson.Bool(true),
       "declaration" -> ujson.Bool(true),
-      "emitDeclarationOnly" -> ujson.Bool(true)
-    )
+      "emitDeclarationOnly" -> ujson.Bool(true),
+      "baseUrl" -> ujson.Str("."),
+      "rootDir" -> ujson.Str("typescript")
+    ) ++ Seq(
+      if (enableEsm()) Some("module" -> ujson.Str("nodenext")) else None,
+      if (enableEsm()) Some("moduleResolution" -> ujson.Str("nodenext")) else None
+    ).flatten
   }
 
   // specify tsconfig.compilerOptions.Paths
-  def compilerOptionsPaths: Task[Map[String, String]] = Task.Anon { Map.empty[String, String] }
+  def compilerOptionsPaths: T[Map[String, String]] = Task { Map.empty[String, String] }
 
-  def upstreams: T[(PathRef, PathRef, Seq[PathRef])] = Task {
-    val comp = compile()
-
-    (comp._1, comp._2, resources())
-  }
-
-  def upstreamPathsBuilder: Task[Seq[(String, String)]] = Task.Anon {
-
+  def upstreamPathsBuilder: T[Seq[(String, String)]] = Task {
     val upstreams = (for {
-      ((comp, ts, res), mod) <- Task.traverse(moduleDeps)(_.upstreams)().zip(moduleDeps)
+      (res, mod) <- Task.traverse(recModuleDeps)(_.resources)().zip(recModuleDeps)
     } yield {
-      Seq((
-        mod.moduleDir.subRelativeTo(Task.workspace).toString + "/*",
-        (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
-      )) ++
-        res.map { rp =>
-          val resourceRoot = rp.path.last
-          (
-            "@" + mod.moduleDir.subRelativeTo(Task.workspace).toString + s"/$resourceRoot/*",
-            resourceRoot match {
-              case s if s.contains(".dest") =>
-                rp.path.toString
-              case _ =>
-                (ts.path / resourceRoot).toString
-            }
-          )
+      val prefix = mod.moduleName.replaceAll("\\.", "/")
+      val customResource: PathRef => Boolean = pathRef =>
+        pathRef.path.startsWith(Task.workspace / "out" / mod.moduleName) || !pathRef.path.equals(
+          mod.moduleDir / "src" / "resources"
+        )
+
+      val customResources = res
+        .filter(customResource)
+        .map { pathRef =>
+          val resourceRoot = pathRef.path.last
+          s"@$prefix/$resourceRoot/*" -> s"typescript/$prefix/$resourceRoot"
         }
+
+      Seq(
+        (
+          prefix + "/*",
+          s"typescript/$prefix/src" + ":" + s"declarations/$prefix"
+        ),
+        (s"@$prefix/resources/*", s"typescript/$prefix/resources")
+      ) ++ customResources
 
     }).flatten
 
     upstreams
   }
 
-  def modulePaths: Task[Seq[(String, String)]] = Task.Anon {
-    val module = moduleDir.last
-    val typescriptOut = Task.dest / "typescript"
-    val declarationsOut = Task.dest / "declarations"
+  def modulePaths: T[Seq[(String, String)]] = Task {
+    val customResource: PathRef => Boolean = pathRef =>
+      pathRef.path.startsWith(Task.workspace / "out") || !pathRef.path.equals(
+        moduleDir / "src" / "resources"
+      )
 
-    Seq((s"$module/*", (typescriptOut / "src").toString + ":" + declarationsOut.toString)) ++
-      resources().map { rp =>
-        val resourceRoot = rp.path.last
-        val result = (
-          s"@$module/$resourceRoot/*",
-          resourceRoot match {
-            case s if s.contains(".dest") => rp.path.toString
-            case _ =>
-              (typescriptOut / resourceRoot).toString
-          }
-        )
-        result
+    val customResources = resources()
+      .filter(customResource)
+      .map { pathRef =>
+        val resourceRoot = pathRef.path.last
+        s"@$moduleName/$resourceRoot/*" -> s"typescript/$resourceRoot"
       }
+
+    Seq(
+      (s"$moduleName/*", "typescript/src" + ":" + "declarations"),
+      (s"@$moduleName/resources/*", "typescript/resources")
+    ) ++ customResources
   }
 
   def typeRoots: Task[ujson.Value] = Task.Anon {
     ujson.Arr(
       "node_modules/@types",
-      (Task.dest / "declarations").toString
+      "declarations"
     )
   }
 
-  def declarationDir: Task[ujson.Value] = Task.Anon {
-    ujson.Str((Task.dest / "declarations").toString)
-  }
-
   def generatedSourcesPathsBuilder: T[Seq[(String, String)]] = Task {
-    generatedSources().map(p => ("@generated/*", p.path.toString))
+    Seq(("@generated/*", "typescript/generatedSources"))
   }
 
   def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
@@ -212,35 +413,55 @@ trait TypeScriptModule extends Module { outer =>
     combinedCompilerOptions
   }
 
-  // create a symlink for node_modules in compile.dest
-  // removes need for node_modules prefix in import statements `node_modules/<some-package>`
-  // import * as somepackage from "<some-package>"
-  private def symLink: Task[Unit] = Task.Anon {
-    os.checker.withValue(os.Checker.Nop) {
-      os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
-      os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
-    }
+  /**
+   * create a symlink for node_modules in compile.dest
+   * removes need for node_modules prefix in import statements `node_modules/<some-package>`
+   * import * as somepackage from "<some-package>"
+   */
+  private[javascriptlib] def symLink: Task[Unit] = Task.Anon {
+    if (!os.exists(T.dest / "node_modules"))
+      os.symlink(T.dest / "node_modules", npmInstall().path / "node_modules")
+
+    if (!os.exists(T.dest / "package-lock.json"))
+      os.symlink(T.dest / "package-lock.json", npmInstall().path / "package-lock.json")
   }
 
   def compile: T[(PathRef, PathRef)] = Task {
     symLink()
     os.write(
-      Task.dest / "tsconfig.json",
+      T.dest / "tsconfig.json",
       ujson.Obj(
         "compilerOptions" -> ujson.Obj.from(
           compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
         ),
-        "files" -> compiledSources().map(_.path.toString)
+        "files" -> tscAllSources()
       )
     )
 
-    os.copy(moduleDir, Task.dest / "typescript", mergeFolders = true)
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc", cwd = Task.dest)
+    tscCopySources()
+    tscCopyModDeps()
+    tscCopyGenSources()
+    tscLinkResources()
 
-    (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
+    // Run type check, build declarations
+    os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
+    (PathRef(T.dest), PathRef(T.dest / "typescript"))
   }
 
-  def mainFileName: T[String] = Task { s"${moduleDir.last}.ts" }
+  // compile
+
+  // additional ts-config options
+  def options: T[Map[String, ujson.Value]] = Task {
+    Seq(
+      Some("exclude" -> ujson.Arr.from(Seq("node_modules", "**/node_modules/*"))),
+      if (enableEsm()) Some("ts-node" -> ujson.Obj("esm" -> ujson.True, "swc" -> ujson.True))
+      else None
+    ).flatten.toMap: Map[String, ujson.Value]
+  }
+
+  // Execution :)
+
+  def mainFileName: T[String] = Task { s"$moduleName.ts" }
 
   def mainFilePath: T[Path] = Task { compile()._2.path / "src" / mainFileName() }
 
@@ -252,31 +473,49 @@ trait TypeScriptModule extends Module { outer =>
 
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
     val mainFile = mainFilePath()
-    val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-    val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
     val env = forkEnv()
 
-    val execFlags: Seq[String] = executionFlags().map {
-      case (key, "") => s"--$key"
-      case (key, value) => s"--$key=$value"
-    }.toSeq
+    val tsnode: String =
+      if (enableEsm()) "ts-node/esm"
+      else (npmInstall().path / "node_modules/.bin/ts-node").toString
+
+    val tsconfigPaths: Seq[String] =
+      Seq(
+        if (enableEsm()) Some("tsconfig-paths/register")
+        else Some((npmInstall().path / "node_modules/tsconfig-paths/register").toString),
+        if (enableEsm()) Some("--no-warnings=ExperimentalWarning") else None
+      ).flatten
+
+    val flags: Seq[String] =
+      (executionFlags()
+        .map {
+          case (key, "") => Some(s"--$key")
+          case (key, value) => Some(s"--$key=$value")
+          case _ => None
+        }.toSeq ++ Seq(if (enableEsm()) Some("--loader") else None)).flatten
+
+    val runnable: Shellable = (
+      "node",
+      flags,
+      tsnode,
+      "-r",
+      tsconfigPaths,
+      mainFile,
+      computedArgs(),
+      args.value
+    )
 
     os.call(
-      (
-        "node",
-        execFlags,
-        tsnode,
-        "-r",
-        tsconfigpaths,
-        mainFile,
-        computedArgs(),
-        args.value
-      ),
+      runnable,
       stdout = os.Inherit,
       env = env,
       cwd = compile()._1.path
     )
   }
+
+  // Execution
+
+  // bundle :)
 
   def bundleExternal: T[Seq[ujson.Value]] = Task { Seq(ujson.Str("fs"), ujson.Str("path")) }
 
@@ -288,8 +527,10 @@ trait TypeScriptModule extends Module { outer =>
     )
   }
 
-  // configure esbuild with @esbuild-plugins/tsconfig-paths
-  // include .d.ts files
+  /**
+   * configure esbuild with `@esbuild-plugins/tsconfig-paths`
+   * include .d.ts files
+   */
   def bundleScriptBuilder: Task[String] = Task.Anon {
     val bundle = (Task.dest / "bundle.js").toString
     val rps = resources().map { p => p.path }.filter(os.exists)
@@ -350,26 +591,140 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   def bundle: T[PathRef] = Task {
+    symLink()
     val env = forkEnv()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-    val bundleScript = compile()._1.path / "build.ts"
     val bundle = Task.dest / "bundle.js"
+    val out = compile()._1.path
 
-    os.checker.withValue(os.Checker.Nop) {
-      os.write.over(bundleScript, bundleScriptBuilder())
+    os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
+      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
 
-      os.call(
-        (tsnode, bundleScript),
-        stdout = os.Inherit,
-        env = env,
-        cwd = compile()._1.path
-      )
-    }
+    os.write(
+      T.dest / "build.ts",
+      bundleScriptBuilder()
+    )
+
+    os.call(
+      (tsnode, T.dest / "build.ts"),
+      stdout = os.Inherit,
+      env = env,
+      cwd = T.dest
+    )
     PathRef(bundle)
   }
 
+  // bundle
+
+  // test methods :)
+
+  private[javascriptlib] def coverageDirs: T[Seq[String]] = Task { Seq.empty[String] }
+
+  private[javascriptlib] def outerModuleName: Option[String] = None
+
   trait TypeScriptTests extends TypeScriptModule {
     override def moduleDeps: Seq[TypeScriptModule] = Seq(outer) ++ outer.moduleDeps
+
+    override def outerModuleName: Option[String] = Some(outer.moduleName)
+
+    override def declarationDir: T[ujson.Value] = Task {
+      ujson.Str((outer.compile()._1.path / "declarations").toString)
+    }
+
+    override def sources: T[Seq[PathRef]] = Task.Sources(moduleDir)
+
+    def allSources: T[IndexedSeq[PathRef]] =
+      Task {
+        val fileExt: Path => Boolean = _.ext == "ts"
+        sources()
+          .toIndexedSeq
+          .flatMap(pr => os.walk(pr.path))
+          .filter(fileExt)
+          .map(PathRef(_))
+      }
+
+    def testResourcesPath: T[Seq[(String, String)]] = Task {
+      Seq((
+        "@test/resources/*",
+        s"typescript/test/resources"
+      ))
+    }
+
+    override def compilerOptionsBuilder: T[Map[String, ujson.Value]] = Task {
+      val combinedPaths =
+        outer.upstreamPathsBuilder() ++
+          upstreamPathsBuilder() ++
+          outer.generatedSourcesPathsBuilder() ++
+          outer.modulePaths() ++
+          outer.compilerOptionsPaths().toSeq ++
+          testResourcesPath()
+
+      val combinedCompilerOptions: Map[String, ujson.Value] =
+        outer.compilerOptions() ++ compilerOptions() ++ Map(
+          "declarationDir" -> outer.declarationDir(),
+          "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
+            val splitValues =
+              v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
+            (k, ujson.Arr.from(splitValues))
+          })
+        )
+
+      combinedCompilerOptions
+    }
+
+    override def compile: T[(PathRef, PathRef)] = Task {
+      val out = outer.compile()
+
+      val files: IndexedSeq[String] =
+        allSources()
+          .map(x => "typescript/test/" + x.path.relativeTo(moduleDir)) ++
+          outer.tscAllSources()
+
+      // mv compile<outer> to compile<test>
+      os.list(out._1.path)
+        .filter(item =>
+          item.last != "tsconfig.json" &&
+            item.last != "package-lock.json" &&
+            !(item.last == "node_modules" && os.isDir(
+              item
+            ))
+        )
+        .foreach(item => os.copy.over(item, T.dest / item.last, createFolders = true))
+
+      // inject test specific tsconfig into <outer> tsconfig
+      os.write(
+        Task.dest / "tsconfig.json",
+        ujson.Obj(
+          "compilerOptions" -> ujson.Obj.from(
+            compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> outer.typeRoots())
+          ),
+          "files" -> files
+        )
+      )
+
+      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+    }
+
+    override def npmInstall: T[PathRef] = Task {
+      os.call(
+        (
+          "npm",
+          "install",
+          "--userconfig",
+          ".npmrc",
+          "--save-dev",
+          transitiveNpmDeps(),
+          transitiveNpmDevDeps(),
+          transitiveUnmanagedDeps().map(_.path.toString)
+        ),
+        cwd = outer.npmInstall().path
+      )
+      outer.npmInstall()
+    }
+
+    override private[javascriptlib] def coverageDirs: T[Seq[String]] =
+      Task { outer.tscAllSources() }
+
   }
 
 }
