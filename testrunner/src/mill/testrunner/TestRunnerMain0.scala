@@ -43,7 +43,7 @@ import mill.util.PrintLogger
             testClassfilePath = Agg.from(testArgs.testCp),
             args = testArgs.arguments,
             testClassQueueFolder = testClassQueueFolder,
-            queueFolder = claimFolder,
+            claimFolder = claimFolder,
             cl = classLoader,
             testReporter = DummyTestReporter
           )(ctx)

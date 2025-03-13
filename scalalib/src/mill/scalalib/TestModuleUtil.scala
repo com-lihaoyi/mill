@@ -326,11 +326,15 @@ private final class TestModuleUtil(
       ) { logger =>
         // force run when processIndex == 0 (first subprocess), even if there are no tests to run
         // to force the process to go through the test framework setup/teardown logic
-        groupName -> runTestRunnerSubprocess(
+        (
           processFolder,
-          testClassesFolder,
-          force = processIndex == 0,
-          logger
+          groupName,
+          runTestRunnerSubprocess(
+            processFolder,
+            testClassesFolder,
+            force = processIndex == 0,
+            logger
+          )
         )
       }
     }
@@ -348,7 +352,14 @@ private final class TestModuleUtil(
           java.util.concurrent.TimeUnit.MILLISECONDS
         )
 
-        Task.fork.awaitAll(subprocessFutures)
+        Task.fork.blocking {
+          while ({
+            val claimedCounts = subprocessFutures.flatMap(_.value).flatMap(_.toOption).map(t => if (os.exists(t._1)) os.list(t._1 / "claim").size else 0)
+            val expectedCounts = filteredClassLists.map(_.size)
+            claimedCounts.sum < expectedCounts.sum || subprocessFutures.forall(_.isCompleted)
+          }) Thread.sleep(1)
+        }
+        subprocessFutures.flatMap(_.value).map(_.get)
       } finally {
         executor.shutdown()
       }
@@ -358,11 +369,11 @@ private final class TestModuleUtil(
       val successMap = mutable.Map.empty[String, (String, Seq[TestResult])]
 
       outputs.foreach {
-        case (name, Some(Left(v))) => failMap.updateWith(name) {
+        case (_, name, Some(Left(v))) => failMap.updateWith(name) {
             case Some(old) => Some(old + " " + v)
             case None => Some(v)
           }
-        case (name, Some(Right((msg, results)))) => successMap.updateWith(name) {
+        case (_, name, Some(Right((msg, results)))) => successMap.updateWith(name) {
             case Some((oldMsg, oldResults)) => Some((oldMsg + " " + msg, oldResults ++ results))
             case None => Some((msg, results))
           }
