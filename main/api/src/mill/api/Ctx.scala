@@ -137,6 +137,7 @@ object Ctx {
     trait Api {
 
       def blocking[T](t: => T): T
+
       /**
        * Awaits for the result for the given async future and returns the resultant value
        */

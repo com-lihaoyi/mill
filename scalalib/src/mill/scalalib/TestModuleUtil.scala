@@ -119,9 +119,11 @@ private final class TestModuleUtil(
   private def callTestRunnerSubprocess(
       baseFolder: os.Path,
       // either:
-      // - Left(selectors: Seq[String]): - list of glob selectors to feed to the test runner directly.
-      // - Right((testClassQueueFolder: os.Path, claimFolder: os.Path)): - folder containing test classes for test runner to claim from, and the worker's base folder.
-      selector: Either[Seq[String], (os.Path, os.Path)]
+      // - Left(selectors):
+      //     - list of glob selectors to feed to the test runner directly.
+      // - Right((startingTestClass, testClassQueueFolder, claimFolder)):
+      //     - first test class to run, folder containing test classes for test runner to claim from, and the worker's base folder.
+      selector: Either[Seq[String], (Option[String], os.Path, os.Path)]
   )(implicit ctx: mill.api.Ctx) = {
     os.makeDir.all(baseFolder)
 
@@ -237,16 +239,25 @@ private final class TestModuleUtil(
         force: Boolean,
         logger: Logger
     ) = {
-      // Check if we really need to spawn a new runner
-      if (force || os.list(testClassQueueFolder).nonEmpty) {
-        val claimFolder = base / "claim"
-        os.makeDir.all(claimFolder)
+      val claimFolder = base / "claim"
+      os.makeDir.all(claimFolder)
+      val startingTestClass = os
+        .list
+        .stream(testClassQueueFolder)
+        .map(TestRunnerUtils.claimFile(_, claimFolder))
+        .collectFirst { case Some(name) => name }
+
+      if (force || startingTestClass.nonEmpty) {
+        startingTestClass.foreach(logger.ticker(_))
         // claim.log file will be appended by the runner with the claimed test class's name
         // it can be used to check the order of test classes of the runner
         val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
         os.write.over(claimLog, Array.empty[Byte])
         workerStatusMap.put(claimLog, logger.ticker)
-        val result = callTestRunnerSubprocess(base, Right(testClassQueueFolder -> claimFolder))
+        val result = callTestRunnerSubprocess(
+          base,
+          Right((startingTestClass, testClassQueueFolder, claimFolder))
+        )
         workerStatusMap.remove(claimLog)
         Some(result)
       } else {
@@ -344,9 +355,12 @@ private final class TestModuleUtil(
       try {
         // Periodically check the claimLog file of every runner, and tick the executing test name
         executor.scheduleWithFixedDelay(
-          () => workerStatusMap.forEach { (claimLog, callback) =>
-            os.read.lines(claimLog).lastOption.foreach(callback) // the last one is always the latest
-          },
+          () =>
+            workerStatusMap.forEach { (claimLog, callback) =>
+              os.read.lines(
+                claimLog
+              ).lastOption.foreach(callback) // the last one is always the latest
+            },
           0,
           20,
           java.util.concurrent.TimeUnit.MILLISECONDS
@@ -354,15 +368,15 @@ private final class TestModuleUtil(
 
         Task.fork.blocking {
           while ({
-            val claimedCounts = subprocessFutures.flatMap(_.value).flatMap(_.toOption).map(t => if (os.exists(t._1)) os.list(t._1 / "claim").size else 0)
+            val claimedCounts = subprocessFutures.flatMap(_.value).flatMap(_.toOption).map(t =>
+              if (os.exists(t._1)) os.list(t._1 / "claim").size else 0
+            )
             val expectedCounts = filteredClassLists.map(_.size)
-            claimedCounts.sum < expectedCounts.sum || subprocessFutures.forall(_.isCompleted)
+            claimedCounts.sum < expectedCounts.sum || subprocessFutures.exists(!_.isCompleted)
           }) Thread.sleep(1)
         }
         subprocessFutures.flatMap(_.value).map(_.get)
-      } finally {
-        executor.shutdown()
-      }
+      } finally executor.shutdown()
 
     val subprocessResult = {
       val failMap = mutable.Map.empty[String, String]
