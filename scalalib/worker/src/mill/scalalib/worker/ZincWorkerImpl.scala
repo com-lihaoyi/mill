@@ -228,7 +228,7 @@ class ZincWorkerImpl(
     ) { (compilers: Compilers) =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
-      mill.util.Retry(count = 2) {
+      mill.api.Retry(count = 2) {
         if (
           ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)
         ) {
