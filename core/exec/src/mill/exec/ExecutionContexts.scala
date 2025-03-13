@@ -5,7 +5,13 @@ import os.Path
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.{ExecutorService, LinkedBlockingDeque, PriorityBlockingQueue, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{
+  ExecutorService,
+  LinkedBlockingDeque,
+  PriorityBlockingQueue,
+  ThreadPoolExecutor,
+  TimeUnit
+}
 import mill.api.Logger
 
 private object ExecutionContexts {
@@ -68,11 +74,12 @@ private object ExecutionContexts {
       lazy val submitterStreams = new mill.api.SystemStreams(System.out, System.err, System.in)
       executor.execute(new PriorityRunnable(
         0,
-        () => os.dynamicPwdFunction.withValue(() => submitterPwd) {
-          mill.api.SystemStreams.withStreams(submitterStreams) {
-            runnable.run()
+        () =>
+          os.dynamicPwdFunction.withValue(() => submitterPwd) {
+            mill.api.SystemStreams.withStreams(submitterStreams) {
+              runnable.run()
+            }
           }
-        }
       ))
 
     }
@@ -89,10 +96,11 @@ private object ExecutionContexts {
      * prioritize this runnable over most other tasks, while priorities >0 can be used to
      * de-prioritize it.
      */
-    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable with Comparable[PriorityRunnable]{
+    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable
+        with Comparable[PriorityRunnable] {
       def run() = run0()
       val priorityRunnableIndex: Long = priorityRunnableCount.getAndIncrement()
-      override def compareTo(o: PriorityRunnable): Int = priority.compareTo(o.priority) match{
+      override def compareTo(o: PriorityRunnable): Int = priority.compareTo(o.priority) match {
         case 0 =>
           // `Comparable` wants a *total* ordering, so we need to use `priorityRunnableIndex`
           // to break ties between instances with the same priority. This index is assigned
