@@ -32,6 +32,7 @@ object ExecutionPaths {
     val segmentValues = segments.value
     val superIdx = segmentValues.indexWhere {
       case Segment.Label("super") => true
+      case Segment.Cross(Seq("super")) => true
       case _ => false
     }
 
