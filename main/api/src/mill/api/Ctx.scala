@@ -171,9 +171,9 @@ object Ctx {
           ctx: mill.api.Ctx
       ): Future[T]
 
-      def async[T](dest: os.Path, key: String, message: String, priority: Int)(t: => T)(implicit
+      def async[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
           ctx: mill.api.Ctx
-      ): Future[T] = async(dest, key, message, priority, _ => t)(ctx)
+      ): Future[T] = async(dest, key, message, priority, 0, _ => t)(ctx)
     }
 
     trait Impl extends Api with ExecutionContext with AutoCloseable {
