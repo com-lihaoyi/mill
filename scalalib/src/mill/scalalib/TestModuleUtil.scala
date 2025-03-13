@@ -323,7 +323,7 @@ private final class TestModuleUtil(
         // increasingly according to their processIndex. This should help Mill
         // use fewer longer-lived test subprocesses, minimizing JVM startup overhead
         priority = if (processIndex == 0) -1 else processIndex
-      ){ logger =>
+      ) { logger =>
         // force run when processIndex == 0 (first subprocess), even if there are no tests to run
         // to force the process to go through the test framework setup/teardown logic
         groupName -> runTestRunnerSubprocess(

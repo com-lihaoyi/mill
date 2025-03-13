@@ -4,13 +4,7 @@ import os.Path
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.{
-  ExecutorService,
-  LinkedBlockingDeque,
-  ThreadPoolExecutor,
-  TimeUnit,
-  PriorityBlockingQueue
-}
+import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, PriorityBlockingQueue}
 import mill.api.Logger
 
 private object ExecutionContexts {
@@ -101,7 +95,7 @@ private object ExecutionContexts {
      */
     class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable
         with Comparable[PriorityRunnable] {
-      def run() = run0()
+      def run(): Unit = run0()
 
       val priorityRunnableIndex: Long = priorityRunnableCount.getAndIncrement()
 
