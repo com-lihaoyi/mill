@@ -130,7 +130,7 @@ private[mill] class PromptLogger(
         }
       }
       for ((keySuffix, message) <- res) {
-        if (prompt.enableTicker && isInteractive()) {
+        if (prompt.enableTicker) {
           streams.err.println(
             infoColor(s"[${key.mkString("-")}$keySuffix]${spaceNonEmpty(message)}")
           )
