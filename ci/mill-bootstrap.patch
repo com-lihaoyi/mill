@@ -92,7 +92,7 @@ index b3cbbf54ebb..b69d3ef4940 100644
      def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
-@@ -573,14 +573,15 @@ trait MillBaseTestsModule extends TestModule {
+@@ -580,7 +580,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
@@ -102,7 +102,7 @@ index b3cbbf54ebb..b69d3ef4940 100644
    import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -714,7 +715,7 @@ trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
+@@ -710,7 +711,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
@@ -110,7 +110,7 @@ index b3cbbf54ebb..b69d3ef4940 100644
 +  }*/
  }
  
- trait MillPublishCrossScalaModule extends MillPublishJavaModule with CrossScalaModule
+ object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/contrib/package.mill b/contrib/package.mill
 index b68c27a1ef8..01a3e9da2c0 100644
 --- a/contrib/package.mill
