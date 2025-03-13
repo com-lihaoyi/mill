@@ -194,7 +194,7 @@ private final class TestModuleUtil(
               s"group-$paddedIndex-${multiple.head}"
           }
 
-          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage, 0) {
+          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage, -1) {
             (folderName, callTestRunnerSubprocess(Task.dest / folderName, Left(testClassList)))
           }
         }
