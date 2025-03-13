@@ -39,6 +39,6 @@ object `package` extends RootModule with PublishModule with MavenModule {
     )
 
     def testSandboxWorkingDir = false
-    def testEnableWorkStealing = false
+    def testParallelism = false
   }
 }

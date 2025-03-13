@@ -89,7 +89,7 @@ object `package` extends RootModule with MyModule {
         )
 
         def testSandboxWorkingDir = false
-        def testEnableWorkStealing = false
+        def testParallelism = false
       }
     }
 
@@ -172,7 +172,7 @@ object `package` extends RootModule with MyModule {
       )
 
       def testSandboxWorkingDir = false
-      def testEnableWorkStealing = false
+      def testParallelism = false
     }
   }
 }

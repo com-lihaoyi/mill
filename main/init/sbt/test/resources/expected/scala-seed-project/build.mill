@@ -27,6 +27,6 @@ object `package` extends RootModule with SbtModule with PublishModule {
     def ivyDeps = super.ivyDeps() ++ Seq(ivy"org.scalameta::munit:0.7.29")
 
     def testSandboxWorkingDir = false
-    def testEnableWorkStealing = false
+    def testParallelism = false
   }
 }

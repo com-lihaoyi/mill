@@ -29,7 +29,7 @@ object `package` extends RootModule {
         Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
       def testSandboxWorkingDir = false
-      def testEnableWorkStealing = false
+      def testParallelism = false
     }
   }
 
@@ -41,7 +41,7 @@ object `package` extends RootModule {
         Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
       def testSandboxWorkingDir = false
-      def testEnableWorkStealing = false
+      def testParallelism = false
     }
   }
 

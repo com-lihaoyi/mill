@@ -93,14 +93,6 @@ index b3cbbf54ebb..b69d3ef4940 100644
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
 @@ -573,14 +573,15 @@ trait MillBaseTestsModule extends TestModule {
-   }
- 
-   def testFramework = "mill.UTestFramework"
--  def testEnableWorkStealing = true
-+  def testParallelism = true
- }
- 
- /** Published module which does not contain strictly handled API. */
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
