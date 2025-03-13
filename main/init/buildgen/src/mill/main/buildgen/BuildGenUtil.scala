@@ -1,14 +1,9 @@
 package mill.main.buildgen
 
 import mainargs.{Flag, arg}
+import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
 import mill.constants.OutFiles
 import mill.main.buildgen.BuildObject.Companions
-import mill.constants.CodeGenConstants.{
-  buildFileExtensions,
-  nestedBuildFileNames,
-  rootBuildFileNames,
-  rootModuleAlias
-}
 import mill.runner.FileImportGraph.backtickWrap
 
 import scala.collection.immutable.SortedSet
@@ -138,7 +133,9 @@ object BuildGenUtil {
 
   def buildFiles(workspace: os.Path): geny.Generator[os.Path] =
     os.walk.stream(workspace, skip = (workspace / OutFiles.out).equals)
-      .filter(file => buildFileExtensions.contains(file.ext))
+      .filter(_.lastOpt.exists(name =>
+        rootBuildFileNames.contains(name) || rootBuildFileNames.contains(name)
+      ))
 
   def buildPackage(dirs: Seq[String]): String =
     (rootModuleAlias +: dirs).iterator.map(backtickWrap).mkString(".")

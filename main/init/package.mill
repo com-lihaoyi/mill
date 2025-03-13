@@ -1,11 +1,12 @@
 package build.main.init
 
 import mill._
-import scala.util.matching.Regex
+import mill.contrib.buildinfo.BuildInfo
+import mill.scalalib._
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
-  def moduleDeps = Seq(build.main, build.main.init.buildgen, build.scalalib)
+  def moduleDeps = Seq(buildgen, build.main, build.scalalib)
 
   override def resources = Task {
     super.resources() ++ Seq(exampleList())
@@ -62,6 +63,13 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     PathRef(Task.dest)
   }
 
+  val millScalaVersion = build.Deps.scalaVersion
+  val sbtScala2Version = build.Deps.scala212Version
+  val initCrossScalaVersions = Seq(millScalaVersion, sbtScala2Version)
+  trait InitCrossScalaModule extends build.MillPublishScalaModule with CrossScalaModule {
+    def scalaVersion = crossScalaVersion
+  }
+
   object buildgen extends build.MillPublishScalaModule {
     def moduleDeps = Seq(build.runner)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
@@ -85,5 +93,33 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       build.Deps.mavenResolverTransportWagon
     )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
+  }
+  object sbt extends build.MillPublishScalaModule with BuildInfo {
+    def buildInfoPackageName = "mill.main.sbt"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("exporterAssemblyResource", s"/$exporterAssemblyName")
+    )
+    def moduleDeps = Seq(define(millScalaVersion), build.runner)
+    def resources = super.resources() ++ Seq(exporterAssemblyDir())
+
+    trait DefineModule extends InitCrossScalaModule {
+      def ivyDeps = Agg(build.Deps.osLib, build.Deps.upickle)
+    }
+    object define extends Cross[DefineModule](initCrossScalaVersions)
+
+    val exporterAssemblyName = "exporter-assembly.jar"
+    def exporterAssemblyDir = Task {
+      val dest = Task.dest
+      os.copy(exporter.assembly().path, dest / exporterAssemblyName)
+      PathRef(dest)
+    }
+
+    object exporter extends build.MillScalaModule {
+      def assemblyRules = Seq(Assembly.Rule.ExcludePattern("scala\\.*"))
+      def compileIvyDeps = Agg(build.Deps.sbt)
+      def moduleDeps = Seq(define(sbtScala2Version))
+      def scalaVersion = sbtScala2Version
+      def scalacOptions = super.scalacOptions().diff(Seq("-Xsource:3"))
+    }
   }
 }
