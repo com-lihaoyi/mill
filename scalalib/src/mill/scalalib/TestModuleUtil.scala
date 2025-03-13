@@ -340,15 +340,8 @@ private final class TestModuleUtil(
       try {
         // Periodically check the claimLog file of every runner, and tick the executing test name
         executor.scheduleWithFixedDelay(
-          () => {
-            workerStatusMap.forEach { (claimLog, callback) =>
-              {
-                try {
-                  // the last one is always the latest
-                  os.read.lines(claimLog).lastOption.foreach(callback)
-                } finally ()
-              }
-            }
+          () => workerStatusMap.forEach { (claimLog, callback) =>
+            os.read.lines(claimLog).lastOption.foreach(callback) // the last one is always the latest
           },
           0,
           20,
