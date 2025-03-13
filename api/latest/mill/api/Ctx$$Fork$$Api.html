@@ -94,15 +94,15 @@ node4 -> node0;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Abstract methods</h4>
         </div>
-        <div class="documentableElement" id="async-928">
+        <div class="documentableElement" id="async-67f">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Spawns an async workflow. Mill async futures require additional metadata\n * to sandbox, store logs, and integrate them into Mills terminal prompt logger\n *\n * @param dest The \"sandbox\" folder that will contain the `os.pwd` and the `pwd` for\n * any subprocesses spawned within the async future. Also provides the\n * path for the log file (dest + \".log\") for any stdout/stderr `println`s\n * that occur within that future\n * @param key The short prefix, typically a number (\"1\", \"2\", \"3\", etc.) that will be\n * used to prefix all log lines emitted within this async future in the\n * terminal to allow them to be distinguished from other logs\n * @param message A one-line summary of what this async future is doing, used in the\n * terminal prompt to display what this future is currently computing.\n * @param t The body of the async future\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Spawns an async workflow. Mill async futures require additional metadata\n * to sandbox, store logs, and integrate them into Mills terminal prompt logger\n *\n * @param dest The \"sandbox\" folder that will contain the `os.pwd` and the `pwd` for\n * any subprocesses spawned within the async future. Also provides the\n * path for the log file (dest + \".log\") for any stdout/stderr `println`s\n * that occur within that future\n * @param key The short prefix, typically a number (\"1\", \"2\", \"3\", etc.) that will be\n * used to prefix all log lines emitted within this async future in the\n * terminal to allow them to be distinguished from other logs\n * @param message A one-line summary of what this async future is doing, used in the\n * terminal prompt to display what this future is currently computing.\n * @param priority 0 means the same priority as other Mill tasks, negative values &lt;0\n * mean increasingly high priority, positive values &gt;0 mean increasingly\n * low priority\n * @param t The body of the async future\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Ctx$$Fork$$Api.html#async-928" t="n" class="documentableName ">async</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dest</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">key</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">message</span>: <span data-unresolved-link="" t="t">String</span>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <a href="Logger.html" t="t">Logger</a><span t="k"> =&gt; </span><span t="t">T</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Future</span>[<span data-unresolved-link="" t="t">T</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Ctx$$Fork$$Api.html#async-67f" t="n" class="documentableName ">async</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dest</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">key</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">message</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">priority</span>: <span data-unresolved-link="" t="t">Int</span>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <a href="Logger.html" t="t">Logger</a><span t="k"> =&gt; </span><span t="t">T</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Future</span>[<span data-unresolved-link="" t="t">T</span>]
            </div>
           </div>
          </div>
@@ -137,6 +137,12 @@ node4 -> node0;
               </dt>
               <dd class="body-medium">
                <p>A one-line summary of what this async future is doing, used in the terminal prompt to display what this future is currently computing.</p>
+              </dd>
+              <dt class="body-small">
+               priority
+              </dt>
+              <dd class="body-medium">
+               <p>0 means the same priority as other Mill tasks, negative values &lt;0 mean increasingly high priority, positive values &gt;0 mean increasingly low priority</p>
               </dd>
               <dt class="body-small">
                t
@@ -237,47 +243,9 @@ node4 -> node0;
         </div>
        </div>
       </section>
-      <section id="Concrete-methods">
-       <div class="documentableList expand">
-        <div class="documentableList-expander">
-         <button class="icon-button show-content expand"></button>
-         <h4 class="groupHeader h200">Concrete methods</h4>
-        </div>
-        <div class="documentableElement" id="async-fffff0c9">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Ctx$$Fork$$Api.html#async-fffff0c9" t="n" class="documentableName ">async</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dest</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">key</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">message</span>: <span data-unresolved-link="" t="t">String</span>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <span t="k">=&gt; </span><span t="t">T</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Future</span>[<span data-unresolved-link="" t="t">T</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/api/src/mill/api/Ctx.scala" target="_blank">Ctx.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-       </div>
-      </section>
      </div>
     </section>
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Abstract-methods">Abstract methods</a></li><li><a href="#Concrete-methods">Concrete methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Abstract-methods">Abstract methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>

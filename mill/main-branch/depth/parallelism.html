@@ -784,18 +784,20 @@ import mill._
 
 def taskSpawningFutures = Task {
   val f1 = Task.fork.async(dest = Task.dest / &quot;future-1&quot;, key = &quot;1&quot;, message = &quot;First Future&quot;) {
-    println(&quot;Running First Future inside &quot; + os.pwd)
-    Thread.sleep(3000)
-    val res = 1
-    println(&quot;Finished First Future&quot;)
-    res
+    logger =&gt;
+      println(&quot;Running First Future inside &quot; + os.pwd)
+      Thread.sleep(3000)
+      val res = 1
+      println(&quot;Finished First Future&quot;)
+      res
   }
   val f2 = Task.fork.async(dest = Task.dest / &quot;future-2&quot;, key = &quot;2&quot;, message = &quot;Second Future&quot;) {
-    println(&quot;Running Second Future inside &quot; + os.pwd)
-    Thread.sleep(3000)
-    val res = 2
-    println(&quot;Finished Second Future&quot;)
-    res
+    logger =&gt;
+      println(&quot;Running Second Future inside &quot; + os.pwd)
+      Thread.sleep(3000)
+      val res = 2
+      println(&quot;Finished Second Future&quot;)
+      res
   }
 
   Task.fork.await(f1) + Task.fork.await(f2)
@@ -828,7 +830,16 @@ log lines and distinguish them from logs of other futures and tasks running conc
 <li>
 <p><code>message</code> is a one-line description of what the future is doing</p>
 </li>
+<li>
+<p><code>priority</code>: 0 means the same priority as other Mill tasks, negative values &lt;0
+mean increasingly high priority, positive values &gt;0 mean increasingly
+low priority</p>
+</li>
 </ul>
+</div>
+<div class="paragraph">
+<p>Each block spawned by <code>Task.fork.async</code> is assigned a dedicated <code>logger</code> with its own
+<code>.log</code> file and terminal UI integration</p>
 </div>
 <div class="paragraph">
 <p>Futures spawned by <code>Task.fork.async</code> count towards Mill’s <code>-j</code>/<code>--jobs</code> concurrency limit
