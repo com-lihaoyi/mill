@@ -278,7 +278,11 @@ trait MainModule extends BaseModule {
             SelectMode.Separated
           )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
-          evaluator.evaluate(
+          if (!mill.constants.Util.hasConsole()) {
+            Result.Failure(
+              "initializing a repo with a .g8 template needs to be run with the -i/--interactive flag"
+            )
+          } else evaluator.evaluate(
             Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
             SelectMode.Separated
           )
@@ -288,16 +292,16 @@ trait MainModule extends BaseModule {
             SelectMode.Separated
           )
       (evaluated: @unchecked) match {
-        case Result.Failure(failStr) => throw new Exception(failStr)
+        case Result.Failure(failStr) => Result.Failure(failStr)
         case Result.Success(Evaluator.Result(
               _,
               Result.Success(Seq(_)),
               _,
               _
             )) =>
-          ()
+          Result.Success(())
         case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _, _)) =>
-          throw new Exception(failStr)
+          Result.Failure(failStr)
       }
     }
 
