@@ -36,6 +36,8 @@ private[mill] class PromptLogger(
 
   readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
+  def isInteractive() = termDimensions._1.nonEmpty
+
   private object promptLineState extends PromptLineState(
         titleText,
         currentTimeMillis(),
@@ -48,7 +50,7 @@ private[mill] class PromptLogger(
         enableTicker,
         systemStreams0,
         () => promptLineState.getCurrentPrompt(),
-        interactive = () => termDimensions._1.nonEmpty,
+        interactive = () => isInteractive(),
         paused = () => runningState.paused,
         synchronizer = this
       )
@@ -75,7 +77,7 @@ private[mill] class PromptLogger(
 
         val now = System.currentTimeMillis()
         if (
-          termDimensions._1.nonEmpty ||
+          isInteractive() ||
           (now - lastUpdate > nonInteractivePromptUpdateIntervalMillis)
         ) {
           lastUpdate = now
@@ -128,7 +130,7 @@ private[mill] class PromptLogger(
         }
       }
       for ((keySuffix, message) <- res) {
-        if (prompt.enableTicker) {
+        if (prompt.enableTicker && isInteractive()) {
           streams.err.println(
             infoColor(s"[${key.mkString("-")}$keySuffix]${spaceNonEmpty(message)}")
           )
@@ -312,7 +314,7 @@ private[mill] object PromptLogger {
           promptShown = false
         }
 
-        if (enableTicker) {
+        if (enableTicker && interactive()) {
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
