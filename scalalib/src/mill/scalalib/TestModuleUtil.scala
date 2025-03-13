@@ -194,7 +194,7 @@ private final class TestModuleUtil(
               s"group-$paddedIndex-${multiple.head}"
           }
 
-          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage) {
+          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage, 0) {
             (folderName, callTestRunnerSubprocess(Task.dest / folderName, Left(testClassList)))
           }
         }
@@ -307,7 +307,7 @@ private final class TestModuleUtil(
         if (groupFolderData.size == 1) paddedProcessIndex
         else s"$paddedGroupIndex-$paddedProcessIndex"
 
-      Task.fork.async(processFolder, label, "") { logger =>
+      Task.fork.async(processFolder, label, "", if (processIndex == 0) -1 else processIndex) { logger =>
         // force run when processIndex == 0 (first subprocess), even if there are no tests to run
         // to force the process to go through the test framework setup/teardown logic
         groupName -> runTestRunnerSubprocess(
