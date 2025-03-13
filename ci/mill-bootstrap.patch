@@ -102,7 +102,7 @@ index b3cbbf54ebb..b69d3ef4940 100644
    import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -714,7 +715,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+@@ -714,7 +715,7 @@ trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
