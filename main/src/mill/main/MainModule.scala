@@ -587,7 +587,9 @@ trait MainModule extends BaseModule0 {
           )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
           if (!Util.isInteractive()) {
-            Left("init with a .g8 template needs to be run with the -i/--interactive flag")
+            Left(
+              "initializing a repo with a .g8 template needs to be run with the -i/--interactive flag"
+            )
           } else RunScript.evaluateTasksNamed(
             evaluator,
             Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
@@ -600,9 +602,9 @@ trait MainModule extends BaseModule0 {
             SelectMode.Separated
           )
       evaluated match {
-        case Left(failStr) => throw new Exception(failStr)
-        case Right((_, Right(Seq((_, Some((_, jsonableResult))))))) => jsonableResult
-        case Right((_, Left(failStr))) => throw new Exception(failStr)
+        case Left(failStr) => Result.Failure(failStr)
+        case Right((_, Right(Seq((_, Some((_, jsonableResult))))))) => Result.Success(jsonableResult)
+        case Right((_, Left(failStr))) => Result.Failure(failStr)
       }
     }
 
