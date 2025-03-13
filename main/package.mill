@@ -70,7 +70,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
         }().toMap
 
         val result = Lib.resolveDependenciesMetadataSafe(
-          repositories = dist.repositoriesTask(),
+          repositories = dist.allRepositories(),
           Seq(BoundDep(dist.coursierDependency, force = false)),
           Some(dist.mapDependencies()),
           dist.resolutionCustomizer(),
