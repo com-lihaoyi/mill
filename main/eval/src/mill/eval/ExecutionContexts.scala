@@ -4,7 +4,13 @@ import os.Path
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.{ExecutorService, LinkedBlockingDeque, ThreadPoolExecutor, TimeUnit, PriorityBlockingQueue}
+import java.util.concurrent.{
+  ExecutorService,
+  LinkedBlockingDeque,
+  ThreadPoolExecutor,
+  TimeUnit,
+  PriorityBlockingQueue
+}
 import mill.api.Logger
 
 private object ExecutionContexts {
@@ -71,18 +77,19 @@ private object ExecutionContexts {
       lazy val submitterStreams = new mill.api.SystemStreams(System.out, System.err, System.in)
       executor.execute(new PriorityRunnable(
         0,
-        () => os.dynamicPwdFunction.withValue(() => submitterPwd) {
-          mill.api.SystemStreams.withStreams(submitterStreams) {
-            runnable.run()
+        () =>
+          os.dynamicPwdFunction.withValue(() => submitterPwd) {
+            mill.api.SystemStreams.withStreams(submitterStreams) {
+              runnable.run()
+            }
           }
-        }
       ))
     }
 
     def reportFailure(t: Throwable): Unit = {}
     def close(): Unit = executor.shutdown()
 
-    val priorityRunnableCount = java.util.concurrent.atomic.AtomicLong()
+    val priorityRunnableCount = new java.util.concurrent.atomic.AtomicLong()
 
     /**
      * Subclass of [[java.lang.Runnable]] that assigns a priority to execute it
@@ -91,7 +98,8 @@ private object ExecutionContexts {
      * prioritize this runnable over most other tasks, while priorities >0 can be used to
      * de-prioritize it.
      */
-    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable with Comparable[PriorityRunnable] {
+    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable
+        with Comparable[PriorityRunnable] {
       def run() = run0()
 
       val priorityRunnableIndex: Long = priorityRunnableCount.getAndIncrement()
@@ -131,9 +139,9 @@ private object ExecutionContexts {
       val runnable = new PriorityRunnable(
         priority = 0,
         run0 = () => {
-          val result = scala.util.Try(logger.withPromptLine {
+          val result = scala.util.Try(logger.withPrompt {
             os.dynamicPwdFunction.withValue(() => makeDest()) {
-              mill.api.SystemStreams.withStreams(logger.streams) {
+              mill.api.SystemStreams.withStreams(logger.systemStreams) {
                 t(logger)
               }
             }
