@@ -122,13 +122,16 @@ trait TypeScriptModule extends Module { outer =>
     if (!os.exists(dest)) os.makeDir.all(dest)
 
     // Copy everything except "build.mill" and the "/out" directory from Task.workspace
-    os.walk(moduleDir, skip = _.last == "out").filter(_.last != "build.mill").foreach { path =>
-      val relativePath = path.relativeTo(moduleDir)
-      val destination = dest / relativePath
+    os.walk(moduleDir, skip = _.last == "out")
+      .filter(_.last != "build.mill")
+      .filter(_.last != "mill")
+      .foreach { path =>
+        val relativePath = path.relativeTo(moduleDir)
+        val destination = dest / relativePath
 
-      if (os.isDir(path)) os.makeDir.all(destination)
-      else os.copy.over(path, destination)
-    }
+        if (os.isDir(path)) os.makeDir.all(destination)
+        else os.copy.over(path, destination)
+      }
 
     object IsSrcDirectory {
       def unapply(path: Path): Option[Path] =
@@ -420,7 +423,7 @@ trait TypeScriptModule extends Module { outer =>
    * removes need for node_modules prefix in import statements `node_modules/<some-package>`
    * import * as somepackage from "<some-package>"
    */
-  private[javascriptlib] def symLink: Task[Unit] = Task.Anon {
+  def symLink: Task[Unit] = Task.Anon {
     if (!os.exists(T.dest / "node_modules"))
       os.symlink(T.dest / "node_modules", npmInstall().path / "node_modules")
 
