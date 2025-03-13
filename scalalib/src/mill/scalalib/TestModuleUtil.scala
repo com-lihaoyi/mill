@@ -198,8 +198,9 @@ private final class TestModuleUtil(
           // tasks. This minimizes the number of blocked tasks since Mill tasks can be
           // blocked on test subprocesses, but not vice versa, so better to schedule
           // the test subprocesses first
-          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage, priority = -1) { log =>
-            (folderName, callTestRunnerSubprocess(Task.dest / folderName, Left(testClassList)))
+          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage, priority = -1) {
+            log =>
+              (folderName, callTestRunnerSubprocess(Task.dest / folderName, Left(testClassList)))
           }
         }
 
@@ -313,7 +314,8 @@ private final class TestModuleUtil(
 
       Task.fork.async(
         processFolder,
-        label, "",
+        label,
+        "",
         // With the test queue scheduler, prioritize the *first* test subprocess
         // over other Mill tasks via `priority = -1`, but de-prioritize the others
         // increasingly according to their processIndex. This should help Mill
