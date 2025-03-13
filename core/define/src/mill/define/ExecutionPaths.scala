@@ -13,13 +13,34 @@ object ExecutionPaths {
       outPath: os.Path,
       segments: Segments
   ): ExecutionPaths = {
-    val segmentStrings = segments.parts
+    // Strip .super suffix from segments to ensure correct file path resolution
+    val segmentsWithoutSuper = stripSuperSuffix(segments)
+    val segmentStrings = segmentsWithoutSuper.parts
     val targetPath = outPath / segmentStrings.map(sanitizePathSegment)
     ExecutionPaths(
       targetPath / os.up / s"${targetPath.last}.dest",
       targetPath / os.up / s"${targetPath.last}.json",
       targetPath / os.up / s"${targetPath.last}.log"
     )
+  }
+
+  /**
+   * Strips the .super suffix from segments if present.
+   * This ensures that tasks with .super suffix use the same file paths as their base tasks.
+   */
+  private def stripSuperSuffix(segments: Segments): Segments = {
+    val segmentValues = segments.value
+    val superIdx = segmentValues.indexWhere {
+      case Segment.Label("super") => true
+      case _ => false
+    }
+
+    if (superIdx >= 0) {
+      // Return segments without the .super suffix
+      Segments(segmentValues.take(superIdx))
+    } else {
+      segments
+    }
   }
   def resolve(
       outPath: os.Path,

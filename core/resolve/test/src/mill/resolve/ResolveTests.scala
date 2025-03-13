@@ -1,10 +1,10 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.define.Discover
+import mill.define.{Discover, ExecutionPaths, Segments}
+import mill.testkit.TestBaseModule
 import mill.util.TestGraphs
 import mill.util.TestGraphs.*
-import mill.testkit.TestBaseModule
 import mill.{Module, Task}
 import utest.*
 object ResolveTests extends TestSuite {
@@ -334,6 +334,55 @@ object ResolveTests extends TestSuite {
           Result.Success(Set(_.artifactSuffix)),
           Set("artifactSuffix.super.ComplexBase")
         )
+      }
+
+      // Test for file path resolution with super tasks
+      test("superTaskFilePathResolution") {
+        // Create a module hierarchy to test file path resolution with super tasks
+        trait FilePathBase extends TestBaseModule {
+          def outputFile = Task {
+            "base-output"
+          }
+        }
+
+        object filePathModule extends FilePathBase {
+          override def outputFile = Task {
+            "override-output"
+          }
+
+          lazy val millDiscover = Discover[this.type]
+        }
+
+        val check = new Checker(filePathModule)
+
+        // Test that super task resolution works correctly
+        test("superTaskResolution") - check(
+          "outputFile.super",
+          Result.Success(Set(_.outputFile)),
+          Set("outputFile.super")
+        )
+
+        // This test verifies that the fix for the NoSuchFileException issue works correctly.
+        // The issue was that when a task with a .super suffix was resolved, the system was
+        // trying to access a file with the .super suffix included in the path, which didn't exist.
+        // The fix ensures that tasks with a .super suffix use the same file paths as their base tasks.
+        test("filePathResolution") {
+          // Create a mock ExecutionPaths to verify file path resolution
+          val outPath = os.pwd / "out"
+
+          // Get segments for the base task and the super task
+          val baseSegments = Segments.labels("filePathModule", "outputFile")
+          val superSegments = Segments.labels("filePathModule", "outputFile", "super")
+
+          // Resolve paths for both tasks
+          val basePaths = ExecutionPaths.resolve(outPath, baseSegments)
+          val superPaths = ExecutionPaths.resolve(outPath, superSegments)
+
+          // Verify that the paths are the same
+          assert(basePaths.dest == superPaths.dest)
+          assert(basePaths.meta == superPaths.meta)
+          assert(basePaths.log == superPaths.log)
+        }
       }
     }
   }
