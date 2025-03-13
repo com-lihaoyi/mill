@@ -296,7 +296,7 @@ private[mill] object PromptLogger {
           promptShown = false
         }
 
-        if (enableTicker && interactive()) {
+        if (interactive()) {
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
