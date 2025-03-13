@@ -90,7 +90,7 @@ object BuildGenUtil {
            |${renderResources(testResources)}
            |
            |def testSandboxWorkingDir = false
-           |def testEnableWorkStealing = false
+           |def testParallelism = false
            |}""".stripMargin
       }
 
