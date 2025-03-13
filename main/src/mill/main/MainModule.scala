@@ -586,7 +586,9 @@ trait MainModule extends BaseModule0 {
             SelectMode.Separated
           )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
-          RunScript.evaluateTasksNamed(
+          if (!Util.isInteractive()) {
+            Left("init with a .g8 template needs to be run with the -i/--interactive flag")
+          } else RunScript.evaluateTasksNamed(
             evaluator,
             Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
             SelectMode.Separated
