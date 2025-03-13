@@ -603,7 +603,8 @@ trait MainModule extends BaseModule0 {
           )
       evaluated match {
         case Left(failStr) => Result.Failure(failStr)
-        case Right((_, Right(Seq((_, Some((_, jsonableResult))))))) => Result.Success(jsonableResult)
+        case Right((_, Right(Seq((_, Some((_, jsonableResult))))))) =>
+          Result.Success(jsonableResult)
         case Right((_, Left(failStr))) => Result.Failure(failStr)
       }
     }
