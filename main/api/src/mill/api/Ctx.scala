@@ -161,13 +161,13 @@ object Ctx {
        *                terminal prompt to display what this future is currently computing.
        * @param t The body of the async future
        */
-      def async[T](dest: os.Path, key: String, message: String, t: Logger => T)(implicit
+      def async[T](dest: os.Path, key: String, message: String, priority: Int, t: Logger => T)(implicit
           ctx: mill.api.Ctx
       ): Future[T]
 
-      def async[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
+      def async[T](dest: os.Path, key: String, message: String, priority: Int)(t: => T)(implicit
           ctx: mill.api.Ctx
-      ): Future[T] = async(dest, key, message, _ => t)(ctx)
+      ): Future[T] = async(dest, key, message, priority, _ => t)(ctx)
     }
 
     trait Impl extends Api with ExecutionContext with AutoCloseable {
