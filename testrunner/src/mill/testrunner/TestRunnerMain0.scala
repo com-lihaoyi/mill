@@ -37,13 +37,13 @@ import mill.util.PrintLogger
             cl = classLoader,
             testReporter = DummyTestReporter
           )(ctx)
-        case Right((testClassesFolder, stealFolder)) =>
-          TestRunnerUtils.stealTestFramework0(
+        case Right((testClassQueueFolder, claimFolder)) =>
+          TestRunnerUtils.queueTestFramework0(
             frameworkInstances = Framework.framework(testArgs.framework),
             testClassfilePath = Agg.from(testArgs.testCp),
             args = testArgs.arguments,
-            testClassesFolder = testClassesFolder,
-            stealFolder = stealFolder,
+            testClassQueueFolder = testClassQueueFolder,
+            queueFolder = claimFolder,
             cl = classLoader,
             testReporter = DummyTestReporter
           )(ctx)

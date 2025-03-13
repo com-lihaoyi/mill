@@ -36,6 +36,8 @@ private[mill] class PromptLogger(
 
   readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
+  def isInteractive() = termDimensions._1.nonEmpty
+
   private object promptLineState extends PromptLineState(
         titleText,
         currentTimeMillis(),
@@ -48,7 +50,7 @@ private[mill] class PromptLogger(
         enableTicker,
         systemStreams0,
         () => promptLineState.getCurrentPrompt(),
-        interactive = () => termDimensions._1.nonEmpty,
+        interactive = () => isInteractive(),
         paused = () => runningState.paused,
         synchronizer = this
       )
@@ -75,7 +77,7 @@ private[mill] class PromptLogger(
 
         val now = System.currentTimeMillis()
         if (
-          termDimensions._1.nonEmpty ||
+          isInteractive() ||
           (now - lastUpdate > nonInteractivePromptUpdateIntervalMillis)
         ) {
           lastUpdate = now
@@ -123,7 +125,9 @@ private[mill] class PromptLogger(
     }
     for ((verboseKeySuffix, message) <- res) {
       if (enableTicker) {
-        systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
+        systemStreams.err.println(
+          infoColor(s"[${key.mkString("-")}$verboseKeySuffix]${spaceNonEmpty(message)}")
+        )
         streamManager.awaitPumperEmpty()
       }
     }
@@ -134,7 +138,7 @@ private[mill] class PromptLogger(
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
   override def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
     synchronized {
-      promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}] $message"))
+      promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
       seenIdentifiers(key) = (verboseKeySuffix, message)
     }
 
@@ -294,15 +298,19 @@ private[mill] object PromptLogger {
           promptShown = false
         }
 
-        // Clear each line as they are drawn, rather than relying on clearing
-        // the entire screen before each batch of writes, to try and reduce the
-        // amount of terminal flickering in slow terminals (e.g. windows)
-        // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
-        dest.write(
-          new String(buf, 0, end)
-            .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
-            .getBytes
-        )
+        if (interactive()) {
+          // Clear each line as they are drawn, rather than relying on clearing
+          // the entire screen before each batch of writes, to try and reduce the
+          // amount of terminal flickering in slow terminals (e.g. windows)
+          // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
+          dest.write(
+            new String(buf, 0, end)
+              .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
+              .getBytes
+          )
+        } else {
+          dest.write(new String(buf, 0, end).getBytes)
+        }
       }
     }
 
