@@ -100,7 +100,7 @@ private object ExecutionContexts {
           // to break ties between instances with the same priority. This index is assigned
           // when a task is submitted, so it should more or less follow insertion order,
           // and is a `Long` which should be big enough never to overflow
-          assert(this.priorityRunnableIndex != o.priorityRunnableIndex)
+          assert(this == o || this.priorityRunnableIndex != o.priorityRunnableIndex)
           this.priorityRunnableIndex.compareTo(o.priorityRunnableIndex)
         case n => n
       }
