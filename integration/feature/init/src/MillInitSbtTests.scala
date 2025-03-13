@@ -62,5 +62,6 @@ object MillInitSbtFs2Tests extends MillInitSbtTests {
       // The package name `reactive-streams` will be encoded on the classpath, and can lead to undefined behaviour.
       val initRes = eval(initCmd(), stdout = os.Inherit, stderr = os.Inherit)
       assert(!initRes.isSuccess)
+    }
   }
 }
