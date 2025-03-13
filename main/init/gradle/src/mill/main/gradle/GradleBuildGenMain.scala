@@ -163,8 +163,6 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,
       packaging = getPomPackaging(project),
-      // not available
-      pomParentArtifact = null,
       // skipped, requires relatively new API (JavaPluginExtension.getSourceSets)
       resources = Nil,
       testResources = Nil,

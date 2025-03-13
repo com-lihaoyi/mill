@@ -14,6 +14,7 @@ package object javalib extends mill.scalalib.JsonFormatters {
   type Assembly = mill.scalalib.Assembly
 
   type JavaModule = mill.scalalib.JavaModule
+  type BomModule = mill.scalalib.BomModule
 
   type NativeImageModule = mill.scalalib.NativeImageModule
 

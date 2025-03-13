@@ -86,7 +86,6 @@ case class IrBuild(
     pomSettings: IrPom,
     publishVersion: String,
     packaging: String,
-    pomParentArtifact: IrArtifact,
     resources: Seq[os.SubPath],
     testResources: Seq[os.SubPath],
     publishProperties: Seq[(String, String)]
@@ -96,6 +95,7 @@ case class IrScopedDeps(
     namedIvyDeps: Seq[(String, String)] = Nil,
     mainBomIvyDeps: SortedSet[String] = SortedSet(),
     mainIvyDeps: SortedSet[String] = SortedSet(),
+    mainBomModuleDeps: SortedSet[String] = SortedSet(),
     mainModuleDeps: SortedSet[String] = SortedSet(),
     mainCompileIvyDeps: SortedSet[String] = SortedSet(),
     mainCompileModuleDeps: SortedSet[String] = SortedSet(),
@@ -104,9 +104,11 @@ case class IrScopedDeps(
     testModule: Option[String] = None,
     testBomIvyDeps: SortedSet[String] = SortedSet(),
     testIvyDeps: SortedSet[String] = SortedSet(),
+    testBomModuleDeps: SortedSet[String] = SortedSet(),
     testModuleDeps: SortedSet[String] = SortedSet(),
     testCompileIvyDeps: SortedSet[String] = SortedSet(),
-    testCompileModuleDeps: SortedSet[String] = SortedSet()
+    testCompileModuleDeps: SortedSet[String] = SortedSet(),
+    depManagement: SortedSet[String] = SortedSet()
 )
 
 case class IrBaseInfo(

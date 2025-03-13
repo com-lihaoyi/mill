@@ -106,7 +106,6 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       pomSettings = if (baseInfo.noPom) extractPomSettings(model) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,
       packaging = model.getPackaging,
-      pomParentArtifact = mkPomParent(model.getParent),
       resources =
         processResources(model.getBuild.getResources, getMillSourcePath(model))
           .filterNot(_ == mavenMainResourceDir),
@@ -128,7 +127,9 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
   def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] = {
-    Seq("RootModule") ++
+    val isBom = build.value.getPackaging == "pom"
+    val bomType = if (isBom) Seq("BomModule") else Nil
+    Seq("RootModule") ++ bomType ++
       cfg.shared.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
   }
 
@@ -169,9 +170,12 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       dep.getExclusions.iterator().asScala.map(x => (x.getGroupId, x.getArtifactId))
     )
 
-  def mkPomParent(parent: Parent): IrArtifact =
-    if (null == parent) null
-    else IrArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
+  def interpParentIvy(parent: Parent): String =
+    BuildGenUtil.renderIvyString(
+      parent.getGroupId,
+      parent.getArtifactId,
+      parent.getVersion
+    )
 
   def extractPomSettings(model: Model): IrPom = {
     IrPom(
@@ -206,11 +210,32 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
     val ivyDep: Dependency => String = {
       cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
-        {
+        if (dep.getVersion == null)
+          interpIvy(dep)
+        else {
           val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
           sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))
           s"$objName.$depName"
         }
+      }
+    }
+    val parentIvyDep: Parent => String = {
+      cfg.shared.depsObject.fold(interpParentIvy(_)) { objName => parent =>
+        {
+          val parentName = s"`${parent.getGroupId}:${parent.getArtifactId}`"
+          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (parentName, interpParentIvy(parent)))
+          s"$objName.$parentName"
+        }
+      }
+    }
+
+    for (parent <- Option(model.getParent)) {
+      val id = (parent.getGroupId, parent.getArtifactId, parent.getVersion)
+      if (packages.isDefinedAt(id))
+        sd = sd.copy(mainBomModuleDeps = sd.mainBomModuleDeps + packages(id))
+      else {
+        val dep = parentIvyDep(parent)
+        sd = sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + dep)
       }
     }
 
@@ -253,6 +278,14 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
             }
           }
 
+        case "import" =>
+          if (packages.isDefinedAt(id))
+            sd = sd.copy(mainBomModuleDeps = sd.mainBomModuleDeps + packages(id))
+          else {
+            val ivyDep0 = ivyDep(dep)
+            sd = sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + ivyDep0)
+          }
+
         case scope =>
           println(s"ignoring $scope dependency $id")
 
@@ -261,6 +294,30 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
         sd = sd.copy(testModule = testModulesByGroup.get(dep.getGroupId))
       }
     }
+
+    if (model.getDependencyManagement != null)
+      model.getDependencyManagement.getDependencies.forEach { dep =>
+        val id = (dep.getGroupId, dep.getArtifactId, dep.getVersion)
+        // packages.isDefinedAt(id) means dep refers to a module of the current build.
+        // Not sure what to do if we run into such a module in dep management.
+        if (!packages.isDefinedAt(id))
+          if (dep.getScope == "import") {
+            val ivy = ivyDep(dep)
+            sd = sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + ivy)
+          } else {
+            // Short-circuit ivyDep by calling interpIvy directly.
+            // This prevents depManagement to be filled with things like 'Deps.thing'.
+            // depManagement is also meant to centralize dependencies, so there's no need
+            // to add an extra redirection.
+            val ivy = interpIvy(dep)
+            if (dep.getScope != null && dep.getScope != "compile")
+              println(
+                s"ignoring scope '${dep.getScope}' of dependency $id in dependency management"
+              )
+            sd = sd.copy(depManagement = sd.depManagement + ivy)
+          }
+      }
+
     sd
   }
 

@@ -70,6 +70,8 @@ object BuildGenUtil {
            |
            |${renderIvyDeps(scopedDeps.testIvyDeps)}
            |
+           |${renderBomModuleDeps(scopedDeps.testBomModuleDeps)}
+           |
            |${renderModuleDeps(scopedDeps.testModuleDeps)}
            |
            |${renderCompileIvyDeps(scopedDeps.testCompileIvyDeps)}
@@ -86,9 +88,13 @@ object BuildGenUtil {
        |
        |${renderRepositories(repositories)}
        |
+       |${renderDepManagement(scopedDeps.depManagement)}
+       |
        |${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
        |
        |${renderIvyDeps(scopedDeps.mainIvyDeps)}
+       |
+       |${renderBomModuleDeps(scopedDeps.mainBomModuleDeps)}
        |
        |${renderModuleDeps(scopedDeps.mainModuleDeps)}
        |
@@ -105,11 +111,6 @@ object BuildGenUtil {
        |${renderPublishVersion(publishVersion)}
        |
        |${renderPomPackaging(packaging)}
-       |
-       |${
-        if (pomParentArtifact == null) ""
-        else renderPomParentProject(renderArtifact(pomParentArtifact))
-      }
        |
        |${renderPublishProperties(Nil)}
        |
@@ -355,11 +356,17 @@ object BuildGenUtil {
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
 
+  def renderDepManagement(args: IterableOnce[String]): String =
+    optional("def depManagement = super.depManagement() ++ Seq", args)
+
   def renderBomIvyDeps(args: IterableOnce[String]): String =
     optional("def bomIvyDeps = super.bomIvyDeps() ++ Seq", args)
 
   def renderIvyDeps(args: IterableOnce[String]): String =
     optional("def ivyDeps = super.ivyDeps() ++ Seq", args)
+
+  def renderBomModuleDeps(args: IterableOnce[String]): String =
+    optional("def bomModuleDeps = super.bomModuleDeps ++ Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
