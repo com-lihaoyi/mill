@@ -26,7 +26,12 @@ private object ExecutionContexts {
     def reportFailure(cause: Throwable): Unit = {}
     def close(): Unit = () // do nothing
 
-    def async[T](dest: Path, key: String, message: String, priority: Int, t: Logger => T)(implicit
+    def async[T](
+        dest: Path,
+        key: String,
+        message: String,
+        priority: Int = 0
+    )(t: Logger => T)(implicit
         ctx: mill.api.Ctx
     ): Future[T] =
       Future.successful(t(ctx.log))
@@ -117,7 +122,12 @@ private object ExecutionContexts {
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
-    def async[T](dest: Path, key: String, message: String, priority: Int, t: Logger => T)(implicit
+    def async[T](
+        dest: Path,
+        key: String,
+        message: String,
+        priority: Int = 0
+    )(t: Logger => T)(implicit
         ctx: mill.api.Ctx
     ): Future[T] = {
       val logger = ctx.log.subLogger(dest / os.up / s"${dest.last}.log", key, message)

@@ -196,7 +196,8 @@ private final class TestModuleUtil(
           // blocked on test subprocesses, but not vice versa, so better to schedule
           // the test subprocesses first
           Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage, priority = -1) {
-            (folderName, callTestRunnerSubprocess(Task.dest / folderName, Left(testClassList)))
+            logger =>
+              (folderName, callTestRunnerSubprocess(Task.dest / folderName, Left(testClassList)))
           }
         }
 
@@ -321,17 +322,17 @@ private final class TestModuleUtil(
         // over other Mill tasks via `priority = -1`, but de-prioritize the others
         // increasingly according to their processIndex. This should help Mill
         // use fewer longer-lived test subprocesses, minimizing JVM startup overhead
-        priority = if (processIndex == 0) -1 else processIndex,
-        logger =>
-          // force run when processIndex == 0 (first subprocess), even if there are no tests to run
-          // to force the process to go through the test framework setup/teardown logic
-          groupName -> runTestRunnerSubprocess(
-            processFolder,
-            testClassesFolder,
-            force = processIndex == 0,
-            logger
-          )
-      )
+        priority = if (processIndex == 0) -1 else processIndex
+      ){ logger =>
+        // force run when processIndex == 0 (first subprocess), even if there are no tests to run
+        // to force the process to go through the test framework setup/teardown logic
+        groupName -> runTestRunnerSubprocess(
+          processFolder,
+          testClassesFolder,
+          force = processIndex == 0,
+          logger
+        )
+      }
     }
 
     val executor = Executors.newScheduledThreadPool(1)
