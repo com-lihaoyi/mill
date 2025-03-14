@@ -119,8 +119,10 @@ private final class TestModuleUtil(
   private def callTestRunnerSubprocess(
       baseFolder: os.Path,
       // either:
-      // - Left(selectors: Seq[String]): - list of glob selectors to feed to the test runner directly.
-      // - Right((testClassesFolder: os.Path, queueFolder: os.Path)): - folder containing test classes for test runner to claim from, and the claimer's base folder.
+      // - Left(selectors):
+      //     - list of glob selectors to feed to the test runner directly.
+      // - Right((startingTestClass, testClassQueueFolder, claimFolder)):
+      //     - first test class to run, folder containing test classes for test runner to claim from, and the worker's base folder.
       selector: Either[Seq[String], (os.Path, os.Path)]
   )(implicit ctx: mill.api.Ctx) = {
     os.makeDir.all(baseFolder)
