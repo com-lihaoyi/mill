@@ -57,6 +57,8 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def name = dep.module.name.value
   def version = dep.version
 
+  def withVersion(version: String = "") = copy(dep = dep.withVersion(version))
+
   /**
    * If scalaVersion is a Dotty version, replace the cross-version suffix
    * by the Scala 2.x version that the Dotty version is retro-compatible with,
