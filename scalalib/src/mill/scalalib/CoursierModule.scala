@@ -196,7 +196,7 @@ object CoursierModule {
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
         mapDependencies: Option[Dependency => Dependency] = null
-    ): Seq[PathRef] =
+    )(implicit logCtx: mill.api.Ctx.Log = null): Seq[PathRef] =
       resolveDepsSafe(
         deps,
         sources,
@@ -211,7 +211,7 @@ object CoursierModule {
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
         mapDependencies: Option[Dependency => Dependency] = null
-    ): Result[Seq[PathRef]] =
+    )(implicit logCtx: mill.api.Ctx.Log = null): Result[Seq[PathRef]] =
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
@@ -220,7 +220,7 @@ object CoursierModule {
         mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
+        ctx = Option(logCtx).orElse(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       )
 
