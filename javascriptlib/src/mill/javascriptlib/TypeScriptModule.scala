@@ -496,7 +496,7 @@ trait TypeScriptModule extends Module { outer =>
     // Run type check, build declarations
     if (runTypeCheck())
       os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
-      
+
     PathRef(T.dest)
   }
 
