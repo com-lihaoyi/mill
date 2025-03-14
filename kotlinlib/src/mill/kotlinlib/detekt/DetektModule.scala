@@ -60,7 +60,7 @@ trait DetektModule extends KotlinModule {
    * Classpath for running Dekekt.
    */
   def detektClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(ivy"io.gitlab.arturbosch.detekt:detekt-cli:${detektVersion()}")
     )
   }
