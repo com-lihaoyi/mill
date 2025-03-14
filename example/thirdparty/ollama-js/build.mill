@@ -185,6 +185,24 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 ...     Tests  20 passed (20)
 ...
 
+> ./mill checkFormatEslint
+
+> ./mill checkFormatPrettier
+...Checking formatting...
+[warn] examples/abort/abort-all-requests.ts
+[warn] examples/abort/abort-single-request.ts
+[warn] examples/structured_outputs/structured-outputs-image.ts
+[warn] examples/structured_outputs/structured-outputs.ts
+[warn] examples/tools/calculator.ts
+[warn] examples/tools/flight-tracker.ts
+[warn] src/browser.ts
+[warn] src/constant.ts
+[warn] src/index.ts
+[warn] src/interfaces.ts
+[warn] src/utils.ts
+[warn] test/utils.test.ts
+...
+
 > ./mill examples.abort.run
 ...Aborting all requests...
 

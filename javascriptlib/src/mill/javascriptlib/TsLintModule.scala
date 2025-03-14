@@ -219,6 +219,7 @@ trait TsLintModule extends Module {
     val content =
       s"""|node_modules
           |.git
+          |out
           |""".stripMargin
     os.write.over(config, content)
 
