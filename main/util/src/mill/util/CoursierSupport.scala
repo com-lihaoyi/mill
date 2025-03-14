@@ -458,7 +458,7 @@ trait CoursierSupport {
       Nil
     )
 
-  // bin-compat 
+  // bin-compat
   @deprecated("Use other overload instead", since = "0.12.9")
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],

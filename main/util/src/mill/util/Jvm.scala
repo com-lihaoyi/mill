@@ -445,7 +445,7 @@ object Jvm extends CoursierSupport {
       runSubprocess(args, envArgs, workingDir)
   }
 
-  // bincompat 
+  // bincompat
   @deprecated("Use other overload instead", since = "0.12.9")
   def runSubprocessWithBackgroundOutputs(
       mainClass: String,
