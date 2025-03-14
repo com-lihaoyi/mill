@@ -37,7 +37,7 @@ object bar extends JavaModule {
   def compileIvyDeps = Seq(ivy"org.projectlombok:lombok:1.18.34")
 
   def processors = Task {
-    defaultResolver().classpath(Seq(ivy"org.projectlombok:lombok:1.18.34"))
+    defaultResolver().resolveDeps(Seq(ivy"org.projectlombok:lombok:1.18.34"))
   }
 
   def javacOptions = Seq(

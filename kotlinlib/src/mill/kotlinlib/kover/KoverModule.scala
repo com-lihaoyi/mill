@@ -93,7 +93,7 @@ trait KoverModule extends KotlinModule { outer =>
 
     /** The Kover Agent is used at test-runtime. */
     private def koverAgentJar: T[PathRef] = Task {
-      val jars = defaultResolver().classpath(koverAgentDep())
+      val jars = defaultResolver().resolveDeps(koverAgentDep())
       jars.iterator.next()
     }
 

@@ -22,7 +22,7 @@ private[dependency] object VersionsFinder {
 
     val resolvedDependencies = evaluator.execute {
       val progress = new Progress(javaModules.size)
-      javaModules.map(classpath(progress))
+      javaModules.map(resolveDeps(progress))
     }.values.get
 
     // Using a fixed time clock, so that the TTL cut-off is the same for all version checks,
@@ -43,7 +43,7 @@ private[dependency] object VersionsFinder {
     def next(): Int = counter.getAndIncrement()
   }
 
-  private def classpath(progress: Progress)(
+  private def resolveDeps(progress: Progress)(
       javaModule: JavaModule
   ): Task[ResolvedDependencies] =
     Task.Anon {
@@ -75,8 +75,7 @@ private[dependency] object VersionsFinder {
         ctx = Option(Task.log),
         coursierCacheCustomizer = cacheCustom,
         resolutionParams = coursier.params.ResolutionParams(),
-        boms = Nil,
-        checkGradleModules = javaModule.checkGradleModules()
+        boms = Nil
       )
 
       x.map { _ =>

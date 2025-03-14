@@ -106,7 +106,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
    * Class path of the scalafmt CLI
    */
   def scalafmtClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
+    defaultResolver().resolveDeps(
       Seq(
         ivy"org.scalameta:scalafmt-cli_2.13:${mill.scalalib.api.Versions.scalafmtVersion}"
       )

@@ -26,7 +26,7 @@ trait AndroidKotlinModule extends KotlinModule {
     // Compose compiler version -> Kotlin version
     if (kotlinVersion().startsWith("1"))
       throw new IllegalStateException("Compose can be used only with Kotlin version 2 or newer.")
-    defaultResolver().classpath(
+    defaultResolver().resolveDeps(
       Seq(
         ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
       )

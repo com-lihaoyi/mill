@@ -683,7 +683,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     def kotestVersion: T[String] = "5.9.1"
 
     private def kotestProcessor = Task {
-      defaultResolver().classpath(
+      defaultResolver().resolveDeps(
         Seq(
           ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
         )

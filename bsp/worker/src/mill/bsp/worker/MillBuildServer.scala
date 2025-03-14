@@ -293,7 +293,7 @@ private class MillBuildServer(
         case m: JavaModule =>
           Task.Anon {
             (
-              m.millResolver().classpath(
+              m.millResolver().resolveDeps(
                 Seq(
                   m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
                   m.coursierDependency
@@ -337,14 +337,12 @@ private class MillBuildServer(
         Task.Anon {
           (
             // full list of dependencies, including transitive ones
-            m.millResolver()
-              .resolution(
-                Seq(
-                  m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-                  m.coursierDependency
-                )
+            m.millResolver().allDeps(
+              Seq(
+                m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                m.coursierDependency
               )
-              .orderedDependencies,
+            ),
             m.unmanagedClasspath()
           )
         }

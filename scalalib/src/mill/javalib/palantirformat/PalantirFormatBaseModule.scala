@@ -11,7 +11,7 @@ trait PalantirFormatBaseModule extends CoursierModule {
    * Classpath for running Palantir Java Format.
    */
   def palantirformatClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
+    defaultResolver().resolveDeps(
       Seq(ivy"com.palantir.javaformat:palantir-java-format:${palantirformatVersion()}")
     )
   }

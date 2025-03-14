@@ -97,8 +97,9 @@ trait KotlinModule extends JavaModule { outer =>
    * Default is derived from [[kotlinCompilerIvyDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(kotlinCompilerIvyDeps()) ++
-      kotlinWorkerClasspath()
+    resolveDeps(
+      Task.Anon { kotlinCompilerIvyDeps().map(bindDependency()) }
+    )() ++ kotlinWorkerClasspath()
   }
 
   /**
@@ -172,7 +173,7 @@ trait KotlinModule extends JavaModule { outer =>
     ()
   }
 
-  override def checkGradleModules: T[Boolean] = false
+  override def checkGradleModules: Boolean = true
 
   /**
    * The documentation jar, containing all the Dokka HTML files, for
@@ -245,7 +246,7 @@ trait KotlinModule extends JavaModule { outer =>
    * Classpath for running Dokka.
    */
   private def dokkaCliClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
+    defaultResolver().resolveDeps(
       Seq(
         ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       )
@@ -253,7 +254,7 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   private def dokkaPluginsClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
+    defaultResolver().resolveDeps(
       Seq(
         ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
         ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",

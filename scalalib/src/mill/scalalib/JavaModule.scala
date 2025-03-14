@@ -933,7 +933,7 @@ trait JavaModule
    * Resolved dependencies
    */
   def resolvedIvyDeps: T[Seq[PathRef]] = Task {
-    millResolver().classpath(
+    millResolver().resolveDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.provided),
@@ -941,6 +941,7 @@ trait JavaModule
         ),
         BoundDep(coursierDependency, force = false)
       ),
+      checkGradleModules = checkGradleModules,
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt =
         Some((_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile))
@@ -963,13 +964,14 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Seq[PathRef]] = Task {
-    millResolver().classpath(
+    millResolver().resolveDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.runtime),
           force = false
         )
       ),
+      checkGradleModules = checkGradleModules,
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt =
         Some((_: ResolutionParams).withDefaultConfiguration(cs.Configuration.runtime))
@@ -1121,6 +1123,8 @@ trait JavaModule
 
   def launcher: T[PathRef] = Task { launcher0() }
 
+  def checkGradleModules: Boolean = false
+
   /**
    * Task that print the transitive dependency tree to STDOUT.
    * NOTE: that when `whatDependsOn` is used with `inverse` it will just
@@ -1142,7 +1146,7 @@ trait JavaModule
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
         allRepositories(),
         dependencies,
-        checkGradleModules = checkGradleModules(),
+        checkGradleModules = checkGradleModules,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
@@ -1343,11 +1347,12 @@ trait JavaModule
     val tasks =
       if (all.value) Seq(
         Task.Anon {
-          millResolver().classpath(
+          millResolver().resolveDeps(
             Seq(
               coursierDependency.withConfiguration(cs.Configuration.provided),
               coursierDependency
             ),
+            checkGradleModules = checkGradleModules,
             sources = true,
             resolutionParamsMapOpt =
               Some(
@@ -1356,8 +1361,9 @@ trait JavaModule
           )
         },
         Task.Anon {
-          millResolver().classpath(
+          millResolver().resolveDeps(
             Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
+            checkGradleModules = checkGradleModules,
             sources = true
           )
         }

@@ -18,7 +18,7 @@ trait Giter8Module extends CoursierModule {
 
     val giter8Dependencies =
       try {
-        defaultResolver().classpath {
+        defaultResolver().resolveDeps {
           val scalaBinVersion = {
             val bv = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
             if (bv == "3") "2.13" else bv

@@ -305,7 +305,7 @@ trait AndroidAppModule extends AndroidModule {
    * Classpath for the manifest merger run.
    */
   def manifestMergerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
+    defaultResolver().resolveDeps(
       Seq(
         ivy"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
       )

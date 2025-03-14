@@ -105,10 +105,10 @@ object RevapiModuleTests extends TestSuite {
       override def publishVersion: T[String] = v1
 
       override def revapiOldFiles: T[Seq[PathRef]] = Task {
-        defaultResolver().classpath(Seq(ivy"$group:$id:$v1"))
+        defaultResolver().resolveDeps(Seq(ivy"$group:$id:$v1"))
       }
       override def revapiNewFiles: T[Seq[PathRef]] = Task {
-        defaultResolver().classpath(Seq(ivy"$group:$id:$v2"))
+        defaultResolver().resolveDeps(Seq(ivy"$group:$id:$v2"))
       }
       override def revapiConfigFiles: T[Seq[PathRef]] =
         Task.Sources(

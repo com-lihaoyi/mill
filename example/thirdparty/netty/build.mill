@@ -92,8 +92,8 @@ trait NettyJniModule extends NettyModule {
   }
   def clang = Task {
     val Seq(sourceJar) = defaultResolver()
-      .classpath(
-        Seq(ivy"io.netty:netty-jni-util:0.0.9.Final"),
+      .resolveDeps(
+        Seq(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency()),
         sources = true
       )
       .toSeq
@@ -566,10 +566,10 @@ object `transport-native-unix-common` extends NettyModule {
   }
 
   def make = Task {
-    val Seq(sourceJar) = defaultResolver().classpath(
-      Seq(ivy"io.netty:netty-jni-util:0.0.9.Final"),
+    val Seq(sourceJar) = resolveDeps(
+      deps = Task.Anon(Seq(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
       sources = true
-    )
+    )().toSeq
 
     os.copy(makefile().path, Task.dest / "Makefile")
     os.copy(cSources().path, Task.dest / "src/main/c", createFolders = true)

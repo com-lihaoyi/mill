@@ -377,7 +377,7 @@ class BloopImpl(
 
     val millBuildDependencies: Task[List[BloopConfig.Module]] = Task.Anon {
 
-      val result = module.defaultResolver().artifacts(
+      val result = module.defaultResolver().getArtifacts(
         BuildInfo.millAllDistDependencies
           .split(',')
           .filter(_.nonEmpty)

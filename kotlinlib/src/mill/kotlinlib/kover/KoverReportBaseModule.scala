@@ -29,6 +29,6 @@ trait KoverReportBaseModule extends CoursierModule {
    * Classpath for running Kover.
    */
   def koverCliClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(koverCliDep())
+    defaultResolver().resolveDeps(koverCliDep())
   }
 }
