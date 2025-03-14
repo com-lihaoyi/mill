@@ -682,7 +682,7 @@ private class MillBuildServer(
           val results = evaluate(ev, targetIdTasks.map(_._2))
           val idByTasks = targetIdTasks.map { case (id, task) => (task: Task[_], id) }.toMap
           val failures = results.results.toSeq.collect {
-            case (task, TaskResult(res: ExecResult.Failing[_], _)) if idByTasks.contains(task) =>
+            case (task, res: ExecResult.Failing[_]) if idByTasks.contains(task) =>
               (idByTasks(task), res)
           }
 
@@ -698,7 +698,7 @@ private class MillBuildServer(
 
           val resultsById = targetIdTasks.flatMap {
             case (id, task) =>
-              results.results(task).result.asSuccess.map(_.value.value.asInstanceOf[W]).map((id, _))
+              results.results(task).asSuccess.map(_.value.value.asInstanceOf[W]).map((id, _))
           }
 
           resultsById.flatMap {
