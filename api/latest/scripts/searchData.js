@@ -64,6 +64,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/Ctx$$Fork$$Api.html#async-67f","e":false,"i":"","n":"async","t":"async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit ctx: Ctx): Future[T]","d":"mill.api.Ctx.Fork.Api","k":"def","x":""},
 {"l":"mill/api/Ctx$$Fork$$Api.html#await-fffff394","e":false,"i":"","n":"await","t":"await[T](t: Future[T]): T","d":"mill.api.Ctx.Fork.Api","k":"def","x":""},
 {"l":"mill/api/Ctx$$Fork$$Api.html#awaitAll-ffffffc7","e":false,"i":"","n":"awaitAll","t":"awaitAll[T](t: Seq[Future[T]]): Seq[T]","d":"mill.api.Ctx.Fork.Api","k":"def","x":""},
+{"l":"mill/api/Ctx$$Fork$$Api.html#blocking-fffff7d2","e":false,"i":"","n":"blocking","t":"blocking[T](t: => T): T","d":"mill.api.Ctx.Fork.Api","k":"def","x":""},
 {"l":"mill/api/Ctx$$Fork$$Impl.html#","e":false,"i":"","n":"Impl","t":"Impl extends Api, ExecutionContext, AutoCloseable","d":"mill.api.Ctx.Fork","k":"trait","x":""},
 {"l":"mill/api/Ctx$$Fork$$Impl.html#awaitAll-ffffffc7","e":false,"i":"","n":"awaitAll","t":"awaitAll[T](t: Seq[Future[T]]): Seq[T]","d":"mill.api.Ctx.Fork.Impl","k":"def","x":""},
 {"l":"mill/api/Ctx$$Fork.html#","e":false,"i":"","n":"Fork","t":"Fork","d":"mill.api.Ctx","k":"trait","x":""},
