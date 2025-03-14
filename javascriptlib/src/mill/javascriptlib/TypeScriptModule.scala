@@ -50,6 +50,43 @@ trait TypeScriptModule extends Module { outer =>
   def transitiveUnmanagedDeps: T[Seq[PathRef]] =
     Task.traverse(moduleDeps)(_.unmanagedDeps)().flatten ++ unmanagedDeps()
 
+  /**
+   * Typescript versioning:
+   *  - typescript
+   *  - ts-node
+   *  - tsconfig-paths
+   *  - @types/node
+   */
+  def tsDeps: T[Seq[String]] = Task {
+    Seq(
+      "@types/node@22.10.9",
+      "typescript@5.7.3",
+      "ts-node@^10.9.2",
+      "tsconfig-paths@4.2.0"
+    )
+  }
+
+  /**
+   * Mill will use `esbuild` alongside `ts-node` to bundle Ts project,
+   * to use a custom build tool, you can simply over-ride the default bundle implementation.
+   *
+   * Default bundle versioning:
+   * - esbuild
+   * - esbuild-plugin-copy
+   * - esbuild-plugins/tsconfig-paths
+   * - esbuild-copy-static-files
+   * - @types/esbuild-copy-static-files
+   */
+  private def bundleDeps: T[Seq[String]] = Task {
+    Seq(
+      "@types/esbuild-copy-static-files@0.1.4",
+      "esbuild@0.24.2",
+      "esbuild-plugin-copy@2.1.1",
+      "@esbuild-plugins/tsconfig-paths@0.1.2",
+      "esbuild-copy-static-files@0.1.0"
+    )
+  }
+
   def npmInstall: T[PathRef] = Task {
     Try(os.copy.over(Task.workspace / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
     os.call((
@@ -60,15 +97,8 @@ trait TypeScriptModule extends Module { outer =>
       "--userconfig",
       ".npmrc",
       "--save-dev",
-      "@types/node@22.10.9",
-      "@types/esbuild-copy-static-files@0.1.4",
-      "typescript@5.7.3",
-      "ts-node@^10.9.2",
-      "esbuild@0.24.2",
-      "esbuild-plugin-copy@2.1.1",
-      "@esbuild-plugins/tsconfig-paths@0.1.2",
-      "esbuild-copy-static-files@0.1.0",
-      "tsconfig-paths@4.2.0",
+      tsDeps(),
+      bundleDeps(),
       Seq(if (enableEsm()) Some("@swc/core@1.10.12") else None).flatten,
       transitiveNpmDeps(),
       transitiveNpmDevDeps(),
@@ -430,6 +460,12 @@ trait TypeScriptModule extends Module { outer =>
       os.symlink(T.dest / "package-lock.json", npmInstall().path / "package-lock.json")
   }
 
+  /**
+   * Run `ts-node` command if set to `true`.
+   * `ts-node` will build declarations and or js output, depending on ts-config.
+   */
+  def runTypeCheck: T[Boolean] = Task { true }
+
   def compile: T[PathRef] = Task {
     symLink()
     val default: Map[String, ujson.Value] = Map(
@@ -458,7 +494,9 @@ trait TypeScriptModule extends Module { outer =>
     tscLinkResources()
 
     // Run type check, build declarations
-    os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
+    if (runTypeCheck())
+      os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
+      
     PathRef(T.dest)
   }
 
