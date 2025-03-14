@@ -25,6 +25,9 @@ on:
       install-android-sdk:
         default: false
         type: boolean
+      install-sbt:
+        default: false
+        type: boolean
 
 jobs:
   run:
@@ -46,6 +49,9 @@ jobs:
 
       - uses: ./.github/actions/setup-android
         if: ${{ inputs.install-android-sdk }}
+
+      - uses: sbt/setup-sbt@v1
+        if: ${{ inputs.install-sbt }}
 
       - uses: ./.github/actions/post-build-selective
 
