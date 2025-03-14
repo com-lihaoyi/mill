@@ -90,7 +90,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         ) ++ scalaJSJsEnvIvyDeps()
     }
     // we need to use the scala-library of the currently running mill
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
         .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
     )
@@ -345,7 +345,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaJSModule].resources
   def scalaJSTestDeps = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"

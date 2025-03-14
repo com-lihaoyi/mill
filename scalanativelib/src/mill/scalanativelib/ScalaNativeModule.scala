@@ -93,7 +93,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def bridgeFullClassPath: T[Seq[PathRef]] = Task {
-    scalaNativeWorkerClasspath() ++ defaultResolver().resolveDeps(
+    scalaNativeWorkerClasspath() ++ defaultResolver().classpath(
       toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
     )
   }

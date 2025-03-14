@@ -97,7 +97,7 @@ trait KotlinModule extends JavaModule { outer =>
    * Default is derived from [[kotlinCompilerIvyDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(kotlinCompilerIvyDeps()) ++
+    defaultResolver().classpath(kotlinCompilerIvyDeps()) ++
       kotlinWorkerClasspath()
   }
 
@@ -243,7 +243,7 @@ trait KotlinModule extends JavaModule { outer =>
    * Classpath for running Dokka.
    */
   private def dokkaCliClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       )
@@ -251,7 +251,7 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   private def dokkaPluginsClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
         ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
