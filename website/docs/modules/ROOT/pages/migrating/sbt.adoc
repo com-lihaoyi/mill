@@ -15,11 +15,11 @@ A nested `test` module is defined, if `src/test` exists, and is configured with 
 Again, note that `mill init` imports an sbt build on a best-effort basis.
 This means that while simple projects can be expected to complete without issue:
 
-include::partial$example/scalalib/migrating/1-sbt-complete.adoc[]
+include::partial$example/migrating/scalalib/1-sbt-complete.adoc[]
 
 Projects with a complex build often require some manual tweaking in order to work:
 
-include::partial$example/scalalib/migrating/2-sbt-incomplete.adoc[]
+include::partial$example/migrating/scalalib/2-sbt-incomplete.adoc[]
 
 == Capabilities
 
