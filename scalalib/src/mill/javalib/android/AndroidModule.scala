@@ -709,22 +709,29 @@ trait AndroidModule extends JavaModule {
 
     /** Whether we are building an application (APK) or a library (AAR) */
     def isApplication: T[Boolean] = Task {
-      false
+      true
     }
 
 
     /** ProGuard/R8 rules configuration files (user-provided and generated) */
     def proguardConfigs: T[Seq[PathRef]] = {
-      Seq(PathRef(moduleDir / "proguard-rules.pro"))
-    }
-
-    def proguardFile: T[PathRef] = {
-      PathRef(moduleDir / "proguard-rules.pro")
+      Seq(PathRef(moduleDir / "proguard-rules.pro"),
+        PathRef(androidDex().path / "proguard-rules.pro")
+      )
     }
 
     // Additional library classes (if any) that should be treated as provided
     def libraryClasses: T[Seq[PathRef]] = T {
-      Seq(androidSdkModule().androidJarPath())
+      Seq(androidSdkModule().androidJarPath(),
+        androidSdkModule().r8LibPath(),
+        androidSdkModule().r8LibClasspath(),
+        androidSdkModule().androidCoreModulesPath(),
+        androidSdkModule().androidOptionalApacheHttpLegacy(),
+        androidSdkModule().androidOptionalCar(),
+        androidSdkModule().androidOptionalTestMock(),
+        androidSdkModule().androidOptionalTestBase(),
+        androidSdkModule().androidOptionalTestRunner()
+      )
     }
 
     /** Toggle desugaring in R8 (usually true for full R8 mode when minSdk < 24) */
@@ -739,6 +746,10 @@ trait AndroidModule extends JavaModule {
 
     def mainDexList: T[Option[PathRef]] = T {
       None
+    }
+
+    def mainDexListOutput: T[Option[PathRef]] = T {
+      Some(PathRef(Task.dest  / "runR8.dest/minify/main-dex-list-output.txt"))
     }
 
     // Optional baseline profile for ART rewriting
@@ -768,15 +779,15 @@ trait AndroidModule extends JavaModule {
       val configOut = destDir / "configuration.txt"
       val missingRulesOut = destDir / "missing_rules.txt"
       val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
+      val res = destDir / "res"
 
 
       // Create an extra ProGuard config file that instructs R8 to print seeds and usage.
       val extraRulesFile = destDir / "extra-rules.pro"
       val extraRulesContent =
-        s"""
-           |-printseeds ${seedsOut.toString}
-           |-printusage ${usageOut.toString}
-           |""".stripMargin.trim
+        s"""-printseeds ${seedsOut.toString}
+            |-printusage ${usageOut.toString}
+            |""".stripMargin.trim
       os.write.over(extraRulesFile, extraRulesContent)
 
       // Get the list of all class files to be processed by R8
@@ -788,7 +799,8 @@ trait AndroidModule extends JavaModule {
 
       val appCompiledFiles = os.walk(compile().classes.path)
         .filter(_.ext == "class")
-        .map(_.toString) ++ inheritedClassFiles
+        .map(_.toString)
+//        ++ inheritedClassFiles
 
       T.log.debug(s"appCompiledFiles: ${appCompiledFiles}")
 
@@ -797,7 +809,7 @@ trait AndroidModule extends JavaModule {
 
       r8ArgsBuilder += androidSdkModule().r8Path().path.toString
 
-      if (androidIsDebug()) {
+      if (!androidIsDebug()) {
         r8ArgsBuilder += "--debug"
       } else {
         r8ArgsBuilder += "--release"
@@ -820,6 +832,7 @@ trait AndroidModule extends JavaModule {
         r8ArgsBuilder ++= Seq(
           "--min-api",
           androidMinSdk().toString,
+          "--dex"
         )
       } else{
         r8ArgsBuilder += "--classfile"
@@ -827,9 +840,12 @@ trait AndroidModule extends JavaModule {
 
       // Multi-dex arguments (if any are provided)
       val multiDexArgs = mainDexRules().toSeq.flatMap(r => Seq("--main-dex-rules", r.path.toString)) ++
-        mainDexList().toSeq.flatMap(l => Seq("--main-dex-list", l.path.toString))
+        mainDexList().toSeq.flatMap(l => Seq("--main-dex-list", l.path.toString)) ++
+      mainDexListOutput().toSeq.flatMap(l => Seq("--main-dex-list-output", l.path.toString))
+
 
       r8ArgsBuilder ++= multiDexArgs
+
 
       // Baseline profile rewriting arguments, if a baseline profile is provided.
       val baselineArgs = baselineProfile().map { bp =>
@@ -837,6 +853,10 @@ trait AndroidModule extends JavaModule {
       }.getOrElse(Seq.empty)
 
       r8ArgsBuilder ++= baselineArgs
+
+      val (resInputRef, resOutputRef) = androidResources()
+//      r8ArgsBuilder ++= Seq("--android-resources", (resInputRef.path / "compiled-resources/main.zip").toString, res.toString)
+//      r8ArgsBuilder ++= Seq("--android-resources", "/home/irodotos/TestMInify/app/build/intermediates/merged_java_res/release/mergeReleaseJavaResource/base.jar")
 
       // Library arguments: pass each bootclasspath and any additional library classes as --lib.
       val libArgs = libraryClasses().flatMap(ref => Seq("--lib", ref.path.toString))
@@ -858,6 +878,8 @@ trait AndroidModule extends JavaModule {
       T.log.info(s"Running r8 with the command: ${r8Args.mkString(" ")}")
 
       val result = os.call(r8Args)
+
+      T.log.info(result.out.text())
 
       if (result.exitCode != 0) {
         T.log.error(s"R8 failed with exit code ${result.exitCode}")

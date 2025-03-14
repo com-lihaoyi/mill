@@ -53,89 +53,7 @@ object AndroidLintReportFormat extends Enumeration {
 trait AndroidAppModule extends AndroidModule {
 
   private val parent: AndroidAppModule = this
-
-//  trait r8OptimizationsModule extends AndroidAppModule {
-//
-//    /** Whether we are building an application (APK) or a library (AAR) */
-//    def isApplication: T[Boolean] = Task {
-//      true
-//    }
-//
-//    def androidMinSdk: T[Int] = parent.androidMinSdk()
-//
-//    /** ProGuard/R8 rules configuration files (user-provided and generated) */
-//    def proguardConfigs: T[Seq[PathRef]] = {
-//      Seq(PathRef(moduleDir / "../proguard-rules.pro"))
-//    }
-//
-//    def proguardOutput: T[PathRef] = Task {
-//      val outputDir = Task.dest / "proguard"
-//      os.makeDir(outputDir)
-//      PathRef(outputDir)
-//    }
-//
-//    /** Toggle desugaring in R8 (usually true for full R8 mode when minSdk < 24) */
-//    def enableDesugaring: T[Boolean] = Task {
-//      true
-//    }
-//
-//    def r8Desugaring: T[String] = Task {
-//      if (!enableDesugaring()) "--no-desugaring"
-//      else ""
-//    }
-//
-//    def r8Application: T[String] = Task {
-//      if (isApplication()) s"--min-api=${androidMinSdk().toString}"
-//      else "--classfile"
-//    }
-//
-//    def runR8: T[PathRef] = Task {
-//      // Prepare output directories
-//      val destDir = Task.dest / "minify"
-//      os.makeDir.all(destDir)
-//
-//      // Determine primary output: 
-//      // For apps, R8 will output DEX files into destDir (classes.dex, classes2.dex, ...).
-//      // For libraries, R8 outputs a shrunk class jar.
-//      val outputPath = if (isApplication()) destDir
-//      else destDir / "classes-shrunk.jar"
-//
-//      // Set up paths for diagnostic outputs
-//      val mappingTxt = destDir / "mapping.txt"
-//      val seedsTxt = destDir / "seeds.txt"
-//      val usageTxt = destDir / "usage.txt"
-//      val configTxt = destDir / "configuration.txt"
-//      val missingRulesTxt = destDir / "missing_rules.txt"
-//      val rewrittenProfileTxt = destDir / "baseline-profile-rewritten.txt"
-//
-//      val classfiles: Path = compile().classes.path
-//      //  ++ classfiles.map(pathref => pathref.path.toString)
-//      T.log.debug(s"classfiles: ${classfiles}")
-//
-//
-//      val args = collection.mutable.Buffer[String]()
-//      // NA MIN EINAI TASK APO TO PARENT
-//      val r8 = Seq(
-//        androidSdkModule().r8Path().path.toString,
-//        "--debug",
-//        //        "--release",
-//        "--output",
-//        outputPath.toString,
-//        //        r8Application(),
-//        r8Desugaring()
-//      ) ++ Seq(classfiles.toString) ++ Seq(
-//        "--pg-conf"
-//      ) ++ proguardConfigs().map(_.path.toString)
-//
-//      T.log.info(s"Calling r8 with arguments: ${r8.mkString(" ")}")
-//
-//      os.call(r8)
-//
-//      PathRef(outputPath)
-//    }
-//  }
-
-
+  
     /**
    * Specifies the file format(s) of the lint report. Available file formats are defined in AndroidLintReportFormat,
    * such as [[AndroidLintReportFormat.Html]], [[AndroidLintReportFormat.Xml]], [[AndroidLintReportFormat.Txt]],
@@ -303,52 +221,7 @@ trait AndroidAppModule extends AndroidModule {
 
     PathRef(Task.dest)
   }
-
-  /**
-   * Packages DEX files and Android resources into an unsigned APK.
-   *
-   * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
-   */
-  def androidUnsignedApk: T[PathRef] = Task {
-    val unsignedApk = Task.dest / "app.unsigned.apk"
-
-    os.copy(androidResources()._1.path / "res.apk", unsignedApk)
-    val dexFiles = os.walk(androidDex().path)
-      .filter(_.ext == "dex")
-      .map(os.zip.ZipSource.fromPath)
-    // TODO probably need to merge all content, not only in META-INF of classes.jar, but also outside it
-    val metaInf = androidLibsClassesJarMetaInf()
-      .map(ref => {
-        def metaInfRoot(p: os.Path): os.Path = {
-          var current = p
-          while (!current.endsWith(os.rel / "META-INF")) {
-            current = current / os.up
-          }
-          current / os.up
-        }
-        val path = ref.path
-        os.zip.ZipSource.fromPathTuple((path, path.subRelativeTo(metaInfRoot(path))))
-      })
-      .distinctBy(_.dest.get)
-
-    // TODO generate aar-metadata.properties (for lib distribution, not in this module) or
-    //  app-metadata.properties (for app distribution).
-    // Example of aar-metadata.properties:
-    // aarFormatVersion=1.0
-    // aarMetadataVersion=1.0
-    // minCompileSdk=33
-    // minCompileSdkExtension=0
-    // minAndroidGradlePluginVersion=1.0.0
-    //
-    // Example of app-metadata.properties:
-    // appMetadataVersion=1.1
-    // androidGradlePluginVersion=8.7.2
-    os.zip(unsignedApk, dexFiles)
-    os.zip(unsignedApk, metaInf)
-    // TODO pack also native (.so) libraries
-
-    PathRef(unsignedApk)
-  }
+  
 
   /**
    * Creates a merged manifest from application and dependencies manifests.
