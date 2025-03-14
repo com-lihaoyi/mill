@@ -1,3 +1,28 @@
+diff --git a/.github/workflows/autofix.yml b/.github/workflows/autofix.yml
+index ce356a24ebc..ab1cfeb53d2 100644
+--- a/.github/workflows/autofix.yml
++++ b/.github/workflows/autofix.yml
+@@ -8,7 +8,6 @@ jobs:
+       - uses: actions/checkout@v4
+
+       - run: |
+-          ./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/ + mill.kotlinlib.ktlint.KtlintModule/
+-          ./mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/
++          ./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/scalafmt + mill.kotlinlib.ktlint.KtlintModule/
+
+       - uses: autofix-ci/action@551dded8c6cc8a1054039c8bc0b8b48c51dfc6ef
+\ No newline at end of file
+diff --git a/.github/workflows/run-tests.yml b/.github/workflows/run-tests.yml
+index 117431e4498..2c34746853a 100644
+--- a/.github/workflows/run-tests.yml
++++ b/.github/workflows/run-tests.yml
+@@ -261,5 +261,4 @@ jobs:
+       java-version: '17'
+       buildcmd: |
+         set -eux
+-        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+-        ./mill -i --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
++        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
 diff --git a/build.mill b/build.mill
 index 92bfb2c2f8f..9854c30dac1 100644
 --- a/build.mill

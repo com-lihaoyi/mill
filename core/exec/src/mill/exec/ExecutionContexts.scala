@@ -5,7 +5,7 @@ import os.Path
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.{ExecutorService, LinkedBlockingDeque, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{PriorityBlockingQueue, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
 
 private object ExecutionContexts {
@@ -21,7 +21,7 @@ private object ExecutionContexts {
     def reportFailure(cause: Throwable): Unit = {}
     def close(): Unit = () // do nothing
 
-    def async[T](dest: Path, key: String, message: String)(t: Logger => T)(implicit
+    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
         ctx: mill.api.Ctx
     ): Future[T] =
       Future.successful(t(ctx.log))
@@ -33,7 +33,7 @@ private object ExecutionContexts {
    */
   class ThreadPool(threadCount0: Int) extends mill.api.Ctx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
-    val executor: ThreadPoolExecutor = new ThreadPoolExecutor(
+    private val executor: ThreadPoolExecutor = new ThreadPoolExecutor(
       threadCount0,
       threadCount0,
       0,
@@ -42,14 +42,8 @@ private object ExecutionContexts {
       // operations reversed, providing elements in a LIFO order. This ensures that
       // child `fork.async` tasks always take priority over parent tasks, avoiding
       // large numbers of blocked parent tasks from piling up
-      new LinkedBlockingDeque[Runnable]() {
-        override def poll(): Runnable = super.pollLast()
-        override def poll(timeout: Long, unit: TimeUnit): Runnable = super.pollLast(timeout, unit)
-        override def take(): Runnable = super.takeLast()
-      }
+      new PriorityBlockingQueue[Runnable]()
     )
-
-    val threadPool: ExecutorService = executor
 
     def updateThreadCount(delta: Int): Unit = synchronized {
       if (delta > 0) {
@@ -72,26 +66,52 @@ private object ExecutionContexts {
       // context which submitted it
       lazy val submitterPwd = os.pwd
       lazy val submitterStreams = new mill.api.SystemStreams(System.out, System.err, System.in)
-      threadPool.submit(new Runnable {
-        def run() = {
+      executor.execute(new PriorityRunnable(
+        0,
+        () =>
           os.dynamicPwdFunction.withValue(() => submitterPwd) {
             mill.api.SystemStreams.withStreams(submitterStreams) {
               runnable.run()
             }
           }
-        }
-      })
+      ))
+
     }
 
     def reportFailure(t: Throwable): Unit = {}
-    def close(): Unit = threadPool.shutdown()
+    def close(): Unit = executor.shutdown()
+
+    val priorityRunnableCount = java.util.concurrent.atomic.AtomicLong()
+
+    /**
+     * Subclass of [[java.lang.Runnable]] that assigns a priority to execute it
+     *
+     * Priority 0 is the default priority of all Mill task, priorities <0 can be used to
+     * prioritize this runnable over most other tasks, while priorities >0 can be used to
+     * de-prioritize it.
+     */
+    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable
+        with Comparable[PriorityRunnable] {
+      def run() = run0()
+      val priorityRunnableIndex: Long = priorityRunnableCount.getAndIncrement()
+      override def compareTo(o: PriorityRunnable): Int = priority.compareTo(o.priority) match {
+        case 0 =>
+          // `Comparable` wants a *total* ordering, so we need to use `priorityRunnableIndex`
+          // to break ties between instances with the same priority. This index is assigned
+          // when a task is submitted, so it should more or less follow insertion order,
+          // and is a `Long` which should be big enough never to overflow
+          assert(this == o || this.priorityRunnableIndex != o.priorityRunnableIndex)
+          this.priorityRunnableIndex.compareTo(o.priorityRunnableIndex)
+        case n => n
+      }
+    }
 
     /**
      * A variant of `scala.concurrent.Future{...}` that sets the `pwd` to a different
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
-    def async[T](dest: Path, key: String, message: String)(t: Logger => T)(implicit
+    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
         ctx: mill.api.Ctx
     ): Future[T] = {
       val logger = new MultiLogger(
@@ -109,15 +129,23 @@ private object ExecutionContexts {
 
         dest
       }
-      Future {
-        logger.withPromptLine {
-          os.dynamicPwdFunction.withValue(() => makeDest()) {
-            mill.api.SystemStreams.withStreams(logger.streams) {
-              t(logger)
+      val promise = concurrent.Promise[T]
+      val runnable = new PriorityRunnable(
+        priority = priority,
+        run0 = () => {
+          val result = scala.util.Try(logger.withPromptLine {
+            os.dynamicPwdFunction.withValue(() => makeDest()) {
+              mill.api.SystemStreams.withStreams(logger.streams) {
+                t(logger)
+              }
             }
-          }
+          })
+          promise.complete(result)
         }
-      }(this)
+      )
+
+      executor.execute(runnable)
+      promise.future
     }
   }
 }
