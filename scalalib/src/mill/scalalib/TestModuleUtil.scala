@@ -241,11 +241,16 @@ private final class TestModuleUtil(
     ) = {
       val claimFolder = base / "claim"
       os.makeDir.all(claimFolder)
-      val startingTestClass = os
-        .list
-        .stream(testClassQueueFolder)
-        .map(TestRunnerUtils.claimFile(_, claimFolder))
-        .collectFirst { case Some(name) => name }
+      val startingTestClass = try {
+        os
+          .list
+          .stream(testClassQueueFolder)
+          .map(TestRunnerUtils.claimFile(_, claimFolder))
+          .collectFirst { case Some(name) => name }
+      }
+      catch{
+        case e: Throwable => None
+      }
 
       if (force || startingTestClass.nonEmpty) {
         startingTestClass.foreach(logger.ticker(_))
@@ -335,18 +340,20 @@ private final class TestModuleUtil(
         // use fewer longer-lived test subprocesses, minimizing JVM startup overhead
         priority = if (processIndex == 0) -1 else processIndex
       ) { logger =>
-        // force run when processIndex == 0 (first subprocess), even if there are no tests to run
-        // to force the process to go through the test framework setup/teardown logic
-        (
-          if (os.exists(processFolder / "claim")) os.list(processFolder / "claim").size else 0,
-          groupName,
-          runTestRunnerSubprocess(
-            processFolder,
-            testClassesFolder,
-            force = processIndex == 0,
-            logger
-          )
+
+        val result = runTestRunnerSubprocess(
+          processFolder,
+          testClassesFolder,
+          // force run when processIndex == 0 (first subprocess), even if there are no tests to run
+          // to force the process to go through the test framework setup/teardown logic
+          force = processIndex == 0,
+          logger
         )
+
+        val claimedClasses =
+          if (os.exists(processFolder / "claim")) os.list(processFolder / "claim").size else 0
+
+        (claimedClasses, groupName, result)
       }
     }
 
@@ -366,10 +373,14 @@ private final class TestModuleUtil(
         )
 
         Task.fork.blocking {
+          // We special-case this to avoid
           while ({
             val claimedCounts = subprocessFutures.flatMap(_.value).flatMap(_.toOption).map(_._1)
             val expectedCounts = filteredClassLists.map(_.size)
-            !(claimedCounts.sum == expectedCounts.sum || subprocessFutures.forall(_.isCompleted))
+            !(
+              (claimedCounts.sum == expectedCounts.sum && subprocessFutures.head.isCompleted) ||
+                subprocessFutures.forall(_.isCompleted)
+            )
           }) Thread.sleep(1)
         }
         subprocessFutures.flatMap(_.value).map(_.get)
