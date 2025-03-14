@@ -569,38 +569,23 @@ trait JavaModule
           // Standard dependencies, like above
           // We pull their compile scope when our compile scope is asked,
           // and pull their runtime scope when our runtime scope is asked.
-          if (dep.isVariantAttributesBased)
-            Seq(
-              (cs.Configuration.compile, dep),
-              (cs.Configuration.runtime, dep)
-            )
-          else
-            Seq(
-              (cs.Configuration.compile, dep.withConfiguration(cs.Configuration.compile)),
-              (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
-            )
+          Seq(
+            (cs.Configuration.compile, dep.withConfiguration(cs.Configuration.compile)),
+            (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
+          )
       } ++
         compileIvyDeps().map(bindDependency()).map(_.dep).map { dep =>
           // Compile-only (aka provided) dependencies, like above
           // We pull their compile scope when our provided scope is asked (see scopes above)
-          if (dep.isVariantAttributesBased)
-            (cs.Configuration.provided, dep)
-          else
-            (cs.Configuration.provided, dep.withConfiguration(cs.Configuration.compile))
+          (cs.Configuration.provided, dep.withConfiguration(cs.Configuration.compile))
         } ++
         runIvyDeps().map(bindDependency()).map(_.dep).map { dep =>
           // Runtime dependencies, like above
           // We pull their runtime scope when our runtime scope is pulled
-          if (dep.isVariantAttributesBased)
-            (
-              cs.Configuration.runtime,
-              dep
-            )
-          else
-            (
-              cs.Configuration.runtime,
-              dep.withConfiguration(cs.Configuration.runtime)
-            )
+          (
+            cs.Configuration.runtime,
+            dep.withConfiguration(cs.Configuration.runtime)
+          )
         } ++
         allBomDeps().map { bomDep =>
           // BOM dependencies
@@ -933,7 +918,7 @@ trait JavaModule
    * Resolved dependencies
    */
   def resolvedIvyDeps: T[Seq[PathRef]] = Task {
-    millResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.provided),
@@ -941,7 +926,6 @@ trait JavaModule
         ),
         BoundDep(coursierDependency, force = false)
       ),
-      checkGradleModules = checkGradleModules,
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt =
         Some((_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile))
@@ -964,14 +948,13 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Seq[PathRef]] = Task {
-    millResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.runtime),
           force = false
         )
       ),
-      checkGradleModules = checkGradleModules,
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt =
         Some((_: ResolutionParams).withDefaultConfiguration(cs.Configuration.runtime))
@@ -1123,8 +1106,6 @@ trait JavaModule
 
   def launcher: T[PathRef] = Task { launcher0() }
 
-  def checkGradleModules: Boolean = false
-
   /**
    * Task that print the transitive dependency tree to STDOUT.
    * NOTE: that when `whatDependsOn` is used with `inverse` it will just
@@ -1146,7 +1127,6 @@ trait JavaModule
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
         allRepositories(),
         dependencies,
-        checkGradleModules = checkGradleModules,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
@@ -1347,12 +1327,11 @@ trait JavaModule
     val tasks =
       if (all.value) Seq(
         Task.Anon {
-          millResolver().resolveDeps(
+          millResolver().classpath(
             Seq(
               coursierDependency.withConfiguration(cs.Configuration.provided),
               coursierDependency
             ),
-            checkGradleModules = checkGradleModules,
             sources = true,
             resolutionParamsMapOpt =
               Some(
@@ -1361,9 +1340,8 @@ trait JavaModule
           )
         },
         Task.Anon {
-          millResolver().resolveDeps(
+          millResolver().classpath(
             Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
-            checkGradleModules = checkGradleModules,
             sources = true
           )
         }
