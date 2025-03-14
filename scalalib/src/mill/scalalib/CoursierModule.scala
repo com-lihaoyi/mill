@@ -6,6 +6,7 @@ import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
 import mill.api.PathRef
+import mill.util.Jvm
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -316,6 +317,28 @@ object CoursierModule {
       ).get
 
       res.orderedDependencies
+    }
+
+    def getArtifacts[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false,
+        mapDependencies: Option[Dependency => Dependency] = None,
+        customizer: Option[Resolution => Resolution] = None,
+        ctx: Option[mill.api.Ctx.Log] = None,
+        coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+        artifactTypes: Option[Set[Type]] = None,
+        resolutionParams: ResolutionParams = ResolutionParams()
+    ): coursier.Artifacts.Result = {
+      val deps0 = deps
+        .iterator
+        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .toSeq
+      Jvm.getArtifacts(
+        repositories,
+        deps0.map(_.dep),
+        sources = sources,
+        ctx = ctx
+      ).get
     }
   }
 

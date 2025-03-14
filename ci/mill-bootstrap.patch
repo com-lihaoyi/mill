@@ -602,7 +602,7 @@ index 73c8cd24f9c..362eac814cd 100644
          )
 -        result.getOrThrow.orderedDependencies
 +        result.get.orderedDependencies
-           .map(_.module.repr)
+           .map(dep => s"${dep.module.repr}:${dep.version}")
            .distinct
            .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
 diff --git a/mill-build/build.mill b/mill-build/build.mill
