@@ -77,7 +77,7 @@ case class IrLicense(
     distribution: String = "repo"
 )
 
-// TODO Consider renaming to `IrModule(Build)` to disambiguate? sbt, for example, uses `ThisBuild` and `buildSettings` to refer to the whole build.
+// TODO Consider renaming to `IrModule(Build)` to disambiguate? `sbt`, for example, uses `ThisBuild` and `buildSettings` to refer to the whole build.
 // TODO reuse the members in `IrTrait`?
 case class IrBuild(
     scopedDeps: IrScopedDeps,

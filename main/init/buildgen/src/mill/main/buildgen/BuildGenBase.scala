@@ -20,7 +20,7 @@ trait BuildGenBase[M, D, I] {
 
   /**
    * A [[Map]] mapping from a key retrieved from the original build tool
-   * (for example, the GAV coordinate for Maven, `ProjectRef.project` for sbt)
+   * (for example, the GAV coordinate for Maven, `ProjectRef.project` for `sbt`)
    * to the module FQN reference string in code such as `parentModule.childModule`.
    *
    * If there is no need for such a map, override it with [[Unit]].

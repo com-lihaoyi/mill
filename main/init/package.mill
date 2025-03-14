@@ -114,7 +114,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       BuildInfo.Value("sbtVersion", build.Deps.sbt.version, "Version of sbt.")
     )
 
-    // An SBT plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
+    // An `sbt` plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
     object models
         extends Cross[ModelsModule](build.Deps.sbtScalaVersion212, build.Deps.scalaVersion)
     trait ModelsModule extends build.MillPublishCrossScalaModule {
@@ -124,7 +124,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     }
 
     // no need to publish this
-    // `test` fails with `build.MillScalaModule`, and since it's an SBT plugin project it's most likely not needed.
+    // `test` fails with `build.MillScalaModule`, and since it's an `sbt` plugin project it's most likely not needed.
     object exportplugin extends ScalaModule {
       private val scalaVersionString = build.Deps.sbtScalaVersion212
       def scalaVersion = scalaVersionString

@@ -74,7 +74,7 @@ object BuildGenUtil {
         val declare =
           BuildGenUtil.renderTestModuleDecl(testModule, testModuleMainType, scopedDeps.testModule)
 
-        // `testSandboxWorkingDir` is disabled as other build tools such as sbt don't run tests in the sandbox.
+        // `testSandboxWorkingDir` is disabled as other build tools such as `sbt` don't run tests in the sandbox.
         s"""$declare {
            |
            |${renderBomIvyDeps(scopedDeps.testBomIvyDeps)}

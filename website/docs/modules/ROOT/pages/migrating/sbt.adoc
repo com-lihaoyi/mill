@@ -1,18 +1,18 @@
-= Migrating From sbt to Mill
+= Migrating From `sbt` to Mill
 :page-aliases: Migrating_An_sbt_Build_to_Mill.adoc
 :icons: font
 
 
 
-The Mill `init` command can be used to convert an sbt build to Mill. This has
+The Mill `init` command can be used to convert an `sbt` build to Mill. This has
 xref:#limitations[limitations] and is not intended to reliably migrate 100% of
-sbt builds out there in the wild, but is instead meant to provide the basic
+`sbt` builds out there in the wild, but is instead meant to provide the basic
 scaffolding of a Mill build for you to further refine and update manually.
 
-Each sbt project in a build tree is converted to a Mill module.
+Each `sbt` project in a build tree is converted to a Mill module.
 A nested `test` module is defined, if `src/test` exists, and is configured with a supported xref:scalalib/testing.adoc[test framework], if found.
 
-Again, note that `mill init` imports an sbt build on a best-effort basis.
+Again, note that `mill init` imports an `sbt` build on a best-effort basis.
 This means that while simple projects can be expected to complete without issue:
 
 include::partial$example/migrating/scalalib/1-sbt-complete.adoc[]
@@ -93,7 +93,7 @@ The conversion does not support:
 * sources other than Scala on JVM and Java, such as Scala.js and Scala Native
 * cross builds
 
-sbt plugin support is limited to:
+`sbt` plugin support is limited to:
 
 * https://www.scala-sbt.org/1.x/api/sbt/plugins/JvmPlugin$.html[`JvmPlugin`]
 
@@ -114,9 +114,9 @@ How to fix errors such as
 `java.lang.UnsupportedOperationException: The Security Manager is deprecated and will be removed in a future release`,
 `java.io.IOError: java.lang.RuntimeException: /packages cannot be represented as URI`,
 and `java.lang.RuntimeException: java.lang.reflect.InvocationTargetException`
-thrown by the sbt command invoked by `mill init`?
+thrown by the `sbt` command invoked by `mill init`?
 
-Update the project's sbt version to the latest or our tested version v1.10.10,
+Update the project's `sbt` version to the latest or our tested version v1.10.10,
 and check whether you have the appropriate Java version,
 and try again.
 
