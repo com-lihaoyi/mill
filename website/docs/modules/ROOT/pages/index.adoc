@@ -109,7 +109,7 @@ build tools, check out these pages:
 |===
 | xref:comparisons/maven.adoc[image:index/maven.png[maven,24] Mill vs Maven]
 | xref:comparisons/gradle.adoc[image:index/gradle.svg[gradle,32] Mill vs Gradle]
-| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs sbt]
+| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs `sbt`]
 |===
 
 === Contributing and Community

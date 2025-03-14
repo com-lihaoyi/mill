@@ -75,7 +75,7 @@ Test foo.FooTest.testSimple finished, ...
 <h1>hello</h1>
 ----
 
-Mill was originally a Scala build tool competing with https://scala-sbt.org/[sbt], and by 2023 it
+Mill was originally a Scala build tool competing with https://scala-sbt.org/[`sbt`], and by 2023 it
 had reached around 5-10% market share in the Scala community
 (https://www.jetbrains.com/lp/devecosystem-2023/scala/[Jetbrains Survey],
 https://scalasurvey2023.virtuslab.com/[VirtusLabs Survey]).

@@ -92,7 +92,7 @@ object Foo {
 ## Example Builds
 
 To build this small program, we will set up equivalent builds using the
-https://mill-build.org/[Mill build tool], https://www.scala-sbt.org/[sbt],
+https://mill-build.org/[Mill build tool], https://www.scala-sbt.org/[`sbt`],
 and https://maven.apache.org/[Maven]
 
 ### Mill
@@ -141,11 +141,11 @@ $ ls -lh out/assembly.dest/out.jar
 ```
 
 
-### sbt
+### `sbt`
 
-The sbt build is similar to the Mill build above. Apart from a slightly different syntax,
-sbt also needs you to specify `name` and `version` (Mill lets you skip these unless
-you are publishing your module), and configure an `assemblyMergeStrategy`. sbt
+The `sbt` build is similar to the Mill build above. Apart from a slightly different syntax,
+`sbt` also needs you to specify `name` and `version` (Mill lets you skip these unless
+you are publishing your module), and configure an `assemblyMergeStrategy`. `sbt`
 also requires that you explicitly enable the `AssemblyPlugin`, whereas Mill comes with
 that built in by default.
 
@@ -194,7 +194,7 @@ $ ls -lh target/scala-2.12/spark-app-assembly-0.1.jar
 The Maven build is by far the most verbose of the build configurations for this
 example codebase, but it contains basically the same information: `scala.version`,
 `spark.version` and dependencies on `spark-core` and `spark-sql`. Maven requires
-you to enable the `maven-assembly-plugin` explicitly similar to sbt, and on top of
+you to enable the `maven-assembly-plugin` explicitly similar to `sbt`, and on top of
 that requires you enable `maven-compiler-plugin` and `maven-scala-plugin`:
 
 ```xml
@@ -332,7 +332,7 @@ Total time: 22s
 ```
 
 Here, we can see that Mill only took `1s` to re-build the assembly jar,
-while sbt and Maven took the same ~20s that they took the first time the
+while `sbt` and Maven took the same ~20s that they took the first time the
 jar was built. If you play around with it, you will see that the assembly jar
 does contain classfiles associated with our newly-added code:
 
@@ -572,7 +572,7 @@ _O(size-of-transitive-dependencies)_ which a naive assembly-jar creation process
 
 This blog post has discussed how Mill is able to provide fast incremental updates to
 generated assembly jars, in the example shown above it sped up Spark assembly jar creation
-from ~20s to ~1s v.s. the equivalent workflow in other build tools like Maven or sbt.
+from ~20s to ~1s v.s. the equivalent workflow in other build tools like Maven or `sbt`.
 This speedup can apply to any JVM codebase, although the benefit would depend on the
 size of your local application code and its transitive dependencies. There is some overhead
 to "clean build" assembly jars from scratch, but such scenarios typically happen much
@@ -588,5 +588,5 @@ Mill's hardcoded three-layer split aren't sufficient to keep things fast.
 
 It turns out there's no magic in Mill's fast assembly generation: just careful use of
 the available APIs provided by the underlying JVM platform. Hopefully this approach
-can eventually make its way to other build tools like Maven or sbt, so everyone can
+can eventually make its way to other build tools like Maven or `sbt`, so everyone can
 benefit from the fast assembly jar creation that Mill provides today.
