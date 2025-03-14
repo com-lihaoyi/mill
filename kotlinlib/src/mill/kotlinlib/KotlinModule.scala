@@ -97,9 +97,8 @@ trait KotlinModule extends JavaModule { outer =>
    * Default is derived from [[kotlinCompilerIvyDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
-    resolveDeps(
-      Task.Anon { kotlinCompilerIvyDeps().map(bindDependency()) }
-    )() ++ kotlinWorkerClasspath()
+    defaultResolver().resolveDeps(kotlinCompilerIvyDeps()) ++
+      kotlinWorkerClasspath()
   }
 
   /**
