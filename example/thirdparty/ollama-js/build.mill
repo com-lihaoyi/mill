@@ -27,7 +27,6 @@ trait OllamaModule extends TypeScriptModule {
     os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
 
-    os.remove.all(T.dest / "declarations")
     os.write.over(
       Task.dest / "package.json",
       ujson.Obj(
@@ -72,12 +71,16 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
     "@types/whatwg-fetch@0.0.33",
     "unbuild@2.0.0"
   )
-  def moduleDeps = Seq()
 
   def npmLintDeps = Seq(
+    "prettier@3.2.4",
+    "eslint@8.29.0",
     "@typescript-eslint/eslint-plugin@5.42.1",
     "@typescript-eslint/parser@5.42.1"
   )
+
+  // disable declarations output in compile stage
+  def runTypeCheck: T[Boolean] = false
 
   def options =
     super.options() + (
