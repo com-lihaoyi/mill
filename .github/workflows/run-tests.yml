@@ -168,6 +168,7 @@ jobs:
             install-sbt: false
 
           - java-version: 11
+            # not sure why these need to be `.packaged` but `.local` fails with weird zinc errors
             millargs: "'{example,integration}.migrating.__.packaged.server.test'"
             install-android-sdk: false
             install-sbt: true
