@@ -21,6 +21,7 @@ private object ExecutionContexts {
     def reportFailure(cause: Throwable): Unit = {}
     def close(): Unit = () // do nothing
 
+    def blocking[T](t: => T): T = t
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
         ctx: mill.api.Ctx
     ): Future[T] =
