@@ -386,7 +386,7 @@ class GenIdeaImpl(
      *
      * @see [[https://github.com/JetBrains/intellij-scala/blob/idea223.x/scala/worksheet/src/org/jetbrains/plugins/scala/worksheet/ammonite/AmmoniteUtil.scala#L240]]
      * @example {{{
-     *   //sbt: com.lihaoyi:ammonite-ops_2.13:2.2.0:jar
+     *   //SBT: com.lihaoyi:ammonite-ops_2.13:2.2.0:jar
      *   import $ivy.`com.lihaoyi::ammonite-ops:2.2.0
      * }}}
      */
@@ -404,7 +404,7 @@ class GenIdeaImpl(
           // Default to the scala binary version used by mill itself
           s"${artifactId}_${BuildInfo.scalaVersion.split("[.]").take(2).mkString(".")}"
       }
-      s"sbt: ${pom.module.organization.value}:$artifactWithScalaVersion:${pom.version}:jar"
+      s"SBT: ${pom.module.organization.value}:$artifactWithScalaVersion:${pom.version}:jar"
     }
 
     def libraryNames(resolvedJar: ResolvedLibrary): Seq[String] =
