@@ -56,8 +56,7 @@ trait Static extends ScalaModule {
    * jar files of web jars
    */
   def webJars = Task {
-    Lib.resolveDependencies(
-      repositoriesTask(),
+    defaultResolver().resolveDeps(
       webJarDeps()
     )
   }

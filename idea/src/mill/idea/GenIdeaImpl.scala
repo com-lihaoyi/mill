@@ -154,7 +154,7 @@ class GenIdeaImpl(
             val extRunIvyDeps = mod.resolvedRunIvyDeps
 
             val externalSources = Task.Anon {
-              mod.resolveDeps(allIvyDeps, sources = true, enableMillInternalDependencies = true)()
+              mod.millResolver().resolveDeps(allIvyDeps(), sources = true)
             }
 
             val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {

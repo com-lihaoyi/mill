@@ -3,7 +3,6 @@ package contrib.scalapblib
 
 import coursier.core.Version
 import mill.api.{PathRef}
-import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 
 import java.util.zip.ZipInputStream
@@ -76,8 +75,7 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBClasspath: T[Seq[PathRef]] = Task {
-    resolveDependencies(
-      repositoriesTask(),
+    defaultResolver().resolveDeps(
       Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
         .map(Lib.depToBoundDep(_, "2.13.1"))
     )

@@ -5,7 +5,7 @@ import coursier.core.{BomDependency, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
 import mill.util.Jvm
 
 import scala.concurrent.Await
@@ -65,37 +65,6 @@ trait CoursierModule extends mill.Module {
       ctx = Some(implicitly[mill.api.Ctx.Log]),
       resolutionParams = resolutionParams()
     )
-  }
-
-  /**
-   * Task that resolves the given dependencies using the repositories defined with [[repositoriesTask]].
-   *
-   * @param deps    The dependencies to resolve.
-   * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
-   * @param artifactTypes If non-empty, pull the passed artifact types rather than the default ones from coursier
-   * @return The [[PathRef]]s to the resolved files.
-   */
-  def resolveDeps(
-      deps: Task[Seq[BoundDep]],
-      sources: Boolean = false,
-      artifactTypes: Option[Set[Type]] = None,
-      enableMillInternalDependencies: Boolean = false
-  ): Task[Seq[PathRef]] = {
-    val repositoriesTask0 =
-      if (enableMillInternalDependencies) allRepositories
-      else repositoriesTask
-    Task.Anon {
-      Lib.resolveDependencies(
-        repositories = repositoriesTask0(),
-        deps = deps(),
-        sources = sources,
-        artifactTypes = artifactTypes,
-        mapDependencies = Some(mapDependencies()),
-        customizer = resolutionCustomizer(),
-        coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.api.Ctx.Log])
-      )
-    }
   }
 
   /**
@@ -225,20 +194,35 @@ object CoursierModule {
         deps: IterableOnce[T],
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
-        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
-    ): Seq[PathRef] = {
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
+        mapDependencies: Option[Dependency => Dependency] = null
+    ): Seq[PathRef] =
+      resolveDepsSafe(
+        deps,
+        sources,
+        artifactTypes,
+        resolutionParamsMapOpt,
+        mapDependencies
+      ).get
+
+    def resolveDepsSafe[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false,
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
+        mapDependencies: Option[Dependency => Dependency] = null
+    ): Result[Seq[PathRef]] =
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
         artifactTypes = artifactTypes,
-        mapDependencies = mapDependencies,
+        mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
-      ).get
-    }
+      )
 
     /**
      * Processes dependencies and BOMs with coursier
