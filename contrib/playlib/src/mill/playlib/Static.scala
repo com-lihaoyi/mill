@@ -5,7 +5,7 @@ import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util
 
-import mill.scalalib.{Lib, ScalaModule}
+import mill.scalalib.ScalaModule
 import mill.{PathRef, Task}
 
 trait Static extends ScalaModule {
