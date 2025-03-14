@@ -28,6 +28,8 @@ object `package` extends RootModule {
       def ivyDeps = super.ivyDeps() ++
         Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
+      def testSandboxWorkingDir = false
+      def testParallelism = false
     }
   }
 
@@ -38,6 +40,8 @@ object `package` extends RootModule {
       def ivyDeps = super.ivyDeps() ++
         Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
+      def testSandboxWorkingDir = false
+      def testParallelism = false
     }
   }
 

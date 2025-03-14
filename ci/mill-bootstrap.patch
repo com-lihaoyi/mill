@@ -24,7 +24,7 @@ index 117431e4498..2c34746853a 100644
 -        ./mill -i --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
 +        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
 diff --git a/build.mill b/build.mill
-index c953679633f..da919915bbc 100644
+index 92bfb2c2f8f..9854c30dac1 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,16 +1,16 @@
@@ -48,7 +48,7 @@ index c953679633f..da919915bbc 100644
  import mill.T
  import mill.define.Cross
  
-@@ -288,19 +288,19 @@ object Deps {
+@@ -290,19 +290,19 @@ object Deps {
  }
  
  def millVersion: T[String] = Task.Input {
@@ -72,7 +72,7 @@ index c953679633f..da919915bbc 100644
  }
  
  def millDownloadPrefix = Task {
-@@ -319,7 +319,7 @@ def millBinPlatform: T[String] = Task {
+@@ -321,7 +321,7 @@ def millBinPlatform: T[String] = Task {
    }
  }
  
@@ -81,7 +81,7 @@ index c953679633f..da919915bbc 100644
  
  def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
  
-@@ -469,7 +469,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+@@ -471,7 +471,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  /**
   * Some custom scala settings and test convenience
   */
@@ -90,7 +90,7 @@ index c953679633f..da919915bbc 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -526,8 +526,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -528,8 +528,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
      val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
      val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
      super.scalacPluginIvyDeps() ++
@@ -101,7 +101,7 @@ index c953679633f..da919915bbc 100644
    }
  
    def mandatoryIvyDeps = T {
-@@ -535,13 +535,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -537,13 +537,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
      val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
      val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
      super.mandatoryIvyDeps() ++
@@ -117,7 +117,7 @@ index c953679633f..da919915bbc 100644
      def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
-@@ -580,7 +580,8 @@ trait MillBaseTestsModule extends TestModule {
+@@ -583,7 +583,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
@@ -127,7 +127,7 @@ index c953679633f..da919915bbc 100644
    import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -710,7 +711,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+@@ -713,7 +714,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
@@ -135,7 +135,7 @@ index c953679633f..da919915bbc 100644
 +  }*/
  }
  
- object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
+ trait MillPublishCrossScalaModule extends MillPublishJavaModule with CrossScalaModule
 diff --git a/contrib/package.mill b/contrib/package.mill
 index b68c27a1ef8..01a3e9da2c0 100644
 --- a/contrib/package.mill
@@ -214,7 +214,7 @@ index e49f218f4be..9d03aa073f3 100644
        def ivyDeps = Task {
          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
 diff --git a/dist/package.mill b/dist/package.mill
-index fbbeacbc843..b3e00f8db5f 100644
+index 515ed31025a..821d8fcc540 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -2,15 +2,14 @@ package build.dist
@@ -244,7 +244,7 @@ index fbbeacbc843..b3e00f8db5f 100644
      PathRef(path)
    }
  
-@@ -185,10 +184,10 @@ object `package` extends RootModule with InstallModule {
+@@ -186,10 +185,10 @@ object `package` extends RootModule with InstallModule {
          val wd = os.Path(wd0, Task.workspace)
          os.makeDir.all(wd)
          try {
@@ -258,7 +258,7 @@ index fbbeacbc843..b3e00f8db5f 100644
            )
            mill.api.Result.Success(())
          } catch {
-@@ -233,7 +232,7 @@ object `package` extends RootModule with InstallModule {
+@@ -234,7 +233,7 @@ object `package` extends RootModule with InstallModule {
    def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
      for {
        exampleMod <- build.example.exampleModules
@@ -267,7 +267,7 @@ index fbbeacbc843..b3e00f8db5f 100644
      } yield {
        val example = path.subRelativeTo(Task.workspace)
        val artifactName = example.segments.mkString("-")
-@@ -263,6 +262,7 @@ object `package` extends RootModule with InstallModule {
+@@ -264,6 +263,7 @@ object `package` extends RootModule with InstallModule {
    }
  
    def uploadToGithub(authKey: String) = Task.Command {
@@ -275,7 +275,7 @@ index fbbeacbc843..b3e00f8db5f 100644
      val vcsState = VcsVersion.vcsState()
      val label = vcsState.copy(dirtyHash = None).format()
      if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
-@@ -279,7 +279,7 @@ object `package` extends RootModule with InstallModule {
+@@ -280,7 +280,7 @@ object `package` extends RootModule with InstallModule {
          headers = Seq("Authorization" -> ("token " + authKey))
        )
      }
@@ -284,7 +284,7 @@ index fbbeacbc843..b3e00f8db5f 100644
      ()
    }
  
-@@ -316,7 +316,7 @@ object `package` extends RootModule with InstallModule {
+@@ -317,7 +317,7 @@ object `package` extends RootModule with InstallModule {
          out.write(os.read.bytes(assembly().path))
        }
  
@@ -294,7 +294,7 @@ index fbbeacbc843..b3e00f8db5f 100644
        PathRef(executable)
      }
 diff --git a/example/package.mill b/example/package.mill
-index 62190fd6c1e..9d4f176c915 100644
+index a1e60b992d2..b5ae133427a 100644
 --- a/example/package.mill
 +++ b/example/package.mill
 @@ -3,13 +3,12 @@ package build.example
@@ -312,7 +312,7 @@ index 62190fd6c1e..9d4f176c915 100644
  import mill.contrib.buildinfo.BuildInfo
  import mill.T
  import mill.define.Cross
-@@ -18,111 +17,111 @@ import mill.define.Cross
+@@ -18,116 +17,116 @@ import mill.define.Cross
  import $meta._
  
  object `package` extends RootModule with Module {
@@ -342,9 +342,6 @@ index 62190fd6c1e..9d4f176c915 100644
 +        extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "dependencies"))
 +    object testing extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "testing"))
 +    object linting extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "linting"))
-     object migrating
--        extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "migrating"))
-+        extends Cross[ExampleCrossModuleJava](build.listIn(moduleDir / "migrating"))
      object publishing
 -        extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
 -    object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
@@ -389,6 +386,15 @@ index 62190fd6c1e..9d4f176c915 100644
 +    object web extends Cross[ExampleCrossModule](build.listIn(moduleDir / "web"))
 +    object native extends Cross[ExampleCrossModule](build.listIn(moduleDir / "native"))
 +    object spark extends Cross[ExampleCrossModule](build.listIn(moduleDir / "spark"))
+   }
+ 
+   object migrating extends Module {
+     object javalib
+-        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "javalib"))
++        extends Cross[ExampleCrossModule](build.listIn(moduleDir / "javalib"))
+     object scalalib
+-        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "scalalib"))
++        extends Cross[ExampleCrossModule](build.listIn(moduleDir / "scalalib"))
    }
    object javascriptlib extends Module {
 -    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
@@ -482,7 +488,7 @@ index 62190fd6c1e..9d4f176c915 100644
        case "1-test-suite" => line
            .replace(
              "mill bar.test bar.BarTests.hello",
-@@ -147,7 +146,7 @@ object `package` extends RootModule with Module {
+@@ -152,7 +151,7 @@ object `package` extends RootModule with Module {
        case "publishing" => Some(scalalib.publishing)
        case _ => None
      }
@@ -491,7 +497,7 @@ index 62190fd6c1e..9d4f176c915 100644
        .flatMap(_.valuesToModules.get(List(crossValue)))
  
      def testRepoRoot = Task {
-@@ -213,10 +212,10 @@ object `package` extends RootModule with Module {
+@@ -218,10 +217,10 @@ object `package` extends RootModule with Module {
  
    trait ExampleCrossModule extends build.integration.IntegrationTestModule {
      // disable scalafix because these example modules don't have sources causing it to misbehave
@@ -504,7 +510,7 @@ index 62190fd6c1e..9d4f176c915 100644
      def sources = Task {
        sources0()
          .flatMap(pathRef => os.walk(pathRef.path))
-@@ -245,7 +244,7 @@ object `package` extends RootModule with Module {
+@@ -250,7 +249,7 @@ object `package` extends RootModule with Module {
  
      def rendered = Task {
        var seenCode = false
@@ -513,7 +519,7 @@ index 62190fd6c1e..9d4f176c915 100644
        os.write(
          Task.dest / "example.adoc",
          parsed()
-@@ -303,7 +302,7 @@ $txt
+@@ -308,7 +307,7 @@ $txt
      "gatling" -> ("gatling/gatling", "3870fda86e6bca005fbd53108c60a65db36279b6"),
      "arrow" -> ("arrow-kt/arrow", "bc9bf92cc98e01c21bdd2bf8640cf7db0f97204a")
    )
@@ -523,7 +529,7 @@ index 62190fd6c1e..9d4f176c915 100644
      val (repoPath, repoHash) = repoInfo(crossValue)
      def repoSlug = repoPath.split("/").last
 diff --git a/integration/package.mill b/integration/package.mill
-index b04b1bfeb9b..60f317b422d 100644
+index d57b7936add..ae4985f9102 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -3,13 +3,12 @@ package build.integration
@@ -564,7 +570,7 @@ index b04b1bfeb9b..60f317b422d 100644
        def scalaVersion = build.Deps.scalaVersion
  
        def forkEnv =
-@@ -86,13 +85,13 @@ object `package` extends RootModule {
+@@ -86,15 +85,15 @@ object `package` extends RootModule {
      }
    }
  
@@ -580,6 +586,9 @@ index b04b1bfeb9b..60f317b422d 100644
    object bootstrap
 -      extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "bootstrap"))
 +      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
+   object migrating
+-      extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "migrating"))
++      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "migrating"))
    trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
      def forkEnv = super.forkEnv() ++ Seq(

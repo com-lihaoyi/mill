@@ -10,10 +10,7 @@ tooling.
 
 * xref:migrating/maven.adoc[]
 * xref:migrating/gradle.adoc[]
-
-Other automation is work-in-process.
-
-* https://github.com/com-lihaoyi/mill/issues/3450[SBT]
+* xref:migrating/sbt.adoc[]
 
 While automation helps with
 some of the scaffolding the general principles laid out on this page still apply.

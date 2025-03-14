@@ -387,6 +387,10 @@ object TestModule {
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
   }
 
+  trait ScalaCheck extends TestModule {
+    override def testFramework: T[String] = "org.scalacheck.ScalaCheckFramework"
+  }
+
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
