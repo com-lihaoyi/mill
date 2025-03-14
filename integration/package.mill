@@ -46,12 +46,16 @@ object `package` extends RootModule {
           IntegrationTestModule.this.forkEnv() ++
           Map(
             "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
+            "MILL_INTEGRATION_IS_PACKAGED_LAUNCHER" -> millIntegrationIsPackagedLauncher().toString,
             "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           )
 
       def millIntegrationLauncher: T[PathRef]
+
+      /** Whether the Mill JARs are published locally alongside this Mill launcher */
+      def millIntegrationIsPackagedLauncher: Task[Boolean]
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
 
@@ -64,25 +68,32 @@ object `package` extends RootModule {
           mill.scalalib.api.CompilationResult(null, null)
         } // binary compatibility stub, not used
 
-      def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     }
 
     object local extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.launcher()
+      def millIntegrationIsPackagedLauncher = Task(false)
     }
     object packaged extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.executable()
+      def millIntegrationIsPackagedLauncher = Task(true)
     }
     object native extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.native.executable()
+      def millIntegrationIsPackagedLauncher = Task(true)
     }
     trait IntegrationLauncherModule extends Module {
       def millIntegrationLauncher: T[PathRef]
+      def millIntegrationIsPackagedLauncher: Task[Boolean]
       object fork extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
+        def millIntegrationIsPackagedLauncher =
+          IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
       object server extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
+        def millIntegrationIsPackagedLauncher =
+          IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
     }
   }
@@ -94,12 +105,14 @@ object `package` extends RootModule {
   object ide extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "ide"))
   object bootstrap
       extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "bootstrap"))
+  object migrating
+      extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "migrating"))
   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
       "MILL_PROJECT_ROOT" -> Task.workspace.toString,
       "TEST_SCALA_2_13_VERSION" -> build.Deps.testScala213Version,
-      "TEST_KOTLIN_VERSION" -> build.Deps.kotlinCompiler.dep.version
+      "TEST_KOTLIN_VERSION" -> build.Deps.kotlinCompiler.version
     )
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {

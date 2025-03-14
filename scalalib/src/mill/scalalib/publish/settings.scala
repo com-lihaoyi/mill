@@ -27,9 +27,9 @@ object Artifact {
     )
     Dependency(
       Artifact(
-        dep.dep.module.organization.value,
+        dep.organization,
         name,
-        dep.dep.version
+        dep.version
       ),
       Scope.Compile,
       dep.dep.optional,

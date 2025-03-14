@@ -8,5 +8,6 @@ import mill.define.Evaluator
  */
 object Bloop extends BloopImpl(
       () => Evaluator.allBootstrapEvaluators.value.value,
-      WorkspaceRoot.workspaceRoot
+      WorkspaceRoot.workspaceRoot,
+      addMillSources = None
     )

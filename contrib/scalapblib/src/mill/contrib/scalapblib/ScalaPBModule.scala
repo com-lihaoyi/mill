@@ -90,8 +90,8 @@ trait ScalaPBModule extends ScalaModule {
     case false => Task.Anon { Seq.empty[PathRef] }
   }
 
-  def scalaPBProtoClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+  def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
+    millResolver().resolveDeps(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),
         coursierDependency
@@ -111,7 +111,7 @@ trait ScalaPBModule extends ScalaModule {
               if (entry.getName.endsWith(".proto")) {
                 val protoDest = dest / os.SubPath(entry.getName)
                 if (os.exists(protoDest))
-                  Task.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
+                  Task.log.warn(s"Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
                 Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
                   _root_.os.Internals.transfer(zip, os, close = false)
                 }

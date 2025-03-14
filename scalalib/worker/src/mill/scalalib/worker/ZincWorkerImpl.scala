@@ -229,35 +229,43 @@ class ZincWorkerImpl(
       scalacPluginClasspath,
       Seq()
     ) { (compilers: Compilers) =>
-      if (ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)) {
-        // dotty 0.x and scala 3 milestones use the dotty-doc tool
-        val dottydocClass =
-          compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
-        val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
-        val reporter =
-          dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), args.toArray)
-        val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
-        !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
-      } else if (ZincWorkerUtil.isScala3(scalaVersion)) {
-        // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
-        // requires the ContextClassLoader to be set appropriately
-        mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader) {
-          val scaladocClass =
-            compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
-          val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
+      // Not sure why dotty scaladoc is flaky, but add retries to workaround it
+      // https://github.com/com-lihaoyi/mill/issues/4556
+      mill.util.Retry(count = 2) {
+        if (
+          ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)
+        ) {
+          // dotty 0.x and scala 3 milestones use the dotty-doc tool
+          val dottydocClass =
+            compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
+          val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
           val reporter =
-            scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
+            dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), args.toArray)
           val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
           !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
+        } else if (ZincWorkerUtil.isScala3(scalaVersion)) {
+          // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
+          // requires the ContextClassLoader to be set appropriately
+          mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader) {
+
+            val scaladocClass =
+              compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
+
+            val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
+            val reporter =
+              scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
+            val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
+            !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
+          }
+        } else {
+          val scaladocClass =
+            compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
+          val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
+          scaladocMethod.invoke(
+            scaladocClass.getConstructor().newInstance(),
+            args.toArray
+          ).asInstanceOf[Boolean]
         }
-      } else {
-        val scaladocClass =
-          compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
-        val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
-        scaladocMethod.invoke(
-          scaladocClass.getConstructor().newInstance(),
-          args.toArray
-        ).asInstanceOf[Boolean]
       }
     }
   }
@@ -537,9 +545,9 @@ class ZincWorkerImpl(
 
     val consoleAppender = ConsoleAppender(
       "ZincLogAppender",
-      ConsoleOut.printStreamOut(ctx.log.errorStream),
-      ctx.log.colored,
-      ctx.log.colored,
+      ConsoleOut.printStreamOut(ctx.log.streams.err),
+      ctx.log.prompt.colored,
+      ctx.log.prompt.colored,
       _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
@@ -548,12 +556,12 @@ class ZincWorkerImpl(
     def mkNewReporter(mapper: (xsbti.Position => xsbti.Position) | Null) = reporter match {
       case None =>
         new ManagedLoggedReporter(10, logger) with RecordingReporter
-          with TransformingReporter(ctx.log.colored, mapper) {}
+          with TransformingReporter(ctx.log.prompt.colored, mapper) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(10, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
-          with TransformingReporter(ctx.log.colored, mapper) {}
+          with TransformingReporter(ctx.log.prompt.colored, mapper) {}
     }
     val analysisMap0 = upstreamCompileOutput.map(c => c.classes.path -> c.analysisFile).toMap
 
@@ -645,7 +653,7 @@ class ZincWorkerImpl(
     val scalaColorProp = "scala.color"
     val previousScalaColor = sys.props(scalaColorProp)
     try {
-      sys.props(scalaColorProp) = if (ctx.log.colored) "true" else "false"
+      sys.props(scalaColorProp) = if (ctx.log.prompt.colored) "true" else "false"
       val newResult = ic.compile(
         in = inputs,
         logger = logger

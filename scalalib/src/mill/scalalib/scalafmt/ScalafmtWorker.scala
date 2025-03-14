@@ -28,7 +28,7 @@ private[scalafmt] class ScalafmtWorker extends AutoCloseable {
     if (misformatted.isEmpty) {
       Result.Success(())
     } else {
-      val out = ctx.log.outputStream
+      val out = ctx.log.streams.out
       for (u <- misformatted) {
         out.println(u.path.toString)
       }

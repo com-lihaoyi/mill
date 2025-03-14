@@ -19,7 +19,11 @@ object BloopTests extends TestSuite {
 
   val unitTester = UnitTester(build, null)
   val workdir = unitTester.evaluator.rootModule.moduleDir
-  val testBloop = new BloopImpl(() => Seq(unitTester.evaluator), workdir)
+  val testBloop = new BloopImpl(
+    () => Seq(unitTester.evaluator),
+    workdir,
+    addMillSources = None
+  )
 
   object build extends TestBaseModule {
     object scalaModule extends scalalib.ScalaModule with testBloop.Module {
@@ -258,7 +262,7 @@ object BloopTests extends TestSuite {
             assert(sources == List(workdir / "scalanativeModule/src"))
             assert(version == build.scalanativeModule.sv)
             assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
-            assert(platform.config.clang == clang.value.toNIO)
+            assert(platform.config.clang == clang.value.path.toNIO)
         }
       }
       test("skipped") {

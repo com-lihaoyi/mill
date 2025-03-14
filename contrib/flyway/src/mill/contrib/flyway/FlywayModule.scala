@@ -74,7 +74,7 @@ trait FlywayModule extends JavaModule {
     val out =
       s"""Schema version: ${currentSchemaVersion}
          |${MigrationInfoDumper.dumpToAsciiTable(info.all)}""".stripMargin
-    Task.log.outputStream.println(out)
+    Task.log.streams.out.println(out)
     out
   }
 }

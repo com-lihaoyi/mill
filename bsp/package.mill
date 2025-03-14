@@ -14,7 +14,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     Seq(
       BuildInfo.Value(
         "bsp4jVersion",
-        build.Deps.bsp4j.dep.version,
+        build.Deps.bsp4j.version,
         "BSP4j version (BSP Protocol version)."
       )
     )
@@ -28,7 +28,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
       super.forkEnv()
     }
 
-    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${build.Deps.bsp4j.dep.version}")
+    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${build.Deps.bsp4j.version}")
   }
 
   object worker extends build.MillPublishScalaModule {

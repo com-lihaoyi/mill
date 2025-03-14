@@ -15,22 +15,33 @@ import scala.xml.{Elem, NodeSeq, XML}
 object TestRunnerTestUtils {
   object testrunner extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = Seq(x)
+    def enableParallelism = false
 
     lazy val millDiscover = Discover[this.type]
   }
 
   object testrunnerGrouping extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = x.sorted.grouped(2).toSeq
+    def enableParallelism = false
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object testrunnerWorkStealing extends TestRunnerTestModule {
+    def computeTestForkGrouping(x: Seq[String]) = Seq(x)
+    def enableParallelism = true
 
     lazy val millDiscover = Discover[this.type]
   }
 
   trait TestRunnerTestModule extends TestBaseModule with ScalaModule {
     def computeTestForkGrouping(x: Seq[String]): Seq[Seq[String]]
+    def enableParallelism: Boolean
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object utest extends ScalaTests with TestModule.Utest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
+      override def testParallelism = enableParallelism
       override def ivyDeps = Task {
         super.ivyDeps() ++ Seq(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
@@ -40,6 +51,7 @@ object TestRunnerTestUtils {
 
     object scalatest extends ScalaTests with TestModule.ScalaTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
+      override def testParallelism = enableParallelism
       override def ivyDeps = Task {
         super.ivyDeps() ++ Seq(
           ivy"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
@@ -53,6 +65,7 @@ object TestRunnerTestUtils {
           ivy"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
         )
       }
+      override def testParallelism = enableParallelism
     }
     object doneMessageSuccess extends DoneMessage {
       def testFramework = "mill.scalalib.DoneMessageSuccessFramework"
@@ -67,6 +80,7 @@ object TestRunnerTestUtils {
 
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
+      override def testParallelism = enableParallelism
       override def ivyDeps = Task {
         super.ivyDeps() ++ Seq(
           ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
@@ -80,7 +94,7 @@ object TestRunnerTestUtils {
 
   class TestOnlyTester(m: TestRunnerTestModule => TestModule) {
     def testOnly0(f: (UnitTester, TestRunnerTestModule) => Unit) = {
-      for (mod <- Seq(testrunner, testrunnerGrouping)) {
+      for (mod <- Seq(testrunner, testrunnerGrouping, testrunnerWorkStealing)) {
         UnitTester(mod, resourcePath).scoped { eval => f(eval, mod) }
       }
     }

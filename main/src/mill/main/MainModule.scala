@@ -277,6 +277,11 @@ trait MainModule extends BaseModule {
             Seq("mill.init.InitGradleModule/init") ++ args,
             SelectMode.Separated
           )
+        else if (os.exists(os.pwd / "build.sbt"))
+          evaluator.evaluate(
+            Seq("mill.init.InitSbtModule/init") ++ args,
+            SelectMode.Separated
+          )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
           evaluator.evaluate(
             Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
@@ -322,8 +327,8 @@ object MainModule {
     // When using `show`, redirect all stdout of the evaluated tasks so the
     // printed JSON is the only thing printed to stdout.
     val redirectLogger = log
-      .withOutStream(evaluator.baseLogger.errorStream)
-      .asInstanceOf[ColorLogger]
+      .withOutStream(evaluator.baseLogger.streams.err)
+      .asInstanceOf[Logger]
 
     evaluator.withBaseLogger(redirectLogger)
       .evaluate(

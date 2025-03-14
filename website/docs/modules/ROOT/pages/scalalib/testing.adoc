@@ -18,9 +18,17 @@ include::partial$example/scalalib/testing/2-test-deps.adoc[]
 
 include::partial$example/scalalib/testing/3-integration-suite.adoc[]
 
+== Test Parallelism
+
+include::partial$example/scalalib/testing/4-test-parallel.adoc[]
+
 == Test Grouping
 
-include::partial$example/scalalib/testing/4-test-grouping.adoc[]
+include::partial$example/scalalib/testing/5-test-grouping.adoc[]
+
+== Test Grouping & Test Parallelism together
+
+include::partial$example/scalalib/testing/6-test-group-parallel.adoc[]
 
 == Github Actions Test Reports
 

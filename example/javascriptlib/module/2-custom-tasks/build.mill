@@ -5,8 +5,12 @@ import mill._, javascriptlib._
 object foo extends TypeScriptModule {
 
   /** Total number of lines in module source files */
-  def lineCount = Task {
-    allSources().map(f => os.read.lines(f.path).size).sum
+  def lineCount: T[Int] = Task {
+    sources()
+      .flatMap(pathRef => os.walk(pathRef.path))
+      .filter(_.ext == "ts")
+      .map(os.read.lines(_).size)
+      .sum
   }
 
   def generatedSources = Task {
