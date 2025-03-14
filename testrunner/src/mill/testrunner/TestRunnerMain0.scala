@@ -19,11 +19,12 @@ import mill.api.{DummyTestReporter, internal}
             cl = classLoader,
             testReporter = DummyTestReporter
           )
-        case Right((testClassQueueFolder, claimFolder)) =>
+        case Right((startingTestClass, testClassQueueFolder, claimFolder)) =>
           TestRunnerUtils.queueTestFramework0(
             frameworkInstances = Framework.framework(testArgs.framework),
             testClassfilePath = Seq.from(testArgs.testCp),
             args = testArgs.arguments,
+            startingTestClass = startingTestClass,
             testClassQueueFolder = testClassQueueFolder,
             claimFolder = claimFolder,
             cl = classLoader,
