@@ -430,7 +430,7 @@ trait TypeScriptModule extends Module { outer =>
       os.symlink(T.dest / "package-lock.json", npmInstall().path / "package-lock.json")
   }
 
-  def compile: T[(PathRef, PathRef)] = Task {
+  def compile: T[PathRef] = Task {
     symLink()
     val default: Map[String, ujson.Value] = Map(
       "compilerOptions" -> ujson.Obj.from(
@@ -459,7 +459,7 @@ trait TypeScriptModule extends Module { outer =>
 
     // Run type check, build declarations
     os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
-    (PathRef(T.dest), PathRef(T.dest))
+    PathRef(T.dest)
   }
 
   // compile
@@ -477,7 +477,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def mainFileName: T[String] = Task { s"$moduleName.ts" }
 
-  def mainFilePath: T[Path] = Task { compile()._1.path / "src" / mainFileName() }
+  def mainFilePath: T[Path] = Task { compile().path / "src" / mainFileName() }
 
   def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
 
@@ -523,7 +523,7 @@ trait TypeScriptModule extends Module { outer =>
       runnable,
       stdout = os.Inherit,
       env = env,
-      cwd = compile()._1.path
+      cwd = compile().path
     )
   }
 
@@ -609,7 +609,7 @@ trait TypeScriptModule extends Module { outer =>
     val env = forkEnv()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundle = Task.dest / "bundle.js"
-    val out = compile()._1.path
+    val out = compile().path
 
     os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
@@ -642,7 +642,7 @@ trait TypeScriptModule extends Module { outer =>
     override def outerModuleName: Option[String] = Some(outer.moduleName)
 
     override def declarationDir: T[ujson.Value] = Task {
-      ujson.Str((outer.compile()._1.path / "declarations").toString)
+      ujson.Str((outer.compile().path / "declarations").toString)
     }
 
     override def sources: T[Seq[PathRef]] = Task.Sources(moduleDir)
@@ -686,7 +686,7 @@ trait TypeScriptModule extends Module { outer =>
       combinedCompilerOptions
     }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       val out = outer.compile()
 
       val files: IndexedSeq[String] =
@@ -695,7 +695,7 @@ trait TypeScriptModule extends Module { outer =>
           outer.tscAllSources()
 
       // mv compile<outer> to compile<test>
-      os.list(out._1.path)
+      os.list(out.path)
         .filter(item =>
           item.last != "tsconfig.json" &&
             item.last != "package-lock.json" &&
@@ -716,7 +716,7 @@ trait TypeScriptModule extends Module { outer =>
         )
       )
 
-      (PathRef(T.dest), PathRef(T.dest))
+      PathRef(T.dest)
     }
 
     override def npmInstall: T[PathRef] = Task {

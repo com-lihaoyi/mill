@@ -116,7 +116,7 @@ trait PublishModule extends TypeScriptModule {
       os.symlink(T.dest / ".npmrc", npmInstall().path / ".npmrc")
   }
 
-  override def compile: T[(PathRef, PathRef)] = Task {
+  override def compile: T[PathRef] = Task {
     pubSymLink()
     super.compile()
   }
@@ -138,7 +138,7 @@ trait PublishModule extends TypeScriptModule {
           s"""    copyStaticFiles({
              |      src: ${ujson.Str(rp.toString)},
              |      dest: ${ujson.Str(
-              compile()._1.path.toString + "/" + pubBundledOut() + "/" + rp.last
+              compile().path.toString + "/" + pubBundledOut() + "/" + rp.last
             )},
              |      dereference: true,
              |      preserveTimestamps: true,

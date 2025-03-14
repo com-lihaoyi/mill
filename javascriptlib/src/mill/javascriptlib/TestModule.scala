@@ -73,7 +73,7 @@ object TestModule {
 
     // coverage files - returnn coverage files directory
     def coverageFiles: T[PathRef] = Task {
-      val dir = compile()._1.path / s"${moduleDeps.head}_coverage"
+      val dir = compile().path / s"${moduleDeps.head}_coverage"
       println(s"coverage files: $dir")
       PathRef(dir)
     }
@@ -104,7 +104,7 @@ object TestModule {
       if (dir.isEmpty) dir else dir + "/"
     }
 
-    def getPathToTest: T[String] = Task { compile()._1.path.toString + "/" + testDir }
+    def getPathToTest: T[String] = Task { compile().path.toString + "/" + testDir }
   }
 
   trait IntegrationSuite extends TypeScriptModule {
@@ -169,17 +169,17 @@ object TestModule {
       PathRef(config)
     }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       conf()
       coverageConf()
       symLink()
-      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+      os.copy(super.compile().path, T.dest, mergeFolders = true)
 
-      (PathRef(T.dest), PathRef(T.dest))
+      PathRef(T.dest)
     }
 
     private def runTest: T[TestResult] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           "node_modules/.bin/jest",
@@ -245,7 +245,7 @@ object TestModule {
     }
 
     def runCoverage: T[TestResult] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           "node",
@@ -280,13 +280,13 @@ object TestModule {
     override def getPathToTest: T[String] =
       Task { super.getPathToTest() + "/**/*.test.ts" }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       conf()
       istanbulNycrcConfigBuilder()
       symLink()
-      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+      os.copy(super.compile().path, T.dest, mergeFolders = true)
 
-      (PathRef(T.dest), PathRef(T.dest))
+      PathRef(T.dest)
     }
 
     // test-runner.js: run tests on ts files
@@ -305,7 +305,7 @@ object TestModule {
     }
 
     private def runTest: T[Unit] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           "node",
@@ -325,7 +325,7 @@ object TestModule {
 
     // with coverage
     def runCoverage: T[TestResult] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           "./node_modules/.bin/nyc",
@@ -391,17 +391,17 @@ object TestModule {
       PathRef(config)
     }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       conf()
       coverageConf()
       symLink()
-      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+      os.copy(super.compile().path, T.dest, mergeFolders = true)
 
-      (PathRef(T.dest), PathRef(T.dest))
+      PathRef(T.dest)
     }
 
     private def runTest: T[TestResult] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           npmInstall().path / "node_modules/.bin/ts-node",
@@ -457,7 +457,7 @@ object TestModule {
     }
 
     def runCoverage: T[TestResult] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           npmInstall().path / "node_modules/.bin/ts-node",
@@ -516,13 +516,13 @@ object TestModule {
       PathRef(path)
     }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       conf()
       istanbulNycrcConfigBuilder()
       symLink()
-      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+      os.copy(super.compile().path, T.dest, mergeFolders = true)
 
-      (PathRef(T.dest), PathRef(T.dest))
+      PathRef(T.dest)
     }
 
     private def runTest: T[Unit] = Task {
@@ -539,7 +539,7 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compile().path
       )
       ()
     }
@@ -564,7 +564,7 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compile().path
       )
       ()
     }
@@ -600,7 +600,7 @@ object TestModule {
         tsc,
         configSource().path.toString,
         "--outDir",
-        compile()._1.path,
+        compile().path,
         "--target",
         "ES2020",
         "--module",
@@ -628,7 +628,7 @@ object TestModule {
       val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
         stdout = os.Inherit,
         env = env,
-        cwd = service.compile()._1.path
+        cwd = service.compile().path
       )
 
       mkConfig()
@@ -640,7 +640,7 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compile().path
       )
 
       serviceProcess.destroy()
@@ -671,12 +671,12 @@ object TestModule {
       )
     }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       conf()
       symLink()
-      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+      os.copy(super.compile().path, T.dest, mergeFolders = true)
 
-      (PathRef(T.dest), PathRef(T.dest))
+      PathRef(T.dest)
     }
 
     private def runTest: T[TestResult] = Task {
@@ -689,7 +689,7 @@ object TestModule {
       val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
         stdout = os.Inherit,
         env = env,
-        cwd = service.compile()._1.path
+        cwd = service.compile().path
       )
 
       os.call(
@@ -700,7 +700,7 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compile().path
       )
 
       serviceProcess.destroy()
