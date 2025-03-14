@@ -6,7 +6,7 @@
     <title>Migrating From Gradle to Mill :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/migrating/gradle.html" />
     <link rel="prev" href="maven.html" />
-    <link rel="next" href="../fundamentals/tasks.html" />
+    <link rel="next" href="sbt.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -382,6 +382,10 @@
   <li class="nav-item is-current-page" data-depth="2">
     <a class="nav-link" href="gradle.html">Migrating From Gradle to Mill</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="sbt.html">Migrating From sbt to Mill</a>
+  </li>
 </ul>
   </li>
 
@@ -690,12 +694,12 @@ writing Mill build file to build.mill
 init completed, run &quot;mill resolve _&quot; to list available tasks
 
 &gt; ./mill __.compile
-compiling 9 Java sources to ...out/fluency-aws-s3/compile.dest/classes ...
-compiling 6 Java sources to ...out/fluency-aws-s3/test/compile.dest/classes ...
-compiling 27 Java sources to ...out/fluency-core/compile.dest/classes ...
-compiling 8 Java sources to ...out/fluency-core/test/compile.dest/classes ...
+compiling 9 Java sources to ...fluency-aws-s3...
+compiling 6 Java sources to ...fluency-aws-s3...test...
+compiling 27 Java sources to ...fluency-core...
+compiling 8 Java sources to ...fluency-core...test...
 
-&gt; ./mill fluency-core.test # running all tests takes too long
+&gt; ./mill fluency-core.test # mac/linux
 Test org.komamitsu.fluency.FluencyTest finished, ...
 Test org.komamitsu.fluency.validation.ValidatableTest finished, ...
 Test org.komamitsu.fluency.buffer.BufferTest finished, ...
@@ -967,7 +971,7 @@ test module; specify the dependencies again, in <code>ivyDeps</code> or <code>ru
 </div>
 <nav class="pagination">
   <span class="prev"><a href="maven.html">Migrating From Maven to Mill</a></span>
-  <span class="next"><a href="../fundamentals/tasks.html">Tasks</a></span>
+  <span class="next"><a href="sbt.html">Migrating From sbt to Mill</a></span>
 </nav>
 </article>
   </div>

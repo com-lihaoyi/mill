@@ -382,6 +382,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="gradle.html">Migrating From Gradle to Mill</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="sbt.html">Migrating From sbt to Mill</a>
+  </li>
 </ul>
   </li>
 
@@ -688,11 +692,11 @@ writing Mill build file to build.mill
 init completed, run &quot;mill resolve _&quot; to list available tasks
 
 &gt; ./mill __.compile
-compiling 9 Java sources to .../out/geo/compile.dest/classes ...
-compiling 2 Java sources to .../out/geo-mem/compile.dest/classes ...
-compiling 10 Java sources to .../out/geo/test/compile.dest/classes ...
+compiling 9 Java sources to ...geo...
+compiling 2 Java sources to ...geo-mem...
+compiling 10 Java sources to ...geo...test...
 done compiling
-compiling 1 Java source to .../out/geo-mem/test/compile.dest/classes ...
+compiling 1 Java source to ...geo-mem...test...
 done compiling
 
 &gt; ./mill __.test # all tests pass immediately

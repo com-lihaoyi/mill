@@ -2334,6 +2334,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/TestModule$$Junit4.html#","e":false,"i":"","n":"Junit4","t":"Junit4 extends TestModule","d":"mill.scalalib.TestModule","k":"trait","x":""},
 {"l":"mill/scalalib/TestModule$$Junit5.html#","e":false,"i":"","n":"Junit5","t":"Junit5 extends TestModule","d":"mill.scalalib.TestModule","k":"trait","x":""},
 {"l":"mill/scalalib/TestModule$$Munit.html#","e":false,"i":"","n":"Munit","t":"Munit extends TestModule","d":"mill.scalalib.TestModule","k":"trait","x":""},
+{"l":"mill/scalalib/TestModule$$ScalaCheck.html#","e":false,"i":"","n":"ScalaCheck","t":"ScalaCheck extends TestModule","d":"mill.scalalib.TestModule","k":"trait","x":""},
 {"l":"mill/scalalib/TestModule$$ScalaModuleBase.html#","e":false,"i":"","n":"ScalaModuleBase","t":"ScalaModuleBase extends Module","d":"mill.scalalib.TestModule","k":"trait","x":""},
 {"l":"mill/scalalib/TestModule$$ScalaModuleBase.html#scalacOptions-0","e":false,"i":"","n":"scalacOptions","t":"scalacOptions: Target[Seq[String]]","d":"mill.scalalib.TestModule.ScalaModuleBase","k":"def","x":""},
 {"l":"mill/scalalib/TestModule$$ScalaTest.html#","e":false,"i":"","n":"ScalaTest","t":"ScalaTest extends TestModule","d":"mill.scalalib.TestModule","k":"trait","x":""},
