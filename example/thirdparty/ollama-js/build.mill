@@ -184,4 +184,19 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 
 > ./mill examples.abort.run
 ...Aborting all requests...
+
+> ./mill examples.fill-in-middle.run
+...
+
+> ./mill examples.multimodal.run
+...
+
+> ./mill examples.pull-progress.run
+...
+
+> ./mill examples.structured_outputs.run
+...
+
+> ./mill examples.tools.run
+...
 */
