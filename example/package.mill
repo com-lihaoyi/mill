@@ -69,9 +69,9 @@ object `package` extends RootModule with Module {
 
   object migrating extends Module {
     object javalib
-      extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "javalib"))
+        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "javalib"))
     object scalalib
-      extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "scalalib"))
+        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "scalalib"))
   }
   object javascriptlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
