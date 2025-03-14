@@ -1,0 +1,138 @@
+// tag::header[]
+
+# Designing Automatic Parallelism for JVM Test Suites in Mill
+
+:author: Li Haoyi
+:revdate: ??? March 2025
+
+_{author}, {revdate}_
+
+Test suites are the ideal workload to parallelize, as they usually contain a large
+number of independent tests that can run in parallel. But practically implementing
+a parallelism strategy that works well on a wide range of workflows can be challenging.
+
+This blog post will explore the design and evolution of the Mill build tool's test parallelism
+strategy, from the initial incarnation as a simple serial test runner, to naive module-based and
+class-based parallelism, to the dynamic parallelization strategy implemented in the latest
+version of Mill 0.12.9. We will discuss the pros and cons of the different approaches to
+test parallelization, and how newer approaches improve on areas where earlier approaches
+fall short
+
+// end::header[]
+
+## Serial Execution
+
+To begin with, Mill originally did not have any parallelism, and that extended to tests as well.
+Mill would:
+
+1. Receive the build tasks specified at the command line
+2. Do a https://en.wikipedia.org/wiki/Breadth-first_search[breadth first search] on the task graph to find the full list of transitive tasks
+3. Sort the tasks in topological order using https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm[Tarjan's Algorithm]
+4. Execute the tasks in order one at a time, except those that have a cached value from an earlier run we can re-use
+5. If any tasks contained test suites, these would also be run one at a time.
+
+While this serial execution worked fine for many years, it's unsatisfying in a world of modern
+computers each of which has anywhere from 8-16 CPU cores you can make use of: you may be
+waiting seconds or minutes for your tests to run when your build tool is using only 1 of your
+available CPU cores and the other 9 cores are sitting idle.
+
+
+
+## Task-level Parallelism
+
+For that reason, Mill has for the longest time provided op-in parallelism via the `-j`/`--jobs`
+flag (the name taken from the Make build tool), and it became the default in Mill `0.12.0` to use
+all cores on your system by default.
+
+`-j`/`--jobs` provided _task-level_ parallelism. Basically the workflow was the same as that listed
+above, except instead of step (4) executing tasks one at a time, Mill would submit all tasks as
+``scala.concurrent.Future``s to a Java `ThreadPoolExecutor` to run. This would ensure they would
+still run in an order that respected the dependencies between them (e.g. a `compile` task would
+run before the `test` task), but it would run in parallel.
+
+With regard to testing, typically each Mill module `foo` would have a single `foo.test` sub-module
+associated with it, and the sub-module would have a single `foo.test.testForked` task that you
+would run. Thus if your codebase was broken up into many small modules, each `.testForked` task
+could run in parallel, but if your codebase had a few large modules you may not have enough
+parallelism to really use all the compute available on your machine.
+
+## Static Test Sharding
+
+To work around the limitations of task-level parallelism, Mill `0.12.0` also introduced the
+`def testForkGrouping` flag. This allows the developer to take the `Seq[String]` containing
+all the test class names and return a `Seq[Seq[String]]` with the original list broken down
+into groups, each of which would run in parallel in a separate JVM subprocess in a separate folder,
+but within each process they would run sequentially.
+
+For example, the following configuration would take the list of test classes
+and break it down into arbitrary 4-element groups:
+
+```scala
+def testForkGrouping = discoveredTestClasses().grouped(4).toSeq
+```
+
+`testForkGrouping` was also a useful tool to isolate tests: some badly behaved tests may
+mutate global variables or write to the local working directory on disk, causing flakiness if
+run before or after other tests which do the same. Although in an ideal
+world you should fix those tests, in practice it is handy to be able to isolate those tests
+in a separate process/directory to mitigate the problem.
+
+Static test sharding is able to take a single large module with many test classes
+and effectively parallelize it: during the initial rollout we found it could take Mill's own
+`scalalib.test` suite and speed it up from ~5 minutes down to ~2 minutes: not quite the speedup
+you would expect on my 10 core laptop, but a significant speedup nonetheless.
+
+However, the problem with this approach is that it spawned a new JVM subprocess for every test
+class. This overhead may be acceptable for slow heavyweight test classes (of which Mill's
+`scalalib.test` was mostly made of), since the JVM overhead of 1-2 seconds of startup/warmup
+is dwarfed by the test class taking 10-20 seconds to run. But for more lightweight test classes
+that themselves only take a second to run, having 1-2 seconds of overhead is prohibitive.
+For example, turning on `testForkGrouping` in the
+xref:mill:ROOT:comparisons/maven.adoc[Mill example Netty build] _slows the test suite down_
+from ~10s to to taking ~50s to run!
+
+Thus although group-based parallelism could serve as a reasonable band-aid for modules
+with large numbers of slow tests, it could never be turned on by default. Whether it sped
+things up or slowed things down could only be determined experimentally on a case by case
+basis.
+
+## Dynamic Test Sharding
+
+To try and solve this problem with static test sharding,
+https://github.com/com-lihaoyi/mill/pull/4614[#4614] introduced a dynamic sharding approach
+using a process pool. The idea was that you never had more the `NUM_CPUS` tests running
+in parallel anyway, so you could just spawn `NUM_CPUS` child processes and have that
+fixed set of child processes pull tests off a queue and run them until the queue was empty.
+This meant the JVM startup overhead was proportional to `O(NUM_CPUS)` rather than `O(NUM_TESTS)`,
+a much smaller number resulting in much smaller JVM overhead overall.
+
+Empirically this worked, but there was still significant overhead: compared with the
+<<Task-level Parallelism>> discussed earlier, we were still paying `O(NUM_CPUS)` of JVM
+overhead rather than `O(1)` JVM overhead per module containing tests.
+
+## Biased Dynamic Sharding
+
+The last piece of the puzzle was to use dynamic test sharding, but to bias the Mill
+scheduler to running the _first_ child process as soon as possible, but _subsequent_
+child processes only later if there were no other tasks to run.
+
+Essentially, what biased dynamic sharding does is try to minimize the number of
+child processes each module's test suite will run: it is better to have N modules
+spawn 1 JVM each that runs to completion, rather than having the N modules each take
+turns spawning NUM_CPUS JVM's to run its own tests in parallel before shutting down.
+Biased dynamic sharding thus aims for that, only allocating a module more child JVMs
+if there are idle cores that are unused
+
+
+
+
+This was implemented by passing Mill's `ThreadPoolExecutor` a `PriorityBlockingQueue`,
+and wrapping it's ``Runnable``s in a `PriorityRunnable` subclass which allowed the priority
+of any task to be configured.
+
+''''
+
+|===
+| Command | Single-JVM | testForkGrouping | testProcessPoolParallelism
+| `-j1 core.__.test` | ~5s | ~9s | ~6s
+| `scalalib.__.test` | ~500s | ~150s | !130s
