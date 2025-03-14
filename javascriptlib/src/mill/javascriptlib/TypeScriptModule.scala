@@ -348,7 +348,7 @@ trait TypeScriptModule extends Module { outer =>
   // sources
 
   // compile :)
-  def declarationDir: T[ujson.Value] = Task { ujson.Str("declarations") }
+  def declarationDir: T[String] = Task { "declarations" }
 
   // specify tsconfig.compilerOptions
   def compilerOptions: T[Map[String, ujson.Value]] = Task {
@@ -412,7 +412,7 @@ trait TypeScriptModule extends Module { outer =>
       }
 
     Seq(
-      (s"$moduleName/*", "src" + ":" + "declarations"),
+      (s"$moduleName/*", "src" + ":" + declarationDir()),
       (s"@$moduleName/resources/*", "resources")
     ) ++ customResources
   }
@@ -420,7 +420,7 @@ trait TypeScriptModule extends Module { outer =>
   def typeRoots: Task[ujson.Value] = Task.Anon {
     ujson.Arr(
       "node_modules/@types",
-      "declarations"
+      declarationDir()
     )
   }
 
@@ -436,7 +436,7 @@ trait TypeScriptModule extends Module { outer =>
         compilerOptionsPaths().toSeq
 
     val combinedCompilerOptions: Map[String, ujson.Value] = compilerOptions() ++ Map(
-      "declarationDir" -> declarationDir(),
+      "declarationDir" -> ujson.Str(declarationDir()),
       "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
         val splitValues =
           v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
@@ -679,10 +679,6 @@ trait TypeScriptModule extends Module { outer =>
 
     override def outerModuleName: Option[String] = Some(outer.moduleName)
 
-    override def declarationDir: T[ujson.Value] = Task {
-      ujson.Str((outer.compile().path / "declarations").toString)
-    }
-
     override def sources: T[Seq[PathRef]] = Task.Sources(moduleDir)
 
     def allSources: T[IndexedSeq[PathRef]] =
@@ -713,7 +709,7 @@ trait TypeScriptModule extends Module { outer =>
 
       val combinedCompilerOptions: Map[String, ujson.Value] =
         outer.compilerOptions() ++ compilerOptions() ++ Map(
-          "declarationDir" -> outer.declarationDir(),
+          "declarationDir" -> ujson.Str(outer.declarationDir()),
           "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
             val splitValues =
               v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
