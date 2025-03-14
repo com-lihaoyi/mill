@@ -35,8 +35,12 @@ public class Util {
     return 101;
   }
 
-  public static boolean isWindows =
-      System.getProperty("os.name").toLowerCase().startsWith("windows");
+  private static String lowerCaseOsName() {
+    return System.getProperty("os.name").toLowerCase();
+  }
+
+  public static boolean isWindows = lowerCaseOsName().startsWith("windows");
+  public static boolean isLinux = lowerCaseOsName().equals("linux");
   public static boolean isJava9OrAbove =
       !System.getProperty("java.specification.version").startsWith("1.");
   private static Charset utf8 = Charset.forName("UTF-8");

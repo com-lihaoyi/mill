@@ -20,6 +20,8 @@ public interface ProjectModel extends Serializable {
 
   File directory();
 
+  String path();
+
   MavenModel maven();
 
   JavaModel _java();
@@ -30,6 +32,7 @@ public interface ProjectModel extends Serializable {
     private final String name;
     private final String version;
     private final File directory;
+    private final String path;
     private final MavenModel maven;
     private final JavaModel _java;
 
@@ -38,36 +41,49 @@ public interface ProjectModel extends Serializable {
         String name,
         String version,
         File directory,
+        String path,
         MavenModel maven,
         JavaModel _java) {
       this.group = group;
       this.name = name;
       this.version = version;
       this.directory = directory;
+      this.path = path;
       this.maven = maven;
       this._java = _java;
     }
 
+    @Override
     public String group() {
       return group;
     }
 
+    @Override
     public String name() {
       return name;
     }
 
+    @Override
     public String version() {
       return version;
     }
 
+    @Override
     public File directory() {
       return directory;
     }
 
+    @Override
+    public String path() {
+      return path;
+    }
+
+    @Override
     public MavenModel maven() {
       return maven;
     }
 
+    @Override
     public JavaModel _java() {
       return _java;
     }
@@ -79,6 +95,7 @@ public interface ProjectModel extends Serializable {
         project.getName(),
         project.getVersion().toString(),
         project.getProjectDir(),
+        project.getPath(),
         MavenModel.from(project),
         JavaModel.from(project));
   }

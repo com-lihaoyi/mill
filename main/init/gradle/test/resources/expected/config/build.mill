@@ -1,5 +1,6 @@
 package build
 
+import _root_.build_.BaseModule
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
@@ -20,13 +21,15 @@ object `package` extends RootModule {
 
     def ivyDeps = super.ivyDeps() ++ Agg(Deps.`org.apache.commons:commons-text`)
 
-    def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
+    def moduleDeps = super.moduleDeps ++ Agg(build.utilities)
 
     object tests extends MavenTests with TestModule.Junit5 {
 
       def ivyDeps = super.ivyDeps() ++
         Agg(Deps.`org.junit.jupiter:junit-jupiter`)
 
+      def testSandboxWorkingDir = false
+      def testEnableWorkStealing = false
     }
   }
 
@@ -37,12 +40,14 @@ object `package` extends RootModule {
       def ivyDeps = super.ivyDeps() ++
         Agg(Deps.`org.junit.jupiter:junit-jupiter`)
 
+      def testSandboxWorkingDir = false
+      def testEnableWorkStealing = false
     }
   }
 
   object utilities extends BaseModule {
 
-    def moduleDeps = super.moduleDeps ++ Seq(build.list)
+    def moduleDeps = super.moduleDeps ++ Agg(build.list)
 
   }
 }

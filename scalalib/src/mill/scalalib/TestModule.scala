@@ -387,6 +387,10 @@ object TestModule {
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
   }
 
+  trait ScalaCheck extends TestModule {
+    override def testFramework: T[String] = "org.scalacheck.ScalaCheckFramework"
+  }
+
   @deprecated("Use other overload instead", "Mill after 0.10.2")
   def handleResults(
       doneMsg: String,

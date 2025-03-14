@@ -585,6 +585,12 @@ trait MainModule extends BaseModule0 {
             Seq("mill.init.InitGradleModule/init") ++ args,
             SelectMode.Separated
           )
+        else if (os.exists(os.pwd / "build.sbt"))
+          RunScript.evaluateTasksNamed(
+            evaluator,
+            Seq("mill.init.InitSbtModule/init") ++ args,
+            SelectMode.Separated
+          )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
           RunScript.evaluateTasksNamed(
             evaluator,

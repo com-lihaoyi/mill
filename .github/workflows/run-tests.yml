@@ -132,22 +132,27 @@ jobs:
           - java-version: 17
             millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.test'"
             install-android-sdk: false
+            install-sbt: true
 
           - java-version: 11
             millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
             install-android-sdk: false
+            install-sbt: false
 
           - java-version: 17
             millargs: "contrib.__.test"
             install-android-sdk: false
+            install-sbt: false
 
           - java-version: 17
             millargs: "example.javalib.__.local.server.test"
             install-android-sdk: false
+            install-sbt: false
 
           - java-version: 17
             millargs: "example.kotlinlib.__.local.server.test"
             install-android-sdk: false
+            install-sbt: false
 
           # Run this one using `.native` as a smoketest. Also make sure the java-version
           # is the same as that used in the `build-linux` job to avoid diverging code
@@ -155,48 +160,65 @@ jobs:
           - java-version: 11
             millargs: "example.scalalib.__.native.server.test"
             install-android-sdk: false
+            install-sbt: false
 
           - java-version: 17
             millargs: "'example.android.__.local.server.test'"
             install-android-sdk: true
+            install-sbt: false
+
+          - java-version: 11
+            # not sure why these need to be `.packaged` but `.local` fails with weird zinc errors
+            millargs: "'{example,integration}.migrating.__.packaged.server.test'"
+            install-android-sdk: false
+            install-sbt: true
 
           - java-version: 17
             millargs: "'example.{pythonlib,javascriptlib}.__.local.server.test'"
             install-android-sdk: false
+            install-sbt: false
 
           - java-version: 11
             millargs: "'example.thirdparty[{mockito,commons-io}].local.server.test'"
             install-android-sdk: false
+            install-sbt: false
 
           - java-version: 17
             millargs: "'example.thirdparty[{netty,gatling}].local.server.test'"
             install-android-sdk: false
+            install-sbt: false
 
           - java-version: '17'
             millargs: "'example.thirdparty[arrow].local.server.test'"
             install-android-sdk: false
+            install-sbt: false
 
           - java-version: 11
             millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server.test'"
             install-android-sdk: false
+            install-sbt: false
 
           - java-version: 11
             millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             install-android-sdk: false
+            install-sbt: false
 
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
             millargs: "'integration.invalidation.__.packaged.fork.test'"
             install-android-sdk: false
+            install-sbt: false
 
           - java-version: 17
             millargs: "'integration.invalidation.__.packaged.server.test'"
             install-android-sdk: false
+            install-sbt: false
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
       install-android-sdk: ${{ matrix.install-android-sdk }}
+      install-sbt: ${{ matrix.install-sbt }}
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
       shell: bash
@@ -215,15 +237,23 @@ jobs:
           # * At least one job for each of fork/server tests, and example/integration tests
           - java-version: 11
             millargs: '"{main,scalalib,bsp}.__.test"'
+            install-sbt: false
 
           - java-version: 11
             millargs: '"example.scalalib.{basic,publishing}.__.local.fork.test"'
+            install-sbt: false
+
+          - java-version: 11
+            millargs: '"example.migrating.{scalalib,javalib}.__.local.fork.test"'
+            install-sbt: true
 
           - java-version: 17
             millargs: "'integration.{feature,failure}.__.packaged.fork.test'"
+            install-sbt: false
 
           - java-version: 11 # Run this with Mill native launcher as a smoketest
             millargs: "'integration.invalidation.__.native.server.test'"
+            install-sbt: false
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
@@ -234,6 +264,7 @@ jobs:
       # running the graal native image binary on windows
       coursierarchive: "C:/coursier-arc"
       shell: powershell
+      install-sbt: ${{ matrix.install-sbt }}
 
   itest:
     needs: build-linux
