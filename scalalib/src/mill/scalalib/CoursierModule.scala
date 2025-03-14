@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
-import coursier.core.{BomDependency, DependencyManagement, Resolution}
+import coursier.core.Resolution
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.T
