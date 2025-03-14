@@ -1,7 +1,9 @@
 package build.main.init
 
 import mill._
-import scala.util.matching.Regex
+import mill.contrib.buildinfo.BuildInfo
+import mill.scalalib.Assembly.Rule
+import mill.scalalib.ScalaModule
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
@@ -63,8 +65,16 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   }
 
   object buildgen extends build.MillPublishScalaModule {
-    def moduleDeps = Seq(build.runner)
+    def moduleDeps = Seq(build.runner /*, tree(build.Deps.scalaVersion)*/ )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
+
+    // I tried moving `Tree` into this module, but it doesn't compile with Scala 2.12.20.
+    /*
+    object tree extends Cross[TreeModule](build.Deps.sbtScalaVersion212, build.Deps.scalaVersion)
+    trait TreeModule extends build.MillPublishCrossScalaModule {
+      def ivyDeps = Agg(build.Deps.upickle)
+    }
+     */
   }
   object gradle extends build.MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
@@ -85,5 +95,42 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       build.Deps.mavenResolverTransportWagon
     )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
+  }
+
+  object sbt extends build.MillPublishScalaModule with BuildInfo {
+    def moduleDeps = Seq(buildgen, models(build.Deps.scalaVersion))
+
+    def sbtPluginJarResources = Task {
+      val assemblyPathRef = exportplugin.assembly()
+      os.copy(assemblyPathRef.path, Task.dest / "exportplugin-assembly.jar")
+      PathRef(Task.dest)
+    }
+    def resources: T[Seq[PathRef]] = Task { super.resources() ++ Seq(sbtPluginJarResources()) }
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
+
+    def buildInfoPackageName = "mill.main.sbt"
+    def buildInfoObjectName: String = "Versions"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("sbtVersion", build.Deps.sbt.version, "Version of sbt.")
+    )
+
+    // An SBT plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
+    object models
+        extends Cross[ModelsModule](build.Deps.sbtScalaVersion212, build.Deps.scalaVersion)
+    trait ModelsModule extends build.MillPublishCrossScalaModule {
+      // def moduleDeps = Seq(buildgen.tree())
+      def ivyDeps = Agg(build.Deps.upickle)
+      def compileIvyDeps = Agg(build.Deps.sbt) // for definition references only
+    }
+
+    // no need to publish this
+    // `test` fails with `build.MillScalaModule`, and since it's an SBT plugin project it's most likely not needed.
+    object exportplugin extends ScalaModule {
+      private val scalaVersionString = build.Deps.sbtScalaVersion212
+      def scalaVersion = scalaVersionString
+      def moduleDeps = Seq(models(scalaVersionString))
+      def compileIvyDeps = Agg(build.Deps.sbt)
+      def assemblyRules = Seq(Rule.ExcludePattern("scala\\.*"))
+    }
   }
 }

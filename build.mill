@@ -55,6 +55,7 @@ object Deps {
   val scala2Version = "2.13.15"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.20"
+  val sbtScalaVersion212 = workerScalaVersion212
 
   val testScala213Version = "2.13.15"
   // Scala Native 4.2 will not get releases for new Scala version
@@ -121,8 +122,8 @@ object Deps {
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.15"
-  val ammoniteVersion = "3.0.1"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.18"
+  val ammoniteVersion = "3.0.2"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
@@ -158,10 +159,10 @@ object Deps {
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = ivy"commons-io:commons-io:2.18.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.3"
-  val osLib = ivy"com.lihaoyi::os-lib:0.11.5-M1"
+  val osLib = ivy"com.lihaoyi::os-lib:0.11.5-M2"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
-  val millModuledefsVersion = "0.11.3-M4"
+  val millModuledefsVersion = "0.11.3-M5"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -194,14 +195,14 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.3-M5"
   val upickle = ivy"com.lihaoyi::upickle:4.1.0"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
-  val zinc = ivy"org.scala-sbt::zinc:1.10.7".withDottyCompat(scalaVersion)
+  val zinc = ivy"org.scala-sbt::zinc:1.10.8".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams =
-    ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0".withDottyCompat(scalaVersion)
+    ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
   val requests = ivy"com.lihaoyi::requests:0.9.0"
-  val logback = ivy"ch.qos.logback:logback-classic:1.5.16"
+  val logback = ivy"ch.qos.logback:logback-classic:1.5.17"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
   val kotlinVersion = "2.0.21"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
@@ -220,6 +221,7 @@ object Deps {
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-84-f852c6"
   val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
+  val sbt = ivy"org.scala-sbt:sbt:1.10.10"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
@@ -304,10 +306,10 @@ def millLastTag: T[String] = Task.Input {
 }
 
 def millDownloadPrefix = Task {
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/"
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist"
 }
 def millDownloadUrl = Task {
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${millLastTag()}"
+  s"${millDownloadPrefix()}/${millLastTag()}"
 }
 
 def millBinPlatform: T[String] = Task {
@@ -422,7 +424,7 @@ trait MillJavaModule extends JavaModule {
         f.dep.module.organization.value == dep.module.organization.value &&
           f.dep.module.name.value == dep.module.name.value
       ).map { forced =>
-        val newDep = dep.withVersion(forced.dep.version)
+        val newDep = dep.withVersion(forced.version)
         Task.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
         newDep
       }.getOrElse(dep)
@@ -547,7 +549,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
     def forkEnv = super.forkEnv() ++ outer.testForkEnv()
-    override def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
 }
 
@@ -564,17 +565,18 @@ trait MillBaseTestsModule extends TestModule {
       s"-DTEST_SCALA_3_3_VERSION=${Deps.testScala33Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_0_5_VERSION=${Deps.Scalanative_0_5.scalanativeVersion}",
-      s"-DTEST_UTEST_VERSION=${Deps.TestDeps.utest.dep.version}",
-      s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
-      s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.dep.version}",
-      s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.dep.version}",
-      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}",
-      s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.dep.version}"
+      s"-DTEST_UTEST_VERSION=${Deps.TestDeps.utest.version}",
+      s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.version}",
+      s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.version}",
+      s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.version}",
+      s"-DTEST_ZINC_VERSION=${Deps.zinc.version}",
+      s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.version}",
+      s"-DTEST_SBT_VERSION=${Deps.sbt.version}"
     )
   }
 
   def testFramework = "mill.UTestFramework"
-  def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+  def testParallelism = true
 }
 
 /** Published module which does not contain strictly handled API. */
@@ -714,8 +716,10 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   }
 }
 
+trait MillPublishCrossScalaModule extends MillPublishJavaModule with CrossScalaModule
+
 object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
-trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
+trait BridgeModule extends MillPublishCrossScalaModule {
   def scalaVersion = crossScalaVersion
   def publishVersion = bridgeVersion
   def artifactName = "mill-scala-compiler-bridge"

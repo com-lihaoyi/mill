@@ -36,8 +36,8 @@ import scala.jdk.CollectionConverters.*
  *  - build profiles
  */
 @mill.api.internal
-object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
-  type C = MavenBuildGenMain.Config
+object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] {
+  override type C = Config
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
@@ -54,12 +54,12 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       (Node(dirs, model), model.getModules.iterator().asScala.map(dirs :+ _))
     }
 
-    convertWriteOut(cfg, cfg.shared, input)
+    convertWriteOut(cfg, cfg.shared.basicConfig, input)
 
     println("converted Maven build to Mill")
   }
 
-  def getBaseInfo(
+  override def getBaseInfo(
       input: Tree[Node[Model]],
       cfg: Config,
       baseModule: String,
@@ -67,44 +67,56 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
   ): IrBaseInfo = {
     val model = input.node.value
     val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
-    val repositores = getRepositories(model)
+    val scalaVersion = None
+    val scalacOptions = None
+    val repositories = getRepositories(model)
     val pomSettings = extractPomSettings(model)
     val publishVersion = model.getVersion
     val publishProperties = getPublishProperties(model, cfg.shared)
 
     val typedef = IrTrait(
-      cfg.shared.jvmId,
+      cfg.shared.basicConfig.jvmId,
       baseModule,
       getModuleSupertypes(cfg),
       javacOptions,
+      scalaVersion,
+      scalacOptions,
       pomSettings,
       publishVersion,
       publishProperties,
-      getRepositories(model)
+      repositories
     )
 
-    IrBaseInfo(javacOptions, repositores, noPom = false, publishVersion, publishProperties, typedef)
+    IrBaseInfo(typedef)
   }
+
+  override type ModuleFqnMap = Map[(String, String, String), String]
+  override def getModuleFqnMap(moduleNodes: Seq[Node[Model]])
+      : Map[(String, String, String), String] =
+    buildModuleFqnMap(moduleNodes)(getProjectGav)
 
   override def extractIrBuild(
       cfg: Config,
-      baseInfo: IrBaseInfo,
+      // baseInfo: IrBaseInfo,
       build: Node[Model],
-      packages: Map[(String, String, String), String]
+      moduleFqnMap: Map[(String, String, String), String]
   ): IrBuild = {
     val model = build.value
-    val scopedDeps = extractScopedDeps(model, packages, cfg)
+    val scopedDeps = extractScopedDeps(model, moduleFqnMap, cfg)
     val version = model.getVersion
     IrBuild(
       scopedDeps = scopedDeps,
-      testModule = cfg.shared.testModule,
+      testModule = cfg.shared.basicConfig.testModule,
+      testModuleMainType = "MavenTests",
       hasTest = os.exists(getMillSourcePath(model) / "src/test"),
       dirs = build.dirs,
       repositories = getRepositories(model),
-      javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model).diff(baseInfo.javacOptions),
+      javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model),
+      scalaVersion = None,
+      scalacOptions = None,
       projectName = getArtifactId(model),
-      pomSettings = if (baseInfo.noPom) extractPomSettings(model) else null,
-      publishVersion = if (version == baseInfo.publishVersion) null else version,
+      pomSettings = extractPomSettings(model),
+      publishVersion = version,
       packaging = model.getPackaging,
       pomParentArtifact = mkPomParent(model.getParent),
       resources =
@@ -113,24 +125,22 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       testResources =
         processResources(model.getBuild.getTestResources, getMillSourcePath(model))
           .filterNot(_ == mavenTestResourceDir),
-      publishProperties = getPublishProperties(model, cfg.shared).diff(baseInfo.publishProperties)
+      publishProperties = getPublishProperties(model, cfg.shared)
     )
   }
 
   def getModuleSupertypes(cfg: Config): Seq[String] = Seq("PublishModule", "MavenModule")
 
-  def getPackage(model: Model): (String, String, String) = {
+  def getProjectGav(model: Model): (String, String, String) =
     (model.getGroupId, model.getArtifactId, model.getVersion)
-  }
 
-  def getArtifactId(model: Model): String = model.getArtifactId
+  override def getArtifactId(model: Model): String = model.getArtifactId
 
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
-  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] = {
+  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
     Seq("RootModule") ++
-      cfg.shared.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
-  }
+      cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
 
   def processResources(
       input: java.util.List[org.apache.maven.model.Resource],
@@ -163,6 +173,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
     BuildGenUtil.renderIvyString(
       dep.getGroupId,
       dep.getArtifactId,
+      None,
       dep.getVersion,
       dep.getType,
       dep.getClassifier,
@@ -205,7 +216,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
 
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
     val ivyDep: Dependency => String = {
-      cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
+      cfg.shared.basicConfig.depsObject.fold(interpIvy(_)) { objName => dep =>
         {
           val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
           sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))

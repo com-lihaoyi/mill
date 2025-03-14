@@ -36,8 +36,6 @@ object `package` extends RootModule with Module {
         extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "dependencies"))
     object testing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "testing"))
     object linting extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "linting"))
-    object migrating
-        extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "migrating"))
     object publishing
         extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
@@ -64,6 +62,13 @@ object `package` extends RootModule with Module {
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
     object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
     object spark extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "spark"))
+  }
+
+  object migrating extends Module {
+    object javalib
+        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "javalib"))
+    object scalalib
+        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "scalalib"))
   }
   object javascriptlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))

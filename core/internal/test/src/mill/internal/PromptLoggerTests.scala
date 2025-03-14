@@ -15,6 +15,7 @@ object PromptLoggerTests extends TestSuite {
       colored = false,
       enableTicker = true,
       infoColor = fansi.Attrs.Empty,
+      warnColor = fansi.Attrs.Empty,
       errorColor = fansi.Attrs.Empty,
       systemStreams0 = new SystemStreams(baosOut, baosErr, System.in),
       debugEnabled = false,
@@ -57,18 +58,18 @@ object PromptLoggerTests extends TestSuite {
 
       val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp())
 
-      promptLogger.setPromptHeaderPrefix("123/456")
-      promptLogger.setPromptLine(Seq("1"), "/456", "my-task")
+      promptLogger.prompt.setPromptHeaderPrefix("123/456")
+      promptLogger.prompt.setPromptLine(Seq("1"), "/456", "my-task")
 
       now += 10000
 
-      prefixLogger.outputStream.println("HELLO")
+      prefixLogger.streams.out.println("HELLO")
 
       promptLogger.refreshPrompt()
 
-      prefixLogger.outputStream.println("WORLD")
+      prefixLogger.streams.out.println("WORLD")
 
-      promptLogger.removePromptLine(Seq("1"))
+      promptLogger.prompt.removePromptLine(Seq("1"))
 
       now += 10000
       promptLogger.refreshPrompt()
@@ -104,16 +105,16 @@ object PromptLoggerTests extends TestSuite {
       var now = 0L
       val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
 
-      promptLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
         "[123/456] ============================== TITLE =============================="
       )
-      promptLogger.setPromptLine(Seq("1"), "/456", "my-task")
+      promptLogger.prompt.setPromptLine(Seq("1"), "/456", "my-task")
 
       now += 10000
 
-      prefixLogger.outputStream.println("HELLO")
+      prefixLogger.streams.out.println("HELLO")
 
       promptLogger.refreshPrompt() // Need to call `refreshPrompt()` for prompt to change
       // First time we log with the prefix `[1]`, make sure we print out the title line
@@ -125,7 +126,7 @@ object PromptLoggerTests extends TestSuite {
         "[1] my-task 10s"
       )
 
-      prefixLogger.outputStream.println("WORLD")
+      prefixLogger.streams.out.println("WORLD")
       // Prompt doesn't change, no need to call `refreshPrompt()` for it to be
       // re-rendered below the latest prefixed output. Subsequent log line with `[1]`
       // prefix does not re-render title line `[1/456] ...`
@@ -141,16 +142,16 @@ object PromptLoggerTests extends TestSuite {
       // Only after some time has passed do we start displaying the new ticker entry,
       // to ensure it is meaningful to read and not just something that will flash and disappear
       val newPrefixLogger2 = new PrefixLogger(promptLogger, Seq("2"))
-      newPrefixLogger2.setPromptLine(Seq("2"), "/456", "my-task-new")
-      newPrefixLogger2.errorStream.println("I AM COW")
-      newPrefixLogger2.errorStream.println("HEAR ME MOO")
+      newPrefixLogger2.prompt.setPromptLine(Seq("2"), "/456", "my-task-new")
+      newPrefixLogger2.streams.err.println("I AM COW")
+      newPrefixLogger2.streams.err.println("HEAR ME MOO")
 
       // For short-lived ticker entries that are removed quickly, they never
       // appear in the prompt at all even though they can run and generate logs
       val newPrefixLogger3 = new PrefixLogger(promptLogger, Seq("3"))
-      newPrefixLogger3.setPromptLine(Seq("3"), "/456", "my-task-short-lived")
-      newPrefixLogger3.errorStream.println("hello short lived")
-      newPrefixLogger3.errorStream.println("goodbye short lived")
+      newPrefixLogger3.prompt.setPromptLine(Seq("3"), "/456", "my-task-short-lived")
+      newPrefixLogger3.streams.err.println("hello short lived")
+      newPrefixLogger3.streams.err.println("goodbye short lived")
 
       // my-task-new does not appear yet because it is too new
       promptLogger.refreshPrompt()
@@ -168,7 +169,7 @@ object PromptLoggerTests extends TestSuite {
         "[1] my-task 10s"
       )
 
-      newPrefixLogger3.removePromptLine(Seq("3"))
+      newPrefixLogger3.prompt.removePromptLine(Seq("3"))
 
       now += 1000
 
@@ -189,7 +190,7 @@ object PromptLoggerTests extends TestSuite {
         "[2] my-task-new 1s"
       )
 
-      promptLogger.removePromptLine(Seq("1"))
+      promptLogger.prompt.removePromptLine(Seq("1"))
 
       now += 10
 
@@ -272,10 +273,10 @@ object PromptLoggerTests extends TestSuite {
       @volatile var now = 0L
       val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
 
-      promptLogger.setPromptHeaderPrefix("123/456")
+      promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.refreshPrompt()
 
-      promptLogger.setPromptLine(Seq("1"), "/456", "my-task")
+      promptLogger.prompt.setPromptLine(Seq("1"), "/456", "my-task")
       prefixLogger.ticker("detail")
       now += 1000
       promptLogger.refreshPrompt()
@@ -289,7 +290,7 @@ object PromptLoggerTests extends TestSuite {
         "[123/456] ============================== TITLE ============================= 1s",
         "[1] my-task 1s detail-too-long-gets-truncated...fghijklmnopqrstuvwxyz1234567890"
       )
-      promptLogger.removePromptLine(Seq("1"))
+      promptLogger.prompt.removePromptLine(Seq("1"))
       now += 10000
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(

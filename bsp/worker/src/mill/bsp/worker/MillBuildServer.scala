@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
 import mill.api.ExecResult
-import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
+import mill.api.{Logger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
@@ -293,7 +293,7 @@ private class MillBuildServer(
         case m: JavaModule =>
           Task.Anon {
             (
-              m.defaultResolver().resolveDeps(
+              m.millResolver().resolveDeps(
                 Seq(
                   m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
                   m.coursierDependency
@@ -301,7 +301,7 @@ private class MillBuildServer(
                 sources = true
               ),
               m.unmanagedClasspath(),
-              m.repositoriesTask()
+              m.allRepositories()
             )
           }
       }
@@ -337,7 +337,7 @@ private class MillBuildServer(
         Task.Anon {
           (
             // full list of dependencies, including transitive ones
-            m.defaultResolver().allDeps(
+            m.millResolver().allDeps(
               Seq(
                 m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
                 m.coursierDependency
@@ -801,7 +801,7 @@ private class MillBuildServer(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = null
+      logger: Logger = null
   ): ExecutionResults = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     mill.runner.MillMain.withOutLock(
@@ -812,7 +812,7 @@ private class MillBuildServer(
         case n: NamedTask[_] => n.label
         case t => t.toString
       },
-      streams = logger0.systemStreams
+      streams = logger0.streams
     ) {
       evaluator.execute(
         goals,

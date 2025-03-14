@@ -9,18 +9,20 @@ import mill._
 
 def taskSpawningFutures = Task {
   val f1 = Task.fork.async(dest = Task.dest / "future-1", key = "1", message = "First Future") {
-    println("Running First Future inside " + os.pwd)
-    Thread.sleep(3000)
-    val res = 1
-    println("Finished First Future")
-    res
+    logger =>
+      println("Running First Future inside " + os.pwd)
+      Thread.sleep(3000)
+      val res = 1
+      println("Finished First Future")
+      res
   }
   val f2 = Task.fork.async(dest = Task.dest / "future-2", key = "2", message = "Second Future") {
-    println("Running Second Future inside " + os.pwd)
-    Thread.sleep(3000)
-    val res = 2
-    println("Finished Second Future")
-    res
+    logger =>
+      println("Running Second Future inside " + os.pwd)
+      Thread.sleep(3000)
+      val res = 2
+      println("Finished Second Future")
+      res
   }
 
   Task.fork.await(f1) + Task.fork.await(f2)
@@ -29,10 +31,10 @@ def taskSpawningFutures = Task {
 /** Usage
 
 > ./mill show taskSpawningFutures
-[1] Running First Future inside .../out/taskSpawningFutures.dest/future-1
-[2] Running Second Future inside .../out/taskSpawningFutures.dest/future-2
-[1] Finished First Future
-[2] Finished Second Future
+Running First Future inside .../out/taskSpawningFutures.dest/future-1
+Running Second Future inside .../out/taskSpawningFutures.dest/future-2
+Finished First Future
+Finished Second Future
 3
 
 */
@@ -44,6 +46,12 @@ def taskSpawningFutures = Task {
 // - `key` is a short prefix prepended to log lines to let you easily identify the future's
 //    log lines and distinguish them from logs of other futures and tasks running concurrently
 // - `message` is a one-line description of what the future is doing
+// - `priority`: 0 means the same priority as other Mill tasks, negative values <0
+//   mean increasingly high priority, positive values >0 mean increasingly
+//   low priority
+//
+// Each block spawned by `Task.fork.async` is assigned a dedicated `logger` with its own
+// `.log` file and terminal UI integration
 //
 // Futures spawned by `Task.fork.async` count towards Mill's `-j`/`--jobs` concurrency limit
 // (which defaults to one-per-core), so you can freely use `Task.fork.async` without worrying
