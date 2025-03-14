@@ -29,13 +29,79 @@ Mill would:
 2. Do a https://en.wikipedia.org/wiki/Breadth-first_search[breadth first search] on the task graph to find the full list of transitive tasks
 3. Sort the tasks in topological order using https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm[Tarjan's Algorithm]
 4. Execute the tasks in order one at a time, except those that have a cached value from an earlier run we can re-use
-5. If any tasks contained test suites, these would also be run one at a time.
+5. If any tasks contained test suites, these would also be run one at a time in a single JVM subprocess
+
+Below we visualize this on an example build with 3 `test` modules, with 2/4/6 test suites
+respectively, and the arrow representing the single thread on which all the suites execute
+sequentially
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+  splines=false
+  subgraph cluster_a {
+      label="ModuleA.test"
+      style="dashed"
+      SuiteA1 -> SuiteA2
+      SuiteA1 [style=filled fillcolor=lightpink]
+      SuiteA2 [style=filled fillcolor=lightpink]
+  }
+
+
+  subgraph cluster_b {
+      label="ModuleB.test"
+      style="dashed"
+      SuiteB1 -> SuiteB2 -> SuiteB3 -> SuiteB4
+      SuiteB1 [style=filled fillcolor=lightgreen]
+      SuiteB2 [style=filled fillcolor=lightgreen]
+      SuiteB3 [style=filled fillcolor=lightgreen]
+      SuiteB4 [style=filled fillcolor=lightgreen]
+  }
+
+  subgraph cluster_c {
+      label="ModuleC.test"
+      style="dashed"
+      SuiteC1 -> SuiteC2 -> SuiteC3 -> SuiteC4 -> SuiteC5 -> SuiteC6
+      SuiteC1 [style=filled fillcolor=lightblue]
+      SuiteC2 [style=filled fillcolor=lightblue]
+      SuiteC3 [style=filled fillcolor=lightblue]
+      SuiteC4 [style=filled fillcolor=lightblue]
+      SuiteC5 [style=filled fillcolor=lightblue]
+      SuiteC6 [style=filled fillcolor=lightblue]
+  }
+
+  SuiteA2 -> SuiteB1 [constraint=none]
+  SuiteB4 -> SuiteC1 [constraint=none]
+
+}
+```
+
+There are two things we would like to minimize here:
+
+1. The longest single-threaded path through the build
+2. How many JVM subprocesses the test suite spawns, because spawning JVM subprocesses are expensive
+
+In this case, the numbers are
+
+|===
+|                | *Serial Execution*
+| Longest Path   | *12*
+| Number Of JVMs | *3*
+|===
+
+
 
 While this serial execution worked fine for many years, it's unsatisfying in a world of modern
 computers each of which has anywhere from 8-16 CPU cores you can make use of: you may be
 waiting seconds or minutes for your tests to run when your build tool is using only 1 of your
 available CPU cores and the other 9 cores are sitting idle.
 
+|===
+| Workload |
+| Netty Unit Tests |
+| Mill Scalalib Tests |
+|===
 
 
 ## Task-level Parallelism
@@ -49,6 +115,51 @@ above, except instead of step (4) executing tasks one at a time, Mill would subm
 ``scala.concurrent.Future``s to a Java `ThreadPoolExecutor` to run. This would ensure they would
 still run in an order that respected the dependencies between them (e.g. a `compile` task would
 run before the `test` task), but it would run in parallel.
+
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+
+  subgraph cluster_a {
+      label="ModuleA.test"
+      style="dashed"
+      SuiteA1 -> SuiteA2
+      SuiteA1 [style=filled fillcolor=lightpink]
+      SuiteA2 [style=filled fillcolor=lightpink]
+  }
+
+  subgraph cluster_b {
+      label="ModuleB.test"
+      style="dashed"
+      SuiteB1 -> SuiteB2 -> SuiteB3 -> SuiteB4
+      SuiteB1 [style=filled fillcolor=lightgreen]
+      SuiteB2 [style=filled fillcolor=lightgreen]
+      SuiteB3 [style=filled fillcolor=lightgreen]
+      SuiteB4 [style=filled fillcolor=lightgreen]
+  }
+
+  subgraph cluster_c {
+      label="ModuleC.test"
+      style="dashed"
+      SuiteC1 -> SuiteC2 -> SuiteC3 -> SuiteC4 -> SuiteC5 -> SuiteC6
+      SuiteC1 [style=filled fillcolor=lightblue]
+      SuiteC2 [style=filled fillcolor=lightblue]
+      SuiteC3 [style=filled fillcolor=lightblue]
+      SuiteC4 [style=filled fillcolor=lightblue]
+      SuiteC5 [style=filled fillcolor=lightblue]
+      SuiteC6 [style=filled fillcolor=lightblue]
+  }
+}
+```
+
+
+|===
+|                | Serial Execution | *Task-level Parallelism*
+| Longest Path   | 12 | *6*
+| Number Of JVMs | 3 | *3*
+|===
 
 With regard to testing, typically each Mill module `foo` would have a single `foo.test` sub-module
 associated with it, and the sub-module would have a single `foo.test.testForked` task that you
@@ -76,6 +187,45 @@ mutate global variables or write to the local working directory on disk, causing
 run before or after other tests which do the same. Although in an ideal
 world you should fix those tests, in practice it is handy to be able to isolate those tests
 in a separate process/directory to mitigate the problem.
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+
+
+  style="dashed"
+  subgraph cluster_a1 { label=""; SuiteA1 [style=filled fillcolor=lightpink] }
+  subgraph cluster_a2 { label=""; SuiteA2 [style=filled fillcolor=lightpink] }
+
+
+  subgraph cluster_b1 { label=""; SuiteB1 [style=filled fillcolor=lightgreen] }
+  subgraph cluster_b2 { label=""; SuiteB2 [style=filled fillcolor=lightgreen] }
+  subgraph cluster_b3 { label=""; SuiteB3 [style=filled fillcolor=lightgreen] }
+  subgraph cluster_b4 { label=""; SuiteB4 [style=filled fillcolor=lightgreen] }
+
+  subgraph cluster_c1 { label=""; SuiteC1 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c2 { label=""; SuiteC2 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c3 { label=""; SuiteC3 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c4 { label=""; SuiteC4 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c5 { label=""; SuiteC5 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c6 { label=""; SuiteC6 [style=filled fillcolor=lightblue] }
+
+  SuiteA1 -> SuiteA2 -> SuiteB1 -> SuiteB2
+  SuiteB3 -> SuiteB4 -> SuiteC1 -> SuiteC2
+  SuiteC3 -> SuiteC4 -> SuiteC5 -> SuiteC6
+
+
+}
+```
+
+
+|===
+|                | Serial Execution | Task-level Parallelism | *Static Test Sharding*
+| Longest Path   | 12 | 6 | *4*
+| Number Of JVMs | 3 | 3 | *12*
+|===
+
 
 Static test sharding is able to take a single large module with many test classes
 and effectively parallelize it: during the initial rollout we found it could take Mill's own
@@ -106,9 +256,66 @@ fixed set of child processes pull tests off a queue and run them until the queue
 This meant the JVM startup overhead was proportional to `O(NUM_CPUS)` rather than `O(NUM_TESTS)`,
 a much smaller number resulting in much smaller JVM overhead overall.
 
+
 Empirically this worked, but there was still significant overhead: compared with the
 <<Task-level Parallelism>> discussed earlier, we were still paying `O(NUM_CPUS)` of JVM
 overhead rather than `O(1)` JVM overhead per module containing tests.
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
+
+
+  style="dashed"
+  subgraph cluster_a1 {
+    SuiteA1 [style=filled fillcolor=lightpink]
+  }
+  subgraph cluster_a2 {
+    SuiteA2 [style=filled fillcolor=lightpink]
+  }
+
+  subgraph cluster_b1 {
+    SuiteB1 [style=filled fillcolor=lightgreen]
+    SuiteB4 [style=filled fillcolor=lightgreen]
+  }
+  subgraph cluster_b2 {
+    SuiteB2 [style=filled fillcolor=lightgreen]
+  }
+  subgraph cluster_b3 {
+    SuiteB3 [style=filled fillcolor=lightgreen]
+  }
+
+  subgraph cluster_c1 {
+    SuiteC1 [style=filled fillcolor=lightblue]
+    SuiteC4 [style=filled fillcolor=lightblue]
+  }
+
+
+  subgraph cluster_c2 {
+    SuiteC2 [style=filled fillcolor=lightblue]
+    SuiteC5 [style=filled fillcolor=lightblue]
+  }
+
+  subgraph cluster_c3 {
+    SuiteC3 [style=filled fillcolor=lightblue]
+    SuiteC6 [style=filled fillcolor=lightblue]
+  }
+
+
+  SuiteA1 -> SuiteB2 -> SuiteC1 -> SuiteC4
+  SuiteA2 -> SuiteB3 -> SuiteC2 -> SuiteC5
+  SuiteB1 -> SuiteB4 -> SuiteC3 -> SuiteC6
+}
+```
+
+
+|===
+|                | Serial Execution | Task-level Parallelism | Static Test Sharding | *Dynamic Test Sharding*
+| Longest Path   | 12 | 6 | 4 | *4*
+| Number Of JVMs | 3 | 3 | 12 | *8*
+|===
+
 
 ## Biased Dynamic Sharding
 
@@ -123,8 +330,53 @@ turns spawning NUM_CPUS JVM's to run its own tests in parallel before shutting d
 Biased dynamic sharding thus aims for that, only allocating a module more child JVMs
 if there are idle cores that are unused
 
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0]
 
 
+  style="dashed"
+  subgraph cluster_a1 {
+    SuiteA1 [style=filled fillcolor=lightpink]
+    SuiteA2 [style=filled fillcolor=lightpink]
+
+  }
+
+  subgraph cluster_b1 {
+    SuiteB1 [style=filled fillcolor=lightgreen]
+    SuiteB2 [style=filled fillcolor=lightgreen]
+    SuiteB3 [style=filled fillcolor=lightgreen]
+    SuiteB4 [style=filled fillcolor=lightgreen]
+
+  }
+
+  subgraph cluster_c1 {
+    SuiteC1 [style=filled fillcolor=lightblue]
+    SuiteC2 [style=filled fillcolor=lightblue]
+    SuiteC3 [style=filled fillcolor=lightblue]
+    SuiteC4 [style=filled fillcolor=lightblue]
+
+  }
+  subgraph cluster_c5 {
+    SuiteC5 [style=filled fillcolor=lightblue]
+    SuiteC6 [style=filled fillcolor=lightblue]
+  }
+
+
+
+  SuiteA1 -> SuiteA2 -> SuiteC5 -> SuiteC6
+  SuiteB1 -> SuiteB2 -> SuiteB3 -> SuiteB4
+
+  SuiteC1 -> SuiteC2 -> SuiteC3 -> SuiteC4
+}
+```
+
+|===
+|                | Serial Execution | Task-level Parallelism | Static Test Sharding | Dynamic Test Sharding | *Biased Dynamic Sharding*
+| Longest Path   | 12 | 6 | 4 | 4 | *4*
+| Number Of JVMs | 3 | 3 | 12 | 8 | *4*
+|===
 
 This was implemented by passing Mill's `ThreadPoolExecutor` a `PriorityBlockingQueue`,
 and wrapping it's ``Runnable``s in a `PriorityRunnable` subclass which allowed the priority
