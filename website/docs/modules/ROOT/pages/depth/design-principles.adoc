@@ -371,7 +371,7 @@ reduced to simply instantiating a `trait` over and over, with tweaks.
 
 Mill is built as a substitute for `sbt`, whose problems are
 http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[described here].
-Nevertheless, Mill takes on some parts of sbt (builds written in Scala, Task
+Nevertheless, Mill takes on some parts of `sbt` (builds written in Scala, Task
 graph with an Applicative "idiom bracket" macro) where it makes sense.
 
 === Bazel

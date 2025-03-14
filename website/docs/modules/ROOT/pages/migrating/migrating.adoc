@@ -10,7 +10,6 @@ tooling.
 
 * xref:migrating/maven.adoc[]
 * xref:migrating/gradle.adoc[]
-
 * xref:migrating/sbt.adoc[]
 
 While automation helps with

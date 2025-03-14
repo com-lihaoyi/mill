@@ -10,8 +10,8 @@ import os.Path
 import scala.collection.immutable.SortedSet
 
 /**
- * Converts an sbt build to Mill by generating Mill build file(s).
- * The implementation uses the sbt
+ * Converts an `sbt` build to Mill by generating Mill build file(s).
+ * The implementation uses the `sbt`
  * [[https://www.scala-sbt.org/1.x/docs/Combined+Pages.html#addPluginSbtFile+command addPluginSbtFile command]]
  * to add a plugin and a task to extract the settings for a project using a custom model.
  *
@@ -97,7 +97,7 @@ object SbtBuildGenMain
     try {
       if (isWindows) {
         /*
-        `-addPluginSbtFile` somehow doesn't work on Windows, therefore, the ".sbt" file is put directly in the sbt "project" directory.
+        `-addPluginSbtFile` somehow doesn't work on Windows, therefore, the ".sbt" file is put directly in the `sbt` "project" directory.
         The error message:
         ```text
         [error] Expected ':'
@@ -108,13 +108,12 @@ object SbtBuildGenMain
         ```
          */
         val sbtFile = writeTempSbtFileInSbtProjectDirectory(workspace)
-        val commandResult = os.call(
+        os.call(
           (sbtExecutable, "millInitExportBuild"),
           cwd = workspace,
           stdout = os.Inherit
         )
         os.remove(sbtFile)
-        commandResult
       } else
         os.call(
           (sbtExecutable, s"-addPluginSbtFile=${writeSbtFile().toString}", "millInitExportBuild"),
@@ -160,7 +159,7 @@ object SbtBuildGenMain
   }
 
   /**
-   * @return the temp directory the jar is in and the sbt file contents.
+   * @return the temp directory the jar is in and the `sbt` file contents.
    */
   private def copyExportBuildAssemblyJarOutAndGetSbtFileContents(): (os.Path, String) = {
     val tempDir = os.temp.dir()
@@ -222,7 +221,7 @@ object SbtBuildGenMain
     val publishVersion = getPublishVersion(buildInfo)
 
     val typedef = IrTrait(
-      cfg.shared.jvmId, // There doesn't seem to be a Java version setting in sbt though. See https://stackoverflow.com/a/76456295/5082913.
+      cfg.shared.jvmId, // There doesn't seem to be a Java version setting in `sbt` though. See https://stackoverflow.com/a/76456295/5082913.
       baseModule,
       sbtSupertypes,
       javacOptions,
@@ -230,7 +229,7 @@ object SbtBuildGenMain
       scalacOptions,
       pomSettings,
       publishVersion,
-      Seq.empty, // not available in sbt as it seems
+      Seq.empty, // not available in `sbt` as it seems
       repositories
     )
 
@@ -268,11 +267,11 @@ object SbtBuildGenMain
       projectName = project.name,
       pomSettings = extractPomSettings(buildInfo.buildPublicationInfo),
       publishVersion = version,
-      packaging = null, // not available in sbt as it seems
+      packaging = null, // not available in `sbt` as it seems
       pomParentArtifact = null, // not available
       resources = Nil,
       testResources = Nil,
-      publishProperties = Nil // not available in sbt as it seems
+      publishProperties = Nil // not available in `sbt` as it seems
     )
   }
 
