@@ -18,14 +18,12 @@ trait PublishModule extends TypeScriptModule {
 
   def pubBundledOut: T[String] = Task { "dist" }
 
-  private def pubDeclarationOut: T[String] = Task { "declarations" }
-
   // main file; defined with mainFileName
   def pubMain: T[String] =
     Task { pubBundledOut() + "/src/" + mainFileName().replaceAll("\\.ts", ".js") }
 
   private def pubMainType: T[String] = Task {
-    pubMain().replaceFirst(pubBundledOut(), pubDeclarationOut()).replaceAll("\\.js", ".d.ts")
+    pubMain().replaceFirst(pubBundledOut(), declarationDir()).replaceAll("\\.js", ".d.ts")
   }
 
   // Define exports for the package
@@ -41,8 +39,8 @@ trait PublishModule extends TypeScriptModule {
 
   private def pubTypesVersion: T[Map[String, Seq[String]]] = Task {
     tscAllSources().map { source =>
-      val dist = source.replaceFirst("typescript", pubBundledOut())
-      val declarations = source.replaceFirst("typescript", pubDeclarationOut())
+      val dist = pubBundledOut() + "/" + source // source.replaceFirst("t-", )
+      val declarations = declarationDir() + "/" + source // source.replaceFirst("t-", )
       ("./" + dist).replaceAll("\\.ts", "") -> Seq(declarations.replaceAll("\\.ts", ".d.ts"))
     }.toMap
   }
@@ -61,7 +59,7 @@ trait PublishModule extends TypeScriptModule {
 
     val json = publishMeta()
     val updatedJson = json.copy(
-      files = json.files ++ Seq(pubBundledOut(), pubDeclarationOut()),
+      files = json.files ++ Seq(pubBundledOut(), declarationDir()),
       main = pubMain(),
       types = pubMainType(),
       exports = Map("." -> PublishModule.Export("./" + pubMain())) ++ pubBuildExports(),
@@ -84,7 +82,7 @@ trait PublishModule extends TypeScriptModule {
       "declarationMap" -> ujson.Bool(true),
       "esModuleInterop" -> ujson.Bool(true),
       "baseUrl" -> ujson.Str("."),
-      "rootDir" -> ujson.Str("typescript"),
+      "rootDir" -> ujson.Str("."),
       "declaration" -> ujson.Bool(true),
       "outDir" -> ujson.Str(pubBundledOut()),
       "plugins" -> ujson.Arr(
@@ -116,9 +114,25 @@ trait PublishModule extends TypeScriptModule {
       os.symlink(T.dest / ".npmrc", npmInstall().path / ".npmrc")
   }
 
-  override def compile: T[(PathRef, PathRef)] = Task {
+  override def compile: T[PathRef] = Task {
     pubSymLink()
-    super.compile()
+    symLink()
+
+    val out = super.compile().path
+
+    os.walk(
+      out,
+      skip = p =>
+        p.last == "node_modules" ||
+        p.last == "package-lock.json" ||
+        p.last == pubBundledOut()
+        p.last == declarationDir()
+    )
+      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
+
+    os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
+
+    PathRef(T.dest)
   }
   // Compilation Options
 
@@ -138,7 +152,7 @@ trait PublishModule extends TypeScriptModule {
           s"""    copyStaticFiles({
              |      src: ${ujson.Str(rp.toString)},
              |      dest: ${ujson.Str(
-              compile()._1.path.toString + "/" + pubBundledOut() + "/" + rp.last
+              compile().path.toString + "/" + pubBundledOut() + "/" + rp.last
             )},
              |      dereference: true,
              |      preserveTimestamps: true,
@@ -189,7 +203,12 @@ trait PublishModule extends TypeScriptModule {
     // bundled code for publishing
     val bundled = bundle().path / os.up
 
-    os.walk(bundled, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
+    os.walk(
+      bundled,
+      skip = p =>
+        p.last == "node_modules" ||
+          p.last == "package-lock.json"
+    )
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(bundled), createFolders = true))
 
     // run npm publish

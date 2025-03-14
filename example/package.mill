@@ -306,7 +306,8 @@ $txt
     "netty" -> ("netty/netty", "20a790ed362a3c11e0e990b58598e4ac6aa88bef"),
     "mockito" -> ("mockito/mockito", "97f3574cc07fdf36f1f76ba7332ac57675e140b1"),
     "gatling" -> ("gatling/gatling", "3870fda86e6bca005fbd53108c60a65db36279b6"),
-    "arrow" -> ("arrow-kt/arrow", "bc9bf92cc98e01c21bdd2bf8640cf7db0f97204a")
+    "arrow" -> ("arrow-kt/arrow", "bc9bf92cc98e01c21bdd2bf8640cf7db0f97204a"),
+    "ollama-js" -> ("ollama/ollama-js", "99293abe2c7c27ce7e76e8b4a98cae948f00058d")
   )
   object thirdparty extends Cross[ThirdPartyModule](build.listIn(millSourcePath / "thirdparty"))
   trait ThirdPartyModule extends ExampleCrossModule {

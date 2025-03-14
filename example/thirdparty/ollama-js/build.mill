@@ -1,0 +1,223 @@
+package build
+
+import mill._, javascriptlib._
+import os.*
+
+trait OllamaModule extends TypeScriptModule {
+
+  // clean git source - remove generated json files
+  def cleanUp = Task {
+    os.checker.withValue(os.Checker.Nop) {
+      os.remove(T.workspace / "package.json")
+      os.remove(T.workspace / "package-lock.json")
+      os.remove(T.workspace / "tsconfig.json")
+    }
+  }
+
+  def compile = Task {
+    cleanUp()
+    super.compile()
+  }
+
+  // bundle ollama with `unbuild`
+  def unbuild = Task {
+    symLink()
+    val out = compile().path
+
+    os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
+      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
+
+    os.write.over(
+      Task.dest / "package.json",
+      ujson.Obj(
+        "name" -> ujson.Str("ollama"),
+        "version" -> ujson.Str("0.0.0"),
+        "description" -> ujson.Str("Ollama Javascript library"),
+        "main" -> ujson.Str("dist/index.cjs"),
+        "module" -> ujson.Str("dist/index.mjs"),
+        "types" -> ujson.Str("dist/index.d.ts"),
+        "exports" -> ujson.Obj(
+          "." -> ujson.Obj(
+            "require" -> ujson.Str("./dist/index.cjs"),
+            "import" -> ujson.Str("./dist/index.mjs"),
+            "types" -> ujson.Str("./dist/index.d.ts")
+          ),
+          "./browser" -> ujson.Obj(
+            "require" -> ujson.Str("./dist/browser.cjs"),
+            "import" -> ujson.Str("./dist/browser.mjs"),
+            "types" -> ujson.Str("./dist/browser.d.ts")
+          ),
+          "./*" -> ujson.Str("./*")
+        ),
+        "dependencies" -> ujson.Obj("whatwg-fetch" -> ujson.Str("3.6.20"))
+      )
+    )
+
+    os.call("node_modules/.bin/unbuild", cwd = T.dest)
+
+    os.makeDir.all(T.dest / "ollama")
+    os.copy(T.dest / "package.json", T.dest / "ollama" / "package.json")
+    os.copy(T.dest / "dist", T.dest / "ollama" / "dist")
+
+    PathRef(T.dest / "ollama")
+  }
+}
+
+object `package` extends RootModule with OllamaModule with TsLintModule {
+  def moduleName = "core"
+  def npmDeps = Seq("whatwg-fetch@3.6.20")
+  def npmDevDeps = Seq(
+    "@swc/core@1.10.12",
+    "@types/whatwg-fetch@0.0.33",
+    "unbuild@2.0.0"
+  )
+
+  def npmLintDeps = Seq(
+    "prettier@3.2.4",
+    "eslint@8.29.0",
+    "@typescript-eslint/eslint-plugin@5.42.1",
+    "@typescript-eslint/parser@5.42.1"
+  )
+
+  // disable declarations output in compile stage
+  def runTypeCheck: T[Boolean] = false
+
+  def options =
+    super.options() + (
+      "ts-node" -> ujson.Obj(
+        "swc" -> ujson.True,
+        "esm" -> ujson.True
+      )
+    )
+
+  def compilerOptions =
+    super.compilerOptions() + (
+      "noImplicitAny" -> ujson.True,
+      "noImplicitThis" -> ujson.True,
+      "strictNullChecks" -> ujson.True,
+      "declarationMap" -> ujson.True,
+      "skipLibCheck" -> ujson.True,
+      "strict" -> ujson.True,
+      "forceConsistentCasingInFileNames" -> ujson.True,
+      "module" -> ujson.Str("ES2022"),
+      "target" -> ujson.Str("es6"),
+      "lib" -> ujson.Arr.from(Seq("es6", "es2018.asyncgenerator", "dom"))
+    )
+
+  object test extends TypeScriptTests with TestModule.Vitest
+
+  object examples extends TypeScriptModule {
+    object abort extends TypeScriptModule {
+      def unmanagedDeps = Seq(unbuild())
+      def sources = Task.Sources(moduleDir)
+      def mainFileName = s"abort-all-requests.ts"
+      def mainFilePath = Task { compile().path / mainFileName() }
+    }
+
+    object `fill-in-middle` extends TypeScriptModule {
+      def unmanagedDeps = Seq(unbuild())
+      def sources = Task.Sources(moduleDir)
+      def mainFileName = s"fill.ts"
+      def mainFilePath = Task { compile().path / mainFileName() }
+      def enableEsm = true
+    }
+
+    object multimodal extends TypeScriptModule {
+      def unmanagedDeps = Seq(unbuild())
+      def sources = Task.Sources(moduleDir)
+      def mainFileName = s"multimodal.ts"
+      def mainFilePath = Task { compile().path / mainFileName() }
+      def enableEsm = true
+    }
+
+    object `pull-progress` extends TypeScriptModule {
+      def unmanagedDeps = Seq(unbuild())
+      def sources = Task.Sources(moduleDir)
+      def mainFileName = s"pull.ts"
+      def mainFilePath = Task { compile().path / mainFileName() }
+      def enableEsm = true
+    }
+
+    object structured_outputs extends TypeScriptModule {
+      def unmanagedDeps = Seq(unbuild())
+      def npmDeps = Seq("zod@3.24.1", "zod-to-json-schema@3.24.1")
+      def sources = Task.Sources(moduleDir)
+      def mainFileName = s"structured-outputs.ts"
+      def mainFilePath = Task { compile().path / mainFileName() }
+      def compilerOptions =
+        super.compilerOptions() + (
+          "module" -> ujson.Str("nodenext"),
+          "moduleResolution" -> ujson.Str("nodenext"),
+          "target" -> ujson.Str("es6")
+        )
+    }
+
+    object tools extends TypeScriptModule {
+      def unmanagedDeps = Seq(unbuild())
+      def sources = Task.Sources(moduleDir)
+      def mainFileName = s"calculator.ts"
+      def mainFilePath = Task { compile().path / mainFileName() }
+      def compilerOptions =
+        super.compilerOptions() + (
+          "module" -> ujson.Str("nodenext"),
+          "moduleResolution" -> ujson.Str("nodenext"),
+          "target" -> ujson.Str("es6")
+        )
+    }
+  }
+}
+
+//// The Ollama JavaScript library provides the easiest way to integrate
+//// your JavaScript project with Ollama. https://github.com/ollama/ollama
+//
+//// Project home: https://github.com/ollama/ollama-js
+
+/** Usage
+
+> ./mill compile
+
+> ./mill test
+...
+.../index.test.ts (15 tests) ...
+.../utils.test.ts (5 tests) ...
+...
+...Test Files  2 passed (2)
+...     Tests  20 passed (20)
+...
+
+> ./mill checkFormatEslint
+
+> ./mill checkFormatPrettier
+...Checking formatting...
+[warn] examples/abort/abort-all-requests.ts
+[warn] examples/abort/abort-single-request.ts
+[warn] examples/structured_outputs/structured-outputs-image.ts
+[warn] examples/structured_outputs/structured-outputs.ts
+[warn] examples/tools/calculator.ts
+[warn] examples/tools/flight-tracker.ts
+[warn] src/browser.ts
+[warn] src/constant.ts
+[warn] src/index.ts
+[warn] src/interfaces.ts
+[warn] src/utils.ts
+[warn] test/utils.test.ts
+...
+
+> ./mill examples.abort.run
+...Aborting all requests...
+
+> ./mill examples.fill-in-middle.run
+...
+
+> ./mill examples.multimodal.run
+...
+
+> ./mill examples.pull-progress.run
+...
+
+> ./mill examples.structured_outputs.run
+...
+
+> ./mill examples.tools.run
+...
+*/

@@ -10,20 +10,25 @@ trait TsLintModule extends Module {
   private case object Eslint extends Lint
   private case object Prettier extends Lint
 
-  def npmLintDeps: T[Seq[String]] = Task { Seq.empty[String] }
+  def npmLintDeps: T[Seq[String]] = Task {
+    Seq(
+      "prettier@3.4.2",
+      "eslint@9.18.0",
+      "typescript-eslint@8.21.0",
+      "@eslint/js@9.18.0"
+    )
+  }
 
   private def npmInstallLint: T[PathRef] = Task {
     Try(os.copy.over(T.workspace / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
     os.call((
       "npm",
       "install",
+      "--prefix",
+      ".",
       "--userconfig",
       ".npmrc",
       "--save-dev",
-      "prettier@3.4.2",
-      "eslint@9.18.0",
-      "typescript-eslint@8.21.0",
-      "@eslint/js@9.18.0",
       npmLintDeps()
     ))
     PathRef(Task.dest)
@@ -34,6 +39,9 @@ trait TsLintModule extends Module {
     T.workspace / "eslint.config.mjs",
     T.workspace / "eslint.config.cjs",
     T.workspace / "eslint.config.js",
+    T.workspace / ".eslintrc.js",
+    T.workspace / ".eslintrc.mjs",
+    T.workspace / ".eslintrc.cjs",
     T.workspace / ".prettierrc",
     T.workspace / ".prettierrc.json"
   )
@@ -48,7 +56,9 @@ trait TsLintModule extends Module {
 
     locs.find(p => os.exists(p.path)) match {
       case None =>
-        Result.Failure(s"Lint couldn't find an eslint.config.(js|mjs|cjs) or a `.pretiierrc` file")
+        Result.Failure(
+          s"Lint couldn't find an eslint.config.(js|mjs|cjs) or a .eslintrc.(js|mjs|cjs) or a `.pretiierrc` file"
+        )
       case Some(c) => Result.Success(lintT(c.path))
     }
   }
@@ -209,6 +219,7 @@ trait TsLintModule extends Module {
     val content =
       s"""|node_modules
           |.git
+          |out
           |""".stripMargin
     os.write.over(config, content)
 
