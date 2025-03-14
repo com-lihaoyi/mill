@@ -504,7 +504,7 @@ index a1e60b992d2..b5ae133427a 100644
      val (repoPath, repoHash) = repoInfo(crossValue)
      def repoSlug = repoPath.split("/").last
 diff --git a/integration/package.mill b/integration/package.mill
-index b04b1bfeb9b..60f317b422d 100644
+index d57b7936add..ae4985f9102 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -3,13 +3,12 @@ package build.integration
@@ -545,7 +545,7 @@ index b04b1bfeb9b..60f317b422d 100644
        def scalaVersion = build.Deps.scalaVersion
  
        def forkEnv =
-@@ -86,13 +85,13 @@ object `package` extends RootModule {
+@@ -86,15 +85,15 @@ object `package` extends RootModule {
      }
    }
  
@@ -561,6 +561,9 @@ index b04b1bfeb9b..60f317b422d 100644
    object bootstrap
 -      extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "bootstrap"))
 +      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
+   object migrating
+-      extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "migrating"))
++      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "migrating"))
    trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
      def forkEnv = super.forkEnv() ++ Seq(
