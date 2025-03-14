@@ -20,7 +20,7 @@ object MillInitMavenJansiTests extends BuildGenTestSuite {
     val url = "https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      import tester._
 
       val initRes = eval("init")
       assert(
@@ -48,7 +48,7 @@ object MillInitMavenJansiTests extends BuildGenTestSuite {
     }
 
     test("realistic") - integrationTest(url) { tester =>
-      import tester.*
+      import tester._
 
       // set jvmId to test the feature
       val init =
@@ -87,7 +87,7 @@ object MillInitMavenDotEnvTests extends BuildGenTestSuite {
     val url = "https://github.com/shyiko/dotenv/archive/refs/tags/0.1.1.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      import tester._
 
       val init = defaultInitCommand
       val initRes = eval(init)
@@ -113,7 +113,7 @@ object MillInitMavenAvajeConfigTests extends BuildGenTestSuite {
     val url = "https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      import tester._
 
       val init = defaultInitCommand
       val initRes = eval(init)

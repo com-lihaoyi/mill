@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.IntegrationTester
 import mill.testkit.IntegrationTester.EvalResult
-import utest.*
+import utest._
 
 import scala.collection.immutable.SortedSet
 
@@ -72,8 +72,8 @@ object MillInitUtils {
       // expectedCompileResult: Boolean,
       expectedCompileTaskResults: Option[SplitTaskResults],
       expectedTestTaskResults: Option[SplitTaskResults]
-  ) = {
-    import tester.*
+  ): Unit = {
+    import tester._
 
     val initResult = eval(initCommand)
     if (expectedInitResult) assertEvalSuccess(initResult) else assert(!initResult.isSuccess)

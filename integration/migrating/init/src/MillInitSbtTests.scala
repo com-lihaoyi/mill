@@ -83,7 +83,7 @@ object MillInitSbtScalaCsv136Tests extends BuildGenTestSuite {
     val url = "https://github.com/tototoshi/scala-csv/archive/refs/tags/1.3.6.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      import tester._
       bumpSbt(workspacePath)
 
       testMillInit(
@@ -112,7 +112,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       "https://github.com/pbassiner/sbt-multi-project-example/archive/152b31df9837115b183576b0080628b43c505389.zip"
 
     test - integrationTest(url) { tester =>
-      import tester.*
+      import tester._
       bumpSbt(workspacePath)
       /*
       `multi1.compile` doesn't work well when Mill is run with JDK 17 and 21:

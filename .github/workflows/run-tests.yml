@@ -169,7 +169,7 @@ jobs:
             install-sbt: false
 
           - java-version: 17
-            millargs: "'example.migrating.__.local.server.test'"
+            millargs: "'{example,integration}.migrating.__.local.server.test'"
             install-android-sdk: false
             install-sbt: true
 
@@ -243,15 +243,23 @@ jobs:
           # * At least one job for each of fork/server tests, and example/integration tests
           - java-version: 11
             millargs: '"{main,scalalib,bsp}.__.test"'
+            install-sbt: false
 
           - java-version: 11
             millargs: '"example.scalalib.{basic,publishing}.__.local.fork.test"'
+            install-sbt: false
+
+          - java-version: 11
+            millargs: '"example.migrating.{scalalib,javalib}.__.local.fork.test"'
+            install-sbt: true
 
           - java-version: 17
             millargs: "'integration.{feature,failure}.__.packaged.fork.test'"
+            install-sbt: false
 
           - java-version: 11 # Run this with Mill native launcher as a smoketest
             millargs: "'integration.invalidation.__.native.server.test'"
+            install-sbt: false
 
           - java-version: 17
             millargs: "'integration.bootstrap[no-java-bootstrap].native.server.test'"
@@ -265,6 +273,7 @@ jobs:
       # running the graal native image binary on windows
       coursierarchive: "C:/coursier-arc"
       shell: powershell
+      install-sbt: ${{ matrix.install-sbt }}
 
   itest:
     needs: build-linux
