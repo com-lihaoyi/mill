@@ -167,7 +167,7 @@ jobs:
             install-android-sdk: true
             install-sbt: false
 
-          - java-version: 17
+          - java-version: 11
             millargs: "'{example,integration}.migrating.__.local.server.test'"
             install-android-sdk: false
             install-sbt: true
