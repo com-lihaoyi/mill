@@ -4,8 +4,9 @@ import coursier.cache.FileCache
 import coursier.core.{BomDependency, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
+import mill.T
 import mill.define.Task
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
 import mill.util.Jvm
 
 import scala.concurrent.Await
@@ -18,6 +19,8 @@ import scala.concurrent.duration.Duration
  * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].
  */
 trait CoursierModule extends mill.Module {
+
+  def checkGradleModules: T[Boolean] = false
 
   /**
    * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)
@@ -43,7 +46,8 @@ trait CoursierModule extends mill.Module {
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
       ctx = Some(implicitly[mill.api.Ctx.Log]),
-      resolutionParams = resolutionParams()
+      resolutionParams = resolutionParams(),
+      checkGradleModules = checkGradleModules()
     )
   }
 
@@ -51,7 +55,7 @@ trait CoursierModule extends mill.Module {
    * A `CoursierModule.Resolver` to resolve dependencies.
    *
    * Can be used to resolve external dependencies, if you need to download an external
-   * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#resolveDeps`.
+   * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#classpath`.
    *
    * @return `CoursierModule.Resolver` instance
    */
@@ -63,41 +67,9 @@ trait CoursierModule extends mill.Module {
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
       ctx = Some(implicitly[mill.api.Ctx.Log]),
-      resolutionParams = resolutionParams()
+      resolutionParams = resolutionParams(),
+      checkGradleModules = checkGradleModules()
     )
-  }
-
-  /**
-   * Task that resolves the given dependencies using the repositories defined with [[repositoriesTask]].
-   *
-   * @param deps    The dependencies to resolve.
-   * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
-   * @param artifactTypes If non-empty, pull the passed artifact types rather than the default ones from coursier
-   * @return The [[PathRef]]s to the resolved files.
-   */
-  def resolveDeps(
-      deps: Task[Seq[BoundDep]],
-      checkGradleModules: Boolean = false,
-      sources: Boolean = false,
-      artifactTypes: Option[Set[Type]] = None,
-      enableMillInternalDependencies: Boolean = false
-  ): Task[Seq[PathRef]] = {
-    val repositoriesTask0 =
-      if (enableMillInternalDependencies) allRepositories
-      else repositoriesTask
-    Task.Anon {
-      Lib.resolveDependencies(
-        repositories = repositoriesTask0(),
-        deps = deps(),
-        checkGradleModules = checkGradleModules,
-        sources = sources,
-        artifactTypes = artifactTypes,
-        mapDependencies = Some(mapDependencies()),
-        customizer = resolutionCustomizer(),
-        coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.api.Ctx.Log])
-      )
-    }
   }
 
   /**
@@ -115,7 +87,7 @@ trait CoursierModule extends mill.Module {
   private[mill] def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
 
   /**
-   * The repositories used to resolve dependencies with [[resolveDeps()]].
+   * The repositories used to resolve dependencies with [[classpath()]].
    *
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
@@ -214,6 +186,7 @@ object CoursierModule {
   class Resolver(
       repositories: Seq[Repository],
       bind: Dep => BoundDep,
+      checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
@@ -223,120 +196,64 @@ object CoursierModule {
       resolutionParams: ResolutionParams = ResolutionParams()
   ) {
 
-    def resolveDeps[T: CoursierModule.Resolvable](
+    /**
+     * Class path of the passed dependencies
+     *
+     * @param deps root dependencies to resolve
+     * @param sources whether to fetch source JARs or standard JARs
+     */
+    def classpath[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
-        checkGradleModules: Boolean = false,
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
-        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
-    ): Seq[PathRef] = {
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
+        mapDependencies: Option[Dependency => Dependency] = null
+    )(implicit logCtx: mill.api.Ctx.Log = null): Seq[PathRef] =
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
         checkGradleModules = checkGradleModules,
         sources = sources,
         artifactTypes = artifactTypes,
-        mapDependencies = mapDependencies,
+        mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
+        ctx = Option(logCtx).orElse(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       ).get
-    }
 
     /**
-     * Processes dependencies and BOMs with coursier
-     *
-     * This makes coursier read and process BOM dependencies, and fill empty versions
-     * in dependencies with the BOMs.
-     *
-     * Note that this doesn't throw when an empty version cannot be filled, and just leaves
-     * the empty version behind.
-     *
-     * @param deps dependencies that might have empty versions
-     * @param resolutionParams coursier resolution parameters
-     * @return dependencies with empty version filled
-     */
-    def processDeps[T: CoursierModule.Resolvable](
-        deps: IterableOnce[T],
-        checkGradleModules: Boolean = false,
-        resolutionParams: ResolutionParams = ResolutionParams(),
-        boms: IterableOnce[BomDependency] = Nil
-    ): (Seq[coursier.core.Dependency], DependencyManagement.Map) = {
-      val deps0 = deps
-        .iterator
-        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
-        .toSeq
-      val boms0 = boms.iterator.toSeq
-      val res = Lib.resolveDependenciesMetadataSafe(
-        repositories = repositories,
-        deps = deps0,
-        checkGradleModules = checkGradleModules,
-        mapDependencies = mapDependencies,
-        customizer = customizer,
-        coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
-        resolutionParams = resolutionParams,
-        boms = boms0
-      ).get
-
-      (
-        res.finalDependenciesCache.getOrElse(
-          deps0.head.dep,
-          sys.error(
-            s"Should not happen - could not find root dependency ${deps0.head.dep} in Resolution#finalDependenciesCache"
-          )
-        ),
-        res.projectCache
-          .get(deps0.head.dep.moduleVersion)
-          .map(_._2.overrides.flatten.toMap)
-          .getOrElse {
-            sys.error(
-              s"Should not happen - could not find root dependency ${deps0.head.dep.moduleVersion} in Resolution#projectCache"
-            )
-          }
-      )
-    }
-
-    /**
-     * All dependencies pulled by the passed dependencies
+     * Raw coursier resolution of the passed dependencies
      *
      * @param deps root dependencies
-     * @return full - ordered - list of dependencies pulled by `deps`
      */
-    def allDeps[T: CoursierModule.Resolvable](
-        deps: IterableOnce[T],
-        checkGradleModules: Boolean = false
-    ): Seq[coursier.core.Dependency] = {
+    def resolution[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T]
+    )(implicit logCtx: mill.api.Ctx.Log = null): coursier.core.Resolution = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
         .toSeq
-      val res = Lib.resolveDependenciesMetadataSafe(
+      Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
         checkGradleModules = checkGradleModules,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
+        ctx = Option(logCtx).orElse(ctx),
         resolutionParams = ResolutionParams(),
         boms = Nil
       ).get
-
-      res.orderedDependencies
     }
 
-    def getArtifacts[T: CoursierModule.Resolvable](
+    /**
+     * Raw artifact results for the passed dependencies
+     */
+    def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
-        sources: Boolean = false,
-        mapDependencies: Option[Dependency => Dependency] = None,
-        customizer: Option[Resolution => Resolution] = None,
-        ctx: Option[mill.api.Ctx.Log] = None,
-        coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-        artifactTypes: Option[Set[Type]] = None,
-        resolutionParams: ResolutionParams = ResolutionParams()
-    ): coursier.Artifacts.Result = {
+        sources: Boolean = false
+    )(implicit logCtx: mill.api.Ctx.Log = null): coursier.Artifacts.Result = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
@@ -344,8 +261,9 @@ object CoursierModule {
       Jvm.getArtifacts(
         repositories,
         deps0.map(_.dep),
+        checkGradleModules = checkGradleModules,
         sources = sources,
-        ctx = ctx
+        ctx = Option(logCtx).orElse(ctx)
       ).get
     }
   }

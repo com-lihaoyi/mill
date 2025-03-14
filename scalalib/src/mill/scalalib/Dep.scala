@@ -97,9 +97,6 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
       case _ =>
         this
     }
-
-  def addVariantAttributes(attributes: (String, String)*): Dep =
-    copy(dep = dep.addVariantAttributes(attributes*))
 }
 
 object Dep {

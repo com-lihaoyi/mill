@@ -69,7 +69,8 @@ private[runner] object ScalaCompilerWorker {
       mill.util.Jvm.resolveDependencies(
         repositories = repositories,
         deps = bootstrapDeps,
-        force = Nil
+        force = Nil,
+        checkGradleModules = false
       ).map(_.map(_.withRevalidateOnce))
     }
   }

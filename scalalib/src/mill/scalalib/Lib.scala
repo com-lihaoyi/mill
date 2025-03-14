@@ -30,7 +30,7 @@ object Lib {
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
-      checkGradleModules: Boolean = false,
+      checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[Ctx.Log] = None,
@@ -65,7 +65,7 @@ object Lib {
   def resolveDependencies(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
-      checkGradleModules: Boolean = false,
+      checkGradleModules: Boolean,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
