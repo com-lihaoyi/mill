@@ -118,7 +118,23 @@ trait PublishModule extends TypeScriptModule {
 
   override def compile: T[PathRef] = Task {
     pubSymLink()
-    super.compile()
+    symLink()
+
+    val out = super.compile().path
+
+    os.walk(
+      out,
+      skip = p =>
+        p.last == "node_modules" ||
+        p.last == "package-lock.json" ||
+        p.last == "dist"
+        p.last == "declarations"
+    )
+      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
+
+    os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
+
+    PathRef(T.dest)
   }
   // Compilation Options
 
@@ -189,7 +205,12 @@ trait PublishModule extends TypeScriptModule {
     // bundled code for publishing
     val bundled = bundle().path / os.up
 
-    os.walk(bundled, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
+    os.walk(
+      bundled,
+      skip = p =>
+        p.last == "node_modules" ||
+          p.last == "package-lock.json"
+    )
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(bundled), createFolders = true))
 
     // run npm publish

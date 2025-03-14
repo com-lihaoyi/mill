@@ -24,7 +24,7 @@ object qux extends PublishModule {
     Seq(PathRef(Task.dest))
   }
 
-  def exports = Map(
+  def pubExports = Map(
     "./qux/generate_user" -> "src/generate_user.js",
     "./foo" -> "foo/src/foo.js",
     "./foo/bar" -> "foo/bar/src/bar.js"
@@ -84,6 +84,22 @@ object qux extends PublishModule {
 //// SNIPPET:END
 
 /** Usage
+
+> mill qux.run James Bond prof
+{ prof: 'Professor' }
+prof
+Professor
+Hello James Bond Professor
+
+> mill show qux.bundle
+Build succeeded!
+
+> node out/qux/bundle.dest/dist/src/qux.js James Bond prof
+{ prof: 'Professor' }
+prof
+Professor
+Hello James Bond Professor
+
 > mill qux.test
 PASS .../qux.test.ts
 ...

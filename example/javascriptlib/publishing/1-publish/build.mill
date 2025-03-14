@@ -55,6 +55,16 @@ object foo extends PublishModule {
 //// SNIPPET:END
 
 /** Usage
+
+> mill foo.run "James Bond"
+Hello James Bond!
+
+> mill show foo.bundle
+Build succeeded!
+
+> node out/foo/bundle.dest/dist/src/foo.js "James Bond"
+Hello James Bond!
+
 > npm i -g mill-simple # install the executable file globally
 ...
 
