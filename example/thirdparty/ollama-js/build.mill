@@ -22,7 +22,7 @@ trait OllamaModule extends TypeScriptModule {
   // bundle ollama with `unbuild`
   def unbuild = Task {
     symLink()
-    val out = compile()._1.path
+    val out = compile().path
 
     os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
@@ -108,14 +108,14 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
       def unmanagedDeps = Seq(unbuild())
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"abort-all-requests.ts"
-      def mainFilePath = Task { compile()._2.path / mainFileName() }
+      def mainFilePath = Task { compile().path / mainFileName() }
     }
 
     object `fill-in-middle` extends TypeScriptModule {
       def unmanagedDeps = Seq(unbuild())
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"fill.ts"
-      def mainFilePath = Task { compile()._2.path / mainFileName() }
+      def mainFilePath = Task { compile().path / mainFileName() }
       def enableEsm = true
     }
 
@@ -123,7 +123,7 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
       def unmanagedDeps = Seq(unbuild())
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"multimodal.ts"
-      def mainFilePath = Task { compile()._2.path / mainFileName() }
+      def mainFilePath = Task { compile().path / mainFileName() }
       def enableEsm = true
     }
 
@@ -131,7 +131,7 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
       def unmanagedDeps = Seq(unbuild())
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"pull.ts"
-      def mainFilePath = Task { compile()._2.path / mainFileName() }
+      def mainFilePath = Task { compile().path / mainFileName() }
       def enableEsm = true
     }
 
@@ -140,7 +140,7 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
       def npmDeps = Seq("zod@3.24.1", "zod-to-json-schema@3.24.1")
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"structured-outputs.ts"
-      def mainFilePath = Task { compile()._2.path / mainFileName() }
+      def mainFilePath = Task { compile().path / mainFileName() }
       def compilerOptions =
         super.compilerOptions() + (
           "module" -> ujson.Str("nodenext"),
@@ -153,7 +153,7 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
       def unmanagedDeps = Seq(unbuild())
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"calculator.ts"
-      def mainFilePath = Task { compile()._2.path / mainFileName() }
+      def mainFilePath = Task { compile().path / mainFileName() }
       def compilerOptions =
         super.compilerOptions() + (
           "module" -> ujson.Str("nodenext"),
