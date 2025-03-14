@@ -8,6 +8,7 @@ import mill.define.{Discover, ExternalModule, Task}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{Versions, ZincWorkerApi, ZincWorkerUtil}
+import mill.scalalib.CoursierModule.Resolver
 import mill.util.Util.millProjectModule
 
 /**
@@ -94,12 +95,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
         Left((
           Task.ctx(),
           (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, repositoriesTask())
-              .asSuccess
-              .getOrElse(
-                throw new Exception(s"Failed to load compiler bridge for $x $y")
-              )
-              .value
+            scalaCompilerBridgeJar(x, y, defaultResolver()).getOrThrow
         )),
         jobs,
         java.lang.Boolean.FALSE,
@@ -110,6 +106,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     instance.asInstanceOf[ZincWorkerApi]
   }
 
+  @deprecated("Use the override accepting a Resolver instead", "Mill after 0.12.9")
   def scalaCompilerBridgeJar(
       scalaVersion: String,
       scalaOrganization: String,
@@ -164,6 +161,60 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     }
   }
 
+  def scalaCompilerBridgeJar(
+      scalaVersion: String,
+      scalaOrganization: String,
+      resolver: Resolver
+  ): Result[(Option[Agg[PathRef]], PathRef)] = {
+    val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
+      case _ => (scalaVersion, ZincWorkerUtil.scalaBinaryVersion(scalaVersion))
+    }
+
+    val (bridgeDep, bridgeName, bridgeVersion) =
+      if (isDottyOrScala3(scalaVersion0)) {
+        val org = scalaOrganization
+        val name =
+          if (isDotty(scalaVersion0)) "dotty-sbt-bridge"
+          else "scala3-sbt-bridge"
+        val version = scalaVersion
+        (ivy"$org:$name:$version", name, version)
+      } else if (ZincWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
+        val org = "com.lihaoyi"
+        val name = s"mill-scala-compiler-bridge_$scalaVersion"
+        val version = Versions.millCompilerBridgeVersion
+        (ivy"$org:$name:$version", name, version)
+      } else {
+        val org = "org.scala-sbt"
+        val name = "compiler-bridge"
+        val version = Versions.zinc
+        (
+          ivy"$org:${name}_${scalaBinaryVersion0}:$version",
+          s"${name}_$scalaBinaryVersion0",
+          version
+        )
+      }
+
+    val useSources = !isBinaryBridgeAvailable(scalaVersion)
+
+    val bridgeJar = resolver.resolveDepsSafe(
+      Seq(bridgeDep.bindDep("", "", "")),
+      sources = useSources,
+      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+    ).map(deps =>
+      ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
+    )
+
+    if (useSources) {
+      for {
+        jar <- bridgeJar
+        classpath <- compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
+      } yield (Some(classpath), jar)
+    } else {
+      bridgeJar.map((None, _))
+    }
+  }
+
+  @deprecated("Use the override accepting a Resolver instead", "Mill after 0.12.9")
   def compilerInterfaceClasspath(
       scalaVersion: String,
       scalaOrganization: String,
@@ -171,6 +222,19 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
   ): Result[Agg[PathRef]] = {
     resolveDependencies(
       repositories = repositories,
+      deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
+      // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
+      // We need to override it with the scalaVersion and scalaOrganization of the module
+      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+    )
+  }
+
+  def compilerInterfaceClasspath(
+      scalaVersion: String,
+      scalaOrganization: String,
+      resolver: Resolver
+  ): Result[Agg[PathRef]] = {
+    resolver.resolveDeps(
       deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
@@ -197,7 +261,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
     Task.Command {
       classpath()
-      scalaCompilerBridgeJar(scalaVersion, scalaOrganization, repositoriesTask())
+      scalaCompilerBridgeJar(scalaVersion, scalaOrganization, defaultResolver())
       ()
     }
 

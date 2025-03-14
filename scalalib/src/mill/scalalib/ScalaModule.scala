@@ -571,7 +571,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       zincWorker().scalaCompilerBridgeJar(
         scalaVersion(),
         scalaOrganization(),
-        repositoriesTask()
+        defaultResolver()
       )
       Task.sequence(tasks)()
       ()

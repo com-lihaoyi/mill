@@ -5,7 +5,7 @@ import coursier.core.{BomDependency, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
 
 import scala.annotation.nowarn
 import scala.concurrent.Await
@@ -275,20 +275,50 @@ object CoursierModule {
         deps: IterableOnce[T],
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
-        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
-    ): Agg[PathRef] = {
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
+        mapDependencies: Option[Dependency => Dependency] = null
+    ): Agg[PathRef] =
+      resolveDepsSafe(
+        deps,
+        sources,
+        artifactTypes,
+        resolutionParamsMapOpt,
+        mapDependencies
+      ).getOrThrow
+
+    // bin-compat shim
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean,
+        artifactTypes: Option[Set[coursier.Type]],
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams]
+    ): Agg[PathRef] =
+      resolveDeps(
+        deps,
+        sources,
+        artifactTypes,
+        resolutionParamsMapOpt,
+        None
+      )
+
+    def resolveDepsSafe[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false,
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
+        mapDependencies: Option[Dependency => Dependency] = null
+    ): Result[Agg[PathRef]] =
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
         artifactTypes = artifactTypes,
-        mapDependencies = mapDependencies,
+        mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       ).getOrThrow
-    }
 
     // bin-compat shim
     def resolveDeps[T: CoursierModule.Resolvable](
