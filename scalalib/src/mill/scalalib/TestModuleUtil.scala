@@ -338,7 +338,7 @@ private final class TestModuleUtil(
         // force run when processIndex == 0 (first subprocess), even if there are no tests to run
         // to force the process to go through the test framework setup/teardown logic
         (
-          processFolder,
+          if (os.exists(processFolder / "claim")) os.list(processFolder / "claim").size else 0,
           groupName,
           runTestRunnerSubprocess(
             processFolder,
@@ -357,9 +357,8 @@ private final class TestModuleUtil(
         executor.scheduleWithFixedDelay(
           () =>
             workerStatusMap.forEach { (claimLog, callback) =>
-              os.read.lines(
-                claimLog
-              ).lastOption.foreach(callback) // the last one is always the latest
+              // the last one is always the latest
+              os.read.lines(claimLog).lastOption.foreach(callback)
             },
           0,
           20,
@@ -368,9 +367,7 @@ private final class TestModuleUtil(
 
         Task.fork.blocking {
           while ({
-            val claimedCounts = subprocessFutures.flatMap(_.value).flatMap(_.toOption).map(t =>
-              if (os.exists(t._1)) os.list(t._1 / "claim").size else 0
-            )
+            val claimedCounts = subprocessFutures.flatMap(_.value).flatMap(_.toOption).map(_._1)
             val expectedCounts = filteredClassLists.map(_.size)
             !(claimedCounts.sum == expectedCounts.sum || subprocessFutures.forall(_.isCompleted))
           }) Thread.sleep(1)
