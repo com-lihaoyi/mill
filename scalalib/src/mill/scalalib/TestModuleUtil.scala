@@ -241,16 +241,16 @@ private final class TestModuleUtil(
     ) = {
       val claimFolder = base / "claim"
       os.makeDir.all(claimFolder)
-      val startingTestClass = try {
-        os
-          .list
-          .stream(testClassQueueFolder)
-          .map(TestRunnerUtils.claimFile(_, claimFolder))
-          .collectFirst { case Some(name) => name }
-      }
-      catch{
-        case e: Throwable => None
-      }
+      val startingTestClass =
+        try {
+          os
+            .list
+            .stream(testClassQueueFolder)
+            .map(TestRunnerUtils.claimFile(_, claimFolder))
+            .collectFirst { case Some(name) => name }
+        } catch {
+          case e: Throwable => None
+        }
 
       if (force || startingTestClass.nonEmpty) {
         startingTestClass.foreach(logger.ticker(_))
@@ -340,7 +340,6 @@ private final class TestModuleUtil(
         // use fewer longer-lived test subprocesses, minimizing JVM startup overhead
         priority = if (processIndex == 0) -1 else processIndex
       ) { logger =>
-
         val result = runTestRunnerSubprocess(
           processFolder,
           testClassesFolder,
