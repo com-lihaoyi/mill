@@ -106,6 +106,7 @@ trait CoursierModule extends mill.Module {
   }
 
   // bin-compat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def resolveDeps(
       deps: Task[Agg[BoundDep]],
       sources: Boolean,
@@ -249,6 +250,7 @@ object CoursierModule {
   ) {
 
     // bin-compat shim
+    @deprecated("Use other constructor instead", since = "0.12.9")
     def this(
         repositories: Seq[Repository],
         bind: Dep => BoundDep,
@@ -291,6 +293,7 @@ object CoursierModule {
     }
 
     // bin-compat shim
+    @deprecated("Use other overload instead", since = "0.12.9")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean,

@@ -225,6 +225,7 @@ trait CoursierSupport {
     }
 
   // bin-compat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def resolveDependencies(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
@@ -434,6 +435,7 @@ trait CoursierSupport {
   }
 
   // bin-compat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
@@ -456,7 +458,8 @@ trait CoursierSupport {
       Nil
     )
 
-  // bin-compat shim
+  // bin-compat 
+  @deprecated("Use other overload instead", since = "0.12.9")
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],

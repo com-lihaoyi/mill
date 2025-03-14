@@ -83,6 +83,7 @@ object Ivy {
   }
 
   // bin-compat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def apply(
       artifact: Artifact,
       dependencies: Agg[Dependency],
@@ -98,6 +99,7 @@ object Ivy {
     )
 
   // bin-compat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def apply(
       artifact: Artifact,
       dependencies: Agg[Dependency],

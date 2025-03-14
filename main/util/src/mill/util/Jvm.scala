@@ -333,6 +333,7 @@ object Jvm extends CoursierSupport {
   }
 
   // bincompat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def runSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -357,6 +358,7 @@ object Jvm extends CoursierSupport {
       None
     )
   // bincompat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def runSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -443,7 +445,8 @@ object Jvm extends CoursierSupport {
       runSubprocess(args, envArgs, workingDir)
   }
 
-  // bincompat shim
+  // bincompat 
+  @deprecated("Use other overload instead", since = "0.12.9")
   def runSubprocessWithBackgroundOutputs(
       mainClass: String,
       classPath: Agg[os.Path],

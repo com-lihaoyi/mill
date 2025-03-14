@@ -367,6 +367,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   // bin-compat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def publishLocal(
       localIvyRepo: String
   ): define.Command[Unit] =

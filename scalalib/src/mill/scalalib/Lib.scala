@@ -80,6 +80,7 @@ object Lib {
   }
 
   // bin-compat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
@@ -103,6 +104,7 @@ object Lib {
     )
 
   // bin-compat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
@@ -163,6 +165,7 @@ object Lib {
   }
 
   // bin-compat shim
+  @deprecated("Use other overload instead", since = "0.12.9")
   def resolveDependencies(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
