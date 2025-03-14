@@ -5,7 +5,7 @@ import os.*
 
 trait OllamaModule extends TypeScriptModule {
 
-  // remove generated json files from downloaded git source
+  // clean git source - remove generated json files
   def cleanUp = Task {
     os.checker.withValue(os.Checker.Nop) {
       os.remove(T.workspace / "package.json")
@@ -19,6 +19,49 @@ trait OllamaModule extends TypeScriptModule {
     super.compile()
   }
 
+  // bundle ollama with `unbuild`
+  def unbuild = Task {
+    symLink()
+    val out = compile()._1.path
+
+    os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
+      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
+
+    os.remove.all(T.dest / "declarations")
+    os.write.over(
+      Task.dest / "package.json",
+      ujson.Obj(
+        "name" -> ujson.Str("ollama"),
+        "version" -> ujson.Str("0.0.0"),
+        "description" -> ujson.Str("Ollama Javascript library"),
+        "main" -> ujson.Str("dist/index.cjs"),
+        "module" -> ujson.Str("dist/index.mjs"),
+        "types" -> ujson.Str("dist/index.d.ts"),
+        "exports" -> ujson.Obj(
+          "." -> ujson.Obj(
+            "require" -> ujson.Str("./dist/index.cjs"),
+            "import" -> ujson.Str("./dist/index.mjs"),
+            "types" -> ujson.Str("./dist/index.d.ts")
+          ),
+          "./browser" -> ujson.Obj(
+            "require" -> ujson.Str("./dist/browser.cjs"),
+            "import" -> ujson.Str("./dist/browser.mjs"),
+            "types" -> ujson.Str("./dist/browser.d.ts")
+          ),
+          "./*" -> ujson.Str("./*")
+        ),
+        "dependencies" -> ujson.Obj("whatwg-fetch" -> ujson.Str("3.6.20"))
+      )
+    )
+
+    os.call("node_modules/.bin/unbuild", cwd = T.dest)
+
+    os.makeDir.all(T.dest / "ollama")
+    os.copy(T.dest / "package.json", T.dest / "ollama" / "package.json")
+    os.copy(T.dest / "dist", T.dest / "ollama" / "dist")
+
+    PathRef(T.dest / "ollama")
+  }
 }
 
 object `package` extends RootModule with OllamaModule with TsLintModule {
@@ -62,14 +105,14 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 
   object examples extends TypeScriptModule {
     object abort extends TypeScriptModule {
-      def npmDeps = Seq("ollama@0.5.12")
+      def unmanagedDeps = Seq(unbuild())
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"abort-all-requests.ts"
       def mainFilePath = Task { compile()._2.path / mainFileName() }
     }
 
     object `fill-in-middle` extends TypeScriptModule {
-      def npmDeps = Seq("ollama@0.5.12")
+      def unmanagedDeps = Seq(unbuild())
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"fill.ts"
       def mainFilePath = Task { compile()._2.path / mainFileName() }
@@ -77,7 +120,7 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
     }
 
     object multimodal extends TypeScriptModule {
-      def npmDeps = Seq("ollama@0.5.12")
+      def unmanagedDeps = Seq(unbuild())
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"multimodal.ts"
       def mainFilePath = Task { compile()._2.path / mainFileName() }
@@ -85,7 +128,7 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
     }
 
     object `pull-progress` extends TypeScriptModule {
-      def npmDeps = Seq("ollama@0.5.12")
+      def unmanagedDeps = Seq(unbuild())
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"pull.ts"
       def mainFilePath = Task { compile()._2.path / mainFileName() }
@@ -93,7 +136,8 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
     }
 
     object structured_outputs extends TypeScriptModule {
-      def npmDeps = Seq("ollama@0.5.12", "zod@3.24.1", "zod-to-json-schema@3.24.1")
+      def unmanagedDeps = Seq(unbuild())
+      def npmDeps = Seq("zod@3.24.1", "zod-to-json-schema@3.24.1")
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"structured-outputs.ts"
       def mainFilePath = Task { compile()._2.path / mainFileName() }
@@ -106,7 +150,7 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
     }
 
     object tools extends TypeScriptModule {
-      def npmDeps = Seq("ollama@0.5.12")
+      def unmanagedDeps = Seq(unbuild())
       def sources = Task.Sources(moduleDir)
       def mainFileName = s"calculator.ts"
       def mainFilePath = Task { compile()._2.path / mainFileName() }
