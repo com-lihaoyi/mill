@@ -244,16 +244,16 @@ private final class TestModuleUtil(
     ) = {
       val claimFolder = base / "claim"
       os.makeDir.all(claimFolder)
-      val startingTestClass = try {
-        os
-          .list
-          .stream(testClassQueueFolder)
-          .map(TestRunnerUtils.claimFile(_, claimFolder))
-          .collectFirst { case Some(name) => name }
-      }
-      catch {
-        case e: Throwable => None
-      }
+      val startingTestClass =
+        try {
+          os
+            .list
+            .stream(testClassQueueFolder)
+            .map(TestRunnerUtils.claimFile(_, claimFolder))
+            .collectFirst { case Some(name) => name }
+        } catch {
+          case e: Throwable => None
+        }
 
       if (force || startingTestClass.nonEmpty) {
         startingTestClass.foreach(logger.ticker(_))
@@ -372,13 +372,13 @@ private final class TestModuleUtil(
 
         Task.fork.blocking {
           // We special-case this to avoid
-          while ( {
+          while ({
             val claimedCounts = subprocessFutures.flatMap(_.value).flatMap(_.toOption).map(_._1)
             val expectedCounts = filteredClassLists.map(_.size)
             !(
               (claimedCounts.sum == expectedCounts.sum && subprocessFutures.head.isCompleted) ||
                 subprocessFutures.forall(_.isCompleted)
-              )
+            )
           }) Thread.sleep(1)
         }
         subprocessFutures.flatMap(_.value).map(_.get)
