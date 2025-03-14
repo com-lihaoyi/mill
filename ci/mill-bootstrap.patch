@@ -136,6 +136,20 @@ index 92bfb2c2f8f..9854c30dac1 100644
  }
  
  trait MillPublishCrossScalaModule extends MillPublishJavaModule with CrossScalaModule
+@@ -746,10 +747,10 @@ trait BridgeModule extends MillPublishCrossScalaModule {
+   )
+
+   def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
+-    resolveDeps(
+-      Task.Anon { compilerBridgeIvyDeps().map(bindDependency()) },
++    defaultResolver().classpath(
++      compilerBridgeIvyDeps(),
+       sources = true
+-    )()
++    )
+   }
+
+   def generatedSources = Task {
 diff --git a/contrib/package.mill b/contrib/package.mill
 index b68c27a1ef8..01a3e9da2c0 100644
 --- a/contrib/package.mill

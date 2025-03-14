@@ -4,7 +4,6 @@ package scalajslib
 import mainargs.{Flag, arg}
 import mill.api.{PathRef, Result, internal}
 import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.define.{Command, Task}
@@ -91,11 +90,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         ) ++ scalaJSJsEnvIvyDeps()
     }
     // we need to use the scala-library of the currently running mill
-    resolveDependencies(
-      repositoriesTask(),
+    defaultResolver().classpath(
       (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
-        .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
-      ctx = Some(Task.log)
+        .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
     )
   }
 
@@ -348,7 +345,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaJSModule].resources
   def scalaJSTestDeps = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
