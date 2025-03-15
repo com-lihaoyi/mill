@@ -50,8 +50,9 @@ at the benefits and tradeoffs involved.
 ## Theoretical Evaluation
 
 Below we visualize this on an example build with 3 `test` modules, with 2/4/6 test suites
-respectively, and the arrow representing the single thread on which all the suites execute
-sequentially
+respectively, on a hypothetical computer with 3 threads. The arrows represent the threads
+on which the test suites execute on, and in the case of _Serial Execution_ they all take
+place on a single thread.
 
 ```graphviz
 digraph G {
@@ -61,36 +62,36 @@ digraph G {
   subgraph cluster_a {
       label="ModuleA.test"
       style="dashed"
-      SuiteA1 -> SuiteA2
-      SuiteA1 [style=filled fillcolor=lightpink]
-      SuiteA2 [style=filled fillcolor=lightpink]
+      TestClassA1 -> TestClassA2
+      TestClassA1 [style=filled fillcolor=lightpink]
+      TestClassA2 [style=filled fillcolor=lightpink]
   }
 
 
   subgraph cluster_b {
       label="ModuleB.test"
       style="dashed"
-      SuiteB1 -> SuiteB2 -> SuiteB3 -> SuiteB4
-      SuiteB1 [style=filled fillcolor=lightgreen]
-      SuiteB2 [style=filled fillcolor=lightgreen]
-      SuiteB3 [style=filled fillcolor=lightgreen]
-      SuiteB4 [style=filled fillcolor=lightgreen]
+      TestClassB1 -> TestClassB2 -> TestClassB3 -> TestClassB4
+      TestClassB1 [style=filled fillcolor=lightgreen]
+      TestClassB2 [style=filled fillcolor=lightgreen]
+      TestClassB3 [style=filled fillcolor=lightgreen]
+      TestClassB4 [style=filled fillcolor=lightgreen]
   }
 
   subgraph cluster_c {
       label="ModuleC.test"
       style="dashed"
-      SuiteC1 -> SuiteC2 -> SuiteC3 -> SuiteC4 -> SuiteC5 -> SuiteC6
-      SuiteC1 [style=filled fillcolor=lightblue]
-      SuiteC2 [style=filled fillcolor=lightblue]
-      SuiteC3 [style=filled fillcolor=lightblue]
-      SuiteC4 [style=filled fillcolor=lightblue]
-      SuiteC5 [style=filled fillcolor=lightblue]
-      SuiteC6 [style=filled fillcolor=lightblue]
+      TestClassC1 -> TestClassC2 -> TestClassC3 -> TestClassC4 -> TestClassC5 -> TestClassC6
+      TestClassC1 [style=filled fillcolor=lightblue]
+      TestClassC2 [style=filled fillcolor=lightblue]
+      TestClassC3 [style=filled fillcolor=lightblue]
+      TestClassC4 [style=filled fillcolor=lightblue]
+      TestClassC5 [style=filled fillcolor=lightblue]
+      TestClassC6 [style=filled fillcolor=lightblue]
   }
 
-  SuiteA2 -> SuiteB1 [constraint=none]
-  SuiteB4 -> SuiteC1 [constraint=none]
+  TestClassA2 -> TestClassB1 [constraint=none]
+  TestClassB4 -> TestClassC1 [constraint=none]
 
 }
 ```
@@ -100,12 +101,12 @@ There are two things we would like to minimize here:
 1. The longest single-threaded path through the build
 2. How many JVM subprocesses the test suite spawns, because spawning JVM subprocesses are expensive
 
-In this case, the numbers are
+In this serial example, the numbers are:
 
 |===
 |                | *Serial Execution*
-| Longest Path   | *12*
-| Number Of JVMs | *3*
+| Critical Path   | *12*
+| # Of Subprocesses | *3*
 |===
 
 ## Practical Evaluation
@@ -113,12 +114,15 @@ In this case, the numbers are
 For the practical evaluation, we considered the test suites of two different codebases:
 
 1. The unit tests of the https://github.com/netty/netty[Netty networking framework],
-   as part of the xref:mill:ROOT:comparisons/maven.adoc[Mill example Netty build].
+   or the subset that run in the xref:mill:ROOT:comparisons/maven.adoc[Mill example Netty build].
    These contain a large number modules with a large number of test classes,
-   but each test class runs relatively quickly (<1s)
+   but each test class runs relatively quickly (<1s). This kind of worklaod is often
+   seen in library codebases where all logic and tests can take place quickly in memory.
 
 2. The unit tests of Mill's own `scalalib` module. This is a single large module with a 
-   large number of test classes, but each test class runs relatively slowly (>10s).
+   large number of test classes, but each test class runs relatively slowly (>10s). While
+   not ideal, this kind of workload is not unusual in monolithic application codebases with
+   heavy integration testing.
 
 These two workloads are very different, and benefit from different characteristics in the 
 parallel test runner, which we will see in detail as we explore different testing strategies
@@ -132,62 +136,73 @@ is as follows
 |===
 
 
-## Module-level Parallelism
+## Module Sharding
 
-For that reason, Mill has for the longest time provided op-in parallelism via the `-j`/`--jobs`
+Mill has always provided op-in task-level parallelism via the `-j`/`--jobs`
 flag (the name taken from the Make build tool), and it became the default in Mill `0.12.0` to use
-all cores on your system by default.
+all cores on your system by default. During testing, typically each Mill module `foo` would
+have a single `foo.test` sub-module associated with it with a single `foo.test.testForked`, so
+Mill would effectively parallelize your test suites at a _module level_.
 
-`-j`/`--jobs` provided _module-level_ parallelism. Basically the workflow was the same as that listed
-above, except instead of step (4) executing tasks one at a time, Mill would submit all tasks as
-``scala.concurrent.Future``s to a Java `ThreadPoolExecutor` to run. This would ensure they would
-still run in an order that respected the dependencies between them (e.g. a `compile` task would
-run before the `test` task), but it would run in parallel.
+One consequence of this is that if your codebase was broken up into many small modules,
+each module's tests could run in parallel. But if your codebase had a few large modules
+you may not have enough parallelism to really use all the compute available on your machine.
 
+Visualizing this on the theoretical example we saw earlier:
 
 ```graphviz
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0]
 
-  subgraph cluster_a {
-      label="ModuleA.test"
+  subgraph cluster_c {
+      label="ModuleC.test"
       style="dashed"
-      SuiteA1 -> SuiteA2
-      SuiteA1 [style=filled fillcolor=lightpink]
-      SuiteA2 [style=filled fillcolor=lightpink]
+      TestClassC1 -> TestClassC2 -> TestClassC3 -> TestClassC4 -> TestClassC5 -> TestClassC6
+      TestClassC1 [style=filled fillcolor=lightblue]
+      TestClassC2 [style=filled fillcolor=lightblue]
+      TestClassC3 [style=filled fillcolor=lightblue]
+      TestClassC4 [style=filled fillcolor=lightblue]
+      TestClassC5 [style=filled fillcolor=lightblue]
+      TestClassC6 [style=filled fillcolor=lightblue]
   }
 
   subgraph cluster_b {
       label="ModuleB.test"
       style="dashed"
-      SuiteB1 -> SuiteB2 -> SuiteB3 -> SuiteB4
-      SuiteB1 [style=filled fillcolor=lightgreen]
-      SuiteB2 [style=filled fillcolor=lightgreen]
-      SuiteB3 [style=filled fillcolor=lightgreen]
-      SuiteB4 [style=filled fillcolor=lightgreen]
+      TestClassB1 -> TestClassB2 -> TestClassB3 -> TestClassB4
+      TestClassB1 [style=filled fillcolor=lightgreen]
+      TestClassB2 [style=filled fillcolor=lightgreen]
+      TestClassB3 [style=filled fillcolor=lightgreen]
+      TestClassB4 [style=filled fillcolor=lightgreen]
   }
 
-  subgraph cluster_c {
-      label="ModuleC.test"
+  subgraph cluster_a {
+      label="ModuleA.test"
       style="dashed"
-      SuiteC1 -> SuiteC2 -> SuiteC3 -> SuiteC4 -> SuiteC5 -> SuiteC6
-      SuiteC1 [style=filled fillcolor=lightblue]
-      SuiteC2 [style=filled fillcolor=lightblue]
-      SuiteC3 [style=filled fillcolor=lightblue]
-      SuiteC4 [style=filled fillcolor=lightblue]
-      SuiteC5 [style=filled fillcolor=lightblue]
-      SuiteC6 [style=filled fillcolor=lightblue]
+      TestClassA1 -> TestClassA2
+      TestClassA1 [style=filled fillcolor=lightpink]
+      TestClassA2 [style=filled fillcolor=lightpink]
   }
 }
 ```
 
+We can see that because the three modules have different numbers of tests
+within them, `ModuleA.test` finishes first and that thread is idle until `ModuleC.test`
+finishes later. While not ideal, this is a significant improvement over the serial case
+in for our theoretical example, shortening the critical path from 12 test suites to 6:
+
 
 |===
 | | Serial Execution | *Module-level Parallelism*
-| Longest Path   | 12 | *6*
-| Number Of JVMs | 3 | *3*
+| Critical Path   | 12 | *6*
+| # Of Subprocesses | 3 | *3*
 |===
+
+The practical benchmarks also show significant improvements for the Netty unit tests,
+running 3x faster as they can take full advantage of the parallel cores on my computer.
+However the Mill scalalib tests show no significant speedup, as the benchmark is a single
+large module that does not benefit from module-level parallelism.
 
 |===
 |  | *Serial Execution* |  *Module-level Parallelism*
@@ -195,16 +210,7 @@ digraph G {
 | Mill scalalib Tests | 502s | *477s*
 |===
 
-
-
-
-With regard to testing, typically each Mill module `foo` would have a single `foo.test` sub-module
-associated with it, and the sub-module would have a single `foo.test.testForked` task that you
-would run. Thus if your codebase was broken up into many small modules, each `.testForked` task
-could run in parallel, but if your codebase had a few large modules you may not have enough
-parallelism to really use all the compute available on your machine.
-
-## Static Test Sharding
+## Static Sharding
 
 To work around the limitations of module-level parallelism, Mill `0.12.0` also introduced the
 `def testForkGrouping` flag. This allows the developer to take the `Seq[String]` containing
@@ -213,17 +219,14 @@ into groups, each of which would run in parallel in a separate JVM subprocess in
 but within each process they would run sequentially.
 
 For example, the following configuration would take the list of test classes
-and break it down into arbitrary 4-element groups:
+and break it down into 1-element groups:
 
 ```scala
-def testForkGrouping = discoveredTestClasses().grouped(4).toSeq
+def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
 ```
 
-`testForkGrouping` was also a useful tool to isolate tests: some badly behaved tests may
-mutate global variables or write to the local working directory on disk, causing flakiness if
-run before or after other tests which do the same. Although in an ideal
-world you should fix those tests, in practice it is handy to be able to isolate those tests
-in a separate process/directory to mitigate the problem.
+Using static test sharding, the execution of the test suites in our theoretical example now
+looks like this:
 
 ```graphviz
 digraph G {
@@ -232,36 +235,39 @@ digraph G {
 
 
   style="dashed"
-  subgraph cluster_a1 { label=""; SuiteA1 [style=filled fillcolor=lightpink] }
-  subgraph cluster_a2 { label=""; SuiteA2 [style=filled fillcolor=lightpink] }
+  subgraph cluster_a1 { label=""; TestClassA1 [style=filled fillcolor=lightpink] }
+  subgraph cluster_a2 { label=""; TestClassA2 [style=filled fillcolor=lightpink] }
 
 
-  subgraph cluster_b1 { label=""; SuiteB1 [style=filled fillcolor=lightgreen] }
-  subgraph cluster_b2 { label=""; SuiteB2 [style=filled fillcolor=lightgreen] }
-  subgraph cluster_b3 { label=""; SuiteB3 [style=filled fillcolor=lightgreen] }
-  subgraph cluster_b4 { label=""; SuiteB4 [style=filled fillcolor=lightgreen] }
+  subgraph cluster_b1 { label=""; TestClassB1 [style=filled fillcolor=lightgreen] }
+  subgraph cluster_b2 { label=""; TestClassB2 [style=filled fillcolor=lightgreen] }
+  subgraph cluster_b3 { label=""; TestClassB3 [style=filled fillcolor=lightgreen] }
+  subgraph cluster_b4 { label=""; TestClassB4 [style=filled fillcolor=lightgreen] }
 
-  subgraph cluster_c1 { label=""; SuiteC1 [style=filled fillcolor=lightblue] }
-  subgraph cluster_c2 { label=""; SuiteC2 [style=filled fillcolor=lightblue] }
-  subgraph cluster_c3 { label=""; SuiteC3 [style=filled fillcolor=lightblue] }
-  subgraph cluster_c4 { label=""; SuiteC4 [style=filled fillcolor=lightblue] }
-  subgraph cluster_c5 { label=""; SuiteC5 [style=filled fillcolor=lightblue] }
-  subgraph cluster_c6 { label=""; SuiteC6 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c1 { label=""; TestClassC1 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c2 { label=""; TestClassC2 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c3 { label=""; TestClassC3 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c4 { label=""; TestClassC4 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c5 { label=""; TestClassC5 [style=filled fillcolor=lightblue] }
+  subgraph cluster_c6 { label=""; TestClassC6 [style=filled fillcolor=lightblue] }
 
-  SuiteA1 -> SuiteA2 -> SuiteB1 -> SuiteB2
-  SuiteB3 -> SuiteB4 -> SuiteC1 -> SuiteC2
-  SuiteC3 -> SuiteC4 -> SuiteC5 -> SuiteC6
-
-
+  TestClassA1 -> TestClassA2 -> TestClassB1 -> TestClassB2
+  TestClassB3 -> TestClassB4 -> TestClassC1 -> TestClassC2
+  TestClassC3 -> TestClassC4 -> TestClassC5 -> TestClassC6
 }
 ```
 
-
 |===
 | | Serial Execution | Module-level Parallelism | *Static Sharding*
-| Longest Path   | 12 | 6 | *4*
-| Number Of JVMs | 3 | 3 | *12*
+| Critical Path   | 12 | 6 | *4*
+| # Of Subprocesses | 3 | 3 | *12*
 |===
+
+Here we have shortened the critical path further, from 6 test suites to just 4. However, it has
+come at the cost of spawning significantly more JVM subprocesses, as each 1-testsuite group
+is allocated its own process.
+
+Our practical benchmarks reflect this change as well:
 
 |===
 | | Serial Execution | Module-level Parallelism | *Static Sharding*
@@ -269,6 +275,12 @@ digraph G {
 | Mill scalalib Tests | 502s | 477s | *181s*
 |===
 
+* In the Netty unit test benchmark which have lots of short fast test suites, spawning a JVM for each test
+  suite is very expensive. We see the time taken to run all tests ballooning from 10s to 51s, as
+  any improvement in parallelism is dominated by the cost of spawning the additional JVMs
+
+* For the Mill scalalib test benchmark which have suites that take 10s of seconds, spawning a JVM for
+  each test is a much smaller cost. And so the increased parallelism is able to provide a 2-3x speedup
 
 Static test sharding is able to take a single large module with many test classes
 and effectively parallelize it: during the initial rollout we found it could take Mill's own
@@ -289,7 +301,7 @@ with large numbers of slow tests, it could never be turned on by default. Whethe
 things up or slowed things down could only be determined experimentally on a case by case
 basis.
 
-## Dynamic Test Sharding
+## Dynamic Sharding
 
 To try and solve this problem with static test sharding,
 https://github.com/com-lihaoyi/mill/pull/4614[#4614] introduced a dynamic sharding approach
@@ -299,10 +311,7 @@ fixed set of child processes pull tests off a queue and run them until the queue
 This meant the JVM startup overhead was proportional to `O(NUM_CPUS)` rather than `O(NUM_TESTS)`,
 a much smaller number resulting in much smaller JVM overhead overall.
 
-
-Empirically this worked, but there was still significant overhead: compared with the
-<<Module-level Parallelism>> discussed earlier, we were still paying `O(NUM_CPUS)` of JVM
-overhead rather than `O(1)` JVM overhead per module containing tests.
+If you consider this approach on our theoretical example, the execution looks something like this:
 
 ```graphviz
 digraph G {
@@ -312,52 +321,59 @@ digraph G {
 
   style="dashed"
   subgraph cluster_a1 {
-    SuiteA1 [style=filled fillcolor=lightpink]
+    TestClassA1 [style=filled fillcolor=lightpink]
   }
   subgraph cluster_a2 {
-    SuiteA2 [style=filled fillcolor=lightpink]
+    TestClassA2 [style=filled fillcolor=lightpink]
   }
 
   subgraph cluster_b1 {
-    SuiteB1 [style=filled fillcolor=lightgreen]
-    SuiteB4 [style=filled fillcolor=lightgreen]
+    TestClassB1 [style=filled fillcolor=lightgreen]
+    TestClassB4 [style=filled fillcolor=lightgreen]
   }
   subgraph cluster_b2 {
-    SuiteB2 [style=filled fillcolor=lightgreen]
+    TestClassB2 [style=filled fillcolor=lightgreen]
   }
   subgraph cluster_b3 {
-    SuiteB3 [style=filled fillcolor=lightgreen]
+    TestClassB3 [style=filled fillcolor=lightgreen]
   }
 
   subgraph cluster_c1 {
-    SuiteC1 [style=filled fillcolor=lightblue]
-    SuiteC4 [style=filled fillcolor=lightblue]
+    TestClassC1 [style=filled fillcolor=lightblue]
+    TestClassC4 [style=filled fillcolor=lightblue]
   }
 
 
   subgraph cluster_c2 {
-    SuiteC2 [style=filled fillcolor=lightblue]
-    SuiteC5 [style=filled fillcolor=lightblue]
+    TestClassC2 [style=filled fillcolor=lightblue]
+    TestClassC5 [style=filled fillcolor=lightblue]
   }
 
   subgraph cluster_c3 {
-    SuiteC3 [style=filled fillcolor=lightblue]
-    SuiteC6 [style=filled fillcolor=lightblue]
+    TestClassC3 [style=filled fillcolor=lightblue]
+    TestClassC6 [style=filled fillcolor=lightblue]
   }
 
 
-  SuiteA1 -> SuiteB2 -> SuiteC1 -> SuiteC4
-  SuiteA2 -> SuiteB3 -> SuiteC2 -> SuiteC5
-  SuiteB1 -> SuiteB4 -> SuiteC3 -> SuiteC6
+  TestClassA1 -> TestClassB2 -> TestClassC1 -> TestClassC4
+  TestClassA2 -> TestClassB3 -> TestClassC2 -> TestClassC5
+  TestClassB1 -> TestClassB4 -> TestClassC3 -> TestClassC6
 }
 ```
 
-
 |===
 | | Serial Execution | Module-level Parallelism | Static Sharding | *Dynamic Sharding*
-| Longest Path   | 12 | 6 | 4 | *4*
-| Number Of JVMs | 3 | 3 | 12 | *8*
+| Critical Path   | 12 | 6 | 4 | *4*
+| # Of Subprocesses | 3 | 3 | 12 | *8*
 |===
+
+Although dynamic test sharding is able to bring down the number of JVMs from 12 to 8
+while preserving the shortened critical path,
+it is still much more than the 3 JVMs that serial execution or module-level parallelism
+are able to provide. This also reflects in the practical benchmarks, which demonstrate
+a significant speedup over static sharding, but for the Netty unit test benchmark with
+many small tests the overhead from spawning JVMs mean it is still 2x slower than the
+more naive module-level parallelism approach.
 
 |===
 | | Serial Execution | Module-level Parallelism | Static Sharding  | *Dynamic Sharding*
@@ -387,45 +403,51 @@ digraph G {
 
   style="dashed"
   subgraph cluster_a1 {
-    SuiteA1 [style=filled fillcolor=lightpink]
-    SuiteA2 [style=filled fillcolor=lightpink]
+    TestClassA1 [style=filled fillcolor=lightpink]
+    TestClassA2 [style=filled fillcolor=lightpink]
 
   }
 
   subgraph cluster_b1 {
-    SuiteB1 [style=filled fillcolor=lightgreen]
-    SuiteB2 [style=filled fillcolor=lightgreen]
-    SuiteB3 [style=filled fillcolor=lightgreen]
-    SuiteB4 [style=filled fillcolor=lightgreen]
+    TestClassB1 [style=filled fillcolor=lightgreen]
+    TestClassB2 [style=filled fillcolor=lightgreen]
+    TestClassB3 [style=filled fillcolor=lightgreen]
+    TestClassB4 [style=filled fillcolor=lightgreen]
 
   }
 
   subgraph cluster_c1 {
-    SuiteC1 [style=filled fillcolor=lightblue]
-    SuiteC2 [style=filled fillcolor=lightblue]
-    SuiteC3 [style=filled fillcolor=lightblue]
-    SuiteC4 [style=filled fillcolor=lightblue]
+    TestClassC1 [style=filled fillcolor=lightblue]
+    TestClassC2 [style=filled fillcolor=lightblue]
+    TestClassC3 [style=filled fillcolor=lightblue]
+    TestClassC4 [style=filled fillcolor=lightblue]
 
   }
   subgraph cluster_c5 {
-    SuiteC5 [style=filled fillcolor=lightblue]
-    SuiteC6 [style=filled fillcolor=lightblue]
+    TestClassC5 [style=filled fillcolor=lightblue]
+    TestClassC6 [style=filled fillcolor=lightblue]
   }
 
 
 
-  SuiteA1 -> SuiteA2 -> SuiteC5 -> SuiteC6
-  SuiteB1 -> SuiteB2 -> SuiteB3 -> SuiteB4
+  TestClassA1 -> TestClassA2 -> TestClassC5 -> TestClassC6
+  TestClassB1 -> TestClassB2 -> TestClassB3 -> TestClassB4
 
-  SuiteC1 -> SuiteC2 -> SuiteC3 -> SuiteC4
+  TestClassC1 -> TestClassC2 -> TestClassC3 -> TestClassC4
 }
 ```
 
 |===
 | | Serial Execution | Module-level Parallelism | Static Sharding | Dynamic Sharding | *Biased Dynamic Sharding*
-| Longest Path   | 12 | 6 | 4 | 4 | *4*
-| Number Of JVMs | 3 | 3 | 12 | 8 | *4*
+| Critical Path   | 12 | 6 | 4 | 4 | *4*
+| # Of Subprocesses | 3 | 3 | 12 | 8 | *4*
 |===
+
+In the synthetic example above, we can see that biased dynamic sharding is able 
+to maintain the critical path at length 4, while reducing the number of JVMs it
+needs to spawn from 8 to 4. This is a strict improvement over the previous
+dynamic sharding and static sharding approaches, and it is reflected in the practical
+benchmarks where both Netty unit tests and Mill scalalib tests show speedups:
 
 |===
 | | Serial Execution | Module-level Parallelism | Static Sharding | Dynamic Sharding | *Biased Dynamic Sharding*
@@ -433,13 +455,17 @@ digraph G {
 | Mill scalalib Tests | 502s | 477s | 181s | 160s | *132s*
 |===
 
-This was implemented by passing Mill's `ThreadPoolExecutor` a `PriorityBlockingQueue`,
-and wrapping it's ``Runnable``s in a `PriorityRunnable` subclass which allowed the priority
-of any task to be configured.
+Notably, the Netty unit tests benchmark is now comparable to the performance we were 
+seeing with module-level parallelism. Although there is still a slight slowdown in the 
+practical benchmark - presumably from the slight increase in the number of spawned JVMs
+we see in the theoretical analysis - it is not longer a large 2-5x slowdown.
 
-''''
+## Conclusion
 
-|===
-| Command | Single-JVM | testForkGrouping | testProcessPoolParallelism
-| `-j1 core.__.test` | ~5s | ~9s | ~6s
-| `scalalib.__.test` | ~500s | ~150s | !130s
+Mill's test parallelism strategy has gone through a lot of iterations and improvement 
+over the years, and traditionally it has always been a very finnicky process to tweak 
+the various `--jobs` or `testForkGrouping` configuration to try and get optimal 
+performance out of your test suites. But with the introduction of biased dynamic
+sharding in Mill 0.12.9, Mill is finally able to provide a good zero-config parallelism
+strategy that works across a wide range of workloads.
+
