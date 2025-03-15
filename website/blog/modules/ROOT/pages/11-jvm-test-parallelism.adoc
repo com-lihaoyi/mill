@@ -598,7 +598,12 @@ small-scale that a build tool test runner operates at (100-1000s of test classes
 ## Build Tool Comparisons
 
 Mill is a relatively new JVM build tool, so it begs the question: how does Mill's test
-runner compare to other JVM build tools like Maven, Gradle, or SBT?
+runner compare to other JVM build tools like Maven, Gradle, or SBT? For this we ran rough
+benchmarks on the Mill example builds we used for our case studies against
+xref:mill:ROOT:comparisons/maven.adoc[Maven], xref:mill:ROOT:comparisons/gradle.adoc[Gradle],
+and xref:mill:ROOT:comparisons/sbt.adoc[SBT]. Although these benchmarks were rough, they should
+hopefully give you a good intuition for where the strategies discussed above fit into the
+larger build tool landscape.
 
 ### Maven Comparison
 
@@ -691,22 +696,23 @@ $ sbt test
 ```
 
 |===
-| Mill | Serial Execution | Module Sharding | Static Class Sharding | Dynamic Sharding | Biased Dynamic Sharding
-| Gatling unit tests | 27s | 17s | 38s | 17s | 12s
+| Mill | Serial Execution | Module Sharding | Static Class Sharding | Dynamic Sharding | *Biased Dynamic Sharding*
+| Gatling unit tests | 27s | 17s | 38s | 17s | *12s*
 |===
 
 |===
-| SBT | *SBT test*
-| Gatling unit tests |  *25s*
+| SBT | Serial | *Parallel*
+| Gatling unit tests | 25s | *12s*
 |===
 
-For reasons I haven't understood, even though most SBT build tasks run in parallel,
-SBT seems to run tests following a _Serial Execution_ strategy, and the time taken
-matches almost exactly how long Mill takes to run the tests using the same strategy.
-But from there, we can see that _Module Sharding_, _Dynamic Sharding_, and
-_Biased Dynamic Sharding_ all provide significant speedups, with _Biased Dynamic Sharding_
-running the same tests in less than half the time it takes SBT or Mill to run them serially.
-
+_SBT Serial_ is run with `fork := true` spawning a process to run tests,
+while _SBT Parallel_ is run with `fork := false` running tests in the shared JVM process,
+as SBT defaults to limiting the parallelism only for forked tests.
+Here we can see that the _SBT Serial_ benchmark completes  about as fast as Mill's
+_Serial Execution_, while _SBT Parallel_ runs about as fast as Mill's _Biased Dynamic
+Sharding_. Although the Mill's _Biased Dynamic Sharding_ isn't any faster than the
+SBT equivalent, it is able to provide the additional flexibility and isolation benefits
+of running tests in a subprocess without sacrificing any performance.
 
 ## Conclusion
 
