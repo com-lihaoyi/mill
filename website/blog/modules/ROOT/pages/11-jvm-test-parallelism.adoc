@@ -1,6 +1,6 @@
 // tag::header[]
 
-# Designing Automatic Parallelism for JVM Test Suites in Mill
+# Automatically Parallelizing JVM Test Suites in Mill
 
 :author: Li Haoyi
 :revdate: ??? March 2025
