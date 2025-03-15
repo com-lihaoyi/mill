@@ -578,7 +578,7 @@ Here we can see that the Mill parallel testing strategy has significant speedups
 https://maven.apache.org/[Maven] and the
 https://maven.apache.org/surefire/maven-surefire-plugin/[Maven-Surefire-Plugin]. While the
 slowest Mill benchmark using _static sharding_ is comparable to the Maven results, the other
-benchmarks that run the same tests using different parallelism and process strategies
+benchmarks using different parallelism and process strategies
 complete much faster despite running exactly the same set of tests. So although Maven has
 been a cornerstone of the JVM ecosystem for decades, it is nevertheless possible to do better
 by carefully designing your testing and parallelization strategy to accommodate the strengths
