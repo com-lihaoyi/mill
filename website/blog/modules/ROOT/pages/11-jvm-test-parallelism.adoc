@@ -112,6 +112,12 @@ digraph G {
   every module's tests are run in a separate process, which is again a common approach
   to isolate the code of different modules from one another.
 
+NOTE: for this article, we are assuming that tests for different modules need to be run in
+different subprocesses. That is not universally true: Mill does have a `testLocal`
+mode that runs tests in a shared JVM to reduce overhead, at the expense of some flexibility
+and isolation. But we find that process-separation of different modules' test suites is a
+useful enough default that we will assume it necessary for the rest of this article.
+
 Given this example test run, there are two numbers we would like to minimize:
 
 1. The time taken for all tests to complete. For this analyis, we treat each `TestClass`
