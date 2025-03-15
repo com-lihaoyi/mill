@@ -2,10 +2,11 @@ package mill.codesig
 
 import mill.codesig.JvmModel.*
 import mill.internal.{SpanningForest, Tarjans}
-import ujson.Obj
+import ujson.{Arr, Obj}
 import upickle.default.{Writer, writer}
 
 import scala.collection.immutable.SortedMap
+import scala.collection.mutable
 
 class CallGraphAnalysis(
     localSummary: LocalSummary,
@@ -81,7 +82,7 @@ class CallGraphAnalysis(
   logger.mandatoryLog(transitiveCallGraphHashes0)
   logger.log(transitiveCallGraphHashes)
 
-  lazy val spanningInvalidationTree: Obj = prevTransitiveCallGraphHashesOpt() match {
+  lazy val (spanningInvalidationTree: Obj, invalidClassNames: Arr) = prevTransitiveCallGraphHashesOpt() match {
     case Some(prevTransitiveCallGraphHashes) =>
       CallGraphAnalysis.spanningInvalidationTree(
         prevTransitiveCallGraphHashes,
@@ -89,10 +90,11 @@ class CallGraphAnalysis(
         indexToNodes,
         indexGraphEdges
       )
-    case None => ujson.Obj()
+    case None => ujson.Obj() -> ujson.Arr()
   }
 
   logger.mandatoryLog(spanningInvalidationTree)
+  logger.mandatoryLog(invalidClassNames)
 }
 
 object CallGraphAnalysis {
@@ -115,7 +117,7 @@ object CallGraphAnalysis {
       transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)],
       indexToNodes: Array[Node],
       indexGraphEdges: Array[Array[Int]]
-  ): ujson.Obj = {
+  ): (ujson.Obj, ujson.Arr) = {
     val transitiveCallGraphHashes0Map = transitiveCallGraphHashes0.toMap
 
     val nodesWithChangedHashes = indexGraphEdges
@@ -135,10 +137,23 @@ object CallGraphAnalysis {
     val reverseGraphEdges =
       indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array[Int]())).toArray
 
-    SpanningForest.spanningTreeToJsonTree(
-      SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes, false),
+    val spanningForest = SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes, false)
+
+    val spanningInvalidationTree = SpanningForest.spanningTreeToJsonTree(
+      spanningForest,
       k => indexToNodes(k).toString
     )
+
+    val invalidSet = invalidClassNameSet(
+      spanningForest,
+      indexToNodes.map {
+        case LocalDef(call) => call.cls.name
+        case Call(call) => call.cls.name
+        case ExternalClsCall(cls) => cls.name
+      }
+    )
+
+    (spanningInvalidationTree, invalidSet)
   }
 
   def indexGraphEdges(
@@ -261,6 +276,24 @@ object CallGraphAnalysis {
           (indexToNodes(nodeIndex), groupHash)
         }
       }
+  }
+
+  private def invalidClassNameSet(
+    spanningForest: SpanningForest.Node,
+    indexToClassName: Array[String]
+  ): Set[String] = {
+    val queue = mutable.ArrayBuffer.empty[(Int, SpanningForest.Node)]
+    val result = mutable.Set.empty[String]
+
+    queue.appendAll(spanningForest.values)
+
+    while (queue.nonEmpty) {
+      val (index, node) = queue.remove(0)
+      result += indexToClassName(index)
+      queue.appendAll(node.values)
+    }
+
+    result.toSet
   }
 
   /**

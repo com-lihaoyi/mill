@@ -43,7 +43,7 @@ import mill.scalalib.publish.Artifact
 import mill.util.JarManifest
 import mill.util.Jvm
 import os.Path
-
+import scala.util.Try
 /**
  * Core configuration required to compile a single Java compilation target
  */
@@ -63,6 +63,7 @@ trait JavaModule
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
+    import mill.testrunner.TestResult
     // Run some consistence checks
     hierarchyChecks()
 
@@ -116,6 +117,90 @@ trait JavaModule
         } catch {
           case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
         }
+    }
+
+    private def quickTest(args: Seq[String]): Task[(String, Seq[TestResult])] = 
+      Task(persistent = true) {
+        val quicktestFailedClassesLog = Task.dest / "quickTestFailedClasses.log"
+        val (analysisFolder, previousAnalysisFolderOpt) = callGraphAnalysis()
+        val globFilter: String => Boolean = {
+          previousAnalysisFolderOpt.fold {
+            // no previous analysis folder, we accept all classes
+            TestRunnerUtils.globFilter(Seq.empty)
+          } { _ =>
+
+            val failedTestClasses =
+              if (!os.exists(quicktestFailedClassesLog)) {
+                Seq.empty[String]
+              } else {
+                Try {
+                  upickle.default.read[Seq[String]](os.read.stream(quicktestFailedClassesLog))
+                }.getOrElse(Seq.empty[String])
+              }
+
+            val quiteTestingClasses =
+              Try {
+                upickle.default.read[Seq[String]](os.read.stream(analysisFolder / "invalidClassNames.json"))
+              }.getOrElse(Seq.empty[String])
+
+            TestRunnerUtils.globFilter((failedTestClasses ++ quiteTestingClasses).distinct)
+          }
+        }
+
+        // Clean yp the directory
+        os.walk(Task.dest).foreach { subPath => os.remove.all(subPath) }
+
+        val quickTestClassLists = testForkGrouping().map(_.filter(globFilter)).filter(_.nonEmpty)
+
+        val quickTestReportXml = testReportXml()
+
+        val testModuleUtil = new TestModuleUtil(
+          testUseArgsFile(),
+          forkArgs(),
+          Seq.empty,
+          zincWorker().scalalibClasspath(),
+          resources(),
+          testFramework(),
+          runClasspath(),
+          testClasspath(),
+          args.toSeq,
+          quickTestClassLists,
+          zincWorker().testrunnerEntrypointClasspath(),
+          forkEnv(),
+          testSandboxWorkingDir(),
+          forkWorkingDir(),
+          quickTestReportXml,
+          zincWorker().javaHome().map(_.path),
+          testParallelism()
+        )
+
+        val results = testModuleUtil.runTests()
+
+        val badTestClasses = results match {
+          case Result.Failure(_) =>
+            // Consider all quick testing classes as failed
+            quickTestClassLists.flatten
+          case Result.Success((_, results)) =>
+            // Get all test classes that failed
+            results
+              .filter(testResult => Set("Error", "Failure").contains(testResult.status))
+              .map(_.fullyQualifiedName)
+        }
+        
+        os.write.over(quicktestFailedClassesLog, upickle.default.write[Seq[String]](badTestClasses.distinct))
+        
+        results match {
+          case Result.Failure(errMsg) => Result.Failure(errMsg)
+          case Result.Success((doneMsg, results)) =>
+            try TestModule.handleResults(doneMsg, results, Task.ctx(), quickTestReportXml)
+            catch {
+              case e: Throwable => Result.Failure("Test reporting failed: " + e)
+            }
+        }
+      }
+
+    def testQuick(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+      quickTest(args.toSeq)()
     }
   }
 
@@ -1526,6 +1611,90 @@ trait JavaModule
       )
     }
 
+  }
+  
+  // Return the directory containing the current call graph analysis results, and previous one too if it exists
+  def callGraphAnalysis: T[(Path, Option[Path])] = Task(persistent = true) {
+    os.remove.all(Task.dest / "previous")
+    if (os.exists(Task.dest / "current"))
+      os.move.over(Task.dest / "current", Task.dest / "previous")
+    val debugEnabled = Task.log.debugEnabled
+    mill.codesig.CodeSig
+      .compute(
+        classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
+        upstreamClasspath = compileClasspath().toSeq.map(_.path),
+        ignoreCall = { (callSiteOpt, calledSig) =>
+          // We can ignore all calls to methods that look like Targets when traversing
+          // the call graph. We can do this because we assume `def` Targets are pure,
+          // and so any changes in their behavior will be picked up by the runtime build
+          // graph evaluator without needing to be accounted for in the post-compile
+          // bytecode callgraph analysis.
+          def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
+            (desc.ret.pretty == classOf[mill.define.Target[?]].getName ||
+              desc.ret.pretty == classOf[mill.define.Worker[?]].getName) &&
+              desc.args.isEmpty
+
+          // We avoid ignoring method calls that are simple trait forwarders, because
+          // we need the trait forwarders calls to be counted in order to wire up the
+          // method definition that a Target is associated with during evaluation
+          // (e.g. `myModuleObject.myTarget`) with its implementation that may be defined
+          // somewhere else (e.g. `trait MyModuleTrait{ def myTarget }`). Only that one
+          // step is necessary, after that the runtime build graph invalidation logic can
+          // take over
+          def isForwarderCallsiteOrLambda =
+            callSiteOpt.nonEmpty && {
+              val callSiteSig = callSiteOpt.get.sig
+
+              (callSiteSig.name == (calledSig.name + "$") &&
+                callSiteSig.static &&
+                callSiteSig.desc.args.size == 1)
+              || (
+                // In Scala 3, lambdas are implemented by private instance methods,
+                // not static methods, so they fall through the crack of "isSimpleTarget".
+                // Here make the assumption that a zero-arg lambda called from a simpleTarget,
+                // should in fact be tracked. e.g. see `integration.invalidation[codesig-hello]`,
+                // where the body of the `def foo` target is a zero-arg lambda i.e. the argument
+                // of `Cacher.cachedTarget`.
+                // To be more precise I think ideally we should capture more information in the signature
+                isSimpleTarget(callSiteSig.desc) && calledSig.name.contains("$anonfun")
+              )
+            }
+
+          // We ignore Commands for the same reason as we ignore Targets, and also because
+          // their implementations get gathered up all the via the `Discover` macro, but this
+          // is primarily for use as external entrypoints and shouldn't really be counted as
+          // part of the `millbuild.build#<init>` transitive call graph they would normally
+          // be counted as
+          def isCommand =
+            calledSig.desc.ret.pretty == classOf[mill.define.Command[?]].getName
+
+          // Skip calls to `millDiscover`. `millDiscover` is bundled as part of `RootModule` for
+          // convenience, but it should really never be called by any normal Mill module/task code,
+          // and is only used by downstream code in `mill.eval`/`mill.resolve`. Thus although CodeSig's
+          // conservative analysis considers potential calls from `build_.package_$#<init>` to
+          // `millDiscover()`, we can safely ignore that possibility
+          def isMillDiscover =
+            calledSig.name == "millDiscover$lzyINIT1" ||
+              calledSig.name == "millDiscover" ||
+              callSiteOpt.exists(_.sig.name == "millDiscover")
+
+          (isSimpleTarget(calledSig.desc) && !isForwarderCallsiteOrLambda) ||
+          isCommand ||
+          isMillDiscover
+        },
+        logger = new mill.codesig.Logger(
+          Task.dest / "current",
+          Option.when(debugEnabled)(Task.dest / "current")
+        ),
+        prevTransitiveCallGraphHashesOpt = () =>
+          Option.when(os.exists(Task.dest / "previous/transitiveCallGraphHashes0.json"))(
+            upickle.default.read[Map[String, Int]](
+              os.read.stream(Task.dest / "previous/transitiveCallGraphHashes0.json")
+            )
+          )
+      )
+    
+    (Task.dest / "current", Option.when(os.exists(Task.dest / "previous"))(Task.dest / "previous"))
   }
 }
 
