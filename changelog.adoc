@@ -12,6 +12,30 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+[#0-12-9]
+=== 0.12.9 - 2025-03-16
+:version: 0.12.9
+:milestone-name: 0.12.9
+:milestone: 112
+:prev-version: 0.12.8
+
+* Support `mill init` for migrating from an existing sbt project on a best-effort basis
+  (https://mill-build.org/mill/main-branch/migrating/sbt.html[docs]), mirroring the existing Maven and Gradle migration support
+
+* Added a new `def testParallelism = true` flag
+  (https://mill-build.org/mill/main-branch/javalib/testing.html#_test_parallelism[docs])
+  to opt-in to automatic parallelization
+  of test suites, robust enough to provide speedups on most workloads. This is expected to
+  become the default (with an opt out) in Mill 0.13.0
+
+* Break the dependency between repositoriesTask and ivyDeps (#4472)
+* Update coursier to 2.1.25-M2 (adds early Gradle Module support) - 0.12.x (#4623)
+* Fix semanticdbData for mixed scala/java projects (#4599) (#4629)
+* Improve performances of Bloop/install (#4600) (#4628)
+* Pass Mill source JARs to Bloop (#4608)
+* Optimize BSP initialization stuff (#4698)
+
+
 [#0-12-8]
 === 0.12.8 - 2025-02-16
 :version: 0.12.8
