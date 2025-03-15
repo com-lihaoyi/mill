@@ -24,36 +24,40 @@ and from that see how newer stratagies improve on areas where earlier stratagies
 
 ## Serial Execution
 
-To begin with, Mill originally did not have any parallelism, and that extended to tests as well.
-Mill would:
+The Mill build tool started off without any parallelism by default, and that extended to
+tests as well. When asked to execute tasks, Mill would:
 
 1. Receive the build tasks specified at the command line
 2. Do a https://en.wikipedia.org/wiki/Breadth-first_search[breadth first search] on the task graph to find the full list of transitive tasks
 3. Sort the tasks in topological order using https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm[Tarjan's Algorithm]
-4. Execute the tasks in order one at a time, except those that have a cached value from an earlier run we can re-use
+4. Execute the tasks in order one at a time, skipping those with earlier cached values we can re-use
 5. If any tasks contained test suites, these would also be run one at a time in a single JVM subprocess
 
 
-While this serial execution worked fine for many years, it's unsatisfying in a world of modern
-computers each of which has anywhere from 8-16 CPU cores you can make use of: you may be
-waiting seconds or minutes for your tests to run when your build tool is using only 1 of your
-available CPU cores and the other 9 cores are sitting idle.
+While this serial execution works fine, it's unsatisfying in a world of modern
+computers each of which has anywhere from 8-16 CPU cores you can make use of. You may be
+waiting seconds or minutes for your tests to run on 1 CPU core while the other 9 cores are sitting idle.
 
-To evaluate how well <<Serial Execution>> and later parallelism strategies worked in practice,
+To evaluate how well _Serial Execution_ and later parallelism strategies worked in practice,
 we performed two evaluations:
 
-1. A theoretical evaluation using a simplified example build
-2. A practical evaluation using two real-world codebases with very different testing workloads
+1. A theoretical analysis using a simplified example build
+2. A practical benchmark using two real-world codebases with very different testing workloads
 
-These benchmarks are very rough and ad-hoc, but nevertheless should give a good understanding
-at the benefits and tradeoffs involved.
+These benchmarks are very rough and ad-hoc, but nevertheless are detailed enough to give
+a good understanding at the benefits and tradeoffs involved in the different parallelism
+strategies.
 
-## Theoretical Evaluation
+### Theoretical Evaluation
 
-Below we visualize this on an example build with 3 `test` modules, with 2/4/6 test suites
-respectively, on a hypothetical computer with 3 threads. The arrows represent the threads
-on which the test suites execute on, and in the case of _Serial Execution_ they all take
-place on a single thread.
+To understand the concepts behind each strategy, we imagine using it to run the tests
+on a simple example build with:
+
+* 3 `test` modules
+* With 2/4/6 test suites respectively
+* A hypothetical computer with 3 CPUs to use
+
+We can see this visualized below for serial execution:
 
 ```graphviz
 digraph G {
@@ -97,12 +101,22 @@ digraph G {
 }
 ```
 
+* The colored boxes represent _test classes_. This is a common unit of managing tests in
+  the JVM ecosystem, and will serve as the base level of granularity for this article.
+
+* The arrows represent the threads on which the test suites execute on, and in the case
+  of _Serial Execution_ they all take place on a single thread.
+
+* The dashed boxes represent the testrunner subprocesses that were spawned. In this case,
+  every module's tests are run in a separate subprocess, for isolation.
+
 There are two things we would like to minimize here:
 
-1. The longest single-threaded path through the build
-2. How many JVM subprocesses the test suite spawns, because spawning JVM subprocesses are expensive
+1. The longest single-threaded path through the build, often called the https://en.wikipedia.org/wiki/Critical_path_method[Critical Path]
+2. How many subprocesses the test suite spawns: subprocess spawning is expensive, especially
+   JVM subprocesses that may take several seconds to launch and warm up to peak performance.
 
-In this serial example, the numbers are:
+The _Serial Execution_, the numbers are:
 
 |===
 |                | *Serial Execution*
@@ -110,44 +124,53 @@ In this serial example, the numbers are:
 | # Of Subprocesses | *3*
 |===
 
-## Practical Evaluation
+### Practical Evaluation
 
 For the practical evaluation, we considered the test suites of two different codebases:
 
-1. The unit tests of the https://github.com/netty/netty[Netty networking framework],
-   or the subset that run in the xref:mill:ROOT:comparisons/maven.adoc[Mill example Netty build].
+1. The subset of unit tests of the https://github.com/netty/netty[Netty networking framework],
+   that run in the xref:mill:ROOT:comparisons/maven.adoc[Mill example Netty build].
    These contain a large number modules with a large number of test classes,
-   but each test class runs relatively quickly (<1s). This kind of worklaod is often
+   but each test class runs relatively quickly (<1s). This kind of workload is often
    seen in library codebases where all logic and tests can take place quickly in memory.
 
-2. The unit tests of Mill's own `scalalib` module. This is a single large module with a 
+2. The tests of Mill's own `scalalib` module. This is a single large module with a
    large number of test classes, but each test class runs relatively slowly (>10s). While
    not ideal, this kind of workload is not unusual in monolithic application codebases with
    heavy integration testing.
 
 These two workloads are very different, and benefit from different characteristics in the 
-parallel test runner, which we will see in detail as we explore different testing strategies
-below. But as a baseline, the time taken for running these test suites under <<Serial Execution>>
+parallel test runner: for fast unit tests minimizing the number of subprocesses spawned is
+important, whereas for slower integrations test the subprocess overhead is small compared to
+the time taken to run even a single test.
+
+We will see how these numbers vary as we explore different testing strategies
+below, but as a baseline the time taken for running these test suites under _Serial Execution_
 is as follows
 
 |===
 |  | *Serial Execution*
-| Netty Unit Tests | *28s*
-| Mill scalalib Tests | *502s*
+| Netty unit tests | *28s*
+| Mill scalalib tests | *502s*
 |===
+
+These results are run ad-hoc on my M1 Macbook Pro with 10 cores. The exact numbers will
+vary based on what test suite you chose and where you run them, but the overall trends
+and conclusions should be the same.
 
 
 ## Module Sharding
 
-Mill has always provided op-in task-level parallelism via the `-j`/`--jobs`
-flag (the name taken from the Make build tool), and it became the default in Mill `0.12.0` to use
-all cores on your system by default. During testing, typically each Mill module `foo` would
-have a single `foo.test` sub-module associated with it with a single `foo.test.testForked`, so
-Mill would effectively parallelize your test suites at a _module level_.
+Mill has always task-level parallelism opt-in via the `-j`/`--jobs`
+flag (the name taken from the https://en.wikipedia.org/wiki/Make_%28software%29[Make tool]),
+and it became the default in Mill `0.12.0` to use
+all cores on your system. During testing, typically each Mill module `foo` would
+have a single `foo.test` sub-module associated with it with a single `foo.test.testForked` task, so
+this task-level parallelism would effectively parallelize your test suites at a _module level_.
 
 One consequence of this is that if your codebase was broken up into many small modules,
 each module's tests could run in parallel. But if your codebase had a few large modules
-you may not have enough parallelism to really use all the compute available on your machine.
+you may not be able to really use all the CPU cores available on your machine.
 
 Visualizing this on the theoretical example we saw earlier:
 
@@ -188,10 +211,12 @@ digraph G {
 }
 ```
 
-We can see that because the three modules have different numbers of tests
-within them, `ModuleA.test` finishes first and that thread is idle until `ModuleC.test`
-finishes later. While not ideal, this is a significant improvement over the serial case
-in for our theoretical example, shortening the critical path from 12 test suites to 6:
+We can see that because the three modules have different numbers of test classes
+within them, `ModuleA.test` finishes first and that thread is idle until `ModuleB.test` and
+`ModuleC.test`
+finish later. While not ideal, this is a significant improvement over the serial case
+in our theoretical example, shortening the critical path from 12 test suites to 6
+while preserving the number of subprocesses spawned:
 
 
 |===
@@ -207,17 +232,22 @@ large module that does not benefit from module-level parallelism.
 
 |===
 |  | *Serial Execution* |  *Module Sharding*
-| Netty Unit Tests | 28s | *10s*
-| Mill scalalib Tests | 502s | *477s*
+| Netty unit tests | 28s | *10s*
+| Mill scalalib tests | 502s | *477s*
 |===
+
+While in theory it would be ideal to break up the Mill scalalib module into smaller modules
+each with their own test suite, doing so is tedious and manual, and realistically often does
+not happen as quickly as you might like. Thus a build tool testing strategy needs to be able
+to handle these large monolithic modules and test suites in some reasonable manner.
 
 ## Static Sharding
 
-To work around the limitations of module-level parallelism, Mill `0.12.0` also introduced the
-`def testForkGrouping` flag. This allows the developer to take the `Seq[String]` containing
-all the test class names and return a `Seq[Seq[String]]` with the original list broken down
-into groups, each of which would run in parallel in a separate JVM subprocess in a separate folder,
-but within each process they would run sequentially.
+To work around the limitations of module-level parallelism, Mill `0.12.0` introduced _static sharding_
+via the `def testForkGrouping` flag. This allows the developer to take the `Seq[String]` containing
+all the test class names and return a nested `Seq[Seq[String]]` with the original list broken down
+into groups. Each test group would run in parallel in a separate JVM subprocess in a separate folder,
+but within each group the tests would still run sequentially.
 
 For example, the following configuration would take the list of test classes
 and break it down into 1-element groups:
@@ -227,7 +257,8 @@ def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
 ```
 
 Using static test sharding, the execution of the test suites in our theoretical example now
-looks like this:
+looks like this, with each test class assigned its own subprocess, and those subprocesses
+making full use of the three cores available in the example:
 
 ```graphviz
 digraph G {
@@ -256,9 +287,9 @@ digraph G {
   subgraph cluster_a2 { label=""; TestClassA2 [style=filled fillcolor=lightpink] }
 
 
-  TestClassA1 -> TestClassA2 -> TestClassB1 -> TestClassB2
-  TestClassB3 -> TestClassB4 -> TestClassC1 -> TestClassC2
-  TestClassC3 -> TestClassC4 -> TestClassC5 -> TestClassC6
+  TestClassA1 -> TestClassB2 -> TestClassC1 -> TestClassC4
+  TestClassA2 -> TestClassB3 -> TestClassC2 -> TestClassC5
+  TestClassB1 -> TestClassB4 -> TestClassC3 -> TestClassC6
 }
 ```
 
@@ -276,8 +307,8 @@ Our practical benchmarks reflect this change as well:
 
 |===
 | | Serial Execution | Module Sharding | *Static Sharding*
-| Netty Unit Tests | 28s | 10s | *51s*
-| Mill scalalib Tests | 502s | 477s | *181s*
+| Netty unit tests | 28s | 10s | *51s*
+| Mill scalalib tests | 502s | 477s | *181s*
 |===
 
 * In the Netty unit test benchmark which have lots of short fast test suites, spawning a JVM for each test
@@ -287,30 +318,22 @@ Our practical benchmarks reflect this change as well:
 * For the Mill scalalib test benchmark which have suites that take 10s of seconds, spawning a JVM for
   each test is a much smaller cost. And so the increased parallelism is able to provide a 2-3x speedup
 
-Static test sharding is able to take a single large module with many test classes
-and effectively parallelize it: during the initial rollout we found it could take Mill's own
-`scalalib.test` suite and speed it up from ~5 minutes down to ~2 minutes: not quite the speedup
-you would expect on my 10 core laptop, but a significant speedup nonetheless.
-
-However, the problem with this approach is that it spawned a new JVM subprocess for every test
-class. This overhead may be acceptable for slow heavyweight test classes (of which Mill's
-`scalalib.test` was mostly made of), since the JVM overhead of 1-2 seconds of startup/warmup
-is dwarfed by the test class taking 10-20 seconds to run. But for more lightweight test classes
-that themselves only take a second to run, having 1-2 seconds of overhead is prohibitive.
-For example, turning on `testForkGrouping` in the
-xref:mill:ROOT:comparisons/maven.adoc[Mill example Netty build] _slows the test suite down_
-from ~10s to to taking ~50s to run!
+The basic problem with static test sharding is that the ideal sharding depends on the
+runtime characteristics of your test suite, and will evolve over time as your test suite
+evolves. Small, fast test classes would benefit from having a coarse-grained sharding
+with many test classes per group. Large, slow test classes benefit from a fine-grained
+sharding with only one test class per group. But figuring out the ideal sharding for
+a given test suite can only be determined experimentally which is very tedious, and
+keeping the sharding ideal as the test suite evolves is basically impossible.
 
 Thus although group-based parallelism could serve as a reasonable band-aid for modules
-with large numbers of slow tests, it could never be turned on by default. Whether it sped
-things up or slowed things down could only be determined experimentally on a case by case
-basis.
+with large numbers of slow tests, it could never be turned on by default.
 
 ## Dynamic Sharding
 
 To try and solve this problem with static test sharding,
 https://github.com/com-lihaoyi/mill/pull/4614[#4614] introduced a dynamic sharding approach
-using a process pool. The idea was that you never had more the `NUM_CPUS` tests running
+using a subprocess pool. The idea was that you never had more the `NUM_CPUS` tests running
 in parallel anyway, so you could just spawn `NUM_CPUS` child processes and have that
 fixed set of child processes pull tests off a queue and run them until the queue was empty.
 This meant the JVM startup overhead was proportional to `O(NUM_CPUS)` rather than `O(NUM_TESTS)`,
@@ -373,33 +396,52 @@ digraph G {
 | # Of Subprocesses | 3 | 3 | 12 | *8*
 |===
 
-Although dynamic test sharding is able to bring down the number of JVMs from 12 to 8
-while preserving the shortened critical path,
-it is still much more than the 3 JVMs that serial execution or module-level parallelism
-are able to provide. This also reflects in the practical benchmarks, which demonstrate
-a significant speedup over static sharding, but for the Netty unit test benchmark with
-many small tests the overhead from spawning JVMs mean it is still 2x slower than the
-more naive module-level parallelism approach.
+Above, you can see that first `TestClassA1`, `TestClassA2`, and `TestClassB1` are scheduled
+and each assigned a subprocess. When `A1` and `A2` finish, new subprocesses need to be spawned
+to run `B2` and `B3` (since they are running a different module's code and tests), but when
+`B1` finishes the same process can run `B4`. Later, `C1`, `C2`,
+and `C3` and share the subprocess with `C4`, `C5`, and `C6` respectively.
+
+This sharing and re-use of subprocesses where possible is able to bring down the
+number of subprocesses from 12 to 8 in our theoretical example, while preserving the
+shortened critical path. However, 8 is still much more than the 3 subprocesses that
+_serial execution_ or _module sharding_ needed, indicating that this approach does
+still add significant overhead for spawning testrunners that the more naive approaches
+do not.
+
+This different in the number of subprocesses reflects in the practical benchmarks below:
 
 |===
 | | Serial Execution | Module Sharding | Static Sharding  | *Dynamic Sharding*
-| Netty Unit Tests | 28s | 10s | 51s | *21s*
-| Mill scalalib Tests | 502s | 477s | 181s | *160s*
+| Netty unit tests | 28s | 10s | 51s | *21s*
+| Mill scalalib tests | 502s | 477s | 181s | *160s*
 |===
+
+In these numbers, we can see that both the Netty unit test benchmark and the Mill scalalib
+benchmark show a significant speedup using dynamic sharding over static sharding. This can
+be attributed to the reduced number of subprocesses that needed to be spawned. However,
+the Netty unit test benchmark is still 2x slower than the more naive _module sharding_
+approach.
+
+From the diagram above, we can see the nature of the problem: although the dynamic
+sharding approach can re-use the subprocesses where possible, the way it schedules
+test classes does not optimize for re-use: ideally we would want `A1` and `A2` to
+share one subprocess, `B1` `B2` `B3` `B4` to share another subprocess, etc. which
+we don't see above.
 
 
 ## Biased Dynamic Sharding
 
-The last piece of the puzzle was to use dynamic test sharding, but to bias the Mill
+The last piece of the puzzle was to use _dynamic test sharding_, but to bias the Mill
 scheduler to running the _first_ child process as soon as possible, but _subsequent_
 child processes only later if there were no other tasks to run.
 
 Essentially, what biased dynamic sharding does is try to minimize the number of
 child processes each module's test suite will run: it is better to have N modules
-spawn 1 JVM each that runs to completion, rather than having the N modules each take
-turns spawning NUM_CPUS JVM's to run its own tests in parallel before shutting down.
-Biased dynamic sharding thus aims for that, only allocating a module more child JVMs
-if there are idle cores that are unused
+spawn 1 subprocess each that runs to completion, rather than having the N modules each take
+turns spawning NUM_CPUS subprocesses to run its own tests in parallel before shutting down.
+Biased dynamic sharding thus aims for the former, only allocating a module more child JVMs
+if there are idle cores that are unused:
 
 ```graphviz
 digraph G {
@@ -451,29 +493,41 @@ digraph G {
 |===
 
 In the synthetic example above, we can see that biased dynamic sharding is able 
-to maintain the critical path at length 4, while reducing the number of JVMs it
-needs to spawn from 8 to 4. This is a strict improvement over the previous
-dynamic sharding and static sharding approaches, and it is reflected in the practical
-benchmarks where both Netty unit tests and Mill scalalib tests show speedups:
+to maintain the critical path at length 4, while reducing the number of subprocesses it
+needs to spawn (dashed boxes) from 8 to 4. We can see that each of `ModuleA` `ModuleB` and `ModuleC`
+is assigned a single subprocess to do all of its work, and only when there is a CPU core
+(when `A1` and `A2` have completed) is `ModuleC` given the idle core to parallelize
+its remaining test classes.
+
+This is a strict improvement over the previous dynamic sharding and static sharding
+approaches, and it is reflected in the practical benchmarks where both Netty unit
+tests and Mill scalalib tests show speedups over the previous _dynamic sharding_ approach:
 
 |===
 | | Serial Execution | Module Sharding | Static Sharding | Dynamic Sharding | *Biased Dynamic Sharding*
-| Netty Unit Tests | 28s | 10s | 51s | 21s | *12s*
-| Mill scalalib Tests | 502s | 477s | 181s | 160s | *132s*
+| Netty unit tests | 28s | 10s | 51s | 21s | *12s*
+| Mill scalalib tests | 502s | 477s | 181s | 160s | *132s*
 |===
 
 Notably, the Netty unit tests benchmark is now comparable to the performance we were 
-seeing with module-level parallelism. Although there is still a slight slowdown in the 
+seeing with module-level parallelism! Although there is still a slight slowdown in the
 practical benchmark - presumably from the slight increase in the number of spawned JVMs
-we see in the theoretical analysis - it is not longer a large 2-5x slowdown.
+we see in the theoretical analysis - it is not longer a large 2-5x slowdown we see in
+_static sharding_ and _dynamic sharding_. We have finally achieved a test parallelization
+strategy that is flexible enough to handle widely varying workloads and providing
+good performance without manual tuning, which is something prior attempts at
+parallelizing test suites fell short at.
+
 
 ## Implementation
 
 The implementation of the various parallelism strategies isn't complicated: the Mill
 build tool is a JVM application, and all these strategies basically boil down to passing
-``java.lang.Runnable``s to a `java.util.concurrent.ThreadPoolExecutor`, with different
+``java.lang.Runnable``s to a `java.util.concurrent.ThreadPoolExecutor`, each one
+using ``java.lang.ProcessBuilder`` to spawn the test runner, and with different
 granularity of the ``Runnable``s and different queues for the `ThreadPoolExecutor`
-(e.g. biased dynamic sharding using a `PriorityBlockingQueue`).
+(e.g. _biased dynamic sharding_ using a `PriorityBlockingQueue` to bias the scheduler
+to running the first test subprocess over others).
 
 Perhaps the most interesting implementation detail is for dynamic sharding:
 this requires the build tool to spawn a number of test runner subprocesses that
@@ -482,16 +536,25 @@ run. This is implemented using a folder on disk containing
 one-file-per-test-class. Each of the test runner subprocesses simply loops over the
 files in that folder and attempts to claim them via an
 https://stackoverflow.com/questions/18706419/is-a-move-operation-in-unix-atomic[Atomic Filesystem Move].
-This allows us to avoid the complexity of managing in-memory queues and RPCing
-between different processes, and is more than enough to handle the relatively
-small-scale that the test runner operates at.
+This allows us to avoid the complexity of managing a third party queue system,
+or dealing with and RPCs between different processes via sockets or `memmap`ed files.
+The simple disk-based queue is also more than enough to handle the relatively
+small-scale that the test runner operates at (100-1000s of test classes).
 
 
 ## Conclusion
 
-Mill's test parallelism strategy has gone through a lot of iterations and improvement 
-over the years, and traditionally it has always been a very finnicky process to tweak 
-the various `--jobs` or `testForkGrouping` configuration to try and get optimal 
-performance out of your test suites. But with the introduction of biased dynamic
+It's interesting how similar the problem of parallelizing tests is to the challenge of
+architecting any distributed system. In particular, the ideas of _static sharding_ and _dynamic
+sharding_ should be familiar concepts to any backend or infrastructure engineer, and the same
+tradeoffs that apply to their use in backend systems also apply to their use in a build tool's
+test runner. Even the _biased dynamic sharding_ that Mill eventually settled on has equivalents
+in e.g. https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/[Kubernetes' Pod Priorities]
+which allow certain workloads to be prioritized over others on the shared cluster.
+
+Mill's test parallelism strategy has gone through a lot of iterations and improvement
+over the years, and traditionally it has always been a very finnicky process to tweak
+the various `--jobs` or `testForkGrouping` configuration to try and get optimal
+performance out of your test suites. With the introduction of biased dynamic
 sharding in Mill 0.12.9, Mill is finally able to provide a good zero-config parallelism
-strategy that works across a wide range of workloads.
+strategy that works across a wide range of workloads. 
