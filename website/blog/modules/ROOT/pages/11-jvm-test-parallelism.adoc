@@ -12,12 +12,13 @@ number of independent tests that can each be run in parallel. But implementing p
 practice can be challenging: a naive implementation can easily result in increased resource usage
 without any speedup, or even slow things down compared to running things on a single thread.
 
-This blog post will explore the design and evolution of the Mill build tool's test parallelism
-strategy, from its start as a simple serial test runner, to naive module-based and
+This blog post will explore the design and evolution of the Mill JVM build tool's test
+parallelism strategy, from its start as a simple serial test runner, to naive module-based and
 class-based sharding, to the dynamic sharding strategy implemented in the latest
 version of Mill 0.12.9. We will discuss the pros and cons of the different approaches to
 test parallelization, analyze how they perform both theoretically and with benchmarks,
-and from that see how newer strategies improve on areas where earlier strategies fell short.
+and see how Mill's latest parallelization strategy can run the same test suites 50-200%
+faster than other popular JVM build tools such as Maven, Gradle, or SBT.
 
 // end::header[]
 
@@ -363,8 +364,10 @@ means it could never be be widely used or turned on by default by the build tool
 
 To try and solve the problems with static test sharding,
 https://github.com/com-lihaoyi/mill/pull/4614[mill#4614] introduced dynamic sharding
-using a process pool enabled via `def testParallelism = true`.
-The idea was that you never had more the `NUM_CPUS` tests running
+using a process pool. This is opt-in via `def testParallelism = true` in Mill `0.12.9`,
+and will become the default in the next major version Mill `0.13.0`.
+
+The idea of dynamic sharding is that you never had more the `NUM_CPUS` tests running
 in parallel anyway, so you could just spawn `NUM_CPUS` child processes and have
 those processes pull tests off a queue and run them until the queue is empty.
 This meant the JVM startup overhead was proportional to `NUM_CPUS` rather than `NUM_TESTS`,
@@ -593,28 +596,30 @@ runner compare to other JVM build tools like Maven, Gradle, or SBT?
 
 ### Maven Comparison
 
-Netty is normally built using Maven: the Mill build we use in the article is non-standard
+The Netty project we've been discussing in this article
+is normally built using Maven: the Mill build is non-standard
 and used mainly as a xref:mill:ROOT:comparisons/maven.adoc[Case Study Comparison],
 but that gives us an opportunity to run the same tests using the various Mill parallelism
-strategies and Maven to see how they compare. To run the same subset of unit test suites using Maven that we
-ran using Mill in the above examples, you can use the following commands:
+strategies as well as with Maven to see how they compare. To run the same subset of unit test suites using Maven that we
+ran using Mill in the above examples, we used these commands, resulting in the following
+timings for various testing strategies:
 
 ```bash
 # Maven Serial
 mvn -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test
 
 # Maven Parallel
-mvn  -T 10 -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test
+mvn -T 10 -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test
 ```
 
 |===
-| | Serial Execution | Module Sharding | Static Class Sharding | Dynamic Sharding | Biased Dynamic Sharding
-| Netty unit tests | 28s | 10s | 51s | 21s | 12s
+| Mill | Serial Execution | Module Sharding | Static Class Sharding | Dynamic Sharding | *Biased Dynamic Sharding*
+| Netty unit tests | 28s | 10s | 51s | 21s | *12s*
 |===
 
 |===
-| | *Maven Serial* | *Maven Parallel*
-| Netty unit tests |  *61s* | *39s*
+| Maven | Serial | *Parallel*
+| Netty unit tests |  61s | *39s*
 |===
 
 Here we can see that the Mill parallel testing strategy has significant speedups over the
@@ -627,19 +632,16 @@ and so did not include that in the table above.
 
 While the slowest Mill benchmark using _static class sharding_ is comparable to the Maven results,
 the other benchmarks using different parallelism and process-spawning strategies
-complete much faster, despite them all running exactly the same set of tests. So although Maven has
-been a cornerstone of the JVM ecosystem for decades, it is nevertheless possible to do better
-by carefully designing your testing and parallelization strategy to accommodate the strengths
-and weaknesses of the JVM runtime.
+complete much faster, despite them all running exactly the same set of tests.
 
 ### Gradle Comparison
 
-For another data point, we repeated the benchmarks we did on the Netty on the
+For another data point, we repeated the parallelism strategy benchmarks we did on the Netty on the
 https://github.com/mockito/mockito[Mockito] codebase. Mockito is a popular mocking framework
-for JVM unit tests, and is commonly in Java, Kotlin, and Scala projects, and its
+for JVM unit tests, commonly in Java, Kotlin, and Scala projects, and its
 codebase is built using Gradle. Like Netty, we have an example Mill build for Mockito
 as a xref:mill:ROOT:comparisons/gradle.adoc[Case Study Comparison], which although
-not 100% complete can serve to let us compare the Mill test parallelism strategy to that
+not 100% complete can serve to let us compare the Mill test parallelism strategies to that
 of Gradle. The commands used to run the subset of the Mockito build that works on both
 Mill and Gradle are shown below, along with the timings:
 
@@ -650,19 +652,20 @@ $ ./gradlew cleanTest && ./gradlew :test android:test errorprone:test extTest:te
 ```
 
 |===
-| | Serial Execution | Module Sharding | Static Class Sharding | Dynamic Sharding | Biased Dynamic Sharding
-| Mockito unit tests | 62s | 47s | 139s | 25s | 21s
+| Mill | Serial Execution | Module Sharding | Static Class Sharding | Dynamic Sharding | *Biased Dynamic Sharding*
+| Mockito unit tests | 62s | 47s | 139s | 25s | *21s*
 |===
 
 |===
-| | *Gradle Serial* | *Gradle Parallel* | *Gradle Parallel + maxParallelForks*
-| Mockito unit tests |  *90s* | *56s* | *31s*
+| Gradle | Serial | Parallel | *Parallel + maxParallelForks*
+| Mockito unit tests |  90s | 56s | *31s*
 |===
 
-Gradle defaults to parallelizing tests at a subproject level similar to Mill's _Module Sharding_,
-and so the performance is similar. Enabling
+The _Gradle Serial_ and _Gradle Parallel_ benchmarks were run with `org.gradle.parallel`
+configured accordingly: _Gradle Serial_ is similar to Mill's _Serial Execution_,
+while _Gradle Parallel_ is similar to Mill's _Module Sharding_ strategies. Enabling
 https://docs.gradle.org/current/userguide/performance.html#execute_tests_in_parallel[maxParallelForks]
-in gradle to parallelize the tests within a subproject improves performance significantly,
+in Gradle to parallelize the tests within a subproject improves performance significantly,
 with numbers comparable to Mill's _Dynamic Sharding_, although it is still significantly
 slower than Mill's _Biased Dynamic Sharding_ strategy.
 
@@ -673,7 +676,6 @@ As a last comparison, we repeated these testing benchmarks on the
 https://github.com/gatling/gatling[Gatling] codebase. Gatling is a popular load testing
 tool written in Scala and built using SBT, and we have an example Mill build
 for it as a xref:mill:ROOT:comparisons/sbt.adoc[Case Study Comparison].
-
 We can run the tests for both Mill and SBT builds for Gatling using the following command,
 and repeating the benchmarks gives us the timings below:
 
@@ -683,12 +685,12 @@ $ sbt test
 ```
 
 |===
-| | Serial Execution | Module Sharding | Static Class Sharding | Dynamic Sharding | Biased Dynamic Sharding
+| Mill | Serial Execution | Module Sharding | Static Class Sharding | Dynamic Sharding | Biased Dynamic Sharding
 | Gatling unit tests | 27s | 17s | 38s | 17s | 12s
 |===
 
 |===
-| | *SBT test*
+| SBT | *SBT test*
 | Gatling unit tests |  *25s*
 |===
 
@@ -706,13 +708,18 @@ It's interesting how similar the problem of parallelizing tests is to the challe
 architecting any distributed system. The ideas of _static sharding_ and _dynamic
 sharding_ should be familiar to any backend or infrastructure engineer, and the same
 tradeoffs that apply to their use in backend systems also apply to their use in a build tool's
-test runner.
+test runner. It's also surprising how much detail there is when trying to "parallelize unit
+tests": not only throwing the work at a thread or process-pool, but also managing the lifetimes,
+re-use, and scheduling of heavyweight JVM test processes in order to provide good performance
+across a wide variety of workloads.
 
 The Mill build tool's test parallelism strategy has gone through a lot of iterations and
-improvement over the years, and traditionally it has always been a very finnicky process
-to tweak the various `--jobs` or `testForkGrouping` configuration to try and get optimal
-performance out of your test suites. Although we may continue to tune the heuristics
-or implement more sophisticated parallelization and scheduling strategies in future, Mill
-0.12.9 with its _biased dynamic sharding_ strategy is finally able to provide a good
-zero-config strategy to parallelize your tests, reduce waiting time, and speed up the
-development process.
+improvement over the years, but at this point it is in a pretty good state.
+Not only does it perform much better than previous versions of
+Mill, it also outperforms running tests using other build tools like Maven, Gradle or SBT,
+even when it is running the exact same tests on the exact same codebase.
+
+Mill with its _biased dynamic sharding_ strategy is finally able to provide a good
+zero-config strategy to parallelize your tests, reduce waiting time, and speed up
+the development process. While it is opt-in for testing in the latest Mill `0.12.9`, we
+expect to make it the default (with an opt-out) in the next major version of Mill `0.13.0`.
