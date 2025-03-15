@@ -127,8 +127,8 @@ is as follows
 
 |===
 |  | *Serial Execution*
-| Netty Unit Tests | ???
-| Mill scalalib Tests | ???
+| Netty Unit Tests | *28s*
+| Mill scalalib Tests | *502s*
 |===
 
 
@@ -184,16 +184,18 @@ digraph G {
 
 
 |===
-|                | Serial Execution | *Module-level Parallelism*
+| | Serial Execution | *Module-level Parallelism*
 | Longest Path   | 12 | *6*
 | Number Of JVMs | 3 | *3*
 |===
 
 |===
 |  | *Serial Execution* |  *Module-level Parallelism*
-| Netty Unit Tests | ??? |
-| Mill scalalib Tests | ??? | 188s
+| Netty Unit Tests | 28s | *10s*
+| Mill scalalib Tests | 502s | *477s*
 |===
+
+
 
 
 With regard to testing, typically each Mill module `foo` would have a single `foo.test` sub-module
@@ -256,9 +258,15 @@ digraph G {
 
 
 |===
-|                | Serial Execution | Module-level Parallelism | *Static Test Sharding*
+| | Serial Execution | Module-level Parallelism | *Static Sharding*
 | Longest Path   | 12 | 6 | *4*
 | Number Of JVMs | 3 | 3 | *12*
+|===
+
+|===
+| | Serial Execution | Module-level Parallelism | *Static Sharding*
+| Netty Unit Tests | 28s | 10s | *51s*
+| Mill scalalib Tests | 502s | 477s | *181s*
 |===
 
 
@@ -346,9 +354,15 @@ digraph G {
 
 
 |===
-|                | Serial Execution | Module-level Parallelism | Static Test Sharding | *Dynamic Test Sharding*
+| | Serial Execution | Module-level Parallelism | Static Sharding | *Dynamic Sharding*
 | Longest Path   | 12 | 6 | 4 | *4*
 | Number Of JVMs | 3 | 3 | 12 | *8*
+|===
+
+|===
+| | Serial Execution | Module-level Parallelism | Static Sharding  | *Dynamic Sharding*
+| Netty Unit Tests | 28s | 10s | 51s | *21s*
+| Mill scalalib Tests | 502s | 477s | 181s | *160s*
 |===
 
 
@@ -408,9 +422,15 @@ digraph G {
 ```
 
 |===
-|                | Serial Execution | Module-level Parallelism | Static Test Sharding | Dynamic Test Sharding | *Biased Dynamic Sharding*
+| | Serial Execution | Module-level Parallelism | Static Sharding | Dynamic Sharding | *Biased Dynamic Sharding*
 | Longest Path   | 12 | 6 | 4 | 4 | *4*
 | Number Of JVMs | 3 | 3 | 12 | 8 | *4*
+|===
+
+|===
+| | Serial Execution | Module-level Parallelism | Static Sharding | Dynamic Sharding | *Biased Dynamic Sharding*
+| Netty Unit Tests | 28s | 10s | 51s | 21s | *12s*
+| Mill scalalib Tests | 502s | 477s | 181s | 160s | *132s*
 |===
 
 This was implemented by passing Mill's `ThreadPoolExecutor` a `PriorityBlockingQueue`,
