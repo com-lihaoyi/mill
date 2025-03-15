@@ -15,10 +15,11 @@ This blog post will explore the design and evolution of the Mill build tool's te
 strategy, from the initial incarnation as a simple serial test runner, to naive module-based and
 class-based parallelism, to the dynamic parallelization strategy implemented in the latest
 version of Mill 0.12.9. We will discuss the pros and cons of the different approaches to
-test parallelization, and how newer approaches improve on areas where earlier approaches
-fall short
+test parallelization, analyze how they perform both theoretically and in practive,
+and from that see how newer stratagies improve on areas where earlier stratagies fall short
 
 // end::header[]
+
 
 ## Serial Execution
 
@@ -30,6 +31,23 @@ Mill would:
 3. Sort the tasks in topological order using https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm[Tarjan's Algorithm]
 4. Execute the tasks in order one at a time, except those that have a cached value from an earlier run we can re-use
 5. If any tasks contained test suites, these would also be run one at a time in a single JVM subprocess
+
+
+While this serial execution worked fine for many years, it's unsatisfying in a world of modern
+computers each of which has anywhere from 8-16 CPU cores you can make use of: you may be
+waiting seconds or minutes for your tests to run when your build tool is using only 1 of your
+available CPU cores and the other 9 cores are sitting idle.
+
+To evaluate how well <<Serial Execution>> and later parallelism strategies worked in practice,
+we performed two evaluations:
+
+1. A theoretical evaluation using a simplified example build
+2. A practical evaluation using two real-world codebases with very different testing workloads
+
+These benchmarks are very rough and ad-hoc, but nevertheless should give a good understanding
+at the benefits and tradeoffs involved.
+
+## Theoretical Evaluation
 
 Below we visualize this on an example build with 3 `test` modules, with 2/4/6 test suites
 respectively, and the arrow representing the single thread on which all the suites execute
@@ -90,27 +108,37 @@ In this case, the numbers are
 | Number Of JVMs | *3*
 |===
 
+## Practical Evaluation
 
+For the practical evaluation, we considered the test suites of two different codebases:
 
-While this serial execution worked fine for many years, it's unsatisfying in a world of modern
-computers each of which has anywhere from 8-16 CPU cores you can make use of: you may be
-waiting seconds or minutes for your tests to run when your build tool is using only 1 of your
-available CPU cores and the other 9 cores are sitting idle.
+1. The unit tests of the https://github.com/netty/netty[Netty networking framework],
+   as part of the xref:mill:ROOT:comparisons/maven.adoc[Mill example Netty build].
+   These contain a large number modules with a large number of test classes,
+   but each test class runs relatively quickly (<1s)
+
+2. The unit tests of Mill's own `scalalib` module. This is a single large module with a 
+   large number of test classes, but each test class runs relatively slowly (>10s).
+
+These two workloads are very different, and benefit from different characteristics in the 
+parallel test runner, which we will see in detail as we explore different testing strategies
+below. But as a baseline, the time taken for running these test suites under <<Serial Execution>>
+is as follows
 
 |===
-| Workload |
-| Netty Unit Tests |
-| Mill Scalalib Tests |
+|  | *Serial Execution*
+| Netty Unit Tests | ???
+| Mill scalalib Tests | ???
 |===
 
 
-## Task-level Parallelism
+## Module-level Parallelism
 
 For that reason, Mill has for the longest time provided op-in parallelism via the `-j`/`--jobs`
 flag (the name taken from the Make build tool), and it became the default in Mill `0.12.0` to use
 all cores on your system by default.
 
-`-j`/`--jobs` provided _task-level_ parallelism. Basically the workflow was the same as that listed
+`-j`/`--jobs` provided _module-level_ parallelism. Basically the workflow was the same as that listed
 above, except instead of step (4) executing tasks one at a time, Mill would submit all tasks as
 ``scala.concurrent.Future``s to a Java `ThreadPoolExecutor` to run. This would ensure they would
 still run in an order that respected the dependencies between them (e.g. a `compile` task would
@@ -156,10 +184,17 @@ digraph G {
 
 
 |===
-|                | Serial Execution | *Task-level Parallelism*
+|                | Serial Execution | *Module-level Parallelism*
 | Longest Path   | 12 | *6*
 | Number Of JVMs | 3 | *3*
 |===
+
+|===
+|  | *Serial Execution* |  *Module-level Parallelism*
+| Netty Unit Tests | ??? |
+| Mill scalalib Tests | ??? | 188s
+|===
+
 
 With regard to testing, typically each Mill module `foo` would have a single `foo.test` sub-module
 associated with it, and the sub-module would have a single `foo.test.testForked` task that you
@@ -169,7 +204,7 @@ parallelism to really use all the compute available on your machine.
 
 ## Static Test Sharding
 
-To work around the limitations of task-level parallelism, Mill `0.12.0` also introduced the
+To work around the limitations of module-level parallelism, Mill `0.12.0` also introduced the
 `def testForkGrouping` flag. This allows the developer to take the `Seq[String]` containing
 all the test class names and return a `Seq[Seq[String]]` with the original list broken down
 into groups, each of which would run in parallel in a separate JVM subprocess in a separate folder,
@@ -221,7 +256,7 @@ digraph G {
 
 
 |===
-|                | Serial Execution | Task-level Parallelism | *Static Test Sharding*
+|                | Serial Execution | Module-level Parallelism | *Static Test Sharding*
 | Longest Path   | 12 | 6 | *4*
 | Number Of JVMs | 3 | 3 | *12*
 |===
@@ -258,7 +293,7 @@ a much smaller number resulting in much smaller JVM overhead overall.
 
 
 Empirically this worked, but there was still significant overhead: compared with the
-<<Task-level Parallelism>> discussed earlier, we were still paying `O(NUM_CPUS)` of JVM
+<<Module-level Parallelism>> discussed earlier, we were still paying `O(NUM_CPUS)` of JVM
 overhead rather than `O(1)` JVM overhead per module containing tests.
 
 ```graphviz
@@ -311,7 +346,7 @@ digraph G {
 
 
 |===
-|                | Serial Execution | Task-level Parallelism | Static Test Sharding | *Dynamic Test Sharding*
+|                | Serial Execution | Module-level Parallelism | Static Test Sharding | *Dynamic Test Sharding*
 | Longest Path   | 12 | 6 | 4 | *4*
 | Number Of JVMs | 3 | 3 | 12 | *8*
 |===
@@ -373,7 +408,7 @@ digraph G {
 ```
 
 |===
-|                | Serial Execution | Task-level Parallelism | Static Test Sharding | Dynamic Test Sharding | *Biased Dynamic Sharding*
+|                | Serial Execution | Module-level Parallelism | Static Test Sharding | Dynamic Test Sharding | *Biased Dynamic Sharding*
 | Longest Path   | 12 | 6 | 4 | 4 | *4*
 | Number Of JVMs | 3 | 3 | 12 | 8 | *4*
 |===
