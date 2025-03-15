@@ -82,16 +82,17 @@ class CallGraphAnalysis(
   logger.mandatoryLog(transitiveCallGraphHashes0)
   logger.log(transitiveCallGraphHashes)
 
-  lazy val (spanningInvalidationTree: Obj, invalidClassNames: Arr) = prevTransitiveCallGraphHashesOpt() match {
-    case Some(prevTransitiveCallGraphHashes) =>
-      CallGraphAnalysis.spanningInvalidationTree(
-        prevTransitiveCallGraphHashes,
-        transitiveCallGraphHashes0,
-        indexToNodes,
-        indexGraphEdges
-      )
-    case None => ujson.Obj() -> ujson.Arr()
-  }
+  lazy val (spanningInvalidationTree: Obj, invalidClassNames: Arr) =
+    prevTransitiveCallGraphHashesOpt() match {
+      case Some(prevTransitiveCallGraphHashes) =>
+        CallGraphAnalysis.spanningInvalidationTree(
+          prevTransitiveCallGraphHashes,
+          transitiveCallGraphHashes0,
+          indexToNodes,
+          indexGraphEdges
+        )
+      case None => ujson.Obj() -> ujson.Arr()
+    }
 
   logger.mandatoryLog(spanningInvalidationTree)
   logger.mandatoryLog(invalidClassNames)
@@ -279,8 +280,8 @@ object CallGraphAnalysis {
   }
 
   private def invalidClassNameSet(
-    spanningForest: SpanningForest.Node,
-    indexToClassName: Array[String]
+      spanningForest: SpanningForest.Node,
+      indexToClassName: Array[String]
   ): Set[String] = {
     val queue = mutable.ArrayBuffer.empty[(Int, SpanningForest.Node)]
     val result = mutable.Set.empty[String]

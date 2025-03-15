@@ -21,6 +21,7 @@ import mill.util.Jvm
 
 import os.Path
 import scala.util.Try
+
 /**
  * Core configuration required to compile a single Java compilation target
  */
@@ -95,7 +96,7 @@ trait JavaModule
         }
     }
 
-    private def quickTest(args: Seq[String]): Task[(String, Seq[TestResult])] = 
+    private def quickTest(args: Seq[String]): Task[(String, Seq[TestResult])] =
       Task(persistent = true) {
         val quicktestFailedClassesLog = Task.dest / "quickTestFailedClasses.log"
         val (analysisFolder, previousAnalysisFolderOpt) = callGraphAnalysis()
@@ -116,7 +117,9 @@ trait JavaModule
 
             val quiteTestingClasses =
               Try {
-                upickle.default.read[Seq[String]](os.read.stream(analysisFolder / "invalidClassNames.json"))
+                upickle.default.read[Seq[String]](
+                  os.read.stream(analysisFolder / "invalidClassNames.json")
+                )
               }.getOrElse(Seq.empty[String])
 
             TestRunnerUtils.globFilter((failedTestClasses ++ quiteTestingClasses).distinct)
@@ -162,9 +165,12 @@ trait JavaModule
               .filter(testResult => Set("Error", "Failure").contains(testResult.status))
               .map(_.fullyQualifiedName)
         }
-        
-        os.write.over(quicktestFailedClassesLog, upickle.default.write[Seq[String]](badTestClasses.distinct))
-        
+
+        os.write.over(
+          quicktestFailedClassesLog,
+          upickle.default.write[Seq[String]](badTestClasses.distinct)
+        )
+
         results match {
           case Result.Failure(errMsg) => Result.Failure(errMsg)
           case Result.Success((doneMsg, results)) =>
@@ -1466,7 +1472,7 @@ trait JavaModule
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
-  
+
   // Return the directory containing the current call graph analysis results, and previous one too if it exists
   def callGraphAnalysis: T[(Path, Option[Path])] = Task(persistent = true) {
     os.remove.all(Task.dest / "previous")
@@ -1547,7 +1553,7 @@ trait JavaModule
             )
           )
       )
-    
+
     (Task.dest / "current", Option.when(os.exists(Task.dest / "previous"))(Task.dest / "previous"))
   }
 }
