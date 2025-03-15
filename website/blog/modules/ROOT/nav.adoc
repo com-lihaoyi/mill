@@ -1,4 +1,5 @@
 
+* xref:11-jvm-test-parallelism.adoc[]
 * xref:10-bytecode-callgraph-analysis.adoc[]
 * xref:9-mill-faster-assembly-jars.adoc[]
 * xref:8-what-is-a-build-tool.adoc[]
