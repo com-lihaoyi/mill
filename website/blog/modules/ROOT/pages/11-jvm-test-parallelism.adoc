@@ -523,8 +523,8 @@ parallelizing test suites fell short at.
 
 The implementation of the various parallelism strategies isn't complicated: the Mill
 build tool is a JVM application, and all these strategies basically boil down to passing
-``java.lang.Runnable``s to a `java.util.concurrent.ThreadPoolExecutor`, each one
-using ``java.lang.ProcessBuilder`` to spawn the test runner, and with different
+``Runnable``s to a `ThreadPoolExecutor`, each one
+using ``ProcessBuilder`` to spawn the test runner, and with different
 granularity of the ``Runnable``s and different queues for the `ThreadPoolExecutor`
 (e.g. _biased dynamic sharding_ using a `PriorityBlockingQueue` to bias the scheduler
 to running the first test subprocess over others).
@@ -537,7 +537,7 @@ one-file-per-test-class. Each of the test runner subprocesses simply loops over 
 files in that folder and attempts to claim them via an
 https://stackoverflow.com/questions/18706419/is-a-move-operation-in-unix-atomic[Atomic Filesystem Move].
 This allows us to avoid the complexity of managing a third party queue system,
-or dealing with and RPCs between different processes via sockets or `memmap`ed files.
+or dealing with RPCs between different processes via sockets or ``memmap``ed files.
 The simple disk-based queue is also more than enough to handle the relatively
 small-scale that the test runner operates at (100-1000s of test classes).
 
@@ -555,6 +555,8 @@ which allow certain workloads to be prioritized over others on the shared cluste
 Mill's test parallelism strategy has gone through a lot of iterations and improvement
 over the years, and traditionally it has always been a very finnicky process to tweak
 the various `--jobs` or `testForkGrouping` configuration to try and get optimal
-performance out of your test suites. With the introduction of biased dynamic
-sharding in Mill 0.12.9, Mill is finally able to provide a good zero-config parallelism
-strategy that works across a wide range of workloads. 
+performance out of your test suites. Although configuration knobs still exist, and we
+may continue to tweak the heuristics and defaults in future, Mill 0.12.9 with its
+_biased dynamic sharding_ strategy is finally able to provide a good zero-config
+strategy to parallelize your tests, reduce waiting time, and speed up the development
+process.
