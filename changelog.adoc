@@ -28,12 +28,13 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
   of test suites, robust enough to provide speedups on most workloads. This is expected to
   become the default (with an opt out) in Mill 0.13.0
 
-* Break the dependency between repositoriesTask and ivyDeps (#4472)
-* Update coursier to 2.1.25-M2 (adds early Gradle Module support) - 0.12.x (#4623)
-* Fix semanticdbData for mixed scala/java projects (#4599) (#4629)
-* Improve performances of Bloop/install (#4600) (#4628)
-* Pass Mill source JARs to Bloop (#4608)
-* Optimize BSP initialization stuff (#4698)
+* Break the dependency between repositoriesTask and ivyDeps ({link-pr}/4472[#4472])
+* Update coursier to 2.1.25-M2 (adds early Gradle Module support) - 0.12.x ({link-pr}/4623[#4623])
+* Fix semanticdbData for mixed scala/java projects ({link-pr}/4599[#4599]) ({link-pr}/4629[#4629])
+* Improve performances of Bloop/install ({link-pr}/4600[#4600]) ({link-pr}/4628[#4628])
+* Pass Mill source JARs to Bloop ({link-pr}/4608[#4608])
+* Optimize BSP initialization stuff ({link-pr}/4698[#4698])
+* Make source path configurable in TestBaseModule ({link-pr}/4703[#4703])
 
 
 [#0-12-8]
