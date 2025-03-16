@@ -225,6 +225,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
    */
   def nativeMultithreading: T[Option[Boolean]] = Task { None }
 
+  /** List of service providers which shall be allowed in the final binary */
+  def nativeServiceProviders: T[Map[String, Seq[String]]] = Task { Map.empty[String, Seq[String]] }
+
   private def nativeConfig: Task[NativeConfig] = Task.Anon {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
     withScalaNativeBridge.apply().apply(_.config(
@@ -245,6 +248,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeIncrementalCompilation(),
       nativeDump(),
       nativeMultithreading(),
+      nativeServiceProviders(),
       toWorkerApi(logLevel()),
       toWorkerApi(nativeBuildTarget())
     )) match {
