@@ -19,6 +19,8 @@ import scala.util.Try
 
 import mill.define.Target
 import mill.runner.worker.api.MillScalaParser
+import mill.codesig.JvmModel.MethodDef
+import mill.codesig.JvmModel.MethodSig
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -136,6 +138,29 @@ abstract class MillBuildRootModule()(implicit
       )
       Result.Success(Seq(PathRef(Task.dest)))
     }
+  }
+
+  @internal
+  override protected def callGraphAnalysisIgnoreCalls(callSiteOpt: Option[MethodDef], calledSig: MethodSig): Boolean = {
+    // We ignore Commands for the same reason as we ignore Targets, and also because
+    // their implementations get gathered up all the via the `Discover` macro, but this
+    // is primarily for use as external entrypoints and shouldn't really be counted as
+    // part of the `millbuild.build#<init>` transitive call graph they would normally
+    // be counted as
+    def isCommand =
+      calledSig.desc.ret.pretty == classOf[mill.define.Command[?]].getName
+
+    // Skip calls to `millDiscover`. `millDiscover` is bundled as part of `RootModule` for
+    // convenience, but it should really never be called by any normal Mill module/task code,
+    // and is only used by downstream code in `mill.eval`/`mill.resolve`. Thus although CodeSig's
+    // conservative analysis considers potential calls from `build_.package_$#<init>` to
+    // `millDiscover()`, we can safely ignore that possibility
+    def isMillDiscover =
+      calledSig.name == "millDiscover$lzyINIT1" ||
+        calledSig.name == "millDiscover" ||
+        callSiteOpt.exists(_.sig.name == "millDiscover")
+    
+    super.callGraphAnalysisIgnoreCalls(callSiteOpt, calledSig) || isCommand || isMillDiscover
   }
 
   def codeSignatures: T[Map[String, Int]] = Task {
