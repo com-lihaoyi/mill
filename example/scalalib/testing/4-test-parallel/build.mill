@@ -1,4 +1,3 @@
-
 // Test parallelism is an opt-in that enables parallel test execution, automatically
 // distributing your test classes across multiple JVM subprocesses, while minimizing the
 // overhead of JVM creation by re-using the subprocesses where possible.
