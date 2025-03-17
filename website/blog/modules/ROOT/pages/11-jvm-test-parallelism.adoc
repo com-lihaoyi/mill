@@ -612,10 +612,11 @@ small-scale that a build tool test runner operates at (100-1000s of test classes
 ## Build Tool Comparisons
 
 Mill is a relatively new JVM build tool, so it begs the question: how does Mill's test
-runner compare to other JVM build tools like Maven or Gradle? For this we ran the
+runner compare to other JVM build tools like Maven, Gradle, or SBT? For this we ran the
 benchmarks above on the Mill example builds we used for our
-xref:mill:ROOT:comparisons/maven.adoc[Maven case study] or
-xref:mill:ROOT:comparisons/gradle.adoc[Gradle case study]. Although these benchmarks were
+xref:mill:ROOT:comparisons/maven.adoc[Maven case study],
+xref:mill:ROOT:comparisons/gradle.adoc[Gradle case study], or
+xref:mill:ROOT:comparisons/gradle.adoc[SBT case study]. Although these benchmarks were
 rough, they should hopefully give you a good intuition for where the strategies discussed
 above fit into the larger build tool landscape.
 
@@ -693,6 +694,44 @@ that Gradle's parallelism approach is similar to Mill's _dynamic sharding_, but 
 have the same process-spawning optimizations that Mill does in its _biased dynamic sharding_
 strategy
 
+
+### SBT Comparison
+
+As a last comparison, we repeated these testing benchmarks on the
+https://github.com/gatling/gatling[Gatling] codebase. Gatling is a popular load testing
+tool written in Scala and built using SBT, and we have an example Mill build
+for it as a xref:mill:ROOT:comparisons/sbt.adoc[Case Study Comparison].
+We can run the tests for both Mill and SBT builds for Gatling using the following command,
+and repeating the benchmarks gives us the timings below:
+
+```bash
+$ ./mill __.test
+$ sbt test
+```
+
+|===
+| Mill | Serial Execution | Module Sharding | Static Class Sharding | Dynamic Sharding | *Biased Dynamic Sharding*
+| Gatling unit tests | 27s | 17s | 38s | 17s | *12s*
+|===
+
+|===
+| SBT | Serial | *Parallel*
+| Gatling unit tests | 25s | *12s*
+|===
+
+_SBT Serial_ is run with `fork := true` spawning a process to run tests,
+while _SBT Parallel_ is run with `fork := false` running tests in the shared JVM process.
+Here we can see that for this benchmark, SBT's in-memory parallel test running has 
+similar performance to Mill's _biased dynamic sharding_. Although the Mill test runner isn't
+faster, it does have nice properties: running the tests in subprocesses in sandbox folders
+provides a greater degree of isolation between the concurrent tests, which mitigates the
+risk of inter-test interference. Perhaps more importantly, Mill's `testParallelism` 
+is relatively self-tuning and should generally "just work" once enabled, whereas SBT
+has a number of different flags (`parallelExecution`, `concurrencyRestriction`, `fork`, 
+`testForkedParallel`) that need to be configured together which can be tedious and 
+error-prone.
+
+
 ## Conclusion
 
 It's interesting how similar the problem of parallelizing tests is to the challenge of
@@ -706,7 +745,7 @@ across a wide variety of workloads.
 
 The Mill build tool's test parallelism strategy has gone through a lot of iterations and
 improvement over the years, but at this point it is in a pretty good state.
-Perhaps most importantly, Mill's new `def testParallelism = true` flag is a single switch.
+Most importantly, Mill's new `def testParallelism = true` flag is a single switch.
 It is not that much _faster_ than running tests with older strategies or other
 build tools, but it provides that performance across a wide range of workloads without needing
 manual tuning or configuration. This simplifies the user experience,
