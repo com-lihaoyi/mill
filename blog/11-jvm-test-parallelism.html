@@ -244,8 +244,7 @@ parallelism strategy, from its start as a simple serial test runner, to naive mo
 class-based sharding, to the dynamic sharding strategy implemented in the latest
 version of Mill 0.12.9. We will discuss the pros and cons of the different approaches to
 test parallelization, analyze how they perform both theoretically and with benchmarks,
-and see how Mill’s latest parallelization strategy can run the same test suites 50-200%
-faster than other popular JVM build tools such as Maven or Gradle.</p>
+and compare them to the runtime characteristics of other build tool test runners.</p>
 </div>
 </div>
 </div>
@@ -327,6 +326,11 @@ on a simple example build with:</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 738.16,-231 738.16,4 -4,4"></polygon>
+<g id="clust3" class="cluster">
+<title>cluster_c</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-73 726.16,-73 726.16,-8 8.38,-8"></polygon>
+<text text-anchor="middle" x="367.27" y="-56.4" font-family="Times,serif" font-size="14.00">ModuleC.test</text>
+</g>
 <g id="clust1" class="cluster">
 <title>cluster_a</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 235.08,-219 235.08,-154 8,-154"></polygon>
@@ -336,11 +340,6 @@ on a simple example build with:</p>
 <title>cluster_b</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-81 8.38,-146 480.62,-146 480.62,-81 8.38,-81"></polygon>
 <text text-anchor="middle" x="244.5" y="-129.4" font-family="Times,serif" font-size="14.00">ModuleB.test</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_c</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-73 726.16,-73 726.16,-8 8.38,-8"></polygon>
-<text text-anchor="middle" x="367.27" y="-56.4" font-family="Times,serif" font-size="14.00">ModuleC.test</text>
 </g>
 <!-- TestClassA1 -->
 <g id="node1" class="node">
@@ -710,15 +709,15 @@ you may not be able to make full use of all the CPU cores available on your mach
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 235.08,-219 235.08,-154 8,-154"></polygon>
 <text text-anchor="middle" x="121.54" y="-202.4" font-family="Times,serif" font-size="14.00">ModuleA.test</text>
 </g>
-<g id="clust1" class="cluster">
-<title>cluster_c</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-73 726.16,-73 726.16,-8 8.38,-8"></polygon>
-<text text-anchor="middle" x="367.27" y="-56.4" font-family="Times,serif" font-size="14.00">ModuleC.test</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_b</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-81 8.38,-146 480.62,-146 480.62,-81 8.38,-81"></polygon>
 <text text-anchor="middle" x="244.5" y="-129.4" font-family="Times,serif" font-size="14.00">ModuleB.test</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_c</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-73 726.16,-73 726.16,-8 8.38,-8"></polygon>
+<text text-anchor="middle" x="367.27" y="-56.4" font-family="Times,serif" font-size="14.00">ModuleC.test</text>
 </g>
 <!-- TestClassC1 -->
 <g id="node1" class="node">
@@ -956,21 +955,21 @@ making full use of the three cores available in the example:</p>
 <title>cluster_c1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 357.08,-144 357.08,-104 254.31,-104"></polygon>
 </g>
+<g id="clust3" class="cluster">
+<title>cluster_c3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 357.08,-48 357.08,-8 254.31,-8"></polygon>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_c6</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-8 377.08,-48 479.85,-48 479.85,-8 377.08,-8"></polygon>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_c5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-56 377.08,-96 479.85,-96 479.85,-56 377.08,-56"></polygon>
+</g>
 <g id="clust7" class="cluster">
 <title>cluster_b1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 111.15,-48 111.15,-8 8.38,-8"></polygon>
-</g>
-<g id="clust8" class="cluster">
-<title>cluster_b2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"></polygon>
-</g>
-<g id="clust9" class="cluster">
-<title>cluster_b3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
-</g>
-<g id="clust10" class="cluster">
-<title>cluster_b4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-8 131.54,-48 234.31,-48 234.31,-8 131.54,-8"></polygon>
 </g>
 <g id="clust11" class="cluster">
 <title>cluster_a1</title>
@@ -980,25 +979,25 @@ making full use of the three cores available in the example:</p>
 <title>cluster_a2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-56 8,-96 111.54,-96 111.54,-56 8,-56"></polygon>
 </g>
-<g id="clust4" class="cluster">
-<title>cluster_c4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-104 377.08,-144 479.85,-144 479.85,-104 377.08,-104"></polygon>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_c5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-56 377.08,-96 479.85,-96 479.85,-56 377.08,-56"></polygon>
-</g>
-<g id="clust6" class="cluster">
-<title>cluster_c6</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-8 377.08,-48 479.85,-48 479.85,-8 377.08,-8"></polygon>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_c3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 357.08,-48 357.08,-8 254.31,-8"></polygon>
+<g id="clust8" class="cluster">
+<title>cluster_b2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"></polygon>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_c2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 357.08,-96 357.08,-56 254.31,-56"></polygon>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_c4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-104 377.08,-144 479.85,-144 479.85,-104 377.08,-104"></polygon>
+</g>
+<g id="clust9" class="cluster">
+<title>cluster_b3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
+</g>
+<g id="clust10" class="cluster">
+<title>cluster_b4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-8 131.54,-48 234.31,-48 234.31,-8 131.54,-8"></polygon>
 </g>
 <!-- TestClassB1 -->
 <g id="node1" class="node">
@@ -1282,14 +1281,6 @@ a new one created for the new test class’s module.</p>
 <title>cluster_b1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 234.31,-48 234.31,-8 8.38,-8"></polygon>
 </g>
-<g id="clust7" class="cluster">
-<title>cluster_a1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 111.54,-144 111.54,-104 8,-104"></polygon>
-</g>
-<g id="clust8" class="cluster">
-<title>cluster_a2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-56 8,-96 111.54,-96 111.54,-56 8,-56"></polygon>
-</g>
 <g id="clust5" class="cluster">
 <title>cluster_b2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"></polygon>
@@ -1298,13 +1289,21 @@ a new one created for the new test class’s module.</p>
 <title>cluster_b3</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
 </g>
-<g id="clust2" class="cluster">
-<title>cluster_c2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 479.85,-96 479.85,-56 254.31,-56"></polygon>
+<g id="clust7" class="cluster">
+<title>cluster_a1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 111.54,-144 111.54,-104 8,-104"></polygon>
+</g>
+<g id="clust8" class="cluster">
+<title>cluster_a2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-56 8,-96 111.54,-96 111.54,-56 8,-56"></polygon>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_c1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 479.85,-144 479.85,-104 254.31,-104"></polygon>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_c2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 479.85,-96 479.85,-56 254.31,-56"></polygon>
 </g>
 <!-- TestClassB1 -->
 <g id="node1" class="node">
@@ -1561,21 +1560,21 @@ without needing to spawn a second process and paying the cost of doing so.</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 156.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-156 492.62,-156 492.62,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_c1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 480.62,-48 480.62,-8 8.38,-8"></polygon>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_b1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-56 8.38,-96 480.62,-96 480.62,-56 8.38,-56"></polygon>
 </g>
-<g id="clust4" class="cluster">
-<title>cluster_c5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="255.08,-104 255.08,-144 480.62,-144 480.62,-104 255.08,-104"></polygon>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_a1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 235.08,-144 235.08,-104 8,-104"></polygon>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_c1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 480.62,-48 480.62,-8 8.38,-8"></polygon>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_c5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="255.08,-104 255.08,-144 480.62,-144 480.62,-104 255.08,-104"></polygon>
 </g>
 <!-- TestClassC1 -->
 <g id="node1" class="node">
@@ -2020,15 +2019,10 @@ across a wide variety of workloads.</p>
 <div class="paragraph">
 <p>The Mill build tool’s test parallelism strategy has gone through a lot of iterations and
 improvement over the years, but at this point it is in a pretty good state.
-Not only does it perform much better than previous versions of
-Mill, as well as other build tools like Maven or Gradle, even running the same tests.
-Unlike previous attempts which would perform poorly on pathological workloads, <em>biased
-dynamic sharding</em> seems to provide good performance on all the workloads that we benchmarked.</p>
-</div>
-<div class="paragraph">
-<p>Perhaps most importantly, Mill’s new <code>def testParallelism = true</code> flag is a single switch
-to turn on, without needing the user to tune group sizes or thread counts and other things
-that old parallelism strategies required to perform well. This simplifies the user experience,
+Perhaps most importantly, Mill’s new <code>def testParallelism = true</code> flag is a single switch.
+It is not that much <em>faster</em> than running tests with older strategies or other
+build tools, but it provides that performance across a wide range of use cases without needing
+manual tuning or configuration. This simplifies the user experience,
 letting them spend less time fiddling with the build tool and more time focusing on their actual
 project. While <code>testParallelism</code> it is opt-in for testing in the latest Mill <code>0.12.9</code>,
 we expect to make it the default (with an opt-out) in the next major version of Mill <code>0.13.0</code>.</p>
