@@ -242,55 +242,36 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
   </li>
 </ul>
   </li>
@@ -318,6 +299,25 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
 </ul>
   </li>
@@ -1067,15 +1067,14 @@ object qux extends KotlinModule {
 <h2 id="_test_parallelism"><a class="anchor" href="#_test_parallelism"></a>Test Parallelism</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Test parallelism is an opt-in, powerful feature that enables parallel test execution.
-When enabled, Mill automatically distributes your test classes across multiple JVM subprocesses.
-This is especially useful when you have multiple test classes that can be run in parallel.
-Test parallelism scheduler ensures throughput is maximized: no &quot;slow&quot; tests can block &quot;fast&quot; tests,
-tests are run in parallel for performance, while overhead of JVM creation overhead is minimized.
-This feature is expected to be enabled by default in future versions of Mill.</p>
+<p>Test parallelism is an opt-in that enables parallel test execution, automatically
+distributing your test classes across multiple JVM subprocesses, while minimizing the
+overhead of JVM creation by re-using the subprocesses where possible.
+Test parallelism should be able to reduce testing times for most project’s test suites</p>
 </div>
 <div class="paragraph">
-<p>Test parallelism can be enabled by overriding def testParallelism, as demonstrated below.</p>
+<p>Test parallelism can be enabled by overriding <code>def testParallelism</code>, as demonstrated below.
+This feature is expected to be enabled by default in future versions of Mill.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-kotlinlib-testing-4-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/kotlinlib/testing/4-test-parallel">browse</a>)</div>
@@ -1127,8 +1126,8 @@ out/foo/test/testForked.dest/test-report.xml
 <div class="paragraph">
 <p>Test Grouping is an opt-in feature that allows you to take a single
 test module and group the test classes such that each group will
-execute in parallel when you call <code>test</code>. Test grouping is enabled
-by overriding <code>def testForkGrouping</code>, as shown below:</p>
+execute in parallel in a separate JVM when you call <code>test</code>. Test grouping
+is enabled by overriding <code>def testForkGrouping</code>, as shown below:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-kotlinlib-testing-5-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/kotlinlib/testing/5-test-grouping">browse</a>)</div>
@@ -1217,17 +1216,18 @@ out/foo/test/testForked.dest/test-report.xml</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Test grouping allows you to run tests in parallel while keeping things deterministic and
-debuggable: parallel test groups will not write over each others files in their
+<p>Compared to <a href="#_test_parallelism">Test Parallelism</a>, test grouping allows you to run tests in parallel
+while and isolating different test groups into their own subprocesses, at the cost of
+greater subprocess overhead due to the larger number of isolated subprocesses.
+Different test groups will not write over each others files in their
 sandbox, and each one will have a separate set of logs that can be easily read
 without the others mixed in</p>
 </div>
 <div class="paragraph">
 <p>In this example, <code>def testForkGrouping = discoveredTestClasses().grouped(1).toSeq</code> assigns
-each test class to its own group, running in its own JVM. This comes with some overhead
-on a per-JVM basis, so if your test classes are numerous and small you may want to assign
-multiple test classes per group. You can also configure <code>testForkGrouping</code> to choose which
-test classes you want to run together and which to run alone:</p>
+each test class to its own group, running in its own JVM. You can also configure
+<code>testForkGrouping</code> to choose which test classes you want to run together and which to
+run alone:</p>
 </div>
 <div class="ulist">
 <ul>
