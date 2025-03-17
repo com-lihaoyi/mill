@@ -8,8 +8,8 @@ https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.sh
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
 Kotlin:
 
-* Mill can compile the same Java codebase 2-10x xref:comparisons/maven.adoc[faster than Maven],
-or xref:comparisons/gradle.adoc[or Gradle], and https://mill-build.org/blog/11-jvm-test-parallelism.html[test it 1.5-3x faster]
+* Mill can build the same Java codebase xref:comparisons/maven.adoc[4-10x faster than Maven],
+or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
 
 * Mill comes builtin with all the tools needed to develop and publish your project without
 needing plugins
@@ -47,8 +47,8 @@ offer a better alternative, letting your build system take full advantage of the
 Java platform's performance and usability:
 
 * *Performance*: Mill automatically xref:depth/execution-model.adoc#_caching_in_mill[caches]
-and xref:cli/flags.adoc#_jobs_j[parallelizes] build tasks https://mill-build.org/blog/11-jvm-test-parallelism.html[and tests] to keep local development fast,
-https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
+and xref:cli/flags.adoc#_jobs_j[parallelizes] build tasks https://mill-build.org/blog/11-jvm-test-parallelism.html[and tests]
+to keep local development fast, https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
 to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]
 to only runs the subset of tests necessary to validate a code change.
 
