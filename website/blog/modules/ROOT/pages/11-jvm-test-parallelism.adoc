@@ -680,40 +680,6 @@ in Gradle to parallelize the tests within a subproject improves performance sign
 with numbers comparable to Mill's _Dynamic Sharding_, although it is still significantly
 slower than Mill's _Biased Dynamic Sharding_ strategy.
 
-
-### SBT Comparison
-
-As a last comparison, we repeated these testing benchmarks on the
-https://github.com/gatling/gatling[Gatling] codebase. Gatling is a popular load testing
-tool written in Scala and built using SBT, and we have an example Mill build
-for it as a xref:mill:ROOT:comparisons/sbt.adoc[Case Study Comparison].
-We can run the tests for both Mill and SBT builds for Gatling using the following command,
-and repeating the benchmarks gives us the timings below:
-
-```bash
-$ ./mill __.test
-$ sbt test
-```
-
-|===
-| Mill | Serial Execution | Module Sharding | Static Class Sharding | Dynamic Sharding | *Biased Dynamic Sharding*
-| Gatling unit tests | 27s | 17s | 38s | 17s | *12s*
-|===
-
-|===
-| SBT | Serial | *Parallel*
-| Gatling unit tests | 25s | *12s*
-|===
-
-_SBT Serial_ is run with `fork := true` spawning a process to run tests,
-while _SBT Parallel_ is run with `fork := false` running tests in the shared JVM process,
-as SBT defaults to limiting the parallelism only for forked tests.
-Here we can see that the _SBT Serial_ benchmark completes  about as fast as Mill's
-_Serial Execution_, while _SBT Parallel_ runs about as fast as Mill's _Biased Dynamic
-Sharding_. Although the Mill's _Biased Dynamic Sharding_ isn't any faster than the
-SBT equivalent, it is able to provide the additional flexibility and isolation benefits
-of running tests in a subprocess without sacrificing any performance.
-
 ## Conclusion
 
 It's interesting how similar the problem of parallelizing tests is to the challenge of
