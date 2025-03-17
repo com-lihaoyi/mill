@@ -3,7 +3,7 @@
 # Strategies for Efficiently Parallelizing JVM Test Suites
 
 :author: Li Haoyi
-:revdate: ??? March 2025
+:revdate: 17 March 2025
 
 _{author}, {revdate}_
 
