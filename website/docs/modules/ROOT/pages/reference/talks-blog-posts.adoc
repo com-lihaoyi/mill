@@ -14,5 +14,5 @@ This page lists the external talks and blog posts that discuss Mill.
 == Blog Posts
 
 * https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[What's So Special About The Mill Scala Build Tool?]
-* http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Build Tools as Pure Functional Programs]
-* http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[So, what's wrong with SBT?]
+* https://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Build Tools as Pure Functional Programs]
+* https://www.lihaoyi.com/post/SowhatswrongwithSBT.html[So, what's wrong with SBT?]
