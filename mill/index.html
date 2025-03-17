@@ -240,55 +240,36 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="pythonlib/linting.html">Linting Python Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="pythonlib/testing.html">Testing Python Projects</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
+    <a class="nav-link" href="pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="android/java.html">Android Java Projects</a>
+    <a class="nav-link" href="pythonlib/module-config.html">Python Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="android/kotlin.html">Android Kotlin Projects</a>
+    <a class="nav-link" href="pythonlib/dependencies.html">Python Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="android/android-linting.html">Linting Android Projects</a>
+    <a class="nav-link" href="pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
   </li>
 </ul>
   </li>
@@ -316,6 +297,25 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android/android-linting.html">Linting Android Projects</a>
   </li>
 </ul>
   </li>
@@ -379,6 +379,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="migrating/gradle.html">Migrating From Gradle to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -600,7 +604,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.8</span>
+    <span class="version">0.12.9</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -610,7 +614,7 @@
           <a href="main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="index.html">0.12.8</a>
+          <a href="index.html">0.12.9</a>
         </li>
         <li class="version">
           <a href="0.11.x/index.html">0.11.13</a>
@@ -652,7 +656,7 @@
 </div>
 <div class="paragraph">
 <p>Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
-Kotlin, and Python:</p>
+Kotlin:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -665,7 +669,7 @@ or <a href="comparisons/gradle.html" class="xref page">2-4x faster than Gradle</
 needing plugins</p>
 </li>
 <li>
-<p>Mill&#8217;s typed config language and immutable <a href="depth/design-principles.html" class="xref page">task graph</a>
+<p>Mill&#8217;s typechecked configuration and immutable <a href="depth/design-principles.html" class="xref page">task graph</a>
 helps keep builds clean and understandable</p>
 </li>
 <li>
@@ -675,24 +679,41 @@ helps keep builds clean and understandable</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>To get started using Mill, see:</p>
+<p>To get started using Mill for the first time, or migrating and existing JVM
+codebase (build using Maven, Gradle, or SBT) to Mill, see:</p>
 </div>
-<div class="ulist">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
 <ul>
 <li>
 <p><a href="cli/installation-ide.html" class="xref page">Installation &amp; IDE Setup</a></p>
 </li>
 </ul>
-</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p><a href="migrating/migrating.html" class="xref page">Migrating to Mill</a></p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+</tbody>
+</table>
 <div class="paragraph">
 <p>Or see the language-specific introductory documentation linked below:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
 </colgroup>
 <tbody>
 <tr>
@@ -704,9 +725,6 @@ helps keep builds clean and understandable</p>
 </div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p><a href="kotlinlib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-kotlin.svg" alt="kotlin" width="28"></span> Kotlin with Mill</a></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><a href="pythonlib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-python.svg" alt="python" width="28"></span> Python with Mill</a></p>
 </div></div></td>
 </tr>
 </tbody>
@@ -727,12 +745,11 @@ Java platform&#8217;s performance and usability:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Performance</strong>: Mill automatically
-<a href="depth/execution-model.html#_caching_in_mill" class="xref page">caches</a>
-and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build tasks to keep local development fast,
-and avoids the long configuration times seen in other tools like Gradle or SBT.
-<a href="large/selective-execution.html" class="xref page">Selective execution</a> keeps
-CI validation times short by only running the tests necessary to validate a code change.</p>
+<p><strong>Performance</strong>: Mill automatically <a href="depth/execution-model.html#_caching_in_mill" class="xref page">caches</a>
+and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build tasks <a href="https://mill-build.org/blog/11-jvm-test-parallelism.html">and tests</a>
+to keep local development fast, <a href="https://mill-build.org/blog/9-mill-faster-assembly-jars.html">incrementally builds assembly jars</a>
+to speed up manual testing workflows, and shortens CI times with <a href="large/selective-execution.html" class="xref page">selective test execution</a>
+to only runs the subset of tests necessary to validate a code change.</p>
 </li>
 <li>
 <p><strong>Builtins</strong>: Mill has builtin support for most common workflows: not just compile/run/test, but also <a href="javalib/linting.html#_autoformatting_with_palantir_java_format" class="xref page">autoformatting</a>,

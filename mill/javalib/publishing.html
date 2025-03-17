@@ -241,55 +241,36 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
   </li>
 </ul>
   </li>
@@ -317,6 +298,25 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
 </ul>
   </li>
@@ -380,6 +380,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -601,7 +605,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.8</span>
+    <span class="version">0.12.9</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -611,7 +615,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.8</a>
+          <a href="../index.html">0.12.9</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -660,7 +664,7 @@
 jar from any JVM module. You can also customize the assembly jar as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-javalib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/javalib/publishing/1-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-javalib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/javalib/publishing/1-assembly-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -726,7 +730,7 @@ Loaded test.property: 1337</code></pre>
 <h2 id="_building_native_image_binaries_with_graal_vm"><a class="anchor" href="#_building_native_image_binaries_with_graal_vm"></a>Building Native Image Binaries with Graal VM</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-javalib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/javalib/publishing/7-native-image">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-javalib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/javalib/publishing/7-native-image">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -763,7 +767,7 @@ Hello, World!</code></pre>
 image, see below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-javalib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/javalib/publishing/8-native-image-libs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-javalib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/javalib/publishing/8-native-image-libs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -850,7 +854,7 @@ if you want to experiment it or view its <code>--help</code> text to see what yo
 Starting with JDK 9, <code>jlink</code> bundles Java app code with a stripped-down version of the JVM.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-javalib-publishing-5-jlink.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/javalib/publishing/5-jlink">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-javalib-publishing-5-jlink.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/javalib/publishing/5-jlink">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -941,7 +945,7 @@ INFO: Hello World!</code></pre>
 using the <code>jpackage</code> tool.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-javalib-publishing-6-jpackage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/javalib/publishing/6-jpackage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-javalib-publishing-6-jpackage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/javalib/publishing/6-jpackage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1090,7 +1094,7 @@ INFO: Hello World application started successfully</pre>
 <h2 id="_publishing_locally"><a class="anchor" href="#_publishing_locally"></a>Publishing Locally</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-javalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/javalib/publishing/2-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-javalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/javalib/publishing/2-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, publish._
@@ -1123,11 +1127,35 @@ Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...</code></pre>
 </div>
 </div>
 <div class="paragraph">
+<p><code>publishLocal</code> accepts options like <code>--doc=false</code> and <code>--sources=false</code>,
+to disable publishing javadoc JARs and source JARs, which are generated and
+published by default. This can be helpful if you&#8217;re not interested in javadoc JARs,
+and javadoc generation fails, and you would rather address those errors later for example.</p>
+</div>
+<div class="paragraph">
+<p><code>publishLocal</code> also accepts <code>--transitive=true</code>, to also publish locally the
+transitive dependencies of the module being published. This ensures the module
+can be resolved from the local repository, with no missing dependencies.</p>
+</div>
+<div class="paragraph">
 <p><code>publishLocal</code> publishes the artifacts to the <code>~/.ivy2/local</code> folder on your
 machine, allowing them to be resolved by other projects and build tools. This
 is useful as a lightweight way of testing out the published artifacts, without
 the setup overhead and long latencies of publishing artifacts globally accessible
 to anyone in the world.</p>
+</div>
+<div class="paragraph">
+<p><code>publishLocal</code> accepts options like <code>--doc=false</code> and <code>--sources=false</code>,
+to disable publishing javadoc JARs and source JARs, which are generated and
+published by default. This can be helpful if you&#8217;re not interested in javadoc JARs,
+and javadoc generation fails or takes too much time. When using Scala 2, disabling
+javadoc generation can bring large speedups, given it entails compiling your code
+a second time.</p>
+</div>
+<div class="paragraph">
+<p><code>publishLocal</code> also accepts <code>--transitive=true</code>, to also publish locally the
+transitive dependencies of the module being published. This ensures the module
+can be resolved from the local repository, with no missing dependencies.</p>
 </div>
 </div>
 </div>
@@ -1138,7 +1166,7 @@ to anyone in the world.</p>
 <p>Mill provides the ability to check API changes with the <a href="https://revapi.org/revapi-site/main/index.html">Revapi</a> analysis and change tracking tool.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-javalib-publishing-3-revapi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/javalib/publishing/3-revapi">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-javalib-publishing-3-revapi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/javalib/publishing/3-revapi">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, publish._, revapi._

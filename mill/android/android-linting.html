@@ -6,7 +6,7 @@
     <title>Linting Android Projects :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/android/android-linting.html">
     <link rel="prev" href="kotlin.html">
-    <link rel="next" href="../javascriptlib/intro.html">
+    <link rel="next" href="../comparisons/why-mill.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -241,55 +241,36 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="java.html">Android Java Projects</a>
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="3">
-    <a class="nav-link" href="android-linting.html">Linting Android Projects</a>
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
   </li>
 </ul>
   </li>
@@ -317,6 +298,25 @@
 
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="3">
+    <a class="nav-link" href="android-linting.html">Linting Android Projects</a>
   </li>
 </ul>
   </li>
@@ -380,6 +380,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -601,7 +605,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.8</span>
+    <span class="version">0.12.9</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -611,7 +615,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.8</a>
+          <a href="../index.html">0.12.9</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -668,7 +672,7 @@ security, and usability warnings. This helps maintain the health and quality of 
 <p>In this example, we set a custom config to generate the report in both txt and HTML formats.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.8/example-android-javalib-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/android/javalib/3-linting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-android-javalib-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/android/javalib/3-linting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -711,7 +715,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/android/javalib/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
+<div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/android/javalib/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.helloworld.app" android:versionCode="1" android:versionName="1.0"&gt;
     &lt;uses-sdk android:minSdkVersion="9" android:targetSdkVersion="35"/&gt;
@@ -731,7 +735,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <p>The <code>AndroidManifest.xml</code> file shown above is flawed with hardcoded string linting problem so it can be spoted by running the <code>androidLintRun</code> task.</p>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/res/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/android/javalib/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/android/javalib/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
     &lt;color name="white"&gt;#FFFFFF&lt;/color&gt;
@@ -740,7 +744,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/res/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/android/javalib/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/android/javalib/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
     &lt;string name="app_name"&gt;HelloWorldApp&lt;/string&gt;
@@ -749,7 +753,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/java/com/helloworld/app/MainActivity.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/android/javalib/3-linting/app/src/main/java/com/helloworld/app/MainActivity.java">browse</a>)</div>
+<div class="title">app/src/main/java/com/helloworld/app/MainActivity.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/android/javalib/3-linting/app/src/main/java/com/helloworld/app/MainActivity.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package com.helloworld.app;
 
@@ -793,7 +797,7 @@ public class MainActivity extends Activity {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/lint.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.8/example/android/javalib/3-linting/app/lint.xml">browse</a>)</div>
+<div class="title">app/lint.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/android/javalib/3-linting/app/lint.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;lint&gt;
@@ -901,7 +905,7 @@ java/com/helloworld/app/MainActivity.java:46: Error: Access to private field pri
 </div>
 <nav class="pagination">
   <span class="prev"><a href="kotlin.html">Android Kotlin Projects</a></span>
-  <span class="next"><a href="../javascriptlib/intro.html">Building Javascript with Mill</a></span>
+  <span class="next"><a href="../comparisons/why-mill.html">Why Use Mill?</a></span>
 </nav>
 </article>
   </div>
