@@ -708,7 +708,7 @@ The Mill build tool's test parallelism strategy has gone through a lot of iterat
 improvement over the years, but at this point it is in a pretty good state.
 Perhaps most importantly, Mill's new `def testParallelism = true` flag is a single switch.
 It is not that much _faster_ than running tests with older strategies or other
-build tools, but it provides that performance across a wide range of use cases without needing
+build tools, but it provides that performance across a wide range of workloads without needing
 manual tuning or configuration. This simplifies the user experience,
 letting them spend less time fiddling with the build tool and more time focusing on their actual
 project. While `testParallelism` it is opt-in for testing in the latest Mill `0.12.9`,
