@@ -6,6 +6,6 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with MavenModule {
 
-  def moduleDeps = super.moduleDeps ++ Seq(build.list)
+  def moduleDeps = super.moduleDeps ++ Agg(build.list)
 
 }

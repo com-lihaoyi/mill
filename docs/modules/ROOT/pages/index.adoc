@@ -6,32 +6,35 @@ https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://index
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable[Maven Central Version]]
 
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
-Kotlin, and Python:
+Kotlin:
 
-* Mill can build the same Java codebase xref:comparisons/maven.adoc[4-10x faster than Maven],
-or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
+* Mill can compile the same Java codebase 2-10x xref:comparisons/maven.adoc[faster than Maven],
+or xref:comparisons/gradle.adoc[or Gradle], and https://mill-build.org/blog/11-jvm-test-parallelism.html[test it 1.5-3x faster]
 
 * Mill comes builtin with all the tools needed to develop and publish your project without
 needing plugins
 
-* Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]
+* Mill's typechecked configuration and immutable xref:depth/design-principles.adoc[task graph]
 helps keep builds clean and understandable
 
 * Mill scales well from small projects to
 xref:large/large.adoc[large multi-language monorepos] with hundreds of modules
 
-To get started using Mill, see:
+To get started using Mill for the first time, or migrating and existing JVM
+codebase (build using Maven, Gradle, or SBT) to Mill, see:
 
-* xref:cli/installation-ide.adoc[]
+[cols="1a,1a"]
+|===
+| * xref:cli/installation-ide.adoc[] | * xref:migrating/migrating.adoc[]
+|===
 
 Or see the language-specific introductory documentation linked below:
 
-[cols="1a,1a,1a,1a"]
+[cols="1a,1a,1a"]
 |===
 | xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
 | xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
 | xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,28] Kotlin with Mill]
-| xref:pythonlib/intro.adoc[image:index/iconscout-python.svg[python,28] Python with Mill]
 |===
 
 If you want to use Mill on an existing codebase, see xref:migrating/migrating.adoc[]
@@ -43,12 +46,11 @@ JVM build tools have a reputation for being sluggish and confusing. Mill tries t
 offer a better alternative, letting your build system take full advantage of the
 Java platform's performance and usability:
 
-* *Performance*: Mill automatically
-xref:depth/execution-model.adoc#_caching_in_mill[caches]
-and xref:cli/flags.adoc#_jobs_j[parallelizes] build tasks to keep local development fast,
-and avoids the long configuration times seen in other tools like Gradle or SBT.
-xref:large/selective-execution.adoc[Selective execution] keeps
-CI validation times short by only running the tests necessary to validate a code change.
+* *Performance*: Mill automatically xref:depth/execution-model.adoc#_caching_in_mill[caches]
+and xref:cli/flags.adoc#_jobs_j[parallelizes] build tasks https://mill-build.org/blog/11-jvm-test-parallelism.html[and tests] to keep local development fast,
+https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
+to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]
+to only runs the subset of tests necessary to validate a code change.
 
 * *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[autoformatting],
 xref:javalib/linting.adoc#_linting_with_checkstyle[linting],

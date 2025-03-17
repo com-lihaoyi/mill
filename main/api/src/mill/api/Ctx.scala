@@ -136,6 +136,8 @@ object Ctx {
     import scala.concurrent.ExecutionContext
     trait Api {
 
+      def blocking[T](t: => T): T
+
       /**
        * Awaits for the result for the given async future and returns the resultant value
        */
@@ -159,15 +161,21 @@ object Ctx {
        *            terminal to allow them to be distinguished from other logs
        * @param message A one-line summary of what this async future is doing, used in the
        *                terminal prompt to display what this future is currently computing.
+       * @param priority 0 means the same priority as other Mill tasks, negative values <0
+       *                 mean increasingly high priority, positive values >0 mean increasingly
+       *                 low priority
        * @param t The body of the async future
        */
-      def async[T](dest: os.Path, key: String, message: String, t: Logger => T)(implicit
+      def async[T](
+          dest: os.Path,
+          key: String,
+          message: String,
+          priority: Int = 0
+      )(
+          t: Logger => T
+      )(implicit
           ctx: mill.api.Ctx
       ): Future[T]
-
-      def async[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
-          ctx: mill.api.Ctx
-      ): Future[T] = async(dest, key, message, _ => t)(ctx)
     }
 
     trait Impl extends Api with ExecutionContext with AutoCloseable {
