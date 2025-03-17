@@ -4,54 +4,13 @@ import mill._, javascriptlib._
 import os.*
 
 trait OllamaModule extends TypeScriptModule {
-
-  // clean git source - remove generated json files
-  def cleanUp = Task {
-    os.checker.withValue(os.Checker.Nop) {
-      os.remove(T.workspace / "package.json")
-      os.remove(T.workspace / "package-lock.json")
-      os.remove(T.workspace / "tsconfig.json")
-    }
-  }
-
-  def compile = Task {
-    cleanUp()
-    super.compile()
-  }
-
   // bundle ollama with `unbuild`
   def unbuild = Task {
-    symLink()
+    createNodeModulesSymlink()
     val out = compile().path
 
     os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
-
-    os.write.over(
-      Task.dest / "package.json",
-      ujson.Obj(
-        "name" -> "ollama",
-        "version" -> "0.0.0",
-        "description" -> "Ollama Javascript library",
-        "main" -> "dist/index.cjs",
-        "module" -> "dist/index.mjs",
-        "types" -> "dist/index.d.ts",
-        "exports" -> ujson.Obj(
-          "." -> ujson.Obj(
-            "require" -> "./dist/index.cjs",
-            "import" -> "./dist/index.mjs",
-            "types" -> "./dist/index.d.ts"
-          ),
-          "./browser" -> ujson.Obj(
-            "require" -> "./dist/browser.cjs",
-            "import" -> "./dist/browser.mjs",
-            "types" -> "./dist/browser.d.ts"
-          ),
-          "./*" -> "./*"
-        ),
-        "dependencies" -> ujson.Obj("whatwg-fetch" -> "3.6.20")
-      )
-    )
 
     os.call("node_modules/.bin/unbuild", cwd = T.dest)
 
@@ -82,28 +41,6 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 
   // disable declarations output in compile stage
   def runTypeCheck: T[Boolean] = false
-
-  def options =
-    super.options() + (
-      "ts-node" -> ujson.Obj(
-        "swc" -> ujson.True,
-        "esm" -> ujson.True
-      )
-    )
-
-  def compilerOptions =
-    super.compilerOptions() + (
-      "noImplicitAny" -> ujson.True,
-      "noImplicitThis" -> ujson.True,
-      "strictNullChecks" -> ujson.True,
-      "declarationMap" -> ujson.True,
-      "skipLibCheck" -> ujson.True,
-      "strict" -> ujson.True,
-      "forceConsistentCasingInFileNames" -> ujson.True,
-      "module" -> ujson.Str("ES2022"),
-      "target" -> ujson.Str("es6"),
-      "lib" -> ujson.Arr.from(Seq("es6", "es2018.asyncgenerator", "dom"))
-    )
 
   object test extends TypeScriptTests with TestModule.Vitest
 
@@ -208,17 +145,32 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 ...Aborting all requests...
 
 > ./mill examples.fill-in-middle.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
 ...
 
 > ./mill examples.multimodal.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
 ...
 
 > ./mill examples.pull-progress.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
 ...
 
 > ./mill examples.structured_outputs.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
 ...
 
 > ./mill examples.tools.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
 ...
 */

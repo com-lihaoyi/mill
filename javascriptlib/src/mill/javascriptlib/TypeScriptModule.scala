@@ -456,6 +456,9 @@ trait TypeScriptModule extends Module { outer =>
     if (!os.exists(T.dest / "node_modules"))
       os.symlink(T.dest / "node_modules", npmInstall().path / "node_modules")
 
+    if (!os.exists(T.dest / "package.json"))
+      os.symlink(T.dest / "package.json", npmInstall().path / "package.json")
+
     if (!os.exists(T.dest / "package-lock.json"))
       os.symlink(T.dest / "package-lock.json", npmInstall().path / "package-lock.json")
   }
@@ -501,7 +504,7 @@ trait TypeScriptModule extends Module { outer =>
           )
         )
       case (true, true) =>
-        val json = ujson.read(os.read(T.workspace / "package.json")).obj
+        val json = ujson.read(os.read(T.dest / "package.json")).obj
         json("type") = "module"
         os.write.over(Task.dest / "package.json", json.render(2))
       case _ => ()
@@ -509,12 +512,11 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   def compile: T[PathRef] = Task {
-    createNodeModulesSymlink()
     tscCopySources()
     tscCopyModDeps()
     tscCopyGenSources()
     tscLinkResources()
-
+    createNodeModulesSymlink()
     mkTsconfig()
     mkPackageJson()
 
