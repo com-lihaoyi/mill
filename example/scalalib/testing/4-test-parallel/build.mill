@@ -1,9 +1,11 @@
+
 // Test parallelism is an opt-in that enables parallel test execution, automatically
 // distributing your test classes across multiple JVM subprocesses, while minimizing the
 // overhead of JVM creation by re-using the subprocesses where possible.
-// This feature is expected to be enabled by default in future versions of Mill.
+// Test parallelism should be able to reduce testing times for most project's test suites
 //
 // Test parallelism can be enabled by overriding `def testParallelism`, as demonstrated below.
+// This feature is expected to be enabled by default in future versions of Mill.
 
 //// SNIPPET:BUILD1
 package build
