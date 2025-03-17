@@ -172,7 +172,7 @@ object TestModule {
     override def compile: T[PathRef] = Task {
       conf()
       coverageConf()
-      symLink()
+      createNodeModulesSymlink()
       os.copy(super.compile().path, T.dest, mergeFolders = true)
 
       PathRef(T.dest)
@@ -283,7 +283,7 @@ object TestModule {
     override def compile: T[PathRef] = Task {
       conf()
       istanbulNycrcConfigBuilder()
-      symLink()
+      createNodeModulesSymlink()
       os.copy(super.compile().path, T.dest, mergeFolders = true)
 
       PathRef(T.dest)
@@ -394,7 +394,7 @@ object TestModule {
     override def compile: T[PathRef] = Task {
       conf()
       coverageConf()
-      symLink()
+      createNodeModulesSymlink()
       os.copy(super.compile().path, T.dest, mergeFolders = true)
 
       PathRef(T.dest)
@@ -519,7 +519,7 @@ object TestModule {
     override def compile: T[PathRef] = Task {
       conf()
       istanbulNycrcConfigBuilder()
-      symLink()
+      createNodeModulesSymlink()
       os.copy(super.compile().path, T.dest, mergeFolders = true)
 
       PathRef(T.dest)
@@ -673,7 +673,7 @@ object TestModule {
 
     override def compile: T[PathRef] = Task {
       conf()
-      symLink()
+      createNodeModulesSymlink()
       os.copy(super.compile().path, T.dest, mergeFolders = true)
 
       PathRef(T.dest)

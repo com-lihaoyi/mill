@@ -116,7 +116,7 @@ trait PublishModule extends TypeScriptModule {
 
   override def compile: T[PathRef] = Task {
     pubSymLink()
-    symLink()
+    createNodeModulesSymlink()
 
     val out = super.compile().path
 

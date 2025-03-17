@@ -448,11 +448,11 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   /**
-   * create a symlink for node_modules in compile.dest
+   * create a createNodeModulesSymlink for node_modules in compile.dest
    * removes need for node_modules prefix in import statements `node_modules/<some-package>`
    * import * as somepackage from "<some-package>"
    */
-  def symLink: Task[Unit] = Task.Anon {
+  def createNodeModulesSymlink: Task[Unit] = Task.Anon {
     if (!os.exists(T.dest / "node_modules"))
       os.symlink(T.dest / "node_modules", npmInstall().path / "node_modules")
 
@@ -466,8 +466,17 @@ trait TypeScriptModule extends Module { outer =>
    */
   def runTypeCheck: T[Boolean] = Task { true }
 
-  def compile: T[PathRef] = Task {
-    symLink()
+  /**
+   * Mill by default will use local tsconfig if one is provided,
+   * This can set to `false` if you would prefer mill to use the generated
+   * tsconfig, if you can not for some reason just not delete the local one.
+   *
+   * Regardless of the configuration, mill will auto gen a tsconfig
+   * if one does not exist in `T.workspace`.
+   */
+  def customTsConfig: T[Boolean] = Task { true }
+
+  private def mkTsconfig: Task[Unit] = Task.Anon {
     val default: Map[String, ujson.Value] = Map(
       "compilerOptions" -> ujson.Obj.from(
         compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
@@ -475,23 +484,39 @@ trait TypeScriptModule extends Module { outer =>
       "files" -> tscAllSources()
     )
 
-    os.write(
-      T.dest / "tsconfig.json",
-      ujson.Obj.from(default.toSeq ++ options().toSeq)
-    )
-
-    if (enableEsm())
+    if (!customTsConfig() || !os.exists(T.dest / "tsconfig.json"))
       os.write.over(
-        Task.dest / "package.json",
-        ujson.Obj(
-          "type" -> ujson.Str("module")
-        )
+        T.dest / "tsconfig.json",
+        ujson.Obj.from(default.toSeq ++ options().toSeq)
       )
+  }
 
+  private def mkPackageJson: Task[Unit] = Task.Anon {
+    (enableEsm(), os.exists(T.dest / "package.json")) match {
+      case (true, false) =>
+        os.write.over(
+          Task.dest / "package.json",
+          ujson.Obj(
+            "type" -> ujson.Str("module")
+          )
+        )
+      case (true, true) =>
+        val json = ujson.read(os.read(T.workspace / "package.json")).obj
+        json("type") = "module"
+        os.write.over(Task.dest / "package.json", json.render(2))
+      case _ => ()
+    }
+  }
+
+  def compile: T[PathRef] = Task {
+    createNodeModulesSymlink()
     tscCopySources()
     tscCopyModDeps()
     tscCopyGenSources()
     tscLinkResources()
+
+    mkTsconfig()
+    mkPackageJson()
 
     // Run type check, build declarations
     if (runTypeCheck())
@@ -643,7 +668,7 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   def bundle: T[PathRef] = Task {
-    symLink()
+    createNodeModulesSymlink()
     val env = forkEnv()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundle = Task.dest / "bundle.js"
