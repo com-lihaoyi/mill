@@ -78,11 +78,11 @@ real-world project compares to using `sbt`.
 `sbt` can be used in two modes, either "cold" run directly from the command line, or "hot"
 where an `sbt` session is kept open and commands are run within in. I provide the timings for
 both scenarios above, along with the time taken for Mill commands. Mill does not have this
-distinction, and can only be run directly from the command line. The `Hot sbt` mode only
+distinction, and can only be run directly from the command line. The Hot `sbt` mode only
 reports timings to the nearest second, so that is the number used in this comparison.
 
-The Mill build benchmarks for Gatling is generally much snappier than the `Cold sbt` benchmark,
-and comparable to that `Hot sbt` benchmark. Mill is marginally faster in the
+The Mill build benchmarks for Gatling is generally much snappier than the Cold `sbt` benchmark,
+and comparable to that Hot `sbt` benchmark. Mill is marginally faster in the
 `Parallel Clean Compile All` benchmark (10s vs 14s), but more importantly does not have the same
 _Cold vs Hot_ distinction that `sbt` has: as Mill is always run "cold" from the command line and
 keeps the process around to provide "hot" performance automatically.
@@ -173,8 +173,8 @@ file `gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala`.
 
 Both Mill and `sbt` are able to take advantage of the small code change and re-compile
 only the single files needing re-compilation, demonstrating substantial speedups over
-the <<Clean Compile Single-Module>> benchmark above. Both "Hot sbt" and "Mill" finish in
-a fraction of a second, while "Cold sbt" has substantial overhead.
+the <<Clean Compile Single-Module>> benchmark above. Both Hot `sbt` and "Mill" finish in
+a fraction of a second, while Cold `sbt` has substantial overhead.
 
 === No-Op Compile Single-Module
 
@@ -200,8 +200,8 @@ This benchmark is meant to measure the pure overhead of running the build tool: 
 module that did _not_ change, the build tool should need to do _nothing_ in response, and so
 any time taken is pure overhead.
 
-Again, we see both "Hot sbt" and "Mill" finish in a fraction of a second, with the Mill numbers
-showing a ~0.4s overhead to run Mill even when there is no work to do, and the "Cold sbt" has
+Again, we see both Hot `sbt` and "Mill" finish in a fraction of a second, with the Mill numbers
+showing a ~0.4s overhead to run Mill even when there is no work to do, and the Cold `sbt` has
 in comparison substantial >4s overhead.
 
 == IDE Support
