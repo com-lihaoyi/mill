@@ -30,31 +30,32 @@ trait OllamaModule extends TypeScriptModule {
     os.write.over(
       Task.dest / "package.json",
       ujson.Obj(
-        "name" -> ujson.Str("ollama"),
-        "version" -> ujson.Str("0.0.0"),
-        "description" -> ujson.Str("Ollama Javascript library"),
-        "main" -> ujson.Str("dist/index.cjs"),
-        "module" -> ujson.Str("dist/index.mjs"),
-        "types" -> ujson.Str("dist/index.d.ts"),
+        "name" -> "ollama",
+        "version" -> "0.0.0",
+        "description" -> "Ollama Javascript library",
+        "main" -> "dist/index.cjs",
+        "module" -> "dist/index.mjs",
+        "types" -> "dist/index.d.ts",
         "exports" -> ujson.Obj(
           "." -> ujson.Obj(
-            "require" -> ujson.Str("./dist/index.cjs"),
-            "import" -> ujson.Str("./dist/index.mjs"),
-            "types" -> ujson.Str("./dist/index.d.ts")
+            "require" -> "./dist/index.cjs",
+            "import" -> "./dist/index.mjs",
+            "types" -> "./dist/index.d.ts"
           ),
           "./browser" -> ujson.Obj(
-            "require" -> ujson.Str("./dist/browser.cjs"),
-            "import" -> ujson.Str("./dist/browser.mjs"),
-            "types" -> ujson.Str("./dist/browser.d.ts")
+            "require" -> "./dist/browser.cjs",
+            "import" -> "./dist/browser.mjs",
+            "types" -> "./dist/browser.d.ts"
           ),
-          "./*" -> ujson.Str("./*")
+          "./*" -> "./*"
         ),
-        "dependencies" -> ujson.Obj("whatwg-fetch" -> ujson.Str("3.6.20"))
+        "dependencies" -> ujson.Obj("whatwg-fetch" -> "3.6.20")
       )
     )
 
     os.call("node_modules/.bin/unbuild", cwd = T.dest)
 
+    // prepare bundled ouptut to be used as `unmanagedDeps` in examples section.
     os.makeDir.all(T.dest / "ollama")
     os.copy(T.dest / "package.json", T.dest / "ollama" / "package.json")
     os.copy(T.dest / "dist", T.dest / "ollama" / "dist")
@@ -185,9 +186,9 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 ...     Tests  20 passed (20)
 ...
 
-> ./mill checkFormatEslint
+> ./mill checkFormatEslint # no failures
 
-> ./mill checkFormatPrettier
+> ./mill checkFormatPrettier # expected failures
 ...Checking formatting...
 [warn] examples/abort/abort-all-requests.ts
 [warn] examples/abort/abort-single-request.ts
