@@ -62,7 +62,7 @@ trait AndroidModule extends JavaModule {
    *
    * This option will probably go away in the future once build variants are supported.
    */
-  def androidIsDebug: T[Boolean] = true
+  def androidIsDebug: T[Boolean] = false
 
   /**
    * The minimum SDK version to use. Default is 1.
@@ -809,7 +809,7 @@ trait AndroidModule extends JavaModule {
 
       r8ArgsBuilder += androidSdkModule().r8Path().path.toString
 
-      if (!androidIsDebug()) {
+      if (androidIsDebug()) {
         r8ArgsBuilder += "--debug"
       } else {
         r8ArgsBuilder += "--release"
