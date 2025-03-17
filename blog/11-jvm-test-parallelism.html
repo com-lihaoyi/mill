@@ -245,7 +245,7 @@ class-based sharding, to the dynamic sharding strategy implemented in the latest
 version of Mill 0.12.9. We will discuss the pros and cons of the different approaches to
 test parallelization, analyze how they perform both theoretically and with benchmarks,
 and see how Mill’s latest parallelization strategy can run the same test suites 50-200%
-faster than other popular JVM build tools such as Maven, Gradle, or SBT.</p>
+faster than other popular JVM build tools such as Maven or Gradle.</p>
 </div>
 </div>
 </div>
@@ -268,10 +268,10 @@ tests as well. When asked to execute tasks, Mill would:</p>
 <p>Sort the tasks in topological order using <a href="https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm">Tarjan’s Algorithm</a></p>
 </li>
 <li>
-<p>Execute the tasks in order one at a time, skipping those with earlier cached values we can re-use</p>
+<p>Execute the tasks in order one at a time, skipping those with earlier cached values it can re-use</p>
 </li>
 <li>
-<p>If any tasks contained test suites, these would be run one at a time in a single JVM process</p>
+<p>If any tasks contained test suites, these would be run one at a time in a single JVM subprocess</p>
 </li>
 </ol>
 </div>
@@ -509,11 +509,12 @@ to isolate the code of different modules from one another.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-for this article, we are assuming that tests for different modules need to be run in
+For this article, we assume that tests for different modules need to be run in
 different subprocesses. That is not universally true: Mill does have a <code>testLocal</code>
 mode that runs tests in a shared JVM to reduce overhead, at the expense of some flexibility
-and isolation. But we find that process-separation of different modules' test suites is a
-useful enough default that we will assume it necessary for the rest of this article.
+and isolation, and other build tools have something similar. But we find that
+process-separation of different modules' test suites is a useful enough default that
+we will assume it necessary for the rest of this article.
 </td>
 </tr>
 </tbody></table>
@@ -524,11 +525,12 @@ useful enough default that we will assume it necessary for the rest of this arti
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>The time taken for all tests to complete. For this analyis, we treat each <code>TestClass</code>
-as taking the same amount of time, and just add up the total time taken</p>
+<p><strong>Time taken</strong> for all tests to complete. For this analyis, we treat each <code>TestClass</code>
+as taking the same amount of time, and just add up the number of suites on the longest
+thread</p>
 </li>
 <li>
-<p>How many processes we spawn. Spawning processes are expensive, especially
+<p><strong>Processes</strong> spawned. Spawning processes are expensive, especially
 JVM processes that may take several seconds to launch and warm up to peak performance.
 Again, we just assume that every process spawn has the same overhead, and add it up</p>
 </li>
@@ -566,29 +568,65 @@ Again, we just assume that every process spawn has the same overhead, and add it
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>A subset of unit tests in the <a href="https://github.com/netty/netty">Netty codebase</a>,
+<p>The subset of unit tests in the <a href="https://github.com/netty/netty">Netty codebase</a>
 that run in the <a href="../mill/comparisons/maven.html" class="xref page">Mill example Netty build</a>.
-These contain a large number modules with a large number of test classes,
-but each test class runs relatively quickly (&lt;1s). This kind of testing workload is often
+These contain a large number modules (17) with a large number of test classes (233),
+but each test class runs relatively quickly (~0.1s). This kind of testing workload is often
 seen in library codebases where all logic and tests can take place quickly in memory.</p>
 </li>
 <li>
 <p>The tests of Mill’s own <code>scalalib</code> module. This is a single large module with a
-large number of test classes, but each test class runs relatively slowly (&gt;10s). While
+large number of test classes (52), but each test class runs relatively slowly (~10s). While
 not ideal, this kind of testing workload is common in monolithic application codebases with
 heavy integration testing.</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
+<p>In summary:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Modules</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Test Classes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Average Duration per Test Class</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Netty unit tests</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">17</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">233</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">~0.1s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill scalalib tests</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">52</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">~10s</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
 <p>The commands to run these two benchmarks are shown below, with <code>-j1</code> telling Mill to
 run things on a single thread:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">netty$ ./mill -j1 'codec-{dns,haproxy,http,http2,memcache,mqtt,redis,smtp,socks,stomp,xml}.test' + 'transport-{blockhound-tests,native-unix-common,sctp}.test'
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">netty$ ./mill show 'codec-{dns,haproxy,http,http2,memcache,mqtt,redis,smtp,socks,stomp,xml}.__.discoveredTestClasses' + 'transport-{blockhound-tests,native-unix-common,sctp}.__.discoveredTestClasses'
 mill$ ./mill -j1 scalalib.test</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>The selection of test suites in the Netty codebase is somewhat arbitrary (the tests that
+the example build happens to contain), but that doesn’t matter since we will be running the same
+selection of tests throughout this article to see the effect of these tests.</p>
 </div>
 <div class="paragraph">
 <p>These two workloads are very different, and benefit from different characteristics in the
@@ -597,13 +635,13 @@ parallel test runner:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>For fast unit tests, minimizing the number of processes spawned is
-important, since the time taken to run the tests themselves can easily be dominated
-by process setup overhead</p>
+<p>For fast unit tests, minimizing the number of processes spawned is important, since the 0.1s
+it take to run the tests themselves can easily be dominated by 1s overhead starting up a JVM
+test process</p>
 </li>
 <li>
-<p>For slower integration tests, each test takes a long time, so the process overhead
-is small compared to the time taken to run even a single test.</p>
+<p>For slower integration tests, the minimizing the number of processes matters less, as adding
+1s of process spawning overhead to a 10s test class is inconvenient but not overwhelming</p>
 </li>
 </ul>
 </div>
@@ -645,7 +683,7 @@ it, but the overall trends and conclusions should be the same.</p>
 <h2 id="_module_sharding"><a class="anchor" href="#_module_sharding"></a>Module Sharding</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill has always task-level parallelism opt-in via the <code>-j</code>/<code>--jobs</code>
+<p>Mill has always had task-level parallelism opt-in via the <code>-j</code>/<code>--jobs</code>
 flag (the name taken from the <a href="https://en.wikipedia.org/wiki/Make_%28software%29">Make tool</a>),
 and it became the default in Mill <code>0.12.0</code> for tasks to run parallel to use
 all cores on your system. During testing, typically each Mill module <code>foo</code> would
@@ -655,7 +693,7 @@ at a <em>module level</em>.</p>
 </div>
 <div class="paragraph">
 <p>One consequence of this is that if your codebase was broken up into many small modules,
-each module’s tests could run in parallel. But if your codebase had a few large modules
+each module’s tests could run in parallel. But if your codebase had a few large modules,
 you may not be able to make full use of all the CPU cores available on your machine.</p>
 </div>
 <div class="paragraph">
@@ -667,6 +705,11 @@ you may not be able to make full use of all the CPU cores available on your mach
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 738.16,-231 738.16,4 -4,4"></polygon>
+<g id="clust3" class="cluster">
+<title>cluster_a</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 235.08,-219 235.08,-154 8,-154"></polygon>
+<text text-anchor="middle" x="121.54" y="-202.4" font-family="Times,serif" font-size="14.00">ModuleA.test</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_b</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-81 8.38,-146 480.62,-146 480.62,-81 8.38,-81"></polygon>
@@ -676,11 +719,6 @@ you may not be able to make full use of all the CPU cores available on your mach
 <title>cluster_c</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-73 726.16,-73 726.16,-8 8.38,-8"></polygon>
 <text text-anchor="middle" x="367.27" y="-56.4" font-family="Times,serif" font-size="14.00">ModuleC.test</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_a</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 235.08,-219 235.08,-154 8,-154"></polygon>
-<text text-anchor="middle" x="121.54" y="-202.4" font-family="Times,serif" font-size="14.00">ModuleA.test</text>
 </g>
 <!-- TestClassC1 -->
 <g id="node1" class="node">
@@ -846,7 +884,8 @@ to 6, while preserving the number of processes spawned at 3.</p>
 </div>
 <div class="paragraph">
 <p>The practical benchmarks also show significant improvements for the Netty unit tests,
-running 3x faster as they can take full advantage of the multiple cores on the machine.
+running 3x faster as they can take full advantage of the multiple cores on the machine
+parallelize the test suites of the 17 modules being tested.
 However the Mill scalalib tests show no significant speedup, as the benchmark is a single
 large module that does not benefit from module sharding.</p>
 </div>
@@ -913,9 +952,21 @@ making full use of the three cores available in the example:</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 156.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-156 491.85,-156 491.85,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_c1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 357.08,-144 357.08,-104 254.31,-104"></polygon>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_c2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 357.08,-96 357.08,-56 254.31,-56"></polygon>
+</g>
 <g id="clust3" class="cluster">
 <title>cluster_c3</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 357.08,-48 357.08,-8 254.31,-8"></polygon>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_c4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-104 377.08,-144 479.85,-144 479.85,-104 377.08,-104"></polygon>
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_c5</title>
@@ -924,14 +975,6 @@ making full use of the three cores available in the example:</p>
 <g id="clust6" class="cluster">
 <title>cluster_c6</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-8 377.08,-48 479.85,-48 479.85,-8 377.08,-8"></polygon>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_c2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 357.08,-96 357.08,-56 254.31,-56"></polygon>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_c4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-104 377.08,-144 479.85,-144 479.85,-104 377.08,-104"></polygon>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_b1</title>
@@ -944,10 +987,6 @@ making full use of the three cores available in the example:</p>
 <g id="clust9" class="cluster">
 <title>cluster_b3</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_c1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 357.08,-144 357.08,-104 254.31,-104"></polygon>
 </g>
 <g id="clust10" class="cluster">
 <title>cluster_b4</title>
@@ -1121,7 +1160,7 @@ making full use of the three cores available in the example:</p>
 </tbody>
 </table>
 <div class="paragraph">
-<p>Here we have shortened the time taken further, from 6 test suites to just 4. However, it has
+<p>Here we have shortened the time taken further, from 6 sequential test suites to just 4. However, it has
 come at the cost of spawning significantly more processes, as each 1-testclass group
 is allocated its own process.</p>
 </div>
@@ -1159,13 +1198,13 @@ is allocated its own process.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>The Netty unit test benchmark has lots of small fast test classes, spawning a process for each test
+<p>The Netty unit test benchmark has lots of small fast test classes, and so spawning a process for each test
 class is very expensive. We see the time taken to run all tests ballooning from 10s to 51s, as
 any improvement in parallelism is dominated by the cost of spawning the additional processes</p>
 </li>
 <li>
-<p>For the Mill scalalib test benchmark which has slow test classes that take 10s of seconds,
-spawning a process for each is a much smaller cost. And so the increased parallelism is able
+<p>For the Mill scalalib test benchmark which has slow test classes that take ~10 seconds each,
+spawning a process for each test class is a much smaller cost. And so the increased parallelism is able
 to provide a 2-3x speedup</p>
 </li>
 </ul>
@@ -1183,7 +1222,7 @@ while there are enough test classes that even a coarse-grained grouping would pr
 plenty of opportunities for parallelism</p>
 </li>
 <li>
-<p>Large, slow test classes would prefer from a fine-grained sharding with only one
+<p>Large, slow test classes would prefer a fine-grained sharding with only one
 test class per group. This maximizes parallelism, while the cost of spawning processes
 is small compared to the cost of running even a single test class.</p>
 </li>
@@ -1193,12 +1232,13 @@ is small compared to the cost of running even a single test class.</p>
 <p>Figuring out the ideal sharding for
 a given test suite can only be figured out experimentally, and
 keeping the sharding optimal as the test suite evolves over time is basically impossible.
-And it could easily make things worse if mis-configured!</p>
+And as you can see from the numbers above, static sharding could easily make
+things worse if mis-configured!</p>
 </div>
 <div class="paragraph">
 <p>Thus although group-based parallelism serves as a reasonable band-aid for specific modules
-where you can put in the effort to enable and tune the grouping, the amount of manual tuning
-means it could never be be widely used or turned on by default by the build tool.</p>
+where you can put in the effort to tune the grouping, the amount of manual tuning
+and room for error means it could never be widely used or turned on by default by the build tool.</p>
 </div>
 </div>
 </div>
@@ -1207,7 +1247,7 @@ means it could never be be widely used or turned on by default by the build tool
 <div class="sectionbody">
 <div class="paragraph">
 <p>To try and solve the problems with static test sharding,
-<a href="https://github.com/com-lihaoyi/mill/pull/4614">mill#4614</a> introduced dynamic sharding
+<a href="https://github.com/com-lihaoyi/mill/pull/4614">mill#4614</a> by @HollandDM introduced dynamic sharding
 using a process pool. This is opt-in via <code>def testParallelism = true</code> in Mill <code>0.12.9</code>,
 and will become the default in the next major version Mill <code>0.13.0</code>.</p>
 </div>
@@ -1220,7 +1260,7 @@ a much smaller number resulting in much smaller JVM overhead overall.</p>
 </div>
 <div class="paragraph">
 <p>One caveat is that test classes from different modules do still need different processes
-for isolation and other reasons.
+for isolation.
 So if a process is available to run a test class but the process was spawned
 from a different module as that test class, the process will need to be shut down and
 a new one created for the new test class’s module.</p>
@@ -1234,37 +1274,37 @@ a new one created for the new test class’s module.</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 156.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-156 491.85,-156 491.85,4 -4,4"></polygon>
-<g id="clust3" class="cluster">
-<title>cluster_c3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 479.85,-48 479.85,-8 254.31,-8"></polygon>
+<g id="clust5" class="cluster">
+<title>cluster_b2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"></polygon>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_b1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 234.31,-48 234.31,-8 8.38,-8"></polygon>
 </g>
-<g id="clust5" class="cluster">
-<title>cluster_b2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"></polygon>
-</g>
-<g id="clust6" class="cluster">
-<title>cluster_b3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
-</g>
-<g id="clust7" class="cluster">
-<title>cluster_a1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 111.54,-144 111.54,-104 8,-104"></polygon>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_c1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 479.85,-144 479.85,-104 254.31,-104"></polygon>
+<g id="clust3" class="cluster">
+<title>cluster_c3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 479.85,-48 479.85,-8 254.31,-8"></polygon>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_c2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 479.85,-96 479.85,-56 254.31,-56"></polygon>
 </g>
+<g id="clust7" class="cluster">
+<title>cluster_a1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 111.54,-144 111.54,-104 8,-104"></polygon>
+</g>
 <g id="clust8" class="cluster">
 <title>cluster_a2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-56 8,-96 111.54,-96 111.54,-56 8,-56"></polygon>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_c1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 479.85,-144 479.85,-104 254.31,-104"></polygon>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_b3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
 </g>
 <!-- TestClassB1 -->
 <g id="node1" class="node">
@@ -1446,7 +1486,7 @@ still add significantly process spawning overhead that the more naive approaches
 we saw earlier.</p>
 </div>
 <div class="paragraph">
-<p>This different in the number of processes spawned reflects in the practical benchmarks below:</p>
+<p>This difference in the number of processes spawned reflects in the practical benchmarks below:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1482,7 +1522,7 @@ we saw earlier.</p>
 </table>
 <div class="paragraph">
 <p>Here we can see that both the Netty unit test benchmark and the Mill scalalib
-benchmark show a significant speedup using <em>dynamic sharding</em> over <em>static class sharding</em>, which can
+benchmark both show a significant speedup using <em>dynamic sharding</em> over <em>static class sharding</em>, which can
 be attributed to the reduced number of processes being spawned. However,
 despite the speedup, the Netty unit test benchmark is still 2x slower than the
 more naive <em>module sharding</em> approach.</p>
@@ -1505,11 +1545,11 @@ scheduler to running the <em>first</em> test process for each module as soon as 
 and <em>subsequent</em> processes only later if there were no other first-processes to run.</p>
 </div>
 <div class="paragraph">
-<p>Essentially, what biased dynamic sharding does is try to minimize the number of
+<p>What biased dynamic sharding does is try to minimize the number of
 processes each module’s test suite will run: If the scheduler has a choice between
 spawning a second process for <code>ModuleA</code> or the first process for <code>ModuleB</code>, it should
 prioritize the first process for <code>ModuleB</code>. This gives the existing first process
-for <code>ModulaA</code> a chance to complete its current work item and pick up the next one,
+for <code>ModulaA</code> a chance to complete its current test class and pick up the next one,
 without needing to spawn a second process and paying the cost of doing so.</p>
 </div>
 <div class="paragraph">
@@ -1521,9 +1561,9 @@ without needing to spawn a second process and paying the cost of doing so.</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 156.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-156 492.62,-156 492.62,4 -4,4"></polygon>
-<g id="clust4" class="cluster">
-<title>cluster_c5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="255.08,-104 255.08,-144 480.62,-144 480.62,-104 255.08,-104"></polygon>
+<g id="clust2" class="cluster">
+<title>cluster_b1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-56 8.38,-96 480.62,-96 480.62,-56 8.38,-56"></polygon>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_a1</title>
@@ -1533,9 +1573,9 @@ without needing to spawn a second process and paying the cost of doing so.</p>
 <title>cluster_c1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 480.62,-48 480.62,-8 8.38,-8"></polygon>
 </g>
-<g id="clust2" class="cluster">
-<title>cluster_b1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-56 8.38,-96 480.62,-96 480.62,-56 8.38,-56"></polygon>
+<g id="clust4" class="cluster">
+<title>cluster_c5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="255.08,-104 255.08,-144 480.62,-144 480.62,-104 255.08,-104"></polygon>
 </g>
 <!-- TestClassC1 -->
 <g id="node1" class="node">
@@ -1714,7 +1754,7 @@ are each assigned a single process to do all of its work, and only when there is
 its remaining test classes.</p>
 </div>
 <div class="paragraph">
-<p>This is a strict improvement over the previous dynamic sharding and static class sharding
+<p>This is a strict improvement over the previous <em>dynamic sharding</em> and <em>static class sharding</em>
 approaches, and it is reflected in the practical benchmarks where both Netty unit
 tests and Mill scalalib tests show speedups over the previous <em>dynamic sharding</em> approach:</p>
 </div>
@@ -1756,13 +1796,12 @@ tests and Mill scalalib tests show speedups over the previous <em>dynamic shardi
 </table>
 <div class="paragraph">
 <p>Notably, the Netty unit tests benchmark is now comparable to the performance we were
-seeing with module sharding! Although there is still a slight slowdown in the
+seeing with <em>module sharding</em>! Although there is still a slight slowdown in the
 practical benchmark - presumably from the slight increase in the number of spawned processes
 - it is not longer the large 2-5x slowdowns we see in
-<em>static class sharding</em> and <em>dynamic sharding</em>. We have finally achieved a test parallelization
-strategy that is flexible enough to handle widely varying workloads and providing
-good performance without manual tuning, which is something prior attempts at
-parallelizing test suites fell short at.</p>
+<em>static class sharding</em> and <em>dynamic sharding</em>. <em>biased dynamic sharding</em> seems to finally provide
+a test parallelization strategy that is flexible enough to handle widely varying workloads
+without the pathological slowdowns that previous strategies exhibited.</p>
 </div>
 </div>
 </div>
@@ -1775,14 +1814,14 @@ the Mill build tool is a JVM application, and all these strategies basically boi
 to passing <code>Runnable</code>s to a <code>ThreadPoolExecutor</code>, each one
 using <code>ProcessBuilder</code> to spawn the test runner. Different strategies have different
 levels of granularity for the <code>Runnable</code>s, and different queues for the <code>ThreadPoolExecutor</code>
-(e.g. <em>biased dynamic sharding</em> using a <code>PriorityBlockingQueue</code> to bias the scheduler)
-but fundamentally there’s nothing advanced going on.</p>
+(e.g. <em>biased dynamic sharding</em> using a <code>PriorityBlockingQueue</code> to bias the scheduler
+towards running some tasks over others) but fundamentally there’s nothing advanced going on.</p>
 </div>
 <div class="paragraph">
 <p>Perhaps the most interesting implementation detail is for <em>dynamic sharding</em>:
 this requires the build tool to spawn a pool of test runner processes that
 pull the test classes off of a queue until all test classes have been completed. Mill
-implements this using a folder on disk containing one-file-per-test-class, which each
+implements this queue using a folder on disk containing one-file-per-test-class, which each
 spawned processes simply loops over and attempts to claim them via an
 <a href="https://stackoverflow.com/questions/18706419/is-a-move-operation-in-unix-atomic">Atomic Filesystem Move</a>.
 This allows us to avoid the complexity of managing a third party queue system,
@@ -1797,12 +1836,12 @@ small-scale that a build tool test runner operates at (100-1000s of test classes
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill is a relatively new JVM build tool, so it begs the question: how does Mill’s test
-runner compare to other JVM build tools like Maven, Gradle, or SBT? For this we ran rough
-benchmarks on the Mill example builds we used for our case studies against
-<a href="../mill/comparisons/maven.html" class="xref page">Maven</a>, <a href="../mill/comparisons/gradle.html" class="xref page">Gradle</a>,
-and <a href="../mill/comparisons/sbt.html" class="xref page">SBT</a>. Although these benchmarks were rough, they should
-hopefully give you a good intuition for where the strategies discussed above fit into the
-larger build tool landscape.</p>
+runner compare to other JVM build tools like Maven or Gradle? For this we ran the
+benchmarks above on the Mill example builds we used for our
+<a href="../mill/comparisons/maven.html" class="xref page">Maven case study</a> or
+<a href="../mill/comparisons/gradle.html" class="xref page">Gradle case study</a>. Although these benchmarks were
+rough, they should hopefully give you a good intuition for where the strategies discussed
+above fit into the larger build tool landscape.</p>
 </div>
 <div class="sect2">
 <h3 id="_maven_comparison"><a class="anchor" href="#_maven_comparison"></a>Maven Comparison</h3>
@@ -1810,8 +1849,8 @@ larger build tool landscape.</p>
 <p>The Netty project we’ve been discussing in this article
 is normally built using Maven: the Mill build is non-standard
 and used mainly as a <a href="../mill/comparisons/maven.html" class="xref page">Case Study Comparison</a>,
-but that gives us an opportunity to run the same tests using the various Mill parallelism
-strategies as well as with Maven to see how they compare. To run the same subset of unit test suites using Maven that we
+but that gives us an opportunity to run these benchmarks using Maven to see how
+it compares to the strategies discussed above. To run the same subset of unit test suites using Maven that we
 ran using Mill in the above examples, we used these commands, resulting in the following
 timings for various testing strategies:</p>
 </div>
@@ -1889,9 +1928,9 @@ complete much faster, despite them all running exactly the same set of tests.</p
 <div class="sect2">
 <h3 id="_gradle_comparison"><a class="anchor" href="#_gradle_comparison"></a>Gradle Comparison</h3>
 <div class="paragraph">
-<p>For another data point, we repeated the parallelism strategy benchmarks we did on the Netty on the
+<p>For another data point, we repeated the same benchmarks on the
 <a href="https://github.com/mockito/mockito">Mockito</a> codebase. Mockito is a popular mocking framework
-for JVM unit tests, commonly in Java, Kotlin, and Scala projects, and its
+for JVM unit tests, and its
 codebase is built using Gradle. Like Netty, we have an example Mill build for Mockito
 as a <a href="../mill/comparisons/gradle.html" class="xref page">Case Study Comparison</a>, which although
 not 100% complete can serve to let us compare the Mill test parallelism strategies to that
@@ -1957,12 +1996,15 @@ $ ./gradlew cleanTest &amp;&amp; ./gradlew :test android:test errorprone:test ex
 </table>
 <div class="paragraph">
 <p>The <em>Gradle Serial</em> and <em>Gradle Parallel</em> benchmarks were run with <code>org.gradle.parallel</code>
-configured accordingly: <em>Gradle Serial</em> is similar to Mill’s <em>Serial Execution</em>,
-while <em>Gradle Parallel</em> is similar to Mill’s <em>Module Sharding</em> strategies. Enabling
+configured accordingly: <em>Gradle Serial</em> is similar to Mill’s <em>serial execution</em>,
+while <em>Gradle Parallel</em> is similar to Mill’s <em>module sharding</em> strategies. Enabling
 <a href="https://docs.gradle.org/current/userguide/performance.html#execute_tests_in_parallel">maxParallelForks</a>
 in Gradle to parallelize the tests within a subproject improves performance significantly,
-with numbers comparable to Mill’s <em>Dynamic Sharding</em>, although it is still significantly
-slower than Mill’s <em>Biased Dynamic Sharding</em> strategy.</p>
+with numbers comparable to Mill’s <em>dynamic sharding</em>, although it is still significantly
+slower than Mill’s <em>biased dynamic sharding</em> strategy. From the numbers I would assume
+that Gradle’s parallelism approach is similar to Mill’s <em>dynamic sharding</em>, but it doesn’t
+have the same process-spawning optimizations that Mill does in its <em>biased dynamic sharding</em>
+strategy</p>
 </div>
 </div>
 </div>
@@ -1984,14 +2026,17 @@ across a wide variety of workloads.</p>
 <p>The Mill build tool’s test parallelism strategy has gone through a lot of iterations and
 improvement over the years, but at this point it is in a pretty good state.
 Not only does it perform much better than previous versions of
-Mill, it also outperforms running tests using other build tools like Maven, Gradle or SBT,
-even when it is running the exact same tests on the exact same codebase.</p>
+Mill, it also outperforms running tests using other build tools like Maven or Gradle,
+even when it is running the exact same tests on the exact same codebase. Unlike previous
+attempts which would &quot;fall off a cliff&quot; on pathological workloads, <em>biased dynamic sharding</em>
+seems to provide good performance on all the workloads that we benchmarked.</p>
 </div>
 <div class="paragraph">
 <p>Mill with its <em>biased dynamic sharding</em> strategy is finally able to provide a good
 zero-config strategy to parallelize your tests, reduce waiting time, and speed up
-the development process. While it is opt-in for testing in the latest Mill <code>0.12.9</code>, we
-expect to make it the default (with an opt-out) in the next major version of Mill <code>0.13.0</code>.</p>
+the development process. While it is opt-in for testing in the latest Mill <code>0.12.9</code>
+via <code>def testParallelism = true</code>, we expect to make it the default (with an opt-out)
+in the next major version of Mill <code>0.13.0</code>.</p>
 </div>
 </div>
 </div>
