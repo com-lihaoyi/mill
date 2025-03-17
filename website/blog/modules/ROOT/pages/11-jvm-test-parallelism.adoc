@@ -632,10 +632,10 @@ timings for various testing strategies:
 
 ```bash
 # Maven Serial
-mvn -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test
+./mvnw -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test
 
 # Maven Parallel
-mvn -T 10 -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test
+./mvnw -T 10 -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test
 ```
 
 |===
@@ -645,20 +645,16 @@ mvn -T 10 -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,code
 
 |===
 | Maven | Serial | *Parallel*
-| Netty unit tests |  61s | *39s*
+| Netty unit tests |  36s | *15s*
 |===
 
-Here we can see that the Mill parallel testing strategy has significant speedups over the
+Here we can see that the Mill parallel testing strategy has some speedups over the
 https://maven.apache.org/[Maven] build using the
 https://maven.apache.org/surefire/maven-surefire-plugin/[Maven-Surefire-Plugin].
-For the purposes of this comparison, we did not manage to get speedups from setting
+For the purposes of this comparison, we did not manage to get further speedups from setting
 the Maven-Surefire-Plugin's internal parallelism configuration
 (https://maven.apache.org/surefire/maven-surefire-plugin/examples/fork-options-and-parallel-execution.html[link]),
 and so did not include that in the table above.
-
-While the slowest Mill benchmark using _static class sharding_ is comparable to the Maven results,
-the other benchmarks using different parallelism and process-spawning strategies
-complete much faster, despite them all running exactly the same set of tests.
 
 ### Gradle Comparison
 
@@ -712,12 +708,12 @@ across a wide variety of workloads.
 The Mill build tool's test parallelism strategy has gone through a lot of iterations and
 improvement over the years, but at this point it is in a pretty good state.
 Not only does it perform much better than previous versions of
-Mill, it also outperforms running tests using other build tools like Maven or Gradle,
-even when it is running the exact same tests on the exact same codebase. Unlike previous
-attempts which would "fall off a cliff" on pathological workloads, _biased dynamic sharding_
-seems to provide good performance on all the workloads that we benchmarked.
+Mill, as well as other build tools like Maven or Gradle, even running the same tests.
+Unlike previous attempts which would perform poorly on pathological workloads, _biased
+dynamic sharding_ seems to provide good performance on all the workloads that we benchmarked.
 
-Mill with its _biased dynamic sharding_ strategy is finally able to provide a good
+
+Mill with its _biased dynamic sharding_ strategy will finally be able to provide a good
 zero-config strategy to parallelize your tests, reduce waiting time, and speed up
 the development process. While it is opt-in for testing in the latest Mill `0.12.9`
 via `def testParallelism = true`, we expect to make it the default (with an opt-out)
