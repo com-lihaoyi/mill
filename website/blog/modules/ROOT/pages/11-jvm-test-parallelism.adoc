@@ -17,8 +17,7 @@ parallelism strategy, from its start as a simple serial test runner, to naive mo
 class-based sharding, to the dynamic sharding strategy implemented in the latest
 version of Mill 0.12.9. We will discuss the pros and cons of the different approaches to
 test parallelization, analyze how they perform both theoretically and with benchmarks,
-and see how Mill's latest parallelization strategy can run the same test suites 50-200%
-faster than other popular JVM build tools such as Maven or Gradle.
+and compare them to the runtime characteristics of other build tool test runners.
 
 // end::header[]
 
@@ -707,14 +706,10 @@ across a wide variety of workloads.
 
 The Mill build tool's test parallelism strategy has gone through a lot of iterations and
 improvement over the years, but at this point it is in a pretty good state.
-Not only does it perform much better than previous versions of
-Mill, as well as other build tools like Maven or Gradle, even running the same tests.
-Unlike previous attempts which would perform poorly on pathological workloads, _biased
-dynamic sharding_ seems to provide good performance on all the workloads that we benchmarked.
-
-Perhaps most importantly, Mill's new `def testParallelism = true` flag is a single switch
-to turn on, without needing the user to tune group sizes or thread counts and other things
-that old parallelism strategies required to perform well. This simplifies the user experience,
+Perhaps most importantly, Mill's new `def testParallelism = true` flag is a single switch.
+It is not that much _faster_ than running tests with older strategies or other
+build tools, but it provides that performance across a wide range of use cases without needing
+manual tuning or configuration. This simplifies the user experience,
 letting them spend less time fiddling with the build tool and more time focusing on their actual
 project. While `testParallelism` it is opt-in for testing in the latest Mill `0.12.9`,
 we expect to make it the default (with an opt-out) in the next major version of Mill `0.13.0`.
