@@ -13,6 +13,7 @@ import mill.scalalib.publish._
 import mill.resolve.SelectMode
 import mill.T
 import mill.define.Cross
+import scala.util.Properties
 
 // plugins and dependencies
 import $meta._
