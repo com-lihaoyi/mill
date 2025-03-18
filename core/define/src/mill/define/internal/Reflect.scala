@@ -44,7 +44,7 @@ private[mill] object Reflect {
     val arr: Array[java.lang.reflect.Method] = getMethods(outer)
       .collect {
         case (m, n)
-            if filter(n) &&
+            if filter(n.stripSuffix("_alias")) &&
               (!noParams || m.getParameterCount == 0) &&
               inner.isAssignableFrom(m.getReturnType) =>
           m
@@ -94,7 +94,7 @@ private[mill] object Reflect {
       noParams = true,
       getMethods
     )
-      .map(m => (m.getName, m))
+      .map(m => (m.getName.stripSuffix("_alias"), m))
 
     val companionClassOpt = outerCls.getName match {
       case s"$prefix$$" =>
@@ -107,7 +107,7 @@ private[mill] object Reflect {
       .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
       .flatMap { c =>
         c.getName.stripPrefix(outerCls.getName) match {
-          case s"$name$$" if filter(scala.reflect.NameTransformer.decode(name)) =>
+          case s"$name$$" if filter(scala.reflect.NameTransformer.decode(name).stripSuffix("_alias")) =>
             c.getFields.find(f => f.getName == "MODULE$").map(name -> _)
           case _ => None
         }
@@ -115,10 +115,14 @@ private[mill] object Reflect {
       }
       .distinct
 
+    val third = outerCls.getFields
+      .filter(f => implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(f.getType) && f.getName != "MODULE$")
+      .map(f => f.getName -> f.getType.getField("MODULE$"))
+
     // Sometimes `getClasses` returns stuff in odd orders, make sure to sort for determinism
     second.sortInPlaceBy(_._1)
 
-    first ++ second
+    first ++ second ++ third
   }
 
   def reflectNestedObjects02[T: ClassTag](

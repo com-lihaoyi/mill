@@ -508,7 +508,7 @@ object MillBuildBootstrap {
   }
 
   def getRootModule(runClassLoader: URLClassLoader): RootModule = {
-    val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
+    val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.package$$")
     os.checker.withValue(EvaluatorImpl.resolveChecker) {
       buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
     }

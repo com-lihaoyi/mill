@@ -89,7 +89,7 @@ private[mill] object ShimService {
   }
 
   @nowarn("msg=unused") // loaded via reflection
-  @experimental
+  //@experimental
   private class ShimServiceImpl[Q <: Quotes](override val innerQuotes: Q) extends ShimService[Q] {
     import innerQuotes.reflect.*
 

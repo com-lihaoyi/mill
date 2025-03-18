@@ -61,9 +61,10 @@ object CodeGen {
           // resolve logic to traverse, cannot actually be evaluated and used
           val comment = "// subfolder module reference"
           val lhs = backtickWrap(c)
-          val rhs = s"${pkgSelector2(Some(c))}.package_"
-          (rhs, s"final lazy val $lhs: $rhs.type = $rhs $comment")
+          val rhs = pkgSelector2(Some(c))
+          (rhs, s"final lazy val ${lhs}_alias: $rhs.type = $rhs $comment")
         }.unzip
+      val childAliases = childAliases0.mkString("\n")
 
       val pkg = pkgSelector0(Some(globalPackagePrefix), None)
 
@@ -89,6 +90,7 @@ object CodeGen {
             output,
             scriptPath,
             scriptFolderPath,
+            childAliases,
             pkg,
             scriptCode,
             markerComment,
@@ -108,6 +110,7 @@ object CodeGen {
       output: os.Path,
       scriptPath: os.Path,
       scriptFolderPath: os.Path,
+      childAliases: String,
       pkg: String,
       scriptCode: String,
       markerComment: String,
@@ -118,6 +121,7 @@ object CodeGen {
     val prelude =
       s"""import MillMiscInfo._
          |import _root_.mill.main.TokenReaders.given, _root_.mill.api.JsonFormatters.given
+         |import language.experimental.packageObjectValues
          |""".stripMargin
 
     val miscInfo =
@@ -146,10 +150,8 @@ object CodeGen {
       )
     }
 
-    val pkgLine = pkg.split('.').init.mkString(".") match {
-      case "" => ""
-      case s => s"package $s"
-    }
+    val pkgLine = s"package $pkg"
+
     objectData.find(o =>
       o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
     ) match {
@@ -172,7 +174,9 @@ object CodeGen {
                   statLines.tail.mkString
                 else
                   finalStat.text
-              }
+              },
+              millDiscover(segments.nonEmpty),
+              childAliases
             ).mkString(System.lineSeparator())
             newScriptCode = finalStat.applyTo(newScriptCode, fenced)
           case None =>
@@ -180,8 +184,6 @@ object CodeGen {
         }
 
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
-        newScriptCode = objectData.name.applyTo(newScriptCode, pkg.split('.').last)
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "package object")
 
         s"""$pkgLine
            |$miscInfo
@@ -190,17 +192,13 @@ object CodeGen {
            |
            |$newScriptCode
            |
-           |object MillDiscover{
-           |  ${millDiscover(segments.nonEmpty)}
-           |}
-           |
            |""".stripMargin
 
       case None =>
         s"""$pkgLine
            |$miscInfo
            |$prelude
-           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, pkg.split('.').last)}
+           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases, "`package`")}
            |$markerComment
            |$scriptCode
            |}""".stripMargin
@@ -222,7 +220,7 @@ object CodeGen {
 
   def millDiscover(segmentsNonEmpty: Boolean): String = {
     val rhs =
-      if (segmentsNonEmpty) "build.millDiscover"
+      if (segmentsNonEmpty) "build.`package`.millDiscover"
       else "_root_.mill.define.Discover[this.type]"
 
     s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
@@ -251,6 +249,7 @@ object CodeGen {
       segments: Seq[String],
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
+      childAliases: String,
       pkgObjectName: String
   ): String = {
     val extendsClause =
@@ -265,7 +264,8 @@ object CodeGen {
     // path dependent types no longer match, e.g. for TokenReaders of custom types.
     // perhaps we can patch mainargs to substitute prefixes when summoning TokenReaders?
     // or, add an optional parameter to Discover.apply to substitute the outer class?
-    s"""package object $pkgObjectName extends $wrapperObjectName  {
+    s"""object $pkgObjectName $extendsClause  {
+       |  ${childAliases.linesWithSeparators.mkString("  ")}
        |  ${millDiscover(segments.nonEmpty)}
        |""".stripMargin
 

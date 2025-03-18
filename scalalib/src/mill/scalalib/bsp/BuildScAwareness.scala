@@ -7,7 +7,7 @@ import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{experimental, internal}
 
 @internal
-@experimental
+//@experimental
 trait BuildScAwareness {
   import BuildScAwareness._
 
