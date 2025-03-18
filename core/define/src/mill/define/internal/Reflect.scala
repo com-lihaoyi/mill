@@ -117,12 +117,15 @@ private[mill] object Reflect {
 
     val third = outerCls.getFields
       .filter(f => implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(f.getType) && f.getName != "MODULE$")
-      .map(f => f.getName -> f.getType.getField("MODULE$"))
+      .map(f => scala.reflect.NameTransformer.decode(f.getName) -> f.getType.getField("MODULE$"))
+      .filter(t => filter(t._1))
 
     // Sometimes `getClasses` returns stuff in odd orders, make sure to sort for determinism
     second.sortInPlaceBy(_._1)
 
-    first ++ second ++ third
+    val res: Array[(String, java.lang.reflect.Member)] = (first ++ second ++ third)
+
+    res.distinctBy(_._1)
   }
 
   def reflectNestedObjects02[T: ClassTag](
