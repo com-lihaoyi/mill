@@ -64,19 +64,8 @@ object CodeGen {
           val rhs = s"${pkgSelector2(Some(c))}.package_"
           (rhs, s"final lazy val $lhs: $rhs.type = $rhs $comment")
         }.unzip
-      val childAliases = childAliases0.mkString("\n")
 
       val pkg = pkgSelector0(Some(globalPackagePrefix), None)
-
-      val aliasImports = Seq(
-        // `$file` as an alias for `build_` to make usage of `import $file` when importing
-        // helper methods work
-        "import _root_.{build_ => $file}",
-        // Provide `build` as an alias to the root `build_.package_`, since from the user's
-        // perspective it looks like they're writing things that live in `package build`,
-        // but at compile-time we rename things, we so provide an alias to preserve the fiction
-        "import build_.{package_ => build}"
-      ).mkString("\n")
 
       val scriptCode = allScriptCode(scriptPath)
 
@@ -84,24 +73,13 @@ object CodeGen {
         s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
            |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
 
-      val siblingScripts = scriptSources
-        .filter(_ != scriptPath)
-        .filter(p => (p / os.up) == (scriptPath / os.up))
-        .map(_.last.split('.').head)
-
-      val importSiblingScripts = siblingScripts
-        .filter(s => s != "build" && s != "package")
-        .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
       val parts =
         if (!isBuildScript) {
           s"""package $pkg
-             |$aliasImports
-             |$importSiblingScripts
-             |object ${backtickWrap(scriptPath.last.split('.').head)} {
              |$markerComment
              |$scriptCode
-             |}""".stripMargin
+             |""".stripMargin
         } else {
           generateBuildScript(
             projectRoot,
@@ -111,14 +89,10 @@ object CodeGen {
             output,
             scriptPath,
             scriptFolderPath,
-            childAliases,
             pkg,
-            aliasImports,
             scriptCode,
             markerComment,
             parser,
-            siblingScripts,
-            importSiblingScripts
           )
         }
 
@@ -134,19 +108,12 @@ object CodeGen {
       output: os.Path,
       scriptPath: os.Path,
       scriptFolderPath: os.Path,
-      childAliases: String,
       pkg: String,
-      aliasImports: String,
       scriptCode: String,
       markerComment: String,
       parser: MillScalaParser,
-      siblingScripts: Seq[String],
-      importSiblingScripts: String
   ) = {
     val segments = scriptFolderPath.relativeTo(projectRoot).segments
-
-    val exportSiblingScripts =
-      siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
 
     val prelude =
       s"""import MillMiscInfo._
@@ -178,6 +145,11 @@ object CodeGen {
         s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name.text).mkString(", ")}"
       )
     }
+
+    val pkgLine = pkg.split('.').init.mkString(".") match {
+      case "" => ""
+      case s => s"package $s"
+    }
     objectData.find(o =>
       o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
     ) match {
@@ -208,35 +180,27 @@ object CodeGen {
         }
 
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
-        newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
+        newScriptCode = objectData.name.applyTo(newScriptCode, pkg.split('.').last)
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "package object")
 
-        s"""package $pkg
+        s"""$pkgLine
            |$miscInfo
-           |$aliasImports
-           |$importSiblingScripts
            |$prelude
            |$markerComment
+           |
            |$newScriptCode
-           |object $wrapperObjectName extends $wrapperObjectName {
-           |  ${childAliases.linesWithSeparators.mkString("  ")}
-           |  $exportSiblingScripts
+           |
+           |object MillDiscover{
            |  ${millDiscover(segments.nonEmpty)}
-           |}""".stripMargin
+           |}
+           |
+           |""".stripMargin
 
       case None =>
-        s"""package $pkg
+        s"""$pkgLine
            |$miscInfo
-           |$aliasImports
-           |$importSiblingScripts
            |$prelude
-           |${topBuildHeader(
-            segments,
-            scriptFolderPath,
-            millTopLevelProjectRoot,
-            childAliases,
-            exportSiblingScripts
-          )}
+           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, pkg.split('.').last)}
            |$markerComment
            |$scriptCode
            |}""".stripMargin
@@ -258,7 +222,7 @@ object CodeGen {
 
   def millDiscover(segmentsNonEmpty: Boolean): String = {
     val rhs =
-      if (segmentsNonEmpty) "build_.package_.millDiscover"
+      if (segmentsNonEmpty) "build.millDiscover"
       else "_root_.mill.define.Discover[this.type]"
 
     s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
@@ -287,8 +251,7 @@ object CodeGen {
       segments: Seq[String],
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
-      childAliases: String,
-      exportSiblingScripts: String
+      pkgObjectName: String
   ): String = {
     val extendsClause =
       if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
@@ -302,12 +265,8 @@ object CodeGen {
     // path dependent types no longer match, e.g. for TokenReaders of custom types.
     // perhaps we can patch mainargs to substitute prefixes when summoning TokenReaders?
     // or, add an optional parameter to Discover.apply to substitute the outer class?
-    s"""object ${wrapperObjectName} extends $wrapperObjectName  {
-       |  ${childAliases.linesWithSeparators.mkString("  ")}
-       |  $exportSiblingScripts
+    s"""package object $pkgObjectName extends $wrapperObjectName  {
        |  ${millDiscover(segments.nonEmpty)}
-       |}
-       |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
        |""".stripMargin
 
   }

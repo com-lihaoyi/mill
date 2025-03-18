@@ -492,6 +492,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-feature"
     ) ++ (
       if (ZincWorkerUtil.isScala3(scalaVersion())) Seq(
+        "-experimental",
         // "-Werror",
 //        "-Wunused:all",
         // "-Xfatal-warnings",

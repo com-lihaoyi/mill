@@ -284,7 +284,7 @@ abstract class MillBuildRootModule()(implicit
 
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++
-      Seq("-deprecation")
+      Seq("-deprecation", "-experimental", "-explain-cyclic")
   }
 
   override def scalacPluginClasspath: T[Seq[PathRef]] =

@@ -9,7 +9,7 @@ public class CodeGenConstants {
    * we import to work around the need for the `.package` suffix, so
    * we add an `_` and call it `build_`
    */
-  public static final String globalPackagePrefix = "build_";
+  public static final String globalPackagePrefix = "build";
 
   /**
    * What the wrapper objects are called. Not `package` because we don't
