@@ -335,7 +335,7 @@ object Foo {
 <div class="sectionbody">
 <div class="paragraph">
 <p>To build this small program, we will set up equivalent builds using the
-<a href="https://mill-build.org/">Mill build tool</a>, <a href="https://www.scala-sbt.org/">SBT</a>,
+<a href="https://mill-build.org/">Mill build tool</a>, <a href="https://www.scala-sbt.org/"><code>sbt</code></a>,
 and <a href="https://maven.apache.org/">Maven</a></p>
 </div>
 <div class="sect2">
@@ -389,11 +389,11 @@ $ ls -lh out/assembly.dest/out.jar
 </div>
 </div>
 <div class="sect2">
-<h3 id="_sbt"><a class="anchor" href="#_sbt"></a>SBT</h3>
+<h3 id="_sbt"><a class="anchor" href="#_sbt"></a><code>sbt</code></h3>
 <div class="paragraph">
-<p>The SBT build is similar to the Mill build above. Apart from a slightly different syntax,
-SBT also needs you to specify <code>name</code> and <code>version</code> (Mill lets you skip these unless
-you are publishing your module), and configure an <code>assemblyMergeStrategy</code>. SBT
+<p>The <code>sbt</code> build is similar to the Mill build above. Apart from a slightly different syntax,
+<code>sbt</code> also needs you to specify <code>name</code> and <code>version</code> (Mill lets you skip these unless
+you are publishing your module), and configure an <code>assemblyMergeStrategy</code>. <code>sbt</code>
 also requires that you explicitly enable the <code>AssemblyPlugin</code>, whereas Mill comes with
 that built in by default.</p>
 </div>
@@ -447,7 +447,7 @@ $ ls -lh target/scala-2.12/spark-app-assembly-0.1.jar
 <p>The Maven build is by far the most verbose of the build configurations for this
 example codebase, but it contains basically the same information: <code>scala.version</code>,
 <code>spark.version</code> and dependencies on <code>spark-core</code> and <code>spark-sql</code>. Maven requires
-you to enable the <code>maven-assembly-plugin</code> explicitly similar to SBT, and on top of
+you to enable the <code>maven-assembly-plugin</code> explicitly similar to <code>sbt</code>, and on top of
 that requires you enable <code>maven-compiler-plugin</code> and <code>maven-scala-plugin</code>:</p>
 </div>
 <div class="listingblock">
@@ -596,7 +596,7 @@ Total time: 22s</code></pre>
 </div>
 <div class="paragraph">
 <p>Here, we can see that Mill only took <code>1s</code> to re-build the assembly jar,
-while SBT and Maven took the same ~20s that they took the first time the
+while <code>sbt</code> and Maven took the same ~20s that they took the first time the
 jar was built. If you play around with it, you will see that the assembly jar
 does contain classfiles associated with our newly-added code:</p>
 </div>
@@ -1213,7 +1213,7 @@ it allows Mill to incrementally update its assembly jars in (more or less)
 <div class="paragraph">
 <p>This blog post has discussed how Mill is able to provide fast incremental updates to
 generated assembly jars, in the example shown above it sped up Spark assembly jar creation
-from ~20s to ~1s v.s. the equivalent workflow in other build tools like Maven or SBT.
+from ~20s to ~1s v.s. the equivalent workflow in other build tools like Maven or <code>sbt</code>.
 This speedup can apply to any JVM codebase, although the benefit would depend on the
 size of your local application code and its transitive dependencies. There is some overhead
 to &quot;clean build&quot; assembly jars from scratch, but such scenarios typically happen much
@@ -1231,7 +1231,7 @@ Mill’s hardcoded three-layer split aren’t sufficient to keep things fast.</p
 <div class="paragraph">
 <p>It turns out there’s no magic in Mill’s fast assembly generation: just careful use of
 the available APIs provided by the underlying JVM platform. Hopefully this approach
-can eventually make its way to other build tools like Maven or SBT, so everyone can
+can eventually make its way to other build tools like Maven or <code>sbt</code>, so everyone can
 benefit from the fast assembly jar creation that Mill provides today.</p>
 </div>
 </div>

@@ -338,7 +338,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -384,7 +384,7 @@
   </li>
 
   <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="sbt.html">Migrating From <code>sbt</code> to Mill</a>
   </li>
 </ul>
   </li>
@@ -658,21 +658,21 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Migrating From sbt to Mill</h1>
+<h1 class="page">Migrating From <code>sbt</code> to Mill</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Mill <code>init</code> command can be used to convert an sbt build to Mill. This has
+<p>The Mill <code>init</code> command can be used to convert an <code>sbt</code> build to Mill. This has
 <a href="#limitations">limitations</a> and is not intended to reliably migrate 100% of
-sbt builds out there in the wild, but is instead meant to provide the basic
+<code>sbt</code> builds out there in the wild, but is instead meant to provide the basic
 scaffolding of a Mill build for you to further refine and update manually.</p>
 </div>
 <div class="paragraph">
-<p>Each sbt project in a build tree is converted to a Mill module.
+<p>Each <code>sbt</code> project in a build tree is converted to a Mill module.
 A nested <code>test</code> module is defined, if <code>src/test</code> exists, and is configured with a supported <a href="../scalalib/testing.html" class="xref page">test framework</a>, if found.</p>
 </div>
 <div class="paragraph">
-<p>Again, note that <code>mill init</code> imports an sbt build on a best-effort basis.
+<p>Again, note that <code>mill init</code> imports an <code>sbt</code> build on a best-effort basis.
 This means that while simple projects can be expected to complete without issue:</p>
 </div>
 <div class="listingblock">
@@ -908,7 +908,7 @@ You can run <code>mill init</code> multiple times. It is recommended to run it f
 </ul>
 </div>
 <div class="paragraph">
-<p>sbt plugin support is limited to:</p>
+<p><code>sbt</code> plugin support is limited to:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -958,10 +958,10 @@ or <a href="../extending/thirdparty-plugins.html" class="xref page">third party<
 <code>java.lang.UnsupportedOperationException: The Security Manager is deprecated and will be removed in a future release</code>,
 <code>java.io.IOError: java.lang.RuntimeException: /packages cannot be represented as URI</code>,
 and <code>java.lang.RuntimeException: java.lang.reflect.InvocationTargetException</code>
-thrown by the sbt command invoked by <code>mill init</code>?</p>
+thrown by the <code>sbt</code> command invoked by <code>mill init</code>?</p>
 </div>
 <div class="paragraph">
-<p>Update the project’s sbt version to the latest or our tested version v1.10.10,
+<p>Update the project’s <code>sbt</code> version to the latest or our tested version v1.10.10,
 and check whether you have the appropriate Java version,
 and try again.</p>
 </div>

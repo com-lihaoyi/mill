@@ -298,7 +298,7 @@ Hello World</code></pre>
 <p>Mill’s <code>JavaModule</code>s come with <code>.assembly</code> tasks built in by default, without needing
 to install plugins like is necessary in other build tools like
 <a href="https://maven.apache.org/plugins/maven-assembly-plugin/usage.html">Maven</a> or
-<a href="https://github.com/sbt/sbt-assembly">SBT</a>.</p>
+<a href="https://github.com/sbt/sbt-assembly"><code>sbt</code></a>.</p>
 </div>
 <div class="paragraph">
 <p>While the above example is a trivial single-module project, this also works for more complicated
@@ -805,8 +805,8 @@ runs on all of Mac/Linux/Windows just by carefully crafting a launcher script th
 on all platforms.</p>
 </div>
 <div class="paragraph">
-<p>The Mill JVM build tool provides these executable assembly jars out-of-the-box, the SBT
-build tool as part of the <a href="https://github.com/sbt/sbt-assembly">SBT Assembly</a> plugin,
+<p>The Mill JVM build tool provides these executable assembly jars out-of-the-box, the <code>sbt</code>
+build tool as part of the <a href="https://github.com/sbt/sbt-assembly">sbt-assembly</a> plugin,
 via the <code>prependShellScript</code> config.
 Maven and Gradle do not provide this by default but it is pretty easy to set up yourself
 simply by concatenating a shell script with an assembly jar, as described above.</p>

@@ -338,7 +338,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -384,7 +384,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
   </li>
 </ul>
   </li>
@@ -751,11 +751,11 @@ out/foo/
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The default Mill source folder layout <code>foo/src/</code> differs from that of SBT’s
-<code>foo/src/main/scala</code>.
-If you wish to use the SBT source folder layout, e.g. for migrating
+The default Mill source folder layout <code>foo/src/</code> differs from that of <code>sbt’s
+`foo/src/main/scala</code>.
+If you wish to use the <code>sbt</code> source folder layout, e.g. for migrating
 an existing codebase, you should use
-<a href="#_sbt_compatible_modules">SBT-Compatible Modules</a>
+<a href="#_sbt_compatible_modules"><code>sbt</code>-Compatible Modules</a>
 </td>
 </tr>
 </tbody></table>
@@ -1187,14 +1187,14 @@ preceding it with a backslash (<code>\</code>).</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_sbt_compatible_modules"><a class="anchor" href="#_sbt_compatible_modules"></a>SBT-Compatible Modules</h2>
+<h2 id="_sbt_compatible_modules"><a class="anchor" href="#_sbt_compatible_modules"></a><code>sbt</code>-Compatible Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill’s default folder layout of <code>foo/src/</code> and <code>foo/test/src</code> differs from that
-of SBT’s <code>foo/src/main/scala/</code> and <code>foo/src/test/scala/</code>. If you are
-migrating an existing codebase from SBT, you can use Mill’s <code>SbtModule</code> and
+of <code>sbt’s `foo/src/main/scala/</code> and <code>foo/src/test/scala/</code>. If you are
+migrating an existing codebase from <code>sbt</code>, you can use Mill’s <code>SbtModule</code> and
 <code>SbtTests</code> as shown below to preserve filesystem compatibility with an existing
-SBT build:</p>
+<code>sbt</code> build:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M0/example-scalalib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M0/example/scalalib/basic/4-compat-modules">browse</a>)</div>
@@ -1221,7 +1221,7 @@ trait BarModule extends CrossSbtModule {
 </div>
 <div class="paragraph">
 <p><code>SbtModule</code>/<code>CrossSbtModule</code> are variants of <code>ScalaModule</code>/<code>CrossScalaModule</code>
-that use the more verbose folder layout of SBT, Maven, and other tools:</p>
+that use the more verbose folder layout of <code>sbt</code>, Maven, and other tools:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1259,8 +1259,8 @@ that use the more verbose folder layout of SBT, Maven, and other tools:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>This is especially useful if you are migrating from SBT to Mill (or vice
-versa), during which a particular module may be built using both SBT and
+<p>This is especially useful if you are migrating from <code>sbt</code> to Mill (or vice
+versa), during which a particular module may be built using both <code>sbt</code> and
 Mill at the same time</p>
 </div>
 <div class="listingblock">

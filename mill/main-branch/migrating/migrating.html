@@ -338,7 +338,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -384,7 +384,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="sbt.html">Migrating From <code>sbt</code> to Mill</a>
   </li>
 </ul>
   </li>
@@ -663,7 +663,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>This page documents a playbook for migrating existing projects
-from Maven, Gradle, or SBT to Mill.</p>
+from Maven, Gradle, or <code>sbt</code> to Mill.</p>
 </div>
 <div class="paragraph">
 <p>Some build tools also have additional semi-automated
@@ -678,7 +678,7 @@ tooling.</p>
 <p><a href="gradle.html" class="xref page">Migrating From Gradle to Mill</a></p>
 </li>
 <li>
-<p><a href="sbt.html" class="xref page">Migrating From sbt to Mill</a></p>
+<p><a href="sbt.html" class="xref page">Migrating From <code>sbt</code> to Mill</a></p>
 </li>
 </ul>
 </div>
@@ -760,7 +760,7 @@ faster and easier to use build system are significant (see <a href="../compariso
 especially multiplied over an entire team of engineers who may be working on
 the codebase for multiple years. Generally the more actively a project is developed, and the
 longer you expect development to continue, the more worthwhile it is to migrate from
-Maven/Gradle/SBT
+Maven/Gradle/<code>sbt</code>
 to Mill.</p>
 </div>
 </div>
@@ -992,7 +992,7 @@ will require some degree of third party dependencies that will need to be config
 </div></div></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">SBT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sbt</code></p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">libraryDependencies += &quot;com.google.guava&quot; % &quot;guava&quot; % &quot;3.3.1-jre&quot;</code></pre>
@@ -1010,7 +1010,7 @@ will require some degree of third party dependencies that will need to be config
 </tbody>
 </table>
 <div class="paragraph">
-<p>If you are building a Scala project using SBT:</p>
+<p>If you are building a Scala project using <code>sbt</code>:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1023,7 +1023,7 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock">Dependency</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">SBT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sbt</code></p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">libraryDependencies += &quot;com.lihaoyi&quot; %% &quot;scalatags&quot; % &quot;0.12.0&quot;</code></pre>
@@ -1061,7 +1061,7 @@ has more details: how to configure unmanaged jars, repositories, pinning version
 <h2 id="_translating_third_party_plugins"><a class="anchor" href="#_translating_third_party_plugins"></a>Translating Third-Party Plugins</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>At a high level, you want to take plugins that you use in Maven/Gradle/SBT and replace
+<p>At a high level, you want to take plugins that you use in Maven/Gradle/<code>sbt</code> and replace
 them either with builtin Mill functionality:</p>
 </div>
 <div class="ulist">
