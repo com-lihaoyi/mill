@@ -177,7 +177,7 @@ object CodeGen {
            |$newScriptCode
            |
            |
-           |trait MillDiscoverWrapper {
+           |trait MillDiscoverWrapper { this: `package`.type =>
            |  ${millDiscover(segments.nonEmpty)}
            |  $childAliases
            |}
@@ -192,7 +192,7 @@ object CodeGen {
            |$scriptCode
            |}
            |
-           |trait MillDiscoverWrapper {
+           |trait MillDiscoverWrapper { this: `package`.type =>
            |  ${millDiscover(segments.nonEmpty)}
            |  $childAliases
            |}
