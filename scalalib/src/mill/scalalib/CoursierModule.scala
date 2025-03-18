@@ -300,7 +300,7 @@ object CoursierModule {
      */
     def allDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T]
-    ): Seq[coursier.core.Dependency] = {
+    ): Set[coursier.core.Dependency] = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
@@ -316,7 +316,7 @@ object CoursierModule {
         boms = Nil
       ).get
 
-      res.orderedDependencies
+      res.minDependencies
     }
 
     def getArtifacts[T: CoursierModule.Resolvable](
