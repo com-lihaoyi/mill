@@ -2,7 +2,7 @@ package mill.resolve
 
 import mill.define.*
 import mill.define.internal.Reflect
-
+import mill.api.MillException.catchWrapException
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
@@ -73,19 +73,6 @@ private object ResolveCore {
       methods.getOrElseUpdate(cls, Reflect.getMethods(cls, decode))
     }
   }
-
-  def catchWrapException[T](t: => T): mill.api.Result[T] = {
-    try mill.api.Result.Success(t)
-    catch {
-      case e: InvocationTargetException =>
-        mill.api.Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
-      case e: Exception =>
-        mill.api.Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
-    }
-  }
-
-  def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] =
-    mill.api.ExecResult.makeResultException(e, base)
 
   def cyclicModuleErrorMsg(segments: Segments): String = {
     s"Cyclic module reference detected at ${segments.render}, " +
@@ -213,7 +200,7 @@ private object ResolveCore {
             if (classOf[Cross[?]].isAssignableFrom(m.cls)) {
               instantiateModule(rootModule, current.segments, cache).flatMap {
                 case c: Cross[_] =>
-                  catchWrapException(
+                  mill.api.MillException.catchWrapException(
                     if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
                     else if (cross.contains("_")) {
                       for {
@@ -273,7 +260,7 @@ private object ResolveCore {
         case (mill.api.Result.Success(current), Segment.Cross(vs)) =>
           assert(!vs.contains("_"), vs)
 
-          catchWrapException(
+          mill.api.MillException.catchWrapException(
             current
               .asInstanceOf[Cross[?]]
               .segmentsToModules(vs.toList)
@@ -436,7 +423,7 @@ private object ResolveCore {
           .collect {
             case (name, memberCls, getter) if classMatchesTypePred(typePattern)(memberCls) =>
               val resolved = Resolved.Module(Segments.labels(cache.decode(name)), memberCls)
-              val getter2 = Some((mod: Module) => catchWrapException(getter(mod)))
+              val getter2 = Some((mod: Module) => mill.api.MillException.catchWrapException(getter(mod)))
               (resolved, getter2)
           }
           .toSeq

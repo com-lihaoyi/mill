@@ -12,6 +12,6 @@ def myScalaVersion = "2.13.8"
  * Of comments and imports
  */
 
-println(doesntExist)
+val _ = println(doesntExist)
 
 // Scattered throughout

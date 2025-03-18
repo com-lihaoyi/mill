@@ -4,7 +4,7 @@ import mill.PathRef
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.api.Result
 
-import mill.api.ExecResult.catchWrapException
+import mill.api.MillException.catchWrapException
 import mill.api.internal
 
 @internal

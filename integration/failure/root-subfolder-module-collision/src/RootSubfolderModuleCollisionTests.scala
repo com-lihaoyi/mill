@@ -10,9 +10,7 @@ object RootSubfolderModuleCollisionTests extends UtestIntegrationTestSuite {
       import tester._
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
-      assert(res.err.contains("Reference to sub is ambiguous."))
-      assert(res.err.contains("It is both defined in class package_"))
-      assert(res.err.contains("and inherited subsequently in class package_"))
+      assert(res.err.contains("sub is already defined as package build.sub in package build"))
     }
   }
 }

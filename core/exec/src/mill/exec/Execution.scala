@@ -221,7 +221,8 @@ private[mill] case class Execution(
               }
             } catch {
               case e: Throwable if !scala.util.control.NonFatal(e) =>
-                throw new Exception(e)
+                if (e.getCause != null) throw e.getCause
+                else throw new Exception(e)
             }
           }
         }

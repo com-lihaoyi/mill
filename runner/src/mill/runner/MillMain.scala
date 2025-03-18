@@ -38,6 +38,10 @@ object MillMain {
       err.println("An unexpected error occurred " + e + "\n" + e.getStackTrace.mkString("\n"))
       throw e
       (false, onError)
+    case e =>
+      err.println(e)
+      e.printStackTrace(err)
+      (false, onError)
   }
 
   def main(args: Array[String]): Unit = SystemStreams.withTopLevelSystemStreamProxy {
