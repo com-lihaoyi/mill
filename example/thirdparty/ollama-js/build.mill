@@ -2,6 +2,7 @@ package build
 
 import mill._, javascriptlib._
 import os.*
+import ujson._
 
 trait OllamaModule extends TypeScriptModule {
   // bundle ollama with `unbuild`
@@ -21,6 +22,24 @@ trait OllamaModule extends TypeScriptModule {
 
     PathRef(T.dest / "ollama")
   }
+}
+
+trait ExampleModule extends TypeScriptModule {
+  def sources = Task.Sources(moduleDir)
+  def mainFilePath = Task { compile().path / mainFileName() }
+}
+
+trait EsmModule extends ExampleModule {
+  def enableEsm = true
+}
+
+trait Es6Module extends ExampleModule {
+  def compilerOptions =
+    super.compilerOptions() + (
+      "module" -> ujson.Str("nodenext"),
+      "moduleResolution" -> ujson.Str("nodenext"),
+      "target" -> ujson.Str("es6")
+    )
 }
 
 object `package` extends RootModule with OllamaModule with TsLintModule {
@@ -45,76 +64,132 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
   object test extends TypeScriptTests with TestModule.Vitest
 
   object examples extends TypeScriptModule {
-    object abort extends TypeScriptModule {
+    object abort extends ExampleModule {
       def unmanagedDeps = Seq(unbuild())
-      def sources = Task.Sources(moduleDir)
       def mainFileName = s"abort-all-requests.ts"
-      def mainFilePath = Task { compile().path / mainFileName() }
     }
 
-    object `fill-in-middle` extends TypeScriptModule {
+    object `fill-in-middle` extends EsmModule {
       def unmanagedDeps = Seq(unbuild())
-      def sources = Task.Sources(moduleDir)
       def mainFileName = s"fill.ts"
-      def mainFilePath = Task { compile().path / mainFileName() }
-      def enableEsm = true
     }
 
-    object multimodal extends TypeScriptModule {
+    object multimodal extends EsmModule {
       def unmanagedDeps = Seq(unbuild())
-      def sources = Task.Sources(moduleDir)
       def mainFileName = s"multimodal.ts"
-      def mainFilePath = Task { compile().path / mainFileName() }
-      def enableEsm = true
     }
 
-    object `pull-progress` extends TypeScriptModule {
+    object `pull-progress` extends EsmModule {
       def unmanagedDeps = Seq(unbuild())
-      def sources = Task.Sources(moduleDir)
       def mainFileName = s"pull.ts"
-      def mainFilePath = Task { compile().path / mainFileName() }
-      def enableEsm = true
     }
 
-    object structured_outputs extends TypeScriptModule {
+    object structured_outputs extends Es6Module {
       def unmanagedDeps = Seq(unbuild())
       def npmDeps = Seq("zod@3.24.1", "zod-to-json-schema@3.24.1")
-      def sources = Task.Sources(moduleDir)
       def mainFileName = s"structured-outputs.ts"
-      def mainFilePath = Task { compile().path / mainFileName() }
-      def compilerOptions =
-        super.compilerOptions() + (
-          "module" -> ujson.Str("nodenext"),
-          "moduleResolution" -> ujson.Str("nodenext"),
-          "target" -> ujson.Str("es6")
-        )
     }
 
-    object tools extends TypeScriptModule {
+    object tools extends Es6Module {
       def unmanagedDeps = Seq(unbuild())
-      def sources = Task.Sources(moduleDir)
       def mainFileName = s"calculator.ts"
-      def mainFilePath = Task { compile().path / mainFileName() }
-      def compilerOptions =
-        super.compilerOptions() + (
-          "module" -> ujson.Str("nodenext"),
-          "moduleResolution" -> ujson.Str("nodenext"),
-          "target" -> ujson.Str("es6")
-        )
     }
   }
 }
 
 //// The Ollama JavaScript library provides the easiest way to integrate
-//// your JavaScript project with Ollama. https://github.com/ollama/ollama
+//// your JavaScript project with Ollama. https://github.com/ollama/ollama.
 //
 //// Project home: https://github.com/ollama/ollama-js
+
+//// Project Layout:
+
+//// SNIPPET:BUILD
+// [source,text]
+// ----
+// <project-root>
+// examples/
+// src/
+// test/
+// package.json
+// tsconfig.json
+//// SNIPPET:END
+
+// Mill will auto-generate configuration files like `tsconfig.json` and `package.json`,
+// but if the files are provided, mill would use the user provided json files instead.
+
+//// `unbuild`:
+// The `unbuild` task defined in `OllamaModule`, uses the `unbuild` npm package to bundle the ollama-js project
+// it then prepares the output to be used as an unmanaged dependency `unmanagedDeps` for our example projects.
+// See: https://github.com/unjs/unbuild
+
+//// Example projects:
+// All example projects featured in `examples/` do not have a `src` directory,
+// they contain stand alone file(s) intended to be run independently with a command like
+// `npx tsx <folder-name>/<file-name>.ts`.
+
+// The `ExampleModule` trait configures the `sources` and `mainFilePath` task,
+// accounting for the absence of `src` directory in the example projects.
+
+// `EsmModule` enables esm, defining `compilerOptions` for select project with esm features,
+// while the `Es6Module` defines compilerOptions for projects with `es6` features.
+
+// Ordinalrily the compile stages `mill compile` would build our `declarations` and or `dist` files (depending on configurations),
+// but since we intend to use `unbuild` task to handle bundling we don't need this output
+// from running the `tsc` command. We can turn of its generation by settig the task `runTypeCheck` to false.
+
+//// package.json
+//// SNIPPET:BUILD
+// [source,json]
+// ----
+// {
+//  "name": "ollama",
+//  "version": "0.0.0",
+//  "description": "Ollama Javascript library",
+//  "main": "dist/index.cjs",
+//  "module": "dist/index.mjs",
+//  "types": "dist/index.d.ts",
+//  "exports": {
+//    ".": {
+//      "require": "./dist/index.cjs",
+//      "import": "./dist/index.mjs",
+//      "types": "./dist/index.d.ts"
+//    },
+//    "./browser": {
+//      "require": "./dist/browser.cjs",
+//      "import": "./dist/browser.mjs",
+//      "types": "./dist/browser.d.ts"
+//    },
+//    "./*": "./*"
+//  },
+//  "scripts": {
+//    "format": "prettier --write .",
+//    "test": "vitest --run",
+//    "build": "unbuild",
+//    "lint": "eslint ./src/*",
+//    "prepublishOnly": "npm run build"
+//  },
+//  "homepage": "https://github.com/ollama/ollama-js",
+//  "repository": {
+//    ...
+//  },
+//  "author": "Saul Boyd",
+//  "license": "MIT",
+//  "devDependencies": {
+//    ...
+//  },
+//  "dependencies": {
+//    ...
+//  }
+//}
+// ----
+//// SNIPPET:END
 
 /** Usage
 
 > ./mill compile
 
-> ./mill test
+> ./mill test # Run vitest, equivalent of running `npm run test`
 ...
 .../index.test.ts (15 tests) ...
 .../utils.test.ts (5 tests) ...
@@ -123,10 +198,11 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 ...     Tests  20 passed (20)
 ...
 
-> ./mill checkFormatEslint # no failures
+> ./mill checkFormatEslint # expected no failures, equivalent of running `npm run lint`
 
-> ./mill checkFormatPrettier # expected failures
-...Checking formatting...
+> ./mill checkFormatPrettier # expected failures, equivalent of running `prettier --check .`
+...
+Checking formatting...
 [warn] examples/abort/abort-all-requests.ts
 [warn] examples/abort/abort-single-request.ts
 [warn] examples/structured_outputs/structured-outputs-image.ts
@@ -140,6 +216,32 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 [warn] src/utils.ts
 [warn] test/utils.test.ts
 ...
+
+> ./mill reformatPrettier # fixes code style issues with prettier, equivalent of running `npm run format`
+...
+examples/abort/abort-all-requests.ts...
+examples/abort/abort-single-request.ts...
+examples/fill-in-middle/fill.ts...
+examples/multimodal/multimodal.ts...
+examples/pull-progress/pull.ts...
+examples/structured_outputs/structured-outputs-image.ts...
+examples/structured_outputs/structured-outputs.ts...
+examples/tools/calculator.ts...
+examples/tools/flight-tracker.ts...
+src/browser.ts...
+src/constant.ts...
+src/index.ts...
+src/interfaces.ts...
+src/utils.ts...
+src/version.ts...
+test/index.test.ts...
+test/utils.test.ts...
+All matched files have been reformatted!
+
+> ./mill checkFormatPrettier # no more failures after formatting, equivalent of running `prettier --check .`
+...
+Checking formatting...
+All matched files use Prettier code style!
 
 > ./mill examples.abort.run
 ...Aborting all requests...
