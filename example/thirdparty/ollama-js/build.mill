@@ -138,6 +138,8 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 // but since we intend to use `unbuild` task to handle bundling we don't need this output
 // from running the `tsc` command. We can turn of its generation by settig the task `runTypeCheck` to false.
 
+//// User Defined JSON:
+
 //// package.json
 //// SNIPPET:BUILD
 // [source,json]
@@ -181,6 +183,44 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 //  "dependencies": {
 //    ...
 //  }
+//}
+// ----
+//// SNIPPET:END
+
+//// tsconfig.json
+//// SNIPPET:BUILD
+// [source,json]
+// ----
+// {
+//   "compilerOptions": {
+//    "noImplicitAny": false,
+//    "noImplicitThis": true,
+//    "strictNullChecks": true,
+//    "esModuleInterop": true,
+//    "declaration": true,
+//    "declarationMap": true,
+//    "skipLibCheck": true,
+//    "strict": true,
+//    "forceConsistentCasingInFileNames": true,
+//    "moduleResolution": "node",
+//    "module": "ES2022",
+//    "outDir": "./dist",
+//    "target": "ES6",
+//    "lib": [
+//      "es6",
+//      "es2018.asyncgenerator",
+//      "dom"
+//    ]
+//  },
+//
+//  "ts-node": {
+//    "swc": true,
+//    "esm": true,
+//  },
+//
+//  "include": ["./src/**/*.ts"],
+//
+//  "exclude": ["node_modules"]
 //}
 // ----
 //// SNIPPET:END
