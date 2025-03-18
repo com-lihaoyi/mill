@@ -60,9 +60,9 @@ object CodeGen {
           // Dummy references to sub-modules. Just used as metadata for the discover and
           // resolve logic to traverse, cannot actually be evaluated and used
           val comment = "// subfolder module reference"
-          val lhs = backtickWrap(c)
+          val lhs = backtickWrap(c + "_alias")
           val rhs = pkgSelector2(Some(c))
-          (rhs, s"final lazy val ${lhs}_alias: $rhs.type = $rhs $comment")
+          (rhs, s"final lazy val $lhs: $rhs.type = $rhs $comment")
         }.unzip
       val childAliases = childAliases0.mkString("\n")
 
@@ -156,7 +156,7 @@ object CodeGen {
       o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
     ) match {
       case Some(objectData) =>
-        val newParent = if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule"
+        val newParent = if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule(build.millDiscover)"
 
         var newScriptCode = scriptCode
         objectData.endMarker match {
@@ -180,10 +180,15 @@ object CodeGen {
             ).mkString(System.lineSeparator())
             newScriptCode = finalStat.applyTo(newScriptCode, fenced)
           case None =>
-            ()
+            val txt = Seq(millDiscover(segments.nonEmpty), childAliases)
+              .mkString(System.lineSeparator())
+
+            newScriptCode = newScriptCode// + s"{$txt}"
+
         }
 
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "@scala.annotation.experimental object")
 
         s"""$pkgLine
            |$miscInfo
@@ -219,11 +224,13 @@ object CodeGen {
   }
 
   def millDiscover(segmentsNonEmpty: Boolean): String = {
-    val rhs =
-      if (segmentsNonEmpty) "build.`package`.millDiscover"
-      else "_root_.mill.define.Discover[this.type]"
+    if (segmentsNonEmpty) ""
+    else {
+      val rhs = "_root_.mill.define.Discover[this.type]"
+      s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
+    }
 
-    s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
+
   }
 
   def rootMiscInfo(
@@ -253,7 +260,7 @@ object CodeGen {
       pkgObjectName: String
   ): String = {
     val extendsClause =
-      if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
+      if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule(build.millDiscover) "
       else if (millTopLevelProjectRoot == scriptFolderPath)
         s"extends _root_.mill.main.RootModule() "
       else s"extends _root_.mill.runner.MillBuildRootModule() "

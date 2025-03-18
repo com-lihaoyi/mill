@@ -171,7 +171,7 @@ object BuildGenUtil {
       "mill.javalib.publish._"
     ) ++
       extraImports ++
-      (if (isNested) baseModule.map(name => s"_root_.build_.$name")
+      (if (isNested) baseModule.map(name => s"_root_.build.$name")
        else if (packagesSize > 1) Seq("$packages._")
        else None)
   }

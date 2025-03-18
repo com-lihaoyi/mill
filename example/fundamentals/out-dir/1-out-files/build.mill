@@ -245,17 +245,10 @@ out/mill-server
 
 > cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
 {
-...
-    "def build_.package_$foo$#<init>(build_.package_)void": {
-      "call build_.package_$foo$!<init>(build_.package_)void": {
-        "def build_.package_#foo$lzyINIT1()java.lang.Object": {
-          "call build_.package_!foo$lzyINIT1()java.lang.Object": {
-            "def build_.package_#foo()build_.package_$foo$": {}
-          }
-        }
-      }
-    }
-...
+  "call scala.runtime.BoxesRunTime.boxToInteger(int)java.lang.Integer": {
+    "def build.package$foo$.<clinit>()void": {}
+  },
+  "call scala.Predef$#println(java.lang.Object)void": {}
 }
 
 */
