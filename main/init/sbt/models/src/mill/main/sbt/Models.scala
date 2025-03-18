@@ -10,7 +10,7 @@ object Models {
 }
 
 case class BuildExport(
-    /** @see [[sbt.AutoPlugin.buildSettings]] and [[sbt.AutoPlugin.globalSettings]] */
+    /** @see `sbt.AutoPlugin.buildSettings` and `sbt.AutoPlugin.globalSettings` */
     defaultBuildInfo: BuildInfo,
     projects: Seq[Project]
 )
@@ -80,14 +80,14 @@ case class BuildPublicationInfo(
 )
 object BuildPublicationInfo {
 
-  /** @see [[sbt.librarymanagement.License]] */
+  /** @see `sbt.librarymanagement.License` */
   type License = (String, URL)
 
   implicit val rw: RW[BuildPublicationInfo] = macroRW
 }
 
 /**
- * @see [[sbt.librarymanagement.ScmInfo]]
+ * @see `sbt.librarymanagement.ScmInfo`
  */
 case class ScmInfo(
     browseUrl: URL,
@@ -99,7 +99,7 @@ object ScmInfo {
 }
 
 /**
- * @see [[sbt.librarymanagement.Developer]]
+ * @see `sbt.librarymanagement.Developer`
  */
 case class Developer(id: String, name: String, email: String, url: URL)
 object Developer {
@@ -108,7 +108,7 @@ object Developer {
 
 /**
  * Only Maven repositories are supported now.
- * @see [[sbt.librarymanagement.Resolver]]
+ * @see `sbt.librarymanagement.Resolver`
  */
 case class Resolver(root: String)
 object Resolver {
@@ -117,12 +117,12 @@ object Resolver {
 
 case class Project(
     // organization: String, // `groupId` in Maven, moved inside `buildInfo`
-    /** @see [[sbt.Keys.name]] */
+    /** @see `sbt.Keys.name` */
     name: String, // `artifactId` in Maven
     // version: String, // `groupId` in Maven, moved inside `buildInfo`
     // dirs: ProjectDirs, // relative
     projectDirectory: String,
-    /** @see [[sbt.ProjectRef.project]] */
+    /** @see `sbt.ProjectRef.project` */
     projectRefProject: String,
     buildInfo: BuildInfo,
     allDependencies: AllDependencies
@@ -144,9 +144,9 @@ sealed trait Dependency {
 }
 
 case class InterProjectDependency(
-    /** @see [[sbt.ProjectRef.project]] */
+    /** @see `sbt.ProjectRef.project` */
     projectRefProject: String,
-    /** @see [[sbt.ClasspathDep.configuration]] */
+    /** @see `sbt.ClasspathDep.configuration` */
     configurations: Option[String]
 ) extends Dependency
 object InterProjectDependency {
@@ -154,7 +154,7 @@ object InterProjectDependency {
 }
 
 /**
- * @see [[sbt.librarymanagement.ModuleID]]
+ * @see `sbt.librarymanagement.ModuleID`
  */
 case class LibraryDependency(
     organization: String, // `groupId` in Maven
@@ -173,7 +173,7 @@ object LibraryDependency {
 }
 
 /**
- * @see [[sbt.librarymanagement.CrossVersion]]
+ * @see `sbt.librarymanagement.CrossVersion`
  */
 sealed trait CrossVersion
 object CrossVersion {
@@ -188,7 +188,7 @@ object CrossVersion {
   }
 
   /**
-   * Including the cases [[sbt.librarymanagement.Constant]], [[sbt.librarymanagement.For2_13Use3]], and [[sbt.librarymanagement.For3Use2_13]].
+   * Including the cases `sbt.librarymanagement.Constant`, `sbt.librarymanagement.For2_13Use3`, and `sbt.librarymanagement.For3Use2_13`.
    */
   case class Constant(value: String) extends CrossVersion
   object Constant {
