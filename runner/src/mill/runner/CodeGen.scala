@@ -136,8 +136,16 @@ object CodeGen {
 
     val objectData = parser.parseObjectData(scriptCode)
 
-    val expectedParent =
-      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
+    val isMetaBuild = projectRoot != millTopLevelProjectRoot
+    val expectedParent = if (isMetaBuild) "MillBuildRootModule" else "RootModule"
+
+
+    val parentClause0 =
+      if (segments.nonEmpty) "main.SubfolderModule(build.millDiscover)"
+      else if (!isMetaBuild) "main.RootModule"
+      else "runner.MillBuildRootModule()"
+
+    val parentClause = s"_root_.mill.$parentClause0 with MillDiscoverWrapper"
 
     if (objectData.exists(o => o.name.text == "`package`" && o.parent.text != expectedParent)) {
       throw new Result.Exception(s"object `package` in $scriptPath must extend `$expectedParent`")
@@ -156,38 +164,9 @@ object CodeGen {
       o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
     ) match {
       case Some(objectData) =>
-        val newParent = if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule(build.millDiscover)"
-
         var newScriptCode = scriptCode
-        objectData.endMarker match {
-          case Some(endMarker) =>
-            newScriptCode = endMarker.applyTo(newScriptCode, wrapperObjectName)
-          case None =>
-            ()
-        }
-        objectData.finalStat match {
-          case Some((leading, finalStat)) =>
-            val fenced = Seq(
-              "", {
-                val statLines = finalStat.text.linesWithSeparators.toSeq
-                if statLines.sizeIs > 1 then
-                  statLines.tail.mkString
-                else
-                  finalStat.text
-              },
-              millDiscover(segments.nonEmpty),
-              childAliases
-            ).mkString(System.lineSeparator())
-            newScriptCode = finalStat.applyTo(newScriptCode, fenced)
-          case None =>
-            val txt = Seq(millDiscover(segments.nonEmpty), childAliases)
-              .mkString(System.lineSeparator())
 
-            newScriptCode = newScriptCode// + s"{$txt}"
-
-        }
-
-        newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
+        newScriptCode = objectData.parent.applyTo(newScriptCode, parentClause)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "@scala.annotation.experimental object")
 
         s"""$pkgLine
@@ -197,16 +176,27 @@ object CodeGen {
            |
            |$newScriptCode
            |
+           |
+           |trait MillDiscoverWrapper {
+           |  ${millDiscover(segments.nonEmpty)}
+           |  $childAliases
+           |}
            |""".stripMargin
 
       case None =>
         s"""$pkgLine
            |$miscInfo
            |$prelude
-           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases, "`package`")}
+           |object `package` extends $parentClause {
            |$markerComment
            |$scriptCode
-           |}""".stripMargin
+           |}
+           |
+           |trait MillDiscoverWrapper {
+           |  ${millDiscover(segments.nonEmpty)}
+           |  $childAliases
+           |}
+           |""".stripMargin
 
     }
   }
@@ -226,11 +216,9 @@ object CodeGen {
   def millDiscover(segmentsNonEmpty: Boolean): String = {
     if (segmentsNonEmpty) ""
     else {
-      val rhs = "_root_.mill.define.Discover[this.type]"
-      s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
+      val rhs = "_root_.mill.define.Discover[`package`.type]"
+      s"lazy val millDiscover: _root_.mill.define.Discover = $rhs"
     }
-
-
   }
 
   def rootMiscInfo(
@@ -250,31 +238,5 @@ object CodeGen {
        |  ${literalize(millTopLevelProjectRoot.toString)}
        |)
        |""".stripMargin
-  }
-
-  def topBuildHeader(
-      segments: Seq[String],
-      scriptFolderPath: os.Path,
-      millTopLevelProjectRoot: os.Path,
-      childAliases: String,
-      pkgObjectName: String
-  ): String = {
-    val extendsClause =
-      if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule(build.millDiscover) "
-      else if (millTopLevelProjectRoot == scriptFolderPath)
-        s"extends _root_.mill.main.RootModule() "
-      else s"extends _root_.mill.runner.MillBuildRootModule() "
-
-    // User code needs to be put in a separate class for proper submodule
-    // object initialization due to https://github.com/scala/scala3/issues/21444
-    // TODO: Scala 3 - the discover needs to be moved to the object, however,
-    // path dependent types no longer match, e.g. for TokenReaders of custom types.
-    // perhaps we can patch mainargs to substitute prefixes when summoning TokenReaders?
-    // or, add an optional parameter to Discover.apply to substitute the outer class?
-    s"""object $pkgObjectName $extendsClause  {
-       |  ${childAliases.linesWithSeparators.mkString("  ")}
-       |  ${millDiscover(segments.nonEmpty)}
-       |""".stripMargin
-
   }
 }

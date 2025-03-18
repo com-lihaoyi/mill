@@ -24,7 +24,7 @@ abstract class RootModule()(implicit
   // Dummy `millDiscover` defined but never actually used and overridden by codegen.
   // Provided for IDEs to think that one is available and not show errors in
   // build.mill/package.mill even though they can't see the codegen
-  def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")
+  def millDiscover: Discover// = sys.error("RootModule#millDiscover must be overridden")
 }
 
 @internal
