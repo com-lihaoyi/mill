@@ -10,7 +10,7 @@ import mill.{T, Task}
 
 import scala.util.Properties
 
-//@experimental
+@experimental
 trait SemanticDbJavaModule extends CoursierModule {
   def zincWorker: ModuleRef[ZincWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]

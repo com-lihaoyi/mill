@@ -150,7 +150,7 @@ object Ctx {
     def fork: Fork.Api
   }
 
-  //@experimental
+  @experimental
   object Fork {
     import scala.concurrent.{ExecutionContext, Future}
     trait Api {
