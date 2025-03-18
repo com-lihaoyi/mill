@@ -192,7 +192,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    Subfolder Module Scaladoc
           |
           |Inherited Modules:
-          |    build_.core3.package_
+          |...JavaModule...
           |
           |Default Task: core3.run
           |""",

@@ -15,15 +15,20 @@ import scala.collection.mutable
  * can then be used later to look up the `MainData` for any module.
  */
 class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
-  def resolveEntrypoint(cls: Class[?], name: String) = {
-    val res = for {
-      (cls2, node) <- classInfo
+  def resolveClassInfo(cls: Class[?]) = {
+    for {
+      (cls2, node) <- classInfo.iterator
       if cls2.isAssignableFrom(cls)
+    } yield (cls2, node)
+  }
+  def resolveEntrypoint(cls: Class[?], name: String) = {
+    val res = for{
+      (cls2, node) <- resolveClassInfo(cls)
       ep <- node.entryPoints
       if ep.mainName.getOrElse(ep.defaultName) == name
     } yield ep
 
-    res.headOption
+    res.nextOption
   }
 }
 

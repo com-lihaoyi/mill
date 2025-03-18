@@ -173,9 +173,7 @@ object CodeGen {
            |$miscInfo
            |$prelude
            |$markerComment
-           |
            |$newScriptCode
-           |
            |
            |trait MillDiscoverWrapper { this: `package`.type =>
            |  ${millDiscover(segments.nonEmpty)}
