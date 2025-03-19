@@ -736,7 +736,7 @@ private class MillBuildServer(
         case Success(state) =>
           try {
             requestLock.lock()
-            val v = f(state)
+            val v = os.checker.withValue(os.Checker.Nop)(f(state))
             took
             debug(s"${prefix} result: ${v}")
             future.complete(v)
