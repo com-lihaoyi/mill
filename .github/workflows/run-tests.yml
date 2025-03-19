@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
 
-      - run: ./mill 'integration.failure[module-init-error].packaged.server.test '
+      - run: ./mill 'integration.failure[module-init-error].packaged.server.test'
 #        env:
 #          COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
 
