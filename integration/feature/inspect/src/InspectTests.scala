@@ -42,7 +42,7 @@ object InspectTests extends UtestIntegrationTestSuite {
       assert(eval(("inspect", "core.task")).isSuccess)
       val task = out("inspect").json.str
       assertGlobMatches(
-        """core.task(build.mill:48)
+        """core.task(build.mill:49)
           |    Core Task Docz!
           |
           |Inputs:
@@ -117,7 +117,7 @@ object InspectTests extends UtestIntegrationTestSuite {
       val theWorkerInspect = out("inspect").json.str
 
       assertGlobMatches(
-        """core.test.theWorker(build.mill:38)
+        """core.test.theWorker(build.mill:39)
           |    -> The worker <-
           |
           |    *The worker*
@@ -165,7 +165,7 @@ object InspectTests extends UtestIntegrationTestSuite {
       val jtmInspect = out("inspect").json.str
       assert(
         globMatches(
-          """MyJavaTaskModule(build.mill:53)
+          """MyJavaTaskModule(build.mill:54)
             |
             |Inherited Modules:
             |...JavaModule...

@@ -75,6 +75,7 @@ object `package` extends RootModule with InstallModule {
       build.main.graphviz.testDep(),
       build.main.init.maven.testDep(),
       build.main.init.gradle.testDep(),
+      build.main.init.sbt.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
       build.contrib.bloop.testDep(),
       build.contrib.buildinfo.testDep(),
@@ -244,6 +245,8 @@ object `package` extends RootModule with InstallModule {
   def exampleZips: T[Seq[PathRef]] = Task {
     examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
       os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
+      val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
+      if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
       os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
       os.copy(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")

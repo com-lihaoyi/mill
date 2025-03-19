@@ -14,9 +14,9 @@ import mill.api.internal
     // globSelectors indicates the strategy for testrunner to find and run test classes
     // can be either:
     // - Left(selectors: Seq[String]): - list of glob selectors, testrunner is given a list of glob selectors to run directly
-    // - Right((selectorFolder: os.Path, baseFolder: os.Path)): - a pair of paths, testrunner will try to steal test glob from selectorFolder
+    // - Right((selectorFolder: os.Path, baseFolder: os.Path)): - a pair of paths, testrunner will try to claim test glob from selectorFolder
     // and move it actomatically in to baseFolder and run it from there.
-    globSelectors: Either[Seq[String], (os.Path, os.Path)]
+    globSelectors: Either[Seq[String], (Option[String], os.Path, os.Path)]
 )
 
 @internal object TestArgs {

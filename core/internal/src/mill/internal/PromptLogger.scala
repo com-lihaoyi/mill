@@ -36,6 +36,8 @@ private[mill] class PromptLogger(
 
   readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
+  def isInteractive() = termDimensions._1.nonEmpty
+
   private object promptLineState extends PromptLineState(
         titleText,
         currentTimeMillis(),
@@ -48,7 +50,7 @@ private[mill] class PromptLogger(
         enableTicker,
         systemStreams0,
         () => promptLineState.getCurrentPrompt(),
-        interactive = () => termDimensions._1.nonEmpty,
+        interactive = () => isInteractive(),
         paused = () => runningState.paused,
         synchronizer = this
       )
@@ -75,7 +77,7 @@ private[mill] class PromptLogger(
 
         val now = System.currentTimeMillis()
         if (
-          termDimensions._1.nonEmpty ||
+          isInteractive() ||
           (now - lastUpdate > nonInteractivePromptUpdateIntervalMillis)
         ) {
           lastUpdate = now
@@ -102,24 +104,25 @@ private[mill] class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
-    override def setPromptHeaderPrefix(s: String): Unit = synchronized {
+    override def setPromptHeaderPrefix(s: String): Unit = PromptLogger.this.synchronized {
       promptLineState.setHeaderPrefix(s)
     }
 
-    override def clearPromptStatuses(): Unit = synchronized {
+    override def clearPromptStatuses(): Unit = PromptLogger.this.synchronized {
       promptLineState.clearStatuses()
     }
 
-    override def removePromptLine(key: Seq[String]): Unit = synchronized {
+    override def removePromptLine(key: Seq[String]): Unit = PromptLogger.this.synchronized {
       promptLineState.setCurrent(key, None)
     }
 
-    override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized {
-      promptLineState.setDetail(key, s)
-    }
+    override def setPromptDetail(key: Seq[String], s: String): Unit =
+      PromptLogger.this.synchronized {
+        promptLineState.setDetail(key, s)
+      }
 
     override def reportKey(key: Seq[String]): Unit = {
-      val res = synchronized {
+      val res = PromptLogger.this.synchronized {
         if (reportedIdentifiers(key)) None
         else {
           reportedIdentifiers.add(key)
@@ -128,15 +131,17 @@ private[mill] class PromptLogger(
       }
       for ((keySuffix, message) <- res) {
         if (prompt.enableTicker) {
-          streams.err.println(infoColor(s"[${key.mkString("-")}$keySuffix] $message"))
+          streams.err.println(
+            infoColor(s"[${key.mkString("-")}$keySuffix]${spaceNonEmpty(message)}")
+          )
           streamManager.awaitPumperEmpty()
         }
       }
     }
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
-      synchronized {
-        promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}] $message"))
+      PromptLogger.this.synchronized {
+        promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
         seenIdentifiers(key) = (keySuffix, message)
       }
 
@@ -309,7 +314,7 @@ private[mill] object PromptLogger {
           promptShown = false
         }
 
-        if (enableTicker) {
+        if (enableTicker && interactive()) {
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)

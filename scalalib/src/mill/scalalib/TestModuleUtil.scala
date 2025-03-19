@@ -32,7 +32,7 @@ private final class TestModuleUtil(
     forkWorkingDir: os.Path,
     testReportXml: Option[String],
     javaHome: Option[os.Path],
-    testEnableWorkStealing: Boolean
+    testParallelism: Boolean
 )(implicit ctx: mill.api.Ctx) {
 
   private val (jvmArgs, props: Map[String, String]) =
@@ -58,7 +58,7 @@ private final class TestModuleUtil(
     val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
     val filteredClassLists =
-      if (filteredClassLists0.size == 1) filteredClassLists0
+      if (filteredClassLists0.size == 1 && !testParallelism) filteredClassLists0
       else {
         // If test grouping is enabled and multiple test groups are detected, we need to
         // run test discovery via the test framework's own argument parsing and filtering
@@ -99,8 +99,8 @@ private final class TestModuleUtil(
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    val result = if (testEnableWorkStealing) {
-      runTestStealingScheduler(filteredClassLists)
+    val result = if (testParallelism) {
+      runTestQueueScheduler(filteredClassLists)
     } else {
       runTestDefault(filteredClassLists)
     }
@@ -119,9 +119,11 @@ private final class TestModuleUtil(
   private def callTestRunnerSubprocess(
       baseFolder: os.Path,
       // either:
-      // - Left(selectors: Seq[String]): - list of glob selectors to feed to the test runner directly.
-      // - Right((testClassesFolder: os.Path, stealFolder: os.Path)): - folder containing test classes for test runner to steal from, and the stealer's base folder.
-      selector: Either[Seq[String], (os.Path, os.Path)]
+      // - Left(selectors):
+      //     - list of glob selectors to feed to the test runner directly.
+      // - Right((startingTestClass, testClassQueueFolder, claimFolder)):
+      //     - first test class to run, folder containing test classes for test runner to claim from, and the worker's base folder.
+      selector: Either[Seq[String], (Option[String], os.Path, os.Path)]
   )(implicit ctx: mill.api.Ctx) = {
     os.makeDir.all(baseFolder)
 
@@ -194,8 +196,13 @@ private final class TestModuleUtil(
               s"group-$paddedIndex-${multiple.head}"
           }
 
-          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage) {
-            (folderName, callTestRunnerSubprocess(Task.dest / folderName, Left(testClassList)))
+          // set priority = -1 to always prioritize test subprocesses over normal Mill
+          // tasks. This minimizes the number of blocked tasks since Mill tasks can be
+          // blocked on test subprocesses, but not vice versa, so better to schedule
+          // the test subprocesses first
+          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage, priority = -1) {
+            log =>
+              (folderName, callTestRunnerSubprocess(Task.dest / folderName, Left(testClassList)))
           }
         }
 
@@ -213,39 +220,53 @@ private final class TestModuleUtil(
     subprocessResult
   }
 
-  private def runTestStealingScheduler(
+  private def runTestQueueScheduler(
       filteredClassLists: Seq[Seq[String]]
   )(implicit ctx: mill.api.Ctx) = {
 
     val workerStatusMap = new java.util.concurrent.ConcurrentHashMap[os.Path, String => Unit]()
 
     def prepareTestClassesFolder(selectors2: Seq[String], base: os.Path): os.Path = {
-      // test-classes folder is used to store the test classes for the children test runners to steal from
-      val testClassesFolder = base / "test-classes"
-      os.makeDir.all(testClassesFolder)
+      // test-classes folder is used to store the test classes for the children test runners to claim from
+      val testClassQueueFolder = base / "test-classes"
+      os.makeDir.all(testClassQueueFolder)
       selectors2.zipWithIndex.foreach { case (s, i) =>
-        os.write.over(testClassesFolder / s, Array.empty[Byte])
+        os.write.over(testClassQueueFolder / s, Array.empty[Byte])
       }
-      testClassesFolder
+      testClassQueueFolder
     }
 
     def runTestRunnerSubprocess(
         base: os.Path,
-        testClassesFolder: os.Path,
+        testClassQueueFolder: os.Path,
         force: Boolean,
         logger: Logger
     ) = {
-      // Check if we really need to spawn a new runner
-      if (force || os.list(testClassesFolder).nonEmpty) {
-        val stealFolder = base / "steal"
-        os.makeDir.all(stealFolder)
-        // steal.log file will be appended by the runner with the stolen test class's name
+      val claimFolder = base / "claim"
+      os.makeDir.all(claimFolder)
+      val startingTestClass =
+        try {
+          os
+            .list
+            .stream(testClassQueueFolder)
+            .map(TestRunnerUtils.claimFile(_, claimFolder))
+            .collectFirst { case Some(name) => name }
+        } catch {
+          case e: Throwable => None
+        }
+
+      if (force || startingTestClass.nonEmpty) {
+        startingTestClass.foreach(logger.ticker(_))
+        // queue.log file will be appended by the runner with the stolen test class's name
         // it can be used to check the order of test classes of the runner
-        val stealLog = stealFolder / os.up / s"${stealFolder.last}.log"
-        os.write.over(stealLog, Array.empty[Byte])
-        workerStatusMap.put(stealLog, logger.ticker)
-        val result = callTestRunnerSubprocess(base, Right(testClassesFolder, stealFolder))
-        workerStatusMap.remove(stealLog)
+        val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
+        os.write.over(claimLog, Array.empty[Byte])
+        workerStatusMap.put(claimLog, logger.ticker)
+        val result = callTestRunnerSubprocess(
+          base,
+          Right((startingTestClass, testClassQueueFolder, claimFolder))
+        )
+        workerStatusMap.remove(claimLog)
         Some(result)
       } else {
         None
@@ -278,100 +299,101 @@ private final class TestModuleUtil(
         }
     }
 
-    val jobs = Task.ctx() match {
-      case j: Ctx.Jobs => j.jobs
-      case _ => 1
+    def jobsProcessLength(numTests: Int) = {
+      val cappedJobs = Math.max(Math.min(Task.ctx().jobs, numTests), 1)
+      (cappedJobs, cappedJobs.toString.length)
     }
 
-    val maxProcessLength = jobs.toString.length
     val groupLength = groupFolderData.length
     val maxGroupLength = groupLength.toString.length
 
     // We got "--jobs" threads, and "groupLength" test groups, so we will spawn at most jobs * groupLength runners here
     // In most case, this is more than necessary, and runner creation is expensive,
     // but we have a check for non-empty test-classes folder before really spawning a new runner, so in practice the overhead is low
-    val subprocessFutures = groupFolderData match {
-      case Seq(singleGroupFolderData) =>
-        val (groupFolder, testClassesFolder, numTests) = singleGroupFolderData
-        val groupName = groupFolder.last
-        for (processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)) yield {
-          val paddedProcessIndex =
-            mill.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
-          val processFolder = groupFolder / s"worker-$paddedProcessIndex"
-          Task.fork.async(processFolder, paddedProcessIndex, s"worker-$paddedProcessIndex") {
-            logger =>
-              // force run when processIndex == 0 (first subprocess), even if there are no tests to run
-              // to force the process to go through the test framework setup/teardown logic
-              groupName -> runTestRunnerSubprocess(
-                processFolder,
-                testClassesFolder,
-                force = processIndex == 0,
-                logger
-              )
-          }
-        }
-      case multipleGroupFolderData =>
-        for {
-          ((groupFolder, testClassesFolder, numTests), groupIndex) <- groupFolderData.zipWithIndex
-          // Don't have re-calculate for every processes
-          groupName = groupFolder.last
-          paddedGroupIndex = mill.internal.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
-          processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
-        } yield {
-          val paddedProcessIndex =
-            mill.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
-          val processFolder = groupFolder / s"worker-$paddedProcessIndex"
+    val subprocessFutures = for {
+      ((groupFolder, testClassQueueFolder, numTests), groupIndex) <- groupFolderData.zipWithIndex
+      // Don't have re-calculate for every processes
+      groupName = groupFolder.last
+      (jobs, maxProcessLength) = jobsProcessLength(numTests)
+      paddedGroupIndex = mill.internal.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
+      processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
+    } yield {
 
-          Task.fork.async(
+      val paddedProcessIndex =
+        mill.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
+
+      val processFolder = groupFolder / s"worker-$paddedProcessIndex"
+
+      val label =
+        if (groupFolderData.size == 1) paddedProcessIndex
+        else s"$paddedGroupIndex-$paddedProcessIndex"
+
+      Task.fork.async(
+        processFolder,
+        label,
+        "",
+        // With the test queue scheduler, prioritize the *first* test subprocess
+        // over other Mill tasks via `priority = -1`, but de-prioritize the others
+        // increasingly according to their processIndex. This should help Mill
+        // use fewer longer-lived test subprocesses, minimizing JVM startup overhead
+        priority = if (processIndex == 0) -1 else processIndex
+      ) {
+        logger =>
+          val result = runTestRunnerSubprocess(
             processFolder,
-            s"${paddedGroupIndex}-${paddedProcessIndex}",
-            s"worker-${paddedGroupIndex}-${paddedProcessIndex}"
-          ) { logger =>
+            testClassQueueFolder,
             // force run when processIndex == 0 (first subprocess), even if there are no tests to run
             // to force the process to go through the test framework setup/teardown logic
-            groupName -> runTestRunnerSubprocess(
-              processFolder,
-              testClassesFolder,
-              force = processIndex == 0,
-              logger
-            )
-          }
-        }
+            force = processIndex == 0,
+            logger
+          )
+
+          val claimedClasses =
+            if (os.exists(processFolder / "claim")) os.list(processFolder / "claim").size else 0
+
+          (claimedClasses, groupName, result)
+      }
     }
 
     val executor = Executors.newScheduledThreadPool(1)
     val outputs =
       try {
-        // Periodically check the stealLog file of every runner, and tick the executing test name
+        // Periodically check the queueLog file of every runner, and tick the executing test name
         executor.scheduleWithFixedDelay(
-          () => {
-            workerStatusMap.forEach { case (stealLog, callback) =>
-              try {
-                // the last one is always the latest
-                os.read.lines(stealLog).lastOption.foreach(callback)
-              } finally ()
-            }
-          },
+          () =>
+            workerStatusMap.forEach { (claimLog, callback) =>
+              // the last one is always the latest
+              os.read.lines(claimLog).lastOption.foreach(callback)
+            },
           0,
-          1,
-          java.util.concurrent.TimeUnit.SECONDS
+          20,
+          java.util.concurrent.TimeUnit.MILLISECONDS
         )
 
-        Task.fork.awaitAll(subprocessFutures)
-      } finally {
-        executor.shutdown()
-      }
+        Task.fork.blocking {
+          // We special-case this to avoid
+          while ({
+            val claimedCounts = subprocessFutures.flatMap(_.value).flatMap(_.toOption).map(_._1)
+            val expectedCounts = filteredClassLists.map(_.size)
+            !(
+              (claimedCounts.sum == expectedCounts.sum && subprocessFutures.head.isCompleted) ||
+                subprocessFutures.forall(_.isCompleted)
+            )
+          }) Thread.sleep(1)
+        }
+        subprocessFutures.flatMap(_.value).map(_.get)
+      } finally executor.shutdown()
 
     val subprocessResult = {
       val failMap = mutable.Map.empty[String, String]
       val successMap = mutable.Map.empty[String, (String, Seq[TestResult])]
 
       outputs.foreach {
-        case (name, Some(Result.Failure(v))) => failMap.updateWith(name) {
+        case (_, name, Some(Result.Failure(v))) => failMap.updateWith(name) {
             case Some(old) => Some(old + " " + v)
             case None => Some(v)
           }
-        case (name, Some(Result.Success((msg, results)))) => successMap.updateWith(name) {
+        case (_, name, Some(Result.Success((msg, results)))) => successMap.updateWith(name) {
             case Some((oldMsg, oldResults)) => Some((oldMsg + " " + msg, oldResults ++ results))
             case None => Some((msg, results))
           }
