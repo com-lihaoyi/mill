@@ -37,7 +37,7 @@ index 92bfb2c2f8f..9854c30dac1 100644
 -import com.goyeau.mill.scalafix.ScalafixModule
 +//import de.tobiasroeser.mill.vcs.version.VcsVersion
 +//import com.goyeau.mill.scalafix.ScalafixModule
- import mill._
+ import mill.{idea => _, _}
  import mill.define.NamedTask
  import mill.main.Tasks
  import mill.scalalib._
