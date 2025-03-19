@@ -16,7 +16,7 @@ object MillException {
     try mill.api.Result.Success(t)
     catch { case e =>
         mill.api.Result.Failure(
-          makeResultException(unwrapException(e.getCause), new java.lang.Exception()).toString
+          makeResultException(e, new java.lang.Exception()).toString
         )
     }
   }

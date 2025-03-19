@@ -247,7 +247,7 @@ private object ResolveCore {
             current.getClass,
             Some(s),
             cache = cache
-          ).flatMap {
+          ).map(_.distinctBy(_._1)).flatMap {
             case Seq((_, Some(f))) => f(current)
             case unknown =>
               sys.error(
