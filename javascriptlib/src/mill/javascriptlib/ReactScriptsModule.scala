@@ -4,7 +4,6 @@ import os.*
 
 // create-react-app: https://create-react-app.dev/docs/documentation-intro
 trait ReactScriptsModule extends TypeScriptModule {
-  // Todo: fix ReactScriptModule error
   override def tsDeps: T[Seq[String]] = Task {
     Seq(
       "@types/node@16.18.121",
