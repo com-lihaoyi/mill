@@ -42,7 +42,7 @@ Test foo.FooTest.testSimple finished, ...
 
 Beyond the basics, Mill provides 3 major advantages over other build tools. The comparison pages
 for the respective build tool go into more detail (for xref:comparisons/maven.adoc[Maven],
-xref:comparisons/gradle.adoc[Gradle], and xref:comparisons/sbt.adoc[SBT]), but at a high level
+xref:comparisons/gradle.adoc[Gradle], and xref:comparisons/sbt.adoc[`sbt`]), but at a high level
 these advantages are:
 
 1. *Performance*: Mill offers a 2-10x speedup means less time waiting for your build tool,
@@ -483,7 +483,7 @@ achieve their maximum possible performance.
 
 The rest of this doc-site contains more Mill build tool comparisons
 (with xref:comparisons/maven.adoc[Maven], xref:comparisons/gradle.adoc[Gradle],
-xref:comparisons/sbt.adoc[SBT]), with getting started instructions
+xref:comparisons/sbt.adoc[`sbt`]), with getting started instructions
 for using Mill with xref:javalib/intro.adoc[Java], with xref:scalalib/intro.adoc[Scala],
 or with xref:kotlinlib/intro.adoc[Kotlin], and detailed documentation for how Mill
 works. Please try it out and let us know in the

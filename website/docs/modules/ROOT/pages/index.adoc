@@ -6,7 +6,7 @@ https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://index
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable&versionPrefix=0.12.[Maven Central Version]]
 
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
-Kotlin, and Python:
+Kotlin:
 
 * Mill can build the same Java codebase xref:comparisons/maven.adoc[4-10x faster than Maven],
 or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
@@ -14,24 +14,27 @@ or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
 * Mill comes builtin with all the tools needed to develop and publish your project without
 needing plugins
 
-* Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]
+* Mill's typechecked configuration and immutable xref:depth/design-principles.adoc[task graph]
 helps keep builds clean and understandable
 
 * Mill scales well from small projects to
 xref:large/large.adoc[large multi-language monorepos] with hundreds of modules
 
-To get started using Mill, see:
+To get started using Mill for the first time, or migrating and existing JVM
+codebase (build using Maven, Gradle, or SBT) to Mill, see:
 
-* xref:cli/installation-ide.adoc[]
+[cols="1a,1a"]
+|===
+| * xref:cli/installation-ide.adoc[] | * xref:migrating/migrating.adoc[]
+|===
 
 Or see the language-specific introductory documentation linked below:
 
-[cols="1a,1a,1a,1a"]
+[cols="1a,1a,1a"]
 |===
 | xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
 | xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
 | xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,28] Kotlin with Mill]
-| xref:pythonlib/intro.adoc[image:index/iconscout-python.svg[python,28] Python with Mill]
 |===
 
 If you want to use Mill on an existing codebase, see xref:migrating/migrating.adoc[]
@@ -43,11 +46,11 @@ JVM build tools have a reputation for being sluggish and confusing. Mill tries t
 offer a better alternative, letting your build system take full advantage of the
 Java platform's performance and usability:
 
-* *Performance*: Mill has automatically xref:depth/caching.adoc[caching]
-and xref:depth/parallelism.adoc[parallelization] of build tasks to keep local development fast,
-xref:blog::9-mill-faster-assembly-jars.adoc[incremental assemblies] to speed up manual testing
-workflows, and xref:large/selective-execution.adoc[selective execution] to keep
-CI validation times short by only running the tests necessary to validate a code change.
+* *Performance*: Mill automatically xref:depth/execution-model.adoc#_caching_in_mill[caches]
+and xref:cli/flags.adoc#_jobs_j[parallelizes] build tasks https://mill-build.org/blog/11-jvm-test-parallelism.html[and tests]
+to keep local development fast, https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
+to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]
+to only runs the subset of tests necessary to validate a code change.
 
 * *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also
 xref:fundamentals/configuring-jvm-versions.adoc[managing JVM versions], xref:javalib/linting.adoc[linting],
@@ -109,7 +112,7 @@ build tools, check out these pages:
 |===
 | xref:comparisons/maven.adoc[image:index/maven.png[maven,24] Mill vs Maven]
 | xref:comparisons/gradle.adoc[image:index/gradle.svg[gradle,32] Mill vs Gradle]
-| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs SBT]
+| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs `sbt`]
 |===
 
 === Contributing and Community

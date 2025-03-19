@@ -245,6 +245,8 @@ object `package` extends RootModule with InstallModule {
   def exampleZips: T[Seq[PathRef]] = Task {
     examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
       os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
+      val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
+      if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
       os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
       os.copy(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
