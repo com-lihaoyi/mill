@@ -31,7 +31,7 @@ trait OllamaModule extends TypeScriptModule {
     "unbuild@2.0.0"
   )
 
-  def packageMeta = PackageMeta(
+  def packageJson = PackageJson(
     name = "ollama",
     version = "0.0.0",
     description = "Ollama Javascript library",
@@ -83,7 +83,12 @@ trait OllamaModule extends TypeScriptModule {
     createNodeModulesSymlink()
     val out = compile().path
 
-    os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
+    os.walk(
+      out,
+      skip = p =>
+        p.last == "node_modules" ||
+          p.last == "package-lock.json"
+    )
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
 
     os.call("node_modules/.bin/unbuild", cwd = T.dest)
@@ -97,23 +102,26 @@ trait OllamaModule extends TypeScriptModule {
   }
 }
 
-trait ExampleModule extends TypeScriptModule {
-  def sources = Task.Sources(moduleDir)
-  def mainFilePath = Task { compile().path / mainFileName() }
-}
+trait Examples extends TypeScriptModule {
+  trait ExampleModule extends TypeScriptModule {
+    def sources = Task.Sources(moduleDir)
+    def mainFilePath = Task { compile().path / mainFileName() }
+    def unmanagedDeps = Examples.this.unmanagedDeps()
+  }
 
-trait EsmModule extends ExampleModule {
-  def enableEsm = true
-  def runTypeCheck = false
-}
+  trait EsmModule extends ExampleModule {
+    def enableEsm = true
+    def runTypeCheck = false
+  }
 
-trait Es6Module extends ExampleModule {
-  def compilerOptions =
-    super.compilerOptions() + (
-      "module" -> ujson.Str("nodenext"),
-      "moduleResolution" -> ujson.Str("nodenext"),
-      "target" -> ujson.Str("es6")
-    )
+  trait Es6Module extends ExampleModule {
+    def compilerOptions =
+      super.compilerOptions() + (
+        "module" -> ujson.Str("nodenext"),
+        "moduleResolution" -> ujson.Str("nodenext"),
+        "target" -> ujson.Str("es6")
+      )
+  }
 }
 
 object `package` extends RootModule with OllamaModule with TsLintModule {
@@ -126,35 +134,31 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 
   object test extends TypeScriptTests with TestModule.Vitest
 
-  object examples extends TypeScriptModule {
+  object examples extends Examples {
+    def unmanagedDeps = Seq(unbuild())
     object abort extends ExampleModule {
-      def unmanagedDeps = Seq(unbuild())
       def mainFileName = "abort-all-requests.ts"
     }
 
     object `fill-in-middle` extends EsmModule {
-      def unmanagedDeps = Seq(unbuild())
+      def npmDeps = Seq("ollama@0.5.12")
       def mainFileName = "fill.ts"
     }
 
     object multimodal extends EsmModule {
-      def unmanagedDeps = Seq(unbuild())
       def mainFileName = "multimodal.ts"
     }
 
     object `pull-progress` extends EsmModule {
-      def unmanagedDeps = Seq(unbuild())
       def mainFileName = "pull.ts"
     }
 
     object structured_outputs extends Es6Module {
-      def unmanagedDeps = Seq(unbuild())
       def npmDeps = Seq("zod@3.24.1", "zod-to-json-schema@3.24.1")
       def mainFileName = "structured-outputs.ts"
     }
 
     object tools extends Es6Module {
-      def unmanagedDeps = Seq(unbuild())
       def mainFileName = "calculator.ts"
     }
   }
@@ -269,17 +273,6 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 
 /** Usage
 
-> ./mill compile
-
-> ./mill test # Run vitest, equivalent of running `npm run test`
-...
-.../index.test.ts (15 tests) ...
-.../utils.test.ts (5 tests) ...
-...
-...Test Files  2 passed (2)
-...     Tests  20 passed (20)
-...
-
 > ./mill checkFormatEslint # expected no failures, equivalent of running `npm run lint`
 
 > ./mill checkFormatPrettier # expected failures, equivalent of running `prettier --check .`
@@ -324,6 +317,15 @@ All matched files have been reformatted!
 ...
 Checking formatting...
 All matched files use Prettier code style!
+
+> ./mill test # Run vitest, this would be the equivalent of the `npm run test` command
+...
+.../index.test.ts (15 tests) ...
+.../utils.test.ts (5 tests) ...
+...
+...Test Files  2 passed (2)
+...     Tests  20 passed (20)
+...
 
 > ./mill examples.abort.run
 ...Aborting all requests...
