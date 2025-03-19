@@ -10,13 +10,13 @@ object MacroErrorTests extends TestSuite {
       val expectedMsg =
         "Task{} members must be defs defined in a Module class/trait/object body"
 
-      val err = compileError("object Foo extends TestBaseModule{ val x = Task {1} }")
+      val err: utest.CompileError = compileError("object Foo extends TestBaseModule{ val x = Task {1} }")
       assert(err.msg == expectedMsg)
     }
 
     test("badParameterSets") {
       test("command") {
-        val e = compileError("""
+        val e: utest.CompileError = compileError("""
           object foo extends TestBaseModule{
             def w = Task.Command{1}
             lazy val millDiscover = Discover[this.type]
@@ -30,7 +30,7 @@ object MacroErrorTests extends TestSuite {
       }
 
       test("target") {
-        val e = compileError("""
+        val e: utest.CompileError = compileError("""
           object foo extends TestBaseModule{
             def x() = Task {1}
             lazy val millDiscover = Discover[this.type]
@@ -43,7 +43,7 @@ object MacroErrorTests extends TestSuite {
         )
       }
       test("input") {
-        val e = compileError("""
+        val e: utest.CompileError = compileError("""
           object foo extends TestBaseModule{
             def y() = Task.Input{1}
             lazy val millDiscover = Discover[this.type]
@@ -56,7 +56,7 @@ object MacroErrorTests extends TestSuite {
         )
       }
       test("sources") {
-        val e = compileError("""
+        val e: utest.CompileError = compileError("""
           object foo extends TestBaseModule{
             def z() = Task.Sources{os.pwd}
             lazy val millDiscover = Discover[this.type]
@@ -69,7 +69,7 @@ object MacroErrorTests extends TestSuite {
         )
       }
       test("persistent") {
-        val e = compileError("""
+        val e: utest.CompileError = compileError("""
           object foo extends TestBaseModule{
             def a() = Task(persistent = true){1}
             lazy val millDiscover = Discover[this.type]
@@ -101,14 +101,14 @@ object MacroErrorTests extends TestSuite {
         }
       }
       test("neg1") {
-        val e = compileError("""def a = Task { 1 }""")
+        val e: utest.CompileError = compileError("""def a = Task { 1 }""")
         assert(e.msg.contains(
           "Task{} members must be defs defined in a Module class/trait/object body"
         ))
       }
 
       test("neg2") {
-        val e = compileError("object foo extends TestBaseModule{ val a = Task { 1 } }")
+        val e: utest.CompileError = compileError("object foo extends TestBaseModule{ val a = Task { 1 } }")
         assert(e.msg.contains(
           "Task{} members must be defs defined in a Module class/trait/object body"
         ))
@@ -117,7 +117,7 @@ object MacroErrorTests extends TestSuite {
 
         val expectedMsg =
           "Target#apply() call cannot use `val n` defined within the Task{...} block"
-        val err = compileError("""
+        val err: utest.CompileError = compileError("""
           object foo extends TestBaseModule{
             def a = Task { 1 }
             val arr = Array(a)
@@ -136,7 +136,7 @@ object MacroErrorTests extends TestSuite {
 
         val expectedMsg =
           "Target#apply() call cannot use `val x` defined within the Task{...} block"
-        val err = compileError("""
+        val err: utest.CompileError = compileError("""
           object foo extends TestBaseModule{
             def a = Task { 1 }
             val arr = Array(a)
@@ -166,7 +166,7 @@ object MacroErrorTests extends TestSuite {
     }
 
     test("badCrossKeys") {
-      val error = utest.compileError(
+      val error: utest.CompileError = utest.compileError(
         """
         object foo extends TestBaseModule{
           object cross extends Cross[MyCrossModule](Seq(1, 2, 3))
@@ -181,7 +181,7 @@ object MacroErrorTests extends TestSuite {
     }
 
     test("badCrossKeys2") {
-      val error = utest.compileError(
+      val error: utest.CompileError = utest.compileError(
         """
         object foo extends TestBaseModule{
           object cross extends Cross[MyCrossModule](Seq((1, 2), (2, 2), (3, 3)))
@@ -202,7 +202,7 @@ object MacroErrorTests extends TestSuite {
     }
 
     test("invalidCrossType") {
-      val error = utest.compileError(
+      val error: utest.CompileError = utest.compileError(
         """
         object foo extends TestBaseModule{
           object cross extends Cross[MyCrossModule](null.asInstanceOf[sun.misc.Unsafe])
