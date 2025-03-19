@@ -4,14 +4,20 @@ import os.*
 
 // create-react-app: https://create-react-app.dev/docs/documentation-intro
 trait ReactScriptsModule extends TypeScriptModule {
+  // Todo: fix ReactScriptModule error
+  override def tsDeps: T[Seq[String]] = Task {
+    Seq(
+      "@types/node@16.18.121",
+      "typescript@4.9.5"
+    )
+  }
+
   override def npmDeps: T[Seq[String]] = Task {
     Seq(
       "react@18.3.1",
       "react-dom@18.3.1",
       "react-scripts@5.0.1",
-      "typescript@4.9.5",
       "web-vitals@2.1.4",
-      "@types/node@16.18.121",
       "@types/react@18.3.12",
       "@types/react-dom@18.3.1"
     )

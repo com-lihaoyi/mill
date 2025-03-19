@@ -5,6 +5,7 @@ import os.*
 
 import scala.annotation.tailrec
 import scala.util.Try
+import mill.scalalib.publish.licenseFormat
 
 trait TypeScriptModule extends Module { outer =>
   // custom module names
@@ -89,6 +90,10 @@ trait TypeScriptModule extends Module { outer =>
 
   def npmInstall: T[PathRef] = Task {
     Try(os.copy.over(Task.workspace / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
+
+    // build package.json with
+    mkPackageJson()
+
     os.call((
       "npm",
       "install",
@@ -97,11 +102,6 @@ trait TypeScriptModule extends Module { outer =>
       "--userconfig",
       ".npmrc",
       "--save-dev",
-      tsDeps(),
-      bundleDeps(),
-      Seq(if (enableEsm()) Some("@swc/core@1.10.12") else None).flatten,
-      transitiveNpmDeps(),
-      transitiveNpmDevDeps(),
       transitiveUnmanagedDeps().map(_.path.toString)
     ))
     PathRef(Task.dest)
@@ -154,6 +154,9 @@ trait TypeScriptModule extends Module { outer =>
     os.walk(moduleDir, skip = _.last == "out")
       .filter(_.last != "build.mill")
       .filter(_.last != "mill")
+      .filter(_.last != "package.json")
+      .filter(_.last != "package-lock.json")
+      .filter(_.last != "tsconfig.json")
       .foreach { path =>
         val relativePath = path.relativeTo(moduleDir)
         val destination = T.dest / relativePath
@@ -453,11 +456,10 @@ trait TypeScriptModule extends Module { outer =>
    * import * as somepackage from "<some-package>"
    */
   def createNodeModulesSymlink: Task[Unit] = Task.Anon {
+    os.copy.over(npmInstall().path / "package.json", T.dest / "package.json")
+
     if (!os.exists(T.dest / "node_modules"))
       os.symlink(T.dest / "node_modules", npmInstall().path / "node_modules")
-
-    if (!os.exists(T.dest / "package.json"))
-      os.symlink(T.dest / "package.json", npmInstall().path / "package.json")
 
     if (!os.exists(T.dest / "package-lock.json"))
       os.symlink(T.dest / "package-lock.json", npmInstall().path / "package-lock.json")
@@ -487,28 +489,21 @@ trait TypeScriptModule extends Module { outer =>
       "files" -> tscAllSources()
     )
 
-    if (!customTsConfig() || !os.exists(T.dest / "tsconfig.json"))
-      os.write.over(
-        T.dest / "tsconfig.json",
-        ujson.Obj.from(default.toSeq ++ options().toSeq)
-      )
+    os.write.over(
+      T.dest / "tsconfig.json",
+      ujson.Obj.from(default.toSeq ++ options().toSeq)
+    )
+
   }
 
   private def mkPackageJson: Task[Unit] = Task.Anon {
-    (enableEsm(), os.exists(T.dest / "package.json")) match {
-      case (true, false) =>
-        os.write.over(
-          Task.dest / "package.json",
-          ujson.Obj(
-            "type" -> ujson.Str("module")
-          )
-        )
-      case (true, true) =>
-        val json = ujson.read(os.read(T.dest / "package.json")).obj
-        json("type") = "module"
-        os.write.over(Task.dest / "package.json", json.render(2))
-      case _ => ()
-    }
+    val packageJson = packageJsonWithDefaults()
+
+    val packageJsonClean = packageJson
+      .copy(`type` = if (enableEsm()) "module" else packageJson.`type`)
+      .cleanJson
+
+    os.write.over(Task.dest / "package.json", packageJsonClean.render(2))
   }
 
   def compile: T[PathRef] = Task {
@@ -518,7 +513,6 @@ trait TypeScriptModule extends Module { outer =>
     tscLinkResources()
     createNodeModulesSymlink()
     mkTsconfig()
-    mkPackageJson()
 
     // Run type check, build declarations
     if (runTypeCheck())
@@ -695,6 +689,36 @@ trait TypeScriptModule extends Module { outer =>
 
   // bundle
 
+  // package.json; package-meta
+  private def packageJsonWithDefaults: T[TypeScriptModule.PackageJson] = Task {
+    def splitDeps(input: String): (String, ujson.Str) = input match {
+      case s if s.startsWith("@") =>
+        val withoutAt = s.drop(1) // Remove leading @
+        val parts = withoutAt.split("@", 2) // Split on the first '@' in the rest
+        ("@" + parts(0), parts.lift(1).getOrElse("")) // Re-add '@' to the first part
+
+      case _ =>
+        val parts = input.split("@", 2) // Regular case, split on the first '@'
+        (parts(0), parts.lift(1).getOrElse("")) // Handle case where '@' is missing
+    }
+
+    val json = packageJson()
+
+    json.copy(
+      name = if (json.name.nonEmpty) json.name else moduleName,
+      version = if (json.version.nonEmpty) json.version else "1.0.0",
+      dependencies = ujson.Obj.from(transitiveNpmDeps().map(splitDeps)),
+      devDependencies = ujson.Obj.from((
+        transitiveNpmDevDeps() ++
+          tsDeps() ++
+          bundleDeps() ++
+          Seq(if (enableEsm()) Some("@swc/core@1.10.12") else None).flatten
+      ).map(splitDeps))
+    )
+  }
+
+  def packageJson: T[TypeScriptModule.PackageJson] = Task { PackageJson() }
+
   // test methods :)
 
   private[javascriptlib] def coverageDirs: T[Seq[String]] = Task { Seq.empty[String] }
@@ -785,6 +809,8 @@ trait TypeScriptModule extends Module { outer =>
         (
           "npm",
           "install",
+          "--prefix",
+          ".",
           "--userconfig",
           ".npmrc",
           "--save-dev",
@@ -802,4 +828,99 @@ trait TypeScriptModule extends Module { outer =>
 
   }
 
+}
+
+object TypeScriptModule {
+  case class PackageJson(
+      name: String = "",
+      version: String = "",
+      description: String = "",
+      main: String = "",
+      module: String = "",
+      `type`: String = "",
+      types: String = "",
+      author: String = "",
+      license: mill.scalalib.publish.License = mill.scalalib.publish.License.MIT,
+      homepage: String = "",
+      bin: ujson.Obj = ujson.Obj(),
+      files: ujson.Arr = Seq.empty[String],
+      scripts: ujson.Obj = ujson.Obj(),
+      engines: ujson.Obj = ujson.Obj(),
+      keywords: ujson.Arr = Seq.empty[String],
+      repository: ujson.Obj = ujson.Obj(),
+      bugs: ujson.Obj = ujson.Obj(),
+      dependencies: ujson.Obj = ujson.Obj(),
+      devDependencies: ujson.Obj = ujson.Obj(),
+      publishConfig: ujson.Obj = ujson.Obj(),
+      exports: ujson.Obj = ujson.Obj(),
+      typesVersions: ujson.Obj = ujson.Obj(),
+      `private`: Boolean = false,
+      peerDependencies: ujson.Obj = ujson.Obj(),
+      optionalDependencies: ujson.Obj = ujson.Obj(),
+      overrides: ujson.Obj = ujson.Obj(),
+      funding: ujson.Obj = ujson.Obj(),
+      contributors: ujson.Arr = Seq.empty[String],
+      sideEffects: Boolean = false,
+      resolutions: ujson.Obj = ujson.Obj()
+  ) {
+    def cleanJson: ujson.Value = removeEmptyValues(ujson.Obj(
+      "name" -> name,
+      "version" -> version,
+      "description" -> description,
+      "main" -> main,
+      "module" -> module,
+      "type" -> `type`,
+      "types" -> types,
+      "files" -> files,
+      "scripts" -> scripts,
+      "bin" -> bin,
+      "engines" -> engines,
+      "keywords" -> keywords,
+      "author" -> author,
+      "license" -> license.id,
+      "repository" -> repository,
+      "bugs" -> bugs,
+      "homepage" -> homepage,
+      "dependencies" -> dependencies,
+      "devDependencies" -> devDependencies,
+      "publishConfig" -> publishConfig,
+      "exports" -> exports,
+      "typesVersions" -> typesVersions,
+      "private" -> `private`,
+      "peerDependencies" -> peerDependencies,
+      "optionalDependencies" -> optionalDependencies,
+      "overrides" -> overrides,
+      "funding" -> funding,
+      "contributors" -> contributors,
+      "sideEffects" -> sideEffects,
+      "resolutions" -> resolutions
+    ))
+  }
+
+  object PackageJson {
+    implicit val rw: upickle.default.ReadWriter[PackageJson] = upickle.default.macroRW
+  }
+
+  private def removeEmptyValues(json: ujson.Value): ujson.Value = {
+    json match {
+      case obj: ujson.Obj =>
+        val filtered = obj.value.filterNot { case (_, v) => isEmptyValue(v) }
+        val transformed = filtered.map { case (k, v) => k -> removeEmptyValues(v) }
+        if (transformed.isEmpty) ujson.Null else ujson.Obj.from(transformed)
+      case arr: ujson.Arr =>
+        val filtered = arr.value.filterNot(isEmptyValue)
+        val transformed = filtered.map(removeEmptyValues)
+        if (transformed.isEmpty) ujson.Null else ujson.Arr(transformed)
+      case str: ujson.Str if str.value.isEmpty => ujson.Null // Added to remove empty strings
+      case other => other
+    }
+  }
+
+  private def isEmptyValue(json: ujson.Value): Boolean = {
+    json match {
+      case ujson.Str("") | ujson.Null => true
+      case _: ujson.Obj | _: ujson.Arr => removeEmptyValues(json) == ujson.Null // crucial check
+      case _ => false
+    }
+  }
 }

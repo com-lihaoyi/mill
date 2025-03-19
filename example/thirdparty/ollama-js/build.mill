@@ -1,10 +1,83 @@
+//// The Ollama JavaScript library provides the easiest way to integrate
+//// your JavaScript project with Ollama. https://github.com/ollama/ollama.
+//
+//// Project home: https://github.com/ollama/ollama-js
+
+//// Project Layout:
+
+//// SNIPPET:BUILD
+// [source,text]
+// ----
+// <project-root>
+// examples/
+// src/
+// test/
+// package.json
+// tsconfig.json
+//// SNIPPET:END
+
 package build
 
 import mill._, javascriptlib._
-import os.*
+import os._
 import ujson._
 
 trait OllamaModule extends TypeScriptModule {
+  def moduleName = "ollama"
+  def npmDeps = Seq("whatwg-fetch@3.6.20")
+  def npmDevDeps = Seq(
+    "@swc/core@1.10.12",
+    "@types/whatwg-fetch@0.0.33",
+    "unbuild@2.0.0"
+  )
+
+  def packageMeta = PackageMeta(
+    name = "ollama",
+    version = "0.0.0",
+    description = "Ollama Javascript library",
+    main = "dist/index.cjs",
+    module = "dist/index.mjs",
+    types = "dist/index.d.ts",
+    exports = ujson.Obj(
+      "." -> ujson.Obj(
+        "require" -> "./dist/index.cjs",
+        "import" -> "./dist/index.mjs",
+        "types" -> "./dist/index.d.ts"
+      ),
+      "./browser" -> ujson.Obj(
+        "require" -> "./dist/browser.cjs",
+        "import" -> "./dist/browser.mjs",
+        "types" -> "./dist/browser.d.ts"
+      ),
+      "./*" -> "./*"
+    )
+  )
+
+  def options =
+    super.options() + (
+      "ts-node" -> ujson.Obj(
+        "swc" -> ujson.True,
+        "esm" -> ujson.True
+      )
+    )
+
+  def compilerOptions =
+    super.compilerOptions() + (
+      "noImplicitAny" -> ujson.True,
+      "noImplicitThis" -> ujson.True,
+      "strictNullChecks" -> ujson.True,
+      "declarationMap" -> ujson.True,
+      "skipLibCheck" -> ujson.True,
+      "strict" -> ujson.True,
+      "forceConsistentCasingInFileNames" -> ujson.True,
+      "module" -> ujson.Str("ES2022"),
+      "target" -> ujson.Str("es6"),
+      "lib" -> ujson.Arr.from(Seq("es6", "es2018.asyncgenerator", "dom"))
+    )
+
+  // disable declarations output in compile stage
+  def runTypeCheck = false
+
   // bundle ollama with `unbuild`
   def unbuild = Task {
     createNodeModulesSymlink()
@@ -31,6 +104,7 @@ trait ExampleModule extends TypeScriptModule {
 
 trait EsmModule extends ExampleModule {
   def enableEsm = true
+  def runTypeCheck = false
 }
 
 trait Es6Module extends ExampleModule {
@@ -43,14 +117,6 @@ trait Es6Module extends ExampleModule {
 }
 
 object `package` extends RootModule with OllamaModule with TsLintModule {
-  def moduleName = "core"
-  def npmDeps = Seq("whatwg-fetch@3.6.20")
-  def npmDevDeps = Seq(
-    "@swc/core@1.10.12",
-    "@types/whatwg-fetch@0.0.33",
-    "unbuild@2.0.0"
-  )
-
   def npmLintDeps = Seq(
     "prettier@3.2.4",
     "eslint@8.29.0",
@@ -58,68 +124,44 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
     "@typescript-eslint/parser@5.42.1"
   )
 
-  // disable declarations output in compile stage
-  def runTypeCheck: T[Boolean] = false
-
   object test extends TypeScriptTests with TestModule.Vitest
 
   object examples extends TypeScriptModule {
     object abort extends ExampleModule {
       def unmanagedDeps = Seq(unbuild())
-      def mainFileName = s"abort-all-requests.ts"
+      def mainFileName = "abort-all-requests.ts"
     }
 
     object `fill-in-middle` extends EsmModule {
       def unmanagedDeps = Seq(unbuild())
-      def mainFileName = s"fill.ts"
+      def mainFileName = "fill.ts"
     }
 
     object multimodal extends EsmModule {
       def unmanagedDeps = Seq(unbuild())
-      def mainFileName = s"multimodal.ts"
+      def mainFileName = "multimodal.ts"
     }
 
     object `pull-progress` extends EsmModule {
       def unmanagedDeps = Seq(unbuild())
-      def mainFileName = s"pull.ts"
+      def mainFileName = "pull.ts"
     }
 
     object structured_outputs extends Es6Module {
       def unmanagedDeps = Seq(unbuild())
       def npmDeps = Seq("zod@3.24.1", "zod-to-json-schema@3.24.1")
-      def mainFileName = s"structured-outputs.ts"
+      def mainFileName = "structured-outputs.ts"
     }
 
     object tools extends Es6Module {
       def unmanagedDeps = Seq(unbuild())
-      def mainFileName = s"calculator.ts"
+      def mainFileName = "calculator.ts"
     }
   }
 }
 
-//// The Ollama JavaScript library provides the easiest way to integrate
-//// your JavaScript project with Ollama. https://github.com/ollama/ollama.
-//
-//// Project home: https://github.com/ollama/ollama-js
-
-//// Project Layout:
-
-//// SNIPPET:BUILD
-// [source,text]
-// ----
-// <project-root>
-// examples/
-// src/
-// test/
-// package.json
-// tsconfig.json
-//// SNIPPET:END
-
-// Mill will auto-generate configuration files like `tsconfig.json` and `package.json`,
-// but if the files are provided, mill would use the user provided json files instead.
-
 //// `unbuild`:
-// The `unbuild` task defined in `OllamaModule`, uses the `unbuild` npm package to bundle the ollama-js project
+// The `unbuild` task defined in `OllamaModule`, uses the `unbuild` npm package to bundle the ollama-js project,
 // it then prepares the output to be used as an unmanaged dependency `unmanagedDeps` for our example projects.
 // See: https://github.com/unjs/unbuild
 
@@ -134,7 +176,7 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 // `EsmModule` enables esm, defining `compilerOptions` for select project with esm features,
 // while the `Es6Module` defines compilerOptions for projects with `es6` features.
 
-// Ordinalrily the compile stages `mill compile` would build our `declarations` and or `dist` files (depending on configurations),
+// Ordinarily the compile stages `mill compile` would build our `declarations` and or `dist` files (depending on configurations),
 // but since we intend to use `unbuild` task to handle bundling we don't need this output
 // from running the `tsc` command. We can turn of its generation by settig the task `runTypeCheck` to false.
 

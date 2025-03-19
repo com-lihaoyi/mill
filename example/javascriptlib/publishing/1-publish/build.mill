@@ -1,19 +1,20 @@
 package build
 
 import mill._, javascriptlib._
+import ujson._
 
 object foo extends PublishModule {
-  def publishMeta = Task {
-    PublishMeta(
-      name = "mill-simple",
-      version = "1.0.0",
-      description = "A simple Node.js command-line tool",
-      files = Seq("README.md"),
-      bin = Map(
-        "greet" -> "src/foo.js"
-      )
+  def pubBundledOut = "dist"
+  def packageJson = PackageJson(
+    name = "mill-simple",
+    version = "1.0.0",
+    description = "A simple Node.js command-line tool",
+    files = Seq("README.md"),
+    bin = ujson.Obj(
+      "greet" -> s"${pubBundledOut()}/src/foo.js"
     )
-  }
+  )
+
 }
 
 // You'll need to define some metadata in the `publishMeta` tasks.
