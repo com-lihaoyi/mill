@@ -2,11 +2,25 @@
   "items": [
     {
       "target": {
-        "uri": "file:///workspace/app"
+        "uri": "file:///workspace/hello-java"
+      },
+      "sources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala"
       },
       "sources": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.15/logback-core-1.5.15-sources.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16-sources.jar"
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>-sources.jar"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "sources": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/<kotlin-version>/kotlin-stdlib-<kotlin-version>-sources.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>-sources.jar"
       ]
     },
     {
@@ -21,25 +35,11 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/hello-java"
-      },
-      "sources": []
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/hello-kotlin"
+        "uri": "file:///workspace/app"
       },
       "sources": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/<kotlin-version>/kotlin-stdlib-<kotlin-version>-sources.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>-sources.jar"
-      ]
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/hello-scala"
-      },
-      "sources": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>-sources.jar"
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.15/logback-core-1.5.15-sources.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16-sources.jar"
       ]
     }
   ]

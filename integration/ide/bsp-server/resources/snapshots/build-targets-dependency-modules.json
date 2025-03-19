@@ -2,16 +2,33 @@
   "items": [
     {
       "target": {
-        "uri": "file:///workspace/app"
+        "uri": "file:///workspace/hello-java"
+      },
+      "modules": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala"
       },
       "modules": [
         {
-          "name": "ch.qos.logback:logback-core",
-          "version": "1.5.15"
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "modules": [
+        {
+          "name": "org.jetbrains.kotlin:kotlin-stdlib",
+          "version": "<kotlin-version>"
         },
         {
-          "name": "org.slf4j:slf4j-api",
-          "version": "2.0.16"
+          "name": "org.jetbrains:annotations",
+          "version": "13.0"
         }
       ]
     },
@@ -36,33 +53,16 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/hello-java"
-      },
-      "modules": []
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/hello-kotlin"
+        "uri": "file:///workspace/app"
       },
       "modules": [
         {
-          "name": "org.jetbrains.kotlin:kotlin-stdlib",
-          "version": "<kotlin-version>"
+          "name": "ch.qos.logback:logback-core",
+          "version": "1.5.15"
         },
         {
-          "name": "org.jetbrains:annotations",
-          "version": "13.0"
-        }
-      ]
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/hello-scala"
-      },
-      "modules": [
-        {
-          "name": "org.scala-lang:scala-library",
-          "version": "<scala-version>"
+          "name": "org.slf4j:slf4j-api",
+          "version": "2.0.16"
         }
       ]
     }
