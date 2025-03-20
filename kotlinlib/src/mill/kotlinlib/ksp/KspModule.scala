@@ -83,6 +83,14 @@ trait KspModule extends KotlinModule { outer =>
   def kspApClasspath: T[Seq[PathRef]] = Task {
     kotlinSymbolProcessorsResolved()
   }
+  
+  /** The sources for being used in KSP, in case
+   * the user wants to separate KSP specific sources
+   * from others. Defaults to [[sources]] (i.e. no splitting)
+   */
+  def kspSources: T[Seq[PathRef]] = Task {
+    sources()
+  }
 
   /**
    * The classpath when running Kotlin Symbol processing
@@ -117,7 +125,7 @@ trait KspModule extends KotlinModule { outer =>
    * for the main compile task.
    */
   def generateSourcesWithKSP: Target[GeneratedKSPSources] = Task {
-    val sourceFiles = sources().map(_.path).flatMap(os.walk(_))
+    val sourceFiles = kspSources().map(_.path).flatMap(os.walk(_))
 
     val compileCp = compileClasspath().map(_.path).filter(os.exists)
 
