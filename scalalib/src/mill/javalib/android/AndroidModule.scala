@@ -13,7 +13,7 @@ import scala.xml.XML
 
 trait AndroidModule extends JavaModule {
 
-  private val parent: AndroidModule = this
+  this
   private val rClassDirName = "RClass"
   private val compiledResourcesDirName = "compiled-resources"
 
@@ -62,7 +62,7 @@ trait AndroidModule extends JavaModule {
    *
    * This option will probably go away in the future once build variants are supported.
    */
-  def androidIsDebug: T[Boolean] = false
+  def androidIsDebug: T[Boolean] = true
 
   /**
    * The minimum SDK version to use. Default is 1.
@@ -643,6 +643,8 @@ trait AndroidModule extends JavaModule {
     }
 
     Seq(
+      "--min-sdk-version",
+      androidMinSdk().toString,
       "--ks",
       androidKeystore().path.toString,
       "--ks-key-alias",
@@ -706,188 +708,248 @@ trait AndroidModule extends JavaModule {
     PathRef(signedApk)
   }
 
+  /** Whether we are building an application (APK) or a library (AAR) */
+  def isApplication: T[Boolean] = Task {
+    true
+  }
 
-    /** Whether we are building an application (APK) or a library (AAR) */
-    def isApplication: T[Boolean] = Task {
-      true
-    }
+  /** ProGuard/R8 rules configuration files (user-provided and generated) */
+  def proguardConfigs: T[Seq[PathRef]] = {
+    Seq(
+      PathRef(moduleDir / "proguard-rules.pro"),
+      PathRef(androidDex().path / "proguard-rules.pro")
+    )
+  }
 
+  // Additional library classes (if any) that should be treated as provided
+  def libraryClasses: T[Seq[PathRef]] = T {
+    Seq(
+      androidSdkModule().androidJarPath(),
+      androidSdkModule().r8LibPath(),
+      androidSdkModule().r8LibClasspath(),
+      androidSdkModule().androidCoreModulesPath(),
+      androidSdkModule().androidOptionalApacheHttpLegacy(),
+      androidSdkModule().androidOptionalCar(),
+      androidSdkModule().androidOptionalTestMock(),
+      androidSdkModule().androidOptionalTestBase(),
+      androidSdkModule().androidOptionalTestRunner()
+    )
+  }
 
-    /** ProGuard/R8 rules configuration files (user-provided and generated) */
-    def proguardConfigs: T[Seq[PathRef]] = {
-      Seq(PathRef(moduleDir / "proguard-rules.pro"),
-        PathRef(androidDex().path / "proguard-rules.pro")
-      )
-    }
+  /** Toggle desugaring in R8 (usually true for full R8 mode when minSdk < 24) */
+  def enableDesugaring: T[Boolean] = Task {
+    true
+  }
 
-    // Additional library classes (if any) that should be treated as provided
-    def libraryClasses: T[Seq[PathRef]] = T {
-      Seq(androidSdkModule().androidJarPath(),
-        androidSdkModule().r8LibPath(),
-        androidSdkModule().r8LibClasspath(),
-        androidSdkModule().androidCoreModulesPath(),
-        androidSdkModule().androidOptionalApacheHttpLegacy(),
-        androidSdkModule().androidOptionalCar(),
-        androidSdkModule().androidOptionalTestMock(),
-        androidSdkModule().androidOptionalTestBase(),
-        androidSdkModule().androidOptionalTestRunner()
-      )
-    }
+  // Optional multi-dex rules or main-dex list files for legacy multidex support
+  def mainDexRules: T[Option[PathRef]] = T {
+    Some(PathRef(androidResources()._1.path / "main-dex-rules.pro"))
+  }
 
-    /** Toggle desugaring in R8 (usually true for full R8 mode when minSdk < 24) */
-    def enableDesugaring: T[Boolean] = Task {
-      true
-    }
+  def mainDexList: T[Option[PathRef]] = T {
+    None
+  }
 
-    // Optional multi-dex rules or main-dex list files for legacy multidex support
-    def mainDexRules: T[Option[PathRef]] = T {
-      Some(PathRef(androidResources()._1.path / "main-dex-rules.pro"))
-    }
+  def mainDexListOutput: T[Option[PathRef]] = T {
+    Some(PathRef(Task.dest / "runR8.dest/minify/main-dex-list-output.txt"))
+  }
 
-    def mainDexList: T[Option[PathRef]] = T {
-      None
-    }
+  // Optional baseline profile for ART rewriting
+  def baselineProfile: T[Option[PathRef]] = T {
+    None
+  }
 
-    def mainDexListOutput: T[Option[PathRef]] = T {
-      Some(PathRef(Task.dest  / "runR8.dest/minify/main-dex-list-output.txt"))
-    }
+  def runR8: T[PathRef] = Task {
 
-    // Optional baseline profile for ART rewriting
-    def baselineProfile: T[Option[PathRef]] = T {
-      None
-    }
+    val destDir = Task.dest / "minify"
+    os.makeDir.all(destDir)
 
+    // Determine primary output:
+    // For apps, R8 will output DEX files into destDir (classes.dex, classes2.dex, ...).
+    // For libraries, R8 outputs a shrunk class jar.
+    val outputPath = if (isApplication()) destDir
+    else destDir / "classes-shrunk.jar"
 
-    def runR8: T[PathRef] = Task {
+    T.log.debug("outptuPath: " + outputPath)
 
-      val destDir = Task.dest / "minify"
-      os.makeDir.all(destDir)
+    // Define diagnostic output file paths
+    val mappingOut = destDir / "mapping.txt"
+    val seedsOut = destDir / "seeds.txt"
+    val usageOut = destDir / "usage.txt"
+    val configOut = destDir / "configuration.txt"
+    destDir / "missing_rules.txt"
+    val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
+    destDir / "res"
 
-      // Determine primary output:
-      // For apps, R8 will output DEX files into destDir (classes.dex, classes2.dex, ...).
-      // For libraries, R8 outputs a shrunk class jar.
-      val outputPath = if (isApplication()) destDir
-      else destDir / "classes-shrunk.jar"
+    // Create an extra ProGuard config file that instructs R8 to print seeds and usage.
+    val extraRulesFile = destDir / "extra-rules.pro"
+    val extraRulesContent =
+      s"""-printseeds ${seedsOut.toString}
+         |-printusage ${usageOut.toString}
+         |""".stripMargin.trim
+    os.write.over(extraRulesFile, extraRulesContent)
 
-      T.log.debug("outptuPath: " + outputPath)
+    // Get the list of all class files to be processed by R8
+    super.compileClasspath().map(_.path).filter(os.isDir)
+      .flatMap(os.walk(_))
+      .filter(os.isFile)
+      .filter(_.ext == "class")
+      .map(_.toString())
 
-
-      // Define diagnostic output file paths
-      val mappingOut = destDir / "mapping.txt"
-      val seedsOut = destDir / "seeds.txt"
-      val usageOut = destDir / "usage.txt"
-      val configOut = destDir / "configuration.txt"
-      val missingRulesOut = destDir / "missing_rules.txt"
-      val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
-      val res = destDir / "res"
-
-
-      // Create an extra ProGuard config file that instructs R8 to print seeds and usage.
-      val extraRulesFile = destDir / "extra-rules.pro"
-      val extraRulesContent =
-        s"""-printseeds ${seedsOut.toString}
-            |-printusage ${usageOut.toString}
-            |""".stripMargin.trim
-      os.write.over(extraRulesFile, extraRulesContent)
-
-      // Get the list of all class files to be processed by R8
-      val inheritedClassFiles = super.compileClasspath().map(_.path).filter(os.isDir)
-        .flatMap(os.walk(_))
-        .filter(os.isFile)
-        .filter(_.ext == "class")
-        .map(_.toString())
-
-      val appCompiledFiles = os.walk(compile().classes.path)
-        .filter(_.ext == "class")
-        .map(_.toString)
+    val appCompiledFiles = os.walk(compile().classes.path)
+      .filter(_.ext == "class")
+      .map(_.toString)
 //        ++ inheritedClassFiles
 
-      T.log.debug(s"appCompiledFiles: ${appCompiledFiles}")
+    T.log.debug(s"appCompiledFiles: ${appCompiledFiles}")
 
+    val r8ArgsBuilder = Seq.newBuilder[String]
 
-      val r8ArgsBuilder = Seq.newBuilder[String]
+    r8ArgsBuilder += androidSdkModule().r8Path().path.toString
 
-      r8ArgsBuilder += androidSdkModule().r8Path().path.toString
+    if (androidIsDebug()) {
+      r8ArgsBuilder += "--debug"
+    } else {
+      r8ArgsBuilder += "--release"
+    }
 
-      if (androidIsDebug()) {
-        r8ArgsBuilder += "--debug"
-      } else {
-        r8ArgsBuilder += "--release"
-      }
+    r8ArgsBuilder ++= Seq(
+      "--output",
+      outputPath.toString,
+      "--pg-map-output",
+      mappingOut.toString,
+      "--pg-conf-output",
+      configOut.toString
+    )
 
+    if (!enableDesugaring()) {
+      r8ArgsBuilder += "--no-desugaring"
+    }
+
+    if (isApplication()) {
       r8ArgsBuilder ++= Seq(
-        "--output",
-        outputPath.toString,
-        "--pg-map-output",
-        mappingOut.toString,
-        "--pg-conf-output",
-        configOut.toString
+        "--min-api",
+        androidMinSdk().toString,
+        "--dex"
       )
+    } else {
+      r8ArgsBuilder += "--classfile"
+    }
 
-      if (!enableDesugaring()) {
-        r8ArgsBuilder += "--no-desugaring"
-      }
-
-      if(isApplication()) {
-        r8ArgsBuilder ++= Seq(
-          "--min-api",
-          androidMinSdk().toString,
-          "--dex"
-        )
-      } else{
-        r8ArgsBuilder += "--classfile"
-      }
-
-      // Multi-dex arguments (if any are provided)
-      val multiDexArgs = mainDexRules().toSeq.flatMap(r => Seq("--main-dex-rules", r.path.toString)) ++
+    // Multi-dex arguments (if any are provided)
+    val multiDexArgs =
+      mainDexRules().toSeq.flatMap(r => Seq("--main-dex-rules", r.path.toString)) ++
         mainDexList().toSeq.flatMap(l => Seq("--main-dex-list", l.path.toString)) ++
-      mainDexListOutput().toSeq.flatMap(l => Seq("--main-dex-list-output", l.path.toString))
+        mainDexListOutput().toSeq.flatMap(l => Seq("--main-dex-list-output", l.path.toString))
 
+    r8ArgsBuilder ++= multiDexArgs
 
-      r8ArgsBuilder ++= multiDexArgs
+    // Baseline profile rewriting arguments, if a baseline profile is provided.
+    val baselineArgs = baselineProfile().map { bp =>
+      Seq("--art-profile", bp.path.toString, baselineOutOpt.toString)
+    }.getOrElse(Seq.empty)
 
+    r8ArgsBuilder ++= baselineArgs
 
-      // Baseline profile rewriting arguments, if a baseline profile is provided.
-      val baselineArgs = baselineProfile().map { bp =>
-        Seq("--art-profile", bp.path.toString, baselineOutOpt.toString)
-      }.getOrElse(Seq.empty)
-
-      r8ArgsBuilder ++= baselineArgs
-
-      val (resInputRef, resOutputRef) = androidResources()
+    val (resInputRef, resOutputRef) = androidResources()
 //      r8ArgsBuilder ++= Seq("--android-resources", (resInputRef.path / "compiled-resources/main.zip").toString, res.toString)
 //      r8ArgsBuilder ++= Seq("--android-resources", "/home/irodotos/TestMInify/app/build/intermediates/merged_java_res/release/mergeReleaseJavaResource/base.jar")
 
-      // Library arguments: pass each bootclasspath and any additional library classes as --lib.
-      val libArgs = libraryClasses().flatMap(ref => Seq("--lib", ref.path.toString))
+    // Library arguments: pass each bootclasspath and any additional library classes as --lib.
+    val libArgs = libraryClasses().flatMap(ref => Seq("--lib", ref.path.toString))
 
-      r8ArgsBuilder ++= libArgs
+    r8ArgsBuilder ++= libArgs
 
+    // ProGuard configuration files: add our extra rules file and all provided config files.
+    val pgArgs = Seq("--pg-conf", extraRulesFile.toString) ++
+      proguardConfigs().flatMap(cfg => Seq("--pg-conf", cfg.path.toString))
 
-      // ProGuard configuration files: add our extra rules file and all provided config files.
-      val pgArgs = Seq("--pg-conf", extraRulesFile.toString) ++
-        proguardConfigs().flatMap(cfg => Seq("--pg-conf", cfg.path.toString))
+    r8ArgsBuilder ++= pgArgs
 
-      r8ArgsBuilder ++= pgArgs
+    r8ArgsBuilder ++= appCompiledFiles
 
-      r8ArgsBuilder ++= appCompiledFiles
+    val r8Args = r8ArgsBuilder.result()
 
+    T.log.info(s"Running r8 with the command: ${r8Args.mkString(" ")}")
 
-      val r8Args = r8ArgsBuilder.result()
+    val result = os.call(r8Args)
 
-      T.log.info(s"Running r8 with the command: ${r8Args.mkString(" ")}")
+    T.log.info(result.out.text())
 
-      val result = os.call(r8Args)
-
-      T.log.info(result.out.text())
-
-      if (result.exitCode != 0) {
-        T.log.error(s"R8 failed with exit code ${result.exitCode}")
-        T.log.error(result.err.text())
-        throw new RuntimeException(s"R8 failed with exit code ${result.exitCode}")
-      }
-
-      PathRef(outputPath)
+    if (result.exitCode != 0) {
+      T.log.error(s"R8 failed with exit code ${result.exitCode}")
+      T.log.error(result.err.text())
+      throw new RuntimeException(s"R8 failed with exit code ${result.exitCode}")
     }
+
+    PathRef(outputPath)
+  }
+
+  def androidReleaseInstall: T[PathRef] = Task {
+    val unsignedApk = Task.dest / "app.unsigned.apk"
+    os.copy(androidResources()._1.path / "res.apk", unsignedApk)
+
+    val r8DexFiles = os.walk(runR8().path)
+      .filter(_.ext == "dex")
+      .map(os.zip.ZipSource.fromPath)
+    val metaInf = androidLibsClassesJarMetaInf()
+      .map(ref => {
+        def metaInfRoot(p: os.Path): os.Path = {
+          var current = p
+          while (!current.endsWith(os.rel / "META-INF")) {
+            current = current / os.up
+          }
+          current / os.up
+        }
+
+        val path = ref.path
+        os.zip.ZipSource.fromPathTuple((path, path.subRelativeTo(metaInfRoot(path))))
+      })
+      .distinctBy(_.dest.get)
+
+    os.zip(unsignedApk, r8DexFiles)
+    os.zip(unsignedApk, metaInf)
+
+//      PathRef(unsignedApk)
+
+    val alignedApk: os.Path = Task.dest / "app.aligned.apk"
+
+    os.call((
+      androidSdkModule().zipalignPath().path.toString,
+      "-f",
+      "-p",
+      "4",
+      unsignedApk.toString,
+      alignedApk
+    ))
+
+//      PathRef(alignedApk)
+
+    val signedApk = Task.dest / "app.apk"
+
+    val signArgs = Seq(
+      androidSdkModule().apksignerPath().path.toString,
+      "sign",
+      "--in",
+      alignedApk.toString,
+      "--out",
+      signedApk.toString
+    ) ++ androidSignKeyDetails()
+
+    T.log.info(s"Calling apksigner with arguments: ${signArgs.mkString(" ")}")
+
+    os.call(signArgs)
+
+//      PathRef(signedApk)
+
+    val emulator = runningEmulator()
+
+    os.call(
+      (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", signedApk.toString)
+    )
+
+    PathRef(signedApk)
+
+  }
 
 }

@@ -80,7 +80,9 @@ trait AndroidSdkModule extends Module {
 
   def androidOptionalApacheHttpLegacy: T[PathRef] = Task {
     installAndroidSdkComponents()
-    PathRef(sdkPath().path / "platforms" / platformsVersion() / "optional" / "org.apache.http.legacy.jar")
+    PathRef(
+      sdkPath().path / "platforms" / platformsVersion() / "optional" / "org.apache.http.legacy.jar"
+    )
   }
 
   def androidOptionalCar: T[PathRef] = Task {
@@ -90,17 +92,23 @@ trait AndroidSdkModule extends Module {
 
   def androidOptionalTestMock: T[PathRef] = Task {
     installAndroidSdkComponents()
-    PathRef(sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.mock.jar")
+    PathRef(
+      sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.mock.jar"
+    )
   }
 
   def androidOptionalTestBase: T[PathRef] = Task {
     installAndroidSdkComponents()
-    PathRef(sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.base.jar")
+    PathRef(
+      sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.base.jar"
+    )
   }
 
   def androidOptionalTestRunner: T[PathRef] = Task {
     installAndroidSdkComponents()
-    PathRef(sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.runner.jar")
+    PathRef(
+      sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.runner.jar"
+    )
   }
 
   /**
@@ -205,11 +213,11 @@ trait AndroidSdkModule extends Module {
   }
 
   def r8LibPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "cmdline-tools/latest/lib/r8.jar" )
+    PathRef(sdkPath().path / "cmdline-tools/latest/lib/r8.jar")
   }
 
   def r8LibClasspath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "cmdline-tools/latest/lib/r8-classpath.jar" )
+    PathRef(sdkPath().path / "cmdline-tools/latest/lib/r8-classpath.jar")
   }
 
   /**

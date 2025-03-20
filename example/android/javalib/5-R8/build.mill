@@ -20,7 +20,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Actual android application
-object app extends AndroidAppModule{
+object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
@@ -122,36 +122,8 @@ object app extends AndroidAppModule{
 
 > ./mill show app.startAndroidEmulator
 
-> ./mill show app.adbDevices
-...emulator-5554...device...
-
-> ./mill show app.it
-...
-[
-  "",
-  [
-    {
-      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "duration": ...,
-      "status": "Success"
-    }
-  ]
-]
-...
-
-> cat out/app/it/testTask.dest/test-report.xml
-...
-<?xml version='1.0' encoding='UTF-8'?>
-<testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
-        <testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="...">
-        <properties>
-      </properties>
-        <testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="...">
-        </testcase>
-      </testsuite>
-      </testsuites>
-...
+> ./mill show app.androidReleaseInstall
+...All files should be loaded. Notifying the device...
 
 > ./mill show app.stopAndroidEmulator
 
