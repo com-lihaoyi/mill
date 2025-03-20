@@ -19,7 +19,7 @@ private[scalalib] final class PrefixTrie[A](using CanEqual[A, A]) {
    */
   def insert(seq: Seq[A]): Unit = {
     var current = root
-    
+
     // Traverse the trie, creating new nodes as needed
     for (elem <- seq) {
       current = current.children.getOrElseUpdate(elem, new Node())
@@ -34,14 +34,14 @@ private[scalalib] final class PrefixTrie[A](using CanEqual[A, A]) {
    */
   def contains(prefix: Seq[A]): Boolean = {
     var current = root
-    
+
     for (elem <- prefix) {
       current.children.get(elem) match {
         case Some(node) => current = node
         case None => return false
       }
     }
-    
+
     true
   }
 
@@ -59,7 +59,7 @@ private[scalalib] final class PrefixTrie[A](using CanEqual[A, A]) {
       // Then clear the children map of this node
       node.children.clear()
     }
-    
+
     // Start the deep clear from the root
     deepClear(root)
   }
