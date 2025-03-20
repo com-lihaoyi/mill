@@ -47,7 +47,7 @@ trait KspModule extends KotlinModule { outer =>
   }
 
   override def generatedSources: T[Seq[PathRef]] = Task {
-    super.generatedSources() ++ generateSourcesWithKSP()
+    super.generatedSources() ++ generateSourcesWithKSP().sources
   }
 
   def kspPluginsResolved: T[Seq[PathRef]] = Task {
@@ -116,7 +116,7 @@ trait KspModule extends KotlinModule { outer =>
    * so that the generated  sources are in the [[compileClasspath]]
    * for the main compile task.
    */
-  def generateSourcesWithKSP: Target[Seq[PathRef]] = Task {
+  def generateSourcesWithKSP: Target[GeneratedKSPSources] = Task {
     val sourceFiles = sources().map(_.path).flatMap(os.walk(_))
 
     val compileCp = compileClasspath().map(_.path).filter(os.exists)
@@ -177,7 +177,7 @@ trait KspModule extends KotlinModule { outer =>
 
     kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
     
-    Seq(java, kotlin, resources, classes).map(PathRef(_))
+    GeneratedKSPSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
   }
 
   /**
@@ -186,4 +186,12 @@ trait KspModule extends KotlinModule { outer =>
   trait KspTests extends KspModule with KotlinTests {
     override def kspVersion: T[String] = outer.kspVersion
   }
+}
+
+case class GeneratedKSPSources(java: PathRef, kotlin: PathRef, resources: PathRef, classes: PathRef) {
+  def sources: Seq[PathRef] = Seq(java, kotlin)
+}
+
+object GeneratedKSPSources {
+  implicit def resultRW: upickle.default.ReadWriter[GeneratedKSPSources] = upickle.default.macroRW
 }
