@@ -163,12 +163,30 @@ abstract class MillBuildRootModule()(implicit
     super.callGraphAnalysisIgnoreCalls(callSiteOpt, calledSig) || isCommand || isMillDiscover
   }
 
-  def codeSignatures: T[Map[String, Int]] = Task {
-    val (analysisFolder, _) = callGraphAnalysis()
-    val transitiveCallGraphHashes0 = upickle.default.read[Map[String, Int]](
-      os.read.stream(analysisFolder / "transitiveCallGraphHashes0.json")
-    )
-    transitiveCallGraphHashes0
+  def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
+    os.remove.all(Task.dest / "previous")
+    if (os.exists(Task.dest / "current")) os.move.over(Task.dest / "current", Task.dest / "previous")
+
+    val debugEnabled = Task.log.debugEnabled
+
+    val callAnalysis = mill.codesig.CodeSig
+      .compute(
+        classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
+        upstreamClasspath = compileClasspath().toSeq.map(_.path),
+        ignoreCall = (callSiteOpt, calledSig) => callGraphAnalysisIgnoreCalls(callSiteOpt, calledSig),
+        logger = new mill.codesig.Logger(
+          Task.dest / "current",
+          Option.when(debugEnabled)(Task.dest / "current")
+        ),
+        prevTransitiveCallGraphHashesOpt = () =>
+          Option.when(os.exists(Task.dest / "previous/transitiveCallGraphHashes0.json"))(
+            upickle.default.read[Map[String, Int]](
+              os.read.stream(Task.dest / "previous/transitiveCallGraphHashes0.json")
+            )
+          )
+      )
+    
+    callAnalysis.transitiveCallGraphHashes
   }
 
   override def sources: T[Seq[PathRef]] = Task {

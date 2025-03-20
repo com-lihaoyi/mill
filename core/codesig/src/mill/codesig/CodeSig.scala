@@ -3,6 +3,36 @@ package mill.codesig
 import mill.codesig.JvmModel.*
 
 object CodeSig {
+
+  private def callGraphAnalysis(
+    classFiles: Seq[os.Path],
+    upstreamClasspath: Seq[os.Path],
+    ignoreCall: (Option[MethodDef], MethodSig) => Boolean
+  )(implicit st: SymbolTable): CallGraphAnalysis = {
+    val localSummary = LocalSummary.apply(classFiles.iterator.map(os.read.inputStream(_)))
+
+    val externalSummary = ExternalSummary.apply(localSummary, upstreamClasspath)
+
+    val resolvedMethodCalls = ResolvedCalls.apply(localSummary, externalSummary)
+
+    new CallGraphAnalysis(
+      localSummary,
+      resolvedMethodCalls,
+      externalSummary,
+      ignoreCall
+    )
+  }
+
+  def getCallGraphAnalysis(
+    classFiles: Seq[os.Path],
+    upstreamClasspath: Seq[os.Path],
+    ignoreCall: (Option[MethodDef], MethodSig) => Boolean
+  ): CallGraphAnalysis = {
+    implicit val st: SymbolTable = new SymbolTable()
+
+    callGraphAnalysis(classFiles, upstreamClasspath, ignoreCall)
+  }
+
   def compute(
       classFiles: Seq[os.Path],
       upstreamClasspath: Seq[os.Path],
@@ -11,23 +41,25 @@ object CodeSig {
       prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
   ): CallGraphAnalysis = {
     implicit val st: SymbolTable = new SymbolTable()
+    
+    val callAnalysis = callGraphAnalysis(classFiles, upstreamClasspath, ignoreCall)
 
-    val localSummary = LocalSummary.apply(classFiles.iterator.map(os.read.inputStream(_)))
-    logger.log(localSummary)
+    logger.log(callAnalysis.localSummary)
+    logger.log(callAnalysis.externalSummary)
+    logger.log(callAnalysis.resolved)
 
-    val externalSummary = ExternalSummary.apply(localSummary, upstreamClasspath)
-    logger.log(externalSummary)
+    logger.mandatoryLog(callAnalysis.methodCodeHashes)
+    logger.mandatoryLog(callAnalysis.prettyCallGraph)
+    logger.mandatoryLog(callAnalysis.transitiveCallGraphHashes0)
 
-    val resolvedMethodCalls = ResolvedCalls.apply(localSummary, externalSummary)
-    logger.log(resolvedMethodCalls)
+    logger.log(callAnalysis.transitiveCallGraphHashes)
 
-    new CallGraphAnalysis(
-      localSummary,
-      resolvedMethodCalls,
-      externalSummary,
-      ignoreCall,
-      logger,
-      prevTransitiveCallGraphHashesOpt
-    )
+    val spanningInvalidationTree = callAnalysis.calculateSpanningInvalidationTree {
+      prevTransitiveCallGraphHashesOpt()
+    }
+
+    logger.mandatoryLog(spanningInvalidationTree)
+
+    callAnalysis
   }
 }

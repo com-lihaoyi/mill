@@ -20,7 +20,7 @@ import mill.util.Jvm
 
 import os.Path
 import scala.util.Try
-import scala.collection.mutable
+
 /**
  * Core configuration required to compile a single Java compilation target
  */
@@ -95,44 +95,35 @@ trait JavaModule
         }
     }
 
-    def testQuick(args: String*): Command[(String, Seq[TestResult])] = Task.Command(persistent = true) {
-      val quicktestFailedClassesLog = Task.dest / "quickTestFailedClasses.log"
-      val (analysisFolder, previousAnalysisFolderOpt) = callGraphAnalysis()
+    @internal
+    override protected def callGraphAnalysisClasspath: Task[Seq[os.Path]] = Task.Anon {
+      (upstreamCompileOutput().map(_.classes.path) :+ compile().classes.path).distinct
+    }
+
+    @internal
+    override protected def callGraphAnalysisUpstreamClasspath: Task[Seq[os.Path]] = Task.Anon {
+      (Task.traverse(transitiveModuleCompileModuleDeps)(_.compileClasspath)().flatten.map(_.path) ++ compileClasspath().map(_.path)).distinct
+    }
+
+    def testQuick(args: String*): Command[(String, Seq[TestResult])] = Task.Command(persistent = true) {      
+      val quicktestFailedClassesLog = Task.dest / "quickTestFailedClasses.json"
+      val transitiveCallGraphHashes0 = Task.dest / "transitiveCallGraphHashes0.json"
+
+      val classFiles: Seq[os.Path] = callGraphAnalysisClasspath()
+        .flatMap(os.walk(_).filter(_.ext == "class"))
+        .distinct
+
+      val callAnalysis = mill.codesig.CodeSig
+        .getCallGraphAnalysis(
+          classFiles = classFiles,
+          upstreamClasspath = callGraphAnalysisUpstreamClasspath(),
+          ignoreCall = (callSiteOpt, calledSig) => callGraphAnalysisIgnoreCalls(callSiteOpt, calledSig)
+        )
       val testClasses = testForkGrouping()
-      val quickTestClassLists = previousAnalysisFolderOpt.fold {
-        // no previous analysis folder, all classes need to be tested
-        testClasses
-      } { _ =>
-        // get spanning invalidation tree content
-        val spanningInvalidationTreeObj = Try {
-          upickle.default.read[ujson.Obj](os.read.stream(analysisFolder / "spanningInvalidationTree.json"))
-        }.getOrElse(ujson.Obj())
-
-        // we cannot parse the json back to its concrete type, we only know that all of them are
-        // encoded with class name as prefix.
-        // so we can do a prefix checking to get the affected class.
-        // naive implementation won't work well as it has loop through all `testClasses` and check prefix
-        // for all of them, so we employ a prefix trie to speed up the prefix checking.
-
-        val jsonValueQueue = mutable.ArrayDeque[(String, ujson.Value)]()
-        val prefixTrie = new PrefixTrie[String]()
-        jsonValueQueue.appendAll(spanningInvalidationTreeObj.value)
-        while (jsonValueQueue.nonEmpty) {
-          val (nodeStr, value) = jsonValueQueue.removeHead()
-          val parts = nodeStr
-            .stripPrefix("def ")
-            .stripPrefix("call ")
-            .stripPrefix("external ")
-            .split("[\\.\\$\\!]")
-            .map(_.trim())
-            .toSeq
-          prefixTrie.insert(parts)
-          value match {
-            case ujson.Obj(fieldMap) => jsonValueQueue.appendAll(fieldMap)
-            case _ => ()
-          }
-        }
-
+      val (quickTestClassLists, invalidClassNames) = if (!os.exists(transitiveCallGraphHashes0)) {
+        // cannot calcuate invalid classes, so test all classes
+        testClasses -> Set.empty[String]
+      } else {
         val failedTestClasses =
           if (!os.exists(quicktestFailedClassesLog)) {
             Set.empty[String]
@@ -142,18 +133,15 @@ trait JavaModule
             }.getOrElse(Seq.empty[String]).toSet
           }
 
-        val result = testClasses.map(_.filter { testClassName =>
-          failedTestClasses.contains(testClassName) || {
-            val parts = testClassName
-              .split("\\.")
-              .map(_.trim())
-              .toSeq
-            prefixTrie.contains(parts)
-          }
-        }).filter(_.nonEmpty)
-        // help gc
-        prefixTrie.clear()  
-        result
+        val invalidClassNames = callAnalysis.calculateInvalidClassName {
+          Some(upickle.default.read[Map[String, Int]](os.read.stream(transitiveCallGraphHashes0)))
+        }
+
+        val testingClasses = invalidClassNames ++ failedTestClasses
+
+        testClasses
+          .map(_.filter(testingClasses.contains))
+          .filter(_.nonEmpty) -> invalidClassNames
       }
 
       // Clean up the directory for test runners
@@ -194,7 +182,9 @@ trait JavaModule
             .map(_.fullyQualifiedName)
       }
       
-      os.write.over(quicktestFailedClassesLog, upickle.default.write[Seq[String]](badTestClasses.distinct))
+      os.write.over(quicktestFailedClassesLog, upickle.default.write(badTestClasses.distinct))
+      os.write.over(transitiveCallGraphHashes0, upickle.default.write(callAnalysis.transitiveCallGraphHashes0))
+      os.write.over(Task.dest / "invalidClasses.json", upickle.default.write(invalidClassNames))
       
       results match {
         case Result.Failure(errMsg) => Result.Failure(errMsg)
@@ -1537,31 +1527,15 @@ trait JavaModule
     
     isSimpleTarget(calledSig.desc) && !isForwarderCallsiteOrLambda
   }
-  
-  // Return the directory containing the current call graph analysis results, and previous one too if it exists
-  def callGraphAnalysis: T[(Path, Option[Path])] = Task(persistent = true) {
-    os.remove.all(Task.dest / "previous")
-    if (os.exists(Task.dest / "current"))
-      os.move.over(Task.dest / "current", Task.dest / "previous")
-    val debugEnabled = Task.log.debugEnabled
-    mill.codesig.CodeSig
-      .compute(
-        classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
-        upstreamClasspath = compileClasspath().toSeq.map(_.path),
-        ignoreCall = (callSiteOpt, calledSig) => callGraphAnalysisIgnoreCalls(callSiteOpt, calledSig),
-        logger = new mill.codesig.Logger(
-          Task.dest / "current",
-          Option.when(debugEnabled)(Task.dest / "current")
-        ),
-        prevTransitiveCallGraphHashesOpt = () =>
-          Option.when(os.exists(Task.dest / "previous/transitiveCallGraphHashes0.json"))(
-            upickle.default.read[Map[String, Int]](
-              os.read.stream(Task.dest / "previous/transitiveCallGraphHashes0.json")
-            )
-          )
-      )
-    
-    (Task.dest / "current", Option.when(os.exists(Task.dest / "previous"))(Task.dest / "previous"))
+
+  @internal
+  protected def callGraphAnalysisClasspath: Task[Seq[os.Path]] = Task.Anon {
+    Seq(compile().classes.path)
+  }
+
+  @internal
+  protected def callGraphAnalysisUpstreamClasspath: Task[Seq[os.Path]] = Task.Anon {
+    compileClasspath().map(_.path)
   }
 }
 

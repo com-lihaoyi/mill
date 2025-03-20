@@ -2,18 +2,17 @@ package mill.codesig
 
 import mill.codesig.JvmModel.*
 import mill.internal.{SpanningForest, Tarjans}
-import ujson.Obj
+import ujson.{Obj, Arr}
 import upickle.default.{Writer, writer}
 
 import scala.collection.immutable.SortedMap
+import scala.collection.mutable
 
 class CallGraphAnalysis(
-    localSummary: LocalSummary,
-    resolved: ResolvedCalls,
-    externalSummary: ExternalSummary,
-    ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
-    logger: Logger,
-    prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
+    val localSummary: LocalSummary,
+    val resolved: ResolvedCalls,
+    val externalSummary: ExternalSummary,
+    ignoreCall: (Option[MethodDef], MethodSig) => Boolean
 )(implicit st: SymbolTable) {
 
   val methods: Map[MethodDef, LocalSummary.MethodInfo] = for {
@@ -40,16 +39,12 @@ class CallGraphAnalysis(
   lazy val methodCodeHashes: SortedMap[String, Int] =
     methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
 
-  logger.mandatoryLog(methodCodeHashes)
-
   lazy val prettyCallGraph: SortedMap[String, Array[CallGraphAnalysis.Node]] = {
     indexGraphEdges.zip(indexToNodes).map { case (vs, k) =>
       (k.toString, vs.map(indexToNodes))
     }
       .to(SortedMap)
   }
-
-  logger.mandatoryLog(prettyCallGraph)
 
   def transitiveCallGraphValues[V: scala.reflect.ClassTag](
       nodeValues: Array[V],
@@ -78,24 +73,66 @@ class CallGraphAnalysis(
     .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
     .to(SortedMap)
 
-  logger.mandatoryLog(transitiveCallGraphHashes0)
-  logger.log(transitiveCallGraphHashes)
-
-  lazy val spanningInvalidationTree: Obj = prevTransitiveCallGraphHashesOpt() match {
-    case Some(prevTransitiveCallGraphHashes) =>
-      CallGraphAnalysis.spanningInvalidationTree(
-        prevTransitiveCallGraphHashes,
-        transitiveCallGraphHashes0,
-        indexToNodes,
-        indexGraphEdges
-      )
-    case None => ujson.Obj()
+  def calculateSpanningInvalidationTree(
+    prevTransitiveCallGraphHashesOpt: => Option[Map[String, Int]]
+  ): Obj = {
+    prevTransitiveCallGraphHashesOpt match {
+      case Some(prevTransitiveCallGraphHashes) =>
+        CallGraphAnalysis.spanningInvalidationTree(
+          prevTransitiveCallGraphHashes,
+          transitiveCallGraphHashes0,
+          indexToNodes,
+          indexGraphEdges
+        )
+      case None => ujson.Obj()
+    }
   }
 
-  logger.mandatoryLog(spanningInvalidationTree)
+  def calculateInvalidClassName(
+    prevTransitiveCallGraphHashesOpt: => Option[Map[String, Int]]
+  ): Set[String] = {
+    prevTransitiveCallGraphHashesOpt match {
+      case Some(prevTransitiveCallGraphHashes) =>
+        CallGraphAnalysis.invalidClassNames(
+          prevTransitiveCallGraphHashes,
+          transitiveCallGraphHashes0,
+          indexToNodes,
+          indexGraphEdges
+        )
+      case None => Set.empty
+    }
+  }
 }
 
 object CallGraphAnalysis {
+
+  private def getSpanningForest(
+      prevTransitiveCallGraphHashes: Map[String, Int],
+      transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)],
+      indexToNodes: Array[Node],
+      indexGraphEdges: Array[Array[Int]]
+  ) = {
+    val transitiveCallGraphHashes0Map = transitiveCallGraphHashes0.toMap
+
+    val nodesWithChangedHashes = indexGraphEdges
+      .indices
+      .filter { nodeIndex =>
+        val currentValue = transitiveCallGraphHashes0Map(indexToNodes(nodeIndex))
+        val prevValue = prevTransitiveCallGraphHashes.get(indexToNodes(nodeIndex).toString)
+        !prevValue.contains(currentValue)
+      }
+      .toSet
+
+    val reverseGraphMap = indexGraphEdges
+      .zipWithIndex
+      .flatMap { case (vs, k) => vs.map((_, k)) }
+      .groupMap(_._1)(_._2)
+
+    val reverseGraphEdges =
+      indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array[Int]())).toArray
+
+    SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes, false)
+  }
 
   /**
    * Computes the minimal spanning forest of the that covers the nodes in the
@@ -116,29 +153,40 @@ object CallGraphAnalysis {
       indexToNodes: Array[Node],
       indexGraphEdges: Array[Array[Int]]
   ): ujson.Obj = {
-    val transitiveCallGraphHashes0Map = transitiveCallGraphHashes0.toMap
-
-    val nodesWithChangedHashes = indexGraphEdges
-      .indices
-      .filter { nodeIndex =>
-        val currentValue = transitiveCallGraphHashes0Map(indexToNodes(nodeIndex))
-        val prevValue = prevTransitiveCallGraphHashes.get(indexToNodes(nodeIndex).toString)
-        !prevValue.contains(currentValue)
-      }
-      .toSet
-
-    val reverseGraphMap = indexGraphEdges
-      .zipWithIndex
-      .flatMap { case (vs, k) => vs.map((_, k)) }
-      .groupMap(_._1)(_._2)
-
-    val reverseGraphEdges =
-      indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array[Int]())).toArray
-
     SpanningForest.spanningTreeToJsonTree(
-      SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes, false),
+      getSpanningForest(prevTransitiveCallGraphHashes, transitiveCallGraphHashes0, indexToNodes, indexGraphEdges),
       k => indexToNodes(k).toString
     )
+  }
+
+  /**
+   * Get all class names that have their hashcode changed compared to prevTransitiveCallGraphHashes
+   */
+  def invalidClassNames(
+      prevTransitiveCallGraphHashes: Map[String, Int],
+      transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)],
+      indexToNodes: Array[Node],
+      indexGraphEdges: Array[Array[Int]]
+  ): Set[String] = {
+    val rootNode = getSpanningForest(prevTransitiveCallGraphHashes, transitiveCallGraphHashes0, indexToNodes, indexGraphEdges)
+
+    val jsonValueQueue = mutable.ArrayDeque[(Int, SpanningForest.Node)]()
+    jsonValueQueue.appendAll(rootNode.values.toSeq)
+    val invalidClassNames = Set.newBuilder[String]
+    
+    while (jsonValueQueue.nonEmpty) {
+      val (nodeIndex, node) = jsonValueQueue.removeHead()
+      node.values.foreach { case (childIndex, childNode) =>
+        jsonValueQueue.append((childIndex, childNode))
+      }
+      indexToNodes(nodeIndex) match {
+        case CallGraphAnalysis.LocalDef(methodDef) => invalidClassNames.addOne(methodDef.cls.name)
+        case CallGraphAnalysis.Call(methodCall) => invalidClassNames.addOne(methodCall.cls.name)
+        case CallGraphAnalysis.ExternalClsCall(externalCls) => invalidClassNames.addOne(externalCls.name)
+      }
+    }
+
+    invalidClassNames.result()
   }
 
   def indexGraphEdges(
