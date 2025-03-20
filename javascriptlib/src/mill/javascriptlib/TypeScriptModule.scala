@@ -202,7 +202,7 @@ trait TypeScriptModule extends Module { outer =>
 
   }
 
-  private def tscCopyModDeps: Task[Unit] = Task.Anon {
+  private[javascriptlib] def tscCopyModDeps: Task[Unit] = Task.Anon {
     val targets =
       recModuleDeps.map { _.moduleDir.subRelativeTo(Task.workspace).segments.head }.distinct
 
@@ -218,7 +218,7 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   // mv generated sources for base mod and its deps
-  private def tscCopyGenSources: Task[Unit] = Task.Anon {
+  private[javascriptlib] def tscCopyGenSources: Task[Unit] = Task.Anon {
     def copyGeneratedSources(sourcePath: os.Path, destinationPath: os.Path): Unit = {
       os.makeDir.all(destinationPath / os.up)
       os.copy.over(sourcePath, destinationPath)
@@ -242,7 +242,7 @@ trait TypeScriptModule extends Module { outer =>
    * Link all external resources eg: `out/<mod>/resources.dest`
    * to `moduleDir / src / resources`
    */
-  private def tscLinkResources: Task[Unit] = Task.Anon {
+  private[javascriptlib] def tscLinkResources: Task[Unit] = Task.Anon {
     val dest = T.dest / "resources"
     if (!os.exists(dest)) os.makeDir.all(dest)
 
@@ -481,7 +481,7 @@ trait TypeScriptModule extends Module { outer =>
    */
   def customTsConfig: T[Boolean] = Task { true }
 
-  private def mkTsconfig: Task[Unit] = Task.Anon {
+  private[javascriptlib] def mkTsconfig: Task[Unit] = Task.Anon {
     val default: Map[String, ujson.Value] = Map(
       "compilerOptions" -> ujson.Obj.from(
         compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
@@ -664,13 +664,12 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   def bundle: T[PathRef] = Task {
-    createNodeModulesSymlink()
     val env = forkEnv()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundle = Task.dest / "bundle.js"
     val out = compile().path
 
-    os.walk(out, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
+    os.walk(out)
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
 
     os.write(

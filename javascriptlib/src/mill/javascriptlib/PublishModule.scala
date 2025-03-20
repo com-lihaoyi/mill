@@ -75,7 +75,11 @@ trait PublishModule extends TypeScriptModule {
     )
   }
 
-  // patch typescript
+  /**
+   * Patch tsc with custom transformer: `typescript-transform-paths`.
+   * `ts-paths` can now be transformed to their relative path in the
+   *  bundled code
+   */
   private def pubTsPatchInstall: T[Unit] = Task {
     os.call(
       ("node", npmInstall().path / "node_modules/ts-patch/bin/ts-patch", "install"),
@@ -84,29 +88,16 @@ trait PublishModule extends TypeScriptModule {
     ()
   }
 
-  private def pubSymLink: Task[Unit] = Task.Anon {
-    pubTsPatchInstall() // patch typescript compiler => use custom transformers
-
-    if (os.exists(npmInstall().path / ".npmrc"))
-      os.symlink(T.dest / ".npmrc", npmInstall().path / ".npmrc")
-  }
-
   override def compile: T[PathRef] = Task {
-    pubSymLink()
+    tscCopySources()
+    tscCopyModDeps()
+    tscCopyGenSources()
+    tscLinkResources()
+    pubTsPatchInstall()
     createNodeModulesSymlink()
+    mkTsconfig()
 
-    val out = super.compile().path
-
-    os.walk(
-      out,
-      skip = p =>
-        p.last == "node_modules" ||
-        p.last == "package-lock.json" ||
-        p.last == pubBundledOut()
-        p.last == declarationDir()
-    )
-      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
-
+    // build declaration and out dir
     os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
 
     PathRef(T.dest)
@@ -174,19 +165,14 @@ trait PublishModule extends TypeScriptModule {
   // EsBuild - END
 
   def publish(): Command[Unit] = Task.Command {
-    // build package.json
-    os.copy.over(pubPackageJson().path / "package.json", T.dest / "package.json")
-
     // bundled code for publishing
     val bundled = bundle().path / os.up
 
-    os.walk(
-      bundled,
-      skip = p =>
-        p.last == "node_modules" ||
-          p.last == "package-lock.json"
-    )
+    os.walk(bundled)
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(bundled), createFolders = true))
+
+    // build package.json
+    os.copy.over(pubPackageJson().path / "package.json", T.dest / "package.json")
 
     // run npm publish
     os.call(("npm", "publish"), stdout = os.Inherit, cwd = T.dest)

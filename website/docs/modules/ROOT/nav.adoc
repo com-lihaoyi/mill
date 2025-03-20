@@ -44,7 +44,7 @@
 *** xref:javascriptlib/testing.adoc[]
 *** xref:javascriptlib/linting.adoc[]
 *** xref:javascriptlib/publishing.adoc[]
-** xref:javascriptlib/build-examples.adoc[]
+*** xref:javascriptlib/build-examples.adoc[]
 ** Building Android Apps
 *** xref:android/java.adoc[]
 *** xref:android/kotlin.adoc[]
