@@ -745,8 +745,8 @@ same code and running the same tests in the same way.</p>
 </div>
 <div class="paragraph">
 <p>For the benchmarks below, each provided number is the median wall time of three consecutive runs
-on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
-Mill’s performance compares to Gradle:</p>
+on my M1 Macbook Pro with Java 17 and Mill <code>0.12.9-native</code>. While ad-hoc, these benchmarks are
+enough to give you a flavor of how Mill’s performance compares to Gradle:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -767,32 +767,32 @@ Mill’s performance compares to Gradle:</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_sequential_clean_compile_all">Sequential Clean Compile All</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">17.6s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.40s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.3x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.86s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_parallel_clean_compile_all">Parallel Clean Compile All</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">12.3s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.57s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.4x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.75s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.3x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_clean_compile_single_module">Clean Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">4.41s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.20s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.7x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.30s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.4x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_incremental_compile_single_module">Incremental Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1.37s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.51s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2.7x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.20s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.9x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_no_op_compile_single_module">No-Op Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0.94s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.46s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2.0x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.11s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8.5x</p></td>
 </tr>
 </tbody>
 </table>
@@ -812,9 +812,9 @@ we can explain the difference in performing the same task with the two different
 17.4s
 
 $ ./mill clean; time ./mill -j 1 __.compile
-5.60s
-5.40s
-6.13s</code></pre>
+6.19s
+5.86s
+5.28s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -859,9 +859,9 @@ on under the hood that I’m not aware of.</p>
 11.4s
 
 $ ./mill clean; time ./mill __.compile
-3.59s
-3.57s
-3.45s</code></pre>
+3.75s
+3.74s
+3.86s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -890,9 +890,9 @@ each tool.</p>
 4.41s
 
 $ ./mill clean; time ./mill compile
-1.20s
-1.12s
-1.30s</code></pre>
+1.30s
+1.90s
+1.13s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -917,9 +917,9 @@ the results above.</p>
 
 $ echo &quot;&quot; &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./mill compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-0.52s
-0.51s
-0.52s</code></pre>
+0.23s
+0.20s
+0.20s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -944,10 +944,10 @@ showing a ~2.7x speedup for this task</p>
 0.93s
 0.94s
 
-$ time ./mill common.compile
-0.46s
-0.50s
-0.45s</code></pre>
+$ time ./mill compile
+0.13s
+0.11s
+0.10s</code></pre>
 </div>
 </div>
 <div class="paragraph">

@@ -749,8 +749,8 @@ most workflows.</p>
 </div>
 <div class="paragraph">
 <p>For the benchmarks below, each provided number is the wall time of three consecutive runs
-on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
-Mill’s performance compares to Maven:</p>
+on my M1 Macbook Pro using Java 17 and Mill <code>0.12.9-native</code>. While ad-hoc, these benchmarks
+are enough to give you a flavor of how Mill’s performance compares to Maven:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -771,32 +771,32 @@ Mill’s performance compares to Maven:</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_sequential_clean_compile_all">Sequential Clean Compile All</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">98.80s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">23.14s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.3x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">23.41s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.2x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_parallel_clean_compile_all">Parallel Clean Compile All</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">48.92s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8.79s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9.29s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.3x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_clean_compile_single_module">Clean Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">4.89s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.11s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.4x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.88s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_incremental_compile_single_module">Incremental Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">6.82s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.54s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">12.6x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.18s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">37.9x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_no_op_compile_single_module">No-Op Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">5.25s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.47s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">11.2x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.12s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">43.8x</p></td>
 </tr>
 </tbody>
 </table>
@@ -816,9 +816,9 @@ we can explain the difference in performing the same task with the two different
 99.95s
 
 $ ./mill clean; time ./mill -j1 __.compile
-23.99s
-23.14s
-22.68s</code></pre>
+22.83s
+23.41s
+23.47s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -865,15 +865,15 @@ When used on reactor artifact, unpack should be executed after packaging: see MD
 to publish to it. That means Mill builds are able to work directly with classfiles on disk,
 simply referencing them and using them as-is without spending time packing and unpacking them
 into <code>.jar</code> files. Furthermore, even if we <em>did</em> want Mill to generate the <code>.jar</code>s, the
-overhead of doing so is just a few seconds, far less than the two entire minutes that
+overhead of doing so is just a few seconds, far less than the minutes that
 Maven’s overhead adds to the clean build:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill clean; time ./mill -j1 __.jar
-32.58s
-24.90s
-23.35s</code></pre>
+26.74s
+26.02s
+26.53s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -895,9 +895,9 @@ whereas Mill directly uses the classfiles generated on disk to bypass all that w
 49.50s
 
 $ ./mill clean; time ./mill __.compile
-9.07s
-8.79s
-7.93s</code></pre>
+10.95s
+8.51s
+9.29s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -922,9 +922,9 @@ when performing a clean build of the Netty repository.</p>
 4.89s
 
 $ ./mill clean common; time ./mill common.compile
-1.10s
-1.12s
-1.11s</code></pre>
+0.88s
+0.97s
+0.73s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -957,9 +957,9 @@ $ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant
 $ time ./mill common.test.compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 
-0.78s
-0.54s
-0.51s</code></pre>
+0.18s
+0.18s
+0.21s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1063,9 +1063,9 @@ the same thing in Maven</p>
 5.26s
 
 $ time ./mill common.test.compile
-0.49s
-0.47s
-0.45s</code></pre>
+0.14s
+0.12s
+0.12s</code></pre>
 </div>
 </div>
 <div class="paragraph">
