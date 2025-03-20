@@ -6,11 +6,19 @@ import mill.kotlinlib.android.AndroidHiltSupport.HiltGeneratedSources
 import mill.kotlinlib.ksp.KspModule
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.{T, Task}
+import os.Path
 
 import java.io.File
+import java.nio.file.{Files, StandardCopyOption}
 
 @mill.api.experimental
 trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
+
+  override def sources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+
+  override def kspSources: T[Seq[PathRef]] = Task { super.sources() }
+
+  override def generatedSources: T[Seq[PathRef]] = super[AndroidAppKotlinModule].generatedSources
 
   override def kspClasspath: T[Seq[PathRef]] =
    Seq(androidProcessResources()) ++ super.kspClasspath()
@@ -136,10 +144,14 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
     val kotlinClasspath = compileClasspath() :+ androidProcessResources()
 
+
+    val kotlinSourceFiles: Seq[Path] = kspSources().map(_.path).flatMap(os.walk(_))
+      .filter(path => Seq("kt", "kts").contains(path.ext.toLowerCase()))
+
     val compileWithKotlin = Seq(
       "-d", kotlinClasses.toString,
       "-classpath", kotlinClasspath.map(_.path).mkString(File.pathSeparator)
-    ) ++ kotlincOptions() ++ allKotlinSourceFiles().map(_.path.toString) ++
+    ) ++ kotlincOptions() ++ kotlinSourceFiles.map(_.toString) ++
       javaGeneratedSources.map(_.toString) ++
       Seq(daggerSources.toString, hiltAggregatedDepsSources.toString)
 
@@ -152,7 +164,6 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       "-Adagger.fastInit=enabled",
       "-Adagger.hilt.internal.useAggregatingRootProcessor=true",
       "-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true",
-      "-Aroom.incremental=true",
       "-g",
       "-XDuseUnsharedTable=true",
       "-proc:none",
@@ -213,7 +224,6 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       "-Adagger.fastInit=enabled",
       "-Adagger.hilt.internal.useAggregatingRootProcessor=false",
       "-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true",
-      "-Aroom.incremental=true",
       "-XDuseUnsharedTable=true",
       "-parameters",
       "-s", directory.toString,
@@ -255,16 +265,31 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       incrementalCompilation = false
     )
 
-    Seq(result.get.classes, compiledKspSources.javaCompiled, compiledKspSources.kotlinCompiled)
+    val mergedClasses = Task.dest / "merged_classes"
+    os.makeDir(mergedClasses)
+
+    def merge(path: os.Path, mergedClasses: os.Path = mergedClasses): Unit =
+      os.copy(path, mergedClasses, mergeFolders = true, replaceExisting = true)
+
+    // result classes have precedence over the compiledKspSources classes
+    merge(compiledKspSources.javaCompiled.path)
+    merge(compiledKspSources.kotlinCompiled.path)
+    merge(compiledKspSources.hiltAggregatedDepsCompiled.path, mergedClasses / "hilt_aggregated_deps")
+    merge(compiledKspSources.daggerSources.path, mergedClasses / "dagger")
+    merge(result.get.classes.path)
+
+    Seq(PathRef(mergedClasses))
 
   }
 
-  override def javaCompiledGeneratedSources: T[Seq[PathRef]] =
+  override def androidGeneratedCompiledClasses: T[Seq[PathRef]] =
     androidHiltGeneratedSources
 
   def hiltProcessorClasspath: T[Seq[PathRef]] = Task {
     kspApClasspath() ++ compileClasspath()
   }
+
+  override def kotlinPrecompiledClasses: Task[Seq[PathRef]] = androidGeneratedCompiledClasses
 }
 
 object AndroidHiltSupport {
