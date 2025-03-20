@@ -191,7 +191,7 @@ trait AndroidModule extends JavaModule {
     //
     // In Gradle terms using only `resolvedRunIvyDeps` won't be complete, because source modules can be also
     // api/implementation, but Mill has no such configurations.
-    val aarFiles = (super.compileClasspath() ++ super.resolvedRunIvyDeps())
+    val aarFiles = (super.compileClasspath() ++ resolvedRunIvyDeps())
       .map(_.path)
       .filter(_.ext == "aar")
       .distinct
