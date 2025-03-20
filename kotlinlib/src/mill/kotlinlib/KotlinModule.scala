@@ -49,6 +49,10 @@ trait KotlinModule extends JavaModule { outer =>
   def allJavaSourceFiles: T[Seq[PathRef]] = Task {
     allSourceFiles().filter(_.path.ext.toLowerCase() == "java")
   }
+  
+  def javaCompiledGeneratedSources: T[Seq[PathRef]] = Task {
+    Seq.empty[PathRef]
+  }
 
   /**
    * All individual Kotlin source files fed into the compiler.
@@ -293,7 +297,7 @@ trait KotlinModule extends JavaModule { outer =>
           worker = jvmWorkerRef().worker(),
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
-          compileCp = compileCp,
+          compileCp = compileCp ++ javaCompiledGeneratedSources().map(_.path),
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
           reportOldProblems = internalReportOldProblems()

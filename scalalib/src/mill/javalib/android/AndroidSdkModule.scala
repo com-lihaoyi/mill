@@ -61,6 +61,18 @@ trait AndroidSdkModule extends Module {
     s"https://github.com/google/bundletool/releases/download/${bundleToolVersion()}/bundletool-all-${bundleToolVersion()}.jar"
   }
 
+  /** The version of the jetifier standalone */
+  def jetifierStandaloneVersion: T[String] = "1.0.0-beta10"
+
+  /**
+   * URL to download jetifier-standalone
+   *
+   * For more information see [[https://developer.android.com/tools/jetifier]]
+   */
+  def jetifierStandaloneUrl: T[String] = Task {
+    s"https://dl.google.com/dl/android/studio/jetifier-zips/${jetifierStandaloneVersion()}/jetifier-standalone.zip"
+  }
+
   /**
    * Provides the path to the `bundleTool.jar` file, necessary for creating Android bundles.
    *
