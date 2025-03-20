@@ -1,11 +1,16 @@
-//// The Ollama JavaScript library provides the easiest way to integrate
-//// your JavaScript project with Ollama. https://github.com/ollama/ollama.
-//
-//// Project home: https://github.com/ollama/ollama-js
+// `ollam-js` library provides the easiest way to integrate
+// your JavaScript project with Ollama.
 
-//// Project Layout:
+// In this example we show how to integrate `ollama-js` with mill,
+// showing off mill's scalability with custom tasks and traits.
 
-//// SNIPPET:BUILD
+// Using custom tasks we build our library and then prepare the bundled code to be used
+// as an unmanaged dependcy (file-based package installation) for the mini example projects.
+
+// Project home: https://github.com/ollama/ollama-js
+
+// Project Layout:
+
 // [source,text]
 // ----
 // <project-root>
@@ -14,7 +19,6 @@
 // test/
 // package.json
 // tsconfig.json
-//// SNIPPET:END
 
 package build
 
@@ -102,6 +106,9 @@ trait OllamaModule extends TypeScriptModule {
   }
 }
 
+// Here we take advantage of mill to reduce boiler plate code, providing clean,
+// reusable traits specific to our many mini example usage projects found in `ollama-js` source.
+
 trait Examples extends TypeScriptModule {
   trait ExampleModule extends TypeScriptModule {
     def sources = Task.Sources(moduleDir)
@@ -187,7 +194,6 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 //// User Defined JSON:
 
 //// package.json
-//// SNIPPET:BUILD
 // [source,json]
 // ----
 // {
@@ -231,10 +237,8 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 //  }
 //}
 // ----
-//// SNIPPET:END
 
 //// tsconfig.json
-//// SNIPPET:BUILD
 // [source,json]
 // ----
 // {
@@ -269,7 +273,6 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
 //  "exclude": ["node_modules"]
 //}
 // ----
-//// SNIPPET:END
 
 /** Usage
 
