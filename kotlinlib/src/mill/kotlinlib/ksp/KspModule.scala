@@ -117,9 +117,9 @@ trait KspModule extends KotlinModule { outer =>
    * for the main compile task.
    */
   def generateSourcesWithKSP: Target[Seq[PathRef]] = Task {
-    val sourceFiles = sources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "kt")
+    val sourceFiles = sources().map(_.path).flatMap(os.walk(_))
 
-    val compileCp = kspClasspath().map(_.path)
+    val compileCp = compileClasspath().map(_.path).filter(os.exists)
 
     val pluginArgs: String = kspPluginsResolved().map(_.path)
       .mkString(",")
@@ -128,20 +128,23 @@ trait KspModule extends KotlinModule { outer =>
 
     val pluginOpt = s"plugin:${kspPluginId}"
 
-    val apClasspath = kspApClasspath().map(_.path).mkString(File.pathSeparator)
+    val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
 
     val kspProjectBasedDir = moduleDir
     val kspOutputDir = T.dest / "generated/ksp/main"
 
     val kspCachesDir = T.dest / "caches/main"
-
+    val java = kspOutputDir / "java"
+    val kotlin = kspOutputDir / "kotlin"
+    val resources = kspOutputDir / "resources"
+    val classes = kspOutputDir / "classes"
     val pluginConfigs = Seq(
       s"$pluginOpt:apclasspath=$apClasspath",
       s"$pluginOpt:projectBaseDir=${kspProjectBasedDir}",
-      s"$pluginOpt:classOutputDir=${kspOutputDir / "classes"}",
-      s"$pluginOpt:javaOutputDir=${kspOutputDir / "java"}",
-      s"$pluginOpt:kotlinOutputDir=${kspOutputDir / "kotlin"}",
-      s"$pluginOpt:resourceOutputDir=${kspOutputDir / "resources"}",
+      s"$pluginOpt:classOutputDir=${classes}",
+      s"$pluginOpt:javaOutputDir=${java}",
+      s"$pluginOpt:kotlinOutputDir=${kotlin}",
+      s"$pluginOpt:resourceOutputDir=${resources}",
       s"$pluginOpt:kspOutputDir=${kspOutputDir}",
       s"$pluginOpt:cachesDir=${kspCachesDir}",
       s"$pluginOpt:incremental=true",
@@ -157,25 +160,24 @@ trait KspModule extends KotlinModule { outer =>
       s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOutputDir} ..."
     )
 
-    val compilerArgs: Seq[String] = Seq(
+    val compiledSources = T.dest / "compiled"
+    os.makeDir.all(compiledSources)
+
+    val classpath = Seq(
       // destdir
-      Seq("-d", kspOutputDir.toString()),
+      "-d", compiledSources.toString,
       // classpath
-      when(compileCp.iterator.nonEmpty)(
-        "-classpath",
-        compileCp.iterator.mkString(File.pathSeparator)
-      ),
-      kotlincOptions(),
-      kspCompilerArgs,
-      // parameters
-      sourceFiles.map(_.toString())
-    ).flatten
+      "-classpath",
+      compileCp.iterator.mkString(File.pathSeparator),
+    )
+
+    val compilerArgs: Seq[String] = classpath ++ kspCompilerArgs ++ sourceFiles.map(_.toString)
 
     T.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
     kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
-
-    Seq(PathRef(kspOutputDir))
+    
+    Seq(java, kotlin, resources, classes).map(PathRef(_))
   }
 
   /**

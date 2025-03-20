@@ -11,7 +11,14 @@ trait AndroidKotlinModule extends KotlinModule {
       Seq(
         // TODO expose Compose configuration options
         // https://kotlinlang.org/docs/compose-compiler-options.html possible options
-        s"-Xplugin=${androidComposeProcessorResolvedDeps().path}"
+        s"-Xplugin=${androidComposeProcessorResolvedDeps().path}",
+          "-P",
+          "plugin:androidx.compose.compiler.plugins.kotlin:generateFunctionKeyMetaClasses=false," +
+            "plugin:androidx.compose.compiler.plugins.kotlin:traceMarkersEnabled=true",
+          "-verbose",
+          "-opt-in=kotlin.RequiresOptIn",
+          "-opt-in=kotlin.Experimental",
+          "-Xallow-unstable-dependencies",
       )
     } else Seq.empty
   }
