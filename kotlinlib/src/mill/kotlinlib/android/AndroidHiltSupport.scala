@@ -107,11 +107,30 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     os.makeDir.all(directory)
     val generatedKSPSources = generateSourcesWithKSP()
 
-    val javaGeneratedSources =
-      generatedKSPSources
-        .map(_.path)
-        .filter(os.exists)
-        .flatMap(os.walk(_)).filter(_.ext == "java")
+    val generatedPath = Task.dest / "generated"
+    os.makeDir(generatedPath)
+
+    val javaSources = generatedPath / "java"
+
+    os.copy(generatedKSPSources.java.path, javaSources)
+
+    val daggerSourcesOrigin = generatedPath / "java/dagger"
+    val hiltAggregatedDepsSourcesOrigin = generatedPath / "java/hilt_aggregated_deps"
+
+
+    val hiltSources = generatedPath / "hilt"
+    os.makeDir(hiltSources)
+
+    val daggerSources = hiltSources / "dagger"
+    val hiltAggregatedDepsSources = hiltSources / "hilt_aggregated_deps"
+
+    os.move(daggerSourcesOrigin, daggerSources)
+    os.move(hiltAggregatedDepsSourcesOrigin, hiltAggregatedDepsSources)
+
+    val javaGeneratedSources = Seq(daggerSources, hiltAggregatedDepsSources, javaSources)
+      .flatMap(os.walk(_))
+      .filter(os.exists)
+      .filter(_.ext == "java")
 
     val kotlinClasses = Task.dest / "kotlin"
 
@@ -120,7 +139,9 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     val compileWithKotlin = Seq(
       "-d", kotlinClasses.toString,
       "-classpath", kotlinClasspath.map(_.path).mkString(File.pathSeparator)
-    ) ++ kotlincOptions() ++ javaGeneratedSources.map(_.toString) ++ sources().map(_.path.toString)
+    ) ++ kotlincOptions() ++ allKotlinSourceFiles().map(_.path.toString) ++
+      javaGeneratedSources.map(_.toString) ++
+      Seq(daggerSources.toString, hiltAggregatedDepsSources.toString)
 
     Task.log.info(s"Compiling kotlin classes ${compileWithKotlin.mkString(" ")}")
 
@@ -155,13 +176,28 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       reporter = T.ctx().reporter(hashCode()),
       reportCachedProblems = zincReportCachedProblems(),
       incrementalCompilation = true
-    )
+    ).get
+
+    val hiltAggregatedDepsCompiledOrigin = compilation.classes.path / "hilt_aggregated_deps"
+    val daggerCompiledOrigin = compilation.classes.path / "dagger"
+    val hiltDir = Task.dest / "hilt"
+    os.makeDir(hiltDir)
+
+    val hiltAggregatedDepsCompiled = hiltDir / "hilt_aggregated_deps"
+    val daggerCompiled = hiltDir / "dagger"
+
+    os.move(from = hiltAggregatedDepsCompiledOrigin, hiltAggregatedDepsCompiled)
+    os.move(from = daggerCompiledOrigin, daggerCompiled)
 
     HiltGeneratedSources(
       apGenerated = PathRef(directory),
-      javaSources = javaGeneratedSources.map(PathRef(_)),
-      javaCompiled = compilation.get.classes,
-      kotlinCompiled = PathRef(kotlinClasses)
+      javaSources = PathRef(javaSources),
+      javaCompiled = compilation.classes,
+      kotlinCompiled = PathRef(kotlinClasses),
+      hiltAggregatedDepsSources = PathRef(hiltAggregatedDepsSources),
+      hiltAggregatedDepsCompiled = PathRef(hiltAggregatedDepsCompiled),
+      daggerSources = PathRef(daggerSources),
+      daggerCompiled = PathRef(daggerCompiled)
     )
   }
 
@@ -175,7 +211,6 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       "-processorpath", processorPath().map(_.path.toString).mkString(File.pathSeparator),
       "-XDstringConcat=inline",
       "-Adagger.fastInit=enabled",
-      "-proc:none",
       "-Adagger.hilt.internal.useAggregatingRootProcessor=false",
       "-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true",
       "-Aroom.incremental=true",
@@ -185,16 +220,30 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     )
 
     val compileCp = hiltProcessorClasspath().map(_.path) ++
-      Seq(compiledKspSources.kotlinCompiled.path)
+      Seq(
+        compiledKspSources.kotlinCompiled.path,
+        compiledKspSources.javaCompiled.path,
+        compiledKspSources.daggerCompiled.path / os.up,
+        compiledKspSources.javaSources.path
+      )
 
     val worker = zincWorkerRef().worker()
 
     val classes = Task.dest / "classes"
     os.makeDir.all(classes)
 
-    val sourcesToCompile = compiledKspSources.javaSources.map(_.path)
 
-    T.log.info(s"Compiling ${sourcesToCompile.size} java sources to ${classes}")
+    val processedRoots = os.walk(
+      compiledKspSources.daggerSources.path / "hilt/internal/processedrootsentinel"
+    ).filter(_.ext == "java")
+
+    val componentTreeDeps = os.walk(compiledKspSources.javaSources.path)
+      .filter(_.toString.endsWith("_ComponentTreeDeps.java"))
+
+    val sourcesToCompile = processedRoots ++ componentTreeDeps
+
+
+    T.log.info(s"Compiling ${sourcesToCompile.mkString(" ")} java sources to ${classes}")
 
     val result = worker.compileJava(
       upstreamCompileOutput = upstreamCompileOutput(),
@@ -206,7 +255,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       incrementalCompilation = false
     )
 
-    Seq(result.get.classes)
+    Seq(result.get.classes, compiledKspSources.javaCompiled, compiledKspSources.kotlinCompiled)
 
   }
 
@@ -219,7 +268,18 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 }
 
 object AndroidHiltSupport {
-  case class HiltGeneratedSources(apGenerated: PathRef, javaSources: Seq[PathRef], kotlinCompiled: PathRef, javaCompiled: PathRef)
+  case class HiltGeneratedSources(
+                                   apGenerated: PathRef,
+                                   javaSources: PathRef,
+                                   kotlinCompiled: PathRef,
+                                   javaCompiled: PathRef,
+                                   daggerSources: PathRef,
+                                   daggerCompiled: PathRef,
+                                   hiltAggregatedDepsSources: PathRef,
+                                   hiltAggregatedDepsCompiled: PathRef
+  ) {
+    def classpath = Seq(kotlinCompiled, javaCompiled)
+  }
 
   object HiltGeneratedSources {
     implicit def resultRW: upickle.default.ReadWriter[HiltGeneratedSources] = upickle.default.macroRW
