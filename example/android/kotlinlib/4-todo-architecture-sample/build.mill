@@ -68,7 +68,9 @@ object app extends AndroidAppKotlinModule with AndroidHiltSupport {
     ivy"androidx.compose.material:material-icons-core-android:1.7.6",
     ivy"com.google.dagger:hilt-android:2.53.1",
     ivy"androidx.hilt:hilt-navigation-compose:1.2.0",
-    ivy"com.google.accompanist:accompanist-swiperefresh:0.36.0"
+    ivy"com.google.accompanist:accompanist-swiperefresh:0.36.0",
+    ivy"androidx.compose:compose-bom:2024.12.01",
+    ivy"androidx.customview:customview-poolingcontainer:1.0.0"
   )
 
   def kotlinSymbolProcessors: T[Agg[Dep]] = Agg(
