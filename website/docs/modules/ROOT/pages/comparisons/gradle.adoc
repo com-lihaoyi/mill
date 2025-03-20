@@ -62,18 +62,18 @@ configured similarly for both tools. This ensures the comparison is fair with bo
 same code and running the same tests in the same way.
 
 For the benchmarks below, each provided number is the median wall time of three consecutive runs
-on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
-Mill's performance compares to Gradle:
+on my M1 Macbook Pro with Java 17 and Mill `0.12.9-native`. While ad-hoc, these benchmarks are
+enough to give you a flavor of how Mill's performance compares to Gradle:
 
 [cols="1,1,1,1"]
 |===
 | Benchmark | Gradle | Mill | Speedup
 
-| <<Sequential Clean Compile All>> | 17.6s | 5.40s | 3.3x
-| <<Parallel Clean Compile All>> | 12.3s | 3.57s | 3.4x
-| <<Clean Compile Single-Module>> | 4.41s | 1.20s | 3.7x
-| <<Incremental Compile Single-Module>> | 1.37s | 0.51s | 2.7x
-| <<No-Op Compile Single-Module>> | 0.94s | 0.46s | 2.0x
+| <<Sequential Clean Compile All>> | 17.6s | 5.86s | 3.0x
+| <<Parallel Clean Compile All>> | 12.3s | 3.75s | 3.3x
+| <<Clean Compile Single-Module>> | 4.41s | 1.30s | 3.4x
+| <<Incremental Compile Single-Module>> | 1.37s | 0.20s | 6.9x
+| <<No-Op Compile Single-Module>> | 0.94s | 0.11s | 8.5x
 |===
 
 The column on the right shows the speedups of how much faster Mill is compared to the
@@ -90,9 +90,9 @@ $ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
 17.4s
 
 $ ./mill clean; time ./mill -j 1 __.compile
-5.60s
-5.40s
-6.13s
+6.19s
+5.86s
+5.28s
 ```
 
 This benchmark measures the time taken to sequentially compiled all the Java code in
@@ -132,9 +132,9 @@ $ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
 11.4s
 
 $ ./mill clean; time ./mill __.compile
-3.59s
-3.57s
-3.45s
+3.75s
+3.74s
+3.86s
 ----
 
 This benchmark is identical to the <<Sequential Clean Compile All>> benchmark above, but enables
@@ -159,9 +159,9 @@ $ ./gradlew clean; time ./gradlew :classes --no-build-cache
 4.41s
 
 $ ./mill clean; time ./mill compile
-1.20s
-1.12s
 1.30s
+1.90s
+1.13s
 ----
 
 This benchmark indicates the use case of clean-compiling a single module. In this case,
@@ -183,9 +183,9 @@ $ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
 
 $ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./mill compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-0.52s
-0.51s
-0.52s
+0.23s
+0.20s
+0.20s
 ----
 
 This benchmark measures the common case of making a tiny change to a single file and
@@ -207,10 +207,10 @@ $ time ./gradlew :classes
 0.93s
 0.94s
 
-$ time ./mill common.compile
-0.46s
-0.50s
-0.45s
+$ time ./mill compile
+0.13s
+0.11s
+0.10s
 ----
 
 This benchmark is meant to measure the pure overhead of running the build tool: given a single
