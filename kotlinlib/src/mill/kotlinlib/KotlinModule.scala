@@ -49,10 +49,6 @@ trait KotlinModule extends JavaModule { outer =>
   def allJavaSourceFiles: T[Seq[PathRef]] = Task {
     allSourceFiles().filter(_.path.ext.toLowerCase() == "java")
   }
-  
-  def javaCompiledGeneratedSources: T[Seq[PathRef]] = Task {
-    Seq.empty[PathRef]
-  }
 
   /**
    * All individual Kotlin source files fed into the compiler.
@@ -285,7 +281,8 @@ trait KotlinModule extends JavaModule { outer =>
       val isJava = javaSourceFiles.nonEmpty
       val isMixed = isKotlin && isJava
 
-      val compileCp = compileClasspath().map(_.path).filter(os.exists)
+      val compileCp = (compileClasspath() ++ kotlinPrecompiledClasses()).map(_.path).filter(os.exists)
+
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
@@ -297,7 +294,7 @@ trait KotlinModule extends JavaModule { outer =>
           worker = jvmWorkerRef().worker(),
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
-          compileCp = compileCp ++ javaCompiledGeneratedSources().map(_.path),
+          compileCp = compileCp,
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
           reportOldProblems = internalReportOldProblems()
@@ -399,6 +396,10 @@ trait KotlinModule extends JavaModule { outer =>
     )
   }
 
+  def kotlinPrecompiledClasses: Task[Seq[PathRef]] = Task {
+    Seq.empty[PathRef]
+  }
+  
   private[kotlinlib] def internalReportOldProblems: Task[Boolean] = zincReportCachedProblems
 
   @internal

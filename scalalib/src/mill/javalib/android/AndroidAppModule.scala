@@ -186,7 +186,8 @@ trait AndroidAppModule extends AndroidModule {
    */
   def androidDex: T[PathRef] = Task {
 
-    val inheritedClassFiles = compileClasspath().map(_.path).filter(os.isDir)
+    val inheritedClassFiles = (compileClasspath() ++ androidGeneratedCompiledClasses())
+      .map(_.path).filter(os.isDir)
       .flatMap(os.walk(_))
       .filter(os.isFile)
       .filter(_.ext == "class")

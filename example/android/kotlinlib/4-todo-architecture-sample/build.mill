@@ -66,7 +66,7 @@ object app extends AndroidAppKotlinModule with AndroidHiltSupport {
     ivy"com.google.accompanist:accompanist-appcompat-theme:0.36.0"
       .exclude("androix.appcompat" -> "appcompat"),
     ivy"androidx.compose.material:material-icons-core-android:1.7.6",
-    ivy"com.google.dagger:hilt-android:2.53.1",
+    ivy"com.google.dagger:hilt-android:2.56",
     ivy"androidx.hilt:hilt-navigation-compose:1.2.0",
     ivy"com.google.accompanist:accompanist-swiperefresh:0.36.0",
     ivy"androidx.compose:compose-bom:2024.12.01",
@@ -76,7 +76,7 @@ object app extends AndroidAppKotlinModule with AndroidHiltSupport {
   def kotlinSymbolProcessors: T[Agg[Dep]] = Agg(
     ivy"androidx.room:room-compiler:2.6.1",
     ivy"androidx.room:room-ktx:2.6.1",
-    ivy"com.google.dagger:hilt-android-compiler:2.53.1"
+    ivy"com.google.dagger:hilt-android-compiler:2.56"
   )
 
   def androidKotlinComposeCompilerPlugin: T[Seq[Dep]] = Task {
