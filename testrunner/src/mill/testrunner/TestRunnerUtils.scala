@@ -12,6 +12,7 @@ import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
+import java.util.concurrent.atomic.AtomicBoolean
 
 @internal object TestRunnerUtils {
 
@@ -134,9 +135,10 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
   private def executeTasks(
       tasks: Seq[Task],
       testReporter: TestReporter,
-      runner: Runner,
-      events: ConcurrentLinkedQueue[Event]
+      events: ConcurrentLinkedQueue[Event],
+      claimStatsFileOpt: Option[os.Path]
   )(implicit ctx: Ctx.Log with Ctx.Home): Unit = {
+    val testEventSummary = new TestEventSummary(claimStatsFileOpt)
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
       val next = taskQueue.dequeue().execute(
@@ -144,6 +146,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
           def handle(event: Event) = {
             testReporter.logStart(event)
             events.add(event)
+            testEventSummary.record(event)
             testReporter.logFinish(event)
           }
         },
@@ -159,6 +162,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
       taskQueue.enqueueAll(next)
     }
+    testEventSummary.summary()
+    ()
   }
 
   def parseRunTaskResults(events: Iterator[Event]): Iterator[TestResult] = {
@@ -206,7 +211,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val events = new ConcurrentLinkedQueue[Event]()
-    executeTasks(tasks, testReporter, runner, events)
+    executeTasks(tasks, testReporter, events, None)
     handleRunnerDone(runner, events)
   }
 
@@ -243,9 +248,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
       .toMap
 
-    // append only log, used to communicate with parent about what test is being claimed
-    // so that the parent can log the claimed test's name to its logger
-
     def runClaimedTestClass(testClassName: String) = {
 
       System.err.println(s"Running Test Class $testClassName")
@@ -257,10 +259,13 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
         }
 
       val tasks = runner.tasks(taskDefs.toArray)
-      executeTasks(tasks, testReporter, runner, events)
+      executeTasks(tasks, testReporter, events, Some(claimFolder / os.up / s"${claimFolder.last}.stats"))
     }
 
-    startingTestClass.foreach(runClaimedTestClass)
+    startingTestClass.foreach { testClass =>
+      os.write.append(claimFolder / os.up / s"${claimFolder.last}.log", s"$testClass\n")
+      runClaimedTestClass(testClass)
+    }
 
     for (file <- os.list(testClassQueueFolder)) {
       for (claimedTestClass <- claimFile(file, claimFolder)) runClaimedTestClass(claimedTestClass)
@@ -273,6 +278,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       os.exists(file) &&
         scala.util.Try(os.move(file, claimFolder / file.last, atomicMove = true)).isSuccess
     ) {
+      // append only log, used to communicate with parent about what test is being claimed
+      // so that the parent can log the claimed test's name to its logger
       val queueLog = claimFolder / os.up / s"${claimFolder.last}.log"
       os.write.append(queueLog, s"${file.last}\n")
       file.last
@@ -340,6 +347,28 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     else { className =>
       val name = className.stripSuffix("$")
       filters.exists(f => f(name))
+    }
+  }
+
+  @internal private[TestRunnerUtils] final class TestEventSummary(outputFileOpt: Option[os.Path])
+      extends AtomicBoolean(true) {
+    def record(event: Event): Unit = {
+      event.status() match {
+        case Status.Error => set(false)
+        case Status.Failure => set(false)
+        case _ => val _ = compareAndSet(true, true) // consider success as a default
+      }
+    }
+
+    def summary(): Boolean = {
+      val isSuccess = get()
+      outputFileOpt.foreach { outputFile =>
+        val (success, failure) = upickle.default.read[(Long, Long)](os.read.stream(outputFile))
+        val (newSuccess, newFailure) =
+          if (isSuccess) (success + 1, failure) else (success, failure + 1)
+        os.write.over(outputFile, upickle.default.write((newSuccess, newFailure)))
+      }
+      isSuccess
     }
   }
 }

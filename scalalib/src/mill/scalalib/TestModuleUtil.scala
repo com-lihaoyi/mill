@@ -222,6 +222,8 @@ private final class TestModuleUtil(
   )(implicit ctx: mill.api.Ctx) = {
 
     val workerStatusMap = new java.util.concurrent.ConcurrentHashMap[os.Path, String => Unit]()
+    val workerStatsSet = new java.util.concurrent.ConcurrentHashMap[os.Path, Unit]()
+    val testClassTimeMap = new java.util.concurrent.ConcurrentHashMap[String, Long]()
 
     def preparetestClassQueueFolder(selectors2: Seq[String], base: os.Path): os.Path = {
       // test-classes folder is used to store the test classes for the children test runners to claim from
@@ -259,11 +261,15 @@ private final class TestModuleUtil(
         val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
         os.write.over(claimLog, Array.empty[Byte])
         workerStatusMap.put(claimLog, logger.ticker)
+        val claimStats = claimFolder / os.up / s"${claimFolder.last}.stats"
+        os.write.over(claimStats, upickle.default.write((0L, 0L)))
+        workerStatsSet.put(claimStats, ())
         val result = callTestRunnerSubprocess(
           base,
           Right((startingTestClass, testClassQueueFolder, claimFolder))
         )
         workerStatusMap.remove(claimLog)
+        // We don't remove workerStatsSet entry, as we still need them for calculation
         Some(result)
       } else {
         None
@@ -356,16 +362,39 @@ private final class TestModuleUtil(
       }
     }
 
+    val filteredClassCount = filteredClassLists.map(_.size).sum
     val executor = Executors.newScheduledThreadPool(1)
     val outputs =
       try {
-        // Periodically check the claimLog file of every runner, and tick the executing test name
+        // Periodically check the claim log and claim stats files of every runner, and tick the relevant infos
         executor.scheduleWithFixedDelay(
-          () =>
+          () => {
+            // reuse to reduce syscall, may not be as accurate as running `System.currentTimeMillis()` inside each entry
+            val now = System.currentTimeMillis()
             workerStatusMap.forEach { (claimLog, callback) =>
               // the last one is always the latest
-              os.read.lines(claimLog).lastOption.foreach(callback)
-            },
+              os.read.lines(claimLog).lastOption.foreach { currentTestClass =>
+                testClassTimeMap.putIfAbsent(currentTestClass, now)
+                val last = testClassTimeMap.get(currentTestClass)
+                val suffix = ((now - last) / 1000).toInt match {
+                  case 0 => ""
+                  case n => s" ${n}s"
+                }
+                callback(s"$currentTestClass$suffix")
+              }
+            }
+            var totalSuccess = 0L
+            var totalFailure = 0L
+            workerStatsSet.forEach { (claimStats, _) =>
+              val (success, failure) =
+                upickle.default.read[(Long, Long)](os.read.stream(claimStats))
+              totalSuccess += success
+              totalFailure += failure
+            }
+            ctx.log.ticker(
+              s"${totalSuccess + totalFailure}/${filteredClassCount} completed, ${totalFailure} failures"
+            )
+          },
           0,
           20,
           java.util.concurrent.TimeUnit.MILLISECONDS
@@ -375,15 +404,20 @@ private final class TestModuleUtil(
           // We special-case this to avoid
           while ({
             val claimedCounts = subprocessFutures.flatMap(_.value).flatMap(_.toOption).map(_._1)
-            val expectedCounts = filteredClassLists.map(_.size)
             !(
-              (claimedCounts.sum == expectedCounts.sum && subprocessFutures.head.isCompleted) ||
+              (claimedCounts.sum == filteredClassCount && subprocessFutures.head.isCompleted) ||
                 subprocessFutures.forall(_.isCompleted)
             )
           }) Thread.sleep(1)
         }
         subprocessFutures.flatMap(_.value).map(_.get)
-      } finally executor.shutdown()
+      } finally {
+        executor.shutdown()
+        // help gc
+        workerStatusMap.clear()
+        workerStatsSet.clear()
+        testClassTimeMap.clear()
+      }
 
     val subprocessResult = {
       val failMap = mutable.Map.empty[String, String]
