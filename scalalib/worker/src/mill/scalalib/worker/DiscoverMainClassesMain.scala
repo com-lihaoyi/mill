@@ -51,11 +51,11 @@ import scala.util.Using
   }
 
   def normalizeClassFilePath(p: os.Path): Option[os.Path] = {
-    val newPath = p.ext match{
+    val newPath = p.ext match {
       case "tasty" => p / os.up / s"${p.baseName}.class"
       case _ => p
     }
-    Option.when(os.exists(newPath)){ newPath }
+    Option.when(os.exists(newPath)) { newPath }
   }
 
   def apply(classpath: Seq[os.Path]): Seq[String] = {
