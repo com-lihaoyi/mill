@@ -474,7 +474,7 @@ private class MillBuildServer(
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client),
         logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
       )
-      val response = runResult.results(runTask) match {
+      val response = runResult.transitiveResults(runTask) match {
         case r if r.asSuccess.isDefined => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
       }
@@ -601,7 +601,7 @@ private class MillBuildServer(
             )
             if (cleanResult.failing.size > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
-                (cleanResult.results(cleanTask) match {
+                (cleanResult.transitiveResults(cleanTask) match {
                   case ex: ExecResult.Exception => ex.toString()
                   case ExecResult.Skipped => "Task was skipped"
                   case ExecResult.Aborted => "Task was aborted"
@@ -670,7 +670,7 @@ private class MillBuildServer(
       val evaluated = groupList(tasksSeq.toSeq)(_._2)(_._1)
         .map { case ((ev, id), ts) =>
           val results = evaluate(ev, ts)
-          val failures = results.results.collect {
+          val failures = results.transitiveResults.collect {
             case (_, res: ExecResult.Failing[_]) => res
           }
 

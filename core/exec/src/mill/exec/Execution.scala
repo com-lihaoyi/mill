@@ -62,21 +62,6 @@ private[mill] case class Execution(
     }
   }
 
-  private def getFailing(
-      sortedGroups: MultiBiMap[Task[?], Task[?]],
-      results: Map[Task[?], ExecResult[(Val, Int)]]
-  ): MultiBiMap.Mutable[Task[?], Failing[Val]] = {
-    val failing = new MultiBiMap.Mutable[Task[?], ExecResult.Failing[Val]]
-    for ((k, vs) <- sortedGroups.items()) {
-      val failures = vs.flatMap(results.get).collect {
-        case f: ExecResult.Failing[(Val, Int)] => f.map(_._1)
-      }
-
-      failing.addAll(k, Seq.from(failures))
-    }
-    failing
-  }
-
   private def execute0(
       goals: Seq[Task[?]],
       logger: Logger,
@@ -275,8 +260,6 @@ private[mill] case class Execution(
 
     Execution.Results(
       goals.toIndexedSeq.map(results(_).map(_._1)),
-      finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
-      getFailing(plan.sortedGroups, results).items().map { case (k, v) => (k, v.toSeq) }.toMap,
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
@@ -311,10 +294,7 @@ private[mill] object Execution {
       }
       .toMap
   }
-  private[Execution] case class Results(
-      rawValues: Seq[ExecResult[Val]],
-      evaluated: Seq[Task[?]],
-      failing: Map[Task[?], Seq[ExecResult.Failing[Val]]],
-      results: Map[Task[?], ExecResult[Val]]
+  private[Execution] case class Results(results: Seq[ExecResult[Val]],
+                                        transitiveResults: Map[Task[?], ExecResult[Val]]
   ) extends mill.define.ExecutionResults
 }

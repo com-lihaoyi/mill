@@ -143,8 +143,8 @@ class UnitTester(
     if (evaluated.failing.isEmpty) {
       Right(
         UnitTester.Result(
-          evaluated.rawValues.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
-          evaluated.evaluated.collect {
+          evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
+          evaluated.transitiveResults.keys.collect {
             case t: TargetImpl[_]
                 if module.moduleInternal.targets.contains(t)
                   && !t.ctx.external => t
@@ -152,16 +152,7 @@ class UnitTester(
           }.size
         )
       )
-    } else {
-      Left(
-        evaluated
-          .failing(evaluated.failing.keys.head)
-          .head
-          .asFailing
-          .get
-          .map(_.value)
-      )
-    }
+    } else Left(evaluated.failing.values.head)
   }
 
   def fail(
@@ -172,7 +163,7 @@ class UnitTester(
 
     val res = evaluator.execute(Seq(target)).executionResults
 
-    val cleaned = res.rawValues.map {
+    val cleaned = res.results.map {
       case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
       case x => x.map(_.value)
     }
@@ -185,7 +176,8 @@ class UnitTester(
   def check(targets: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
     val evaluated = evaluator.execute(targets).executionResults
-      .evaluated
+      .transitiveResults
+      .keys
       .flatMap(_.asTarget)
       .filter(module.moduleInternal.targets.contains)
       .filter(!_.isInstanceOf[InputImpl[?]])

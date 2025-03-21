@@ -144,7 +144,7 @@ object MainModuleTests extends TestSuite {
       test("single") - UnitTester(mainModule, null).scoped { eval =>
         val res =
           eval.evaluator.execute(Seq(mainModule.inspect(eval.evaluator, "hello"))).executionResults
-        val ExecResult.Success(Val(value: String)) = res.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value: String)) = res.results.head: @unchecked
         assert(
           res.failing.size == 0,
           value.startsWith("hello("),
@@ -158,7 +158,7 @@ object MainModuleTests extends TestSuite {
             "hello",
             "hello2"
           ))).executionResults
-        val ExecResult.Success(Val(value: String)) = res.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value: String)) = res.results.head: @unchecked
         assert(
           res.failing.size == 0,
           value.startsWith("hello("),
@@ -223,7 +223,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.size == 0)
 
-        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.results.head: @unchecked
 
         val shown = ujson.read(outStream.toByteArray)
         val expected = ujson.Arr.from(Seq("hello", "world"))
@@ -251,7 +251,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.size == 0)
 
-        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.results.head: @unchecked
 
         val shown = ujson.read(outStream.toByteArray)
 
@@ -308,7 +308,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.size == 0)
 
-        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.results.head: @unchecked
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world"))
@@ -325,7 +325,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.size == 0)
 
-        val ExecResult.Success(Val(value)) = results.rawValues.head: @unchecked
+        val ExecResult.Success(Val(value)) = results.results.head: @unchecked
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world")),
