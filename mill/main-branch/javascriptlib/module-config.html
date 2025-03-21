@@ -294,11 +294,15 @@
   </li>
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="linting.html">Linting Typescript Projects</a>
+    <a class="nav-link" href="build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -694,7 +698,7 @@ object foo extends TypeScriptModule {
 
   def mainFileName = s&quot;foo2.ts&quot;
 
-  def mainFilePath = compile()._2.path / &quot;custom-src&quot; / mainFileName()
+  def mainFilePath = compile().path / &quot;custom-src&quot; / mainFileName()
 
 }</code></pre>
 </div>
