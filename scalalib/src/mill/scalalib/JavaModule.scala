@@ -99,7 +99,7 @@ trait JavaModule
     Artifact.fromDepJava(_: Dep)
   }
 
- /**
+  /**
    * Allows you to specify an explicit main class to use for the `run` command.
    * If none is specified, the classpath is searched for an appropriate main
    * class to use if one exists
