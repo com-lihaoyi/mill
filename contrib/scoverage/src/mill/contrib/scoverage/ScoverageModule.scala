@@ -113,11 +113,11 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
   def scoverageToolsClasspath: T[Seq[PathRef]] = Task {
     scoverageReportWorkerClasspath() ++
-      defaultResolver().resolveDeps(scoverageReporterIvyDeps())
+      defaultResolver().classpath(scoverageReporterIvyDeps())
   }
 
   def scoverageClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(scoveragePluginDeps())
+    defaultResolver().classpath(scoveragePluginDeps())
   }
 
   def scoverageReportWorkerClasspath: T[Seq[PathRef]] = Task {
@@ -209,7 +209,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       val outerScoverageClassesPath = outer.scoverage.compile().classes
       (super.runClasspath().map { path =>
         if (outerClassesPath == path) outerScoverageClassesPath else path
-      } ++ defaultResolver().resolveDeps(outer.scoverageRuntimeDeps())).distinct
+      } ++ defaultResolver().classpath(outer.scoverageRuntimeDeps())).distinct
     }
   }
 }
