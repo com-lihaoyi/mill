@@ -50,6 +50,14 @@ import scala.util.Using
     apply(classpath).foreach(println)
   }
 
+  def normalizeClassFilePath(p: os.Path): Option[os.Path] = {
+    val newPath = p.ext match{
+      case "tasty" => p / os.up / s"${p.baseName}.class"
+      case _ => p
+    }
+    Option.when(os.exists(newPath)){ newPath }
+  }
+
   def apply(classpath: Seq[os.Path]): Seq[String] = {
     val cp = classpath.map(_.toNIO.toString()).mkString(File.pathSeparator)
 
@@ -62,13 +70,12 @@ import scala.util.Using
       val mainClasses = for {
         foundPackage <- recursive("", (p: String) => path.packages(p).map(_.name))
         classFile <- path.classes(foundPackage)
-        path = os.Path(classFile.file.file)
+        path0 = os.Path(classFile.file.file)
+        // In Scala 3 sometimes `.classes` returns `.tasty` files rather than
+        // `.class` files, so make sure we convert them to `.class` files
+        path <- normalizeClassFilePath(path0).toList
         if path.ext == "class"
-        cf = {
-          val bytes = os.read.bytes(path)
-          val reader = new ByteArrayReader(bytes)
-          new Classfile(reader)
-        }
+        cf = new Classfile(new ByteArrayReader(os.read.bytes(path)))
         jw = new JavaWriter(cf, new PrintWriter(DummyOutputStream))
         method <- cf.methods
         static = jw.isStatic(method.flags)
