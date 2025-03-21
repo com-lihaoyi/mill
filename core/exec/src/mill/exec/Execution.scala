@@ -260,6 +260,7 @@ private[mill] case class Execution(
 
     Execution.Results(
       goals.toIndexedSeq.map(results(_).map(_._1)),
+      finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
@@ -295,6 +296,7 @@ private[mill] object Execution {
       .toMap
   }
   private[Execution] case class Results(results: Seq[ExecResult[Val]],
+                                        uncached: Seq[Task[?]],
                                         transitiveResults: Map[Task[?], ExecResult[Val]]
   ) extends mill.define.ExecutionResults
 }

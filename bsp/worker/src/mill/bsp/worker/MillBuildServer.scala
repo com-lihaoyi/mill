@@ -599,7 +599,7 @@ private class MillBuildServer(
               Seq(cleanTask),
               logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
             )
-            if (cleanResult.failing.size > 0) (
+            if (cleanResult.transitiveFailing.size > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.transitiveResults(cleanTask) match {
                   case ex: ExecResult.Exception => ex.toString()

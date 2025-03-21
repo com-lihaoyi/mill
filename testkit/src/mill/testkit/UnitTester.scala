@@ -140,11 +140,11 @@ class UnitTester(
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     val evaluated = evaluator.execute(tasks).executionResults
 
-    if (evaluated.failing.isEmpty) {
+    if (evaluated.transitiveFailing.isEmpty) {
       Right(
         UnitTester.Result(
           evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
-          evaluated.transitiveResults.keys.collect {
+          evaluated.uncached.collect {
             case t: TargetImpl[_]
                 if module.moduleInternal.targets.contains(t)
                   && !t.ctx.external => t
@@ -152,7 +152,7 @@ class UnitTester(
           }.size
         )
       )
-    } else Left(evaluated.failing.values.head)
+    } else Left(evaluated.transitiveFailing.values.head)
   }
 
   def fail(
@@ -169,15 +169,14 @@ class UnitTester(
     }
 
     assert(cleaned == expectedRawValues)
-    assert(res.failing.size == expectedFailCount)
+    assert(res.transitiveFailing.size == expectedFailCount)
 
   }
 
   def check(targets: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
     val evaluated = evaluator.execute(targets).executionResults
-      .transitiveResults
-      .keys
+      .uncached
       .flatMap(_.asTarget)
       .filter(module.moduleInternal.targets.contains)
       .filter(!_.isInstanceOf[InputImpl[?]])

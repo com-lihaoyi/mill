@@ -27,7 +27,7 @@ object InitModuleTests extends TestSuite {
       test("no args") {
         val results = evaluator.evaluator.execute(Seq(initmodule.init(None))).executionResults
 
-        assert(results.failing.size == 0)
+        assert(results.transitiveFailing.size == 0)
 
         val mill.api.ExecResult.Success(Val(value)) = results.results.head: @unchecked
         val consoleShown = outStream.toString
@@ -43,7 +43,7 @@ object InitModuleTests extends TestSuite {
         val results = evaluator.evaluator.execute(Seq(
           initmodule.init(Some(nonExistingModuleId))
         )).executionResults
-        assert(results.failing.size == 1)
+        assert(results.transitiveFailing.size == 1)
         assert(errStream.toString.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
       }
     }

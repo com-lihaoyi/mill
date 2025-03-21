@@ -185,7 +185,7 @@ final class EvaluatorImpl private[mill] (
         }
 
         val errorStr = EvaluatorImpl.formatFailing(evaluated)
-        evaluated.failing.size match {
+        evaluated.transitiveFailing.size match {
           case 0 =>
             Evaluator.Result(
               watched,
@@ -240,7 +240,7 @@ object EvaluatorImpl {
     }
   }
   private[mill] def formatFailing(evaluated: ExecutionResults): String = {
-    (for ((k, fs) <- evaluated.failing)
+    (for ((k, fs) <- evaluated.transitiveFailing)
       yield {
         val fss = fs match {
           case ExecResult.Failure(t) => t
