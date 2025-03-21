@@ -191,7 +191,7 @@ trait AndroidModule extends JavaModule {
     //
     // In Gradle terms using only `resolvedRunIvyDeps` won't be complete, because source modules can be also
     // api/implementation, but Mill has no such configurations.
-    val aarFiles = (super.compileClasspath() ++ super.resolvedRunIvyDeps())
+    val aarFiles = (super.compileClasspath() ++ resolvedRunIvyDeps())
       .map(_.path)
       .filter(_.ext == "aar")
       .distinct
@@ -402,6 +402,32 @@ trait AndroidModule extends JavaModule {
     os.call(appLinkArgs)
 
     (PathRef(T.dest), compiledResources.toSeq.map(PathRef(_)))
+  }
+
+  /**
+   * Creates an intermediate R.jar that includes all the resources from the application and its dependencies.
+   */
+  def androidProcessResources: Target[PathRef] = Task {
+
+    val sources = androidLibsRClasses()
+
+    val rJar = Task.dest / "R.jar"
+
+    val classesDest = zincWorker()
+      .worker()
+      .compileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = sources.map(_.path),
+        compileClasspath = Seq.empty,
+        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        reporter = Task.reporter.apply(hashCode),
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
+      ).get.classes.path
+
+    os.zip(rJar, Seq(classesDest))
+
+    PathRef(rJar)
   }
 
   // TODO alias, keystore pass and pass below are sensitive credentials and shouldn't be leaked to disk/console.
@@ -706,4 +732,7 @@ trait AndroidModule extends JavaModule {
     PathRef(signedApk)
   }
 
+  def androidGeneratedCompiledClasses: T[Seq[PathRef]] = Task {
+    Seq.empty[PathRef]
+  }
 }

@@ -72,7 +72,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     override final def kotlinVersion = outer.kotlinVersion
 
     override def kotlincOptions = super.kotlincOptions() ++ Seq(
-      s"-Xplugin=${composeProcessor().path}"
+      s"-Xplugin=${androidComposeProcessorResolvedDeps().path}"
     )
 
     override def sources: T[Seq[PathRef]] = Task.Sources(
