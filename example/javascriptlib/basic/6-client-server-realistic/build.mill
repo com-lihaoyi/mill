@@ -1,5 +1,5 @@
 package build
-import mill._, javascriptlib._
+import mill.{client => _, _}, javascriptlib._
 
 object client extends ReactScriptsModule
 
