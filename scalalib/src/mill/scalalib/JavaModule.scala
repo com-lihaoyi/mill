@@ -99,7 +99,7 @@ trait JavaModule
     Artifact.fromDepJava(_: Dep)
   }
 
-  def allLocalMainClasses = Task{ zincWorker().worker().discoverMainClasses(compile()) }
+  def allLocalMainClasses = Task { zincWorker().worker().discoverMainClasses(compile()) }
 
   /**
    * Mandatory ivy dependencies that are typically always required and shouldn't be removed by
