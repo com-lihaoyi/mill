@@ -36,3 +36,7 @@ include::partial$example/kotlinlib/dependencies/4-downloading-unmanaged-jars.ado
 == Repository Config
 
 include::partial$example/kotlinlib/dependencies/5-repository-config.adoc[]
+
+== In progress Gradle Module support
+
+include::partial$example/kotlinlib/dependencies/6-gradle-modules.adoc[]
