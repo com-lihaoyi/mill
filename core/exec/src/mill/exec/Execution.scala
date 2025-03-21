@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.api.ExecResult.{Aborted, Failing}
+import mill.api.ExecResult.Aborted
 
 import mill.api._
 import mill.define._
@@ -295,8 +295,9 @@ private[mill] object Execution {
       }
       .toMap
   }
-  private[Execution] case class Results(results: Seq[ExecResult[Val]],
-                                        uncached: Seq[Task[?]],
-                                        transitiveResults: Map[Task[?], ExecResult[Val]]
+  private[Execution] case class Results(
+      results: Seq[ExecResult[Val]],
+      uncached: Seq[Task[?]],
+      transitiveResults: Map[Task[?], ExecResult[Val]]
   ) extends mill.define.ExecutionResults
 }

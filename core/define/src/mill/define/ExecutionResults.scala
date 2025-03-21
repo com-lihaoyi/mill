@@ -3,6 +3,7 @@ package mill.define
 import mill.api.*
 
 trait ExecutionResults {
+
   /**
    * The values returned by the tasks specified by the user
    */
@@ -23,7 +24,7 @@ trait ExecutionResults {
    * The tasks and failures returned by failing tasks in [[transitiveResults]]
    */
   def transitiveFailing: Map[Task[?], ExecResult.Failing[Val]] =
-    transitiveResults.collect{ case (k, v: ExecResult.Failing[Val]) => (k, v)}
+    transitiveResults.collect { case (k, v: ExecResult.Failing[Val]) => (k, v) }
 
   /**
    * The values returned by successful tasks in [[results]]
