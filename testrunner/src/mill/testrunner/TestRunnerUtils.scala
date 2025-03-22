@@ -120,16 +120,24 @@ import java.util.concurrent.atomic.AtomicBoolean
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-    val tasksArr =
-      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-        yield runner.tasks(
-          Array(new TaskDef(
-            cls.getName.stripSuffix("$"),
-            fingerprint,
-            false,
-            Array(new SuiteSelector)
-          ))
-        )
+    val filteredTestClasses = testClasses.iterator.filter { case (cls, _) => classFilter(cls) }.toArray
+
+    val tasksArr = // each test class can have multiple test tasks ==> array of test classes will have this signature
+      if (filteredTestClasses.isEmpty) {
+        // We still need to run runner's tasks on empty array
+        Array(runner.tasks(Array.empty))
+      } else {
+        filteredTestClasses.map { case (cls, fingerprint) =>
+          runner.tasks(
+            Array(new TaskDef(
+              cls.getName.stripSuffix("$"),
+              fingerprint,
+              false,
+              Array(new SuiteSelector)
+            ))
+          )
+        }
+      }
 
     (runner, tasksArr)
   }
@@ -224,7 +232,7 @@ import java.util.concurrent.atomic.AtomicBoolean
     var successCounter = 0L
     var failureCounter = 0L
 
-    val resultLog = resultPathOpt match {
+    val resultLog: () => Unit = resultPathOpt match {
       case Some(resultPath) => () => os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
       case None => () => systemOut.println(s"Test result: ${successCounter + failureCounter} completed${ if failureCounter > 0 then s", ${failureCounter} failures." else "."}")
     }
