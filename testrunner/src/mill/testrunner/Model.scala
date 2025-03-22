@@ -9,6 +9,7 @@ import mill.api.internal
     arguments: Seq[String],
     sysProps: Map[String, String],
     outputPath: os.Path,
+    resultPath: os.Path,
     colored: Boolean,
     testCp: Seq[os.Path],
     home: os.Path,
