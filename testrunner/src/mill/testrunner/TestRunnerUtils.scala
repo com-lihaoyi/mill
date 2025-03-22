@@ -120,7 +120,9 @@ import java.util.concurrent.atomic.AtomicBoolean
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-    val filteredTestClasses = testClasses.iterator.filter { case (cls, _) => classFilter(cls) }.toArray
+    val filteredTestClasses = testClasses.iterator.filter { case (cls, _) =>
+      classFilter(cls)
+    }.toArray
 
     val tasksArr = // each test class can have multiple test tasks ==> array of test classes will have this signature
       if (filteredTestClasses.isEmpty) {
@@ -233,10 +235,14 @@ import java.util.concurrent.atomic.AtomicBoolean
     var failureCounter = 0L
 
     val resultLog: () => Unit = resultPathOpt match {
-      case Some(resultPath) => () => os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
-      case None => () => systemOut.println(s"Test result: ${successCounter + failureCounter} completed${ if failureCounter > 0 then s", ${failureCounter} failures." else "."}")
+      case Some(resultPath) =>
+        () => os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
+      case None => () =>
+          systemOut.println(s"Test result: ${successCounter + failureCounter} completed${
+              if failureCounter > 0 then s", ${failureCounter} failures." else "."
+            }")
     }
-  
+
     tasksSeq.foreach { tasks =>
       val taskResult = executeTasks(tasks, testReporter, events, systemOut)
       if taskResult then successCounter += 1 else failureCounter += 1
@@ -260,7 +266,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
     val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
-    val (doneMessage, results) = runTasks(tasksArr.view.map(_.toSeq).toSeq, testReporter, runner, resultPathOpt)
+    val (doneMessage, results) =
+      runTasks(tasksArr.view.map(_.toSeq).toSeq, testReporter, runner, resultPathOpt)
 
     (doneMessage, results.toSeq)
   }
@@ -283,7 +290,7 @@ import java.util.concurrent.atomic.AtomicBoolean
       .toMap
     var successCounter = 0L
     var failureCounter = 0L
-    
+
     def runClaimedTestClass(testClassName: String) = {
 
       System.err.println(s"Running Test Class $testClassName")
