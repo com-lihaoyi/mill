@@ -222,7 +222,7 @@ private final class TestModuleUtil(
   )(implicit ctx: mill.api.Ctx) = {
 
     val workerStatusMap = new java.util.concurrent.ConcurrentHashMap[os.Path, String => Unit]()
-    val workerStatsSet = new java.util.concurrent.ConcurrentHashMap[os.Path, Unit]()
+    val workerResultSet = new java.util.concurrent.ConcurrentHashMap[os.Path, Unit]()
     val testClassTimeMap = new java.util.concurrent.ConcurrentHashMap[String, Long]()
 
     def preparetestClassQueueFolder(selectors2: Seq[String], base: os.Path): os.Path = {
@@ -263,13 +263,14 @@ private final class TestModuleUtil(
         workerStatusMap.put(claimLog, logger.ticker)
         val claimStats = claimFolder / os.up / s"${claimFolder.last}.stats"
         os.write.over(claimStats, upickle.default.write((0L, 0L)))
-        workerStatsSet.put(claimStats, ())
+        workerResultSet.put(claimStats, ())
         val result = callTestRunnerSubprocess(
           base,
           Right((startingTestClass, testClassQueueFolder, claimFolder))
         )
         workerStatusMap.remove(claimLog)
-        // We don't remove workerStatsSet entry, as we still need them for calculation
+        // We don't remove workerResultSet entry, as we still need them
+        // for calculation of total success/failure counts
         Some(result)
       } else {
         None
@@ -320,7 +321,7 @@ private final class TestModuleUtil(
     // but we have a check for non-empty test-classes folder before really spawning a new runner, so in practice the overhead is low
     val subprocessFutures = for {
       ((groupFolder, testClassesFolder, numTests), groupIndex) <- groupFolderData.zipWithIndex
-      // Don't have re-calculate for every processes
+      // Don't re-calculate for every processes
       groupName = groupFolder.last
       (jobs, maxProcessLength) = jobsProcessLength(numTests)
       paddedGroupIndex = mill.util.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
@@ -376,18 +377,14 @@ private final class TestModuleUtil(
               os.read.lines(claimLog).lastOption.foreach { currentTestClass =>
                 testClassTimeMap.putIfAbsent(currentTestClass, now)
                 val last = testClassTimeMap.get(currentTestClass)
-                val suffix = ((now - last) / 1000).toInt match {
-                  case 0 => ""
-                  case n => s" ${n}s"
-                }
-                callback(s"$currentTestClass$suffix")
+                callback(s"$currentTestClass${mill.util.Util.renderSecondsSuffix(now - last)}")
               }
             }
             var totalSuccess = 0L
             var totalFailure = 0L
-            workerStatsSet.forEach { (claimStats, _) =>
+            workerResultSet.forEach { (claimResult, _) =>
               val (success, failure) =
-                upickle.default.read[(Long, Long)](os.read.stream(claimStats))
+                upickle.default.read[(Long, Long)](os.read.stream(claimResult))
               totalSuccess += success
               totalFailure += failure
             }
@@ -411,13 +408,7 @@ private final class TestModuleUtil(
           }) Thread.sleep(1)
         }
         subprocessFutures.flatMap(_.value).map(_.get)
-      } finally {
-        executor.shutdown()
-        // help gc
-        workerStatusMap.clear()
-        workerStatsSet.clear()
-        testClassTimeMap.clear()
-      }
+      } finally executor.shutdown()
 
     val subprocessResult = {
       val failMap = mutable.Map.empty[String, String]

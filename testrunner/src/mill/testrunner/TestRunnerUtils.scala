@@ -135,10 +135,9 @@ import java.util.concurrent.atomic.AtomicBoolean
   private def executeTasks(
       tasks: Seq[Task],
       testReporter: TestReporter,
-      events: ConcurrentLinkedQueue[Event],
-      claimStatsFileOpt: Option[os.Path]
-  )(implicit ctx: Ctx.Log with Ctx.Home): Unit = {
-    val testEventSummary = new TestEventSummary(claimStatsFileOpt)
+      events: ConcurrentLinkedQueue[Event]
+  )(implicit ctx: Ctx.Log with Ctx.Home): Boolean = {
+    val taskStatus = new AtomicBoolean(true)
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
       val next = taskQueue.dequeue().execute(
@@ -146,7 +145,11 @@ import java.util.concurrent.atomic.AtomicBoolean
           def handle(event: Event) = {
             testReporter.logStart(event)
             events.add(event)
-            testEventSummary.record(event)
+            event.status match {
+              case Status.Error => taskStatus.set(false)
+              case Status.Failure => taskStatus.set(false)
+              case _ => ()
+            }
             testReporter.logFinish(event)
           }
         },
@@ -162,8 +165,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
       taskQueue.enqueueAll(next)
     }
-    testEventSummary.summary()
-    ()
+    taskStatus.get()
   }
 
   def parseRunTaskResults(events: Iterator[Event]): Iterator[TestResult] = {
@@ -211,7 +213,7 @@ import java.util.concurrent.atomic.AtomicBoolean
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val events = new ConcurrentLinkedQueue[Event]()
-    executeTasks(tasks, testReporter, events, None)
+    executeTasks(tasks, testReporter, events)
     handleRunnerDone(runner, events)
   }
 
@@ -247,6 +249,8 @@ import java.util.concurrent.atomic.AtomicBoolean
     val globSelectorCache = testClasses.view
       .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
       .toMap
+    var successCounter = 0L
+    var failureCounter = 0L
 
     def runClaimedTestClass(testClassName: String) = {
 
@@ -259,7 +263,9 @@ import java.util.concurrent.atomic.AtomicBoolean
         }
 
       val tasks = runner.tasks(taskDefs.toArray)
-      executeTasks(tasks, testReporter, events, Some(claimFolder / os.up / s"${claimFolder.last}.stats"))
+      val taskStatus = executeTasks(tasks, testReporter, events)
+      if (taskStatus) { successCounter += 1 } else { failureCounter += 1 }
+      os.write.over(claimFolder / os.up / s"${claimFolder.last}.stats", upickle.default.write((successCounter, failureCounter)))
     }
 
     startingTestClass.foreach { testClass =>
@@ -280,8 +286,8 @@ import java.util.concurrent.atomic.AtomicBoolean
     ) {
       // append only log, used to communicate with parent about what test is being claimed
       // so that the parent can log the claimed test's name to its logger
-      val queueLog = claimFolder / os.up / s"${claimFolder.last}.log"
-      os.write.append(queueLog, s"${file.last}\n")
+      val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
+      os.write.append(claimLog, s"${file.last}\n")
       file.last
     }
   }
@@ -347,28 +353,6 @@ import java.util.concurrent.atomic.AtomicBoolean
     else { className =>
       val name = className.stripSuffix("$")
       filters.exists(f => f(name))
-    }
-  }
-
-  @internal private[TestRunnerUtils] final class TestEventSummary(outputFileOpt: Option[os.Path])
-      extends AtomicBoolean(true) {
-    def record(event: Event): Unit = {
-      event.status() match {
-        case Status.Error => set(false)
-        case Status.Failure => set(false)
-        case _ => val _ = compareAndSet(true, true) // consider success as a default
-      }
-    }
-
-    def summary(): Boolean = {
-      val isSuccess = get()
-      outputFileOpt.foreach { outputFile =>
-        val (success, failure) = upickle.default.read[(Long, Long)](os.read.stream(outputFile))
-        val (newSuccess, newFailure) =
-          if (isSuccess) (success + 1, failure) else (success, failure + 1)
-        os.write.over(outputFile, upickle.default.write((newSuccess, newFailure)))
-      }
-      isSuccess
     }
   }
 }
