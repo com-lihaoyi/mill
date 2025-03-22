@@ -123,17 +123,25 @@ private final class TestModuleUtil(
       //     - list of glob selectors to feed to the test runner directly.
       // - Right((startingTestClass, testClassQueueFolder, claimFolder)):
       //     - first test class to run, folder containing test classes for test runner to claim from, and the worker's base folder.
-      selector: Either[Seq[String], (Option[String], os.Path, os.Path)]
+      selector: Either[Seq[String], (Option[String], os.Path, os.Path)],
+      resultSet: java.util.concurrent.ConcurrentHashMap[os.Path, Unit]
   )(implicit ctx: mill.api.Ctx) = {
     os.makeDir.all(baseFolder)
 
     val outputPath = baseFolder / "out.json"
+
+    // test runner will log success/failure test class counter here while running
+    val resultPath = baseFolder / s"result.log"
+    os.write.over(resultPath, upickle.default.write((0L, 0L)))
+    resultSet.put(resultPath, ())
+
     val testArgs = TestArgs(
       framework = testFramework,
       classpath = runClasspath.map(_.path),
       arguments = args,
       sysProps = props,
       outputPath = outputPath,
+      resultPath = resultPath,
       colored = Task.log.prompt.colored,
       testCp = testClasspath.map(_.path),
       globSelectors = selector
@@ -172,52 +180,69 @@ private final class TestModuleUtil(
       filteredClassLists: Seq[Seq[String]]
   )(implicit ctx: mill.api.Ctx) = {
 
-    val subprocessResult: Result[(String, Seq[TestResult])] = filteredClassLists match {
-      // When no tests at all are discovered, run at least one test JVM
-      // process to go through the test framework setup/teardown logic
-      case Nil => callTestRunnerSubprocess(Task.dest, Left(Nil))
-      case Seq(singleTestClassList) =>
-        callTestRunnerSubprocess(Task.dest, Left(singleTestClassList))
-      case multipleTestClassLists =>
-        val maxLength = multipleTestClassLists.length.toString.length
-        val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
-          val groupPromptMessage = testClassList match {
-            case Seq(single) => single
-            case multiple =>
-              TestModuleUtil.collapseTestClassNames(
-                multiple
-              ).mkString(", ") + s", ${multiple.length} suites"
+    val workerResultSet = new java.util.concurrent.ConcurrentHashMap[os.Path, Unit]()
+
+    val executor = Executors.newScheduledThreadPool(1)
+
+    val filteredClassCount = filteredClassLists.map(_.size).sum
+    
+    try {
+      // Periodically check the result log file and tick the relevant infos
+      executor.scheduleWithFixedDelay(
+        () => {
+          val (totalSuccess, totalFailure) = TestModuleUtil.calculateTestProgress(workerResultSet)
+          ctx.log.ticker(s"${totalSuccess + totalFailure}/${filteredClassCount} completed${ if totalFailure > 0 then s", ${totalFailure} failures" else ""}")
+        },
+        0,
+        20,
+        java.util.concurrent.TimeUnit.MILLISECONDS
+      )
+
+      filteredClassLists match {
+        // When no tests at all are discovered, run at least one test JVM
+        // process to go through the test framework setup/teardown logic
+        case Nil => callTestRunnerSubprocess(Task.dest, Left(Nil), workerResultSet)
+        case Seq(singleTestClassList) =>
+          callTestRunnerSubprocess(Task.dest, Left(singleTestClassList), workerResultSet)
+        case multipleTestClassLists =>
+          val maxLength = multipleTestClassLists.length.toString.length
+          val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
+            val groupPromptMessage = testClassList match {
+              case Seq(single) => single
+              case multiple =>
+                TestModuleUtil.collapseTestClassNames(
+                  multiple
+                ).mkString(", ") + s", ${multiple.length} suites"
+            }
+
+            val paddedIndex = mill.internal.Util.leftPad(i.toString, maxLength, '0')
+            val folderName = testClassList match {
+              case Seq(single) => single
+              case multiple =>
+                s"group-$paddedIndex-${multiple.head}"
+            }
+
+            // set priority = -1 to always prioritize test subprocesses over normal Mill
+            // tasks. This minimizes the number of blocked tasks since Mill tasks can be
+            // blocked on test subprocesses, but not vice versa, so better to schedule
+            // the test subprocesses first
+            Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage, priority = -1) {
+              log =>
+                (folderName, callTestRunnerSubprocess(Task.dest / folderName, Left(testClassList), workerResultSet))
+            }
           }
 
-          val paddedIndex = mill.internal.Util.leftPad(i.toString, maxLength, '0')
-          val folderName = testClassList match {
-            case Seq(single) => single
-            case multiple =>
-              s"group-$paddedIndex-${multiple.head}"
+          val outputs = Task.fork.awaitAll(futures)
+
+          val (lefts, rights) = outputs.partitionMap {
+            case (name, Result.Failure(v)) => Left(name + " " + v)
+            case (name, Result.Success((msg, results))) => Right((name + " " + msg, results))
           }
 
-          // set priority = -1 to always prioritize test subprocesses over normal Mill
-          // tasks. This minimizes the number of blocked tasks since Mill tasks can be
-          // blocked on test subprocesses, but not vice versa, so better to schedule
-          // the test subprocesses first
-          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage, priority = -1) {
-            log =>
-              (folderName, callTestRunnerSubprocess(Task.dest / folderName, Left(testClassList)))
-          }
-        }
-
-        val outputs = Task.fork.awaitAll(futures)
-
-        val (lefts, rights) = outputs.partitionMap {
-          case (name, Result.Failure(v)) => Left(name + " " + v)
-          case (name, Result.Success((msg, results))) => Right((name + " " + msg, results))
-        }
-
-        if (lefts.nonEmpty) Result.Failure(lefts.mkString("\n"))
-        else Result.Success((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
-    }
-
-    subprocessResult
+          if (lefts.nonEmpty) Result.Failure(lefts.mkString("\n"))
+          else Result.Success((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
+      }
+    } finally executor.shutdown()
   }
 
   private def runTestQueueScheduler(
@@ -264,16 +289,12 @@ private final class TestModuleUtil(
         val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
         os.write.over(claimLog, Array.empty[Byte])
         workerStatusMap.put(claimLog, logger.ticker)
-        val claimStats = claimFolder / os.up / s"${claimFolder.last}.stats"
-        os.write.over(claimStats, upickle.default.write((0L, 0L)))
-        workerResultSet.put(claimStats, ())
         val result = callTestRunnerSubprocess(
           base,
-          Right((startingTestClass, testClassQueueFolder, claimFolder))
+          Right((startingTestClass, testClassQueueFolder, claimFolder)),
+          workerResultSet
         )
         workerStatusMap.remove(claimLog)
-        // We don't remove workerResultSet entry, as we still need them
-        // for calculation of total success/failure counts
         Some(result)
       } else {
         None
@@ -379,14 +400,8 @@ private final class TestModuleUtil(
                 callback(s"$currentTestClass${mill.internal.Util.renderSecondsSuffix(now - last)}")
               }
             }
-            var totalSuccess = 0L 
-            var totalFailure = 0L
-            workerResultSet.forEach { (claimStats, _) =>
-              val (success, failure) = upickle.default.read[(Long, Long)](os.read.stream(claimStats))
-              totalSuccess += success
-              totalFailure += failure
-            }
-            ctx.log.ticker(s"${totalSuccess + totalFailure}/${filteredClassCount} completed, ${totalFailure} failures")
+            val (totalSuccess, totalFailure) = TestModuleUtil.calculateTestProgress(workerResultSet)
+            ctx.log.ticker(s"${totalSuccess + totalFailure}/${filteredClassCount} completed${ if totalFailure > 0 then s", ${totalFailure} failures" else ""}")
           },
           0,
           20,
@@ -438,6 +453,17 @@ private final class TestModuleUtil(
 }
 
 private[scalalib] object TestModuleUtil {
+
+  private def calculateTestProgress(resultSet: java.util.concurrent.ConcurrentHashMap[os.Path, Unit]) = {
+    var totalSuccess = 0L 
+    var totalFailure = 0L
+    resultSet.forEach { (claimStats, _) =>
+      val (success, failure) = upickle.default.read[(Long, Long)](os.read.stream(claimStats))
+      totalSuccess += success
+      totalFailure += failure
+    }
+    totalSuccess -> totalFailure
+  }
 
   private def loadArgsAndProps(useArgsFile: Boolean, forkArgs: Seq[String]) = {
     if (useArgsFile) {

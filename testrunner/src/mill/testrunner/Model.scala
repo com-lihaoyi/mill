@@ -9,6 +9,7 @@ import mill.api.internal
     arguments: Seq[String],
     sysProps: Map[String, String],
     outputPath: os.Path,
+    resultPath: os.Path,
     colored: Boolean,
     testCp: Seq[os.Path],
     // globSelectors indicates the strategy for testrunner to find and run test classes
