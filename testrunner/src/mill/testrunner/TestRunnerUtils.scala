@@ -114,22 +114,31 @@ import java.util.concurrent.atomic.AtomicBoolean
       classFilter: Class[_] => Boolean,
       cl: ClassLoader,
       testClassfilePath: Loose.Agg[Path]
-  ): (Runner, Array[Task]) = {
+  ): (Runner, Array[Array[Task]]) = {
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-    val tasks = runner.tasks(
-      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-        yield new TaskDef(
-          cls.getName.stripSuffix("$"),
-          fingerprint,
-          false,
-          Array(new SuiteSelector)
-        )
-    )
+    val filteredTestClasses = testClasses.iterator.filter { case (cls, _) => classFilter(cls) }.toArray
 
-    (runner, tasks)
+    val tasksArr: Array[Array[Task]] = // each test class can have multiple test tasks ==> array of test classes will have this signature
+      if (filteredTestClasses.isEmpty) {
+        // We still need to run runner's tasks on empty array
+        Array(runner.tasks(Array.empty))
+      } else {
+        filteredTestClasses.map { case (cls, fingerprint) =>
+          runner.tasks(
+            Array(new TaskDef(
+              cls.getName.stripSuffix("$"),
+              fingerprint,
+              false,
+              Array(new SuiteSelector)
+            ))
+          )
+        }
+      }
+
+    (runner, tasksArr)
   }
 
   private def executeTasks(
@@ -207,13 +216,27 @@ import java.util.concurrent.atomic.AtomicBoolean
     (doneMessage, results)
   }
 
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
+  def runTasks(tasksSeq: Seq[Seq[Task]], testReporter: TestReporter, runner: Runner, resultPathOpt: Option[os.Path])(implicit
       ctx: Ctx.Log with Ctx.Home
   ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val events = new ConcurrentLinkedQueue[Event]()
-    executeTasks(tasks, testReporter, events)
+
+    var successCounter = 0L
+    var failureCounter = 0L
+
+    val resultLog: () => Unit = resultPathOpt match {
+      case Some(resultPath) => () => os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
+      case None => () => ctx.log.outputStream.println(s"Test result: ${successCounter + failureCounter} completed${ if (failureCounter > 0) { s", ${failureCounter} failures." } else { "." } }")
+    }
+
+    tasksSeq.foreach { tasks =>
+      val taskResult = executeTasks(tasks, testReporter, events)
+      if (taskResult) { successCounter += 1 } else { failureCounter += 1 }
+      resultLog()
+    }
+
     handleRunnerDone(runner, events)
   }
 
@@ -223,14 +246,15 @@ import java.util.concurrent.atomic.AtomicBoolean
       args: Seq[String],
       classFilter: Class[_] => Boolean,
       cl: ClassLoader,
-      testReporter: TestReporter
+      testReporter: TestReporter,
+      resultPathOpt: Option[os.Path] = None
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 
-    val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
-    val (doneMessage, results) = runTasks(tasks, testReporter, runner)
+    val (doneMessage, results) = runTasks(tasksArr.view.map(_.toSeq).toSeq, testReporter, runner, resultPathOpt)
 
     (doneMessage, results.toSeq)
   }
@@ -241,7 +265,8 @@ import java.util.concurrent.atomic.AtomicBoolean
       testReporter: TestReporter,
       runner: Runner,
       claimFolder: os.Path,
-      testClassQueueFolder: os.Path
+      testClassQueueFolder: os.Path,
+      resultPath: os.Path
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
@@ -263,9 +288,9 @@ import java.util.concurrent.atomic.AtomicBoolean
         }
 
       val tasks = runner.tasks(taskDefs.toArray)
-      val taskStatus = executeTasks(tasks, testReporter, events)
-      if (taskStatus) { successCounter += 1 } else { failureCounter += 1 }
-      os.write.over(claimFolder / os.up / s"${claimFolder.last}.stats", upickle.default.write((successCounter, failureCounter)))
+      val taskResult = executeTasks(tasks, testReporter, events)
+      if (taskResult) { successCounter += 1 } else { failureCounter += 1 }
+      os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
     }
 
     startingTestClass.foreach { testClass =>
@@ -300,7 +325,8 @@ import java.util.concurrent.atomic.AtomicBoolean
       testClassQueueFolder: os.Path,
       claimFolder: os.Path,
       cl: ClassLoader,
-      testReporter: TestReporter
+      testReporter: TestReporter,
+      resultPath: os.Path
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
@@ -315,7 +341,8 @@ import java.util.concurrent.atomic.AtomicBoolean
       testReporter,
       runner,
       claimFolder,
-      testClassQueueFolder
+      testClassQueueFolder,
+      resultPath
     )
 
     (doneMessage, results.toSeq)
@@ -329,8 +356,8 @@ import java.util.concurrent.atomic.AtomicBoolean
       cl: ClassLoader
   ): Array[String] = {
     val framework = frameworkInstances(cl)
-    val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
-    tasks.map(_.taskDef().fullyQualifiedName())
+    val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    tasksArr.flatten.map(_.taskDef().fullyQualifiedName())
   }
 
   def globFilter(selectors: Seq[String]): String => Boolean = {
