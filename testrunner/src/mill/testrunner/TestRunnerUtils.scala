@@ -150,7 +150,7 @@ import java.util.concurrent.atomic.AtomicBoolean
             event.status match {
               case Status.Error => taskStatus.set(false)
               case Status.Failure => taskStatus.set(false)
-              case _ => taskStatus.compareAndSet(true, true) // consider success as a default
+              case _ => () // consider success as a default
             }
             testReporter.logFinish(event)
           }

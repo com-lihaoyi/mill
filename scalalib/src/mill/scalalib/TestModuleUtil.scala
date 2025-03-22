@@ -225,7 +225,7 @@ private final class TestModuleUtil(
   )(implicit ctx: mill.api.Ctx) = {
 
     val workerStatusMap = new java.util.concurrent.ConcurrentHashMap[os.Path, String => Unit]()
-    val workerStatsSet = new java.util.concurrent.ConcurrentHashMap[os.Path, Unit]()
+    val workerResultSet = new java.util.concurrent.ConcurrentHashMap[os.Path, Unit]()
     val testClassTimeMap = new java.util.concurrent.ConcurrentHashMap[String, Long]()
 
     def prepareTestClassesFolder(selectors2: Seq[String], base: os.Path): os.Path = {
@@ -266,13 +266,13 @@ private final class TestModuleUtil(
         workerStatusMap.put(claimLog, logger.ticker)
         val claimStats = claimFolder / os.up / s"${claimFolder.last}.stats"
         os.write.over(claimStats, upickle.default.write((0L, 0L)))
-        workerStatsSet.put(claimStats, ())
+        workerResultSet.put(claimStats, ())
         val result = callTestRunnerSubprocess(
           base,
           Right((startingTestClass, testClassQueueFolder, claimFolder))
         )
         workerStatusMap.remove(claimLog)
-        // We don't remove workerStatsSet entry, as we still need them
+        // We don't remove workerResultSet entry, as we still need them
         // for calculation of total success/failure counts
         Some(result)
       } else {
@@ -376,16 +376,12 @@ private final class TestModuleUtil(
               os.read.lines(claimLog).lastOption.foreach { currentTestClass =>
                 testClassTimeMap.putIfAbsent(currentTestClass, now)
                 val last = testClassTimeMap.get(currentTestClass)
-                val suffix = ((now - last) / 1000).toInt match {
-                  case 0 => ""
-                  case n => s" ${n}s"
-                }
-                callback(s"$currentTestClass$suffix")
+                callback(s"$currentTestClass${mill.internal.Util.renderSecondsSuffix(now - last)}")
               }
             }
             var totalSuccess = 0L 
             var totalFailure = 0L
-            workerStatsSet.forEach { (claimStats, _) =>
+            workerResultSet.forEach { (claimStats, _) =>
               val (success, failure) = upickle.default.read[(Long, Long)](os.read.stream(claimStats))
               totalSuccess += success
               totalFailure += failure
