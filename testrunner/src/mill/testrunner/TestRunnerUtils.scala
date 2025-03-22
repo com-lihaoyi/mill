@@ -119,7 +119,9 @@ import java.util.concurrent.atomic.AtomicBoolean
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-    val filteredTestClasses = testClasses.iterator.filter { case (cls, _) => classFilter(cls) }.toArray
+    val filteredTestClasses = testClasses.iterator.filter { case (cls, _) =>
+      classFilter(cls)
+    }.toArray
 
     val tasksArr: Array[Array[Task]] = // each test class can have multiple test tasks ==> array of test classes will have this signature
       if (filteredTestClasses.isEmpty) {
@@ -216,7 +218,12 @@ import java.util.concurrent.atomic.AtomicBoolean
     (doneMessage, results)
   }
 
-  def runTasks(tasksSeq: Seq[Seq[Task]], testReporter: TestReporter, runner: Runner, resultPathOpt: Option[os.Path])(implicit
+  def runTasks(
+      tasksSeq: Seq[Seq[Task]],
+      testReporter: TestReporter,
+      runner: Runner,
+      resultPathOpt: Option[os.Path]
+  )(implicit
       ctx: Ctx.Log with Ctx.Home
   ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
@@ -227,13 +234,20 @@ import java.util.concurrent.atomic.AtomicBoolean
     var failureCounter = 0L
 
     val resultLog: () => Unit = resultPathOpt match {
-      case Some(resultPath) => () => os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
-      case None => () => ctx.log.outputStream.println(s"Test result: ${successCounter + failureCounter} completed${ if (failureCounter > 0) { s", ${failureCounter} failures." } else { "." } }")
+      case Some(resultPath) =>
+        () => os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
+      case None => () =>
+          ctx.log.outputStream.println(
+            s"Test result: ${successCounter + failureCounter} completed${if (failureCounter > 0) {
+                s", ${failureCounter} failures."
+              } else { "." }}"
+          )
     }
 
     tasksSeq.foreach { tasks =>
       val taskResult = executeTasks(tasks, testReporter, events)
-      if (taskResult) { successCounter += 1 } else { failureCounter += 1 }
+      if (taskResult) { successCounter += 1 }
+      else { failureCounter += 1 }
       resultLog()
     }
 
@@ -254,7 +268,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
     val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
-    val (doneMessage, results) = runTasks(tasksArr.view.map(_.toSeq).toSeq, testReporter, runner, resultPathOpt)
+    val (doneMessage, results) =
+      runTasks(tasksArr.view.map(_.toSeq).toSeq, testReporter, runner, resultPathOpt)
 
     (doneMessage, results.toSeq)
   }
@@ -289,7 +304,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
       val tasks = runner.tasks(taskDefs.toArray)
       val taskResult = executeTasks(tasks, testReporter, events)
-      if (taskResult) { successCounter += 1 } else { failureCounter += 1 }
+      if (taskResult) { successCounter += 1 }
+      else { failureCounter += 1 }
       os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
     }
 
