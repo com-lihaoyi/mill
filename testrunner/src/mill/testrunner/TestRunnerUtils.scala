@@ -13,7 +13,6 @@ import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 import java.io.PrintStream
-import java.util.concurrent.atomic.LongAdder
 import java.util.concurrent.atomic.AtomicBoolean
 
 @internal object TestRunnerUtils {
@@ -138,10 +137,9 @@ import java.util.concurrent.atomic.AtomicBoolean
       tasks: Seq[Task],
       testReporter: TestReporter,
       events: ConcurrentLinkedQueue[Event],
-      systemOut: PrintStream,
-      claimStatsFileOpt: Option[os.Path]
-  ): Unit = {
-    val testEventSummary = new TestEventSummary(claimStatsFileOpt)
+      systemOut: PrintStream
+  ): Boolean = {
+    val taskStatus = new AtomicBoolean(true)
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
       val next = taskQueue.dequeue().execute(
@@ -149,7 +147,11 @@ import java.util.concurrent.atomic.AtomicBoolean
           def handle(event: Event) = {
             testReporter.logStart(event)
             events.add(event)
-            testEventSummary.record(event)
+            event.status match {
+              case Status.Error => taskStatus.set(false)
+              case Status.Failure => taskStatus.set(false)
+              case _ => taskStatus.compareAndSet(true, true) // consider success as a default
+            }
             testReporter.logFinish(event)
           }
         },
@@ -165,8 +167,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
       taskQueue.enqueueAll(next)
     }
-    testEventSummary.summary()
-    ()
+    taskStatus.get()
   }
 
   def parseRunTaskResults(events: Iterator[Event]): Iterator[TestResult] = {
@@ -217,7 +218,7 @@ import java.util.concurrent.atomic.AtomicBoolean
     // isn't affected by a test framework's stream redirects
     val systemOut = System.out
     val events = new ConcurrentLinkedQueue[Event]()
-    executeTasks(tasks, testReporter, events, systemOut, None)
+    executeTasks(tasks, testReporter, events, systemOut)
     handleRunnerDone(runner, events)
   }
 
@@ -254,7 +255,9 @@ import java.util.concurrent.atomic.AtomicBoolean
     val globSelectorCache = testClasses.view
       .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
       .toMap
-
+    var successCounter = 0L
+    var failureCounter = 0L
+    
     def runClaimedTestClass(testClassName: String) = {
 
       System.err.println(s"Running Test Class $testClassName")
@@ -266,7 +269,9 @@ import java.util.concurrent.atomic.AtomicBoolean
         }
 
       val tasks = runner.tasks(taskDefs.toArray)
-      executeTasks(tasks, testReporter, events, systemOut, Some(claimFolder / os.up / s"${claimFolder.last}.stats"))
+      val taskStatus = executeTasks(tasks, testReporter, events, systemOut)
+      if taskStatus then successCounter += 1 else failureCounter += 1
+      os.write.over(claimFolder / os.up / s"${claimFolder.last}.stats", upickle.default.write((successCounter, failureCounter)))
     }
 
     startingTestClass.foreach { testClass =>
@@ -277,6 +282,7 @@ import java.util.concurrent.atomic.AtomicBoolean
     for (file <- os.list(testClassQueueFolder)) {
       for (claimedTestClass <- claimFile(file, claimFolder)) runClaimedTestClass(claimedTestClass)
     }
+
     handleRunnerDone(runner, events)
   }
 
@@ -287,8 +293,8 @@ import java.util.concurrent.atomic.AtomicBoolean
     ) {
       // append only log, used to communicate with parent about what test is being claimed
       // so that the parent can log the claimed test's name to its logger
-      val queueLog = claimFolder / os.up / s"${claimFolder.last}.log"
-      os.write.append(queueLog, s"${file.last}\n")
+      val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
+      os.write.append(claimLog, s"${file.last}\n")
       file.last
     }
   }
@@ -354,26 +360,6 @@ import java.util.concurrent.atomic.AtomicBoolean
     else { className =>
       val name = className.stripSuffix("$")
       filters.exists(f => f(name))
-    }
-  }
-
-  @internal private[TestRunnerUtils] final class TestEventSummary(outputFileOpt: Option[os.Path]) extends AtomicBoolean(true) {
-    def record(event: Event): Unit = {
-      event.status() match {
-        case Status.Error => set(false)
-        case Status.Failure => set(false)
-        case _ => val _ = compareAndSet(true, true) // consider success as a default
-      }
-    }
-
-    def summary(): Boolean = {
-      val isSuccess = get()
-      outputFileOpt.foreach { outputFile =>
-        val (success, failure) = upickle.default.read[(Long, Long)](os.read.stream(outputFile))
-        val (newSuccess, newFailure) = if (isSuccess) (success + 1, failure) else (success, failure + 1)
-        os.write.over(outputFile, upickle.default.write((newSuccess, newFailure)))
-      }
-      isSuccess
     }
   }
 }

@@ -272,7 +272,8 @@ private final class TestModuleUtil(
           Right((startingTestClass, testClassQueueFolder, claimFolder))
         )
         workerStatusMap.remove(claimLog)
-        // We don't remove workerStatsSet entry, as we still need them for calculation
+        // We don't remove workerStatsSet entry, as we still need them
+        // for calculation of total success/failure counts
         Some(result)
       } else {
         None
@@ -407,13 +408,7 @@ private final class TestModuleUtil(
           }) Thread.sleep(1)
         }
         subprocessFutures.flatMap(_.value).map(_.get)
-      } finally {
-        executor.shutdown()
-        // help gc
-        workerStatusMap.clear()
-        workerStatsSet.clear()
-        testClassTimeMap.clear()
-      }
+      } finally executor.shutdown()
 
     val subprocessResult = {
       val failMap = mutable.Map.empty[String, String]
