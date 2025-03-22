@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.api.Result.{OuterStack, Success}
+import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
 import mill.api._
 import mill.define._
