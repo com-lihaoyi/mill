@@ -2,7 +2,7 @@ package mill.codesig
 
 import mill.codesig.JvmModel.*
 import mill.internal.{SpanningForest, Tarjans}
-import ujson.{Obj, Arr}
+import ujson.Obj
 import upickle.default.{Writer, writer}
 
 import scala.collection.immutable.SortedMap
@@ -74,7 +74,7 @@ class CallGraphAnalysis(
     .to(SortedMap)
 
   def calculateSpanningInvalidationTree(
-    prevTransitiveCallGraphHashesOpt: => Option[Map[String, Int]]
+      prevTransitiveCallGraphHashesOpt: => Option[Map[String, Int]]
   ): Obj = {
     prevTransitiveCallGraphHashesOpt match {
       case Some(prevTransitiveCallGraphHashes) =>
@@ -89,7 +89,7 @@ class CallGraphAnalysis(
   }
 
   def calculateInvalidatedClassNames(
-    prevTransitiveCallGraphHashesOpt: => Option[Map[String, Int]]
+      prevTransitiveCallGraphHashesOpt: => Option[Map[String, Int]]
   ): Set[String] = {
     prevTransitiveCallGraphHashesOpt match {
       case Some(prevTransitiveCallGraphHashes) =>
@@ -154,7 +154,12 @@ object CallGraphAnalysis {
       indexGraphEdges: Array[Array[Int]]
   ): ujson.Obj = {
     SpanningForest.spanningTreeToJsonTree(
-      getSpanningForest(prevTransitiveCallGraphHashes, transitiveCallGraphHashes0, indexToNodes, indexGraphEdges),
+      getSpanningForest(
+        prevTransitiveCallGraphHashes,
+        transitiveCallGraphHashes0,
+        indexToNodes,
+        indexGraphEdges
+      ),
       k => indexToNodes(k).toString
     )
   }
@@ -168,12 +173,17 @@ object CallGraphAnalysis {
       indexToNodes: Array[Node],
       indexGraphEdges: Array[Array[Int]]
   ): Set[String] = {
-    val rootNode = getSpanningForest(prevTransitiveCallGraphHashes, transitiveCallGraphHashes0, indexToNodes, indexGraphEdges)
+    val rootNode = getSpanningForest(
+      prevTransitiveCallGraphHashes,
+      transitiveCallGraphHashes0,
+      indexToNodes,
+      indexGraphEdges
+    )
 
     val jsonValueQueue = mutable.ArrayDeque[(Int, SpanningForest.Node)]()
     jsonValueQueue.appendAll(rootNode.values.toSeq)
     val builder = Set.newBuilder[String]
-    
+
     while (jsonValueQueue.nonEmpty) {
       val (nodeIndex, node) = jsonValueQueue.removeHead()
       node.values.foreach { case (childIndex, childNode) =>
