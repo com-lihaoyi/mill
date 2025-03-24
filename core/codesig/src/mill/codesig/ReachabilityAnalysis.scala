@@ -88,12 +88,12 @@ class CallGraphAnalysis(
     }
   }
 
-  def calculateInvalidClassName(
+  def calculateInvalidatedClassNames(
     prevTransitiveCallGraphHashesOpt: => Option[Map[String, Int]]
   ): Set[String] = {
     prevTransitiveCallGraphHashesOpt match {
       case Some(prevTransitiveCallGraphHashes) =>
-        CallGraphAnalysis.invalidClassNames(
+        CallGraphAnalysis.invalidatedClassNames(
           prevTransitiveCallGraphHashes,
           transitiveCallGraphHashes0,
           indexToNodes,
@@ -162,7 +162,7 @@ object CallGraphAnalysis {
   /**
    * Get all class names that have their hashcode changed compared to prevTransitiveCallGraphHashes
    */
-  def invalidClassNames(
+  def invalidatedClassNames(
       prevTransitiveCallGraphHashes: Map[String, Int],
       transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)],
       indexToNodes: Array[Node],
@@ -172,7 +172,7 @@ object CallGraphAnalysis {
 
     val jsonValueQueue = mutable.ArrayDeque[(Int, SpanningForest.Node)]()
     jsonValueQueue.appendAll(rootNode.values.toSeq)
-    val invalidClassNames = Set.newBuilder[String]
+    val builder = Set.newBuilder[String]
     
     while (jsonValueQueue.nonEmpty) {
       val (nodeIndex, node) = jsonValueQueue.removeHead()
@@ -180,13 +180,13 @@ object CallGraphAnalysis {
         jsonValueQueue.append((childIndex, childNode))
       }
       indexToNodes(nodeIndex) match {
-        case CallGraphAnalysis.LocalDef(methodDef) => invalidClassNames.addOne(methodDef.cls.name)
-        case CallGraphAnalysis.Call(methodCall) => invalidClassNames.addOne(methodCall.cls.name)
-        case CallGraphAnalysis.ExternalClsCall(externalCls) => invalidClassNames.addOne(externalCls.name)
+        case CallGraphAnalysis.LocalDef(methodDef) => builder.addOne(methodDef.cls.name)
+        case CallGraphAnalysis.Call(methodCall) => builder.addOne(methodCall.cls.name)
+        case CallGraphAnalysis.ExternalClsCall(externalCls) => builder.addOne(externalCls.name)
       }
     }
 
-    invalidClassNames.result()
+    builder.result()
   }
 
   def indexGraphEdges(

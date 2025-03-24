@@ -20,6 +20,7 @@ import mill.util.Jvm
 
 import os.Path
 import scala.util.Try
+import scala.annotation.unused
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -108,6 +109,7 @@ trait JavaModule
     def testQuick(args: String*): Command[(String, Seq[TestResult])] = Task.Command(persistent = true) {      
       val quicktestFailedClassesLog = Task.dest / "quickTestFailedClasses.json"
       val transitiveCallGraphHashes0 = Task.dest / "transitiveCallGraphHashes0.json"
+      val invalidatedClassNamesLog = Task.dest / "invalidatedClassNames.json"
 
       val classFiles: Seq[os.Path] = callGraphAnalysisClasspath()
         .flatMap(os.walk(_).filter(_.ext == "class"))
@@ -120,7 +122,7 @@ trait JavaModule
           ignoreCall = (callSiteOpt, calledSig) => callGraphAnalysisIgnoreCalls(callSiteOpt, calledSig)
         )
       val testClasses = testForkGrouping()
-      val (quickTestClassLists, invalidClassNames) = if (!os.exists(transitiveCallGraphHashes0)) {
+      val (quickTestClassLists, invalidatedClassNames) = if (!os.exists(transitiveCallGraphHashes0)) {
         // cannot calcuate invalid classes, so test all classes
         testClasses -> Set.empty[String]
       } else {
@@ -133,15 +135,15 @@ trait JavaModule
             }.getOrElse(Seq.empty[String]).toSet
           }
 
-        val invalidClassNames = callAnalysis.calculateInvalidClassName {
+        val invalidatedClassNames = callAnalysis.calculateInvalidatedClassNames {
           Some(upickle.default.read[Map[String, Int]](os.read.stream(transitiveCallGraphHashes0)))
         }
 
-        val testingClasses = invalidClassNames ++ failedTestClasses
+        val testingClasses = invalidatedClassNames ++ failedTestClasses
 
         testClasses
           .map(_.filter(testingClasses.contains))
-          .filter(_.nonEmpty) -> invalidClassNames
+          .filter(_.nonEmpty) -> invalidatedClassNames
       }
 
       // Clean up the directory for test runners
@@ -171,7 +173,7 @@ trait JavaModule
 
       val results = testModuleUtil.runTests()
 
-      val badTestClasses = results match {
+      val badTestClasses = (results match {
         case Result.Failure(_) =>
           // Consider all quick testing classes as failed
           quickTestClassLists.flatten
@@ -180,11 +182,11 @@ trait JavaModule
           results
             .filter(testResult => Set("Error", "Failure").contains(testResult.status))
             .map(_.fullyQualifiedName)
-      }
+      }).distinct
       
-      os.write.over(quicktestFailedClassesLog, upickle.default.write(badTestClasses.distinct))
+      os.write.over(quicktestFailedClassesLog, upickle.default.write(badTestClasses))
       os.write.over(transitiveCallGraphHashes0, upickle.default.write(callAnalysis.transitiveCallGraphHashes0))
-      os.write.over(Task.dest / "invalidClasses.json", upickle.default.write(invalidClassNames))
+      os.write.over(invalidatedClassNamesLog, upickle.default.write(invalidatedClassNames))
       
       results match {
         case Result.Failure(errMsg) => Result.Failure(errMsg)
@@ -1486,47 +1488,9 @@ trait JavaModule
 
   @internal
   protected def callGraphAnalysisIgnoreCalls(
-    callSiteOpt: Option[mill.codesig.JvmModel.MethodDef],
-    calledSig: mill.codesig.JvmModel.MethodSig
-  ): Boolean = {
-    // We can ignore all calls to methods that look like Targets when traversing
-    // the call graph. We can do this because we assume `def` Targets are pure,
-    // and so any changes in their behavior will be picked up by the runtime build
-    // graph evaluator without needing to be accounted for in the post-compile
-    // bytecode callgraph analysis.
-    def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
-      (desc.ret.pretty == classOf[mill.define.Target[?]].getName ||
-        desc.ret.pretty == classOf[mill.define.Worker[?]].getName) &&
-        desc.args.isEmpty
-
-    // We avoid ignoring method calls that are simple trait forwarders, because
-    // we need the trait forwarders calls to be counted in order to wire up the
-    // method definition that a Target is associated with during evaluation
-    // (e.g. `myModuleObject.myTarget`) with its implementation that may be defined
-    // somewhere else (e.g. `trait MyModuleTrait{ def myTarget }`). Only that one
-    // step is necessary, after that the runtime build graph invalidation logic can
-    // take over
-    def isForwarderCallsiteOrLambda =
-      callSiteOpt.nonEmpty && {
-        val callSiteSig = callSiteOpt.get.sig
-
-        (callSiteSig.name == (calledSig.name + "$") &&
-          callSiteSig.static &&
-          callSiteSig.desc.args.size == 1)
-        || (
-          // In Scala 3, lambdas are implemented by private instance methods,
-          // not static methods, so they fall through the crack of "isSimpleTarget".
-          // Here make the assumption that a zero-arg lambda called from a simpleTarget,
-          // should in fact be tracked. e.g. see `integration.invalidation[codesig-hello]`,
-          // where the body of the `def foo` target is a zero-arg lambda i.e. the argument
-          // of `Cacher.cachedTarget`.
-          // To be more precise I think ideally we should capture more information in the signature
-          isSimpleTarget(callSiteSig.desc) && calledSig.name.contains("$anonfun")
-        )
-      }
-    
-    isSimpleTarget(calledSig.desc) && !isForwarderCallsiteOrLambda
-  }
+    @unused callSiteOpt: Option[mill.codesig.JvmModel.MethodDef],
+    @unused calledSig: mill.codesig.JvmModel.MethodSig
+  ): Boolean = false
 
   @internal
   protected def callGraphAnalysisClasspath: Task[Seq[os.Path]] = Task.Anon {
