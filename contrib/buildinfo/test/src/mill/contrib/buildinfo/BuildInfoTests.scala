@@ -106,7 +106,6 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-
   object BuildInfoKotlin extends TestBaseModule with KotlinModule with BuildInfo {
     def kotlinVersion = kotlinVersionString
     // FIXME: the mainClass should be found automatically
@@ -131,7 +130,6 @@ object BuildInfoTests extends TestSuite {
 
     lazy val millDiscover = Discover[this.type]
   }
-
 
   val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "buildinfo"
 
@@ -268,7 +266,10 @@ object BuildInfoTests extends TestSuite {
         os.read(runResult) == scalaVersionString
       )
     }
-    test("kotlin-static") - UnitTester(BuildInfoKotlinStatic, testModuleSourcesPath / "kotlin").scoped {
+    test("kotlin-static") - UnitTester(
+      BuildInfoKotlinStatic,
+      testModuleSourcesPath / "kotlin"
+    ).scoped {
       eval =>
         val runResult = eval.outPath / "hello-mill"
         val generatedSrc = eval.outPath / "buildInfoSources.dest/foo/BuildInfo.kt"
