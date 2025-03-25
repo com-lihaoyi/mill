@@ -1,7 +1,7 @@
 package mill.kotlinlib.android
 
 import mill.{T, Task}
-import mill.api.{PathRef, Result}
+import mill.api.Result
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 
 // TODO expose Compose configuration options

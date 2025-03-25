@@ -443,7 +443,8 @@ trait KotlinModule extends JavaModule { outer =>
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
-    override def kotlinCompilerEmbeddable: Task[Boolean] = Task.Anon { outer.kotlinCompilerEmbeddable() }
+    override def kotlinCompilerEmbeddable: Task[Boolean] =
+      Task.Anon { outer.kotlinCompilerEmbeddable() }
   }
 
 }

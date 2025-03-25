@@ -54,7 +54,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     /* There are no testclasses for screenshot tests, just the engine running a diff over the images */
     override def discoveredTestClasses: T[Seq[String]] = Task { Seq.empty[String] }
 
-    override def mapDependencies: Task[Dependency => Dependency] = Task.Anon(outer.mapDependencies())
+    override def mapDependencies: Task[Dependency => Dependency] =
+      Task.Anon(outer.mapDependencies())
 
     override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
 
