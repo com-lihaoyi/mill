@@ -70,9 +70,6 @@ foo.run
 foo.compile(KotlinModule...)
     Compiles all the sources to JVM class files.
     Compiles the current module to generate compiled classfiles/bytecode.
-    When you override this, you probably also want/need to override [[bspCompileClassesPath]],
-    as that needs to point to the same compilation output path.
-    Keep in sync with [[bspCompileClassesPath]]
 Inputs:
     foo.allJavaSourceFiles
     foo.allKotlinSourceFiles
@@ -80,7 +77,7 @@ Inputs:
     foo.upstreamCompileOutput
     foo.javacOptions
     foo.zincReportCachedProblems
-    foo.kotlincOptions
+    foo.allKotlincOptions
     foo.kotlinCompilerClasspath
 ...
 
