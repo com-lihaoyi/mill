@@ -622,7 +622,7 @@ index 73c8cd24f9c..362eac814cd 100644
 -          Some(Task.ctx()),
 -          dist.coursierCacheCustomizer()
 +        val result = dist.millResolver().resolution(
-+          repositories = dist.allRepositories()
++          Seq(BoundDep(dist.coursierDependency, force = false))
          )
 -        result.getOrThrow.orderedDependencies
 +        result.orderedDependencies
