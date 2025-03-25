@@ -106,12 +106,25 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoKotlinStatic extends TestBaseModule with KotlinModule with BuildInfo {
+
+  object BuildInfoKotlin extends TestBaseModule with KotlinModule with BuildInfo {
     def kotlinVersion = kotlinVersionString
-    def buildInfoPackageName = "foo"
-    override def buildInfoStaticCompiled = true
     // FIXME: the mainClass should be found automatically
     def mainClass = Some("foo.Main")
+    def buildInfoPackageName = "foo"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("scalaVersion", scalaVersion())
+    )
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object BuildInfoKotlinStatic extends TestBaseModule with KotlinModule with BuildInfo {
+    def kotlinVersion = kotlinVersionString
+    // FIXME: the mainClass should be found automatically
+    def mainClass = Some("foo.Main")
+    def buildInfoPackageName = "foo"
+    override def buildInfoStaticCompiled = true
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", scalaVersion())
     )
@@ -245,6 +258,16 @@ object BuildInfoTests extends TestSuite {
         )
     }
 
+    test("kotlin") - UnitTester(BuildInfoKotlin, testModuleSourcesPath / "kotlin").scoped { eval =>
+      val runResult = eval.outPath / "hello-mill"
+      val Right(_) =
+        eval.apply(BuildInfoKotlin.run(Task.Anon(Args(runResult.toString)))): @unchecked
+
+      assert(
+        os.exists(runResult),
+        os.read(runResult) == scalaVersionString
+      )
+    }
     test("kotlin-static") - UnitTester(BuildInfoKotlinStatic, testModuleSourcesPath / "kotlin").scoped {
       eval =>
         val runResult = eval.outPath / "hello-mill"

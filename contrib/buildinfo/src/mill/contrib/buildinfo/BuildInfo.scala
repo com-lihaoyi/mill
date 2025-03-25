@@ -240,7 +240,7 @@ object BuildInfo {
            |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
            |
            |    if(buildInfoInputStream == null)
-           |      throw new RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
+           |      throw RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
            |    else try {
            |      buildInfoProperties.load(buildInfoInputStream)
            |    } finally {
