@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.api.Result.{OuterStack, Success}
+import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
 import mill.api._
 import mill.define._
@@ -289,9 +289,9 @@ private[mill] trait GroupEvaluator {
     val (newResults, newEvaluated) = computeAll()
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
-      val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[_]])
+      val taskFailed = newResults.exists(task => task._2.isInstanceOf[Result.Failing[?]])
       if (taskFailed) {
-        logger.error(s"[$counterMsg] $targetLabel failed")
+        logger.error(s"$targetLabel failed")
       }
     }
 

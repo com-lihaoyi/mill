@@ -1,7 +1,7 @@
 // Test Grouping is an opt-in feature that allows you to take a single
 // test module and group the test classes such that each group will
-// execute in parallel when you call `test`. Test grouping is enabled
-// by overriding `def testForkGrouping`, as shown below:
+// execute in parallel in a separate JVM when you call `test`. Test grouping
+// is enabled by overriding `def testForkGrouping`, as shown below:
 
 //// SNIPPET:BUILD1
 package build
@@ -41,16 +41,17 @@ out/foo/test/test.dest/test-report.xml
 
 */
 
-// Test grouping allows you to run tests in parallel while keeping things deterministic and
-// debuggable: parallel test groups will not write over each others files in their
+// Compared to xref:#_test_parallelism[], test grouping allows you to run tests in parallel
+// while and isolating different test groups into their own subprocesses, at the cost of
+// greater subprocess overhead due to the larger number of isolated subprocesses.
+// Different test groups will not write over each others files in their
 // sandbox, and each one will have a separate set of logs that can be easily read
 // without the others mixed in
 //
 // In this example, `def testForkGrouping = discoveredTestClasses().grouped(1).toSeq` assigns
-// each test class to its own group, running in its own JVM. This comes with some overhead
-// on a per-JVM basis, so if your test classes are numerous and small you may want to assign
-// multiple test classes per group. You can also configure `testForkGrouping` to choose which
-// test classes you want to run together and which to run alone:
+// each test class to its own group, running in its own JVM. You can also configure
+// `testForkGrouping` to choose which test classes you want to run together and which to
+// run alone:
 //
 // * If some test classes
 //   are much slower than others, you may want to put the slow test classes each in its own

@@ -76,6 +76,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val terminals0 = sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
+    val rootFailedCount = new AtomicInteger(0) // Track only root failures
     val indexToTerminal = sortedGroups.keys().toArray
 
     EvaluatorLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
@@ -90,6 +91,9 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val changedValueHash = new ConcurrentHashMap[Terminal, Unit]()
 
     val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
+
+    def formatHeaderPrefix(countMsg: String, verboseKeySuffix: String) =
+      s"$countMsg$verboseKeySuffix${EvaluatorCore.formatFailedCount(rootFailedCount.get())}"
 
     def evaluateTerminals(
         terminals: Seq[Terminal],
@@ -131,7 +135,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               )
 
               val verboseKeySuffix = s"/${terminals0.size}"
-              logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
+              logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
               if (failed.get()) None
               else {
                 val upstreamResults = upstreamValues
@@ -174,6 +178,14 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                   forkExecutionContext,
                   exclusive
                 )
+
+                // Count new failures - if there are upstream failures, tasks should be skipped, not failed
+                val newFailures = res.newResults.values.count(r => r.result.asFailing.isDefined)
+
+                rootFailedCount.addAndGet(newFailures)
+
+                // Always show failed count in header if there are failures
+                logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
 
                 if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
                   failed.set(true)
@@ -263,6 +275,15 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 }
 
 private[mill] object EvaluatorCore {
+
+  /**
+   * Format a failed count as a string to be used in status messages.
+   * Returns ", N failed" if count > 0, otherwise an empty string.
+   */
+  def formatFailedCount(count: Int): String = {
+    if (count > 0) s", $count failed" else ""
+  }
+
   def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])
       : Map[Terminal, Seq[Terminal]] = {
     sortedGroups

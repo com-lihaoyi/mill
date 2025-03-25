@@ -29,7 +29,8 @@ private class BspWorkerImpl() extends BspWorker {
         serverVersion = BuildInfo.millVersion,
         serverName = Constants.serverName,
         logStream = logStream,
-        canReload = canReload
+        canReload = canReload,
+        debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true")
       ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
     val executor = Executors.newCachedThreadPool()
