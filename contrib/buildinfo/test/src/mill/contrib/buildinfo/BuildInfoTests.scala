@@ -1,7 +1,6 @@
 package mill.contrib.buildinfo
 
 import mill.*
-import mill.contrib.buildinfo.BuildInfoTests.BuildInfoSettings.scalaVersion
 import mill.kotlinlib.KotlinModule
 import mill.scalalib.ScalaModule
 import mill.scalajslib.ScalaJSModule
@@ -95,10 +94,8 @@ object BuildInfoTests extends TestSuite {
     def mainClass = Some("foo.Main")
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
-      BuildInfo.Value("scalaVersion", scalaVersion())
+      BuildInfo.Value("scalaVersion", scalaVersionString)
     )
-
-    lazy val millDiscover = Discover[this.type]
   }
 
   object BuildInfoKotlinStatic extends TestBaseModule with KotlinModule with BuildInfo {
@@ -108,10 +105,8 @@ object BuildInfoTests extends TestSuite {
     def buildInfoPackageName = "foo"
     override def buildInfoStaticCompiled = true
     def buildInfoMembers = Seq(
-      BuildInfo.Value("scalaVersion", scalaVersion())
+      BuildInfo.Value("scalaVersion", scalaVersionString)
     )
-
-    lazy val millDiscover = Discover[this.type]
   }
 
   val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "buildinfo"

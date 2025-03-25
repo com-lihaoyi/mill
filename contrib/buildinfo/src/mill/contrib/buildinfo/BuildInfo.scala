@@ -100,7 +100,7 @@ trait BuildInfo extends JavaModule {
 }
 
 object BuildInfo {
-  sealed case class Language(ext: String)
+  sealed abstract class Language(val ext: String)
   object Language {
     case object Java extends Language("java")
     case object Scala extends Language("scala")
