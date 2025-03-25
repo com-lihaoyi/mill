@@ -88,9 +88,8 @@ trait BuildInfo extends JavaModule {
       )
 
       os.write(
-        Task.dest / buildInfoPackageName.split(
-          '.'
-        ) / s"${buildInfoObjectName}.${buildInfoLanguage.ext}",
+        Task.dest / buildInfoPackageName.split('.') / 
+          s"${buildInfoObjectName}.${buildInfoLanguage.ext}",
         code,
         createFolders = true
       )
