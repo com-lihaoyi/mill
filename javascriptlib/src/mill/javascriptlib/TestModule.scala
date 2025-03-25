@@ -73,7 +73,7 @@ object TestModule {
 
     // coverage files - returnn coverage files directory
     def coverageFiles: T[PathRef] = Task {
-      val dir = compile()._1.path / s"${moduleDeps.head}_coverage"
+      val dir = compile().path / s"${moduleDeps.head}_coverage"
       println(s"coverage files: $dir")
       PathRef(dir)
     }
@@ -89,8 +89,8 @@ object TestModule {
           (
             prefix + "/test/utils/*",
             if (prefix == primeMod)
-              s"typescript/test/src/utils" + ":" + s"typescript/test/utils"
-            else s"typescript/$mod/test/src/utils" + ":" + s"typescript/$mod/test/utils"
+              s"test/src/utils" + ":" + s"test/utils"
+            else s"$mod/test/src/utils" + ":" + s"$mod/test/utils"
           )
         }
 
@@ -99,9 +99,12 @@ object TestModule {
 
     private def primeMod: String = outerModuleName.getOrElse("")
 
-    def testDir: String = this.toString.split("\\.").tail.mkString
+    def testDir: String = {
+      val dir = this.toString.split("\\.").tail.mkString
+      if (dir.isEmpty) dir else dir + "/"
+    }
 
-    def getPathToTest: T[String] = Task { compile()._2.path.toString + s"/$testDir" }
+    def getPathToTest: T[String] = Task { compile().path.toString + "/" + testDir }
   }
 
   trait IntegrationSuite extends TypeScriptModule {
@@ -147,10 +150,10 @@ object TestModule {
             |    }, {});
             |
             |export default {
-            |roots: ["<rootDir>/typescript"],
+            |roots: ["<rootDir>"],
             |preset: 'ts-jest',
             |testEnvironment: 'node',
-            |testMatch: ["<rootDir>/typescript/$testDir/**/?(*.)+(spec|test).[jt]s?(x)"],
+            |testMatch: ["<rootDir>/$testDir**/?(*.)+(spec|test).[jt]s?(x)"],
             |transform: ${ujson.Obj("^.+\\.(ts|tsx)$" -> ujson.Arr.from(Seq(
              ujson.Str("ts-jest"),
              ujson.Obj("tsconfig" -> "tsconfig.json")
@@ -166,17 +169,17 @@ object TestModule {
       PathRef(config)
     }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       conf()
       coverageConf()
-      symLink()
-      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+      createNodeModulesSymlink()
+      os.copy(super.compile().path, T.dest, mergeFolders = true, replaceExisting = true)
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      PathRef(T.dest)
     }
 
     private def runTest: T[TestResult] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           "node_modules/.bin/jest",
@@ -216,10 +219,10 @@ object TestModule {
             |    }, {});
             |
             |export default {
-            |roots: ["<rootDir>/typescript"],
+            |roots: ["<rootDir>"],
             |preset: 'ts-jest',
             |testEnvironment: 'node',
-            |testMatch: ["<rootDir>/typescript/$testDir/**/?(*.)+(spec|test).[jt]s?(x)"],
+            |testMatch: ["<rootDir>/$testDir**/?(*.)+(spec|test).[jt]s?(x)"],
             |transform: ${ujson.Obj("^.+\\.(ts|tsx)$" -> ujson.Arr.from(Seq(
              ujson.Str("ts-jest"),
              ujson.Obj("tsconfig" -> "tsconfig.json")
@@ -242,7 +245,7 @@ object TestModule {
     }
 
     def runCoverage: T[TestResult] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           "node",
@@ -275,15 +278,15 @@ object TestModule {
     }
 
     override def getPathToTest: T[String] =
-      Task { super.getPathToTest() + "/**/**/*.test.ts" }
+      Task { super.getPathToTest() + "/**/*.test.ts" }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       conf()
       istanbulNycrcConfigBuilder()
-      symLink()
-      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+      createNodeModulesSymlink()
+      os.copy(super.compile().path, T.dest, mergeFolders = true, replaceExisting = true)
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      PathRef(T.dest)
     }
 
     // test-runner.js: run tests on ts files
@@ -302,7 +305,7 @@ object TestModule {
     }
 
     private def runTest: T[Unit] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           "node",
@@ -322,7 +325,7 @@ object TestModule {
 
     // with coverage
     def runCoverage: T[TestResult] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           "./node_modules/.bin/nyc",
@@ -377,7 +380,7 @@ object TestModule {
             |    test: {
             |        globals: true,
             |        environment: 'node',
-            |        include: ['typescript/$testDir/**/**/*.test.ts']
+            |        include: ['$testDir**/*.test.ts']
             |    },
             |});
             |""".stripMargin
@@ -388,17 +391,17 @@ object TestModule {
       PathRef(config)
     }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       conf()
       coverageConf()
-      symLink()
-      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+      createNodeModulesSymlink()
+      os.copy(super.compile().path, T.dest, mergeFolders = true, replaceExisting = true)
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      PathRef(T.dest)
     }
 
     private def runTest: T[TestResult] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           npmInstall().path / "node_modules/.bin/ts-node",
@@ -433,7 +436,7 @@ object TestModule {
             |    test: {
             |        globals: true,
             |        environment: 'node',
-            |        include: ['typescript/$testDir/**/**/*.test.ts'],
+            |        include: ['$testDir**/*.test.ts'],
             |        coverage: {
             |            provider: 'v8',
             |            reporter: ['text', 'json', 'html'],
@@ -454,7 +457,7 @@ object TestModule {
     }
 
     def runCoverage: T[TestResult] = Task {
-      val compileDir = compile()._1.path
+      val compileDir = compile().path
       os.call(
         (
           npmInstall().path / "node_modules/.bin/ts-node",
@@ -502,8 +505,8 @@ object TestModule {
         path,
         ujson.write(
           ujson.Obj(
-            "spec_dir" -> ujson.Str("typescript"),
-            "spec_files" -> ujson.Arr(ujson.Str(s"$testDir/**/*.test.ts")),
+            "spec_dir" -> ujson.Str("."),
+            "spec_files" -> ujson.Arr(ujson.Str(s"$testDir**/*.test.ts")),
             "stopSpecOnExpectationFailure" -> ujson.Bool(false),
             "random" -> ujson.Bool(false)
           )
@@ -513,13 +516,13 @@ object TestModule {
       PathRef(path)
     }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       conf()
       istanbulNycrcConfigBuilder()
-      symLink()
-      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+      createNodeModulesSymlink()
+      os.copy(super.compile().path, T.dest, mergeFolders = true, replaceExisting = true)
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      PathRef(T.dest)
     }
 
     private def runTest: T[Unit] = Task {
@@ -536,7 +539,7 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compile().path
       )
       ()
     }
@@ -561,7 +564,7 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compile().path
       )
       ()
     }
@@ -597,7 +600,7 @@ object TestModule {
         tsc,
         configSource().path.toString,
         "--outDir",
-        compile()._1.path,
+        compile().path,
         "--target",
         "ES2020",
         "--module",
@@ -625,7 +628,7 @@ object TestModule {
       val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
         stdout = os.Inherit,
         env = env,
-        cwd = service.compile()._1.path
+        cwd = service.compile().path
       )
 
       mkConfig()
@@ -637,7 +640,7 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compile().path
       )
 
       serviceProcess.destroy()
@@ -668,12 +671,12 @@ object TestModule {
       )
     }
 
-    override def compile: T[(PathRef, PathRef)] = Task {
+    override def compile: T[PathRef] = Task {
       conf()
-      symLink()
-      os.copy(super.compile()._1.path, T.dest, mergeFolders = true)
+      createNodeModulesSymlink()
+      os.copy(super.compile().path, T.dest, mergeFolders = true, replaceExisting = true)
 
-      (PathRef(T.dest), PathRef(T.dest / "typescript"))
+      PathRef(T.dest)
     }
 
     private def runTest: T[TestResult] = Task {
@@ -686,7 +689,7 @@ object TestModule {
       val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
         stdout = os.Inherit,
         env = env,
-        cwd = service.compile()._1.path
+        cwd = service.compile().path
       )
 
       os.call(
@@ -697,7 +700,7 @@ object TestModule {
         ),
         stdout = os.Inherit,
         env = forkEnv(),
-        cwd = compile()._1.path
+        cwd = compile().path
       )
 
       serviceProcess.destroy()
