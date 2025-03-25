@@ -130,7 +130,7 @@ trait KspModule extends KotlinModule { outer =>
         "-classpath",
         compileCp.iterator.mkString(File.pathSeparator)
       ),
-      kotlincOptions(),
+      allKotlincOptions(),
       kspCompilerArgs,
       // parameters
       sourceFiles.map(_.toString())
