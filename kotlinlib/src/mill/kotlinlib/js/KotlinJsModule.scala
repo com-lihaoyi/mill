@@ -686,7 +686,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // FIXME: get this version from Mill build info
     def kotestVersion: T[String] = "5.9.1"
 
-    override def kotlinCompilerPluginIvyDeps: T[Seq[Dep]] = super.kotlinCompilerPluginIvyDeps() ++ Seq(
+    override def kotlinCompilerPluginIvyDeps
+        : T[Seq[Dep]] = super.kotlinCompilerPluginIvyDeps() ++ Seq(
       ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
     )
 
