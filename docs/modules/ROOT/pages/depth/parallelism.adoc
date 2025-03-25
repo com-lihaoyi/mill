@@ -2,7 +2,7 @@
 
 By default, Mill will evaluate all tasks in parallel, with the number of concurrent
 tasks equal to the number of cores on your machine. You can use the
-xref:cli/flags.adoc#__jobs_j[--jobs]
+xref:cli/flags.adoc#_jobs_j[--jobs]
 to configure explicitly how many concurrent tasks you wish to run, or `-j1` to disable
 parallelism and run on a single core.
 
