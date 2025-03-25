@@ -10,7 +10,8 @@ import mill.scalajslib.ScalaJSModule
 trait BuildInfo extends JavaModule {
 
   /**
-   * The package name under which the BuildInfo data object will be stored.
+   * The name of the BuildInfo data object which contains all the members
+   * from [[buildInfoMembers]]. Defaults to "BuildInfo"
    */
   def buildInfoPackageName: String
 
@@ -88,7 +89,7 @@ trait BuildInfo extends JavaModule {
       )
 
       os.write(
-        Task.dest / buildInfoPackageName.split('.') / 
+        Task.dest / buildInfoPackageName.split('.') /
           s"${buildInfoObjectName}.${buildInfoLanguage.ext}",
         code,
         createFolders = true
