@@ -23,6 +23,10 @@ object OutputDirectoryTests extends UtestIntegrationTestSuite {
       val expectedOutDir = workspacePath / "testing/test-out"
       val defaultOutDir = workspacePath / OutFiles.defaultOut
       assert(os.isDir(expectedOutDir))
+      if (os.exists(defaultOutDir)) {
+        pprint.err.log(defaultOutDir)
+        pprint.err.log(os.walk(defaultOutDir).map(_.relativeTo(defaultOutDir).asSubPath))
+      }
       assert(!os.exists(defaultOutDir))
     }
 
@@ -35,6 +39,10 @@ object OutputDirectoryTests extends UtestIntegrationTestSuite {
       ).isSuccess ==> true
       val defaultOutDir = workspacePath / OutFiles.defaultOut
       assert(os.isDir(outDir))
+      if (os.exists(defaultOutDir)) {
+        pprint.err.log(defaultOutDir)
+        pprint.err.log(os.walk(defaultOutDir).map(_.relativeTo(defaultOutDir).asSubPath))
+      }
       assert(!os.exists(defaultOutDir))
     }
   }
