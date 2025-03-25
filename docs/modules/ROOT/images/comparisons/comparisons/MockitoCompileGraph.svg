@@ -1,0 +1,319 @@
+<svg width="1295px" height="622px"
+ viewBox="0.00 0.00 1295.25 622.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 618.0)">
+<title>example1</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-618 1291.25,-618 1291.25,4 -4,4"/>
+<!-- compile -->
+<g id="node1" class="node">
+<title>compile</title>
+<polygon fill="none" stroke="black" points="145,-414 84.75,-414 84.75,-378 145,-378 145,-414"/>
+<text text-anchor="middle" x="114.88" y="-390.95" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- subprojects.android.compile -->
+<g id="node2" class="node">
+<title>subprojects.android.compile</title>
+<polygon fill="none" stroke="black" points="534.88,-560 364.38,-560 364.38,-524 534.88,-524 534.88,-560"/>
+<text text-anchor="middle" x="449.62" y="-536.95" font-family="Times,serif" font-size="14.00">subprojects.android.compile</text>
+</g>
+<!-- compile&#45;&gt;subprojects.android.compile -->
+<g id="edge9" class="edge">
+<title>compile&#45;&gt;subprojects.android.compile</title>
+<path fill="none" stroke="black" d="M132.3,-414.06C157.92,-440.96 210.26,-490.96 265.75,-515 292.79,-526.71 323.95,-533.5 352.81,-537.38"/>
+<polygon fill="black" stroke="black" points="352.31,-540.85 362.66,-538.6 353.16,-533.9 352.31,-540.85"/>
+</g>
+<!-- subprojects.errorprone.compile -->
+<g id="node4" class="node">
+<title>subprojects.errorprone.compile</title>
+<polygon fill="none" stroke="black" points="542.75,-506 356.5,-506 356.5,-470 542.75,-470 542.75,-506"/>
+<text text-anchor="middle" x="449.62" y="-482.95" font-family="Times,serif" font-size="14.00">subprojects.errorprone.compile</text>
+</g>
+<!-- compile&#45;&gt;subprojects.errorprone.compile -->
+<g id="edge8" class="edge">
+<title>compile&#45;&gt;subprojects.errorprone.compile</title>
+<path fill="none" stroke="black" d="M145.38,-409.94C175.15,-423.49 222.75,-443.77 265.75,-456 291.11,-463.21 318.94,-469.08 345.07,-473.73"/>
+<polygon fill="black" stroke="black" points="344.21,-477.14 354.66,-475.39 345.41,-470.24 344.21,-477.14"/>
+</g>
+<!-- subprojects.junit&#45;jupiter.compile -->
+<g id="node6" class="node">
+<title>subprojects.junit&#45;jupiter.compile</title>
+<polygon fill="none" stroke="black" points="546.12,-414 353.12,-414 353.12,-378 546.12,-378 546.12,-414"/>
+<text text-anchor="middle" x="449.62" y="-390.95" font-family="Times,serif" font-size="14.00">subprojects.junit&#45;jupiter.compile</text>
+</g>
+<!-- compile&#45;&gt;subprojects.junit&#45;jupiter.compile -->
+<g id="edge7" class="edge">
+<title>compile&#45;&gt;subprojects.junit&#45;jupiter.compile</title>
+<path fill="none" stroke="black" d="M145.4,-396C189.02,-396 272.9,-396 341.4,-396"/>
+<polygon fill="black" stroke="black" points="341.18,-399.5 351.18,-396 341.18,-392.5 341.18,-399.5"/>
+</g>
+<!-- test.compile -->
+<g id="node8" class="node">
+<title>test.compile</title>
+<polygon fill="none" stroke="black" points="906,-460 823.25,-460 823.25,-424 906,-424 906,-460"/>
+<text text-anchor="middle" x="864.62" y="-436.95" font-family="Times,serif" font-size="14.00">test.compile</text>
+</g>
+<!-- compile&#45;&gt;test.compile -->
+<g id="edge6" class="edge">
+<title>compile&#45;&gt;test.compile</title>
+<path fill="none" stroke="black" d="M145.27,-402.61C175.35,-409.07 223.55,-418.55 265.75,-423 466.63,-444.17 707.39,-444.14 811.47,-442.9"/>
+<polygon fill="black" stroke="black" points="811.42,-446.4 821.38,-442.77 811.33,-439.4 811.42,-446.4"/>
+</g>
+<!-- subprojects.inlineTest.test.compile -->
+<g id="node11" class="node">
+<title>subprojects.inlineTest.test.compile</title>
+<polygon fill="none" stroke="black" points="552.5,-614 346.75,-614 346.75,-578 552.5,-578 552.5,-614"/>
+<text text-anchor="middle" x="449.62" y="-590.95" font-family="Times,serif" font-size="14.00">subprojects.inlineTest.test.compile</text>
+</g>
+<!-- compile&#45;&gt;subprojects.inlineTest.test.compile -->
+<g id="edge5" class="edge">
+<title>compile&#45;&gt;subprojects.inlineTest.test.compile</title>
+<path fill="none" stroke="black" d="M125.78,-414.44C146.41,-450.86 197.81,-531.73 265.75,-569 286.76,-580.53 311.08,-587.63 334.98,-591.9"/>
+<polygon fill="black" stroke="black" points="334.36,-595.35 344.79,-593.48 335.48,-588.44 334.36,-595.35"/>
+</g>
+<!-- subprojects.memory&#45;test.test.compile -->
+<g id="node20" class="node">
+<title>subprojects.memory&#45;test.test.compile</title>
+<polygon fill="none" stroke="black" points="560.38,-360 338.88,-360 338.88,-324 560.38,-324 560.38,-360"/>
+<text text-anchor="middle" x="449.62" y="-336.95" font-family="Times,serif" font-size="14.00">subprojects.memory&#45;test.test.compile</text>
+</g>
+<!-- compile&#45;&gt;subprojects.memory&#45;test.test.compile -->
+<g id="edge4" class="edge">
+<title>compile&#45;&gt;subprojects.memory&#45;test.test.compile</title>
+<path fill="none" stroke="black" d="M145.4,-390.4C175.6,-384.73 223.87,-375.86 265.75,-369 285.66,-365.74 306.82,-362.45 327.41,-359.35"/>
+<polygon fill="black" stroke="black" points="327.91,-362.81 337.28,-357.87 326.87,-355.89 327.91,-362.81"/>
+</g>
+<!-- subprojects.programmatic&#45;test.test.compile -->
+<g id="node22" class="node">
+<title>subprojects.programmatic&#45;test.test.compile</title>
+<polygon fill="none" stroke="black" points="575.75,-306 323.5,-306 323.5,-270 575.75,-270 575.75,-306"/>
+<text text-anchor="middle" x="449.62" y="-282.95" font-family="Times,serif" font-size="14.00">subprojects.programmatic&#45;test.test.compile</text>
+</g>
+<!-- compile&#45;&gt;subprojects.programmatic&#45;test.test.compile -->
+<g id="edge3" class="edge">
+<title>compile&#45;&gt;subprojects.programmatic&#45;test.test.compile</title>
+<path fill="none" stroke="black" d="M145.41,-394.9C169.94,-392.68 204.73,-386.4 229.75,-369 253.43,-352.53 241.38,-330.44 265.75,-315 279.87,-306.05 295.82,-299.63 312.26,-295.07"/>
+<polygon fill="black" stroke="black" points="312.81,-298.54 321.66,-292.71 311.11,-291.76 312.81,-298.54"/>
+</g>
+<!-- subprojects.proxy.test.compile -->
+<g id="node24" class="node">
+<title>subprojects.proxy.test.compile</title>
+<polygon fill="none" stroke="black" points="540.88,-252 358.38,-252 358.38,-216 540.88,-216 540.88,-252"/>
+<text text-anchor="middle" x="449.62" y="-228.95" font-family="Times,serif" font-size="14.00">subprojects.proxy.test.compile</text>
+</g>
+<!-- compile&#45;&gt;subprojects.proxy.test.compile -->
+<g id="edge2" class="edge">
+<title>compile&#45;&gt;subprojects.proxy.test.compile</title>
+<path fill="none" stroke="black" d="M145.2,-396.59C170.62,-395.53 206.81,-389.98 229.75,-369 267.08,-334.85 226.98,-293.51 265.75,-261 288.11,-242.25 317.66,-233.41 346.47,-229.81"/>
+<polygon fill="black" stroke="black" points="346.78,-233.3 356.38,-228.8 346.07,-226.33 346.78,-233.3"/>
+</g>
+<!-- subprojects.subclass.test.compile -->
+<g id="node26" class="node">
+<title>subprojects.subclass.test.compile</title>
+<polygon fill="none" stroke="black" points="548,-198 351.25,-198 351.25,-162 548,-162 548,-198"/>
+<text text-anchor="middle" x="449.62" y="-174.95" font-family="Times,serif" font-size="14.00">subprojects.subclass.test.compile</text>
+</g>
+<!-- compile&#45;&gt;subprojects.subclass.test.compile -->
+<g id="edge1" class="edge">
+<title>compile&#45;&gt;subprojects.subclass.test.compile</title>
+<path fill="none" stroke="black" d="M145.49,-397.16C171.27,-396.49 207.85,-391.21 229.75,-369 281.53,-316.48 211.75,-257.24 265.75,-207 285.78,-188.36 312.75,-179.14 339.82,-175.14"/>
+<polygon fill="black" stroke="black" points="339.99,-178.64 349.49,-173.95 339.14,-171.7 339.99,-178.64"/>
+</g>
+<!-- subprojects.android.test.compile -->
+<g id="node3" class="node">
+<title>subprojects.android.test.compile</title>
+<polygon fill="none" stroke="black" points="961.12,-568 768.12,-568 768.12,-532 961.12,-532 961.12,-568"/>
+<text text-anchor="middle" x="864.62" y="-544.95" font-family="Times,serif" font-size="14.00">subprojects.android.test.compile</text>
+</g>
+<!-- subprojects.android.compile&#45;&gt;subprojects.android.test.compile -->
+<g id="edge10" class="edge">
+<title>subprojects.android.compile&#45;&gt;subprojects.android.test.compile</title>
+<path fill="none" stroke="black" d="M535.2,-543.64C599.24,-544.88 687.67,-546.59 756.64,-547.93"/>
+<polygon fill="black" stroke="black" points="756.39,-551.42 766.45,-548.12 756.52,-544.42 756.39,-551.42"/>
+</g>
+<!-- subprojects.errorprone.test.compile -->
+<g id="node5" class="node">
+<title>subprojects.errorprone.test.compile</title>
+<polygon fill="none" stroke="black" points="969,-514 760.25,-514 760.25,-478 969,-478 969,-514"/>
+<text text-anchor="middle" x="864.62" y="-490.95" font-family="Times,serif" font-size="14.00">subprojects.errorprone.test.compile</text>
+</g>
+<!-- subprojects.errorprone.compile&#45;&gt;subprojects.errorprone.test.compile -->
+<g id="edge11" class="edge">
+<title>subprojects.errorprone.compile&#45;&gt;subprojects.errorprone.test.compile</title>
+<path fill="none" stroke="black" d="M543.05,-489.79C603.73,-490.97 683.55,-492.51 748.37,-493.77"/>
+<polygon fill="black" stroke="black" points="748.29,-497.27 758.36,-493.96 748.43,-490.27 748.29,-497.27"/>
+</g>
+<!-- subprojects.extTest.compile -->
+<g id="node7" class="node">
+<title>subprojects.extTest.compile</title>
+<polygon fill="none" stroke="black" points="949.12,-406 780.12,-406 780.12,-370 949.12,-370 949.12,-406"/>
+<text text-anchor="middle" x="864.62" y="-382.95" font-family="Times,serif" font-size="14.00">subprojects.extTest.compile</text>
+</g>
+<!-- subprojects.junit&#45;jupiter.compile&#45;&gt;subprojects.extTest.compile -->
+<g id="edge16" class="edge">
+<title>subprojects.junit&#45;jupiter.compile&#45;&gt;subprojects.extTest.compile</title>
+<path fill="none" stroke="black" d="M546.41,-394.14C613.2,-392.85 701.93,-391.13 768.56,-389.84"/>
+<polygon fill="black" stroke="black" points="768.45,-393.34 778.38,-389.65 768.31,-386.35 768.45,-393.34"/>
+</g>
+<!-- subprojects.junit&#45;jupiter.test.compile -->
+<g id="node12" class="node">
+<title>subprojects.junit&#45;jupiter.test.compile</title>
+<polygon fill="none" stroke="black" points="972.38,-352 756.88,-352 756.88,-316 972.38,-316 972.38,-352"/>
+<text text-anchor="middle" x="864.62" y="-328.95" font-family="Times,serif" font-size="14.00">subprojects.junit&#45;jupiter.test.compile</text>
+</g>
+<!-- subprojects.junit&#45;jupiter.compile&#45;&gt;subprojects.junit&#45;jupiter.test.compile -->
+<g id="edge15" class="edge">
+<title>subprojects.junit&#45;jupiter.compile&#45;&gt;subprojects.junit&#45;jupiter.test.compile</title>
+<path fill="none" stroke="black" d="M546.23,-383.21C574.41,-379.09 605.25,-374.22 633.5,-369 649.62,-366.02 653.37,-363.91 669.5,-361 694,-356.58 720.36,-352.48 745.5,-348.88"/>
+<polygon fill="black" stroke="black" points="745.67,-352.39 755.08,-347.53 744.69,-345.46 745.67,-352.39"/>
+</g>
+<!-- subprojects.junitJupiterExtensionTest.test.compile -->
+<g id="node14" class="node">
+<title>subprojects.junitJupiterExtensionTest.test.compile</title>
+<polygon fill="none" stroke="black" points="1009.88,-279 719.38,-279 719.38,-243 1009.88,-243 1009.88,-279"/>
+<text text-anchor="middle" x="864.62" y="-255.95" font-family="Times,serif" font-size="14.00">subprojects.junitJupiterExtensionTest.test.compile</text>
+</g>
+<!-- subprojects.junit&#45;jupiter.compile&#45;&gt;subprojects.junitJupiterExtensionTest.test.compile -->
+<g id="edge14" class="edge">
+<title>subprojects.junit&#45;jupiter.compile&#45;&gt;subprojects.junitJupiterExtensionTest.test.compile</title>
+<path fill="none" stroke="black" d="M546.22,-397.75C576.24,-394.32 608.13,-386.2 633.5,-369 659.88,-351.12 643.92,-326 669.5,-307 682.73,-297.18 697.75,-289.41 713.43,-283.29"/>
+<polygon fill="black" stroke="black" points="714.21,-286.73 722.4,-280.01 711.81,-280.16 714.21,-286.73"/>
+</g>
+<!-- subprojects.junitJupiterInlineMockMakerExtensionTest.test.compile -->
+<g id="node16" class="node">
+<title>subprojects.junitJupiterInlineMockMakerExtensionTest.test.compile</title>
+<polygon fill="none" stroke="black" points="1059.75,-187 669.5,-187 669.5,-151 1059.75,-151 1059.75,-187"/>
+<text text-anchor="middle" x="864.62" y="-163.95" font-family="Times,serif" font-size="14.00">subprojects.junitJupiterInlineMockMakerExtensionTest.test.compile</text>
+</g>
+<!-- subprojects.junit&#45;jupiter.compile&#45;&gt;subprojects.junitJupiterInlineMockMakerExtensionTest.test.compile -->
+<g id="edge13" class="edge">
+<title>subprojects.junit&#45;jupiter.compile&#45;&gt;subprojects.junitJupiterInlineMockMakerExtensionTest.test.compile</title>
+<path fill="none" stroke="black" d="M546.33,-401.81C577.4,-398.89 609.91,-390.04 633.5,-369 679.84,-327.66 626.98,-279.26 669.5,-234 687.81,-214.51 712.13,-200.86 737.34,-191.3"/>
+<polygon fill="black" stroke="black" points="738.51,-194.6 746.76,-187.96 736.17,-188 738.51,-194.6"/>
+</g>
+<!-- subprojects.junitJupiterParallelTest.test.compile -->
+<g id="node18" class="node">
+<title>subprojects.junitJupiterParallelTest.test.compile</title>
+<polygon fill="none" stroke="black" points="1003.5,-56 725.75,-56 725.75,-20 1003.5,-20 1003.5,-56"/>
+<text text-anchor="middle" x="864.62" y="-32.95" font-family="Times,serif" font-size="14.00">subprojects.junitJupiterParallelTest.test.compile</text>
+</g>
+<!-- subprojects.junit&#45;jupiter.compile&#45;&gt;subprojects.junitJupiterParallelTest.test.compile -->
+<g id="edge12" class="edge">
+<title>subprojects.junit&#45;jupiter.compile&#45;&gt;subprojects.junitJupiterParallelTest.test.compile</title>
+<path fill="none" stroke="black" d="M546.17,-403.29C577.79,-400.63 610.69,-391.57 633.5,-369 706.12,-297.16 610.3,-225.25 669.5,-142 697.73,-102.3 745.94,-76.36 787.26,-60.31"/>
+<polygon fill="black" stroke="black" points="788.31,-63.65 796.46,-56.87 785.86,-57.09 788.31,-63.65"/>
+</g>
+<!-- subprojects.extTest.test.compile -->
+<g id="node9" class="node">
+<title>subprojects.extTest.test.compile</title>
+<polygon fill="none" stroke="black" points="1287.25,-433 1095.75,-433 1095.75,-397 1287.25,-397 1287.25,-433"/>
+<text text-anchor="middle" x="1191.5" y="-409.95" font-family="Times,serif" font-size="14.00">subprojects.extTest.test.compile</text>
+</g>
+<!-- subprojects.extTest.compile&#45;&gt;subprojects.extTest.test.compile -->
+<g id="edge17" class="edge">
+<title>subprojects.extTest.compile&#45;&gt;subprojects.extTest.test.compile</title>
+<path fill="none" stroke="black" d="M949.29,-394.95C990.36,-398.37 1040.31,-402.52 1084.07,-406.15"/>
+<polygon fill="black" stroke="black" points="1083.58,-409.63 1093.84,-406.97 1084.16,-402.65 1083.58,-409.63"/>
+</g>
+<!-- test.compile&#45;&gt;subprojects.extTest.test.compile -->
+<g id="edge18" class="edge">
+<title>test.compile&#45;&gt;subprojects.extTest.test.compile</title>
+<path fill="none" stroke="black" d="M906.44,-438.61C950.8,-434.92 1023.48,-428.88 1084.21,-423.83"/>
+<polygon fill="black" stroke="black" points="1084.22,-427.35 1093.89,-423.03 1083.64,-420.37 1084.22,-427.35"/>
+</g>
+<!-- subprojects.inlineTest.compile -->
+<g id="node10" class="node">
+<title>subprojects.inlineTest.compile</title>
+<polygon fill="none" stroke="black" points="206.5,-614 23.25,-614 23.25,-578 206.5,-578 206.5,-614"/>
+<text text-anchor="middle" x="114.88" y="-590.95" font-family="Times,serif" font-size="14.00">subprojects.inlineTest.compile</text>
+</g>
+<!-- subprojects.inlineTest.compile&#45;&gt;subprojects.inlineTest.test.compile -->
+<g id="edge19" class="edge">
+<title>subprojects.inlineTest.compile&#45;&gt;subprojects.inlineTest.test.compile</title>
+<path fill="none" stroke="black" d="M206.8,-596C246.37,-596 293.17,-596 335,-596"/>
+<polygon fill="black" stroke="black" points="334.86,-599.5 344.86,-596 334.86,-592.5 334.86,-599.5"/>
+</g>
+<!-- subprojects.junitJupiterExtensionTest.compile -->
+<g id="node13" class="node">
+<title>subprojects.junitJupiterExtensionTest.compile</title>
+<polygon fill="none" stroke="black" points="583.62,-144 315.62,-144 315.62,-108 583.62,-108 583.62,-144"/>
+<text text-anchor="middle" x="449.62" y="-120.95" font-family="Times,serif" font-size="14.00">subprojects.junitJupiterExtensionTest.compile</text>
+</g>
+<!-- subprojects.junitJupiterExtensionTest.compile&#45;&gt;subprojects.junitJupiterExtensionTest.test.compile -->
+<g id="edge20" class="edge">
+<title>subprojects.junitJupiterExtensionTest.compile&#45;&gt;subprojects.junitJupiterExtensionTest.test.compile</title>
+<path fill="none" stroke="black" d="M583.79,-133.97C601.18,-138.33 618.24,-144.46 633.5,-153 655.25,-165.17 648.91,-181.96 669.5,-196 697.99,-215.43 732.78,-229.47 764.99,-239.41"/>
+<polygon fill="black" stroke="black" points="763.76,-242.7 774.35,-242.2 765.76,-235.99 763.76,-242.7"/>
+</g>
+<!-- subprojects.junitJupiterInlineMockMakerExtensionTest.compile -->
+<g id="node15" class="node">
+<title>subprojects.junitJupiterInlineMockMakerExtensionTest.compile</title>
+<polygon fill="none" stroke="black" points="633.5,-90 265.75,-90 265.75,-54 633.5,-54 633.5,-90"/>
+<text text-anchor="middle" x="449.62" y="-66.95" font-family="Times,serif" font-size="14.00">subprojects.junitJupiterInlineMockMakerExtensionTest.compile</text>
+</g>
+<!-- subprojects.junitJupiterInlineMockMakerExtensionTest.compile&#45;&gt;subprojects.junitJupiterInlineMockMakerExtensionTest.test.compile -->
+<g id="edge21" class="edge">
+<title>subprojects.junitJupiterInlineMockMakerExtensionTest.compile&#45;&gt;subprojects.junitJupiterInlineMockMakerExtensionTest.test.compile</title>
+<path fill="none" stroke="black" d="M590.31,-90.43C604.95,-93.01 619.57,-95.87 633.5,-99 690.84,-111.88 754.67,-131.75 800.54,-147.03"/>
+<polygon fill="black" stroke="black" points="799.18,-150.27 809.77,-150.13 801.41,-143.63 799.18,-150.27"/>
+</g>
+<!-- subprojects.junitJupiterParallelTest.compile -->
+<g id="node17" class="node">
+<title>subprojects.junitJupiterParallelTest.compile</title>
+<polygon fill="none" stroke="black" points="577.25,-36 322,-36 322,0 577.25,0 577.25,-36"/>
+<text text-anchor="middle" x="449.62" y="-12.95" font-family="Times,serif" font-size="14.00">subprojects.junitJupiterParallelTest.compile</text>
+</g>
+<!-- subprojects.junitJupiterParallelTest.compile&#45;&gt;subprojects.junitJupiterParallelTest.test.compile -->
+<g id="edge22" class="edge">
+<title>subprojects.junitJupiterParallelTest.compile&#45;&gt;subprojects.junitJupiterParallelTest.test.compile</title>
+<path fill="none" stroke="black" d="M577.63,-24.15C620.79,-26.24 669.42,-28.6 714.17,-30.76"/>
+<polygon fill="black" stroke="black" points="713.79,-34.25 723.95,-31.24 714.13,-27.26 713.79,-34.25"/>
+</g>
+<!-- subprojects.memory&#45;test.compile -->
+<g id="node19" class="node">
+<title>subprojects.memory&#45;test.compile</title>
+<polygon fill="none" stroke="black" points="214.38,-360 15.38,-360 15.38,-324 214.38,-324 214.38,-360"/>
+<text text-anchor="middle" x="114.88" y="-336.95" font-family="Times,serif" font-size="14.00">subprojects.memory&#45;test.compile</text>
+</g>
+<!-- subprojects.memory&#45;test.compile&#45;&gt;subprojects.memory&#45;test.test.compile -->
+<g id="edge23" class="edge">
+<title>subprojects.memory&#45;test.compile&#45;&gt;subprojects.memory&#45;test.test.compile</title>
+<path fill="none" stroke="black" d="M214.81,-342C250.05,-342 290.16,-342 327.08,-342"/>
+<polygon fill="black" stroke="black" points="326.91,-345.5 336.91,-342 326.91,-338.5 326.91,-345.5"/>
+</g>
+<!-- subprojects.programmatic&#45;test.compile -->
+<g id="node21" class="node">
+<title>subprojects.programmatic&#45;test.compile</title>
+<polygon fill="none" stroke="black" points="229.75,-306 0,-306 0,-270 229.75,-270 229.75,-306"/>
+<text text-anchor="middle" x="114.88" y="-282.95" font-family="Times,serif" font-size="14.00">subprojects.programmatic&#45;test.compile</text>
+</g>
+<!-- subprojects.programmatic&#45;test.compile&#45;&gt;subprojects.programmatic&#45;test.test.compile -->
+<g id="edge24" class="edge">
+<title>subprojects.programmatic&#45;test.compile&#45;&gt;subprojects.programmatic&#45;test.test.compile</title>
+<path fill="none" stroke="black" d="M229.92,-288C256.3,-288 284.62,-288 311.86,-288"/>
+<polygon fill="black" stroke="black" points="311.53,-291.5 321.53,-288 311.53,-284.5 311.53,-291.5"/>
+</g>
+<!-- subprojects.proxy.compile -->
+<g id="node23" class="node">
+<title>subprojects.proxy.compile</title>
+<polygon fill="none" stroke="black" points="194.88,-252 34.88,-252 34.88,-216 194.88,-216 194.88,-252"/>
+<text text-anchor="middle" x="114.88" y="-228.95" font-family="Times,serif" font-size="14.00">subprojects.proxy.compile</text>
+</g>
+<!-- subprojects.proxy.compile&#45;&gt;subprojects.proxy.test.compile -->
+<g id="edge25" class="edge">
+<title>subprojects.proxy.compile&#45;&gt;subprojects.proxy.test.compile</title>
+<path fill="none" stroke="black" d="M195.15,-234C240.54,-234 297.97,-234 346.68,-234"/>
+<polygon fill="black" stroke="black" points="346.38,-237.5 356.38,-234 346.38,-230.5 346.38,-237.5"/>
+</g>
+<!-- subprojects.subclass.compile -->
+<g id="node25" class="node">
+<title>subprojects.subclass.compile</title>
+<polygon fill="none" stroke="black" points="202,-198 27.75,-198 27.75,-162 202,-162 202,-198"/>
+<text text-anchor="middle" x="114.88" y="-174.95" font-family="Times,serif" font-size="14.00">subprojects.subclass.compile</text>
+</g>
+<!-- subprojects.subclass.compile&#45;&gt;subprojects.subclass.test.compile -->
+<g id="edge26" class="edge">
+<title>subprojects.subclass.compile&#45;&gt;subprojects.subclass.test.compile</title>
+<path fill="none" stroke="black" d="M202.43,-180C244.24,-180 294.86,-180 339.3,-180"/>
+<polygon fill="black" stroke="black" points="339.24,-183.5 349.24,-180 339.24,-176.5 339.24,-183.5"/>
+</g>
+</g>
+</svg>
