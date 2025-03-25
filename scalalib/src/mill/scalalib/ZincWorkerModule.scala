@@ -107,7 +107,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: Ctx.Log): (Option[Seq[PathRef]], PathRef) = {
+  )(implicit ctx: Ctx): (Option[Seq[PathRef]], PathRef) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, ZincWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -156,7 +156,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: Ctx.Log): Seq[PathRef] = {
+  )(implicit ctx: Ctx): Seq[PathRef] = {
     resolver.classpath(
       deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
