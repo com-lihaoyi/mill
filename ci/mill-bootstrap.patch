@@ -610,12 +610,22 @@ diff --git a/main/package.mill b/main/package.mill
 index 73c8cd24f9c..362eac814cd 100644
 --- a/main/package.mill
 +++ b/main/package.mill
-@@ -80,7 +80,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
-           Some(Task.ctx()),
-           dist.coursierCacheCustomizer()
+@@ -75,15 +75,10 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
+           }
+         }().toMap
+ 
+-        val result = Lib.resolveDependenciesMetadataSafe(
+-          repositories = dist.allRepositories(),
+-          Seq(BoundDep(dist.coursierDependency, force = false)),
+-          Some(dist.mapDependencies()),
+-          dist.resolutionCustomizer(),
+-          Some(Task.ctx()),
+-          dist.coursierCacheCustomizer()
++        val result = dist.millResolver().resolution(
++          Seq(BoundDep(dist.coursierDependency, force = false))
          )
 -        result.getOrThrow.orderedDependencies
-+        result.get.orderedDependencies
++        result.orderedDependencies
            .map(dep => s"${dep.module.repr}:${dep.version}")
            .distinct
            .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))

@@ -86,8 +86,22 @@ object Jvm {
       case _ => classPath
     }
 
+    val jvmArgs0 =
+      if (propagateEnv)
+        sys.props.get("user.language") match {
+          case Some(lang) =>
+            if (jvmArgs.exists(_.startsWith("-Duser.language=")))
+              jvmArgs
+            else
+              Seq(s"-Duser.language=$lang") ++ jvmArgs
+          case None =>
+            jvmArgs
+        }
+      else
+        jvmArgs
+
     val commandArgs = (Vector(javaExe(javaHome)) ++
-      jvmArgs ++
+      jvmArgs0 ++
       Option.when(cp.nonEmpty)(Vector(
         "-cp",
         cp.mkString(java.io.File.pathSeparator)

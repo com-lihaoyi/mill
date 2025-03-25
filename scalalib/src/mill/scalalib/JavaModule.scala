@@ -910,7 +910,17 @@ trait JavaModule
       ),
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt =
-        Some((_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile))
+        Some { params =>
+          params
+            .withDefaultConfiguration(coursier.core.Configuration.compile)
+            .withDefaultVariantAttributes(
+              cs.VariantSelector.AttributesBased(
+                params.defaultVariantAttributes.map(_.matchers).getOrElse(Map()) ++ Seq(
+                  "org.gradle.usage" -> cs.VariantSelector.VariantMatcher.Api
+                )
+              )
+            )
+        }
     )
   }
 
@@ -939,7 +949,17 @@ trait JavaModule
       ),
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt =
-        Some((_: ResolutionParams).withDefaultConfiguration(cs.Configuration.runtime))
+        Some { params =>
+          params
+            .withDefaultConfiguration(coursier.core.Configuration.runtime)
+            .withDefaultVariantAttributes(
+              cs.VariantSelector.AttributesBased(
+                params.defaultVariantAttributes.map(_.matchers).getOrElse(Map()) ++ Seq(
+                  "org.gradle.usage" -> cs.VariantSelector.VariantMatcher.Runtime
+                )
+              )
+            )
+        }
     )
   }
 

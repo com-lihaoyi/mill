@@ -172,8 +172,6 @@ trait KotlinModule extends JavaModule { outer =>
     ()
   }
 
-  override def checkGradleModules: T[Boolean] = false
-
   /**
    * The documentation jar, containing all the Dokka HTML files, for
    * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]

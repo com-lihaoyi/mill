@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
-import coursier.core.Resolution
+import coursier.core.{Resolution, VariantSelector}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.T
@@ -20,7 +20,7 @@ import scala.concurrent.duration.Duration
  */
 trait CoursierModule extends mill.Module {
 
-  def checkGradleModules: T[Boolean] = false
+  def checkGradleModules: T[Boolean] = true
 
   /**
    * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)
@@ -178,6 +178,13 @@ trait CoursierModule extends mill.Module {
    */
   def resolutionParams: Task[ResolutionParams] = Task.Anon {
     ResolutionParams()
+      .withDefaultVariantAttributes(
+        VariantSelector.AttributesBased(
+          Map(
+            "org.gradle.category" -> VariantSelector.VariantMatcher.Library
+          )
+        )
+      )
   }
 
 }
