@@ -103,7 +103,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       destinationRoot = Task.dest,
       artifactId = artifactId(),
       explicitApi = kotlinExplicitApi(),
-      extraKotlinArgs = kotlincOptions(),
+      extraKotlinArgs = allKotlincOptions(),
       worker = kotlinWorkerTask()
     )
   }
@@ -203,7 +203,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       destinationRoot = Task.dest,
       artifactId = artifactId(),
       explicitApi = kotlinExplicitApi(),
-      extraKotlinArgs = kotlincOptions() ++ extraKotlinArgs,
+      extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
       worker = kotlinWorkerTask()
     )
   }
@@ -230,7 +230,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       destinationRoot = Task.dest,
       artifactId = artifactId(),
       explicitApi = kotlinExplicitApi(),
-      extraKotlinArgs = kotlincOptions(),
+      extraKotlinArgs = allKotlincOptions(),
       worker = kotlinWorkerTask()
     )
   }
