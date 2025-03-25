@@ -666,12 +666,26 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill is a fast build tool for Java, Scala, and Kotlin. Although the Java
-compiler is very fast and the Java language is easy to learn, JVM build tools are
-known to be slow and hard to use. Mill offers a better alternative: 2-10x faster
-than Maven or Gradle on clean compiles, better IDE support, and extensibility without
-needing plugins. This results in time savings due to less time waiting for or struggling
-with your build tool and more time to focus on the actual work you need to do.</p>
+<p>Mill provides 3 major advantages over other build tools. The comparison pages
+for the respective build tool go into more detail (for <a href="maven.html" class="xref page">Maven</a>,
+<a href="gradle.html" class="xref page">Gradle</a>, and <a href="sbt.html" class="xref page"><code>sbt</code></a>), but at a high level
+these advantages are:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Performance</strong>: Mill offers a 3-6x speedup means less time waiting for your build tool,
+meaning less time waiting for your build and more time doing useful work</p>
+</li>
+<li>
+<p><strong>Extensibility</strong>: Mill lets you write code or use any published JVM library in your build,
+customizing it to your needs without being limited by third-party plugins</p>
+</li>
+<li>
+<p><strong>IDE Support</strong>: Mill has better IDE support in IntelliJ and VSCode and richer
+visualization tools than other tools, to help understand your build and what it is doing</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
 <p>At a first glance, Mill looks like any other build tool. You have build files, you configure
@@ -708,29 +722,8 @@ Test foo.FooTest.testSimple finished, ...
 </div>
 </div>
 <div class="paragraph">
-<p>Beyond the basics, Mill provides 3 major advantages over other build tools. The comparison pages
-for the respective build tool go into more detail (for <a href="maven.html" class="xref page">Maven</a>,
-<a href="gradle.html" class="xref page">Gradle</a>, and <a href="sbt.html" class="xref page"><code>sbt</code></a>), but at a high level
-these advantages are:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>Performance</strong>: Mill offers a 2-10x speedup means less time waiting for your build tool,
-meaning less time waiting for your build and more time doing useful work</p>
-</li>
-<li>
-<p><strong>Ease of Use</strong>: Mill has better IDE support in IntelliJ and VSCode and richer
-visualization tools than other tools, to help understand your build and what it is doing</p>
-</li>
-<li>
-<p><strong>Extensibility</strong>: Mill lets you write code or use any published JVM library in your build,
-customizing it to your needs without being limited by third-party plugins</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>We will discuss each one in turn.</p>
+<p>However, beyond the basics, Mill does provide a lot that other JVM build tools do not.
+We will look at each topic in turn:</p>
 </div>
 </div>
 </div>
@@ -740,7 +733,7 @@ customizing it to your needs without being limited by third-party plugins</p>
 <div class="sect2">
 <h3 id="_maven"><a class="anchor" href="#_maven"></a>Maven</h3>
 <div class="paragraph">
-<p>Overall across our benchmarks, Mill is 4-10x faster than Maven for clean compiles,
+<p>Overall across our benchmarks, Mill is 4-6x faster than Maven for clean compiles,
 both parallel and sequential, and for many modules or for a single module:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -760,32 +753,32 @@ both parallel and sequential, and for many modules or for a single module:</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="maven.html#_sequential_clean_compile_all" class="xref page">Sequential Clean Compile All</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">98.80s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">23.14s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.3x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">23.41s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.2x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="maven.html#_parallel_clean_compile_all" class="xref page">Parallel Clean Compile All</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">48.92s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8.79s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9.29s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.3x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="maven.html#_clean_compile_single_module" class="xref page">Clean Compile Single Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">4.89s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.11s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.4x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.88s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="maven.html#_incremental_compile_single_module" class="xref page">Incremental Compile Single Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">6.82s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.54s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">12.6x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.18s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">37.9x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="maven.html#_no_op_compile_single_module" class="xref page">No-Op Compile Single Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">5.25s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.47s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">11.2x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.12s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">43.8x</p></td>
 </tr>
 </tbody>
 </table>
@@ -810,7 +803,7 @@ modules, even though only one file was touched and the change was trivial.</p>
 <div class="sect2">
 <h3 id="_gradle"><a class="anchor" href="#_gradle"></a>Gradle</h3>
 <div class="paragraph">
-<p>The comparison with Gradle is less stark, but still significant. Mill is 2-4x faster than Gradle
+<p>The comparison with Gradle is less stark, but still significant. Mill is 3-4x faster than Gradle
 across the various workflows:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -829,41 +822,41 @@ across the various workflows:</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="maven.html#_sequential_clean_compile_all" class="xref page">Sequential Clean Compile All</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.40s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.3x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">17.6s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.86s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="maven.html#_parallel_clean_compile_all" class="xref page">Parallel Clean Compile All</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">12.3s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.57s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.4x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.75s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.3x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="maven.html#_clean_compile_single_module" class="xref page">Clean Compile Single Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">4.41s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.20s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.7x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.30s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.4x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="maven.html#_incremental_compile_single_module" class="xref page">Incremental Compile Single Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1.37s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.51s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2.7x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.20s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.9x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="maven.html#_no_op_compile_single_module" class="xref page">No-Op Compile Single Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0.94s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.46s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2.0x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.11s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8.5x</p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
 <p>Mill’s various &quot;clean compile&quot; workflows 3-4x faster than Gradle’s, while it’s incremental
-and no-op compile workflows are 2x faster. Both Gradle and Mill appear to do a good job
+and no-op compile workflows are 7-9x faster. Both Gradle and Mill appear to do a good job
 limiting the compilation to only the changed file, but Mill has less fixed overhead than
-Gradle does, finishing in about ~0.5s rather than ~1.5 seconds.</p>
+Gradle does, finishing in about ~0.2s rather than ~1.5 seconds.</p>
 </div>
 <div class="paragraph">
 <p>In general, these benchmarks don’t show Mill doing anything that Maven or Gradle do not:
@@ -873,210 +866,6 @@ using the same Java compiler, in the same module structure and passing the same 
 Rather, what we are seeing is Mill simply having less build-tool overhead than Maven or Gradle,
 so the performance of the underlying JVM and Java compiler (which is actually pretty fast!) can
 really shine through.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_ease_of_use"><a class="anchor" href="#_ease_of_use"></a>Ease of Use</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The second area that Mill does well compared to tools like Maven or Gradle is in its ease
-of use.This is not just in superficial things like the build file or command-line syntax,
-but also in how Mill exposes how your build works and what your build is doing so you can
-understand it and confidently make changes. We will consider three cases: the Mill Chrome
-Profile, Mill Visualize, and Mill’s IDE support</p>
-</div>
-<div class="sect2">
-<h3 id="_chrome_profiles"><a class="anchor" href="#_chrome_profiles"></a>Chrome Profiles</h3>
-<div class="paragraph">
-<p>All Mill runs generate some debugging metadata files in <code>out/mill-*</code>. One of these
-is <code>out/mill-chrome-profile.json</code>, which is a file following the Chrome Profiling format.
-It can be loaded into any Chrome browser’s built in <code>chrome://tracing</code> UI, to let you
-interactively explore what Mill was doing during its last run. e.g. when performing a
-clean compile on the Netty codebase, the profile ends up looking like this:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/NettyCompileProfile.png" alt="NettyCompileProfile" />
-</div>
-</div>
-<div class="paragraph">
-<p>The Chrome profile shows what task each Mill thread was executing throughout the run.
-The Chrome profiling UI is interactive, so you can zoom in and out, or click on individual
-tasks to show the exact duration and other metadata.</p>
-</div>
-<div class="paragraph">
-<p>But the real benefit of the Chrome profile isn’t the low-level data it provides, but the
-high-level view:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>In the profile above, it is clear that for the first ~700ms, Mill is able
-to use all cores on 10 cores on my laptop to do useful work.</p>
-</li>
-<li>
-<p>But after that, utilization is
-much more sparse: <code>common.compile</code>, <code>buffer.compile</code>, <code>transport.compile</code>, <code>codec.compile</code>,
-appear to wait for one another and run sequentially one after another.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>This waiting is likely due to dependencies between them, and they take long enough that all
-the other tasks depending on them get held up. For example, when <code>codec.compile</code> finishes
-above, we can see a number of downstream tasks immediately start running.</p>
-</div>
-<div class="paragraph">
-<p>This understanding of your build’s performance profile is not just an academic exercise, but
-provides actionable information:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If I wanted faster Netty clean compiles, speeding up <code>common.compile</code>, <code>buffer.compile</code>,
-<code>transport.compile</code>, or <code>codec.compile</code> would make the most impact.</p>
-</li>
-<li>
-<p>On the other hand, time speeding up the various <code>codec-*.compile</code> tasks would help not at all:
-these tasks are already running at a time where the CPUs are mostly idle.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Most build tools do provide some way of analyzing build performance, but none of them provide
-it as easily as Mill does: any Mill run generates a profile automatically, and any computer
-with Chrome on it is able to load and let you explore that profile. That is a powerful tool to
-help engineers understand what the build is doing: any engineer who felt a build was slow
-can trivially load it into their Chrome browser to analyze and figure out what.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_mill_visualize"><a class="anchor" href="#_mill_visualize"></a>Mill Visualize</h3>
-<div class="paragraph">
-<p>Apart from the Mill Chrome Profile, Mill also provides the <code>./mill visualize</code> command, which
-is useful to show the logical dependency graph between tasks. For example, we can use
-<code>./mill visualize __.compile</code> (double underscore means wildcard) to
-show the dependency graph between the modules of the Netty build below:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/NettyCompileGraph.svg" alt="NettyCompileGraph" />
-</div>
-</div>
-<div class="paragraph">
-<p>(<em>Right-click open-image-in-new-tab to see full size</em>)</p>
-</div>
-<div class="paragraph">
-<p>In this graph, we can clearly see that <code>common.compile</code>, <code>buffer.compile</code>, <code>transport.compile</code>,
-and <code>codec.compile</code> depend on each other in a linear fashion. This explains why they each must
-wait for the prior task to complete before starting, and cannot run in parallel with one another.
-Furthermore, we can again confirm that many of the <code>codec-*.compile</code> tasks depend on <code>codec.compile</code>,
-which is in the profile why we saw them waiting for the upstream task to complete before starting.</p>
-</div>
-<div class="paragraph">
-<p>Although these are things we could have <em>guessed</em> from looking at the Chrome Profile above,
-<code>./mill visualize</code> gives you a separate angle from which to look at your build. Together these
-tools can help give greater understanding of what your build is doing and why it is doing that:
-something that can be hard to come by with build tools that are often considered confusing and
-inscrutable.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h3>
-<div class="paragraph">
-<p>One area that Mill does better than Gradle is providing a seamless IDE experience. For example,
-consider the snippet below where we are using Gradle to configure the javac compiler options.
-Due to <code>.gradle</code> files being untyped Groovy, the autocomplete and code-assist experience working
-with these files is hit-or-miss. In the example below, we can see that IntelliJ is able to identify
-that <code>compileArgs</code> exists and has the type <code>List&lt;String&gt;</code>:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions.png" alt="IntellijMockitoGradleCompileOptions" />
-</div>
-</div>
-<div class="paragraph">
-<p>But if you try to jump to definition or find out anything else about it you hit a wall:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions2.png" alt="IntellijMockitoGradleCompileOptions2" />
-</div>
-</div>
-<div class="paragraph">
-<p>Often working with build configurations feels like hitting dead ends: if you don’t have
-<code>options.compilerArgs</code> memorized in your head, there is literally nothing you can do in your editor to
-make progress to figure out what it is or what it is used for. That leaves you googling
-for answers, which can be a frustrating experience that distracts you from the task at hand.</p>
-</div>
-<div class="paragraph">
-<p>The fundamental problem with tools like Gradle is that the code you write does not
-actually perform the build: rather, you are just setting up some data structure that
-is used to configure the <em>real</em> build engine that runs later. Thus when you explore
-the Gradle build in an IDE, the IDE can only explore the configuration logic (the
-<code>getCompilerArgs</code> method above) and is unable to explore the actual build logic (how
-<code>getCompilerArgs</code> <em>actually gets used in Gradle</em>)</p>
-</div>
-<div class="paragraph">
-<p>In comparison, not only are Mill’s <code>.mill</code> files statically typed, allowing IDEs like IntelliJ
-to pull up the documentation for <code>def javacOptions</code>:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDocs.png" alt="IntellijMockitoMillJavacOptionsDocs" />
-</div>
-</div>
-<div class="paragraph">
-<p>The way Mill builds are structured also helps the IDE: Mill
-code <em>actually performs your build</em>, rather than configuring some opaque build engine.
-While that sounds academic, one concrete consequence is that IntelliJ is able to take
-your <code>def javacOptions</code> override and
-find the original definitions that were overridden, and show you where they are defined:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsParents.png" alt="IntellijMockitoMillJavacOptionsParents" />
-</div>
-</div>
-<div class="paragraph">
-<p>You can jump to any of the overridden `def`s quickly and precisely:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDef.png" alt="IntellijMockitoMillJavacOptionsDef" />
-</div>
-</div>
-<div class="paragraph">
-<p>Furthermore, because task dependencies in Mill are just normal method calls, IntelliJ is
-able to <em>find usages</em>, showing you where the task is used. Below, we can see the method
-call in the <code>def compile</code> task, which uses <code>javacOptions()</code> along with a number of other tasks:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompile.png" alt="IntellijMockitoMillCompile" />
-</div>
-</div>
-<div class="paragraph">
-<p>From there, if you are curious about any of the other tasks used alongside <code>javacOptions</code>, it’s
-easy for you to pull up <em>their</em> documentation, jump to <em>their</em>
-definition, or find <em>their</em> usages. For example we can pull up the docs of
-<code>compileClasspath()</code> below, jump to <em>its</em> implementation, and continue
-interactively exploring your build logic from there:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompileClasspath.png" alt="IntellijMockitoMillCompileClasspath" />
-</div>
-</div>
-<div class="paragraph">
-<p>Unlike most other build tools, Mill builds can be explored interactively in your
-IDE. If you do not know what something does, it’s documentation, definition, or usages is always
-one click away in IntelliJ or VSCode. This isn’t a new experience for Java developers, as it
-is what you would be used to day-to-day in your application code! But Mill brings that same
-polished experience to your build system - traditionally something that has been opaque
-and hard to understand - and does so in a way that no other build tool does.</p>
 </div>
 </div>
 </div>
@@ -1318,6 +1107,104 @@ with fragile shell scripts, Mill allows your own custom logic to be implemented
 in a way that is flexible, performant, and safe, such that anyone can configure their
 build correctly and achieve maximum performance even without being a build tool expert.</p>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One area that Mill does better than Gradle is providing a seamless IDE experience. For example,
+consider the snippet below where we are using Gradle to configure the javac compiler options.
+Due to <code>.gradle</code> files being untyped Groovy, the autocomplete and code-assist experience working
+with these files is hit-or-miss. In the example below, we can see that IntelliJ is able to identify
+that <code>compileArgs</code> exists and has the type <code>List&lt;String&gt;</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions.png" alt="IntellijMockitoGradleCompileOptions" />
+</div>
+</div>
+<div class="paragraph">
+<p>But if you try to jump to definition or find out anything else about it you hit a wall:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions2.png" alt="IntellijMockitoGradleCompileOptions2" />
+</div>
+</div>
+<div class="paragraph">
+<p>Often working with build configurations feels like hitting dead ends: if you don’t have
+<code>options.compilerArgs</code> memorized in your head, there is literally nothing you can do in your editor to
+make progress to figure out what it is or what it is used for. That leaves you googling
+for answers, which can be a frustrating experience that distracts you from the task at hand.</p>
+</div>
+<div class="paragraph">
+<p>The fundamental problem with tools like Gradle is that the code you write does not
+actually perform the build: rather, you are just setting up some data structure that
+is used to configure the <em>real</em> build engine that runs later. Thus when you explore
+the Gradle build in an IDE, the IDE can only explore the configuration logic (the
+<code>getCompilerArgs</code> method above) and is unable to explore the actual build logic (how
+<code>getCompilerArgs</code> <em>actually gets used in Gradle</em>)</p>
+</div>
+<div class="paragraph">
+<p>In comparison, not only are Mill’s <code>.mill</code> files statically typed, allowing IDEs like IntelliJ
+to pull up the documentation for <code>def javacOptions</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDocs.png" alt="IntellijMockitoMillJavacOptionsDocs" />
+</div>
+</div>
+<div class="paragraph">
+<p>The way Mill builds are structured also helps the IDE: Mill
+code <em>actually performs your build</em>, rather than configuring some opaque build engine.
+While that sounds academic, one concrete consequence is that IntelliJ is able to take
+your <code>def javacOptions</code> override and
+find the original definitions that were overridden, and show you where they are defined:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsParents.png" alt="IntellijMockitoMillJavacOptionsParents" />
+</div>
+</div>
+<div class="paragraph">
+<p>You can jump to any of the overridden `def`s quickly and precisely:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDef.png" alt="IntellijMockitoMillJavacOptionsDef" />
+</div>
+</div>
+<div class="paragraph">
+<p>Furthermore, because task dependencies in Mill are just normal method calls, IntelliJ is
+able to <em>find usages</em>, showing you where the task is used. Below, we can see the method
+call in the <code>def compile</code> task, which uses <code>javacOptions()</code> along with a number of other tasks:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillCompile.png" alt="IntellijMockitoMillCompile" />
+</div>
+</div>
+<div class="paragraph">
+<p>From there, if you are curious about any of the other tasks used alongside <code>javacOptions</code>, it’s
+easy for you to pull up <em>their</em> documentation, jump to <em>their</em>
+definition, or find <em>their</em> usages. For example we can pull up the docs of
+<code>compileClasspath()</code> below, jump to <em>its</em> implementation, and continue
+interactively exploring your build logic from there:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillCompileClasspath.png" alt="IntellijMockitoMillCompileClasspath" />
+</div>
+</div>
+<div class="paragraph">
+<p>Unlike most other build tools, Mill builds can be explored interactively in your
+IDE. If you do not know what something does, it’s documentation, definition, or usages is always
+one click away in IntelliJ or VSCode. This isn’t a new experience for Java developers, as it
+is what you would be used to day-to-day in your application code! But Mill brings that same
+polished experience to your build system - traditionally something that has been opaque
+and hard to understand - and does so in a way that no other build tool does.</p>
 </div>
 </div>
 </div>

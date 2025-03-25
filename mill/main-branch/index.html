@@ -669,32 +669,27 @@
 <a href="https://central.sonatype.com/artifact/com.lihaoyi/mill-dist"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable&amp;versionPrefix=0.12." alt="Maven Central Version" /></span></a></p>
 </div>
 <div class="paragraph">
-<p>Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
-Kotlin:</p>
+<p>Mill is a fast JVM build tool that supports Java, Scala, and Kotlin:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Mill can build the same Java codebase <a href="comparisons/maven.html" class="xref page">4-10x faster than Maven</a>,
-or <a href="comparisons/gradle.html" class="xref page">2-4x faster than Gradle</a></p>
+<p>Mill builds the same Java project <a href="comparisons/maven.html" class="xref page">3-6x faster than Maven</a>
+<a href="comparisons/gradle.html" class="xref page">or Gradle</a> due to aggressive caching &amp; parallelism</p>
 </li>
 <li>
-<p>Mill comes builtin with all the tools needed to develop and publish your project without
-needing plugins</p>
+<p>Mill has better IDE support than other build tools, with
+superior autocomplete and navigation in IntelliJ</p>
 </li>
 <li>
-<p>Mill’s typechecked configuration and immutable <a href="depth/design-principles.html" class="xref page">task graph</a>
-helps keep builds clean and understandable</p>
-</li>
-<li>
-<p>Mill scales well from small projects to
-<a href="large/large.html" class="xref page">large multi-language monorepos</a> with hundreds of modules</p>
+<p>Mill builds require fewer plugins for common workflows,
+and are easier to extend with custom tasks</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>To get started using Mill for the first time, or migrating and existing JVM
-codebase (build using Maven, Gradle, or SBT) to Mill, see:</p>
+codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -743,9 +738,6 @@ codebase (build using Maven, Gradle, or SBT) to Mill, see:</p>
 </tr>
 </tbody>
 </table>
-<div class="paragraph">
-<p>If you want to use Mill on an existing codebase, see <a href="migrating/migrating.html" class="xref page">Migrating to Mill</a></p>
-</div>
 </div>
 </div>
 <div class="sect2">
@@ -760,7 +752,7 @@ Java platform’s performance and usability:</p>
 <ul>
 <li>
 <p><strong>Performance</strong>: Mill automatically <a href="depth/evaluation-model.html#_caching_in_mill" class="xref page">caches</a>
-and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build tasks <a href="https://mill-build.org/blog/11-jvm-test-parallelism.html">and tests</a>
+and <a href="depth/parallelism.html" class="xref page">parallelizes build tasks</a> and <a href="https://mill-build.org/blog/11-jvm-test-parallelism.html">tests</a>
 to keep local development fast, <a href="https://mill-build.org/blog/9-mill-faster-assembly-jars.html">incrementally builds assembly jars</a>
 to speed up manual testing workflows, and shortens CI times with <a href="large/selective-execution.html" class="xref page">selective test execution</a>
 to only runs the subset of tests necessary to validate a code change.</p>
@@ -792,6 +784,13 @@ You can <a href="extending/import-ivy-plugins.html" class="xref page">import any
 use Mill’s rich ecosystem of <a href="extending/thirdparty-plugins.html" class="xref page">Third-Party Mill Plugins</a>,
 or <a href="extending/writing-plugins.html" class="xref page">write plugins yourself</a> and
 publish them to Maven Central for others to use.</p>
+</li>
+<li>
+<p><strong>Scalability</strong> Mill scales well from small projects to
+<a href="large/large.html" class="xref page">large monorepos</a> with hundreds of modules and
+<a href="large/multi-language-builds.html" class="xref page">multiple languages</a>.
+Even projects with hundreds or thousands of sub-modules can be handled performantly
+and with minimal overhead.</p>
 </li>
 </ul>
 </div>

@@ -666,38 +666,32 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Compared to Gradle,</p>
+<p>Compared to Gradle, Mill tries to improve in the following ways:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Mill follows Gradle’s conciseness and extensibility</strong>: Rather than pages and pages of verbose XML, every
-line in a Mill build is meaningful. e.g. adding a dependency is 1 line in
-Mill, like it is in Gradle, and unlike the 5 line <code>&lt;dependency&gt;</code> declaration you find in Maven.
-Like Gradle, end users can easily customize their build to fit their exact needs without
-needing to go through the process of writing plugins.</p>
+<p><strong>Performance</strong>: Mill compiles the same project 3-4x faster than Gradle. Mill is generally
+much more aggressive at caching and parallelizing things than Gradle is, and tries hard to
+minimize the overhead the build tool adds on top of the build logic being executed</p>
 </li>
 <li>
-<p><strong>Mill can be <a href="#_performance">2-4x faster than Gradle</a></strong>:
-Although both Mill and Gradle automatically cache and parallelize your build, Mill
-does so with much less fixed overhead. This means less time waiting for your build
-tool, and more time for the things that really matter to your project.</p>
+<p><strong>Extensibility</strong>: Mill makes customizing the build tool much easier than Gradle. When defining
+custom tasks, you do not need to worry about registering task dependencies, registering tasks,
+assigning output folders on disk, and so on. You just write your build step as a normal method
+<code>def</code> that calls other methods, and all that boilerplate work is done automatically for you.</p>
 </li>
 <li>
-<p><strong>Mill enforces best practices by default</strong>.
-<a href="../depth/evaluation-model.html#_caching_in_mill" class="xref page">All parts of a Mill build are cached and incremental by default</a>.
-All Mill tasks write their output to <a href="../fundamentals/out-dir.html" class="xref page">a standard place</a>.
-All task inter-dependencies are automatically captured without manual annotation. Where Gradle requires
-considerable effort and expertise to understand your build and set it up in the right way, Mill’s
-<a href="#_ide_experience">good IDE experience</a> makes understanding
-your build easier, and its <a href="#_extensibility">extensibility model</a>
-makes configuring your build foolproof, so the easiest thing to do in Mill is usually the
-right thing to do.</p>
+<p><strong>IDE Support</strong>: Mill has better IDE support in tools like IntelliJ or VsCode than Gradle does.
+Whether using the Groovy syntax or the Kotlin syntax, <em>jump-to-definition</em> in Gradle would frequently
+bring you to stub getter-setter methods or de-compiled classfiles (or both at the same time!). With
+Mill, IntelliJ is able to navigate around the build logic just as easil as any application codebase,
+making it easier to navigate, understand, and maintain your build configuration.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>This page compares using Mill to Gradle, using the <a href="https://github.com/mockito/mockito">Mockito Testing Library</a>
+<p>This page compares using Mill to Gradle using the <a href="https://github.com/mockito/mockito">Mockito Testing Library</a>
 codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Java split over 22
 subprojects. By porting it to Mill, this case study should give you
 an idea of how Mill compares to Gradle in more realistic, real-world projects.</p>
@@ -968,139 +962,6 @@ remains faster than Gradle by about 2.0x.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_ide_experience"><a class="anchor" href="#_ide_experience"></a>IDE Experience</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>One area that Mill does better than Gradle is providing a seamless IDE experience. For example,
-consider the snippet below where we are using Gradle to configure the javac compiler options.
-Due to <code>.gradle</code> files being untyped Groovy, the autocomplete and code-assist experience working
-with these files is hit-or-miss. In the example below, we can see that IntelliJ is able to identify
-that <code>compileArgs</code> exists and has the type <code>List&lt;String&gt;</code>:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions.png" alt="IntellijMockitoGradleCompileOptions" />
-</div>
-</div>
-<div class="paragraph">
-<p>But if you try to jump to definition or find out anything else about it you hit a wall:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions2.png" alt="IntellijMockitoGradleCompileOptions2" />
-</div>
-</div>
-<div class="paragraph">
-<p>Often working with build configurations feels like hitting dead ends: if you don’t have
-<code>options.compilerArgs</code> memorized in your head, there is literally nothing you can do in your editor to
-make progress to figure out what it is or what it is used for. That leaves you googling
-for answers, which can be a frustrating experience that distracts you from the task at hand.</p>
-</div>
-<div class="paragraph">
-<p>The fundamental problem with tools like Gradle is that the code you write does not
-actually perform the build: rather, you are just setting up some data structure that
-is used to configure the <em>real</em> build engine that runs later. Thus when you explore
-the Gradle build in an IDE, the IDE can only explore the configuration logic (which
-is usually un-interesting) and is unable to explore the actual build logic (which
-is what you actually care about!)</p>
-</div>
-<div class="paragraph">
-<p>In comparison, Mill’s <code>.mill</code> files are all statically typed, and as a result IntelliJ is easily able to
-pull up the documentation for <code>def javacOptions</code>, even though it doesn’t have any special support
-for Mill built into the IDE:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDocs.png" alt="IntellijMockitoMillJavacOptionsDocs" />
-</div>
-</div>
-<div class="paragraph">
-<p>Apart from static typing, the way Mill builds are structured also helps the IDE: Mill
-code <em>actually performs your build</em>, rather than configuring some opaque build engine.
-While that sounds academic, one concrete consequence is that IntelliJ is able to take
-your <code>def javacOptions</code> override and
-find the original definitions that were overridden, and show you where they are defined:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsParents.png" alt="IntellijMockitoMillJavacOptionsParents" />
-</div>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDef.png" alt="IntellijMockitoMillJavacOptionsDef" />
-</div>
-</div>
-<div class="paragraph">
-<p>Furthermore, because task dependencies in Mill are just normal method calls, IntelliJ is
-able to <em>find usages</em>, showing you where the task is used. Below, we can see the method
-call in the <code>def compile</code> task, which uses <code>javacOptions()</code> along with a number of other tasks:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompile.png" alt="IntellijMockitoMillCompile" />
-</div>
-</div>
-<div class="paragraph">
-<p>From there, if you are curious about any of the other tasks used alongside <code>javacOptions</code>, it’s
-easy for you to pull up <em>their</em> documentation, jump to <em>their</em>
-definition, or find <em>their</em> usages. For example we can pull up the docs of
-<code>compileClasspath()</code> below:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompileClasspath.png" alt="IntellijMockitoMillCompileClasspath" />
-</div>
-</div>
-<div class="paragraph">
-<p>Or we can use <em>find usages</em> on <code>def compile</code> to see where it is used, both in this build
-and upstream in the Mill libraries:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompileUsages.png" alt="IntellijMockitoMillCompileUsages" />
-</div>
-</div>
-<div class="paragraph">
-<p>Unlike most other build tools, Mill builds are extremely easy to explore interactively in your
-IDE. If you do not know what something does, it’s documentation, definition, or usages is always
-one click away in IntelliJ or VSCode. That’s not to say Mill builds aren’t complex - as
-we saw above, compilation has to deal with upstream outputs, classpaths, flags, reporters, and so on -
-but at least in Mill your IDE can help you explore, understand and manage the complexity in a way
-that no other build tool supports.</p>
-</div>
-<div class="paragraph">
-<p>Note that the IDE experience that Mill provides should already be very familiar to anyone writing
-Java, Kotlin, or Scala:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><em>of course</em> you can find the overridden definitions!</p>
-</li>
-<li>
-<p><em>of course</em> you can pull up the documentation in a click!</p>
-</li>
-<li>
-<p><em>of course</em> you can navigate around the codebase with your IDE, up and down
-the call graph, to see who calls who!</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>What Mill provides isn’t rocket science, but rather it is just about taking your existing experience
-and existing IDE tooling working with application codebases, and lets you use it to manage your build
-system as well.</p>
-</div>
-<div class="paragraph">
-<p>Mill IDE support isn’t perfect - you may have noticed the spurious red squigglies above - but it’s
-already better than most other build systems like Gradle or Maven. And that is with approximately
-~zero custom integrations with the various IDEs: with some additional work, we can expect the Mill
-IDE experience to improve even more over time.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_extensibility"><a class="anchor" href="#_extensibility"></a>Extensibility</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1280,6 +1141,137 @@ to use Mill, just like you do not need to be an expert in Groovy to use Gradle. 
 Mill has great IDE support, and does the right things by default, I hope it would be
 much easier for a non-expert to contribute to a Mill build than it would be for a
 non-expert to contribute to Gradle</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ide_experience"><a class="anchor" href="#_ide_experience"></a>IDE Experience</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One area that Mill does better than Gradle is providing a seamless IDE experience. For example,
+consider the snippet below where we are using Gradle to configure the javac compiler options.
+Due to <code>.gradle</code> files being untyped Groovy, the autocomplete and code-assist experience working
+with these files is hit-or-miss. In the example below, we can see that IntelliJ is able to identify
+that <code>compileArgs</code> exists and has the type <code>List&lt;String&gt;</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions.png" alt="IntellijMockitoGradleCompileOptions" />
+</div>
+</div>
+<div class="paragraph">
+<p>But if you try to jump to definition or find out anything else about it you hit a wall:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions2.png" alt="IntellijMockitoGradleCompileOptions2" />
+</div>
+</div>
+<div class="paragraph">
+<p>Often working with build configurations feels like hitting dead ends: if you don’t have
+<code>options.compilerArgs</code> memorized in your head, there is literally nothing you can do in your editor to
+make progress to figure out what it is or what it is used for. That leaves you googling
+for answers, which can be a frustrating experience that distracts you from the task at hand.</p>
+</div>
+<div class="paragraph">
+<p>The fundamental problem with tools like Gradle is that the code you write does not
+actually perform the build: rather, you are just setting up some data structure that
+is used to configure the <em>real</em> build engine that runs later. Thus when you explore
+the Gradle build in an IDE, the IDE can only explore the configuration logic (which
+is usually un-interesting) and is unable to explore the actual build logic (which
+is what you actually care about!)</p>
+</div>
+<div class="paragraph">
+<p>In comparison, Mill’s <code>.mill</code> files are all statically typed, and as a result IntelliJ is easily able to
+pull up the documentation for <code>def javacOptions</code>, even though it doesn’t have any special support
+for Mill built into the IDE:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDocs.png" alt="IntellijMockitoMillJavacOptionsDocs" />
+</div>
+</div>
+<div class="paragraph">
+<p>Apart from static typing, the way Mill builds are structured also helps the IDE: Mill
+code <em>actually performs your build</em>, rather than configuring some opaque build engine.
+While that sounds academic, one concrete consequence is that IntelliJ is able to take
+your <code>def javacOptions</code> override and
+find the original definitions that were overridden, and show you where they are defined:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsParents.png" alt="IntellijMockitoMillJavacOptionsParents" />
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDef.png" alt="IntellijMockitoMillJavacOptionsDef" />
+</div>
+</div>
+<div class="paragraph">
+<p>Furthermore, because task dependencies in Mill are just normal method calls, IntelliJ is
+able to <em>find usages</em>, showing you where the task is used. Below, we can see the method
+call in the <code>def compile</code> task, which uses <code>javacOptions()</code> along with a number of other tasks:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillCompile.png" alt="IntellijMockitoMillCompile" />
+</div>
+</div>
+<div class="paragraph">
+<p>From there, if you are curious about any of the other tasks used alongside <code>javacOptions</code>, it’s
+easy for you to pull up <em>their</em> documentation, jump to <em>their</em>
+definition, or find <em>their</em> usages. For example we can pull up the docs of
+<code>compileClasspath()</code> below:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillCompileClasspath.png" alt="IntellijMockitoMillCompileClasspath" />
+</div>
+</div>
+<div class="paragraph">
+<p>Or we can use <em>find usages</em> on <code>def compile</code> to see where it is used, both in this build
+and upstream in the Mill libraries:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijMockitoMillCompileUsages.png" alt="IntellijMockitoMillCompileUsages" />
+</div>
+</div>
+<div class="paragraph">
+<p>Unlike most other build tools, Mill builds are extremely easy to explore interactively in your
+IDE. If you do not know what something does, it’s documentation, definition, or usages is always
+one click away in IntelliJ or VSCode. That’s not to say Mill builds aren’t complex - as
+we saw above, compilation has to deal with upstream outputs, classpaths, flags, reporters, and so on -
+but at least in Mill your IDE can help you explore, understand and manage the complexity in a way
+that no other build tool supports.</p>
+</div>
+<div class="paragraph">
+<p>Note that the IDE experience that Mill provides should already be very familiar to anyone writing
+Java, Kotlin, or Scala:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>of course</em> you can find the overridden definitions!</p>
+</li>
+<li>
+<p><em>of course</em> you can pull up the documentation in a click!</p>
+</li>
+<li>
+<p><em>of course</em> you can navigate around the codebase with your IDE, up and down
+the call graph, to see who calls who!</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>What Mill provides isn’t rocket science, but rather it is just about taking your existing experience
+and existing IDE tooling working with application codebases, and lets you use it to manage your build
+system as well.</p>
+</div>
+<div class="paragraph">
+<p>Mill IDE support isn’t perfect - you may have noticed the spurious red squigglies above - but it’s
+much better than what you get with Gradle.</p>
 </div>
 </div>
 </div>
