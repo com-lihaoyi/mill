@@ -100,10 +100,11 @@ trait BuildInfo extends JavaModule {
 }
 
 object BuildInfo {
-  enum Language(val ext: String) {
-    case Java extends Language("java")
-    case Scala extends Language("scala")
-    case Kotlin extends Language("kt")
+  sealed case class Language(ext: String)
+  object Language {
+    case object Java extends Language("java")
+    case object Scala extends Language("scala")
+    case object Kotlin extends Language("kt")
   }
 
   case class Value(key: String, value: String, comment: String = "")
