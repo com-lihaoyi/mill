@@ -2163,6 +2163,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/JsonFormatters.html#snapshotVersioningFormat-0","e":false,"i":"","n":"snapshotVersioningFormat","t":"snapshotVersioningFormat: ReadWriter[SnapshotVersioning]","d":"mill.scalalib.JsonFormatters","k":"val","x":""},
 {"l":"mill/scalalib/JsonFormatters.html#typeFormat-0","e":false,"i":"","n":"typeFormat","t":"typeFormat: ReadWriter[Type]","d":"mill.scalalib.JsonFormatters","k":"val","x":""},
 {"l":"mill/scalalib/JsonFormatters.html#variantFormat-0","e":false,"i":"","n":"variantFormat","t":"variantFormat: ReadWriter[Variant]","d":"mill.scalalib.JsonFormatters","k":"val","x":""},
+{"l":"mill/scalalib/JsonFormatters.html#variantMatcherFormat-0","e":false,"i":"","n":"variantMatcherFormat","t":"variantMatcherFormat: ReadWriter[VariantMatcher]","d":"mill.scalalib.JsonFormatters","k":"val","x":""},
 {"l":"mill/scalalib/JsonFormatters.html#variantSelectorFormat-0","e":false,"i":"","n":"variantSelectorFormat","t":"variantSelectorFormat: ReadWriter[VariantSelector]","d":"mill.scalalib.JsonFormatters","k":"val","x":""},
 {"l":"mill/scalalib/JsonFormatters.html#versionConstraintFormat-0","e":false,"i":"","n":"versionConstraintFormat","t":"versionConstraintFormat: ReadWriter[VersionConstraint]","d":"mill.scalalib.JsonFormatters","k":"val","x":""},
 {"l":"mill/scalalib/JsonFormatters.html#versionFormat-0","e":false,"i":"","n":"versionFormat","t":"versionFormat: ReadWriter[Version]","d":"mill.scalalib.JsonFormatters","k":"val","x":""},
