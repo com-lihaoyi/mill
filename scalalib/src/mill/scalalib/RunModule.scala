@@ -45,20 +45,29 @@ trait RunModule extends WithZincWorker {
    */
   def mainClass: T[Option[String]] = None
 
+  /**
+   * Same as [[allLocalMainClasses]], but only for modules with a custom
+   * JVM version configured
+   */
+  def allLocalMainClasses0: T[Seq[String]] = Task {
+    zincWorker().worker().discoverMainClasses(localRunClasspath().map(_.path))
+  }
+
+  /**
+   * All main classes detected in this module that can serve as program entrypoints
+   */
   def allLocalMainClasses: T[Seq[String]] = Task {
-    val classpath = localRunClasspath().map(_.path)
-    if (zincWorker().javaHome().isDefined) {
+    if (zincWorker().javaHome().isEmpty) allLocalMainClasses0()
+    else {
       Jvm.callProcess(
         mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
         classPath = zincWorker().classpath().map(_.path).toVector,
-        mainArgs = Seq(classpath.mkString(",")),
+        mainArgs = Seq(localRunClasspath().map(_.path).mkString(",")),
         javaHome = zincWorker().javaHome().map(_.path),
         stdin = os.Inherit,
         stdout = os.Pipe,
         cwd = Task.dest
       ).out.lines()
-    } else {
-      zincWorker().worker().discoverMainClasses(classpath)
     }
   }
 
@@ -72,7 +81,8 @@ trait RunModule extends WithZincWorker {
           case mains =>
             Left(
               s"Multiple main classes found (${mains.mkString(",")}) " +
-                "please explicitly specify which one to use by overriding mainClass"
+                "please explicitly specify which one to use by overriding `mainClass` " +
+                "or using `runMain <main-class> <...args>` instead of `run`"
             )
         }
     }

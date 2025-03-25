@@ -139,7 +139,7 @@ final class EvaluatorImpl private[mill] (
             serialCommandExec
           )
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
-        val watched = (evaluated.results.iterator ++ selectiveResults)
+        val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
           .collect {
             case (t: SourcesImpl, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
               ps.map(Watchable.Path(_))
@@ -169,7 +169,7 @@ final class EvaluatorImpl private[mill] (
           .flatten
           .toSeq
 
-        val allInputHashes = evaluated.results
+        val allInputHashes = evaluated.transitiveResults
           .iterator
           .collect {
             case (t: InputImpl[_], ExecResult.Success(Val(value))) =>
@@ -185,7 +185,7 @@ final class EvaluatorImpl private[mill] (
         }
 
         val errorStr = EvaluatorImpl.formatFailing(evaluated)
-        evaluated.failing.size match {
+        evaluated.transitiveFailing.size match {
           case 0 =>
             Evaluator.Result(
               watched,
@@ -240,13 +240,13 @@ object EvaluatorImpl {
     }
   }
   private[mill] def formatFailing(evaluated: ExecutionResults): String = {
-    (for ((k, fs) <- evaluated.failing)
+    (for ((k, fs) <- evaluated.transitiveFailing)
       yield {
-        val fss = fs.map {
+        val fss = fs match {
           case ExecResult.Failure(t) => t
           case ex: ExecResult.Exception => ex.toString
         }
-        s"${k} ${fss.iterator.mkString(", ")}"
+        s"$k $fss"
       }).mkString("\n")
   }
 

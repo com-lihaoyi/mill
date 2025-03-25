@@ -13,6 +13,7 @@ import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 import java.io.PrintStream
+import java.util.concurrent.atomic.AtomicBoolean
 
 @internal object TestRunnerUtils {
 
@@ -114,31 +115,42 @@ import java.io.PrintStream
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
       testClassfilePath: Seq[Path]
-  ): (Runner, Array[Task]) = {
+  ): (Runner, Array[Array[Task]]) = {
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-    val tasks = runner.tasks(
-      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-        yield new TaskDef(
-          cls.getName.stripSuffix("$"),
-          fingerprint,
-          false,
-          Array(new SuiteSelector)
-        )
-    )
+    val filteredTestClasses = testClasses.iterator.filter { case (cls, _) =>
+      classFilter(cls)
+    }.toArray
 
-    (runner, tasks)
+    val tasksArr = // each test class can have multiple test tasks ==> array of test classes will have this signature
+      if (filteredTestClasses.isEmpty) {
+        // We still need to run runner's tasks on empty array
+        Array(runner.tasks(Array.empty))
+      } else {
+        filteredTestClasses.map { case (cls, fingerprint) =>
+          runner.tasks(
+            Array(new TaskDef(
+              cls.getName.stripSuffix("$"),
+              fingerprint,
+              false,
+              Array(new SuiteSelector)
+            ))
+          )
+        }
+      }
+
+    (runner, tasksArr)
   }
 
   private def executeTasks(
       tasks: Seq[Task],
       testReporter: TestReporter,
-      runner: Runner,
       events: ConcurrentLinkedQueue[Event],
       systemOut: PrintStream
-  ): Unit = {
+  ): Boolean = {
+    val taskStatus = new AtomicBoolean(true)
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
       val next = taskQueue.dequeue().execute(
@@ -146,6 +158,11 @@ import java.io.PrintStream
           def handle(event: Event) = {
             testReporter.logStart(event)
             events.add(event)
+            event.status match {
+              case Status.Error => taskStatus.set(false)
+              case Status.Failure => taskStatus.set(false)
+              case _ => () // consider success as a default
+            }
             testReporter.logFinish(event)
           }
         },
@@ -161,6 +178,7 @@ import java.io.PrintStream
 
       taskQueue.enqueueAll(next)
     }
+    taskStatus.get()
   }
 
   def parseRunTaskResults(events: Iterator[Event]): Iterator[TestResult] = {
@@ -203,15 +221,34 @@ import java.io.PrintStream
   }
 
   def runTasks(
-      tasks: Seq[Task],
+      tasksSeq: Seq[Seq[Task]],
       testReporter: TestReporter,
-      runner: Runner
+      runner: Runner,
+      resultPathOpt: Option[os.Path]
   ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val systemOut = System.out
     val events = new ConcurrentLinkedQueue[Event]()
-    executeTasks(tasks, testReporter, runner, events, systemOut)
+
+    var successCounter = 0L
+    var failureCounter = 0L
+
+    val resultLog: () => Unit = resultPathOpt match {
+      case Some(resultPath) =>
+        () => os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
+      case None => () =>
+          systemOut.println(s"Test result: ${successCounter + failureCounter} completed${
+              if failureCounter > 0 then s", ${failureCounter} failures." else "."
+            }")
+    }
+
+    tasksSeq.foreach { tasks =>
+      val taskResult = executeTasks(tasks, testReporter, events, systemOut)
+      if taskResult then successCounter += 1 else failureCounter += 1
+      resultLog()
+    }
+
     handleRunnerDone(runner, events)
   }
 
@@ -221,14 +258,16 @@ import java.io.PrintStream
       args: Seq[String],
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
-      testReporter: TestReporter
+      testReporter: TestReporter,
+      resultPathOpt: Option[os.Path] = None
   ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 
-    val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
-    val (doneMessage, results) = runTasks(tasks.toSeq, testReporter, runner)
+    val (doneMessage, results) =
+      runTasks(tasksArr.view.map(_.toSeq).toSeq, testReporter, runner, resultPathOpt)
 
     (doneMessage, results.toSeq)
   }
@@ -239,7 +278,8 @@ import java.io.PrintStream
       testReporter: TestReporter,
       runner: Runner,
       claimFolder: os.Path,
-      testClassQueueFolder: os.Path
+      testClassQueueFolder: os.Path,
+      resultPath: os.Path
   ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
@@ -248,9 +288,9 @@ import java.io.PrintStream
     val globSelectorCache = testClasses.view
       .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
       .toMap
+    var successCounter = 0L
+    var failureCounter = 0L
 
-    // append only log, used to communicate with parent about what test is being claimed
-    // so that the parent can log the claimed test's name to its logger
     def runClaimedTestClass(testClassName: String) = {
 
       System.err.println(s"Running Test Class $testClassName")
@@ -262,14 +302,20 @@ import java.io.PrintStream
         }
 
       val tasks = runner.tasks(taskDefs.toArray)
-      executeTasks(tasks, testReporter, runner, events, systemOut)
+      val taskResult = executeTasks(tasks, testReporter, events, systemOut)
+      if taskResult then successCounter += 1 else failureCounter += 1
+      os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
     }
 
-    startingTestClass.foreach(runClaimedTestClass)
+    startingTestClass.foreach { testClass =>
+      os.write.append(claimFolder / os.up / s"${claimFolder.last}.log", s"$testClass\n")
+      runClaimedTestClass(testClass)
+    }
 
     for (file <- os.list(testClassQueueFolder)) {
       for (claimedTestClass <- claimFile(file, claimFolder)) runClaimedTestClass(claimedTestClass)
     }
+
     handleRunnerDone(runner, events)
   }
 
@@ -278,8 +324,10 @@ import java.io.PrintStream
       os.exists(file) &&
         scala.util.Try(os.move(file, claimFolder / file.last, atomicMove = true)).isSuccess
     ) {
-      val queueLog = claimFolder / os.up / s"${claimFolder.last}.log"
-      os.write.append(queueLog, s"${file.last}\n")
+      // append only log, used to communicate with parent about what test is being claimed
+      // so that the parent can log the claimed test's name to its logger
+      val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
+      os.write.append(claimLog, s"${file.last}\n")
       file.last
     }
   }
@@ -292,7 +340,8 @@ import java.io.PrintStream
       testClassQueueFolder: os.Path,
       claimFolder: os.Path,
       cl: ClassLoader,
-      testReporter: TestReporter
+      testReporter: TestReporter,
+      resultPath: os.Path
   ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
@@ -307,7 +356,8 @@ import java.io.PrintStream
       testReporter,
       runner,
       claimFolder,
-      testClassQueueFolder
+      testClassQueueFolder,
+      resultPath
     )
 
     (doneMessage, results.toSeq)
@@ -321,8 +371,8 @@ import java.io.PrintStream
       cl: ClassLoader
   ): Array[String] = {
     val framework = frameworkInstances(cl)
-    val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
-    tasks.map(_.taskDef().fullyQualifiedName())
+    val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    tasksArr.flatten.map(_.taskDef().fullyQualifiedName())
   }
 
   def globFilter(selectors: Seq[String]): String => Boolean = {

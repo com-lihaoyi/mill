@@ -2,7 +2,6 @@ package mill.javascriptlib
 
 import mill.*
 import os.*
-import mill.scalalib.publish.licenseFormat
 
 trait PublishModule extends TypeScriptModule {
 
@@ -11,72 +10,48 @@ trait PublishModule extends TypeScriptModule {
    *
    * This is an equivalent of a `package.json`
    */
-  def publishMeta: T[PublishModule.PublishMeta]
-
   override def npmDevDeps: T[Seq[String]] =
     Task { Seq("glob@^10.4.5", "ts-patch@3.3.0", "typescript-transform-paths@3.5.3") }
 
   def pubBundledOut: T[String] = Task { "dist" }
-
-  private def pubDeclarationOut: T[String] = Task { "declarations" }
 
   // main file; defined with mainFileName
   def pubMain: T[String] =
     Task { pubBundledOut() + "/src/" + mainFileName().replaceAll("\\.ts", ".js") }
 
   private def pubMainType: T[String] = Task {
-    pubMain().replaceFirst(pubBundledOut(), pubDeclarationOut()).replaceAll("\\.js", ".d.ts")
-  }
-
-  // Define exports for the package
-  // by default: mainFile is exported
-  // use this to define other exports
-  def pubExports: T[Map[String, String]] = Task { Map.empty[String, String] }
-
-  private def pubBuildExports: T[Map[String, PublishModule.ExportEntry]] = Task {
-    pubExports().map { case (key, value) =>
-      key -> PublishModule.Export("./" + pubBundledOut() + "/" + value)
-    }
+    pubMain().replaceFirst(pubBundledOut(), declarationDir()).replaceAll("\\.js", ".d.ts")
   }
 
   private def pubTypesVersion: T[Map[String, Seq[String]]] = Task {
     tscAllSources().map { source =>
-      val dist = source.replaceFirst("typescript", pubBundledOut())
-      val declarations = source.replaceFirst("typescript", pubDeclarationOut())
+      val dist = pubBundledOut() + "/" + source // source.replaceFirst("t-", )
+      val declarations = declarationDir() + "/" + source // source.replaceFirst("t-", )
       ("./" + dist).replaceAll("\\.ts", "") -> Seq(declarations.replaceAll("\\.ts", ".d.ts"))
     }.toMap
   }
 
-  // build package.json from publishMeta
-  // mv to compileDir.dest
-  def pubPackageJson: T[PathRef] = Task { // PathRef
-    def splitDeps(input: String): (String, String) = {
-      input.split("@", 3).toList match {
-        case first :: second :: tail if input.startsWith("@") =>
-          ("@" + first + "@" + second, tail.mkString)
-        case first :: tail =>
-          (first, tail.mkString)
-      }
-    }
+  def pubPackageJson: T[PathRef] = Task {
+    val json = packageJson()
+    val updatedJson =
+      json
+        .copy(
+          files =
+            if (json.files.obj.isEmpty) Seq(pubBundledOut(), declarationDir())
+            else json.files,
+          main = if (json.main.isEmpty) pubMain() else json.main,
+          types = if (json.types.isEmpty) pubMainType() else json.types,
+          exports =
+            if (json.exports.obj.isEmpty) ujson.Obj("." -> ("./" + pubMain())) else json.exports,
+          typesVersions =
+            if (json.typesVersions.value.isEmpty) pubTypesVersion() else json.typesVersions
+        )
+        .cleanJson
 
-    val json = publishMeta()
-    val updatedJson = json.copy(
-      files = json.files ++ Seq(pubBundledOut(), pubDeclarationOut()),
-      main = pubMain(),
-      types = pubMainType(),
-      exports = Map("." -> PublishModule.Export("./" + pubMain())) ++ pubBuildExports(),
-      bin = json.bin.map { case (k, v) => (k, "./" + pubBundledOut() + "/" + v) },
-      typesVersions = pubTypesVersion(),
-      dependencies = transitiveNpmDeps().map { deps => splitDeps(deps) }.toMap,
-      devDependencies = transitiveNpmDeps().map { deps => splitDeps(deps) }.toMap
-    ).toJsonClean
-
-    os.write.over(T.dest / "package.json", updatedJson)
+    os.write.over(T.dest / "package.json", updatedJson.render(2))
 
     PathRef(T.dest)
   }
-
-  // Package.Json construction
 
   // Compilation Options
   override def compilerOptions: T[Map[String, ujson.Value]] = Task {
@@ -84,7 +59,7 @@ trait PublishModule extends TypeScriptModule {
       "declarationMap" -> ujson.Bool(true),
       "esModuleInterop" -> ujson.Bool(true),
       "baseUrl" -> ujson.Str("."),
-      "rootDir" -> ujson.Str("typescript"),
+      "rootDir" -> ujson.Str("."),
       "declaration" -> ujson.Bool(true),
       "outDir" -> ujson.Str(pubBundledOut()),
       "plugins" -> ujson.Arr(
@@ -100,7 +75,11 @@ trait PublishModule extends TypeScriptModule {
     )
   }
 
-  // patch typescript
+  /**
+   * Patch tsc with custom transformer: `typescript-transform-paths`.
+   * `ts-paths` can now be transformed to their relative path in the
+   *  bundled code
+   */
   private def pubTsPatchInstall: T[Unit] = Task {
     os.call(
       ("node", npmInstall().path / "node_modules/ts-patch/bin/ts-patch", "install"),
@@ -109,16 +88,19 @@ trait PublishModule extends TypeScriptModule {
     ()
   }
 
-  private def pubSymLink: Task[Unit] = Task.Anon {
-    pubTsPatchInstall() // patch typescript compiler => use custom transformers
+  override def compile: T[PathRef] = Task {
+    tscCopySources()
+    tscCopyModDeps()
+    tscCopyGenSources()
+    tscLinkResources()
+    pubTsPatchInstall()
+    createNodeModulesSymlink()
+    mkTsconfig()
 
-    if (os.exists(npmInstall().path / ".npmrc"))
-      os.symlink(T.dest / ".npmrc", npmInstall().path / ".npmrc")
-  }
+    // build declaration and out dir
+    os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
 
-  override def compile: T[(PathRef, PathRef)] = Task {
-    pubSymLink()
-    super.compile()
+    PathRef(T.dest)
   }
   // Compilation Options
 
@@ -138,7 +120,7 @@ trait PublishModule extends TypeScriptModule {
           s"""    copyStaticFiles({
              |      src: ${ujson.Str(rp.toString)},
              |      dest: ${ujson.Str(
-              compile()._1.path.toString + "/" + pubBundledOut() + "/" + rp.last
+              compile().path.toString + "/" + pubBundledOut() + "/" + rp.last
             )},
              |      dereference: true,
              |      preserveTimestamps: true,
@@ -183,171 +165,18 @@ trait PublishModule extends TypeScriptModule {
   // EsBuild - END
 
   def publish(): Command[Unit] = Task.Command {
-    // build package.json
-    os.copy.over(pubPackageJson().path / "package.json", T.dest / "package.json")
-
     // bundled code for publishing
     val bundled = bundle().path / os.up
 
-    os.walk(bundled, skip = p => p.last == "node_modules" || p.last == "package-lock.json")
+    os.walk(bundled)
       .foreach(p => os.copy.over(p, T.dest / p.relativeTo(bundled), createFolders = true))
+
+    // build package.json
+    os.copy.over(pubPackageJson().path / "package.json", T.dest / "package.json")
 
     // run npm publish
     os.call(("npm", "publish"), stdout = os.Inherit, cwd = T.dest)
     ()
-  }
-
-}
-
-object PublishModule {
-  case class PublishMeta(
-      name: String,
-      version: String,
-      description: String,
-      main: String = "",
-      types: String = "",
-      author: String = "",
-      license: mill.scalalib.publish.License = mill.scalalib.publish.License.MIT,
-      homepage: String = "",
-      bin: Map[String, String] = Map.empty[String, String],
-      files: Seq[String] = Seq.empty[String],
-      scripts: Map[String, String] = Map.empty[String, String],
-      engines: Map[String, String] = Map.empty[String, String],
-      keywords: Seq[String] = Seq.empty[String],
-      repository: Repository = EmptyRepository,
-      bugs: Bugs = EmptyBugs,
-      dependencies: Map[String, String] = Map.empty[String, String],
-      devDependencies: Map[String, String] = Map.empty[String, String],
-      publishConfig: PublishConfig = EmptyPubConfig,
-      exports: Map[String, ExportEntry] = Map.empty[String, ExportEntry],
-      typesVersions: Map[String, Seq[String]] = Map.empty[String, Seq[String]]
-  ) {
-    def toJson: ujson.Value = ujson.Obj(
-      "name" -> name,
-      "version" -> version,
-      "description" -> description,
-      "main" -> main,
-      "types" -> types,
-      "files" -> ujson.Arr.from(files),
-      "scripts" -> ujson.Obj.from(scripts.map { case (k, v) => k -> ujson.Str(v) }),
-      "bin" -> ujson.Obj.from(bin.map { case (k, v) => k -> ujson.Str(v) }),
-      "engines" -> ujson.Obj.from(engines.map { case (k, v) => k -> ujson.Str(v) }),
-      "keywords" -> ujson.Arr.from(keywords),
-      "author" -> author,
-      "license" -> license.id,
-      "repository" -> repository.toJson,
-      "bugs" -> bugs.toJson,
-      "homepage" -> homepage,
-      "dependencies" -> ujson.Obj.from(dependencies.map { case (k, v) => k -> ujson.Str(v) }),
-      "devDependencies" -> ujson.Obj.from(devDependencies.map { case (k, v) => k -> ujson.Str(v) }),
-      "publishConfig" -> publishConfig.toJson,
-      "exports" -> ujson.Obj.from(exports.map { case (key, value) => key -> value.toJson }),
-      "typesVersions" -> ujson.Obj((
-        "*",
-        ujson.Obj.from(typesVersions.map { case (k, v) => k -> ujson.Arr.from(v) })
-      ))
-    )
-
-    def toJsonClean: ujson.Value = removeEmptyValues(toJson)
-  }
-
-  object PublishMeta {
-    implicit val rw: upickle.default.ReadWriter[PublishMeta] = upickle.default.macroRW
-  }
-
-  case class Repository(`type`: String, url: String) {
-    def toJson: ujson.Value = ujson.Obj(
-      "type" -> `type`,
-      "url" -> url
-    )
-  }
-
-  object Repository {
-    implicit val rw: upickle.default.ReadWriter[Repository] = upickle.default.macroRW
-  }
-
-  object EmptyRepository extends Repository("", "") {
-    override def toJson: ujson.Value = ujson.Obj()
-  }
-
-  case class Bugs(url: String, email: Option[String]) {
-    def toJson: ujson.Value = {
-      val base = ujson.Obj("url" -> url)
-      email.foreach(e => base("email") = e)
-      base
-    }
-  }
-
-  object EmptyBugs extends Bugs("", None) {
-    override def toJson: ujson.Value = ujson.Obj()
-  }
-
-  object Bugs {
-    implicit val rw: upickle.default.ReadWriter[Bugs] = upickle.default.macroRW
-  }
-
-  case class PublishConfig(registry: String, access: String) {
-    def toJson: ujson.Value = ujson.Obj(
-      "registry" -> registry,
-      "access" -> access
-    )
-  }
-
-  object EmptyPubConfig extends PublishConfig("", "") {
-    override def toJson: ujson.Value = ujson.Obj()
-  }
-
-  object PublishConfig {
-    implicit val rw: upickle.default.ReadWriter[PublishConfig] = upickle.default.macroRW
-  }
-
-  sealed trait ExportEntry {
-    def toJson: ujson.Value
-  }
-
-  object ExportEntry {
-    implicit val rw: upickle.default.ReadWriter[ExportEntry] = upickle.default.macroRW
-  }
-
-  case class Export(path: String) extends ExportEntry {
-    def toJson: ujson.Value = ujson.Str(path)
-  }
-
-  object Export {
-    implicit val rw: upickle.default.ReadWriter[Export] = upickle.default.macroRW
-  }
-
-  case class ExportConditions(conditions: Map[String, ExportEntry]) extends ExportEntry {
-    def toJson: ujson.Value = ujson.Obj.from(conditions.map { case (key, value) =>
-      key -> value.toJson
-    })
-  }
-
-  object ExportConditions {
-    implicit val rw: upickle.default.ReadWriter[ExportConditions] = upickle.default.macroRW
-  }
-
-  private def removeEmptyValues(json: ujson.Value): ujson.Value = {
-    json match {
-      case obj: ujson.Obj =>
-        val filtered = obj.value.filterNot { case (_, v) => isEmptyValue(v) }
-        val transformed = filtered.map { case (k, v) => k -> removeEmptyValues(v) }
-        if (transformed.isEmpty) ujson.Null else ujson.Obj.from(transformed)
-      case arr: ujson.Arr =>
-        val filtered = arr.value.filterNot(isEmptyValue)
-        val transformed = filtered.map(removeEmptyValues)
-        if (transformed.isEmpty) ujson.Null else ujson.Arr(transformed)
-      case str: ujson.Str if str.value.isEmpty => ujson.Null // Added to remove empty strings
-      case other => other
-    }
-  }
-
-  private def isEmptyValue(json: ujson.Value): Boolean = {
-    json match {
-      case ujson.Str("") | ujson.Null => true
-      case _: ujson.Obj | _: ujson.Arr => removeEmptyValues(json) == ujson.Null // crucial check
-      case _ => false
-    }
   }
 
 }
