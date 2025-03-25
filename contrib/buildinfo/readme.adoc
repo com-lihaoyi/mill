@@ -2,7 +2,8 @@
 :page-aliases: Plugin_BuildInfo.adoc
 
 Generate source code from your buildfile.
-This plugin generates a single object containing information from your build. It supports `Java`, `Scala` and `Kotlin` as a target language.
+This plugin generates a single object containing information from your build.
+It supports `Java`, `Scala` and `Kotlin` as a target language.
 
 To declare a module that uses BuildInfo you must extend the `mill.contrib.buildinfo.BuildInfo` trait when defining your module.
 
