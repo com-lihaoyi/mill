@@ -163,7 +163,7 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * The resolved plugin jars
    */
-  def kotlinCompilerPluginJars: T[Seq[PathRef]] = Task {
+  def kotlincPluginJars: T[Seq[PathRef]] = Task {
     val jars = defaultResolver().resolveDeps(
       kotlincPluginIvyDeps()
         // Don't resolve transitive jars
@@ -381,7 +381,7 @@ trait KotlinModule extends JavaModule { outer =>
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
-    val plugins = kotlinCompilerPluginJars().map(_.path)
+    val plugins = kotlincPluginJars().map(_.path)
 
     Seq("-no-stdlib") ++
       when(!languageVersion.isBlank)("-language-version", languageVersion) ++
