@@ -277,7 +277,7 @@ object CoursierModule {
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
         mapDependencies: Option[Dependency => Dependency] = null
-    ): Agg[PathRef] =
+    )(implicit ctx: mill.api.Ctx.Log): Agg[PathRef] =
       resolveDepsSafe(
         deps,
         sources,
@@ -292,7 +292,8 @@ object CoursierModule {
         sources: Boolean,
         artifactTypes: Option[Set[coursier.Type]],
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams]
-    ): Agg[PathRef] =
+    ): Agg[PathRef] = {
+      implicit val ctx0: mill.api.Ctx.Log = ctx.orNull
       resolveDeps(
         deps,
         sources,
@@ -300,6 +301,7 @@ object CoursierModule {
         resolutionParamsMapOpt,
         None
       )
+    }
 
     def resolveDepsSafe[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
@@ -307,7 +309,7 @@ object CoursierModule {
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
         mapDependencies: Option[Dependency => Dependency] = null
-    ): Result[Agg[PathRef]] =
+    )(implicit ctx: mill.api.Ctx.Log): Result[Agg[PathRef]] =
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
@@ -316,7 +318,7 @@ object CoursierModule {
         mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
+        ctx = Option(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       ).getOrThrow
 
@@ -421,7 +423,7 @@ object CoursierModule {
         coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
         artifactTypes: Option[Set[Type]] = None,
         resolutionParams: ResolutionParams = ResolutionParams()
-    ): coursier.Artifacts.Result = {
+    )(implicit ctx0: mill.api.Ctx.Log): coursier.Artifacts.Result = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
@@ -430,7 +432,7 @@ object CoursierModule {
         repositories,
         deps0.map(_.dep),
         sources = sources,
-        ctx = ctx
+        ctx = Option(ctx0)
       ).getOrThrow
     }
   }
