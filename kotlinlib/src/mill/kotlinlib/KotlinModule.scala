@@ -163,7 +163,7 @@ trait KotlinModule extends JavaModule { outer =>
    * The resolved plugin jars
    */
   def kotlincPluginJars: T[Seq[PathRef]] = Task {
-    val jars = defaultResolver().resolveDeps(
+    val jars = defaultResolver().classpath(
       kotlincPluginIvyDeps()
         // Don't resolve transitive jars
         .map(d => d.exclude("*" -> "*"))

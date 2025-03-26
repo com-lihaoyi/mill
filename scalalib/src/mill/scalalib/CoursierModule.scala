@@ -251,7 +251,7 @@ object CoursierModule {
         repositories,
         deps0.map(_.dep),
         sources = sources,
-        ctx = Some(ctx)
+        ctx = Some(ctx.log)
       ).get
     }
   }
