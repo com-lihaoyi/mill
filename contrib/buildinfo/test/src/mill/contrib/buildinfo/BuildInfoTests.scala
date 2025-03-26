@@ -1,17 +1,19 @@
 package mill.contrib.buildinfo
 
-import mill._
+import mill.*
+import mill.kotlinlib.KotlinModule
 import mill.scalalib.ScalaModule
 import mill.scalajslib.ScalaJSModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.Path
-import utest._
+import utest.*
 
 object BuildInfoTests extends TestSuite {
 
   val scalaVersionString = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val scalaJSVersionString = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
+  val kotlinVersionString = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
 
   object EmptyBuildInfo extends TestBaseModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
@@ -83,6 +85,27 @@ object BuildInfoTests extends TestSuite {
     override def buildInfoStaticCompiled = true
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
+    )
+  }
+
+  object BuildInfoKotlin extends TestBaseModule with KotlinModule with BuildInfo {
+    def kotlinVersion = kotlinVersionString
+    // FIXME: the mainClass should be found automatically
+    def mainClass = Some("foo.Main")
+    def buildInfoPackageName = "foo"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("scalaVersion", scalaVersionString)
+    )
+  }
+
+  object BuildInfoKotlinStatic extends TestBaseModule with KotlinModule with BuildInfo {
+    def kotlinVersion = kotlinVersionString
+    // FIXME: the mainClass should be found automatically
+    def mainClass = Some("foo.Main")
+    def buildInfoPackageName = "foo"
+    override def buildInfoStaticCompiled = true
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("scalaVersion", scalaVersionString)
     )
   }
 
@@ -208,6 +231,33 @@ object BuildInfoTests extends TestSuite {
           os.exists(runResult),
           os.exists(generatedSrc),
           os.read(runResult) == "not-provided-for-java-modules"
+        )
+    }
+
+    test("kotlin") - UnitTester(BuildInfoKotlin, testModuleSourcesPath / "kotlin").scoped { eval =>
+      val runResult = eval.outPath / "hello-mill"
+      val Right(_) =
+        eval.apply(BuildInfoKotlin.run(Task.Anon(Args(runResult.toString)))): @unchecked
+
+      assert(
+        os.exists(runResult),
+        os.read(runResult) == scalaVersionString
+      )
+    }
+    test("kotlin-static") - UnitTester(
+      BuildInfoKotlinStatic,
+      testModuleSourcesPath / "kotlin"
+    ).scoped {
+      eval =>
+        val runResult = eval.outPath / "hello-mill"
+        val generatedSrc = eval.outPath / "buildInfoSources.dest/foo/BuildInfo.kt"
+        val Right(_) =
+          eval.apply(BuildInfoKotlinStatic.run(Task.Anon(Args(runResult.toString)))): @unchecked
+
+        assert(
+          os.exists(runResult),
+          os.exists(generatedSrc),
+          os.read(runResult) == scalaVersionString
         )
     }
 
