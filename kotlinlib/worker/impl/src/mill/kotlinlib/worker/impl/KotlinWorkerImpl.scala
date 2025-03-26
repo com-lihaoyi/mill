@@ -10,8 +10,6 @@ import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import org.jetbrains.kotlin.cli.js.K2JSCompiler
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 
-import scala.annotation.nowarn
-
 class KotlinWorkerImpl extends KotlinWorker {
 
   def compile(target: KotlinWorkerTarget, args: Seq[String])(implicit ctx: Ctx): Result[Unit] = {
