@@ -10,8 +10,6 @@ class LocalM2Publisher(m2Repo: os.Path) {
    * @param pom The POM of this module
    * @param artifact Coordinates of this module
    * @param publishInfos Files to publish in this module
-   * @param ctx
-   * @return
    */
   def publish(
       pom: os.Path,

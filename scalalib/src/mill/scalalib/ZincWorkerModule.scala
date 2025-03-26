@@ -61,7 +61,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       val path = mill.util.Jvm.resolveJavaHome(
         id = id,
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.api.Ctx.Log]),
+        ctx = Some(implicitly[mill.api.Ctx]),
         jvmIndexVersion = jvmIndexVersion()
       ).get
       PathRef(path, quick = true)

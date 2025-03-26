@@ -32,7 +32,7 @@ object Lib {
       deps: IterableOnce[BoundDep],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[Ctx.Log] = None,
+      ctx: Option[Ctx] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
@@ -66,7 +66,7 @@ object Lib {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[Ctx.Log] = None,
+      ctx: Option[Ctx] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
@@ -152,7 +152,7 @@ object Lib {
 
   def resolveMillBuildDeps(
       repos: Seq[Repository],
-      ctx: Option[mill.api.Ctx.Log],
+      ctx: Option[mill.api.Ctx],
       useSources: Boolean
   ): Seq[os.Path] = {
     MillModuleUtil.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {

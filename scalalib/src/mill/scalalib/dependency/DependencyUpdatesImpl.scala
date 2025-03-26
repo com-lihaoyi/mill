@@ -1,6 +1,6 @@
 package mill.scalalib.dependency
 
-import mill.api.Ctx.Log
+import mill.api.Ctx
 import mill.define.*
 import mill.scalalib.dependency.updates.{
   DependencyUpdates,
@@ -13,7 +13,7 @@ object DependencyUpdatesImpl {
 
   def apply(
       evaluator: Evaluator,
-      ctx: Log,
+      ctx: Ctx,
       rootModule: BaseModule,
       discover: Discover,
       allowPreRelease: Boolean

@@ -476,7 +476,7 @@ object Jvm {
     !System.getProperty("java.specification.version").startsWith("1.")
 
   private def coursierCache(
-      ctx: Option[mill.api.Ctx.Log],
+      ctx: Option[mill.api.Ctx],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
   ) =
     FileCache[Task]()
@@ -497,7 +497,7 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.api.Ctx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
@@ -554,7 +554,7 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.api.Ctx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
@@ -577,7 +577,7 @@ object Jvm {
     }
 
   def jvmIndex(
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.api.Ctx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): JvmIndex = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
@@ -585,7 +585,7 @@ object Jvm {
   }
 
   def jvmIndex0(
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.api.Ctx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = "latest.release"
   ): Task[JvmIndex] = {
@@ -607,7 +607,7 @@ object Jvm {
    */
   def resolveJavaHome(
       id: String,
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.api.Ctx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = "latest.release"
   ): Result[os.Path] = {
@@ -630,7 +630,7 @@ object Jvm {
       force: IterableOnce[Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.api.Ctx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       boms: IterableOnce[BomDependency] = Nil
