@@ -254,44 +254,10 @@ public class MillProcessLauncher {
 
   static {
     // Load jansi native library
-
-    // First, fast-path code.
-    // We pre-compute the library location in the coursier archive cache, so that
-    // we don't need to load the whole of coursier upfront if the native library file
-    // is already in cache.
-    // Loading the native library on our own allows to speed things compared to what jansi would
-    // have done on its own (reading the library in its resources and writing it in a temporary
-    // location upon every new Mill run)
-    String jansiVersion = mill.runner.client.Versions.jansiVersion();
-    File archiveCacheLocation;
-    try {
-      archiveCacheLocation = coursier.paths.CachePath.defaultArchiveCacheDirectory();
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
-    String jansiLibPathInArchive =
-        "org/fusesource/jansi/internal/native/" + OSInfo.getNativeLibFolderPathForCurrentOS() + "/"
-            + System.mapLibraryName("jansi").replace(".dylib", ".jnilib");
-    File jansiLib = new File(
-        archiveCacheLocation,
-        "https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/" + jansiVersion + "/jansi-"
-            + jansiVersion + ".jar/" + jansiLibPathInArchive);
-
-    // Seems the jansi native library isn't in cache. We proceed to download it using
-    // coursier, which is more heavyweight.
-    // That's the slow path of our jansi-loading logic, that we try to avoid when we can.
-    if (!jansiLib.exists()) {
-      // coursierapi.Logger.progressBars actually falls back to non-ANSI logging when running
-      // without a terminal
-      coursierapi.Cache cache =
-          coursierapi.Cache.create().withLogger(coursierapi.Logger.progressBars());
-      coursierapi.ArchiveCache archiveCache = coursierapi.ArchiveCache.create().withCache(cache);
-      File jansiDir = archiveCache.get(
-          coursierapi.Artifact.of("https://repo1.maven.org/maven2/org/fusesource/jansi/jansi/"
-              + jansiVersion + "/jansi-" + jansiVersion + ".jar"));
-      jansiLib = new File(
-          jansiDir, jansiLibPathInArchive); // just in case, should be the same value as before
-    }
+    JansiLoader jansiLoader = new JansiLoader(mill.runner.client.Versions.jansiVersion());
+    File jansiLib = jansiLoader.tryLoadFast();
+    if (jansiLib == null)
+      jansiLib = jansiLoader.loadSlow();
 
     // We have the jansi native library, we proceed to load it.
     System.load(jansiLib.getAbsolutePath());
