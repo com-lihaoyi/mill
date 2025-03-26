@@ -350,6 +350,10 @@ object CoursierModule {
      * @param resolutionParams coursier resolution parameters
      * @return dependencies with empty version filled
      */
+    @deprecated(
+      "Use resolution instead, and extract the values you're interested in from it",
+      "Mill after 0.12.9"
+    )
     def processDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         resolutionParams: ResolutionParams = ResolutionParams(),
@@ -389,29 +393,37 @@ object CoursierModule {
     }
 
     /**
-     * All dependencies pulled by the passed dependencies
+     * Raw coursier resolution of the passed dependencies
      *
      * @param deps root dependencies
-     * @return full - ordered - list of dependencies pulled by `deps`
      */
-    def allDeps[T: CoursierModule.Resolvable](
+    def resolution[T: CoursierModule.Resolvable](
         deps: IterableOnce[T]
-    ): Seq[coursier.core.Dependency] = {
+    )(implicit ctx: mill.api.Ctx.Log): coursier.core.Resolution = {
       val deps0 = deps
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
         .iterator.toSeq
-      val res = Lib.resolveDependenciesMetadataSafe(
+      Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
+        ctx = Option(ctx),
         resolutionParams = ResolutionParams(),
         boms = Nil
       ).getOrThrow
+    }
 
-      res.orderedDependencies
+    @deprecated(
+      "Use resolution instead, and call orderedDependencies on its returned value",
+      "Mill after 0.12.9"
+    )
+    def allDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T]
+    ): Seq[coursier.core.Dependency] = {
+      implicit val ctx0: mill.api.Ctx.Log = ctx.orNull
+      resolution(deps).orderedDependencies
     }
 
     def getArtifacts[T: CoursierModule.Resolvable](

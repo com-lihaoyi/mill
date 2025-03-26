@@ -219,11 +219,21 @@ trait PublishModule extends JavaModule { outer =>
   @deprecated("Unused by Mill", "Mill after 0.12.5")
   def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
     Task {
-      val (processedDeps, depMgmt) = millResolver().processDeps(
-        processedIvyDeps(),
-        resolutionParams = resolutionParams(),
-        boms = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
+      val res = millResolver().resolution(Seq(coursierDependency))
+      val processedDeps = res.finalDependenciesCache.getOrElse(
+        coursierDependency,
+        sys.error(
+          s"Should not happen - could not find root dependency $coursierDependency in Resolution#finalDependenciesCache"
+        )
       )
+      val depMgmt = res.projectCache
+        .get(coursierDependency.moduleVersion)
+        .map(_._2.overrides.flatten.toMap)
+        .getOrElse {
+          sys.error(
+            s"Should not happen - could not find root dependency ${coursierDependency.moduleVersion} in Resolution#projectCache"
+          )
+        }
       (processedDeps.map(_.moduleVersion).toMap, depMgmt)
     }
 
@@ -244,15 +254,26 @@ trait PublishModule extends JavaModule { outer =>
    * @return
    */
   private def ivy(hasJar: Boolean): Task[String] = Task.Anon {
-    val (results, bomDepMgmt) = millResolver().processDeps(
-      Seq(
-        BoundDep(
-          coursierDependency.withConfiguration(Configuration.runtime),
-          force = false
-        )
-      ),
-      resolutionParams = resolutionParams()
-    )
+    val dep = coursierDependency.withConfiguration(Configuration.runtime)
+    val resolution = millResolver().resolution(Seq(BoundDep(dep, force = false)))
+
+    val (results, bomDepMgmt) =
+      (
+        resolution.finalDependenciesCache.getOrElse(
+          dep,
+          sys.error(
+            s"Should not happen - could not find root dependency $dep in Resolution#finalDependenciesCache"
+          )
+        ),
+        resolution.projectCache
+          .get(dep.moduleVersion)
+          .map(_._2.overrides.flatten.toMap)
+          .getOrElse {
+            sys.error(
+              s"Should not happen - could not find root dependency ${dep.moduleVersion} in Resolution#projectCache"
+            )
+          }
+      )
     val publishXmlDeps0 = {
       val rootDepVersions = results.map(_.moduleVersion).toMap
       publishIvyDeps.apply().apply(rootDepVersions, bomDepMgmt)

@@ -95,7 +95,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
         Left((
           Task.ctx(),
           (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, defaultResolver()).getOrThrow
+            scalaCompilerBridgeJar(x, y, defaultResolver())
         )),
         jobs,
         java.lang.Boolean.FALSE,
@@ -165,7 +165,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: Ctx.Log): Result[(Option[Agg[PathRef]], PathRef)] = {
+  )(implicit ctx: Ctx.Log): (Option[Agg[PathRef]], PathRef) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, ZincWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -196,22 +196,18 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
 
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
-    val bridgeJar = resolver.resolveDepsSafe(
+    val deps = resolver.resolveDeps(
       Seq(bridgeDep.bindDep("", "", "")),
       sources = useSources,
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
-    ).map(deps =>
-      ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
     )
 
-    if (useSources) {
-      for {
-        jar <- bridgeJar
-        classpath <- compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
-      } yield (Some(classpath), jar)
-    } else {
-      bridgeJar.map((None, _))
+    val bridgeJar = ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
+    val classpathOpt = Option.when(useSources) {
+      compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
     }
+
+    (classpathOpt, bridgeJar)
   }
 
   @deprecated("Use the override accepting a Resolver instead", "Mill after 0.12.9")
@@ -233,7 +229,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: Ctx.Log): Result[Agg[PathRef]] = {
+  )(implicit ctx: Ctx.Log): Agg[PathRef] = {
     resolver.resolveDeps(
       deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library

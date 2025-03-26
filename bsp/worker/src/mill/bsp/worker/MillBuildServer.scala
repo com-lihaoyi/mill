@@ -346,12 +346,14 @@ private class MillBuildServer(
         Task.Anon {
           (
             // full list of dependencies, including transitive ones
-            m.millResolver().allDeps(
-              Seq(
-                m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-                m.coursierDependency
+            m.millResolver()
+              .resolution(
+                Seq(
+                  m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                  m.coursierDependency
+                )
               )
-            ),
+              .orderedDependencies,
             m.unmanagedClasspath()
           )
         }
