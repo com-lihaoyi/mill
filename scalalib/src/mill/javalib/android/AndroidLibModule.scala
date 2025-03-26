@@ -26,9 +26,9 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       pomPackagingType match {
         case PackagingType.Pom => Task.Anon(Seq())
         case _ => Task.Anon(Seq(
-            (androidAar(), PublishInfo.aar _),
-            (sourceJar(), PublishInfo.sourcesJar _),
-            (docJar(), PublishInfo.docJar _)
+            (androidAar(), PublishInfo.aar),
+            (sourceJar(), PublishInfo.sourcesJar),
+            (docJar(), PublishInfo.docJar)
           ))
       }
     }
