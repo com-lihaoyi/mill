@@ -804,9 +804,6 @@ foo.run
 foo.compile(KotlinModule...)
     Compiles all the sources to JVM class files.
     Compiles the current module to generate compiled classfiles/bytecode.
-    When you override this, you probably also want/need to override [[bspCompileClassesPath]],
-    as that needs to point to the same compilation output path.
-    Keep in sync with [[bspCompileClassesPath]]
 Inputs:
     foo.allJavaSourceFiles
     foo.allKotlinSourceFiles
@@ -814,7 +811,7 @@ Inputs:
     foo.upstreamCompileOutput
     foo.javacOptions
     foo.zincReportCachedProblems
-    foo.kotlincOptions
+    foo.allKotlincOptions
     foo.kotlinCompilerClasspath
 ...
 
@@ -1392,7 +1389,7 @@ object qux extends MyModule {
 <div class="ulist">
 <ul>
 <li>
-<p>Three `KotlinModule`s that depend on each other</p>
+<p>Three <code>KotlinModule</code>s that depend on each other</p>
 </li>
 <li>
 <p>With unit testing and publishing set up</p>
@@ -1409,8 +1406,8 @@ multiple modules at once can be very convenient:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>__.test
-__.publishLocal</pre>
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">&gt; mill __.test
+&gt; mill __.publishLocal</code></pre>
 </div>
 </div>
 <div class="paragraph">
