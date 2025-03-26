@@ -142,9 +142,15 @@ object `package` extends RootModule {
   }
 
   object buildinfo extends ContribModule {
-    def compileModuleDeps = Seq(build.scalalib, build.scalajslib, build.scalanativelib)
+    def compileModuleDeps =
+      Seq(build.scalalib, build.scalajslib, build.scalanativelib, build.kotlinlib)
     def testModuleDeps =
-      super.testModuleDeps ++ Seq(build.scalalib, build.scalajslib, build.scalanativelib)
+      super.testModuleDeps ++ Seq(
+        build.scalalib,
+        build.scalajslib,
+        build.scalanativelib,
+        build.kotlinlib
+      )
   }
 
   object proguard extends ContribModule {
