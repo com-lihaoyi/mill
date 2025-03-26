@@ -12,8 +12,6 @@ import upickle.default.*
 @mill.api.experimental
 trait AndroidLibModule extends AndroidModule with PublishModule {
 
-  this
-
   //  /**
   //   * The packaging type. See [[PackagingType]] for specially handled values.
   //   */
