@@ -26,6 +26,8 @@ object OutputDirectoryTests extends UtestIntegrationTestSuite {
       if (os.exists(defaultOutDir)) {
         pprint.err.log(defaultOutDir)
         pprint.err.log(os.walk(defaultOutDir).map(_.relativeTo(defaultOutDir).asSubPath))
+        if (os.isFile(defaultOutDir / "mill.log"))
+          pprint.err.log(os.read(defaultOutDir / "mill.log"))
       }
       assert(!os.exists(defaultOutDir))
     }
@@ -42,6 +44,8 @@ object OutputDirectoryTests extends UtestIntegrationTestSuite {
       if (os.exists(defaultOutDir)) {
         pprint.err.log(defaultOutDir)
         pprint.err.log(os.walk(defaultOutDir).map(_.relativeTo(defaultOutDir).asSubPath))
+        if (os.isFile(defaultOutDir / "mill.log"))
+          pprint.err.log(os.read(defaultOutDir / "mill.log"))
       }
       assert(!os.exists(defaultOutDir))
     }
