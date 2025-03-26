@@ -328,7 +328,7 @@ object CoursierModule {
         coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
         artifactTypes: Option[Set[Type]] = None,
         resolutionParams: ResolutionParams = ResolutionParams()
-    ): coursier.Artifacts.Result = {
+    ): (coursier.Resolution, coursier.Artifacts.Result) = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
