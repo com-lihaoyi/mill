@@ -13,10 +13,10 @@ trait AndroidKotlinModule extends KotlinModule {
    */
   def androidEnableCompose: T[Boolean] = false
 
-  override def kotlinCompilerPluginIvyDeps: T[Seq[Dep]] = Task {
+  override def kotlincPluginIvyDeps: T[Seq[Dep]] = Task {
     val kv = kotlinVersion()
 
-    val deps = super.kotlinCompilerPluginIvyDeps()
+    val deps = super.kotlincPluginIvyDeps()
 
     if (androidEnableCompose()) {
       if (kv.startsWith("1")) {

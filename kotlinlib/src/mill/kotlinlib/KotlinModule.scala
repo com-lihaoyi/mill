@@ -158,14 +158,14 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Compiler Plugin dependencies.
    */
-  def kotlinCompilerPluginIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def kotlincPluginIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   /**
    * The resolved plugin jars
    */
   def kotlinCompilerPluginJars: T[Seq[PathRef]] = Task {
     val jars = defaultResolver().resolveDeps(
-      kotlinCompilerPluginIvyDeps()
+      kotlincPluginIvyDeps()
         // Don't resolve transitive jars
         .map(d => d.exclude("*" -> "*"))
     )
@@ -436,8 +436,8 @@ trait KotlinModule extends JavaModule { outer =>
     override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
-    override def kotlinCompilerPluginIvyDeps: T[Seq[Dep]] =
-      Task { outer.kotlinCompilerPluginIvyDeps() }
+    override def kotlincPluginIvyDeps: T[Seq[Dep]] =
+      Task { outer.kotlincPluginIvyDeps() }
       // TODO: make Xfriend-path an explicit setting
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
