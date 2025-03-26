@@ -58,7 +58,7 @@ object VisualizeModule extends ExternalModule {
     }
   }
 
-  def classpath: Target[Seq[PathRef]] = Target {
+  def toolsClasspath: Target[Seq[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 
@@ -137,7 +137,7 @@ object VisualizeModule extends ExternalModule {
 
           mill.util.Jvm.callProcess(
             mainClass = "mill.main.graphviz.GraphvizTools",
-            classPath = classpath().map(_.path).toVector,
+            classPath = toolsClasspath().map(_.path).toVector,
             mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg"),
             stdin = os.Inherit,
             stdout = os.Inherit
