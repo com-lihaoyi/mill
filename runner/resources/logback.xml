@@ -1,6 +1,6 @@
 <configuration debug="false" scan="false">
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>out/mill.log</file>
+    <file>${mill.log.file:-out/mill.log}</file>
       <encoder>
         <pattern>%date %level [%thread] %logger{36} %msg%n</pattern>
       </encoder>
