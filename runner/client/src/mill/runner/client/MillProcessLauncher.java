@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import mill.main.client.EnvVars;
 import mill.main.client.ServerFiles;
 import mill.main.client.Util;
-import org.fusesource.jansi.internal.OSInfo;
 
 public class MillProcessLauncher {
 
@@ -256,8 +255,7 @@ public class MillProcessLauncher {
     // Load jansi native library
     JansiLoader jansiLoader = new JansiLoader(mill.runner.client.Versions.jansiVersion());
     File jansiLib = jansiLoader.tryLoadFast();
-    if (jansiLib == null)
-      jansiLib = jansiLoader.loadSlow();
+    if (jansiLib == null) jansiLib = jansiLoader.loadSlow();
 
     // We have the jansi native library, we proceed to load it.
     System.load(jansiLib.getAbsolutePath());

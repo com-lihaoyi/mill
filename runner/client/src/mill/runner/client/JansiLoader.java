@@ -1,9 +1,8 @@
 package mill.runner.client;
 
-import org.fusesource.jansi.internal.OSInfo;
-
 import java.io.File;
 import java.io.IOException;
+import org.fusesource.jansi.internal.OSInfo;
 
 final class JansiLoader {
 
@@ -14,8 +13,8 @@ final class JansiLoader {
   }
 
   private String jansiLibPathInArchive() {
-    return "org/fusesource/jansi/internal/native/" + OSInfo.getNativeLibFolderPathForCurrentOS() + "/"
-        + System.mapLibraryName("jansi").replace(".dylib", ".jnilib");
+    return "org/fusesource/jansi/internal/native/" + OSInfo.getNativeLibFolderPathForCurrentOS()
+        + "/" + System.mapLibraryName("jansi").replace(".dylib", ".jnilib");
   }
 
   File tryLoadFast() {
@@ -48,5 +47,4 @@ final class JansiLoader {
     // That way, tryLoadFast finds this file first upon the next Mill startup.
     return new File(jansiDir, jansiLibPathInArchive());
   }
-
 }
