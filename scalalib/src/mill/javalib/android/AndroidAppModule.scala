@@ -1,16 +1,17 @@
 package mill.javalib.android
 
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 import mill.api.{Logger, PathRef, internal}
 import mill.define.{ModuleRef, Task}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.RelPath
-import upickle.default._
+import upickle.default.*
 
 import scala.jdk.OptionConverters.RichOptional
+import scala.xml.{Attribute, Null, Text, XML}
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -54,6 +55,23 @@ trait AndroidAppModule extends AndroidModule {
 
   private val parent: AndroidAppModule = this
 
+  def androidApplicationNamespace: String
+  def androidApplicationId: String
+
+  /**
+   * Provides os.Path to an XML file containing configuration and metadata about your android application.
+   */
+  override def androidManifest: T[PathRef] = Task {
+    val manifestFromSourcePath = moduleDir / "src/main/AndroidManifest.xml"
+
+    val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
+    // add the application package
+    val manifestWithPackage = manifestElem % Attribute(None, "package", Text(androidApplicationNamespace), Null)
+    val generatedManifestPath = Task.dest / "AndroidManifest.xml"
+    os.write(generatedManifestPath, manifestWithPackage.mkString)
+
+    PathRef(generatedManifestPath)
+  }
   /**
    * Specifies the file format(s) of the lint report. Available file formats are defined in AndroidLintReportFormat,
    * such as [[AndroidLintReportFormat.Html]], [[AndroidLintReportFormat.Xml]], [[AndroidLintReportFormat.Txt]],
@@ -166,7 +184,8 @@ trait AndroidAppModule extends AndroidModule {
    */
   def androidDex: T[PathRef] = Task {
 
-    val inheritedClassFiles = compileClasspath().map(_.path).filter(os.isDir)
+    val inheritedClassFiles = (compileClasspath() ++ androidGeneratedCompiledClasses())
+      .map(_.path).filter(os.isDir)
       .flatMap(os.walk(_))
       .filter(os.isFile)
       .filter(_.ext == "class")
@@ -755,7 +774,11 @@ trait AndroidAppModule extends AndroidModule {
     override def androidMinSdk: T[Int] = parent.androidMinSdk
     override def androidTargetSdk: T[Int] = parent.androidTargetSdk
     override def androidSdkModule = parent.androidSdkModule
-    override def androidManifest: Task[PathRef] = parent.androidManifest
+    override def androidManifest: T[PathRef] = parent.androidManifest
+
+    override def androidApplicationId: String = parent.androidApplicationId
+
+    override def androidApplicationNamespace: String = parent.androidApplicationNamespace
 
     override def moduleDir = parent.moduleDir
 
@@ -781,6 +804,9 @@ trait AndroidAppModule extends AndroidModule {
 
     override def androidIsDebug: T[Boolean] = parent.androidIsDebug
 
+    override def androidApplicationId: String = parent.androidApplicationId
+    override def androidApplicationNamespace: String = parent.androidApplicationNamespace
+
     override def androidReleaseKeyAlias: T[Option[String]] = parent.androidReleaseKeyAlias
     override def androidReleaseKeyName: T[Option[String]] = parent.androidReleaseKeyName
     override def androidReleaseKeyPass: T[Option[String]] = parent.androidReleaseKeyPass
@@ -804,7 +830,7 @@ trait AndroidAppModule extends AndroidModule {
      * will need to be created. Then this needs to point to the location of that debug
      * AndroidManifest.xml
      */
-    override def androidManifest: Task[PathRef] = parent.androidManifest
+    override def androidManifest: T[PathRef] = parent.androidManifest
 
     override def androidVirtualDeviceIdentifier: String = parent.androidVirtualDeviceIdentifier
     override def androidEmulatorArchitecture: String = parent.androidEmulatorArchitecture
