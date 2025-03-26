@@ -15,6 +15,10 @@ import mill.main.client.lock.Locks;
  */
 public class MillClientMain {
   public static void main(String[] args) throws Exception {
+
+    if (System.getProperty("mill.log.file") == null)
+      System.setProperty("mill.log.file", OutFiles.out + "/mill.log");
+
     boolean runNoServer = false;
     if (args.length > 0) {
       String firstArg = args[0];
