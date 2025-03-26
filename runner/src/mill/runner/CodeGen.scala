@@ -60,23 +60,13 @@ object CodeGen {
           // Dummy references to sub-modules. Just used as metadata for the discover and
           // resolve logic to traverse, cannot actually be evaluated and used
           val comment = "// subfolder module reference"
-          val lhs = backtickWrap(c)
-          val rhs = s"${pkgSelector2(Some(c))}.package_"
+          val lhs = backtickWrap(c + "_alias")
+          val rhs = pkgSelector2(Some(c))
           (rhs, s"final lazy val $lhs: $rhs.type = $rhs $comment")
         }.unzip
       val childAliases = childAliases0.mkString("\n")
 
       val pkg = pkgSelector0(Some(globalPackagePrefix), None)
-
-      val aliasImports = Seq(
-        // `$file` as an alias for `build_` to make usage of `import $file` when importing
-        // helper methods work
-        "import _root_.{build_ => $file}",
-        // Provide `build` as an alias to the root `build_.package_`, since from the user's
-        // perspective it looks like they're writing things that live in `package build`,
-        // but at compile-time we rename things, we so provide an alias to preserve the fiction
-        "import build_.{package_ => build}"
-      ).mkString("\n")
 
       val scriptCode = allScriptCode(scriptPath)
 
@@ -84,24 +74,13 @@ object CodeGen {
         s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
            |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
 
-      val siblingScripts = scriptSources
-        .filter(_ != scriptPath)
-        .filter(p => (p / os.up) == (scriptPath / os.up))
-        .map(_.last.split('.').head)
-
-      val importSiblingScripts = siblingScripts
-        .filter(s => s != "build" && s != "package")
-        .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
       val parts =
         if (!isBuildScript) {
           s"""package $pkg
-             |$aliasImports
-             |$importSiblingScripts
-             |object ${backtickWrap(scriptPath.last.split('.').head)} {
              |$markerComment
              |$scriptCode
-             |}""".stripMargin
+             |""".stripMargin
         } else {
           generateBuildScript(
             projectRoot,
@@ -113,12 +92,9 @@ object CodeGen {
             scriptFolderPath,
             childAliases,
             pkg,
-            aliasImports,
             scriptCode,
             markerComment,
             parser,
-            siblingScripts,
-            importSiblingScripts
           )
         }
 
@@ -136,21 +112,16 @@ object CodeGen {
       scriptFolderPath: os.Path,
       childAliases: String,
       pkg: String,
-      aliasImports: String,
       scriptCode: String,
       markerComment: String,
       parser: MillScalaParser,
-      siblingScripts: Seq[String],
-      importSiblingScripts: String
   ) = {
     val segments = scriptFolderPath.relativeTo(projectRoot).segments
-
-    val exportSiblingScripts =
-      siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
 
     val prelude =
       s"""import MillMiscInfo._
          |import _root_.mill.main.TokenReaders.given, _root_.mill.api.JsonFormatters.given
+         |import language.experimental.packageObjectValues
          |""".stripMargin
 
     val miscInfo =
@@ -165,8 +136,16 @@ object CodeGen {
 
     val objectData = parser.parseObjectData(scriptCode)
 
-    val expectedParent =
-      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
+    val isMetaBuild = projectRoot != millTopLevelProjectRoot
+    val expectedParent = if (isMetaBuild) "MillBuildRootModule" else "RootModule"
+
+
+    val parentClause0 =
+      if (segments.nonEmpty) "main.SubfolderModule(build.millDiscover)"
+      else if (!isMetaBuild) "main.RootModule"
+      else "runner.MillBuildRootModule()"
+
+    val parentClause = s"_root_.mill.$parentClause0 with MillDiscoverWrapper"
 
     if (objectData.exists(o => o.name.text == "`package`" && o.parent.text != expectedParent)) {
       throw new Result.Exception(s"object `package` in $scriptPath must extend `$expectedParent`")
@@ -178,68 +157,44 @@ object CodeGen {
         s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name.text).mkString(", ")}"
       )
     }
+
+    val pkgLine = s"package $pkg"
+
     objectData.find(o =>
       o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
     ) match {
       case Some(objectData) =>
-        val newParent = if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule"
-
         var newScriptCode = scriptCode
-        objectData.endMarker match {
-          case Some(endMarker) =>
-            newScriptCode = endMarker.applyTo(newScriptCode, wrapperObjectName)
-          case None =>
-            ()
-        }
-        objectData.finalStat match {
-          case Some((leading, finalStat)) =>
-            val fenced = Seq(
-              "", {
-                val statLines = finalStat.text.linesWithSeparators.toSeq
-                if statLines.sizeIs > 1 then
-                  statLines.tail.mkString
-                else
-                  finalStat.text
-              }
-            ).mkString(System.lineSeparator())
-            newScriptCode = finalStat.applyTo(newScriptCode, fenced)
-          case None =>
-            ()
-        }
 
-        newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
-        newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
+        newScriptCode = objectData.parent.applyTo(newScriptCode, parentClause)
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "@scala.annotation.experimental object")
 
-        s"""package $pkg
+        s"""$pkgLine
            |$miscInfo
-           |$aliasImports
-           |$importSiblingScripts
            |$prelude
            |$markerComment
            |$newScriptCode
-           |object $wrapperObjectName extends $wrapperObjectName {
-           |  ${childAliases.linesWithSeparators.mkString("  ")}
-           |  $exportSiblingScripts
+           |
+           |trait MillDiscoverWrapper { this: `package`.type =>
            |  ${millDiscover(segments.nonEmpty)}
-           |}""".stripMargin
+           |  $childAliases
+           |}
+           |""".stripMargin
 
       case None =>
-        s"""package $pkg
+        s"""$pkgLine
            |$miscInfo
-           |$aliasImports
-           |$importSiblingScripts
            |$prelude
-           |${topBuildHeader(
-            segments,
-            scriptFolderPath,
-            millTopLevelProjectRoot,
-            childAliases,
-            exportSiblingScripts
-          )}
+           |object `package` extends $parentClause {
            |$markerComment
            |$scriptCode
-           |}""".stripMargin
+           |}
+           |
+           |trait MillDiscoverWrapper { this: `package`.type =>
+           |  ${millDiscover(segments.nonEmpty)}
+           |  $childAliases
+           |}
+           |""".stripMargin
 
     }
   }
@@ -257,11 +212,11 @@ object CodeGen {
   }
 
   def millDiscover(segmentsNonEmpty: Boolean): String = {
-    val rhs =
-      if (segmentsNonEmpty) "build_.package_.millDiscover"
-      else "_root_.mill.define.Discover[this.type]"
-
-    s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
+    if (segmentsNonEmpty) ""
+    else {
+      val rhs = "_root_.mill.define.Discover[`package`.type]"
+      s"lazy val millDiscover: _root_.mill.define.Discover = $rhs"
+    }
   }
 
   def rootMiscInfo(
@@ -281,34 +236,5 @@ object CodeGen {
        |  ${literalize(millTopLevelProjectRoot.toString)}
        |)
        |""".stripMargin
-  }
-
-  def topBuildHeader(
-      segments: Seq[String],
-      scriptFolderPath: os.Path,
-      millTopLevelProjectRoot: os.Path,
-      childAliases: String,
-      exportSiblingScripts: String
-  ): String = {
-    val extendsClause =
-      if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
-      else if (millTopLevelProjectRoot == scriptFolderPath)
-        s"extends _root_.mill.main.RootModule() "
-      else s"extends _root_.mill.runner.MillBuildRootModule() "
-
-    // User code needs to be put in a separate class for proper submodule
-    // object initialization due to https://github.com/scala/scala3/issues/21444
-    // TODO: Scala 3 - the discover needs to be moved to the object, however,
-    // path dependent types no longer match, e.g. for TokenReaders of custom types.
-    // perhaps we can patch mainargs to substitute prefixes when summoning TokenReaders?
-    // or, add an optional parameter to Discover.apply to substitute the outer class?
-    s"""object ${wrapperObjectName} extends $wrapperObjectName  {
-       |  ${childAliases.linesWithSeparators.mkString("  ")}
-       |  $exportSiblingScripts
-       |  ${millDiscover(segments.nonEmpty)}
-       |}
-       |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
-       |""".stripMargin
-
   }
 }

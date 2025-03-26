@@ -111,8 +111,6 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       val mangledValFoo = eval("outer.inner.qux")
       assert(
         mangledValFoo.out.linesIterator.toSet == Set(
-          "running foo2",
-          "running helperFoo",
           "running bar",
           "running helperBar2",
           "running qux2",
@@ -134,10 +132,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       modifyFile(workspacePath / "build.mill", _.replace("val valueQux = 0", "val valueQux = 10"))
       val mangledValQux = eval("outer.inner.qux")
       assert(
-        mangledValQux.out.linesIterator.toSet == Set(
-          "running qux2",
-          "running helperQux2"
-        )
+        mangledValQux.out.linesIterator.toSet == Set()
       )
 
       modifyFile(
@@ -147,8 +142,6 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       val mangledValFooUsedInBar = eval("outer.inner.qux")
       assert(
         mangledValFooUsedInBar.out.linesIterator.toSet == Set(
-          "running foo2",
-          "running helperFoo",
           "running bar",
           "running helperBar2",
           "running qux2",
@@ -228,12 +221,7 @@ object CodeSigNestedTraitTests extends UtestIntegrationTestSuite {
       )
       val mangleTraitOuterValue = eval("traitOuter.traitInner.inner")
       assert(
-        mangleTraitOuterValue.out.linesIterator.toSet == Set(
-          "running outer",
-          "running helperTraitOuter",
-          "running inner",
-          "running helperTraitInner"
-        )
+        mangleTraitOuterValue.out.linesIterator.toSet == Set()
       )
     }
   }

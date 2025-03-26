@@ -13,7 +13,8 @@ import mill.define.{
   SelectMode
 }
 import mill.api.Result
-import mill.resolve.ResolveCore.{Resolved, makeResultException}
+import mill.resolve.ResolveCore.Resolved
+import mill.api.MillException.{catchWrapException, makeResultException}
 
 private[mill] object Resolve {
   object Segments extends Resolve[Segments] {
@@ -58,9 +59,11 @@ private[mill] object Resolve {
 
       val taskList: Seq[Result[Option[NamedTask[?]]]] = resolved.map {
         case r: Resolved.NamedTask =>
-          val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init, cache)
-            .flatMap(instantiateNamedTask(r, _, cache))
+          val instantiated = catchWrapException {
+            ResolveCore
+              .instantiateModule(rootModule, r.segments.init, cache)
+              .flatMap(instantiateNamedTask(r, _, cache))
+          }.flatMap(identity)
           instantiated.map(Some(_))
 
         case r: Resolved.Command =>
@@ -136,7 +139,7 @@ private[mill] object Resolve {
       )
       .head
 
-    ResolveCore.catchWrapException(
+    catchWrapException(
       definition.invoke(p).asInstanceOf[NamedTask[?]]
     )
   }
@@ -149,7 +152,7 @@ private[mill] object Resolve {
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
   ) = {
-    ResolveCore.catchWrapException {
+    catchWrapException {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,
@@ -208,7 +211,7 @@ private[mill] object Resolve {
     } match {
       case mainargs.Result.Success(v: Command[_]) => Result.Success(v)
       case mainargs.Result.Failure.Exception(e) =>
-        Result.Failure(makeResultException(e, new Exception()).left.get)
+        Result.Failure(makeResultException(e, new Exception()).toString)
       case f: mainargs.Result.Failure =>
         Result.Failure(
           mainargs.Renderer.renderResult(

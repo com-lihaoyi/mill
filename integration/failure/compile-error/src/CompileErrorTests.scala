@@ -12,7 +12,7 @@ object CompileErrorTests extends UtestIntegrationTestSuite {
       assert(!res.isSuccess)
 
       locally {
-        assert(res.err.contains("""bar.mill:15:9"""))
+        assert(res.err.contains("""bar.mill:15:17"""))
         assert(res.err.contains("""println(doesntExist)"""))
         assert(res.err.contains("""Not found: doesntExist"""))
       }
@@ -25,7 +25,7 @@ object CompileErrorTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        assert(res.err.contains("""build.mill:9:5"""))
+        assert(res.err.contains("""build.mill:8:5"""))
         assert(res.err.contains("""foo.noSuchMethod"""))
         assert(res.err.contains("""value noSuchMethod is not a member"""))
       }

@@ -2,7 +2,7 @@ package mill.util
 
 import mill.api.experimental
 
-@experimental
+//@experimental
 class Version private (
     val major: Int,
     val minor: Option[Int],
@@ -47,7 +47,7 @@ final class IgnoreQualifierVersion(val underlying: Version) extends AnyVal {
     underlying.isNewerThan(other.underlying)(Version.IgnoreQualifierOrdering)
 }
 
-@experimental
+//@experimental
 object Version {
 
   /**
@@ -100,7 +100,7 @@ object Version {
    * TODO: Review ordering wrt Maven 3
    * TODO: also consider a coursier ordering
    */
-  @experimental
+  //@experimental
   object MavenOrdering extends Ordering[Version] {
     override def compare(l: Version, r: Version): Int =
       l.major - r.major match {

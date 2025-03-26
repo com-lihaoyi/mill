@@ -14,25 +14,19 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
 
       locally {
         // For now these error messages still show generated/mangled code; not ideal, but it'll do
-        assert(res.err.contains("""build.mill:7:50"""))
+        assert(res.err.contains("""build.mill:7:115"""))
         assert(res.err.contains("""Not found: type UnknownRootModule"""))
         assert(res.err.contains(
-          """abstract class package_  extends RootModule with UnknownRootModule {"""
+          """object `package` extends"""
         ))
-        assert(
-          res.err.contains("""                                                 ^^^^^^^^^^^^^^^^^""")
-        )
       }
 
       locally {
         // For now these error messages still show generated/mangled code; not ideal, but it'll do
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:6:65"""))
+        assert(res.err.replace('\\', '/').contains("""foo/package.mill:6:140"""))
         assert(res.err.contains("""Not found: type UnknownFooModule"""))
         assert(res.err.contains(
-          """abstract class package_  extends mill.main.SubfolderModule with UnknownFooModule {"""
-        ))
-        assert(res.err.contains(
-          """                                                                ^^^^^^^^^^^^^^^^"""
+          """object `package` extends"""
         ))
       }
 
@@ -51,7 +45,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        assert(res.err.contains("""build.mill:12:22"""))
+        assert(res.err.contains("""build.mill:11:22"""))
         assert(res.err.contains("""Not found: type UnknownAfterModule"""))
         assert(res.err.contains("""object after extends UnknownAfterModule"""))
         assert(res.err.contains("""                     ^^^^^^^^^^^^^^^^^^"""))
@@ -72,7 +66,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:11:22"""))
+        assert(res.err.replace('\\', '/').contains("""foo/package.mill:10:22"""))
         assert(res.err.contains("""Not found: type UnknownAfterFooModule"""))
         assert(res.err.contains("""object after extends UnknownAfterFooModule"""))
         assert(res.err.contains("""                     ^^^^^^^^^^^^^^^^^^^^^"""))

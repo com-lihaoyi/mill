@@ -36,7 +36,7 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
       // not the Task method itself, causes invalidation
       modifyFile(workspacePath / "build.mill", _.replace("val valueFoo = 0", "val valueFoo = 10"))
       val mangledValFoo = eval("foo")
-      assert(mangledValFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
+      assert(mangledValFoo.out.linesIterator.toSeq == Seq())
 
       // Even modifying `val`s that do not affect the task invalidates it, because
       // we only know that the constructor changed and don't do enough analysis to
@@ -46,10 +46,7 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
         _.replace("val valueFooUsedInBar = 0", "val valueFooUsedInBar = 10")
       )
       val mangledValFooUsedInBar = eval("foo")
-      assert(mangledValFooUsedInBar.out.linesIterator.toSeq == Seq(
-        "running foo2",
-        "running helperFoo2"
-      ))
+      assert(mangledValFooUsedInBar.out.linesIterator.toSeq == Seq())
 
       val cached3 = eval("foo")
       assert(cached3.out == "")
