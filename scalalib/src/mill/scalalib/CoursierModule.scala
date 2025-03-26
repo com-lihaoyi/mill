@@ -449,13 +449,7 @@ object CoursierModule {
      */
     def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
-        sources: Boolean = false,
-        mapDependencies: Option[Dependency => Dependency] = None,
-        customizer: Option[Resolution => Resolution] = None,
-        ctx: Option[mill.api.Ctx.Log] = None,
-        coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-        artifactTypes: Option[Set[Type]] = None,
-        resolutionParams: ResolutionParams = ResolutionParams()
+        sources: Boolean = false
     )(implicit ctx0: mill.api.Ctx.Log): coursier.Artifacts.Result = {
       val deps0 = deps
         .iterator
