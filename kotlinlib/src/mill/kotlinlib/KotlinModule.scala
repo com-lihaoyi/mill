@@ -102,21 +102,27 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   /**
-   * Flag to use the embeddable kotlin compiler.
+   * Flag to enable the use the embeddable kotlin compiler.
    * This can be necessary to avoid classpath conflicts or ensure
    * compatibility to the used set of plugins.
    *
+   * The difference between the standard compiler and the embedded compiler is,
+   * that the embedded compiler comes as a dependency-free JAR.
+   * All its dependencies are shaded and thus relocated to different package names.
+   * This also affects the compiler API, since relocated types may surface in the API
+   * but are not compatible to their non-relocated versions.
+   *
    * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196
    */
-  def kotlinCompilerEmbeddable: Task[Boolean] = Task { false }
+  def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { false }
 
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
    *
-   * Default is derived from [[kotlinCompilerVersion]] and [[kotlinCompilerEmbeddable]].
+   * Default is derived from [[kotlinCompilerVersion]] and [[kotlinUseEmbeddableCompiler]].
    */
   def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
-    val useEmbeddable = kotlinCompilerEmbeddable()
+    val useEmbeddable = kotlinUseEmbeddableCompiler()
     val kv = kotlinCompilerVersion()
     val isOldKotlin = Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4")
       .exists(prefix => kv.startsWith(prefix))
@@ -424,8 +430,8 @@ trait KotlinModule extends JavaModule { outer =>
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
-    override def kotlinCompilerEmbeddable: Task[Boolean] =
-      Task.Anon { outer.kotlinCompilerEmbeddable() }
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
+      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
   }
 
 }
