@@ -111,45 +111,29 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlinCompilerEmbeddable: Task[Boolean] = Task { false }
 
   /**
-   * The kotlin-compiler dependencies.
-   *
-   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
-   */
-  def kotlinCompilerDep: T[Seq[Dep]] = Task {
-    if (kotlinCompilerEmbeddable())
-      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}")
-    else
-      Seq(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}")
-  }
-
-  /**
-   * The kotlin-scripting-compiler dependencies.
-   *
-   * It uses the embeddable version, if [[kotlinCompilerEmbeddable]] is `true`.
-   */
-  def kotlinScriptingCompilerDep: T[Seq[Dep]] = Task {
-    if (kotlinCompilerEmbeddable())
-      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlinCompilerVersion()}")
-    else
-      Seq(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
-  }
-
-  /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
    *
    * Default is derived from [[kotlinCompilerVersion]] and [[kotlinCompilerEmbeddable]].
    */
   def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
-    kotlinCompilerDep() ++
-      (
-        if (
-          !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
-            kotlinVersion().startsWith(prefix)
-          )
-        )
-          kotlinScriptingCompilerDep()
-        else Seq()
-      )
+    val useEmbeddable = kotlinCompilerEmbeddable()
+    val kv = kotlinCompilerVersion()
+    val isOldKotlin = Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4")
+      .exists(prefix => kv.startsWith(prefix))
+
+    val compilerDep = if (useEmbeddable) {
+      ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kv}"
+    } else {
+      ivy"org.jetbrains.kotlin:kotlin-compiler:${kv}"
+    }
+
+    val scriptCompilerDep = if (useEmbeddable) {
+      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kv}"
+    } else {
+      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kv}"
+    }
+
+    Seq(compilerDep) ++ when(!isOldKotlin)(scriptCompilerDep)
   }
 
   /**
@@ -281,7 +265,7 @@ trait KotlinModule extends JavaModule { outer =>
   protected def dokkaAnalysisPlatform: String = "jvm"
   protected def dokkaSourceSetDisplayName: String = "jvm"
 
-  protected def when(cond: Boolean)(args: String*): Seq[String] = if (cond) args else Seq()
+  protected def when[T](cond: Boolean)(args: T*): Seq[T] = if (cond) args else Seq.empty
 
   /**
    * The actual Kotlin compile task (used by [[compile]] and [[kotlincHelp]]).
