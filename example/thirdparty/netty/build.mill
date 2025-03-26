@@ -569,7 +569,7 @@ object `transport-native-unix-common` extends NettyModule {
     val Seq(sourceJar) = defaultResolver().classpath(
       Seq(ivy"io.netty:netty-jni-util:0.0.9.Final"),
       sources = true
-    )
+    ).toSeq
 
     os.copy(makefile().path, Task.dest / "Makefile")
     os.copy(cSources().path, Task.dest / "src/main/c", createFolders = true)
