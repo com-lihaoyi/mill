@@ -13,7 +13,7 @@ trait KotlinWorker {
   val x = 1
 }
 
-sealed class KotlinWorkerTarget
+sealed trait KotlinWorkerTarget
 object KotlinWorkerTarget {
   case object Jvm extends KotlinWorkerTarget
   case object Js extends KotlinWorkerTarget

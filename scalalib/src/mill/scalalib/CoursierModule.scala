@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
-import coursier.core.Resolution
+import coursier.core.{BomDependency, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
@@ -208,7 +208,7 @@ object CoursierModule {
         mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = Some(ctx.log),
+        ctx = Some(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       ).get
 
@@ -230,7 +230,7 @@ object CoursierModule {
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = Some(ctx.log),
+        ctx = Some(ctx),
         resolutionParams = ResolutionParams(),
         boms = Nil
       ).get
@@ -251,7 +251,7 @@ object CoursierModule {
         repositories,
         deps0.map(_.dep),
         sources = sources,
-        ctx = Some(ctx.log)
+        ctx = Some(ctx)
       ).get
     }
   }
