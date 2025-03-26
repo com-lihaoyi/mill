@@ -11,6 +11,7 @@ import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 import mill.scalalib.{JavaModule, TestModule}
 import mill.scalalib.TestModule.Junit5
+import mill.define.Target
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -81,26 +82,25 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     /* There are no testclasses for screenshot tests, just the engine running a diff over the images */
     override def discoveredTestClasses: T[Seq[String]] = Task { Seq.empty[String] }
 
-    override def mapDependencies: Task[Dependency => Dependency] = outer.mapDependencies
+    override def mapDependencies: Task[Dependency => Dependency] =
+      Task.Anon(outer.mapDependencies())
 
-    override def androidCompileSdk: T[Int] = outer.androidCompileSdk
+    override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
 
-    override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest
+    override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest()
 
     override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
 
+    // FIXME: avoid hardcoded version
     def layoutLibVersion: String = "14.0.9"
+    // FIXME: avoid hardcoded version
     def composePreviewRendererVersion: String = "0.0.1-alpha08"
 
     def namespace: String
 
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
 
-    override final def kotlinVersion = outer.kotlinVersion
-
-    override def kotlincOptions = super.kotlincOptions() ++ Seq(
-      s"-Xplugin=${composeProcessor().path}"
-    )
+    override final def kotlinVersion: Target[String] = outer.kotlinVersion()
 
     override def sources: T[Seq[PathRef]] = Task.Sources(
       Seq(
@@ -154,6 +154,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       PathRef(extractDestination)
     }
 
+    // FIXME: avoid hardcoded version
     def uiToolingVersion: String = "1.7.6"
 
     /*
