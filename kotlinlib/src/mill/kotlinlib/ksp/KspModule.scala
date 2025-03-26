@@ -68,7 +68,7 @@ trait KspModule extends KotlinModule { outer =>
     )
   }
 
-  override def kotlinCompilerEmbeddable: Task[Boolean] = Task { true }
+  override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
 
   /*
    * The symbol processing plugin id

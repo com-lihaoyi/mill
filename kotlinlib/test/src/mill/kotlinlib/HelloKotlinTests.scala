@@ -22,7 +22,7 @@ object HelloKotlinTests extends TestSuite {
     trait KotlinVersionCross extends KotlinModule with Cross.Module2[String, Boolean] {
       def kotlinVersion = crossValue
 
-      override def kotlinCompilerEmbeddable: Task[Boolean] = Task { crossValue2 }
+      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { crossValue2 }
 
       override def mainClass = Some("hello.HelloKt")
 
