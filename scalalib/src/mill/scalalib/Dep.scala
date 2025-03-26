@@ -2,11 +2,9 @@ package mill.scalalib
 
 import upickle.default.{macroRW, ReadWriter as RW}
 import mill.scalalib.CrossVersion.*
-import coursier.core.Dependency
+import coursier.core.{Configuration, Dependency, MinimizedExclusions}
 import mill.scalalib.api.{Versions, ZincWorkerUtil}
 import scala.annotation.unused
-
-import coursier.core.Configuration
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
@@ -270,9 +268,10 @@ case class BoundDep(
   def toDep: Dep = Dep(dep = dep, cross = CrossVersion.empty(false), force = force)
 
   def exclude(exclusions: (String, String)*): BoundDep = copy(
-    dep = dep.withExclusions(
-      dep.exclusions() ++
-        exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
+    dep = dep.withMinimizedExclusions(
+      dep.minimizedExclusions.join(MinimizedExclusions(
+        exclusions.toSet.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
+      ))
     )
   )
 }
