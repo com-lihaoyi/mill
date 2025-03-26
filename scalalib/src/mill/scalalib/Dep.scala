@@ -201,9 +201,12 @@ object Dep {
 
   /**
    * Convenience to access Mill modules as dependencies, e.g. to load the into worker classpaths.
+   * @param artifactName The module artifact name
+   * @param artifactSuffix The artifact suffix typically representing the Scala version.
+   *                       Defaults to the Scala binary platform Mill runs on.
    */
-  private[mill] def millProjectModule(artifactName: String): Dep =
-    ivy"com.lihaoyi:${artifactName}_3:${Versions.millVersion}"
+  private[mill] def millProjectModule(artifactName: String, artifactSuffix: String = "_3"): Dep =
+    ivy"com.lihaoyi:${artifactName}${artifactSuffix}:${Versions.millVersion}"
 
 }
 

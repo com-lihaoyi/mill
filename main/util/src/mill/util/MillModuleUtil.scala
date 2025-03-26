@@ -12,6 +12,7 @@ private[mill] object MillModuleUtil {
    * Deprecated helper method, intended to allow runtime resolution and in-development-tree testings of mill plugins possible.
    * This design has issues and will probably be replaced.
    */
+  @deprecated("Use Dep.millProjectModule instead", "Mill 0.13.0-M1")
   def millProjectModule(
       artifact: String,
       repositories: Seq[Repository],
