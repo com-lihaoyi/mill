@@ -58,6 +58,9 @@ object VisualizeModule extends ExternalModule {
     }
   }
 
+  @deprecated("Use toolsClasspath instead", "0.13.0-M1")
+  def classpath = toolsClasspath
+
   def toolsClasspath: Target[Seq[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
