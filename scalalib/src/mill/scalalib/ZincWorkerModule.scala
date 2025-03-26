@@ -196,7 +196,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
 
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
-    val deps = resolver.resolveDeps(
+    val deps = resolver.classpath(
       Seq(bridgeDep.bindDep("", "", "")),
       sources = useSources,
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
@@ -230,7 +230,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       scalaOrganization: String,
       resolver: Resolver
   )(implicit ctx: Ctx.Log): Agg[PathRef] = {
-    resolver.resolveDeps(
+    resolver.classpath(
       deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module

@@ -76,7 +76,7 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBClasspath: T[Loose.Agg[PathRef]] = Task {
     val scalaPBScalaVersion = "2.13.1"
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
         .map(Lib.depToBoundDep(_, scalaPBScalaVersion)),
       resolutionParamsMapOpt = Some(_.withScalaVersion(scalaPBScalaVersion))
@@ -91,7 +91,7 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
-    millResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),
         coursierDependency

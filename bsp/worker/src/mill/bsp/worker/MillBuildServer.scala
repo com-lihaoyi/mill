@@ -303,7 +303,7 @@ private class MillBuildServer(
         case m: JavaModule =>
           Task.Anon {
             (
-              m.millResolver().resolveDeps(
+              m.millResolver().classpath(
                 Seq(
                   m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
                   m.coursierDependency

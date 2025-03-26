@@ -58,7 +58,7 @@ trait CoursierModule extends mill.Module {
    * A `CoursierModule.Resolver` to resolve dependencies.
    *
    * Can be used to resolve external dependencies, if you need to download an external
-   * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#resolveDeps`.
+   * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#classpath`.
    *
    * @return `CoursierModule.Resolver` instance
    */
@@ -140,7 +140,7 @@ trait CoursierModule extends mill.Module {
   private[mill] def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
 
   /**
-   * The repositories used to resolved dependencie with [[resolveDeps()]].
+   * The repositories used to resolve dependencies with [[classpath()]].
    *
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
@@ -271,7 +271,13 @@ object CoursierModule {
         ResolutionParams()
       )
 
-    def resolveDeps[T: CoursierModule.Resolvable](
+    /**
+     * Class path of the passed dependencies
+     *
+     * @param deps root dependencies to resolve
+     * @param sources whether to fetch source JARs or standard JARs
+     */
+    def classpath[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
@@ -286,7 +292,17 @@ object CoursierModule {
         mapDependencies
       ).getOrThrow
 
-    // bin-compat shim
+    @deprecated("Use classpath instead", "Mill after 0.12.9")
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false,
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
+        mapDependencies: Option[Dependency => Dependency] = null
+    )(implicit ctx: mill.api.Ctx.Log): Agg[PathRef] =
+      classpath(deps, sources, artifactTypes, resolutionParamsMapOpt, mapDependencies)
+
+    @deprecated("Use classpath instead", "Mill after 0.12.9")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean,
@@ -320,17 +336,19 @@ object CoursierModule {
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Option(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
-      ).getOrThrow
+      )
 
-    // bin-compat shim
+    @deprecated("Use classpath instead", "Mill after 0.12.9")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean,
         artifactTypes: Option[Set[coursier.Type]]
-    ): Agg[PathRef] =
-      resolveDeps(deps, sources, artifactTypes, None)
+    ): Agg[PathRef] = {
+      implicit val ctx0: mill.api.Ctx.Log = ctx.orNull
+      classpath(deps, sources, artifactTypes, None)
+    }
 
-    @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+    @deprecated("Use classpath instead", "Mill after 0.12.9")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean
