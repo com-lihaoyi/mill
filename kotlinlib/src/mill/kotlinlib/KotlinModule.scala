@@ -407,7 +407,7 @@ trait KotlinModule extends JavaModule { outer =>
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
     override def kotlincPluginIvyDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginIvyDeps() }
-      // TODO: make Xfriend-path an explicit setting
+    // TODO: make Xfriend-path an explicit setting
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")

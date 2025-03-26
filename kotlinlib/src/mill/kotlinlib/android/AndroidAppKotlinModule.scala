@@ -11,6 +11,7 @@ import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 import mill.scalalib.{JavaModule, TestModule}
 import mill.scalalib.TestModule.Junit5
+import mill.define.Target
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -99,7 +100,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
 
-    override final def kotlinVersion = outer.kotlinVersion()
+    override final def kotlinVersion: Target[String] = outer.kotlinVersion()
 
     override def sources: T[Seq[PathRef]] = Task.Sources(
       Seq(
