@@ -86,19 +86,15 @@ trait KotlinModule extends JavaModule { outer =>
 
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
-  private[kotlinlib] def kotlinWorkerClasspath = Task {
-    defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-kotlinlib-worker-impl")
-    ))
-  }
-
   /**
    * The Java classpath resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerIvyDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(kotlinCompilerIvyDeps()) ++
-      kotlinWorkerClasspath()
+    val deps = kotlinCompilerIvyDeps() ++ Seq(
+      Dep.millProjectModule("mill-kotlinlib-worker-impl")
+    )
+    defaultResolver().classpath(deps)
   }
 
   /**
