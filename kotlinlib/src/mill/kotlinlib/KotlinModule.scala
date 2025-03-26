@@ -66,7 +66,7 @@ trait KotlinModule extends JavaModule { outer =>
    * Default is derived from [[kotlinVersion]].
    * This is deprecated, as it's identical to [[kotlinVersion]]
    */
-  @deprecated("Use kotlinVersion instead", "Mill 0.13.0-M1")
+  @deprecated("Use kotlinVersion instead", "Mill 0.12.10")
   def kotlinCompilerVersion: T[String] = Task { kotlinVersion() }
 
   /**
