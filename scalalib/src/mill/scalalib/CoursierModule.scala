@@ -444,7 +444,10 @@ object CoursierModule {
       resolution(deps).orderedDependencies
     }
 
-    def getArtifacts[T: CoursierModule.Resolvable](
+    /**
+     * Raw artifact results for the passed dependencies
+     */
+    def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
         mapDependencies: Option[Dependency => Dependency] = None,
