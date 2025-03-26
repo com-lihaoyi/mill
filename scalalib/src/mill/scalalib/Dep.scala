@@ -1,11 +1,11 @@
 package mill.scalalib
 
-import upickle.default.{macroRW, ReadWriter => RW}
-import mill.scalalib.CrossVersion._
+import upickle.default.{macroRW, ReadWriter as RW}
+import mill.scalalib.CrossVersion.*
 import coursier.core.Dependency
-import mill.scalalib.api.ZincWorkerUtil
-
+import mill.scalalib.api.{Versions, ZincWorkerUtil}
 import scala.annotation.unused
+
 import coursier.core.Configuration
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
@@ -198,6 +198,12 @@ object Dep {
       force
     )
   }
+
+  /**
+   * Convenience to access Mill modules as dependencies, e.g. to load the into worker classpaths.
+   */
+  private[mill] def millProjectModule(artifactName: String): Dep =
+    ivy"com.lihaoyi:${artifactName}_3:${Versions.millVersion}"
 
 }
 
