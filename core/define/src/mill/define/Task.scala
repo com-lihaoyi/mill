@@ -126,7 +126,8 @@ object Task extends TaskBase {
   inline def Command[T](persistent: Boolean)(inline t: Result[T])(implicit
       inline w: W[T],
       inline ctx: mill.define.Ctx
-  ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, '{ persistent }) }
+  ): Command[T] =
+    ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, '{ persistent }) }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -549,7 +550,15 @@ private object TaskMacros {
     appImpl[Command, T](
       (in, ev) =>
         '{
-          new Command[T]($in, $ev, $ctx, $w, ${ taskIsPrivate() }, exclusive = $exclusive, persistent = $persistent)
+          new Command[T](
+            $in,
+            $ev,
+            $ctx,
+            $w,
+            ${ taskIsPrivate() },
+            exclusive = $exclusive,
+            persistent = $persistent
+          )
         },
       t
     )
