@@ -77,7 +77,7 @@ object Jvm {
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true,
       check: Boolean = true
-  ): CommandResult = {
+  )(implicit ctx: Ctx): CommandResult = {
     val cp = cpPassingJarPath match {
       case Some(passingJarPath) if classPath.nonEmpty =>
         createClasspathPassingJar(passingJarPath, classPath.toSeq)
@@ -95,6 +95,11 @@ object Jvm {
       mainArgs).filterNot(_.isBlank)
 
     if (cwd != null) os.makeDir.all(cwd)
+
+    if (ctx != null)
+      ctx.log.debug(
+        s"Running ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
+      )
 
     val processResult = os.proc(commandArgs)
       .call(
