@@ -13,17 +13,20 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   def buildInfoPackageName = "mill.scalajslib"
   def buildInfoObjectName = "ScalaJSBuildInfo"
 
-  def buildInfoMembers = T {
-    val resolve = resolveCoursierDependency()
+  def buildInfoMembers = Task {
+    val resolve = bindDependency()
 
     def formatDep(dep: Dep) = {
       val d = resolve(dep)
-      s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
+      s"${d.organization}:${d.name}:${d.version}"
     }
 
     Seq(
       BuildInfo.Value("scalajsEnvNodejs", formatDep(build.Deps.Scalajs_1.scalajsEnvNodejs)),
-      BuildInfo.Value("scalajsEnvJsdomNodejs", formatDep(build.Deps.Scalajs_1.scalajsEnvJsdomNodejs)),
+      BuildInfo.Value(
+        "scalajsEnvJsdomNodejs",
+        formatDep(build.Deps.Scalajs_1.scalajsEnvJsdomNodejs)
+      ),
       BuildInfo.Value(
         "scalajsEnvExoegoJsdomNodejs",
         formatDep(build.Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)
@@ -42,9 +45,9 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
     def scalajsWorkerVersion = crossValue
     def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
-    def testDepPaths = T { Seq(compile().classes) }
-    def moduleDeps = Seq(build.scalajslib.`worker-api`, build.main.client, build.main.api)
-    def ivyDeps = Agg(
+    def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.core.constants, build.core.api)
+    def mandatoryIvyDeps = Agg.empty[Dep]
+    def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
       build.Deps.Scalajs_1.scalajsLinker,
       build.Deps.Scalajs_1.scalajsSbtTestAdapter,
       build.Deps.Scalajs_1.scalajsEnvNodejs,

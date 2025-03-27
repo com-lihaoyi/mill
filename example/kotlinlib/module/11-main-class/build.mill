@@ -1,0 +1,10 @@
+//// SNIPPET:BUILD
+package build
+import mill._, kotlinlib._
+
+object `package` extends RootModule with KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("foo.QuxKt")
+}

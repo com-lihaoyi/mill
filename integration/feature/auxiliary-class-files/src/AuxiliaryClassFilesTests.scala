@@ -12,10 +12,10 @@ object AuxiliaryClassFilesTests extends UtestIntegrationTestSuite {
         import tester._
         assert(eval("app.jvm.compile").isSuccess)
 
-        val classes = workspacePath / "out" / "app" / "jvm" / "compile.dest" / "classes"
+        val classes = workspacePath / "out/app/jvm/compile.dest/classes"
         val firstRun = os.list(classes).map(_.last)
 
-        os.remove(workspacePath / "app" / "src" / "foo.scala")
+        os.remove(workspacePath / "app/src/foo.scala")
 
         assert(eval("app.jvm.compile").isSuccess)
 
@@ -28,14 +28,14 @@ object AuxiliaryClassFilesTests extends UtestIntegrationTestSuite {
     test("compilation fails when deleting a class used by other files") - integrationTest {
       tester =>
         import tester._
-        os.write(workspacePath / "app" / "src" / "bar.scala", "object bar { println(foo) }")
+        os.write(workspacePath / "app/src/bar.scala", "object bar { println(foo) }")
         val firstRunSuccessful = eval("app.jvm.compile")
         assert(firstRunSuccessful.isSuccess)
 
-        val classes = workspacePath / "out" / "app" / "jvm" / "compile.dest" / "classes"
+        val classes = workspacePath / "out/app/jvm/compile.dest/classes"
         val firstRun = os.list(classes).map(_.last)
 
-        os.remove(workspacePath / "app" / "src" / "foo.scala")
+        os.remove(workspacePath / "app/src/foo.scala")
 
         val secondRunSuccessful = eval("app.jvm.compile")
         assert(!secondRunSuccessful.isSuccess)
@@ -57,10 +57,10 @@ object AuxiliaryClassFilesTests extends UtestIntegrationTestSuite {
       import tester._
       assert(eval("app.native.compile").isSuccess)
 
-      val classes = workspacePath / "out" / "app" / "native" / "compile.dest" / "classes"
+      val classes = workspacePath / "out/app/native/compile.dest/classes"
       val firstRun = os.list(classes).map(_.last)
 
-      os.remove(workspacePath / "app" / "src" / "foo.scala")
+      os.remove(workspacePath / "app/src/foo.scala")
 
       assert(eval("app.native.compile").isSuccess)
 
@@ -75,10 +75,10 @@ object AuxiliaryClassFilesTests extends UtestIntegrationTestSuite {
         import tester._
         assert(eval("app.js.compile").isSuccess)
 
-        val classes = workspacePath / "out" / "app" / "js" / "compile.dest" / "classes"
+        val classes = workspacePath / "out/app/js/compile.dest/classes"
         val firstRun = os.list(classes).map(_.last)
 
-        os.remove(workspacePath / "app" / "src" / "foo.scala")
+        os.remove(workspacePath / "app/src/foo.scala")
 
         assert(eval("app.js.compile").isSuccess)
 

@@ -1,9 +1,9 @@
 package app
 
 import scala.scalajs.js
-import scala.scalajs.js.annotation._ 
+import scala.scalajs.js.annotation._
 
-object App {  
+object App {
   def main(args: Array[String]): Unit = {
     println(linspace(-10.0, 10.0, 10))
   }

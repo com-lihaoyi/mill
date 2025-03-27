@@ -1,3 +1,5 @@
 package wrong
+import $packages._
+
 import mill._
 object `package` extends RootModule

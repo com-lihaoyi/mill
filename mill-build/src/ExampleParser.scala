@@ -6,9 +6,15 @@ object ExampleParser {
     val states = collection.mutable.Buffer("scala")
     val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
 
-    val rootBuildFileNames = Seq("build.sc", "build.mill", "build.mill.sc")
-    val buildFile = rootBuildFileNames.map(testRepoRoot / _).find(os.exists)
-    for (line <- os.read.lines(buildFile.get)) {
+    val rootBuildFileNames = Seq("build.sc", "build.mill", "build.mill.scala")
+    val buildFile = rootBuildFileNames.map(testRepoRoot / _)
+      .find(os.exists)
+      .getOrElse(
+        sys.error(
+          s"No build file named ${rootBuildFileNames.mkString("/")} found in $testRepoRoot"
+        )
+      )
+    for (line <- os.read.lines(buildFile)) {
       val (newState, restOpt) = line match {
         case s"/** Usage" => ("example", None)
         case s"/** See Also: $path */" =>

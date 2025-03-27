@@ -13,10 +13,13 @@ object TopLevelExportsTests extends TestSuite {
       sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.8.0"
     override def moduleKind = ModuleKind.ESModule
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
-  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "top-level-exports"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "top-level-exports"
 
   val evaluator = UnitTester(TopLevelExportsModule, millSourcePath)
 
@@ -24,7 +27,7 @@ object TopLevelExportsTests extends TestSuite {
     test("top level exports") {
       println(evaluator(TopLevelExportsModule.sources))
       val Right(result) =
-        evaluator(TopLevelExportsModule.fastLinkJS)
+        evaluator(TopLevelExportsModule.fastLinkJS): @unchecked
       val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 2)
       val b = publicModules(0)

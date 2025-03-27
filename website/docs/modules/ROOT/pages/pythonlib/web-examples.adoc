@@ -1,0 +1,25 @@
+= Python Web Project Examples
+:page-aliases: Python_Web_Examples.adoc
+
+
+ 
+This page provides examples of using Mill as a build tool for Python web applications.
+It includes setting up a basic "Hello, World!" application and developing a fully
+functional https://todomvc.com/[TodoMVC] app with Flask and Django, showcasing best practices
+for project organization, scalability, and maintainability.
+
+== Flask Hello World App
+
+include::partial$example/pythonlib/web/1-hello-flask.adoc[]
+
+== Flask TodoMVC App
+
+include::partial$example/pythonlib/web/2-todo-flask.adoc[]
+
+== Django Hello World App
+
+include::partial$example/pythonlib/web/3-hello-django.adoc[]
+
+== Django TodoMVC App
+
+include::partial$example/pythonlib/web/4-todo-django.adoc[]

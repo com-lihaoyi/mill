@@ -1,0 +1,11 @@
+package build.core.exec
+
+import mill._
+
+/**
+ * This module contains code related to planning and execution of the Mill
+ * task graph after it has been resolved.
+ */
+object `package` extends RootModule with build.MillStableScalaModule {
+  def moduleDeps = Seq(build.core.define, build.core.internal)
+}

@@ -1,7 +1,8 @@
 package mill.contrib.buildinfo
 
-import mill.T
+import mill.{T, Task}
 import mill.api.PathRef
+import mill.kotlinlib.KotlinModule
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalajslib.ScalaJSModule
@@ -9,7 +10,8 @@ import mill.scalajslib.ScalaJSModule
 trait BuildInfo extends JavaModule {
 
   /**
-   * The package name under which the BuildInfo data object will be stored.
+   * The name of the BuildInfo data object which contains all the members
+   * from [[buildInfoMembers]]. Defaults to "BuildInfo"
    */
   def buildInfoPackageName: String
 
@@ -30,22 +32,31 @@ trait BuildInfo extends JavaModule {
   }
 
   /**
+   * The source language to use for the generated source file(s).
+   */
+  def buildInfoLanguage: BuildInfo.Language = this match {
+    case _: ScalaModule => BuildInfo.Language.Scala
+    case _: KotlinModule => BuildInfo.Language.Kotlin
+    case _ => BuildInfo.Language.Java
+  }
+
+  /**
    * A mapping of key-value pairs to pass from the Build script to the
    * application code at runtime.
    */
   def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
 
   def resources: T[Seq[PathRef]] =
-    if (buildInfoStaticCompiled) super.resources
-    else T.sources { super.resources() ++ Seq(buildInfoResources()) }
+    if (buildInfoStaticCompiled) Task { super.resources() }
+    else Task { super.resources() ++ Seq(buildInfoResources()) }
 
-  def buildInfoResources = T {
+  def buildInfoResources = Task {
     val p = new java.util.Properties
     for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
 
     val subPath = os.SubPath(buildInfoPackageName.replace('.', '/'))
     val stream = os.write.outputStream(
-      T.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
+      Task.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
       createFolders = true
     )
 
@@ -54,104 +65,129 @@ trait BuildInfo extends JavaModule {
       s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}"
     )
     stream.close()
-    PathRef(T.dest)
+    PathRef(Task.dest)
   }
 
-  private def isScala = this.isInstanceOf[ScalaModule]
-
-  override def generatedSources = T {
+  override def generatedSources = Task {
     super.generatedSources() ++ buildInfoSources()
   }
 
-  def buildInfoSources = T {
+  def buildInfoSources = Task {
     if (buildInfoMembers().isEmpty) Nil
     else {
       val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
         buildInfoMembers(),
-        isScala,
+        buildInfoLanguage,
         buildInfoPackageName,
         buildInfoObjectName
       )
       else BuildInfo.codegen(
         buildInfoMembers(),
-        isScala,
+        buildInfoLanguage,
         buildInfoPackageName,
         buildInfoObjectName
       )
 
-      val ext = if (isScala) "scala" else "java"
-
       os.write(
-        T.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
+        Task.dest / buildInfoPackageName.split('.') /
+          s"${buildInfoObjectName}.${buildInfoLanguage.ext}",
         code,
         createFolders = true
       )
-      Seq(PathRef(T.dest))
+      Seq(PathRef(Task.dest))
     }
   }
 }
 
 object BuildInfo {
+  enum Language(val ext: String) {
+    case Java extends Language("java")
+    case Scala extends Language("scala")
+    case Kotlin extends Language("kt")
+  }
+
   case class Value(key: String, value: String, comment: String = "")
   object Value {
     implicit val rw: upickle.default.ReadWriter[Value] = upickle.default.macroRW
   }
   def staticCompiledCodegen(
       buildInfoMembers: Seq[Value],
-      isScala: Boolean,
+      language: Language,
       buildInfoPackageName: String,
       buildInfoObjectName: String
   ): String = {
+
     val bindingsCode = buildInfoMembers
       .sortBy(_.key)
       .map {
         case v =>
-          if (isScala) s"""${commentStr(v)}val ${v.key} = ${pprint.Util.literalize(v.value)}"""
-          else s"""${commentStr(
-              v
-            )}public static java.lang.String ${v.key} = ${pprint.Util.literalize(v.value)};"""
+          language match {
+            case Language.Scala | Language.Kotlin =>
+              s"""${commentStr(v)}val ${v.key}: String = ${pprint.Util.literalize(v.value)}"""
+            case Language.Java => s"""${commentStr(
+                  v
+                )}public static java.lang.String ${v.key} = ${pprint.Util.literalize(v.value)};"""
+          }
       }
       .mkString("\n\n  ")
 
-    if (isScala) {
-      val mapEntries = buildInfoMembers
-        .map { case v => s""""${v.key}" -> ${v.key}""" }
-        .mkString(",\n")
+    language match {
+      case Language.Scala =>
+        val mapEntries = buildInfoMembers
+          .map { case v => s""""${v.key}" -> ${v.key}""" }
+          .mkString(",\n")
 
-      s"""
-         |package $buildInfoPackageName
-         |
-         |object $buildInfoObjectName {
-         |  $bindingsCode
-         |  val toMap = Map[String, String](
-         |    $mapEntries
-         |  )
-         |}
+        s"""
+           |package $buildInfoPackageName
+           |
+           |object $buildInfoObjectName {
+           |  $bindingsCode
+           |  val toMap = Map[String, String](
+           |    $mapEntries
+           |  )
+           |}
       """.stripMargin.trim
-    } else {
-      val mapEntries = buildInfoMembers
-        .map { case v => s"""map.put("${v.key}", ${v.key});""" }
-        .mkString(",\n")
 
-      s"""
-         |package $buildInfoPackageName;
-         |
-         |public class $buildInfoObjectName {
-         |  $bindingsCode
-         |
-         |  public static java.util.Map<java.lang.String, java.lang.String> toMap() {
-         |    java.util.Map<java.lang.String, java.lang.String> map = new java.util.HashMap<java.lang.String, java.lang.String>();
-         |    $mapEntries
-         |    return map;
-         |  }
-         |}
+      case Language.Kotlin =>
+        val mapEntries = buildInfoMembers
+          .map { case v => s""""${v.key}" to ${v.key}""" }
+          .mkString(",\n")
+
+        s"""
+           |package $buildInfoPackageName
+           |
+           |object $buildInfoObjectName {
+           |  $bindingsCode
+           |  val toMap: Map<String, String> = mapOf(
+           |    $mapEntries
+           |  )
+           |}
+      """.stripMargin.trim
+
+      case Language.Java =>
+        val mapEntries = buildInfoMembers
+          .map { case v => s"""map.put("${v.key}", ${v.key});""" }
+          .mkString(",\n")
+
+        s"""
+           |package $buildInfoPackageName;
+           |
+           |public class $buildInfoObjectName {
+           |  $bindingsCode
+           |
+           |  public static java.util.Map<java.lang.String, java.lang.String> toMap() {
+           |    java.util.Map<java.lang.String, java.lang.String> map = new java.util.HashMap<java.lang.String, java.lang.String>();
+           |    $mapEntries
+           |    return map;
+           |  }
+           |}
       """.stripMargin.trim
     }
   }
 
   def codegen(
       buildInfoMembers: Seq[Value],
-      isScala: Boolean,
+      language: Language,
       buildInfoPackageName: String,
       buildInfoObjectName: String
   ): String = {
@@ -159,65 +195,94 @@ object BuildInfo {
       .sortBy(_.key)
       .map {
         case v =>
-          if (isScala)
-            s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
-          else s"""${commentStr(
-              v
-            )}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
+          language match {
+            case Language.Scala | Language.Kotlin =>
+              s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
+            case Language.Java =>
+              val propValue = s"""buildInfoProperties.getProperty("${v.key}")"""
+              s"""${commentStr(v)}public static final java.lang.String ${v.key} = $propValue;"""
+          }
       }
       .mkString("\n\n  ")
 
-    if (isScala)
-      s"""
-         |package ${buildInfoPackageName}
-         |
-         |object $buildInfoObjectName {
-         |  private[this] val buildInfoProperties: java.util.Properties = new java.util.Properties()
-         |
-         |  {
-         |    val buildInfoInputStream = getClass
-         |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
-         |
-         |    if(buildInfoInputStream == null)
-         |      throw new RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
-         |    else try {
-         |      buildInfoProperties.load(buildInfoInputStream)
-         |    } finally {
-         |      buildInfoInputStream.close()
-         |    }
-         |  }
-         |
-         |  $bindingsCode
-         |}
+    language match {
+      case Language.Scala =>
+        s"""
+           |package ${buildInfoPackageName}
+           |
+           |object $buildInfoObjectName {
+           |  private val buildInfoProperties: java.util.Properties = new java.util.Properties()
+           |
+           |  {
+           |    val buildInfoInputStream = getClass
+           |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
+           |
+           |    if(buildInfoInputStream == null)
+           |      throw new RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
+           |    else try {
+           |      buildInfoProperties.load(buildInfoInputStream)
+           |    } finally {
+           |      buildInfoInputStream.close()
+           |    }
+           |  }
+           |
+           |  $bindingsCode
+           |}
       """.stripMargin.trim
-    else
-      s"""
-         |package ${buildInfoPackageName};
-         |
-         |public class $buildInfoObjectName {
-         |  private static final java.util.Properties buildInfoProperties = new java.util.Properties();
-         |
-         |  static {
-         |    java.io.InputStream buildInfoInputStream = ${buildInfoObjectName}
-         |      .class
-         |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties");
-         |
-         |    try {
-         |      buildInfoProperties.load(buildInfoInputStream);
-         |    } catch (java.io.IOException e) {
-         |      throw new RuntimeException(e);
-         |    } finally {
-         |      try {
-         |        buildInfoInputStream.close();
-         |      } catch (java.io.IOException e) {
-         |        throw new RuntimeException(e);
-         |      }
-         |    }
-         |  }
-         |
-         |  $bindingsCode
-         |}
+
+      case Language.Kotlin =>
+        s"""
+           |package ${buildInfoPackageName}
+           |
+           |object $buildInfoObjectName {
+           |  private val buildInfoProperties: java.util.Properties = java.util.Properties()
+           |
+           |  init {
+           |    val buildInfoInputStream = ${buildInfoObjectName}::class.java
+           |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
+           |
+           |    if(buildInfoInputStream == null)
+           |      throw RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
+           |    else try {
+           |      buildInfoProperties.load(buildInfoInputStream)
+           |    } finally {
+           |      buildInfoInputStream.close()
+           |    }
+           |  }
+           |
+           |  $bindingsCode
+           |}
       """.stripMargin.trim
+
+      case Language.Java =>
+        s"""
+           |package ${buildInfoPackageName};
+           |
+           |public class $buildInfoObjectName {
+           |  private static final java.util.Properties buildInfoProperties = new java.util.Properties();
+           |
+           |  static {
+           |    java.io.InputStream buildInfoInputStream = ${buildInfoObjectName}
+           |      .class
+           |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties");
+           |
+           |    try {
+           |      buildInfoProperties.load(buildInfoInputStream);
+           |    } catch (java.io.IOException e) {
+           |      throw new RuntimeException(e);
+           |    } finally {
+           |      try {
+           |        buildInfoInputStream.close();
+           |      } catch (java.io.IOException e) {
+           |        throw new RuntimeException(e);
+           |      }
+           |    }
+           |  }
+           |
+           |  $bindingsCode
+           |}
+      """.stripMargin.trim
+    }
   }
 
   def commentStr(v: Value): String = {

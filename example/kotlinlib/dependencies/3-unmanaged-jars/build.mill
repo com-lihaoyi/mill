@@ -1,0 +1,15 @@
+//// SNIPPET:BUILD
+package build
+import mill._, kotlinlib._
+
+object `package` extends RootModule with KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("foo.FooKt")
+
+  def unmanagedClasspath = Task {
+    if (!os.exists(moduleDir / "lib")) Seq()
+    else Seq.from(os.list(moduleDir / "lib").map(PathRef(_)))
+  }
+}

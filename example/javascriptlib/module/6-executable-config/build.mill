@@ -1,0 +1,29 @@
+package build
+
+import mill._
+import mill.javascriptlib._
+
+object foo extends TypeScriptModule {
+  def bundleFlags =
+    Map(
+      "platform" -> ujson.Str("node"),
+      "entryPoints" -> ujson.Arr(mainFilePath().toString),
+      "bundle" -> ujson.Bool(true),
+      "minify" -> ujson.Bool(true)
+    )
+
+}
+
+// The above build demonstrates passing bundle flags
+// After generating your bundle with `mill foo.bundle` you'll find by running
+// your `out/foo/bundle.dest/bundle.js` you'll get the programmed output
+// and usage is based on project logic like which args to include with command.
+
+/** Usage
+
+> mill foo.bundle
+Build succeeded!
+
+> node out/foo/bundle.dest/bundle.js
+Hello World!
+*/

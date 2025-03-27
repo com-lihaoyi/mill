@@ -2,7 +2,7 @@ package mill.scalajslib
 
 import mill._
 import mill.define.Discover
-import mill.eval.EvaluatorPaths
+import mill.define.ExecutionPaths
 import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -40,30 +40,33 @@ object NodeJSConfigTests extends TestSuite {
 
       override def artifactName = "hello-js-world"
       def scalaJSVersion = NodeJSConfigTests.scalaJSVersion
-      override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
+      override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
-        override def sources = T.sources { millSourcePath / "src" / "utest" }
-        override def ivyDeps = Agg(
+        override def sources = Task.Sources { this.moduleDir / "src/utest" }
+        override def ivyDeps = Seq(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
-        override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
+        override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
       }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
-  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-js-world"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
   val helloWorldEvaluator = UnitTester(HelloJSWorld, millSourcePath)
 
-  val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
+  val mainObject = helloWorldEvaluator.outPath / "src/Main.scala"
 
   def tests: Tests = Tests {
-    def checkLog(command: define.Command[_], nodeArgs: List[String], notNodeArgs: List[String]) = {
+    def checkLog(command: define.Command[?], nodeArgs: List[String], notNodeArgs: List[String]) = {
       helloWorldEvaluator(command)
-      val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, command)
+      val paths = ExecutionPaths.resolve(helloWorldEvaluator.outPath, command)
       val log = os.read(paths.log)
       assert(
         nodeArgs.forall(log.contains),
@@ -76,7 +79,7 @@ object NodeJSConfigTests extends TestSuite {
       def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) =
         if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
         else checkLog(
-          HelloJSWorld.build(scalaVersion, nodeArgs).`test-utest`.test(),
+          HelloJSWorld.build(scalaVersion, nodeArgs).`test-utest`.testForked(),
           nodeArgs,
           notNodeArgs
         )

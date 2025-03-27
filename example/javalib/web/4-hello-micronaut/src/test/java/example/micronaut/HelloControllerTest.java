@@ -23,23 +23,22 @@ import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import org.junit.jupiter.api.Test;
-
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.Test;
 
 @MicronautTest // <1>
 public class HelloControllerTest {
 
-    @Inject
-    @Client("/")  // <2>
-    HttpClient client;
+  @Inject
+  @Client("/") // <2>
+  HttpClient client;
 
-    @Test
-    public void testHello() {
-        HttpRequest<?> request = HttpRequest.GET("/hello").accept(MediaType.TEXT_PLAIN);  // <3>
-        String body = client.toBlocking().retrieve(request);
+  @Test
+  public void testHello() {
+    HttpRequest<?> request = HttpRequest.GET("/hello").accept(MediaType.TEXT_PLAIN); // <3>
+    String body = client.toBlocking().retrieve(request);
 
-        assertNotNull(body);
-        assertEquals("Hello World", body);
-    }
+    assertNotNull(body);
+    assertEquals("Hello World", body);
+  }
 }

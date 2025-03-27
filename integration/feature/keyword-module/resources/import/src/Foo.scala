@@ -1,0 +1,3 @@
+package `import`
+
+object foo

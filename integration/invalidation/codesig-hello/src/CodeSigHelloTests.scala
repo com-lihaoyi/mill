@@ -8,8 +8,8 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("simple") - integrationTest { tester =>
       import tester._
-      // Make sure the simplest case where we have a single target calling a single helper
-      // method is properly invalidated when either the target body, or the helper method's body
+      // Make sure the simplest case where we have a single task calling a single helper
+      // method is properly invalidated when either the task body, or the helper method's body
       // is changed, or something changed in the constructor
       val initial = eval("foo")
 
@@ -21,7 +21,8 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
       modifyFile(workspacePath / "build.mill", _.replace("running foo", "running foo2"))
       val mangledFoo = eval("foo")
 
-      assert(mangledFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo"))
+      val out1 = mangledFoo.out.linesIterator.toSeq
+      assert(out1 == Seq("running foo2", "running helperFoo"))
 
       val cached2 = eval("foo")
       assert(cached2.out == "")
@@ -32,12 +33,12 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
       assert(mangledHelperFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
 
       // Make sure changing `val`s, which only affects the Module constructor and
-      // not the Target method itself, causes invalidation
+      // not the Task method itself, causes invalidation
       modifyFile(workspacePath / "build.mill", _.replace("val valueFoo = 0", "val valueFoo = 10"))
       val mangledValFoo = eval("foo")
       assert(mangledValFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
 
-      // Even modifying `val`s that do not affect the target invalidates it, because
+      // Even modifying `val`s that do not affect the task invalidates it, because
       // we only know that the constructor changed and don't do enough analysis to
       // know that this particular val is not used
       modifyFile(

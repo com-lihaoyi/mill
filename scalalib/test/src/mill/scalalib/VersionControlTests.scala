@@ -4,7 +4,7 @@ import mill.scalalib.publish.{VersionControl, VersionControlConnection}
 
 import utest._
 
-object VersionContolTests extends TestSuite {
+object VersionControlTests extends TestSuite {
 
   import VersionControl._
   import VersionControlConnection._

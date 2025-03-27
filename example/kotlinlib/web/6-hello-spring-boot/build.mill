@@ -1,0 +1,37 @@
+package build
+import mill._, kotlinlib._
+
+object `package` extends RootModule with KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("com.example.HelloSpringBootKt")
+
+  def ivyDeps = Seq(
+    ivy"org.springframework.boot:spring-boot-starter-web:2.5.6",
+    ivy"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
+  )
+
+  object test extends KotlinTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Seq(
+      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+    )
+  }
+}
+
+// This example demonstrates how to set up a simple Spring Boot webserver,
+// able to handle a single HTTP request at `/` and reply with a single response.
+
+/** Usage
+
+> mill test
+...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
+
+> mill runBackground
+
+> curl http://localhost:8095
+...<h1>Hello, World!</h1>...
+
+> mill clean runBackground
+
+*/

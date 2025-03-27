@@ -1,19 +1,11 @@
 package mill.scalalib.internal
 
 import mill.api.BuildScriptException
-import mill.define.{Module, Segments}
 
 import scala.annotation.tailrec
 
 @mill.api.internal
 object ModuleUtils {
-
-  /**
-   * Computes a display name for a module which is also disambiguates foreign modules.
-   */
-  def moduleDisplayName(module: Module): String = {
-    (module.millModuleShared.value.getOrElse(Segments()) ++ module.millModuleSegments).render
-  }
 
   /**
    * Find all dependencies.
@@ -25,7 +17,7 @@ object ModuleUtils {
    * @param deps A function provided the direct dependencies
    * @throws BuildScriptException if there were cycles in the dependencies
    */
-  // FIMXE: Remove or consolidate with copy in ZincModuleImpl
+  // FIXME: Remove or consolidate with copy in ZincWorkerImpl
   def recursive[T](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
 
     @tailrec def rec(

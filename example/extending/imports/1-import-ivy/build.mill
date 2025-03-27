@@ -1,0 +1,51 @@
+// The following example shows how to import the library `org.thymeleaf:thymeleaf:3.1.1.RELEASE`
+// into your build, so you can use it at build-time to safely generate escaped HTML snippets
+// in your resource path for your application to use.
+
+package build
+import mill._, javalib._
+import $ivy.`org.thymeleaf:thymeleaf:3.1.1.RELEASE`
+import org.thymeleaf.TemplateEngine
+import org.thymeleaf.context.Context
+
+object foo extends JavaModule {
+  def htmlSnippet = Task {
+    val context = new Context
+    context.setVariable("heading", "hello")
+    context.setVariable("paragraph", "world")
+    new TemplateEngine().process(
+      """<div><h1 th:text="${heading}"></h1><p th:text="${paragraph}"></p></div>""",
+      context
+    )
+  }
+
+  def resources = Task {
+    os.write(Task.dest / "snippet.txt", htmlSnippet())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+}
+//
+// This is a toy example: we generate a resource `snippet.txt` containing
+// `<div><h1>hello</h1><p>world</p></div>` that the application can read at runtime.
+// However, it demonstrates how you can easily move logic from application code at runtime
+// to build logic at build time, while using the same set of Java libraries and packages
+// you are already familiar with. This makes it easy to pre-compute things at build time
+// to reduce runtime latency or application startup times.
+//
+
+/** Usage
+
+> mill foo.compile
+compiling 1 Java source...
+...
+
+> mill foo.run
+generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
+
+> mill show foo.assembly
+".../out/foo/assembly.dest/out.jar"
+
+> ./out/foo/assembly.dest/out.jar # mac/linux
+generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
+
+*/

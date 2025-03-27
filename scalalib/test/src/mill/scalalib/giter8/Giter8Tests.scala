@@ -2,9 +2,9 @@ package mill.scalalib.giter8
 
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
-import mill.api.Loose.Agg
-import os.Path
+import utest.*
+
+import mill.define.Discover
 
 object Giter8Tests extends TestSuite {
 
@@ -17,7 +17,9 @@ object Giter8Tests extends TestSuite {
             template.replace("file:", "file://")
           } else template
 
-        object g8Module extends TestBaseModule with Giter8Module
+        object g8Module extends TestBaseModule with Giter8Module {
+          lazy val millDiscover = Discover[this.type]
+        }
 
         val evaluator = UnitTester(g8Module, null)
 
@@ -26,19 +28,19 @@ object Giter8Tests extends TestSuite {
           "--name=hello", // skip user interaction
           "--description=hello_desc" // need to pass all args
         )
-        val res = evaluator.evaluator.evaluate(Agg(g8Module.init(giter8Args: _*)))
+        val res = evaluator.evaluator.execute(Seq(g8Module.init(giter8Args*))).executionResults
 
         val files = Seq(
           os.sub / "build.mill",
           os.sub / "README.md",
-          os.sub / "hello" / "src" / "Hello.scala",
-          os.sub / "hello" / "test" / "src" / "MyTest.scala"
+          os.sub / "hello/src/Hello.scala",
+          os.sub / "hello/test/src/MyTest.scala"
         )
 
         assert(
-          res.failing.keyCount == 0,
+          res.transitiveFailing.size == 0,
           res.values.size == 1,
-          files.forall(f => os.exists(g8Module.millSourcePath / "hello" / f))
+          files.forall(f => os.exists(g8Module.moduleDir / "hello" / f))
         )
       }
     }

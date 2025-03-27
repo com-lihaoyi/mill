@@ -4,22 +4,24 @@ import mill._, scalalib._, publish._
 // acyclic test suite assumes files are on disk at specific paths relative to `os.pwd`.
 // To avoid changing the test code, we instead copy the necessary files into the `os.pwd`
 // when preparing the resources for test suite execution
-os.copy.over(
-  interp.watch(mill.api.WorkspaceRoot.workspaceRoot / "acyclic"),
-  os.pwd / "acyclic",
-  createFolders = true
-)
+os.checker.withValue(os.Checker.Nop) {
+  os.copy.over(
+    interp.watch(mill.api.WorkspaceRoot.workspaceRoot / "acyclic"),
+    os.pwd / "acyclic",
+    createFolders = true
+  )
+}
 
 object Deps {
   def acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:$scalaVersion"
-  val utest = ivy"com.lihaoyi::utest:0.8.4"
+  val utest = ivy"com.lihaoyi::utest:0.8.5"
 }
 
 val crosses =
   Seq("2.11.12") ++
-  Range.inclusive(8, 17).map("2.12." + _) ++
-  Range.inclusive(0, 10).map("2.13." + _)
+    Range.inclusive(8, 17).map("2.12." + _) ++
+    Range.inclusive(0, 10).map("2.13." + _)
 
 object acyclic extends Cross[AcyclicModule](crosses)
 trait AcyclicModule extends CrossScalaModule with PublishModule {
@@ -36,11 +38,11 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  def compileIvyDeps = Agg(Deps.scalaCompiler(crossScalaVersion))
+  def compileIvyDeps = Seq(Deps.scalaCompiler(crossScalaVersion))
 
   object test extends ScalaTests with TestModule.Utest {
-    def sources = T.sources(millSourcePath / "src", millSourcePath / "resources")
-    def ivyDeps = Agg(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
+    def sources = Task.Sources("src", "resources")
+    def ivyDeps = Seq(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
 }
 

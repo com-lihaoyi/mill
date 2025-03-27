@@ -1,0 +1,4 @@
+= Multi-Language Builds
+:page-aliases: Multi_Language_Builds.adoc
+
+include::partial$example/large/multi/14-multi-language.adoc[]

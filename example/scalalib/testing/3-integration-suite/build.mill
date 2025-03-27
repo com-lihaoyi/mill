@@ -10,18 +10,16 @@ object qux extends ScalaModule {
   def scalaVersion = "2.13.8"
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
   }
   object integration extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
   }
 }
 //// SNIPPET:END
 
-
-// These two test modules will expect their sources to be in their respective `foo/test` and
-// `foo/integration` folder respectively
-
+// These two test modules will expect their sources to be in their respective `qux/test` and
+// `qux/integration` folder respectively
 
 /** Usage
 

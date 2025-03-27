@@ -13,9 +13,9 @@ import scala.util.matching.Regex
 
 class TwirlWorker {
 
-  private var twirlInstanceCache = Option.empty[(Int, (TwirlWorkerApi, Class[_]))]
+  private var twirlInstanceCache = Option.empty[(Int, (TwirlWorkerApi, Class[?]))]
 
-  private def twirlCompilerAndClass(twirlClasspath: Agg[PathRef]): (TwirlWorkerApi, Class[_]) = {
+  private def twirlCompilerAndClass(twirlClasspath: Seq[PathRef]): (TwirlWorkerApi, Class[?]) = {
     val classloaderSig = twirlClasspath.hashCode
     twirlInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
@@ -34,7 +34,7 @@ class TwirlWorker {
         // NOTE: When creating the cl classloader with passing the current classloader as the parent:
         //   val cl = new URLClassLoader(twirlClasspath.map(_.toIO.toURI.toURL).toArray, getClass.getClassLoader)
         // it is possible to cast the default to a Seq[String], construct our own Seq[String], and pass it to the method invoke -
-        // classe will be compatible (the tests passed).
+        // classes will be compatible (the tests passed).
         // But when run in an actual mill project with this module enabled, there were exceptions like this:
         // scala.reflect.internal.MissingRequirementError: object scala in compiler mirror not found.
 
@@ -121,13 +121,13 @@ class TwirlWorker {
     }
   }
 
-  private def twirl(twirlClasspath: Agg[PathRef]): TwirlWorkerApi =
+  private def twirl(twirlClasspath: Seq[PathRef]): TwirlWorkerApi =
     twirlCompilerAndClass(twirlClasspath)._1
 
-  private def twirlClass(twirlClasspath: Agg[PathRef]): Class[_] =
+  private def twirlClass(twirlClasspath: Seq[PathRef]): Class[?] =
     twirlCompilerAndClass(twirlClasspath)._2
 
-  def defaultImports(twirlClasspath: Agg[PathRef]): Seq[String] =
+  def defaultImports(twirlClasspath: Seq[PathRef]): Seq[String] =
     twirlClass(twirlClasspath).getField("DEFAULT_IMPORTS")
       .get(null).asInstanceOf[java.util.Set[String]].asScala.toSeq
 
@@ -140,7 +140,7 @@ class TwirlWorker {
     )
 
   def compile(
-      twirlClasspath: Agg[PathRef],
+      twirlClasspath: Seq[PathRef],
       sourceDirectories: Seq[os.Path],
       dest: os.Path,
       imports: Seq[String],

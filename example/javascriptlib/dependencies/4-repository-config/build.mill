@@ -1,0 +1,31 @@
+package build
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+  def npmDeps = Seq("lodash@4.17.21")
+  def npmDevDeps = Seq("@types/lodash@4.17.13")
+}
+
+// Mill uses https://registry.npmjs.org to find and install dependencies.
+//
+// === Alternate/Private registries
+//
+// You can configure registries via a `.npmrc` file in project root.
+// For more information on npmrc see: https://docs.npmjs.com/cli/v9/configuring-npm/npmrc.
+// The example below uses the alternate registry https://registry.npmmirror.com
+
+/** Usage
+
+> mill foo.run e b k a l m o p
+Sorted with lodash: [a,b,e,k,l,m,o,p]
+....
+{
+  version: '4.17.21',
+  resolved: 'https://registry.npmmirror.com/lodash/-/lodash-4.17.21.tgz',
+  integrity: ...,
+...
+}
+
+> cd out/foo/npmInstall.dest && npm config get registry
+https://registry.npmmirror.com
+*/

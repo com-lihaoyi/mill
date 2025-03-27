@@ -1,10 +1,11 @@
 package mill.scalalib
 
 import mill.api.BuildScriptException
+import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.framework.TestPath
-import utest.{TestSuite, Tests, intercept, test, assert}
+import utest.{TestSuite, Tests, assert, intercept, test}
+import mill.main.TokenReaders._
 
 object CycleTests extends TestSuite {
 
@@ -29,6 +30,8 @@ object CycleTests extends TestSuite {
     object f extends JavaModule {
       override def compileModuleDeps = Seq(f)
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   override def tests: Tests = Tests {

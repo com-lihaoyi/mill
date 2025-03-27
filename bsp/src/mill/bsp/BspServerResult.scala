@@ -1,6 +1,8 @@
 package mill.bsp
 
 import mill.api.internal
+import mill.api.Mirrors
+import mill.api.Mirrors.autoMirror
 
 @internal
 sealed trait BspServerResult
@@ -28,4 +30,7 @@ object BspServerResult {
 
   implicit val jsonify: upickle.default.ReadWriter[BspServerResult] =
     upickle.default.macroRW
+
+  private given Root_BspServerResult: Mirrors.Root[BspServerResult] =
+    Mirrors.autoRoot[BspServerResult]
 }

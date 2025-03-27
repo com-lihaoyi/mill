@@ -1,13 +1,14 @@
 package mill.testkit
-import mill.util.Util
-import utest._
+
+import mill.constants.Util.isWindows
+import utest.*
 
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
  * except the commands used to test the project come from a `/** Usage ... */`
  * comment inside the project's `build.mill` file. This is intended to make the
  * `build.mill` file usable as documentation, such that a reader can skim the `build.mill`
- * and see both the build configuration as well as the commands they themselves can
+ * and see both the build configuration and the commands they themselves can
  * enter at the command line to exercise it.
  *
  * Implements a bash-like test DSL for educational purposes, parsed out from a
@@ -16,7 +17,7 @@ import utest._
  * example themselves.
  *
  * Each empty-line-separated block consists of one command (prefixed with `>`)
- * and zero or more output lines we expect to get from the comman (either stdout
+ * and zero or more output lines we expect to get from the command (either stdout
  * or stderr):
  *
  * 1. If there are no expected output lines, we do not perform any assertions
@@ -51,28 +52,31 @@ object ExampleTester {
       millExecutable: os.Path,
       bashExecutable: String = defaultBashExecutable(),
       workspacePath: os.Path = os.pwd
-  ): Unit = {
-    new ExampleTester(
+  ): os.Path = {
+    val tester = new ExampleTester(
       clientServerMode,
       workspaceSourcePath,
       millExecutable,
       bashExecutable,
       workspacePath
-    ).run()
+    )
+    tester.run()
+    tester.workspacePath
   }
 
   def defaultBashExecutable(): String = {
-    if (!mill.main.client.Util.isWindows) "bash"
+    if (!mill.constants.Util.isWindows) "bash"
     else "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
   }
 }
 
 class ExampleTester(
-    clientServerMode: Boolean,
+    val clientServerMode: Boolean,
     val workspaceSourcePath: os.Path,
     millExecutable: os.Path,
     bashExecutable: String = ExampleTester.defaultBashExecutable(),
-    val baseWorkspacePath: os.Path
+    val baseWorkspacePath: os.Path,
+    val propagateJavaHome: Boolean = true
 ) extends IntegrationTesterBase {
 
   def processCommandBlock(commandBlock: String): Unit = {
@@ -85,8 +89,8 @@ class ExampleTester(
     }
 
     val incorrectPlatform =
-      (comment.exists(_.startsWith("windows")) && !Util.windowsPlatform) ||
-        (comment.exists(_.startsWith("mac/linux")) && Util.windowsPlatform) ||
+      (comment.exists(_.startsWith("windows")) && !isWindows) ||
+        (comment.exists(_.startsWith("mac/linux")) && isWindows) ||
         (comment.exists(_.startsWith("--no-server")) && clientServerMode) ||
         (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
 
@@ -94,6 +98,8 @@ class ExampleTester(
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
+  private val millExt = if (isWindows) ".bat" else ""
+  private val clientServerFlag = if (clientServerMode) "" else "--no-server"
 
   def processCommand(
       expectedSnippets: Vector[String],
@@ -101,19 +107,31 @@ class ExampleTester(
       check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill $rest"
-      case s"curl $rest" => s"curl --retry 5 --retry-all-errors $rest"
+      case s"mill $rest" => s"./mill$millExt $clientServerFlag --disable-ticker $rest"
+      case s"./mill $rest" => s"./mill$millExt $clientServerFlag --disable-ticker $rest"
+      case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
     Console.err.println(s"$workspacePath> $commandStr")
+    Console.err.println(
+      s"""--- Expected output ----------
+         |${expectedSnippets.mkString("\n")}
+         |------------------------------""".stripMargin
+    )
+
+    val windowsPathEnv =
+      if (!isWindows) Map()
+      else Map(
+        "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
+      )
 
     val res = os.call(
       (bashExecutable, "-c", commandStr),
       stdout = os.Pipe,
-      stderr = os.Pipe,
+      stderr = os.Inherit,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = Map("MILL_TEST_SUITE" -> this.getClass().toString()),
+      env = millTestSuiteEnv ++ windowsPathEnv,
       check = false
     )
 
@@ -160,14 +178,11 @@ class ExampleTester(
 
     val filteredOut = plainTextLines(evalResult.out).mkString("\n")
 
-    if (expectedSnippets.nonEmpty) {
-      for (outLine <- filteredOut.linesIterator) {
-        globMatchesAny(unwrappedExpected, outLine)
-      }
-    }
-
     for (expectedLine <- unwrappedExpected.linesIterator) {
-      assert(filteredOut.linesIterator.exists(globMatches(expectedLine, _)))
+      Predef.assert(
+        filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
+        s"==== filteredOut:\n$filteredOut\n==== Missing expectedLine: \n$expectedLine"
+      )
     }
   }
 
@@ -181,19 +196,28 @@ class ExampleTester(
     expected.linesIterator.exists(globMatches(_, filtered))
   }
 
-  def run(): Any = {
+  def run(): Unit = {
     os.makeDir.all(workspacePath)
     val parsed = ExampleParser(workspaceSourcePath)
+    val ignoreErrors = System.getenv("CI") != null &&
+      os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
     try {
       initWorkspace()
-      os.copy.over(millExecutable, workspacePath / "mill")
-      for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
+      os.copy.over(millExecutable, workspacePath / s"mill$millExt")
+      try for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
+      catch {
+        case ex: Throwable if ignoreErrors =>
+          System.err.println(
+            s"Warning: ignoring exception while running example test under $workspaceSourcePath"
+          )
+          ex.printStackTrace(System.err)
+      }
     } finally {
       if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
-      removeServerIdFile()
+      removeProcessIdFile()
     }
   }
 }

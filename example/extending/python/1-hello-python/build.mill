@@ -1,0 +1,107 @@
+// First, we define a `pythonExe` task to create a
+// https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments[Python virtual environment] and installs
+// https://mypy.readthedocs.io/en/stable[mypy] for type-checking. `mypy` verifies type correctness using Python's
+// type hints, helping to catch errors in development.
+
+package build
+import mill._
+
+def pythonExe: T[PathRef] = Task {
+
+  os.call(("python3", "-m", "venv", Task.dest / "venv"))
+  val python = Task.dest / "venv/bin/python3"
+  os.call((python, "-m", "pip", "install", "mypy==1.13.0"))
+
+  PathRef(python)
+}
+
+// === Defining our Sources
+
+// The `sources` task specifies the directory for Python source files (`src` folder).
+
+def sources: T[PathRef] = Task.Source("src")
+
+// === Type Checking
+
+// The `typeCheck` task verifies that the code in the main Python file passes type checks.
+
+def typeCheck: T[Unit] = Task {
+  os.call(
+    (pythonExe().path, "-m", "mypy", "--strict", sources().path),
+    stdout = os.Inherit
+  )
+}
+
+// At this point, we have a minimal working build, with a build graph that looks like this:
+//
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   pythonExe -> typeCheck
+//   sources -> typeCheck
+// }
+// ....
+
+// Here is the `main.py` file
+/** See Also: src/main.py */
+
+// === Running
+
+// The `mainFileName` task defines the name of the main Python script (in this case `main.py`).
+// The `run` task runs the main file with user-provided command-line arguments.
+// It uses the virtual environment's Python interpreter to execute the script,
+// with output displayed in the console.
+
+def mainFileName: T[String] = Task { "main.py" }
+def run(args: mill.define.Args) = Task.Command {
+  os.call(
+    (pythonExe().path, sources().path / mainFileName(), args.value),
+    stdout = os.Inherit
+  )
+}
+
+// Note that we use `stdout = os.Inherit` since we want to display any output to the user,
+// rather than capturing it for use in our command.
+
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   pythonExe -> typeCheck
+//   pythonExe -> run
+//   sources -> typeCheck
+//   sources -> run
+//   mainFileName -> run
+//   mainFileName [color=green, penwidth=3]
+//   run [color=green, penwidth=3]
+// }
+// ....
+//
+// Note that like many optionally-typed languages, The `run` and `typeCheck` tasks are
+// independent: you can run a Python program without needing to typecheck it first. This is
+// different from compiled languages like Java, which require typechecking before execution
+//
+// Below are commands that demonstrate the typechecking and running functionality
+// of our pipeline:
+
+/** Usage
+
+> ./mill typeCheck
+Success: no issues found in 1 source file
+
+> ./mill run Mill Python
+Hello, Mill Python!
+15
+
+> sed -i.bak 's/print(add(5, 10))/print(addd(5, 10))/g' src/main.py
+
+> ./mill typeCheck # if we make a typo in a method name, mypy flags it
+error: ...Name "addd" is not defined...
+
+*/
+
+// We have now completed a basic Python integration in Mill, as a pipeline of inter-related tasks.
+// Next steps is to turn this one-off pipeline into a reusable PythonModule

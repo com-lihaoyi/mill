@@ -1,6 +1,5 @@
 package mill.testrunner
 
-import mill.api.Loose.Agg
 import mill.api.{Ctx, TestReporter, internal}
 import mill.util.Jvm
 
@@ -8,26 +7,24 @@ import mill.util.Jvm
 
   def runTestFramework(
       frameworkInstances: ClassLoader => sbt.testing.Framework,
-      entireClasspath: Agg[os.Path],
-      testClassfilePath: Agg[os.Path],
+      entireClasspath: Seq[os.Path],
+      testClassfilePath: Seq[os.Path],
       args: Seq[String],
       testReporter: TestReporter,
-      classFilter: Class[_] => Boolean = _ => true
-  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.testrunner.TestResult]) = {
-    // Leave the context class loader set and open so that shutdown hooks can access it
-    Jvm.inprocess(
-      entireClasspath,
-      classLoaderOverrideSbtTesting = true,
-      isolated = true,
-      closeContextClassLoaderWhenDone = false,
+      classFilter: Class[?] => Boolean = _ => true
+  )(implicit ctx: Ctx.Log): (String, Seq[mill.testrunner.TestResult]) = {
+    Jvm.withClassLoader(
+      classPath = entireClasspath.toVector,
+      sharedPrefixes = Seq("sbt.testing.")
+    ) { classLoader =>
       TestRunnerUtils.runTestFramework0(
         frameworkInstances,
         testClassfilePath,
         args,
         classFilter,
-        _,
+        classLoader,
         testReporter
       )
-    )
+    }
   }
 }

@@ -1,0 +1,17 @@
+= Spark Examples
+:page-aliases: Spark_Examples.adoc
+
+
+This page will discuss running spark in scala and python.
+
+== Hello Spark
+
+include::partial$example/scalalib/spark/1-hello-spark.adoc[]
+
+== Hello Pyspark
+
+include::partial$example/scalalib/spark/1-hello-spark.adoc[]
+
+== Semi realistic spark project with spark submit
+
+include::partial$example/scalalib/spark/3-semi-realistic.adoc[]

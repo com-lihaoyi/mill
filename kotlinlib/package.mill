@@ -1,0 +1,69 @@
+package build.kotlinlib
+
+// imports
+import mill._
+import mill.contrib.buildinfo.BuildInfo
+import mill.scalalib._
+
+// TODO change MillPublishScalaModule to MillStableScalaModule after mill version with kotlinlib is released,
+//  because currently there is no previous artifact version
+object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
+
+  def moduleDeps = Seq(build.scalalib, build.testrunner, worker)
+  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.impl.testDep())
+
+  def buildInfoPackageName = "mill.kotlinlib"
+  def buildInfoObjectName = "Versions"
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("kotlinVersion", build.Deps.kotlinVersion, "Version of Kotlin"),
+    BuildInfo.Value("kotlinVersion2", build.Deps.kotlinVersion, "Version of Kotlin"),
+    BuildInfo.Value("kotlinVersion3", build.Deps.kotlinVersion, "Version of Kotlin"),
+    BuildInfo.Value("kotlinVersion4", build.Deps.kotlinVersion, "Version of Kotlin"),
+    BuildInfo.Value("koverVersion", build.Deps.RuntimeDeps.koverVersion, "Version of Kover."),
+    BuildInfo.Value("ktfmtVersion", build.Deps.RuntimeDeps.ktfmt.version, "Version of Ktfmt."),
+    BuildInfo.Value("ktlintVersion", build.Deps.RuntimeDeps.ktlint.version, "Version of ktlint."),
+    BuildInfo.Value(
+      "detektVersion",
+      build.Deps.RuntimeDeps.detektCli.version,
+      "Version of Detekt."
+    ),
+    BuildInfo.Value("dokkaVersion", build.Deps.RuntimeDeps.dokkaVersion, "Version of Dokka."),
+    BuildInfo.Value(
+      "kotlinxHtmlJvmDep",
+      Dep.unparse(build.Deps.RuntimeDeps.kotlinxHtmlJvm).get,
+      "kotlinx-html-jvm dependency (used for Dokka)"
+    ),
+    BuildInfo.Value(
+      "freemarkerDep",
+      Dep.unparse(build.Deps.RuntimeDeps.freemarker).get,
+      "freemarker dependency (used for Dokka)"
+    )
+  )
+
+  trait MillKotlinModule extends build.MillPublishScalaModule {
+    override def javacOptions = {
+      val release =
+        if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")
+        else Seq("-source", "1.8", "-target", "1.8")
+      release ++ Seq("-encoding", "UTF-8", "-deprecation")
+    }
+  }
+
+  object worker extends MillKotlinModule {
+    def moduleDeps = Seq(build.testrunner)
+
+    override def compileIvyDeps: T[Agg[Dep]] = Agg(
+      build.Deps.osLib
+    )
+
+    object impl extends MillKotlinModule {
+      override def compileModuleDeps = Seq(worker)
+      def mandatoryIvyDeps = Agg.empty[Dep]
+      override def compileIvyDeps: T[Agg[Dep]] =
+        super.mandatoryIvyDeps() ++ Agg(
+          build.Deps.osLib,
+          build.Deps.kotlinCompiler
+        )
+    }
+  }
+}

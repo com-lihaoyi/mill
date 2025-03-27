@@ -12,10 +12,10 @@ object ZincIncrementalCompilationTests extends UtestIntegrationTestSuite {
       val successful = tester.eval("app.compile")
       assert(successful.isSuccess)
 
-      val appSrc = workspacePath / "app" / "src" / "main" / "scala" / "App.scala"
-      val classes = workspacePath / "out" / "app" / "compile.dest" / "classes"
-      val app = classes / "app" / "App.class"
-      val model = classes / "models" / "Foo.class"
+      val appSrc = workspacePath / "app/src/main/scala/App.scala"
+      val classes = workspacePath / "out/app/compile.dest/classes"
+      val app = classes / "app/App.class"
+      val model = classes / "models/Foo.class"
       assert(Seq(classes, app, model, appSrc).forall(os.exists))
 
       val appSrcInfo1 = os.stat(appSrc)

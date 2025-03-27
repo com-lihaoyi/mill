@@ -1,0 +1,44 @@
+// You can also override `unmanagedClasspath` to point it at jars that you want to
+// download from arbitrary URLs.
+// `requests.get` comes from the https://github.com/com-lihaoyi/requests-scala[Requests-Scala]
+// library, one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries].
+//
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = "2.13.8"
+  def unmanagedClasspath = Task {
+    os.write(
+      Task.dest / "fastjavaio.jar",
+      requests.get.stream(
+        "https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar"
+      )
+    )
+    Seq(PathRef(Task.dest / "fastjavaio.jar"))
+  }
+}
+
+//// SNIPPET:END
+
+/** Usage
+
+> ./mill run "textfile.txt" # mac/linux
+I am cow
+hear me moo
+I weigh twice as much as you
+
+*/
+
+// Tasks like `unmanagedClasspath` are
+// cached, so your jar is downloaded only once and re-used indefinitely after that.
+// This is usually not a problem, because usually URLs follow the rule that
+// https://www.w3.org/Provider/Style/URI[Cool URIs don't change], and so jars
+// downloaded from the same URL will always contain the same contents.
+//
+// NOTE: An unmanaged jar downloaded via `requests.get` is still unmanaged: even
+// though you downloaded it from somewhere, it `requests.get` does not know how to
+// pull in transitive dependencies or de-duplicate different versions on the classpath
+// All the same caveats you need to worry about when dealing with xref:#_unmanaged_jars[unmanaged jars]
+// apply here as well.

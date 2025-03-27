@@ -3,8 +3,8 @@ package mill.contrib.bloop
 import _root_.bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
 import mill.api.Result
-import mill.define.{Discover, ExternalModule, Module => MillModule}
-import mill.eval.Evaluator
+import mill.define.{Discover, Evaluator, ExternalModule, Module as MillModule}
+import mill.main.BuildInfo
 import mill.scalalib.internal.JavaModuleUtils
 import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
@@ -12,12 +12,18 @@ import mill.scalalib._
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.ReleaseMode
 
+import java.nio.file.{FileSystemNotFoundException, Files, Paths}
+
 /**
  * Implementation of the Bloop related tasks. Inherited by the
  * `mill.contrib.bloop.Bloop` object, and usable in tests by passing
  * a custom evaluator.
  */
-class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
+class BloopImpl(
+    evs: () => Seq[Evaluator],
+    wd: os.Path,
+    addMillSources: Option[Boolean]
+) extends ExternalModule {
   outer =>
   import BloopFormats._
 
@@ -27,8 +33,11 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    * Generates bloop configuration files reflecting the build,
    * under pwd/.bloop.
    */
-  def install() = T.command {
-    val res = T.traverse(computeModules)(_.bloop.writeConfigFile())()
+  def install() = Task.Command {
+    val res = Task.traverse(computeModules) {
+      case (mod, isRoot) =>
+        mod.bloop.writeConfigFile(isRoot)
+    }()
     val written = res.map(_._2).map(_.path)
     // Make bloopDir if it doesn't exists
     if (!os.exists(bloopDir)) {
@@ -61,8 +70,8 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     def linkerMode: T[Option[BloopConfig.LinkerMode]] = None
 
     object bloop extends MillModule {
-      def config = T {
-        new BloopOps(self).bloop.config()
+      def config = Task {
+        bloopConfig(self, false)()
       }
     }
 
@@ -82,22 +91,15 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    * that traverse only their transitive dependencies.
    */
   private implicit class BloopOps(jm: JavaModule) extends MillModule {
-    override def millOuterCtx = jm.millOuterCtx
+    override def moduleCtx = jm.moduleCtx
 
     object bloop extends MillModule {
-      def config = T { outer.bloopConfig(jm) }
-
-      def writeConfigFile(): Command[(String, PathRef)] = T.command {
+      def writeConfigFile(isRootModule: Boolean): Command[(String, PathRef)] = Task.Command {
         os.makeDir.all(bloopDir)
         val path = bloopConfigPath(jm)
-        _root_.bloop.config.write(config(), path.toNIO)
-        T.log.info(s"Wrote $path")
+        _root_.bloop.config.write(outer.bloopConfig(jm, isRootModule)(), path.toNIO)
+        Task.log.info(s"Wrote $path")
         name(jm) -> PathRef(path)
-      }
-
-      @deprecated("Use writeConfigFile instead.", "Mill after 0.10.9")
-      def writeConfig: Target[(String, PathRef)] = T {
-        writeConfigFile()()
       }
     }
 
@@ -107,25 +109,20 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     }
   }
 
-  // Compute all transitive modules from build children and via moduleDeps
-  @deprecated("Use mill.internal.JavaModuleUtils.transitiveModules instead", since = "mill 0.10.3")
-  def transitiveModules(
-      mod: define.Module,
-      found: Seq[define.Module] = Seq.empty
-  ): Seq[define.Module] = {
-    JavaModuleUtils.transitiveModules(mod, accept)
-  }
-
-  protected def computeModules: Seq[JavaModule] = {
-    val evals = evs()
-    evals.flatMap { eval =>
-      if (eval != null)
-        JavaModuleUtils.transitiveModules(eval.rootModule, accept)
+  /**
+   * All modules that are meant to be imported in Bloop
+   *
+   * @return sequence of modules and a boolean indicating whether the module is a root one
+   */
+  protected def computeModules: Seq[(JavaModule, Boolean)] =
+    evs()
+      .filter(_ != null)
+      .flatMap { eval =>
+        val rootModule = eval.rootModule
+        JavaModuleUtils.transitiveModules(rootModule, accept)
           .collect { case jm: JavaModule => jm }
-      else
-        Seq.empty
-    }
-  }
+          .map(mod => (mod, mod == rootModule))
+      }
 
   // class-based pattern matching against path-dependant types doesn't seem to work.
   private def accept(module: MillModule): Boolean =
@@ -135,14 +132,15 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
   /**
    * Computes sources files paths for the whole project. Cached in a way
-   * that does not get invalidated upon sourcefile change. Mainly called
+   * that does not get invalidated upon source file change. Mainly called
    * from module#sources in bloopInstall
    */
-  def moduleSourceMap = T.input {
-    val sources = T.traverse(computeModules) { m =>
-      m.allSources.map { paths =>
-        name(m) -> paths.map(_.path)
-      }
+  def moduleSourceMap = Task {
+    val sources = Task.traverse(computeModules) {
+      case (m, _) =>
+        m.allSources.map { paths =>
+          name(m) -> paths.map(_.path)
+        }
     }()
     Result.Success(sources.toMap)
   }
@@ -156,13 +154,15 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
   // Computation of the bloop configuration for a specific module
   // ////////////////////////////////////////////////////////////////////////////
 
-  def bloopConfig(module: JavaModule): Task[BloopConfig.File] = {
+  def bloopConfig(module: JavaModule, isRootModule: Boolean): Task[BloopConfig.File] = {
     import _root_.bloop.config.Config
     def out(m: JavaModule) = bloopDir / "out" / name(m)
     def classes(m: JavaModule) = out(m) / "classes"
 
-    val javaConfig =
-      module.javacOptions.map(opts => Some(Config.Java(options = opts.toList)))
+    val javaConfig = Task.Anon {
+      val opts = module.javacOptions() ++ module.mandatoryJavacOptions()
+      Some(Config.Java(options = opts.toList))
+    }
 
     // //////////////////////////////////////////////////////////////////////////
     // Scalac
@@ -170,7 +170,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
     val scalaConfig = module match {
       case s: ScalaModule =>
-        T.task {
+        Task.Anon {
           Some(
             BloopConfig.Scala(
               organization = s.scalaOrganization(),
@@ -183,7 +183,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
             )
           )
         }
-      case _ => T.task(None)
+      case _ => Task.Anon(None)
     }
 
     // //////////////////////////////////////////////////////////////////////////
@@ -192,17 +192,17 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
     def jsLinkerMode(m: JavaModule): Task[Config.LinkerMode] =
       (m.asBloop match {
-        case Some(bm) => T.task(bm.linkerMode())
-        case None => T.task(None)
+        case Some(bm) => Task.Anon(bm.linkerMode())
+        case None => Task.Anon(None)
       }).map(_.getOrElse(Config.LinkerMode.Debug))
 
     // //////////////////////////////////////////////////////////////////////////
     //  Classpath
     // //////////////////////////////////////////////////////////////////////////
 
-    val classpath = T.task {
-      val transitiveCompileClasspath = T.traverse(module.transitiveModuleCompileModuleDeps)(m =>
-        T.task { m.localCompileClasspath().map(_.path) ++ Agg(classes(m)) }
+    val classpath = Task.Anon {
+      val transitiveCompileClasspath = Task.traverse(module.transitiveModuleCompileModuleDeps)(m =>
+        Task.Anon { m.localCompileClasspath().map(_.path) ++ Seq(classes(m)) }
       )().flatten
 
       module.resolvedIvyDeps().map(_.path) ++
@@ -210,20 +210,29 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
         module.localCompileClasspath().map(_.path)
     }
 
-    val runtimeClasspath = T.task {
-      module.transitiveModuleDeps.map(classes) ++
-        module.resolvedRunIvyDeps().map(_.path) ++
-        module.unmanagedClasspath().map(_.path)
+    val isTestModule = module match {
+      case _: TestModule => true
+      case _ => false
     }
+    val runtimeClasspathOpt =
+      if (isTestModule)
+        Task.Anon(None)
+      else
+        Task.Anon {
+          val cp = module.transitiveModuleDeps.map(classes) ++
+            module.resolvedRunIvyDeps().map(_.path) ++
+            module.unmanagedClasspath().map(_.path)
+          Some(cp.map(_.toNIO).toList)
+        }
 
     val compileResources =
-      T.task(module.compileResources().map(_.path.toNIO).toList)
+      Task.Anon(module.compileResources().map(_.path.toNIO).toList)
     val runtimeResources =
-      T.task(compileResources() ++ module.resources().map(_.path.toNIO).toList)
+      Task.Anon(compileResources() ++ module.resources().map(_.path.toNIO).toList)
 
     val platform: Task[BloopConfig.Platform] = module match {
       case m: ScalaJSModule =>
-        T.task {
+        Task.Anon {
           BloopConfig.Platform.Js(
             BloopConfig.JsConfig.empty.copy(
               version = m.scalaJSVersion(),
@@ -244,7 +253,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
           )
         }
       case m: ScalaNativeModule =>
-        T.task {
+        Task.Anon {
           BloopConfig.Platform.Native(
             BloopConfig.NativeConfig.empty.copy(
               version = m.scalaNativeVersion(),
@@ -256,8 +265,8 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
               },
               gc = m.nativeGC(),
               targetTriple = m.nativeTarget(),
-              clang = m.nativeClang().toNIO,
-              clangpp = m.nativeClangPP().toNIO,
+              clang = m.nativeClang().path.toNIO,
+              clangpp = m.nativeClangPP().path.toNIO,
               options = Config.NativeOptions(
                 m.nativeLinkingOptions().toList,
                 m.nativeCompileOptions().toList
@@ -268,10 +277,10 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
           )
         }
       case _ =>
-        T.task {
+        Task.Anon {
           BloopConfig.Platform.Jvm(
             BloopConfig.JvmConfig(
-              home = T.env.get("JAVA_HOME").map(s => os.Path(s).toNIO),
+              home = Task.env.get("JAVA_HOME").map(s => os.Path(s).toNIO),
               options = {
                 // See https://github.com/scalacenter/bloop/issues/1167
                 val forkArgs = module.forkArgs().toList
@@ -281,10 +290,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
             ),
             mainClass = module.mainClass(),
             runtimeConfig = None,
-            classpath = module match {
-              case _: TestModule => None
-              case _ => Some(runtimeClasspath().map(_.toNIO).toList)
-            },
+            classpath = runtimeClasspathOpt(),
             resources = Some(runtimeResources())
           )
         }
@@ -296,7 +302,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
     val testConfig = module match {
       case m: TestModule =>
-        T.task {
+        Task.Anon {
           Some(
             BloopConfig.Test(
               frameworks = Seq(m.testFramework())
@@ -309,7 +315,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
             )
           )
         }
-      case _ => T.task(None)
+      case _ => Task.Anon(None)
     }
 
     // //////////////////////////////////////////////////////////////////////////
@@ -328,78 +334,142 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       import coursier._
       import coursier.util._
 
-      def source(r: Resolution) = Resolution(
-        r.dependencies
-          .map(d =>
-            d.withAttributes(
-              d.attributes.withClassifier(coursier.Classifier("sources"))
+      import scala.concurrent.ExecutionContext.Implicits.global
+      Fetch(coursier.cache.FileCache())
+        .addRepositories(repos*)
+        .addDependencies(deps*)
+        .withMainArtifacts()
+        .addClassifiers(coursier.Classifier("sources"))
+        .runResult()
+        .fullDetailedArtifacts
+        .collect {
+          case (dep, _, _, Some(file)) if os.Path(file).ext == "jar" =>
+            (
+              dep.module.organization,
+              dep.module.name,
+              dep.version,
+              Option(dep.attributes.classifier).filter(_.nonEmpty),
+              file
             )
-          )
-          .toSeq
+        }
+        .groupBy {
+          case (org, mod, version, _, _) => (org, mod, version)
+        }
+        .view
+        .mapValues {
+          _.map {
+            case (_, mod, _, classifier, file) =>
+              BloopConfig.Artifact(mod.value, classifier.map(_.value), None, file.toPath)
+          }.toList
+        }
+        .map {
+          case ((org, mod, version), artifacts) =>
+            BloopConfig.Module(
+              organization = org.value,
+              name = mod.value,
+              version = version,
+              configurations = None,
+              artifacts = artifacts
+            )
+        }
+        .toList
+    }
+
+    val millBuildDependencies: Task[List[BloopConfig.Module]] = Task.Anon {
+
+      val result = module.defaultResolver().artifacts(
+        BuildInfo.millAllDistDependencies
+          .split(',')
+          .filter(_.nonEmpty)
+          .map { str =>
+            str.split(":", 3) match {
+              case Array(org, name, ver) =>
+                val module =
+                  coursier.Module(coursier.Organization(org), coursier.ModuleName(name), Map.empty)
+                coursier.Dependency(module, ver)
+              case other =>
+                sys.error(
+                  s"Unexpected misshapen entry in BuildInfo.millEmbeddedDeps ('$str', expected 'org:name')"
+                )
+            }
+          },
+        sources = true
       )
 
-      import scala.concurrent.ExecutionContext.Implicits.global
-      val unresolved = Resolution(deps)
-      val fetch =
-        ResolutionProcess.fetch(repos, coursier.cache.Cache.default.fetch)
-      val gatherTask =
-        for {
-          resolved <- unresolved.process.run(fetch)
-          resolvedSources <- source(resolved).process.run(fetch)
-          all = resolved.dependencyArtifacts() ++ resolvedSources.dependencyArtifacts()
-          gathered <- Gather[Task].gather(all.distinct.map {
-            case (dep, pub, art) =>
-              coursier.cache.Cache.default.file(art).run.map(dep -> _)
-          })
-        } yield gathered
-          .collect {
-            case (dep, Right(file)) if os.Path(file).ext == "jar" =>
-              (
-                dep.module.organization,
-                dep.module.name,
-                dep.version,
-                Option(dep.attributes.classifier).filter(_.nonEmpty),
-                file
-              )
-          }
-          .groupBy {
-            case (org, mod, version, _, _) => (org, mod, version)
-          }
-          .view
-          .mapValues {
-            _.map {
-              case (_, mod, _, classifier, file) =>
-                BloopConfig.Artifact(mod.value, classifier.map(_.value), None, file.toPath)
-            }.toList
-          }
-          .map {
-            case ((org, mod, version), artifacts) =>
-              BloopConfig.Module(
-                organization = org.value,
-                name = mod.value,
-                version = version,
-                configurations = None,
-                artifacts = artifacts
-              )
-          }
-          .toList
+      def moduleOf(dep: coursier.Dependency): BloopConfig.Module =
+        BloopConfig.Module(
+          dep.module.organization.value,
+          dep.module.name.value,
+          dep.version,
+          Some(dep.configuration.value).filter(_.nonEmpty),
+          Nil
+        )
 
-      gatherTask.unsafeRun()
+      val indices = result.fullDetailedArtifacts
+        .map {
+          case (dep, _, _, _) =>
+            moduleOf(dep)
+        }
+        .zipWithIndex
+        .reverseIterator
+        .toMap
+
+      result.fullDetailedArtifacts
+        .groupBy {
+          case (dep, _, _, _) =>
+            moduleOf(dep)
+        }
+        .toList
+        .sortBy {
+          case (mod, _) =>
+            indices(mod)
+        }
+        .map {
+          case (mod, artifacts) =>
+            mod.copy(
+              artifacts = artifacts.toList.collect {
+                case (_, pub, art, Some(file)) =>
+                  BloopConfig.Artifact(
+                    pub.name,
+                    Some(pub.classifier.value).filter(_.nonEmpty),
+                    None,
+                    file.toPath
+                  )
+              }
+            )
+        }
     }
 
-    val bloopResolution: Task[BloopConfig.Resolution] = T.task {
-      val repos = module.repositoriesTask()
+    val bloopDependencies: Task[List[BloopConfig.Module]] = Task.Anon {
+      val repos = module.allRepositories()
       // same as input of resolvedIvyDeps
-      val allIvyDeps = module.transitiveIvyDeps() ++ module.transitiveCompileIvyDeps()
-      val coursierDeps = allIvyDeps.map(_.dep).toList
-      BloopConfig.Resolution(artifacts(repos, coursierDeps))
+      val coursierDeps = Seq(
+        module.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+        module.coursierDependency
+      )
+      artifacts(repos, coursierDeps)
     }
+
+    val addMillSources0 = addMillSources.getOrElse {
+      // We only try to resolve Mill's dependencies to get their source JARs
+      // if we're not running from sources. If Mill is running purely from its sources
+      // it's not is published in ~/.ivy2/local, so we can't get its source JARs.
+      !BloopImpl.isMillRunningFromSources
+    }
+    val allBloopDependencies: Task[List[BloopConfig.Module]] =
+      // Add Mill source JARs to root modules
+      if (isRootModule && addMillSources0)
+        Task.Anon {
+          bloopDependencies() ::: millBuildDependencies()
+        }
+      else
+        bloopDependencies
 
     // //////////////////////////////////////////////////////////////////////////
     //  Tying up
     // //////////////////////////////////////////////////////////////////////////
 
-    val project = T.task {
+    val project = Task.Anon {
       val mSources = moduleSourceMap()
         .get(name(module))
         .toSeq
@@ -412,7 +482,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
       BloopConfig.Project(
         name = name(module),
-        directory = module.millSourcePath.toNIO,
+        directory = module.moduleDir.toNIO,
         workspaceDir = Some(wd.toNIO),
         sources = mSources,
         sourcesGlobs = None,
@@ -428,13 +498,13 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
         sbt = None,
         test = testConfig(),
         platform = Some(platform()),
-        resolution = Some(bloopResolution()),
+        resolution = Some(BloopConfig.Resolution(allBloopDependencies())),
         tags = Some(tags),
         sourceGenerators = None // TODO: are we supposed to hook generated sources here?
       )
     }
 
-    T.task {
+    Task.Anon {
       BloopConfig.File(
         version = BloopConfig.File.LatestVersion,
         project = project()
@@ -442,5 +512,22 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     }
   }
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
+}
+
+object BloopImpl {
+  // If the class of BloopImpl is loaded from a directory rather than a JAR,
+  // then we're running from sources (the directory should be something
+  // like mill-repo/out/contrib/bloop/compile.dest/classes).
+  private lazy val isMillRunningFromSources =
+    Option(classOf[BloopImpl].getProtectionDomain.getCodeSource)
+      .flatMap(s => Option(s.getLocation))
+      .flatMap { url =>
+        try Some(Paths.get(url.toURI))
+        catch {
+          case _: FileSystemNotFoundException => None
+          case _: IllegalArgumentException => None
+        }
+      }
+      .exists(Files.isDirectory(_))
 }

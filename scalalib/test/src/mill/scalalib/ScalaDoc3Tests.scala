@@ -1,8 +1,8 @@
 package mill.scalalib
 
-import mill._
-import utest._
-import utest.framework.TestPath
+import mill.*
+import mill.define.Discover
+import utest.*
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 
@@ -12,6 +12,7 @@ object ScalaDoc3Tests extends TestSuite {
     object static extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   // a project without static docs (i.e. only api docs, no markdown files)
@@ -19,53 +20,56 @@ object ScalaDoc3Tests extends TestSuite {
     object empty extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
+    lazy val millDiscover = Discover[this.type]
+
   }
 
   // a project with multiple static doc folders
   object MultiDocsModule extends TestBaseModule {
     object multidocs extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
-      def docResources = T.sources(
-        millSourcePath / "docs1",
-        millSourcePath / "docs2"
+      def docResources = Task.Sources(
+        moduleDir / "docs1",
+        moduleDir / "docs2"
       )
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "scaladoc3"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "scaladoc3"
 
   def tests: Tests = Tests {
     test("static") - UnitTester(StaticDocsModule, resourcePath).scoped { eval =>
-      val Right(_) = eval.apply(StaticDocsModule.static.docJar)
-      val dest = eval.outPath / "static" / "docJar.dest"
+      val Right(_) = eval.apply(StaticDocsModule.static.docJar): @unchecked
+      val dest = eval.outPath / "static/docJar.dest"
       assert(
         os.exists(dest / "out.jar"), // final jar should exist
         // check if extra markdown files have been included and translated to html
-        os.exists(dest / "javadoc" / "index.html"),
-        os.exists(dest / "javadoc" / "nested" / "extra.html"),
+        os.exists(dest / "javadoc/index.html"),
+        os.exists(dest / "javadoc/nested/extra.html"),
         // also check that API docs have been generated
-        os.exists(dest / "javadoc" / "api" / "pkg" / "SomeClass.html")
+        os.exists(dest / "javadoc/api/pkg/SomeClass.html")
       )
     }
     test("empty") - UnitTester(EmptyDocsModule, resourcePath).scoped { eval =>
-      val Right(_) = eval.apply(EmptyDocsModule.empty.docJar)
-      val dest = eval.outPath / "empty" / "docJar.dest"
+      val Right(_) = eval.apply(EmptyDocsModule.empty.docJar): @unchecked
+      val dest = eval.outPath / "empty/docJar.dest"
       assert(
         os.exists(dest / "out.jar"),
-        os.exists(dest / "javadoc" / "api" / "pkg" / "SomeClass.html")
+        os.exists(dest / "javadoc/api/pkg/SomeClass.html")
       )
     }
     test("multiple") - UnitTester(MultiDocsModule, resourcePath).scoped { eval =>
-      val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar)
-      val dest = eval.outPath / "multidocs" / "docJar.dest"
+      val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar): @unchecked
+      val dest = eval.outPath / "multidocs/docJar.dest"
       assert(
         os.exists(dest / "out.jar"), // final jar should exist
-        os.exists(dest / "javadoc" / "api" / "pkg" / "SomeClass.html"),
-        os.exists(dest / "javadoc" / "index.html"),
-        os.exists(dest / "javadoc" / "docs" / "nested" / "original.html"),
-        os.exists(dest / "javadoc" / "docs" / "nested" / "extra.html"),
+        os.exists(dest / "javadoc/api/pkg/SomeClass.html"),
+        os.exists(dest / "javadoc/index.html"),
+        os.exists(dest / "javadoc/docs/nested/original.html"),
+        os.exists(dest / "javadoc/docs/nested/extra.html"),
         // check that later doc sources overwrite earlier ones
-        os.read(dest / "javadoc" / "index.html").contains("overwritten")
+        os.read(dest / "javadoc/index.html").contains("overwritten")
       )
     }
   }

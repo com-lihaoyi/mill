@@ -9,9 +9,9 @@ import scala.collection.mutable
 import mill.api.Result
 
 object ScalafmtWorkerModule extends ExternalModule {
-  def worker: Worker[ScalafmtWorker] = T.worker { new ScalafmtWorker() }
+  def worker: Worker[ScalafmtWorker] = Task.Worker { new ScalafmtWorker() }
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }
 
 private[scalafmt] class ScalafmtWorker extends AutoCloseable {
@@ -28,7 +28,7 @@ private[scalafmt] class ScalafmtWorker extends AutoCloseable {
     if (misformatted.isEmpty) {
       Result.Success(())
     } else {
-      val out = ctx.log.outputStream
+      val out = ctx.log.streams.out
       for (u <- misformatted) {
         out.println(u.path.toString)
       }

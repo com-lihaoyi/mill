@@ -11,7 +11,7 @@ object PomTests extends TestSuite {
     val artifactId = "mill-scalalib_2.12"
     val artifact =
       Artifact("com.lihaoyi", "mill-scalalib_2.12", "0.0.1")
-    val deps = Agg(
+    val deps = Seq(
       Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"), Scope.Compile),
       Dependency(Artifact("org.scala-sbt", "test-interface", "1.0"), Scope.Compile),
       Dependency(
@@ -108,7 +108,7 @@ object PomTests extends TestSuite {
 
         assert(dependencies.size == 3)
 
-        val pomDeps = deps.indexed
+        val pomDeps = deps
 
         dependencies.zipWithIndex.foreach {
           case (dep, index) =>
@@ -166,7 +166,7 @@ object PomTests extends TestSuite {
       val pomNoDeps =
         pomXml(
           artifact,
-          dependencies = Agg.empty,
+          dependencies = Seq.empty,
           artifactId = artifactId,
           pomSettings = settings,
           properties
@@ -180,41 +180,91 @@ object PomTests extends TestSuite {
       }
     }
 
+    test("pomNoDepMgmt") {
+      val pomNoDepMgmt =
+        pomXml(
+          artifact,
+          dependencies = Seq.empty,
+          artifactId = artifactId,
+          pomSettings = settings,
+          properties,
+          depMgmt = Nil
+        )
+      val pomDepMgmt =
+        pomXml(
+          artifact,
+          dependencies = Seq.empty,
+          artifactId = artifactId,
+          pomSettings = settings,
+          properties,
+          depMgmt = Seq(
+            Dependency(Artifact("io.quarkus", "quarkus-bom", "3.16.2"), Scope.Compile)
+          )
+        )
+
+      test("noDepMgmt") {
+        assert(
+          (pomNoDepMgmt \ "dependencyManagement").isEmpty
+        )
+      }
+      test("someDepMgmt") {
+        assert(
+          (pomDepMgmt \ "dependencyManagement").nonEmpty,
+          (pomDepMgmt \ "dependencyManagement" \ "dependencies").nonEmpty,
+          (pomDepMgmt \ "dependencyManagement" \ "dependencies" \ "dependency").nonEmpty
+        )
+      }
+    }
+
     test("pomNoDevelopers") {
       val updatedSettings = settings.copy(developers = Seq.empty)
       val pomNoDevelopers = pomXml(artifact, deps, artifactId, updatedSettings, properties)
 
       test("developers") {
         assert(
-          (pomNoDevelopers \ "developers").nonEmpty,
-          (pomNoDevelopers \ "developers" \ "developer").isEmpty
+          (pomNoDevelopers \ "developers").isEmpty
         )
       }
     }
 
     test("pomProperties") {
-      val pom = pomXml(
-        artifact,
-        deps,
-        artifactId,
-        settings,
-        Map("myVersion" -> "1.0", "scala.version" -> "2.13.7")
-      )
-      assert(
-        (pom \ "properties").nonEmpty,
-        (pom \ "properties" \ "myVersion").text == "1.0",
-        (pom \ "properties" \ "scala.version").text == "2.13.7"
-      )
-      pom \ "properties"
+      test("simple") {
+        val pom = pomXml(
+          artifact,
+          deps,
+          artifactId,
+          settings,
+          Map("myVersion" -> "1.0", "scala.version" -> "2.13.7")
+        )
+        assert(
+          (pom \ "properties").nonEmpty,
+          (pom \ "properties" \ "myVersion").text == "1.0",
+          (pom \ "properties" \ "scala.version").text == "2.13.7"
+        )
+      }
+
+      test("empty") {
+        val pom = pomXml(
+          artifact,
+          deps,
+          artifactId,
+          settings,
+          Map.empty
+        )
+        assert(
+          (pom \ "properties").isEmpty
+        )
+      }
     }
   }
 
   def pomXml(
       artifact: Artifact,
-      dependencies: Agg[Dependency],
+      dependencies: Seq[Dependency],
       artifactId: String,
       pomSettings: PomSettings,
-      properties: Map[String, String]
+      properties: Map[String, String],
+      depMgmt: Seq[Dependency] = Nil
   ) =
     XML.loadString(Pom(
       artifact,
@@ -222,7 +272,10 @@ object PomTests extends TestSuite {
       artifactId,
       pomSettings,
       properties,
-      PackagingType.Jar
+      PackagingType.Jar,
+      None,
+      Seq.empty[Dependency],
+      Seq(depMgmt*)
     ))
 
   def singleText(seq: NodeSeq) =

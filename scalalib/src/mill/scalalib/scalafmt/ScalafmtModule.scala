@@ -1,15 +1,19 @@
 package mill.scalalib.scalafmt
 
-import mill._
-import mill.main.client.CodeGenConstants.buildFileExtensions
+import scala.jdk.CollectionConverters.CollectionHasAsScala
+
+import mill.*
+import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.api.Result
-import mill.define.{ExternalModule, Discover}
-import mill.scalalib._
+import mill.define.{Discover, ExternalModule}
+import mill.scalalib.*
 import mainargs.arg
+import mill.main.Tasks
+import mill.util.Jvm
 
 trait ScalafmtModule extends JavaModule {
 
-  def reformat(): Command[Unit] = T.command {
+  def reformat(): Command[Unit] = Task.Command {
     ScalafmtWorkerModule
       .worker()
       .reformat(
@@ -18,7 +22,7 @@ trait ScalafmtModule extends JavaModule {
       )
   }
 
-  def checkFormat(): Command[Unit] = T.command {
+  def checkFormat(): Command[Unit] = Task.Command {
     ScalafmtWorkerModule
       .worker()
       .checkFormat(
@@ -27,13 +31,13 @@ trait ScalafmtModule extends JavaModule {
       )
   }
 
-  def scalafmtConfig: T[Seq[PathRef]] = T.sources(
-    T.workspace / ".scalafmt.conf",
+  def scalafmtConfig: T[Seq[PathRef]] = Task.Sources(
+    Task.workspace / ".scalafmt.conf",
     os.pwd / ".scalafmt.conf"
   )
 
   // TODO: Do we want provide some defaults or write a default file?
-  private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = T.task {
+  private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = Task.Anon {
     val locs = scalafmtConfig()
     locs.find(p => os.exists(p.path)) match {
       case None => Result.Failure(
@@ -57,7 +61,7 @@ trait ScalafmtModule extends JavaModule {
       file <- {
         if (os.isDir(pathRef.path)) {
           os.walk(pathRef.path).filter(file =>
-            os.isFile(file) && (file.ext == "scala" || buildFileExtensions.exists(ex =>
+            os.isFile(file) && (file.ext == "scala" || buildFileExtensions.asScala.exists(ex =>
               file.last.endsWith(s".$ex")
             ))
           )
@@ -70,11 +74,13 @@ trait ScalafmtModule extends JavaModule {
 
 }
 
-object ScalafmtModule extends ExternalModule with ScalafmtModule {
+object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule {
+  override def defaultCommandName(): String = "reformatAll"
 
-  def reformatAll(@arg(positional = true) sources: mill.main.Tasks[Seq[PathRef]]): Command[Unit] =
-    T.command {
-      val files = T.sequence(sources.value)().flatMap(filesToFormat)
+  def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
+    Tasks.resolveMainDefault("__.sources")) =
+    Task.Command {
+      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .reformat(
@@ -83,10 +89,11 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
         )
     }
 
-  def checkFormatAll(@arg(positional = true) sources: mill.main.Tasks[Seq[PathRef]])
-      : Command[Unit] =
-    T.command {
-      val files = T.sequence(sources.value)().flatMap(filesToFormat)
+  def checkFormatAll(
+      @arg(positional = true) sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources")
+  ): Command[Unit] =
+    Task.Command {
+      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .checkFormat(
@@ -95,5 +102,39 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
         )
     }
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  /**
+   * Class path of the scalafmt CLI
+   */
+  def scalafmtClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      Seq(
+        ivy"org.scalameta:scalafmt-cli_2.13:${mill.scalalib.api.Versions.scalafmtVersion}"
+      )
+    )
+  }
+
+  /**
+   * Main class of the scalafmt CLI
+   *
+   * Added in case the main class changes in the future, and users need to change it.
+   */
+  protected def scalafmtMainClass: String = "org.scalafmt.cli.Cli"
+
+  /**
+   * Runs the scalafmt CLI with the given arguments in an external process.
+   *
+   * Note that this runs the scalafmt CLI on the JVM, rather than a native launcher of the CLI.
+   */
+  def scalafmt(args: String*): Command[Unit] = Task.Command {
+    Jvm.callProcess(
+      scalafmtMainClass,
+      args,
+      classPath = scalafmtClasspath().map(_.path),
+      cwd = T.workspace,
+      stdin = os.Inherit,
+      stdout = os.Inherit
+    )
+  }
+
+  lazy val millDiscover = Discover[this.type]
 }

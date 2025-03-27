@@ -1,0 +1,5 @@
+
+# comment after an empty line
+-Dproperty.properly.set.via.jvm.opts=alternate-value-from-file
+-Dproperty.with.interpolated.working.dir=alternate-value-with-${PWD}
+-Xss220m
