@@ -1,12 +1,9 @@
 package mill.contrib.proguard
 
-import java.io.File
-
 import mill.*
 import mill.define.{Discover, Target}
 import mill.scalalib.ScalaModule
-import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.{TestBaseModule, UnitTester}
 import mill.util.Jvm
 import os.Path
 import utest.*
@@ -15,9 +12,13 @@ object ProguardTests extends TestSuite {
 
   object proguard extends TestBaseModule with ScalaModule with Proguard {
     // TODO: This test works for a Scala 2.13 App, but not for a Scala 3 App, probably due to tasty files
-    override def scalaVersion: T[String] = T(sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???))
-//    override def scalaVersion: T[String] = T(sys.props.getOrElse("TEST_SCALA_3_VERSION", ???))
-    def proguardVersion = "7.7.0"
+    override def scalaVersion: T[String] = Task.Input {
+      sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+    }
+    def proguardVersion = Task.Input {
+      sys.props.getOrElse("TEST_PROGUARD_VERSION", ???)
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
