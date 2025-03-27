@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import coursier.Repository
 import mainargs.Flag
 import mill._
 import mill.api.{Ctx, PathRef, Result}
