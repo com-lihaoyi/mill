@@ -104,7 +104,7 @@ trait JmhModule extends JavaModule {
     }
 
   def generatorDeps = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
     )
   }
