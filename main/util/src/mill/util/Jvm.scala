@@ -96,10 +96,9 @@ object Jvm {
 
     if (cwd != null) os.makeDir.all(cwd)
 
-    if (ctx != null)
-      ctx.log.debug(
-        s"Running ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
-      )
+    ctx.log.debug(
+      s"Running ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
+    )
 
     val processResult = os.proc(commandArgs)
       .call(
