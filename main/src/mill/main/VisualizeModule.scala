@@ -11,6 +11,7 @@ import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
+import mill.Agg
 import mill.eval.Graph
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
@@ -22,10 +23,14 @@ object VisualizeModule extends ExternalModule with VisualizeModule {
 
   lazy val millDiscover: Discover = Discover[this.type]
 }
+
 trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
-  def classpath: Target[Loose.Agg[PathRef]] = Target {
+  @deprecated("Use toolsClasspath instead", "0.13.0-M1")
+  def classpath: Target[Loose.Agg[PathRef]] = toolsClasspath
+
+  def toolsClasspath: Target[Agg[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 
@@ -104,7 +109,7 @@ trait VisualizeModule extends mill.define.TaskModule {
 
           mill.util.Jvm.callProcess(
             mainClass = "mill.main.graphviz.GraphvizTools",
-            classPath = classpath().map(_.path).toVector,
+            classPath = toolsClasspath().map(_.path).toVector,
             mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg"),
             stdin = os.Inherit,
             stdout = os.Inherit

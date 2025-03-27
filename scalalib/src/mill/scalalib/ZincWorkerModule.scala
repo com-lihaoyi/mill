@@ -9,7 +9,6 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{Versions, ZincWorkerApi, ZincWorkerUtil}
 import mill.scalalib.CoursierModule.Resolver
-import mill.util.Util.millProjectModule
 
 /**
  * A default implementation of [[ZincWorkerModule]]
@@ -28,23 +27,27 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     mill.scalalib.api.Versions.coursierJvmIndexVersion
 
   def classpath: T[Agg[PathRef]] = Task {
-    millProjectModule("mill-scalalib-worker", repositoriesTask())
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-scalalib-worker")
+    ))
   }
 
   def scalalibClasspath: T[Agg[PathRef]] = Task {
-    millProjectModule("mill-scalalib", repositoriesTask())
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-scalalib")
+    ))
   }
 
   def testrunnerEntrypointClasspath: T[Agg[PathRef]] = Task {
-    millProjectModule("mill-testrunner-entrypoint", repositoriesTask(), artifactSuffix = "")
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-testrunner-entrypoint", artifactSuffix = "")
+    ))
   }
 
   def backgroundWrapperClasspath: T[Agg[PathRef]] = Task {
-    millProjectModule(
-      "mill-scalalib-backgroundwrapper",
-      repositoriesTask(),
-      artifactSuffix = ""
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-scalalib-backgroundwrapper", artifactSuffix = "")
+    ))
   }
 
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)

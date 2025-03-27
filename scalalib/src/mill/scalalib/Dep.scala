@@ -1,12 +1,10 @@
 package mill.scalalib
 
-import upickle.default.{macroRW, ReadWriter => RW}
-import mill.scalalib.CrossVersion._
-import coursier.core.Dependency
-import mill.scalalib.api.ZincWorkerUtil
-
+import upickle.default.{macroRW, ReadWriter as RW}
+import mill.scalalib.CrossVersion.*
+import coursier.core.{Configuration, Dependency, MinimizedExclusions}
+import mill.scalalib.api.{Versions, ZincWorkerUtil}
 import scala.annotation.unused
-import coursier.core.Configuration
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
@@ -199,6 +197,15 @@ object Dep {
     )
   }
 
+  /**
+   * Convenience to access Mill modules as dependencies, e.g. to load the into worker classpaths.
+   * @param artifactName The module artifact name
+   * @param artifactSuffix The artifact suffix typically representing the Scala version.
+   *                       Defaults to the Scala binary platform Mill runs on.
+   */
+  private[mill] def millProjectModule(artifactName: String, artifactSuffix: String = "_2.13"): Dep =
+    ivy"com.lihaoyi:${artifactName}${artifactSuffix}:${Versions.millVersion}"
+
 }
 
 sealed trait CrossVersion {
@@ -256,14 +263,16 @@ case class BoundDep(
 ) {
   def organization = dep.module.organization.value
   def name = dep.module.name.value
-  def version = dep.version
+  def version = dep.versionConstraint.asString
 
   def toDep: Dep = Dep(dep = dep, cross = CrossVersion.empty(false), force = force)
 
   def exclude(exclusions: (String, String)*): BoundDep = copy(
-    dep = dep.withExclusions(
-      dep.exclusions() ++
-        exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
+    dep = dep.withMinimizedExclusions(
+      dep.minimizedExclusions.join(MinimizedExclusions(
+        exclusions.toSet.map[(coursier.Organization, coursier.ModuleName)] {
+          case (k: String, v: String) => (coursier.Organization(k), coursier.ModuleName(v))}
+      ))
     )
   )
 }

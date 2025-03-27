@@ -50,10 +50,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   def scalaJSWorkerClasspath = Task {
-    mill.util.Util.millProjectModule(
-      artifact = s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
-      repositories = repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule(s"mill-scalajslib-worker-${scalaJSWorkerVersion()}")
+    ))
   }
 
   def scalaJSJsEnvIvyDeps: T[Agg[Dep]] = Task {
