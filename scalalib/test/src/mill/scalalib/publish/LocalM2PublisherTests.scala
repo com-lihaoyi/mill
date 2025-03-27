@@ -2,14 +2,29 @@ package mill.scalalib.publish
 
 import mill.api.{Ctx, Logger, PathRef}
 import mill.internal.DummyLogger
+import os.Path
 import utest.{TestSuite, Tests, assert, test}
 
 object LocalM2PublisherTests extends TestSuite {
+
+  class DummyCtx extends Ctx {
+    override def log: Logger = DummyLogger
+    // stubs
+    override def arg[T](index: Int): T = ???
+    override def args: IndexedSeq[?] = ???
+    override def reporter: Int => Option[mill.api.CompileProblemReporter] = ???
+    override def systemExit: Int => Nothing = ???
+    override def testReporter: mill.api.TestReporter = ???
+    override def dest: os.Path = ???
+    override def env: Map[String, String] = ???
+    override def fork: mill.api.Ctx.Fork.Api = ???
+    override def jobs: Int = ???
+    override def workspace: Path = ???
+  }
+
   override def tests: Tests = Tests {
 
-    implicit val dummyLog: Ctx.Log = new Ctx.Log {
-      override def log: Logger = DummyLogger
-    }
+    implicit val dummyCtx: Ctx = new DummyCtx
 
     def publishAndCheck(repo: os.Path): Unit = {
       val subrepo = repo / "group/org/id/version"

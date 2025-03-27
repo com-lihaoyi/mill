@@ -402,7 +402,7 @@ object TestModule {
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env & Ctx.Dest,
+      ctx: Ctx,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] =
