@@ -37,7 +37,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     Task { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath = Task {
-    defaultResolver().resolveDeps(Seq(
+    defaultResolver().classpath(Seq(
       Dep.millProjectModule(s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}")
     ))
   }

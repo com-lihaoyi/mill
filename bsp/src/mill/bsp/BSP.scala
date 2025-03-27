@@ -11,7 +11,7 @@ object BSP extends ExternalModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
 
   private def bspWorkerLibs: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(Seq(Dep.millProjectModule("mill-bsp-worker")))
+    defaultResolver().classpath(Seq(Dep.millProjectModule("mill-bsp-worker")))
   }
 
   /**

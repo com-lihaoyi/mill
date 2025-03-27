@@ -15,7 +15,7 @@ trait BuildGenModule extends CoursierModule with TaskModule {
   def buildGenDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   def buildGenClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(buildGenDeps())
+    defaultResolver().classpath(buildGenDeps())
   }
 
   def buildGenMainClass: T[String]

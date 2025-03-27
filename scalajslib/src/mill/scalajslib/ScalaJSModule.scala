@@ -44,7 +44,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   def scalaJSWorkerClasspath = Task {
-    defaultResolver().resolveDeps(Seq(
+    defaultResolver().classpath(Seq(
       Dep.millProjectModule(s"mill-scalajslib-worker-${scalaJSWorkerVersion()}")
     ))
   }

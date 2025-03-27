@@ -83,7 +83,7 @@ trait RouterModule extends ScalaModule with Version {
         case _ => "_3"
       }
     )
-    defaultResolver().resolveDeps(Seq(dep))
+    defaultResolver().classpath(Seq(dep))
   }
 
   def playRouterToolsClasspath = Task {
