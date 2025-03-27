@@ -4,14 +4,19 @@ import os.*
 
 // create-react-app: https://create-react-app.dev/docs/documentation-intro
 trait ReactScriptsModule extends TypeScriptModule {
+  override def tsDeps: T[Seq[String]] = Task {
+    Seq(
+      "@types/node@16.18.121",
+      "typescript@4.9.5"
+    )
+  }
+
   override def npmDeps: T[Seq[String]] = Task {
     Seq(
       "react@18.3.1",
       "react-dom@18.3.1",
       "react-scripts@5.0.1",
-      "typescript@4.9.5",
       "web-vitals@2.1.4",
-      "@types/node@16.18.121",
       "@types/react@18.3.12",
       "@types/react-dom@18.3.1"
     )
@@ -82,7 +87,7 @@ trait ReactScriptsModule extends TypeScriptModule {
   }
 
   // build react project via react scripts
-  override def compile: T[(PathRef, PathRef)] = Task {
+  override def compile: T[PathRef] = Task {
     // copy src files
     sources().foreach(source => os.copy(source.path, Task.dest, mergeFolders = true))
     copyNodeModules()
@@ -102,11 +107,11 @@ trait ReactScriptsModule extends TypeScriptModule {
       ujson.Obj.from(packageOptions().toSeq)
     )
 
-    (PathRef(Task.dest), PathRef(Task.dest / "build"))
+    PathRef(Task.dest)
   }
 
   override def bundle: Target[PathRef] = Task {
-    val compiled = compile()._1.path
+    val compiled = compile().path
     os.call(
       ("node", compiled / "node_modules/react-scripts/bin/react-scripts.js", "build"),
       cwd = compiled,
@@ -114,15 +119,15 @@ trait ReactScriptsModule extends TypeScriptModule {
       env = forkEnv()
     )
 
-    compile()._2
+    PathRef(compiled / "build")
   }
 
   override def forkEnv =
     Task {
       Map("NODE_PATH" -> Seq(
         ".",
-        compile()._1.path,
-        compile()._1.path / "node_modules"
+        compile().path,
+        compile().path / "node_modules"
       ).mkString(":"))
     }
 
@@ -137,7 +142,7 @@ trait ReactScriptsModule extends TypeScriptModule {
 
   // react-script tests
   def test: Target[CommandResult] = Task {
-    val compiled = compile()._1.path
+    val compiled = compile().path
 
     os.call(
       (

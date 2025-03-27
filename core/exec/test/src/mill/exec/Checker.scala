@@ -30,7 +30,7 @@ class Checker[T <: mill.testkit.TestBaseModule](
     val evaled = execution.executeTasks(Seq(target))
 
     val (matchingReturnedEvaled, extra) =
-      evaled.evaluated.partition(expEvaled.contains)
+      evaled.uncached.partition(expEvaled.contains)
 
     val evaledValues = evaled.values.map(_.value)
     assert(
@@ -45,7 +45,7 @@ class Checker[T <: mill.testkit.TestBaseModule](
       val expectedSecondRunEvaluated = Seq()
       assert(
         evaled2.values.map(_.value) == evaled.values.map(_.value),
-        evaled2.evaluated == expectedSecondRunEvaluated
+        evaled2.uncached == expectedSecondRunEvaluated
       )
     }
   }

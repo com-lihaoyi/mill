@@ -61,7 +61,9 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * The version of the Kotlin compiler to be used.
    * Default is derived from [[kotlinVersion]].
+   * This is deprecated, as it's identical to [[kotlinVersion]]
    */
+  @deprecated("Use kotlinVersion instead", "Mill 0.13.0-M1")
   def kotlinCompilerVersion: T[String] = Task { kotlinVersion() }
 
   /**
@@ -151,6 +153,23 @@ trait KotlinModule extends JavaModule { outer =>
           kotlinScriptingCompilerDep()
         else Seq()
       )
+  }
+
+  /**
+   * Compiler Plugin dependencies.
+   */
+  def kotlincPluginIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+
+  /**
+   * The resolved plugin jars
+   */
+  def kotlincPluginJars: T[Seq[PathRef]] = Task {
+    val jars = defaultResolver().resolveDeps(
+      kotlincPluginIvyDeps()
+        // Don't resolve transitive jars
+        .map(d => d.exclude("*" -> "*"))
+    )
+    jars.toSeq
   }
 
   def kotlinWorkerTask: Task[KotlinWorker] = Task.Anon {
@@ -321,7 +340,7 @@ trait KotlinModule extends JavaModule { outer =>
           when(kotlinExplicitApi())(
             "-Xexplicit-api=strict"
           ),
-          kotlincOptions(),
+          allKotlincOptions(),
           extraKotlinArgs,
           // parameters
           (kotlinSourceFiles ++ javaSourceFiles).map(_.toString())
@@ -353,20 +372,29 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
-  def kotlincOptions: T[Seq[String]] = Task {
-    val options = Seq.newBuilder[String]
-    options += "-no-stdlib"
+  def kotlincOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /**
+   * Mandatory command-line options to pass to the Kotlin compiler
+   * that shouldn't be removed by overriding `scalacOptions`
+   */
+  protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
-    if (!languageVersion.isBlank) {
-      options += "-language-version"
-      options += languageVersion
-    }
     val kotlinkotlinApiVersion = kotlinApiVersion()
-    if (!kotlinkotlinApiVersion.isBlank) {
-      options += "-api-version"
-      options += kotlinkotlinApiVersion
-    }
-    options.result()
+    val plugins = kotlincPluginJars().map(_.path)
+
+    Seq("-no-stdlib") ++
+      when(!languageVersion.isBlank)("-language-version", languageVersion) ++
+      when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
+      plugins.map(p => s"-Xplugin=$p")
+  }
+
+  /**
+   * Aggregation of all the options passed to the Kotlin compiler.
+   * In most cases, instead of overriding this Target you want to override `kotlincOptions` instead.
+   */
+  def allKotlincOptions: T[Seq[String]] = Task {
+    mandatoryKotlincOptions() ++ kotlincOptions()
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
@@ -408,12 +436,15 @@ trait KotlinModule extends JavaModule { outer =>
     override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
+    override def kotlincPluginIvyDeps: T[Seq[Dep]] =
+      Task { outer.kotlincPluginIvyDeps() }
+      // TODO: make Xfriend-path an explicit setting
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
     }
-
-    override def kotlinCompilerEmbeddable: Task[Boolean] = outer.kotlinCompilerEmbeddable
+    override def kotlinCompilerEmbeddable: Task[Boolean] =
+      Task.Anon { outer.kotlinCompilerEmbeddable() }
   }
 
 }

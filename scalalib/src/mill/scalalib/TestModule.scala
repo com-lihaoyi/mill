@@ -156,6 +156,7 @@ trait TestModule
     Task.Anon {
       val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
       val outputPath = Task.dest / "out.json"
+      val resultPath = Task.dest / "results.log"
       val selectors = Seq.empty
 
       val testArgs = TestArgs(
@@ -164,6 +165,7 @@ trait TestModule
         arguments = args(),
         sysProps = Map.empty,
         outputPath = outputPath,
+        resultPath = resultPath,
         colored = Task.log.prompt.colored,
         testCp = testClasspath().map(_.path),
         globSelectors = Left(selectors)

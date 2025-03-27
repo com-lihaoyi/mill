@@ -1,0 +1,15 @@
+= JavaScript Build Examples
+:page-aliases: JavaScript_Build_Examples.adoc
+
+
+
+
+
+== Example Builds for Real Projects
+
+Mill comes bundled with example builds for real-world open-source projects,
+demonstrating how Mill can be used to build code outside of tiny example codebases:
+
+=== Ollama-Js
+
+include::partial$example/thirdparty/ollama-js.adoc[]
