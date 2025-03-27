@@ -60,6 +60,10 @@ trait IntegrationTesterBase {
    */
   def removeServerIdFile(): Unit = {
     val serverPath0 = os.Path(out, workspacePath) / millServer
+    if (!os.exists(serverPath0)) {
+      if (pprint.err.log(os.exists(workspacePath)))
+        pprint.err.log(os.walk(workspacePath).map(_.relativeTo(workspacePath).asSubPath))
+    }
     if (clientServerMode) {
       for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / serverId)
 
