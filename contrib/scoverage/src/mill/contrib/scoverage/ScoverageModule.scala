@@ -120,9 +120,9 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   def scoverageReportWorkerClasspath: T[Seq[PathRef]] = Task {
-      defaultResolver().resolveDeps(Seq(
-        Dep.millProjectModule("mill-contrib-scoverage-worker2")
-      ))
+    defaultResolver().resolveDeps(Seq(
+      Dep.millProjectModule("mill-contrib-scoverage-worker2")
+    ))
   }
 
   /** Inner worker module. This is not an `object` to allow users to override and customize it. */
