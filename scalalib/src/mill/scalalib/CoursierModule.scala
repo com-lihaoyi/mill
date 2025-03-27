@@ -292,7 +292,7 @@ object CoursierModule {
         mapDependencies
       ).getOrThrow
 
-    @deprecated("Use classpath instead", "Mill after 0.12.9")
+    @deprecated("Use classpath instead", "Mill 0.12.10")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
@@ -302,7 +302,7 @@ object CoursierModule {
     )(implicit ctx: mill.api.Ctx.Log): Agg[PathRef] =
       classpath(deps, sources, artifactTypes, resolutionParamsMapOpt, mapDependencies)
 
-    @deprecated("Use classpath instead", "Mill after 0.12.9")
+    @deprecated("Use classpath instead", "Mill 0.12.10")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean,
@@ -338,7 +338,7 @@ object CoursierModule {
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       )
 
-    @deprecated("Use classpath instead", "Mill after 0.12.9")
+    @deprecated("Use classpath instead", "Mill 0.12.10")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean,
@@ -348,7 +348,7 @@ object CoursierModule {
       classpath(deps, sources, artifactTypes, None)
     }
 
-    @deprecated("Use classpath instead", "Mill after 0.12.9")
+    @deprecated("Use classpath instead", "Mill 0.12.10")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean
@@ -370,7 +370,7 @@ object CoursierModule {
      */
     @deprecated(
       "Use resolution instead, and extract the values you're interested in from it",
-      "Mill after 0.12.9"
+      "Mill 0.12.10"
     )
     def processDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
@@ -435,7 +435,7 @@ object CoursierModule {
 
     @deprecated(
       "Use resolution instead, and call orderedDependencies on its returned value",
-      "Mill after 0.12.9"
+      "Mill 0.12.10"
     )
     def allDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T]

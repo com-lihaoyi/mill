@@ -106,7 +106,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     instance.asInstanceOf[ZincWorkerApi]
   }
 
-  @deprecated("Use the override accepting a Resolver instead", "Mill after 0.12.9")
+  @deprecated("Use the override accepting a Resolver instead", "Mill 0.12.10")
   def scalaCompilerBridgeJar(
       scalaVersion: String,
       scalaOrganization: String,
@@ -210,7 +210,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     (classpathOpt, bridgeJar)
   }
 
-  @deprecated("Use the override accepting a Resolver instead", "Mill after 0.12.9")
+  @deprecated("Use the override accepting a Resolver instead", "Mill 0.12.10")
   def compilerInterfaceClasspath(
       scalaVersion: String,
       scalaOrganization: String,
