@@ -52,7 +52,7 @@ class UnitTester(
     inStream: InputStream,
     debugEnabled: Boolean,
     env: Map[String, String],
-    resetSourcePath: Boolean
+    resetSourcePath: Boolean = true
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
   val outPath: os.Path = module.moduleDir / "out"
 

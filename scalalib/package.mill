@@ -25,7 +25,8 @@ object `package` extends RootModule with build.MillStableScalaModule {
       // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
       // perhaps the class can be copied here?
       Agg(build.Deps.scalaReflect(scalaVersion()))
-    }
+    } ++ 
+    Agg(build.Deps.zinc)
   }
   def testIvyDeps = super.testIvyDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
   def testTransitiveDeps =

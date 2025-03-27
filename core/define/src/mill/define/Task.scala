@@ -124,7 +124,12 @@ object Task extends TaskBase {
   inline def Command[T](inline t: Result[T])(implicit
       inline w: W[T],
       inline ctx: mill.define.ModuleCtx
-  ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }) }
+  ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, '{ false }) }
+
+  inline def Command[T](persistent: Boolean)(inline t: Result[T])(implicit
+      inline w: W[T],
+      inline ctx: mill.define.ModuleCtx
+  ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, '{ persistent }) }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -141,7 +146,7 @@ object Task extends TaskBase {
   class CommandFactory private[mill] (val exclusive: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
         inline w: W[T],
-        inline ctx: mill.define.ModuleCtx
+        inline ctx: mill.define.Ctx
     ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }) }
   }
 
@@ -394,7 +399,8 @@ class Command[+T](
     val ctx0: mill.define.ModuleCtx,
     val writer: W[?],
     val isPrivate: Option[Boolean],
-    val exclusive: Boolean
+    val exclusive: Boolean,
+    override val persistent: Boolean
 ) extends NamedTask[T] {
 
   override def asCommand: Some[Command[T]] = Some(this)
@@ -540,13 +546,13 @@ private object TaskMacros {
       Quotes
   )(t: Expr[Result[T]])(
       w: Expr[W[T]],
-      ctx: Expr[mill.define.ModuleCtx],
+      ctx: Expr[mill.define.Ctx],
       exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {
     appImpl[Command, T](
       (in, ev) =>
         '{
-          new Command[T]($in, $ev, $ctx, $w, ${ taskIsPrivate() }, exclusive = $exclusive)
+          new Command[T]($in, $ev, $ctx, $w, ${ taskIsPrivate() }, exclusive = $exclusive, persistent = $persistent)
         },
       t
     )

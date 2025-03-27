@@ -29,6 +29,10 @@ import mill.scalalib.bsp.BspModule
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 import os.Path
+import mill.testrunner.TestResult
+import mill.scalalib.api.TransitiveSourceStampResults
+import scala.collection.immutable.TreeMap
+import scala.util.Try
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -102,6 +106,173 @@ trait JavaModule
         } catch {
           case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
         }
+    }
+
+    def testQuick(args: String*): Command[(String, Seq[TestResult])] = Task.Command(persistent = true) {
+      val quicktestFailedClassesLog = Task.dest / "quickTestFailedClasses.json"
+      val invalidatedClassesLog = Task.dest / "invalidatedClasses.json"
+      val failedTestClasses =
+        if (!os.exists(quicktestFailedClassesLog)) {
+          Set.empty[String]
+        } else {
+          Try {
+            upickle.default.read[Seq[String]](os.read.stream(quicktestFailedClassesLog))
+          }.getOrElse(Seq.empty[String]).toSet
+        }
+
+      val transitiveStampsFile = Task.dest / "transitiveStamps.json"
+      val previousStampsOpt = if (os.exists(transitiveStampsFile)) {
+        val previousStamps = upickle.default.read[TransitiveSourceStampResults](
+          os.read.stream(transitiveStampsFile)
+        ).currentStamps
+        os.remove(transitiveStampsFile)
+        Some(previousStamps)
+      } else {
+        None
+      }
+
+      def getAnalysisStore(compileResult: CompilationResult): Option[xsbti.compile.CompileAnalysis] = {
+        val analysisStore = sbt.internal.inc.consistent.ConsistentFileAnalysisStore.binary(
+          file = compileResult.analysisFile.toIO,
+          mappers = xsbti.compile.analysis.ReadWriteMappers.getEmptyMappers(),
+          reproducible = true,
+          parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
+        )
+        val analysisOptional = analysisStore.get()
+        if (analysisOptional.isPresent) Some(analysisOptional.get.getAnalysis) else None
+      }
+
+      val combinedAnalysis = (compile() +: upstreamCompileOutput())
+        .flatMap(getAnalysisStore)
+        .flatMap {
+          case analysis: sbt.internal.inc.Analysis => Some(analysis)
+          case _ => None
+        }
+        .foldLeft(sbt.internal.inc.Analysis.empty)(_ ++ _)
+
+      val result = TransitiveSourceStampResults(
+        currentStamps = TreeMap.from(
+          combinedAnalysis.stamps.sources.view.map { (source, stamp) =>
+            source.id() -> stamp.writeStamp()
+          }
+        ),
+        previousStamps = previousStampsOpt
+      )
+
+      def getInvalidatedClasspaths(
+        initialInvalidatedClassNames: Set[String],
+        relations: sbt.internal.inc.Relations
+      ): Set[os.Path] = {
+        val seen = collection.mutable.Set.empty[String]
+        val seenList = collection.mutable.Buffer.empty[String]
+        val queued = collection.mutable.Queue.from(initialInvalidatedClassNames)
+
+        while (queued.nonEmpty) {
+          val current = queued.dequeue()
+          seenList.append(current)
+          seen.add(current)
+
+          for (next <- relations.usesInternalClass(current)) {
+            if (!seen.contains(next)) {
+              seen.add(next)
+              queued.enqueue(next)
+            }
+          }
+
+          for (next <- relations.usesExternal(current)) {
+            if (!seen.contains(next)) {
+              seen.add(next)
+              queued.enqueue(next)
+            }
+          }
+        }
+
+        seenList
+          .iterator
+          .flatMap { invalidatedClassName =>
+            relations.definesClass(invalidatedClassName)
+          }
+          .flatMap { source =>
+            relations.products(source)
+          }
+          .map { product =>
+            os.Path(product.id)
+          }
+          .toSet
+      }
+
+      val relations = combinedAnalysis.relations
+
+      val invalidatedAbsoluteClasspaths = getInvalidatedClasspaths(
+        result.changedSources.flatMap { source =>
+          relations.classNames(xsbti.VirtualFileRef.of(source))
+        },
+        combinedAnalysis.relations
+      )
+
+      // We only care about testing class, so we can:
+      // - filter out all class path that start with `testClasspath()`
+      // - strip the prefix and safely turn them into module class path
+      
+      val testClasspaths = testClasspath()
+      val invalidatedClassNames = invalidatedAbsoluteClasspaths.flatMap { absoluteClasspath =>
+        testClasspaths.collectFirst {
+          case path if absoluteClasspath.startsWith(path.path) =>
+            absoluteClasspath.relativeTo(path.path).segments.map(_.stripSuffix(".class")).mkString(".")
+        }
+      }
+      val testingClasses = invalidatedClassNames ++ failedTestClasses
+      val testClasses = testForkGrouping().map(_.filter(testingClasses.contains)).filter(_.nonEmpty)
+
+      // Clean up the directory for test runners
+      os.walk(Task.dest).foreach { subPath => os.remove.all(subPath) }
+
+      val quickTestReportXml = testReportXml()
+
+      val testModuleUtil = new TestModuleUtil(
+        testUseArgsFile(),
+        forkArgs(),
+        Seq.empty,
+        zincWorker().scalalibClasspath(),
+        resources(),
+        testFramework(),
+        runClasspath(),
+        testClasspaths,
+        args.toSeq,
+        testClasses,
+        zincWorker().testrunnerEntrypointClasspath(),
+        forkEnv(),
+        testSandboxWorkingDir(),
+        forkWorkingDir(),
+        quickTestReportXml,
+        zincWorker().javaHome().map(_.path),
+        testParallelism()
+      )
+
+      val results = testModuleUtil.runTests()
+
+      val badTestClasses = (results match {
+        case Result.Failure(_) =>
+          // Consider all quick testing classes as failed
+          testClasses.flatten
+        case Result.Success((_, results)) =>
+          // Get all test classes that failed
+          results
+            .filter(testResult => Set("Error", "Failure").contains(testResult.status))
+            .map(_.fullyQualifiedName)
+      }).distinct
+
+      os.write.over(transitiveStampsFile, upickle.default.write(result))
+      os.write.over(quicktestFailedClassesLog, upickle.default.write(badTestClasses))
+      os.write.over(invalidatedClassesLog, upickle.default.write(invalidatedClassNames))
+      results match {
+        case Result.Failure(errMsg) => Result.Failure(errMsg)
+        case Result.Success((doneMsg, results)) =>
+          try TestModule.handleResults(doneMsg, results, Task.ctx(), quickTestReportXml)
+          catch {
+            case e: Throwable => Result.Failure("Test reporting failed: " + e)
+          }
+      }
     }
   }
 
