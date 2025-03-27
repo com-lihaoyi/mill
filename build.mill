@@ -241,6 +241,7 @@ object Deps {
     val ktfmt = ivy"com.facebook:ktfmt:0.53"
     val ktlint = ivy"com.pinterest.ktlint:ktlint-core:0.49.1"
     val palantirFormat = ivy"com.palantir.javaformat:palantir-java-format:2.51.0"
+    val proguard = ivy"com.guardsquare:proguard-base:7.7.0"
     val revApi = ivy"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
 
@@ -258,6 +259,7 @@ object Deps {
       ktfmt,
       ktlint,
       palantirFormat,
+      proguard,
       revApi,
       sbtTestInterface
     )
@@ -571,7 +573,8 @@ trait MillBaseTestsModule extends TestModule {
       s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.version}",
       s"-DTEST_ZINC_VERSION=${Deps.zinc.version}",
       s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.version}",
-      s"-DTEST_SBT_VERSION=${Deps.sbt.version}"
+      s"-DTEST_SBT_VERSION=${Deps.sbt.version}",
+      s"-DTEST_PROGUARD_VERSION=${Deps.RuntimeDeps.proguard.version}"
     )
   }
 

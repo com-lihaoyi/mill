@@ -21,12 +21,7 @@ trait Proguard extends ScalaModule {
    * The version of proguard to download from Maven.
    * https://mvnrepository.com/artifact/com.guardsquare/proguard-base
    */
-  def proguardVersion: T[String] = Task {
-    Task.log.error(
-      "Using default proguard version is deprecated. Please override target proguardVersion to specify the version."
-    )
-    "7.2.2"
-  }
+  def proguardVersion: T[String]
 
   /** Run the "shrink" step in the proguard pipeline. Defaults to true. */
   def shrink: T[Boolean] = Task { true }
@@ -114,9 +109,7 @@ trait Proguard extends ScalaModule {
       mainClass = "proguard.ProGuard",
       classPath = proguardClasspath().map(_.path).toVector,
       mainArgs = args,
-      cwd = Task.dest,
-      stdin = os.Inherit,
-      stdout = os.Inherit
+      cwd = Task.dest
     )
 
     // the call above already throws an exception on a non-zero exit code,
@@ -126,12 +119,11 @@ trait Proguard extends ScalaModule {
 
   /**
    * The location of the proguard jar files.
-   * These are downloaded from JCenter and fed to `java -cp`
    */
   def proguardClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      Seq(ivy"com.guardsquare:proguard-base:${proguardVersion()}")
-    )
+    defaultResolver().classpath(Seq(
+      ivy"com.guardsquare:proguard-base:${proguardVersion()}"
+    ))
   }
 
   private def steps: T[Seq[String]] = Task {
@@ -161,10 +153,10 @@ trait Proguard extends ScalaModule {
    * These are fed as-is to the proguard command.
    */
   def additionalOptions: T[Seq[String]] = Task {
-    Task.log.error(
+    Task.log.warn(
       "Proguard is set to not warn about message: can't find referenced method 'void invoke()' in library class java.lang.invoke.MethodHandle"
     )
-    T.log.error(
+    T.log.warn(
       """Proguard is set to not warn about message: "scala.quoted.Type: can't find referenced class scala.AnyKind""""
     )
     Seq[String](
