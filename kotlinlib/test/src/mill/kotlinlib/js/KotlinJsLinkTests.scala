@@ -13,7 +13,7 @@ object KotlinJsLinkTests extends TestSuite {
 
   trait KotlinJsCrossModule extends KotlinJsModule with Cross.Module[Boolean] {
     override def kotlinVersion = KotlinJsLinkTests.kotlinVersion
-    override def splitPerModule: T[Boolean] = crossValue
+    override def kotlinJsSplitPerModule: T[Boolean] = crossValue
     override def kotlinJsBinaryKind: T[Option[BinaryKind]] = Some(BinaryKind.Executable)
     override def moduleDeps = Seq(module.bar)
     // drop cross-value
