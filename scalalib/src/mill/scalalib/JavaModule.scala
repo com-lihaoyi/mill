@@ -99,40 +99,7 @@ trait JavaModule
     Artifact.fromDepJava(_: Dep)
   }
 
-  /**
-   * Allows you to specify an explicit main class to use for the `run` command.
-   * If none is specified, the classpath is searched for an appropriate main
-   * class to use if one exists
-   */
-  def mainClass: T[Option[String]] = None
-
-  def finalMainClassOpt: T[Either[String, String]] = Task {
-    mainClass() match {
-      case Some(m) => Right(m)
-      case None =>
-        if (zincWorker().javaHome().isDefined) {
-          super[RunModule].finalMainClassOpt()
-        } else {
-          zincWorker().worker().discoverMainClasses(compile()) match {
-            case Seq() => Left("No main class specified or found")
-            case Seq(main) => Right(main)
-            case mains =>
-              Left(
-                s"Multiple main classes found (${mains.mkString(",")}) " +
-                  "please explicitly specify which one to use by overriding `mainClass` " +
-                  "or using `runMain <main-class> <...args>` instead of `run`"
-              )
-          }
-        }
-    }
-  }
-
-  def finalMainClass: T[String] = Task {
-    finalMainClassOpt() match {
-      case Right(main) => Result.Success(main)
-      case Left(msg) => Result.Failure(msg)
-    }
-  }
+  def allLocalMainClasses0 = Task { zincWorker().worker().discoverMainClasses(compile()) }
 
   /**
    * Mandatory ivy dependencies that are typically always required and shouldn't be removed by
