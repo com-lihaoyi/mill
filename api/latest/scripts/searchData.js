@@ -1086,6 +1086,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/main/VisualizeModule$.html#classpath-0","e":false,"i":"","n":"classpath","t":"classpath: Target[Seq[PathRef]]","d":"mill.main.VisualizeModule","k":"def","x":""},
 {"l":"mill/main/VisualizeModule$.html#millDiscover-0","e":false,"i":"","n":"millDiscover","t":"millDiscover: Discover","d":"mill.main.VisualizeModule","k":"val","x":""},
 {"l":"mill/main/VisualizeModule$.html#repositories-0","e":false,"i":"","n":"repositories","t":"repositories: Seq[Repository]","d":"mill.main.VisualizeModule","k":"def","x":""},
+{"l":"mill/main/VisualizeModule$.html#toolsClasspath-0","e":false,"i":"","n":"toolsClasspath","t":"toolsClasspath: Target[Seq[PathRef]]","d":"mill.main.VisualizeModule","k":"def","x":""},
 {"l":"mill/scalajslib.html#","e":false,"i":"","n":"mill.scalajslib","t":"mill.scalajslib","d":"","k":"package","x":""},
 {"l":"mill/scalajslib/api.html#","e":false,"i":"","n":"mill.scalajslib.api","t":"mill.scalajslib.api","d":"","k":"package","x":""},
 {"l":"mill/scalajslib/api/ESFeatures.html#","e":false,"i":"","n":"ESFeatures","t":"ESFeatures","d":"mill.scalajslib.api","k":"class","x":""},
