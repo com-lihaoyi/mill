@@ -55,7 +55,7 @@ trait KoverModule extends KotlinModule { outer =>
    * Reads the Kover version from system environment variable `KOVER_VERSION` or defaults to a hardcoded version.
    */
   def koverVersion: T[String] = Task.Input {
-    Success[String](Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
+    Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion)
   }
 
   def koverBinaryReport: T[PathRef] = Task(persistent = true) {
