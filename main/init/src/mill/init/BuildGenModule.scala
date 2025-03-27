@@ -48,5 +48,3 @@ trait BuildGenModule extends CoursierModule with TaskModule {
     }
   }
 }
-
-

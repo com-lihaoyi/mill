@@ -1,7 +1,6 @@
 package mill.init
 
 import mill.T
-import mill.api.PathRef
 import mill.define.{Discover, ExternalModule}
 import mill.scalalib.Dep
 
