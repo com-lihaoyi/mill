@@ -55,7 +55,6 @@ object ProguardTests extends TestSuite {
 
       test("should create a proguarded jar") - UnitTester(proguard, testModuleSourcesPath).scoped {
         eval =>
-          // Not sure why this is broken in Scala 3
           val Right(result) = eval.apply(proguard.proguard): @unchecked
           assert(os.exists(result.value.path))
 
