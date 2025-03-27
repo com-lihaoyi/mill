@@ -87,7 +87,7 @@ trait KotlinModule extends JavaModule { outer =>
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
   private[kotlinlib] def kotlinWorkerClasspath = Task {
-    defaultResolver().resolveDep(Seq(
+    defaultResolver().resolveDeps(Seq(
       Dep.millProjectModule("mill-kotlinlib-worker-impl")
     ))
   }
