@@ -18,6 +18,7 @@ abstract class UtestIntegrationTestSuite extends utest.TestSuite with Integratio
       ec: ExecutionContext
   ): Future[Any] = {
     Retry(
+      Retry.printStreamLogger(System.err),
       count = if (sys.env.contains("CI")) 1 else 0,
       timeoutMillis = 10.minutes.toMillis
     ) {
