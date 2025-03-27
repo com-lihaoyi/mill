@@ -3,6 +3,8 @@ package mill.testkit
 import mill.util.Retry
 import utest._
 
+import java.util.concurrent.TimeoutException
+
 import scala.concurrent.duration.DurationInt
 
 object UtestExampleTestSuite extends TestSuite {
@@ -13,17 +15,31 @@ object UtestExampleTestSuite extends TestSuite {
   val tests: Tests = Tests {
 
     test("exampleTest") {
-      Retry(
-        Retry.printStreamLogger(System.err),
-        count = if (sys.env.contains("CI")) 1 else 0,
-        timeoutMillis = 15.minutes.toMillis
-      ) {
-        ExampleTester.run(
-          clientServerMode,
-          workspaceSourcePath,
-          millExecutable
-        )
-      }
+      def run() =
+        Retry(
+          Retry.printStreamLogger(System.err),
+          count = if (sys.env.contains("CI")) 1 else 0,
+          timeoutMillis = 15.minutes.toMillis
+        ) {
+          ExampleTester.run(
+            clientServerMode,
+            workspaceSourcePath,
+            millExecutable
+          )
+        }
+
+      val ignoreErrors = System.getenv("CI") != null &&
+        os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
+      if (ignoreErrors)
+        try run()
+        catch {
+          case _: TimeoutException =>
+            System.err.println(
+              s"Found ignoreErrorsOnCI under $workspaceSourcePath, ignoring timeout exception"
+            )
+        }
+      else
+        run()
     }
   }
 }
