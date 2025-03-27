@@ -1062,7 +1062,7 @@ object `package` extends RootModule with AppKotlinModule {
 
     trait SharedModule extends AppKotlinModule with PlatformKotlinModule {
       def processors = Task {
-        defaultResolver().resolveDeps(
+        defaultResolver().classpath(
           Seq(
             ivy&quot;org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}&quot;
           )

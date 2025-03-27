@@ -7,7 +7,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="CoursierModule$$Resolver.html" t="n" class="documentableName ">Resolver</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">repositories</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>], <span t="k"></span><span data-unresolved-link="" t="n">bind</span>: <a href="Dep.html" t="t">Dep</a><span t="k"> =&gt; </span><a href="BoundDep.html" t="t">BoundDep</a>, <span t="k"></span><span data-unresolved-link="" t="n">mapDependencies</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Dependency</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Dependency</span>], <span t="k"></span><span data-unresolved-link="" t="n">customizer</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Resolution</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Resolution</span>], <span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/Ctx$$Log.html" t="t">Log</a>], <span t="k"></span><span data-unresolved-link="" t="n">coursierCacheCustomizer</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]], <span t="k"></span><span data-unresolved-link="" t="n">resolutionParams</span>: <span data-unresolved-link="" t="t">ResolutionParams</span>)
+  <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="CoursierModule$$Resolver.html" t="n" class="documentableName ">Resolver</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">repositories</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>], <span t="k"></span><span data-unresolved-link="" t="n">bind</span>: <a href="Dep.html" t="t">Dep</a><span t="k"> =&gt; </span><a href="BoundDep.html" t="t">BoundDep</a>, <span t="k"></span><span data-unresolved-link="" t="n">mapDependencies</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Dependency</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Dependency</span>], <span t="k"></span><span data-unresolved-link="" t="n">customizer</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Resolution</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Resolution</span>], <span t="k"></span><span data-unresolved-link="" t="n">coursierCacheCustomizer</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]], <span t="k"></span><span data-unresolved-link="" t="n">resolutionParams</span>: <span data-unresolved-link="" t="t">ResolutionParams</span>)
  </div>
 </div>
 <div class="cover">
@@ -82,15 +82,15 @@ node3 -> node2;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
         </div>
-        <div class="documentableElement" id="allDeps-fffff3c7">
+        <div class="documentableElement" id="artifacts-56f">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * All dependencies pulled by the passed dependencies\n *\n * @param deps root dependencies\n * @return full - ordered - list of dependencies pulled by `deps`\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Raw artifact results for the passed dependencies\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="CoursierModule$$Resolver.html#allDeps-fffff3c7" t="n" class="documentableName ">allDeps</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <a href="CoursierModule$$Resolvable.html" t="t">Resolvable</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">deps</span>: <span data-unresolved-link="" t="t">IterableOnce</span>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Dependency</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="CoursierModule$$Resolver.html#artifacts-56f" t="n" class="documentableName ">artifacts</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <a href="CoursierModule$$Resolvable.html" t="t">Resolvable</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">deps</span>: <span data-unresolved-link="" t="t">IterableOnce</span>[<span t="t">T</span>], <span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="CoursierModule$$Resolvable.html" t="t">Resolvable</a>[<span data-unresolved-link="" t="t">T</span>], <span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Result</span>
            </div>
           </div>
          </div>
@@ -100,11 +100,102 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>All dependencies pulled by the passed dependencies</p>
+             <p>Raw artifact results for the passed dependencies</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>All dependencies pulled by the passed dependencies</p>
+              <p>Raw artifact results for the passed dependencies</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="classpath-fffffbeb">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Class path of the passed dependencies\n *\n * @param deps root dependencies to resolve\n * @param sources whether to fetch source JARs or standard JARs\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="CoursierModule$$Resolver.html#classpath-fffffbeb" t="n" class="documentableName ">classpath</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <a href="CoursierModule$$Resolvable.html" t="t">Resolvable</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">deps</span>: <span data-unresolved-link="" t="t">IterableOnce</span>[<span t="t">T</span>], <span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">artifactTypes</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Set</span>[<span data-unresolved-link="" t="t">Type</span>]], <span t="k"></span><span data-unresolved-link="" t="n">resolutionParamsMapOpt</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">ResolutionParams</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">ResolutionParams</span>], <span t="k"></span><span data-unresolved-link="" t="n">mapDependencies</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Dependency</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Dependency</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="CoursierModule$$Resolvable.html" t="t">Resolvable</a>[<span data-unresolved-link="" t="t">T</span>], <span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Class path of the passed dependencies</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Class path of the passed dependencies</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               deps
+              </dt>
+              <dd class="body-medium">
+               <p>root dependencies to resolve</p>
+              </dd>
+              <dt class="body-small">
+               sources
+              </dt>
+              <dd class="body-medium">
+               <p>whether to fetch source JARs or standard JARs</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="resolution-b96">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Raw coursier resolution of the passed dependencies\n *\n * @param deps root dependencies\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="CoursierModule$$Resolver.html#resolution-b96" t="n" class="documentableName ">resolution</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <a href="CoursierModule$$Resolvable.html" t="t">Resolvable</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">deps</span>: <span data-unresolved-link="" t="t">IterableOnce</span>[<span t="t">T</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="CoursierModule$$Resolvable.html" t="t">Resolvable</a>[<span data-unresolved-link="" t="t">T</span>], <span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Resolution</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Raw coursier resolution of the passed dependencies</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Raw coursier resolution of the passed dependencies</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -115,133 +206,6 @@ node3 -> node2;
                <p>root dependencies</p>
               </dd>
              </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>full - ordered - list of dependencies pulled by <code>deps</code></p>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="getArtifacts-ffffff37">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="CoursierModule$$Resolver.html#getArtifacts-ffffff37" t="n" class="documentableName ">getArtifacts</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <a href="CoursierModule$$Resolvable.html" t="t">Resolvable</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">deps</span>: <span data-unresolved-link="" t="t">IterableOnce</span>[<span t="t">T</span>], <span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">mapDependencies</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Dependency</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Dependency</span>], <span t="k"></span><span data-unresolved-link="" t="n">customizer</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Resolution</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Resolution</span>], <span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <span data-unresolved-link="" t="t">Option</span>[<a href="../api/Ctx$$Log.html" t="t">Log</a>], <span t="k"></span><span data-unresolved-link="" t="n">coursierCacheCustomizer</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">FileCache</span>[<a href="../define/Task.html" t="t">Task</a>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">FileCache</span>[<a href="../define/Task.html" t="t">Task</a>]], <span t="k"></span><span data-unresolved-link="" t="n">artifactTypes</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Set</span>[<span data-unresolved-link="" t="t">Type</span>]], <span t="k"></span><span data-unresolved-link="" t="n">resolutionParams</span>: <span data-unresolved-link="" t="t">ResolutionParams</span>): <span data-unresolved-link="" t="t">Result</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="processDeps-fffffddd">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Processes dependencies and BOMs with coursier\n *\n * This makes coursier read and process BOM dependencies, and fill empty versions\n * in dependencies with the BOMs.\n *\n * Note that this doesn\'t throw when an empty version cannot be filled, and just leaves\n * the empty version behind.\n *\n * @param deps dependencies that might have empty versions\n * @param resolutionParams coursier resolution parameters\n * @return dependencies with empty version filled\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="CoursierModule$$Resolver.html#processDeps-fffffddd" t="n" class="documentableName ">processDeps</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <a href="CoursierModule$$Resolvable.html" t="t">Resolvable</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">deps</span>: <span data-unresolved-link="" t="t">IterableOnce</span>[<span t="t">T</span>], <span t="k"></span><span data-unresolved-link="" t="n">resolutionParams</span>: <span data-unresolved-link="" t="t">ResolutionParams</span>, <span t="k"></span><span data-unresolved-link="" t="n">boms</span>: <span data-unresolved-link="" t="t">IterableOnce</span>[<span data-unresolved-link="" t="t">BomDependency</span>]): (<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Dependency</span>], <span data-unresolved-link="" t="t">Map</span>)
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Processes dependencies and BOMs with coursier</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Processes dependencies and BOMs with coursier</p>
-              <p>This makes coursier read and process BOM dependencies, and fill empty versions in dependencies with the BOMs.</p>
-              <p>Note that this doesn't throw when an empty version cannot be filled, and just leaves the empty version behind.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               deps
-              </dt>
-              <dd class="body-medium">
-               <p>dependencies that might have empty versions</p>
-              </dd>
-              <dt class="body-small">
-               resolutionParams
-              </dt>
-              <dd class="body-medium">
-               <p>coursier resolution parameters</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>dependencies with empty version filled</p>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="resolveDeps-fffff54d">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="CoursierModule$$Resolver.html#resolveDeps-fffff54d" t="n" class="documentableName ">resolveDeps</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <a href="CoursierModule$$Resolvable.html" t="t">Resolvable</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">deps</span>: <span data-unresolved-link="" t="t">IterableOnce</span>[<span t="t">T</span>], <span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">artifactTypes</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Set</span>[<span data-unresolved-link="" t="t">Type</span>]], <span t="k"></span><span data-unresolved-link="" t="n">resolutionParamsMapOpt</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">ResolutionParams</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">ResolutionParams</span>]): <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">

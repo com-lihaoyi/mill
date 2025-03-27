@@ -3169,7 +3169,7 @@ node25 -> node0;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A `CoursierModule.Resolver` to resolve dependencies.\n *\n * Can be used to resolve external dependencies, if you need to download an external\n * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#resolveDeps`.\n *\n * @return `CoursierModule.Resolver` instance\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A `CoursierModule.Resolver` to resolve dependencies.\n *\n * Can be used to resolve external dependencies, if you need to download an external\n * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#classpath`.\n *\n * @return `CoursierModule.Resolver` instance\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -3188,7 +3188,7 @@ node25 -> node0;
             <div class="cover">
              <div class="doc">
               <p>A <code>CoursierModule.Resolver</code> to resolve dependencies.</p>
-              <p>Can be used to resolve external dependencies, if you need to download an external tool from Maven or Ivy repositories, by calling <code>CoursierModule.Resolver#resolveDeps</code>.</p>
+              <p>Can be used to resolve external dependencies, if you need to download an external tool from Maven or Ivy repositories, by calling <code>CoursierModule.Resolver#classpath</code>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -6200,7 +6200,7 @@ node25 -> node0;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies with [[resolveDeps()]].\n *\n * See [[allRepositories]] if you need to resolve Mill internal modules.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies with [[classpath()]].\n *\n * See [[allRepositories]] if you need to resolve Mill internal modules.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -6214,11 +6214,11 @@ node25 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The repositories used to resolve dependencies with <a href="../scalalib/CoursierModule.html#resolveDeps-af">resolveDeps</a>.</p>
+             <p>The repositories used to resolve dependencies with <span data-unresolved-link="" title="Problem linking classpath(): No DRI found for query">classpath()</span>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The repositories used to resolve dependencies with <a href="../scalalib/CoursierModule.html#resolveDeps-af">resolveDeps</a>.</p>
+              <p>The repositories used to resolve dependencies with <span data-unresolved-link="" title="Problem linking classpath(): No DRI found for query">classpath()</span>.</p>
               <p>See <a href="../scalalib/CoursierModule.html#allRepositories-0">allRepositories</a> if you need to resolve Mill internal modules.</p>
              </div>
              <h2 class="h200">Attributes</h2>
@@ -6335,77 +6335,6 @@ node25 -> node0;
               </dt>
               <dd class="body-medium">
                <a href="../scalalib/CoursierModule.html#resolutionParams-0">CoursierModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="resolveDeps-af" data-f-inherited="CoursierModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Task that resolves the given dependencies using the repositories defined with [[repositoriesTask]].\n *\n * @param deps The dependencies to resolve.\n * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).\n * @param artifactTypes If non-empty, pull the passed artifact types rather than the default ones from coursier\n * @return The [[PathRef]]s to the resolved files.\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestScalaNativeModule.html#resolveDeps-af" t="n" class="documentableName ">resolveDeps</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">deps</span>: <a href="../define/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../scalalib/BoundDep.html" t="t">BoundDep</a>]], <span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">artifactTypes</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Set</span>[<span data-unresolved-link="" t="t">Type</span>]], <span t="k"></span><span data-unresolved-link="" t="n">enableMillInternalDependencies</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="../define/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Task that resolves the given dependencies using the repositories defined with <a href="../scalalib/CoursierModule.html#repositoriesTask-0">repositoriesTask</a>.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Task that resolves the given dependencies using the repositories defined with <a href="../scalalib/CoursierModule.html#repositoriesTask-0">repositoriesTask</a>.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               artifactTypes
-              </dt>
-              <dd class="body-medium">
-               <p>If non-empty, pull the passed artifact types rather than the default ones from coursier</p>
-              </dd>
-              <dt class="body-small">
-               deps
-              </dt>
-              <dd class="body-medium">
-               <p>The dependencies to resolve.</p>
-              </dd>
-              <dt class="body-small">
-               sources
-              </dt>
-              <dd class="body-medium">
-               <p>If <code>true</code>, resolve source dependencies instead of binary dependencies (JARs).</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>The <a href="../../mill.html#PathRef-0">PathRef</a>s to the resolved files.</p>
-              </dd>
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="../scalalib/CoursierModule.html#resolveDeps-af">CoursierModule</a>
               </dd>
               <dt class="body-small">
                Source

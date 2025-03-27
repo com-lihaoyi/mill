@@ -874,7 +874,7 @@ trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
   def processors = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy&quot;io.micronaut.data:micronaut-data-processor:4.7.0&quot;,
         ivy&quot;io.micronaut:micronaut-http-validation:$micronautVersion&quot;,
@@ -980,7 +980,7 @@ trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
   def processors = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy&quot;io.micronaut.data:micronaut-data-processor:4.7.0&quot;,
         ivy&quot;io.micronaut:micronaut-http-validation:$micronautVersion&quot;,

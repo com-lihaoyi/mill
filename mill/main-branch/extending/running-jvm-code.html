@@ -709,7 +709,7 @@ library as part of the main build) we use:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>defaultResolver().resolveDeps</code> to resolve the dependencies from Maven Central,
+<p><code>defaultResolver().classpath</code> to resolve the dependencies from Maven Central,
 converting <code>org:name:version</code> coordinates (and their transitive dependencies) to
 `PathRef`s referring to files on disk</p>
 </li>
@@ -733,7 +733,7 @@ import mill.util.Jvm
 
 object foo extends JavaModule {
   def groovyClasspath: Task[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(Seq(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
+    defaultResolver().classpath(Seq(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
   }
 
   def groovyScript = Task.Source(&quot;generate.groovy&quot;)
@@ -776,7 +776,7 @@ Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt
 </div>
 </div>
 <div class="paragraph">
-<p>As mentioned above, <code>defaultResolver().resolveDeps</code> and <code>Jvm.runSubprocess</code> are an
+<p>As mentioned above, <code>defaultResolver().classpath</code> and <code>Jvm.runSubprocess</code> are an
 alternative to <code>import $ivy</code>, providing you more flexibility to resolve dependencies
 on-demand as part of your task graph only when necessary, and keeping it isolated from
 the build in a subprocess preventing classpath collisions.</p>
@@ -810,7 +810,7 @@ import mill.util.Jvm
 
 object foo extends JavaModule {
   def groovyClasspath: Task[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(Seq(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
+    defaultResolver().classpath(Seq(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
   }
 
   def groovyScript = Task.Source(&quot;generate.groovy&quot;)
@@ -884,7 +884,7 @@ import mill.util.Jvm
 object coursierModule extends CoursierModule
 
 def groovyClasspath: Task[Seq[PathRef]] = Task {
-  coursierModule.defaultResolver().resolveDeps(Seq(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
+  coursierModule.defaultResolver().classpath(Seq(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
 }
 
 def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {

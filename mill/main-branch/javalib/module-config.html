@@ -1095,7 +1095,7 @@ those to <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p
   def compileIvyDeps = Seq(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
 
   def processors = Task {
-    defaultResolver().resolveDeps(Seq(ivy&quot;org.projectlombok:lombok:1.18.34&quot;))
+    defaultResolver().classpath(Seq(ivy&quot;org.projectlombok:lombok:1.18.34&quot;))
   }
 
   def javacOptions = Seq(
