@@ -7,7 +7,9 @@ import scala.annotation.{compileTimeOnly, implicitNotFound}
 /**
  * The contextual information provided to a [[mill.define.Module]] or [[mill.define.Task]]
  */
-@implicitNotFound("Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)")
+@implicitNotFound(
+  "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
+)
 trait Ctx extends Ctx.Nested {
   def enclosing: String
 
