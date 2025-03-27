@@ -686,8 +686,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
    */
   trait KotestTests extends KotlinJsTests {
 
-    // FIXME: get this version from Mill build info
-    def kotestVersion: T[String] = "5.9.1"
+    /**
+     * The version of Kotest to download from Maven.
+     * https://mvnrepository.com/artifact/io.kotest/kotest-framework-multiplatform-plugin-embeddable-compiler-jvm
+     */
+    def kotestVersion: T[String]
 
     override def kotlincPluginIvyDeps: T[Seq[Dep]] =
       super.kotlincPluginIvyDeps() ++ Seq(
