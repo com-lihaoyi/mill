@@ -1,32 +1,26 @@
 = Case Study: Mill vs Maven
 :page-aliases: Case_Study_Mill_vs_Maven.adoc
 
+Compared to Maven, Mill tries to improve in the following ways:
 
+* **Performance**: Mill compiles the same project 4-6x faster than Maven.
+xref:comparisons/maven.adoc#_performance[A Maven "clean install" workflow
+taking over a minute might take just a few seconds in Mill]. It does this by aggressively
+parallelizing and caching your build at all levels.
 
-Compared to Maven:
-
-
-* **Mill follows Maven's innovation of good built-in defaults**: Mill's built-in
-``JavaModule``s follow Maven's "convention over configuration" style, so small Mill
-projects require minimal effort to get started, and larger Mill projects have a consistent
-structure building on these defaults.
-
-* **Mill automatically caches and parallelizes your build, offering 4-10x speedups**:
-Not just the built-in tasks that Mill ships with, but also any custom tasks or modules.
-This maximizes the snappiness of your command-line build workflows to keep you productive,
-which especially matters in larger codebases where builds tend to get slow:
-xref:comparisons/maven.adoc#_performance[a Maven "clean install" workflow
-  taking over a minute might take just a few seconds in Mill].
-
-* **Mill makes customizing the build tool much easier than Maven**. Projects usually
+* **Extensibility**: Mill makes customizing the build tool much easier than Maven. Projects usually
 grow beyond just compiling a single language: needing custom
 code generation, linting workflows, tool integrations, output artifacts, or support for
 additional languages. Mill's xref:comparisons/maven.adoc#_extensibility_ide_experience[extensibility and IDE experience]
 makes doing this yourself easy and safe, with type-checked code and
-xref:depth/sandboxing.adoc[sandboxed tasks]
+xref:depth/sandboxing.adoc[sandboxed tasks].
 
+* **IDE Support**: Jump-to-definition, autocomplete, show-documentation, etc. are all much more
+useful in `build.mill` files than in `pom.xml`s. This makes it easier to navigate, understand,
+and maintain your build configuration without being limited by the quantity and quality of
+online documentation (or the lack thereof!)
 
-This page compares using Mill to Maven, using the https://github.com/netty/netty[Netty Network Server]
+This page compares using Mill to Maven using the https://github.com/netty/netty[Netty Network Server]
 codebase as the example. Netty is a large, old codebase. 500,000 lines of Java, written by
 over 100 contributors across 15 years, split over 47 subprojects, with over 10,000 lines of
 Maven `pom.xml` configuration alone. By porting it to Mill, this case study should give you
@@ -41,9 +35,9 @@ change any other files in the repository:
 == Completeness
 
 The Mill build for Netty is not 100% complete, but it covers most of the major parts of Netty:
-compiling Java, compiling and linking C code via JNI, running JUnit tests and some integration
-tests using H2Spec. All 47 Maven subprojects are modelled using Mill, with the entire Netty codebase
-being approximately 500,000 lines of code.
+compiling Java, compiling and linking C code via JNI, custom codegen using Groovy scripts,
+running JUnit tests and some integration tests using H2Spec. All 47 Maven subprojects are
+modelled using Mill, with the entire Netty codebase being approximately 500,000 lines of code.
 
 [source,bash]
 ----
@@ -58,8 +52,8 @@ complex project compares to using Maven.
 
 Both Mill and Maven builds end up compiling the same set of files, although the number being
 reported by the command line is slightly higher for Mill (2915 files) than Maven (2822) due
-to differences in the reporting (e.g. Maven does not report `package-info.java` files as part
-of the compiled file count).
+to minor differences in the reporting (e.g. Maven does not report `package-info.java` files
+as part of the compiled file count).
 
 == Performance
 
@@ -67,23 +61,23 @@ The Mill build for Netty is much more performant than the default Maven build. T
 most workflows.
 
 For the benchmarks below, each provided number is the wall time of three consecutive runs
-on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
-Mill's performance compares to Maven:
+on my M1 Macbook Pro using Java 17 and Mill `0.12.9-native`. While ad-hoc, these benchmarks
+are enough to give you a flavor of how Mill's performance compares to Maven:
 
 [cols="1,1,1,1"]
 |===
 | Benchmark | Maven | Mill | Speedup
 
 
-| <<Sequential Clean Compile All>> | 98.80s | 23.14s | 4.3x
-| <<Parallel Clean Compile All>> | 48.92s | 8.79s | 5.6x
-| <<Clean Compile Single-Module>> | 4.89s | 1.11s | 4.4x
-| <<Incremental Compile Single-Module>> | 6.82s | 0.54s | 12.6x
-| <<No-Op Compile Single-Module>> | 5.25s | 0.47s  | 11.2x
+| <<Sequential Clean Compile All>> | 98.80s | 23.41s | 4.2x
+| <<Parallel Clean Compile All>> | 48.92s | 9.29s | 5.3x
+| <<Clean Compile Single-Module>> | 4.89s | 0.88s | 5.6x
+| <<Incremental Compile Single-Module>> | 6.82s | 0.18s | 37.9x
+| <<No-Op Compile Single-Module>> | 5.25s | 0.12s  | 43.8x
 |===
 
 The column on the right shows the speedups of how much faster Mill is compared to the
-equivalent Maven workflow. In most cases,  Mill is 4-10x faster than Maven. Below, we
+equivalent Maven workflow. In most cases,  Mill is 4-6x faster than Maven. Below, we
 will go into more detail of each benchmark: how they were run, what they mean, and how
 we can explain the difference in performing the same task with the two different build tools.
 
@@ -98,9 +92,9 @@ $ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -Dski
 99.95s
 
 $ ./mill clean; time ./mill -j1 __.compile
-23.99s
-23.14s
-22.68s
+22.83s
+23.41s
+23.47s
 ----
 
 This benchmark exercises the simple "build everything from scratch" workflow, with all remote
@@ -114,7 +108,7 @@ As a point of reference, Java typically compiles at 10,000-50,000 lines per seco
 single thread, and the Netty codebase is ~500,000 lines of code, so we would expect compile
 to take 10-50 seconds without parallelism.
 The 20-30s taken by Mill seems about what you would expect for a codebase of this size,
-and the ~150s taken by Maven is far beyond what you would expect from simple Java compilation.
+and the ~100s taken by Maven is far beyond what you would expect from simple Java compilation.
 
 ==== Maven Compile vs Install
 
@@ -142,23 +136,24 @@ When used on reactor artifact, unpack should be executed after packaging: see MD
 In contrast, Mill builds do not rely on the local artifact cache, even though Mill is able
 to publish to it. That means Mill builds are able to work directly with classfiles on disk,
 simply referencing them and using them as-is without spending time packing and unpacking them
-into `.jar` files. Furthermore, even if we _did_ want Mill to generate the ``.jar``s, the
-overhead of doing so is just a few seconds, far less than the two entire minutes that
+into `.jar` files. But even if we _did_ want Mill to generate the ``.jar``s, the
+overhead of doing so is just a few seconds, far less than the minutes that
 Maven's overhead adds to the clean build:
 
 [source,bash]
 ----
 $ ./mill clean; time ./mill -j1 __.jar
-32.58s
-24.90s
-23.35s
+26.74s
+26.02s
+26.53s
 ----
 
 From this benchmark, we can see that although both Mill and Maven are doing the same work,
 Mill takes about as long as it _should_ for this task of compiling 500,000 lines of Java source
-code, while Maven takes considerably longer.And much of this overhead comes from Maven
-doing unnecessary work packing/unpacking jar files and publishing to a local repository,
-whereas Mill directly uses the classfiles generated on disk to bypass all that work.
+code, while Maven takes considerably longer. This difference is purely build tool overhead
+in Maven - in the `install` workflow, in the JVM process warmup, etc. - that Mill manages
+to avoid.
+
 
 [#_parallel_clean_compile_all]
 === Parallel Clean Compile All
@@ -171,9 +166,9 @@ $ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforc
 49.50s
 
 $ ./mill clean; time ./mill __.compile
-9.07s
-8.79s
-7.93s
+10.95s
+8.51s
+9.29s
 ----
 
 This example compares Maven v.s. Mill, when performing the clean build on 10 threads.
@@ -182,7 +177,7 @@ tools see a similar ~2x speedup for building the Netty project using 4 threads.A
 this tests a clean build using `./mvnw clean` or `./mill clean`.
 
 This comparison shows that much of Mill's speedup over Maven is unrelated to parallelism.
-Whether sequential or parallel, Mill has approximately the same ~7x speedup over Maven
+Whether sequential or parallel, Mill has approximately the same 4-5x speedup over Maven
 when performing a clean build of the Netty repository.
 
 [#_clean_compile_single_module]
@@ -196,18 +191,18 @@ $ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -De
 4.89s
 
 $ ./mill clean common; time ./mill common.compile
-1.10s
-1.12s
-1.11s
+0.88s
+0.97s
+0.73s
 ----
 
 This exercise limits the comparison to compiling a single module, in this case `common/`,
-ignore test sources.
+ignoring test sources.
 
 Again, we can see a significant speedup of Mill v.s. Maven remains even when compiling a
-single module: a clean compile of `common/` is about 4x faster with Mill than with Maven!
+single module: a clean compile of `common/` is about 6x faster with Mill than with Maven!
 Again, `common/` is about 30,000 lines of Java source code, so at 10,000-50,000 lines per
-second we would expect it to compile in about 1-4s.That puts Mill's compile times right
+second we would expect it to compile in about 1-4s. That puts Mill's compile times right
 at what you would expect, whereas Maven's has a significant overhead.
 
 [#_incremental_compile_single_module]
@@ -229,9 +224,9 @@ $ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mill common.test.compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 
-0.78s
-0.54s
-0.51s
+0.18s
+0.18s
+0.21s
 ----
 
 This benchmark explores editing a single file and re-compiling `common/`.
@@ -313,7 +308,7 @@ in `common/src/test/` as a result of adding a method to `AbstractConstant.java`.
 In general, Zinc is conservative, and does not always end up selecting the minimal set of
 files that need re-compiling: e.g. in the above example, the new method `name2` does not
 interfere with any existing method, and the ~9 downstream files did not actually need to
-be re-compiled!However, even conservatively re-compiling 9 files is much faster than
+be re-compiled! However, even conservatively re-compiling 9 files is much faster than
 Maven blindly re-compiling all 234 files, and as a result the iteration loop of
 editing-compiling-testing your Java projects in Mill can be much faster than doing
 the same thing in Maven
@@ -329,9 +324,9 @@ $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=t
 5.26s
 
 $ time ./mill common.test.compile
-0.49s
-0.47s
-0.45s
+0.14s
+0.12s
+0.12s
 ----
 
 This last benchmark explores the boundaries of Maven and Mill: what happens if
@@ -352,13 +347,11 @@ we saw with Maven, but due to Mill's minimal overhead, in the end the command
 finishes in less than half a second.
 
 
-== Extensibility & IDE Experience
+== Extensibility
 
 Even though Maven is designed to be declarative, in many real-world codebases you end
-up needing to run ad-hoc scripts and logic. This section will explore two such scenarios,
+up needing to run ad-hoc scripts and logic. This section will explore one such scenario,
 so you can see how Mill differs from Maven in the handling of these requirements.
-
-=== JVM Libraries: Groovy
 
 The Maven build for the `common/` subproject
 uses a Groovy script for code generation. This is configured via:
@@ -413,33 +406,28 @@ import $ivy.`ant:ant-optional:1.5.3-1`
 object common extends NettyModule{
   ...
   def script = Task.Source("src" / "main" / "script")
-  def generatedSources0 = Task {
+  def generatedSources = Task {
     val shell = new groovy.lang.GroovyShell()
-    val context = new java.util.HashMap[String, Object]
 
-    context.put("collection.template.dir", "common/src/main/templates")
-    context.put("collection.template.test.dir", "common/src/test/templates")
+    val context = new java.util.HashMap[String, Object]
+    context.put("collection.template.dir", s"${Task.workspace}/common/src/main/templates")
+    context.put("collection.template.test.dir", s"${Task.workspace}/common/src/test/templates")
     context.put("collection.src.dir", (Task.dest / "src").toString)
     context.put("collection.testsrc.dir", (Task.dest / "testsrc").toString)
-
     shell.setProperty("properties", context)
     shell.setProperty("ant", new groovy.ant.AntBuilder())
-
     shell.evaluate((script().path / "codegen.groovy").toIO)
-
-    (PathRef(Task.dest / "src"), PathRef(Task.dest / "testsrc"))
+    PathRef(Task.dest / "src")
   }
-
-  def generatedSources = Task { Seq(generatedSources0()._1)}
 }
 ----
 
-While the number of lines of code _written_ is not that different, the Mill configuration
-is a lot more direct: rather than writing 35 lines of XML to configure an opaque third-party
-plugin, we instead write 25 lines of code to directly do what we want: import `groovy`,
-configure a `GroovyShell`, and use it to evaluate our `codegen.groovy` script. Although
-you may not be familiar with the Scala language that Mill builds are written in, you could
-probably skim the snippet above and guess what it is doing, and guess correctly.
+The number of lines of code _written_ is not that different, and in fact both Mill and Maven
+configs need to do similar things: setting `collection.src.dir`, invoking `org.codehaus.groovy`,
+and so on. Where things differ is the amount of indirection: while Maven has us
+configuring a third-party `groovy-maven-plugin` artifact, in Mill
+we can import `org.codehaus.groovy:groovy:3.0.9` and instantiate a `GroovyShell` directly.
+to evaluate our `codegen.groovy` script.
 
 This direct control means you are not beholden to third party plugins: rather than being
 limited to what an existing plugin _allows_ you to do, Mill allows you to directly write
@@ -447,228 +435,76 @@ the code necessary to do what _you need to do_. In this case, if we need to invo
 https://github.com/apache/groovy[Groovy] and
 https://github.com/groovy/groovy-core/blob/4c05980922a927b32691e4c3eba5633825cc01e3/subprojects/groovy-ant/src/spec/doc/groovy-ant-task.adoc[Groovy-Ant],
 Mill allows us to direct xref:extending/import-ivy-plugins.adoc[import $ivy] the relevant
-JVM artifacts from Maven Central and begin using them in our build code in a safe,
-strongly-typed fashion, with full autocomplete and code assistance:
-
-image::comparisons/IntellijNettyAutocomplete.png[]
+JVM artifacts from Maven Central
 
 Mill gives you the full power of the JVM ecosystem to use in your build: any Java library
 on Maven central is just an `import $ivy` away, and can be used with the full IDE support
 and tooling experience you are used to in the JVM ecosystem.
 
-=== Subprocesses: Make
+== IDE Support
 
-The Maven build for the `transport-native-unix-common/` subproject needs to call
-`make` in order to compile its C code to modules that can be loaded into Java applications
-via JNI. Maven does this via the `maven-dependency-plugin` and `maven-antrun-plugin` which are
-approximately configured as below:
+Mill build files contain code written in a strongly-typed fashion, with full autocomplete
+and code assistance. As a baseline, consider this Maven configuration where we are generating
+some source files:
 
-[source,xml]
-----
-<properties>
-  <exe.make>make</exe.make>
-  <exe.compiler>gcc</exe.compiler>
-  <exe.archiver>ar</exe.archiver>
-  <nativeLibName>libnetty-unix-common</nativeLibName>
-  <nativeIncludeDir>${project.basedir}/src/main/c</nativeIncludeDir>
-  <jniUtilIncludeDir>${project.build.directory}/netty-jni-util/</jniUtilIncludeDir>
-  <nativeJarWorkdir>${project.build.directory}/native-jar-work</nativeJarWorkdir>
-  <nativeObjsOnlyDir>${project.build.directory}/native-objs-only</nativeObjsOnlyDir>
-  <nativeLibOnlyDir>${project.build.directory}/native-lib-only</nativeLibOnlyDir>
-</properties>
+image::comparisons/IntellijNettyMaven1.png[]
 
-<plugins>
-  <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-dependency-plugin</artifactId>
-    <executions>
-      <!-- unpack netty-jni-util files -->
-      <execution>
-        <id>unpack</id>
-        <phase>generate-sources</phase>
-        <goals>
-          <goal>unpack-dependencies</goal>
-        </goals>
-        <configuration>
-          <includeGroupIds>io.netty</includeGroupIds>
-          <includeArtifactIds>netty-jni-util</includeArtifactIds>
-          <classifier>sources</classifier>
-          <outputDirectory>${jniUtilIncludeDir}</outputDirectory>
-          <includes>**.h,**.c</includes>
-          <overWriteReleases>false</overWriteReleases>
-          <overWriteSnapshots>true</overWriteSnapshots>
-        </configuration>
-      </execution>
-    </executions>
-  </plugin>
-  <plugin>
-    <artifactId>maven-antrun-plugin</artifactId>
-    <executions>
-      <!-- invoke the make file to build a static library -->
-      <execution>
-        <id>build-native-lib</id>
-        <phase>generate-sources</phase>
-        <goals>
-          <goal>run</goal>
-        </goals>
-        <configuration>
-          <target>
-            <exec executable="${exe.make}" failonerror="true" resolveexecutable="true">
-              <env key="CC" value="${exe.compiler}" />
-              <env key="AR" value="${exe.archiver}" />
-              <env key="LIB_DIR" value="${nativeLibOnlyDir}" />
-              <env key="OBJ_DIR" value="${nativeObjsOnlyDir}" />
-              <env key="JNI_PLATFORM" value="${jni.platform}" />
-              <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" />
-              <env key="LDFLAGS" value="-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9" />
-              <env key="LIB_NAME" value="${nativeLibName}" />
-              <!-- support for __attribute__((weak_import)) by the linker was added in 10.2 so ensure we
-                   explicitly set the target platform. Otherwise we may get fatal link errors due to weakly linked
-                   methods which are not expected to be present on MacOS (e.g. accept4). -->
-              <env key="MACOSX_DEPLOYMENT_TARGET" value="10.9" />
-            </exec>
-          </target>
-        </configuration>
-      </execution>
-    </executions>
-  </plugin>
-</plugins>
-----
+If you weren't sure what `build-helper-maven-plugin` does, the obvious thing
+to reach for is to try and jump-to-definition in your IDE. If you do that in Intellij,
+you get:
 
-The `maven-dependency-plugin` is used to download and unpack a single `jar` file,
-while `maven-antrun-plugin` is used to call `make`. Both are configured via XML,
-with the `make` command essentially being a bash script wrapped in layers of XML.
+image::comparisons/IntellijNettyMaven2.png[]
 
-In contrast, the Mill configuration for this logic is as follows:
+This gives you the signature of the config value: `sources` is an array of files,
+it is required, and its description is _"additional source directories"_. While
+this is better than nothing, it is less than what you would expect if you use
+_jump-to-definition_ in any application codebase.
 
-[source,scala]
-----
-def makefile = Task.Source("Makefile")
-def cSources = Task.Source("src" / "main" / "c")
-def cHeaders = Task {
-  for(p <- os.walk(cSources().path) if p.ext == "h"){
-    os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)
-  }
-  PathRef(Task.dest)
-}
+In contrast, when using Mill, not only do you get full autocomplete to
+explore available methods, their signatures, and their documentation:
 
-def make = Task {
-  os.copy(makefile().path, Task.dest / "Makefile")
-  os.copy(cSources().path, Task.dest / "src" / "main" / "c", createFolders = true)
-
-  val Seq(sourceJar) = resolveDeps(
-    deps = Task.Anon(Seq(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
-    sources = true
-  )().toSeq
-
-  os.proc("jar", "xf", sourceJar.path).call(cwd = Task.dest  / "src" / "main" / "c")
-
-  os.proc("make").call(
-    cwd = Task.dest,
-    env = Map(
-      "CC" -> "clang",
-      "AR" -> "ar",
-      "JNI_PLATFORM" -> "darwin",
-      "LIB_DIR" -> "lib-out",
-      "OBJ_DIR" -> "obj-out",
-      "MACOSX_DEPLOYMENT_TARGET" -> "10.9",
-      "CFLAGS" -> Seq(
-        "-mmacosx-version-min=10.9", "-O3", "-Werror", "-Wno-attributes", "-fPIC",
-        "-fno-omit-frame-pointer", "-Wunused-variable", "-fvisibility=hidden",
-        "-I" + sys.props("java.home") + "/include/",
-        "-I" + sys.props("java.home") + "/include/darwin",
-        "-I" + sys.props("java.home") + "/include/linux",
-      ).mkString(" "),
-      "LD_FLAGS" -> "-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9",
-      "LIB_NAME" -> "libnetty-unix-common"
-    )
-  )
-
-  (PathRef(Task.dest / "lib-out"), PathRef(Task.dest / "obj-out"))
-}
-----
-
-[graphviz]
-....
-digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  makefile -> make
-  cSources -> make
-  cSources -> cHeaders
-}
-....
-
-In Mill, we define the `makefile`, `cSources`, `cHeaders`, and `make` tasks. The bulk
-of the logic is in `def make`, which prepares the `makefile` and C sources,
-resolves the `netty-jni-util` source jar and unpacks it with `jar xf`, and calls `make`
-with the given environment variables. Both `cHeaders` and the output of `make` are used
-in downstream modules. In this case, `make` is a command-line utility rather than a JVM
-library, so rather than importing it from Maven Central we use `os.proc.call` to invoke it.
-
-Again, the Maven XML and Mill code contains exactly the same logic, and neither is
-much more concise or verbose than the other. Rather, what is interesting is that
-it is much easier to work with this kind of _build logic_ via _concise type-checked code_,
-rather than configuring a bunch of third-party plugins to try and achieve what you want.
-With Mill, you get your full IDE experience working with your build: autocomplete, code
-assistance, navigation, and so on. Although working with the `os.proc.call` subprocess API
-is not as right as working with the JVM libraries we saw earlier, it is still a much
-richer experience than you typically get configuring XML files:
+image::comparisons/IntellijNettyAutocomplete.png[]
 
 image::comparisons/IntellijNettyPeekDocs.png[]
 
+We can jump to definition, e.g. going from our own `def generatedSources`
+to the original definition that was overridden:
 
-== Debugging Tooling
+image::comparisons/IntellijNettyJumpToDefinition.png[]
 
-Another area that Mill does better than Maven is providing builtin tools for you to understand
-what your build is doing. For example, the Netty project build discussed has 47 submodules
-and associated test suites, but how do these different modules depend on each other? With
-Mill, you can run `./mill visualize __.compile`, and it will show you how the
-`compile` task of each module depends on the others (right-click open-image-in-new-tab to see
-at full size):
+From here, you can trace through the data flow, seeing how `def generatedSources`
+gets used by `def sources`, then `def allSources`:
 
-image::comparisons/NettyCompileGraph.svg[]
+image::comparisons/IntellijNettyDataflow.png[]
 
-Apart from the static dependency graph, another thing of interest may be the performance
-profile and timeline: where the time is spent when you actually compile everything. With
-Mill, when you run a compilation using `./mill __.compile`, you automatically get a
-`out/mill-chrome-profile.json` file that you can load into your `chrome://tracing` page and
-visualize where your build is spending time and where the performance bottlenecks are:
+An `allSources` eventually gets used in `def compile`:
 
-image::comparisons/NettyCompileProfile.png[]
+image::comparisons/IntellijNettyDataflow2.png[]
 
-If you want to inspect the tree of third-party dependencies used by any module, the
-built in `ivyDepsTree` command lets you do that easily:
+None of this should be a surprise to anyone using a JVM language: Java, Kotlin, and Scala
+have had this kind of IDE experience for decades! However, it stands in stark contrast
+to the experience using IDEs with tools like Maven, where although the IDE is able to
+superficially understand what XML entries are allowed where, they do not help at all in
+understand how the various configuration values actually end up affecting your build.
 
-[source,text]
-----
-$ ./mill handler.ivyDepsTree
-├─ org.jctools:jctools-core:4.0.5
-├─ org.junit.jupiter:junit-jupiter-api:5.9.0
-│  ├─ org.apiguardian:apiguardian-api:1.1.2
-│  ├─ org.junit.platform:junit-platform-commons:1.9.0
-│  │  └─ org.apiguardian:apiguardian-api:1.1.2
-│  └─ org.opentest4j:opentest4j:1.2.0
-└─ com.google.protobuf:protobuf-java:2.6.1
-----
+With Mill, you get your full IDE experience working with your build: autocomplete, code
+assistance, navigation, and so on. You can explore and navigate around your build
+just like you would any application codebase, avoiding the feeling of "hitting a wall"
+that often occurs when trying to figure out why a Maven build or plugin does not behave
+quite as you expect. Where with Maven you may find yourself searching online docs
+or digging through plugin source code on Github, with Mill you can comfortably
+navigate the build logic in your IDE as easily as any application codebase.
 
-None of these tools are rocket science, but Mill provides all of them out of the
-box in a convenient package for you to use. Whether you want a visual graph layout,
-a parallel performance profile, or a third-party dependency tree of your project,
-Mill makes it easy and convenient without needing to fiddle with custom configuration
-or third party plugins. This helps make it easy for you to explore, understand, and
-take ownership of the build tool.
 
 == Conclusion
 
 Both the Mill and Maven builds we discussed in this case study do the same thing: they
 compile Java code, zip them into Jar files, run tests. Sometimes they compile and link
-C code or run `make` or Groovy.
+C code or run `make` or Groovy to accomplish what they need to do.
 
-Mill doesn't try to do _more_ than Maven does, but it
-tries to do it _better_: faster compiles, shorter and easier to read configs, easier
-extensibility via libraries (e.g. `org.codehaus.groovy:groovy`) and subprocesses
-(e.g. `make`), better IDE support for working with your build.
+Mill doesn't do _more_ than Maven does, but it tries to do it _better_: faster compiles,
+easier extensibility via libraries (e.g. `org.codehaus.groovy:groovy`), better IDE
+support for working with your build.
 
 Again, the Mill build used in this comparison is for demonstration purposes, and more
 work would be necessary to make the Mill build production ready: compatibility with

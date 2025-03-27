@@ -7,12 +7,6 @@ package object javascriptlib {
   type License = mill.scalalib.publish.License
   val License = mill.scalalib.publish.License
 
-  type PublishMeta = PublishModule.PublishMeta
-  val PublishMeta = PublishModule.PublishMeta
-
-  type Export = PublishModule.Export
-  val Export = PublishModule.Export
-
-  type ExportConditions = PublishModule.ExportConditions
-  val ExportConditions = PublishModule.ExportConditions
+  type PackageJson = TypeScriptModule.PackageJson
+  val PackageJson = TypeScriptModule.PackageJson
 }

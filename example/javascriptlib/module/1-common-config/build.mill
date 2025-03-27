@@ -27,7 +27,7 @@ object foo extends TypeScriptModule {
 
   def mainFileName = s"foo2.ts"
 
-  def mainFilePath = compile()._2.path / "custom-src" / mainFileName()
+  def mainFilePath = compile().path / "custom-src" / mainFileName()
 
 }
 
