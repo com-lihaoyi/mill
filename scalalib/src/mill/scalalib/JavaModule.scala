@@ -19,6 +19,8 @@ import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 
 import os.Path
+import scala.util.Try
+import scala.annotation.unused
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -38,6 +40,7 @@ trait JavaModule
 
   override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
   trait JavaTests extends JavaModule with TestModule {
+    import mill.testrunner.TestResult
     // Run some consistence checks
     hierarchyChecks()
 
@@ -92,6 +95,119 @@ trait JavaModule
           case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
         }
     }
+
+    @internal
+    override protected def callGraphAnalysisClasspath: Task[Seq[os.Path]] = Task.Anon {
+      (upstreamCompileOutput().map(_.classes.path) :+ compile().classes.path).distinct
+    }
+
+    @internal
+    override protected def callGraphAnalysisUpstreamClasspath: Task[Seq[os.Path]] = Task.Anon {
+      (Task.traverse(transitiveModuleCompileModuleDeps)(
+        _.compileClasspath
+      )().flatten.map(_.path) ++ compileClasspath().map(_.path)).distinct
+    }
+
+    def testQuick(args: String*): Command[(String, Seq[TestResult])] =
+      Task.Command(persistent = true) {
+        val quicktestFailedClassesLog = Task.dest / "quickTestFailedClasses.json"
+        val transitiveCallGraphHashes0 = Task.dest / "transitiveCallGraphHashes0.json"
+        val invalidatedClassNamesLog = Task.dest / "invalidatedClassNames.json"
+
+        val classFiles: Seq[os.Path] = callGraphAnalysisClasspath()
+          .flatMap(os.walk(_).filter(_.ext == "class"))
+          .distinct
+
+        val callAnalysis = mill.codesig.CodeSig
+          .getCallGraphAnalysis(
+            classFiles = classFiles,
+            upstreamClasspath = callGraphAnalysisUpstreamClasspath(),
+            ignoreCall =
+              (callSiteOpt, calledSig) => callGraphAnalysisIgnoreCalls(callSiteOpt, calledSig)
+          )
+        val testClasses = testForkGrouping()
+        val (quickTestClassLists, invalidatedClassNames) =
+          if (!os.exists(transitiveCallGraphHashes0)) {
+            // cannot calcuate invalid classes, so test all classes
+            testClasses -> Set.empty[String]
+          } else {
+            val failedTestClasses =
+              if (!os.exists(quicktestFailedClassesLog)) {
+                Set.empty[String]
+              } else {
+                Try {
+                  upickle.default.read[Seq[String]](os.read.stream(quicktestFailedClassesLog))
+                }.getOrElse(Seq.empty[String]).toSet
+              }
+
+            val invalidatedClassNames = callAnalysis.calculateInvalidatedClassNames {
+              Some(upickle.default.read[Map[
+                String,
+                Int
+              ]](os.read.stream(transitiveCallGraphHashes0)))
+            }
+
+            val testingClasses = invalidatedClassNames ++ failedTestClasses
+
+            testClasses
+              .map(_.filter(testingClasses.contains))
+              .filter(_.nonEmpty) -> invalidatedClassNames
+          }
+
+        // Clean up the directory for test runners
+        os.walk(Task.dest).foreach { subPath => os.remove.all(subPath) }
+
+        val quickTestReportXml = testReportXml()
+
+        val testModuleUtil = new TestModuleUtil(
+          testUseArgsFile(),
+          forkArgs(),
+          Seq.empty,
+          zincWorker().scalalibClasspath(),
+          resources(),
+          testFramework(),
+          runClasspath(),
+          testClasspath(),
+          args.toSeq,
+          quickTestClassLists,
+          zincWorker().testrunnerEntrypointClasspath(),
+          forkEnv(),
+          testSandboxWorkingDir(),
+          forkWorkingDir(),
+          quickTestReportXml,
+          zincWorker().javaHome().map(_.path),
+          testParallelism()
+        )
+
+        val results = testModuleUtil.runTests()
+
+        val badTestClasses = (results match {
+          case Result.Failure(_) =>
+            // Consider all quick testing classes as failed
+            quickTestClassLists.flatten
+          case Result.Success((_, results)) =>
+            // Get all test classes that failed
+            results
+              .filter(testResult => Set("Error", "Failure").contains(testResult.status))
+              .map(_.fullyQualifiedName)
+        }).distinct
+
+        os.write.over(quicktestFailedClassesLog, upickle.default.write(badTestClasses))
+        os.write.over(
+          transitiveCallGraphHashes0,
+          upickle.default.write(callAnalysis.transitiveCallGraphHashes0)
+        )
+        os.write.over(invalidatedClassNamesLog, upickle.default.write(invalidatedClassNames))
+
+        results match {
+          case Result.Failure(errMsg) => Result.Failure(errMsg)
+          case Result.Success((doneMsg, results)) =>
+            try TestModule.handleResults(doneMsg, results, Task.ctx(), quickTestReportXml)
+            catch {
+              case e: Throwable => Result.Failure("Test reporting failed: " + e)
+            }
+        }
+      }
   }
 
   def defaultCommandName(): String = "run"
@@ -1346,6 +1462,22 @@ trait JavaModule
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
+  }
+
+  @internal
+  protected def callGraphAnalysisIgnoreCalls(
+      @unused callSiteOpt: Option[mill.codesig.JvmModel.MethodDef],
+      @unused calledSig: mill.codesig.JvmModel.MethodSig
+  ): Boolean = false
+
+  @internal
+  protected def callGraphAnalysisClasspath: Task[Seq[os.Path]] = Task.Anon {
+    Seq(compile().classes.path)
+  }
+
+  @internal
+  protected def callGraphAnalysisUpstreamClasspath: Task[Seq[os.Path]] = Task.Anon {
+    compileClasspath().map(_.path)
   }
 }
 
