@@ -13,7 +13,7 @@ private[mill] object MillModuleUtil {
    * This design has issues and will probably be replaced.
    */
   @deprecated("Use Dep.millProjectModule instead", "Mill 0.13.0-M1")
-  def millProjectModule(
+  private[mill] def millProjectModule(
       artifact: String,
       repositories: Seq[Repository],
       // this should correspond to the mill runtime Scala version
@@ -28,7 +28,7 @@ private[mill] object MillModuleUtil {
             coursier.Organization("com.lihaoyi"),
             coursier.ModuleName(artifact + artifactSuffix)
           ),
-          BuildInfo.millVersion
+          coursier.VersionConstraint(BuildInfo.millVersion)
         )
       ),
       force = Nil
