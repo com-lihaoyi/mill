@@ -18,7 +18,9 @@ import scala.annotation.{compileTimeOnly, implicitNotFound}
  * @param enclosingCls
  * @param crossValues
  */
-@implicitNotFound("Modules and Tasks can only be defined within a mill Module")
+@implicitNotFound(
+  "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
+)
 trait Ctx {
   def enclosing: String
   def lineNum: Int
@@ -112,7 +114,7 @@ trait LowPriCtx {
   // as it is provided by the codegen. Defined for IDEs to think that one is available
   // and not show errors in build.mill/package.mill even though they can't see the codegen
   @compileTimeOnly(
-    "Modules and Tasks can only be defined within a mill Module"
+    "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
   )
   implicit def dummyInfo: Ctx = sys.error("implicit Ctx must be provided")
 }

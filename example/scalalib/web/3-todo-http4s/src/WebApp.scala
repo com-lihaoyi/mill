@@ -1,5 +1,6 @@
 package webapp
 
+import scala.concurrent.duration.Duration
 import scalatags.Text.all._
 import scalatags.Text.tags2
 import cats.effect._
@@ -17,7 +18,12 @@ object WebApp extends IOApp.Simple {
   case class Todo(checked: Boolean, text: String)
 
   def run = mkService.toResource.flatMap { service =>
-    EmberServerBuilder.default[IO].withHttpApp(service).withPort(port"8084").build
+    EmberServerBuilder
+      .default[IO]
+      .withHttpApp(service)
+      .withPort(port"8084")
+      .withShutdownTimeout(Duration.Zero)
+      .build
   }.useForever
 
   def mkService =

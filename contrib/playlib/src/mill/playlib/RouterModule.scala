@@ -46,7 +46,7 @@ trait RouterModule extends ScalaModule with Version {
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
   def routerClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       playMinorVersion() match {
         case "2.6" | "2.7" | "2.8" =>
           Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}")

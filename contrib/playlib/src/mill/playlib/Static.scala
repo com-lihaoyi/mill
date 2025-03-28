@@ -5,7 +5,7 @@ import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util
 
-import mill.scalalib.{Lib, ScalaModule}
+import mill.scalalib.ScalaModule
 import mill.{PathRef, Task}
 
 trait Static extends ScalaModule {
@@ -49,15 +49,13 @@ trait Static extends ScalaModule {
   def webJarDeps = Task {
     ivyDeps()
       .filter(_.dep.module.organization.value == "org.webjars")
-      .map(bindDependency())
   }
 
   /**
    * jar files of web jars
    */
   def webJars = Task {
-    Lib.resolveDependencies(
-      repositoriesTask(),
+    defaultResolver().classpath(
       webJarDeps()
     )
   }

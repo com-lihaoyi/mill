@@ -130,7 +130,7 @@ trait Proguard extends ScalaModule {
    * These are downloaded from JCenter and fed to `java -cp`
    */
   def proguardClasspath: T[Loose.Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Agg(ivy"com.guardsquare:proguard-base:${proguardVersion()}")
     )
   }
