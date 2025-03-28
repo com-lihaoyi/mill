@@ -126,19 +126,34 @@ private[mill] object Resolve {
       p: Module,
       cache: ResolveCore.Cache
   ): Result[NamedTask[?]] = {
+    // Get the last segment value (task name)
+    val taskName = r.segments.last.value
+    val baseTaskName = if (taskName.contains(".super")) {
+      taskName.split("\\.super")(0)
+    } else {
+      taskName
+    }
+
     val definition = Reflect
       .reflect(
         p.getClass,
         classOf[NamedTask[?]],
-        _ == r.segments.last.value,
+        _ == baseTaskName,
         true,
         getMethods = cache.getMethods
       )
-      .head
 
-    ResolveCore.catchWrapException(
-      definition.invoke(p).asInstanceOf[NamedTask[?]]
-    )
+    if (definition.isEmpty) {
+      Result.Failure(s"Cannot find task '$baseTaskName' in module '${p.getClass.getName}'")
+    } else {
+      val task = ResolveCore.catchWrapException(
+        definition.head.invoke(p).asInstanceOf[NamedTask[?]]
+      )
+
+      // Return the task, whether it's a super task or not
+      // The super suffix is preserved in the segments, which the evaluator will use
+      task
+    }
   }
 
   private def instantiateCommand(
