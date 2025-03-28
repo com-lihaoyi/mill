@@ -6056,12 +6056,48 @@ node23 -> node0;
         <div class="documentableElement" id="publishLocal-fffffb85" data-f-inherited="PublishModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Publish artifacts to a local ivy repository.\n * @param localIvyRepo The local ivy repository.\n * If not defined, the default resolution is used (probably `$HOME/.ivy2/local`).\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidLibModule.html#publishLocal-fffffb85" t="n" class="documentableName ">publishLocal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">localIvyRepo</span>: <span data-unresolved-link="" t="t">String</span>): <a href="../../define/Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../../scalalib/PublishModule.html#publishLocal-fffffb85">PublishModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/scalalib/src/mill/scalalib/PublishModule.scala" target="_blank">PublishModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="publishLocal-fffff4cf" data-f-inherited="PublishModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Publish artifacts to a local ivy repository.\n * @param localIvyRepo The local ivy repository.\n * If not defined, the default resolution is used (probably `$HOME/.ivy2/local`).\n * @param sources whether to generate and publish a sources JAR\n * @param doc whether to generate and publish a javadoc JAR\n * @param transitive if true, also publish locally the transitive module dependencies of this module\n * (this includes the runtime transitive module dependencies, but not the compile-only ones)\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidLibModule.html#publishLocal-fffff4cf" t="n" class="documentableName ">publishLocal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">localIvyRepo</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">doc</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">transitive</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="../../define/Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
            </div>
           </div>
          </div>
@@ -6080,10 +6116,28 @@ node23 -> node0;
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
+               doc
+              </dt>
+              <dd class="body-medium">
+               <p>whether to generate and publish a javadoc JAR</p>
+              </dd>
+              <dt class="body-small">
                localIvyRepo
               </dt>
               <dd class="body-medium">
                <p>The local ivy repository. If not defined, the default resolution is used (probably <code>$HOME/.ivy2/local</code>).</p>
+              </dd>
+              <dt class="body-small">
+               sources
+              </dt>
+              <dd class="body-medium">
+               <p>whether to generate and publish a sources JAR</p>
+              </dd>
+              <dt class="body-small">
+               transitive
+              </dt>
+              <dd class="body-medium">
+               <p>if true, also publish locally the transitive module dependencies of this module (this includes the runtime transitive module dependencies, but not the compile-only ones)</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -6092,7 +6146,7 @@ node23 -> node0;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="../../scalalib/PublishModule.html#publishLocal-fffffb85">PublishModule</a>
+               <a href="../../scalalib/PublishModule.html#publishLocal-fffff4cf">PublishModule</a>
               </dd>
               <dt class="body-small">
                Source
