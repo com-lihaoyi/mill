@@ -121,19 +121,14 @@ trait JavaModule
     mainClass() match {
       case Some(m) => Right(m)
       case None =>
-        if (zincWorker().javaHome().isDefined) {
-          super[RunModule].finalMainClassOpt()
-        } else {
-          zincWorker().worker().discoverMainClasses(compile()) match {
-            case Seq() => Left("No main class specified or found")
-            case Seq(main) => Right(main)
-            case mains =>
-              Left(
-                s"Multiple main classes found (${mains.mkString(",")}) " +
-                  "please explicitly specify which one to use by overriding `mainClass` " +
-                  "or using `runMain <main-class> <...args>` instead of `run`"
-              )
-          }
+        allLocalMainClasses() match {
+          case Seq() => Left("No main class specified or found")
+          case Seq(main) => Right(main)
+          case mains =>
+            Left(
+              s"Multiple main classes found (${mains.mkString(",")}) " +
+                "please explicitly specify which one to use by overriding mainClass"
+            )
         }
     }
   }
