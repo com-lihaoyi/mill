@@ -1,13 +1,11 @@
 package mill.scalalib
 
-import coursier.Repository
 import mainargs.Flag
 import mill._
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Discover, ExternalModule, Task}
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{Versions, ZincWorkerApi, ZincWorkerUtil}
-import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.CoursierModule.Resolver
 
 /**
@@ -27,23 +25,27 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     mill.scalalib.api.Versions.coursierJvmIndexVersion
 
   def classpath: T[Seq[PathRef]] = Task {
-    millProjectModule("mill-scalalib-worker", repositoriesTask())
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-scalalib-worker")
+    ))
   }
 
   def scalalibClasspath: T[Seq[PathRef]] = Task {
-    millProjectModule("mill-scalalib", repositoriesTask())
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-scalalib")
+    ))
   }
 
   def testrunnerEntrypointClasspath: T[Seq[PathRef]] = Task {
-    millProjectModule("mill-testrunner-entrypoint", repositoriesTask(), artifactSuffix = "")
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-testrunner-entrypoint", artifactSuffix = "")
+    ))
   }
 
   def backgroundWrapperClasspath: T[Seq[PathRef]] = Task {
-    millProjectModule(
-      "mill-scalalib-backgroundwrapper",
-      repositoriesTask(),
-      artifactSuffix = ""
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-scalalib-backgroundwrapper", artifactSuffix = "")
+    ))
   }
 
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)

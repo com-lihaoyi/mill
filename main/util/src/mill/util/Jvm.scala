@@ -78,7 +78,7 @@ object Jvm {
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true,
       check: Boolean = true
-  ): CommandResult = {
+  )(implicit ctx: Ctx): CommandResult = {
     val cp = cpPassingJarPath match {
       case Some(passingJarPath) if classPath.nonEmpty =>
         createClasspathPassingJar(passingJarPath, classPath.toSeq)
@@ -86,22 +86,8 @@ object Jvm {
       case _ => classPath
     }
 
-    val jvmArgs0 =
-      if (propagateEnv)
-        sys.props.get("user.language") match {
-          case Some(lang) =>
-            if (jvmArgs.exists(_.startsWith("-Duser.language=")))
-              jvmArgs
-            else
-              Seq(s"-Duser.language=$lang") ++ jvmArgs
-          case None =>
-            jvmArgs
-        }
-      else
-        jvmArgs
-
     val commandArgs = (Vector(javaExe(javaHome)) ++
-      jvmArgs0 ++
+      jvmArgs ++
       Option.when(cp.nonEmpty)(Vector(
         "-cp",
         cp.mkString(java.io.File.pathSeparator)
@@ -110,6 +96,10 @@ object Jvm {
       mainArgs).filterNot(_.isBlank)
 
     if (cwd != null) os.makeDir.all(cwd)
+
+    ctx.log.debug(
+      s"Running ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
+    )
 
     val processResult = os.proc(commandArgs)
       .call(

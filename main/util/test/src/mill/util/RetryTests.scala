@@ -7,7 +7,7 @@ object RetryTests extends TestSuite {
     test("fail") {
       var count = 0
       try {
-        Retry() {
+        Retry(Retry.printStreamLogger(System.err)) {
           count += 1
           throw new Exception("boom")
         }
@@ -20,7 +20,7 @@ object RetryTests extends TestSuite {
     }
     test("succeed") {
       var count = 0
-      Retry() {
+      Retry(Retry.printStreamLogger(System.err)) {
         count += 1
         if (count < 3) throw new Exception("boom")
       }
@@ -30,6 +30,7 @@ object RetryTests extends TestSuite {
       var count = 0
       try {
         Retry(
+          Retry.printStreamLogger(System.err),
           filter = {
             case (i, ex: RuntimeException) => true
             case _ => false
@@ -49,7 +50,7 @@ object RetryTests extends TestSuite {
       test("fail") {
         var count = 0
         try {
-          Retry(timeoutMillis = 100) {
+          Retry(Retry.printStreamLogger(System.err), timeoutMillis = 100) {
             count += 1
             Thread.sleep(1000)
           }
@@ -62,7 +63,7 @@ object RetryTests extends TestSuite {
       }
       test("success") {
         var count = 0
-        Retry(timeoutMillis = 100) {
+        Retry(Retry.printStreamLogger(System.err), timeoutMillis = 100) {
           count += 1
           if (count < 3) Thread.sleep(1000)
         }

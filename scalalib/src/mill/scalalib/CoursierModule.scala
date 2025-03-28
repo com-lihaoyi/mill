@@ -31,10 +31,10 @@ trait CoursierModule extends mill.Module {
   }
 
   /**
-   * A `CoursierModule.Resolver` to resolve dependencies.
+   * A [[CoursierModule.Resolver]] to resolve dependencies.
    *
-   * Unlike `defaultResolver`, this resolver can resolve Mill modules too
-   * (obtained via `JavaModule#coursierDependency`).
+   * Unlike [[defaultResolver]], this resolver can resolve Mill modules too
+   * (obtained via [[JavaModule.coursierDependency]]).
    *
    * @return `CoursierModule.Resolver` instance
    */
@@ -222,7 +222,7 @@ object CoursierModule {
         mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = Some(ctx.log),
+        ctx = Some(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       ).get
 
@@ -245,7 +245,7 @@ object CoursierModule {
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = Some(ctx.log),
+        ctx = Some(ctx),
         resolutionParams = ResolutionParams(),
         boms = Nil
       ).get
