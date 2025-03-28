@@ -24,7 +24,7 @@ object KotlinJsNodeRunTests extends TestSuite {
 
       def kotlinVersion = KotlinJsNodeRunTests.kotlinVersion
 
-      override def moduleKind = crossValue2 match {
+      override def kotlinJsModuleKind = crossValue2 match {
         case "no" => ModuleKind.NoModule
         case "plain" => ModuleKind.PlainModule
         case "es" => ModuleKind.ESModule
@@ -34,7 +34,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       }
 
       override def moduleDeps = Seq(module.bar)
-      override def splitPerModule = crossValue
+      override def kotlinJsSplitPerModule = crossValue
       override def kotlinJsRunTarget = Some(RunTarget.Node)
     }
 
