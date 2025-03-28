@@ -4,8 +4,10 @@ import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
+import millbuild._
 
-object `package` extends RootModule with build.MillPublishScalaModule {
+
+object `package` extends RootModule with MillPublishScalaModule {
 
   def moduleDeps = Seq(build.main, build.main.init.buildgen, build.scalalib)
 
@@ -64,41 +66,41 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     PathRef(Task.dest)
   }
 
-  object buildgen extends build.MillPublishScalaModule {
-    def moduleDeps = Seq(build.runner /*, tree(build.Deps.scalaVersion)*/ )
+  object buildgen extends MillPublishScalaModule {
+    def moduleDeps = Seq(build.runner /*, tree(Deps.scalaVersion)*/ )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
 
     // I tried moving `Tree` into this module, but it doesn't compile with Scala 2.12.20.
     /*
-    object tree extends Cross[TreeModule](build.Deps.sbtScalaVersion212, build.Deps.scalaVersion)
+    object tree extends Cross[TreeModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
     trait TreeModule extends build.MillPublishCrossScalaModule {
-      def ivyDeps = Agg(build.Deps.upickle)
+      def ivyDeps = Agg(Deps.upickle)
     }
      */
   }
-  object gradle extends build.MillPublishScalaModule {
+  object gradle extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
     def ivyDeps = Agg(
-      build.Deps.gradleApi,
-      build.Deps.logback
+      Deps.gradleApi,
+      Deps.logback
     )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
   }
-  object maven extends build.MillPublishScalaModule {
+  object maven extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
     def ivyDeps = Agg(
-      build.Deps.mavenEmbedder,
-      build.Deps.mavenResolverConnectorBasic,
-      build.Deps.mavenResolverSupplier,
-      build.Deps.mavenResolverTransportFile,
-      build.Deps.mavenResolverTransportHttp,
-      build.Deps.mavenResolverTransportWagon
+      Deps.mavenEmbedder,
+      Deps.mavenResolverConnectorBasic,
+      Deps.mavenResolverSupplier,
+      Deps.mavenResolverTransportFile,
+      Deps.mavenResolverTransportHttp,
+      Deps.mavenResolverTransportWagon
     )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
   }
 
-  object sbt extends build.MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(buildgen, models(build.Deps.scalaVersion))
+  object sbt extends MillPublishScalaModule with BuildInfo {
+    def moduleDeps = Seq(buildgen, models(Deps.scalaVersion))
 
     def sbtPluginJarResources = Task {
       val assemblyPathRef = exportplugin.assembly()
@@ -111,25 +113,25 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     def buildInfoPackageName = "mill.main.sbt"
     def buildInfoObjectName: String = "Versions"
     def buildInfoMembers = Seq(
-      BuildInfo.Value("sbtVersion", build.Deps.sbt.version, "Version of sbt.")
+      BuildInfo.Value("sbtVersion", Deps.sbt.version, "Version of sbt.")
     )
 
     // An `sbt` plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
     object models
-        extends Cross[ModelsModule](build.Deps.sbtScalaVersion212, build.Deps.scalaVersion)
-    trait ModelsModule extends build.MillPublishCrossScalaModule {
+        extends Cross[ModelsModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
+    trait ModelsModule extends MillPublishCrossScalaModule {
       // def moduleDeps = Seq(buildgen.tree())
-      def ivyDeps = Agg(build.Deps.upickle)
-      def compileIvyDeps = Agg(build.Deps.sbt) // for definition references only
+      def ivyDeps = Agg(Deps.upickle)
+      def compileIvyDeps = Agg(Deps.sbt) // for definition references only
     }
 
     // no need to publish this
-    // `test` fails with `build.MillScalaModule`, and since it's an `sbt` plugin project it's most likely not needed.
+    // `test` fails with `MillScalaModule`, and since it's an `sbt` plugin project it's most likely not needed.
     object exportplugin extends ScalaModule {
-      private val scalaVersionString = build.Deps.sbtScalaVersion212
+      private val scalaVersionString = Deps.sbtScalaVersion212
       def scalaVersion = scalaVersionString
       def moduleDeps = Seq(models(scalaVersionString))
-      def compileIvyDeps = Agg(build.Deps.sbt)
+      def compileIvyDeps = Agg(Deps.sbt)
       def assemblyRules = Seq(Rule.ExcludePattern("scala\\.*"))
     }
   }

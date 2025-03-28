@@ -2,6 +2,7 @@ package build.runner
 // imports
 import mill._
 import mill.contrib.buildinfo.BuildInfo
+import millbuild._
 
 /**
  * Logic around the Mill command-line runner, script loading,
@@ -9,14 +10,14 @@ import mill.contrib.buildinfo.BuildInfo
  *
  * Mostly tested by [[build.integration]] and [[build.example]] tests.
  */
-object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
-  object `worker-api` extends build.MillPublishScalaModule {
-    // def ivyDeps = Agg(build.Deps.osLib)
+object `package` extends RootModule with MillPublishScalaModule with BuildInfo {
+  object `worker-api` extends MillPublishScalaModule {
+    // def ivyDeps = Agg(Deps.osLib)
   }
 
-  object worker extends build.MillPublishScalaModule {
+  object worker extends MillPublishScalaModule {
     def moduleDeps = Seq(`worker-api`)
-    def ivyDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
+    def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
 
     private[runner] def bootstrapDeps = Task {
       val moduleDep = {
@@ -36,21 +37,21 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     }
   }
 
-  object client extends build.MillPublishScalaModule with BuildInfo {
+  object client extends MillPublishScalaModule with BuildInfo {
     // Disable scalafix because it seems to misbehave and cause
     // spurious errors when there are mixed Java/Scala sources
     def fix(args: String*): Command[Unit] = Task.Command {}
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(build.runner.server.client)
     def ivyDeps = Agg(
-      build.Deps.windowsAnsi,
-      build.Deps.coursier,
-      build.Deps.coursierJvm,
-      build.Deps.logback
+      Deps.windowsAnsi,
+      Deps.coursier,
+      Deps.coursierJvm,
+      Deps.logback
     )
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
-      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
+      BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion)
     )
   }
 
