@@ -109,7 +109,6 @@ val compilerBridgeScalaVersions =
   }
 val bridgeVersion = "0.0.1"
 
-
 object bridge extends Cross[BridgeModule](build.compilerBridgeScalaVersions)
 trait BridgeModule extends MillPublishCrossScalaModule {
   def scalaVersion = crossScalaVersion
@@ -133,8 +132,8 @@ trait BridgeModule extends MillPublishCrossScalaModule {
 
   def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
     (if (ZincWorkerUtil.isScala3(crossScalaVersion))
-      ivy"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
-    else ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}").exclude("*" -> "*")
+       ivy"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
+     else ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}").exclude("*" -> "*")
   )
 
   def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {

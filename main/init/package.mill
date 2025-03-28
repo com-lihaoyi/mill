@@ -6,7 +6,6 @@ import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
 import millbuild._
 
-
 object `package` extends RootModule with MillPublishScalaModule {
 
   def moduleDeps = Seq(build.main, build.main.init.buildgen, build.scalalib)
