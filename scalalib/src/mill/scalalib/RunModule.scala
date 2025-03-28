@@ -46,17 +46,12 @@ trait RunModule extends WithZincWorker {
   def mainClass: T[Option[String]] = None
 
   /**
-   * Same as [[allLocalMainClasses]], but only for modules with a custom
-   * JVM version configured
-   */
-  def allLocalMainClasses0: T[Seq[String]] = Task { Seq.empty[String] }
-
-  /**
    * All main classes detected in this module that can serve as program entrypoints
    */
   def allLocalMainClasses: T[Seq[String]] = Task {
-    if (zincWorker().javaHome().isEmpty) allLocalMainClasses0()
-    else {
+    if (zincWorker().javaHome().isEmpty) {
+      zincWorker().worker().discoverMainClasses(localRunClasspath().map(_.path))
+    } else {
       Jvm.callProcess(
         mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
         classPath = zincWorker().classpath().map(_.path).toVector,

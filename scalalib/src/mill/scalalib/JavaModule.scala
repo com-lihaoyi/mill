@@ -99,8 +99,6 @@ trait JavaModule
     Artifact.fromDepJava(_: Dep)
   }
 
-  def allLocalMainClasses0 = Task { zincWorker().worker().discoverMainClasses(compile()) }
-
   /**
    * Mandatory ivy dependencies that are typically always required and shouldn't be removed by
    * overriding [[ivyDeps]], e.g. the scala-library in the [[ScalaModule]].
