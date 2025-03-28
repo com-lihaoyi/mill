@@ -71,7 +71,7 @@ trait TestModule
    */
   def testForked(args: String*): Command[(String, Seq[TestResult])] =
     Task.Command {
-      testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+      testTask(Task.Anon { Seq.empty[String] }, Task.Anon { args })()
     }
 
   def getTestEnvironmentVars(args: String*): Command[(String, String, String, Seq[String])] = {
