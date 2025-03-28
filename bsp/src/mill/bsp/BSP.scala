@@ -10,10 +10,6 @@ object BSP extends ExternalModule with CoursierModule {
 
   lazy val millDiscover = Discover[this.type]
 
-  private def bspWorkerLibs: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(Seq(Dep.millProjectModule("mill-bsp-worker")))
-  }
-
   /**
    * Installs the mill-bsp server. It creates a json file
    * with connection details in the ./.bsp directory for
@@ -29,15 +25,6 @@ object BSP extends ExternalModule with CoursierModule {
    * printed to stdout.
    */
   def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = Task.Command {
-    // we create a file containing the additional jars to load
-    val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
-    val cpFile =
-      Task.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
-    os.write.over(
-      cpFile,
-      libUrls.mkString("\n"),
-      createFolders = true
-    )
     createBspConnection(jobs, Constants.serverName)
   }
 
