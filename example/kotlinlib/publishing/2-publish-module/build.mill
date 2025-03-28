@@ -4,8 +4,6 @@ import mill._, kotlinlib._, publish._
 
 object foo extends KotlinModule with PublishModule {
 
-  def mainClass = Some("foo.FooKt")
-
   def kotlinVersion = "1.9.24"
 
   def publishVersion = "0.0.1"
