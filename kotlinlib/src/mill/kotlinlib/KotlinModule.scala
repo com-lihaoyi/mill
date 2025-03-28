@@ -13,7 +13,6 @@ import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
 import mill.util.Jvm
-import mill.util.MillModuleUtil.millProjectModule
 import mill.T
 
 import java.io.File
@@ -88,10 +87,9 @@ trait KotlinModule extends JavaModule { outer =>
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
   private[kotlinlib] def kotlinWorkerClasspath = Task {
-    millProjectModule(
-      "mill-kotlinlib-worker-impl",
-      repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-kotlinlib-worker-impl")
+    ))
   }
 
   /**

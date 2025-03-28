@@ -11,7 +11,6 @@ import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.T
-import mill.util.MillModuleUtil
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
@@ -45,10 +44,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   def scalaJSWorkerClasspath = Task {
-    MillModuleUtil.millProjectModule(
-      artifact = s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
-      repositories = repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule(s"mill-scalajslib-worker-${scalaJSWorkerVersion()}")
+    ))
   }
 
   def scalaJSJsEnvIvyDeps: T[Seq[Dep]] = Task {
