@@ -1,0 +1,64 @@
+package build
+
+/**
+ * Mill build configuration for a real-time stock analytics application.
+ */
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.15"
+
+  /**
+   * - spark-streaming: Core library for continuous data processing
+   * - play-json: Efficient parsing of financial data feeds
+   */
+  def ivyDeps = Seq(
+    ivy"org.apache.spark::spark-core:3.5.4",
+    ivy"org.apache.spark::spark-sql:3.5.4",
+    ivy"org.apache.spark::spark-streaming:3.5.4",
+
+    // Additional libraries for data processing
+    ivy"com.typesafe.play::play-json:2.9.4"
+  )
+
+  /**
+   * - --add-opens: Required for Spark to work with Java 9+ modules
+   * - -XX:+UseG1GC: G1 garbage collector optimizes for low latency, critical for streaming
+   * - -Xmx2g: Allocates sufficient memory for data processing without excess overhead
+   * - spark.ui.enabled: Provides monitoring dashboard for streaming job performance
+   */
+  def forkArgs = Seq(
+    "--add-opens",
+    "java.base/sun.nio.ch=ALL-UNNAMED",
+    "-XX:+UseG1GC",
+    "-Xmx2g",
+    "-Dspark.ui.enabled=true"
+  )
+
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+    def forkArgs = foo.forkArgs
+  }
+}
+// This example demonstrates a small real-time stock analytics application using Spark and Mill
+
+/** Usage
+
+> ./mill foo.run
+...
++------+-------------+
+|symbol|priceMovement|
++------+-------------+
+|AAPL  |? 2.3%       |
+|GOOG  |? 1.8%       |
+|MSFT  |? 0.5%       |
++------+-------------+
+...
+
+> ./mill foo.test
+...
++ foo.FooTests.calculatePriceMovements should calculate correct price movements...
++ foo.FooTests.generateMockStockData should create valid DataFrame...
+...
+*/

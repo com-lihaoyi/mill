@@ -1,0 +1,49 @@
+package build
+
+/**
+ * Mill build configuration for a Spark ML example.
+ */
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.15"
+  def ivyDeps = Seq(
+    ivy"org.apache.spark::spark-core:3.5.4",
+    ivy"org.apache.spark::spark-sql:3.5.4",
+    ivy"org.apache.spark::spark-mllib:3.5.4"
+  )
+
+  /**
+   * These flags are required to avoid runtime errors with Java 9+ modules
+   * - Allows Spark classes to access internal Java classes
+   * - Resolves potential runtime errors on newer Java versions
+   */
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+  }
+}
+
+// This example demonstrates a simple Spark ML model training using mill.
+
+/** Usage
+
+> ./mill foo.run
+...
++--------------------+------------------+
+|            features|        prediction|
++--------------------+------------------+
+|[1.0,2.0,3.0,4.0,...| 50.00000000000003|
+|[2.0,3.0,4.0,5.0,...|55.000000000000014|
++--------------------+------------------+
+...
+
+> ./mill foo.test
+...
++ foo.FooTests.linearRegressionModel should predict values correctly...
+...
+*/

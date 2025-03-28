@@ -1,0 +1,95 @@
+package build
+
+/**
+ * Mill build configuration for geospatial processing with Spark UDFs.
+ * 
+ * Why focus on geospatial UDFs, specially with Mill?
+ * - Geospatial operations are computationally expensive but highly parallelizable, and Mill is fast, very fast.
+ * - Custom UDFs allow integrating domain-specific algorithms with Spark's distributed computing
+ * - Demonstrates extension of Spark's capabilities beyond built-in functions with Mill
+ * - Represents a common real-world use case in logistics, telecom, and urban planning
+ */
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.15"
+  def ivyDeps = Seq(
+    ivy"org.apache.spark::spark-core:3.3.2",
+    ivy"org.apache.spark::spark-sql:3.3.2",
+    // Add json4s dependency with version compatible with Spark 3.3.2
+    ivy"org.json4s::json4s-jackson:3.7.0-M11",
+    // For mathematical operations
+    ivy"org.scalanlp::breeze:2.1.0"
+  )
+
+  /**
+   * JVM Options for:
+   * - Geospatial libraries often use Java reflection extensively
+   * - Numerical computation packages need access to low-level operations
+   * - Mathematical optimization requires specialized memory management
+   * - These settings prevent security exceptions on Java 9+ modules
+   */
+  def forkArgs = Seq(
+    "--add-opens",
+    "java.base/sun.nio.ch=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.nio=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.util.concurrent=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.lang=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.lang.invoke=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.util=ALL-UNNAMED"
+  )
+
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq(
+      "--add-opens",
+      "java.base/sun.nio.ch=ALL-UNNAMED",
+      "--add-opens",
+      "java.base/java.nio=ALL-UNNAMED",
+      "--add-opens",
+      "java.base/java.util.concurrent=ALL-UNNAMED",
+      "--add-opens",
+      "java.base/java.lang=ALL-UNNAMED",
+      "--add-opens",
+      "java.base/java.lang.invoke=ALL-UNNAMED",
+      "--add-opens",
+      "java.base/java.util=ALL-UNNAMED"
+    )
+  }
+}
+
+// This example demonstrates custom UDFs for geospatial data processing in Spark
+// It shows how to create and use UDFs for:
+// 1. Calculating distances between coordinates
+// 2. Checking if a point is within a polygon
+// 3. Converting between different coordinate systems
+
+/** Usage
+
+> ./mill foo.run
+...
++--------+--------+---------+-----------+---------------+----------+
+|city    |latitude|longitude|distance_km|in_service_area|utm_coords|
++--------+--------+---------+-----------+---------------+----------+
+|New York|40.7128 |-74.0060 |5.31       |true           |Zone 18N  |
+|London  |51.5074 |-0.1278  |5,565.73   |false          |Zone 30N  |
+|Tokyo   |35.6762 |139.6503 |10,848.04  |false          |Zone 54N  |
+|Paris   |48.8566 |2.3522   |5,832.87   |false          |Zone 31N  |
+|Madrid  |40.4168 |-3.7038  |5,764.36   |false          |Zone 30N  |
++--------+--------+---------+-----------+---------------+----------+
+...
+
+> ./mill foo.test
+...
++ FooTests.distanceCalculation
++ FooTests.polygonContainment
++ FooTests.coordinateConversion
+...
+*/

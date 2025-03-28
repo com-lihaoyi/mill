@@ -1,0 +1,81 @@
+package build
+
+/**
+ * Mill build configuration for a text classification ML model.
+ */
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.15"
+  def ivyDeps = Seq(
+    ivy"org.apache.spark::spark-core:3.5.4",
+    ivy"org.apache.spark::spark-sql:3.5.4",
+    ivy"org.apache.spark::spark-mllib:3.5.4"
+  )
+
+  /**
+   * JVM Options for:
+   * - ML libraries require broader access to JVM internals
+   * - Text processing uses specialized Java utilities
+   * - Advanced ML algorithms leverage concurrent operations
+   * - Reflection is used extensively in serialization/deserialization
+   * - These settings prevent warnings or errors when using modern Java
+   */
+  def forkArgs = Seq(
+    "--add-opens",
+    "java.base/sun.nio.ch=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.nio=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.util.concurrent=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.lang=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.lang.invoke=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.util=ALL-UNNAMED"
+  )
+
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq(
+      "--add-opens",
+      "java.base/sun.nio.ch=ALL-UNNAMED",
+      "--add-opens",
+      "java.base/java.nio=ALL-UNNAMED",
+      "--add-opens",
+      "java.base/java.util.concurrent=ALL-UNNAMED",
+      "--add-opens",
+      "java.base/java.lang=ALL-UNNAMED",
+      "--add-opens",
+      "java.base/java.lang.invoke=ALL-UNNAMED",
+      "--add-opens",
+      "java.base/java.util=ALL-UNNAMED"
+    )
+  }
+}
+
+// This example demonstrates a simple AI text classification model using Spark ML.
+
+/** Usage
+
+> ./mill foo.run
+...
++--------------------+--------+--------------------+----------+
+|                text|   label|         probability|prediction|
++--------------------+--------+--------------------+----------+
+|Machine learning ...| tech_ai|[0.90734472376131...|       0.0|
+|The quarterback m...|  sports|[0.03035658212655...|       2.0|
+|Neural networks c...| tech_ai|[0.95765680963852...|       0.0|
+|The stock market ...|business|[0.11711555021357...|       1.0|
+|Deep learning is ...| tech_ai|[0.98516994372605...|       0.0|
++--------------------+--------+--------------------+----------+
+...
+
+> ./mill foo.test
+...
++ foo.FooTests.textClassifier should classify text samples correctly...
+...
+*/

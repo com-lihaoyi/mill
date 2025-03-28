@@ -1,17 +1,167 @@
-= Spark Examples
+= Spark with Mill: Build Configuration Use Cases
 :page-aliases: Spark_Examples.adoc
 
+Welcome! This page explains how Mill handles the unique build requirements of various Spark applications. We'll walk through a few common use cases and discuss *why* the build configurations are set up the way they are. This helps you understand both Spark's needs and how Mill meets them.
 
-This page will discuss running spark in scala and python.
+== Spark's Build Challenges
 
-== Hello Spark
+Apache Spark can be a bit tricky:
+
+- It has a tangled web of dependencies that can sometimes conflict.
+- Different workloads (batch, streaming, ML, etc.) require specific JVM tuning.
+- Some dependencies are provided by the cluster, while others must be bundled locally.
+- You might need to juggle multiple Scala and Spark versions across projects.
+
+Mill simplifies all of this by offering precise dependency management, easy JVM configuration, and consistent builds.
+
+== Basic Spark Application
 
 include::partial$example/scalalib/spark/1-hello-spark.adoc[]
 
-== Hello Pyspark
+=== Why This Build Configuration?
 
-include::partial$example/scalalib/spark/1-hello-spark.adoc[]
+[source,scala]
+----
+def ivyDeps = Seq(
+  ivy"org.apache.spark::spark-core:3.5.4",
+  ivy"org.apache.spark::spark-sql:3.5.4"
+)
+----
 
-== Semi realistic spark project with spark submit
+Using the double-colon (`::`) ensures that Spark's Scala version matches your application's. Fixing the version to 3.5.4 prevents unexpected upgrades, and including only the necessary modules keeps the build lean.
+
+== PySpark Integration
+
+include::partial$example/scalalib/spark/2-hello-pyspark.adoc[]
+
+=== Why This Build Configuration?
+
+[source,scala]
+----
+def pythonDeps = T {
+  Seq("pyspark==3.5.4")
+}
+----
+
+By pinning the Python dependency, we ensure that the Python and Scala parts stay in sync, and we take advantage of Mill's cross-language support for a seamless development workflow.
+
+== Spark for Production
 
 include::partial$example/scalalib/spark/3-semi-realistic.adoc[]
+
+=== Why This Build Configuration?
+
+[source,scala]
+----
+def prependShellScript = ""
+
+def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+----
+
+In production, we keep the launcher script empty to avoid conflicts with spark-submit. The JVM arguments help bypass Java 9+ restrictions, ensuring our assembled JAR is ready for cluster deployment.
+
+== Machine Learning Configuration
+
+include::partial$example/scalalib/spark/4-ml-example.adoc[]
+
+=== Why This Build Configuration?
+
+[source,scala]
+----
+def ivyDeps = Seq(
+  ivy"org.apache.spark::spark-core:3.5.4",
+  ivy"org.apache.spark::spark-sql:3.5.4",
+  ivy"org.apache.spark::spark-mllib:3.5.4"
+)
+----
+
+This configuration adds MLlib to your project, ensuring that all Spark components are version-matched and only the necessary modules for ML pipelines are included.
+
+== Streaming Analytics Requirements
+
+include::partial$example/scalalib/spark/5-streaming-analytics.adoc[]
+
+=== Why This Build Configuration?
+
+[source,scala]
+----
+def ivyDeps = Seq(
+  ivy"org.apache.spark::spark-core:3.5.4",
+  ivy"org.apache.spark::spark-sql:3.5.4",
+  ivy"org.apache.spark::spark-streaming:3.5.4",
+  ivy"com.typesafe.play::play-json:2.9.4"
+)
+
+def forkArgs = Seq(
+  "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
+  "-XX:+UseG1GC",
+  "-Xmx2g",
+  "-Dspark.ui.enabled=true"
+)
+----
+
+For streaming, we include Spark Streaming and a JSON library to handle common data formats. The JVM settings are tuned to lower latency with efficient memory management and to enable the Spark UI for monitoring.
+
+== Data Quality Framework
+
+include::partial$example/scalalib/spark/6-data-quality.adoc[]
+
+=== Why This Build Configuration?
+
+[source,scala]
+----
+def ivyDeps = Seq(
+  ivy"org.apache.spark::spark-core:3.5.4",
+  ivy"org.apache.spark::spark-sql:3.5.4"
+)
+----
+
+Data quality checks rely mostly on Spark's SQL capabilities, so we keep the build minimal. This focused setup is easier to maintain.
+
+== Text Classification ML Pipeline
+
+include::partial$example/scalalib/spark/7-semi-serious-ml.adoc[]
+
+=== Why This Build Configuration?
+
+[source,scala]
+----
+def forkArgs = Seq(
+  "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
+  "--add-opens", "java.base/java.nio=ALL-UNNAMED",
+  "--add-opens", "java.base/java.util.concurrent=ALL-UNNAMED",
+  "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+  "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+  "--add-opens", "java.base/java.util=ALL-UNNAMED"
+)
+----
+
+This configuration ensures that our ML algorithms have access to the necessary JVM internals. It also guarantees a consistent environment for both testing and production.
+
+== Geospatial Processing with UDFs
+
+include::partial$example/scalalib/spark/8-geo-udf.adoc[]
+
+=== Why This Build Configuration?
+
+[source,scala]
+----
+def ivyDeps = Seq(
+  ivy"org.apache.spark::spark-core:3.3.2",
+  ivy"org.apache.spark::spark-sql:3.3.2",
+  ivy"org.json4s::json4s-jackson:3.7.0-M11",
+  ivy"org.scalanlp::breeze:2.1.0"
+)
+----
+
+For geospatial UDFs, we use Spark 3.3.2, which plays nicely with our required geospatial libraries. The explicit versioning of json4s and Breeze helps manage compatibility and ensures high-performance math operations for coordinate calculations.
+
+== Common Build Patterns Across Examples
+
+These examples illustrate several key capabilities of Mill when used with Spark:
+
+1. *Precise Dependency Control* - Effectively manage Spark's multitudes of dependencies.
+2. *JVM Configuration* - Tailor JVM settings to match the needs of different Spark workloads.
+3. *Test Integration* - Ensure your test environment mirrors production closely.
+4. *Scala Version Compatibility* - Use the `::` notation to maintain binary compatibility.
+5. *Minimal Necessary Dependencies* - Only include what you actually need for each use case.

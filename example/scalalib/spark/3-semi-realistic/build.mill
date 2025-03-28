@@ -1,21 +1,45 @@
 package build
+
+/**
+ * This Mill build file demonstrates integration with Apache Spark.
+ */
 import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.12.15"
+
+  /**
+   * We use provided scope for Spark dependencies because:
+   * - These dependencies are already available on Spark clusters
+   * - It reduces the size of the assembled JAR dramatically
+   * - Prevents potential version conflicts with the cluster environment
+   */
   def ivyDeps = Seq(
     ivy"org.apache.spark::spark-core:3.5.4",
     ivy"org.apache.spark::spark-sql:3.5.4"
   )
 
+  /**
+   * These JVM arguments address a common Spark issue with Java 9+
+   * where Spark classes need access to internal Java classes.
+   * Without these options, you'd see "illegal reflective access" warnings.
+   */
   def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
 
+  /**
+   * Intentionally empty to avoid inserting shell scripts into the assembly JAR
+   * which would make it incompatible with spark-submit.
+   */
   def prependShellScript = ""
 
   object test extends ScalaTests {
     def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
 
+    /**
+     * We inherit the same JVM arguments as the main module 
+     * to ensure consistent behavior between tests and production.
+     */
     def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
   }
 
