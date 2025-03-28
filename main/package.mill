@@ -6,6 +6,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 import mill.scalalib.api.ZincWorkerUtil
+import millbuild._
 
 /**
  * This package contains the helpers necessary to define the `build.*` builtin helpers,
@@ -13,22 +14,22 @@ import mill.scalalib.api.ZincWorkerUtil
  * intended for use in downstream user-land code, but without the various language-specific
  * packages which are defined separately in [[build.scalalib]], [[build.pythonlib]], etc.
  */
-object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
+object `package` extends RootModule with MillStableScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.core, build.core.constants, util)
   def ivyDeps = Agg(
-    build.Deps.windowsAnsi,
-    build.Deps.coursierInterface,
-    build.Deps.mainargs,
-    build.Deps.requests,
-    build.Deps.logback,
-    build.Deps.jgraphtCore,
+    Deps.windowsAnsi,
+    Deps.coursierInterface,
+    Deps.mainargs,
+    Deps.requests,
+    Deps.logback,
+    Deps.jgraphtCore,
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1"
   )
 
   def compileIvyDeps = Task {
     if (ZincWorkerUtil.isScala3(scalaVersion())) Agg.empty
-    else Agg(build.Deps.scalaReflect(scalaVersion()))
+    else Agg(Deps.scalaReflect(scalaVersion()))
   }
 
   def buildInfoPackageName = "mill.main"
@@ -42,12 +43,12 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
     BuildInfo.Value(
       "workerScalaVersion213",
-      build.Deps.scala2Version,
+      Deps.scala2Version,
       "Scala 2.13 version used by some workers."
     ),
     BuildInfo.Value(
       "workerScalaVersion212",
-      build.Deps.workerScalaVersion212,
+      Deps.workerScalaVersion212,
       "Scala 2.12 version used by some workers."
     ),
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
@@ -93,23 +94,23 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     ),
     BuildInfo.Value(
       "millScalacPluginDeps",
-      build.Deps.millModuledefsString,
+      Deps.millModuledefsString,
       "Scalac compiler plugin dependencies to compile the build script."
     )
   )
 
-  object util extends build.MillStableScalaModule {
+  object util extends MillStableScalaModule {
     def moduleDeps = Seq(build.core.api, build.core.constants)
     def ivyDeps = Agg(
-      build.Deps.coursier,
-      build.Deps.coursierJvm,
-      build.Deps.jline
+      Deps.coursier,
+      Deps.coursierJvm,
+      Deps.jline
     )
   }
 
-  object graphviz extends build.MillPublishScalaModule {
+  object graphviz extends MillPublishScalaModule {
     def moduleDeps = Seq(build.main, build.scalalib)
-    def ivyDeps = Agg(build.Deps.jgraphtCore) ++ build.Deps.graphvizJava ++ build.Deps.javet
+    def ivyDeps = Agg(Deps.jgraphtCore) ++ Deps.graphvizJava ++ Deps.javet
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)

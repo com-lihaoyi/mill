@@ -4,10 +4,10 @@ import mill.define.ModuleRef
 import mill.util.Jvm
 import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
-
 import scala.util.Using
+import millbuild._
 
-trait InstallModule extends build.MillPublishJavaModule {
+trait InstallModule extends MillPublishJavaModule {
   // All modules that we want to aggregate as part of this `dev` assembly.
   // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.millInternal.modules.collect {
@@ -67,7 +67,7 @@ object `package` extends RootModule with InstallModule {
    * repo. Looks mostly the same as [[dist]], except it does not have a reference
    * to itself in its [[testTransitiveDeps]], to avoid a circular dependency.
    */
-  object dist0 extends build.MillPublishJavaModule {
+  object dist0 extends MillPublishJavaModule {
     // disable scalafix here because it crashes when a module has no sources
     def moduleDeps = Seq(build.runner, build.idea)
 
@@ -277,7 +277,7 @@ object `package` extends RootModule with InstallModule {
     if (releaseTag == label) {
       // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
       requests.post(
-        s"https://api.github.com/repos/${build.Settings.githubOrg}/${build.Settings.githubRepo}/releases",
+        s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases",
         data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag, "prerelease" -> true),
         headers = Seq("Authorization" -> ("token " + authKey))
       )
@@ -329,7 +329,7 @@ object `package` extends RootModule with InstallModule {
     def zincWorker = ModuleRef(ZincWorkerGraalvm)
 
     object ZincWorkerGraalvm extends ZincWorkerModule {
-      def jvmId = build.Settings.graalvmJvmId
+      def jvmId = Settings.graalvmJvmId
     }
   }
 }

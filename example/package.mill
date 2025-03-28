@@ -13,6 +13,7 @@ import mill.resolve.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
+import millbuild._
 
 // plugins and dependencies
 import $meta._
