@@ -72,7 +72,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           Task.Anon {
             val selfDep = mod.publishSelfDependency()
             (
-              s"${mod.coursierDependency.module.repr}:${mod.coursierDependency.version}",
+              s"${mod.coursierDependency.module.repr}:${mod.coursierDependency.versionConstraint.asString}",
               s"${selfDep.group}:${selfDep.id}:${selfDep.version}"
             )
           }
@@ -87,7 +87,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           dist.coursierCacheCustomizer()
         )
         result.getOrThrow.orderedDependencies
-          .map(dep => s"${dep.module.repr}:${dep.version}")
+          .map(dep => s"${dep.module.repr}:${dep.versionConstraint.asString}")
           .distinct
           .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
           .mkString(",")
