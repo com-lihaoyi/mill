@@ -694,8 +694,6 @@ object `package` extends RootModule with KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def mainClass = Some(&quot;foo.FooKt&quot;)
-
   def ivyDeps = Seq(
     ivy&quot;com.fasterxml.jackson.core:jackson-databind:2.13.4&quot;
   )
@@ -853,8 +851,6 @@ object `package` extends RootModule with KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def mainClass = Some(&quot;foo.FooKt&quot;)
-
   def unmanagedClasspath = Task {
     if (!os.exists(moduleDir / &quot;lib&quot;)) Seq()
     else Seq.from(os.list(moduleDir / &quot;lib&quot;).map(PathRef(_)))
@@ -894,8 +890,6 @@ import mill._, kotlinlib._
 object `package` extends RootModule with KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
-
-  def mainClass = Some(&quot;foo.FooKt&quot;)
 
   def unmanagedClasspath = Task {
     os.write(
@@ -964,8 +958,6 @@ val sonatypeReleases = Seq(
 )
 
 object foo extends KotlinModule {
-
-  def mainClass = Some(&quot;foo.FooKt&quot;)
 
   def kotlinVersion = &quot;1.9.24&quot;
 

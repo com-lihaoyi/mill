@@ -681,8 +681,6 @@ import mill._, kotlinlib._
 
 object foo extends KotlinModule {
 
-  def mainClass = Some(&quot;foo.FooKt&quot;)
-
   def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinTests {
@@ -1088,8 +1086,6 @@ import mill._, kotlinlib._
 
 object foo extends KotlinModule {
 
-  def mainClass = Some(&quot;foo.FooKt&quot;)
-
   def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinTests {
@@ -1140,8 +1136,6 @@ is enabled by overriding <code>def testForkGrouping</code>, as shown below:</p>
 import mill._, kotlinlib._
 
 object foo extends KotlinModule {
-
-  def mainClass = Some(&quot;foo.FooKt&quot;)
 
   def kotlinVersion = &quot;1.9.24&quot;
 
@@ -1266,8 +1260,6 @@ execution, based on the unique constraints of your test suite.</p>
 import mill._, kotlinlib._
 
 object foo extends KotlinModule {
-
-  def mainClass = Some(&quot;foo.FooKt&quot;)
 
   def kotlinVersion = &quot;1.9.24&quot;
 

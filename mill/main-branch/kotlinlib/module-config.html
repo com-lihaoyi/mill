@@ -828,8 +828,6 @@ object `package` extends RootModule with KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def mainClass = Some(&quot;foo.FooKt&quot;)
-
   def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
   def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
 
@@ -1211,8 +1209,6 @@ object `package` extends RootModule with KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def mainClass = Some(&quot;foo.FooKt&quot;)
-
   def ivyDeps = Seq(ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
@@ -1454,8 +1450,6 @@ import mill._, kotlinlib._
 object foo extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
-
-  def mainClass = Some(&quot;foo.FooKt&quot;)
 
   def sources = Task {
     os.write(

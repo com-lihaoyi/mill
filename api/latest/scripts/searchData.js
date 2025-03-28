@@ -969,6 +969,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/kotlinlib/KotlinModule.html#allJavaSourceFiles-0","e":false,"i":"","n":"allJavaSourceFiles","t":"allJavaSourceFiles: Target[Seq[PathRef]]","d":"mill.kotlinlib.KotlinModule","k":"def","x":""},
 {"l":"mill/kotlinlib/KotlinModule.html#allKotlinSourceFiles-0","e":false,"i":"","n":"allKotlinSourceFiles","t":"allKotlinSourceFiles: Target[Seq[PathRef]]","d":"mill.kotlinlib.KotlinModule","k":"def","x":""},
 {"l":"mill/kotlinlib/KotlinModule.html#allKotlincOptions-0","e":false,"i":"","n":"allKotlincOptions","t":"allKotlincOptions: Target[Seq[String]]","d":"mill.kotlinlib.KotlinModule","k":"def","x":""},
+{"l":"mill/kotlinlib/KotlinModule.html#allLocalMainClasses0-0","e":false,"i":"","n":"allLocalMainClasses0","t":"allLocalMainClasses0: Target[Seq[String]]","d":"mill.kotlinlib.KotlinModule","k":"def","x":""},
 {"l":"mill/kotlinlib/KotlinModule.html#dokkaAnalysisPlatform-0","e":false,"i":"","n":"dokkaAnalysisPlatform","t":"dokkaAnalysisPlatform: String","d":"mill.kotlinlib.KotlinModule","k":"def","x":""},
 {"l":"mill/kotlinlib/KotlinModule.html#dokkaOptions-0","e":false,"i":"","n":"dokkaOptions","t":"dokkaOptions: Target[Seq[String]]","d":"mill.kotlinlib.KotlinModule","k":"def","x":""},
 {"l":"mill/kotlinlib/KotlinModule.html#dokkaSourceSetDisplayName-0","e":false,"i":"","n":"dokkaSourceSetDisplayName","t":"dokkaSourceSetDisplayName: String","d":"mill.kotlinlib.KotlinModule","k":"def","x":""},
