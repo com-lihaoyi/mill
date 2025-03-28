@@ -6,8 +6,6 @@ import mill.define.ModuleRef
 object foo extends KotlinModule with NativeImageModule {
   def kotlinVersion = "1.9.24"
 
-  def mainClass = Some("foo.FooKt")
-
   def nativeImageOptions = Seq(
     "--no-fallback",
     "-Os",
