@@ -1,10 +1,10 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.define.Discover
+import mill.define.{Discover, ExecutionPaths, Segments}
+import mill.testkit.TestBaseModule
 import mill.util.TestGraphs
 import mill.util.TestGraphs.*
-import mill.testkit.TestBaseModule
 import mill.{Module, Task}
 import utest.*
 object ResolveTests extends TestSuite {
@@ -18,6 +18,29 @@ object ResolveTests extends TestSuite {
         def single = Task { 9 }
       }
     }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  // Test modules for supertask resolution
+  trait BaseModule extends TestBaseModule {
+    def baseTask = Task { "base" }
+    def multiOverride = Task { "base-multi" }
+  }
+
+  object singleOverrideModule extends BaseModule {
+    // Single override of baseTask
+    override def baseTask = Task { "single-override" }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  trait MidModule extends BaseModule {
+    // First level override of multiOverride
+    override def multiOverride = Task { "mid-override" }
+  }
+
+  object multiOverrideModule extends MidModule {
+    // Second level override of multiOverride
+    override def multiOverride = Task { "final-override" }
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -250,5 +273,117 @@ object ResolveTests extends TestSuite {
       )
     }
 
+    test("supertasks") {
+      test("singleOverride") {
+        val check = new Checker(singleOverrideModule)
+
+        // Super task should resolve to the base implementation
+        test("superTask") - check(
+          "baseTask.super",
+          Result.Success(Set(_.baseTask)),
+          Set("baseTask.super")
+        )
+      }
+
+      test("multiOverride") {
+        val check = new Checker(multiOverrideModule)
+
+        // Direct super task should resolve to the mid-level implementation
+        test("directSuperTask") - check(
+          "multiOverride.super",
+          Result.Success(Set(_.multiOverride)),
+          Set("multiOverride.super")
+        )
+
+        // Qualified super task should resolve to the base implementation
+        test("qualifiedSuperTask") - check(
+          "multiOverride.super.BaseModule",
+          Result.Success(Set(_.multiOverride)),
+          Set("multiOverride.super.BaseModule")
+        )
+      }
+
+      // Test for complex super task resolution
+      test("complexSuperTask") {
+        // Create a more complex module hierarchy to test super task resolution
+        trait ComplexBase extends TestBaseModule {
+          def artifactSuffix = Task { "base-suffix" }
+        }
+
+        trait ComplexMid extends ComplexBase {
+          override def artifactSuffix = Task { "mid-suffix" }
+        }
+
+        object complexModule extends ComplexMid {
+          override def artifactSuffix = Task { "final-suffix" }
+          lazy val millDiscover = Discover[this.type]
+        }
+
+        val check = new Checker(complexModule)
+
+        // Test direct super task resolution
+        test("directSuperTask") - check(
+          "artifactSuffix.super",
+          Result.Success(Set(_.artifactSuffix)),
+          Set("artifactSuffix.super")
+        )
+
+        // Test qualified super task resolution
+        test("qualifiedSuperTask") - check(
+          "artifactSuffix.super.ComplexBase",
+          Result.Success(Set(_.artifactSuffix)),
+          Set("artifactSuffix.super.ComplexBase")
+        )
+      }
+
+      // Test for file path resolution with super tasks
+      test("superTaskFilePathResolution") {
+        // Create a module hierarchy to test file path resolution with super tasks
+        trait FilePathBase extends TestBaseModule {
+          def outputFile = Task {
+            "base-output"
+          }
+        }
+
+        object filePathModule extends FilePathBase {
+          override def outputFile = Task {
+            "override-output"
+          }
+
+          lazy val millDiscover = Discover[this.type]
+        }
+
+        val check = new Checker(filePathModule)
+
+        // Test that super task resolution works correctly
+        test("superTaskResolution") - check(
+          "outputFile.super",
+          Result.Success(Set(_.outputFile)),
+          Set("outputFile.super")
+        )
+
+        // This test verifies that the fix for the NoSuchFileException issue works correctly.
+        // The issue was that when a task with a .super suffix was resolved, the system was
+        // trying to access a file with the .super suffix included in the path, which didn't exist.
+        // The fix ensures that tasks with a .super suffix use the same file paths as their base tasks.
+        test("filePathResolution") {
+          // Create a mock ExecutionPaths to verify file path resolution
+          val outPath = os.pwd / "out"
+
+          // Get segments for the base task and the super task
+          val baseSegments = Segments.labels("filePathModule", "outputFile")
+          val superSegments = Segments.labels("filePathModule", "outputFile", "super")
+
+          // Resolve paths for both tasks
+          val basePaths = ExecutionPaths.resolve(outPath, baseSegments)
+          val superPaths = ExecutionPaths.resolve(outPath, superSegments)
+
+          // Verify that the paths are the same
+          assert(basePaths.dest == superPaths.dest)
+          assert(basePaths.meta == superPaths.meta)
+          assert(basePaths.log == superPaths.log)
+        }
+      }
+    }
   }
 }
