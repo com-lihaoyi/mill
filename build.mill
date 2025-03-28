@@ -749,10 +749,10 @@ trait BridgeModule extends MillPublishCrossScalaModule {
   )
 
   def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
-    resolveDeps(
-      Task.Anon { compilerBridgeIvyDeps().map(bindDependency()) },
+    defaultResolver().resolveDeps(
+      compilerBridgeIvyDeps().map(bindDependency()),
       sources = true
-    )()
+    )
   }
 
   def generatedSources = Task {
