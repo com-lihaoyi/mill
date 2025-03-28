@@ -47,6 +47,10 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinVersion: T[String]
 
+  def allLocalMainClasses0 = Task {
+    zincWorker().worker().discoverMainClasses(localRunClasspath().map(_.path))
+  }
+
   /**
    * The dependencies of this module.
    * Defaults to add the kotlin-stdlib dependency matching the [[kotlinVersion]].

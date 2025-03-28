@@ -6,8 +6,6 @@ import mill._, kotlinlib._
 object foo extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
-  def mainClass = Some("foo.FooKt")
-
   def ivyDeps = Seq(
     ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
