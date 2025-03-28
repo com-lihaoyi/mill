@@ -20,7 +20,7 @@ import scala.concurrent.duration.Duration
  */
 trait CoursierModule extends mill.Module {
 
-  def checkGradleModules: T[Boolean] = false
+  def checkGradleModules: T[Boolean] = true
 
   /**
    * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)
