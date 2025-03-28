@@ -28,8 +28,6 @@ trait MyModule extends KotlinModule with PublishModule {
 object foo extends MyModule {
   def moduleDeps = Seq(bar, qux)
 
-  def mainClass = Some("foo.FooKt")
-
   def generatedSources = Task {
     os.write(
       Task.dest / "Version.kt",
