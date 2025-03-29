@@ -13,26 +13,23 @@ class DoneMessageFailureFramework extends Framework {
     def args() = Array.empty
     def done() = "test failure done message"
     def remoteArgs() = Array.empty
-    def tasks(taskDefs: Array[TaskDef]) =
-      if (taskDefs.isEmpty) Array.empty[Task]
-      else Array(new Task {
-        def taskDef(): TaskDef = taskDefs.head
-        def execute(
-            eventHandler: EventHandler,
-            loggers: Array[Logger]
-        ): Array[Task] = {
-          eventHandler.handle(new Event {
-            override def fullyQualifiedName(): String = "foo.bar"
-            override def fingerprint(): Fingerprint = new Fingerprint {}
-            override def selector(): Selector = new TestSelector("foo.bar")
-            override def status(): Status = Status.Failure
-            override def throwable(): OptionalThrowable = new OptionalThrowable()
-            override def duration(): Long = 0L
-
-          })
-          Array.empty
-        }
-        def tags = Array.empty
-      })
+    def tasks(taskDefs: Array[TaskDef]) = Array(new Task {
+      def taskDef(): TaskDef = taskDefs.headOption.getOrElse(null)
+      def execute(
+          eventHandler: EventHandler,
+          loggers: Array[Logger]
+      ): Array[Task] = {
+        eventHandler.handle(new Event {
+          override def fullyQualifiedName(): String = "foo.bar"
+          override def fingerprint(): Fingerprint = new Fingerprint {}
+          override def selector(): Selector = new TestSelector("foo.bar")
+          override def status(): Status = Status.Failure
+          override def throwable(): OptionalThrowable = new OptionalThrowable()
+          override def duration(): Long = 0L
+        })
+        Array.empty
+      }
+      def tags = Array.empty
+    })
   }
 }

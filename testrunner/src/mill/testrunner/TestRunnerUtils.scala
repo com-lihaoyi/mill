@@ -130,11 +130,12 @@ import java.util.concurrent.atomic.AtomicBoolean
         )
     )
 
+    def nameOpt(t: Task) = Option(t.taskDef()).map(_.fullyQualifiedName())
     val groupedTasks = tasks
-      .groupBy(_.taskDef().fullyQualifiedName())
+      .groupBy(nameOpt)
       .values
       .toArray
-      .sortBy(_.headOption.map(_.taskDef().fullyQualifiedName()))
+      .sortBy(_.headOption.map(nameOpt))
 
     (runner, groupedTasks)
   }
