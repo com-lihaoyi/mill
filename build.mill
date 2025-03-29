@@ -2,6 +2,7 @@ package build
 // imports
 import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
+import coursier.VersionConstraint
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
@@ -429,8 +430,8 @@ trait MillJavaModule extends JavaModule {
         f.dep.module.organization.value == dep.module.organization.value &&
           f.dep.module.name.value == dep.module.name.value
       ).map { forced =>
-        val newDep = dep.withVersion(forced.version)
-        Task.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
+        val newDep = dep.withVersionConstraint(VersionConstraint(forced.version))
+        Task.log.debug(s"Forcing version of ${dep.module} from ${dep.versionConstraint.asString} to ${newDep.versionConstraint.asString}")
         newDep
       }.getOrElse(dep)
     }

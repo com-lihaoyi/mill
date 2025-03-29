@@ -188,10 +188,10 @@ object `package` extends RootModule with InstallModule {
         val wd = os.Path(wd0, Task.workspace)
         os.makeDir.all(wd)
         try {
-          Jvm.runSubprocess(
-            Seq(launcher().path.toString) ++ rest,
-            forkEnv(),
-            workingDir = wd
+          os.call(
+            cmd = (launcher().path.toString, rest),
+            env = forkEnv(),
+            cwd = wd
           )
           mill.api.Result.Success(())
         } catch {
