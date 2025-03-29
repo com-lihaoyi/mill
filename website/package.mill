@@ -40,8 +40,8 @@ object `package` extends RootModule {
   private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
   def npmBase: T[os.Path] = Task(persistent = true) { Task.dest }
   def prepareAntora(npmDir: os.Path) = {
-    Jvm.runSubprocess(
-      commandArgs = Seq(
+    os.call(
+      cmd = (
         npmExe,
         "--no-audit",
         "install",
@@ -50,8 +50,8 @@ object `package` extends RootModule {
         "gitlab:antora/xref-validator",
         "@antora/lunr-extension@v1.0.0-alpha.6"
       ),
-      envArgs = Map(),
-      workingDir = npmDir
+      env = Map(),
+      cwd = npmDir
     )
   }
 
@@ -63,10 +63,10 @@ object `package` extends RootModule {
     val cmdArgs =
       Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
     ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
-    Jvm.runSubprocess(
-      commandArgs = cmdArgs,
-      envArgs = Map("CI" -> "true"),
-      workingDir = workDir
+    os.call(
+      cmd = cmdArgs,
+      env = Map("CI" -> "true"),
+      cwd = workDir
     )
     PathRef(workDir / "build/site")
   }
@@ -170,9 +170,9 @@ object `package` extends RootModule {
       (p, i, os.temp(s), os.temp.dir())
     }
 
-    mill.util.Jvm.runSubprocess(
-      "mill.main.graphviz.GraphvizTools",
-      visualizeClassPath,
+    mill.util.Jvm.callProcess(
+      mainClass = "mill.main.graphviz.GraphvizTools",
+      classPath = visualizeClassPath.toSeq,
       mainArgs = orderedDiagrams.map { case (p, i, src, dest) =>
         T.log.debug(s"Rendering graphviz: ${p} (${i}) to ${dest}")
         s"$src;$dest;svg"
@@ -310,7 +310,7 @@ object `package` extends RootModule {
       )
 
       val useOldDownloadUrl = Ordering.Implicits.seqOrdering[Seq, String].lt(
-        millVersion.split('.'),
+        millVersion.split('.').toIndexedSeq,
         Seq("0", "12", "6")
       )
 
