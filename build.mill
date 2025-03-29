@@ -753,10 +753,10 @@ trait BridgeModule extends MillPublishCrossScalaModule {
   )
 
   def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
-    resolveDeps(
-      Task.Anon { compilerBridgeIvyDeps().map(bindDependency()) },
+    defaultResolver().classpath(
+      compilerBridgeIvyDeps().map(bindDependency()),
       sources = true
-    )()
+    )
   }
 
   def generatedSources = Task {
@@ -771,7 +771,7 @@ trait BridgeModule extends MillPublishCrossScalaModule {
 
 def formatDep(dep: Dep) = {
   val d = Lib.depToDependency(dep, Deps.scalaVersion)
-  s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
+  s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
 }
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
