@@ -4,7 +4,6 @@ import mill.api._
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.moduledefs.Scaladoc
-import mill.define.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.{Util, Watchable}
 import pprint.{Renderer, Tree, Truncated}
@@ -15,6 +14,21 @@ import scala.collection.mutable
 import scala.reflect.NameTransformer.decode
 
 object MainModule {
+
+  def resolveTasks[T](
+      evaluator: Evaluator,
+      targets: Seq[String],
+      selectMode: mill.define.SelectMode,
+      resolveToModuleTasks: Boolean
+  )(f: List[NamedTask[Any]] => T): Result[T] = resolveTasks(
+    evaluator,
+    targets,
+    selectMode match {
+      case mill.define.SelectMode.Multi => SelectMode.Multi
+      case mill.define.SelectMode.Separated => SelectMode.Separated
+    },
+    resolveToModuleTasks
+  )(f)
 
   def resolveTasks[T](
       evaluator: Evaluator,
@@ -32,6 +46,19 @@ object MainModule {
       case Right(tasks) => Result.Success(f(tasks))
     }
   }
+
+  def resolveTasks[T](
+      evaluator: Evaluator,
+      targets: Seq[String],
+      selectMode: mill.define.SelectMode
+  )(f: List[NamedTask[Any]] => T): Result[T] = resolveTasks(
+    evaluator,
+    targets,
+    selectMode match {
+      case mill.define.SelectMode.Multi => SelectMode.Multi
+      case mill.define.SelectMode.Separated => SelectMode.Separated
+    }
+  )(f)
 
   def resolveTasks[T](
       evaluator: Evaluator,
@@ -61,7 +88,7 @@ object MainModule {
     RunScript.evaluateTasksNamed(
       evaluator.withBaseLogger(redirectLogger),
       targets,
-      Separated,
+      SelectMode.Separated,
       selectiveExecution = evaluator.selectiveExecution
     ) match {
       case Left(err) => Result.Failure(err)

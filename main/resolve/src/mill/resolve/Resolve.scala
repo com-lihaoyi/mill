@@ -232,6 +232,24 @@ trait Resolve[T] {
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
+      selectMode: mill.define.SelectMode,
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
+  ): Either[String, List[T]] = {
+    resolve0(
+      rootModule,
+      scriptArgs,
+      selectMode match {
+        case mill.define.SelectMode.Multi => SelectMode.Multi
+        case mill.define.SelectMode.Separated => SelectMode.Separated
+      },
+      allowPositionalCommandArgs,
+      resolveToModuleTasks
+    )
+  }
+  def resolve(
+      rootModule: BaseModule,
+      scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
@@ -239,6 +257,22 @@ trait Resolve[T] {
     resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
 
+  def resolve(
+      rootModule: BaseModule,
+      scriptArgs: Seq[String],
+      selectMode: mill.define.SelectMode
+  ): Either[String, List[T]] = {
+    resolve0(
+      rootModule,
+      scriptArgs,
+      selectMode match {
+        case mill.define.SelectMode.Multi => SelectMode.Multi
+        case mill.define.SelectMode.Separated => SelectMode.Separated
+      },
+      false,
+      false
+    )
+  }
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],

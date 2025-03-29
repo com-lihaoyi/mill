@@ -16,6 +16,22 @@ object RunScript {
   def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
+      selectMode: mill.define.SelectMode
+  ): Either[
+    String,
+    (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
+  ] = evaluateTasksNamed(
+    evaluator,
+    scriptArgs,
+    selectMode match {
+      case mill.define.SelectMode.Separated => SelectMode.Separated
+      case mill.define.SelectMode.Multi => SelectMode.Multi
+    },
+    selectiveExecution = false
+  )
+  def evaluateTasksNamed(
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[
     String,
@@ -25,6 +41,24 @@ object RunScript {
     scriptArgs,
     selectMode,
     selectiveExecution = false
+  )
+
+  def evaluateTasksNamed(
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
+      selectMode: mill.define.SelectMode,
+      selectiveExecution: Boolean
+  ): Either[
+    String,
+    (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
+  ] = evaluateTasksNamed(
+    evaluator,
+    scriptArgs,
+    selectMode match {
+      case mill.define.SelectMode.Separated => SelectMode.Separated
+      case mill.define.SelectMode.Multi => SelectMode.Multi
+    },
+    selectiveExecution
   )
   def evaluateTasksNamed(
       evaluator: Evaluator,
@@ -65,7 +99,7 @@ object RunScript {
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
 
     val (sortedGroups, transitive) = Plan.plan(targets)
-    val terminals = sortedGroups.keys.map(t => (t.task, t)).toMap
+    val terminals = sortedGroups.keys().map(t => (t.task, t)).toMap
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
     val selectedTargetsOrErr =
