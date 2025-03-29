@@ -736,11 +736,13 @@ it will run the <code>.test</code> task as the default task for that module.</p>
 compiling 1 ... source...
 
 &gt; mill foo.test.compile
-compiling 1 ... source...
+compiling 2 ... source...
 
 &gt; mill foo.test.testForked
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
+...foo.FooMoreTests...hello ...
+...foo.FooMoreTests...world ...
 
 &gt; mill foo.test # same as above, `.test` is the default task for the `test` module
 ...foo.FooTests...hello ...
@@ -879,6 +881,12 @@ for more details.
 <p>If you want to pass any arguments to the test framework, you can pass them after
 <code>foo.test</code> in the command line. e.g. <a href="https://github.com/com-lihaoyi/utest">uTest</a>
 lets you pass in a selector to decide which test to run, which in Mill would be:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test foo.FooMoreTests
+...foo.FooMoreTests...hello ...</code></pre>
+</div>
 </div>
 <div class="listingblock">
 <div class="content">
