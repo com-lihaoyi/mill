@@ -4,7 +4,7 @@ import mill.api._
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.moduledefs.Scaladoc
-import mill.resolve.SelectMode.Separated
+import mill.define.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.{Util, Watchable}
 import pprint.{Renderer, Tree, Truncated}
