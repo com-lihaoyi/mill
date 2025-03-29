@@ -71,7 +71,7 @@ object `package` extends RootModule {
     PathRef(workDir / "build/site")
   }
 
-  def source0 = Task.Source(millSourcePath / "docs")
+  def source0 = Task.Source("docs")
   def projectChangelog = Task.Source(Task.workspace / "changelog.adoc")
   def source = Task {
     os.copy(source0().path, Task.dest, mergeFolders = true)
