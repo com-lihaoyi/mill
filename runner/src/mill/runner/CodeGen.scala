@@ -87,21 +87,24 @@ object CodeGen {
       val siblingScripts = scriptSources
         .filter(_ != scriptPath)
         .filter(p => (p / os.up) == (scriptPath / os.up))
-        .map(_.last.split('.').head)
+        .map(_.last.split('.').head + "_")
 
       val importSiblingScripts = siblingScripts
-        .filter(s => s != "build" && s != "package")
+        .filter(s => s != "build_" && s != "package_")
         .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
       val parts =
         if (!isBuildScript) {
+          val wrapperName = backtickWrap(scriptPath.last.split('.').head + "_")
           s"""package $pkg
              |$aliasImports
              |$importSiblingScripts
-             |object ${backtickWrap(scriptPath.last.split('.').head)} {
+             |object $wrapperName {
              |$markerComment
              |$scriptCode
-             |}""".stripMargin
+             |}
+             |export $wrapperName._
+             |""".stripMargin
         } else {
           generateBuildScript(
             projectRoot,
