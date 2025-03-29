@@ -9,12 +9,13 @@ import mill.util.{Util, Watchable}
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 import scala.collection.mutable
 import scala.reflect.NameTransformer.decode
 
 object MainModule {
 
+  @nowarn("cat=deprecation")
   def resolveTasks[T](
       evaluator: Evaluator,
       targets: Seq[String],
@@ -47,6 +48,7 @@ object MainModule {
     }
   }
 
+  @nowarn("cat=deprecation")
   def resolveTasks[T](
       evaluator: Evaluator,
       targets: Seq[String],

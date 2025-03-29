@@ -1,20 +1,11 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.define.{
-  BaseModule,
-  Command,
-  Discover,
-  Module,
-  ModuleTask,
-  NamedTask,
-  Reflect,
-  Segments,
-  Target,
-  TaskModule
-}
+import mill.define.{BaseModule, Command, Discover, Module, ModuleTask, NamedTask, Reflect, Segments, Target, TaskModule}
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
+
+import scala.annotation.nowarn
 
 object Resolve {
   object Segments extends Resolve[Segments] {
@@ -229,6 +220,7 @@ trait Resolve[T] {
       cache: ResolveCore.Cache
   ): Either[String, Seq[T]]
 
+  @nowarn("cat=deprecation")
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
@@ -257,6 +249,7 @@ trait Resolve[T] {
     resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
 
+  @nowarn("cat=deprecation")
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],

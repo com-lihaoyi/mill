@@ -9,10 +9,13 @@ import Evaluator._
 import mill.main.client.OutFiles
 import mill.resolve.{Resolve, SelectMode}
 
+import scala.annotation.nowarn
+
 object RunScript {
 
   type TaskName = String
 
+  @nowarn("cat=deprecation")
   def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
@@ -43,6 +46,7 @@ object RunScript {
     selectiveExecution = false
   )
 
+  @nowarn("cat=deprecation")
   def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
