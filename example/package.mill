@@ -134,6 +134,7 @@ object `package` extends RootModule with Module {
             "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test"
           )
           .replace("compiling 1 ... source...", "Compiling 1 ... source...")
+          .replace("compiling 2 ... source...", "Compiling 2 ... source...")
       case _ => line
     }
   }
