@@ -12,7 +12,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
 
   def sources =
     super.sources() ++
-      Seq(PathRef(build.millSourcePath / "mill-build/src"))
+      Seq(PathRef(T.workspace / "mill-build/src-testkit"))
 
   def forkEnv =
     super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString())

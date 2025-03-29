@@ -3,7 +3,6 @@ import scala.util.Properties
 import scala.util.chaining._
 import coursier.maven.MavenRepository
 import mill._
-import mill.api.JarManifest
 import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
