@@ -202,7 +202,7 @@ index 7c9cd3b4067..97356a39a96 100644
  import mill.contrib.buildinfo.BuildInfo
  import mill.T
  import mill.define.Cross
-@@ -28,10 +28,10 @@ import $meta._
+@@ -28,7 +28,7 @@ import $meta._
   */
  object `package` extends RootModule {
    def contribModules: Seq[ContribModule] =
@@ -210,11 +210,7 @@ index 7c9cd3b4067..97356a39a96 100644
 +    moduleInternal.modules.collect { case m: ContribModule => m }
  
    trait ContribModule extends build.MillPublishScalaModule {
--    def readme = Task.Source(millSourcePath / "readme.adoc")
-+    def readme = Task.Source(moduleDir / "readme.adoc")
-   }
- 
-   object testng extends JavaModule with ContribModule {
+     def readme = Task.Source("readme.adoc")
 @@ -84,9 +84,9 @@ object `package` extends RootModule {
      object worker extends Cross[WorkerModule](build.Deps.play.keys.toSeq)
      trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
@@ -704,24 +700,6 @@ index 7f799eabc0c..5d7f26b40e6 100644
        }
      )()
  
-@@ -185,7 +185,7 @@ object `package` extends RootModule {
- 
-   }
- 
--  def supplementalFiles = Task.Source(millSourcePath / "docs" / "supplemental-ui")
-+  def supplementalFiles = Task.Source(moduleDir / "docs" / "supplemental-ui")
- 
-   /**
-    * The doc root ready to be built by antora for the current branch.
-@@ -227,7 +227,7 @@ object `package` extends RootModule {
-     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
-   }
- 
--  def blogFolder0 = Task.Source(millSourcePath / "blog")
-+  def blogFolder0 = Task.Source(moduleDir / "blog")
-   def blogFolder = Task {
-     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
-     expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
 @@ -328,21 +328,21 @@ object `package` extends RootModule {
  
    def localPages: T[PathRef] = Task {
