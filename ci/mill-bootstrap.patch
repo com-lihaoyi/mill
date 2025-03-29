@@ -73,15 +73,6 @@ index f3b502fd810..aa455a965ef 100644
  }
  
  def millDownloadPrefix = Task {
-@@ -324,7 +324,7 @@ def millBinPlatform: T[String] = Task {
-   }
- }
- 
--def baseDir = build.millSourcePath
-+def baseDir = build.moduleDir
- 
- def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
- 
 @@ -476,7 +476,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  /**
   * Some custom scala settings and test convenience
@@ -740,7 +731,7 @@ index 7f799eabc0c..5d7f26b40e6 100644
      // sanitize devAntora source URLs
 -    Task.log.errorStream.println("Sanitizing links ...")
 +    Task.log.streams.err.println("Sanitizing links ...")
-     sanitizeDevUrls(siteDir, devAntoraSources().path, build.baseDir / "docs", build.baseDir)
+     sanitizeDevUrls(siteDir, devAntoraSources().path, Task.workspace / "docs", Task.workspace)
  
      // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
      val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
