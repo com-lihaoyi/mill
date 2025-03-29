@@ -1,7 +1,7 @@
 package mill.resolve
 
 import fastparse.NoWhitespace.noWhitespaceImplicit
-import fastparse.*
+import fastparse._
 import mill.define.{Segment, Segments}
 import mill.util.EitherOps
 
