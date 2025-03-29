@@ -31,7 +31,7 @@ object `package` extends RootModule {
     millInternal.modules.collect { case m: ContribModule => m }
 
   trait ContribModule extends build.MillPublishScalaModule {
-    def readme = Task.Source(millSourcePath / "readme.adoc")
+    def readme = Task.Source("readme.adoc")
   }
 
   object testng extends JavaModule with ContribModule {
