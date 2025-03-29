@@ -120,28 +120,23 @@ import java.util.concurrent.atomic.AtomicBoolean
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-    val filteredTestClasses = testClasses.iterator.filter { case (cls, _) =>
-      classFilter(cls)
-    }.toArray
+    val tasks = runner.tasks(
+      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
+        yield new TaskDef(
+          cls.getName.stripSuffix("$"),
+          fingerprint,
+          false,
+          Array(new SuiteSelector)
+        )
+    )
 
-    val tasksArr = // each test class can have multiple test tasks ==> array of test classes will have this signature
-      if (filteredTestClasses.isEmpty) {
-        // We still need to run runner's tasks on empty array
-        Array(runner.tasks(Array.empty))
-      } else {
-        filteredTestClasses.map { case (cls, fingerprint) =>
-          runner.tasks(
-            Array(new TaskDef(
-              cls.getName.stripSuffix("$"),
-              fingerprint,
-              false,
-              Array(new SuiteSelector)
-            ))
-          )
-        }
-      }
+    val groupedTasks = tasks
+      .groupBy(_.taskDef().fullyQualifiedName())
+      .values
+      .toArray
+      .sortBy(_(0).taskDef().fullyQualifiedName())
 
-    (runner, tasksArr)
+    (runner, groupedTasks)
   }
 
   private def executeTasks(
