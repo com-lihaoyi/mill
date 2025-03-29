@@ -23,7 +23,6 @@ object ScalaRunTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-
     test("runMain") {
       test("runMainObject") - UnitTester(HelloWorldTests.HelloWorld, resourcePath).scoped { eval =>
         val runResult = eval.outPath / "core/runMain.dest/hello-mill"

@@ -2,49 +2,12 @@ package mill.scalalib.worker
 
 import java.io.{File, PrintWriter}
 import mill.api.{internal, DummyOutputStream}
-import scala.annotation.tailrec
 import scala.tools.nsc.{CloseableRegistry, Settings}
 import scala.tools.nsc.classpath.{AggregateClassPath, ClassPathFactory}
 import scala.tools.scalap.{ByteArrayReader, Classfile, JavaWriter}
 import scala.util.Using
 
 @internal object DiscoverMainClassesMain {
-  // copied from ModuleUtils
-  private def recursive[T <: String](start: T, deps: T => Seq[T]): Seq[T] = {
-
-    @tailrec def rec(
-        seenModules: List[T],
-        toAnalyze: List[(List[T], List[T])]
-    ): List[T] = {
-      toAnalyze match {
-        case Nil => seenModules
-        case traces :: rest =>
-          traces match {
-            case (_, Nil) => rec(seenModules, rest)
-            case (trace, cand :: remaining) =>
-              if (trace.contains(cand)) {
-                // cycle!
-                val rendered =
-                  (cand :: (cand :: trace.takeWhile(_ != cand)).reverse).mkString(" -> ")
-                val msg = s"cycle detected: ${rendered}"
-                println(msg)
-                throw sys.error(msg)
-              }
-              rec(
-                if (seenModules.contains(cand)) seenModules
-                else { seenModules ++ Seq(cand) },
-                toAnalyze = ((cand :: trace, deps(cand).toList)) :: (trace, remaining) :: rest
-              )
-          }
-      }
-    }
-
-    rec(
-      seenModules = List(),
-      toAnalyze = List((List(start), deps(start).toList))
-    ).reverse
-  }
-
   def main(args: Array[String]): Unit = {
     val classpath = args(0).split(",").map(os.Path(_)).toSeq
     apply(classpath).foreach(println)
@@ -69,8 +32,10 @@ import scala.util.Using
         new ClassPathFactory(settings, registry).classesInExpandedPath(cp)
       )
 
+      def recursivePackages(p: String) = Seq(p) ++ path.packages(p).map(_.name)
+
       val mainClasses = for {
-        foundPackage <- recursive("", (p: String) => path.packages(p).map(_.name))
+        foundPackage <- recursivePackages("")
         classFile <- path.classes(foundPackage)
         path0 = os.Path(classFile.file.file)
         // In Scala 3 sometimes `.classes` returns `.tasty` files rather than
