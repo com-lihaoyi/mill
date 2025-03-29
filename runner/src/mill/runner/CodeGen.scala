@@ -181,11 +181,25 @@ object CodeGen {
         s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name.text).mkString(", ")}"
       )
     }
+    val headerCode =
+      s"""package $pkg
+         |$miscInfo
+         |$aliasImports
+         |$importSiblingScripts
+         |$prelude
+         |object $wrapperObjectName extends $wrapperObjectName {
+         |  ${childAliases.linesWithSeparators.mkString("  ")}
+         |  $exportSiblingScripts
+         |  ${millDiscover(segments.nonEmpty)}
+         |}
+         |""".stripMargin
+
     objectData.find(o =>
       o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
     ) match {
       case Some(objectData) =>
-        val newParent = if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule"
+        val newParent =
+          if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule(build.millDiscover)"
 
         var newScriptCode = scriptCode
         objectData.endMarker match {
@@ -214,32 +228,20 @@ object CodeGen {
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
-        s"""package $pkg
-           |$miscInfo
-           |$aliasImports
-           |$importSiblingScripts
-           |$prelude
+        s"""$headerCode
            |$markerComment
            |$newScriptCode
-           |object $wrapperObjectName extends $wrapperObjectName {
-           |  ${childAliases.linesWithSeparators.mkString("  ")}
-           |  $exportSiblingScripts
-           |  ${millDiscover(segments.nonEmpty)}
-           |}""".stripMargin
+           |""".stripMargin
 
       case None =>
-        s"""package $pkg
-           |$miscInfo
-           |$aliasImports
-           |$importSiblingScripts
-           |$prelude
-           |${topBuildHeader(
-            segments,
-            scriptFolderPath,
-            millTopLevelProjectRoot,
-            childAliases,
-            exportSiblingScripts
-          )}
+        val extendsClause =
+          if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule(build.millDiscover) "
+          else if (millTopLevelProjectRoot == scriptFolderPath)
+            s"extends _root_.mill.main.RootModule() "
+          else s"extends _root_.mill.runner.MillBuildRootModule() "
+
+        s"""$headerCode
+           |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
            |$markerComment
            |$scriptCode
            |}""".stripMargin
@@ -260,11 +262,11 @@ object CodeGen {
   }
 
   def millDiscover(segmentsNonEmpty: Boolean): String = {
-    val rhs =
-      if (segmentsNonEmpty) "build_.package_.millDiscover"
-      else "_root_.mill.define.Discover[this.type]"
-
-    s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
+    if (segmentsNonEmpty) ""
+    else {
+      val rhs = "_root_.mill.define.Discover[this.type]"
+      s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
+    }
   }
 
   def rootMiscInfo(
@@ -286,32 +288,4 @@ object CodeGen {
        |""".stripMargin
   }
 
-  def topBuildHeader(
-      segments: Seq[String],
-      scriptFolderPath: os.Path,
-      millTopLevelProjectRoot: os.Path,
-      childAliases: String,
-      exportSiblingScripts: String
-  ): String = {
-    val extendsClause =
-      if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
-      else if (millTopLevelProjectRoot == scriptFolderPath)
-        s"extends _root_.mill.main.RootModule() "
-      else s"extends _root_.mill.runner.MillBuildRootModule() "
-
-    // User code needs to be put in a separate class for proper submodule
-    // object initialization due to https://github.com/scala/scala3/issues/21444
-    // TODO: Scala 3 - the discover needs to be moved to the object, however,
-    // path dependent types no longer match, e.g. for TokenReaders of custom types.
-    // perhaps we can patch mainargs to substitute prefixes when summoning TokenReaders?
-    // or, add an optional parameter to Discover.apply to substitute the outer class?
-    s"""object ${wrapperObjectName} extends $wrapperObjectName  {
-       |  ${childAliases.linesWithSeparators.mkString("  ")}
-       |  $exportSiblingScripts
-       |  ${millDiscover(segments.nonEmpty)}
-       |}
-       |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
-       |""".stripMargin
-
-  }
 }
