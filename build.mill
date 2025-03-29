@@ -431,7 +431,9 @@ trait MillJavaModule extends JavaModule {
           f.dep.module.name.value == dep.module.name.value
       ).map { forced =>
         val newDep = dep.withVersionConstraint(VersionConstraint(forced.version))
-        Task.log.debug(s"Forcing version of ${dep.module} from ${dep.versionConstraint.asString} to ${newDep.versionConstraint.asString}")
+        Task.log.debug(
+          s"Forcing version of ${dep.module} from ${dep.versionConstraint.asString} to ${newDep.versionConstraint.asString}"
+        )
         newDep
       }.getOrElse(dep)
     }
