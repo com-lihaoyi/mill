@@ -2,7 +2,8 @@ package mill.runner.client;
 
 import static mill.constants.OutFiles.*;
 
-import io.github.alexarchambault.windowsansi.WindowsAnsi;
+import io.github.alexarchambault.nativeterm.NativeTerminal;
+import io.github.alexarchambault.nativeterm.TerminalSize;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -274,15 +275,54 @@ public class MillProcessLauncher {
 
   private static AtomicReference<String> memoizedTerminalDims = new AtomicReference();
 
+  private static final boolean canUseNativeTerminal;
+
+  static {
+    // Load jansi native library
+    JansiLoader jansiLoader = new JansiLoader(mill.runner.client.Versions.jansiVersion());
+    File jansiLib = jansiLoader.tryLoadFast();
+    if (jansiLib == null) jansiLib = jansiLoader.loadSlow();
+
+    // We have the jansi native library, we proceed to load it.
+    System.load(jansiLib.getAbsolutePath());
+
+    // Tell jansi not to attempt to load a native library on its own
+    Class cls = org.fusesource.jansi.internal.JansiLoader.class;
+    java.lang.reflect.Field fld;
+    try {
+      fld = cls.getDeclaredField("loaded");
+    } catch (NoSuchFieldException ex) {
+      throw new RuntimeException(ex);
+    }
+    fld.setAccessible(true);
+    try {
+      fld.set(null, Boolean.TRUE);
+    } catch (IllegalAccessException ex) {
+      throw new RuntimeException(ex);
+    }
+
+    boolean canUse;
+    if (mill.constants.Util.hasConsole()) {
+      try {
+        NativeTerminal.getSize();
+        canUse = true;
+      } catch (Throwable ex) {
+        canUse = false;
+      }
+    } else canUse = false;
+
+    canUseNativeTerminal = canUse;
+  }
+
   static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
 
     try {
-      if (java.lang.System.console() == null) str = "0 0";
+      if (!mill.constants.Util.hasConsole()) str = "0 0";
       else {
-        if (isWin()) {
+        if (canUseNativeTerminal) {
 
-          WindowsAnsi.Size size = WindowsAnsi.terminalSize();
+          TerminalSize size = NativeTerminal.getSize();
           int width = size.getWidth();
           int height = size.getHeight();
           str = width + " " + height;
