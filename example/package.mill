@@ -3,7 +3,6 @@ package build.example
 import scala.util.chaining._
 import coursier.maven.MavenRepository
 import mill._
-import mill.api.JarManifest
 import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.api.ZincWorkerUtil

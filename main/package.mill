@@ -78,15 +78,10 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           }
         }().toMap
 
-        val result = Lib.resolveDependenciesMetadataSafe(
-          repositories = dist.allRepositories(),
-          Seq(BoundDep(dist.coursierDependency, force = false)),
-          Some(dist.mapDependencies()),
-          dist.resolutionCustomizer(),
-          Some(Task.ctx()),
-          dist.coursierCacheCustomizer()
+        val result = dist.millResolver().resolution(
+          Seq(BoundDep(dist.coursierDependency, force = false))
         )
-        result.getOrThrow.orderedDependencies
+        result.orderedDependencies
           .map(dep => s"${dep.module.repr}:${dep.versionConstraint.asString}")
           .distinct
           .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
