@@ -236,8 +236,8 @@ object `package` extends RootModule {
   }
   def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
     val taggedSources = for (path <- extraSources) yield {
-      s"""    - url: ${build.baseDir}
-         |      start_path: ${path.relativeTo(build.baseDir)}
+      s"""    - url: ${Task.workspace}
+         |      start_path: ${path.relativeTo(Task.workspace)}
          |      edit_url: false
          |""".stripMargin
     }
@@ -250,7 +250,7 @@ object `package` extends RootModule {
        |
        |content:
        |  sources:
-       |    - url: ${if (authorMode) build.baseDir else build.Settings.projectUrl}
+       |    - url: ${if (authorMode) Task.workspace else build.Settings.projectUrl}
        |      branches: []
        |      tags: ${build.Settings.legacyDocTags.filter(_ => !authorMode).map(
         "'" + _ + "'"
@@ -260,11 +260,11 @@ object `package` extends RootModule {
        |
        |${taggedSources.mkString("\n\n")}
        |
-       |    - url: ${build.baseDir}
-       |      start_path: ${devAntoraSources().path.relativeTo(build.baseDir)}
+       |    - url: ${Task.workspace}
+       |      start_path: ${devAntoraSources().path.relativeTo(Task.workspace)}
        |
-       |    - url: ${build.baseDir}
-       |      start_path: ${blogFolder().path.relativeTo(build.baseDir)}
+       |    - url: ${Task.workspace}
+       |      start_path: ${blogFolder().path.relativeTo(Task.workspace)}
        |ui:
        |  bundle:
        |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
@@ -371,7 +371,7 @@ object `package` extends RootModule {
 
     // sanitize devAntora source URLs
     Task.log.errorStream.println("Sanitizing links ...")
-    sanitizeDevUrls(siteDir, devAntoraSources().path, build.baseDir / "docs", build.baseDir)
+    sanitizeDevUrls(siteDir, devAntoraSources().path, Task.workspace / "docs", Task.workspace)
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
     val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
