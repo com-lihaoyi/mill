@@ -27,3 +27,5 @@ object bar extends JavaModule {
     )
   }
 }
+
+//// SNIPPET:RUNSINGLE
