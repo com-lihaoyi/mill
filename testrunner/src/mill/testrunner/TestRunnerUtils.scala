@@ -133,7 +133,7 @@ import java.util.concurrent.atomic.AtomicBoolean
       .groupBy(_.taskDef().fullyQualifiedName())
       .values
       .toArray
-      .sortBy(_(0).taskDef().fullyQualifiedName())
+      .sortBy(_.headOption.map(_.taskDef().fullyQualifiedName()))
 
     (runner, groupedTasks)
   }
