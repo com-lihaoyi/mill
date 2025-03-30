@@ -244,7 +244,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
               ++ submodulesWithoutTests.map(compileTask),
             failed = SortedSet.empty
           )),
-          expectedTestTaskResults = None
+          expectedTestTaskResults = None // for some reason this only fails in CI but not locally
         )
     }
   }
