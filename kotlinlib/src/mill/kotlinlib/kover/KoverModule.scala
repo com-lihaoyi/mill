@@ -6,7 +6,6 @@ package mill.kotlinlib.kover
 
 import mill.*
 import mill.api.{PathRef, Result}
-import mill.api.Result.Success
 import mill.define.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}

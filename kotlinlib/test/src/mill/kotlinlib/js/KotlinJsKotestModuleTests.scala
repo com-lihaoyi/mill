@@ -25,7 +25,7 @@ object KotlinJsKotestModuleTests extends TestSuite {
       override def moduleDeps = Seq(module.bar)
 
       object test extends KotlinJsModule with KotestTests {
-        override def kotestVersion = Tast.Input(testKotestVersion)
+        override def kotestVersion = Task.Input(testKotestVersion)
         override def allSourceFiles = super.allSourceFiles()
           .filter(!_.path.toString().endsWith("HelloKotlinTestPackageTests.kt"))
       }
