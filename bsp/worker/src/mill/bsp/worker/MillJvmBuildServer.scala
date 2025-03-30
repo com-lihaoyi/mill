@@ -118,7 +118,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           forkEnv.asJava
         )
 
-        val classes = mainClass.toList ++ zincWorker.discoverMainClasses(compile)
+        val classes = mainClass.toList ++ zincWorker.discoverMainClasses(Seq(compile.classes.path))
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
       case _ => ???
