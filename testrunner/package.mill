@@ -1,15 +1,16 @@
 package build.testrunner
 // imports
 import mill._
+import millbuild._
 
 /**
  * The JVM testrunner used for discovering and running Junit/Scalatest/Kotest/etc.
  * test suites, both in-process and in a sub-process
  */
-object `package` extends RootModule with build.MillPublishScalaModule {
+object `package` extends RootModule with MillPublishScalaModule {
   def moduleDeps = Seq(build.scalalib.api, build.core.internal, entrypoint, build.main.util)
 
-  object entrypoint extends build.MillPublishJavaModule {
-    override def ivyDeps = Agg(build.Deps.sbtTestInterface)
+  object entrypoint extends MillPublishJavaModule {
+    override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 }

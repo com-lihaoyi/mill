@@ -3,8 +3,9 @@ package build.bsp
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
+import millbuild._
 
-object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
+object `package` extends RootModule with MillPublishScalaModule with BuildInfo {
   def compileModuleDeps = Seq(build.scalalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
@@ -14,7 +15,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     Seq(
       BuildInfo.Value(
         "bsp4jVersion",
-        build.Deps.bsp4j.version,
+        Deps.bsp4j.version,
         "BSP4j version (BSP Protocol version)."
       )
     )
@@ -28,16 +29,16 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
       super.forkEnv()
     }
 
-    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${build.Deps.bsp4j.version}")
+    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${Deps.bsp4j.version}")
   }
 
-  object worker extends build.MillPublishScalaModule {
+  object worker extends MillPublishScalaModule {
     def compileModuleDeps = Seq(
       build.bsp,
       build.scalalib,
       build.testrunner,
       build.runner
     ) ++ build.scalalib.compileModuleDeps
-    def ivyDeps = Agg(build.Deps.bsp4j, build.Deps.sbtTestInterface)
+    def ivyDeps = Agg(Deps.bsp4j, Deps.sbtTestInterface)
   }
 }
