@@ -16,6 +16,8 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
 
+      - uses: sbt/setup-sbt@v1
+
       - run:  ./mill 'integration.migrating[init].local.server.testOnly' mill.integration.MillInitSbtGatlingTests
 
 
