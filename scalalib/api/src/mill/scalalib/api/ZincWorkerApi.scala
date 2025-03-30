@@ -38,6 +38,7 @@ trait ZincWorkerApi {
   /**
    * Find main classes by inspecting the Zinc compilation analysis file.
    */
+  @deprecated("Use ClassgraphWorker.discoverMainClasses instead", "Mill 0.13.0-M1")
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String]
 
   def docJar(
@@ -51,5 +52,6 @@ trait ZincWorkerApi {
   /**
    * Discover main classes by inspecting the classpath.
    */
+  @deprecated("Use ClassgraphWorker.discoverMainClasses instead", "Mill 0.13.0-M1")
   def discoverMainClasses(classpath: Seq[os.Path]): Seq[String]
 }

@@ -1,16 +1,18 @@
 package mill.scalalib
 
 import java.lang.reflect.Modifier
+
 import mainargs.arg
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
 import mill.constants.ServerFiles
-import mill.define.{Command, Task}
+import mill.define.{Command, Task, Worker}
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
-
 import scala.util.control.NonFatal
+
+import mill.scalalib.classgraph.ClassgraphWorker
 
 trait RunModule extends WithZincWorker {
 
@@ -46,27 +48,27 @@ trait RunModule extends WithZincWorker {
   def mainClass: T[Option[String]] = None
 
   /**
-   * Same as [[allLocalMainClasses]], but only for modules with a custom
-   * JVM version configured
-   */
-  def allLocalMainClasses0: T[Seq[String]] = Task { Seq.empty[String] }
-
-  /**
    * All main classes detected in this module that can serve as program entrypoints
    */
   def allLocalMainClasses: T[Seq[String]] = Task {
-    if (zincWorker().javaHome().isEmpty) allLocalMainClasses0()
-    else {
-      Jvm.callProcess(
-        mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
-        classPath = zincWorker().classpath().map(_.path).toVector,
-        mainArgs = Seq(localRunClasspath().map(_.path).mkString(",")),
-        javaHome = zincWorker().javaHome().map(_.path),
-        stdin = os.Inherit,
-        stdout = os.Pipe,
-        cwd = Task.dest
-      ).out.lines()
-    }
+    classgraphWorker().discoverMainClasses(localRunClasspath().map(_.path))
+  }
+
+  def classgraphWorkerClasspath: T[Seq[PathRef]] = T {
+    zincWorker().defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-scalalib-classgraph-worker")
+    ))
+  }
+
+  def classgraphWorker: Worker[ClassgraphWorker] = Task.Worker {
+    val cp = classgraphWorkerClasspath().map(_.path)
+    Task.log.debug(s"Create classloader for classpath: ${cp}")
+    val cl = mill.util.Jvm.createClassLoader(cp, getClass().getClassLoader())
+    val klass = "mill.scalalib.classgraph.impl.ClassgraphWorkerImpl"
+    Task.log.debug(s"Loading class: ${klass}")
+    val cls = cl.loadClass(klass)
+    Task.log.debug(s"Instantiating class: ${klass}")
+    cls.getConstructor().newInstance().asInstanceOf[ClassgraphWorker]
   }
 
   def finalMainClassOpt: T[Either[String, String]] = Task {
@@ -78,8 +80,8 @@ trait RunModule extends WithZincWorker {
           case Seq(main) => Right(main)
           case mains =>
             Left(
-              s"Multiple main classes found (${mains.mkString(",")}) " +
-                "please explicitly specify which one to use by overriding `mainClass` " +
+              s"Multiple main classes found (${mains.mkString(",")}). " +
+                "Please explicitly specify which one to use by overriding `mainClass` " +
                 "or using `runMain <main-class> <...args>` instead of `run`"
             )
         }
@@ -340,4 +342,5 @@ object RunModule {
       }
     }
   }
+
 }

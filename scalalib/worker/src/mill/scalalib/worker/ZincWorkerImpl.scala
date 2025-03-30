@@ -400,6 +400,7 @@ class ZincWorkerImpl(
     DiscoverMainClassesMain(classpath)
   }
 
+  @deprecated("We aim to replace this the other overload (a more generic implementation)")
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String] = {
     def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
 

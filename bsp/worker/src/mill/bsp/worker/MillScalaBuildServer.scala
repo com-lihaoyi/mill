@@ -90,7 +90,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     ) {
       case (ev, state, id, m: JavaModule, (worker, compile, forkArgs, forkEnv)) =>
         // We find all main classes, although we could also find only the configured one
-        val mainClasses = worker.discoverMainClasses(compile)
+        val mainClasses = worker.discoverMainClasses(Seq(compile.classes.path))
         // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
         val items = mainClasses.map { mc =>
           val scalaMc = new ScalaMainClass(mc, Seq().asJava, forkArgs.asJava)
