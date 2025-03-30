@@ -67,8 +67,11 @@ import scala.util.Using
         new ClassPathFactory(settings, registry).classesInExpandedPath(cp)
       )
 
+      // always include the Java default package
+      val defaultPackage = ""
+
       val mainClasses = for {
-        foundPackage <- recursive("", (p: String) => path.packages(p).map(_.name))
+        foundPackage <- defaultPackage +: recursive("", (p: String) => path.packages(p).map(_.name))
         classFile <- path.classes(foundPackage)
         path0 = os.Path(classFile.file.file)
         // In Scala 3 sometimes `.classes` returns `.tasty` files rather than
