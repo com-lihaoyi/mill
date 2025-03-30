@@ -163,7 +163,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
 }
 
 // relatively large libraries
-+ // For some reason this passes locally and fails in CI
+// For some reason this passes locally and fails in CI
 //object MillInitSbtGatlingTests extends BuildGenTestSuite {
 //  def tests: Tests = Tests {
 //    /*
