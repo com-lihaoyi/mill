@@ -1,9 +1,20 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, JvmBuildServer, JvmCompileClasspathItem, JvmCompileClasspathParams, JvmCompileClasspathResult, JvmEnvironmentItem, JvmMainClass, JvmRunEnvironmentParams, JvmRunEnvironmentResult, JvmTestEnvironmentParams, JvmTestEnvironmentResult}
+import ch.epfl.scala.bsp4j.{
+  BuildTargetIdentifier,
+  JvmBuildServer,
+  JvmCompileClasspathItem,
+  JvmCompileClasspathParams,
+  JvmCompileClasspathResult,
+  JvmEnvironmentItem,
+  JvmMainClass,
+  JvmRunEnvironmentParams,
+  JvmRunEnvironmentResult,
+  JvmTestEnvironmentParams,
+  JvmTestEnvironmentResult
+}
 import mill.Task
 import mill.bsp.worker.Utils.sanitizeUri
-import mill.scalalib.api.CompilationResult
 import mill.scalalib.{JavaModule, RunModule, TestModule}
 import java.util.concurrent.CompletableFuture
 
