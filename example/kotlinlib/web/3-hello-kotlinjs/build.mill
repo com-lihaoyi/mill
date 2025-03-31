@@ -11,13 +11,15 @@ package build
 import mill._, kotlinlib._, kotlinlib.js._
 
 object `package` extends RootModule with KotlinJsModule {
-  def moduleKind = ModuleKind.ESModule
-  def kotlinVersion = "1.9.25"
-  def kotlinJsRunTarget = Some(RunTarget.Node)
-  def ivyDeps = Seq(
+  override def kotlinJsModuleKind = ModuleKind.ESModule
+  override def kotlinVersion = "1.9.25"
+  override def kotlinJsRunTarget = Some(RunTarget.Node)
+  override def ivyDeps = Seq(
     ivy"org.jetbrains.kotlinx:kotlinx-html-js:0.11.0"
   )
-  object test extends KotlinJsModule with KotestTests
+  object test extends KotlinJsModule with KotestTests {
+    override def kotestVersion = "5.9.1"
+  }
 }
 
 /** Usage
