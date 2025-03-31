@@ -24,7 +24,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
    Seq(androidProcessResources()) ++ super.kspClasspath()
 
   def processorPath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       kotlinSymbolProcessors().flatMap {
         dep =>
           if (dep.dep.module.name.value == "hilt-android-compiler" && 
@@ -141,6 +141,8 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       .filter(_.ext == "java")
 
     val kotlinClasses = Task.dest / "kotlin"
+
+    os.makeDir.all(kotlinClasses)
 
     val kotlinClasspath = compileClasspath() :+ androidProcessResources()
 
