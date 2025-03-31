@@ -174,7 +174,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
       PathRef(dir)
     }
 
-
     override def androidEnableCompose: T[Boolean] = Task { true }
 
     /**
