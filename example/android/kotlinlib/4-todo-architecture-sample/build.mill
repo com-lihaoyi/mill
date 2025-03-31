@@ -79,7 +79,7 @@ object app extends AndroidAppKotlinModule with AndroidHiltSupport {
     ivy"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  def androidKotlinComposeCompilerPlugin: T[Seq[Dep]] = Task {
+  def kotlincPluginIvyDeps: T[Seq[Dep]] = Task {
     Seq(
       ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:${kotlinVersion()}"
     )
