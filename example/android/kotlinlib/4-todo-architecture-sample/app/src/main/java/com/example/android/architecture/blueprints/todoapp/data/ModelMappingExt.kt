@@ -74,7 +74,11 @@ fun LocalTask.toNetwork() = NetworkTask(
     id = id,
     title = title,
     shortDescription = description,
-    status = if (isCompleted) { TaskStatus.COMPLETE } else { TaskStatus.ACTIVE }
+    status = if (isCompleted) {
+        TaskStatus.COMPLETE
+    } else {
+        TaskStatus.ACTIVE
+    },
 )
 
 fun List<LocalTask>.toNetwork() = map(LocalTask::toNetwork)

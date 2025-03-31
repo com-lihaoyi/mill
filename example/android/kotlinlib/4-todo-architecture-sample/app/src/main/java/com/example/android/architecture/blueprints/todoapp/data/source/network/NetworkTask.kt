@@ -28,10 +28,10 @@ data class NetworkTask(
     val title: String,
     val shortDescription: String,
     val priority: Int? = null,
-    val status: TaskStatus = TaskStatus.ACTIVE
+    val status: TaskStatus = TaskStatus.ACTIVE,
 )
 
 enum class TaskStatus {
     ACTIVE,
-    COMPLETE
+    COMPLETE,
 }

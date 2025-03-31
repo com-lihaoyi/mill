@@ -30,7 +30,7 @@ class TodoApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-       // TODO mill support for build config if (BuildConfig.DEBUG)
+        // TODO mill support for build config if (BuildConfig.DEBUG)
         Timber.plant(DebugTree())
     }
 }

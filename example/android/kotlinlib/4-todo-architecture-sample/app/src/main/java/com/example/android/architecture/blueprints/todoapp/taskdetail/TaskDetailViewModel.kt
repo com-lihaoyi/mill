@@ -42,7 +42,7 @@ data class TaskDetailUiState(
     val task: Task? = null,
     val isLoading: Boolean = false,
     val userMessage: Int? = null,
-    val isTaskDeleted: Boolean = false
+    val isTaskDeleted: Boolean = false,
 )
 
 /**
@@ -51,7 +51,7 @@ data class TaskDetailUiState(
 @HiltViewModel
 class TaskDetailViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     val taskId: String = savedStateHandle[TodoDestinationsArgs.TASK_ID_ARG]!!
@@ -64,7 +64,10 @@ class TaskDetailViewModel @Inject constructor(
         .catch { emit(Async.Error(R.string.loading_task_error)) }
 
     val uiState: StateFlow<TaskDetailUiState> = combine(
-        _userMessage, _isLoading, _isTaskDeleted, _taskAsync
+        _userMessage,
+        _isLoading,
+        _isTaskDeleted,
+        _taskAsync,
     ) { userMessage, isLoading, isTaskDeleted, taskAsync ->
         when (taskAsync) {
             Async.Loading -> {
@@ -73,7 +76,7 @@ class TaskDetailViewModel @Inject constructor(
             is Async.Error -> {
                 TaskDetailUiState(
                     userMessage = taskAsync.errorMessage,
-                    isTaskDeleted = isTaskDeleted
+                    isTaskDeleted = isTaskDeleted,
                 )
             }
             is Async.Success -> {
@@ -81,7 +84,7 @@ class TaskDetailViewModel @Inject constructor(
                     task = taskAsync.data,
                     isLoading = isLoading,
                     userMessage = userMessage,
-                    isTaskDeleted = isTaskDeleted
+                    isTaskDeleted = isTaskDeleted,
                 )
             }
         }
@@ -89,7 +92,7 @@ class TaskDetailViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = WhileUiSubscribed,
-            initialValue = TaskDetailUiState(isLoading = true)
+            initialValue = TaskDetailUiState(isLoading = true),
         )
 
     fun deleteTask() = viewModelScope.launch {

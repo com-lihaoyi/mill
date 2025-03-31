@@ -18,7 +18,6 @@ package com.example.android.architecture.blueprints.todoapp.statistics
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -45,7 +44,7 @@ fun StatisticsScreen(
     openDrawer: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: StatisticsViewModel = hiltViewModel(),
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -60,7 +59,7 @@ fun StatisticsScreen(
             activeTasksPercent = uiState.activeTasksPercent,
             completedTasksPercent = uiState.completedTasksPercent,
             onRefresh = { viewModel.refresh() },
-            modifier = modifier.padding(paddingValues)
+            modifier = modifier.padding(paddingValues),
         )
     }
 }
@@ -72,7 +71,7 @@ private fun StatisticsContent(
     activeTasksPercent: Float,
     completedTasksPercent: Float,
     onRefresh: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val commonModifier = modifier
         .fillMaxSize()
@@ -86,22 +85,22 @@ private fun StatisticsContent(
         emptyContent = {
             Text(
                 text = stringResource(id = R.string.statistics_no_tasks),
-                modifier = commonModifier
+                modifier = commonModifier,
             )
-        }
+        },
     ) {
         Column(
             commonModifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
         ) {
             if (!loading) {
                 Text(stringResource(id = R.string.statistics_active_tasks, activeTasksPercent))
                 Text(
                     stringResource(
                         id = R.string.statistics_completed_tasks,
-                        completedTasksPercent
-                    )
+                        completedTasksPercent,
+                    ),
                 )
             }
         }
@@ -117,7 +116,7 @@ fun StatisticsContentPreview() {
             empty = false,
             activeTasksPercent = 80f,
             completedTasksPercent = 20f,
-            onRefresh = { }
+            onRefresh = { },
         )
     }
 }

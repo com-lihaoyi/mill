@@ -123,7 +123,7 @@ class AppNavigationTest {
         composeTestRule.onNodeWithText(activity.getString(R.string.list_title)).assertIsDisplayed()
         assertTrue(
             composeTestRule.onAllNodesWithText(activity.getString(R.string.statistics_title))
-                .fetchSemanticsNodes().isNotEmpty()
+                .fetchSemanticsNodes().isNotEmpty(),
         )
     }
 

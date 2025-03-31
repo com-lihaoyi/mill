@@ -263,7 +263,7 @@ class TasksScreenTest {
                         onUserMessageDisplayed = { },
                         onAddTask = { },
                         onTaskClick = { },
-                        openDrawer = { }
+                        openDrawer = { },
                     )
                 }
             }

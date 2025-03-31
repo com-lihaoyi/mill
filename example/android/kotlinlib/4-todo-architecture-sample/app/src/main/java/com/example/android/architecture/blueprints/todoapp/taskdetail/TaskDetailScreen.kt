@@ -56,8 +56,7 @@ fun TaskDetailScreen(
     onDeleteTask: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TaskDetailViewModel = hiltViewModel(),
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
-
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -67,7 +66,7 @@ fun TaskDetailScreen(
             SmallFloatingActionButton(onClick = { onEditTask(viewModel.taskId) }) {
                 Icon(Icons.Filled.Edit, stringResource(id = R.string.edit_task))
             }
-        }
+        },
     ) { paddingValues ->
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -77,7 +76,7 @@ fun TaskDetailScreen(
             task = uiState.task,
             onRefresh = viewModel::refresh,
             onTaskCheck = viewModel::setCompleted,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(paddingValues),
         )
 
         // Check for user messages to display on the screen
@@ -105,7 +104,7 @@ private fun EditTaskContent(
     task: Task?,
     onTaskCheck: (Boolean) -> Unit,
     onRefresh: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val screenPadding = Modifier.padding(
         horizontal = dimensionResource(id = R.dimen.horizontal_margin),
@@ -121,10 +120,10 @@ private fun EditTaskContent(
         emptyContent = {
             Text(
                 text = stringResource(id = R.string.no_data),
-                modifier = commonModifier
+                modifier = commonModifier,
             )
         },
-        onRefresh = onRefresh
+        onRefresh = onRefresh,
     ) {
         Column(commonModifier.verticalScroll(rememberScrollState())) {
             Row(
@@ -156,13 +155,12 @@ private fun EditTaskContentPreview() {
                 title = "Title",
                 description = "Description",
                 isCompleted = false,
-                id = "ID"
+                id = "ID",
             ),
             onTaskCheck = { },
-            onRefresh = { }
+            onRefresh = { },
         )
     }
-
 }
 
 @Preview
@@ -176,10 +174,10 @@ private fun EditTaskContentTaskCompletedPreview() {
                 title = "Title",
                 description = "Description",
                 isCompleted = false,
-                id = "ID"
+                id = "ID",
             ),
             onTaskCheck = { },
-            onRefresh = { }
+            onRefresh = { },
         )
     }
 }
@@ -195,10 +193,10 @@ private fun EditTaskContentEmptyPreview() {
                 title = "Title",
                 description = "Description",
                 isCompleted = false,
-                id = "ID"
+                id = "ID",
             ),
             onTaskCheck = { },
-            onRefresh = { }
+            onRefresh = { },
         )
     }
 }

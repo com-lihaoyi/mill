@@ -12,7 +12,7 @@ fun TodoTheme(content: @Composable () -> Unit) {
             primary = Color(0xFF263238),
             secondary = Color(0xFF2E7D32),
             tertiary = Color(0xFFCCCCCC),
-        )
+        ),
     ) {
         content()
     }

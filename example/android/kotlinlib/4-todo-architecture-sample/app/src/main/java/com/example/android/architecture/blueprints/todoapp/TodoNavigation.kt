@@ -65,7 +65,7 @@ class TodoNavigationActions(private val navController: NavHostController) {
         navController.navigate(
             TASKS_SCREEN.let {
                 if (userMessage != 0) "$it?$USER_MESSAGE_ARG=$userMessage" else it
-            }
+            },
         ) {
             popUpTo(navController.graph.findStartDestination().id) {
                 inclusive = !navigatesFromDrawer
@@ -100,7 +100,7 @@ class TodoNavigationActions(private val navController: NavHostController) {
         navController.navigate(
             "$ADD_EDIT_TASK_SCREEN/$title".let {
                 if (taskId != null) "$it?$TASK_ID_ARG=$taskId" else it
-            }
+            },
         )
     }
 }

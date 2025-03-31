@@ -112,9 +112,7 @@ class AddEditTaskScreenTest {
         assertEquals("description", tasks[0].description)
     }
 
-    private fun findTextField(text: Int): SemanticsNodeInteraction {
-        return composeTestRule.onNode(
-            hasSetTextAction() and hasText(activity.getString(text))
-        )
-    }
+    private fun findTextField(text: Int): SemanticsNodeInteraction = composeTestRule.onNode(
+        hasSetTextAction() and hasText(activity.getString(text)),
+    )
 }

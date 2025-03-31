@@ -56,13 +56,11 @@ object DatabaseModule {
 
     @Singleton
     @Provides
-    fun provideDataBase(@ApplicationContext context: Context): ToDoDatabase {
-        return Room.databaseBuilder(
-            context.applicationContext,
-            ToDoDatabase::class.java,
-            "Tasks.db"
-        ).build()
-    }
+    fun provideDataBase(@ApplicationContext context: Context): ToDoDatabase = Room.databaseBuilder(
+        context.applicationContext,
+        ToDoDatabase::class.java,
+        "Tasks.db",
+    ).build()
 
     @Provides
     fun provideTaskDao(database: ToDoDatabase): TaskDao = database.taskDao()

@@ -57,7 +57,7 @@ fun TasksTopAppBar(
     onFilterActiveTasks: () -> Unit,
     onFilterCompletedTasks: () -> Unit,
     onClearCompletedTasks: () -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
 ) {
     TopAppBar(
         title = { Text(text = stringResource(id = R.string.app_name)) },
@@ -70,7 +70,7 @@ fun TasksTopAppBar(
             FilterTasksMenu(onFilterAllTasks, onFilterActiveTasks, onFilterCompletedTasks)
             MoreTasksMenu(onClearCompletedTasks, onRefresh)
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
@@ -78,24 +78,36 @@ fun TasksTopAppBar(
 private fun FilterTasksMenu(
     onFilterAllTasks: () -> Unit,
     onFilterActiveTasks: () -> Unit,
-    onFilterCompletedTasks: () -> Unit
+    onFilterCompletedTasks: () -> Unit,
 ) {
     TopAppBarDropdownMenu(
         iconContent = {
             Icon(
                 painterResource(id = R.drawable.ic_filter_list),
-                stringResource(id = R.string.menu_filter)
+                stringResource(id = R.string.menu_filter),
             )
-        }
+        },
     ) { closeMenu ->
-        DropdownMenuItem(onClick = { onFilterAllTasks(); closeMenu() },
-            text = { Text(text = stringResource(id = R.string.nav_all)) }
+        DropdownMenuItem(
+            onClick = {
+                onFilterAllTasks()
+                closeMenu()
+            },
+            text = { Text(text = stringResource(id = R.string.nav_all)) },
         )
-        DropdownMenuItem(onClick = { onFilterActiveTasks(); closeMenu() },
-            text = { Text(text = stringResource(id = R.string.nav_active)) }
+        DropdownMenuItem(
+            onClick = {
+                onFilterActiveTasks()
+                closeMenu()
+            },
+            text = { Text(text = stringResource(id = R.string.nav_active)) },
         )
-        DropdownMenuItem(onClick = { onFilterCompletedTasks(); closeMenu() },
-            text = { Text(text = stringResource(id = R.string.nav_completed)) }
+        DropdownMenuItem(
+            onClick = {
+                onFilterCompletedTasks()
+                closeMenu()
+            },
+            text = { Text(text = stringResource(id = R.string.nav_completed)) },
         )
     }
 }
@@ -103,20 +115,26 @@ private fun FilterTasksMenu(
 @Composable
 private fun MoreTasksMenu(
     onClearCompletedTasks: () -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
 ) {
     TopAppBarDropdownMenu(
         iconContent = {
             Icon(Icons.Filled.MoreVert, stringResource(id = R.string.menu_more))
-        }
+        },
     ) { closeMenu ->
         DropdownMenuItem(
             text = { Text(text = stringResource(id = R.string.menu_clear)) },
-            onClick = { onClearCompletedTasks(); closeMenu() }
+            onClick = {
+                onClearCompletedTasks()
+                closeMenu()
+            },
         )
         DropdownMenuItem(
             text = { Text(text = stringResource(id = R.string.refresh)) },
-            onClick = { onRefresh(); closeMenu() }
+            onClick = {
+                onRefresh()
+                closeMenu()
+            },
         )
     }
 }
@@ -124,7 +142,7 @@ private fun MoreTasksMenu(
 @Composable
 private fun TopAppBarDropdownMenu(
     iconContent: @Composable () -> Unit,
-    content: @Composable ColumnScope.(() -> Unit) -> Unit
+    content: @Composable ColumnScope.(() -> Unit) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -135,7 +153,7 @@ private fun TopAppBarDropdownMenu(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.wrapContentSize(Alignment.TopEnd)
+            modifier = Modifier.wrapContentSize(Alignment.TopEnd),
         ) {
             content { expanded = !expanded }
         }
@@ -151,7 +169,7 @@ fun StatisticsTopAppBar(openDrawer: () -> Unit) {
                 Icon(Icons.Filled.Menu, stringResource(id = R.string.open_drawer))
             }
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
@@ -171,7 +189,7 @@ fun TaskDetailTopAppBar(onBack: () -> Unit, onDelete: () -> Unit) {
                 Icon(Icons.Filled.Delete, stringResource(id = R.string.menu_delete_task))
             }
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
@@ -184,7 +202,7 @@ fun AddEditTaskTopAppBar(@StringRes title: Int, onBack: () -> Unit) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(id = R.string.menu_back))
             }
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 

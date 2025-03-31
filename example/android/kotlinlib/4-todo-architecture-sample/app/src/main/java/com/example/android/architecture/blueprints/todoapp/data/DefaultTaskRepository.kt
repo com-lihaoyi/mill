@@ -67,7 +67,7 @@ class DefaultTaskRepository @Inject constructor(
     override suspend fun updateTask(taskId: String, title: String, description: String) {
         val task = getTask(taskId)?.copy(
             title = title,
-            description = description
+            description = description,
         ) ?: throw Exception("Task (id $taskId) not found")
 
         localDataSource.upsert(task.toLocal())
@@ -83,11 +83,9 @@ class DefaultTaskRepository @Inject constructor(
         }
     }
 
-    override fun getTasksStream(): Flow<List<Task>> {
-        return localDataSource.observeAll().map { tasks ->
-            withContext(dispatcher) {
-                tasks.toExternal()
-            }
+    override fun getTasksStream(): Flow<List<Task>> = localDataSource.observeAll().map { tasks ->
+        withContext(dispatcher) {
+            tasks.toExternal()
         }
     }
 
@@ -95,9 +93,7 @@ class DefaultTaskRepository @Inject constructor(
         refresh()
     }
 
-    override fun getTaskStream(taskId: String): Flow<Task?> {
-        return localDataSource.observeById(taskId).map { it.toExternal() }
-    }
+    override fun getTaskStream(taskId: String): Flow<Task?> = localDataSource.observeById(taskId).map { it.toExternal() }
 
     /**
      * Get a Task with the given ID. Will return null if the task cannot be found.

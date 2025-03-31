@@ -66,12 +66,14 @@ trait AndroidAppModule extends AndroidModule {
 
     val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
     // add the application package
-    val manifestWithPackage = manifestElem % Attribute(None, "package", Text(androidApplicationNamespace), Null)
+    val manifestWithPackage =
+      manifestElem % Attribute(None, "package", Text(androidApplicationNamespace), Null)
     val generatedManifestPath = Task.dest / "AndroidManifest.xml"
     os.write(generatedManifestPath, manifestWithPackage.mkString)
 
     PathRef(generatedManifestPath)
   }
+
   /**
    * Specifies the file format(s) of the lint report. Available file formats are defined in AndroidLintReportFormat,
    * such as [[AndroidLintReportFormat.Html]], [[AndroidLintReportFormat.Xml]], [[AndroidLintReportFormat.Txt]],

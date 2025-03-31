@@ -64,7 +64,7 @@ fun AddEditTaskScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AddEditTaskViewModel = hiltViewModel(),
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -74,7 +74,7 @@ fun AddEditTaskScreen(
             SmallFloatingActionButton(onClick = viewModel::saveTask) {
                 Icon(Icons.Filled.Done, stringResource(id = R.string.cd_save_task))
             }
-        }
+        },
     ) { paddingValues ->
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -84,7 +84,7 @@ fun AddEditTaskScreen(
             description = uiState.description,
             onTitleChanged = viewModel::updateTitle,
             onDescriptionChanged = viewModel::updateDescription,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(paddingValues),
         )
 
         // Check if the task is saved and call onTaskUpdate event
@@ -112,7 +112,7 @@ private fun AddEditTaskContent(
     description: String,
     onTitleChanged: (String) -> Unit,
     onDescriptionChanged: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var isRefreshing by remember { mutableStateOf(false) }
     val refreshingState = rememberPullToRefreshState()
@@ -121,19 +121,19 @@ private fun AddEditTaskContent(
             isRefreshing = isRefreshing,
             state = refreshingState,
             onRefresh = { /* DO NOTHING */ },
-            content = { }
+            content = { },
         )
     } else {
         Column(
             modifier
                 .fillMaxWidth()
                 .padding(all = dimensionResource(id = R.dimen.horizontal_margin))
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
         ) {
             val textFieldColors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
-                cursorColor = MaterialTheme.colorScheme.onSecondary
+                cursorColor = MaterialTheme.colorScheme.onSecondary,
             )
             OutlinedTextField(
                 value = title,
@@ -142,13 +142,13 @@ private fun AddEditTaskContent(
                 placeholder = {
                     Text(
                         text = stringResource(id = R.string.title_hint),
-                        style = MaterialTheme.typography.headlineSmall
+                        style = MaterialTheme.typography.headlineSmall,
                     )
                 },
                 textStyle = MaterialTheme.typography.headlineSmall
                     .copy(fontWeight = FontWeight.Bold),
                 maxLines = 1,
-                colors = textFieldColors
+                colors = textFieldColors,
             )
             OutlinedTextField(
                 value = description,
@@ -157,7 +157,7 @@ private fun AddEditTaskContent(
                 modifier = Modifier
                     .height(350.dp)
                     .fillMaxWidth(),
-                colors = textFieldColors
+                colors = textFieldColors,
             )
         }
     }

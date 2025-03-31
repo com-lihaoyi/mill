@@ -67,7 +67,7 @@ class TaskDetailScreenTest {
         // GIVEN - Add active (incomplete) task to the DB
         val activeTaskId = repository.createTask(
             title = "Active Task",
-            description = "AndroidX Rocks"
+            description = "AndroidX Rocks",
         )
 
         // WHEN - Details screen is opened
@@ -105,7 +105,7 @@ class TaskDetailScreenTest {
                     TaskDetailScreen(
                         viewModel = TaskDetailViewModel(
                             repository,
-                            SavedStateHandle(mapOf("taskId" to activeTaskId))
+                            SavedStateHandle(mapOf("taskId" to activeTaskId)),
                         ),
                         onEditTask = { /*TODO*/ },
                         onBack = { },
