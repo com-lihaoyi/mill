@@ -104,6 +104,6 @@ object `package` extends RootModule with build.MillStableScalaModule {
 
   object `classgraph-worker` extends build.MillPublishScalaModule {
     def moduleDeps = Seq(api, build.main.util)
-    def ivyDeps = Agg(build.Deps.classpgraph)
+    def ivyDeps = Agg(build.Deps.classgraph)
   }
 }

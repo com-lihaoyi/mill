@@ -127,7 +127,7 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
-  val classpgraph = ivy"io.github.classgraph:classgraph:4.8.179"
+  val classgraph = ivy"io.github.classgraph:classgraph:4.8.179"
   val coursierVersion = "2.1.25-M4"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierInterface = ivy"io.get-coursier:interface:1.0.29-M1"
