@@ -48,7 +48,7 @@ trait RunModule extends WithZincWorker {
   def mainClass: T[Option[String]] = None
 
   /**
-   * All main classes detected in this module that can serve as program entrypoints
+   * All main classes detected in this module that can serve as program entry-points.
    */
   def allLocalMainClasses: T[Seq[String]] = Task {
     classgraphWorker().discoverMainClasses(localRunClasspath().map(_.path))
@@ -68,7 +68,17 @@ trait RunModule extends WithZincWorker {
     Task.log.debug(s"Loading class: ${klass}")
     val cls = cl.loadClass(klass)
     Task.log.debug(s"Instantiating class: ${klass}")
-    cls.getConstructor().newInstance().asInstanceOf[ClassgraphWorker]
+    val worker = cls.getConstructor().newInstance().asInstanceOf[ClassgraphWorker]
+
+    object Worker extends ClassgraphWorker with AutoCloseable {
+      override def discoverMainClasses(classpath: Seq[Path])(implicit ctx: Ctx): Seq[String] =
+        worker.discoverMainClasses(classpath)
+
+      override def close(): Unit = {
+        cl.close()
+      }
+    }
+    Worker
   }
 
   def finalMainClassOpt: T[Either[String, String]] = Task {
