@@ -1,7 +1,12 @@
 package mill.runner.client;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Locale;
 import org.fusesource.jansi.internal.OSInfo;
 
 /**
@@ -20,12 +25,20 @@ import org.fusesource.jansi.internal.OSInfo;
 final class JansiLoader {
 
   private String jansiVersion;
+  private Path millJansiLibLocation;
 
   JansiLoader(String jansiVersion) {
     this.jansiVersion = jansiVersion;
+    boolean isWindows = System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
+    Path baseDir;
+    if (isWindows)
+      baseDir = Paths.get(System.getProperty("user.home")).resolve(".mill/cache/");
+    else
+      baseDir = Paths.get(System.getenv("UserProfile")).resolve(".cache/mill/");
+    this.millJansiLibLocation = baseDir.resolve("jansi-" + jansiVersion + "/" + System.mapLibraryName("jansi"));
   }
 
-  private String jansiLibPathInArchive() {
+  private String jansiLibResourcePath() {
     return "org/fusesource/jansi/internal/native/" + OSInfo.getNativeLibFolderPathForCurrentOS()
         + "/"
         // Replacing '.dylib' by '.jnilib' is necessary, as jansi uses the latter extension on
@@ -35,35 +48,24 @@ final class JansiLoader {
         + System.mapLibraryName("jansi").replace(".dylib", ".jnilib");
   }
 
-  File tryLoadFast() {
-    File archiveCacheLocation;
-    try {
-      archiveCacheLocation = coursier.paths.CachePath.defaultArchiveCacheDirectory();
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
-    File jansiLib = new File(
-        archiveCacheLocation,
-        "https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/" + jansiVersion + "/jansi-"
-            + jansiVersion + ".jar/" + jansiLibPathInArchive());
-    return jansiLib.exists() ? jansiLib : null;
+  Path tryLoadFast() {
+    return Files.exists(millJansiLibLocation) ? millJansiLibLocation : null;
   }
 
   // If the jansi native library isn't in cache (tryLoadFast returns null), loadSlow
-  // downloads it using coursier, which is more heavyweight.
+  // reads it from the resources and writes it on disk, which is more heavyweight.
   // That's the slow path of our jansi-loading logic, that we try to avoid when we can.
-  File loadSlow() {
-    // coursierapi.Logger.progressBars actually falls back to non-ANSI logging when running
-    // without a terminal
-    coursierapi.Cache cache =
-        coursierapi.Cache.create().withLogger(coursierapi.Logger.progressBars());
-    coursierapi.ArchiveCache archiveCache = coursierapi.ArchiveCache.create().withCache(cache);
-    File jansiDir = archiveCache.get(
-        coursierapi.Artifact.of("https://repo1.maven.org/maven2/org/fusesource/jansi/jansi/"
-            + jansiVersion + "/jansi-" + jansiVersion + ".jar"));
-    // Should have the exact same value as jansiLib computed in tryLoadFast.
-    // That way, tryLoadFast finds this file first upon the next Mill startup.
-    return new File(jansiDir, jansiLibPathInArchive());
+  Path loadSlow() {
+    try {
+      Files.createDirectories(millJansiLibLocation.getParent());
+      try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(jansiLibResourcePath());
+        OutputStream os = Files.newOutputStream(millJansiLibLocation)) {
+        is.transferTo(os);
+      }
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+    return millJansiLibLocation;
   }
 
   private static boolean initialized = false;
@@ -76,11 +78,11 @@ final class JansiLoader {
     if (initialized) return;
 
     JansiLoader jansiLoader = new JansiLoader(mill.runner.client.Versions.jansiVersion());
-    File jansiLib = jansiLoader.tryLoadFast();
+    Path jansiLib = jansiLoader.tryLoadFast();
     if (jansiLib == null) jansiLib = jansiLoader.loadSlow();
 
     // We have the jansi native library, we proceed to load it.
-    System.load(jansiLib.getAbsolutePath());
+    System.load(jansiLib.toString());
 
     initialized = true;
 
