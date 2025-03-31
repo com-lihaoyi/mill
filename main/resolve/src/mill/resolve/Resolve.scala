@@ -16,6 +16,8 @@ import mill.define.{
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
 
+import scala.annotation.nowarn
+
 object Resolve {
   object Segments extends Resolve[Segments] {
     private[mill] def handleResolved(
@@ -229,6 +231,25 @@ trait Resolve[T] {
       cache: ResolveCore.Cache
   ): Either[String, Seq[T]]
 
+  @nowarn("cat=deprecation")
+  def resolve(
+      rootModule: BaseModule,
+      scriptArgs: Seq[String],
+      selectMode: mill.define.SelectMode,
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
+  ): Either[String, List[T]] = {
+    resolve0(
+      rootModule,
+      scriptArgs,
+      selectMode match {
+        case mill.define.SelectMode.Multi => SelectMode.Multi
+        case mill.define.SelectMode.Separated => SelectMode.Separated
+      },
+      allowPositionalCommandArgs,
+      resolveToModuleTasks
+    )
+  }
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
@@ -239,6 +260,23 @@ trait Resolve[T] {
     resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
 
+  @nowarn("cat=deprecation")
+  def resolve(
+      rootModule: BaseModule,
+      scriptArgs: Seq[String],
+      selectMode: mill.define.SelectMode
+  ): Either[String, List[T]] = {
+    resolve0(
+      rootModule,
+      scriptArgs,
+      selectMode match {
+        case mill.define.SelectMode.Multi => SelectMode.Multi
+        case mill.define.SelectMode.Separated => SelectMode.Separated
+      },
+      false,
+      false
+    )
+  }
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],

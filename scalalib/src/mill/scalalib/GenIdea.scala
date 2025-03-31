@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.Task
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 
 @deprecated("Use mill.idea.GenIdea instead", "Mill 0.11.2")
 object GenIdea extends ExternalModule {
