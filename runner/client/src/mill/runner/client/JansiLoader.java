@@ -32,9 +32,9 @@ final class JansiLoader {
     boolean isWindows = System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
     Path baseDir;
     if (isWindows)
-      baseDir = Paths.get(System.getProperty("user.home")).resolve(".mill/cache/");
+      baseDir = Paths.get(System.getenv("UserProfile")).resolve(".mill/cache/");
     else
-      baseDir = Paths.get(System.getenv("UserProfile")).resolve(".cache/mill/");
+      baseDir = Paths.get(System.getProperty("user.home")).resolve(".cache/mill/");
     this.millJansiLibLocation = baseDir.resolve("jansi-" + jansiVersion + "/" + System.mapLibraryName("jansi"));
   }
 
