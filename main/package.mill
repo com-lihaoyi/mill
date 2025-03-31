@@ -24,6 +24,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     build.Deps.logback,
     build.Deps.jgraphtCore,
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1"
+      .exclude("guru.nidi.com.eclipsesource.j2v8" -> "j2v8_macosx_x86_64")
   )
 
   def compileIvyDeps = Task {
