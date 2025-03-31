@@ -1,22 +1,22 @@
 package mill.init
 
-import coursier.LocalRepositories
-import coursier.core.Repository
-import coursier.maven.MavenRepository
-import mill.api.{Loose, PathRef, Result}
+import mill.api.PathRef
 import mill.main.buildgen.BuildGenUtil
+import mill.scalalib.{CoursierModule, Dep}
 import mill.scalalib.scalafmt.ScalafmtWorkerModule
-import mill.util.{Jvm, Util}
-import mill.{Command, T, Task, TaskModule}
-
-import scala.util.control.NoStackTrace
+import mill.util.Jvm
+import mill.{Agg, Command, T, Task, TaskModule}
 
 @mill.api.experimental
-trait BuildGenModule extends TaskModule {
+trait BuildGenModule extends CoursierModule with TaskModule {
 
   def defaultCommandName(): String = "init"
 
-  def buildGenClasspath: T[Loose.Agg[PathRef]]
+  def buildGenDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+
+  def buildGenClasspath: T[Agg[PathRef]] = Task {
+    defaultResolver().classpath(buildGenDeps())
+  }
 
   def buildGenMainClass: T[String]
 
@@ -48,18 +48,3 @@ trait BuildGenModule extends TaskModule {
     }
   }
 }
-@mill.api.experimental
-object BuildGenModule {
-
-  def millModule(artifact: String): Result[Loose.Agg[PathRef]] =
-    Util.millProjectModule(artifact, millRepositories)
-
-  def millRepositories: Seq[Repository] = Seq(
-    LocalRepositories.ivy2Local,
-    MavenRepository("https://repo1.maven.org/maven2"),
-    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-  )
-}
-
-@mill.api.experimental
-case class BuildGenException(message: String) extends Exception(message) with NoStackTrace

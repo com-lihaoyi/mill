@@ -35,10 +35,10 @@ trait CoursierModule extends mill.Module {
   }
 
   /**
-   * A `CoursierModule.Resolver` to resolve dependencies.
+   * A [[CoursierModule.Resolver]] to resolve dependencies.
    *
-   * Unlike `defaultResolver`, this resolver can resolve Mill modules too
-   * (obtained via `JavaModule#coursierDependency`).
+   * Unlike [[defaultResolver]], this resolver can resolve Mill modules too
+   * (obtained via [[JavaModule.coursierDependency]]).
    *
    * @return `CoursierModule.Resolver` instance
    */

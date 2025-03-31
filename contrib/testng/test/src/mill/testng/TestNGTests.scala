@@ -1,9 +1,7 @@
-package mill
-package testng
+package mill.testng
 
-import mill.define.Target
-import mill.util.Util.millProjectModule
-import mill.scalalib._
+import mill.{Agg, Task}
+import mill.scalalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, _}
@@ -13,23 +11,13 @@ object TestNGTests extends TestSuite {
   object demo extends TestBaseModule with JavaModule {
 
     object test extends JavaTests {
-      def testngClasspath = Task {
-        millProjectModule(
-          "mill-contrib-testng",
-          repositoriesTask(),
-          artifactSuffix = ""
-        )
-      }
-
-      override def runClasspath: T[Seq[PathRef]] =
-        Task { super.runClasspath() ++ testngClasspath() }
-      override def ivyDeps = Task {
-        super.ivyDeps() ++
-          Agg(
-            ivy"org.testng:testng:6.11",
-            ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
-          )
-      }
+      override def runIvyDeps = super.runIvyDeps() ++ Seq(
+        Dep.millProjectModule("mill-contrib-testng", artifactSuffix = "")
+      )
+      override def ivyDeps = super.ivyDeps() ++ Seq(
+        ivy"org.testng:testng:6.11",
+        ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
+      )
       override def testFramework = Task {
         "mill.testng.TestNGFramework"
       }
