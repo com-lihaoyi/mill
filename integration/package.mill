@@ -118,6 +118,7 @@ object `package` extends RootModule {
     )
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {
+    def moduleDeps = super.moduleDeps ++ Seq(`bsp-util`)
     def mvnDeps = super.mvnDeps() ++ Agg(
       build.Deps.bsp4j
     )
@@ -129,5 +130,12 @@ object `package` extends RootModule {
     Task {
       PathRef(build.dist.installLocalTask(binFile = Task.Anon((Task.dest / name).toString()))())
     }
+  }
+
+  object `bsp-util` extends build.MillScalaModule {
+    def moduleDeps = Seq(build.main.test, build.runner) // , build.testkit)
+    def mvnDeps = super.mvnDeps() ++ Agg(
+      build.Deps.bsp4j
+    )
   }
 }
