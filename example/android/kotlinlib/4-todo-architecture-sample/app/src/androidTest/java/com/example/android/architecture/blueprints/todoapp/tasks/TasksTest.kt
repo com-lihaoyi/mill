@@ -297,15 +297,11 @@ class TasksTest {
         }
     }
 
-    private fun findTextField(textId: Int): SemanticsNodeInteraction {
-        return composeTestRule.onNode(
-            hasSetTextAction() and hasText(activity.getString(textId))
-        )
-    }
+    private fun findTextField(textId: Int): SemanticsNodeInteraction = composeTestRule.onNode(
+        hasSetTextAction() and hasText(activity.getString(textId)),
+    )
 
-    private fun findTextField(text: String): SemanticsNodeInteraction {
-        return composeTestRule.onNode(
-            hasSetTextAction() and hasText(text)
-        )
-    }
+    private fun findTextField(text: String): SemanticsNodeInteraction = composeTestRule.onNode(
+        hasSetTextAction() and hasText(text),
+    )
 }

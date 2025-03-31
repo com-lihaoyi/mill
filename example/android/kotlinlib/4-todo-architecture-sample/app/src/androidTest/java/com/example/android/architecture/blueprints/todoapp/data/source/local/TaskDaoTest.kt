@@ -42,9 +42,10 @@ class TaskDaoTest {
     fun initDb() {
         database = Room.inMemoryDatabaseBuilder(
             getApplicationContext(),
-            ToDoDatabase::class.java
+            ToDoDatabase::class.java,
         ).allowMainThreadQueries().build()
     }
+
     @Test
     fun insertTaskAndGetById() = runTest {
         // GIVEN - insert a task
@@ -83,7 +84,7 @@ class TaskDaoTest {
             title = "title2",
             description = "description2",
             isCompleted = true,
-            id = task.id
+            id = task.id,
         )
         database.taskDao().upsert(newTask)
 
@@ -134,7 +135,7 @@ class TaskDaoTest {
             title = "new title",
             description = "new description",
             isCompleted = true,
-            id = originalTask.id
+            id = originalTask.id,
         )
         database.taskDao().upsert(updatedTask)
 
@@ -153,7 +154,7 @@ class TaskDaoTest {
             title = "title",
             description = "description",
             id = "id",
-            isCompleted = true
+            isCompleted = true,
         )
         database.taskDao().upsert(task)
 
@@ -196,7 +197,7 @@ class TaskDaoTest {
                 description = "description",
                 id = "id",
                 isCompleted = false,
-            )
+            ),
         )
 
         // When deleting all tasks
@@ -211,7 +212,7 @@ class TaskDaoTest {
     fun deleteCompletedTasksAndGettingTasks() = runTest {
         // Given a completed task inserted
         database.taskDao().upsert(
-            LocalTask(title = "completed", description = "task", id = "id", isCompleted = true)
+            LocalTask(title = "completed", description = "task", id = "id", isCompleted = true),
         )
 
         // When deleting completed tasks

@@ -65,7 +65,7 @@ class DefaultTaskRepositoryTest {
             networkDataSource = networkDataSource,
             localDataSource = localDataSource,
             dispatcher = testDispatcher,
-            scope = testScope
+            scope = testScope,
         )
     }
 
@@ -144,14 +144,13 @@ class DefaultTaskRepositoryTest {
     }
 
     @Test
-    fun getTasks_WithRemoteDataSourceUnavailable_tasksAreRetrievedFromLocal() =
-        testScope.runTest {
-            // When the remote data source is unavailable
-            networkDataSource.tasks = null
+    fun getTasks_WithRemoteDataSourceUnavailable_tasksAreRetrievedFromLocal() = testScope.runTest {
+        // When the remote data source is unavailable
+        networkDataSource.tasks = null
 
-            // The repository fetches from the local source
-            assertThat(taskRepository.getTasks()).isEqualTo(localTasks.toExternal())
-        }
+        // The repository fetches from the local source
+        assertThat(taskRepository.getTasks()).isEqualTo(localTasks.toExternal())
+    }
 
     @Test(expected = Exception::class)
     fun getTasks_WithBothDataSourcesUnavailable_throwsError() = testScope.runTest {

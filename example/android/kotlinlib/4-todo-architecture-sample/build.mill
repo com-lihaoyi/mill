@@ -75,7 +75,6 @@ object app extends AndroidAppKotlinModule with AndroidHiltSupport {
 
   def kotlinSymbolProcessors: T[Agg[Dep]] = Agg(
     ivy"androidx.room:room-compiler:2.6.1",
-    ivy"androidx.room:room-ktx:2.6.1",
     ivy"com.google.dagger:hilt-android-compiler:2.56"
   )
 

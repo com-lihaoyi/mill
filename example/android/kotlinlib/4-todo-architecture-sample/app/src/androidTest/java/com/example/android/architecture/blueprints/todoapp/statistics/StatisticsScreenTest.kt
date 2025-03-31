@@ -75,7 +75,7 @@ class StatisticsScreenTest {
                 Surface {
                     StatisticsScreen(
                         openDrawer = { },
-                        viewModel = StatisticsViewModel(repository)
+                        viewModel = StatisticsViewModel(repository),
                     )
                 }
             }

@@ -11,8 +11,9 @@ import mill.util.Jvm
 import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.Cross
+import mill.define.{Cross, Task}
 import build.Deps
+import mill.javalib.android.AndroidSdkModule
 
 // plugins and dependencies
 import $meta._

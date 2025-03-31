@@ -1,10 +1,12 @@
 package mill.kotlinlib.android
 
 import mill.api.{PathRef, Result}
+import mill.define.ModuleRef
 import mill.kotlinlib.DepSyntax
-import mill.kotlinlib.android.AndroidHiltSupport.HiltGeneratedSources
+import mill.kotlinlib.android.AndroidHiltSupport.HiltGeneratedClasses
 import mill.kotlinlib.ksp.KspModule
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
+import mill.main.AndroidHiltModule
 import mill.{T, Task}
 import os.Path
 
@@ -21,14 +23,14 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
   override def generatedSources: T[Seq[PathRef]] = super[AndroidAppKotlinModule].generatedSources
 
   override def kspClasspath: T[Seq[PathRef]] =
-   Seq(androidProcessResources()) ++ super.kspClasspath()
+    Seq(androidProcessResources()) ++ super.kspClasspath()
 
-  def processorPath: T[Seq[PathRef]] = Task {
+  def androidHiltProcessorPath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       kotlinSymbolProcessors().flatMap {
         dep =>
-          if (dep.dep.module.name.value == "hilt-android-compiler" && 
-            dep.dep.module.organization.value == "com.google.dagger"
+          if (
+            dep.dep.module.name.value == "hilt-android-compiler"
           )
             Seq(
               dep,
@@ -48,57 +50,6 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     super.kotlinSymbolProcessorsResolved()
   }
 
-//  private def jetify(ref: PathRef, jetifierStandalonePath: PathRef)(implicit ctx: mill.api.Ctx): PathRef = {
-//    val baseName = ref.path.baseName
-//    val jetifiedBaseName = s"jetified-${baseName}"
-//    val destination = ref.path / os.up / s"${jetifiedBaseName}.${ref.path.ext}"
-//    val cliArgs = Seq(
-//      jetifierStandalonePath.path.toString,
-//      "-i",
-//      ref.path.toString,
-//      "-o",
-//      destination.toString
-//    )
-//    ctx.log.debug(s"Running ${cliArgs.mkString(" ")}")
-//    val standaloneJetifierOut = os.call(
-//      cliArgs,
-//      check = false
-//    )
-//
-//    if (standaloneJetifierOut.exitCode != 0) {
-//      ctx.log.debug(s"Ignoring jetification of ${ref.path}")
-//      ctx.log.debug(standaloneJetifierOut.out.text())
-//      ctx.log.debug(standaloneJetifierOut.err.text())
-//      ref
-//    } else {
-//      PathRef(destination)
-//    }
-//
-//  }
-
-  def jetifierStandalonePath: T[PathRef] = Task {
-//    val zipFile = Task.dest / "jetifier-standalone.zip"
-//    val zipFileExtracted = Task.dest / "extraxted"
-//    os.makeDir.all(zipFileExtracted)
-//    os.write(zipFile, requests.get(androidSdkModule().jetifierStandaloneUrl()).bytes)
-//    val isWin = scala.util.Properties.isWin
-//
-//
-//    os.unzip(zipFile, zipFileExtracted)
-//
-//    val executableName = if (isWin)
-//      "jetifier-standalone.bat"
-//    else
-//      "jetifier-standalone"
-//
-//    val executablePath = zipFileExtracted / "jetifier-standalone" / "bin" / executableName
-//
-//    if (!isWin) os.perms.set(executablePath, "rwxrwxrwx")
-
-    PathRef(os.home / "jetifier-standalone" / "bin" / "jetifier-standalone")
-  }
-
-
   override def kspPluginParameters: T[Seq[String]] = Task {
     super.kspPluginParameters() ++
       Seq(
@@ -109,7 +60,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       )
   }
 
-  def androidJavaCompileKSPGeneratedSources: T[HiltGeneratedSources] = Task {
+  def androidJavaCompileKSPGeneratedSources: T[HiltGeneratedClasses] = Task {
     val directory = Task.dest / "ap_generated/out"
 
     os.makeDir.all(directory)
@@ -124,7 +75,6 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
     val daggerSourcesOrigin = generatedPath / "java/dagger"
     val hiltAggregatedDepsSourcesOrigin = generatedPath / "java/hilt_aggregated_deps"
-
 
     val hiltSources = generatedPath / "hilt"
     os.makeDir(hiltSources)
@@ -146,13 +96,14 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
     val kotlinClasspath = compileClasspath() :+ androidProcessResources()
 
-
     val kotlinSourceFiles: Seq[Path] = kspSources().map(_.path).flatMap(os.walk(_))
       .filter(path => Seq("kt", "kts").contains(path.ext.toLowerCase()))
 
     val compileWithKotlin = Seq(
-      "-d", kotlinClasses.toString,
-      "-classpath", kotlinClasspath.map(_.path).mkString(File.pathSeparator)
+      "-d",
+      kotlinClasses.toString,
+      "-classpath",
+      kotlinClasspath.map(_.path).mkString(File.pathSeparator)
     ) ++ kotlincOptions() ++ kotlinSourceFiles.map(_.toString) ++
       javaGeneratedSources.map(_.toString) ++
       Seq(daggerSources.toString, hiltAggregatedDepsSources.toString)
@@ -170,10 +121,12 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       "-XDuseUnsharedTable=true",
       "-proc:none",
       "-parameters",
-      "-s", directory.toString,
+      "-s",
+      directory.toString
     )
 
-    val compileCp = compileClasspath().map(_.path) ++ Seq(androidProcessResources().path, kotlinClasses)
+    val compileCp =
+      compileClasspath().map(_.path) ++ Seq(androidProcessResources().path, kotlinClasses)
 
     val worker = zincWorkerRef().worker()
 
@@ -202,7 +155,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     os.move(from = hiltAggregatedDepsCompiledOrigin, hiltAggregatedDepsCompiled)
     os.move(from = daggerCompiledOrigin, daggerCompiled)
 
-    HiltGeneratedSources(
+    HiltGeneratedClasses(
       apGenerated = PathRef(directory),
       javaSources = PathRef(javaSources),
       javaCompiled = compilation.classes,
@@ -214,29 +167,31 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     )
   }
 
-  def androidHiltGeneratedSources: T[Seq[PathRef]] = Task {
+  def androidHiltGeneratedClasses: T[Seq[PathRef]] = Task {
     val directory = Task.dest / "component_classes" / "out"
     os.makeDir.all(directory)
 
-    val compiledKspSources: HiltGeneratedSources = androidJavaCompileKSPGeneratedSources()
+    val hiltGeneratedClasses: HiltGeneratedClasses = androidJavaCompileKSPGeneratedSources()
 
     val hiltJavacOptions = Seq(
-      "-processorpath", processorPath().map(_.path.toString).mkString(File.pathSeparator),
+      "-processorpath",
+      androidHiltProcessorPath().map(_.path.toString).mkString(File.pathSeparator),
       "-XDstringConcat=inline",
       "-Adagger.fastInit=enabled",
       "-Adagger.hilt.internal.useAggregatingRootProcessor=false",
       "-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true",
       "-XDuseUnsharedTable=true",
       "-parameters",
-      "-s", directory.toString,
+      "-s",
+      directory.toString
     )
 
     val compileCp = hiltProcessorClasspath().map(_.path) ++
       Seq(
-        compiledKspSources.kotlinCompiled.path,
-        compiledKspSources.javaCompiled.path,
-        compiledKspSources.daggerCompiled.path / os.up,
-        compiledKspSources.javaSources.path
+        hiltGeneratedClasses.kotlinCompiled.path,
+        hiltGeneratedClasses.javaCompiled.path,
+        hiltGeneratedClasses.daggerCompiled.path / os.up,
+        hiltGeneratedClasses.javaSources.path
       )
 
     val worker = zincWorkerRef().worker()
@@ -244,16 +199,14 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     val classes = Task.dest / "classes"
     os.makeDir.all(classes)
 
-
     val processedRoots = os.walk(
-      compiledKspSources.daggerSources.path / "hilt/internal/processedrootsentinel"
+      hiltGeneratedClasses.daggerSources.path / "hilt/internal/processedrootsentinel"
     ).filter(_.ext == "java")
 
-    val componentTreeDeps = os.walk(compiledKspSources.javaSources.path)
+    val componentTreeDeps = os.walk(hiltGeneratedClasses.javaSources.path)
       .filter(_.toString.endsWith("_ComponentTreeDeps.java"))
 
     val sourcesToCompile = processedRoots ++ componentTreeDeps
-
 
     T.log.info(s"Compiling ${sourcesToCompile.mkString(" ")} java sources to ${classes}")
 
@@ -264,7 +217,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       javacOptions = hiltJavacOptions,
       reporter = T.ctx().reporter(hashCode()),
       reportCachedProblems = zincReportCachedProblems(),
-      incrementalCompilation = false
+      incrementalCompilation = true
     )
 
     val mergedClasses = Task.dest / "merged_classes"
@@ -273,19 +226,58 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     def merge(path: os.Path, mergedClasses: os.Path = mergedClasses): Unit =
       os.copy(path, mergedClasses, mergeFolders = true, replaceExisting = true)
 
-    // result classes have precedence over the compiledKspSources classes
-    merge(compiledKspSources.javaCompiled.path)
-    merge(compiledKspSources.kotlinCompiled.path)
-    merge(compiledKspSources.hiltAggregatedDepsCompiled.path, mergedClasses / "hilt_aggregated_deps")
-    merge(compiledKspSources.daggerSources.path, mergedClasses / "dagger")
+    val tranformedAsmClasses = androidHiltTransformAsm()
+
+    merge(tranformedAsmClasses.kotlinCompiled.path)
+
+    merge(
+      hiltGeneratedClasses.hiltAggregatedDepsCompiled.path,
+      mergedClasses / "hilt_aggregated_deps"
+    )
+
+    merge(hiltGeneratedClasses.daggerSources.path, mergedClasses / "dagger")
+
     merge(result.get.classes.path)
+
+    merge(hiltGeneratedClasses.javaCompiled.path)
 
     Seq(PathRef(mergedClasses))
 
   }
 
+  def androidHiltModule = ModuleRef(AndroidHiltModule)
+
+  /**
+   * Transforms the Kotlin classes with Hilt dependency injection context
+   *  and returns the new path of the kotlin compiled classpath. This uses
+   *  the [mill.main.android.hilt.AndroidHiltTransformAsm] that uses
+   *  the hilt gradle plugin and the android build tools
+   */
+  def androidHiltTransformAsm: T[HiltGeneratedClasses] = Task {
+    val hiltGeneratedSources = androidJavaCompileKSPGeneratedSources()
+    val kotlinCompiledClassesDir = hiltGeneratedSources.kotlinCompiled.path
+
+    val transformedClasses = Task.dest / "transformed_asm_classes"
+
+    os.makeDir.all(transformedClasses)
+    val mainClass = "mill.main.android.hilt.AndroidHiltTransformAsm"
+
+    val classPath = androidHiltModule().toolsClasspath().map(_.path)
+
+    mill.util.Jvm.callProcess(
+      mainClass = mainClass,
+      classPath = classPath,
+      mainArgs = Seq(kotlinCompiledClassesDir.toString, transformedClasses.toString)
+    )
+
+    hiltGeneratedSources.copy(
+      kotlinCompiled = PathRef(transformedClasses)
+    )
+
+  }
+
   override def androidGeneratedCompiledClasses: T[Seq[PathRef]] =
-    androidHiltGeneratedSources
+    androidHiltGeneratedClasses
 
   def hiltProcessorClasspath: T[Seq[PathRef]] = Task {
     kspApClasspath() ++ compileClasspath()
@@ -295,20 +287,21 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 }
 
 object AndroidHiltSupport {
-  case class HiltGeneratedSources(
-                                   apGenerated: PathRef,
-                                   javaSources: PathRef,
-                                   kotlinCompiled: PathRef,
-                                   javaCompiled: PathRef,
-                                   daggerSources: PathRef,
-                                   daggerCompiled: PathRef,
-                                   hiltAggregatedDepsSources: PathRef,
-                                   hiltAggregatedDepsCompiled: PathRef
+  case class HiltGeneratedClasses(
+      apGenerated: PathRef,
+      javaSources: PathRef,
+      kotlinCompiled: PathRef,
+      javaCompiled: PathRef,
+      daggerSources: PathRef,
+      daggerCompiled: PathRef,
+      hiltAggregatedDepsSources: PathRef,
+      hiltAggregatedDepsCompiled: PathRef
   ) {
     def classpath = Seq(kotlinCompiled, javaCompiled)
   }
 
-  object HiltGeneratedSources {
-    implicit def resultRW: upickle.default.ReadWriter[HiltGeneratedSources] = upickle.default.macroRW
+  object HiltGeneratedClasses {
+    implicit def resultRW: upickle.default.ReadWriter[HiltGeneratedClasses] =
+      upickle.default.macroRW
   }
 }

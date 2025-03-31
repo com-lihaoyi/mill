@@ -38,7 +38,7 @@ data class StatisticsUiState(
     val isEmpty: Boolean = false,
     val isLoading: Boolean = false,
     val activeTasksPercent: Float = 0f,
-    val completedTasksPercent: Float = 0f
+    val completedTasksPercent: Float = 0f,
 )
 
 /**
@@ -46,7 +46,7 @@ data class StatisticsUiState(
  */
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
-    private val taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
 ) : ViewModel() {
 
     val uiState: StateFlow<StatisticsUiState> =
@@ -57,7 +57,7 @@ class StatisticsViewModel @Inject constructor(
             .stateIn(
                 scope = viewModelScope,
                 started = WhileUiSubscribed,
-                initialValue = StatisticsUiState(isLoading = true)
+                initialValue = StatisticsUiState(isLoading = true),
             )
 
     fun refresh() {
@@ -66,23 +66,22 @@ class StatisticsViewModel @Inject constructor(
         }
     }
 
-    private fun produceStatisticsUiState(taskLoad: Async<List<Task>>) =
-        when (taskLoad) {
-            Async.Loading -> {
-                StatisticsUiState(isLoading = true, isEmpty = true)
-            }
-            is Async.Error -> {
-                // TODO: Show error message?
-                StatisticsUiState(isEmpty = true, isLoading = false)
-            }
-            is Async.Success -> {
-                val stats = getActiveAndCompletedStats(taskLoad.data)
-                StatisticsUiState(
-                    isEmpty = taskLoad.data.isEmpty(),
-                    activeTasksPercent = stats.activeTasksPercent,
-                    completedTasksPercent = stats.completedTasksPercent,
-                    isLoading = false
-                )
-            }
+    private fun produceStatisticsUiState(taskLoad: Async<List<Task>>) = when (taskLoad) {
+        Async.Loading -> {
+            StatisticsUiState(isLoading = true, isEmpty = true)
         }
+        is Async.Error -> {
+            // TODO: Show error message?
+            StatisticsUiState(isEmpty = true, isLoading = false)
+        }
+        is Async.Success -> {
+            val stats = getActiveAndCompletedStats(taskLoad.data)
+            StatisticsUiState(
+                isEmpty = taskLoad.data.isEmpty(),
+                activeTasksPercent = stats.activeTasksPercent,
+                completedTasksPercent = stats.completedTasksPercent,
+                isLoading = false,
+            )
+        }
+    }
 }

@@ -41,7 +41,7 @@ fun LoadingContent(
     emptyContent: @Composable () -> Unit,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     if (empty) {
         emptyContent()
