@@ -3,10 +3,14 @@ package mill.runner.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Locale;
+import java.util.UUID;
 import org.fusesource.jansi.internal.OSInfo;
 
 /**
@@ -56,16 +60,39 @@ final class JansiLoader {
   // reads it from the resources and writes it on disk, which is more heavyweight.
   // That's the slow path of our jansi-loading logic, that we try to avoid when we can.
   Path loadSlow() {
+    Path tmpLocation = millJansiLibLocation.getParent().resolve(millJansiLibLocation.getFileName().toString() + "-" + UUID.randomUUID());
     try {
       Files.createDirectories(millJansiLibLocation.getParent());
       try (InputStream is = Thread.currentThread()
               .getContextClassLoader()
               .getResourceAsStream(jansiLibResourcePath());
-          OutputStream os = Files.newOutputStream(millJansiLibLocation)) {
+          OutputStream os = Files.newOutputStream(tmpLocation)) {
         is.transferTo(os);
       }
+      // Concurrent Mill processes might try to create millJansiLibLocation too, so we ignore
+      // errors if the file has been written by another process in the mean time.
+      // Also, we move it atomically to its final location, so that if another Mill process finds it,
+      // it can use it fine straightaway.
+      if (!Files.exists(millJansiLibLocation))
+        try {
+          Files.move(tmpLocation, millJansiLibLocation, StandardCopyOption.ATOMIC_MOVE);
+        } catch (FileAlreadyExistsException ex) {
+          // Ignored, file should have been created by another Mill process
+        } catch (AtomicMoveNotSupportedException ex) {
+          try {
+            Files.move(tmpLocation, millJansiLibLocation);
+          } catch (FileAlreadyExistsException ex0) {
+            // Ignored, file should have been created by another Mill process
+          }
+        }
     } catch (IOException ex) {
       throw new RuntimeException(ex);
+    } finally {
+      try {
+        Files.deleteIfExists(tmpLocation);
+      } catch (IOException ex) {
+        // ignored
+      }
     }
     return millJansiLibLocation;
   }
