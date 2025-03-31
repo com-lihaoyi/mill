@@ -322,7 +322,7 @@ object `package` extends RootModule with InstallModule {
       PathRef(executable)
     }
 
-    def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https")
+    def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
 
     def zincWorker = ModuleRef(ZincWorkerGraalvm)
 
