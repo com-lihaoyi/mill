@@ -27,7 +27,7 @@ import androidx.room.PrimaryKey
  * models.
  */
 @Entity(
-    tableName = "task"
+    tableName = "task",
 )
 data class LocalTask(
     @PrimaryKey val id: String,

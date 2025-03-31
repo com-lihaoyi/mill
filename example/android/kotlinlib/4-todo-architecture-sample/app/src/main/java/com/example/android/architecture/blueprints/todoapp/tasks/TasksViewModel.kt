@@ -48,7 +48,7 @@ data class TasksUiState(
     val items: List<Task> = emptyList(),
     val isLoading: Boolean = false,
     val filteringUiInfo: FilteringUiInfo = FilteringUiInfo(),
-    val userMessage: Int? = null
+    val userMessage: Int? = null,
 )
 
 /**
@@ -57,7 +57,7 @@ data class TasksUiState(
 @HiltViewModel
 class TasksViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val _savedFilterType =
@@ -74,7 +74,10 @@ class TasksViewModel @Inject constructor(
             .catch<Async<List<Task>>> { emit(Async.Error(R.string.loading_tasks_error)) }
 
     val uiState: StateFlow<TasksUiState> = combine(
-        _filterUiInfo, _isLoading, _userMessage, _filteredTasksAsync
+        _filterUiInfo,
+        _isLoading,
+        _userMessage,
+        _filteredTasksAsync,
     ) { filterUiInfo, isLoading, userMessage, tasksAsync ->
         when (tasksAsync) {
             Async.Loading -> {
@@ -88,7 +91,7 @@ class TasksViewModel @Inject constructor(
                     items = tasksAsync.data,
                     filteringUiInfo = filterUiInfo,
                     isLoading = isLoading,
-                    userMessage = userMessage
+                    userMessage = userMessage,
                 )
             }
         }
@@ -96,7 +99,7 @@ class TasksViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = WhileUiSubscribed,
-            initialValue = TasksUiState(isLoading = true)
+            initialValue = TasksUiState(isLoading = true),
         )
 
     fun setFiltering(requestType: TasksFilterType) {
@@ -162,27 +165,29 @@ class TasksViewModel @Inject constructor(
         return tasksToShow
     }
 
-    private fun getFilterUiInfo(requestType: TasksFilterType): FilteringUiInfo =
-        when (requestType) {
-            ALL_TASKS -> {
-                FilteringUiInfo(
-                    R.string.label_all, R.string.no_tasks_all,
-                    R.drawable.logo_no_fill
-                )
-            }
-            ACTIVE_TASKS -> {
-                FilteringUiInfo(
-                    R.string.label_active, R.string.no_tasks_active,
-                    R.drawable.ic_check_circle_96dp
-                )
-            }
-            COMPLETED_TASKS -> {
-                FilteringUiInfo(
-                    R.string.label_completed, R.string.no_tasks_completed,
-                    R.drawable.ic_verified_user_96dp
-                )
-            }
+    private fun getFilterUiInfo(requestType: TasksFilterType): FilteringUiInfo = when (requestType) {
+        ALL_TASKS -> {
+            FilteringUiInfo(
+                R.string.label_all,
+                R.string.no_tasks_all,
+                R.drawable.logo_no_fill,
+            )
         }
+        ACTIVE_TASKS -> {
+            FilteringUiInfo(
+                R.string.label_active,
+                R.string.no_tasks_active,
+                R.drawable.ic_check_circle_96dp,
+            )
+        }
+        COMPLETED_TASKS -> {
+            FilteringUiInfo(
+                R.string.label_completed,
+                R.string.no_tasks_completed,
+                R.drawable.ic_verified_user_96dp,
+            )
+        }
+    }
 }
 
 // Used to save the current filtering in SavedStateHandle.

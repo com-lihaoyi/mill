@@ -73,7 +73,7 @@ fun TasksScreen(
     openDrawer: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TasksViewModel = hiltViewModel(),
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -85,14 +85,14 @@ fun TasksScreen(
                 onFilterActiveTasks = { viewModel.setFiltering(ACTIVE_TASKS) },
                 onFilterCompletedTasks = { viewModel.setFiltering(COMPLETED_TASKS) },
                 onClearCompletedTasks = { viewModel.clearCompletedTasks() },
-                onRefresh = { viewModel.refresh() }
+                onRefresh = { viewModel.refresh() },
             )
         },
         floatingActionButton = {
             SmallFloatingActionButton(onClick = onAddTask) {
                 Icon(Icons.Filled.Add, stringResource(id = R.string.add_task))
             }
-        }
+        },
     ) { paddingValues ->
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -105,7 +105,7 @@ fun TasksScreen(
             onRefresh = viewModel::refresh,
             onTaskClick = onTaskClick,
             onTaskCheckedChange = viewModel::completeTask,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(paddingValues),
         )
 
         // Check for user messages to display on the screen
@@ -138,33 +138,33 @@ private fun TasksContent(
     onRefresh: () -> Unit,
     onTaskClick: (Task) -> Unit,
     onTaskCheckedChange: (Task, Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LoadingContent(
         loading = loading,
         empty = tasks.isEmpty() && !loading,
         emptyContent = { TasksEmptyContent(noTasksLabel, noTasksIconRes, modifier) },
-        onRefresh = onRefresh
+        onRefresh = onRefresh,
     ) {
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(horizontal = dimensionResource(id = R.dimen.horizontal_margin))
+                .padding(horizontal = dimensionResource(id = R.dimen.horizontal_margin)),
         ) {
             Text(
                 text = stringResource(currentFilteringLabel),
                 modifier = Modifier.padding(
                     horizontal = dimensionResource(id = R.dimen.list_item_padding),
-                    vertical = dimensionResource(id = R.dimen.vertical_margin)
+                    vertical = dimensionResource(id = R.dimen.vertical_margin),
                 ),
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.headlineSmall,
             )
             LazyColumn {
                 items(tasks) { task ->
                     TaskItem(
                         task = task,
                         onTaskClick = onTaskClick,
-                        onCheckedChange = { onTaskCheckedChange(task, it) }
+                        onCheckedChange = { onTaskCheckedChange(task, it) },
                     )
                 }
             }
@@ -176,7 +176,7 @@ private fun TasksContent(
 private fun TaskItem(
     task: Task,
     onCheckedChange: (Boolean) -> Unit,
-    onTaskClick: (Task) -> Unit
+    onTaskClick: (Task) -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -186,23 +186,23 @@ private fun TaskItem(
                 horizontal = dimensionResource(id = R.dimen.horizontal_margin),
                 vertical = dimensionResource(id = R.dimen.list_item_padding),
             )
-            .clickable { onTaskClick(task) }
+            .clickable { onTaskClick(task) },
     ) {
         Checkbox(
             checked = task.isCompleted,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
         )
         Text(
             text = task.titleForList,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(
-                start = dimensionResource(id = R.dimen.horizontal_margin)
+                start = dimensionResource(id = R.dimen.horizontal_margin),
             ),
             textDecoration = if (task.isCompleted) {
                 TextDecoration.LineThrough
             } else {
                 null
-            }
+            },
         )
     }
 }
@@ -211,17 +211,17 @@ private fun TaskItem(
 private fun TasksEmptyContent(
     @StringRes noTasksLabel: Int,
     @DrawableRes noTasksIconRes: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Image(
             painter = painterResource(id = noTasksIconRes),
             contentDescription = stringResource(R.string.no_tasks_image_content_description),
-            modifier = Modifier.size(96.dp)
+            modifier = Modifier.size(96.dp),
         )
         Text(stringResource(id = noTasksLabel))
     }
@@ -239,31 +239,31 @@ private fun TasksContentPreview() {
                         title = "Title 1",
                         description = "Description 1",
                         isCompleted = false,
-                        id = "ID 1"
+                        id = "ID 1",
                     ),
                     Task(
                         title = "Title 2",
                         description = "Description 2",
                         isCompleted = true,
-                        id = "ID 2"
+                        id = "ID 2",
                     ),
                     Task(
                         title = "Title 3",
                         description = "Description 3",
                         isCompleted = true,
-                        id = "ID 3"
+                        id = "ID 3",
                     ),
                     Task(
                         title = "Title 4",
                         description = "Description 4",
                         isCompleted = false,
-                        id = "ID 4"
+                        id = "ID 4",
                     ),
                     Task(
                         title = "Title 5",
                         description = "Description 5",
                         isCompleted = true,
-                        id = "ID 5"
+                        id = "ID 5",
                     ),
                 ),
                 currentFilteringLabel = R.string.label_all,
@@ -303,7 +303,7 @@ private fun TasksEmptyContentPreview() {
         Surface {
             TasksEmptyContent(
                 noTasksLabel = R.string.no_tasks_all,
-                noTasksIconRes = R.drawable.logo_no_fill
+                noTasksIconRes = R.drawable.logo_no_fill,
             )
         }
     }
@@ -318,10 +318,10 @@ private fun TaskItemPreview() {
                 task = Task(
                     title = "Title",
                     description = "Description",
-                    id = "ID"
+                    id = "ID",
                 ),
                 onTaskClick = { },
-                onCheckedChange = { }
+                onCheckedChange = { },
             )
         }
     }
@@ -337,10 +337,10 @@ private fun TaskItemCompletedPreview() {
                     title = "Title",
                     description = "Description",
                     isCompleted = true,
-                    id = "ID"
+                    id = "ID",
                 ),
                 onTaskClick = { },
-                onCheckedChange = { }
+                onCheckedChange = { },
             )
         }
     }

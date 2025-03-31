@@ -57,7 +57,7 @@ fun AppModalDrawer(
     currentRoute: String,
     navigationActions: TodoNavigationActions,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -66,9 +66,9 @@ fun AppModalDrawer(
                 currentRoute = currentRoute,
                 navigateToTasks = { navigationActions.navigateToTasks() },
                 navigateToStatistics = { navigationActions.navigateToStatistics() },
-                closeDrawer = { coroutineScope.launch { drawerState.close() } }
+                closeDrawer = { coroutineScope.launch { drawerState.close() } },
             )
-        }
+        },
     ) {
         content()
     }
@@ -80,7 +80,7 @@ private fun AppDrawer(
     navigateToTasks: () -> Unit,
     navigateToStatistics: () -> Unit,
     closeDrawer: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(color = MaterialTheme.colorScheme.background) {
         Column(modifier = modifier.fillMaxSize()) {
@@ -92,7 +92,7 @@ private fun AppDrawer(
                 action = {
                     navigateToTasks()
                     closeDrawer()
-                }
+                },
             )
             DrawerButton(
                 painter = painterResource(id = R.drawable.ic_statistics),
@@ -101,7 +101,7 @@ private fun AppDrawer(
                 action = {
                     navigateToStatistics()
                     closeDrawer()
-                }
+                },
             )
         }
     }
@@ -109,7 +109,7 @@ private fun AppDrawer(
 
 @Composable
 private fun DrawerHeader(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -118,17 +118,17 @@ private fun DrawerHeader(
             .fillMaxWidth()
             .background(primaryDarkColor)
             .height(dimensionResource(id = R.dimen.header_height))
-            .padding(dimensionResource(id = R.dimen.header_padding))
+            .padding(dimensionResource(id = R.dimen.header_padding)),
     ) {
         Image(
             painter = painterResource(id = R.drawable.logo_no_fill),
             contentDescription =
             stringResource(id = R.string.tasks_header_image_content_description),
-            modifier = Modifier.width(dimensionResource(id = R.dimen.header_image_width))
+            modifier = Modifier.width(dimensionResource(id = R.dimen.header_image_width)),
         )
         Text(
             text = stringResource(id = R.string.navigation_view_header_title),
-            color = MaterialTheme.colorScheme.surface
+            color = MaterialTheme.colorScheme.surface,
         )
     }
 }
@@ -139,7 +139,7 @@ private fun DrawerButton(
     label: String,
     isSelected: Boolean,
     action: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val tintColor = if (isSelected) {
         MaterialTheme.colorScheme.secondary
@@ -151,23 +151,23 @@ private fun DrawerButton(
         onClick = action,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = dimensionResource(id = R.dimen.horizontal_margin))
+            .padding(horizontal = dimensionResource(id = R.dimen.horizontal_margin)),
     ) {
         Row(
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Icon(
                 painter = painter,
                 contentDescription = null, // decorative
-                tint = tintColor
+                tint = tintColor,
             )
             Spacer(Modifier.width(16.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                color = tintColor
+                color = tintColor,
             )
         }
     }
@@ -182,7 +182,7 @@ fun PreviewAppDrawer() {
                 currentRoute = TodoDestinations.TASKS_ROUTE,
                 navigateToTasks = {},
                 navigateToStatistics = {},
-                closeDrawer = {}
+                closeDrawer = {},
             )
         }
     }

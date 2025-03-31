@@ -20,7 +20,7 @@ trait AndroidKotlinModule extends KotlinModule {
         "-verbose",
         "-opt-in=kotlin.RequiresOptIn",
         "-opt-in=kotlin.Experimental",
-        "-Xallow-unstable-dependencies",
+        "-Xallow-unstable-dependencies"
       )
     } else Seq.empty
   }

@@ -61,7 +61,7 @@ class TaskDetailViewModelTest {
 
         taskDetailViewModel = TaskDetailViewModel(
             tasksRepository,
-            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0"))
+            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0")),
         )
     }
 
@@ -123,7 +123,7 @@ class TaskDetailViewModelTest {
         // Given an ID for a non existent task
         taskDetailViewModel = TaskDetailViewModel(
             tasksRepository,
-            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "nonexistent_id"))
+            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "nonexistent_id")),
         )
 
         // The task is null and the snackbar shows a "not found" error message

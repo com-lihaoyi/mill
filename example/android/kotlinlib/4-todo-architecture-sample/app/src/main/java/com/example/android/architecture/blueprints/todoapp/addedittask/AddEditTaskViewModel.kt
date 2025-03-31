@@ -39,7 +39,7 @@ data class AddEditTaskUiState(
     val isTaskCompleted: Boolean = false,
     val isLoading: Boolean = false,
     val userMessage: Int? = null,
-    val isTaskSaved: Boolean = false
+    val isTaskSaved: Boolean = false,
 )
 
 /**
@@ -48,7 +48,7 @@ data class AddEditTaskUiState(
 @HiltViewModel
 class AddEditTaskViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val taskId: String? = savedStateHandle[TodoDestinationsArgs.TASK_ID_ARG]
@@ -134,7 +134,7 @@ class AddEditTaskViewModel @Inject constructor(
                             title = task.title,
                             description = task.description,
                             isTaskCompleted = task.isCompleted,
-                            isLoading = false
+                            isLoading = false,
                         )
                     }
                 } else {

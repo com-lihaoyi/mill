@@ -76,7 +76,8 @@ trait KspModule extends KotlinModule { outer =>
   private val kspPluginId: String =
     "com.google.devtools.ksp.symbol-processing"
 
-  /** The KSP ap classpath
+  /**
+   * The KSP ap classpath
    *
    * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
    */
@@ -84,7 +85,8 @@ trait KspModule extends KotlinModule { outer =>
     kotlinSymbolProcessorsResolved()
   }
 
-  /** The sources for being used in KSP, in case
+  /**
+   * The sources for being used in KSP, in case
    * the user wants to separate KSP specific sources
    * from others. Defaults to [[sources]] (i.e. no splitting)
    */
@@ -112,7 +114,6 @@ trait KspModule extends KotlinModule { outer =>
     "-language-version",
     "1.9"
   )
-
 
   def kspPluginParameters: T[Seq[String]] = Task {
     Seq.empty
@@ -173,10 +174,11 @@ trait KspModule extends KotlinModule { outer =>
 
     val classpath = Seq(
       // destdir
-      "-d", compiledSources.toString,
+      "-d",
+      compiledSources.toString,
       // classpath
       "-classpath",
-      compileCp.iterator.mkString(File.pathSeparator),
+      compileCp.iterator.mkString(File.pathSeparator)
     )
 
     val compilerArgs: Seq[String] = classpath ++ kspCompilerArgs ++ sourceFiles.map(_.toString)
@@ -196,7 +198,12 @@ trait KspModule extends KotlinModule { outer =>
   }
 }
 
-case class GeneratedKSPSources(java: PathRef, kotlin: PathRef, resources: PathRef, classes: PathRef) {
+case class GeneratedKSPSources(
+    java: PathRef,
+    kotlin: PathRef,
+    resources: PathRef,
+    classes: PathRef
+) {
   def sources: Seq[PathRef] = Seq(java, kotlin)
 }
 
