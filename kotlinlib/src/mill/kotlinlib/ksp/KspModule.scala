@@ -48,7 +48,7 @@ trait KspModule extends KotlinModule { outer =>
   }
 
   override def generatedSources: T[Seq[PathRef]] = Task {
-    generateSourcesWithKSP() ++ super.generatedSources()
+    super.generatedSources() ++ generateSourcesWithKSP().sources
   }
 
   def kspPluginsResolved: T[Agg[PathRef]] = Task {
@@ -77,14 +77,56 @@ trait KspModule extends KotlinModule { outer =>
   private val kspPluginId: String =
     "com.google.devtools.ksp.symbol-processing"
 
+  /** The KSP ap classpath
+   *
+   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
+   */
+  def kspApClasspath: T[Seq[PathRef]] = Task {
+    kotlinSymbolProcessorsResolved()
+  }
+
+  /** The sources for being used in KSP, in case
+   * the user wants to separate KSP specific sources
+   * from others. Defaults to [[sources]] (i.e. no splitting)
+   */
+  def kspSources: T[Seq[PathRef]] = Task {
+    sources()
+  }
+
+  /**
+   * The classpath when running Kotlin Symbol processing
+   *
+   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
+   */
+  def kspClasspath: T[Seq[PathRef]] = Task {
+    compileClasspath()
+  }
+
+  /**
+   * Kotlinc arguments used with KSP
+   * @return
+   */
+  def kspKotlinc: T[Seq[String]] = Seq(
+    "-Xallow-unstable-dependencies",
+    "-no-jdk",
+    "-no-reflect",
+    "-language-version",
+    "1.9"
+  )
+
+
+  def kspPluginParameters: T[Seq[String]] = Task {
+    Seq.empty
+  }
+
   /**
    * The Kotlin compile task with KSP.
    * This task should run as part of the [[generatedSources]] task to
    * so that the generated  sources are in the [[compileClasspath]]
    * for the main compile task.
    */
-  def generateSourcesWithKSP: Target[Seq[PathRef]] = Task {
-    val sourceFiles = sources().map(_.path)
+  def generateSourcesWithKSP: Target[GeneratedKSPSources] = Task {
+    val sourceFiles = kspSources().map(_.path).flatMap(os.walk(_))
 
     val compileCp = compileClasspath().map(_.path).filter(os.exists)
 
@@ -101,45 +143,50 @@ trait KspModule extends KotlinModule { outer =>
     val kspOutputDir = T.dest / "generated/ksp/main"
 
     val kspCachesDir = T.dest / "caches/main"
-
+    val java = kspOutputDir / "java"
+    val kotlin = kspOutputDir / "kotlin"
+    val resources = kspOutputDir / "resources"
+    val classes = kspOutputDir / "classes"
     val pluginConfigs = Seq(
       s"$pluginOpt:apclasspath=$apClasspath",
       s"$pluginOpt:projectBaseDir=${kspProjectBasedDir}",
-      s"$pluginOpt:classOutputDir=${kspOutputDir / "classes"}",
-      s"$pluginOpt:javaOutputDir=${kspOutputDir / "java"}",
-      s"$pluginOpt:kotlinOutputDir=${kspOutputDir / "kotlin"}",
-      s"$pluginOpt:resourceOutputDir=${kspOutputDir / "resources"}",
+      s"$pluginOpt:classOutputDir=${classes}",
+      s"$pluginOpt:javaOutputDir=${java}",
+      s"$pluginOpt:kotlinOutputDir=${kotlin}",
+      s"$pluginOpt:resourceOutputDir=${resources}",
       s"$pluginOpt:kspOutputDir=${kspOutputDir}",
       s"$pluginOpt:cachesDir=${kspCachesDir}",
       s"$pluginOpt:incremental=true",
+      s"${pluginOpt}:incrementalLog=false",
       s"$pluginOpt:allWarningsAsErrors=false",
       s"$pluginOpt:returnOkOnError=true",
       s"$pluginOpt:mapAnnotationArgumentsInJava=false"
-    ).mkString(",")
+    ) ++ kspPluginParameters().map(p => s"$pluginOpt:$p")
 
-    val kspCompilerArgs = Seq(xPluginArg) ++ Seq("-P", pluginConfigs)
+    val kspCompilerArgs = kspKotlinc() ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
 
     Task.log.info(
       s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOutputDir} ..."
     )
 
-    val compilerArgs: Seq[String] = Seq(
+    val compiledSources = T.dest / "compiled"
+    os.makeDir.all(compiledSources)
+
+    val classpath = Seq(
       // destdir
-      Seq("-d", kspOutputDir.toString()),
+      "-d", compiledSources.toString,
       // classpath
-      when(compileCp.iterator.nonEmpty)(
-        "-classpath",
-        compileCp.iterator.mkString(File.pathSeparator)
-      ),
-      allKotlincOptions(),
-      kspCompilerArgs,
-      // parameters
-      sourceFiles.map(_.toString())
-    ).flatten
+      "-classpath",
+      compileCp.iterator.mkString(File.pathSeparator),
+    )
+
+    val compilerArgs: Seq[String] = classpath ++ kspCompilerArgs ++ sourceFiles.map(_.toString)
+
+    T.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
     kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
 
-    Seq(PathRef(kspOutputDir))
+    GeneratedKSPSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
   }
 
   /**
@@ -148,4 +195,12 @@ trait KspModule extends KotlinModule { outer =>
   trait KspTests extends KspModule with KotlinTests {
     override def kspVersion: T[String] = outer.kspVersion
   }
+}
+
+case class GeneratedKSPSources(java: PathRef, kotlin: PathRef, resources: PathRef, classes: PathRef) {
+  def sources: Seq[PathRef] = Seq(java, kotlin)
+}
+
+object GeneratedKSPSources {
+  implicit def resultRW: upickle.default.ReadWriter[GeneratedKSPSources] = upickle.default.macroRW
 }
