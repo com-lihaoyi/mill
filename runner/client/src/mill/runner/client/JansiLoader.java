@@ -60,7 +60,9 @@ final class JansiLoader {
   // reads it from the resources and writes it on disk, which is more heavyweight.
   // That's the slow path of our jansi-loading logic, that we try to avoid when we can.
   Path loadSlow() {
-    Path tmpLocation = millJansiLibLocation.getParent().resolve(millJansiLibLocation.getFileName().toString() + "-" + UUID.randomUUID());
+    Path tmpLocation = millJansiLibLocation
+        .getParent()
+        .resolve(millJansiLibLocation.getFileName().toString() + "-" + UUID.randomUUID());
     try {
       Files.createDirectories(millJansiLibLocation.getParent());
       try (InputStream is = Thread.currentThread()
@@ -71,7 +73,8 @@ final class JansiLoader {
       }
       // Concurrent Mill processes might try to create millJansiLibLocation too, so we ignore
       // errors if the file has been written by another process in the mean time.
-      // Also, we move it atomically to its final location, so that if another Mill process finds it,
+      // Also, we move it atomically to its final location, so that if another Mill process finds
+      // it,
       // it can use it fine straightaway.
       if (!Files.exists(millJansiLibLocation))
         try {
