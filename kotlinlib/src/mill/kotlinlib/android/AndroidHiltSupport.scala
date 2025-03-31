@@ -11,7 +11,6 @@ import mill.{T, Task}
 import os.Path
 
 import java.io.File
-import java.nio.file.{Files, StandardCopyOption}
 
 @mill.api.experimental
 trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
@@ -29,9 +28,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     defaultResolver().classpath(
       kotlinSymbolProcessors().flatMap {
         dep =>
-          if (
-            dep.dep.module.name.value == "hilt-android-compiler"
-          )
+          if (dep.dep.module.name.value == "hilt-android-compiler")
             Seq(
               dep,
               ivy"com.google.dagger:hilt-compiler:${dep.version}"
