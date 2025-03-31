@@ -6,15 +6,17 @@ import mainargs.arg
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
 import mill.constants.ServerFiles
-import mill.define.{Command, Task, Worker}
+import mill.define.{Command, ModuleRef, Task}
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
 import scala.util.control.NonFatal
 
-import mill.scalalib.classgraph.ClassgraphWorker
+import mill.scalalib.classgraph.ClassgraphWorkerModule
 
 trait RunModule extends WithZincWorker {
+
+  val classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 
   /**
    * Any command-line parameters you want to pass to the forked JVM.
@@ -51,33 +53,7 @@ trait RunModule extends WithZincWorker {
    * All main classes detected in this module that can serve as program entry-points.
    */
   def allLocalMainClasses: T[Seq[String]] = Task {
-    classgraphWorker().discoverMainClasses(localRunClasspath().map(_.path))
-  }
-
-  def classgraphWorkerClasspath: T[Seq[PathRef]] = T {
-    zincWorker().defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-scalalib-classgraph-worker")
-    ))
-  }
-
-  def classgraphWorker: Worker[ClassgraphWorker] = Task.Worker {
-    new ClassgraphWorker with AutoCloseable {
-      private val classLoader = mill.util.Jvm.createClassLoader(
-        classPath = classgraphWorkerClasspath().map(_.path),
-        parent = getClass().getClassLoader()
-      )
-
-      private val worker = classLoader
-        .loadClass("mill.scalalib.classgraph.impl.ClassgraphWorkerImpl")
-        .getConstructor().newInstance().asInstanceOf[ClassgraphWorker]
-
-      override def discoverMainClasses(classpath: Seq[Path])(implicit ctx: Ctx): Seq[String] =
-        worker.discoverMainClasses(classpath)
-
-      override def close(): Unit = {
-        classLoader.close()
-      }
-    }
+    classgraphWorkerModule().classgraphWorker().discoverMainClasses(localRunClasspath().map(_.path))
   }
 
   def finalMainClassOpt: T[Either[String, String]] = Task {
