@@ -11,7 +11,6 @@ import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
-import mill.Agg
 import mill.eval.Graph
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
@@ -30,7 +29,7 @@ trait VisualizeModule extends mill.define.TaskModule {
   @deprecated("Use toolsClasspath instead", "0.13.0-M1")
   def classpath: Target[Loose.Agg[PathRef]] = toolsClasspath
 
-  def toolsClasspath: Target[Agg[PathRef]] = Target {
+  def toolsClasspath: Target[Loose.Agg[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 
