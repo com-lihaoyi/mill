@@ -35,11 +35,6 @@ trait ZincWorkerApi {
       auxiliaryClassFileExtensions: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
-  /**
-   * Find main classes by inspecting the Zinc compilation analysis file.
-   */
-  def discoverMainClasses(compilationResult: CompilationResult): Seq[String]
-
   def docJar(
       scalaVersion: String,
       scalaOrganization: String,
@@ -48,8 +43,4 @@ trait ZincWorkerApi {
       args: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): Boolean
 
-  /**
-   * Discover main classes by inspecting the classpath.
-   */
-  def discoverMainClasses(classpath: Seq[os.Path]): Seq[String]
 }

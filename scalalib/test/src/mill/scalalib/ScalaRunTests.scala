@@ -47,9 +47,15 @@ object ScalaRunTests extends TestSuite {
         )
       }
       test("runCross") {
-        def cross(eval: UnitTester, v: String, expectedOut: String): Unit = {
+        def cross(eval: UnitTester, v: String, expectedOut: String): String = {
 
           val runResult = eval.outPath / "hello-mill"
+
+          val Right(classes) =
+            eval.apply(HelloWorldTests.CrossHelloWorld.core(v).allLocalMainClasses): @unchecked
+          val found = classes.value
+          val expected = Seq("Main", "Shim")
+          assert(found == expected)
 
           val Right(result) = eval.apply(
             HelloWorldTests.CrossHelloWorld.core(v).runMain("Shim", runResult.toString)
@@ -61,6 +67,7 @@ object ScalaRunTests extends TestSuite {
             os.exists(runResult),
             os.read(runResult) == expectedOut
           )
+          expectedOut
         }
 
         test("v2123") - UnitTester(HelloWorldTests.CrossHelloWorld, resourcePath).scoped { eval =>
@@ -117,6 +124,16 @@ object ScalaRunTests extends TestSuite {
       ).scoped { eval =>
         val Left(ExecResult.Failure(_)) =
           eval.apply(HelloWorldWithoutMain.core.run()): @unchecked
+      }
+
+      test("allLocalMainClasses") - UnitTester(HelloWorldWithoutMain, resourcePath).scoped {
+        eval =>
+          val Right(result) = eval.apply(HelloWorldWithoutMain.core.allLocalMainClasses): @unchecked
+
+          val found = result.value
+          val expected = Seq("Main")
+          assert(found == expected)
+          found
       }
 
       test("runDiscoverMainClass") - UnitTester(HelloWorldWithoutMain, resourcePath).scoped {
