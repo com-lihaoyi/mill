@@ -1,10 +1,8 @@
 package mill.runner.client;
 
-import io.github.alexarchambault.nativeterm.NativeTerminal;
-import org.fusesource.jansi.internal.OSInfo;
-
 import java.io.File;
 import java.io.IOException;
+import org.fusesource.jansi.internal.OSInfo;
 
 /**
  * Helper to load the jansi native library before jansi itself attempts to do so.
@@ -30,7 +28,8 @@ final class JansiLoader {
   private String jansiLibPathInArchive() {
     return "org/fusesource/jansi/internal/native/" + OSInfo.getNativeLibFolderPathForCurrentOS()
         + "/"
-        // Replacing '.dylib' by '.jnilib' is necessary, as jansi uses the latter extension on macOS,
+        // Replacing '.dylib' by '.jnilib' is necessary, as jansi uses the latter extension on
+        // macOS,
         // rather than '.dylib', which is the default. The call to replace has no effect on other
         // platforms.
         + System.mapLibraryName("jansi").replace(".dylib", ".jnilib");
@@ -70,13 +69,11 @@ final class JansiLoader {
   private static boolean initialized = false;
 
   static void initJansi() {
-    if (!initialized)
-      doInitJansi();
+    if (!initialized) doInitJansi();
   }
 
   private static synchronized void doInitJansi() {
-    if (initialized)
-      return;
+    if (initialized) return;
 
     JansiLoader jansiLoader = new JansiLoader(mill.runner.client.Versions.jansiVersion());
     File jansiLib = jansiLoader.tryLoadFast();

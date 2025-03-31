@@ -278,7 +278,6 @@ public class MillProcessLauncher {
   private static final boolean canUseNativeTerminal;
 
   static {
-
     JansiLoader.initJansi();
 
     boolean canUse;
