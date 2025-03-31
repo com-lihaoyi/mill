@@ -29,13 +29,13 @@ final class JansiLoader {
 
   JansiLoader(String jansiVersion) {
     this.jansiVersion = jansiVersion;
-    boolean isWindows = System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
+    boolean isWindows =
+        System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
     Path baseDir;
-    if (isWindows)
-      baseDir = Paths.get(System.getenv("UserProfile")).resolve(".mill/cache/");
-    else
-      baseDir = Paths.get(System.getProperty("user.home")).resolve(".cache/mill/");
-    this.millJansiLibLocation = baseDir.resolve("jansi-" + jansiVersion + "/" + System.mapLibraryName("jansi"));
+    if (isWindows) baseDir = Paths.get(System.getenv("UserProfile")).resolve(".mill/cache/");
+    else baseDir = Paths.get(System.getProperty("user.home")).resolve(".cache/mill/");
+    this.millJansiLibLocation =
+        baseDir.resolve("jansi-" + jansiVersion + "/" + System.mapLibraryName("jansi"));
   }
 
   private String jansiLibResourcePath() {
@@ -58,8 +58,10 @@ final class JansiLoader {
   Path loadSlow() {
     try {
       Files.createDirectories(millJansiLibLocation.getParent());
-      try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(jansiLibResourcePath());
-        OutputStream os = Files.newOutputStream(millJansiLibLocation)) {
+      try (InputStream is = Thread.currentThread()
+              .getContextClassLoader()
+              .getResourceAsStream(jansiLibResourcePath());
+          OutputStream os = Files.newOutputStream(millJansiLibLocation)) {
         is.transferTo(os);
       }
     } catch (IOException ex) {
