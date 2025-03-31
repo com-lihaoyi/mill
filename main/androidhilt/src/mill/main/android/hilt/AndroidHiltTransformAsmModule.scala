@@ -1,6 +1,10 @@
 package mill.main.android.hilt
 
+import com.android.build.api.instrumentation.{ClassContext, ClassData}
 import mill.*
+import dagger.hilt.android.plugin.transform.AndroidEntryPointClassVisitor
+import org.objectweb.asm.{ClassReader, ClassWriter, Opcodes}
+
 
 object AndroidHiltTransformAsmModule {
 
@@ -18,24 +22,36 @@ object AndroidHiltTransformAsmModule {
 
     os.makeDir.all(destination)
 
+
     classes.map {
       path =>
-        if (shouldTransform(destination))
-          transform(path, destination)
-        else {
-          val fileDest = destination / path.last
-          os.copy(path, fileDest, createFolders = true)
-          fileDest
-        }
+        transform(path, destination / path.last)
     }
 
   }
 
-  private def shouldTransform(`class`: os.Path): Boolean = false
-
   private def transform(`class`: os.Path, destination: os.Path): os.Path = {
-    val dest = destination / `class`.last
-    os.copy(`class`, dest)
-    dest
+    val originalClassBytes = os.read.bytes(`class`)
+    val cr = new ClassReader(originalClassBytes)
+    val cw = new ClassWriter(cr, /* flags = */ 0)
+
+    val dummyClassContext = new ClassContext {
+      override def getCurrentClassData: ClassData = null
+
+      override def loadClassData(s: String): ClassData = null
+    }
+
+    val visitor = AndroidEntryPointClassVisitor(
+      Opcodes.ASM9,
+      cw,
+      dummyClassContext
+    )
+
+    cr.accept(visitor, 0)
+
+    // 6) Write the modified bytes
+    val newBytes = cw.toByteArray
+    os.write(destination, newBytes)
+    destination
   }
 }
