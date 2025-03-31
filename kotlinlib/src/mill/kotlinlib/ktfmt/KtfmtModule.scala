@@ -14,7 +14,7 @@ trait KtfmtBaseModule extends JavaModule {
    * Classpath for running Ktfmt.
    */
   def ktfmtClasspath: T[Loose.Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Agg(ivy"com.facebook:ktfmt:${ktfmtVersion()}")
     )
   }

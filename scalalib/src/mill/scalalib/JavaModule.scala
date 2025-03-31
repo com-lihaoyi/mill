@@ -115,23 +115,20 @@ trait JavaModule
    */
   def mainClass: T[Option[String]] = None
 
+  def allLocalMainClasses0 = Task { zincWorker().worker().discoverMainClasses(compile()) }
+
   def finalMainClassOpt: T[Either[String, String]] = Task {
     mainClass() match {
       case Some(m) => Right(m)
       case None =>
-        if (zincWorker().javaHome().isDefined) {
-          super[RunModule].finalMainClassOpt()
-        } else {
-          zincWorker().worker().discoverMainClasses(compile()) match {
-            case Seq() => Left("No main class specified or found")
-            case Seq(main) => Right(main)
-            case mains =>
-              Left(
-                s"Multiple main classes found (${mains.mkString(",")}) " +
-                  "please explicitly specify which one to use by overriding `mainClass` " +
-                  "or using `runMain <main-class> <...args>` instead of `run`"
-              )
-          }
+        allLocalMainClasses() match {
+          case Seq() => Left("No main class specified or found")
+          case Seq(main) => Right(main)
+          case mains =>
+            Left(
+              s"Multiple main classes found (${mains.mkString(",")}) " +
+                "please explicitly specify which one to use by overriding mainClass"
+            )
         }
     }
   }
@@ -1001,7 +998,7 @@ trait JavaModule
    * Resolved dependencies
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = Task {
-    millResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.provided),
@@ -1032,7 +1029,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
-    millResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.runtime),
@@ -1475,7 +1472,7 @@ trait JavaModule
     val tasks =
       if (all.value) Seq(
         Task.Anon {
-          millResolver().resolveDeps(
+          millResolver().classpath(
             Seq(
               coursierDependency.withConfiguration(cs.Configuration.provided),
               coursierDependency
@@ -1488,7 +1485,7 @@ trait JavaModule
           )
         },
         Task.Anon {
-          millResolver().resolveDeps(
+          millResolver().classpath(
             Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
             sources = true
           )

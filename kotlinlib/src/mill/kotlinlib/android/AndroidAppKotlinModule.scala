@@ -52,7 +52,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     // Compose compiler version -> Kotlin version
     if (kotlinVersion().startsWith("1"))
       throw new IllegalStateException("Compose can be used only with Kotlin version 2 or newer.")
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Agg(
         ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
       )
@@ -114,7 +114,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
      * For more information see [[https://developer.android.com/studio/preview/compose-screenshot-testing]]
      */
     def composePreviewRenderer: T[Agg[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Agg(
           ivy"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
         )
@@ -122,7 +122,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     }
 
     final def layoutLibRenderer: T[Agg[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Agg(
           ivy"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
         )
@@ -130,7 +130,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     }
 
     final def layoutLibRuntime: T[Agg[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Agg(
           ivy"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
         )
@@ -138,7 +138,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     }
 
     final def layoutLibFrameworkRes: T[Agg[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Agg(
           ivy"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
         )
@@ -312,7 +312,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       super.runClasspath() ++ androidPreviewScreenshotTestEngineClasspath() ++ compileClasspath()
 
     def androidPreviewScreenshotTestEngineClasspath: T[Agg[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Seq(
           ivy"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08"
         )

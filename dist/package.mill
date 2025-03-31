@@ -25,6 +25,8 @@ trait InstallModule extends build.MillPublishJavaModule {
 
   def localBinName: String
 
+  def cacheBinarySuffix: String = ""
+
   /**
    * Build and install Mill locally.
    *
@@ -41,7 +43,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
       Task.Anon(
-        (os.home / ".cache/mill/download" / (build.millVersion() + batExt)).toString()
+        (os.home / ".cache/mill/download" / (build.millVersion() + cacheBinarySuffix + batExt)).toString()
       )
     )()
     Task.log.outputStream.println(path.toString())
@@ -307,6 +309,8 @@ object `package` extends RootModule with InstallModule {
 
     def localBinName = "mill-native"
 
+    def cacheBinarySuffix = "-native"
+
     def executableRaw = Task {
       val previous = nativeImage().path
       val executable = Task.dest / previous.baseName
@@ -322,7 +326,7 @@ object `package` extends RootModule with InstallModule {
       PathRef(executable)
     }
 
-    def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https")
+    def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
 
     def zincWorker = ModuleRef(ZincWorkerGraalvm)
 

@@ -72,7 +72,7 @@ trait RevapiModule extends PublishModule {
   /** API archive and supplement files (dependencies) to compare against */
   def revapiOldFiles: T[Agg[PathRef]] = Task {
     val Artifact(group, id, version) = publishSelfDependency()
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(ivy"$group:$id:$version"),
       artifactTypes = Some(revapiArtifactTypes())
     )
@@ -82,7 +82,7 @@ trait RevapiModule extends PublishModule {
   def revapiNewFiles: T[Agg[PathRef]] = Task {
     Agg(jar()) ++
       Task.traverse(recursiveModuleDeps)(_.jar)() ++
-      millResolver().resolveDeps(
+      millResolver().classpath(
         Seq(coursierDependency),
         artifactTypes = Some(revapiArtifactTypes())
       )
@@ -102,7 +102,7 @@ trait RevapiModule extends PublishModule {
 
   /** Classpath containing the Revapi [[revapiCliVersion CLI]] */
   def revapiClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Agg(ivy"org.revapi:revapi-standalone:${revapiCliVersion()}")
     )
   }

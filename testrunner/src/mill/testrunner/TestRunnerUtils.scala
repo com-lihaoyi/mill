@@ -12,6 +12,7 @@ import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
+import java.util.concurrent.atomic.AtomicBoolean
 
 @internal object TestRunnerUtils {
 
@@ -113,7 +114,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       classFilter: Class[_] => Boolean,
       cl: ClassLoader,
       testClassfilePath: Loose.Agg[Path]
-  ): (Runner, Array[Task]) = {
+  ): (Runner, Array[Array[Task]]) = {
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
@@ -128,15 +129,22 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
         )
     )
 
-    (runner, tasks)
+    def nameOpt(t: Task) = Option(t.taskDef()).map(_.fullyQualifiedName())
+    val groupedTasks = tasks
+      .groupBy(nameOpt)
+      .values
+      .toArray
+      .sortBy(_.headOption.map(nameOpt))
+
+    (runner, groupedTasks)
   }
 
   private def executeTasks(
       tasks: Seq[Task],
       testReporter: TestReporter,
-      runner: Runner,
       events: ConcurrentLinkedQueue[Event]
-  )(implicit ctx: Ctx.Log with Ctx.Home): Unit = {
+  )(implicit ctx: Ctx.Log with Ctx.Home): Boolean = {
+    val taskStatus = new AtomicBoolean(true)
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
       val next = taskQueue.dequeue().execute(
@@ -144,6 +152,11 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
           def handle(event: Event) = {
             testReporter.logStart(event)
             events.add(event)
+            event.status match {
+              case Status.Error => taskStatus.set(false)
+              case Status.Failure => taskStatus.set(false)
+              case _ => ()
+            }
             testReporter.logFinish(event)
           }
         },
@@ -159,6 +172,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
       taskQueue.enqueueAll(next)
     }
+    taskStatus.get()
   }
 
   def parseRunTaskResults(events: Iterator[Event]): Iterator[TestResult] = {
@@ -200,13 +214,39 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (doneMessage, results)
   }
 
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
+  def runTasks(
+      tasksSeq: Seq[Seq[Task]],
+      testReporter: TestReporter,
+      runner: Runner,
+      resultPathOpt: Option[os.Path]
+  )(implicit
       ctx: Ctx.Log with Ctx.Home
   ): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val events = new ConcurrentLinkedQueue[Event]()
-    executeTasks(tasks, testReporter, runner, events)
+
+    var successCounter = 0L
+    var failureCounter = 0L
+
+    val resultLog: () => Unit = resultPathOpt match {
+      case Some(resultPath) =>
+        () => os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
+      case None => () =>
+          ctx.log.outputStream.println(
+            s"Test result: ${successCounter + failureCounter} completed${if (failureCounter > 0) {
+                s", ${failureCounter} failures."
+              } else { "." }}"
+          )
+    }
+
+    tasksSeq.foreach { tasks =>
+      val taskResult = executeTasks(tasks, testReporter, events)
+      if (taskResult) { successCounter += 1 }
+      else { failureCounter += 1 }
+      resultLog()
+    }
+
     handleRunnerDone(runner, events)
   }
 
@@ -216,14 +256,16 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       args: Seq[String],
       classFilter: Class[_] => Boolean,
       cl: ClassLoader,
-      testReporter: TestReporter
+      testReporter: TestReporter,
+      resultPathOpt: Option[os.Path] = None
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 
-    val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
-    val (doneMessage, results) = runTasks(tasks, testReporter, runner)
+    val (doneMessage, results) =
+      runTasks(tasksArr.view.map(_.toSeq).toSeq, testReporter, runner, resultPathOpt)
 
     (doneMessage, results.toSeq)
   }
@@ -234,7 +276,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       testReporter: TestReporter,
       runner: Runner,
       claimFolder: os.Path,
-      testClassQueueFolder: os.Path
+      testClassQueueFolder: os.Path,
+      resultPath: os.Path
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Iterator[TestResult]) = {
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
@@ -242,9 +285,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     val globSelectorCache = testClasses.view
       .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
       .toMap
-
-    // append only log, used to communicate with parent about what test is being claimed
-    // so that the parent can log the claimed test's name to its logger
+    var successCounter = 0L
+    var failureCounter = 0L
 
     def runClaimedTestClass(testClassName: String) = {
 
@@ -257,10 +299,16 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
         }
 
       val tasks = runner.tasks(taskDefs.toArray)
-      executeTasks(tasks, testReporter, runner, events)
+      val taskResult = executeTasks(tasks, testReporter, events)
+      if (taskResult) { successCounter += 1 }
+      else { failureCounter += 1 }
+      os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
     }
 
-    startingTestClass.foreach(runClaimedTestClass)
+    startingTestClass.foreach { testClass =>
+      os.write.append(claimFolder / os.up / s"${claimFolder.last}.log", s"$testClass\n")
+      runClaimedTestClass(testClass)
+    }
 
     for (file <- os.list(testClassQueueFolder)) {
       for (claimedTestClass <- claimFile(file, claimFolder)) runClaimedTestClass(claimedTestClass)
@@ -273,8 +321,10 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       os.exists(file) &&
         scala.util.Try(os.move(file, claimFolder / file.last, atomicMove = true)).isSuccess
     ) {
-      val queueLog = claimFolder / os.up / s"${claimFolder.last}.log"
-      os.write.append(queueLog, s"${file.last}\n")
+      // append only log, used to communicate with parent about what test is being claimed
+      // so that the parent can log the claimed test's name to its logger
+      val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
+      os.write.append(claimLog, s"${file.last}\n")
       file.last
     }
   }
@@ -287,7 +337,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       testClassQueueFolder: os.Path,
       claimFolder: os.Path,
       cl: ClassLoader,
-      testReporter: TestReporter
+      testReporter: TestReporter,
+      resultPath: os.Path
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
@@ -302,7 +353,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       testReporter,
       runner,
       claimFolder,
-      testClassQueueFolder
+      testClassQueueFolder,
+      resultPath
     )
 
     (doneMessage, results.toSeq)
@@ -316,8 +368,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       cl: ClassLoader
   ): Array[String] = {
     val framework = frameworkInstances(cl)
-    val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
-    tasks.map(_.taskDef().fullyQualifiedName())
+    val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    tasksArr.flatten.map(_.taskDef().fullyQualifiedName())
   }
 
   def globFilter(selectors: Seq[String]): String => Boolean = {
