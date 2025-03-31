@@ -676,7 +676,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Run tests for Kotlin/JS target using `kotlin.test` package.
    */
   trait KotlinTestPackageTests extends KotlinJsTests {
-    override def ivyDeps = super.ivyDeps() ++ Seq(
+    override def mandatoryIvyDeps: T[Seq[Dep]] = super.mandatoryIvyDeps() ++ Seq(
       ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
   }
@@ -692,12 +692,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
      */
     def kotestVersion: T[String]
 
-    override def kotlincPluginIvyDeps: T[Seq[Dep]] =
-      super.kotlincPluginIvyDeps() ++ Seq(
-        ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
-      )
+    override def kotlincPluginIvyDeps: T[Seq[Dep]] = super.kotlincPluginIvyDeps() ++ Seq(
+      ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
+    )
 
-    override def ivyDeps = super.ivyDeps() ++ Seq(
+    override def mandatoryIvyDeps: T[Seq[Dep]] = super.mandatoryIvyDeps() ++ Seq(
       ivy"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
       ivy"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
     )
