@@ -40,6 +40,8 @@ object MillInitMavenJansiTests extends BuildGenTestSuite {
         testRes.isSuccess
       )
 
+      // Publish things locally, under a directory that shouldn't outlive the test,
+      // so that we don't pollute the user's ~/.ivy2/local
       val ivy2Repo = tester.baseWorkspacePath / "ivy2Local"
       val publishLocalRes = eval(("publishLocal", "--localIvyRepo", ivy2Repo.toString))
       assert(
