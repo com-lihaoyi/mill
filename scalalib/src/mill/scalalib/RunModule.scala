@@ -61,24 +61,23 @@ trait RunModule extends WithZincWorker {
   }
 
   def classgraphWorker: Worker[ClassgraphWorker] = Task.Worker {
-    val cp = classgraphWorkerClasspath().map(_.path)
-    Task.log.debug(s"Create classloader for classpath: ${cp}")
-    val cl = mill.util.Jvm.createClassLoader(cp, getClass().getClassLoader())
-    val klass = "mill.scalalib.classgraph.impl.ClassgraphWorkerImpl"
-    Task.log.debug(s"Loading class: ${klass}")
-    val cls = cl.loadClass(klass)
-    Task.log.debug(s"Instantiating class: ${klass}")
-    val worker = cls.getConstructor().newInstance().asInstanceOf[ClassgraphWorker]
+    new ClassgraphWorker with AutoCloseable {
+      private val classLoader = mill.util.Jvm.createClassLoader(
+        classPath = classgraphWorkerClasspath().map(_.path),
+        parent = getClass().getClassLoader()
+      )
 
-    object Worker extends ClassgraphWorker with AutoCloseable {
+      private val worker = classLoader
+        .loadClass("mill.scalalib.classgraph.impl.ClassgraphWorkerImpl")
+        .getConstructor().newInstance().asInstanceOf[ClassgraphWorker]
+
       override def discoverMainClasses(classpath: Seq[Path])(implicit ctx: Ctx): Seq[String] =
         worker.discoverMainClasses(classpath)
 
       override def close(): Unit = {
-        cl.close()
+        classLoader.close()
       }
     }
-    Worker
   }
 
   def finalMainClassOpt: T[Either[String, String]] = Task {
