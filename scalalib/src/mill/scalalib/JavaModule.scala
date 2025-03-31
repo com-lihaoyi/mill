@@ -115,8 +115,6 @@ trait JavaModule
    */
   def mainClass: T[Option[String]] = None
 
-  def allLocalMainClasses0 = Task { zincWorker().worker().discoverMainClasses(compile()) }
-
   def finalMainClassOpt: T[Either[String, String]] = Task {
     mainClass() match {
       case Some(m) => Right(m)

@@ -20,7 +20,8 @@ object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(build.main, build.scalalib.api, build.testrunner)
   def ivyDeps = Agg(build.Deps.scalafmtDynamic, build.Deps.scalaXml)
   def testIvyDeps = super.testIvyDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
+  def testTransitiveDeps =
+    super.testTransitiveDeps() ++ Seq(worker.testDep(), `classgraph-worker`.testDep())
 
   object backgroundwrapper extends build.MillPublishJavaModule with build.MillJavaModule {
     def ivyDeps = Agg(build.Deps.sbtTestInterface)
@@ -78,11 +79,16 @@ object `package` extends RootModule with build.MillStableScalaModule {
 
   object worker extends build.MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(api)
-    def ivyDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core, build.Deps.scalap(scalaVersion()))
+    def ivyDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core)
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
       BuildInfo.Value("zinc", build.Deps.zinc.dep.version, "Version of Zinc.")
     )
+  }
+
+  object `classgraph-worker` extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(api)
+    def ivyDeps = Agg(build.Deps.classgraph)
   }
 }
