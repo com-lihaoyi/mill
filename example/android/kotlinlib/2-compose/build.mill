@@ -31,6 +31,9 @@ object app extends AndroidAppKotlinModule {
   def androidEnableCompose = true
   def androidIsDebug = true
 
+  def androidApplicationId = "com.example.composetest"
+  def androidApplicationNamespace = "com.example.composetest"
+
   def mvnDeps: T[Seq[Dep]] = Seq(
     mvn"androidx.core:core-ktx:1.15.0",
     mvn"androidx.activity:activity-compose:1.9.3",
