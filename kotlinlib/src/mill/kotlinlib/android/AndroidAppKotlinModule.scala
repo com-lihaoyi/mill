@@ -57,6 +57,10 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     override def mapDependencies: Task[Dependency => Dependency] =
       Task.Anon(outer.mapDependencies())
 
+    override def androidApplicationId: String = outer.androidApplicationId
+
+    override def androidApplicationNamespace: String = outer.androidApplicationNamespace
+
     override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
 
     override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest()
@@ -67,8 +71,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     def layoutLibVersion: String = "14.0.9"
     // FIXME: avoid hardcoded version
     def composePreviewRendererVersion: String = "0.0.1-alpha08"
-
-    def namespace: String
 
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
 
@@ -172,6 +174,9 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
       PathRef(dir)
     }
 
+
+    override def androidEnableCompose: T[Boolean] = Task { true }
+
     /**
      * Generates the json with the cli arguments for
      * compose-preview-renderer as in
@@ -192,7 +197,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
         classPath = compileClasspath().map(_.path.toString()).toSeq,
         projectClassPath = Seq(compile().classes.path.toString()),
         screenshots = androidDiscoveredPreviews()._2,
-        namespace = namespace,
+        namespace = androidApplicationNamespace,
         resourceApkPath = resourceApkPath().path.toString(),
         resultsFilePath = resultsFilePath.toString()
       )
