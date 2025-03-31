@@ -1,32 +1,41 @@
 package mill.main.android.hilt
 
 import mill.*
-import mill.javalib.android.AndroidModule
 
-trait AndroidHiltTransformAsmModule extends AndroidModule {
-  def transformAsm(classes: Seq[PathRef]): T[Seq[PathRef]] = {
-    val destination = Task.dest / "transform-asm"
-    os.makeDir.all(destination)
-    Task.traverse(classes) {
-      pathRef =>
-        Task.Anon {
-          if (shouldTransform(pathRef.path))
-            transform(pathRef.path, Task.dest / "transform-asm")
-          else {
-            val fileDest = destination / pathRef.path.last
-            os.copy(pathRef.path, fileDest, createFolders = true)
-            PathRef(fileDest)
-          }
-        }
-    }()
+object AndroidHiltTransformAsmModule {
+
+  def main(args: Array[String]): Unit = {
+
+    val scanDirectory = os.Path(args.head)
+
+    val destination = os.Path(args.last)
+
+    transformAsm(os.walk(scanDirectory).filter(_.ext == "class"), destination)
+
   }
 
+  def transformAsm(classes: Seq[os.Path], destination: os.Path): Seq[os.Path] = {
+
+    os.makeDir.all(destination)
+
+    classes.map {
+      path =>
+        if (shouldTransform(destination))
+          transform(path, destination)
+        else {
+          val fileDest = destination / path.last
+          os.copy(path, fileDest, createFolders = true)
+          fileDest
+        }
+    }
+
+  }
 
   private def shouldTransform(`class`: os.Path): Boolean = false
 
-  private def transform(`class`: os.Path, destination: os.Path): PathRef = {
+  private def transform(`class`: os.Path, destination: os.Path): os.Path = {
     val dest = destination / `class`.last
     os.copy(`class`, dest)
-    PathRef(dest)
+    dest
   }
 }
