@@ -23,8 +23,6 @@ object MillServerMain {
       }
     )
 
-    MillMain.adjustLogbackOutputFile()
-
     val acceptTimeoutMillis =
       Try(System.getProperty("mill.server_timeout").toInt).getOrElse(30 * 60 * 1000) // 30 minutes
 
