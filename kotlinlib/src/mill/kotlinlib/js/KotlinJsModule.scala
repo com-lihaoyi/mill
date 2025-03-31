@@ -11,7 +11,6 @@ import mill.testrunner.TestResult
 import mill.util.Jvm
 import mill.{Args, T}
 import sbt.testing.Status
-import upickle.default.{macroRW, ReadWriter as RW}
 import java.io.{File, FileNotFoundException}
 import java.util.zip.ZipFile
 
