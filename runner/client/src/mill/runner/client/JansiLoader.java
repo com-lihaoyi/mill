@@ -46,9 +46,8 @@ final class JansiLoader {
     return "org/fusesource/jansi/internal/native/" + OSInfo.getNativeLibFolderPathForCurrentOS()
         + "/"
         // Replacing '.dylib' by '.jnilib' is necessary, as jansi uses the latter extension on
-        // macOS,
-        // rather than '.dylib', which is the default. The call to replace has no effect on other
-        // platforms.
+        // macOS, rather than '.dylib', which is the default. The call to replace has no effect on
+        // other platforms.
         + System.mapLibraryName("jansi").replace(".dylib", ".jnilib");
   }
 
@@ -74,8 +73,7 @@ final class JansiLoader {
       // Concurrent Mill processes might try to create millJansiLibLocation too, so we ignore
       // errors if the file has been written by another process in the mean time.
       // Also, we move it atomically to its final location, so that if another Mill process finds
-      // it,
-      // it can use it fine straightaway.
+      // it, it can use it fine straightaway.
       if (!Files.exists(millJansiLibLocation))
         try {
           Files.move(tmpLocation, millJansiLibLocation, StandardCopyOption.ATOMIC_MOVE);
