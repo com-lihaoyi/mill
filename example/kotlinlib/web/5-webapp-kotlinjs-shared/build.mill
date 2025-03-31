@@ -15,9 +15,9 @@ trait AppKotlinJsModule extends AppKotlinModule with KotlinJsModule
 
 object `package` extends RootModule with AppKotlinModule {
 
-  override def ktorVersion = "2.3.12"
-  override def kotlinHtmlVersion = "0.11.0"
-  override def kotlinxSerializationVersion = "1.6.3"
+  def ktorVersion = "2.3.12"
+  def kotlinHtmlVersion = "0.11.0"
+  def kotlinxSerializationVersion = "1.6.3"
 
   override def mainClass = Some("webapp.WebApp")
 
@@ -50,7 +50,7 @@ object `package` extends RootModule with AppKotlinModule {
   object shared extends Module {
 
     trait SharedModule extends AppKotlinModule with PlatformKotlinModule {
-      override def kotlincPluginDeps = Seq(
+      override def kotlincPluginIvyDeps = Seq(
         ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
       )
     }
