@@ -42,5 +42,12 @@ object `package` extends RootModule with build.MillStableScalaModule {
     def ivyDeps = Agg(build.Deps.jgraphtCore) ++ build.Deps.graphvizJava ++ build.Deps.javet
   }
 
+  object androidhilt extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(build.main, build.kotlinlib)
+    def ivyDeps = Agg(
+      build.Deps.hiltGradlePlugin
+    )
+  }
+
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
 }
