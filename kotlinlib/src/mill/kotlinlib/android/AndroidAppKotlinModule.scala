@@ -5,7 +5,7 @@ import coursier.core.Reconciliation
 import coursier.params.ResolutionParams
 import coursier.util.ModuleMatchers
 import mill.{Agg, T, Task}
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
 import mill.define.ModuleRef
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
@@ -32,32 +32,28 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
   override def sources: T[Seq[PathRef]] =
     super[AndroidAppModule].sources() :+ PathRef(millSourcePath / "src/main/kotlin")
 
-  override def kotlincOptions = super.kotlincOptions() ++ {
+  override def kotlincPluginIvyDeps = Task {
+    val kv = kotlinVersion()
+
+    val deps = super.kotlincPluginIvyDeps()
+
     if (androidEnableCompose()) {
-      Seq(
-        // TODO expose Compose configuration options
-        // https://kotlinlang.org/docs/compose-compiler-options.html possible options
-        s"-Xplugin=${composeProcessor().path}"
-      )
-    } else Seq.empty
+      if (kv.startsWith("1")) {
+        // cut-off usages for Kotlin 1.x, because of the need to maintain the table of
+        // Compose compiler version -> Kotlin version
+        Result.Failure("Compose can be used only with Kotlin version 2 or newer.")
+      } else {
+        Result.Success(deps ++ Seq(
+          ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
+        ))
+      }
+    } else Result.Success(deps)
   }
 
   /**
    * Enable Jetpack Compose support in the module. Default is `false`.
    */
   def androidEnableCompose: T[Boolean] = false
-
-  private def composeProcessor = Task {
-    // cut-off usages for Kotlin 1.x, because of the need to maintain the table of
-    // Compose compiler version -> Kotlin version
-    if (kotlinVersion().startsWith("1"))
-      throw new IllegalStateException("Compose can be used only with Kotlin version 2 or newer.")
-    defaultResolver().classpath(
-      Agg(
-        ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
-      )
-    ).head
-  }
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
     override def sources: T[Seq[PathRef]] =
