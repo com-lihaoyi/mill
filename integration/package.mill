@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.main.Tasks
 import mill.scalalib._
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.define.SelectMode

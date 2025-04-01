@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.main.Tasks
 import mill.scalalib._
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.define.SelectMode
@@ -139,7 +139,7 @@ object `package` extends RootModule {
           build.Deps.scalacScoverage2Reporter,
           build.Deps.scalacScoverage2Domain,
           build.Deps.scalacScoverage2Serializer
-        ) ++ Agg.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
+        ) ++ Agg.when(!JvmWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
       }
       def mandatoryIvyDeps = Agg.empty[Dep]
     }
