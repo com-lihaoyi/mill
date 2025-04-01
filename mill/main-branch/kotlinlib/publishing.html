@@ -759,10 +759,10 @@ object foo extends KotlinModule with NativeImageModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = &quot;graalvm-community:17.0.7&quot;
 }</code></pre>
 </div>
@@ -770,7 +770,7 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 <div class="paragraph">
 <p>This example uses <code>NativeImageModule</code> to generate a native executable using <a href="https://www.graalvm.org/">Graal VM</a>.
 We recommend you <a href="../fundamentals/configuring-jvm-versions.html" class="xref page">configure a specific JDK version</a>
-via a custom <code>ZincWorkerModule</code> overriding <code>def jvmId</code> (shown above), as not every JVM can build Graal native images.</p>
+via a custom <code>JvmWorkerModule</code> overriding <code>def jvmId</code> (shown above), as not every JVM can build Graal native images.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -807,10 +807,10 @@ object foo extends KotlinModule with NativeImageModule {
     ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
   )
 
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = &quot;graalvm-community:23.0.2&quot;
 }</code></pre>
 </div>

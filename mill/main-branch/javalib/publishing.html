@@ -751,12 +751,12 @@ import mill._, javalib._
 import mill.define.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
   def nativeImageOptions = Seq(&quot;--no-fallback&quot;)
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = &quot;graalvm-community:17.0.7&quot;
 }</code></pre>
 </div>
@@ -764,7 +764,7 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 <div class="paragraph">
 <p>This example uses <code>NativeImageModule</code> to generate a native executable using <a href="https://www.graalvm.org/">Graal VM</a>.
 We recommend you <a href="../fundamentals/configuring-jvm-versions.html" class="xref page">configure a specific JDK version</a>
-via a custom <code>ZincWorkerModule</code> overriding <code>def jvmId</code> (shown above), as not every JVM can build Graal native images.</p>
+via a custom <code>JvmWorkerModule</code> overriding <code>def jvmId</code> (shown above), as not every JVM can build Graal native images.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -794,7 +794,7 @@ object foo extends JavaModule with NativeImageModule {
     ivy&quot;org.slf4j:slf4j-nop:2.0.7&quot;
   )
 
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
   def nativeImageOptions = Seq(
     &quot;--no-fallback&quot;,
@@ -803,7 +803,7 @@ object foo extends JavaModule with NativeImageModule {
   )
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = &quot;graalvm-community:23.0.1&quot;
 }</code></pre>
 </div>

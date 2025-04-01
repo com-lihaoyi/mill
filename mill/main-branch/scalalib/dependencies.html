@@ -1027,19 +1027,19 @@ central.to=http://example.com:8080/nexus/content/groups/public</code></pre>
 </div>
 <div class="paragraph">
 <p>To add custom resolvers to the initial bootstrap of the build, you can create a
-custom <code>ZincWorkerModule</code> (named after the <a href="https://github.com/sbt/zinc">Zinc Incremental compiler</a>
-used to compile the <code>build.mill</code> files) and override the <code>zincWorker</code> method in your
+custom <code>JvmWorkerModule</code> (named after the <a href="https://github.com/sbt/zinc">Zinc Incremental compiler</a>
+used to compile the <code>build.mill</code> files) and override the <code>jvmWorker</code> method in your
 <code>ScalaModule</code> by pointing it to that custom object:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 object bar extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
-  def zincWorker = ModuleRef(CustomZincWorkerModule)
+  def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }

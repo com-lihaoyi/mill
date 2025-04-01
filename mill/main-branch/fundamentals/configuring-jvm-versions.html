@@ -672,7 +672,7 @@ and using a custom Java home on a per-module basis.</p>
 </div>
 <div class="paragraph">
 <p>To override the default Java home, you can create a custom
-<code>ZincWorkerModule</code> and override the <code>zincWorker</code> method in your
+<code>JvmWorkerModule</code> and override the <code>jvmWorker</code> method in your
 <code>JavaModule</code> or <code>ScalaModule</code> by pointing it to that custom object:</p>
 </div>
 </div>
@@ -681,7 +681,7 @@ and using a custom Java home on a per-module basis.</p>
 <h2 id="_setting_the_jvm_version_of_a_javamodule"><a class="anchor" href="#_setting_the_jvm_version_of_a_javamodule"></a>Setting the JVM version of a JavaModule</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>ZincWorkerModule.ForJvm</code> class takes a Jvm dependency string as its
+<p>The <code>JvmWorkerModule.ForJvm</code> class takes a Jvm dependency string as its
 contructor argument and configures the module to fetch and cache the Jvm
 using coursier and use it for the compile, run, and test tasks.</p>
 </div>
@@ -703,12 +703,12 @@ and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indi
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 import mill.define.ModuleRef
 
-object ZincWorkerJava extends ZincWorkerModule {
+object JvmWorkerJava extends JvmWorkerModule {
   def jvmId = &quot;temurin:18.0.2&quot;
 }
 
 object foo extends JavaModule {
-  def zincWorker = ModuleRef(ZincWorkerJava)
+  def jvmWorker = ModuleRef(JvmWorkerJava)
 
   object test extends JavaTests with TestModule.Junit4
 }</code></pre>
@@ -725,10 +725,10 @@ Test foo.FooTest.testSimple finished...</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Selecting a custom JVM via <code>ZincWorkerModule.ForJvm</code> means that JVM is used for
+<p>Selecting a custom JVM via <code>JvmWorkerModule.ForJvm</code> means that JVM is used for
 compiling, testing, and running that module via Mill. Note that <code>.assembly</code> is not
 affected, as JVM assembly jars do not bundle a JVM and have to be run using a
-JVM installed on the target host machine. Configuration is done via <code>ZincWorkerModule</code>
+JVM installed on the target host machine. Configuration is done via <code>JvmWorkerModule</code>
 as the <a href="https://github.com/sbt/zinc">Zinc</a> incremental compiler is used for compiling
 Java and Scala sources.</p>
 </div>
@@ -755,14 +755,14 @@ index version from the Maven Central:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib._
 
-object ZincWorkerJavaLatest extends ZincWorkerModule {
+object JvmWorkerJavaLatest extends JvmWorkerModule {
   def jvmId = &quot;temurin:23.0.1&quot;
   def jvmIndexVersion = &quot;latest.release&quot;
 }
 
 object bar extends ScalaModule {
   def scalaVersion = &quot;2.13.12&quot;
-  def zincWorker = ModuleRef(ZincWorkerJavaLatest)
+  def jvmWorker = ModuleRef(JvmWorkerJavaLatest)
 
 }</code></pre>
 </div>
@@ -789,7 +789,7 @@ OS/CPU combinations</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib._
 
-object ZincWorkerJavaUrl extends ZincWorkerModule {
+object JvmWorkerJavaUrl extends JvmWorkerModule {
   def jvmId =
     if (sys.props(&quot;os.name&quot;) == &quot;Mac OS X&quot;) {
       &quot;https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz&quot;
@@ -801,7 +801,7 @@ object ZincWorkerJavaUrl extends ZincWorkerModule {
 
 object qux extends KotlinModule {
   def kotlinVersion = &quot;2.0.20&quot;
-  def zincWorker = ModuleRef(ZincWorkerJavaUrl)
+  def jvmWorker = ModuleRef(JvmWorkerJavaUrl)
 }</code></pre>
 </div>
 </div>
@@ -821,12 +821,12 @@ Qux running on Java 22.0.2</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object ZincWorkerLocalJvm extends ZincWorkerModule {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object JvmWorkerLocalJvm extends JvmWorkerModule {
   def javaHome = Some(PathRef(os.Path(&quot;/my/java/home&quot;), quick = true))
 }
 
 object baz extends JavaModule {
-  def zincWorker = ModuleRef(ZincWorkerLocalJvm)
+  def jvmWorker = ModuleRef(JvmWorkerLocalJvm)
 
 }</code></pre>
 </div>
