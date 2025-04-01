@@ -41,6 +41,7 @@ object MillMain {
   }
 
   def main(args: Array[String]): Unit = SystemStreams.withTopLevelSystemStreamProxy {
+    adjustLogbackOutputFile()
     val initialSystemStreams = SystemStreams.original
     // setup streams
     val (runnerStreams, cleanupStreams, bspLog) =
@@ -431,6 +432,17 @@ object MillMain {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
+
+  // Logback is set up via a logback.xml file in resources, so that if an app
+  // tries to log via slf4j, its logs will go somewhere. We need to tell logback
+  // where to write its output file. The out directory might not be "out/", so we
+  // set a Java property, used in logback.xml and then read by logback, so that
+  // the logs go to a file under the actual out directory.
+  // This method should be called early on in Mill processes, not to miss any
+  // slf4j use.
+  def adjustLogbackOutputFile(): Unit =
+    if (!sys.props.contains("mill.log.file"))
+      sys.props("mill.log.file") = s"${OutFiles.out}/mill.log"
 
   def withOutLock[T](
       noBuildLock: Boolean,
