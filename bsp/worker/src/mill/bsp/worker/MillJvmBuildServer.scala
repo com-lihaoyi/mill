@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture
 
 import scala.jdk.CollectionConverters.*
 
-
 private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
 
   override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
