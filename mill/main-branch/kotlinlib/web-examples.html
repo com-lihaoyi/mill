@@ -880,13 +880,15 @@ fully developing Kotlin/JS support, see the following ticket:</p>
 import mill._, kotlinlib._, kotlinlib.js._
 
 object `package` extends RootModule with KotlinJsModule {
-  def moduleKind = ModuleKind.ESModule
-  def kotlinVersion = &quot;1.9.25&quot;
-  def kotlinJsRunTarget = Some(RunTarget.Node)
-  def ivyDeps = Seq(
+  override def kotlinJsModuleKind = ModuleKind.ESModule
+  override def kotlinVersion = &quot;1.9.25&quot;
+  override def kotlinJsRunTarget = Some(RunTarget.Node)
+  override def ivyDeps = Seq(
     ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:0.11.0&quot;
   )
-  object test extends KotlinJsModule with KotestTests
+  object test extends KotlinJsModule with KotestTests {
+    override def kotestVersion = &quot;5.9.1&quot;
+  }
 }</code></pre>
 </div>
 </div>
@@ -934,19 +936,19 @@ import mill._, kotlinlib._, kotlinlib.js._
 
 object `package` extends RootModule with KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  override def kotlinVersion = &quot;1.9.24&quot;
   def ktorVersion = &quot;2.3.12&quot;
   def kotlinHtmlVersion = &quot;0.11.0&quot;
 
-  def mainClass = Some(&quot;webapp.WebApp&quot;)
+  override def mainClass = Some(&quot;webapp.WebApp&quot;)
 
-  def ivyDeps = Seq(
+  override def ivyDeps = Seq(
     ivy&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
     ivy&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
     ivy&quot;io.ktor:ktor-server-html-builder-jvm:$ktorVersion&quot;
   )
 
-  def resources = Task {
+  override def resources = Task {
     os.makeDir(Task.dest / &quot;webapp&quot;)
     val jsPath = client.linkBinary().classes.path
     // Move root.js[.map]into the proper filesystem position
@@ -957,18 +959,18 @@ object `package` extends RootModule with KotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    override def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;io.ktor:ktor-server-test-host-jvm:$ktorVersion&quot;
     )
   }
 
   object client extends KotlinJsModule {
-    def kotlinVersion = &quot;1.9.24&quot;
+    override def kotlinVersion = &quot;1.9.24&quot;
 
-    override def splitPerModule = false
+    override def kotlinJsSplitPerModule = false
 
-    def ivyDeps = Seq(
+    override def ivyDeps = Seq(
       ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;
     )
   }
@@ -1030,11 +1032,11 @@ object `package` extends RootModule with AppKotlinModule {
   def kotlinHtmlVersion = &quot;0.11.0&quot;
   def kotlinxSerializationVersion = &quot;1.6.3&quot;
 
-  def mainClass = Some(&quot;webapp.WebApp&quot;)
+  override def mainClass = Some(&quot;webapp.WebApp&quot;)
 
-  def moduleDeps = Seq(shared.jvm)
+  override def moduleDeps = Seq(shared.jvm)
 
-  def ivyDeps = Seq(
+  override def ivyDeps = Seq(
     ivy&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
     ivy&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
     ivy&quot;io.ktor:ktor-server-html-builder-jvm:$ktorVersion&quot;,
@@ -1043,7 +1045,7 @@ object `package` extends RootModule with AppKotlinModule {
     ivy&quot;ch.qos.logback:logback-classic:1.5.8&quot;
   )
 
-  def resources = Task {
+  override def resources = Task {
     os.makeDir(Task.dest / &quot;webapp&quot;)
     val jsPath = client.linkBinary().classes.path
     os.copy(jsPath / &quot;client.js&quot;, Task.dest / &quot;webapp/client.js&quot;)
@@ -1052,7 +1054,7 @@ object `package` extends RootModule with AppKotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    override def ivyDeps = super.ivyDeps() ++ Seq(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;io.ktor:ktor-server-test-host-jvm:$ktorVersion&quot;
     )
@@ -1061,27 +1063,19 @@ object `package` extends RootModule with AppKotlinModule {
   object shared extends Module {
 
     trait SharedModule extends AppKotlinModule with PlatformKotlinModule {
-      def processors = Task {
-        defaultResolver().classpath(
-          Seq(
-            ivy&quot;org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}&quot;
-          )
-        )
-      }
-
-      def kotlincOptions = super.kotlincOptions() ++ Seq(
-        s&quot;-Xplugin=${processors().head.path}&quot;
+      override def kotlincPluginIvyDeps = Seq(
+        ivy&quot;org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}&quot;
       )
     }
 
     object jvm extends SharedModule {
-      def ivyDeps = super.ivyDeps() ++ Seq(
+      override def ivyDeps = super.ivyDeps() ++ Seq(
         ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion&quot;,
         ivy&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion&quot;
       )
     }
     object js extends SharedModule with AppKotlinJsModule {
-      def ivyDeps = super.ivyDeps() ++ Seq(
+      override def ivyDeps = super.ivyDeps() ++ Seq(
         ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;,
         ivy&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion&quot;
       )
@@ -1089,9 +1083,9 @@ object `package` extends RootModule with AppKotlinModule {
   }
 
   object client extends AppKotlinJsModule {
-    def splitPerModule = false
-    def moduleDeps = Seq(shared.js)
-    def ivyDeps = Seq(
+    override def kotlinJsSplitPerModule = false
+    override def moduleDeps = Seq(shared.js)
+    override def ivyDeps = Seq(
       ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;,
       ivy&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion&quot;
     )
