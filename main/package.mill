@@ -72,22 +72,17 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           Task.Anon {
             val selfDep = mod.publishSelfDependency()
             (
-              s"${mod.coursierDependency.module.repr}:${mod.coursierDependency.version}",
+              s"${mod.coursierDependency.module.repr}:${mod.coursierDependency.versionConstraint.asString}",
               s"${selfDep.group}:${selfDep.id}:${selfDep.version}"
             )
           }
         }().toMap
 
-        val result = Lib.resolveDependenciesMetadataSafe(
-          repositories = dist.allRepositories(),
-          Seq(BoundDep(dist.coursierDependency, force = false)),
-          Some(dist.mapDependencies()),
-          dist.resolutionCustomizer(),
-          Some(Task.ctx()),
-          dist.coursierCacheCustomizer()
+        val result = dist.millResolver().resolution(
+          Seq(BoundDep(dist.coursierDependency, force = false))
         )
-        result.getOrThrow.orderedDependencies
-          .map(dep => s"${dep.module.repr}:${dep.version}")
+        result.orderedDependencies
+          .map(dep => s"${dep.module.repr}:${dep.versionConstraint.asString}")
           .distinct
           .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
           .mkString(",")

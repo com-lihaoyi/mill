@@ -31,8 +31,9 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 * Add failed tasks count to Mill progress indicator ({link-pr}/4764[#4764])
 * Fix main class discovery in Scala 3 ({link-pr}/4761[#4761])
 
+
 [#0-12-9]
-=== 0.12.9 - 2025-03-16
+=== 0.12.9 - 2025-03-17
 :version: 0.12.9
 :milestone-name: 0.12.9
 :milestone: 112
@@ -55,6 +56,9 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 * Optimize BSP initialization stuff ({link-pr}/4698[#4698])
 * Make source path configurable in TestBaseModule ({link-pr}/4703[#4703])
 
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-8]
 === 0.12.8 - 2025-02-16
@@ -69,6 +73,9 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 * Make `Task.Source` and `Task.Sources` take a literal sub-path string syntax by default {link-pr}/4487[#4487]
 * Fix `transitiveCoursierProjects` cause OOM on large build {link-pr}/4452[#4452]
 
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-7]
@@ -80,6 +87,11 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 * Upgrade OS-Lib to fix usage of `os.zip` on folders {link-pr}/4444[#4444]
 * Add example of using Mill to build a Http4S Web Application {link-pr}/4446[#4446]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#0-12-6]
 === 0.12.6 - 2025-01-31
@@ -153,6 +165,10 @@ to Maven Central for improved security and reliability {link-pr}/4372[#4372]
 
 * Kotlin 2.1.0 is now supported {link-pr}/4406[#4406]
 
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#0-12-5]
 === 0.12.5 - 2025-01-01
@@ -194,6 +210,11 @@ https://mill-build.org/blog/2-monorepo-build-tool.html[Why Use a Monorepo Build 
 https://mill-build.org/blog/3-selective-testing.html[Faster CI with Selective Testing],
 and https://mill-build.org/blog/4-flaky-tests.html[How to Manage Flaky Tests],
 
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 [#0-12-4]
 === 0.12.4 - 2024-12-16
 :version: 0.12.4
@@ -233,6 +254,11 @@ https://github.com/com-lihaoyi/mill/pull/4110[#4110]
 * Launch of the https://mill-build.org/blog[Mill Build Engineering Blog], where we will post articles
 discussing topics around JVM build tooling
 
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 [#0-12-3]
 === 0.12.3 - 2024-11-24
 :version: 0.12.3
@@ -256,6 +282,9 @@ discussing topics around JVM build tooling
 a new page https://github.com/com-lihaoyi/mill/pull/3990[How Fast Does Java Compile? #3990], and
 https://github.com/com-lihaoyi/mill/pull/3938[Stable Links To Older Doc-site Versions #3938]
 
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 
