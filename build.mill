@@ -11,7 +11,7 @@ import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish._
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 import mill.T
 import mill.define.Cross
 
