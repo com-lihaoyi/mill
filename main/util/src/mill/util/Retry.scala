@@ -1,12 +1,18 @@
 package mill.util
 
+import mill.api.Ctx
+
+import java.io.{ByteArrayOutputStream, PrintStream}
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
+
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise}
 
 /**
  * Generic retry functionality
  *
+ * @param logger            Method to log messages upon failure
  * @param count             How many times to retry before giving up
  * @param backoffMillis     What is the initial backoff time
  * @param backoffMultiplier How much to multiply the initial backoff each time
@@ -21,6 +27,7 @@ import scala.concurrent.{Await, Promise}
  *         [[t]] fails more than [[count]] times
  */
 case class Retry(
+    logger: String => Unit,
     count: Int = 5,
     backoffMillis: Long = 10,
     backoffMultiplier: Double = 2.0,
@@ -46,11 +53,30 @@ case class Retry(
         }
       } catch {
         case e: Throwable if retryCount < count && filter(retryCount + 1, e) =>
+          logger(Retry.printException(e))
+          logger(s"Attempt ${retryCount + 1} failed, waiting $currentBackoffMillis ms")
           Thread.sleep(currentBackoffMillis)
           rec(retryCount + 1, (currentBackoffMillis * backoffMultiplier).toInt)
       }
     }
 
     rec(0, backoffMillis)
+  }
+}
+
+object Retry {
+
+  /** Use this logger to log from a Mill task */
+  def ctxLogger(implicit ctx: Ctx.Log): String => Unit =
+    ctx.log.warn(_)
+
+  /** Use this logger to log with a `PrintStream`, such as `System.err` */
+  def printStreamLogger(printStream: PrintStream): String => Unit =
+    printStream.println(_)
+
+  private def printException(ex: Throwable): String = {
+    val baos = new ByteArrayOutputStream
+    ex.printStackTrace(new PrintStream(baos, true, StandardCharsets.UTF_8))
+    new String(baos.toByteArray, StandardCharsets.UTF_8)
   }
 }

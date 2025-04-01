@@ -1,22 +1,22 @@
 package mill.init
 
-import coursier.LocalRepositories
-import coursier.core.Repository
-import coursier.maven.MavenRepository
 import mill.api.{PathRef, Result}
 import mill.main.buildgen.BuildGenUtil
+import mill.scalalib.{CoursierModule, Dep}
 import mill.scalalib.scalafmt.ScalafmtWorkerModule
-import mill.util.{Jvm, MillModuleUtil}
+import mill.util.Jvm
 import mill.{Command, T, Task, TaskModule}
 
-import scala.util.control.NoStackTrace
-
 @mill.api.experimental
-trait BuildGenModule extends TaskModule {
+trait BuildGenModule extends CoursierModule with TaskModule {
 
   def defaultCommandName(): String = "init"
 
-  def buildGenClasspath: T[Seq[PathRef]]
+  def buildGenDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+
+  def buildGenClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(buildGenDeps())
+  }
 
   def buildGenMainClass: T[String]
 
@@ -48,18 +48,3 @@ trait BuildGenModule extends TaskModule {
     }
   }
 }
-@mill.api.experimental
-object BuildGenModule {
-
-  def millModule(artifact: String): Result[Seq[PathRef]] =
-    MillModuleUtil.millProjectModule(artifact, millRepositories)
-
-  def millRepositories: Seq[Repository] = Seq(
-    LocalRepositories.ivy2Local,
-    MavenRepository("https://repo1.maven.org/maven2"),
-    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-  )
-}
-
-@mill.api.experimental
-case class BuildGenException(message: String) extends Exception(message) with NoStackTrace

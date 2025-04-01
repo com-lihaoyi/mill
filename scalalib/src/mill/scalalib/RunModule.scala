@@ -49,9 +49,7 @@ trait RunModule extends WithZincWorker {
    * Same as [[allLocalMainClasses]], but only for modules with a custom
    * JVM version configured
    */
-  def allLocalMainClasses0: T[Seq[String]] = Task {
-    zincWorker().worker().discoverMainClasses(localRunClasspath().map(_.path))
-  }
+  def allLocalMainClasses0: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * All main classes detected in this module that can serve as program entrypoints

@@ -5,7 +5,6 @@ import mainargs.Flag
 
 import mill.api.{Result, internal}
 import mill.define.{Command, Task}
-import mill.util.MillModuleUtil.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
@@ -38,10 +37,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     Task { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath = Task {
-    millProjectModule(
-      s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
-      repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule(s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}")
+    ))
   }
 
   def toolsIvyDeps = Task {
@@ -93,11 +91,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def bridgeFullClassPath: T[Seq[PathRef]] = Task {
-    Lib.resolveDependencies(
-      repositoriesTask(),
-      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
-      ctx = Some(Task.log)
-    ).map(t => (scalaNativeWorkerClasspath() ++ t))
+    scalaNativeWorkerClasspath() ++ defaultResolver().classpath(
+      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
+    )
   }
 
   override def scalacPluginIvyDeps: T[Seq[Dep]] = Task {

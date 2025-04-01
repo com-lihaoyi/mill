@@ -7,7 +7,6 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.main.BuildInfo
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
-import mill.util.MillModuleUtil.millProjectModule
 
 /**
  * Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
@@ -113,20 +112,17 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
   def scoverageToolsClasspath: T[Seq[PathRef]] = Task {
     scoverageReportWorkerClasspath() ++
-      defaultResolver().resolveDeps(scoverageReporterIvyDeps())
+      defaultResolver().classpath(scoverageReporterIvyDeps())
   }
 
   def scoverageClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(scoveragePluginDeps())
+    defaultResolver().classpath(scoveragePluginDeps())
   }
 
   def scoverageReportWorkerClasspath: T[Seq[PathRef]] = Task {
-    val workerArtifact = "mill-contrib-scoverage-worker2"
-
-    millProjectModule(
-      workerArtifact,
-      repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-contrib-scoverage-worker2")
+    ))
   }
 
   /** Inner worker module. This is not an `object` to allow users to override and customize it. */
@@ -209,7 +205,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       val outerScoverageClassesPath = outer.scoverage.compile().classes
       (super.runClasspath().map { path =>
         if (outerClassesPath == path) outerScoverageClassesPath else path
-      } ++ defaultResolver().resolveDeps(outer.scoverageRuntimeDeps())).distinct
+      } ++ defaultResolver().classpath(outer.scoverageRuntimeDeps())).distinct
     }
   }
 }

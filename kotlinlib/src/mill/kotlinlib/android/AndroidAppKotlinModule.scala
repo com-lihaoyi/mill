@@ -84,7 +84,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
      * For more information see [[https://developer.android.com/studio/preview/compose-screenshot-testing]]
      */
     def composePreviewRenderer: T[Seq[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Seq(
           ivy"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
         )
@@ -92,7 +92,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     }
 
     final def layoutLibRenderer: T[Seq[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Seq(
           ivy"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
         )
@@ -100,7 +100,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     }
 
     final def layoutLibRuntime: T[Seq[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Seq(
           ivy"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
         )
@@ -108,7 +108,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     }
 
     final def layoutLibFrameworkRes: T[Seq[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Seq(
           ivy"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
         )
@@ -285,7 +285,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
       super.runClasspath() ++ androidPreviewScreenshotTestEngineClasspath() ++ compileClasspath()
 
     def androidPreviewScreenshotTestEngineClasspath: T[Seq[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Seq(
           ivy"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08"
         )

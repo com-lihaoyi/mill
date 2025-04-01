@@ -121,7 +121,7 @@ trait Proguard extends ScalaModule {
    * The location of the proguard jar files.
    */
   def proguardClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(Seq(
+    defaultResolver().classpath(Seq(
       ivy"com.guardsquare:proguard-base:${proguardVersion()}"
     ))
   }

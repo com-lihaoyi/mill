@@ -13,7 +13,6 @@ import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
 import mill.util.Jvm
-import mill.util.MillModuleUtil.millProjectModule
 import mill.T
 
 import java.io.File
@@ -47,6 +46,10 @@ trait KotlinModule extends JavaModule { outer =>
    * The Kotlin version to be used (for API and Language level settings).
    */
   def kotlinVersion: T[String]
+
+  def allLocalMainClasses0 = Task {
+    zincWorker().worker().discoverMainClasses(localRunClasspath().map(_.path))
+  }
 
   /**
    * The dependencies of this module.
@@ -88,10 +91,9 @@ trait KotlinModule extends JavaModule { outer =>
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
   private[kotlinlib] def kotlinWorkerClasspath = Task {
-    millProjectModule(
-      "mill-kotlinlib-worker-impl",
-      repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-kotlinlib-worker-impl")
+    ))
   }
 
   /**
@@ -99,9 +101,8 @@ trait KotlinModule extends JavaModule { outer =>
    * Default is derived from [[kotlinCompilerIvyDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
-    resolveDeps(
-      Task.Anon { kotlinCompilerIvyDeps().map(bindDependency()) }
-    )() ++ kotlinWorkerClasspath()
+    defaultResolver().classpath(kotlinCompilerIvyDeps()) ++
+      kotlinWorkerClasspath()
   }
 
   /**
@@ -164,7 +165,7 @@ trait KotlinModule extends JavaModule { outer =>
    * The resolved plugin jars
    */
   def kotlincPluginJars: T[Seq[PathRef]] = Task {
-    val jars = defaultResolver().resolveDeps(
+    val jars = defaultResolver().classpath(
       kotlincPluginIvyDeps()
         // Don't resolve transitive jars
         .map(d => d.exclude("*" -> "*"))
@@ -263,7 +264,7 @@ trait KotlinModule extends JavaModule { outer =>
    * Classpath for running Dokka.
    */
   private def dokkaCliClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       )
@@ -271,7 +272,7 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   private def dokkaPluginsClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
         ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",

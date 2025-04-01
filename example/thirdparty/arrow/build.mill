@@ -296,7 +296,7 @@ object `package` extends RootModule {
         def moduleDeps = Seq(`arrow-core`.jvm)
         def compileIvyDeps = Seq(libraries.squareupRetrofitLib)
         def processors = Task {
-          defaultResolver().resolveDeps(Seq(libraries.kotlinxSerializationPlugin))
+          defaultResolver().classpath(Seq(libraries.kotlinxSerializationPlugin))
         }
 
         object test extends ArrowJvmTests {
@@ -349,7 +349,7 @@ object `package` extends RootModule {
         }
 
         def processors = Task {
-          defaultResolver().resolveDeps(Seq(libraries.kotlinxSerializationPlugin))
+          defaultResolver().classpath(Seq(libraries.kotlinxSerializationPlugin))
         }
       }
 
