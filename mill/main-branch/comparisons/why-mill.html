@@ -868,6 +868,40 @@ so the performance of the underlying JVM and Java compiler (which is actually pr
 really shine through.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_not_just_compile_times"><a class="anchor" href="#_not_just_compile_times"></a>Not Just Compile Times</h3>
+<div class="paragraph">
+<p>Compilation times are only one part of the time taken during development. Mill
+also provides features that help speed up other parts of your development cycle:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a> allows you to skip unrelated tests when
+validating pull requests, speeding up PR validation considerably</p>
+</li>
+<li>
+<p><a href="../javalib/testing.html#_test_parallelism" class="xref page">Test Parallelism</a> automatically distributes tests
+across multiple threads, utilizing all available cores while maintaining long-lived
+JVM processes to maximize performance</p>
+</li>
+<li>
+<p><a href="../../../blog/9-mill-faster-assembly-jars.html" class="xref page">Incremental Assembly Jar Creation</a> speeds
+up creation of assembly jars, greatly speeding up workflows that use them
+(e.g. Spark Submit)</p>
+</li>
+<li>
+<p>Mill automatically generates profiles of any build command you run, giving visibility
+into where the build tool is spending time so you can understand and optimize it.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/NettyCompileProfile.png" alt="NettyCompileProfile" />
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
