@@ -25,7 +25,7 @@ trait UnidocModule extends ScalaModule {
 
     Task.log.info(s"Staging scaladoc for ${unidocSourceFiles0.length} files")
 
-    // the details of the options and zincWorker call are significantly
+    // the details of the options and jvmWorker call are significantly
     // different between scala-2 scaladoc and scala-3 scaladoc
     // below is for scala-2 variant
     val options: Seq[String] = Seq(
@@ -50,7 +50,7 @@ trait UnidocModule extends ScalaModule {
         )
       }
 
-    zincWorker().worker().docJar(
+    jvmWorker().worker().docJar(
       scalaVersion(),
       scalaOrganization(),
       scalaDocClasspath(),

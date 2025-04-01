@@ -8,7 +8,7 @@ import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.Jvm
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.constants.OutFiles.*
 import mill.constants.CodeGenConstants.buildFileExtensions
@@ -263,7 +263,7 @@ abstract class MillBuildRootModule()(implicit
             )
         }
       }
-    val isScala3 = ZincWorkerUtil.isScala3(scalaVersion())
+    val isScala3 = JvmWorkerUtil.isScala3(scalaVersion())
     if (isScala3)
       allMillDistModules.filter(_._2 != "scala-library").toSeq
     else
@@ -324,7 +324,7 @@ abstract class MillBuildRootModule()(implicit
     }
 
     // copied from `ScalaModule`
-    zincWorker()
+    jvmWorker()
       .worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),

@@ -14,7 +14,7 @@ import scala.util.control.NonFatal
 
 import mill.scalalib.classgraph.ClassgraphWorkerModule
 
-trait RunModule extends WithZincWorker {
+trait RunModule extends WithJvmWorker {
 
   def classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 
@@ -146,7 +146,7 @@ trait RunModule extends WithZincWorker {
       forkArgs(),
       forkEnv(),
       runUseArgsFile(),
-      zincWorker().javaHome().map(_.path)
+      jvmWorker().javaHome().map(_.path)
     )
   }
 
@@ -172,7 +172,7 @@ trait RunModule extends WithZincWorker {
         ) ++ args().value,
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
         workingDir = forkWorkingDir(),
-        extraRunClasspath = zincWorker().backgroundWrapperClasspath().map(_.path).toSeq,
+        extraRunClasspath = jvmWorker().backgroundWrapperClasspath().map(_.path).toSeq,
         background = true,
         runBackgroundLogToConsole = runBackgroundLogToConsole
       )

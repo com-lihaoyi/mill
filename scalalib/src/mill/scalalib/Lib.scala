@@ -8,7 +8,7 @@ import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{Ctx, PathRef, Result}
 import mill.constants.EnvVars
 import mill.main.BuildInfo
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.util.MillModuleUtil
 
 object Lib {
@@ -19,7 +19,7 @@ object Lib {
 
   def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
     dep.toDependency(
-      binaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion),
+      binaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion),
       fullVersion = scalaVersion,
       platformSuffix = platformSuffix
     )
@@ -56,7 +56,7 @@ object Lib {
   /**
    * Resolve dependencies using Coursier.
    *
-   * We do not bother breaking this out into the separate ZincWorker classpath,
+   * We do not bother breaking this out into the separate JvmWorker classpath,
    * because Coursier is already bundled with mill/Ammonite to support the
    * `import $ivy` syntax.
    */
@@ -91,11 +91,11 @@ object Lib {
   }
 
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (ZincWorkerUtil.isDotty(scalaVersion))
+    if (JvmWorkerUtil.isDotty(scalaVersion))
       Seq(
         ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
       )
-    else if (ZincWorkerUtil.isScala3(scalaVersion))
+    else if (JvmWorkerUtil.isScala3(scalaVersion))
       Seq(
         ivy"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
       )
@@ -106,16 +106,16 @@ object Lib {
       )
 
   def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (ZincWorkerUtil.isDotty(scalaVersion))
+    if (JvmWorkerUtil.isDotty(scalaVersion))
       Seq(
         ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
       )
-    else if (ZincWorkerUtil.isScala3Milestone(scalaVersion))
+    else if (JvmWorkerUtil.isScala3Milestone(scalaVersion))
       Seq(
         // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
         ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
       )
-    else if (ZincWorkerUtil.isScala3(scalaVersion))
+    else if (JvmWorkerUtil.isScala3(scalaVersion))
       Seq(
         // scalaVersion >= 3.0.0-RC1 uses scaladoc
         ivy"$scalaOrganization::scaladoc:$scalaVersion".forceVersion()
@@ -125,11 +125,11 @@ object Lib {
       scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
 
   def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (ZincWorkerUtil.isDotty(scalaVersion)) {
+    if (JvmWorkerUtil.isDotty(scalaVersion)) {
       Seq(
         ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
       )
-    } else if (ZincWorkerUtil.isScala3(scalaVersion))
+    } else if (JvmWorkerUtil.isScala3(scalaVersion))
       Seq(
         ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
       )
