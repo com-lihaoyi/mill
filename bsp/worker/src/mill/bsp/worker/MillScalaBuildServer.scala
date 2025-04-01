@@ -85,12 +85,12 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       hint = "buildTarget/scalaMainClasses",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
-        Task.Anon((m.zincWorker().worker(), m.compile(), m.forkArgs(), m.forkEnv()))
+        Task.Anon((m.allLocalMainClasses(), m.compile(), m.forkArgs(), m.forkEnv()))
       }
     ) {
-      case (ev, state, id, m: JavaModule, (worker, compile, forkArgs, forkEnv)) =>
+      case (ev, state, id, m: JavaModule, (classes, compile, forkArgs, forkEnv)) =>
         // We find all main classes, although we could also find only the configured one
-        val mainClasses = worker.discoverMainClasses(compile)
+        val mainClasses = classes
         // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
         val items = mainClasses.map { mc =>
           val scalaMc = new ScalaMainClass(mc, Seq().asJava, forkArgs.asJava)
