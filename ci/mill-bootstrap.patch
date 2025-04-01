@@ -24,10 +24,10 @@ index b3d16508f21..01afa62e23c 100644
 -        ./mill -i --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
 +        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
 diff --git a/build.mill b/build.mill
-index 7f6d9b3a37b..a60ec41a56c 100644
+index faab58775b8..e9a3ec0fea5 100644
 --- a/build.mill
 +++ b/build.mill
-@@ -1,17 +1,17 @@
+@@ -1,10 +1,10 @@
  package build
  // imports
 -import com.github.lolgab.mill.mima.Mima
@@ -41,15 +41,7 @@ index 7f6d9b3a37b..a60ec41a56c 100644
  import mill._
  import mill.define.NamedTask
  import mill.main.Tasks
- import mill.scalalib._
- import mill.scalalib.api.ZincWorkerUtil
- import mill.scalalib.publish._
--import mill.resolve.SelectMode
-+import mill.define.SelectMode
- import mill.T
- import mill.define.Cross
- 
-@@ -293,19 +293,19 @@ object Deps {
+@@ -294,19 +294,19 @@ object Deps {
  }
  
  def millVersion: T[String] = Task.Input {
@@ -73,7 +65,7 @@ index 7f6d9b3a37b..a60ec41a56c 100644
  }
  
  def millDownloadPrefix = Task {
-@@ -474,7 +474,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+@@ -475,7 +475,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  /**
   * Some custom scala settings and test convenience
   */
@@ -82,7 +74,7 @@ index 7f6d9b3a37b..a60ec41a56c 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -531,8 +531,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -532,8 +532,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
      val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
      val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
      super.scalacPluginIvyDeps() ++
@@ -93,7 +85,7 @@ index 7f6d9b3a37b..a60ec41a56c 100644
    }
  
    def mandatoryIvyDeps = T {
-@@ -540,13 +540,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -541,13 +541,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
      val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
      val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
      super.mandatoryIvyDeps() ++
@@ -109,7 +101,7 @@ index 7f6d9b3a37b..a60ec41a56c 100644
      def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
-@@ -587,7 +587,8 @@ trait MillBaseTestsModule extends TestModule {
+@@ -589,7 +589,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
@@ -117,9 +109,9 @@ index 7f6d9b3a37b..a60ec41a56c 100644
 +trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
 +  /*
    import com.github.lolgab.mill.mima._
-   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
-     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -717,7 +718,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+ //  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq()
+ 
+@@ -623,7 +624,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
@@ -196,7 +188,7 @@ index e49f218f4be..9d03aa073f3 100644
        def ivyDeps = Task {
          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
 diff --git a/dist/package.mill b/dist/package.mill
-index 20254c4306b..3b771e5a87e 100644
+index 488648f42a0..0cc9d048ed1 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -2,14 +2,14 @@ package build.dist
@@ -583,7 +575,7 @@ index ee6663745f9..09b545ca7a5 100644
      def mandatoryIvyDeps = Agg.empty[Dep]
      def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
 diff --git a/scalalib/package.mill b/scalalib/package.mill
-index 961af279da3..048fe96452e 100644
+index 6d4c4e561be..538aa270336 100644
 --- a/scalalib/package.mill
 +++ b/scalalib/package.mill
 @@ -9,7 +9,7 @@ import mill.scalalib._
@@ -609,7 +601,7 @@ index a0c2c525a9e..141559d8435 100644
      def compileIvyDeps = scalaNativeWorkerVersion match {
        case "0.5" =>
 diff --git a/website/package.mill b/website/package.mill
-index f7d9c9aee16..0e491919bbe 100644
+index a1e97dd69eb..d7f004948ff 100644
 --- a/website/package.mill
 +++ b/website/package.mill
 @@ -26,7 +26,7 @@ object `package` extends RootModule {
