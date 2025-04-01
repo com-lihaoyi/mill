@@ -106,7 +106,10 @@ object `package` extends RootModule {
       createFolders = true
     )
 
-    expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.toolsClasspath().map(_.path))
+    expandDiagramsInDirectoryAdocFile(
+      Task.dest,
+      mill.main.VisualizeModule.toolsClasspath().map(_.path)
+    )
 
     PathRef(Task.dest)
   }
@@ -231,7 +234,10 @@ object `package` extends RootModule {
   def blogFolder0 = Task.Source("blog")
   def blogFolder = Task {
     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
-    expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.toolsClasspath().map(_.path))
+    expandDiagramsInDirectoryAdocFile(
+      Task.dest,
+      mill.main.VisualizeModule.toolsClasspath().map(_.path)
+    )
     PathRef(Task.dest)
   }
   def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>

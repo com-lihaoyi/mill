@@ -106,7 +106,7 @@ trait KotlinModule extends JavaModule { outer =>
    * that the embedded compiler comes as a dependency-free JAR.
    * All its dependencies are shaded and thus relocated to different package names.
    * This also affects the compiler API, since relocated types may surface in the API
-   * but are not compatible to their non-relocated versions. 
+   * but are not compatible to their non-relocated versions.
    * E.g. the plugin's dependencies need to line up with the embeddable compiler's
    * shading, otherwise a [[java.lang.AbstractMethodError]] will be thrown.
    *
