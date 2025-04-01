@@ -53,7 +53,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
 
   def organization = dep.module.organization.value
   def name = dep.module.name.value
-  def version = dep.version
+  def version = dep.versionConstraint.asString
 
   /**
    * If scalaVersion is a Dotty version, replace the cross-version suffix
@@ -164,6 +164,7 @@ object Dep {
 
     prospective.filter(parse(_) == dep)
   }
+
   private val rw0: RW[Dep] = macroRW
 
   // Use literal JSON strings for common cases so that files
@@ -199,12 +200,16 @@ object Dep {
 
   /**
    * Convenience to access Mill modules as dependencies, e.g. to load the into worker classpaths.
-   * @param artifactName The module artifact name
+   *
+   * @param artifactName   The module artifact name
    * @param artifactSuffix The artifact suffix typically representing the Scala version.
    *                       Defaults to the Scala binary platform Mill runs on.
    */
-  private[mill] def millProjectModule(artifactName: String, artifactSuffix: String = "_3"): Dep =
-    ivy"com.lihaoyi:${artifactName}${artifactSuffix}:${Versions.millVersion}"
+  private[mill] def millProjectModule(artifactName: String, artifactSuffix: String = "_3"): Dep = {
+    // we don't use `ivy` string context here to avoid a cyclic dependency
+    val dep = s"com.lihaoyi:${artifactName}${artifactSuffix}:${Versions.millVersion}"
+    Dep.parse(dep)
+  }
 
 }
 

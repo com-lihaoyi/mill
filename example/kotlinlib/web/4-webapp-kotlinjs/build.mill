@@ -9,19 +9,19 @@ import mill._, kotlinlib._, kotlinlib.js._
 
 object `package` extends RootModule with KotlinModule {
 
-  def kotlinVersion = "1.9.24"
+  override def kotlinVersion = "1.9.24"
   def ktorVersion = "2.3.12"
   def kotlinHtmlVersion = "0.11.0"
 
-  def mainClass = Some("webapp.WebApp")
+  override def mainClass = Some("webapp.WebApp")
 
-  def ivyDeps = Seq(
+  override def ivyDeps = Seq(
     ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
     ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
     ivy"io.ktor:ktor-server-html-builder-jvm:$ktorVersion"
   )
 
-  def resources = Task {
+  override def resources = Task {
     os.makeDir(Task.dest / "webapp")
     val jsPath = client.linkBinary().classes.path
     // Move root.js[.map]into the proper filesystem position
@@ -32,18 +32,18 @@ object `package` extends RootModule with KotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    override def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
       ivy"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
     )
   }
 
   object client extends KotlinJsModule {
-    def kotlinVersion = "1.9.24"
+    override def kotlinVersion = "1.9.24"
 
-    override def splitPerModule = false
+    override def kotlinJsSplitPerModule = false
 
-    def ivyDeps = Seq(
+    override def ivyDeps = Seq(
       ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion"
     )
   }
