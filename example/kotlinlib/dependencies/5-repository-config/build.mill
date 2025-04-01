@@ -11,8 +11,6 @@ val sonatypeReleases = Seq(
 
 object foo extends KotlinModule {
 
-  def mainClass = Some("foo.FooKt")
-
   def kotlinVersion = "1.9.24"
 
   def ivyDeps = Seq(
