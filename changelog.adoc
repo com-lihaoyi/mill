@@ -1592,7 +1592,7 @@ This also fixes an annoying issue when Mill was previously ran in a source direc
 * Fixed the `visualize` command which wasn't working on some newer JREs
 * Improved Mill server support for Windows 11 and some Windows Server versions
 
-* `ScalaModule` / `JvmWorkerModule`: Fixed incremental compilation issue with JRE 17 (and probably others)
+* `ScalaModule` / `ZincWorkerModule`: Fixed incremental compilation issue with JRE 17 (and probably others)
 * `TestModule` now better supports JUnit5 test suites
 * `ScalaJsModule`: internal improvements to the stability of the Scala.js linker
 * `ScalaNativeModule`: Added support for `nativeEmbedResources`
@@ -1751,7 +1751,7 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 _Changes since {prev-version}:_
 
-* Fixed Log4Shell security vulnerability in `JvmWorkerModule` (CVE-2021-44228)
+* Fixed Log4Shell security vulnerability in `ZincWorkerModule` (CVE-2021-44228)
 * Factored out the testrunner into a new module, which also fixes some potential classloader issues when executing tests (e.g. with JNA)
 * Removed the limitation of max 22 inputs for tasks
 * `--watched` commands can now re-run when pressing enter-key
