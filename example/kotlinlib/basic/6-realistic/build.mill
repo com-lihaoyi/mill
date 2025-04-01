@@ -53,7 +53,7 @@ object qux extends MyModule {
 
 // A semi-realistic build setup, combining all the individual Mill concepts:
 //
-// - Three `KotlinModule`s that depend on each other
+// - Three ``KotlinModule``s that depend on each other
 //
 // - With unit testing and publishing set up
 //
@@ -63,9 +63,10 @@ object qux extends MyModule {
 // Note that for multi-module builds like this, using using xref:cli/query-syntax.adoc[queries] to run tasks on
 // multiple modules at once can be very convenient:
 //
+// [source,sh]
 // ----
-// __.test
-// __.publishLocal
+// > mill __.test
+// > mill __.publishLocal
 // ----
 //
 // Also note how you can use ``trait``s to bundle together common combinations of

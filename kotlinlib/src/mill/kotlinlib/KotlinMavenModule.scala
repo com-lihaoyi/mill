@@ -7,23 +7,13 @@ import mill.javalib.MavenModule
  * A [[KotlinModule]] with a Maven compatible directory layout.
  */
 trait KotlinMavenModule extends KotlinModule with MavenModule {
-  override def sources = Task.Sources(
-    millSourcePath / "src/main/java",
-    millSourcePath / "src/main/kotlin"
-  )
-  override def resources = Task.Sources {
-    millSourcePath / "src/main/resources"
-  }
+  private def sources0 = Task.Sources("src/main/kotlin")
+  override def sources = super.sources() ++ sources0()
 
   trait KotlinMavenTests extends KotlinTests with MavenTests {
     override def intellijModulePath: os.Path = millSourcePath / "src/test"
 
-    override def sources = Task.Sources(
-      millSourcePath / "src/test/java",
-      millSourcePath / "src/test/kotlin"
-    )
-    override def resources = Task.Sources {
-      millSourcePath / "src/test/resources"
-    }
+    private def sources0 = Task.Sources("src/test/kotlin")
+    override def sources = super.sources() ++ sources0()
   }
 }
