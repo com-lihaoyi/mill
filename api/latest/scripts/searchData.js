@@ -2211,7 +2211,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/PublishModule$$PublishData$.html#jsonify-0","e":false,"i":"","n":"jsonify","t":"jsonify: ReadWriter[PublishData]","d":"mill.scalalib.PublishModule.PublishData","k":"def","x":""},
 {"l":"mill/scalalib/RunModule.html#","e":false,"i":"","n":"RunModule","t":"RunModule extends WithZincWorker","d":"mill.scalalib","k":"trait","x":""},
 {"l":"mill/scalalib/RunModule.html#allLocalMainClasses-0","e":false,"i":"","n":"allLocalMainClasses","t":"allLocalMainClasses: Target[Seq[String]]","d":"mill.scalalib.RunModule","k":"def","x":""},
-{"l":"mill/scalalib/RunModule.html#classgraphWorkerModule-0","e":false,"i":"","n":"classgraphWorkerModule","t":"classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule]","d":"mill.scalalib.RunModule","k":"val","x":""},
+{"l":"mill/scalalib/RunModule.html#classgraphWorkerModule-0","e":false,"i":"","n":"classgraphWorkerModule","t":"classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule]","d":"mill.scalalib.RunModule","k":"def","x":""},
 {"l":"mill/scalalib/RunModule.html#finalMainClass-0","e":false,"i":"","n":"finalMainClass","t":"finalMainClass: Target[String]","d":"mill.scalalib.RunModule","k":"def","x":""},
 {"l":"mill/scalalib/RunModule.html#finalMainClassOpt-0","e":false,"i":"","n":"finalMainClassOpt","t":"finalMainClassOpt: Target[Either[String, String]]","d":"mill.scalalib.RunModule","k":"def","x":""},
 {"l":"mill/scalalib/RunModule.html#forkArgs-0","e":false,"i":"","n":"forkArgs","t":"forkArgs: Target[Seq[String]]","d":"mill.scalalib.RunModule","k":"def","x":""},
