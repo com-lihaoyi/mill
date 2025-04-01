@@ -309,9 +309,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     }
 
   override def docSources: T[Seq[PathRef]] = Task {
-    if (
-      JvmWorkerUtil.isScala3(scalaVersion()) && !JvmWorkerUtil.isScala3Milestone(scalaVersion())
-    ) Seq(compile().classes)
+    if (JvmWorkerUtil.isScala3(scalaVersion()) && !JvmWorkerUtil.isScala3Milestone(scalaVersion()))
+      Seq(compile().classes)
     else allSources()
   }
 
@@ -344,9 +343,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       }
     }
 
-    if (
-      JvmWorkerUtil.isDotty(scalaVersion()) || JvmWorkerUtil.isScala3Milestone(scalaVersion())
-    ) { // dottydoc
+    if (JvmWorkerUtil.isDotty(scalaVersion()) || JvmWorkerUtil.isScala3Milestone(scalaVersion())) { // dottydoc
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
