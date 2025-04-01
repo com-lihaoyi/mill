@@ -69,12 +69,12 @@ object app extends AndroidAppKotlinModule {
 
 /** Usage
 
-> ./mill show app.screenshotTest.generatePreviews
-...
-[
-  "ref:...com/example/screenshottest/ExampleMessageCardScreenshots/oMessageCardScreenshot_spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420_0.png"
-]
-...
+//> ./mill show app.screenshotTest.generatePreviews
+//...
+//[
+//  "ref:...com/example/screenshottest/ExampleMessageCardScreenshots/oMessageCardScreenshot_spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420_0.png"
+//]
+//...
 
 
 */
@@ -84,31 +84,31 @@ object app extends AndroidAppKotlinModule {
 
 /** Usage
 
-> ./mill show app.screenshotTest.testForked
-...
-[
-  "",
-  [
-    {
-      "fullyQualifiedName": "com.example.screenshottest.ExampleMessageCardScreenshots",
-      "selector": "oMessageCardScreenshot()",
-      "duration": ...,
-      "status": "Success"
-    }
-  ]
-]
-...
-
-> cat out/app/screenshotTest/testForked.dest/test-report.xml
-...
-<?xml version='1.0' encoding='UTF-8'?>
-<testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
-        <testsuite name="com.example.screenshottest.ExampleMessageCardScreenshots" tests="1" failures="0" errors="0" skipped="0" time="..." timestamp="...">
-        <properties>
-      </properties>
-        <testcase classname="com.example.screenshottest.ExampleMessageCardScreenshots" name="oMessageCardScreenshot()" time="...">
-        </testcase>
-      </testsuite>
-      </testsuites>
-...
+//> ./mill show app.screenshotTest.testForked
+//...
+//[
+//  "",
+//  [
+//    {
+//      "fullyQualifiedName": "com.example.screenshottest.ExampleMessageCardScreenshots",
+//      "selector": "oMessageCardScreenshot()",
+//      "duration": ...,
+//      "status": "Success"
+//    }
+//  ]
+//]
+//...
+//
+//> cat out/app/screenshotTest/testForked.dest/test-report.xml
+//...
+//<?xml version='1.0' encoding='UTF-8'?>
+//<testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
+//        <testsuite name="com.example.screenshottest.ExampleMessageCardScreenshots" tests="1" failures="0" errors="0" skipped="0" time="..." timestamp="...">
+//        <properties>
+//      </properties>
+//        <testcase classname="com.example.screenshottest.ExampleMessageCardScreenshots" name="oMessageCardScreenshot()" time="...">
+//        </testcase>
+//      </testsuite>
+//      </testsuites>
+//...
 */

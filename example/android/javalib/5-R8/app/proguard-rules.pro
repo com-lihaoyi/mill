@@ -21,3 +21,4 @@
 -renamesourcefileattribute SourceFilex
 
 -keep class com.helloworld.** { *; }
+

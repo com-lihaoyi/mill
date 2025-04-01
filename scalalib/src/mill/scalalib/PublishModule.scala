@@ -408,7 +408,7 @@ trait PublishModule extends JavaModule { outer =>
       case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
           val baseName = baseNameTask()
           Seq(
-            androidLib.androidAar() -> s"$baseName.aar",
+            androidLib.androidReleaseAar() -> s"$baseName.aar",
             sourceJar() -> s"$baseName-sources.jar",
             docJar() -> s"$baseName-javadoc.jar",
             pom() -> s"$baseName.pom"

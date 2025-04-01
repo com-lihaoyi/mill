@@ -60,9 +60,11 @@ object app extends AndroidAppKotlinModule {
 
 /** Usage
 
-> ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
+//> ./mill show app.androidReleaseApk
+//".../out/app/androidReleaseApk.dest/app.apk"
 
+> ./mill show app.androidDebugApk
+".../out/app/androidDebugApk.dest/app.apk"
 */
 
 // This command triggers the build process, which installs the necessary build components, compiles the Kotlin

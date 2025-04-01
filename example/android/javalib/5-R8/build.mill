@@ -70,8 +70,11 @@ object app extends AndroidAppModule {
 
 /** Usage
 
-> ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
+> ./mill show app.androidReleaseApk
+".../out/app/androidReleaseApk.dest/app.apk"
+
+> ./mill show app.androidDebugApk
+".../out/app/androidDebugApk.dest/app.apk"
 
 */
 
@@ -123,6 +126,9 @@ object app extends AndroidAppModule {
 > ./mill show app.startAndroidEmulator
 
 > ./mill show app.androidReleaseInstall
+...All files should be loaded. Notifying the device...
+
+> ./mill show app.androidDebugInstall
 ...All files should be loaded. Notifying the device...
 
 > ./mill show app.stopAndroidEmulator

@@ -28,8 +28,11 @@ object bundle extends AndroidAppBundle {
 
 /** Usage
 
-> ./mill show bundle.androidBundle
-".../out/bundle/androidBundle.dest/signedBundle.aab"
+> ./mill show bundle.androidReleaseBundle
+".../out/bundle/androidReleaseBundle.dest/signedBundle.aab"
+
+> ./mill show bundle.androidDebugBundle
+".../out/bundle/androidDebugBundle.dest/signedBundle.aab"
 
 */
 
