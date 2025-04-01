@@ -293,11 +293,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
 </ul>
   </li>
@@ -337,7 +337,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sbt.html">Case Study: Mill vs SBT</a>
+    <a class="nav-link" href="sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
 
   <li class="nav-item is-current-page is-active" data-depth="2">
@@ -558,15 +558,23 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -605,7 +613,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.9</span>
+    <span class="version">0.12.10</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -615,7 +623,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.9</a>
+          <a href="../index.html">0.12.10</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -654,7 +662,7 @@
 <div class="paragraph">
 <p><a href="https://mill-build.org/">Mill</a> is a JVM build tool that targets Java/Scala/Kotlin and has
 potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good
-traction among its users, benchmarks that demonstrate 2-10x faster builds than its competitors,
+traction among its users, benchmarks that demonstrate 3-6x faster builds than its competitors,
 and a unique "direct-style" design that make it easy to use and extend. This page discusses
 some of the most interesting design decisions in Mill, and how it sets Mill apart from
 other build tools on the market.</p>
@@ -700,7 +708,7 @@ setup for a module:</p>
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def ivyDeps = Agg(
+  def ivyDeps = Seq(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
@@ -736,12 +744,12 @@ Test foo.FooTest.testSimple finished, ...
 </div>
 </div>
 <div class="paragraph">
-<p>Mill was originally a Scala build tool competing with <a href="https://scala-sbt.org/">SBT</a>, and by 2023 it
+<p>Mill was originally a Scala build tool competing with <a href="https://scala-sbt.org/"><code>sbt</code></a>, and by 2023 it
 had reached around 5-10% market share in the Scala community
 (<a href="https://www.jetbrains.com/lp/devecosystem-2023/scala/">Jetbrains Survey</a>,
 <a href="https://scalasurvey2023.virtuslab.com/">VirtusLabs Survey</a>).
 It recently grew first-class Java support, demonstrating
-<a href="why-mill.html" class="xref page">2-10x speedups</a> over existing Java build tools
+<a href="why-mill.html" class="xref page">3-6x speedups</a> over existing Java build tools
 like Maven or Gradle. Mill also has gained experimental support for Java-adjacent platforms
 like <a href="../kotlinlib/intro.html" class="xref page">Kotlin</a> and
 <a href="../android/java.html" class="xref page">Android</a>, and has demonstrated the ability to branch out into supporting
@@ -1238,7 +1246,7 @@ using Mill over the incumbent build tools:</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Mill today runs the equivalent local workflows <a href="maven.html" class="xref page">4-10x faster than Maven</a>
+<p>Mill today runs the equivalent local workflows <a href="maven.html" class="xref page">3-6x faster than Maven</a>
 and <a href="gradle.html" class="xref page">2-4x faster than Gradle</a>, with automatic parallelization and caching for
 every part of your build</p>
 </li>
@@ -1406,7 +1414,7 @@ of Java build tools or Monorepo build tools, let me know and we can try to make 
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="sbt.html">Case Study: Mill vs SBT</a></span>
+  <span class="prev"><a href="sbt.html">Case Study: Mill vs <code>sbt</code></a></span>
   <span class="next"><a href="../cli/installation-ide.html">Installation &amp; IDE Setup</a></span>
 </nav>
 </article>

@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>The Mill Execution Model :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/depth/execution-model.html">
-    <link rel="prev" href="sandboxing.html">
-    <link rel="next" href="process-architecture.html">
+    <link rel="prev" href="../large/multi-language-builds.html">
+    <link rel="next" href="caching.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -293,11 +293,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
 </ul>
   </li>
@@ -337,7 +337,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -557,16 +557,24 @@
     <span class="nav-text">Mill In Depth</span>
 <ul class="nav-list">
 
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
-  </li>
-
   <li class="nav-item is-current-page" data-depth="2">
     <a class="nav-link" href="execution-model.html">The Mill Execution Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -605,7 +613,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.9</span>
+    <span class="version">0.12.10</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -615,7 +623,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.9</a>
+          <a href="../index.html">0.12.10</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -876,15 +884,15 @@ as shown below:</p>
  viewBox="0.00 0.00 619.73 248.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
-<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
 <text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
+<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
@@ -1625,8 +1633,8 @@ the new value.</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="sandboxing.html">Mill Sandboxing</a></span>
-  <span class="next"><a href="process-architecture.html">The Mill Process Architecture</a></span>
+  <span class="prev"><a href="../large/multi-language-builds.html">Multi-Language Builds</a></span>
+  <span class="next"><a href="caching.html">Caching in Mill</a></span>
 </nav>
 </article>
   </div>

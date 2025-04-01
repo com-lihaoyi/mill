@@ -294,11 +294,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
 </ul>
   </li>
@@ -338,7 +338,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -559,15 +559,23 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -606,7 +614,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.9</span>
+    <span class="version">0.12.10</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -616,7 +624,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.9</a>
+          <a href="../index.html">0.12.10</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -660,7 +668,7 @@
 Start by extending it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-pythonlib-publishing-1-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/pythonlib/publishing/1-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.10/example-pythonlib-publishing-1-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/pythonlib/publishing/1-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, pythonlib._
 
@@ -830,7 +838,7 @@ or override the <code>pyproject</code> task with your own metadata.</p>
 custom <code>setup.py</code> file.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-pythonlib-publishing-2-publish-module-advanced.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/pythonlib/publishing/2-publish-module-advanced">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.10/example-pythonlib-publishing-2-publish-module-advanced.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/pythonlib/publishing/2-publish-module-advanced">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, pythonlib._
 

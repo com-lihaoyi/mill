@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>The Mill Process Architecture :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/depth/process-architecture.html">
-    <link rel="prev" href="execution-model.html">
-    <link rel="next" href="design-principles.html">
+    <link rel="prev" href="parallelism.html">
+    <link rel="next" href="sandboxing.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -293,11 +293,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
 </ul>
   </li>
@@ -337,7 +337,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -558,15 +558,23 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="execution-model.html">The Mill Execution Model</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="2">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
     <a class="nav-link" href="process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -605,7 +613,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.9</span>
+    <span class="version">0.12.10</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -615,7 +623,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.9</a>
+          <a href="../index.html">0.12.10</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -1100,8 +1108,8 @@ found at <a href="../fundamentals/out-dir.html" class="xref page">The Output Dir
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="execution-model.html">The Mill Execution Model</a></span>
-  <span class="next"><a href="design-principles.html">Mill Design Principles</a></span>
+  <span class="prev"><a href="parallelism.html">Parallelism in Mill</a></span>
+  <span class="next"><a href="sandboxing.html">Mill Sandboxing</a></span>
 </nav>
 </article>
   </div>

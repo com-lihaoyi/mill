@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Linting Typescript Projects :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/linting.html" />
-    <link rel="prev" href="publishing.html" />
-    <link rel="next" href="../android/java.html" />
+    <link rel="prev" href="testing.html" />
+    <link rel="next" href="publishing.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -293,12 +293,12 @@
     <a class="nav-link" href="testing.html">Testing Typescript Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="publishing.html">Typescript Packaging &amp; Publishing</a>
-  </li>
-
   <li class="nav-item is-current-page is-active" data-depth="3">
     <a class="nav-link" href="linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
 </ul>
   </li>
@@ -338,7 +338,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -559,15 +559,23 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -606,7 +614,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.9</span>
+    <span class="version">0.12.10</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -616,7 +624,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.9</a>
+          <a href="../index.html">0.12.10</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -665,7 +673,7 @@ codebases using the Mill build tool</p>
 <p>Eslint and Prettier are tools that analyzes your Typescript source code, performing intelligent analyses and code quality checks, and is often able to automatically fix the issues that it discovers. It can also perform automated refactoring.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-javascriptlib-linting-1-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/javascriptlib/linting/1-linting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.10/example-javascriptlib-linting-1-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/linting/1-linting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -716,7 +724,7 @@ All matched files use Eslint code style!</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-javascriptlib-linting-2-autoformatting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/javascriptlib/linting/2-autoformatting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.10/example-javascriptlib-linting-2-autoformatting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/linting/2-autoformatting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -814,7 +822,7 @@ export class Foo {
 <p>Mill supports code coverage analysis with multiple Typescript testing frameworks.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.9/example-javascriptlib-linting-3-code-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.9/example/javascriptlib/linting/3-code-coverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.10/example-javascriptlib-linting-3-code-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/linting/3-code-coverage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -939,8 +947,8 @@ File...| % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s...
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="publishing.html">Typescript Packaging &amp; Publishing</a></span>
-  <span class="next"><a href="../android/java.html">Android Java Projects</a></span>
+  <span class="prev"><a href="testing.html">Testing Typescript Projects</a></span>
+  <span class="next"><a href="publishing.html">Typescript Packaging &amp; Publishing</a></span>
 </nav>
 </article>
   </div>
