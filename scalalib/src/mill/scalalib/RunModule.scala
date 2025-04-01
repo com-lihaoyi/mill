@@ -16,7 +16,7 @@ import mill.scalalib.classgraph.ClassgraphWorkerModule
 
 trait RunModule extends WithZincWorker {
 
-  val classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
+  def classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 
   /**
    * Any command-line parameters you want to pass to the forked JVM.
