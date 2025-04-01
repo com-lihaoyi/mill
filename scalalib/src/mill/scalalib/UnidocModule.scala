@@ -50,7 +50,7 @@ trait UnidocModule extends ScalaModule {
         )
       }
 
-    zincWorker().worker().docJar(
+    jvmWorker().worker().docJar(
       scalaVersion(),
       scalaOrganization(),
       scalaDocClasspath(),

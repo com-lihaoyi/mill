@@ -27,7 +27,7 @@ import scala.annotation.nowarn
  */
 trait JavaModule
     extends mill.Module
-    with WithZincWorker
+    with WithJvmWorker
     with TestModule.JavaModuleBase
     with TaskModule
     with RunModule
@@ -38,7 +38,7 @@ trait JavaModule
     with SemanticDbJavaModule
     with AssemblyModule { outer =>
 
-  override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  override def zincWorker: ModuleRef[JvmWorkerModule] = super.zincWorker
   @nowarn
   type JavaTests = JavaModuleTests
   @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
@@ -54,7 +54,7 @@ trait JavaModule
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
     override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
-    override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
+    override def zincWorker: ModuleRef[JvmWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
     override def sources = Task.Sources {
@@ -878,7 +878,7 @@ trait JavaModule
    * Keep in sync with [[bspCompileClassesPath]]
    */
   def compile: T[mill.scalalib.api.CompilationResult] = Task(persistent = true) {
-    zincWorker()
+    jvmWorker()
       .worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -1494,7 +1494,7 @@ trait JavaModule
     Task.Command {
       super.prepareOffline(all)()
       resolvedIvyDeps()
-      zincWorker().prepareOffline(all)()
+      jvmWorker().prepareOffline(all)()
       resolvedRunIvyDeps()
       Task.sequence(tasks)()
       ()
@@ -1519,7 +1519,7 @@ trait JavaModule
   @internal
   def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
     JvmBuildTarget(
-      javaHome = zincWorker()
+      javaHome = jvmWorker()
         .javaHome()
         .map(p => BspUri(p.path))
         .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p)))),
