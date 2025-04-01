@@ -278,9 +278,9 @@ trait BaseModule extends SbtModule with PublishModule {
     )
   }
 
-  def zincWorker = mill.define.ModuleRef(BaseModuleZincWorker)
+  def jvmWorker = mill.define.ModuleRef(BaseModuleJvmWorker)
 
-  object BaseModuleZincWorker extends ZincWorkerModule {
+  object BaseModuleJvmWorker extends JvmWorkerModule {
     def jvmId = "11"
   }
 }

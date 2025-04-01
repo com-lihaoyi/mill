@@ -4,12 +4,12 @@ import mill._, javalib._
 import mill.define.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
   def nativeImageOptions = Seq("--no-fallback")
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:17.0.7"
 }
 //// SNIPPET:END

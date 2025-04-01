@@ -269,7 +269,7 @@ The typical symptom will be error messages which look like this;
 [source]
 ----
 1 tasks failed
-mill.scalalib.ZincWorkerModule.classpath
+mill.scalalib.JvmWorkerModule.classpath
 Resolution failed for 1 modules:
 --------------------------------------------
   com.lihaoyi:mill-scalalib-worker_2.13:0.11.1

@@ -3,7 +3,7 @@ package mill.scalalib.giter8
 import mill.Task
 import mill.define.{Command, Discover, ExternalModule}
 import mill.util.Jvm
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib._
 import mill.main.BuildInfo
 
@@ -20,7 +20,7 @@ trait Giter8Module extends CoursierModule {
       try {
         defaultResolver().classpath {
           val scalaBinVersion = {
-            val bv = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
+            val bv = JvmWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
             if (bv == "3") "2.13" else bv
           }
           Seq(ivy"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0"

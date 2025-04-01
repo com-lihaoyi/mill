@@ -3,21 +3,21 @@
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 499.0)">
 <title>example1</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-499 1791,-499 1791,4 -4,4"/>
-<!-- mill.scalalib.ZincWorkerModule.classpath -->
+<!-- mill.scalalib.JvmWorkerModule.classpath -->
 <g id="node1" class="node">
-<title>mill.scalalib.ZincWorkerModule.classpath</title>
+<title>mill.scalalib.JvmWorkerModule.classpath</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="616.12,-387 366.88,-387 366.88,-351 616.12,-351 616.12,-387"/>
-<text text-anchor="middle" x="491.5" y="-363.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.classpath</text>
+<text text-anchor="middle" x="491.5" y="-363.95" font-family="Times,serif" font-size="14.00">mill.scalalib.JvmWorkerModule.classpath</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.worker -->
+<!-- mill.scalalib.JvmWorkerModule.worker -->
 <g id="node2" class="node">
-<title>mill.scalalib.ZincWorkerModule.worker</title>
+<title>mill.scalalib.JvmWorkerModule.worker</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="905.5,-387 667.5,-387 667.5,-351 905.5,-351 905.5,-387"/>
-<text text-anchor="middle" x="786.5" y="-363.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.worker</text>
+<text text-anchor="middle" x="786.5" y="-363.95" font-family="Times,serif" font-size="14.00">mill.scalalib.JvmWorkerModule.worker</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.classpath&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
+<!-- mill.scalalib.JvmWorkerModule.classpath&#45;&gt;mill.scalalib.JvmWorkerModule.worker -->
 <g id="edge1" class="edge">
-<title>mill.scalalib.ZincWorkerModule.classpath&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
+<title>mill.scalalib.JvmWorkerModule.classpath&#45;&gt;mill.scalalib.JvmWorkerModule.worker</title>
 <path fill="none" stroke="black" d="M616.33,-369C629.38,-369 642.67,-369 655.78,-369"/>
 <polygon fill="black" stroke="black" points="655.73,-372.5 665.73,-369 655.73,-365.5 655.73,-372.5"/>
 </g>
@@ -27,21 +27,21 @@
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1080.88,-306 1020.62,-306 1020.62,-270 1080.88,-270 1080.88,-306"/>
 <text text-anchor="middle" x="1050.75" y="-282.95" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.worker&#45;&gt;compile -->
+<!-- mill.scalalib.JvmWorkerModule.worker&#45;&gt;compile -->
 <g id="edge2" class="edge">
-<title>mill.scalalib.ZincWorkerModule.worker&#45;&gt;compile</title>
+<title>mill.scalalib.JvmWorkerModule.worker&#45;&gt;compile</title>
 <path fill="none" stroke="black" d="M874.2,-350.56C884.8,-347.89 895.44,-345.02 905.5,-342 941.38,-331.23 981.19,-316.08 1009.89,-304.56"/>
 <polygon fill="black" stroke="black" points="1010.95,-307.91 1018.9,-300.91 1008.32,-301.42 1010.95,-307.91"/>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.zincLogDebug -->
+<!-- mill.scalalib.JvmWorkerModule.zincLogDebug -->
 <g id="node3" class="node">
-<title>mill.scalalib.ZincWorkerModule.zincLogDebug</title>
+<title>mill.scalalib.JvmWorkerModule.zincLogDebug</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="631.5,-441 351.5,-441 351.5,-405 631.5,-405 631.5,-441"/>
-<text text-anchor="middle" x="491.5" y="-417.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.zincLogDebug</text>
+<text text-anchor="middle" x="491.5" y="-417.95" font-family="Times,serif" font-size="14.00">mill.scalalib.JvmWorkerModule.zincLogDebug</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
+<!-- mill.scalalib.JvmWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.JvmWorkerModule.worker -->
 <g id="edge3" class="edge">
-<title>mill.scalalib.ZincWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
+<title>mill.scalalib.JvmWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.JvmWorkerModule.worker</title>
 <path fill="none" stroke="black" d="M592.51,-404.57C618.89,-399.71 647.5,-394.43 674.42,-389.47"/>
 <polygon fill="black" stroke="black" points="674.75,-392.97 683.95,-387.72 673.48,-386.09 674.75,-392.97"/>
 </g>

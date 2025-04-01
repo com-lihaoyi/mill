@@ -17,7 +17,7 @@ object ModuleUtils {
    * @param deps A function provided the direct dependencies
    * @throws BuildScriptException if there were cycles in the dependencies
    */
-  // FIXME: Remove or consolidate with copy in ZincWorkerImpl
+  // FIXME: Remove or consolidate with copy in JvmWorkerImpl
   def recursive[T](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
 
     @tailrec def rec(

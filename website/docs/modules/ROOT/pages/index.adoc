@@ -1,9 +1,9 @@
-= Mill: A Fast, Scalable JVM Build Tool
+= Mill: A Better JVM Build Tool
 
 https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable&versionPrefix=0.12.[Maven Central Version]]
 
-Mill is a fast JVM build tool that supports Java, Scala, and Kotlin:
+Mill is a JVM build tool that supports Java, Scala, and Kotlin:
 
 * Mill builds the same Java project xref:comparisons/maven.adoc[3-6x faster than Maven]
 xref:comparisons/gradle.adoc[or Gradle] due to aggressive caching & parallelism

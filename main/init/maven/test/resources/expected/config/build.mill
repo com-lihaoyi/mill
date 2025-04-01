@@ -190,9 +190,9 @@ trait MyModule extends PublishModule with MavenModule {
 
   def publishVersion = "1.0-SNAPSHOT"
 
-  def zincWorker = mill.define.ModuleRef(MyModuleZincWorker)
+  def jvmWorker = mill.define.ModuleRef(MyModuleJvmWorker)
 
-  object MyModuleZincWorker extends ZincWorkerModule {
+  object MyModuleJvmWorker extends JvmWorkerModule {
     def jvmId = "11"
   }
 }

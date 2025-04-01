@@ -179,7 +179,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     os.checker.withValue(os.Checker.Nop) {
       Jvm.spawnProcess(
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
-        classPath = mill.scalalib.ZincWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+        classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
         env = runnerEnvTask(),
         mainArgs = Seq(
@@ -198,7 +198,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         // and shown to any connected Mill client even if the current command has completed
         stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
         stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
-        javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path)
+        javaHome = mill.scalalib.JvmWorkerModule.javaHome().map(_.path)
       )
     }
     ()

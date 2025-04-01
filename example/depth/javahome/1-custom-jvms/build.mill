@@ -1,11 +1,11 @@
 // :link-jvm-indices: https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json
 // To override the default Java home, you can create a custom
-// `ZincWorkerModule` and override the `zincWorker` method in your
+// `JvmWorkerModule` and override the `jvmWorker` method in your
 // `JavaModule` or `ScalaModule` by pointing it to that custom object:
 
 // == Setting the JVM version of a JavaModule
 //
-// The `ZincWorkerModule.ForJvm` class takes a Jvm dependency string as its
+// The `JvmWorkerModule.ForJvm` class takes a Jvm dependency string as its
 // contructor argument and configures the module to fetch and cache the Jvm
 // using coursier and use it for the compile, run, and test tasks.
 //
@@ -20,12 +20,12 @@
 import mill._, javalib._
 import mill.define.ModuleRef
 
-object ZincWorkerJava extends ZincWorkerModule {
+object JvmWorkerJava extends JvmWorkerModule {
   def jvmId = "temurin:18.0.2"
 }
 
 object foo extends JavaModule {
-  def zincWorker = ModuleRef(ZincWorkerJava)
+  def jvmWorker = ModuleRef(JvmWorkerJava)
 
   object test extends JavaTests with TestModule.Junit4
 }
@@ -41,10 +41,10 @@ Test foo.FooTest.testSimple finished...
 
 */
 
-// Selecting a custom JVM via `ZincWorkerModule.ForJvm` means that JVM is used for
+// Selecting a custom JVM via `JvmWorkerModule.ForJvm` means that JVM is used for
 // compiling, testing, and running that module via Mill. Note that `.assembly` is not
 // affected, as JVM assembly jars do not bundle a JVM and have to be run using a
-// JVM installed on the target host machine. Configuration is done via `ZincWorkerModule`
+// JVM installed on the target host machine. Configuration is done via `JvmWorkerModule`
 // as the https://github.com/sbt/zinc[Zinc] incremental compiler is used for compiling
 // Java and Scala sources.
 //
@@ -63,14 +63,14 @@ Test foo.FooTest.testSimple finished...
 
 import scalalib._
 
-object ZincWorkerJavaLatest extends ZincWorkerModule {
+object JvmWorkerJavaLatest extends JvmWorkerModule {
   def jvmId = "temurin:23.0.1"
   def jvmIndexVersion = "latest.release"
 }
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.12"
-  def zincWorker = ModuleRef(ZincWorkerJavaLatest)
+  def jvmWorker = ModuleRef(JvmWorkerJavaLatest)
 
 }
 
@@ -91,7 +91,7 @@ Bar running on Java 23.0.1
 
 import kotlinlib._
 
-object ZincWorkerJavaUrl extends ZincWorkerModule {
+object JvmWorkerJavaUrl extends JvmWorkerModule {
   def jvmId =
     if (sys.props("os.name") == "Mac OS X") {
       "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
@@ -103,7 +103,7 @@ object ZincWorkerJavaUrl extends ZincWorkerModule {
 
 object qux extends KotlinModule {
   def kotlinVersion = "2.0.20"
-  def zincWorker = ModuleRef(ZincWorkerJavaUrl)
+  def jvmWorker = ModuleRef(JvmWorkerJavaUrl)
 }
 
 /** Usage
@@ -117,11 +117,11 @@ Qux running on Java 22.0.2
 //
 // Lastly, you can point Mill at any JVM distribution installed locally on disk via:
 
-object ZincWorkerLocalJvm extends ZincWorkerModule {
+object JvmWorkerLocalJvm extends JvmWorkerModule {
   def javaHome = Some(PathRef(os.Path("/my/java/home"), quick = true))
 }
 
 object baz extends JavaModule {
-  def zincWorker = ModuleRef(ZincWorkerLocalJvm)
+  def jvmWorker = ModuleRef(JvmWorkerLocalJvm)
 
 }

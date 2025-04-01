@@ -135,7 +135,7 @@ object foo extends JavaModule with NativeImageModule {
     ivy"org.slf4j:slf4j-nop:2.0.7"
   )
 
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
   def nativeImageOptions = Seq(
     "--no-fallback",
@@ -143,7 +143,7 @@ object foo extends JavaModule with NativeImageModule {
   )
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:23.0.1"
 }
 ----
@@ -152,7 +152,7 @@ Notable changes:
 
 - `foo` now needs to inherit from `NativeImageModule`
 
-- We need to override `zincWorker` to point at our own custom `ZincWorkerGraalvm`,
+- We need to override `jvmWorker` to point at our own custom `JvmWorkerGraalvm`,
   using the version of Graal that we want to use to build our native image.
   This uses Mill's ability to xref:mill:ROOT:fundamentals/configuring-jvm-versions.adoc[]
   to download the necessary Graal distribution as necessary
