@@ -31,6 +31,9 @@ trait CheckstyleModule extends JavaModule {
       Seq("-f", checkstyleFormat()) ++
       (if (stdout) Seq.empty else Seq("-o", output.toString())) ++
       (if (leftover.value.nonEmpty) leftover.value else sources().map(_.path.toString()))
+    val jvmArgs = sys.props.get("user.language")
+      .map(lang => s"-Duser.language=$lang")
+      .toSeq
 
     Task.log.info("running checkstyle ...")
     Task.log.debug(s"with $args")
@@ -42,7 +45,8 @@ trait CheckstyleModule extends JavaModule {
       cwd = moduleDir, // allow passing relative paths for sources like src/a/b
       stdin = os.Inherit,
       stdout = os.Inherit,
-      check = false
+      check = false,
+      jvmArgs = jvmArgs
     ).exitCode
 
     (output, exitCode)
