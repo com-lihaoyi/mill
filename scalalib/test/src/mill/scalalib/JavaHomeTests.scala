@@ -11,12 +11,12 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 object JavaHomeTests extends TestSuite {
 
   object HelloJavaJavaHome11Override extends TestBaseModule {
-    object ZincWorkerJava11 extends ZincWorkerModule {
+    object JvmWorkerJava11 extends JvmWorkerModule {
       def jvmId = "temurin:11.0.24"
     }
 
     object core extends JavaModule {
-      override def zincWorker = ModuleRef(ZincWorkerJava11)
+      override def jvmWorker = ModuleRef(JvmWorkerJava11)
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
@@ -25,12 +25,12 @@ object JavaHomeTests extends TestSuite {
   }
 
   object HelloJavaJavaHome17Override extends TestBaseModule {
-    object ZincWorkerJava17 extends ZincWorkerModule {
+    object JvmWorkerJava17 extends JvmWorkerModule {
       def jvmId = "temurin:17.0.9"
     }
 
     object core extends JavaModule {
-      override def zincWorker = ModuleRef(ZincWorkerJava17)
+      override def jvmWorker = ModuleRef(JvmWorkerJava17)
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
@@ -38,30 +38,30 @@ object JavaHomeTests extends TestSuite {
   }
 
   object JavaJdk11DoesntCompile extends TestBaseModule {
-    object ZincWorkerJava extends ZincWorkerModule {
+    object JvmWorkerJava extends JvmWorkerModule {
       def jvmId = "temurin:11.0.25"
     }
 
     object javamodule extends JavaModule {
-      override def zincWorker = ModuleRef(ZincWorkerJava)
+      override def jvmWorker = ModuleRef(JvmWorkerJava)
     }
     object scalamodule extends JavaModule {
-      override def zincWorker = ModuleRef(ZincWorkerJava)
+      override def jvmWorker = ModuleRef(JvmWorkerJava)
       def scalaVersion = "2.13.14"
     }
     lazy val millDiscover = Discover[this.type]
   }
 
   object JavaJdk17Compiles extends TestBaseModule {
-    object ZincWorkerJava extends ZincWorkerModule {
+    object JvmWorkerJava extends JvmWorkerModule {
       def jvmId = "temurin:17.0.13"
     }
 
     object javamodule extends JavaModule {
-      override def zincWorker = ModuleRef(ZincWorkerJava)
+      override def jvmWorker = ModuleRef(JvmWorkerJava)
     }
     object scalamodule extends JavaModule {
-      override def zincWorker = ModuleRef(ZincWorkerJava)
+      override def jvmWorker = ModuleRef(JvmWorkerJava)
 
       def scalaVersion = "2.13.14"
     }

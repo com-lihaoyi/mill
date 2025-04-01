@@ -9,9 +9,9 @@ package kotlinlib
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
+import mill.scalalib.api.{CompilationResult, JvmWorkerApi}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
+import mill.scalalib.{JavaModule, Lib, JvmWorkerModule}
 import mill.util.Jvm
 import mill.T
 
@@ -82,7 +82,7 @@ trait KotlinModule extends JavaModule { outer =>
 
   type CompileProblemReporter = mill.api.CompileProblemReporter
 
-  protected def zincWorkerRef: ModuleRef[ZincWorkerModule] = zincWorker
+  protected def jvmWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
 
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
@@ -309,7 +309,7 @@ trait KotlinModule extends JavaModule { outer =>
         )
         // The compile step is lazy, but its dependencies are not!
         internalCompileJavaFiles(
-          worker = zincWorkerRef().worker(),
+          worker = jvmWorkerRef().worker(),
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
           compileCp = compileCp,
@@ -395,14 +395,14 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
-      worker: ZincWorkerApi,
+      worker: JvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
       compileCp: Seq[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
+  )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
     worker.compileJava(
       upstreamCompileOutput = upstreamCompileOutput,
       sources = javaSourceFiles,

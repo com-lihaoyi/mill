@@ -8,7 +8,7 @@ import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
 
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 
 object CompileLinkTests extends TestSuite {
   trait HelloJSWorldModule
@@ -26,7 +26,7 @@ object CompileLinkTests extends TestSuite {
     val matrix = for {
       scala <- scalaVersions
       scalaJS <- scalaJSVersions
-      if !(ZincWorkerUtil.isScala3(scala) && scalaJS != scalaJSVersions.head)
+      if !(JvmWorkerUtil.isScala3(scala) && scalaJS != scalaJSVersions.head)
     } yield (scala, scalaJS)
 
     object build extends Cross[RootModule](matrix)
@@ -45,7 +45,7 @@ object CompileLinkTests extends TestSuite {
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
         override def sources = Task.Sources { this.moduleDir / "src/utest" }
-        val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
+        val utestVersion = if (JvmWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
         override def ivyDeps = Seq(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
@@ -156,7 +156,7 @@ object CompileLinkTests extends TestSuite {
       )
       else Set.empty
     val scalaVersionSpecific =
-      if (ZincWorkerUtil.isScala3(scalaVersion)) Set(
+      if (JvmWorkerUtil.isScala3(scalaVersion)) Set(
         parentDir / "ArgsParser.tasty",
         parentDir / "Main.tasty"
       )

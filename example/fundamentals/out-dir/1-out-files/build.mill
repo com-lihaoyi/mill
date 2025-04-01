@@ -125,7 +125,7 @@ out/mill-server
 > cat out/mill-profile.json
 [
   {
-    "label": "mill.scalalib.ZincWorkerModule.worker",
+    "label": "mill.scalalib.JvmWorkerModule.worker",
     "millis": 0,
     "cached": true,
     "valueHashChanged": false,

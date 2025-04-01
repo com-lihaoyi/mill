@@ -3,7 +3,7 @@ package mill.scalalib.api
 import mill.api.PathRef
 import scala.util.matching.Regex
 
-trait ZincWorkerUtil {
+object JvmWorkerUtil {
 
   def isDotty(scalaVersion: String): Boolean = scalaVersion.startsWith("0.")
   def isScala3(scalaVersion: String): Boolean = scalaVersion.startsWith("3.")
@@ -148,4 +148,3 @@ trait ZincWorkerUtil {
   }
 }
 
-object ZincWorkerUtil extends ZincWorkerUtil

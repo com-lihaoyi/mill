@@ -4,7 +4,7 @@ import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
 import mill.define.ExecutionPaths
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
@@ -160,7 +160,7 @@ object CompileRunTests extends TestSuite {
     )
 
     val scalaVersionSpecific =
-      if (ZincWorkerUtil.isScala3(scalaVersion)) Set("ArgsParser.tasty", "Main.tasty")
+      if (JvmWorkerUtil.isScala3(scalaVersion)) Set("ArgsParser.tasty", "Main.tasty")
       else Set(
         "Main$delayedInit$body.class",
         "Main$delayedInit$body.nir"

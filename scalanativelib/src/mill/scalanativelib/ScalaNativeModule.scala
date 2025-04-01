@@ -5,7 +5,7 @@ import mainargs.Flag
 
 import mill.api.{Result, internal}
 import mill.define.{Command, Task}
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
@@ -31,10 +31,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def scalaNativeBinaryVersion =
-    Task { ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
+    Task { JvmWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerVersion =
-    Task { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
+    Task { JvmWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath = Task {
     defaultResolver().classpath(Seq(
@@ -63,7 +63,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         if (scalaNativeVersion().startsWith("0.4")) scalaNativeVersion()
         else s"${scalaVersion()}+${scalaNativeVersion()}"
 
-      if (ZincWorkerUtil.isScala3(scalaVersion()))
+      if (JvmWorkerUtil.isScala3(scalaVersion()))
         Seq(ivy"org.scala-native::scala3lib::$version")
       else Seq(ivy"org.scala-native::scalalib::$version")
     }
@@ -302,7 +302,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       ScalaBuildTarget(
         scalaOrganization = scalaOrganization(),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,
         jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
         jvmBuildTarget = None

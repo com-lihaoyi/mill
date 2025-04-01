@@ -41,7 +41,7 @@ index 64b8f5e0ce9..1b7cb02d029 100644
  import mill.define.NamedTask
  import mill.main.Tasks
  import mill.scalalib._
- import mill.scalalib.api.ZincWorkerUtil
+ import mill.scalalib.api.JvmWorkerUtil
  import mill.scalalib.publish._
 -import mill.resolve.SelectMode
 +import mill.define.SelectMode
@@ -91,7 +91,7 @@ index 64b8f5e0ce9..1b7cb02d029 100644
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
 @@ -530,8 +530,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
-     val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
+     val binaryVersion = JvmWorkerUtil.scalaBinaryVersion(sv)
      val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
      super.scalacPluginIvyDeps() ++
 -      Agg.when(binaryVersion != "3")(Deps.acyclic) ++
@@ -102,7 +102,7 @@ index 64b8f5e0ce9..1b7cb02d029 100644
  
    def mandatoryIvyDeps = T {
 @@ -539,13 +539,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
-     val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
+     val binaryVersion = JvmWorkerUtil.scalaBinaryVersion(sv)
      val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
      super.mandatoryIvyDeps() ++
 -      Agg.when(hasModuleDefs)(Deps.millModuledefs)
@@ -161,7 +161,7 @@ index cc7f38c2ec7..97356a39a96 100644
 -import mill.api.JarManifest
  import mill.main.Tasks
  import mill.scalalib._
- import mill.scalalib.api.ZincWorkerUtil
+ import mill.scalalib.api.JvmWorkerUtil
  import mill.scalalib.publish._
  import mill.util.Jvm
 -import mill.resolve.SelectMode
@@ -198,8 +198,8 @@ index cc7f38c2ec7..97356a39a96 100644
            build.Deps.scalacScoverage2Reporter,
            build.Deps.scalacScoverage2Domain,
            build.Deps.scalacScoverage2Serializer
--        ) ++ Agg.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
-+        ) ++ Option.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
+-        ) ++ Agg.when(!JvmWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
++        ) ++ Option.when(!JvmWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
        }
        def mandatoryIvyDeps = Agg.empty[Dep]
      }
@@ -318,7 +318,7 @@ index 12ec7e60fdf..91ec73d01c3 100644
 -import mill.api.JarManifest
  import mill.main.Tasks
  import mill.scalalib._
- import mill.scalalib.api.ZincWorkerUtil
+ import mill.scalalib.api.JvmWorkerUtil
  import mill.scalalib.publish._
  import mill.util.Jvm
 -import mill.resolve.SelectMode
@@ -555,7 +555,7 @@ index 7a8dcbbc774..db60a89a102 100644
 -import mill.api.JarManifest
  import mill.main.Tasks
  import mill.scalalib._
- import mill.scalalib.api.ZincWorkerUtil
+ import mill.scalalib.api.JvmWorkerUtil
  import mill.scalalib.publish._
  import mill.util.Jvm
 -import mill.resolve.SelectMode
@@ -676,7 +676,7 @@ index 7d04d040329..048fe96452e 100644
  import mill.define.NamedTask
  import mill.main.Tasks
  import mill.scalalib._
- import mill.scalalib.api.ZincWorkerUtil
+ import mill.scalalib.api.JvmWorkerUtil
  import mill.scalalib.publish._
  import mill.util.Jvm
 -import mill.resolve.SelectMode

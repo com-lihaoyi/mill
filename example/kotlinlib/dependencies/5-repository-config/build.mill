@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD1
 package build
 import mill._, kotlinlib._
-import mill.javalib.{ZincWorkerModule, CoursierModule}
+import mill.javalib.{JvmWorkerModule, CoursierModule}
 import mill.define.ModuleRef
 import coursier.maven.MavenRepository
 
@@ -23,7 +23,7 @@ object foo extends KotlinModule {
 
 //// SNIPPET:BUILD2
 
-object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
+object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }
 
@@ -31,7 +31,7 @@ object bar extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def zincWorker = ModuleRef(CustomZincWorkerModule)
+  def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
