@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture
 
 import scala.jdk.CollectionConverters.*
 
-import mill.api.PathRef
 
 private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
 
