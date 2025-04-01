@@ -111,6 +111,28 @@ Rather, what we are seeing is Mill simply having less build-tool overhead than M
 so the performance of the underlying JVM and Java compiler (which is actually pretty fast!) can
 really shine through.
 
+
+=== Not Just Compile Times
+
+Compilation times are only one part of the time taken during development. Mill
+also provides features that help speed up other parts of your development cycle:
+
+1. xref:large/selective-execution.adoc[Selective Test Execution] allows you to skip unrelated tests when
+   validating pull requests, speeding up PR validation considerably
+
+2. xref:javalib/testing.adoc#_test_parallelism[Test Parallelism] automatically distributes tests
+   across multiple threads, utilizing all available cores while maintaining long-lived
+   JVM processes to maximize performance
+
+3. xref:blog::9-mill-faster-assembly-jars.adoc[Incremental Assembly Jar Creation] speeds
+   up creation of assembly jars, greatly speeding up workflows that use them
+   (e.g. Spark Submit)
+
+4. Mill automatically generates profiles of any build command you run, giving visibility
+   into where the build tool is spending time so you can understand and optimize it.
+
+image::ROOT:comparisons/NettyCompileProfile.png[]
+
 == Extensibility
 
 Mill allows you to directly write code to configure your build, and even download libraries
