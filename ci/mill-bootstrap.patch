@@ -24,7 +24,7 @@ index b3d16508f21..01afa62e23c 100644
 -        ./mill -i --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
 +        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
 diff --git a/build.mill b/build.mill
-index 7eb9593a45d..545998874ac 100644
+index 7eb9593a45d..310089ee403 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,16 +1,16 @@
@@ -49,6 +49,21 @@ index 7eb9593a45d..545998874ac 100644
  import mill.T
  import mill.define.Cross
  
+@@ -172,12 +172,12 @@ object Deps {
+   val testng = ivy"org.testng:testng:7.5.1"
+   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
+   def scalaCompiler(scalaVersion: String) = {
+-    if (ZincWorkerUtil.isScala3(scalaVersion)) ivy"org.scala-lang:scala3-compiler_3:${scalaVersion}"
++    if (JvmWorkerUtil.isScala3(scalaVersion)) ivy"org.scala-lang:scala3-compiler_3:${scalaVersion}"
+     else ivy"org.scala-lang:scala-compiler:${scalaVersion}"
+   }
+   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.5".withDottyCompat(scalaVersion)
+   def scalaReflect(scalaVersion: String) =
+-    if (ZincWorkerUtil.isScala3(scalaVersion))
++    if (JvmWorkerUtil.isScala3(scalaVersion))
+       ivy"org.scala-lang:scala-reflect:${Deps.scala2Version}"
+     else ivy"org.scala-lang:scala-reflect:${scalaVersion}"
+   val scoverage2Version = "2.2.1"
 @@ -292,19 +292,19 @@ object Deps {
  }
  
@@ -82,7 +97,7 @@ index 7eb9593a45d..545998874ac 100644
  
  def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
  
-@@ -473,7 +473,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+@@ -473,13 +473,13 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  /**
   * Some custom scala settings and test convenience
   */
@@ -91,6 +106,23 @@ index 7eb9593a45d..545998874ac 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
+     def sv = scalaVersion()
+-    if (ZincWorkerUtil.isScala3(sv)) "2.13"
+-    else ZincWorkerUtil.scalaBinaryVersion(sv)
++    if (JvmWorkerUtil.isScala3(sv)) "2.13"
++    else JvmWorkerUtil.scalaBinaryVersion(sv)
+   }
+ 
+   def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
+@@ -493,7 +493,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+       "-deprecation",
+       "-feature"
+     ) ++ (
+-      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq(
++      if (JvmWorkerUtil.isScala3(scalaVersion())) Seq(
+         // "-Werror",
+         "-Wunused:all",
+         // "-Xfatal-warnings",
 @@ -527,25 +527,25 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
  
    def scalacPluginIvyDeps = T {
@@ -142,7 +174,23 @@ index 7eb9593a45d..545998874ac 100644
  }
  
  trait MillPublishCrossScalaModule extends MillPublishJavaModule with CrossScalaModule
-@@ -749,10 +750,10 @@ trait BridgeModule extends MillPublishCrossScalaModule {
+@@ -732,7 +733,7 @@ trait BridgeModule extends MillPublishCrossScalaModule {
+     ivy"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
+     ivy"org.scala-sbt:util-interface:${Deps.zinc.version}"
+   ) ++ Agg(
+-    if (ZincWorkerUtil.isScala3(crossScalaVersion))
++    if (JvmWorkerUtil.isScala3(crossScalaVersion))
+       ivy"org.scala-lang::scala3-compiler:${crossScalaVersion}"
+     else ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
+   )
+@@ -743,16 +744,16 @@ trait BridgeModule extends MillPublishCrossScalaModule {
+   }
+ 
+   def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
+-    (if (ZincWorkerUtil.isScala3(crossScalaVersion))
++    (if (JvmWorkerUtil.isScala3(crossScalaVersion))
+        ivy"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
+      else ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}").exclude("*" -> "*")
    )
  
    def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
@@ -235,7 +283,7 @@ index e49f218f4be..9d03aa073f3 100644
        def ivyDeps = Task {
          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
 diff --git a/dist/package.mill b/dist/package.mill
-index 3f3fede2c7a..91e06ad918f 100644
+index 3f3fede2c7a..28450ce25d8 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -2,15 +2,14 @@ package build.dist
@@ -305,7 +353,7 @@ index 3f3fede2c7a..91e06ad918f 100644
      ()
    }
  
-@@ -323,7 +323,7 @@ object `package` extends RootModule with InstallModule {
+@@ -323,16 +323,16 @@ object `package` extends RootModule with InstallModule {
          out.write(os.read.bytes(assembly().path))
        }
  
@@ -314,9 +362,11 @@ index 3f3fede2c7a..91e06ad918f 100644
  
        PathRef(executable)
      }
-@@ -332,7 +332,7 @@ object `package` extends RootModule with InstallModule {
  
-     def zincWorker = ModuleRef(ZincWorkerGraalvm)
+     def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
+ 
+-    def zincWorker = ModuleRef(ZincWorkerGraalvm)
++    def jvmWorker = ModuleRef(JvmWorkerGraalvm)
  
 -    object ZincWorkerGraalvm extends ZincWorkerModule {
 +    object JvmWorkerGraalvm extends JvmWorkerModule {
@@ -627,9 +677,27 @@ index 7a8dcbbc774..decd732463d 100644
      override def moduleDeps = super[IntegrationTestModule].moduleDeps
      def forkEnv = super.forkEnv() ++ Seq(
 diff --git a/main/package.mill b/main/package.mill
-index b944caf6140..c523af9a9bc 100644
+index b944caf6140..2036b9e6804 100644
 --- a/main/package.mill
 +++ b/main/package.mill
+@@ -5,7 +5,7 @@ import mill.scalalib._
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.define.Cross
+-import mill.scalalib.api.ZincWorkerUtil
++import mill.scalalib.api.JvmWorkerUtil
+ 
+ /**
+  * This package contains the helpers necessary to define the `build.*` builtin helpers,
+@@ -30,7 +30,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
+   )
+ 
+   def compileIvyDeps = Task {
+-    if (ZincWorkerUtil.isScala3(scalaVersion())) Agg.empty
++    if (JvmWorkerUtil.isScala3(scalaVersion())) Agg.empty
+     else Agg(build.Deps.scalaReflect(scalaVersion()))
+   }
+ 
 @@ -78,15 +78,10 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
            }
          }().toMap
