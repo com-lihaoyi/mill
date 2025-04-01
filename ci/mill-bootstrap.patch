@@ -322,8 +322,8 @@ index 12ec7e60fdf..91ec73d01c3 100644
 -import mill.api.JarManifest
  import mill.main.Tasks
  import mill.scalalib._
--import mill.scalalib.api.JvmWorkerUtil
-+import mill.scalalib.api.ZincWorkerUtil
+-import mill.scalalib.api.ZincWorkerUtil
++import mill.scalalib.api.JvmWorkerUtil
  import mill.scalalib.publish._
  import mill.util.Jvm
 -import mill.resolve.SelectMode
@@ -682,8 +682,8 @@ index 7d04d040329..048fe96452e 100644
  import mill.define.NamedTask
  import mill.main.Tasks
  import mill.scalalib._
--import mill.scalalib.api.JvmWorkerUtil
-+import mill.scalalib.api.ZincWorkerUtil
+-import mill.scalalib.api.ZincWorkerUtil
++import mill.scalalib.api.JvmWorkerUtil
  import mill.scalalib.publish._
  import mill.util.Jvm
 -import mill.resolve.SelectMode
