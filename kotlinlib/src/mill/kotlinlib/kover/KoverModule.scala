@@ -6,7 +6,6 @@ package mill.kotlinlib.kover
 
 import mill.*
 import mill.api.{PathRef, Result}
-import mill.api.Result.Success
 import mill.define.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
@@ -55,7 +54,7 @@ trait KoverModule extends KotlinModule { outer =>
    * Reads the Kover version from system environment variable `KOVER_VERSION` or defaults to a hardcoded version.
    */
   def koverVersion: T[String] = Task.Input {
-    Success[String](Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
+    Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion)
   }
 
   def koverBinaryReport: T[PathRef] = Task(persistent = true) {

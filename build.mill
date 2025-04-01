@@ -235,6 +235,8 @@ object Deps {
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
     val freemarker = ivy"org.freemarker:freemarker:2.3.34"
     val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.13.3"
+    val kotestJvm =
+      ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:5.9.1"
     val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
     val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
@@ -253,6 +255,7 @@ object Deps {
       errorProneCore,
       freemarker,
       jupiterInterface,
+      kotestJvm,
       kotlinxHtmlJvm,
       koverCli,
       koverJvmAgent,
@@ -574,7 +577,8 @@ trait MillBaseTestsModule extends TestModule {
       s"-DTEST_ZINC_VERSION=${Deps.zinc.version}",
       s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.version}",
       s"-DTEST_SBT_VERSION=${Deps.sbt.version}",
-      s"-DTEST_PROGUARD_VERSION=${Deps.RuntimeDeps.proguard.version}"
+      s"-DTEST_PROGUARD_VERSION=${Deps.RuntimeDeps.proguard.version}",
+      s"-DTEST_KOTEST_VERSION=${Deps.RuntimeDeps.kotestJvm.version}"
     )
   }
 
