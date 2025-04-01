@@ -42,6 +42,7 @@ trait CoursierModule extends mill.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
+      ctx = Some(Task.ctx()),
       resolutionParams = resolutionParams()
     )
   }
@@ -61,6 +62,7 @@ trait CoursierModule extends mill.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
+      ctx = Some(Task.ctx()),
       resolutionParams = resolutionParams()
     )
   }
@@ -181,6 +183,7 @@ object CoursierModule {
       bind: Dep => BoundDep,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[mill.api.Ctx] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
       ] = None,
@@ -251,7 +254,7 @@ object CoursierModule {
         repositories,
         deps0.map(_.dep),
         sources = sources,
-        ctx = Some(ctx.log)
+        ctx = Some(ctx)
       ).get
     }
   }

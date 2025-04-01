@@ -3,7 +3,7 @@ package mill.scalalib.dependency.versions
 import mill.define.{BaseModule, Evaluator, Task}
 import mill.scalalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
 import mill.scalalib.{BoundDep, JavaModule, Lib}
-import mill.api.Ctx.Log
+import mill.api.Ctx
 
 import java.time.{Clock, Instant, ZoneId}
 import java.util.concurrent.atomic.AtomicInteger
@@ -12,7 +12,7 @@ private[dependency] object VersionsFinder {
 
   def findVersions(
       evaluator: Evaluator,
-      ctx: Log,
+      ctx: Ctx,
       rootModule: BaseModule
   ): Seq[ModuleDependenciesVersions] = {
 
@@ -72,7 +72,7 @@ private[dependency] object VersionsFinder {
         deps = dependencies: IterableOnce[BoundDep],
         mapDependencies = Option(mapDeps),
         customizer = custom,
-        ctx = Option(Task.log),
+        ctx = Option(Task.ctx()),
         coursierCacheCustomizer = cacheCustom,
         resolutionParams = coursier.params.ResolutionParams(),
         boms = Nil
