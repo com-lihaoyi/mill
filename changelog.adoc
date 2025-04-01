@@ -12,7 +12,6 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
-
 [#0-12-10]
 === 0.12.10 - 2025-04-01
 :version: 0.12.10
@@ -31,7 +30,6 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 * Short progress indicators when running tests within a module ({link-pr}/4656[#4656])
 * Add failed tasks count to Mill progress indicator ({link-pr}/4764[#4764])
 * Fix main class discovery in Scala 3 ({link-pr}/4761[#4761])
-
 
 [#0-12-9]
 === 0.12.9 - 2025-03-16
