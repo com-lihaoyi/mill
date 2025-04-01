@@ -9,7 +9,7 @@ import mill.scalalib._
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
