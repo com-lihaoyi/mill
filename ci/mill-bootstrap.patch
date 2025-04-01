@@ -601,7 +601,7 @@ index a0c2c525a9e..141559d8435 100644
      def compileIvyDeps = scalaNativeWorkerVersion match {
        case "0.5" =>
 diff --git a/website/package.mill b/website/package.mill
-index a1e97dd69eb..d7f004948ff 100644
+index a3ef4cc782d..81028a85cf4 100644
 --- a/website/package.mill
 +++ b/website/package.mill
 @@ -26,7 +26,7 @@ object `package` extends RootModule {
@@ -631,7 +631,7 @@ index a1e97dd69eb..d7f004948ff 100644
        }
      )()
  
-@@ -329,21 +329,21 @@ object `package` extends RootModule {
+@@ -335,21 +335,21 @@ object `package` extends RootModule {
  
    def localPages: T[PathRef] = Task {
      val pages = generatePages(authorMode = true).apply().apply(oldDocSources().map(_.path))
@@ -656,7 +656,7 @@ index a1e97dd69eb..d7f004948ff 100644
      // dependency to sources
      source()
      val docSite = Task.dest
-@@ -354,7 +354,7 @@ object `package` extends RootModule {
+@@ -360,7 +360,7 @@ object `package` extends RootModule {
        data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
        createFolders = true
      )
@@ -665,7 +665,7 @@ index a1e97dd69eb..d7f004948ff 100644
      runAntora(
        npmDir = npmBase(),
        workDir = docSite,
-@@ -370,12 +370,12 @@ object `package` extends RootModule {
+@@ -376,12 +376,12 @@ object `package` extends RootModule {
      os.write(siteDir / ".nojekyll", "")
  
      // sanitize devAntora source URLs
