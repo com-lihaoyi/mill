@@ -2,6 +2,7 @@ package mill.define
 
 import mill.api.internal
 
+import scala.annotation.nowarn
 import scala.reflect.ClassTag
 
 /**
@@ -20,7 +21,11 @@ trait Module extends Module.BaseClass {
    * that should not be needed by normal users of Mill
    */
   @internal
+  @deprecated("Use moduleInternal instead", "Mill 0.12.11")
   object millInternal extends Module.Internal(this)
+
+  @nowarn("cat=deprecation")
+  final def moduleInternal = millInternal
 
   def millModuleDirectChildren: Seq[Module] = millModuleDirectChildrenImpl
 
@@ -31,17 +36,25 @@ trait Module extends Module.BaseClass {
 
   def millOuterCtx: Ctx
 
+  @deprecated(
+    """For read-access use moduleDir instead. Calls like `Task.Sources(millSourcePath / "foo")` can be replace with `Task.Sources("foo")`""",
+    "Mill 0.12.11"
+  )
   def millSourcePath: os.Path = millOuterCtx.millSourcePath / (millOuterCtx.segment match {
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(_) => Seq.empty[String] // drop cross segments
   })
+  final def moduleDir = millSourcePath
 
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
   implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
   implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
+  @deprecated("For read-access use moduleSegments instead", "Mill 0.12.11")
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
   }
+  @nowarn("cat=deprecation")
+  final def moduleSegments = millModuleSegments
 
   override def toString = millModuleSegments.render
 }
