@@ -1,7 +1,8 @@
 package build.website
 import org.jsoup._
-import mill.util.Jvm
-import mill._, scalalib._
+import mill.util.{Jvm, Version}
+import mill._
+import scalalib._
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 import scala.jdk.CollectionConverters._
 
@@ -315,9 +316,9 @@ object `package` extends RootModule {
         mill.main.VisualizeModule.toolsClasspath().map(_.path)
       )
 
-      val useOldDownloadUrl = Ordering.Implicits.seqOrdering[Seq, String].lt(
-        millVersion.split('.').toIndexedSeq,
-        Seq("0", "12", "6")
+      val useOldDownloadUrl = Version.OsgiOrdering.lt(
+        Version.parse(millVersion),
+        Version.parse("0.12.6")
       )
 
       val millDownloadUrl =
