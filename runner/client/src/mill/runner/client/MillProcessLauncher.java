@@ -73,6 +73,16 @@ public class MillProcessLauncher {
     Files.createDirectories(sandbox);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
 
+    String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
+    if (jdkJavaOptions == null) jdkJavaOptions = "";
+    String javaOpts = System.getenv("JAVA_OPTS");
+    if (javaOpts == null) javaOpts = "";
+
+    String opts = (jdkJavaOptions + " " + javaOpts).trim();
+    if (!opts.isEmpty()) {
+      builder.environment().put("JDK_JAVA_OPTIONS", opts);
+    }
+
     builder.directory(sandbox.toFile());
     return builder.start();
   }
