@@ -15,7 +15,7 @@ import scala.util.control.NonFatal
  * of commits since latest tag, and a `DIRTY` suffix for workspaces with
  * un-committed changes. Used via `VcsVersion.Module.vcsState.format()`
  *
- * Originally distributed under the Apache License
+ * Originally distributed under the Apache License, Version 2.0
  * as https://github.com/lefou/mill-vcs-version
  */
 
