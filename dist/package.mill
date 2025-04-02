@@ -329,9 +329,9 @@ object `package` extends RootModule with InstallModule {
 
     def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
 
-    def zincWorker = ModuleRef(ZincWorkerGraalvm)
+    def zincWorker = ModuleRef(JvmWorkerGraalvm)
 
-    object ZincWorkerGraalvm extends ZincWorkerModule {
+    object JvmWorkerGraalvm extends JvmWorkerModule {
       def jvmId = build.Settings.graalvmJvmId
     }
   }

@@ -5,7 +5,7 @@ import mill.scalalib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 
 /**
  * This package contains the helpers necessary to define the `build.*` builtin helpers,
@@ -30,7 +30,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   )
 
   def compileIvyDeps = Task {
-    if (ZincWorkerUtil.isScala3(scalaVersion())) Agg.empty
+    if (JvmWorkerUtil.isScala3(scalaVersion())) Agg.empty
     else Agg(build.Deps.scalaReflect(scalaVersion()))
   }
 
