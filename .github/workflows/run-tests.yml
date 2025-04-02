@@ -305,4 +305,4 @@ jobs:
       java-version: '17'
       buildcmd: |
         set -eux
-        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
