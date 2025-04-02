@@ -1,6 +1,5 @@
 package mill.util
 
-import scala.util.Try
 
 import utest.*
 object VcsStateSpec extends TestSuite {
