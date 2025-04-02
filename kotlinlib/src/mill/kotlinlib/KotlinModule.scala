@@ -11,7 +11,7 @@ import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
+import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.{Agg, T}
 
@@ -82,7 +82,7 @@ trait KotlinModule extends JavaModule { outer =>
 
   type CompileProblemReporter = mill.api.CompileProblemReporter
 
-  protected def zincWorkerRef: ModuleRef[ZincWorkerModule] = zincWorker
+  protected def zincWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
 
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
