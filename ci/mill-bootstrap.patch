@@ -132,7 +132,7 @@ index ca5682c2761..9d03aa073f3 100644
        def ivyDeps = Task {
          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
 diff --git a/dist/package.mill b/dist/package.mill
-index 38733006024..9d9d3fcf73c 100644
+index cbe030b49b6..9d9d3fcf73c 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -2,7 +2,7 @@ package build.dist
@@ -143,15 +143,6 @@ index 38733006024..9d9d3fcf73c 100644
 +//import de.tobiasroeser.mill.vcs.version.VcsVersion
  
  import scala.util.Using
- 
-@@ -45,7 +45,7 @@ trait InstallModule extends build.MillPublishJavaModule {
-         (os.home / ".cache/mill/download" / (build.millVersion() + cacheBinarySuffix + batExt)).toString()
-       )
-     )()
--    Task.log.outputStream.println(path.toString())
-+    Task.log.streams.out.println(path.toString())
-     PathRef(path)
-   }
  
 @@ -267,6 +267,7 @@ object `package` extends RootModule with InstallModule {
    }
@@ -255,56 +246,3 @@ index a0c2c525a9e..2b4a39cb222 100644
      def compileModuleDeps = Seq(`worker-api`)
      def compileIvyDeps = scalaNativeWorkerVersion match {
        case "0.5" =>
-diff --git a/website/package.mill b/website/package.mill
-index 11f0470ab88..c30c14440e4 100644
---- a/website/package.mill
-+++ b/website/package.mill
-@@ -336,21 +336,21 @@ object `package` extends RootModule {
- 
-   def localPages: T[PathRef] = Task {
-     val pages = generatePages(authorMode = true).apply().apply(oldDocSources().map(_.path))
--    Task.log.outputStream.println(
-+    Task.log.streams.out.println(
-       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
-     )
-     pages
-   }
-   def fastPages: T[PathRef] = Task {
-     val pages = generatePages(authorMode = true).apply().apply(Nil)
--    Task.log.outputStream.println(
-+    Task.log.streams.out.println(
-       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
-     )
-     pages
-   }
- 
-   def generatePages(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
--    Task.log.errorStream.println("Creating Antora playbook ...")
-+    Task.log.streams.err.println("Creating Antora playbook ...")
-     // dependency to sources
-     source()
-     val docSite = Task.dest
-@@ -361,7 +361,7 @@ object `package` extends RootModule {
-       data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
-       createFolders = true
-     )
--    Task.log.errorStream.println("Running Antora ...")
-+    Task.log.streams.err.println("Running Antora ...")
-     runAntora(
-       npmDir = npmBase(),
-       workDir = docSite,
-@@ -377,12 +377,12 @@ object `package` extends RootModule {
-     os.write(siteDir / ".nojekyll", "")
- 
-     // sanitize devAntora source URLs
--    Task.log.errorStream.println("Sanitizing links ...")
-+    Task.log.streams.err.println("Sanitizing links ...")
-     sanitizeDevUrls(siteDir, devAntoraSources().path, Task.workspace / "docs", Task.workspace)
- 
-     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
-     val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
--    Task.log.errorStream.println(s"Copying API docs from ${unidocSrc} ...")
-+    Task.log.streams.err.println(s"Copying API docs from ${unidocSrc} ...")
-     os.copy(unidocSrc, siteDir / "api/latest", createFolders = true)
- 
-     PathRef(siteDir)

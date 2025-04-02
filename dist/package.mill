@@ -45,7 +45,7 @@ trait InstallModule extends build.MillPublishJavaModule {
         (os.home / ".cache/mill/download" / (build.millVersion() + cacheBinarySuffix + batExt)).toString()
       )
     )()
-    Task.log.outputStream.println(path.toString())
+    Task.log.streams.out.println(path.toString())
     PathRef(path)
   }
 
