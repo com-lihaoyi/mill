@@ -18,7 +18,8 @@ import scala.util.control.NonFatal
  * Originally distributed under the Apache License
  * as https://github.com/lefou/mill-vcs-version
  */
-object VcsVersion {
+
+object VcsVersion extends ExternalModule with Module {
   case class Vcs(val name: String)
   def git = Vcs("git")
 
@@ -88,108 +89,106 @@ object VcsVersion {
     implicit val jsonify: upickle.default.ReadWriter[State] = upickle.default.macroRW
   }
 
-  trait Module extends mill.Module {
+  lazy val millDiscover = Discover[this.type]
+}
 
-    def vcsBasePath: os.Path = moduleDir
+trait VcsVersion extends mill.Module {
 
-    /**
-     * Calc a publishable version based on git tags and dirty state.
-     *
-     * @return A tuple of (the latest tag, the calculated version string)
-     */
-    def vcsState: Input[State] = Task.Input { calcVcsState(Task.log) }
+  def vcsBasePath: os.Path = moduleDir
 
-    def calcVcsState(logger: Logger): State = {
-      val curHeadRaw =
-        try {
-          Option(os.proc("git", "rev-parse", "HEAD").call(
-            cwd = vcsBasePath,
-            stderr = os.Pipe
-          ).out.trim())
-        } catch {
-          case e: SubprocessException =>
-            logger.error(s"${vcsBasePath} is not a git repository.")
-            None
-        }
+  /**
+   * Calc a publishable version based on git tags and dirty state.
+   *
+   * @return A tuple of (the latest tag, the calculated version string)
+   */
+  def vcsState: Input[VcsVersion.State] = Task.Input { calcVcsState(Task.log) }
 
-      curHeadRaw match {
-        case None =>
-          State("no-vcs", None, 0, None, None)
+  def calcVcsState(logger: Logger): VcsVersion.State = {
+    val curHeadRaw =
+      try {
+        Option(os.proc("git", "rev-parse", "HEAD").call(
+          cwd = vcsBasePath,
+          stderr = os.Pipe
+        ).out.trim())
+      } catch {
+        case e: SubprocessException =>
+          logger.error(s"${vcsBasePath} is not a git repository.")
+          None
+      }
 
-        case curHead =>
-          // we have a proper git repo
+    curHeadRaw match {
+      case None =>
+        VcsVersion.State("no-vcs", None, 0, None, None)
 
-          val exactTag =
-            try {
-              curHead
-                .map(curHead =>
-                  os.proc("git", "describe", "--exact-match", "--tags", "--always", curHead)
-                    .call(cwd = vcsBasePath, stderr = os.Pipe)
-                    .out
-                    .text()
-                    .trim
-                )
-                .filter(_.nonEmpty)
-            } catch {
-              case NonFatal(_) => None
-            }
+      case curHead =>
+        // we have a proper git repo
 
-          val lastTag: Option[String] = exactTag.orElse {
-            try {
-              Option(
-                os.proc("git", "describe", "--abbrev=0", "--tags")
-                  .call(stderr = os.Pipe)
+        val exactTag =
+          try {
+            curHead
+              .map(curHead =>
+                os.proc("git", "describe", "--exact-match", "--tags", "--always", curHead)
+                  .call(cwd = vcsBasePath, stderr = os.Pipe)
                   .out
                   .text()
-                  .trim()
+                  .trim
               )
-                .filter(_.nonEmpty)
-            } catch {
-              case NonFatal(_) => None
-            }
+              .filter(_.nonEmpty)
+          } catch {
+            case NonFatal(_) => None
           }
 
-          val commitsSinceLastTag =
-            if (exactTag.isDefined) 0
-            else {
-              curHead
-                .map { curHead =>
-                  os.proc(
-                    "git",
-                    "rev-list",
-                    curHead,
-                    lastTag match {
-                      case Some(tag) => Seq("--not", tag)
-                      case _ => Seq()
-                    },
-                    "--count"
-                  ).call(stderr = os.Pipe)
-                    .out
-                    .trim()
-                    .toInt
-                }
-                .getOrElse(0)
-            }
+        val lastTag: Option[String] = exactTag.orElse {
+          try {
+            Option(
+              os.proc("git", "describe", "--abbrev=0", "--tags")
+                .call(stderr = os.Pipe)
+                .out
+                .text()
+                .trim()
+            )
+              .filter(_.nonEmpty)
+          } catch {
+            case NonFatal(_) => None
+          }
+        }
 
-          val dirtyHashCode: Option[String] =
-            Option(os.proc("git", "diff").call(stderr = os.Pipe).out.text().trim()).flatMap {
-              case "" => None
-              case s => Some(Integer.toHexString(s.hashCode))
-            }
+        val commitsSinceLastTag =
+          if (exactTag.isDefined) 0
+          else {
+            curHead
+              .map { curHead =>
+                os.proc(
+                  "git",
+                  "rev-list",
+                  curHead,
+                  lastTag match {
+                    case Some(tag) => Seq("--not", tag)
+                    case _ => Seq()
+                  },
+                  "--count"
+                ).call(stderr = os.Pipe)
+                  .out
+                  .trim()
+                  .toInt
+              }
+              .getOrElse(0)
+          }
 
-          new State(
-            currentRevision = curHead.getOrElse(""),
-            lastTag = lastTag,
-            commitsSinceLastTag = commitsSinceLastTag,
-            dirtyHash = dirtyHashCode,
-            vcs = Option(VcsVersion.git)
-          )
-      }
+        val dirtyHashCode: Option[String] =
+          Option(os.proc("git", "diff").call(stderr = os.Pipe).out.text().trim()).flatMap {
+            case "" => None
+            case s => Some(Integer.toHexString(s.hashCode))
+          }
+
+        new VcsVersion.State(
+          currentRevision = curHead.getOrElse(""),
+          lastTag = lastTag,
+          commitsSinceLastTag = commitsSinceLastTag,
+          dirtyHash = dirtyHashCode,
+          vcs = Option(VcsVersion.git)
+        )
     }
-
   }
 
-  object Module extends ExternalModule with Module {
-    lazy val millDiscover = Discover[this.type]
-  }
 }
