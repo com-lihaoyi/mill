@@ -459,7 +459,7 @@ trait JavaModule
     // This is exclusive to avoid scrambled output
     Task.Command(exclusive = true) {
       val asString = formatModuleDeps(recursive, true)()
-      Task.log.outputStream.println(asString)
+      Task.log.streams.out.println(asString)
     }
   }
 
