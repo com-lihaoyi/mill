@@ -39,7 +39,7 @@ trait JavaModule
     with AssemblyModule { outer =>
 
   override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
-  @nowarn
+  @nowarn("cat=deprecation")
   type JavaTests = JavaModuleTests
   @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
   trait JavaModuleTests extends JavaModule with TestModule {
@@ -355,7 +355,7 @@ trait JavaModule
   /** Should only be called from [[moduleDepsChecked]] */
   private lazy val recModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
-      (millModuleSegments ++ Seq(Segment.Label("moduleDeps"))).render,
+      (moduleSegments ++ Seq(Segment.Label("moduleDeps"))).render,
       this,
       _.moduleDeps
     )
@@ -363,7 +363,7 @@ trait JavaModule
   /** Should only be called from [[compileModuleDeps]] */
   private lazy val recCompileModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
-      (millModuleSegments ++ Seq(Segment.Label("compileModuleDeps"))).render,
+      (moduleSegments ++ Seq(Segment.Label("compileModuleDeps"))).render,
       this,
       _.compileModuleDeps
     )
@@ -371,7 +371,7 @@ trait JavaModule
   /** Should only be called from [[runModuleDepsChecked]] */
   private lazy val recRunModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
-      (millModuleSegments ++ Seq(Segment.Label("runModuleDeps"))).render,
+      (moduleSegments ++ Seq(Segment.Label("runModuleDeps"))).render,
       this,
       m => m.runModuleDeps ++ m.moduleDeps
     )
@@ -379,7 +379,7 @@ trait JavaModule
   /** Should only be called from [[bomModuleDepsChecked]] */
   private lazy val recBomModuleDeps: Seq[BomModule] =
     ModuleUtils.recursive[BomModule](
-      (millModuleSegments ++ Seq(Segment.Label("bomModuleDeps"))).render,
+      (moduleSegments ++ Seq(Segment.Label("bomModuleDeps"))).render,
       null,
       mod => if (mod == null) bomModuleDeps else mod.bomModuleDeps
     )
@@ -437,7 +437,7 @@ trait JavaModule
       val deps = (normalDeps ++ compileDeps ++ runModuleDeps).distinct
 
       val header = Option.when(includeHeader)(
-        s"${if (recursive) "Recursive module" else "Module"} dependencies of ${millModuleSegments.render}:"
+        s"${if (recursive) "Recursive module" else "Module"} dependencies of ${moduleSegments.render}:"
       ).toSeq
       val lines = deps.map { dep =>
         val isNormal = normalDeps.contains(dep)
@@ -446,7 +446,7 @@ trait JavaModule
           Option.when(!isNormal && runtimeDeps.contains(dep))("runtime")
         ).flatten
         val suffix = if (markers.isEmpty) "" else markers.mkString(" (", ",", ")")
-        "  " + dep.millModuleSegments.render + suffix
+        "  " + dep.moduleSegments.render + suffix
       }
       (header ++ lines).mkString("\n")
     }
@@ -479,7 +479,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(millModuleSegments.parts.mkString("-")),
+        coursier.core.ModuleName(moduleSegments.parts.mkString("-")),
         Map.empty
       ),
       JavaModule.internalVersion
@@ -528,7 +528,7 @@ trait JavaModule
         val dep = coursier.core.Dependency(
           coursier.core.Module(
             coursier.core.Organization("mill-internal"),
-            coursier.core.ModuleName(modDep.millModuleSegments.parts.mkString("-")),
+            coursier.core.ModuleName(modDep.moduleSegments.parts.mkString("-")),
             Map.empty
           ),
           "0+mill-internal"
@@ -1437,7 +1437,7 @@ trait JavaModule
    */
   def artifactName: T[String] = artifactNameParts().mkString("-")
 
-  def artifactNameParts: T[Seq[String]] = millModuleSegments.parts
+  def artifactNameParts: T[Seq[String]] = moduleSegments.parts
 
   /**
    * The exact id of the artifact to be published. You probably don't want to override this.

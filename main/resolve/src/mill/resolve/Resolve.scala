@@ -78,7 +78,7 @@ object Resolve {
                 rootModule,
                 value.getClass,
                 Some(value.defaultCommandName()),
-                value.millModuleSegments,
+                value.moduleSegments,
                 cache = cache
               )
 

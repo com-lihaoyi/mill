@@ -48,7 +48,7 @@ trait Module extends Module.BaseClass {
 
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
   implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
-  implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
+  implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(moduleDir)
   @deprecated("For read-access use moduleSegments instead", "Mill 0.12.11")
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
@@ -81,10 +81,10 @@ object Module {
 
     lazy val modules: Seq[Module] = traverse(Seq(_))
     lazy val segmentsToModules: Map[Segments, Module] =
-      modules.map(m => (m.millModuleSegments, m)).toMap
+      modules.map(m => (m.moduleSegments, m)).toMap
 
     lazy val targets: Set[Target[_]] =
-      traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
+      traverse { _.moduleInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
 
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {
       Reflect.reflect(

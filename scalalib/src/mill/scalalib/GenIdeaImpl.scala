@@ -91,7 +91,7 @@ object GenIdeaImpl {
 
   /**
    * Create the module name (to be used by Idea) for the module based on it segments.
-   * @see [[Module.millModuleSegments]]
+   * @see [[Module.moduleSegments]]
    */
   def moduleName(p: Segments): String = ???
   sealed trait ResolvedLibrary { def path: os.Path }

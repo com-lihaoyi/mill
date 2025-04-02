@@ -981,7 +981,7 @@ case class GenIdeaImpl(
         {
       for ((((plugins, params), mods), i) <- settings.toSeq.zip(1 to settings.size))
         yield <profile name={s"mill $i"} modules={
-          mods.map(m => moduleName(m.millModuleSegments)).mkString(",")
+          mods.map(m => moduleName(m.moduleSegments)).mkString(",")
         }>
             <parameters>
               {
@@ -1006,7 +1006,7 @@ object GenIdeaImpl {
 
   /**
    * Create the module name (to be used by Idea) for the module based on it segments.
-   * @see [[Module.millModuleSegments]]
+   * @see [[Module.moduleSegments]]
    */
   def moduleName(p: Segments): String =
     p.value
