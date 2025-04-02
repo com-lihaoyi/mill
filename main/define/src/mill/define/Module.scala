@@ -50,7 +50,8 @@ trait Module extends Module.BaseClass {
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
   implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
   implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(moduleDir)
-  @deprecated("For read-access use moduleSegments instead", "Mill 0.12.11")
+  // @deprecated("For read-access use moduleSegments instead", "Mill 0.12.11")
+  // since this is an implicit, the deprecation warning would result in lots of spurious warnings
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
   }
