@@ -29,7 +29,14 @@ object app extends AndroidAppKotlinModule {
   def androidCompileSdk = 35
   def androidMinSdk = 26
   def androidEnableCompose = true
-  def androidIsDebug = true
+
+  // Configuration for ReleaseKey
+  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+  override def androidVirtualDeviceIdentifier: String = "kotlin-test"
+  override def androidEmulatorPort: String = "5556"
 
   def ivyDeps: T[Seq[Dep]] = Seq(
     ivy"androidx.core:core-ktx:1.15.0",
@@ -60,8 +67,8 @@ object app extends AndroidAppKotlinModule {
 
 /** Usage
 
-//> ./mill show app.androidReleaseApk
-//".../out/app/androidReleaseApk.dest/app.apk"
+> ./mill show app.androidReleaseApk
+".../out/app/androidReleaseApk.dest/app.apk"
 
 > ./mill show app.androidDebugApk
 ".../out/app/androidDebugApk.dest/app.apk"
