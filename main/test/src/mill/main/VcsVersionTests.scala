@@ -1,8 +1,7 @@
 package mill.util
 
-
 import utest.*
-object VcsStateSpec extends TestSuite {
+object VcsVersionTests extends TestSuite {
 
   def state(
       lastTag: String,
@@ -10,12 +9,12 @@ object VcsStateSpec extends TestSuite {
       dirtyHash: String = null,
       currentRevision: String = "abcdefghijklmnopqrstuvwxyz",
       vcs: String = "git"
-  ): VcsState = VcsState(
+  ): VcsVersion.State = VcsVersion.State(
     currentRevision,
     Option(lastTag),
     commitsSinceLastTag,
     Option(dirtyHash),
-    vcs = Option(Vcs(vcs))
+    vcs = Option(VcsVersion.Vcs(vcs))
   )
 
   def tests = Tests {
