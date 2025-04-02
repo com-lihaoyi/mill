@@ -475,7 +475,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule/* with ScalafixModule*/ { outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixModule*/ { outer =>
   def scalaVersion = Deps.scalaVersion
   def scalapVersion: T[String] = Deps.scala2Version
   def scalafixScalaBinaryVersion = T {
