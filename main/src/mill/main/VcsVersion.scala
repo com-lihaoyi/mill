@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
  * as https://github.com/lefou/mill-vcs-version
  */
 
-object VcsVersion extends ExternalModule with Module {
+object VcsVersion extends ExternalModule with VcsVersion {
   case class Vcs(val name: String)
   def git = Vcs("git")
 
