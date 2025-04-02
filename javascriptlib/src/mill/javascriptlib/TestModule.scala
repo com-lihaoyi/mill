@@ -95,7 +95,7 @@ object TestModule {
         val stuUpstreams = for {
           ((_, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
         } yield (
-          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/test/utils/*",
+          mod.moduleDir.subRelativeTo(Task.workspace).toString + "/test/utils/*",
           (ts.path / "test/src/utils").toString
         )
 

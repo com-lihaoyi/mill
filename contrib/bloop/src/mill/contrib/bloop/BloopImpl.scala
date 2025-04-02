@@ -507,7 +507,7 @@ class BloopImpl(
 
       BloopConfig.Project(
         name = name(module),
-        directory = module.millSourcePath.toNIO,
+        directory = module.moduleDir.toNIO,
         workspaceDir = Some(wd.toNIO),
         sources = mSources,
         sourcesGlobs = None,

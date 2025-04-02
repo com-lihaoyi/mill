@@ -11,7 +11,7 @@ trait KotlinMavenModule extends KotlinModule with MavenModule {
   override def sources = super.sources() ++ sources0()
 
   trait KotlinMavenTests extends KotlinTests with MavenTests {
-    override def intellijModulePath: os.Path = millSourcePath / "src/test"
+    override def intellijModulePath: os.Path = moduleDir / "src/test"
 
     private def sources0 = Task.Sources("src/test/kotlin")
     override def sources = super.sources() ++ sources0()

@@ -13,7 +13,7 @@ trait CrossModuleBase extends ScalaModule with Cross.Module[String] {
   protected def scalaVersionDirectoryNames: Seq[String] =
     JvmWorkerUtil.matchingVersions(crossScalaVersion)
 
-  override def crossWrapperSegments: List[String] = millModuleSegments.parts
+  override def crossWrapperSegments: List[String] = moduleSegments.parts
 
   override def artifactNameParts: T[Seq[String]] =
     super.artifactNameParts().patch(crossWrapperSegments.size - 1, Nil, 1)

@@ -2,6 +2,7 @@ package mill.define
 
 import mill.api.internal
 
+import scala.annotation.nowarn
 import scala.reflect.ClassTag
 
 /**
@@ -20,30 +21,44 @@ trait Module extends Module.BaseClass {
    * that should not be needed by normal users of Mill
    */
   @internal
+  @deprecated("Use moduleInternal instead", "Mill 0.12.11")
   object millInternal extends Module.Internal(this)
+
+  @nowarn("cat=deprecation")
+  final def moduleInternal = millInternal
 
   def millModuleDirectChildren: Seq[Module] = millModuleDirectChildrenImpl
 
   // We keep a private `lazy val` and a public `def` so
   // subclasses can call `super.millModuleDirectChildren`
   private lazy val millModuleDirectChildrenImpl: Seq[Module] =
-    millInternal.reflectNestedObjects[Module]().toSeq
+    moduleInternal.reflectNestedObjects[Module]().toSeq
 
   def millOuterCtx: Ctx
 
+  @deprecated(
+    """For read-access use moduleDir instead. Calls like `Task.Sources(millSourcePath / "foo")` can be replace with `Task.Sources("foo")`""",
+    "Mill 0.12.11"
+  )
   def millSourcePath: os.Path = millOuterCtx.millSourcePath / (millOuterCtx.segment match {
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(_) => Seq.empty[String] // drop cross segments
   })
+  @nowarn("cat=deprecation")
+  final def moduleDir = millSourcePath
 
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
   implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
-  implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
+  implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(moduleDir)
+  // @deprecated("For read-access use moduleSegments instead", "Mill 0.12.11")
+  // since this is an implicit, the deprecation warning would result in lots of spurious warnings
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
   }
+  @nowarn("cat=deprecation")
+  final def moduleSegments = millModuleSegments
 
-  override def toString = millModuleSegments.render
+  override def toString = moduleSegments.render
 }
 
 object Module {
@@ -68,10 +83,10 @@ object Module {
 
     lazy val modules: Seq[Module] = traverse(Seq(_))
     lazy val segmentsToModules: Map[Segments, Module] =
-      modules.map(m => (m.millModuleSegments, m)).toMap
+      modules.map(m => (m.moduleSegments, m)).toMap
 
     lazy val targets: Set[Target[_]] =
-      traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
+      traverse { _.moduleInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
 
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {
       Reflect.reflect(

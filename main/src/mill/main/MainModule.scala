@@ -267,7 +267,7 @@ trait MainModule extends BaseModule0 {
           if (seen(t)) Nil // do nothing
           else t match {
             case t: mill.define.Target[_]
-                if evaluator.rootModule.millInternal.targets.contains(t) =>
+                if evaluator.rootModule.moduleInternal.targets.contains(t) =>
               Seq(t.ctx.segments)
             case _ =>
               seen.add(t)

@@ -22,7 +22,7 @@ case class GenIdeaImpl(
 ) {
   import GenIdeaImpl._
 
-  val workDir: Path = rootModule.millSourcePath
+  val workDir: Path = rootModule.moduleDir
   val ideaDir: Path = workDir / ".idea"
 
   val ideaConfigVersion = 4
@@ -91,7 +91,7 @@ object GenIdeaImpl {
 
   /**
    * Create the module name (to be used by Idea) for the module based on it segments.
-   * @see [[Module.millModuleSegments]]
+   * @see [[Module.moduleSegments]]
    */
   def moduleName(p: Segments): String = ???
   sealed trait ResolvedLibrary { def path: os.Path }
