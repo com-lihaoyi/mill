@@ -1,5 +1,7 @@
 package mill
 
+import scala.annotation.nowarn
+
 package object scalalib extends mill.scalalib.JsonFormatters {
   implicit class DepSyntax(ctx: StringContext) {
     def ivy(args: Any*): Dep = Dep.parse {
@@ -9,4 +11,12 @@ package object scalalib extends mill.scalalib.JsonFormatters {
       ).mkString
     }
   }
+
+  @nowarn("cat=deprecation")
+  type JvmWorkerModule = ZincWorkerModule
+  @nowarn("cat=deprecation")
+  val JvmWorkerModule = ZincWorkerModule
+
+  @nowarn("cat=deprecation")
+  type WithJvmWorker = WithZincWorker
 }

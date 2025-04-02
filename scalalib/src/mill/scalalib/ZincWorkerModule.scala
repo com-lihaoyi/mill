@@ -13,6 +13,7 @@ import mill.scalalib.CoursierModule.Resolver
 /**
  * A default implementation of [[ZincWorkerModule]]
  */
+@deprecated("Use JvmWorkerModule instead", "Mill 0.12.11")
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
 }
@@ -20,6 +21,7 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
 /**
  * A module managing an in-memory Zinc Scala incremental compiler
  */
+@deprecated("Use JvmWorkerModule instead", "Mill 0.12.11")
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule with CoursierModule {
   def jvmId: mill.define.Target[String] = Task[String] { "" }
 

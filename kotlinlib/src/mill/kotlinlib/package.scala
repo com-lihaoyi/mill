@@ -23,4 +23,8 @@ package object kotlinlib {
 
   type ZincWorkerModule = mill.scalalib.ZincWorkerModule
   val ZincWorkerModule = mill.scalalib.ZincWorkerModule
+
+  type JvmWorkerModule = mill.scalalib.ZincWorkerModule
+  val JvmWorkerModule = mill.scalalib.ZincWorkerModule
+
 }

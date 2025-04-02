@@ -3,7 +3,7 @@ package scalajslib
 
 import mainargs.{Flag, arg}
 import mill.api.{Loose, PathRef, Result, internal}
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.define.{Command, Task}
@@ -31,13 +31,13 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   @deprecated("use ScalaJSTests", "0.11.0")
   trait Tests extends ScalaJSTests
 
-  def scalaJSBinaryVersion = Task { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
+  def scalaJSBinaryVersion = Task { JvmWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 
-  def scalaJSWorkerVersion = Task { ZincWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
+  def scalaJSWorkerVersion = Task { JvmWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
   override def scalaLibraryIvyDeps: T[Loose.Agg[Dep]] = Task {
     val deps = super.scalaLibraryIvyDeps()
-    if (ZincWorkerUtil.isScala3(scalaVersion())) {
+    if (JvmWorkerUtil.isScala3(scalaVersion())) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
       deps.map(dep =>
         dep.copy(cross = dep.cross match {
@@ -220,7 +220,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // ScalaJSModule as well as from the enclosing non-test ScalaJSModule
     val scalajsFlag =
       if (
-        ZincWorkerUtil.isScala3(scalaVersion()) &&
+        JvmWorkerUtil.isScala3(scalaVersion()) &&
         !super.mandatoryScalacOptions().contains("-scalajs")
       ) Seq("-scalajs")
       else Seq.empty
@@ -230,7 +230,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   override def scalacPluginIvyDeps = Task {
     super.scalacPluginIvyDeps() ++ {
-      if (ZincWorkerUtil.isScala3(scalaVersion())) {
+      if (JvmWorkerUtil.isScala3(scalaVersion())) {
         Seq.empty
       } else {
         Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
@@ -343,7 +343,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ScalaBuildTarget(
         scalaOrganization = scalaOrganization(),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JS,
         jars = scalaCompilerClasspath().iterator.map(_.path.toNIO.toUri.toString).toSeq,
         jvmBuildTarget = None
