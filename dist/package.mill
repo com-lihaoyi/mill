@@ -2,7 +2,6 @@ package build.dist
 import mill._, scalalib._, publish._
 import mill.define.ModuleRef
 import mill.util.Jvm
-import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 
 import scala.util.Using
@@ -25,6 +24,8 @@ trait InstallModule extends build.MillPublishJavaModule {
 
   def localBinName: String
 
+  def cacheBinarySuffix: String = ""
+
   /**
    * Build and install Mill locally.
    *
@@ -41,7 +42,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
       Task.Anon(
-        (os.home / ".cache/mill/download" / (build.millVersion() + batExt)).toString()
+        (os.home / ".cache/mill/download" / (build.millVersion() + cacheBinarySuffix + batExt)).toString()
       )
     )()
     Task.log.outputStream.println(path.toString())
@@ -75,6 +76,7 @@ object `package` extends RootModule with InstallModule {
       build.main.graphviz.testDep(),
       build.main.init.maven.testDep(),
       build.main.init.gradle.testDep(),
+      build.main.init.sbt.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
       build.contrib.bloop.testDep(),
       build.contrib.buildinfo.testDep(),
@@ -185,10 +187,10 @@ object `package` extends RootModule with InstallModule {
         val wd = os.Path(wd0, Task.workspace)
         os.makeDir.all(wd)
         try {
-          Jvm.runSubprocess(
-            Seq(launcher().path.toString) ++ rest,
-            forkEnv(),
-            workingDir = wd
+          os.call(
+            cmd = (launcher().path.toString, rest),
+            env = forkEnv(),
+            cwd = wd
           )
           mill.api.Result.Success(())
         } catch {
@@ -244,6 +246,8 @@ object `package` extends RootModule with InstallModule {
   def exampleZips: T[Seq[PathRef]] = Task {
     examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
       os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
+      val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
+      if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
       os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
       os.copy(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
@@ -306,6 +310,8 @@ object `package` extends RootModule with InstallModule {
 
     def localBinName = "mill-native"
 
+    def cacheBinarySuffix = "-native"
+
     def executableRaw = Task {
       val previous = nativeImage().path
       val executable = Task.dest / previous.baseName
@@ -321,7 +327,7 @@ object `package` extends RootModule with InstallModule {
       PathRef(executable)
     }
 
-    def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https")
+    def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
 
     def zincWorker = ModuleRef(ZincWorkerGraalvm)
 

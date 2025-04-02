@@ -7,8 +7,7 @@ import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import mill.api.Ctx
 import mill.api.PathRef
-import mill.define.{Ctx => _, _}
-import mill.eval.Evaluator
+import mill.define.{Evaluator, Ctx as _, *}
 import mill.main.BuildInfo
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
@@ -108,7 +107,7 @@ class GenIdeaImpl(
       if (!fetchMillModules) Nil
       else {
         val moduleRepos = modulesByEvaluator.toSeq.flatMap { case (ev, modules) =>
-          ev.execute(modules.map(_._2.repositoriesTask))
+          ev.execute(modules.map(_._2.allRepositories))
             .values.get
         }
         Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
@@ -142,7 +141,7 @@ class GenIdeaImpl(
             }
 
             val externalLibraryDependencies = Task.Anon {
-              mod.defaultResolver().resolveDeps(mod.mandatoryIvyDeps())
+              mod.defaultResolver().classpath(mod.mandatoryIvyDeps())
             }
 
             val externalDependencies = Task.Anon {
@@ -150,12 +149,12 @@ class GenIdeaImpl(
                 Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
             }
             val extCompileIvyDeps = Task.Anon {
-              mod.defaultResolver().resolveDeps(mod.compileIvyDeps())
+              mod.defaultResolver().classpath(mod.compileIvyDeps())
             }
             val extRunIvyDeps = mod.resolvedRunIvyDeps
 
             val externalSources = Task.Anon {
-              mod.resolveDeps(allIvyDeps, sources = true)()
+              mod.millResolver().classpath(allIvyDeps(), sources = true)
             }
 
             val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
@@ -172,7 +171,7 @@ class GenIdeaImpl(
             }
 
             val scalacPluginDependencies = Task.Anon {
-              mod.defaultResolver().resolveDeps(scalacPluginsIvyDeps())
+              mod.defaultResolver().classpath(scalacPluginsIvyDeps())
             }
 
             val facets = Task.Anon {
@@ -233,9 +232,9 @@ class GenIdeaImpl(
     val resolvedModules: Seq[ResolvedModule] = {
       resolveTasks.toSeq.flatMap { case (evaluator, tasks) =>
         evaluator.execute(tasks).executionResults match {
-          case r if r.failing.nonEmpty =>
+          case r if r.transitiveFailing.nonEmpty =>
             throw GenIdeaException(
-              s"Failure during resolving modules: ${Evaluator.formatFailing(r)}"
+              s"Failure during resolving modules: ${mill.eval.EvaluatorImpl.formatFailing(r)}"
             )
           case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
         }

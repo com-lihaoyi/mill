@@ -12,7 +12,8 @@ private[mill] object MillModuleUtil {
    * Deprecated helper method, intended to allow runtime resolution and in-development-tree testings of mill plugins possible.
    * This design has issues and will probably be replaced.
    */
-  def millProjectModule(
+  @deprecated("Use Dep.millProjectModule instead", "Mill 0.13.0-M1")
+  private[mill] def millProjectModule(
       artifact: String,
       repositories: Seq[Repository],
       // this should correspond to the mill runtime Scala version
@@ -27,7 +28,7 @@ private[mill] object MillModuleUtil {
             coursier.Organization("com.lihaoyi"),
             coursier.ModuleName(artifact + artifactSuffix)
           ),
-          BuildInfo.millVersion
+          coursier.VersionConstraint(BuildInfo.millVersion)
         )
       ),
       force = Nil

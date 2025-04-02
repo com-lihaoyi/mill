@@ -15,11 +15,12 @@ import ch.epfl.scala.bsp4j.{
 }
 import mill.Task
 import mill.bsp.worker.Utils.sanitizeUri
-import mill.scalalib.api.CompilationResult
-import mill.scalalib.{JavaModule, TestModule}
-
+import mill.scalalib.{JavaModule, RunModule, TestModule}
 import java.util.concurrent.CompletableFuture
-import scala.jdk.CollectionConverters._
+
+import scala.jdk.CollectionConverters.*
+
+import mill.api.PathRef
 
 private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
 
@@ -50,10 +51,10 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       name,
       targetIds = _ => targetIds,
       tasks = {
-        case m: JavaModule =>
+        case m: RunModule =>
           val moduleSpecificTask = m match {
-            case m: TestModule => m.getTestEnvironmentVars()
-            case _ => m.compile
+            case m: (TestModule & JavaModule) => m.getTestEnvironmentVars()
+            case _ => m.allLocalMainClasses
           }
           Task.Anon {
             (
@@ -62,7 +63,6 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               m.forkWorkingDir(),
               m.forkEnv(),
               m.mainClass(),
-              m.zincWorker().worker(),
               moduleSpecificTask()
             )
           }
@@ -78,7 +78,6 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               forkArgs,
               forkWorkingDir,
               forkEnv,
-              _,
               _,
               testEnvVars: (String, String, String, Seq[String])
             )
@@ -98,15 +97,14 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             ev,
             state,
             id,
-            _: JavaModule,
+            _: RunModule,
             (
               runClasspath,
               forkArgs,
               forkWorkingDir,
               forkEnv,
               mainClass,
-              zincWorker,
-              compile: CompilationResult
+              localMainClasses: Seq[String]
             )
           ) =>
         val classpath = runClasspath.map(_.path).map(sanitizeUri)
@@ -118,7 +116,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           forkEnv.asJava
         )
 
-        val classes = mainClass.toList ++ zincWorker.discoverMainClasses(compile)
+        val classes = mainClass.toList ++ localMainClasses
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
       case _ => ???

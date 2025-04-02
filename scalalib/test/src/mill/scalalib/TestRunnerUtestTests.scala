@@ -34,30 +34,56 @@ object TestRunnerUtestTests extends TestSuite {
         Seq("mill.scalalib.FooTests"),
         1,
         Map(
-          testrunner.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunner.utest -> Set(
+            "out.json",
+            "result.log",
+            "sandbox",
+            "test-report.xml",
+            "testargs"
+          ),
           // When there is only one test group with test classes, we do not put it in a subfolder
-          testrunnerGrouping.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs")
+          testrunnerGrouping.utest -> Set(
+            "out.json",
+            "result.log",
+            "sandbox",
+            "test-report.xml",
+            "testargs"
+          ),
+          testrunnerWorkStealing.utest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("multi") - tester.testOnly(
         Seq("*Bar*", "*bar*"),
         2,
         Map(
-          testrunner.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunner.utest -> Set(
+            "out.json",
+            "result.log",
+            "sandbox",
+            "test-report.xml",
+            "testargs"
+          ),
           // When there are multiple test groups with one test class each, we
           // put each test group in a subfolder with the number of the class
           testrunnerGrouping.utest -> Set(
             "mill.scalalib.BarTests",
             "mill.scalalib.FoobarTests",
             "test-report.xml"
-          )
+          ),
+          testrunnerWorkStealing.utest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("all") - tester.testOnly(
         Seq("*"),
         3,
         Map(
-          testrunner.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunner.utest -> Set(
+            "out.json",
+            "result.log",
+            "sandbox",
+            "test-report.xml",
+            "testargs"
+          ),
           // When there are multiple test groups some with multiple test classes, we put each
           // test group in a subfolder with the index of the group, and for any test groups
           // with only one test class we append the name of the class
@@ -65,7 +91,8 @@ object TestRunnerUtestTests extends TestSuite {
             "group-0-mill.scalalib.BarTests",
             "mill.scalalib.FoobarTests",
             "test-report.xml"
-          )
+          ),
+          testrunnerWorkStealing.utest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("noMatch") - tester.testOnly0 { (eval, mod) =>

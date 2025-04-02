@@ -8,6 +8,14 @@ technical topics related to JVM platform tooling and language-agnostic build too
 some specific to the Mill build tool but mostly applicable to anyone working on
 build tooling for large codebases in JVM and non-JVM languages.
 
+include::11-jvm-test-parallelism.adoc[tag=header,leveloffset=1]
+
+xref:11-jvm-test-parallelism.adoc[Read More...]
+
+include::10-bytecode-callgraph-analysis.adoc[tag=header,leveloffset=1]
+
+xref:10-bytecode-callgraph-analysis.adoc[Read More...]
+
 include::9-mill-faster-assembly-jars.adoc[tag=header,leveloffset=1]
 
 xref:9-mill-faster-assembly-jars.adoc[Read More...]

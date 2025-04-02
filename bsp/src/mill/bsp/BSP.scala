@@ -2,18 +2,16 @@ package mill.bsp
 
 import mill.api.{Ctx, PathRef}
 import mill.{T, Task, given}
-import mill.define.{Command, Discover, ExternalModule}
+import mill.define.{Command, Discover, Evaluator, ExternalModule}
 import mill.main.BuildInfo
-import mill.eval.Evaluator
-import mill.util.MillModuleUtil.millProjectModule
-import mill.scalalib.CoursierModule
+import mill.scalalib.{CoursierModule, Dep}
 
 object BSP extends ExternalModule with CoursierModule {
 
   lazy val millDiscover = Discover[this.type]
 
   private def bspWorkerLibs: T[Seq[PathRef]] = Task {
-    millProjectModule("mill-bsp-worker", repositoriesTask())
+    defaultResolver().classpath(Seq(Dep.millProjectModule("mill-bsp-worker")))
   }
 
   /**
@@ -50,10 +48,10 @@ object BSP extends ExternalModule with CoursierModule {
    * @return The server result, indicating if mill should re-run this command or just exit.
    */
   def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
-      : Command[BspServerResult] = Task.Command {
-    Task.log.errorStream.println("BSP/startSession: Starting BSP session")
+      : Command[BspServerResult] = Task.Command(exclusive = true) {
+    Task.log.streams.err.println("BSP/startSession: Starting BSP session")
     val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
-    Task.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
+    Task.log.streams.err.println(s"BSP/startSession: Finished BSP session, result: ${res}")
     res
   }
 
@@ -63,7 +61,7 @@ object BSP extends ExternalModule with CoursierModule {
   )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
     // we create a json connection file
     val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
-    if (os.exists(bspFile)) ctx.log.info(s"Overwriting BSP connection file: ${bspFile}")
+    if (os.exists(bspFile)) ctx.log.warn(s"Overwriting BSP connection file: ${bspFile}")
     else ctx.log.info(s"Creating BSP connection file: ${bspFile}")
     val withDebug = ctx.log.debugEnabled
     if (withDebug) ctx.log.debug(

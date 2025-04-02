@@ -1,15 +1,17 @@
 package mill.main.buildgen
 
+import geny.Generator
 import mainargs.{Flag, arg}
-import mill.constants.OutFiles
-import mill.main.buildgen.BuildObject.Companions
 import mill.constants.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
   rootBuildFileNames,
   rootModuleAlias
 }
+import mill.constants.OutFiles
+import mill.main.buildgen.BuildObject.Companions
 import mill.runner.FileImportGraph.backtickWrap
+import mill.scalalib.CrossVersion
 
 import scala.collection.immutable.SortedSet
 import scala.util.boundary
@@ -19,10 +21,10 @@ object BuildGenUtil {
 
   def renderIrTrait(value: IrTrait): String = {
     import value.*
-    val zincWorker = jvmId.fold("") { jvmId =>
-      val name = s"${baseModule}ZincWorker"
-      val setting = renderZincWorker(name)
-      val typedef = renderZincWorker(name, jvmId)
+    val jvmWorker = jvmId.fold("") { jvmId =>
+      val name = s"${baseModule}JvmWorker"
+      val setting = renderJvmWorker(name)
+      val typedef = renderJvmWorker(name, jvmId)
 
       s"""$setting
          |
@@ -33,6 +35,10 @@ object BuildGenUtil {
        |
        |${renderJavacOptions(javacOptions)}
        |
+       |${renderScalaVersion(scalaVersion)}
+       |
+       |${renderScalacOptions(scalacOptions)}
+       |
        |${renderPomSettings(renderIrPom(pomSettings))}
        |
        |${renderPublishVersion(publishVersion)}
@@ -41,12 +47,12 @@ object BuildGenUtil {
        |
        |${renderRepositories(repositories)}
        |
-       |$zincWorker
+       |$jvmWorker
        |}""".stripMargin
 
   }
 
-  def renderIrPom(value: IrPom): String = {
+  def renderIrPom(value: IrPom | Null): String = {
     if (value == null) ""
     else {
       import value.*
@@ -56,14 +62,19 @@ object BuildGenUtil {
     }
   }
 
-  def renderIrBuild(value: IrBuild): String = {
-    import value.*
+  /**
+   * @param baseInfo to compare with [[build]] and render the values only if they are different.
+   */
+  def renderIrBuild(build: IrBuild, baseInfo: IrBaseInfo): String = {
+    val baseTrait = baseInfo.moduleTypedef
+    import build.*
     val testModuleTypedef =
       if (!hasTest) ""
       else {
         val declare =
-          BuildGenUtil.renderTestModuleDecl(testModule, scopedDeps.testModule)
+          BuildGenUtil.renderTestModuleDecl(testModule, testModuleMainType, scopedDeps.testModule)
 
+        // `testSandboxWorkingDir` is disabled as other build tools such as `sbt` don't run tests in the sandbox.
         s"""$declare {
            |
            |${renderBomIvyDeps(scopedDeps.testBomIvyDeps)}
@@ -77,14 +88,30 @@ object BuildGenUtil {
            |${renderCompileModuleDeps(scopedDeps.testCompileModuleDeps)}
            |
            |${renderResources(testResources)}
+           |
+           |def testSandboxWorkingDir = false
+           |def testParallelism = false
            |}""".stripMargin
       }
 
     s"""${renderArtifactName(projectName, dirs)}
        |
-       |${renderJavacOptions(javacOptions)}
+       |${renderJavacOptions(
+        javacOptions,
+        if (baseTrait != null) baseTrait.javacOptions else Seq.empty
+      )}
        |
-       |${renderRepositories(repositories)}
+       |${renderScalaVersion(scalaVersion, if (baseTrait != null) baseTrait.scalaVersion else None)}
+       |
+       |${renderScalacOptions(
+        scalacOptions,
+        if (baseTrait != null) baseTrait.scalacOptions else None
+      )}
+       |
+       |${renderRepositories(
+        repositories,
+        if (baseTrait != null) baseTrait.repositories else Seq.empty
+      )}
        |
        |${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
        |
@@ -100,9 +127,16 @@ object BuildGenUtil {
        |
        |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
        |
-       |${if (pomSettings == null) "" else renderPomSettings(renderIrPom(pomSettings))}
+       |${
+        if (pomSettings != (if (baseTrait != null) baseTrait.pomSettings else null))
+          renderPomSettings(renderIrPom(pomSettings))
+        else ""
+      }
        |
-       |${renderPublishVersion(publishVersion)}
+       |${renderPublishVersion(
+        publishVersion,
+        if (baseTrait != null) baseTrait.publishVersion else null
+      )}
        |
        |${renderPomPackaging(packaging)}
        |
@@ -128,9 +162,15 @@ object BuildGenUtil {
   def renderImports(
       baseModule: Option[String],
       isNested: Boolean,
-      packagesSize: Int
+      packagesSize: Int,
+      extraImports: Seq[String]
   ): SortedSet[String] = {
-    scala.collection.immutable.SortedSet("mill._", "mill.javalib._", "mill.javalib.publish._") ++
+    scala.collection.immutable.SortedSet(
+      "mill._",
+      "mill.javalib._",
+      "mill.javalib.publish._"
+    ) ++
+      extraImports ++
       (if (isNested) baseModule.map(name => s"_root_.build_.$name")
        else if (packagesSize > 1) Seq("$packages._")
        else None)
@@ -140,18 +180,18 @@ object BuildGenUtil {
     os.walk.stream(workspace, skip = (workspace / OutFiles.out).equals)
       .filter(file => buildFileExtensions.contains(file.ext))
 
-  def buildPackage(dirs: Seq[String]): String =
+  def buildModuleFqn(dirs: Seq[String]): String =
     (rootModuleAlias +: dirs).iterator.map(backtickWrap).mkString(".")
 
-  def buildPackages[Module, Key](input: Tree[Node[Module]])(key: Module => Key)
+  def buildModuleFqnMap[Module, Key](input: Generator[Node[Module]])(key: Module => Key)
       : Map[Key, String] =
-    input.nodes()
-      .map(node => (key(node.value), buildPackage(node.dirs)))
+    input
+      .map(node => (key(node.value), buildModuleFqn(node.dirs)))
       .toSeq
       .toMap
 
   def renderBuildSource(node: Node[BuildObject]): os.Source = {
-    val pkg = buildPackage(node.dirs)
+    val pkg = buildModuleFqn(node.dirs)
     val BuildObject(imports, companions, supertypes, inner, outer) = node.value
     val importStatements = imports.iterator.map("import " + _).mkString(linebreak)
     val companionTypedefs = companions.iterator.map {
@@ -252,11 +292,20 @@ object BuildGenUtil {
   def renderIvyString(
       group: String,
       artifact: String,
-      version: String = null,
-      tpe: String = null,
-      classifier: String = null,
+      crossVersion: Option[CrossVersion] = None,
+      version: String | Null = null,
+      tpe: String | Null = null,
+      classifier: String | Null = null,
       excludes: IterableOnce[(String, String)] = Seq.empty
   ): String = {
+    val sepArtifact = crossVersion match {
+      case None => s":$artifact"
+      case Some(value) => value match {
+          case CrossVersion.Constant(value, _) => s":${artifact}_$value"
+          case CrossVersion.Binary(_) => s"::$artifact"
+          case CrossVersion.Full(_) => s":::$artifact"
+        }
+    }
     val sepVersion =
       if (null == version) {
         println(
@@ -279,13 +328,13 @@ object BuildGenUtil {
       .map { case (group, artifact) => s";exclude=$group:$artifact" }
       .mkString
 
-    s"ivy\"$group:$artifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
+    s"ivy\"$group$sepArtifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
   }
 
   def isBom(groupArtifactVersion: (String, String, String)): Boolean =
     groupArtifactVersion._2.endsWith("-bom")
 
-  def isNullOrEmpty(value: String): Boolean =
+  def isNullOrEmpty(value: String | Null): Boolean =
     null == value || value.isEmpty
 
   val linebreak: String =
@@ -324,11 +373,12 @@ object BuildGenUtil {
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
 
-  def renderZincWorker(moduleName: String, jvmId: String): String =
-    s"""object $moduleName extends ZincWorkerModule {
+  def renderJvmWorker(moduleName: String, jvmId: String): String =
+    s"""object $moduleName extends JvmWorkerModule {
        |  def jvmId = "$jvmId"
        |}""".stripMargin
 
+  // TODO consider renaming to `renderOptionalDef` or `renderIfArgsNonEmpty`?
   def optional(construct: String, args: IterableOnce[String]): String =
     optional(construct + "(", args, ",", ")")
 
@@ -337,6 +387,48 @@ object BuildGenUtil {
     if (itr.isEmpty) ""
     else itr.mkString(start, sep, end)
   }
+
+  def renderSeqWithSuper(
+      defName: String,
+      args: Seq[String],
+      superArgs: Seq[String] = Seq.empty,
+      elementType: String,
+      transform: String => String
+  ): Option[String] =
+    if (args.startsWith(superArgs)) {
+      val superLength = superArgs.length
+      if (args.length == superLength) None
+      else
+        // Note that the super def is called even when it's empty.
+        // Some super functions can be called without parentheses, but we just add them here for simplicity.
+        Some(args.iterator.drop(superLength).map(transform)
+          .mkString(s"super.$defName() ++ Seq(", ",", ")"))
+    } else
+      Some(
+        if (args.isEmpty)
+          s"Seq.empty[$elementType]" // The inferred type is `Seq[Nothing]` otherwise.
+        else args.iterator.map(transform).mkString("Seq(", ",", ")")
+      )
+
+  def renderSeqTargetDefWithSuper(
+      defName: String,
+      args: Seq[String],
+      superArgs: Seq[String] = Seq.empty,
+      elementType: String,
+      transform: String => String
+  ) =
+    renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s"def $defName = " + _)
+
+  def renderSeqTaskDefWithSuper(
+      defName: String,
+      args: Seq[String],
+      superArgs: Seq[String] = Seq.empty,
+      elementType: String,
+      transform: String => String
+  ) =
+    renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s =>
+      s"def $defName = Task.Anon { $s }"
+    )
 
   def scalafmtConfigFile: os.Path =
     os.temp(
@@ -376,19 +468,33 @@ object BuildGenUtil {
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
 
-  def renderJavacOptions(args: IterableOnce[String]): String =
-    optional(
-      "def javacOptions = super.javacOptions() ++ Seq",
-      args.iterator.map(escape)
-    )
+  def renderJavacOptions(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
+    renderSeqTargetDefWithSuper("javacOptions", args, superArgs, "String", escape).getOrElse("")
 
-  def renderRepositories(args: IterableOnce[String]): String =
-    optional(
-      "def repositoriesTask = Task.Anon { super.repositoriesTask() ++ Seq(",
+  def renderScalaVersion(arg: Option[String], superArg: Option[String] = None): String =
+    if (arg != superArg) arg.fold("")(scalaVersion => s"def scalaVersion = ${escape(scalaVersion)}")
+    else ""
+
+  def renderScalacOptions(
+      args: Option[Seq[String]],
+      superArgs: Option[Seq[String]] = None
+  ): String =
+    renderSeqTargetDefWithSuper(
+      "scalacOptions",
+      args.getOrElse(Seq.empty),
+      superArgs.getOrElse(Seq.empty),
+      "String",
+      escape
+    ).getOrElse("")
+
+  def renderRepositories(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
+    renderSeqTaskDefWithSuper(
+      "repositoriesTask",
       args,
-      ", ",
-      ") }"
-    )
+      superArgs,
+      "coursier.Repository",
+      identity
+    ).getOrElse("")
 
   def renderResources(args: IterableOnce[os.SubPath]): String =
     optional(
@@ -409,26 +515,38 @@ object BuildGenUtil {
     if (isNullOrEmpty(artifact)) ""
     else s"def pomParentProject = Some($artifact)"
 
-  def renderPomSettings(arg: String): String =
+  def renderPomSettings(arg: String | Null, superArg: String | Null = null): String =
     if (isNullOrEmpty(arg)) ""
     else s"def pomSettings = $arg"
 
-  def renderPublishVersion(arg: String): String =
-    if (isNullOrEmpty(arg)) ""
-    else s"def publishVersion = ${escape(arg)}"
+  def renderPublishVersion(arg: String | Null, superArg: String | Null = null): String =
+    if (arg != superArg)
+      if (isNullOrEmpty(arg)) ""
+      else s"def publishVersion = ${escape(arg)}"
+    else ""
 
-  def renderPublishProperties(args: IterableOnce[(String, String)]): String = {
+  def renderPublishProperties(
+      args: Seq[(String, String)],
+      superArgs: Seq[(String, String)] = Seq.empty
+  ): String = {
     val tuples = args.iterator.map { case (k, v) => s"(${escape(k)}, ${escape(v)})" }
     optional("def publishProperties = super.publishProperties() ++ Map", tuples)
   }
 
-  def renderZincWorker(moduleName: String): String =
-    s"def zincWorker = mill.define.ModuleRef($moduleName)"
+  def renderJvmWorker(moduleName: String): String =
+    s"def jvmWorker = mill.define.ModuleRef($moduleName)"
 
   val testModulesByGroup: Map[String, String] = Map(
     "junit" -> "TestModule.Junit4",
     "org.junit.jupiter" -> "TestModule.Junit5",
-    "org.testng" -> "TestModule.TestNg"
+    "org.testng" -> "TestModule.TestNg",
+    "org.scalatest" -> "TestModule.ScalaTest",
+    "org.specs2" -> "TestModule.Specs2",
+    "com.lihaoyi" -> "TestModule.UTest",
+    "org.scalameta" -> "TestModule.Munit",
+    "com.disneystreaming" -> "TestModule.Weaver",
+    "dev.zio" -> "TestModule.ZioTest",
+    "org.scalacheck" -> "TestModule.ScalaCheck"
   )
 
   def writeBuildObject(tree: Tree[Node[BuildObject]]): Unit = {
@@ -447,16 +565,20 @@ object BuildGenUtil {
     }
   }
 
-  def renderTestModuleDecl(testModule: String, testModuleType: Option[String]): String = {
+  def renderTestModuleDecl(
+      testModule: String,
+      testModuleMainType: String,
+      testModuleExtraType: Option[String]
+  ): String = {
     val name = backtickWrap(testModule)
-    testModuleType match {
-      case Some(supertype) => s"object $name extends MavenTests with $supertype"
-      case None => s"trait $name extends MavenTests"
+    testModuleExtraType match {
+      case Some(supertype) => s"object $name extends $testModuleMainType with $supertype"
+      case None => s"trait $name extends $testModuleMainType"
     }
   }
 
   @mainargs.main
-  case class Config(
+  case class BasicConfig(
       @arg(doc = "name of generated base module trait defining shared settings", short = 'b')
       baseModule: Option[String] = None,
       @arg(
@@ -469,7 +591,15 @@ object BuildGenUtil {
       @arg(doc = "name of generated companion object defining dependency constants", short = 'd')
       depsObject: Option[String] = None,
       @arg(doc = "merge build files generated for a multi-module build", short = 'm')
-      merge: Flag = Flag(),
+      merge: Flag = Flag()
+  )
+  object BasicConfig {
+    implicit def parser: mainargs.ParserForClass[BasicConfig] = mainargs.ParserForClass[BasicConfig]
+  }
+  // TODO alternative names: `MavenAndGradleConfig`, `MavenAndGradleSharedConfig`
+  @mainargs.main
+  case class Config(
+      basicConfig: BasicConfig,
       @arg(doc = "capture Maven publish properties", short = 'p')
       publishProperties: Flag = Flag()
   )

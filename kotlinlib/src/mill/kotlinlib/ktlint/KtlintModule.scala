@@ -31,7 +31,7 @@ trait KtlintModule extends JavaModule {
    * Classpath for running Ktlint.
    */
   def ktlintClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(ivy"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
     )
   }
@@ -122,15 +122,17 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
       .map(_.toString())
 
-    val exitCode = Jvm.callProcess(
-      mainClass = "com.pinterest.ktlint.Main",
-      classPath = classPath.map(_.path).toVector,
-      mainArgs = args.result(),
-      cwd = moduleDir,
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      check = false
-    ).exitCode
+    val exitCode = os.checker.withValue(os.Checker.Nop) {
+      Jvm.callProcess(
+        mainClass = "com.pinterest.ktlint.Main",
+        classPath = classPath.map(_.path).toVector,
+        mainArgs = args.result(),
+        cwd = moduleDir,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = false
+      ).exitCode
+    }
 
     if (exitCode == 0) {} // do nothing
     else {

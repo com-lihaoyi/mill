@@ -28,6 +28,8 @@ object `package` extends RootModule {
       def ivyDeps = super.ivyDeps() ++
         Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
+      def testSandboxWorkingDir = false
+      def testParallelism = false
     }
   }
 
@@ -38,6 +40,8 @@ object `package` extends RootModule {
       def ivyDeps = super.ivyDeps() ++
         Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
+      def testSandboxWorkingDir = false
+      def testParallelism = false
     }
   }
 
@@ -50,9 +54,9 @@ object `package` extends RootModule {
 
 trait BaseModule extends MavenModule {
 
-  def zincWorker = mill.define.ModuleRef(BaseModuleZincWorker)
+  def jvmWorker = mill.define.ModuleRef(BaseModuleJvmWorker)
 
-  object BaseModuleZincWorker extends ZincWorkerModule {
+  object BaseModuleJvmWorker extends JvmWorkerModule {
     def jvmId = "11"
   }
 }

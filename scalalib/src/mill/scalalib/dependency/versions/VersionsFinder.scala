@@ -1,7 +1,6 @@
 package mill.scalalib.dependency.versions
 
-import mill.define.{BaseModule, Task}
-import mill.eval.Evaluator
+import mill.define.{BaseModule, Evaluator, Task}
 import mill.scalalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
 import mill.scalalib.{BoundDep, JavaModule, Lib}
 import mill.api.Ctx.Log
@@ -23,7 +22,7 @@ private[dependency] object VersionsFinder {
 
     val resolvedDependencies = evaluator.execute {
       val progress = new Progress(javaModules.size)
-      javaModules.map(resolveDeps(progress))
+      javaModules.map(classpath(progress))
     }.values.get
 
     // Using a fixed time clock, so that the TTL cut-off is the same for all version checks,
@@ -44,7 +43,7 @@ private[dependency] object VersionsFinder {
     def next(): Int = counter.getAndIncrement()
   }
 
-  private def resolveDeps(progress: Progress)(
+  private def classpath(progress: Progress)(
       javaModule: JavaModule
   ): Task[ResolvedDependencies] =
     Task.Anon {

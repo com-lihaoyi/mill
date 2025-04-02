@@ -28,11 +28,13 @@ object foo extends ScalaModule {
 compiling 1 ... source...
 
 > mill foo.test.compile
-compiling 1 ... source...
+compiling 2 ... source...
 
 > mill foo.test.testForked
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
+...foo.FooMoreTests...hello ...
+...foo.FooMoreTests...world ...
 
 > mill foo.test # same as above, `.test` is the default task for the `test` module
 ...foo.FooTests...hello ...
@@ -130,6 +132,16 @@ object bar extends ScalaModule {
 // If you want to pass any arguments to the test framework, you can pass them after
 // `foo.test` in the command line. e.g. {utest-github-url}[uTest]
 // lets you pass in a selector to decide which test to run, which in Mill would be:
+
+//// SNIPPET:RUNSINGLE
+/** Usage
+
+> mill foo.test foo.FooMoreTests
+...foo.FooMoreTests...hello ...
+
+*/
+
+//// SNIPPET:END
 
 /** Usage
 

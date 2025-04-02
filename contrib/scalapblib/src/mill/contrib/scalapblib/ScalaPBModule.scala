@@ -3,7 +3,6 @@ package contrib.scalapblib
 
 import coursier.core.Version
 import mill.api.{PathRef}
-import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 
 import java.util.zip.ZipInputStream
@@ -76,10 +75,11 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBClasspath: T[Seq[PathRef]] = Task {
-    resolveDependencies(
-      repositoriesTask(),
+    val scalaPBScalaVersion = "2.13.1"
+    defaultResolver().classpath(
       Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
-        .map(Lib.depToBoundDep(_, "2.13.1"))
+        .map(Lib.depToBoundDep(_, scalaPBScalaVersion)),
+      resolutionParamsMapOpt = Some(_.withScalaVersion(scalaPBScalaVersion))
     )
   }
 
@@ -90,8 +90,8 @@ trait ScalaPBModule extends ScalaModule {
     case false => Task.Anon { Seq.empty[PathRef] }
   }
 
-  def scalaPBProtoClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+  def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
+    millResolver().classpath(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),
         coursierDependency
@@ -111,7 +111,7 @@ trait ScalaPBModule extends ScalaModule {
               if (entry.getName.endsWith(".proto")) {
                 val protoDest = dest / os.SubPath(entry.getName)
                 if (os.exists(protoDest))
-                  Task.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
+                  Task.log.warn(s"Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
                 Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
                   _root_.os.Internals.transfer(zip, os, close = false)
                 }

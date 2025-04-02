@@ -2,8 +2,8 @@ package mill.eval
 
 import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles
-import mill.define.{InputImpl, NamedTask, SelectMode, Task}
-import mill.exec.{CodeSigUtils, Execution, Plan}
+import mill.define.{Evaluator, InputImpl, NamedTask, SelectMode, Task}
+import mill.exec.{CodeSigUtils, Execution, PlanImpl}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 
@@ -17,7 +17,7 @@ private[mill] object SelectiveExecution {
         evaluator: Evaluator,
         tasks: Seq[NamedTask[?]]
     ): (Metadata, Map[Task[?], ExecResult[Val]]) = {
-      compute0(evaluator, Plan.transitiveNamed(tasks))
+      compute0(evaluator, PlanImpl.transitiveNamed(tasks))
     }
 
     def compute0(
@@ -26,7 +26,7 @@ private[mill] object SelectiveExecution {
     ): (Metadata, Map[Task[?], ExecResult[Val]]) = {
       val results: Map[NamedTask[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: InputImpl[_] =>
-          val ctx = new mill.api.Ctx(
+          val ctx = new mill.api.Ctx.Impl(
             args = Vector(),
             dest0 = () => null,
             log = evaluator.baseLogger,
@@ -35,7 +35,8 @@ private[mill] object SelectiveExecution {
             testReporter = mill.api.DummyTestReporter,
             workspace = evaluator.workspace,
             systemExit = n => ???,
-            fork = null
+            fork = null,
+            jobs = evaluator.effectiveThreadCount
           )
           task -> task.evaluate(ctx).map(Val(_))
         }
@@ -142,7 +143,7 @@ private[mill] object SelectiveExecution {
 
     if (oldMetadataTxt == "") ChangedTasks(tasks, tasks.toSet, tasks, Map.empty)
     else {
-      val transitiveNamed = Plan.transitiveNamed(tasks)
+      val transitiveNamed = PlanImpl.transitiveNamed(tasks)
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       val (newMetadata, results) = SelectiveExecution.Metadata.compute0(evaluator, transitiveNamed)
       val (changedRootTasks, downstreamTasks) =
@@ -177,7 +178,7 @@ private[mill] object SelectiveExecution {
   def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Result[ujson.Value] = {
     for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[?]]
-      val plan = Plan.plan(Seq.from(changedTasks.downstreamTasks))
+      val plan = PlanImpl.plan(Seq.from(changedTasks.downstreamTasks))
       val indexToTerminal = plan.sortedGroups.keys().toArray.filter(t => taskSet.contains(t))
 
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)

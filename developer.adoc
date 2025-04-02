@@ -168,7 +168,7 @@ To test bootstrapping of Mill's own Mill build using a version of Mill built fro
 ci/patch-mill-bootstrap.sh
 ----
 
-This creates a standalone assembly at `target/mill-release` you can use, which references jars
+This creates a standalone assembly at `mill-assembly.jar` you can use, which references jars
 published locally in your `~/.ivy2/local` cache, and applies any necessary patches to
 `build.mill` to deal with changes in Mill between the version specified in `.config/mill-version`
 that is normally used to build Mill and the `HEAD` version your assembly was created from.
@@ -222,8 +222,7 @@ rm -rf out/
 To run all autofixes and autoformatters:
 
 ```bash
-./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/ + mill.kotlinlib.ktlint.KtlintModule/
-./mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/
+./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/scalafmt + mill.kotlinlib.ktlint.KtlintModule/
 ```
 
 These are run automatically on pull requests, so feel free to `pull` down the changes if you want

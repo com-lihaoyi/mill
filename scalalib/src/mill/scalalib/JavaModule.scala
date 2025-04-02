@@ -25,7 +25,7 @@ import os.Path
  */
 trait JavaModule
     extends mill.Module
-    with WithZincWorker
+    with WithJvmWorker
     with TestModule.JavaModuleBase
     with TaskModule
     with RunModule
@@ -36,7 +36,7 @@ trait JavaModule
     with SemanticDbJavaModule
     with AssemblyModule { outer =>
 
-  override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
@@ -44,14 +44,14 @@ trait JavaModule
     override def resources = super[JavaModule].resources
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-      internalRepositories() ++ outer.repositoriesTask()
+      outer.repositoriesTask()
     }
 
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
     override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
-    override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
+    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
     override def sourcesFolders = outer.sourcesFolders
@@ -100,41 +100,6 @@ trait JavaModule
   }
 
   /**
-   * Allows you to specify an explicit main class to use for the `run` command.
-   * If none is specified, the classpath is searched for an appropriate main
-   * class to use if one exists
-   */
-  def mainClass: T[Option[String]] = None
-
-  def finalMainClassOpt: T[Either[String, String]] = Task {
-    mainClass() match {
-      case Some(m) => Right(m)
-      case None =>
-        if (zincWorker().javaHome().isDefined) {
-          super[RunModule].finalMainClassOpt()
-        } else {
-          zincWorker().worker().discoverMainClasses(compile()) match {
-            case Seq() => Left("No main class specified or found")
-            case Seq(main) => Right(main)
-            case mains =>
-              Left(
-                s"Multiple main classes found (${mains.mkString(",")}) " +
-                  "please explicitly specify which one to use by overriding `mainClass` " +
-                  "or using `runMain <main-class> <...args>` instead of `run`"
-              )
-          }
-        }
-    }
-  }
-
-  def finalMainClass: T[String] = Task {
-    finalMainClassOpt() match {
-      case Right(main) => Result.Success(main)
-      case Left(msg) => Result.Failure(msg)
-    }
-  }
-
-  /**
    * Mandatory ivy dependencies that are typically always required and shouldn't be removed by
    * overriding [[ivyDeps]], e.g. the scala-library in the [[ScalaModule]].
    */
@@ -176,7 +141,7 @@ trait JavaModule
   def allBomDeps: Task[Seq[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
       bomIvyDeps().map(bindDependency()).map { bomDep =>
-        val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
+        val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
         else
@@ -455,7 +420,7 @@ trait JavaModule
     // This is exclusive to avoid scrambled output
     Task.Command(exclusive = true) {
       val asString = formatModuleDeps(recursive, true)()
-      Task.log.outputStream.println(asString)
+      Task.log.streams.out.println(asString)
     }
   }
 
@@ -663,7 +628,7 @@ trait JavaModule
    * These are not meant to be modified by Mill users, unless you really know what you're
    * doing.
    */
-  def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
+  private[mill] def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
     Seq(internalDependenciesRepository())
   }
 
@@ -800,7 +765,7 @@ trait JavaModule
    * Keep in sync with [[bspCompileClassesPath]]
    */
   def compile: T[mill.scalalib.api.CompilationResult] = Task(persistent = true) {
-    zincWorker()
+    jvmWorker()
       .worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -918,7 +883,7 @@ trait JavaModule
    * Resolved dependencies
    */
   def resolvedIvyDeps: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.provided),
@@ -948,7 +913,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.runtime),
@@ -1125,7 +1090,7 @@ trait JavaModule
       val dependencies =
         (additionalDeps() ++ Seq(BoundDep(coursierDependency, force = false))).iterator.to(Seq)
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
-        repositoriesTask(),
+        allRepositories(),
         dependencies,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
@@ -1327,7 +1292,7 @@ trait JavaModule
     val tasks =
       if (all.value) Seq(
         Task.Anon {
-          defaultResolver().resolveDeps(
+          millResolver().classpath(
             Seq(
               coursierDependency.withConfiguration(cs.Configuration.provided),
               coursierDependency
@@ -1340,7 +1305,7 @@ trait JavaModule
           )
         },
         Task.Anon {
-          defaultResolver().resolveDeps(
+          millResolver().classpath(
             Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
             sources = true
           )
@@ -1351,7 +1316,7 @@ trait JavaModule
     Task.Command {
       super.prepareOffline(all)()
       resolvedIvyDeps()
-      zincWorker().prepareOffline(all)()
+      jvmWorker().prepareOffline(all)()
       resolvedRunIvyDeps()
       Task.sequence(tasks)()
       ()
@@ -1368,7 +1333,7 @@ trait JavaModule
   @internal
   def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
     JvmBuildTarget(
-      javaHome = zincWorker()
+      javaHome = jvmWorker()
         .javaHome()
         .map(p => BspUri(p.path))
         .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p)))),

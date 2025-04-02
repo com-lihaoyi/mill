@@ -3,8 +3,7 @@ package scalajslib
 
 import mainargs.{Flag, arg}
 import mill.api.{PathRef, Result, internal}
-import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.Lib.resolveDependencies
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.define.{Command, Task}
@@ -12,7 +11,6 @@ import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.T
-import mill.util.MillModuleUtil
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
@@ -27,13 +25,13 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
   }
 
-  def scalaJSBinaryVersion = Task { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
+  def scalaJSBinaryVersion = Task { JvmWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 
-  def scalaJSWorkerVersion = Task { ZincWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
+  def scalaJSWorkerVersion = Task { JvmWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
   override def scalaLibraryIvyDeps: T[Seq[Dep]] = Task {
     val deps = super.scalaLibraryIvyDeps()
-    if (ZincWorkerUtil.isScala3(scalaVersion())) {
+    if (JvmWorkerUtil.isScala3(scalaVersion())) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
       deps.map(dep =>
         dep.copy(cross = dep.cross match {
@@ -46,10 +44,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   def scalaJSWorkerClasspath = Task {
-    MillModuleUtil.millProjectModule(
-      artifact = s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
-      repositories = repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule(s"mill-scalajslib-worker-${scalaJSWorkerVersion()}")
+    ))
   }
 
   def scalaJSJsEnvIvyDeps: T[Seq[Dep]] = Task {
@@ -91,11 +88,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         ) ++ scalaJSJsEnvIvyDeps()
     }
     // we need to use the scala-library of the currently running mill
-    resolveDependencies(
-      repositoriesTask(),
+    defaultResolver().classpath(
       (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
-        .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
-      ctx = Some(Task.log)
+        .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
     )
   }
 
@@ -135,7 +130,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   override def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
     if (args().value.nonEmpty) {
-      Task.log.error("Passing command line arguments to run is not supported by Scala.js.")
+      Task.log.warn("Passing command line arguments to run is not supported by Scala.js.")
     }
     finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
@@ -209,7 +204,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // ScalaJSModule as well as from the enclosing non-test ScalaJSModule
     val scalajsFlag =
       if (
-        ZincWorkerUtil.isScala3(scalaVersion()) &&
+        JvmWorkerUtil.isScala3(scalaVersion()) &&
         !super.mandatoryScalacOptions().contains("-scalajs")
       ) Seq("-scalajs")
       else Seq.empty
@@ -219,7 +214,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   override def scalacPluginIvyDeps = Task {
     super.scalacPluginIvyDeps() ++ {
-      if (ZincWorkerUtil.isScala3(scalaVersion())) {
+      if (JvmWorkerUtil.isScala3(scalaVersion())) {
         Seq.empty
       } else {
         Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
@@ -332,7 +327,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ScalaBuildTarget(
         scalaOrganization = scalaOrganization(),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JS,
         jars = scalaCompilerClasspath().iterator.map(_.path.toNIO.toUri.toString).toSeq,
         jvmBuildTarget = None
@@ -348,7 +343,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaJSModule].resources
   def scalaJSTestDeps = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"

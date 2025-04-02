@@ -4,12 +4,11 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
 import mill.api.ExecResult
-import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
+import mill.api.{Logger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, ExecutionResults, ExternalModule, NamedTask, Task}
-import mill.eval.Evaluator
+import mill.define.{Args, Discover, Evaluator, ExecutionResults, ExternalModule, NamedTask, Task}
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
@@ -18,6 +17,7 @@ import mill.given
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
+import scala.collection.mutable
 import scala.concurrent.Promise
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
@@ -30,7 +30,8 @@ private class MillBuildServer(
     serverVersion: String,
     serverName: String,
     logStream: PrintStream,
-    canReload: Boolean
+    canReload: Boolean,
+    debugMessages: Boolean
 ) extends ExternalModule
     with BuildServer {
 
@@ -56,12 +57,16 @@ private class MillBuildServer(
     if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
       statePromise.success(
-        new State(topLevelProjectRoot, evaluators, debug)
+        new State(topLevelProjectRoot, evaluators, s => debug(s()))
       )
     }
   }
 
-  def debug(msg: String): Unit = logStream.println(msg)
+  def print(msg: String): Unit =
+    logStream.println(msg)
+  def debug(msg: => String): Unit =
+    if (debugMessages)
+      logStream.println("[debug] " + msg)
 
   def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
 
@@ -110,7 +115,7 @@ private class MillBuildServer(
         case d: JsonObject =>
           debug(s"extra data: ${d} of type ${d.getClass}")
           readVersion(d, "semanticdbVersion").foreach { version =>
-            debug(
+            print(
               s"Got client semanticdbVersion: ${version}. Enabling SemanticDB support."
             )
             clientWantsSemanticDb = true
@@ -127,27 +132,27 @@ private class MillBuildServer(
     }
 
   override def onBuildInitialized(): Unit = {
-    debug("Build initialized")
+    print("Build initialized")
   }
 
   override def buildShutdown(): CompletableFuture[Object] = {
-    debug(s"Entered buildShutdown")
+    print("Entered buildShutdown")
     shutdownRequested = true
     onSessionEnd match {
       case None =>
       case Some(onEnd) =>
-        debug("Shutdown build...")
+        print("Shutdown build...")
         onEnd(BspServerResult.Shutdown)
     }
     SemanticDbJavaModule.resetContext()
     CompletableFuture.completedFuture(null.asInstanceOf[Object])
   }
   override def onBuildExit(): Unit = {
-    debug("Entered onBuildExit")
+    print("Entered onBuildExit")
     onSessionEnd match {
       case None =>
       case Some(onEnd) =>
-        debug("Exiting build...")
+        print("Exiting build...")
         onEnd(BspServerResult.Shutdown)
     }
     SemanticDbJavaModule.resetContext()
@@ -205,7 +210,7 @@ private class MillBuildServer(
       onSessionEnd match {
         case None => "unsupportedWorkspaceReload".asInstanceOf[Object]
         case Some(onEnd) =>
-          debug("Reloading workspace...")
+          print("Reloading workspace...")
           onEnd(BspServerResult.ReloadWorkspace).asInstanceOf[Object]
       }
     }
@@ -294,7 +299,7 @@ private class MillBuildServer(
         case m: JavaModule =>
           Task.Anon {
             (
-              m.defaultResolver().resolveDeps(
+              m.millResolver().classpath(
                 Seq(
                   m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
                   m.coursierDependency
@@ -302,7 +307,7 @@ private class MillBuildServer(
                 sources = true
               ),
               m.unmanagedClasspath(),
-              m.repositoriesTask()
+              m.allRepositories()
             )
           }
       }
@@ -338,12 +343,14 @@ private class MillBuildServer(
         Task.Anon {
           (
             // full list of dependencies, including transitive ones
-            m.defaultResolver().allDeps(
-              Seq(
-                m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-                m.coursierDependency
+            m.millResolver()
+              .resolution(
+                Seq(
+                  m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                  m.coursierDependency
+                )
               )
-            ),
+              .orderedDependencies,
             m.unmanagedClasspath()
           )
         }
@@ -404,7 +411,7 @@ private class MillBuildServer(
           (Task.Anon { () }, ev)
           val task = Task.Anon {
             Task.log.debug(
-              "Ignoring invalid compile request for test module ${m.bspBuildTarget.displayName}"
+              s"Ignoring invalid compile request for test module ${m.bspBuildTarget.displayName}"
             )
           }
           (task, ev)
@@ -475,7 +482,7 @@ private class MillBuildServer(
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client),
         logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
       )
-      val response = runResult.results(runTask) match {
+      val response = runResult.transitiveResults(runTask) match {
         case r if r.asSuccess.isDefined => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
       }
@@ -600,9 +607,9 @@ private class MillBuildServer(
               Seq(cleanTask),
               logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
             )
-            if (cleanResult.failing.size > 0) (
+            if (cleanResult.transitiveFailing.size > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
-                (cleanResult.results(cleanTask) match {
+                (cleanResult.transitiveResults(cleanTask) match {
                   case ex: ExecResult.Exception => ex.toString()
                   case ExecResult.Skipped => "Task was skipped"
                   case ExecResult.Aborted => "Task was aborted"
@@ -668,38 +675,50 @@ private class MillBuildServer(
       }
 
       // group by evaluator (different root module)
-      val evaluated = groupList(tasksSeq.toSeq)(_._2)(_._1)
-        .map { case ((ev, id), ts) =>
-          val results = evaluate(ev, ts)
-          val failures = results.results.collect {
-            case (_, res: ExecResult.Failing[_]) => res
+      val groups0 = groupList(tasksSeq.toSeq)(_._2._1) {
+        case (tasks, (_, id)) => (id, tasks)
+      }
+
+      val evaluated = groups0.flatMap {
+        case (ev, targetIdTasks) =>
+          val results = evaluate(ev, targetIdTasks.map(_._2))
+          val idByTasks = targetIdTasks.map { case (id, task) => (task: Task[_], id) }.toMap
+          val failures = results.transitiveResults.toSeq.collect {
+            case (task, res: ExecResult.Failing[_]) if idByTasks.contains(task) =>
+              (idByTasks(task), res)
           }
 
-          def logError(errorMsg: String): Unit = {
+          def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
             val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
             debug(msg)
             client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
           }
 
-          if (failures.nonEmpty) {
-            logError(failures.mkString(", "))
+          if (failures.nonEmpty)
+            for ((id, failure) <- failures)
+              logError(id, failure.toString)
+
+          val resultsById = targetIdTasks.flatMap {
+            case (id, task) =>
+              results.transitiveResults(task)
+                .asSuccess
+                .map(_.value.value.asInstanceOf[W])
+                .map((id, _))
           }
 
-          // only the successful results
-          val successes = results.values.map(_.value).asInstanceOf[Seq[W]]
-          successes
-            .flatMap { v =>
+          resultsById.flatMap {
+            case (id, values) =>
               try {
-                Seq(f(ev, state, id, state.bspModulesById(id)._1, v))
+                Seq(f(ev, state, id, state.bspModulesById(id)._1, values))
               } catch {
                 case NonFatal(e) =>
-                  logError(e.toString)
+                  logError(id, e.toString)
                   Seq()
               }
-            }
-        }
+          }
+      }
 
-      agg(evaluated.flatten.asJava, state)
+      agg(evaluated.asJava, state)
     }
   }
 
@@ -716,12 +735,12 @@ private class MillBuildServer(
       hint: String,
       checkInitialized: Boolean = true
   )(f: State => V): CompletableFuture[V] = {
-    debug(s"Entered ${hint}")
+    print(s"Entered ${hint}")
 
     val start = System.currentTimeMillis()
     val prefix = hint.split(" ").head
     def took =
-      debug(s"${prefix} took ${System.currentTimeMillis() - start} msec")
+      print(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
     val future = new CompletableFuture[V]()
     if (checkInitialized && !initialized) {
@@ -735,7 +754,7 @@ private class MillBuildServer(
         case Success(state) =>
           try {
             requestLock.lock()
-            val v = f(state)
+            val v = os.checker.withValue(os.Checker.Nop)(f(state))
             took
             debug(s"${prefix} result: ${v}")
             future.complete(v)
@@ -761,11 +780,11 @@ private class MillBuildServer(
       hint: String,
       checkInitialized: Boolean = true
   )(f: => V): CompletableFuture[V] = {
-    debug(s"Entered ${hint}")
+    print(s"Entered ${hint}")
     val start = System.currentTimeMillis()
     val prefix = hint.split(" ").head
     def took =
-      debug(s"${prefix} took ${System.currentTimeMillis() - start} msec")
+      print(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
     val future = new CompletableFuture[V]()
 
@@ -802,7 +821,7 @@ private class MillBuildServer(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = null
+      logger: Logger = null
   ): ExecutionResults = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     mill.runner.MillMain.withOutLock(
@@ -813,7 +832,7 @@ private class MillBuildServer(
         case n: NamedTask[_] => n.label
         case t => t.toString
       },
-      streams = logger0.systemStreams
+      streams = logger0.streams
     ) {
       evaluator.execute(
         goals,
@@ -833,10 +852,27 @@ private object MillBuildServer {
    * the order of appearance of the keys from the input sequence
    */
   private def groupList[A, K, B](seq: Seq[A])(key: A => K)(f: A => B): Seq[(K, Seq[B])] = {
-    val keyIndices = seq.map(key).distinct.zipWithIndex.toMap
-    seq.groupMap(key)(f)
-      .toSeq
-      .sortBy { case (k, _) => keyIndices(k) }
+    val map = new mutable.HashMap[K, mutable.ListBuffer[B]]
+    val list = new mutable.ListBuffer[(K, mutable.ListBuffer[B])]
+    for (a <- seq) {
+      val k = key(a)
+      val b = f(a)
+      val l = map.getOrElseUpdate(
+        k, {
+          val buf = mutable.ListBuffer[B]()
+          list.append((k, buf))
+          buf
+        }
+      )
+      l.append(b)
+    }
+    list
+      .iterator
+      .map {
+        case (k, l) =>
+          (k, l.result())
+      }
+      .toList
   }
 
   def jvmBuildTarget(d: JvmBuildTarget): bsp4j.JvmBuildTarget =

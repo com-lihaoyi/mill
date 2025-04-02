@@ -4,7 +4,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.define.{Discover, ExternalModule, NamedTask, Target}
+import mill.define.{Discover, Evaluator, ExternalModule, NamedTask, Target}
 import mill.util.MillModuleUtil.millProjectModule
 import mill.api.{PathRef, Result}
 import mill.define.Worker
@@ -12,8 +12,7 @@ import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
 import mill.exec
-import mill.exec.Plan
-import mill.eval.Evaluator
+import mill.exec.PlanImpl
 import mill.define.SelectMode
 
 object VisualizeModule extends ExternalModule {
@@ -59,7 +58,10 @@ object VisualizeModule extends ExternalModule {
     }
   }
 
-  def classpath: Target[Seq[PathRef]] = Target {
+  @deprecated("Use toolsClasspath instead", "0.13.0-M1")
+  def classpath = toolsClasspath
+
+  def toolsClasspath: Target[Seq[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 
@@ -81,12 +83,12 @@ object VisualizeModule extends ExternalModule {
       while (true) {
         val res = Result.Success {
           val (tasks, transitiveTasks, dest) = in.take()
-          val transitive = Plan.transitiveTargets(tasks)
-          val topoSorted = Plan.topoSorted(transitive)
-          val sortedGroups = Plan.groupAroundImportantTargets(topoSorted) {
+          val transitive = PlanImpl.transitiveTargets(tasks)
+          val topoSorted = PlanImpl.topoSorted(transitive)
+          val sortedGroups = PlanImpl.groupAroundImportantTargets(topoSorted) {
             case x: NamedTask[Any] if transitiveTasks.contains(x) => x
           }
-          val plan = exec.Plan.plan(transitiveTasks)
+          val plan = exec.PlanImpl.plan(transitiveTasks)
 
           val goalSet = transitiveTasks.toSet
           import guru.nidi.graphviz.model.Factory._
@@ -138,7 +140,7 @@ object VisualizeModule extends ExternalModule {
 
           mill.util.Jvm.callProcess(
             mainClass = "mill.main.graphviz.GraphvizTools",
-            classPath = classpath().map(_.path).toVector,
+            classPath = toolsClasspath().map(_.path).toVector,
             mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg"),
             stdin = os.Inherit,
             stdout = os.Inherit

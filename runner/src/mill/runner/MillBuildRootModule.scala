@@ -7,8 +7,8 @@ import mill.*
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
-import mill.util.CoursierSupport
-import mill.scalalib.api.ZincWorkerUtil
+import mill.util.Jvm
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.constants.OutFiles.*
 import mill.constants.CodeGenConstants.buildFileExtensions
@@ -71,7 +71,7 @@ abstract class MillBuildRootModule()(implicit
         val relFile = Try {
           srcFile.relativeTo(Task.workspace)
         }.recover { case _ => srcFile }.get
-        CoursierSupport.repoFromString(
+        Jvm.repoFromString(
           repo,
           s"buildfile `${relFile}`: import $$repo.`${repo}`"
         )
@@ -255,15 +255,15 @@ abstract class MillBuildRootModule()(implicit
       .split(',')
       .filter(_.nonEmpty)
       .map { str =>
-        str.split(":", 2) match {
-          case Array(org, name) => (org, name)
+        str.split(":", 3) match {
+          case Array(org, name, _) => (org, name)
           case other =>
             sys.error(
               s"Unexpected misshapen entry in BuildInfo.millAllDistDependencies ('$str', expected 'org:name')"
             )
         }
       }
-    val isScala3 = ZincWorkerUtil.isScala3(scalaVersion())
+    val isScala3 = JvmWorkerUtil.isScala3(scalaVersion())
     if (isScala3)
       allMillDistModules.filter(_._2 != "scala-library").toSeq
     else
@@ -324,7 +324,7 @@ abstract class MillBuildRootModule()(implicit
     }
 
     // copied from `ScalaModule`
-    zincWorker()
+    jvmWorker()
       .worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),

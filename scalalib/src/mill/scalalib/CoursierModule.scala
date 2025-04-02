@@ -1,11 +1,12 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
-import coursier.core.{BomDependency, DependencyManagement, Resolution}
+import coursier.core.Resolution
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
+import mill.util.Jvm
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -26,6 +27,33 @@ trait CoursierModule extends mill.Module {
     BoundDep(Lib.depToDependencyJava(dep), dep.force)
   }
 
+  /**
+   * A [[CoursierModule.Resolver]] to resolve dependencies.
+   *
+   * Unlike [[defaultResolver]], this resolver can resolve Mill modules too
+   * (obtained via [[JavaModule.coursierDependency]]).
+   *
+   * @return `CoursierModule.Resolver` instance
+   */
+  def millResolver: Task[CoursierModule.Resolver] = Task.Anon {
+    new CoursierModule.Resolver(
+      repositories = allRepositories(),
+      bind = bindDependency(),
+      mapDependencies = Some(mapDependencies()),
+      customizer = resolutionCustomizer(),
+      coursierCacheCustomizer = coursierCacheCustomizer(),
+      resolutionParams = resolutionParams()
+    )
+  }
+
+  /**
+   * A `CoursierModule.Resolver` to resolve dependencies.
+   *
+   * Can be used to resolve external dependencies, if you need to download an external
+   * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#classpath`.
+   *
+   * @return `CoursierModule.Resolver` instance
+   */
   def defaultResolver: Task[CoursierModule.Resolver] = Task.Anon {
     new CoursierModule.Resolver(
       repositories = repositoriesTask(),
@@ -33,36 +61,9 @@ trait CoursierModule extends mill.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      ctx = Some(implicitly[mill.api.Ctx.Log]),
       resolutionParams = resolutionParams()
     )
   }
-
-  /**
-   * Task that resolves the given dependencies using the repositories defined with [[repositoriesTask]].
-   *
-   * @param deps    The dependencies to resolve.
-   * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
-   * @param artifactTypes If non-empty, pull the passed artifact types rather than the default ones from coursier
-   * @return The [[PathRef]]s to the resolved files.
-   */
-  def resolveDeps(
-      deps: Task[Seq[BoundDep]],
-      sources: Boolean = false,
-      artifactTypes: Option[Set[Type]] = None
-  ): Task[Seq[PathRef]] =
-    Task.Anon {
-      Lib.resolveDependencies(
-        repositories = repositoriesTask(),
-        deps = deps(),
-        sources = sources,
-        artifactTypes = artifactTypes,
-        mapDependencies = Some(mapDependencies()),
-        customizer = resolutionCustomizer(),
-        coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.api.Ctx.Log])
-      )
-    }
 
   /**
    * Map dependencies before resolving them.
@@ -76,10 +77,12 @@ trait CoursierModule extends mill.Module {
    * These are not meant to be modified by Mill users, unless you really know what you're
    * doing.
    */
-  def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
+  private[mill] def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
 
   /**
-   * The repositories used to resolved dependencies with [[resolveDeps()]].
+   * The repositories used to resolve dependencies with [[classpath()]].
+   *
+   * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     val resolve = Resolve()
@@ -87,7 +90,23 @@ trait CoursierModule extends mill.Module {
       resolve.finalRepositories.future()(resolve.cache.ec),
       Duration.Inf
     )
-    internalRepositories() ++ repos
+    repos
+  }
+
+  /**
+   * The repositories used to resolve dependencies
+   *
+   * Unlike [[repositoriesTask]], this includes the Mill internal repositories,
+   * which allow to resolve Mill internal modules (usually brought in via
+   * `JavaModule#coursierDependency`).
+   *
+   * Beware that this needs to evaluate `JavaModule#coursierProject` of all
+   * module dependencies of the current module, which itself evaluates `JavaModule#ivyDeps`
+   * and related tasks. You shouldn't depend on this task from implementations of `ivyDeps`,
+   * which would introduce cycles between Mill tasks.
+   */
+  def allRepositories: Task[Seq[Repository]] = Task.Anon {
+    internalRepositories() ++ repositoriesTask()
   }
 
   /**
@@ -162,109 +181,78 @@ object CoursierModule {
       bind: Dep => BoundDep,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ) {
 
-    def resolveDeps[T: CoursierModule.Resolvable](
+    /**
+     * Class path of the passed dependencies
+     *
+     * @param deps root dependencies to resolve
+     * @param sources whether to fetch source JARs or standard JARs
+     */
+    def classpath[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
-        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
-    ): Seq[PathRef] = {
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
+        mapDependencies: Option[Dependency => Dependency] = null
+    )(implicit ctx: mill.api.Ctx): Seq[PathRef] =
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
         artifactTypes = artifactTypes,
-        mapDependencies = mapDependencies,
+        mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
+        ctx = Some(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       ).get
-    }
 
     /**
-     * Processes dependencies and BOMs with coursier
-     *
-     * This makes coursier read and process BOM dependencies, and fill empty versions
-     * in dependencies with the BOMs.
-     *
-     * Note that this doesn't throw when an empty version cannot be filled, and just leaves
-     * the empty version behind.
-     *
-     * @param deps dependencies that might have empty versions
-     * @param resolutionParams coursier resolution parameters
-     * @return dependencies with empty version filled
-     */
-    def processDeps[T: CoursierModule.Resolvable](
-        deps: IterableOnce[T],
-        resolutionParams: ResolutionParams = ResolutionParams(),
-        boms: IterableOnce[BomDependency] = Nil
-    ): (Seq[coursier.core.Dependency], DependencyManagement.Map) = {
-      val deps0 = deps
-        .iterator
-        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
-        .toSeq
-      val boms0 = boms.iterator.toSeq
-      val res = Lib.resolveDependenciesMetadataSafe(
-        repositories = repositories,
-        deps = deps0,
-        mapDependencies = mapDependencies,
-        customizer = customizer,
-        coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
-        resolutionParams = resolutionParams,
-        boms = boms0
-      ).get
-
-      (
-        res.finalDependenciesCache.getOrElse(
-          deps0.head.dep,
-          sys.error(
-            s"Should not happen - could not find root dependency ${deps0.head.dep} in Resolution#finalDependenciesCache"
-          )
-        ),
-        res.projectCache
-          .get(deps0.head.dep.moduleVersion)
-          .map(_._2.overrides.flatten.toMap)
-          .getOrElse {
-            sys.error(
-              s"Should not happen - could not find root dependency ${deps0.head.dep.moduleVersion} in Resolution#projectCache"
-            )
-          }
-      )
-    }
-
-    /**
-     * All dependencies pulled by the passed dependencies
+     * Raw coursier resolution of the passed dependencies
      *
      * @param deps root dependencies
-     * @return full - ordered - list of dependencies pulled by `deps`
      */
-    def allDeps[T: CoursierModule.Resolvable](
+    def resolution[T: CoursierModule.Resolvable](
         deps: IterableOnce[T]
-    ): Seq[coursier.core.Dependency] = {
+    )(implicit ctx: mill.api.Ctx): coursier.core.Resolution = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
         .toSeq
-      val res = Lib.resolveDependenciesMetadataSafe(
+      Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
+        ctx = Some(ctx),
         resolutionParams = ResolutionParams(),
         boms = Nil
       ).get
+    }
 
-      res.orderedDependencies
+    /**
+     * Raw artifact results for the passed dependencies
+     */
+    def artifacts[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false
+    )(implicit ctx: mill.api.Ctx): coursier.Artifacts.Result = {
+      val deps0 = deps
+        .iterator
+        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .toSeq
+      Jvm.getArtifacts(
+        repositories,
+        deps0.map(_.dep),
+        sources = sources,
+        ctx = Some(ctx.log)
+      ).get
     }
   }
 

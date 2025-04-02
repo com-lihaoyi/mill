@@ -3,13 +3,12 @@ package build.contrib
 import scala.util.chaining._
 import coursier.maven.MavenRepository
 import mill._
-import mill.api.JarManifest
 import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
@@ -32,7 +31,7 @@ object `package` extends RootModule {
     millInternal.modules.collect { case m: ContribModule => m }
 
   trait ContribModule extends build.MillPublishScalaModule {
-    def readme = Task.Source(millSourcePath / "readme.adoc")
+    def readme = Task.Source("readme.adoc")
   }
 
   object testng extends JavaModule with ContribModule {
@@ -118,7 +117,7 @@ object `package` extends RootModule {
     def testArgs = Task {
       super.testArgs() ++
         Seq(
-          s"-DMILL_SCOVERAGE2_VERSION=${build.Deps.scalacScoverage2Plugin.dep.version}"
+          s"-DMILL_SCOVERAGE2_VERSION=${build.Deps.scalacScoverage2Plugin.version}"
         )
     }
 
@@ -147,9 +146,15 @@ object `package` extends RootModule {
   }
 
   object buildinfo extends ContribModule {
-    def compileModuleDeps = Seq(build.scalalib, build.scalajslib, build.scalanativelib)
+    def compileModuleDeps =
+      Seq(build.scalalib, build.scalajslib, build.scalanativelib, build.kotlinlib)
     def testModuleDeps =
-      super.testModuleDeps ++ Seq(build.scalalib, build.scalajslib, build.scalanativelib)
+      super.testModuleDeps ++ Seq(
+        build.scalalib,
+        build.scalajslib,
+        build.scalanativelib,
+        build.kotlinlib
+      )
   }
 
   object proguard extends ContribModule {
@@ -179,7 +184,7 @@ object `package` extends RootModule {
 
     def buildInfoPackageName = "mill.contrib.bloop"
     def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Seq(BuildInfo.Value("bloop", build.Deps.bloopConfig.dep.version))
+    def buildInfoMembers = Seq(BuildInfo.Value("bloop", build.Deps.bloopConfig.version))
   }
 
   object artifactory extends ContribModule {

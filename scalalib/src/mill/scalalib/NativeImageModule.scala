@@ -11,26 +11,22 @@ import scala.util.Properties
  * It is recommended to specify a custom JDK that includes the `native-image` Tool.
  * {{{
  * trait AppModule extends NativeImageModule {
- *   def zincWorker = ModuleRef(ZincWorkerGraalvm)
+ *   def jvmWorker = ModuleRef(JvmWorkerGraalvm)
  *
- *   object ZincWorkerGraalvm extends ZincWorkerModule {
+ *   object JvmWorkerGraalvm extends JvmWorkerModule {
  *     def jvmId = "graalvm-community:23.0.1"
  *   }
  * }
  * }}}
  */
 @mill.api.experimental
-trait NativeImageModule extends WithZincWorker {
+trait NativeImageModule extends WithJvmWorker {
   def runClasspath: T[Seq[PathRef]]
   def finalMainClass: T[String]
 
   /**
    * [[https://www.graalvm.org/latest/reference-manual/native-image/#from-a-class Builds a native executable]] for this
    * module with [[finalMainClass]] as the application entry point.
-   *
-   * @param args Additional options for the `native-image` Tool. Use for
-   *             - passing debug options
-   *             - passing target specific options
    */
   def nativeImage: T[PathRef] = Task {
     val dest = Task.dest
@@ -62,21 +58,19 @@ trait NativeImageModule extends WithZincWorker {
 
   /**
    * Additional options for the `native-image` Tool.
-   *
-   * @note It is recommended to restrict this list to options that can be shared across targets.
    */
   def nativeImageOptions: T[Seq[String]] = Seq.empty[String]
 
   /**
    * Path to the [[https://www.graalvm.org/latest/reference-manual/native-image/ `native-image` Tool]].
    * Defaults to a path relative to
-   *  - [[ZincWorkerModule.javaHome]], if defined
+   *  - [[JvmWorkerModule.javaHome]], if defined
    *  - environment variable `GRAALVM_HOME`, if defined
    *
    * @note The task fails if the `native-image` Tool is not found.
    */
   def nativeImageTool: T[PathRef] = Task {
-    zincWorker().javaHome().map(_.path)
+    jvmWorker().javaHome().map(_.path)
       .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
       case Some(home) =>
         val tool = if (Properties.isWin) "native-image.cmd" else "native-image"
@@ -84,7 +78,7 @@ trait NativeImageModule extends WithZincWorker {
         if (os.exists(path)) PathRef(path)
         else throw new RuntimeException(s"$path not found")
       case None =>
-        throw new RuntimeException("ZincWorkerModule.javaHome/GRAALVM_HOME not defined")
+        throw new RuntimeException("JvmWorkerModule.javaHome/GRAALVM_HOME not defined")
     }
   }
 }

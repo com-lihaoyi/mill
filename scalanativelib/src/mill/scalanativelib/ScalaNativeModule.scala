@@ -5,8 +5,7 @@ import mainargs.Flag
 
 import mill.api.{Result, internal}
 import mill.define.{Command, Task}
-import mill.util.MillModuleUtil.millProjectModule
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
@@ -32,16 +31,15 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def scalaNativeBinaryVersion =
-    Task { ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
+    Task { JvmWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerVersion =
-    Task { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
+    Task { JvmWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath = Task {
-    millProjectModule(
-      s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
-      repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule(s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}")
+    ))
   }
 
   def toolsIvyDeps = Task {
@@ -65,7 +63,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         if (scalaNativeVersion().startsWith("0.4")) scalaNativeVersion()
         else s"${scalaVersion()}+${scalaNativeVersion()}"
 
-      if (ZincWorkerUtil.isScala3(scalaVersion()))
+      if (JvmWorkerUtil.isScala3(scalaVersion()))
         Seq(ivy"org.scala-native::scala3lib::$version")
       else Seq(ivy"org.scala-native::scalalib::$version")
     }
@@ -93,11 +91,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def bridgeFullClassPath: T[Seq[PathRef]] = Task {
-    Lib.resolveDependencies(
-      repositoriesTask(),
-      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
-      ctx = Some(Task.log)
-    ).map(t => (scalaNativeWorkerClasspath() ++ t))
+    scalaNativeWorkerClasspath() ++ defaultResolver().classpath(
+      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
+    )
   }
 
   override def scalacPluginIvyDeps: T[Seq[Dep]] = Task {
@@ -154,13 +150,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     )
   }
   // Location of the clang compiler
-  def nativeClang = Task {
-    os.Path(withScalaNativeBridge.apply().apply(_.discoverClang()))
+  def nativeClang: T[PathRef] = Task {
+    PathRef(os.Path(withScalaNativeBridge.apply().apply(_.discoverClang())))
   }
 
   // Location of the clang++ compiler
-  def nativeClangPP = Task {
-    os.Path(withScalaNativeBridge.apply().apply(_.discoverClangPP()))
+  def nativeClangPP: T[PathRef] = Task {
+    PathRef(os.Path(withScalaNativeBridge.apply().apply(_.discoverClangPP())))
   }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
@@ -225,14 +221,23 @@ trait ScalaNativeModule extends ScalaModule { outer =>
    */
   def nativeMultithreading: T[Option[Boolean]] = Task { None }
 
+  /**
+   * List of service providers which shall be allowed in the final binary.
+   * Example:
+   *   Map("java.nio.file.spi.FileSystemProvider" -> Seq("my.lib.MyCustomFileSystem"))
+   *   Makes the implementation for the FileSystemProvider trait in `my.lib.MyCustomFileSystem`
+   *   included in the binary for reflective instantiation.
+   */
+  def nativeServiceProviders: T[Map[String, Seq[String]]] = Task { Map.empty[String, Seq[String]] }
+
   private def nativeConfig: Task[NativeConfig] = Task.Anon {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
     withScalaNativeBridge.apply().apply(_.config(
       finalMainClassOpt(),
       classpath.map(_.toIO),
       nativeWorkdir().toIO,
-      nativeClang().toIO,
-      nativeClangPP().toIO,
+      nativeClang().path.toIO,
+      nativeClangPP().path.toIO,
       nativeTarget(),
       nativeCompileOptions(),
       nativeLinkingOptions(),
@@ -245,6 +250,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeIncrementalCompilation(),
       nativeDump(),
       nativeMultithreading(),
+      nativeServiceProviders(),
       toWorkerApi(logLevel()),
       toWorkerApi(nativeBuildTarget())
     )) match {
@@ -270,17 +276,17 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     }
 
   // Generates native binary
-  def nativeLink = Task {
-    os.Path(withScalaNativeBridge.apply().apply(_.nativeLink(
+  def nativeLink: T[PathRef] = Task {
+    PathRef(os.Path(withScalaNativeBridge.apply().apply(_.nativeLink(
       nativeConfig().config,
       Task.dest.toIO
-    )))
+    ))))
   }
 
   // Runs the native binary
   override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     os.call(
-      cmd = Vector(nativeLink().toString) ++ args().value,
+      cmd = nativeLink().path.toString +: args().value,
       env = forkEnv(),
       cwd = forkWorkingDir(),
       stdin = os.Inherit,
@@ -296,7 +302,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       ScalaBuildTarget(
         scalaOrganization = scalaOrganization(),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,
         jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
         jvmBuildTarget = None
@@ -373,7 +379,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   ): Task[(String, Seq[TestResult])] = Task.Anon {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
-      nativeLink().toIO,
+      nativeLink().path.toIO,
       forkEnv() ++
         Map(
           EnvVars.MILL_TEST_RESOURCE_DIR -> resources().map(_.path).mkString(";"),

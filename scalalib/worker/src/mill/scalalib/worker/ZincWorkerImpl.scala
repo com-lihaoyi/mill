@@ -3,10 +3,9 @@ package mill.scalalib.worker
 import mill.util.CachedFactory
 import mill.api.{CompileProblemReporter, PathRef, Result, internal}
 import mill.constants.CodeGenConstants
-import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
+import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerApi, JvmWorkerUtil}
 import os.Path
 import sbt.internal.inc.{
-  Analysis,
   CompileFailed,
   FreshCompilerCache,
   ManagedLoggedReporter,
@@ -46,9 +45,9 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Properties.isWin
 
 @internal
-class ZincWorkerImpl(
+class JvmWorkerImpl(
     compilerBridge: Either[
-      (ZincWorkerApi.Ctx, (String, String) => (Option[Seq[PathRef]], PathRef)),
+      (JvmWorkerApi.Ctx, (String, String) => (Option[Seq[PathRef]], PathRef)),
       String => PathRef
     ],
     jobs: Int,
@@ -56,9 +55,9 @@ class ZincWorkerImpl(
     zincLogDebug: Boolean,
     javaHome: Option[PathRef],
     close0: () => Unit
-) extends ZincWorkerApi with AutoCloseable {
+) extends JvmWorkerApi with AutoCloseable {
   val libraryJarNameGrep: (Seq[PathRef], String) => PathRef =
-    ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false)
+    JvmWorkerUtil.grepJar(_, "scala-library", _, sources = false)
 
   case class CompileCacheKey(
       scalaVersion: String,
@@ -96,7 +95,7 @@ class ZincWorkerImpl(
           compilerClasspath,
           // we don't support too outdated dotty versions
           // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
-          if (ZincWorkerUtil.isDottyOrScala3(key.scalaVersion)) "2.13." else key.scalaVersion
+          if (JvmWorkerUtil.isDottyOrScala3(key.scalaVersion)) "2.13." else key.scalaVersion
         ).path.toIO),
         compilerJars = combinedCompilerJars,
         allJars = combinedCompilerJars,
@@ -134,7 +133,7 @@ class ZincWorkerImpl(
           classloaderCache(compilersSig) = (cl, i + 1)
           cl
         case _ =>
-          // the Scala compiler must load the `xsbti.*` classes from the same loader as `ZincWorkerImpl`
+          // the Scala compiler must load the `xsbti.*` classes from the same loader as `JvmWorkerImpl`
           val cl = mill.util.Jvm.createClassLoader(
             combinedCompilerJars.map(os.Path(_)).toSeq,
             parent = null,
@@ -221,7 +220,7 @@ class ZincWorkerImpl(
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
       args: Seq[String]
-  )(implicit ctx: ZincWorkerApi.Ctx): Boolean = {
+  )(implicit ctx: JvmWorkerApi.Ctx): Boolean = {
     withCompilers(
       scalaVersion,
       scalaOrganization,
@@ -229,42 +228,48 @@ class ZincWorkerImpl(
       scalacPluginClasspath,
       Seq()
     ) { (compilers: Compilers) =>
-      if (ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)) {
-        // dotty 0.x and scala 3 milestones use the dotty-doc tool
-        val dottydocClass =
-          compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
-        val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
-        val reporter =
-          dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), args.toArray)
-        val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
-        !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
-      } else if (ZincWorkerUtil.isScala3(scalaVersion)) {
-        // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
-        // requires the ContextClassLoader to be set appropriately
-        mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader) {
-          val scaladocClass =
-            compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
-          val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
+      // Not sure why dotty scaladoc is flaky, but add retries to workaround it
+      // https://github.com/com-lihaoyi/mill/issues/4556
+      mill.util.Retry(mill.util.Retry.ctxLogger, count = 2) {
+        if (JvmWorkerUtil.isDotty(scalaVersion) || JvmWorkerUtil.isScala3Milestone(scalaVersion)) {
+          // dotty 0.x and scala 3 milestones use the dotty-doc tool
+          val dottydocClass =
+            compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
+          val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
           val reporter =
-            scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
+            dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), args.toArray)
           val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
           !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
+        } else if (JvmWorkerUtil.isScala3(scalaVersion)) {
+          // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
+          // requires the ContextClassLoader to be set appropriately
+          mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader) {
+
+            val scaladocClass =
+              compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
+
+            val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
+            val reporter =
+              scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
+            val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
+            !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
+          }
+        } else {
+          val scaladocClass =
+            compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
+          val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
+          scaladocMethod.invoke(
+            scaladocClass.getConstructor().newInstance(),
+            args.toArray
+          ).asInstanceOf[Boolean]
         }
-      } else {
-        val scaladocClass =
-          compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
-        val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
-        scaladocMethod.invoke(
-          scaladocClass.getConstructor().newInstance(),
-          args.toArray
-        ).asInstanceOf[Boolean]
       }
     }
   }
 
-  /** Compile the SBT/Zinc compiler bridge in the `compileDest` directory */
+  /** Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory */
   def compileZincBridge(
-      ctx0: ZincWorkerApi.Ctx,
+      ctx0: JvmWorkerApi.Ctx,
       workingDir: os.Path,
       compileDest: os.Path,
       scalaVersion: String,
@@ -325,7 +330,7 @@ class ZincWorkerImpl(
       (Seq(javacExe) ++ argsArray).!
     } else if (allScala) {
       val compilerMain = classloader.loadClass(
-        if (ZincWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
+        if (JvmWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
         else "scala.tools.nsc.Main"
       )
       compilerMain
@@ -377,35 +382,6 @@ class ZincWorkerImpl(
 
   }
 
-  /**
-   * Discover main classes by inspecting the classpath.
-   *
-   * This implementation uses the Scala API of `scalap` to inspect the classfiles for `public static main` methods.
-   *
-   * In contrast to [[discoverMainClasses()]], this version does not need a successful zinc compilation,
-   * which makes it independent of the actual used compiler.
-   * It should also work for JVM bytecode generated by Kotlin and other languages.
-   *
-   * This implementation is only in this "zinc"-specific module, because this module is already shared between all `JavaModule`s.
-   */
-  override def discoverMainClasses(classpath: Seq[os.Path]): Seq[String] = {
-    DiscoverMainClassesMain(classpath)
-  }
-
-  def discoverMainClasses(compilationResult: CompilationResult): Seq[String] = {
-    def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
-
-    toScala(fileAnalysisStore(compilationResult.analysisFile).get())
-      .map(_.getAnalysis)
-      .flatMap {
-        case analysis: Analysis =>
-          Some(analysis.infos.allInfos.values.flatMap(_.getMainClasses).toSeq.sorted)
-        case _ =>
-          None
-      }
-      .getOrElse(Seq.empty[String])
-  }
-
   override def compileJava(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
@@ -414,7 +390,7 @@ class ZincWorkerImpl(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
+  )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
     javaOnlyCompilerCache.withValue(javacOptions.filter(filterJavacRuntimeOptions)) { compilers =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
@@ -445,7 +421,7 @@ class ZincWorkerImpl(
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String]
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
+  )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
     withCompilers(
       scalaVersion = scalaVersion,
       scalaOrganization = scalaOrganization,
@@ -512,8 +488,8 @@ class ZincWorkerImpl(
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
       zincCache: os.SubPath = os.sub / "zinc"
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
-    import ZincWorkerImpl.{ForwardingReporter, TransformingReporter, PositionMapper}
+  )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+    import JvmWorkerImpl.{ForwardingReporter, TransformingReporter, PositionMapper}
 
     os.makeDir.all(ctx.dest)
 
@@ -537,9 +513,9 @@ class ZincWorkerImpl(
 
     val consoleAppender = ConsoleAppender(
       "ZincLogAppender",
-      ConsoleOut.printStreamOut(ctx.log.errorStream),
-      ctx.log.colored,
-      ctx.log.colored,
+      ConsoleOut.printStreamOut(ctx.log.streams.err),
+      ctx.log.prompt.colored,
+      ctx.log.prompt.colored,
       _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
@@ -548,12 +524,12 @@ class ZincWorkerImpl(
     def mkNewReporter(mapper: (xsbti.Position => xsbti.Position) | Null) = reporter match {
       case None =>
         new ManagedLoggedReporter(10, logger) with RecordingReporter
-          with TransformingReporter(ctx.log.colored, mapper) {}
+          with TransformingReporter(ctx.log.prompt.colored, mapper) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(10, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
-          with TransformingReporter(ctx.log.colored, mapper) {}
+          with TransformingReporter(ctx.log.prompt.colored, mapper) {}
     }
     val analysisMap0 = upstreamCompileOutput.map(c => c.classes.path -> c.analysisFile).toMap
 
@@ -645,7 +621,7 @@ class ZincWorkerImpl(
     val scalaColorProp = "scala.color"
     val previousScalaColor = sys.props(scalaColorProp)
     try {
-      sys.props(scalaColorProp) = if (ctx.log.colored) "true" else "false"
+      sys.props(scalaColorProp) = if (ctx.log.prompt.colored) "true" else "false"
       val newResult = ic.compile(
         in = inputs,
         logger = logger
@@ -687,7 +663,7 @@ class ZincWorkerImpl(
   }
 }
 
-object ZincWorkerImpl {
+object JvmWorkerImpl {
   private def intValue(oi: java.util.Optional[Integer], default: Int): Int = {
     if oi.isPresent then oi.get().intValue()
     else default

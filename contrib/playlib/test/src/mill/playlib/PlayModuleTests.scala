@@ -1,7 +1,7 @@
 package mill
 package playlib
 
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 import mill.define.Discover
@@ -108,7 +108,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
               os.RelPath("controllers/routes$javascript.class"),
               os.RelPath("controllers/javascript/ReverseHomeController.class"),
               os.RelPath("controllers/javascript/ReverseAssets.class"),
-              if (ZincWorkerUtil.isScala3(scalaVersion)) os.RelPath("router/Routes$$anon$1.class")
+              if (JvmWorkerUtil.isScala3(scalaVersion)) os.RelPath("router/Routes$$anon$1.class")
               else os.RelPath("router/Routes$$anonfun$routes$1.class"),
               os.RelPath("router/Routes.class"),
               os.RelPath("router/RoutesPrefix$.class"),

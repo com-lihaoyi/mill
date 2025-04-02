@@ -1,21 +1,22 @@
 = BuildInfo
 :page-aliases: Plugin_BuildInfo.adoc
 
-Generate scala code from your buildfile.
+Generate source code from your buildfile.
 This plugin generates a single object containing information from your build.
+It supports `Java`, `Scala` and `Kotlin` as a target language.
 
 To declare a module that uses BuildInfo you must extend the `mill.contrib.buildinfo.BuildInfo` trait when defining your module.
 
 Quickstart:
 
-.`build.mill`
+.Example `build.mill` defining a Scala module with `BuildInfo`
 [source,scala]
 ----
 package build
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 
-object project extends BuildInfo with ScalaModule {
+object project extends ScalaModule with BuildInfo {
   val name = "project-name"
   val buildInfoPackageName = "com.organization"
   def buildInfoMembers = Seq(
@@ -37,15 +38,28 @@ def main = {
 }
 ----
 
-The above example uses `ScalaModule` but `BuildInfo` can also be used with `JavaModule`s
+The above example uses `ScalaModule` but `BuildInfo` can also be used with ``JavaModule``s or ``KotlinModule``s.
+
 
 == Configuration options
 
-* `def buildInfoMembers: T[Seq[BuildInfo.Value]]`
+`def buildInfoMembers: T[Seq[BuildInfo.Value]]`::
 The map containing all member names and values for the generated info object.
 
-* `def buildInfoObjectName: String`, default: `BuildInfo`
-The name of the object which contains all the members from `buildInfoMembers`.
+`def buildInfoObjectName: String = "BuildInfo`::
+The name of the BuildInfo data object which contains all the members from `buildInfoMembers`. Defaults to "BuildInfo".
 
-* `def buildInfoPackageName: String`
-The package name of the object.
+`def buildInfoPackageName: String`::
+The package name under which the BuildInfo data object will be stored.
+
+`def buildInfoStaticCompiled`::
+Enable to compile the BuildInfo values directly into the classfiles,
+rather than the default behavior of storing them as a JVM resource.
+Needed to use BuildInfo on Scala.js and Scala Native which does not support JVM resources.
+But can also be enabled on all platforms if wanted.
+
+`def buildInfoLanguage: BuildInfoLanguage`::
+The source language to use for the generated source file(s).
+One of `Java`, `Scala` or `Kotlin`.
+The default is derived from the used module.
+

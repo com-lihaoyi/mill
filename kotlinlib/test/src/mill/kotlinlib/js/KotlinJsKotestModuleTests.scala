@@ -9,22 +9,23 @@ import utest.{TestSuite, Tests, assert, test}
 
 object KotlinJsKotestModuleTests extends TestSuite {
 
-  private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
-
-  private val kotlinVersion = "1.9.25"
+  private val testResourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
+  private val testKotlinVersion = "1.9.25"
+  val testKotestVersion = sys.props.getOrElse("TEST_KOTEST_VERSION", ???)
 
   object module extends TestBaseModule {
 
     object bar extends KotlinJsModule {
-      def kotlinVersion = KotlinJsKotestModuleTests.kotlinVersion
+      def kotlinVersion = testKotlinVersion
     }
 
     object foo extends KotlinJsModule {
-      def kotlinVersion = KotlinJsKotestModuleTests.kotlinVersion
+      def kotlinVersion = testKotlinVersion
       override def kotlinJsRunTarget = Some(RunTarget.Node)
       override def moduleDeps = Seq(module.bar)
 
       object test extends KotlinJsModule with KotestTests {
+        override def kotestVersion = Task.Input(testKotestVersion)
         override def allSourceFiles = super.allSourceFiles()
           .filter(!_.path.toString().endsWith("HelloKotlinTestPackageTests.kt"))
       }
@@ -33,7 +34,7 @@ object KotlinJsKotestModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  private def testEval() = UnitTester(module, resourcePath)
+  private def testEval() = UnitTester(module, testResourcePath)
 
   def tests: Tests = Tests {
 

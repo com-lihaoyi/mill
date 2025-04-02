@@ -6,9 +6,7 @@ package mill.kotlinlib.kover
 
 import mill.*
 import mill.api.{PathRef, Result}
-import mill.api.Result.Success
-import mill.define.{Discover, ExternalModule}
-import mill.eval.Evaluator
+import mill.define.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
 import mill.define.SelectMode
@@ -56,7 +54,7 @@ trait KoverModule extends KotlinModule { outer =>
    * Reads the Kover version from system environment variable `KOVER_VERSION` or defaults to a hardcoded version.
    */
   def koverVersion: T[String] = Task.Input {
-    Success[String](Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
+    Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion)
   }
 
   def koverBinaryReport: T[PathRef] = Task(persistent = true) {
@@ -94,7 +92,7 @@ trait KoverModule extends KotlinModule { outer =>
 
     /** The Kover Agent is used at test-runtime. */
     private def koverAgentJar: T[PathRef] = Task {
-      val jars = defaultResolver().resolveDeps(koverAgentDep())
+      val jars = defaultResolver().classpath(koverAgentDep())
       jars.iterator.next()
     }
 
@@ -104,8 +102,9 @@ trait KoverModule extends KotlinModule { outer =>
     override def forkArgs: T[Seq[String]] = Task {
       val argsFile = koverDataDir().path / "kover-agent.args"
       val content = s"report.file=${koverBinaryReport().path}"
-      os.write.over(argsFile, content)
-
+      os.checker.withValue(os.Checker.Nop) {
+        os.write.over(argsFile, content)
+      }
       super.forkArgs() ++
         Seq(
           s"-javaagent:${koverAgentJar().path}=file:$argsFile"
@@ -146,7 +145,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
   }
 
   private def koverReportTask(
-      evaluator: mill.eval.Evaluator,
+      evaluator: Evaluator,
       sources: String = "__:KotlinModule:^TestModule.allSources",
       compiled: String = "__:KotlinModule:^TestModule.compile",
       binaryReports: String = "__.koverBinaryReport",

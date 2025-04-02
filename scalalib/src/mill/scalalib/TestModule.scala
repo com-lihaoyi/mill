@@ -9,7 +9,7 @@ import mill.T
 
 trait TestModule
     extends TestModule.JavaModuleBase
-    with WithZincWorker
+    with WithJvmWorker
     with RunModule
     with TaskModule {
 
@@ -41,15 +41,15 @@ trait TestModule
   def testFramework: T[String]
 
   def discoveredTestClasses: T[Seq[String]] = Task {
-    val classes = if (zincWorker().javaHome().isDefined) {
+    val classes = if (jvmWorker().javaHome().isDefined) {
       Jvm.callProcess(
         mainClass = "mill.testrunner.DiscoverTestsMain",
-        classPath = zincWorker().scalalibClasspath().map(_.path).toVector,
+        classPath = jvmWorker().scalalibClasspath().map(_.path).toVector,
         mainArgs =
           runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
             testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
             Seq("--framework", testFramework()),
-        javaHome = zincWorker().javaHome().map(_.path),
+        javaHome = jvmWorker().javaHome().map(_.path),
         stdin = os.Inherit,
         stdout = os.Pipe,
         cwd = Task.dest
@@ -97,14 +97,23 @@ trait TestModule
   }
 
   /**
-   * How the test classes in this module will be split into multiple JVM processes
-   * and run in parallel during testing. Defaults to all of them running in one process
-   * sequentially, but can be overridden to split them into separate groups that run
-   * in parallel.
+   * How the test classes in this module will be split.
+   * Test classes from different groups are ensured to never
+   * run on the same JVM process, and therefore can be run in parallel.
+   * When used in combination with [[testParallelism]],
+   * every JVM test running process will guarantee to never claim tests
+   * from different test groups.
    */
   def testForkGrouping: T[Seq[Seq[String]]] = Task {
     Seq(discoveredTestClasses())
   }
+
+  /**
+   * Whether to use the test parallelism to run tests in multiple JVM processes.
+   * When used in combination with [[testForkGrouping]], every JVM test running process
+   * will guarantee to never claim tests from different test groups.
+   */
+  def testParallelism: T[Boolean] = T(true)
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -147,6 +156,7 @@ trait TestModule
     Task.Anon {
       val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
       val outputPath = Task.dest / "out.json"
+      val resultPath = Task.dest / "results.log"
       val selectors = Seq.empty
 
       val testArgs = TestArgs(
@@ -155,19 +165,20 @@ trait TestModule
         arguments = args(),
         sysProps = Map.empty,
         outputPath = outputPath,
-        colored = Task.log.colored,
+        resultPath = resultPath,
+        colored = Task.log.prompt.colored,
         testCp = testClasspath().map(_.path),
-        globSelectors = selectors
+        globSelectors = Left(selectors)
       )
 
       val argsFile = Task.dest / "testargs"
       os.write(argsFile, upickle.default.write(testArgs))
 
       val testRunnerClasspathArg =
-        zincWorker().scalalibClasspath()
+        jvmWorker().scalalibClasspath()
           .map(_.path.toNIO.toUri.toURL).mkString(",")
 
-      val cp = (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(_.path.toString)
+      val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toString)
 
       Result.Success((mainClass, testRunnerClasspathArg, argsFile.toString, cp))
     }
@@ -190,24 +201,26 @@ trait TestModule
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] =
     Task.Anon {
-      TestModuleUtil.runTests(
+      val testModuleUtil = new TestModuleUtil(
         testUseArgsFile(),
         forkArgs(),
         globSelectors(),
-        zincWorker().scalalibClasspath(),
+        jvmWorker().scalalibClasspath(),
         resources(),
         testFramework(),
         runClasspath(),
         testClasspath(),
         args(),
         testForkGrouping(),
-        zincWorker().testrunnerEntrypointClasspath(),
+        jvmWorker().testrunnerEntrypointClasspath(),
         forkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
         testReportXml(),
-        zincWorker().javaHome().map(_.path)
+        jvmWorker().javaHome().map(_.path),
+        testParallelism()
       )
+      testModuleUtil.runTests()
     }
 
   /**
@@ -374,6 +387,10 @@ object TestModule {
    */
   trait ZioTest extends TestModule {
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
+  }
+
+  trait ScalaCheck extends TestModule {
+    override def testFramework: T[String] = "org.scalacheck.ScalaCheckFramework"
   }
 
   def handleResults(

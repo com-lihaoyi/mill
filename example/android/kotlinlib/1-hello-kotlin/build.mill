@@ -108,13 +108,13 @@ object app extends AndroidAppKotlinModule {
 
 /** Usage
 
-> ./mill show app.test
+> ./mill -j 1 show app.test
 ...Compiling 2 Kotlin sources...
 
-> cat out/app/test/testForked.dest/out.json
+> cat out/app/test/testForked.dest/worker-0/out.json
 ["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"}...]]
 
-> cat out/app/test/testForked.dest/out.json
+> cat out/app/test/testForked.dest/worker-0/out.json
 ["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}...]]
 
 */

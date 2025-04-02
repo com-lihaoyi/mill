@@ -24,6 +24,9 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     build.Deps.logback,
     build.Deps.jgraphtCore,
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1"
+      // We only need the in-memory library for some stuff, and don't
+      // need the heavyweight v8 binary that comes bundled with it
+      .exclude("guru.nidi.com.eclipsesource.j2v8" -> "j2v8_macosx_x86_64")
   )
 
   def compileIvyDeps = Task {
@@ -68,20 +71,18 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
         ) { mod =>
           Task.Anon {
             val selfDep = mod.publishSelfDependency()
-            (mod.coursierDependency.module.repr, s"${selfDep.group}:${selfDep.id}")
+            (
+              s"${mod.coursierDependency.module.repr}:${mod.coursierDependency.versionConstraint.asString}",
+              s"${selfDep.group}:${selfDep.id}:${selfDep.version}"
+            )
           }
         }().toMap
 
-        val result = Lib.resolveDependenciesMetadataSafe(
-          repositories = dist.repositoriesTask(),
-          Seq(BoundDep(dist.coursierDependency, force = false)),
-          Some(dist.mapDependencies()),
-          dist.resolutionCustomizer(),
-          Some(Task.ctx()),
-          dist.coursierCacheCustomizer()
+        val result = dist.millResolver().resolution(
+          Seq(BoundDep(dist.coursierDependency, force = false))
         )
-        result.getOrThrow.orderedDependencies
-          .map(_.module.repr)
+        result.orderedDependencies
+          .map(dep => s"${dep.module.repr}:${dep.versionConstraint.asString}")
           .distinct
           .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
           .mkString(",")

@@ -1,4 +1,4 @@
-import Foo from 'foo/foo';
+import Foo from '../../../src/foo';
 
 describe('Foo.getLineCount', () => {
     beforeEach(() => {

@@ -3,6 +3,10 @@ import mill.runner.MillBuildRootModule
 import mill.scalalib._
 
 object `package` extends MillBuildRootModule {
+
+  private def sources0 = Task.Sources("src-testkit")
+  def sources = super.sources() ++ sources0()
+
   override def ivyDeps = Agg(
     ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
     ivy"com.github.lolgab::mill-mima::0.1.1",
