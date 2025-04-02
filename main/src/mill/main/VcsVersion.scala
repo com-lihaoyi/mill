@@ -1,4 +1,4 @@
-package mill.util
+package mill.main
 
 import scala.util.Try
 import mill.define.Task
