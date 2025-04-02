@@ -4,7 +4,7 @@ import scala.util.Try
 import mill.define.Task
 import mill.api.Logger
 import mill.Input
-import mill.define.{Discover, ExternalModule, Module}
+import mill.define.{Discover, ExternalModule}
 import os.SubprocessException
 
 import scala.util.control.NonFatal
