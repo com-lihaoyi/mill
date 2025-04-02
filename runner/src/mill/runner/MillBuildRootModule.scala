@@ -34,7 +34,7 @@ abstract class MillBuildRootModule()(implicit
     .mkString("/")
 
   override def millSourcePath: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
-  override def intellijModulePath: os.Path = millSourcePath / os.up
+  override def intellijModulePath: os.Path = moduleDir / os.up
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 

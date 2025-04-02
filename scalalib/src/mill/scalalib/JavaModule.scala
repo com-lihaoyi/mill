@@ -59,7 +59,7 @@ trait JavaModule
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
     override def sources = Task.Sources {
       for (src <- outer.sources()) yield {
-        PathRef(this.millSourcePath / src.path.relativeTo(outer.millSourcePath))
+        PathRef(this.moduleDir / src.path.relativeTo(outer.moduleDir))
       }
     }
 

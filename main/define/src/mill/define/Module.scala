@@ -56,7 +56,7 @@ trait Module extends Module.BaseClass {
   @nowarn("cat=deprecation")
   final def moduleSegments = millModuleSegments
 
-  override def toString = millModuleSegments.render
+  override def toString = moduleSegments.render
 }
 
 object Module {

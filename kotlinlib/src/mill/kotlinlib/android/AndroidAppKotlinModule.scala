@@ -30,7 +30,7 @@ import mill.scalalib.TestModule.Junit5
 trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer =>
 
   override def sources: T[Seq[PathRef]] =
-    super[AndroidAppModule].sources() :+ PathRef(millSourcePath / "src/main/kotlin")
+    super[AndroidAppModule].sources() :+ PathRef(moduleDir / "src/main/kotlin")
 
   override def kotlincPluginIvyDeps = Task {
     val kv = kotlinVersion()
@@ -57,7 +57,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
     override def sources: T[Seq[PathRef]] =
-      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.millSourcePath / "src/test/kotlin"))
+      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.moduleDir / "src/test/kotlin"))
   }
 
   trait AndroidAppKotlinInstrumentedTests extends AndroidAppKotlinModule
@@ -68,7 +68,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppInstrumentedTests].sources() :+ PathRef(
-        outer.millSourcePath / "src/androidTest/kotlin"
+        outer.moduleDir / "src/androidTest/kotlin"
       )
   }
 
@@ -99,8 +99,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def sources: T[Seq[PathRef]] = Task.Sources(
       Seq(
-        PathRef(outer.millSourcePath / "src/screenshotTest/kotlin"),
-        PathRef(outer.millSourcePath / "src/screenshotTest/java")
+        PathRef(outer.moduleDir / "src/screenshotTest/kotlin"),
+        PathRef(outer.moduleDir / "src/screenshotTest/java")
       )
     )
 

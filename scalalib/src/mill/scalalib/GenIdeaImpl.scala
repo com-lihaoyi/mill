@@ -22,7 +22,7 @@ case class GenIdeaImpl(
 ) {
   import GenIdeaImpl._
 
-  val workDir: Path = rootModule.millSourcePath
+  val workDir: Path = rootModule.moduleDir
   val ideaDir: Path = workDir / ".idea"
 
   val ideaConfigVersion = 4
