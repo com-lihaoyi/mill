@@ -28,7 +28,7 @@ import $meta._
  */
 object `package` extends RootModule {
   def contribModules: Seq[ContribModule] =
-    millInternal.modules.collect { case m: ContribModule => m }
+    moduleInternal.modules.collect { case m: ContribModule => m }
 
   trait ContribModule extends build.MillPublishScalaModule {
     def readme = Task.Source("readme.adoc")
@@ -86,7 +86,7 @@ object `package` extends RootModule {
       def playBinary = crossValue
       def millSourcePath: os.Path = super.millSourcePath / playBinary
 
-      def sharedSources = Task.Sources(millSourcePath / os.up / "src-shared")
+      def sharedSources = Task.Sources(moduleDir / os.up / "src-shared")
       def sources = Task {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
