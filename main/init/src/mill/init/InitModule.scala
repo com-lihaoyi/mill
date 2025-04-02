@@ -87,7 +87,7 @@ trait InitModule extends Module {
         }
       } match {
         case Success((ret, msg)) =>
-          Task.log.outputStream.println(msg)
+          Task.streams.out.println(msg)
           ret
         case Failure(exception) =>
           Task.log.error(exception.getMessage)
