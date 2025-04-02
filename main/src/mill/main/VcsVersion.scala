@@ -26,7 +26,10 @@ trait VcsVersion extends Module {
   def calcVcsState(logger: Logger): VcsState = {
     val curHeadRaw =
       try {
-        Option(os.proc("git", "rev-parse", "HEAD").call(cwd = vcsBasePath, stderr = os.Pipe).out.trim())
+        Option(os.proc("git", "rev-parse", "HEAD").call(
+          cwd = vcsBasePath,
+          stderr = os.Pipe
+        ).out.trim())
       } catch {
         case e: SubprocessException =>
           logger.error(s"${vcsBasePath} is not a git repository.")
@@ -81,7 +84,7 @@ trait VcsVersion extends Module {
                   curHead,
                   lastTag match {
                     case Some(tag) => Seq("--not", tag)
-                    case _         => Seq()
+                    case _ => Seq()
                   },
                   "--count"
                 ).call(stderr = os.Pipe)
@@ -92,10 +95,11 @@ trait VcsVersion extends Module {
               .getOrElse(0)
           }
 
-        val dirtyHashCode: Option[String] = Option(os.proc("git", "diff").call(stderr = os.Pipe).out.text().trim()).flatMap {
-          case "" => None
-          case s  => Some(Integer.toHexString(s.hashCode))
-        }
+        val dirtyHashCode: Option[String] =
+          Option(os.proc("git", "diff").call(stderr = os.Pipe).out.text().trim()).flatMap {
+            case "" => None
+            case s => Some(Integer.toHexString(s.hashCode))
+          }
 
         new VcsState(
           currentRevision = curHead.getOrElse(""),
