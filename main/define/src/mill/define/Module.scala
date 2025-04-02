@@ -32,7 +32,7 @@ trait Module extends Module.BaseClass {
   // We keep a private `lazy val` and a public `def` so
   // subclasses can call `super.millModuleDirectChildren`
   private lazy val millModuleDirectChildrenImpl: Seq[Module] =
-    millInternal.reflectNestedObjects[Module]().toSeq
+    moduleInternal.reflectNestedObjects[Module]().toSeq
 
   def millOuterCtx: Ctx
 
@@ -44,6 +44,7 @@ trait Module extends Module.BaseClass {
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(_) => Seq.empty[String] // drop cross segments
   })
+  @nowarn("cat=deprecation")
   final def moduleDir = millSourcePath
 
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
