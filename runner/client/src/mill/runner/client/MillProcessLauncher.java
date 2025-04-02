@@ -226,6 +226,12 @@ public class MillProcessLauncher {
       vmOptions.add("-Djna.nosys=true");
     }
 
+      // Include JAVA_OPTS if present
+      String javaOpts = System.getenv("JAVA_OPTS");
+      if (javaOpts != null && !javaOpts.trim().isEmpty()) {
+          vmOptions.addAll(Arrays.asList(javaOpts.trim().split("\\s+")));
+      }
+
     // sys props
     final Properties sysProps = System.getProperties();
     for (final String k : sysProps.stringPropertyNames()) {
