@@ -119,7 +119,6 @@ object app extends AndroidAppKotlinModule with AndroidHiltSupport {
 
 }
 
-
 /** Usage
 
 > ./mill app.androidDex
