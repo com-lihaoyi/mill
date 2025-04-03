@@ -140,7 +140,12 @@ public class MillProcessLauncher {
       if (Files.exists(millJavaHomeFile)) {
         String[] savedJavaHomeInfo = Files.readString(millJavaHomeFile).split(" ");
         if (savedJavaHomeInfo[0].equals(jvmId)) {
-          javaHome = savedJavaHomeInfo[1];
+          // Make sure we check to see if the saved java home exists before using
+          // it, since it may have been since uninstalled, or the `out/` folder
+          // may have been transferred to a different machine
+          if (Files.exists(Paths.get(savedJavaHomeInfo[1]))){
+            javaHome = savedJavaHomeInfo[1];
+          }
         }
       }
 
