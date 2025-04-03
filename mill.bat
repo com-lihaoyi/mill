@@ -75,7 +75,7 @@ set "FULL_MILL_VERSION=%MILL_VERSION%"
 set "MILL_EXT=.bat"
 set "ARTIFACT_SUFFIX="
 REM Check if MILL_VERSION contains MILL_NATIVE_SUFFIX
-echo %MILL_VERSION% | findstr /C:"%MILL_NATIVE_SUFFIX%" >nul
+echo !MILL_VERSION! | findstr /C:"%MILL_NATIVE_SUFFIX%" >nul
 if %errorlevel% equ 0 (
     set "MILL_VERSION=%MILL_VERSION:-native=%"
     REM -native images compiled with graal do not support windows-arm
@@ -87,36 +87,36 @@ if %errorlevel% equ 0 (
         rem no-op
     )
 ) else (
-    echo %MILL_VERSION% | findstr /C:"%MILL_JVM_SUFFIX%" >nul
+    echo !MILL_VERSION! | findstr /C:"%MILL_JVM_SUFFIX%" >nul
     if %errorlevel% equ 0 (
         set "MILL_VERSION=%MILL_VERSION:-jvm=%"
     ) else (
         set "SKIP_VERSION=false"
         set "PREFIX=%MILL_VERSION:~0,4%"
-        if "%PREFIX%"=="0.1." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.1." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
-        if "%PREFIX%"=="0.2." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.2." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
-        if "%PREFIX%"=="0.3." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.3." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
-        if "%PREFIX%"=="0.4." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.4." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
-        if "%PREFIX%"=="0.5." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.5." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
-        if "%PREFIX%"=="0.6." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.6." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
-        if "%PREFIX%"=="0.7." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.7." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
-        if "%PREFIX%"=="0.8." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.8." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
-        if "%PREFIX%"=="0.9." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.9." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
         set "PREFIX=%MILL_VERSION:~0,5%"
-        if "%PREFIX%"=="0.10." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.10." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
-        if "%PREFIX%"=="0.11." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.11." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
-        if "%PREFIX%"=="0.12." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.12." set "SKIP_VERSION=true"
         echo !SKIP_VERSION!
 
         if "!SKIP_VERSION!"=="false" (
@@ -201,7 +201,7 @@ if not exist "%MILL%" (
         set DOWNLOAD_URL=!GITHUB_RELEASE_CDN!%MILL_REPO_URL%/releases/download/!MILL_VERSION_TAG!/!MILL_VERSION!!DOWNLOAD_SUFFIX!
     )
 
-    echo Downloading mill %MILL_VERSION% from !DOWNLOAD_URL! ... 1>&2
+    echo Downloading mill !MILL_VERSION! from !DOWNLOAD_URL! ... 1>&2
 
     if not exist "%MILL_DOWNLOAD_PATH%" mkdir "%MILL_DOWNLOAD_PATH%"
     rem curl is bundled with recent Windows 10
@@ -216,7 +216,7 @@ if not exist "%MILL%" (
         bitsadmin /transfer millDownloadJob /dynamic /priority foreground "!DOWNLOAD_URL!" "!DOWNLOAD_FILE!"
     )
     if not exist "!DOWNLOAD_FILE!" (
-        echo Could not download mill %MILL_VERSION% 1>&2
+        echo Could not download mill !MILL_VERSION! 1>&2
         exit /b 1
     )
 
