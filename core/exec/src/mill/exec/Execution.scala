@@ -255,7 +255,8 @@ private[mill] case class Execution(
               t,
               (Seq(t) ++ plan.sortedGroups.lookupKey(t))
                 .flatMap{t0 => res.newResults.get(t0)}
-                .filter(_ != ExecResult.Skipped).head
+                .sortBy(!_.isInstanceOf[ExecResult.Failing[_]])
+                .head
             )
 
         }
