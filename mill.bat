@@ -93,30 +93,30 @@ if %errorlevel% equ 0 (
         set "SKIP_VERSION=false"
         set "PREFIX=%MILL_VERSION:~0,4%"
         if "%PREFIX%"=="0.1." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         if "%PREFIX%"=="0.2." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         if "%PREFIX%"=="0.3." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         if "%PREFIX%"=="0.4." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         if "%PREFIX%"=="0.5." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         if "%PREFIX%"=="0.6." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         if "%PREFIX%"=="0.7." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         if "%PREFIX%"=="0.8." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         if "%PREFIX%"=="0.9." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         set "PREFIX=%MILL_VERSION:~0,5%"
         if "%PREFIX%"=="0.10." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         if "%PREFIX%"=="0.11." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
         if "%PREFIX%"=="0.12." set "SKIP_VERSION=true"
-        echo %SKIP_VERSION%
+        echo !SKIP_VERSION!
 
         if "!SKIP_VERSION!"=="false" (
             IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
