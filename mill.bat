@@ -70,6 +70,7 @@ if [!MILL_DOWNLOAD_PATH!]==[] (
 rem without bat file extension, cmd doesn't seem to be able to run it
 
 set "MILL_NATIVE_SUFFIX=-native"
+set "MILL_JVM_SUFFIX=-jvm"
 set "FULL_MILL_VERSION=%MILL_VERSION%"
 set "MILL_EXT=.bat"
 set "ARTIFACT_SUFFIX="
@@ -82,6 +83,32 @@ if %errorlevel% equ 0 (
     IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
         set "ARTIFACT_SUFFIX=-native-windows-amd64"
         set "MILL_EXT=.exe"
+    )
+) else (
+    echo %MILL_VERSION% | findstr /C:"%MILL_JVM_SUFFIX%" >nul
+    if %errorlevel% equ 0 (
+        set "MILL_VERSION=%MILL_VERSION:-jvm=%"
+        if [!VERSION_PREFIX!]==[0.1.] ()
+    ) else (
+        if not "%MILL_VERSION:~0,4%"=="0.1." ^
+        if not "%MILL_VERSION:~0,4%"=="0.2." ^
+        if not "%MILL_VERSION:~0,4%"=="0.3." ^
+        if not "%MILL_VERSION:~0,4%"=="0.4." ^
+        if not "%MILL_VERSION:~0,4%"=="0.5." ^
+        if not "%MILL_VERSION:~0,4%"=="0.6." ^
+        if not "%MILL_VERSION:~0,4%"=="0.7." ^
+        if not "%MILL_VERSION:~0,4%"=="0.8." ^
+        if not "%MILL_VERSION:~0,4%"=="0.9." ^
+        if not "%MILL_VERSION:~0,5%"=="0.10." ^
+        if not "%MILL_VERSION:~0,5%"=="0.11." ^
+        if not "%MILL_VERSION:~0,5%"=="0.12." (
+            IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+                set "ARTIFACT_SUFFIX=-native-windows-amd64"
+                set "MILL_EXT=.exe"
+            )
+        ) else (
+            echo Skipping because version starts with blocked prefix.
+        )
     )
 )
 
