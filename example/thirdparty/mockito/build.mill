@@ -226,7 +226,7 @@ object `package` extends RootModule with MockitoModule {
 //      def testIvyDeps = Seq(libraries.junit4, libraries.osgi)
 //      def testRuntimeIvyDeps = Seq(libraries.equinox)
 //      trait BundleModule extends MockitoModule{
-//        def bundleName: String = millModuleSegments.last.value
+//        def bundleName: String = moduleSegments.last.value
 //        override def moduleDir = `osgi-test`.moduleDir
 //        def sources = Task.Sources(moduleDir / "src" / bundleName / "java")
 //
