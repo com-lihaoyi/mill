@@ -2,7 +2,7 @@ package build.dist
 import mill._, scalalib._, publish._
 import mill.define.ModuleRef
 import mill.util.Jvm
-import de.tobiasroeser.mill.vcs.version.VcsVersion
+//import de.tobiasroeser.mill.vcs.version.VcsVersion
 
 import scala.util.Using
 
@@ -267,6 +267,7 @@ object `package` extends RootModule with InstallModule {
   }
 
   def uploadToGithub(authKey: String) = Task.Command {
+    /*
     val vcsState = VcsVersion.vcsState()
     val label = vcsState.copy(dirtyHash = None).format()
     if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
@@ -283,7 +284,7 @@ object `package` extends RootModule with InstallModule {
         headers = Seq("Authorization" -> ("token " + authKey))
       )
     }
-
+     */
     ()
   }
 
@@ -322,14 +323,14 @@ object `package` extends RootModule with InstallModule {
         out.write(os.read.bytes(assembly().path))
       }
 
-      if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
+      if (!mill.constants.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
 
       PathRef(executable)
     }
 
     def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
 
-    def zincWorker = ModuleRef(JvmWorkerGraalvm)
+    def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
     object JvmWorkerGraalvm extends JvmWorkerModule {
       def jvmId = build.Settings.graalvmJvmId

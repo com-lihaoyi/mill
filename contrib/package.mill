@@ -84,7 +84,7 @@ object `package` extends RootModule {
     object worker extends Cross[WorkerModule](build.Deps.play.keys.toSeq)
     trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
       def playBinary = crossValue
-      def millSourcePath: os.Path = super.millSourcePath / playBinary
+      def moduleDir: os.Path = super.moduleDir / playBinary
 
       def sharedSources = Task.Sources(moduleDir / os.up / "src-shared")
       def sources = Task {
@@ -139,7 +139,7 @@ object `package` extends RootModule {
           build.Deps.scalacScoverage2Reporter,
           build.Deps.scalacScoverage2Domain,
           build.Deps.scalacScoverage2Serializer
-        ) ++ Agg.when(!JvmWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
+        ) ++ Option.when(!JvmWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
       }
       def mandatoryIvyDeps = Agg.empty[Dep]
     }

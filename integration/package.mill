@@ -23,7 +23,7 @@ object `package` extends RootModule {
   // and pass `lib`'s compile output back to `test`.
 
   trait IntegrationTestModule extends Cross.Module[String] {
-    def millSourcePath = super.millSourcePath / crossValue
+    def moduleDir = super.moduleDir / crossValue
 
     def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
 
@@ -33,7 +33,7 @@ object `package` extends RootModule {
     def forkEnv: T[Map[String, String]]
     def testExclusive = false
     trait ModeModule extends build.MillBaseTestsModule {
-      override def test(args: String*) = Task.Command(exclusive = testExclusive) {
+      override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
         testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
       }
 

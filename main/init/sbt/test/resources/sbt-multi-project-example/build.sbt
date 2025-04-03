@@ -6,7 +6,12 @@ val urlString = "https://github.com/com-lihaoyi/mill"
 ThisBuild / homepage := Some(url(urlString))
 ThisBuild / description := "This is an sbt sample project for testing Mill's init command."
 ThisBuild / licenses := Seq(License.Apache2)
-ThisBuild / developers := List(Developer("johnd", "John Doe", "john.doe@example.com", url("https://example.com/johnd")))
+ThisBuild / developers := List(Developer(
+  "johnd",
+  "John Doe",
+  "john.doe@example.com",
+  url("https://example.com/johnd")
+))
 ThisBuild / scmInfo := Some(ScmInfo(url(urlString), s"scm:git:$urlString.git"))
 
 // PROJECTS
@@ -68,7 +73,9 @@ lazy val nested = project
   .in(file("nested/nested"))
   .settings(
     libraryDependencies += ("io.netty" % "netty-transport-native-epoll" % "4.1.118.Final")
-      .artifacts(Artifact("netty-transport-native-epoll").withType("pom").withClassifier(Some("linux-x86_64")))
+      .artifacts(Artifact(
+        "netty-transport-native-epoll"
+      ).withType("pom").withClassifier(Some("linux-x86_64")))
       .exclude("io.netty", "netty-transport-native-epoll")
   )
 
@@ -76,28 +83,28 @@ lazy val nested = project
 
 lazy val dependencies =
   new {
-    val logbackV        = "1.2.3"
-    val logstashV       = "4.11"
-    val scalaLoggingV   = "3.7.2"
-    val slf4jV          = "1.7.25"
+    val logbackV = "1.2.3"
+    val logstashV = "4.11"
+    val scalaLoggingV = "3.7.2"
+    val slf4jV = "1.7.25"
     val typesafeConfigV = "1.3.1"
-    val pureconfigV     = "0.8.0"
-    val monocleV        = "1.4.0"
-    val akkaV           = "2.5.6"
-    val scalatestV      = "3.0.4"
-    val scalacheckV     = "1.13.5"
+    val pureconfigV = "0.8.0"
+    val monocleV = "1.4.0"
+    val akkaV = "2.5.6"
+    val scalatestV = "3.0.4"
+    val scalacheckV = "1.13.5"
 
-    val logback        = "ch.qos.logback"             % "logback-classic"          % logbackV
-    val logstash       = "net.logstash.logback"       % "logstash-logback-encoder" % logstashV
-    val scalaLogging   = "com.typesafe.scala-logging" %% "scala-logging"           % scalaLoggingV
-    val slf4j          = "org.slf4j"                  % "jcl-over-slf4j"           % slf4jV
-    val typesafeConfig = "com.typesafe"               % "config"                   % typesafeConfigV
-    val akka           = "com.typesafe.akka"          %% "akka-stream"             % akkaV
-    val monocleCore    = "com.github.julien-truffaut" %% "monocle-core"            % monocleV
-    val monocleMacro   = "com.github.julien-truffaut" %% "monocle-macro"           % monocleV
-    val pureconfig     = "com.github.pureconfig"      %% "pureconfig"              % pureconfigV
-    val scalatest      = "org.scalatest"              %% "scalatest"               % scalatestV
-    val scalacheck     = "org.scalacheck"             %% "scalacheck"              % scalacheckV
+    val logback = "ch.qos.logback" % "logback-classic" % logbackV
+    val logstash = "net.logstash.logback" % "logstash-logback-encoder" % logstashV
+    val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingV
+    val slf4j = "org.slf4j" % "jcl-over-slf4j" % slf4jV
+    val typesafeConfig = "com.typesafe" % "config" % typesafeConfigV
+    val akka = "com.typesafe.akka" %% "akka-stream" % akkaV
+    val monocleCore = "com.github.julien-truffaut" %% "monocle-core" % monocleV
+    val monocleMacro = "com.github.julien-truffaut" %% "monocle-macro" % monocleV
+    val pureconfig = "com.github.pureconfig" %% "pureconfig" % pureconfigV
+    val scalatest = "org.scalatest" %% "scalatest" % scalatestV
+    val scalacheck = "org.scalacheck" %% "scalacheck" % scalacheckV
   }
 
 lazy val commonDependencies = Seq(
@@ -107,15 +114,15 @@ lazy val commonDependencies = Seq(
   dependencies.slf4j,
   dependencies.typesafeConfig,
   dependencies.akka,
-  dependencies.scalatest  % "test",
+  dependencies.scalatest % "test",
   dependencies.scalacheck % "test"
 )
 
 // SETTINGS
 
 lazy val settings =
-wartremoverSettings ++
-scalafmtSettings
+  wartremoverSettings ++
+    scalafmtSettings
 
 lazy val compilerOptions = Seq(
   "-unchecked",
@@ -132,7 +139,7 @@ lazy val compilerOptions = Seq(
 ThisBuild / scalacOptions ++= compilerOptions
 ThisBuild / resolvers ++= Seq(
   // commented out as this is different on different machines
-  //"Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository",
+  // "Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository",
   Resolver.sonatypeRepo("releases"),
   Resolver.sonatypeRepo("snapshots")
 )
@@ -152,7 +159,7 @@ lazy val assemblySettings = Seq(
   assemblyJarName in assembly := name.value + ".jar",
   assemblyMergeStrategy in assembly := {
     case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-    case "application.conf"            => MergeStrategy.concat
+    case "application.conf" => MergeStrategy.concat
     case x =>
       val oldStrategy = (assemblyMergeStrategy in assembly).value
       oldStrategy(x)
