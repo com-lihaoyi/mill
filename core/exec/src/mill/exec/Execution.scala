@@ -248,12 +248,17 @@ private[mill] case class Execution(
 
     val results0: Vector[(Task[?], ExecResult[(Val, Int)])] = terminals0
       .map { t =>
-        plan.sortedGroups.lookupKey(t).flatMap { t0 =>
-          finishedOptsMap(t) match {
-            case None => Some((t, Aborted))
-            case Some(res) => res.newResults.get(t0).map(r => (t, r))
-          }
-        }.head
+        finishedOptsMap(t) match{
+          case None => (t, ExecResult.Skipped)
+          case Some(res) =>
+            Tuple2(
+              t,
+              (Seq(t) ++ plan.sortedGroups.lookupKey(t))
+                .flatMap{t0 => res.newResults.get(t0)}
+                .filter(_ != ExecResult.Skipped).head
+            )
+
+        }
       }
 
     val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
