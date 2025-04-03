@@ -10,13 +10,13 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import coursier.{Repository, Type}
 import mainargs.{Flag, arg}
 import mill.Agg
-import mill.api.{Ctx, JarManifest, MillException, PathRef, Result, internal}
+import mill.api.{Ctx, MillException, PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
 import mill.scalalib.publish.Artifact
-import mill.util.Jvm
+import mill.util.{JarManifest, Jvm}
 
 import os.{Path, ProcessOutput}
 
