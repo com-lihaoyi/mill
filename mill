@@ -102,11 +102,10 @@ if [ -z "${MILL_VERSION}" ] ; then
 fi
 
 MILL_NATIVE_SUFFIX="-native"
+MILL_JVM_SUFFIX="-jvm"
 FULL_MILL_VERSION=$MILL_VERSION
 ARTIFACT_SUFFIX=""
-case "$MILL_VERSION" in
-    *"$MILL_NATIVE_SUFFIX")
-  MILL_VERSION=${MILL_VERSION%"$MILL_NATIVE_SUFFIX"}
+set_artifact_suffix(){
   if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" = "Linux" ]; then
     if [ "$(uname -m)" = "aarch64" ]; then
       ARTIFACT_SUFFIX="-native-linux-aarch64"
@@ -123,9 +122,39 @@ case "$MILL_VERSION" in
      echo "This native mill launcher supports only Linux and macOS." 1>&2
      exit 1
   fi
+}
+
+case "$MILL_VERSION" in
+    *"$MILL_NATIVE_SUFFIX")
+  MILL_VERSION=${MILL_VERSION%"$MILL_NATIVE_SUFFIX"}
+  set_artifact_suffix
+  ;;
+
+    *"$MILL_JVM_SUFFIX")
+    MILL_VERSION=${MILL_VERSION%"$MILL_JVM_SUFFIX"}
+  ;;
+
+    *)
+  case "$MILL_VERSION" in
+    0.1.*) ;;
+    0.2.*) ;;
+    0.3.*) ;;
+    0.4.*) ;;
+    0.5.*) ;;
+    0.6.*) ;;
+    0.7.*) ;;
+    0.8.*) ;;
+    0.9.*) ;;
+    0.10.*) ;;
+    0.11.*) ;;
+    0.12.*) ;;
+    *)
+      set_artifact_suffix
+  esac
+  ;;
 esac
 
-MILL="${MILL_DOWNLOAD_PATH}/${FULL_MILL_VERSION}"
+MILL="${MILL_DOWNLOAD_PATH}/$MILL_VERSION$ARTIFACT_SUFFIX"
 
 try_to_use_system_mill() {
   if [ "$(uname)" != "Linux" ]; then
