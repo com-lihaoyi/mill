@@ -83,6 +83,8 @@ if %errorlevel% equ 0 (
     IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
         set "ARTIFACT_SUFFIX=-native-windows-amd64"
         set "MILL_EXT=.exe"
+    ) else (
+        rem no-op
     )
 ) else (
     echo %MILL_VERSION% | findstr /C:"%MILL_JVM_SUFFIX%" >nul
@@ -104,6 +106,8 @@ if %errorlevel% equ 0 (
             IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
                 set "ARTIFACT_SUFFIX=-native-windows-amd64"
                 set "MILL_EXT=.exe"
+            ) else (
+                rem no-op
             )
         ) else (
             echo Skipping because version starts with blocked prefix.
