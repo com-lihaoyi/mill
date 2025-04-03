@@ -155,7 +155,6 @@ case "$MILL_VERSION" in
 esac
 
 MILL="${MILL_DOWNLOAD_PATH}/$MILL_VERSION$ARTIFACT_SUFFIX"
-echo $MILL
 
 try_to_use_system_mill() {
   if [ "$(uname)" != "Linux" ]; then
