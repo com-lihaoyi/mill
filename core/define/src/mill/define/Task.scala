@@ -239,6 +239,7 @@ trait NamedTask[+T] extends Task[T] {
     case Segment.Cross(_) => throw new IllegalArgumentException(
         "NamedTask only support a ctx with a Label segment, but found a Cross."
       )
+    case Segment.Super(_, _) => sys.error("Impossible Segment.Super as last segment of NamedTask")
   }
   override def toString = ctx.segments.render
 

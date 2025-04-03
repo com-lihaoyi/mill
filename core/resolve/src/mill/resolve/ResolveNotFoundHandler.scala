@@ -25,6 +25,12 @@ private object ResolveNotFoundHandler {
         case Segment.Cross(keys) =>
           val possibleCrossKeys = possibleNexts.collect { case Segment.Cross(keys) => keys }
           errorMsgCross(keys, possibleCrossKeys, segments, selector, allPossibleNames)
+
+        case Segment.Super(_, _) =>
+          // It's unclear to me how resolution could fail at a Super segment in a way that needs specific handling here.
+          // Falling back to a generic message seems reasonable.
+          unableToResolve((segments ++ Seq(next)).render) +
+            hintListLabel(segments, next, allPossibleNames)
       }
     } else {
       unableToResolve((segments ++ Seq(next)).render) +

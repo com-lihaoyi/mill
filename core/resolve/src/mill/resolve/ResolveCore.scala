@@ -296,6 +296,9 @@ private object ResolveCore {
               .asInstanceOf[Module]
           )
 
+        case (mill.api.Result.Success(_), Segment.Super(_, _)) =>
+          sys.error("Impossible Segment.Super encountered in instantiateModule")
+
         case (mill.api.Result.Failure(err), _) => mill.api.Result.Failure(err)
       }
 
