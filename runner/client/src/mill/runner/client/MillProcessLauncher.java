@@ -295,7 +295,6 @@ public class MillProcessLauncher {
       }
     } else canUse = false;
 
-    if (!canUse) throw new RuntimeException("Error: can't use native stuff");
     canUseNativeTerminal = canUse;
   }
 
