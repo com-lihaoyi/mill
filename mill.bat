@@ -89,6 +89,7 @@ if %errorlevel% equ 0 (
 ) else (
     echo !MILL_VERSION! | findstr /C:"%MILL_JVM_SUFFIX%" >nul
     if %errorlevel% equ 0 (
+        echo "found MILL_JVM_SUFFIX"
         set "MILL_VERSION=%MILL_VERSION:-jvm=%"
     ) else (
         set "SKIP_VERSION=false"
