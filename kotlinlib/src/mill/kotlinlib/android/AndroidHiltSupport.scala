@@ -19,7 +19,8 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
   override def kspSources: T[Seq[PathRef]] = Task { super.sources() }
 
-  override def generatedSources: T[Seq[PathRef]] = super[AndroidAppKotlinModule].generatedSources
+  override def generatedSources: T[Seq[PathRef]] =
+    super[AndroidAppKotlinModule].generatedSources
 
   override def kspClasspath: T[Seq[PathRef]] =
     Seq(androidProcessResources()) ++ super.kspClasspath()
@@ -125,7 +126,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     val compileCp =
       compileClasspath().map(_.path) ++ Seq(androidProcessResources().path, kotlinClasses)
 
-    val worker = zincWorkerRef().worker()
+    val worker = jvmWorker().worker()
 
     Task.log.info(
       s"Compiling ${javaGeneratedSources.size} Java generated sources to ${directory} ..."
@@ -191,7 +192,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
         hiltGeneratedClasses.javaSources.path
       )
 
-    val worker = zincWorkerRef().worker()
+    val worker = jvmWorker().worker()
 
     val classes = Task.dest / "classes"
     os.makeDir.all(classes)
