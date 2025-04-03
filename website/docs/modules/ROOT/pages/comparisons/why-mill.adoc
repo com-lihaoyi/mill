@@ -111,9 +111,45 @@ Rather, what we are seeing is Mill simply having less build-tool overhead than M
 so the performance of the underlying JVM and Java compiler (which is actually pretty fast!) can
 really shine through.
 
+
+=== Not Just Compile Times
+
+Compilation times are only one part of the time taken during development. Mill
+also provides features that help speed up other parts of your development cycle:
+
+1. xref:large/selective-execution.adoc[Selective Test Execution] allows you to skip unrelated tests when
+   validating pull requests, speeding up PR validation considerably
+
+2. xref:javalib/testing.adoc#_test_parallelism[Test Parallelism] automatically distributes tests
+   across multiple threads, utilizing all available cores while maintaining long-lived
+   JVM processes to maximize performance
+
+3. xref:blog::9-mill-faster-assembly-jars.adoc[Incremental Assembly Jar Creation] speeds
+   up creation of assembly jars, greatly speeding up workflows that use them
+   (e.g. Spark Submit)
+
+4. xref:depth/parallelism.adoc#_mill_chrome_profiles[Build Performance Profiles] are
+   automatically generated for every command, giving visibility
+   into where the build tool is spending time so you can understand and optimize it.
+
+image::ROOT:comparisons/NettyCompileProfile.png[]
+
 == Extensibility
 
-Mill allows you to directly write code to configure your build, and even download libraries
+Mill comes with a lot more functionality built in than other tools such as Maven,
+Gradle, or SBT. In general, most common development workflows are built in to Mill:
+autoformatting, autofixing, publishing, packaging, etc. This means you can go very far
+with just Mill's builtin functionality, without first needing to trawl the internet to
+find plugins and evaluate their relevance, quality, and maintenance level:
+
+include::partial$Feature_Support.adoc[]
+
+Apart from the builtin features, Mill also has a rich ecosystem of third party plugins
+for less common use cases:
+
+- xref::extending/thirdparty-plugins.adoc[]
+
+When you do need to extend it, Mill allows you to directly write code to configure your build, and even download libraries
 from Maven Central.
 
 Most build tools need plugins to do anything: if you want to Foo you need a

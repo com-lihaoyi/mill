@@ -10,7 +10,7 @@ object foo extends JavaModule with NativeImageModule {
     ivy"org.slf4j:slf4j-nop:2.0.7"
   )
 
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
   def nativeImageOptions = Seq(
     "--no-fallback",
@@ -19,7 +19,7 @@ object foo extends JavaModule with NativeImageModule {
   )
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:23.0.1"
 }
 

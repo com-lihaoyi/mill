@@ -1,16 +1,17 @@
 package build
 // imports
-import com.github.lolgab.mill.mima.Mima
+//import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-import com.goyeau.mill.scalafix.ScalafixModule
+import coursier.VersionConstraint
+import mill.main.VcsVersion
+//import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 import mill.T
 import mill.define.Cross
 
@@ -37,11 +38,9 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.9"
+    "0.12.10"
   )
-  val mimaBaseVersions: Seq[String] =
-    0.to(13).map("0.11." + _) ++
-      0.to(9).map("0.12." + _)
+  val mimaBaseVersions: Seq[String] = Seq("0.13.0-M0")
 
   val graalvmJvmId = "graalvm-community:23.0.1"
 }
@@ -127,6 +126,7 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
+  val classgraph = ivy"io.github.classgraph:classgraph:4.8.179"
   val coursierVersion = "2.1.25-M4"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierInterface = ivy"io.get-coursier:interface:1.0.29-M1"
@@ -171,13 +171,12 @@ object Deps {
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = {
-    if (ZincWorkerUtil.isScala3(scalaVersion)) ivy"org.scala-lang:scala3-compiler_3:${scalaVersion}"
+    if (JvmWorkerUtil.isScala3(scalaVersion)) ivy"org.scala-lang:scala3-compiler_3:${scalaVersion}"
     else ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   }
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.5".withDottyCompat(scalaVersion)
-  def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) =
-    if (ZincWorkerUtil.isScala3(scalaVersion))
+    if (JvmWorkerUtil.isScala3(scalaVersion))
       ivy"org.scala-lang:scala-reflect:${Deps.scala2Version}"
     else ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scoverage2Version = "2.2.1"
@@ -235,6 +234,8 @@ object Deps {
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
     val freemarker = ivy"org.freemarker:freemarker:2.3.34"
     val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.13.3"
+    val kotestJvm =
+      ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:5.9.1"
     val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
     val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
@@ -253,6 +254,7 @@ object Deps {
       errorProneCore,
       freemarker,
       jupiterInterface,
+      kotestJvm,
       kotlinxHtmlJvm,
       koverCli,
       koverJvmAgent,
@@ -322,8 +324,6 @@ def millBinPlatform: T[String] = Task {
     tag.split("[.]", pos + 1).take(pos).mkString(".")
   }
 }
-
-def baseDir = build.millSourcePath
 
 def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
 
@@ -426,8 +426,10 @@ trait MillJavaModule extends JavaModule {
         f.dep.module.organization.value == dep.module.organization.value &&
           f.dep.module.name.value == dep.module.name.value
       ).map { forced =>
-        val newDep = dep.withVersion(forced.version)
-        Task.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
+        val newDep = dep.withVersionConstraint(VersionConstraint(forced.version))
+        Task.log.debug(
+          s"Forcing version of ${dep.module} from ${dep.versionConstraint.asString} to ${newDep.versionConstraint.asString}"
+        )
         newDep
       }.getOrElse(dep)
     }
@@ -473,13 +475,13 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixModule*/ { outer =>
   def scalaVersion = Deps.scalaVersion
   def scalapVersion: T[String] = Deps.scala2Version
   def scalafixScalaBinaryVersion = T {
     def sv = scalaVersion()
-    if (ZincWorkerUtil.isScala3(sv)) "2.13"
-    else ZincWorkerUtil.scalaBinaryVersion(sv)
+    if (JvmWorkerUtil.isScala3(sv)) "2.13"
+    else JvmWorkerUtil.scalaBinaryVersion(sv)
   }
 
   def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
@@ -493,7 +495,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-deprecation",
       "-feature"
     ) ++ (
-      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq(
+      if (JvmWorkerUtil.isScala3(scalaVersion())) Seq(
         // "-Werror",
         "-Wunused:all",
         // "-Xfatal-warnings",
@@ -527,25 +529,25 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   def scalacPluginIvyDeps = T {
     val sv = scalaVersion()
-    val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
+    val binaryVersion = JvmWorkerUtil.scalaBinaryVersion(sv)
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.scalacPluginIvyDeps() ++
-      Agg.when(binaryVersion != "3")(Deps.acyclic) ++
-      Agg.when(hasModuleDefs)(Deps.millModuledefsPlugin)
+      Option.when(binaryVersion != "3")(Deps.acyclic) ++
+      Option.when(hasModuleDefs)(Deps.millModuledefsPlugin)
   }
 
   def mandatoryIvyDeps = T {
     val sv = scalaVersion()
-    val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
+    val binaryVersion = JvmWorkerUtil.scalaBinaryVersion(sv)
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.mandatoryIvyDeps() ++
-      Agg.when(hasModuleDefs)(Deps.millModuledefs)
+      Option.when(hasModuleDefs)(Deps.millModuledefs)
   }
 
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
-      with ScalafixModule {
+      /*with ScalafixModule*/ {
     def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
@@ -574,7 +576,8 @@ trait MillBaseTestsModule extends TestModule {
       s"-DTEST_ZINC_VERSION=${Deps.zinc.version}",
       s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.version}",
       s"-DTEST_SBT_VERSION=${Deps.sbt.version}",
-      s"-DTEST_PROGUARD_VERSION=${Deps.RuntimeDeps.proguard.version}"
+      s"-DTEST_PROGUARD_VERSION=${Deps.RuntimeDeps.proguard.version}",
+      s"-DTEST_KOTEST_VERSION=${Deps.RuntimeDeps.kotestJvm.version}"
     )
   }
 
@@ -586,106 +589,11 @@ trait MillBaseTestsModule extends TestModule {
 trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 
 /** Publishable module which contains strictly handled API. */
-trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
+  /*
   import com.github.lolgab.mill.mima._
-  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
-    // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-    // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
-    ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
-    ProblemFilter.exclude[Problem]("mill.eval.ChromeProfileLogger*"),
-    ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
-    ProblemFilter.exclude[Problem]("mill.eval.EvaluatorCore*"),
-    ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
-    ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
-    ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*"),
-    // (4x) See https://github.com/com-lihaoyi/mill/pull/2739
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$scalaLibraryIvyDeps"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.ScalaModule.mill$scalalib$ScalaModule$$super$zincAuxiliaryClassFileExtensions"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$zincAuxiliaryClassFileExtensions"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$zincAuxiliaryClassFileExtensions"
-    ),
-    // (6x) See https://github.com/com-lihaoyi/mill/pull/3064
-    // Moved targets up in trait hierarchy, but also call them via super, which I think is safe
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$zincWorker"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runClasspath"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runUseArgsFile"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkArgs"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkEnv"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkWorkingDir"
-    ),
-    // (8x)
-    // Moved targets up in trait hierarchy, but also call them via super, which I think is safe
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$localRunClasspath"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runLocal"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$run"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$doRunBackground"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runBackgroundLogToConsole"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMainBackground"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMainLocal"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMain"
-    ),
-    // Terminal is sealed, not sure why MIMA still complains
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.eval.Terminal.task"),
+//  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq()
 
-    // Not sure why mima is picking up this stuff which is private[mill]
-    ProblemFilter.exclude[Problem]("mill.resolve.*.resolve0"),
-    ProblemFilter.exclude[Problem]("mill.resolve.*.resolveRootModule"),
-
-    // These methods are private so it doesn't matter
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.resolve.Resolve.handleResolved"),
-    ProblemFilter.exclude[Problem]("mill.resolve.*.resolveNonEmptyAndHandle*"),
-    ProblemFilter.exclude[Problem]("mill.resolve.ResolveCore*"),
-    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
-      "mill.main.MainModule.mill$define$BaseModule0$_setter_$watchedValues_="
-    ),
-    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
-      "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
-    ),
-
-    // https://github.com/com-lihaoyi/mill/pull/3503
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"
-    ),
-    // Not sure why Mima is complaining when these are internal and private
-    ProblemFilter.exclude[Problem]("*.bspJvmBuildTarget"),
-    ProblemFilter.exclude[Problem]("mill.scalalib.RunModule#RunnerImpl.*"),
-    ProblemFilter.exclude[Problem]("mill.util.PromptLogger#*"),
-    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*"),
-    ProblemFilter.exclude[Problem]("mill.main.SelectiveExecution*")
-  )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
   def mimaPreviousArtifacts: T[Agg[Dep]] = Task {
@@ -716,7 +624,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   def skipPreviousVersions: T[Seq[String]] = T {
     T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
     mimaPreviousVersions() // T(Seq.empty[String])
-  }
+  }*/
 }
 
 trait MillPublishCrossScalaModule extends MillPublishJavaModule with CrossScalaModule
@@ -732,7 +640,7 @@ trait BridgeModule extends MillPublishCrossScalaModule {
     ivy"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
     ivy"org.scala-sbt:util-interface:${Deps.zinc.version}"
   ) ++ Agg(
-    if (ZincWorkerUtil.isScala3(crossScalaVersion))
+    if (JvmWorkerUtil.isScala3(crossScalaVersion))
       ivy"org.scala-lang::scala3-compiler:${crossScalaVersion}"
     else ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
@@ -743,16 +651,16 @@ trait BridgeModule extends MillPublishCrossScalaModule {
   }
 
   def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
-    (if (ZincWorkerUtil.isScala3(crossScalaVersion))
+    (if (JvmWorkerUtil.isScala3(crossScalaVersion))
        ivy"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
      else ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}").exclude("*" -> "*")
   )
 
   def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
-    resolveDeps(
-      Task.Anon { compilerBridgeIvyDeps().map(bindDependency()) },
+    defaultResolver().classpath(
+      compilerBridgeIvyDeps().map(bindDependency()),
       sources = true
-    )()
+    )
   }
 
   def generatedSources = Task {
@@ -767,7 +675,7 @@ trait BridgeModule extends MillPublishCrossScalaModule {
 
 def formatDep(dep: Dep) = {
   val d = Lib.depToDependency(dep, Deps.scalaVersion)
-  s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
+  s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
 }
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))

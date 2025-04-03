@@ -8,7 +8,7 @@ object SubfolderModule {
   }
 }
 
-abstract class SubfolderModule()(implicit
+abstract class SubfolderModule(millDiscover: Discover)(implicit
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File,
     subFolderInfo: SubfolderModule.Info
@@ -22,6 +22,5 @@ abstract class SubfolderModule()(implicit
         fileName = millFile0
       )
     ) with Module {
-  def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")
   override def moduleCtx = super.moduleCtx.withDiscover(millDiscover)
 }

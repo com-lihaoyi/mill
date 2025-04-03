@@ -66,7 +66,10 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def mainScript: T[PathRef] = Task.Source { "src/main.py" }
 
   override def pythonToolDeps: T[Seq[String]] = Task {
-    super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1")
+    super.pythonToolDeps() ++ Seq(
+      "mypy==1.13.0",
+      "pex==2.24.1"
+    )
   }
 
   /**
@@ -160,7 +163,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def run(args: mill.define.Args) = Task.Command {
     runner().run(
-      (
+      args = (
         mainScript().path,
         args.value
       )
@@ -179,7 +182,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     os.checker.withValue(os.Checker.Nop) {
       Jvm.spawnProcess(
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
-        classPath = mill.scalalib.ZincWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+        classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
         env = runnerEnvTask(),
         mainArgs = Seq(
@@ -198,7 +201,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         // and shown to any connected Mill client even if the current command has completed
         stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
         stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
-        javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path)
+        javaHome = mill.scalalib.JvmWorkerModule.javaHome().map(_.path)
       )
     }
     ()

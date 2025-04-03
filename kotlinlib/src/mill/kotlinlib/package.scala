@@ -21,6 +21,6 @@ package object kotlinlib {
 
   type NativeImageModule = mill.scalalib.NativeImageModule
 
-  type ZincWorkerModule = mill.scalalib.ZincWorkerModule
-  val ZincWorkerModule = mill.scalalib.ZincWorkerModule
+  type JvmWorkerModule = mill.scalalib.JvmWorkerModule
+  val JvmWorkerModule = mill.scalalib.JvmWorkerModule
 }

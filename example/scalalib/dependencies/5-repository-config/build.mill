@@ -48,19 +48,19 @@ object foo extends ScalaModule {
 // You can also set the environment variable `COURSIER_MIRRORS` or the jvm property `coursier.mirrors` to specify config file location.
 
 // To add custom resolvers to the initial bootstrap of the build, you can create a
-// custom `ZincWorkerModule` (named after the https://github.com/sbt/zinc[Zinc Incremental compiler]
-// used to compile the `build.mill` files) and override the `zincWorker` method in your
+// custom `JvmWorkerModule` (named after the https://github.com/sbt/zinc[Zinc Incremental compiler]
+// used to compile the `build.mill` files) and override the `jvmWorker` method in your
 // `ScalaModule` by pointing it to that custom object:
 
 //// SNIPPET:BUILD2
 
-object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
+object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
-  def zincWorker = ModuleRef(CustomZincWorkerModule)
+  def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
