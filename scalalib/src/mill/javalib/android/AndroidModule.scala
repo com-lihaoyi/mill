@@ -114,8 +114,8 @@ trait AndroidModule extends JavaModule {
     }().flatten
   }
 
-  override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-    super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
+  override def repositories: Task[Seq[Repository]] = Task.Anon {
+    super.repositories() :+ AndroidSdkModule.mavenGoogle
   }
 
   private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {

@@ -15,18 +15,18 @@ object foo extends JavaModule {
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Task.Anon { super.repositories() ++ sonatypeReleases }
 }
 
 //// SNIPPET:BUILD2
 
 object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Task.Anon { super.repositories() ++ sonatypeReleases }
 }
 
 object bar extends JavaModule {
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Task.Anon { super.repositories() ++ sonatypeReleases }
 }

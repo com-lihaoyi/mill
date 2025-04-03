@@ -15,7 +15,7 @@ import scala.concurrent.duration.Duration
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
  *
  * It's mainly used in [[JavaModule]], but can also be used stand-alone,
- * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].
+ * in which case you must provide repositories by overriding [[CoursierModule.repositories]].
  */
 trait CoursierModule extends mill.Module {
 
@@ -56,7 +56,7 @@ trait CoursierModule extends mill.Module {
    */
   def defaultResolver: Task[CoursierModule.Resolver] = Task.Anon {
     new CoursierModule.Resolver(
-      repositories = repositoriesTask(),
+      repositories = repositories(),
       bind = bindDependency(),
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
@@ -84,7 +84,7 @@ trait CoursierModule extends mill.Module {
    *
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
-  def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+  def repositories: Task[Seq[Repository]] = Task.Anon {
     val resolve = Resolve()
     val repos = Await.result(
       resolve.finalRepositories.future()(resolve.cache.ec),
@@ -96,7 +96,7 @@ trait CoursierModule extends mill.Module {
   /**
    * The repositories used to resolve dependencies
    *
-   * Unlike [[repositoriesTask]], this includes the Mill internal repositories,
+   * Unlike [[repositories]], this includes the Mill internal repositories,
    * which allow to resolve Mill internal modules (usually brought in via
    * `JavaModule#coursierDependency`).
    *
@@ -106,7 +106,7 @@ trait CoursierModule extends mill.Module {
    * which would introduce cycles between Mill tasks.
    */
   def allRepositories: Task[Seq[Repository]] = Task.Anon {
-    internalRepositories() ++ repositoriesTask()
+    internalRepositories() ++ repositories()
   }
 
   /**
