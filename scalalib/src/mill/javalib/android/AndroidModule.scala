@@ -413,7 +413,7 @@ trait AndroidModule extends JavaModule {
 
     val rJar = Task.dest / "R.jar"
 
-    val classesDest = zincWorker()
+    val classesDest = jvmWorker()
       .worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
