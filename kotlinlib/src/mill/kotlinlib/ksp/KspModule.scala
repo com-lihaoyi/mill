@@ -109,8 +109,8 @@ trait KspModule extends KotlinModule { outer =>
    */
   def kspKotlinc: T[Seq[String]] = Seq(
     "-Xallow-unstable-dependencies",
-    "-no-jdk",
     "-no-reflect",
+    "-no-stdlib",
     "-language-version",
     "1.9"
   )
@@ -126,7 +126,7 @@ trait KspModule extends KotlinModule { outer =>
    * for the main compile task.
    */
   def generateSourcesWithKSP: Target[GeneratedKSPSources] = Task {
-    val sourceFiles = kspSources().map(_.path).flatMap(os.walk(_))
+    val sourceFiles = kspSources().map(_.path)
 
     val compileCp = compileClasspath().map(_.path).filter(os.exists)
 
