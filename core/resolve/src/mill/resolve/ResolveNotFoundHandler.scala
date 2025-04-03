@@ -31,6 +31,10 @@ private object ResolveNotFoundHandler {
           // Falling back to a generic message seems reasonable.
           unableToResolve((segments ++ Seq(next)).render) +
             hintListLabel(segments, next, allPossibleNames)
+
+        // SuperRef should have been resolved earlier; reaching here is likely an internal error.
+        case Segment.SuperRef(_) =>
+          unableToResolve((segments ++ Seq(next)).render) + " Internal error: Unexpected SuperRef."
       }
     } else {
       unableToResolve((segments ++ Seq(next)).render) +

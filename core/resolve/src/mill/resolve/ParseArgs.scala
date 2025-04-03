@@ -113,8 +113,17 @@ private[mill] object ParseArgs {
     def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross(_))
     def defaultCrossSegment = P("[]").map(_ => Segment.Cross(Seq()))
 
+    def superSegment = P("." ~~ (("super" | ".super") ~~ ("." ~~ label).?).!).map { s =>
+      val parts = s.split('.').filter(_.nonEmpty)
+      val target = if (parts.length > 1) Some(parts(1)) else None
+      Segment.SuperRef(target)
+    }
+
     def simpleQuery = P(
-      (segment | crossSegment | defaultCrossSegment) ~ ("." ~ segment | crossSegment | defaultCrossSegment).rep
+      // Initial segment can be label or cross
+      (segment | crossSegment | defaultCrossSegment) ~
+        // Subsequent segments can be label, cross, or super
+        (superSegment | ("." ~ segment) | crossSegment | defaultCrossSegment).rep
     ).map {
       case (h, rest) => Segments(h +: rest)
     }

@@ -38,11 +38,13 @@ case class Segments private (value: Seq[Segment]) {
           case c: Segment.Cross => renderCross(c)
           case Segment.Super(original, targetOpt) =>
             original.value + ".super" + targetOpt.fold("")("." + _)
+          case Segment.SuperRef(_) => sys.error("Unexpected SuperRef as head segment in render")
         val stringSegments = rest.map {
           case Segment.Label(s) => "." + s
           case c: Segment.Cross => renderCross(c)
           case Segment.Super(original, targetOpt) =>
             ".super" + targetOpt.fold("")("." + _)
+          case Segment.SuperRef(_) => sys.error("Unexpected SuperRef in render")
         }
         headSegment + stringSegments.mkString
     }

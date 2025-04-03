@@ -141,18 +141,13 @@ private object ResolveCore {
         }
 
         (head, current) match {
-          case (Segment.Label("super") | Segment.Label(".super"), nt: Resolved.NamedTask) =>
-            // Extract optional super target value from the next segment
-            val superTargetValue = tail.headOption.collect { case Segment.Label(value) => value }
-            // Adjust tail consumption based on whether a target was found
-            val remainingTail = if (superTargetValue.isDefined) tail.tail else tail
-
-            val newSegments = Segments.superTask(nt.segments, superTargetValue)
+          case (s: Segment.SuperRef, nt: Resolved.NamedTask) =>
+            val newSegments = Segments.superTask(nt.segments, s.target)
             resolve(
               rootModule,
-              remainingTail,
+              tail,
               Resolved.NamedTask(newSegments),
-              querySoFar ++ Seq(head) ++ superTargetValue.map(Segment.Label(_)).toSeq,
+              querySoFar ++ Seq(head),
               seenModules,
               cache
             )
@@ -298,6 +293,9 @@ private object ResolveCore {
 
         case (mill.api.Result.Success(_), Segment.Super(_, _)) =>
           sys.error("Impossible Segment.Super encountered in instantiateModule")
+
+        case (mill.api.Result.Success(_), Segment.SuperRef(_)) =>
+          sys.error("Impossible Segment.SuperRef encountered in instantiateModule")
 
         case (mill.api.Result.Failure(err), _) => mill.api.Result.Failure(err)
       }
