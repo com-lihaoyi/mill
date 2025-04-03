@@ -34,6 +34,9 @@ jobs:
 
       - run: ./mill -i -k ${{ inputs.compileargs }}
 
+      - run: cat out/mill-java-home
+        shell: bash
+
       - uses: actions/upload-artifact@v4.6.2
         with:
           path: .
