@@ -105,7 +105,7 @@ MILL_NATIVE_SUFFIX="-native"
 MILL_JVM_SUFFIX="-jvm"
 FULL_MILL_VERSION=$MILL_VERSION
 ARTIFACT_SUFFIX=""
-function set_artifact_suffix(){
+set_artifact_suffix(){
   if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" = "Linux" ]; then
     if [ "$(uname -m)" = "aarch64" ]; then
       ARTIFACT_SUFFIX="-native-linux-aarch64"
