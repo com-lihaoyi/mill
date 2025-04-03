@@ -11,6 +11,7 @@ object KotlinJsKotestModuleTests extends TestSuite {
 
   private val testResourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
   private val testKotlinVersion = "1.9.25"
+  val testKotestVersion = sys.props.getOrElse("TEST_KOTEST_VERSION", ???)
 
   object module extends TestBaseModule {
 
@@ -24,6 +25,7 @@ object KotlinJsKotestModuleTests extends TestSuite {
       override def moduleDeps = Seq(module.bar)
 
       object test extends KotlinJsModule with KotestTests {
+        override def kotestVersion = Task.Input(testKotestVersion)
         override def allSourceFiles = super.allSourceFiles()
           .filter(!_.path.toString().endsWith("HelloKotlinTestPackageTests.kt"))
       }

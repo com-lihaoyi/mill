@@ -1,6 +1,6 @@
 package mill.scalajslib
 
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import utest._
 
 object ScalatestTests extends TestSuite {
@@ -11,14 +11,14 @@ object ScalatestTests extends TestSuite {
     test("scalatest") {
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached = false),
-        skipScala = ZincWorkerUtil.isScala3
+        skipScala = JvmWorkerUtil.isScala3
       )
     }
 
     test("scalatestCached") {
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached = true),
-        skipScala = ZincWorkerUtil.isScala3
+        skipScala = JvmWorkerUtil.isScala3
       )
     }
 

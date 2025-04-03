@@ -32,9 +32,9 @@ jobs:
           java-version: ${{ inputs.java-version }}
           shell: ${{ inputs.shell }}
 
-      - run: ./mill -i -k ${{ inputs.compileargs }}
+      #- run: ./mill -i -k ${{ inputs.compileargs }}
 
-      - uses: actions/upload-artifact@v4.6.1
+      - uses: actions/upload-artifact@v4.6.2
         with:
           path: .
           name: ${{ inputs.os }}-artifact

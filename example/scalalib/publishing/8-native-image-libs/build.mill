@@ -13,10 +13,10 @@ object foo extends ScalaModule with NativeImageModule {
     ivy"com.lihaoyi::mainargs:0.6.2"
   )
 
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:23.0.1"
 }
 

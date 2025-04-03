@@ -181,7 +181,7 @@ object HelloWorldTests extends TestSuite {
         // Make sure we *do not* end up compiling the compiler bridge, since
         // it's using a pre-compiled bridge value
         assert(!os.exists(
-          eval.outPath / "mill/scalalib/ZincWorkerModule/worker.dest" / s"zinc-${zincVersion}"
+          eval.outPath / "mill/scalalib/JvmWorkerModule/worker.dest" / s"zinc-${zincVersion}"
         ))
       }
 
@@ -212,7 +212,7 @@ object HelloWorldTests extends TestSuite {
         // Make sure we *do* end up compiling the compiler bridge, since it's
         // *not* using a pre-compiled bridge value
         assert(os.exists(
-          eval.outPath / "mill/scalalib/ZincWorkerModule/worker.dest" / s"zinc-${zincVersion}"
+          eval.outPath / "mill/scalalib/JvmWorkerModule/worker.dest" / s"zinc-${zincVersion}"
         ))
       }
 

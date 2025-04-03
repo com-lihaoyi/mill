@@ -547,7 +547,7 @@ object Jvm {
   /**
    * Resolve dependencies using Coursier.
    *
-   * We do not bother breaking this out into the separate ZincWorkerApi classpath,
+   * We do not bother breaking this out into the separate JvmWorkerApi classpath,
    * because Coursier is already bundled with mill/Ammonite to support the
    * `import $ivy` syntax.
    */

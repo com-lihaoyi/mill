@@ -21,10 +21,10 @@ object BuildGenUtil {
 
   def renderIrTrait(value: IrTrait): String = {
     import value.*
-    val zincWorker = jvmId.fold("") { jvmId =>
-      val name = s"${baseModule}ZincWorker"
-      val setting = renderZincWorker(name)
-      val typedef = renderZincWorker(name, jvmId)
+    val jvmWorker = jvmId.fold("") { jvmId =>
+      val name = s"${baseModule}JvmWorker"
+      val setting = renderJvmWorker(name)
+      val typedef = renderJvmWorker(name, jvmId)
 
       s"""$setting
          |
@@ -47,7 +47,7 @@ object BuildGenUtil {
        |
        |${renderRepositories(repositories)}
        |
-       |$zincWorker
+       |$jvmWorker
        |}""".stripMargin
 
   }
@@ -373,8 +373,8 @@ object BuildGenUtil {
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
 
-  def renderZincWorker(moduleName: String, jvmId: String): String =
-    s"""object $moduleName extends ZincWorkerModule {
+  def renderJvmWorker(moduleName: String, jvmId: String): String =
+    s"""object $moduleName extends JvmWorkerModule {
        |  def jvmId = "$jvmId"
        |}""".stripMargin
 
@@ -533,8 +533,8 @@ object BuildGenUtil {
     optional("def publishProperties = super.publishProperties() ++ Map", tuples)
   }
 
-  def renderZincWorker(moduleName: String): String =
-    s"def zincWorker = mill.define.ModuleRef($moduleName)"
+  def renderJvmWorker(moduleName: String): String =
+    s"def jvmWorker = mill.define.ModuleRef($moduleName)"
 
   val testModulesByGroup: Map[String, String] = Map(
     "junit" -> "TestModule.Junit4",

@@ -9,7 +9,7 @@ object LauncherTests extends TestSuite {
 
   val customJavaVersion = "19.0.2"
   object HelloJava extends TestBaseModule with JavaModule {
-    object ZincWorkerJava extends ZincWorkerModule {
+    object JvmWorkerJava extends JvmWorkerModule {
       def jvmId = s"temurin:$customJavaVersion"
     }
 
@@ -44,7 +44,7 @@ object LauncherTests extends TestSuite {
         .out.text()
       assert(text2.contains("test.property 123"))
       assert(!text2.contains(customJavaVersion))
-      val Right(javaHome) = eval.apply(HelloJava.ZincWorkerJava.javaHome): @unchecked
+      val Right(javaHome) = eval.apply(HelloJava.JvmWorkerJava.javaHome): @unchecked
 
       val text3 = os
         .call(executable, env = Map("JAVA_HOME" -> javaHome.value.get.path.toString))

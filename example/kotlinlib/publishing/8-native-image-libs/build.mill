@@ -17,10 +17,10 @@ object foo extends KotlinModule with NativeImageModule {
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:23.0.2"
 }
 

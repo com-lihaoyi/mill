@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.api.{PathRef, Result, experimental}
 import mill.define.ModuleRef
 import mill.main.BuildInfo
-import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
+import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.util.Version
 import mill.{T, Task}
@@ -12,7 +12,7 @@ import scala.util.Properties
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule {
-  def zincWorker: ModuleRef[ZincWorkerModule]
+  def jvmWorker: ModuleRef[JvmWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]
   def zincIncrementalCompilation: T[Boolean]
@@ -46,7 +46,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   protected def semanticDbPluginIvyDeps: T[Seq[Dep]] = Task {
     val sv = semanticDbScalaVersion()
     val semDbVersion = semanticDbVersion()
-    if (!ZincWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
+    if (!JvmWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
       val msg =
         """|
            |With Scala 2 you must provide a semanticDbVersion
@@ -54,7 +54,7 @@ trait SemanticDbJavaModule extends CoursierModule {
            |def semanticDbVersion = ???
            |""".stripMargin
       Result.Failure(msg)
-    } else if (ZincWorkerUtil.isScala3(sv)) {
+    } else if (JvmWorkerUtil.isScala3(sv)) {
       Result.Success(Seq.empty[Dep])
     } else {
       Result.Success(Seq(
@@ -109,7 +109,7 @@ trait SemanticDbJavaModule extends CoursierModule {
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    zincWorker().worker()
+    jvmWorker().worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),

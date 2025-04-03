@@ -5,7 +5,7 @@ import mill.scalalib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 
 /**
  * This package contains the helpers necessary to define the `build.*` builtin helpers,
@@ -24,10 +24,13 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     build.Deps.logback,
     build.Deps.jgraphtCore,
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1"
+      // We only need the in-memory library for some stuff, and don't
+      // need the heavyweight v8 binary that comes bundled with it
+      .exclude("guru.nidi.com.eclipsesource.j2v8" -> "j2v8_macosx_x86_64")
   )
 
   def compileIvyDeps = Task {
-    if (ZincWorkerUtil.isScala3(scalaVersion())) Agg.empty
+    if (JvmWorkerUtil.isScala3(scalaVersion())) Agg.empty
     else Agg(build.Deps.scalaReflect(scalaVersion()))
   }
 
@@ -69,22 +72,17 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           Task.Anon {
             val selfDep = mod.publishSelfDependency()
             (
-              s"${mod.coursierDependency.module.repr}:${mod.coursierDependency.version}",
+              s"${mod.coursierDependency.module.repr}:${mod.coursierDependency.versionConstraint.asString}",
               s"${selfDep.group}:${selfDep.id}:${selfDep.version}"
             )
           }
         }().toMap
 
-        val result = Lib.resolveDependenciesMetadataSafe(
-          repositories = dist.allRepositories(),
-          Seq(BoundDep(dist.coursierDependency, force = false)),
-          Some(dist.mapDependencies()),
-          dist.resolutionCustomizer(),
-          Some(Task.ctx()),
-          dist.coursierCacheCustomizer()
+        val result = dist.millResolver().resolution(
+          Seq(BoundDep(dist.coursierDependency, force = false))
         )
-        result.getOrThrow.orderedDependencies
-          .map(dep => s"${dep.module.repr}:${dep.version}")
+        result.orderedDependencies
+          .map(dep => s"${dep.module.repr}:${dep.versionConstraint.asString}")
           .distinct
           .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
           .mkString(",")

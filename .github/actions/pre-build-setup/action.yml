@@ -52,9 +52,9 @@ runs:
     - run: cat .mill-jvm-version
       shell: bash
 
-    - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
-      if: ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')) || github.repository != 'com-lihaoyi/mill' }}
-      shell: ${{ inputs.shell }}
+#    - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
+#      if: ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')) || github.repository != 'com-lihaoyi/mill' }}
+#      shell: ${{ inputs.shell }}
 
     - uses: actions/upload-artifact@v4.6.0
       with:

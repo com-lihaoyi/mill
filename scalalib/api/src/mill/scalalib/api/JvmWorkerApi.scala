@@ -2,10 +2,10 @@ package mill.scalalib.api
 
 import mill.api.{CompileProblemReporter, PathRef}
 
-object ZincWorkerApi {
+object JvmWorkerApi {
   type Ctx = mill.api.Ctx.Dest & mill.api.Ctx.Log
 }
-trait ZincWorkerApi {
+trait JvmWorkerApi {
 
   /** Compile a Java-only project */
   def compileJava(
@@ -16,7 +16,7 @@ trait ZincWorkerApi {
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  )(implicit ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project */
   def compileMixed(
@@ -33,12 +33,7 @@ trait ZincWorkerApi {
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String]
-  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
-
-  /**
-   * Find main classes by inspecting the Zinc compilation analysis file.
-   */
-  def discoverMainClasses(compilationResult: CompilationResult): Seq[String]
+  )(implicit ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   def docJar(
       scalaVersion: String,
@@ -46,10 +41,6 @@ trait ZincWorkerApi {
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
       args: Seq[String]
-  )(implicit ctx: ZincWorkerApi.Ctx): Boolean
+  )(implicit ctx: JvmWorkerApi.Ctx): Boolean
 
-  /**
-   * Discover main classes by inspecting the classpath.
-   */
-  def discoverMainClasses(classpath: Seq[os.Path]): Seq[String]
 }
