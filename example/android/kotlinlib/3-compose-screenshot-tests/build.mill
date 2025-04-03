@@ -79,8 +79,8 @@ object app extends AndroidAppKotlinModule {
 
 */
 
- This command generates previews using the Compose Preview features. Then, tests can be run
- using the generated previews as a base
+// This command generates previews using the Compose Preview features. Then, tests can be run
+// using the generated previews as a base
 
 /** Usage
 
