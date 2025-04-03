@@ -21,7 +21,7 @@ import scala.util.control.NonFatal
 
 object VcsVersion extends ExternalModule with VcsVersion {
   case class Vcs(val name: String)
-  def git = Vcs("git")
+  def git: Vcs = Vcs("git")
 
   implicit val jsonify: upickle.default.ReadWriter[Vcs] = upickle.default.macroRW
 
