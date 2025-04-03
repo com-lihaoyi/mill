@@ -278,29 +278,41 @@ object ResolveTests extends TestSuite {
         val check = new Checker(singleOverrideModule)
 
         // Super task should resolve to the base implementation
-        test("superTask") - check(
-          "baseTask.super",
-          Result.Success(Set(_.baseTask)),
-          Set("baseTask.super")
-        )
+        test("superTask") - {
+          val baseSegments = Segments.labels("baseTask")
+          val superSegments = Segments.superTask(baseSegments)
+          check(
+            superSegments.render,
+            Result.Success(Set(_.baseTask)),
+            Set(superSegments.render)
+          )
+        }
       }
 
       test("multiOverride") {
         val check = new Checker(multiOverrideModule)
 
         // Direct super task should resolve to the mid-level implementation
-        test("directSuperTask") - check(
-          "multiOverride.super",
-          Result.Success(Set(_.multiOverride)),
-          Set("multiOverride.super")
-        )
+        test("directSuperTask") - {
+          val baseSegments = Segments.labels("multiOverride")
+          val superSegments = Segments.superTask(baseSegments)
+          check(
+            superSegments.render,
+            Result.Success(Set(_.multiOverride)),
+            Set(superSegments.render)
+          )
+        }
 
         // Qualified super task should resolve to the base implementation
-        test("qualifiedSuperTask") - check(
-          "multiOverride.super.BaseModule",
-          Result.Success(Set(_.multiOverride)),
-          Set("multiOverride.super.BaseModule")
-        )
+        test("qualifiedSuperTask") - {
+          val baseSegments = Segments.labels("multiOverride")
+          val superSegments = Segments.superTask(baseSegments, Some("BaseModule"))
+          check(
+            superSegments.render,
+            Result.Success(Set(_.multiOverride)),
+            Set(superSegments.render)
+          )
+        }
       }
 
       // Test for complex super task resolution
@@ -322,18 +334,26 @@ object ResolveTests extends TestSuite {
         val check = new Checker(complexModule)
 
         // Test direct super task resolution
-        test("directSuperTask") - check(
-          "artifactSuffix.super",
-          Result.Success(Set(_.artifactSuffix)),
-          Set("artifactSuffix.super")
-        )
+        test("directSuperTask") - {
+          val baseSegments = Segments.labels("artifactSuffix")
+          val superSegments = Segments.superTask(baseSegments)
+          check(
+            superSegments.render,
+            Result.Success(Set(_.artifactSuffix)),
+            Set(superSegments.render)
+          )
+        }
 
         // Test qualified super task resolution
-        test("qualifiedSuperTask") - check(
-          "artifactSuffix.super.ComplexBase",
-          Result.Success(Set(_.artifactSuffix)),
-          Set("artifactSuffix.super.ComplexBase")
-        )
+        test("qualifiedSuperTask") - {
+          val baseSegments = Segments.labels("artifactSuffix")
+          val superSegments = Segments.superTask(baseSegments, Some("ComplexBase"))
+          check(
+            superSegments.render,
+            Result.Success(Set(_.artifactSuffix)),
+            Set(superSegments.render)
+          )
+        }
       }
 
       // Test for file path resolution with super tasks
@@ -356,11 +376,15 @@ object ResolveTests extends TestSuite {
         val check = new Checker(filePathModule)
 
         // Test that super task resolution works correctly
-        test("superTaskResolution") - check(
-          "outputFile.super",
-          Result.Success(Set(_.outputFile)),
-          Set("outputFile.super")
-        )
+        test("superTaskResolution") - {
+          val baseSegments = Segments.labels("outputFile")
+          val superSegments = Segments.superTask(baseSegments)
+          check(
+            superSegments.render,
+            Result.Success(Set(_.outputFile)),
+            Set(superSegments.render)
+          )
+        }
 
         // This test verifies that the fix for the NoSuchFileException issue works correctly.
         // The issue was that when a task with a .super suffix was resolved, the system was
@@ -372,7 +396,7 @@ object ResolveTests extends TestSuite {
 
           // Get segments for the base task and the super task
           val baseSegments = Segments.labels("filePathModule", "outputFile")
-          val superSegments = Segments.labels("filePathModule", "outputFile", "super")
+          val superSegments = Segments.superTask(baseSegments)
 
           // Resolve paths for both tasks
           val basePaths = ExecutionPaths.resolve(outPath, baseSegments)

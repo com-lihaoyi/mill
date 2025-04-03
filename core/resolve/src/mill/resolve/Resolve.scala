@@ -126,9 +126,8 @@ private[mill] object Resolve {
       p: Module,
       cache: ResolveCore.Cache
   ): Result[NamedTask[?]] = {
-    // Extract the base task name, assuming ".super" suffix convention
-    val taskName = r.segments.last.value
-    val baseTaskName = taskName.split("\\.super", 2).head
+    val baseTaskName = mill.define.Segments.extractBaseTaskName(r.segments)
+
     val definition = Reflect
       .reflect(
         p.getClass,
