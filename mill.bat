@@ -76,7 +76,7 @@ set "MILL_EXT=.bat"
 set "ARTIFACT_SUFFIX="
 REM Check if MILL_VERSION contains MILL_NATIVE_SUFFIX
 echo !MILL_VERSION! | findstr /C:"%MILL_NATIVE_SUFFIX%" >nul
-if %errorlevel% equ 0 (
+if !errorlevel! equ 0 (
     set "MILL_VERSION=%MILL_VERSION:-native=%"
     REM -native images compiled with graal do not support windows-arm
     REM https://github.com/oracle/graal/issues/9215
@@ -87,10 +87,11 @@ if %errorlevel% equ 0 (
         rem no-op
     )
 ) else (
-    echo "TEST ECHO"
-    echo !MILL_VERSION! | findstr /C:"%MILL_JVM_SUFFIX%"
     echo !MILL_VERSION! | findstr /C:"%MILL_JVM_SUFFIX%" >nul
-    if %errorlevel% equ 0 (
+    echo "errorlevel"
+    echo !errorlevel!
+    echo !MILL_VERSION! | findstr /C:"%MILL_JVM_SUFFIX%" >nul
+    if !errorlevel! equ 0 (
         echo "found MILL_JVM_SUFFIX"
         set "MILL_VERSION=%MILL_VERSION:-jvm=%"
     ) else (
