@@ -87,6 +87,8 @@ if %errorlevel% equ 0 (
         rem no-op
     )
 ) else (
+    echo "TEST ECHO"
+    echo !MILL_VERSION! | findstr /C:"%MILL_JVM_SUFFIX%"
     echo !MILL_VERSION! | findstr /C:"%MILL_JVM_SUFFIX%" >nul
     if %errorlevel% equ 0 (
         echo "found MILL_JVM_SUFFIX"
