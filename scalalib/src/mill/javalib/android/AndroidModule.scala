@@ -6,10 +6,10 @@ import mill.define.{ModuleRef, Target, Task}
 import mill.T
 import mill.scalalib.*
 import mill.scalalib.api.CompilationResult
-import mill.util.Jvm
 import os.{Path, RelPath}
 import upickle.default.*
 import mill.javalib.android.AndroidModule.AndroidModuleGeneratedSources
+import mill.util.Jvm
 
 import scala.xml.XML
 
@@ -661,16 +661,17 @@ trait AndroidModule extends JavaModule {
     val androidSources = androidModuleGeneratedSourcesFunc()
 
     val proguardFile = androidSources.androidReleaseDex.path / "proguard-rules.pro"
-//    os.makeDir(proguardFile)
-    val knownProguardRules = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidReleaseResources()._1.path / "main-dex-rules.pro"))
-      .mkString("\n")
-    os.write(proguardFile, knownProguardRules)
+//    val proguardFile = Task.dest/ "proguard-rules.pro"
+//
+//    val knownProguardRules = androidUnpackArchives()
+//      // TODO need also collect rules from other modules,
+//      // but Android lib module doesn't yet exist
+//      .flatMap(_.proguardRules)
+//      .map(p => os.read(p.path))
+//      .appendedAll(mainDexPlatformRules)
+//      .appended(os.read(androidReleaseResources()._1.path / "main-dex-rules.pro"))
+//      .mkString("\n")
+//    os.write(proguardFile, knownProguardRules)
 
     val d8ArgsBuilder = d8ArgsFunc2()
 
@@ -713,15 +714,17 @@ trait AndroidModule extends JavaModule {
     val androidSources = androidModuleGeneratedSourcesFunc()
 
     val proguardFile = androidSources.androidDebugDex.path / "proguard-rules.pro"
-    val knownProguardRules = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidReleaseResources()._1.path / "main-dex-rules.pro"))
-      .mkString("\n")
-    os.write(proguardFile, knownProguardRules)
+//    val proguardFile = Task.dest / "proguard-rules.pro"
+
+//    val knownProguardRules = androidUnpackArchives()
+//      // TODO need also collect rules from other modules,
+//      // but Android lib module doesn't yet exist
+//      .flatMap(_.proguardRules)
+//      .map(p => os.read(p.path))
+//      .appendedAll(mainDexPlatformRules)
+//      .appended(os.read(androidReleaseResources()._1.path / "main-dex-rules.pro"))
+//      .mkString("\n")
+//    os.write(proguardFile, knownProguardRules)
 
     val d8ArgsBuilder = d8ArgsFunc2()
 
@@ -1082,6 +1085,31 @@ trait AndroidModule extends JavaModule {
     os.makeDir(androidDebugDex)
     val androidReleaseDex = T.dest / "androidReleaseDex.dest"
     os.makeDir(androidReleaseDex)
+
+    val proguardFileDebug = androidDebugDex / "proguard-rules.pro"
+
+    val knownProguardRulesDebug = androidUnpackArchives()
+      // TODO need also collect rules from other modules,
+      // but Android lib module doesn't yet exist
+      .flatMap(_.proguardRules)
+      .map(p => os.read(p.path))
+      .appendedAll(mainDexPlatformRules)
+      .appended(os.read(androidDebugResources()._1.path / "main-dex-rules.pro"))
+      .mkString("\n")
+    os.write(proguardFileDebug, knownProguardRulesDebug)
+
+    val proguardFileRelease = androidReleaseDex / "proguard-rules.pro"
+
+    val knownProguardRulesRelease = androidUnpackArchives()
+      // TODO need also collect rules from other modules,
+      // but Android lib module doesn't yet exist
+      .flatMap(_.proguardRules)
+      .map(p => os.read(p.path))
+      .appendedAll(mainDexPlatformRules)
+      .appended(os.read(androidReleaseResources()._1.path / "main-dex-rules.pro"))
+      .mkString("\n")
+    os.write(proguardFileRelease, knownProguardRulesRelease)
+
     AndroidModuleGeneratedSources(
       androidDebugDex = PathRef(androidDebugDex),
       androidReleaseDex = PathRef(androidReleaseDex)

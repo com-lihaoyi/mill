@@ -4,6 +4,7 @@ import mill.*
 import mill.scalalib.*
 import mill.api.PathRef
 import mill.define.Task
+import mill.javalib.android.AndroidModule.AndroidModuleGeneratedSources
 import mill.scalalib.publish.{PackagingType, PublishInfo}
 import mill.util.Jvm
 import os.RelPath
@@ -36,6 +37,18 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       defaultPublishJars().map { case (jar, info) => info(jar) }
     }
   }
+
+//  implicit val pathRefRW: ReadWriter[mill.api.PathRef] =
+//    readwriter[String].bimap(
+//      pathRef => pathRef.path.toString, // convert to a string
+//      str => mill.api.PathRef(java.nio.file.Paths.get(str)) // construct a PathRef from string
+//    )
+//  def androidLibGeneratedSourcesFunc: T[AndroidLibModuleGeneratedSources] = Task {
+//    val manifestPath = androidMergedManifest().path
+////    val manifestDest = T.dest / "AndroidManifest.xml"
+////    os.copy(manifestPath, manifestDest, createFolders = true)
+//    AndroidLibModuleGeneratedSources(PathRef(manifestPath))
+//  }
 
   def androidReleaseAar: T[PathRef] = Task {
     val dest = T.dest
@@ -85,6 +98,29 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       )
     }
 
+    val libManifests = androidUnpackArchives().map(_.manifest.get)
+    val mergedManifestPath = T.dest / "AndroidManifest.xml"
+    // TODO put it to the dedicated worker if cost of classloading is too high
+    Jvm.callProcess(
+      mainClass = "com.android.manifmerger.Merger",
+      mainArgs = Seq(
+        "--main",
+        androidManifest().path.toString(),
+        "--remove-tools-declarations",
+        "--property",
+        s"min_sdk_version=${androidMinSdk()}",
+        "--property",
+        s"target_sdk_version=${androidTargetSdk()}",
+        "--property",
+        s"version_code=${androidVersionCode()}",
+        "--property",
+        s"version_name=${androidVersionName()}",
+        "--out",
+        mergedManifestPath.toString()
+      ) ++ libManifests.flatMap(m => Seq("--libs", m.path.toString())),
+      classPath = manifestMergerClasspath().map(_.path)
+    )
+
     val tempZip = Task.dest / "library.zip"
     os.move(aarFile, tempZip)
     os.unzip(
@@ -94,7 +130,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
 
     os.move(classesJar, unpackedAar / "classes.jar", replaceExisting = true)
     os.move(
-      androidMergedManifest().path,
+      mergedManifestPath,
       unpackedAar / "AndroidManifest.xml",
       replaceExisting = true
     )
@@ -181,5 +217,15 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
 
     override def resources: T[Seq[PathRef]] = Task.Sources("src/test/res")
 
+  }
+}
+
+object AndroidLibModule {
+  case class AndroidLibModuleGeneratedSources(
+      mergeManifest: PathRef
+  )
+  object AndroidLibModuleGeneratedSources {
+    implicit def resultRW: upickle.default.ReadWriter[AndroidModuleGeneratedSources] =
+      upickle.default.macroRW
   }
 }
