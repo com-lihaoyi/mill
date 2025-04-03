@@ -88,7 +88,6 @@ if %errorlevel% equ 0 (
     echo %MILL_VERSION% | findstr /C:"%MILL_JVM_SUFFIX%" >nul
     if %errorlevel% equ 0 (
         set "MILL_VERSION=%MILL_VERSION:-jvm=%"
-        if [!VERSION_PREFIX!]==[0.1.] ()
     ) else (
         if not "%MILL_VERSION:~0,4%"=="0.1." ^
         if not "%MILL_VERSION:~0,4%"=="0.2." ^
