@@ -539,7 +539,7 @@ trait AndroidAppModule extends AndroidModule {
   /**
    * Creates the android virtual device identified in virtualDeviceIdentifier
    */
-  def createAndroidVirtualDevice(): Command[String] = Task.Command {
+  def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
     val command = os.call((
       androidSdkModule().avdPath().path,
       "create",
