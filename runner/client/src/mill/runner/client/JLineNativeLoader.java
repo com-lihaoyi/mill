@@ -40,8 +40,9 @@ final class JLineNativeLoader {
     if (isWindows) baseDir = Paths.get(System.getenv("UserProfile")).resolve(".mill/cache/");
     else baseDir = Paths.get(System.getProperty("user.home")).resolve(".cache/mill/");
     this.millJLineNativeDir = baseDir.resolve("jline/" + jlineNativeVersion);
-    this.millJLineNativeLibLocation = millJLineNativeDir.resolve(OSInfo.getNativeLibFolderPathForCurrentOS()
-        + "/" + System.mapLibraryName("jlinenative").replace(".dylib", ".jnilib"));
+    this.millJLineNativeLibLocation =
+        millJLineNativeDir.resolve(OSInfo.getNativeLibFolderPathForCurrentOS() + "/"
+            + System.mapLibraryName("jlinenative").replace(".dylib", ".jnilib"));
   }
 
   private static String jlineNativeLibResourcePath() {
@@ -108,9 +109,9 @@ final class JLineNativeLoader {
   private static synchronized void doInitJLineNative() {
     if (initialized) return;
 
-    JLineNativeLoader loader = new JLineNativeLoader(mill.runner.client.Versions.jlineNativeVersion());
-    if (!loader.tryLoadFast())
-      loader.loadSlow();
+    JLineNativeLoader loader =
+        new JLineNativeLoader(mill.runner.client.Versions.jlineNativeVersion());
+    if (!loader.tryLoadFast()) loader.loadSlow();
 
     // In theory, this should be enough for org.jline.nativ.JLineNativeLoader
     // to use the JAR we cached ourselves.
@@ -118,7 +119,8 @@ final class JLineNativeLoader {
     // which slows things down too apparently. So we keep using reflection, so that
     // org.jline.nativ.JLineNativeLoader.initialize() doesn't try to do anything.
     System.setProperty("library.jline.path", loader.millJLineNativeDir.toString());
-    System.setProperty("library.jline.name", loader.millJLineNativeLibLocation.getFileName().toString());
+    System.setProperty(
+        "library.jline.name", loader.millJLineNativeLibLocation.getFileName().toString());
 
     System.load(loader.millJLineNativeLibLocation.toString());
 
