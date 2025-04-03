@@ -12,12 +12,13 @@ object GenIdeaTests extends UtestIntegrationTestSuite {
   def tests: Tests = Tests {
     test("genIdeaTests") - integrationTest { tester =>
       import tester._
-      val expectedBase = workspacePath / "idea"
+      val expectedBase = tester.workspaceSourcePath / "idea"
       val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
 
       eval("mill.idea.GenIdea/", check = true, stdout = os.Inherit, stderr = os.Inherit)
 
-      for (resource <- resources) assertIdeaXmlResourceMatchesFile(workspacePath, resource)
+      for (resource <- resources)
+        assertIdeaXmlResourceMatchesFile(tester.workspaceSourcePath, workspacePath, resource)
     }
   }
 
