@@ -3,14 +3,13 @@ import scala.util.Properties
 import scala.util.chaining._
 import coursier.maven.MavenRepository
 import mill._
-import mill.api.JarManifest
 import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
@@ -29,7 +28,8 @@ object `package` extends RootModule with build.MillStableScalaModule {
     }
   }
   def testIvyDeps = super.testIvyDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
+  def testTransitiveDeps =
+    super.testTransitiveDeps() ++ Seq(worker.testDep(), `classgraph-worker`.testDep())
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
@@ -93,11 +93,16 @@ object `package` extends RootModule with build.MillStableScalaModule {
 
   object worker extends build.MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(api, build.main.util)
-    def ivyDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core, build.Deps.scalap(scalapVersion()))
+    def ivyDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core)
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
       BuildInfo.Value("zinc", build.Deps.zinc.version, "Version of Zinc.")
     )
+  }
+
+  object `classgraph-worker` extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(api, build.main.util)
+    def ivyDeps = Agg(build.Deps.classgraph)
   }
 }

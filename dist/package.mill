@@ -2,15 +2,14 @@ package build.dist
 import mill._, scalalib._, publish._
 import mill.define.ModuleRef
 import mill.util.Jvm
-import mill.api.JarManifest
-import de.tobiasroeser.mill.vcs.version.VcsVersion
+//import de.tobiasroeser.mill.vcs.version.VcsVersion
 
 import scala.util.Using
 
 trait InstallModule extends build.MillPublishJavaModule {
   // All modules that we want to aggregate as part of this `dev` assembly.
   // Excluding itself, and the `dist` module that uses it
-  lazy val allPublishModules = build.millInternal.modules.collect {
+  lazy val allPublishModules = build.moduleInternal.modules.collect {
     case m: PublishModule if (m ne build.dist) && (m ne build.dist.native) => m
   }
   def moduleDeps = Seq(build.runner, build.idea, build.main.init)
@@ -46,7 +45,7 @@ trait InstallModule extends build.MillPublishJavaModule {
         (os.home / ".cache/mill/download" / (build.millVersion() + cacheBinarySuffix + batExt)).toString()
       )
     )()
-    Task.log.outputStream.println(path.toString())
+    Task.log.streams.out.println(path.toString())
     PathRef(path)
   }
 
@@ -188,10 +187,10 @@ object `package` extends RootModule with InstallModule {
         val wd = os.Path(wd0, Task.workspace)
         os.makeDir.all(wd)
         try {
-          Jvm.runSubprocess(
-            Seq(launcher().path.toString) ++ rest,
-            forkEnv(),
-            workingDir = wd
+          os.call(
+            cmd = (launcher().path.toString, rest),
+            env = forkEnv(),
+            cwd = wd
           )
           mill.api.Result.Success(())
         } catch {
@@ -236,7 +235,7 @@ object `package` extends RootModule with InstallModule {
   def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
     for {
       exampleMod <- build.example.exampleModules
-      path = exampleMod.millSourcePath
+      path = exampleMod.moduleDir
     } yield {
       val example = path.subRelativeTo(Task.workspace)
       val artifactName = example.segments.mkString("-")
@@ -268,6 +267,7 @@ object `package` extends RootModule with InstallModule {
   }
 
   def uploadToGithub(authKey: String) = Task.Command {
+    /*
     val vcsState = VcsVersion.vcsState()
     val label = vcsState.copy(dirtyHash = None).format()
     if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
@@ -284,7 +284,7 @@ object `package` extends RootModule with InstallModule {
         headers = Seq("Authorization" -> ("token " + authKey))
       )
     }
-
+     */
     ()
   }
 
@@ -323,16 +323,16 @@ object `package` extends RootModule with InstallModule {
         out.write(os.read.bytes(assembly().path))
       }
 
-      if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
+      if (!mill.constants.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
 
       PathRef(executable)
     }
 
-    def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https")
+    def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
 
-    def zincWorker = ModuleRef(ZincWorkerGraalvm)
+    def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
-    object ZincWorkerGraalvm extends ZincWorkerModule {
+    object JvmWorkerGraalvm extends JvmWorkerModule {
       def jvmId = build.Settings.graalvmJvmId
     }
   }

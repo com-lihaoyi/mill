@@ -3,13 +3,12 @@ package build.integration
 import scala.util.chaining._
 import coursier.maven.MavenRepository
 import mill._
-import mill.api.JarManifest
 import mill.main.Tasks
 import mill.scalalib._
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
@@ -24,7 +23,7 @@ object `package` extends RootModule {
   // and pass `lib`'s compile output back to `test`.
 
   trait IntegrationTestModule extends Cross.Module[String] {
-    def millSourcePath = super.millSourcePath / crossValue
+    def moduleDir = super.moduleDir / crossValue
 
     def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
 
@@ -34,11 +33,11 @@ object `package` extends RootModule {
     def forkEnv: T[Map[String, String]]
     def testExclusive = false
     trait ModeModule extends build.MillBaseTestsModule {
-      override def test(args: String*) = Task.Command(exclusive = testExclusive) {
+      override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
         testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
       }
 
-      def mode: String = millModuleSegments.parts.last
+      def mode: String = moduleSegments.parts.last
       def scalaVersion = build.Deps.scalaVersion
 
       def forkEnv =
@@ -98,15 +97,15 @@ object `package` extends RootModule {
     }
   }
 
-  object failure extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "failure"))
-  object feature extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "feature"))
+  object failure extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "failure"))
+  object feature extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "feature"))
   object invalidation
-      extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "invalidation"))
-  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "ide"))
+      extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "invalidation"))
+  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "ide"))
   object bootstrap
-      extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "bootstrap"))
+      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
   object migrating
-      extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "migrating"))
+      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "migrating"))
   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(

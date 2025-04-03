@@ -12,8 +12,6 @@ import upickle.default.*
 @mill.api.experimental
 trait AndroidLibModule extends AndroidModule with PublishModule {
 
-  this
-
   //  /**
   //   * The packaging type. See [[PackagingType]] for specially handled values.
   //   */
@@ -28,9 +26,9 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       pomPackagingType match {
         case PackagingType.Pom => Task.Anon(Seq())
         case _ => Task.Anon(Seq(
-            (androidAar(), PublishInfo.aar _),
-            (sourceJar(), PublishInfo.sourcesJar _),
-            (docJar(), PublishInfo.docJar _)
+            (androidAar(), PublishInfo.aar),
+            (sourceJar(), PublishInfo.sourcesJar),
+            (docJar(), PublishInfo.docJar)
           ))
       }
     }

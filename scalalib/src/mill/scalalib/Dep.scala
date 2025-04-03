@@ -3,7 +3,7 @@ package mill.scalalib
 import upickle.default.{macroRW, ReadWriter as RW}
 import mill.scalalib.CrossVersion.*
 import coursier.core.{Configuration, Dependency, MinimizedExclusions}
-import mill.scalalib.api.{Versions, ZincWorkerUtil}
+import mill.scalalib.api.{Versions, JvmWorkerUtil}
 import scala.annotation.unused
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
@@ -53,7 +53,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
 
   def organization = dep.module.organization.value
   def name = dep.module.name.value
-  def version = dep.version
+  def version = dep.versionConstraint.asString
 
   /**
    * If scalaVersion is a Dotty version, replace the cross-version suffix
@@ -75,12 +75,12 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
    */
   def withDottyCompat(scalaVersion: String): Dep =
     cross match {
-      case cross: Binary if ZincWorkerUtil.isDottyOrScala3(scalaVersion) =>
+      case cross: Binary if JvmWorkerUtil.isDottyOrScala3(scalaVersion) =>
         val compatSuffix =
           scalaVersion match {
-            case ZincWorkerUtil.Scala3Version(_, _) | ZincWorkerUtil.Scala3EarlyVersion(_) =>
+            case JvmWorkerUtil.Scala3Version(_, _) | JvmWorkerUtil.Scala3EarlyVersion(_) =>
               "_2.13"
-            case ZincWorkerUtil.DottyVersion(minor, patch) =>
+            case JvmWorkerUtil.DottyVersion(minor, patch) =>
               if (minor.toInt > 18 || minor.toInt == 18 && patch.toInt >= 1)
                 "_2.13"
               else
@@ -164,6 +164,7 @@ object Dep {
 
     prospective.filter(parse(_) == dep)
   }
+
   private val rw0: RW[Dep] = macroRW
 
   // Use literal JSON strings for common cases so that files
@@ -199,12 +200,16 @@ object Dep {
 
   /**
    * Convenience to access Mill modules as dependencies, e.g. to load the into worker classpaths.
-   * @param artifactName The module artifact name
+   *
+   * @param artifactName   The module artifact name
    * @param artifactSuffix The artifact suffix typically representing the Scala version.
    *                       Defaults to the Scala binary platform Mill runs on.
    */
-  private[mill] def millProjectModule(artifactName: String, artifactSuffix: String = "_3"): Dep =
-    ivy"com.lihaoyi:${artifactName}${artifactSuffix}:${Versions.millVersion}"
+  private[mill] def millProjectModule(artifactName: String, artifactSuffix: String = "_3"): Dep = {
+    // we don't use `ivy` string context here to avoid a cyclic dependency
+    val dep = s"com.lihaoyi:${artifactName}${artifactSuffix}:${Versions.millVersion}"
+    Dep.parse(dep)
+  }
 
 }
 

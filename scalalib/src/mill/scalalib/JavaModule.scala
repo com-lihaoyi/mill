@@ -25,7 +25,7 @@ import os.Path
  */
 trait JavaModule
     extends mill.Module
-    with WithZincWorker
+    with WithJvmWorker
     with TestModule.JavaModuleBase
     with TaskModule
     with RunModule
@@ -36,7 +36,7 @@ trait JavaModule
     with SemanticDbJavaModule
     with AssemblyModule { outer =>
 
-  override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
@@ -51,7 +51,7 @@ trait JavaModule
       outer.resolutionCustomizer
 
     override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
-    override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
+    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
     override def sourcesFolders = outer.sourcesFolders
@@ -98,8 +98,6 @@ trait JavaModule
   def resolvePublishDependency: Task[Dep => publish.Dependency] = Task.Anon {
     Artifact.fromDepJava(_: Dep)
   }
-
-  def allLocalMainClasses0 = Task { zincWorker().worker().discoverMainClasses(compile()) }
 
   /**
    * Mandatory ivy dependencies that are typically always required and shouldn't be removed by
@@ -767,7 +765,7 @@ trait JavaModule
    * Keep in sync with [[bspCompileClassesPath]]
    */
   def compile: T[mill.scalalib.api.CompilationResult] = Task(persistent = true) {
-    zincWorker()
+    jvmWorker()
       .worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -1318,7 +1316,7 @@ trait JavaModule
     Task.Command {
       super.prepareOffline(all)()
       resolvedIvyDeps()
-      zincWorker().prepareOffline(all)()
+      jvmWorker().prepareOffline(all)()
       resolvedRunIvyDeps()
       Task.sequence(tasks)()
       ()
@@ -1335,7 +1333,7 @@ trait JavaModule
   @internal
   def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
     JvmBuildTarget(
-      javaHome = zincWorker()
+      javaHome = jvmWorker()
         .javaHome()
         .map(p => BspUri(p.path))
         .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p)))),

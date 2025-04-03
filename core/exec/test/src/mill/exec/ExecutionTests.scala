@@ -26,6 +26,12 @@ object ExecutionTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  object anonTaskFailure extends TestBaseModule {
+    def anon = Task.Anon[Int] { throw new Exception("boom") }
+
+    def task = Task[Int] { anon() }
+    lazy val millDiscover = Discover[this.type]
+  }
   class Checker[T <: mill.testkit.TestBaseModule](module: T)
       extends exec.Checker(module)
 
@@ -420,6 +426,12 @@ object ExecutionTests extends TestSuite {
         val Right(UnitTester.Result(3, _)) = tester.apply(bactickIdentifiers.`invisible&`)
         val Right(UnitTester.Result(4, _)) =
           tester.apply(bactickIdentifiers.`nested-module`.`nested-target`)
+      }
+    }
+    test("anonTaskFailure") {
+      UnitTester(anonTaskFailure, null).scoped { tester =>
+        val res = tester.evaluator.execute(Seq(anonTaskFailure.task))
+        assert(res.executionResults.transitiveFailing.keySet == Set(anonTaskFailure.task))
       }
     }
   }

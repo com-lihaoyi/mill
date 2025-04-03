@@ -6,11 +6,11 @@ import contrib.jmh.JmhModule
 
 object `package` extends RootModule with PublishModule with MavenModule {
 
-  object ZincWorkerJava11 extends ZincWorkerModule {
+  object JvmWorkerJava11 extends JvmWorkerModule {
     def jvmId = "temurin:11.0.24"
   }
 
-  override def zincWorker = ModuleRef(ZincWorkerJava11)
+  override def jvmWorker = ModuleRef(JvmWorkerJava11)
   def javacOptions = Seq("-encoding", "UTF-8")
   def publishVersion = "2.17.0-SNAPSHOT"
 

@@ -4,21 +4,21 @@ import mainargs.Flag
 import mill._
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Discover, ExternalModule, Task}
-import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.scalalib.api.{Versions, ZincWorkerApi, ZincWorkerUtil}
+import mill.scalalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
+import mill.scalalib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
 import mill.scalalib.CoursierModule.Resolver
 
 /**
- * A default implementation of [[ZincWorkerModule]]
+ * A default implementation of [[JvmWorkerModule]]
  */
-object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
+object JvmWorkerModule extends ExternalModule with JvmWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
 }
 
 /**
  * A module managing an in-memory Zinc Scala incremental compiler
  */
-trait ZincWorkerModule extends mill.Module with OfflineSupportModule with CoursierModule {
+trait JvmWorkerModule extends mill.Module with OfflineSupportModule with CoursierModule {
   def jvmId: mill.define.Target[String] = Task[String] { "" }
 
   def jvmIndexVersion: mill.define.Target[String] =
@@ -51,9 +51,9 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   /**
-   * Optional custom Java Home for the ZincWorker to use
+   * Optional custom Java Home for the JvmWorker to use
    *
-   * If this value is None, then the ZincWorker uses the same Java used to run
+   * If this value is None, then the JvmWorker uses the same Java used to run
    * the current mill instance.
    */
   def javaHome: T[Option[PathRef]] = Task {
@@ -68,7 +68,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     }
   }
 
-  def worker: Worker[ZincWorkerApi] = Task.Worker {
+  def worker: Worker[JvmWorkerApi] = Task.Worker {
     val jobs = Task.ctx().jobs
 
     val cl = mill.util.Jvm.createClassLoader(
@@ -76,11 +76,11 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       getClass.getClassLoader
     )
 
-    val cls = cl.loadClass("mill.scalalib.worker.ZincWorkerImpl")
+    val cls = cl.loadClass("mill.scalalib.worker.JvmWorkerImpl")
     val instance = cls.getConstructor(
       classOf[
         Either[
-          (ZincWorkerApi.Ctx, (String, String) => (Option[Seq[PathRef]], PathRef)),
+          (JvmWorkerApi.Ctx, (String, String) => (Option[Seq[PathRef]], PathRef)),
           String => PathRef
         ]
       ], // compilerBridge
@@ -102,7 +102,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
         javaHome(),
         () => cl.close()
       )
-    instance.asInstanceOf[ZincWorkerApi]
+    instance.asInstanceOf[JvmWorkerApi]
   }
 
   def scalaCompilerBridgeJar(
@@ -111,7 +111,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       resolver: Resolver
   )(implicit ctx: Ctx): (Option[Seq[PathRef]], PathRef) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
-      case _ => (scalaVersion, ZincWorkerUtil.scalaBinaryVersion(scalaVersion))
+      case _ => (scalaVersion, JvmWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
 
     val (bridgeDep, bridgeName, bridgeVersion) =
@@ -122,7 +122,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
           else "scala3-sbt-bridge"
         val version = scalaVersion
         (ivy"$org:$name:$version", name, version)
-      } else if (ZincWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
+      } else if (JvmWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
         val org = "com.lihaoyi"
         val name = s"mill-scala-compiler-bridge_$scalaVersion"
         val version = Versions.millCompilerBridgeVersion
@@ -146,7 +146,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     )
 
-    val bridgeJar = ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
+    val bridgeJar = JvmWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
     val classpathOpt = Option.when(useSources) {
       compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
     }

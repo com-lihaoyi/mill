@@ -43,7 +43,7 @@ trait AndroidModule extends JavaModule {
       super.artifactTypes() + coursier.Type("aar")
     }
 
-  override def sources: T[Seq[PathRef]] = Task.Sources(moduleDir / "src/main/java")
+  override def sources: T[Seq[PathRef]] = Task.Sources("src/main/java")
 
   /**
    * Provides access to the Android SDK configuration.

@@ -54,7 +54,7 @@ trait JlinkModule extends JavaModule {
     val classPath = jars.map(_.toString).mkString(sys.props("path.separator"))
     val args = {
       val baseArgs = Seq(
-        Jvm.jdkTool("jmod", this.zincWorker().javaHome().map(_.path)),
+        Jvm.jdkTool("jmod", this.jvmWorker().javaHome().map(_.path)),
         "create",
         "--class-path",
         classPath.toString,
@@ -82,7 +82,7 @@ trait JlinkModule extends JavaModule {
     val outputPath = Task.dest / "jlink-runtime"
 
     val args = Seq(
-      Jvm.jdkTool("jlink", this.zincWorker().javaHome().map(_.path)),
+      Jvm.jdkTool("jlink", this.jvmWorker().javaHome().map(_.path)),
       "--launcher",
       s"${jlinkImageName()}=${jlinkModuleName()}/${jlinkMainClass()}",
       "--module-path",
