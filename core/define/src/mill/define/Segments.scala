@@ -29,25 +29,20 @@ case class Segments private (value: Seq[Segment]) {
   def head: Segment = value.head
 
   def render: String = {
-    def renderCross(cross: Segment.Cross): String = "[" + cross.value.mkString(",") + "]"
-    value.toList match {
-      case Nil => ""
-      case head :: rest =>
-        val headSegment = head match
-          case Segment.Label(s) => s
-          case c: Segment.Cross => renderCross(c)
-          case Segment.Super(original, targetOpt) =>
-            original.value + ".super" + targetOpt.fold("")("." + _)
-          case Segment.SuperRef(_) => sys.error("Unexpected SuperRef as head segment in render")
-        val stringSegments = rest.map {
-          case Segment.Label(s) => "." + s
-          case c: Segment.Cross => renderCross(c)
-          case Segment.Super(original, targetOpt) =>
-            ".super" + targetOpt.fold("")("." + _)
-          case Segment.SuperRef(_) => sys.error("Unexpected SuperRef in render")
-        }
-        headSegment + stringSegments.mkString
+    val parts = value.zipWithIndex.map {
+      case (Segment.Label(s), 0) => s
+      case (Segment.Cross(vs), 0) => "[" + vs.mkString(",") + "]"
+      case (Segment.Super(original, targetOpt), 0) =>
+        original.value + ".super" + targetOpt.fold("")("." + _)
+      case (Segment.SuperRef(_), 0) =>
+        sys.error("Unexpected SuperRef as head segment in render")
+      case (Segment.Label(s), _) => "." + s
+      case (Segment.Cross(vs), _) => "[" + vs.mkString(",") + "]"
+      case (Segment.Super(_, targetOpt), _) => ".super" + targetOpt.fold("")("." + _)
+      case (Segment.SuperRef(_), _) =>
+        sys.error("Unexpected SuperRef in render")
     }
+    parts.mkString
   }
   override lazy val hashCode: Int = value.hashCode()
 }
