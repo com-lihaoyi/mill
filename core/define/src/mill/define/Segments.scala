@@ -51,4 +51,15 @@ object Segments {
   def apply(): Segments = new Segments(Nil)
   def apply(items: Seq[Segment]): Segments = new Segments(items)
   def labels(values: String*): Segments = Segments(values.map(Segment.Label(_)))
+
+  /**
+   * Creates segments for a super task, ensuring proper structure
+   * @param base The base segments
+   * @param superTarget Optional super target trait/class name
+   */
+  def superTask(base: Segments, superTarget: Option[String] = None): Segments = {
+    val taskName = base.last.value
+    val newLastSegment = Segment.Label(s"${taskName}.super${superTarget.fold("")("." + _)}")
+    Segments(base.init.value :+ newLastSegment)
+  }
 }

@@ -13,23 +13,7 @@ object ExecutionPaths {
       outPath: os.Path,
       segments: Segments
   ): ExecutionPaths = {
-    val adjustedSegments =
-      if (segments.value.nonEmpty && segments.value.last == Segment.Label("super")) {
-        Segments(segments.value.dropRight(1))
-      } else if (segments.value.nonEmpty) {
-        val lastSegment = segments.value.last
-        lastSegment match {
-          case Segment.Label(name) if name.endsWith(".super") =>
-            val newLastName = name.stripSuffix(".super")
-            val newLastSegment = Segment.Label(newLastName)
-            Segments(segments.value.dropRight(1) :+ newLastSegment)
-          case _ => segments
-        }
-      } else {
-        segments
-      }
-
-    val segmentStrings = adjustedSegments.parts
+    val segmentStrings = segments.parts
     val targetPath = outPath / segmentStrings.map(sanitizePathSegment)
     ExecutionPaths(
       targetPath / os.up / s"${targetPath.last}.dest",

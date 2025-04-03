@@ -142,18 +142,13 @@ private object ResolveCore {
 
         (head, current) match {
           case (Segment.Label("super") | Segment.Label(".super"), nt: Resolved.NamedTask) =>
-            val lastSegment = nt.segments.value.last
-            val superSuffix = if (tail.nonEmpty) {
-              "." + Segments(tail).render.replace('/', '.')
+            val superTarget = if (tail.nonEmpty) {
+              Some(tail.head.asInstanceOf[Segment.Label].value)
             } else {
-              ""
+              None
             }
 
-            val newLastSegment = lastSegment match {
-              case Segment.Label(name) => Segment.Label(s"$name.super$superSuffix")
-              case other => other
-            }
-            val newSegments = Segments(nt.segments.value.dropRight(1) :+ newLastSegment)
+            val newSegments = Segments.superTask(nt.segments, superTarget)
             Success(Seq(Resolved.NamedTask(newSegments)))
 
           case (Segment.Label(taskName), m: Resolved.Module) if taskName.endsWith(".super") =>
@@ -179,13 +174,7 @@ private object ResolveCore {
                     notFoundResult(rootModule, querySoFar, current, head, cache)
                   } else {
                     val superTasks = baseTasks.map { r =>
-                      val lastSegment = r.segments.value.last
-                      val newLastSegment = lastSegment match {
-                        case Segment.Label(name) => Segment.Label(s"$name.super")
-                        case s @ Segment.Cross(_) => s // Defensive
-                      }
-                      val newSegments = Segments(r.segments.value.dropRight(1) :+ newLastSegment)
-                      Resolved.NamedTask(newSegments)
+                      Resolved.NamedTask(Segments.superTask(r.segments))
                     }
                     Success(superTasks)
                   }
