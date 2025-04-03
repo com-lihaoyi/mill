@@ -18,8 +18,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   override lazy val test: CodeSigTests = new CodeSigTests {}
   trait CodeSigTests extends MillScalaTests {
     val caseKeys = build.interp.watchValue(
-      os.walk(millSourcePath / "cases", maxDepth = 3)
-        .map(_.subRelativeTo(millSourcePath / "cases").segments)
+      os.walk(moduleDir / "cases", maxDepth = 3)
+        .map(_.subRelativeTo(moduleDir / "cases").segments)
         .collect { case Seq(a, b, c) => s"$a-$b-$c" }
     )
 
@@ -45,7 +45,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       def moduleDeps = Seq(external)
 
       val Array(prefix, suffix, rest) = caseName.split("-", 3)
-      def millSourcePath = super.millSourcePath / prefix / suffix / rest
+      def moduleDir = super.moduleDir / prefix / suffix / rest
       def scalaVersion = build.Deps.scalaVersion
       def ivyDeps = Task {
         if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()

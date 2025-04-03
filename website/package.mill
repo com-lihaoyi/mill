@@ -1,7 +1,8 @@
 package build.website
 import org.jsoup._
-import mill.util.Jvm
-import mill._, scalalib._
+import mill.util.{Jvm, Version}
+import mill._
+import scalalib._
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 import scala.jdk.CollectionConverters._
 
@@ -26,7 +27,7 @@ object `package` extends RootModule {
         !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
       }
     def scalaVersion = build.Deps.scalaVersion
-    def moduleDeps = build.millInternal.modules.collect {
+    def moduleDeps = build.moduleInternal.modules.collect {
       case m: build.MillStableScalaModule => m
       case m: JavaModule if m eq build.kotlinlib => m
     }
@@ -84,7 +85,7 @@ object `package` extends RootModule {
     val renderedExamples: Seq[(os.SubPath, PathRef)] =
       Task.traverse(build.example.exampleModules)(m =>
         Task.Anon {
-          (m.millSourcePath.subRelativeTo(build.example.millSourcePath), m.rendered())
+          (m.moduleDir.subRelativeTo(build.example.moduleDir), m.rendered())
         }
       )()
 
@@ -96,7 +97,7 @@ object `package` extends RootModule {
 
     val contribReadmes = Task.traverse(build.contrib.contribModules)(m =>
       Task.Anon {
-        m.millModuleSegments.parts.last -> m.readme()
+        m.moduleSegments.parts.last -> m.readme()
       }
     )()
 
@@ -315,9 +316,9 @@ object `package` extends RootModule {
         mill.main.VisualizeModule.toolsClasspath().map(_.path)
       )
 
-      val useOldDownloadUrl = Ordering.Implicits.seqOrdering[Seq, String].lt(
-        millVersion.split('.').toIndexedSeq,
-        Seq("0", "12", "6")
+      val useOldDownloadUrl = Version.OsgiOrdering.lt(
+        Version.parse(millVersion),
+        Version.parse("0.12.6")
       )
 
       val millDownloadUrl =
@@ -335,21 +336,21 @@ object `package` extends RootModule {
 
   def localPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true).apply().apply(oldDocSources().map(_.path))
-    Task.log.outputStream.println(
+    Task.log.streams.out.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
   def fastPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true).apply().apply(Nil)
-    Task.log.outputStream.println(
+    Task.log.streams.out.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
 
   def generatePages(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
-    Task.log.errorStream.println("Creating Antora playbook ...")
+    Task.log.streams.err.println("Creating Antora playbook ...")
     // dependency to sources
     source()
     val docSite = Task.dest
@@ -360,7 +361,7 @@ object `package` extends RootModule {
       data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
       createFolders = true
     )
-    Task.log.errorStream.println("Running Antora ...")
+    Task.log.streams.err.println("Running Antora ...")
     runAntora(
       npmDir = npmBase(),
       workDir = docSite,
@@ -376,12 +377,12 @@ object `package` extends RootModule {
     os.write(siteDir / ".nojekyll", "")
 
     // sanitize devAntora source URLs
-    Task.log.errorStream.println("Sanitizing links ...")
+    Task.log.streams.err.println("Sanitizing links ...")
     sanitizeDevUrls(siteDir, devAntoraSources().path, Task.workspace / "docs", Task.workspace)
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
     val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
-    Task.log.errorStream.println(s"Copying API docs from ${unidocSrc} ...")
+    Task.log.streams.err.println(s"Copying API docs from ${unidocSrc} ...")
     os.copy(unidocSrc, siteDir / "api/latest", createFolders = true)
 
     PathRef(siteDir)

@@ -18,7 +18,11 @@ trait PublishModule extends PythonModule {
   }
 
   override def pythonToolDeps = Task {
-    super.pythonToolDeps() ++ Seq("setuptools>=75.6.0", "build>=1.2.2", "twine>=5.1.1")
+    super.pythonToolDeps() ++ Seq(
+      "setuptools>=75.6.0",
+      "build>=1.2.2",
+      "twine>=5.1.1"
+    )
   }
 
   /**

@@ -66,7 +66,10 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def mainScript: T[PathRef] = Task.Source { "src/main.py" }
 
   override def pythonToolDeps: T[Seq[String]] = Task {
-    super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1")
+    super.pythonToolDeps() ++ Seq(
+      "mypy==1.13.0",
+      "pex==2.24.1"
+    )
   }
 
   /**
@@ -160,7 +163,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def run(args: mill.define.Args) = Task.Command {
     runner().run(
-      (
+      args = (
         mainScript().path,
         args.value
       )

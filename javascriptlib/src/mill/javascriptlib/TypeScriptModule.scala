@@ -108,7 +108,7 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   // sources :)
-  def sources: T[Seq[PathRef]] = Task.Sources(moduleDir / "src")
+  def sources: T[Seq[PathRef]] = Task.Sources("src")
 
   def resources: T[Seq[PathRef]] = Task { Seq(PathRef(moduleDir / "resources")) }
 

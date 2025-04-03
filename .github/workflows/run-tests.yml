@@ -91,15 +91,15 @@ jobs:
           # Run these with Mill native launcher as a smoketest
         include:
           - os: ubuntu-24.04-arm
-            millargs: "'example.thirdparty[fansi].native.server.test'"
+            millargs: "'example.thirdparty[fansi].native.server'"
             java-version: 17
 
           - os: macos-latest
-            millargs: "'example.thirdparty[acyclic].native.server.test'"
+            millargs: "'example.thirdparty[acyclic].native.server'"
             java-version: 11
 
           - os: macos-13
-            millargs: "'example.thirdparty[jimfs].native.server.test'"
+            millargs: "'example.thirdparty[jimfs].native.server'"
             java-version: 11
     steps:
       - uses: actions/checkout@v4
@@ -150,12 +150,12 @@ jobs:
             install-sbt: false
 
           - java-version: 17
-            millargs: "example.javalib.__.local.server.test"
+            millargs: "example.javalib.__.local.server"
             install-android-sdk: false
             install-sbt: false
 
           - java-version: 17
-            millargs: "example.kotlinlib.__.local.server.test"
+            millargs: "example.kotlinlib.__.local.server"
             install-android-sdk: false
             install-sbt: false
 
@@ -163,65 +163,65 @@ jobs:
           # is the same as that used in the `build-linux` job to avoid diverging code
           # hashes (https://github.com/com-lihaoyi/mill/pull/4410)
           - java-version: 11
-            millargs: "example.scalalib.__.native.server.test"
+            millargs: "example.scalalib.__.native.server"
             install-android-sdk: false
             install-sbt: false
 
           - java-version: 17
-            millargs: "'example.android.__.local.server.test'"
+            millargs: "'example.android.__.local.server'"
             install-android-sdk: true
             install-sbt: false
 
           - java-version: 17
-            millargs: "'{example,integration}.migrating.__.local.server.test'"
+            millargs: "'{example,integration}.migrating.__.local.server'"
             install-android-sdk: false
             install-sbt: true
 
           - java-version: 17
-            millargs: "'example.{pythonlib,javascriptlib}.__.local.server.test'"
+            millargs: "'example.{pythonlib,javascriptlib}.__.local.server'"
             install-android-sdk: false
             install-sbt: false
 
           - java-version: 11
-            millargs: "'example.thirdparty[{mockito,commons-io}].local.server.test'"
+            millargs: "'example.thirdparty[{mockito,commons-io}].local.server'"
             install-android-sdk: false
             install-sbt: false
 
           - java-version: 17
-            millargs: "'example.thirdparty[{netty,gatling}].local.server.test'"
+            millargs: "'example.thirdparty[{netty,gatling}].local.server'"
             install-android-sdk: false
             install-sbt: false
 
           - java-version: '17'
-            millargs: "'example.thirdparty[arrow].local.server.test'"
+            millargs: "'example.thirdparty[arrow].local.server'"
             install-android-sdk: false
             install-sbt: false
 
           - java-version: 11
-            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server.test'"
+            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server'"
             install-android-sdk: false
             install-sbt: false
 
           - java-version: 11
-            millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
+            millargs: "'integration.{failure,feature,ide}.__.packaged.server'"
             install-android-sdk: false
             install-sbt: false
 
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
           - java-version: 17
-            millargs: "'integration.bootstrap[no-java-bootstrap].native.server.test'"
+            millargs: "'integration.bootstrap[no-java-bootstrap].native.server'"
             install-android-sdk: false
 
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
-            millargs: "'integration.invalidation.__.packaged.fork.test'"
+            millargs: "'integration.invalidation.__.packaged.fork'"
             install-android-sdk: false
             install-sbt: false
 
           - java-version: 17
-            millargs: "'integration.invalidation.__.packaged.server.test'"
+            millargs: "'integration.invalidation.__.packaged.server'"
             install-android-sdk: false
             install-sbt: false
 
@@ -250,23 +250,23 @@ jobs:
             install-sbt: false
 
           - java-version: 11
-            millargs: '"example.scalalib.{basic,publishing}.__.local.fork.test"'
+            millargs: '"example.scalalib.{basic,publishing}.__.local.fork"'
             install-sbt: false
 
           - java-version: 11
-            millargs: '"example.migrating.{scalalib,javalib}.__.local.fork.test"'
+            millargs: '"example.migrating.{scalalib,javalib}.__.local.fork"'
             install-sbt: true
 
           - java-version: 17
-            millargs: "'integration.{feature,failure}.__.packaged.fork.test'"
+            millargs: "'integration.{feature,failure}.__.packaged.fork'"
             install-sbt: false
 
           - java-version: 11 # Run this with Mill native launcher as a smoketest
-            millargs: "'integration.invalidation.__.native.server.test'"
+            millargs: "'integration.invalidation.__.native.server'"
             install-sbt: false
 
           - java-version: 17
-            millargs: "'integration.bootstrap[no-java-bootstrap].native.server.test'"
+            millargs: "'integration.bootstrap[no-java-bootstrap].native.server'"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
@@ -305,5 +305,4 @@ jobs:
       java-version: '17'
       buildcmd: |
         set -eux
-        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
-        ./mill -i --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
+        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
