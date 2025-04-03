@@ -50,7 +50,6 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
 //    AndroidLibModuleGeneratedSources(PathRef(manifestPath))
 //  }
 
-
   def androidReleaseAar: T[PathRef] = Task {
     val dest = T.dest
     val aarFile = dest / "library.aar"
