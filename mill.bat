@@ -118,7 +118,7 @@ if %errorlevel% equ 0 (
         if "%PREFIX%"=="0.12." set "SKIP_VERSION=true"
         echo %SKIP_VERSION%
 
-        if "%SKIP_VERSION%"=="false" (
+        if "!SKIP_VERSION!"=="false" (
             IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
                 set "ARTIFACT_SUFFIX=-native-windows-amd64"
                 set "MILL_EXT=.exe"
