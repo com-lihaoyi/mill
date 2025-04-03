@@ -21,15 +21,8 @@ runs:
     - run: cat .mill-jvm-version
       shell: ${{ inputs.shell }}
 
-    - run: cat out/mill-java-home
-      shell: bash
-
     - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}
-
-    - run: ls /home/runner/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/
-      shell: bash
-      if: always()
 
     # This generates a lot of logs and slows down the github actions UI like crazy, 
     # so only uncomment it when really necessary
