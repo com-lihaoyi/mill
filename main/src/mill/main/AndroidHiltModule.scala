@@ -17,7 +17,7 @@ object AndroidHiltModule extends ExternalModule {
   lazy val millDiscover = Discover[this.type]
 
   def toolsClasspath: Target[Seq[PathRef]] = Target {
-    millProjectModule("mill-main-androidhilt", repositories)
+    millProjectModule("mill-main-android-hilt", repositories)
   }
 
 }
