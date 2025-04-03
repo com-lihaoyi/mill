@@ -247,13 +247,13 @@ private[mill] case class Execution(
     )
 
     val results0: Vector[(Task[?], ExecResult[(Val, Int)])] = terminals0
-      .flatMap { t =>
+      .map { t =>
         plan.sortedGroups.lookupKey(t).flatMap { t0 =>
           finishedOptsMap(t) match {
-            case None => Some((t0, Aborted))
-            case Some(res) => res.newResults.get(t0).map(r => (t0, r))
+            case None => Some((t, Aborted))
+            case Some(res) => res.newResults.get(t0).map(r => (t, r))
           }
-        }
+        }.head
       }
 
     val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
