@@ -91,23 +91,27 @@ if %errorlevel% equ 0 (
     if %errorlevel% equ 0 (
         set "MILL_VERSION=%MILL_VERSION:-jvm=%"
     ) else (
-        if not "%MILL_VERSION:~0,4%"=="0.1." ^
-        if not "%MILL_VERSION:~0,4%"=="0.2." ^
-        if not "%MILL_VERSION:~0,4%"=="0.3." ^
-        if not "%MILL_VERSION:~0,4%"=="0.4." ^
-        if not "%MILL_VERSION:~0,4%"=="0.5." ^
-        if not "%MILL_VERSION:~0,4%"=="0.6." ^
-        if not "%MILL_VERSION:~0,4%"=="0.7." ^
-        if not "%MILL_VERSION:~0,4%"=="0.8." ^
-        if not "%MILL_VERSION:~0,4%"=="0.9." ^
-        if not "%MILL_VERSION:~0,5%"=="0.10." ^
-        if not "%MILL_VERSION:~0,5%"=="0.11." ^
-        if not "%MILL_VERSION:~0,5%"=="0.12." (
+      set "SKIP_VERSION=false"
+        set "PREFIX=%MILL_VERSION:~0,4%"
+        if "%PREFIX%"=="0.1." set "SKIP_VERSION=true"
+        if "%PREFIX%"=="0.2." set "SKIP_VERSION=true"
+        if "%PREFIX%"=="0.3." set "SKIP_VERSION=true"
+        if "%PREFIX%"=="0.4." set "SKIP_VERSION=true"
+        if "%PREFIX%"=="0.5." set "SKIP_VERSION=true"
+        if "%PREFIX%"=="0.6." set "SKIP_VERSION=true"
+        if "%PREFIX%"=="0.7." set "SKIP_VERSION=true"
+        if "%PREFIX%"=="0.8." set "SKIP_VERSION=true"
+        if "%PREFIX%"=="0.9." set "SKIP_VERSION=true"
+
+        set "PREFIX=%MILL_VERSION:~0,5%"
+        if "%PREFIX%"=="0.10." set "SKIP_VERSION=true"
+        if "%PREFIX%"=="0.11." set "SKIP_VERSION=true"
+        if "%PREFIX%"=="0.12." set "SKIP_VERSION=true"
+
+        if "%SKIP_VERSION%"=="false" (
             IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
                 set "ARTIFACT_SUFFIX=-native-windows-amd64"
                 set "MILL_EXT=.exe"
-            ) else (
-                rem no-op
             )
         ) else (
             echo Skipping because version starts with blocked prefix.
