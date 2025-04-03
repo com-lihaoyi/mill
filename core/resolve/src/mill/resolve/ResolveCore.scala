@@ -142,47 +142,20 @@ private object ResolveCore {
 
         (head, current) match {
           case (Segment.Label("super") | Segment.Label(".super"), nt: Resolved.NamedTask) =>
-            val superTarget = if (tail.nonEmpty) {
-              Some(tail.head.asInstanceOf[Segment.Label].value)
-            } else {
-              None
-            }
+            // Extract optional super target value from the next segment
+            val superTargetValue = tail.headOption.collect { case Segment.Label(value) => value }
+            // Adjust tail consumption based on whether a target was found
+            val remainingTail = if (superTargetValue.isDefined) tail.tail else tail
 
-            val newSegments = Segments.superTask(nt.segments, superTarget)
-            Success(Seq(Resolved.NamedTask(newSegments)))
-
-          case (Segment.Label(taskName), m: Resolved.Module) if taskName.endsWith(".super") =>
-            val baseTaskName = taskName.stripSuffix(".super")
-
-            if (tail.nonEmpty) {
-              Error(s"Cannot select segments after '.super' suffix: ${Segments(tail).render}")
-            } else {
-              val baseTaskResult = resolveDirectChildren(
-                rootModule,
-                m.cls,
-                Some(baseTaskName),
-                m.segments,
-                Seq.empty,
-                cache
-              )
-
-              baseTaskResult match {
-                case mill.api.Result.Success(resolvedChildren) =>
-                  val baseTasks = resolvedChildren.collect { case r: Resolved.NamedTask => r }
-
-                  if (baseTasks.isEmpty) {
-                    notFoundResult(rootModule, querySoFar, current, head, cache)
-                  } else {
-                    val superTasks = baseTasks.map { r =>
-                      Resolved.NamedTask(Segments.superTask(r.segments))
-                    }
-                    Success(superTasks)
-                  }
-
-                case mill.api.Result.Failure(err) =>
-                  Error(err)
-              }
-            }
+            val newSegments = Segments.superTask(nt.segments, superTargetValue)
+            resolve(
+              rootModule,
+              remainingTail,
+              Resolved.NamedTask(newSegments),
+              querySoFar ++ Seq(head) ++ superTargetValue.map(Segment.Label(_)).toSeq,
+              seenModules,
+              cache
+            )
 
           case (Segment.Label(singleLabel), m: Resolved.Module) =>
             val resOrErr: mill.api.Result[Seq[Resolved]] = singleLabel match {

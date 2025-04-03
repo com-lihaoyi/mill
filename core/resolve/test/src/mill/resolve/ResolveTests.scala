@@ -378,10 +378,10 @@ object ResolveTests extends TestSuite {
           val basePaths = ExecutionPaths.resolve(outPath, baseSegments)
           val superPaths = ExecutionPaths.resolve(outPath, superSegments)
 
-          // Verify that the paths are the same
-          assert(basePaths.dest == superPaths.dest)
-          assert(basePaths.meta == superPaths.meta)
-          assert(basePaths.log == superPaths.log)
+          // Super tasks should have their own paths
+          assert(basePaths.dest != superPaths.dest)
+          assert(basePaths.meta != superPaths.meta)
+          assert(basePaths.log != superPaths.log)
         }
       }
     }
