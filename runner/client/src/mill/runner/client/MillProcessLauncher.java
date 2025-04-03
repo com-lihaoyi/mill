@@ -283,7 +283,7 @@ public class MillProcessLauncher {
   private static final boolean canUseNativeTerminal;
 
   static {
-    JansiLoader.initJansi();
+    JLineNativeLoader.initJLineNative();
 
     boolean canUse;
     if (mill.constants.Util.hasConsole()) {
@@ -295,6 +295,8 @@ public class MillProcessLauncher {
       }
     } else canUse = false;
 
+    if (!canUse)
+      throw new RuntimeException("Error: can't use native stuff");
     canUseNativeTerminal = canUse;
   }
 
