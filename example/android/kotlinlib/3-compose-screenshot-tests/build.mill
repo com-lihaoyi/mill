@@ -69,12 +69,12 @@ object app extends AndroidAppKotlinModule {
 
 /** Usage
 
-> ./mill show app.screenshotTest.generatePreviews
+> ./mill show app.screenshotTest.generateReleasePreviews
 ...
 [
   "ref:...com/example/screenshottest/ExampleMessageCardScreenshots/oMessageCardScreenshot_spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420_0.png"
 ]
-...
+.
 
 
 */

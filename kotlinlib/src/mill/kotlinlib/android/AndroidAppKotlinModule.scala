@@ -178,7 +178,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
      * [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/tasks/PreviewScreenshotRenderTask.kt#157]]
      * @return
      */
-    def composePreviewArgs: T[PathRef] = Task {
+    def composeReleasePreviewArgs: T[PathRef] = Task {
       val output = screenshotResults().path
       val metadataFolder = Task.dest / "meta-data"
       val cliArgsFile = Task.dest / "cli_arguments.json"
@@ -193,7 +193,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
         projectClassPath = Seq(compile().classes.path.toString()),
         screenshots = androidDiscoveredPreviews()._2,
         namespace = namespace,
-        resourceApkPath = resourceApkPath().path.toString(),
+        resourceApkPath = resourceReleaseApkPath().path.toString(),
         resultsFilePath = resultsFilePath.toString()
       )
       os.write(cliArgsFile, upickle.default.write(cliArgs))
@@ -202,8 +202,36 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
 
     }
 
-    private def resourceApkPath: Task[PathRef] = Task {
-      PathRef(outer.androidResources()._1.path / "res.apk")
+    def composeDebugPreviewArgs: T[PathRef] = Task {
+      val output = screenshotResults().path
+      val metadataFolder = Task.dest / "meta-data"
+      val cliArgsFile = Task.dest / "cli_arguments.json"
+      val resultsFilePath = androidScreenshotGeneratedResults().path
+
+      val cliArgs = ComposeRenderer.Args(
+        fontsPath = androidSdkModule().fontsPath().toString,
+        layoutlibPath = layoutLibRuntimePath().path.toString(),
+        outputFolder = output.toString(),
+        metaDataFolder = metadataFolder.toString(),
+        classPath = compileClasspath().map(_.path.toString()).toSeq,
+        projectClassPath = Seq(compile().classes.path.toString()),
+        screenshots = androidDiscoveredPreviews()._2,
+        namespace = namespace,
+        resourceApkPath = resourceDebugApkPath().path.toString(),
+        resultsFilePath = resultsFilePath.toString()
+      )
+      os.write(cliArgsFile, upickle.default.write(cliArgs))
+
+      PathRef(cliArgsFile)
+
+    }
+
+    private def resourceReleaseApkPath: Task[PathRef] = Task {
+      PathRef(outer.androidReleaseResources()._1.path / "res.apk")
+    }
+
+    private def resourceDebugApkPath: Task[PathRef] = Task {
+      PathRef(outer.androidDebugResources()._1.path / "res.apk")
     }
 
     // TODO previews must be source controlled to be used as a base
@@ -213,7 +241,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
      * [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/tasks/PreviewRenderWorkAction.kt]]
      * @return
      */
-    def generatePreviews(): Command[Seq[PathRef]] = Task.Command(exclusive = true) {
+    def generateReleasePreviews(): Command[Seq[PathRef]] = Task.Command(exclusive = true) {
       val previewGenCmd = mill.util.Jvm.callProcess(
         mainClass = "com.android.tools.render.compose.MainKt",
         classPath =
@@ -222,7 +250,29 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
           "-Dlayoutlib.thread.profile.timeoutms=10000",
           "-Djava.security.manager=allow"
         ),
-        mainArgs = Seq(composePreviewArgs().path.toString()),
+        mainArgs = Seq(composeReleasePreviewArgs().path.toString()),
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      Task.log.info(s"Generate preview command ${previewGenCmd.command.mkString(" ")}")
+
+      previewGenCmd.out.lines().foreach(Task.log.info(_))
+
+      Seq.from(os.walk(screenshotResults().path).filter(_.ext == "png").map(PathRef(_)))
+    }
+
+    def generateDebugPreviews(): Command[Seq[PathRef]] = Task.Command(exclusive = true) {
+      val previewGenCmd = mill.util.Jvm.callProcess(
+        mainClass = "com.android.tools.render.compose.MainKt",
+        classPath =
+          composePreviewRenderer().map(_.path).toVector ++ layoutLibRenderer().map(_.path).toVector,
+        jvmArgs = Seq(
+          "-Dlayoutlib.thread.profile.timeoutms=10000",
+          "-Djava.security.manager=allow"
+        ),
+        mainArgs = Seq(composeDebugPreviewArgs().path.toString()),
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit
