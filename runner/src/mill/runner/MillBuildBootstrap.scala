@@ -388,7 +388,8 @@ class MillBuildBootstrap(
     lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.head.newInstance(
       allowPositionalCommandArgs,
       selectiveExecution,
-      execCls.getConstructors.last.newInstance(
+      // Use the shorter convenience constructor not the primary one
+      execCls.getConstructors.minBy(_.getParameterCount).newInstance(
         baseLogger,
         home.toNIO,
         projectRoot.toNIO,
