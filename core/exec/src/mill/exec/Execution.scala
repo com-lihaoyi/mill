@@ -33,7 +33,7 @@ private[mill] case class Execution(
     codeSignatures: Map[String, Int],
     systemExit: Int => Nothing,
     exclusiveSystemStreams: SystemStreams,
-    getEvaluator: () => Evaluator
+    getEvaluator: () => mill.define.EvaluatorApi
 ) extends GroupExecution with AutoCloseable {
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)

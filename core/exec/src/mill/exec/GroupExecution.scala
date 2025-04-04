@@ -31,7 +31,7 @@ private trait GroupExecution {
   def codeSignatures: Map[String, Int]
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
-  def getEvaluator: () => Evaluator
+  def getEvaluator: () => mill.define.EvaluatorApi
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
@@ -267,7 +267,7 @@ private trait GroupExecution {
             os.dynamicPwdFunction.withValue(destFunc) {
               os.checker.withValue(executionChecker) {
                 SystemStreams.withStreams(streams) {
-                  val exposedEvaluator = if (!exclusive) null else getEvaluator()
+                  val exposedEvaluator = if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
                   Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
                     if (!exclusive) t
                     else {

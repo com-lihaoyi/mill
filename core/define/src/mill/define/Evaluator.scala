@@ -6,7 +6,21 @@ import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
-trait Evaluator extends AutoCloseable {
+trait EvaluatorApi extends AutoCloseable{
+  def evaluate(
+                scriptArgs: Seq[String],
+                selectMode: SelectMode,
+                selectiveExecution: Boolean = false
+              ): mill.api.Result[EvaluatorApi.Result[Any]]
+
+  private[mill] def workerCache: mutable.Map[Segments, (Int, Val)]
+}
+object EvaluatorApi {
+  trait Result[T] {
+    def values: mill.api.Result[Seq[T]]
+  }
+}
+trait Evaluator extends AutoCloseable with EvaluatorApi{
   private[mill] def allowPositionalCommandArgs: Boolean
   private[mill] def selectiveExecution: Boolean
   private[mill] def workspace: os.Path
@@ -75,12 +89,12 @@ object Evaluator {
       values: mill.api.Result[Seq[T]],
       selectedTasks: Seq[Task[?]],
       executionResults: ExecutionResults
-  )
+  ) extends EvaluatorApi.Result[T]
 
   /**
    * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
    */
-  case class AllBootstrapEvaluators(value: Seq[Evaluator])
+  case class AllBootstrapEvaluators(value: Seq[EvaluatorApi])
 
   private[mill] val allBootstrapEvaluators =
     new DynamicVariable[Evaluator.AllBootstrapEvaluators](null)

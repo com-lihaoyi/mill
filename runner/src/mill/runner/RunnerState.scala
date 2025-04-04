@@ -1,7 +1,7 @@
 package mill.runner
 
 import mill.api.{PathRef, Val, internal}
-import mill.define.{Evaluator, Segments}
+import mill.define.{EvaluatorApi, Segments}
 import mill.define.internal.Watchable
 import upickle.default.{ReadWriter, macroRW}
 import mill.main.RootModule
@@ -61,7 +61,7 @@ object RunnerState {
       classLoaderOpt: Option[RunnerState.URLClassLoader],
       runClasspath: Seq[PathRef],
       compileOutput: Option[PathRef],
-      evaluator: Option[Evaluator]
+      evaluator: Option[EvaluatorApi]
   ) {
 
     def loggedData: Frame.Logged = {

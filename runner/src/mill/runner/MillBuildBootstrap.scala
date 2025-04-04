@@ -5,7 +5,7 @@ import mill.define.internal.Watchable
 import mill.main.{BuildInfo, RootModule}
 import mill.constants.CodeGenConstants.*
 import mill.api.{Logger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
-import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
+import mill.define.{BaseModule, Evaluator, Segments, SelectMode, EvaluatorApi}
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.eval.EvaluatorImpl
@@ -245,7 +245,7 @@ class MillBuildBootstrap(
   def processRunClasspath(
       nestedState: RunnerState,
       rootModule: RootModule,
-      evaluator: Evaluator,
+      evaluator: EvaluatorApi,
       prevFrameOpt: Option[RunnerState.Frame],
       prevOuterFrameOpt: Option[RunnerState.Frame]
   ): RunnerState = {
@@ -333,7 +333,7 @@ class MillBuildBootstrap(
   def processFinalTargets(
       nestedState: RunnerState,
       rootModule: RootModule,
-      evaluator: Evaluator
+      evaluator: EvaluatorApi
   ): RunnerState = {
 
     assert(nestedState.frames.forall(_.evaluator.isDefined))
@@ -366,7 +366,7 @@ class MillBuildBootstrap(
       millClassloaderIdentityHash: Int,
       depth: Int,
       actualBuildFileName: Option[String] = None
-  ): Evaluator = {
+  ): EvaluatorApi = {
 
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -378,7 +378,7 @@ class MillBuildBootstrap(
 
     val outPath = recOut(output, depth)
     val baseLogger = new PrefixLogger(logger, bootLogPrefix)
-    lazy val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
+    lazy val evaluator: EvaluatorApi = new mill.eval.EvaluatorImpl(
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       selectiveExecution = selectiveExecution,
       execution = new mill.exec.Execution(
@@ -481,7 +481,7 @@ object MillBuildBootstrap {
 
   def evaluateWithWatches(
       rootModule: RootModule,
-      evaluator: Evaluator,
+      evaluator: EvaluatorApi,
       targetsAndParams: Seq[String],
       selectiveExecution: Boolean
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
