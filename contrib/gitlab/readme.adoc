@@ -164,8 +164,8 @@ import $ivy.`com.lihaoyi::mill-contrib-gitlab:`
 import mill.contrib.gitlab._
 
 // DON'T DO THIS
-def repositoriesTask = Task.Anon {
-  super.repositoriesTask() ++ Seq(
+def repositories = Task.Anon {
+  super.repositories() ++ Seq(
     MavenRepository("https://gitlab.local/api/v4/projects/42/packages/maven",
       Some(Authentication(Seq(("Private-Token", "<<private-token>>"))))))
 }
@@ -186,8 +186,8 @@ object myPackageRepository extends GitlabMavenRepository {
 }
 
 object myModule extends ScalaModule {
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++
+  def repositories = Task.Anon {
+    super.repositories() ++
       Seq(
         MavenRepository("https://oss.sonatype.org/content/repositories/releases"),
         myPackageRegistry.mavenRepository()

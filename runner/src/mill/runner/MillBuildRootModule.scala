@@ -65,7 +65,7 @@ abstract class MillBuildRootModule()(implicit
     scalaCompilerResolver.resolve(rootModuleInfo.compilerWorkerClasspath)
   }
 
-  override def repositoriesTask: Task[Seq[Repository]] = {
+  override def repositories: Task[Seq[Repository]] = {
     val importedRepos = Task.Anon {
       val repos = parseBuildFiles().repos.map { case (repo, srcFile) =>
         val relFile = Try {
@@ -85,7 +85,7 @@ abstract class MillBuildRootModule()(implicit
     }
 
     Task.Anon {
-      super.repositoriesTask() ++ importedRepos()
+      super.repositories() ++ importedRepos()
     }
   }
 
@@ -294,7 +294,7 @@ abstract class MillBuildRootModule()(implicit
     super.semanticDbPluginClasspath() ++ lineNumberPluginClasspath()
 
   def lineNumberPluginClasspath: T[Seq[PathRef]] = Task {
-    // millProjectModule("mill-runner-linenumbers", repositoriesTask())
+    // millProjectModule("mill-runner-linenumbers", repositories())
     Seq.empty
   }
 

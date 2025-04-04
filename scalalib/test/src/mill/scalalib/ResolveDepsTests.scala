@@ -49,8 +49,8 @@ object ResolveDepsTests extends TestSuite {
         ivy"androidx.compose.animation:animation-core:1.1.1",
         ivy"androidx.compose.ui:ui:1.1.1"
       )
-      def repositoriesTask = Task.Anon {
-        super.repositoriesTask() :+ coursier.Repositories.google
+      def repositories = Task.Anon {
+        super.repositories() :+ coursier.Repositories.google
       }
       def artifactTypes = super.artifactTypes() + coursier.core.Type("aar")
     }

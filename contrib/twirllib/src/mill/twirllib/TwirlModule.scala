@@ -64,9 +64,9 @@ trait TwirlModule extends mill.Module { twirlModule =>
       BoundDep(Lib.depToDependency(dep, twirlScalaVersion()), dep.force)
     }
 
-    override def repositoriesTask: Task[Seq[Repository]] = twirlModule match {
-      case m: CoursierModule => m.repositoriesTask
-      case _ => super.repositoriesTask
+    override def repositories: Task[Seq[Repository]] = twirlModule match {
+      case m: CoursierModule => m.repositories
+      case _ => super.repositories
     }
   }
 

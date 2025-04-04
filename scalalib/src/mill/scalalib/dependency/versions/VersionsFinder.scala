@@ -55,7 +55,7 @@ private[dependency] object VersionsFinder {
       val deps = javaModule.ivyDeps()
       val compileIvyDeps = javaModule.compileIvyDeps()
       val runIvyDeps = javaModule.runIvyDeps()
-      val repos = javaModule.repositoriesTask()
+      val repos = javaModule.repositories()
       val mapDeps = javaModule.mapDependencies()
       val custom = javaModule.resolutionCustomizer()
       val cacheCustom = javaModule.coursierCacheCustomizer()

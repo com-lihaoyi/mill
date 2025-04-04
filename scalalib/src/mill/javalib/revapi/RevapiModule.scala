@@ -97,7 +97,7 @@ trait RevapiModule extends PublishModule {
 
   /** URLs of remote Maven repositories to use for artifact resolution */
   def revapiRemoteRepositories: T[Seq[String]] = Task {
-    repositoriesTask()
+    repositories()
       .collect { case repo: coursier.MavenRepository => repo.root }
   }
 

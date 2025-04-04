@@ -489,7 +489,7 @@ object BuildGenUtil {
 
   def renderRepositories(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
     renderSeqTaskDefWithSuper(
-      "repositoriesTask",
+      "repositories",
       args,
       superArgs,
       "coursier.Repository",

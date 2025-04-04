@@ -196,8 +196,8 @@ trait BaseModule extends SbtModule with PublishModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
+  def repositories = Task.Anon {
+    super.repositories() ++ Seq(
       coursier.maven.MavenRepository(
         "https://oss.sonatype.org/service/local/repositories/releases/content/"
       ),
