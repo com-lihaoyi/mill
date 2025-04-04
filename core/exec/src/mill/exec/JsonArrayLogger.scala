@@ -42,20 +42,24 @@ private[mill] object JsonArrayLogger {
   private[mill] class Profile(outPath: os.Path)
       extends JsonArrayLogger[Profile.Timing](outPath, indent = 2) {
     def log(
-        terminal: Task[?],
+        terminal: String,
         duration: Long,
-        res: GroupExecution.Results,
-        deps: Seq[Task[?]]
+        cached: java.lang.Boolean,
+        valueHashChanged: java.lang.Boolean,
+        deps: Seq[String],
+        inputsHash: Int,
+        previousInputsHash: Int,
     ): Unit = {
       log(
         Profile.Timing(
-          terminal.toString,
+          terminal,
           (duration / 1000).toInt,
-          res.cached,
-          res.valueHashChanged,
-          deps.map(_.toString),
-          res.inputsHash,
-          res.previousInputsHash
+          cached,
+          valueHashChanged,
+          deps,
+          inputsHash,
+          previousInputsHash
+
         )
       )
     }
@@ -81,7 +85,7 @@ private[mill] object JsonArrayLogger {
       extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
 
     def log(
-        terminal: Task[?],
+        terminal: String,
         cat: String,
         startTime: Long,
         duration: Long,
@@ -90,7 +94,7 @@ private[mill] object JsonArrayLogger {
     ): Unit = {
 
       val event = ChromeProfile.TraceEvent(
-        name = terminal.toString,
+        name = terminal,
         cat = cat,
         ph = "X",
         ts = startTime,

@@ -21,7 +21,7 @@ private trait GroupExecution {
   def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path
-  def rootModule: mill.define.BaseModule
+  def rootModule: mill.define.BaseModuleApi
   def classLoaderSigHash: Int
   def classLoaderIdentityHash: Int
   def workerCache: mutable.Map[Segments, (Int, Val)]

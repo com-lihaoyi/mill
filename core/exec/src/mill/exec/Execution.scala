@@ -23,7 +23,7 @@ private[mill] case class Execution(
     workspace: os.Path,
     outPath: os.Path,
     externalOutPath: os.Path,
-    rootModule: BaseModule,
+    rootModule: BaseModuleApi,
     classLoaderSigHash: Int,
     classLoaderIdentityHash: Int,
     workerCache: mutable.Map[Segments, (Int, Val)],
@@ -195,12 +195,21 @@ private[mill] case class Execution(
                 val duration = endTime - startTime
 
                 val threadId = threadNumberer.getThreadId(Thread.currentThread())
-                chromeProfileLogger.log(terminal, "job", startTime, duration, threadId, res.cached)
+                chromeProfileLogger.log(terminal.toString, "job", startTime, duration, threadId, res.cached)
 
                 if (!res.cached) uncached.put(terminal, ())
                 if (res.valueHashChanged) changedValueHash.put(terminal, ())
 
-                profileLogger.log(terminal, duration, res, deps)
+                profileLogger.log(
+                  terminal.toString,
+                  duration,
+                  res.cached,
+                  res.valueHashChanged,
+                  deps.map(_.toString),
+                  res.inputsHash,
+                  res.previousInputsHash
+
+                )
 
                 Some(res)
               }

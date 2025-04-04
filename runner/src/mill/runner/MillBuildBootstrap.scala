@@ -2,7 +2,7 @@ package mill.runner
 
 import mill.internal.PrefixLogger
 import mill.define.internal.Watchable
-import mill.main.{BuildInfo, RootModule}
+import mill.main.{BuildInfo, RootModule, RootModuleApi}
 import mill.constants.CodeGenConstants.*
 import mill.api.{Logger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
 import mill.define.{BaseModule, Evaluator, Segments, SelectMode, EvaluatorApi}
@@ -244,7 +244,7 @@ class MillBuildBootstrap(
    */
   def processRunClasspath(
       nestedState: RunnerState,
-      rootModule: RootModule,
+      rootModule: RootModuleApi,
       evaluator: EvaluatorApi,
       prevFrameOpt: Option[RunnerState.Frame],
       prevOuterFrameOpt: Option[RunnerState.Frame]
@@ -303,7 +303,32 @@ class MillBuildBootstrap(
           val cl = new RunnerState.URLClassLoader(
             runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
             null
-          )
+          ){
+            val sharedCl = classOf[MillBuildBootstrap].getClassLoader
+            val sharedPrefixes = Seq(
+              "mill.main.RootModuleApi",
+              "mill.define.BaseModuleApi",
+              "mill.define.EvaluatorApi",
+              "scala.",
+              "fansi.",
+              "mill.api.Logger",
+              "mill.api.Result",
+              "mill.define.SelectMode",
+              "os.",
+              "geny.",
+              "mill.exec.JsonArrayLogger",
+              "mill.api.SystemStreams",
+            )
+            override def findClass(name: String): Class[?] =
+              if (sharedPrefixes.exists(name.startsWith)) {
+                mill.constants.DebugLog.println("+ " + name)
+                sharedCl.loadClass(name)
+              }
+              else {
+                mill.constants.DebugLog.println("- " + name)
+                super.findClass(name)
+              }
+          }
           cl
         } else {
           prevFrameOpt.get.classLoaderOpt.get
@@ -332,7 +357,7 @@ class MillBuildBootstrap(
    */
   def processFinalTargets(
       nestedState: RunnerState,
-      rootModule: RootModule,
+      rootModule: RootModuleApi,
       evaluator: EvaluatorApi
   ): RunnerState = {
 
@@ -361,7 +386,7 @@ class MillBuildBootstrap(
   def makeEvaluator(
       workerCache: Map[Segments, (Int, Val)],
       codeSignatures: Map[String, Int],
-      rootModule: BaseModule,
+      rootModule: RootModuleApi,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
       depth: Int,
@@ -378,30 +403,33 @@ class MillBuildBootstrap(
 
     val outPath = recOut(output, depth)
     val baseLogger = new PrefixLogger(logger, bootLogPrefix)
-    lazy val evaluator: EvaluatorApi = new mill.eval.EvaluatorImpl(
-      allowPositionalCommandArgs = allowPositionalCommandArgs,
-      selectiveExecution = selectiveExecution,
-      execution = new mill.exec.Execution(
-        baseLogger = baseLogger,
-        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
-        profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
-        home = home,
-        workspace = projectRoot,
-        outPath = outPath,
-        externalOutPath = outPath,
-        rootModule = rootModule,
-        classLoaderSigHash = millClassloaderSigHash,
-        classLoaderIdentityHash = millClassloaderIdentityHash,
-        workerCache = workerCache.to(collection.mutable.Map),
-        env = env,
-        failFast = !keepGoing,
-        threadCount = threadCount,
-        codeSignatures = codeSignatures,
-        systemExit = systemExit,
-        exclusiveSystemStreams = streams0,
-        getEvaluator = () => evaluator
+    val cl = rootModule.getClass.getClassLoader
+    val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
+    val execCls = cl.loadClass("mill.exec.Execution")
+    lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.head.newInstance(
+      allowPositionalCommandArgs,
+      selectiveExecution,
+      execCls.getConstructors.head.newInstance(
+        baseLogger,
+        new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
+        new JsonArrayLogger.Profile(outPath / millProfile),
+        home,
+        projectRoot,
+        outPath,
+        outPath,
+        rootModule,
+        millClassloaderSigHash,
+        millClassloaderIdentityHash,
+        workerCache.to(collection.mutable.Map),
+        env,
+        !keepGoing,
+        threadCount,
+        codeSignatures,
+        systemExit,
+        streams0,
+        () => evaluator
       )
-    )
+    ).asInstanceOf[EvaluatorApi]
 
     evaluator
   }
@@ -480,7 +508,7 @@ object MillBuildBootstrap {
   }
 
   def evaluateWithWatches(
-      rootModule: RootModule,
+      rootModule: RootModuleApi,
       evaluator: EvaluatorApi,
       targetsAndParams: Seq[String],
       selectiveExecution: Boolean
@@ -510,10 +538,10 @@ object MillBuildBootstrap {
     }
   }
 
-  def getRootModule(runClassLoader: URLClassLoader): RootModule = {
+  def getRootModule(runClassLoader: URLClassLoader): RootModuleApi = {
     val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
     os.checker.withValue(EvaluatorImpl.resolveChecker) {
-      buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModule]
+      buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModuleApi]
     }
   }
 

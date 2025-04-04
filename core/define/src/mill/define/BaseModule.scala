@@ -21,7 +21,7 @@ abstract class BaseModule(
         external0,
         millFile0
       )
-    ) with Module {
+    ) with Module  with BaseModuleApi{
 
   // `Discover` needs to be defined by every concrete `BaseModule` object, to gather
   // compile-time metadata about the tasks and commands at for use at runtime
@@ -31,3 +31,5 @@ abstract class BaseModule(
   // so it can be used for override detection
   def moduleCtx = super.moduleCtx.withDiscover(millDiscover)
 }
+
+trait BaseModuleApi

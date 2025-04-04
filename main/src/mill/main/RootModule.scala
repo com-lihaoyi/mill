@@ -2,8 +2,15 @@ package mill.main
 
 import mill.api.internal
 import mill.define.Discover
-import scala.annotation.compileTimeOnly
+import mill.define.internal.Watchable
 
+import scala.annotation.compileTimeOnly
+import scala.collection.mutable
+
+trait RootModuleApi {
+  protected[mill] def watchedValues: mutable.Buffer[Watchable]
+  protected[mill] def evalWatchedValues: mutable.Buffer[Watchable]
+}
 /**
  * Used to mark a module in your `build.mill` as a top-level module, so it's
  * tasks can be run directly e.g. via `mill run` rather than
@@ -19,7 +26,8 @@ abstract class RootModule()(implicit
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
 ) extends mill.define.BaseModule(baseModuleInfo.projectRoot)
-    with mill.main.MainModule {
+    with mill.main.MainModule
+    with RootModuleApi {
 
   // Dummy `millDiscover` defined but never actually used and overridden by codegen.
   // Provided for IDEs to think that one is available and not show errors in
