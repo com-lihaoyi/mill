@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
 import mill.runner.api.{BaseModuleApi, EvaluatorApi}
+import mill.constants.OutFiles.{millChromeProfile, millProfile}
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
@@ -35,6 +36,42 @@ private[mill] case class Execution(
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi
 ) extends GroupExecution with AutoCloseable {
+
+  def this(baseLogger: Logger,
+           home: java.nio.file.Path,
+           workspace: java.nio.file.Path,
+           outPath: java.nio.file.Path,
+           externalOutPath: java.nio.file.Path,
+           rootModule: BaseModuleApi,
+           classLoaderSigHash: Int,
+           classLoaderIdentityHash: Int,
+           workerCache: mutable.Map[Segments, (Int, Val)],
+           env: Map[String, String],
+           failFast: Boolean,
+           threadCount: Option[Int],
+           codeSignatures: Map[String, Int],
+           systemExit: Int => Nothing,
+           exclusiveSystemStreams: SystemStreams,
+           getEvaluator: () => EvaluatorApi) = this(
+    baseLogger,
+    new JsonArrayLogger.ChromeProfile(os.Path(outPath) / millChromeProfile),
+    new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
+      os.Path(home),
+      os.Path(workspace),
+      os.Path(outPath),
+      os.Path(externalOutPath),
+      rootModule,
+      classLoaderSigHash,
+      classLoaderIdentityHash,
+      workerCache,
+      env,
+      failFast,
+      threadCount,
+      codeSignatures,
+      systemExit,
+      exclusiveSystemStreams,
+      getEvaluator,
+  )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
 

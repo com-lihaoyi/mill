@@ -11,8 +11,8 @@ import mill.contrib.buildinfo.BuildInfo
  */
 object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
   object api extends build.MillPublishScalaModule {
-      def moduleDeps = Seq(build.core.constants)
-     def ivyDeps = Agg(build.Deps.osLib, build.Deps.upickle, build.Deps.fansi)
+    def moduleDeps = Seq(build.core.constants)
+    def ivyDeps = Agg(build.Deps.fansi)
   }
   object `worker-api` extends build.MillPublishScalaModule {
     // def ivyDeps = Agg(build.Deps.osLib)

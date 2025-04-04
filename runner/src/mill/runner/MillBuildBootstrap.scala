@@ -311,8 +311,6 @@ class MillBuildBootstrap(
               "scala.",
               "javax.",
               "fansi.",
-              "os.",
-              "geny.",
             )
             override def findClass(name: String): Class[?] =
               if (sharedPrefixes.exists(name.startsWith)) {
@@ -404,14 +402,12 @@ class MillBuildBootstrap(
     lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.head.newInstance(
       allowPositionalCommandArgs,
       selectiveExecution,
-      execCls.getConstructors.head.newInstance(
+      execCls.getConstructors.last.newInstance(
         baseLogger,
-        new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
-        new JsonArrayLogger.Profile(outPath / millProfile),
-        home,
-        projectRoot,
-        outPath,
-        outPath,
+        home.toNIO,
+        projectRoot.toNIO,
+        outPath.toNIO,
+        outPath.toNIO,
         rootModule,
         millClassloaderSigHash,
         millClassloaderIdentityHash,

@@ -1,6 +1,6 @@
 package mill.runner.api
-import java.io.PrintStream
 
+import java.io.{InputStream, OutputStream, PrintStream}
 /**
  * The standard logging interface of the Mill build tool.
  * Also contains the two forwarded stdout and stderr streams, for code executed
