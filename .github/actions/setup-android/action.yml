@@ -3,9 +3,7 @@
 runs:
   using: "composite"
   steps:
-    - name: Set new Android SDK Home
-      run: echo "ANDROID_SDK_ROOT=$HOME/.android/" >> $GITHUB_ENV
-      shell: bash
+
     - uses: android-actions/setup-android@v3
       with:
         log-accepted-android-sdk-licenses: false
