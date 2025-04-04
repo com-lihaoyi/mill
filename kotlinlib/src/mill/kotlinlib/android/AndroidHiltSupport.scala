@@ -264,6 +264,8 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
     val classPath = androidHiltModule().toolsClasspath().map(_.path)
 
+    T.log.info(s"Tools classpath ${classPath}")
+
     mill.util.Jvm.callProcess(
       mainClass = mainClass,
       classPath = classPath,
