@@ -843,7 +843,7 @@ trait AndroidAppModule extends AndroidModule {
 
     def testFramework: T[String]
 
-    override def androidInstall(): Command[String] = Task.Command(exclusive = true) {
+    override def androidInstall(): Command[String] = Task.Command {
       val emulator = runningEmulator()
       os.call(
         (
