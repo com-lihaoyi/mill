@@ -13,7 +13,7 @@ import mill.scalalib.api.{CompilationResult, Versions}
 import mill.constants.OutFiles.*
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.util.BuildInfo
-import mill.main.RootModule
+import mill.define.RootModule
 import mill.runner.worker.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import scala.util.Try
@@ -354,6 +354,10 @@ object MillBuildRootModule {
       scalaCompilerResolver: ScalaCompilerWorker.Resolver
   ) extends MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
+
+    protected[mill] def evalWatchedValues: collection.mutable.Buffer[mill.runner.api.Watchable] = collection.mutable.Buffer.empty
+
+    protected[mill] def watchedValues: collection.mutable.Buffer[mill.runner.api.Watchable] = collection.mutable.Buffer.empty
   }
 
   case class Info(

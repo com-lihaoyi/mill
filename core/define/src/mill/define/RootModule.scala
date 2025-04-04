@@ -1,13 +1,12 @@
-package mill.main
+package mill.define
 
 import mill.api.internal
 import mill.define.Discover
 import mill.define.internal.Watchable
+import mill.runner.api.RootModuleApi
 
 import scala.annotation.compileTimeOnly
 import scala.collection.mutable
-
-import mill.runner.api.RootModuleApi
 
 /**
  * Used to mark a module in your `build.mill` as a top-level module, so it's
@@ -24,7 +23,6 @@ abstract class RootModule()(implicit
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
 ) extends mill.define.BaseModule(baseModuleInfo.projectRoot)
-    with mill.main.MainModule
     with RootModuleApi {
 
   // Dummy `millDiscover` defined but never actually used and overridden by codegen.

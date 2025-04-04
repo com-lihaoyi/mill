@@ -237,7 +237,7 @@ object CodeGen {
         val extendsClause =
           if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule(build.millDiscover) "
           else if (millTopLevelProjectRoot == scriptFolderPath)
-            s"extends _root_.mill.main.RootModule() "
+            s"extends _root_.mill.main.MainRootModule "
           else s"extends _root_.mill.runner.MillBuildRootModule() "
 
         s"""$headerCode
@@ -278,7 +278,7 @@ object CodeGen {
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
-       |object MillMiscInfo extends mill.main.RootModule.Info(
+       |object MillMiscInfo extends mill.define.RootModule.Info(
        |  ${enclosingClasspath.map(p => literalize(p.toString))},
        |  ${compilerWorkerClasspath.map(p => literalize(p.toString))},
        |  ${literalize(scriptFolderPath.toString)},

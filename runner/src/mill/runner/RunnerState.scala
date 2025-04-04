@@ -5,7 +5,7 @@ import mill.runner.api.{RootModuleApi, EvaluatorApi}
 import mill.define.Segments
 import mill.define.internal.Watchable
 import upickle.default.{ReadWriter, macroRW}
-import mill.main.RootModule
+import mill.define.RootModule
 
 /**
  * This contains a list of frames each representing cached data from a single

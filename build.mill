@@ -403,7 +403,7 @@ trait MillJavaModule extends JavaModule {
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testForkEnv: T[Map[String, String]] = forkEnv()
   def testModuleDeps: Seq[JavaModule] =
-    if (this == build.main) Seq(build.main)
+    if (this == build.main) Seq(build.main, build.main.util)
     else Seq(this, build.main.test)
 
   def writeLocalTestOverrides = Task.Anon {

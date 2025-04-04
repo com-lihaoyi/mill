@@ -11,6 +11,12 @@ import mill.exec.Cached
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
 
+abstract class MainRootModule()(implicit
+                            baseModuleInfo: RootModule.Info,
+                            millModuleEnclosing0: sourcecode.Enclosing,
+                            millModuleLine0: sourcecode.Line,
+                            millFile0: sourcecode.File
+) extends RootModule with MainModule
 /**
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.

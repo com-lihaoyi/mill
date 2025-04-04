@@ -2,7 +2,7 @@ package mill.runner
 
 import mill.internal.PrefixLogger
 import mill.define.internal.Watchable
-import mill.main.RootModule
+import mill.define.RootModule
 import mill.util.BuildInfo
 import mill.runner.api.{RootModuleApi, EvaluatorApi}
 import mill.constants.CodeGenConstants.*
