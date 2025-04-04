@@ -100,8 +100,10 @@ trait KspModule extends KotlinModule { outer =>
    * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
    */
   def kspClasspath: T[Seq[PathRef]] = Task {
-    compileClasspath()
+    super.compileClasspath()
   }
+
+  override def kotlinLanguageVersion: T[String] = "1.9"
 
   /**
    * Kotlinc arguments used with KSP
@@ -112,7 +114,7 @@ trait KspModule extends KotlinModule { outer =>
     "-no-reflect",
     "-no-stdlib",
     "-language-version",
-    "1.9"
+    kotlinLanguageVersion()
   )
 
   def kspPluginParameters: T[Seq[String]] = Task {
@@ -128,7 +130,7 @@ trait KspModule extends KotlinModule { outer =>
   def generateSourcesWithKSP: Target[GeneratedKSPSources] = Task {
     val sourceFiles = kspSources().map(_.path)
 
-    val compileCp = compileClasspath().map(_.path).filter(os.exists)
+    val compileCp = kspClasspath().map(_.path).filter(os.exists)
 
     val pluginArgs: String = kspPluginsResolved().map(_.path)
       .mkString(",")

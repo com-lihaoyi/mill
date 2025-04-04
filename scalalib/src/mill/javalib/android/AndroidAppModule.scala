@@ -186,7 +186,7 @@ trait AndroidAppModule extends AndroidModule {
    */
   def androidDex: T[PathRef] = Task {
 
-    val inheritedClassFiles = (compileClasspath() ++ androidGeneratedCompiledClasses())
+    val inheritedClassFiles = compileClasspath()
       .map(_.path).filter(os.isDir)
       .flatMap(os.walk(_))
       .filter(os.isFile)
@@ -651,7 +651,7 @@ trait AndroidAppModule extends AndroidModule {
    *
    * @return The name of the device the app was installed to
    */
-  def androidInstall: Target[String] = Task {
+  def androidInstall(): Command[String] = Task.Command(exclusive = true) {
     val emulator = runningEmulator()
 
     os.call(
@@ -841,7 +841,7 @@ trait AndroidAppModule extends AndroidModule {
 
     def testFramework: T[String]
 
-    override def androidInstall: Target[String] = Task {
+    override def androidInstall(): Command[String] = Task.Command(exclusive = true) {
       val emulator = runningEmulator()
       os.call(
         (
@@ -860,7 +860,7 @@ trait AndroidAppModule extends AndroidModule {
         args: Task[Seq[String]],
         globSelectors: Task[Seq[String]]
     ): Task[(String, Seq[TestResult])] = Task {
-      val device = androidInstall()
+      val device = androidInstall().apply()
 
       val instrumentOutput = os.proc(
         (
