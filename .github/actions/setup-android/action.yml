@@ -3,11 +3,13 @@
 runs:
   using: "composite"
   steps:
+    - name: Set ANDROID_SDK_ROOT
+      run: echo "ANDROID_SDK_ROOT=$HOME/.android/sdk" >> $GITHUB_ENV
+
     - uses: android-actions/setup-android@v3
       with:
         log-accepted-android-sdk-licenses: false
-        cmdline-tools-version: 11076708
-        packages: tools platform-tools emulator system-images;android-35;google_apis_playstore;x86_64
+        packages: tools cmdline-tools;latest platform-tools emulator system-images;android-35;google_apis_playstore;x86_64
 
     - name: Enable KVM group perms
       run: |
