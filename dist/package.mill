@@ -74,6 +74,7 @@ object `package` extends RootModule with InstallModule {
 
     def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
       build.main.graphviz.testDep(),
+      build.main.androidhilt.testDep(),
       build.main.init.maven.testDep(),
       build.main.init.gradle.testDep(),
       build.main.init.sbt.testDep(),
