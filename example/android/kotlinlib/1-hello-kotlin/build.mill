@@ -76,6 +76,19 @@ object app extends AndroidAppKotlinModule {
 > ./mill show app.androidDebugApk
 ".../out/app/androidDebugApk.dest/app.apk"
 
+> ./mill app.createAndroidVirtualDevice
+
+> ./mill show app.startAndroidEmulator
+
+> ./mill show app.androidReleaseInstall
+...All files should be loaded. Notifying the device...
+
+> ./mill show app.androidDebugInstall
+...All files should be loaded. Notifying the device...
+
+> ./mill show app.stopAndroidEmulator
+
+> ./mill show app.deleteAndroidVirtualDevice
 */
 
 // This command triggers the build process, which installs the Android Setup, compiles the kotlin
@@ -129,12 +142,6 @@ object app extends AndroidAppKotlinModule {
 
 > ./mill show app.adbDevices
 ...emulator-5556...device...
-
-> ./mill show app.androidReleaseInstall
-...All files should be loaded. Notifying the device...
-
-> ./mill show app.androidDebugInstall
-...All files should be loaded. Notifying the device...
 
 > ./mill show app.it
 ...
