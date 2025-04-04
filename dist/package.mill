@@ -88,7 +88,12 @@ object `package` extends RootModule with InstallModule {
       build.contrib.testng.testDep(),
       build.bsp.worker.testDep(),
       build.testkit.testDep(),
-      build.runner.worker.testDep()
+      build.runner.worker.testDep(),
+      build.scalajslib.testDep(),
+      build.scalanativelib.testDep(),
+      build.kotlinlib.testDep(),
+      build.javascriptlib.testDep(),
+      build.pythonlib.testDep()
     )
   }
 
