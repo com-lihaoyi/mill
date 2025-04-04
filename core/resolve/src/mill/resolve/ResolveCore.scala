@@ -182,9 +182,9 @@ private object ResolveCore {
                 )
 
                 transitiveOrErr.map(transitive =>
-                  (self ++ transitive).collect{
+                  (self ++ transitive).collect {
                     case r @ Resolved.Module(segments, cls)
-                      if classMatchesTypePred(typePattern)(cls) =>
+                        if classMatchesTypePred(typePattern)(cls) =>
                       r
                   }
                 )
@@ -197,10 +197,10 @@ private object ResolveCore {
                   None,
                   current.segments,
                   cache
-                ).map{
-                  _.collect{
+                ).map {
+                  _.collect {
                     case r @ Resolved.Module(segments, cls)
-                      if classMatchesTypePred(typePattern)(cls) => r
+                        if classMatchesTypePred(typePattern)(cls) => r
                   }
                 }
 
