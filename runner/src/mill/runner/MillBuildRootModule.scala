@@ -107,7 +107,12 @@ abstract class MillBuildRootModule()(implicit
         ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}",
         ivy"com.lihaoyi::mill-runner-api:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-core-api:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-core-define:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-kotlinlib:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-scalajslib:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-scalanativelib:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-javascriptlib:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-pythonlib:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-runner:${Versions.millVersion}",
       )
   }
 
