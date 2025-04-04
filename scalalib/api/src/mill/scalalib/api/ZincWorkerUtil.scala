@@ -4,6 +4,7 @@ import mill.api.Loose.Agg
 import mill.api.PathRef
 import scala.util.matching.Regex
 
+@deprecated("Use JvmWorkerUtil instead", "Mill 0.12.11")
 trait ZincWorkerUtil {
 
   def isDotty(scalaVersion: String): Boolean = scalaVersion.startsWith("0.")
@@ -158,4 +159,5 @@ trait ZincWorkerUtil {
   }
 }
 
+@deprecated("Use JvmWorkerUtil instead", "Mill 0.12.11")
 object ZincWorkerUtil extends ZincWorkerUtil

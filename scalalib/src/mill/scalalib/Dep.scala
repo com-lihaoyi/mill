@@ -3,7 +3,7 @@ package mill.scalalib
 import upickle.default.{macroRW, ReadWriter => RW}
 import mill.scalalib.CrossVersion._
 import coursier.core.{Configuration, Dependency, MinimizedExclusions}
-import mill.scalalib.api.{Versions, ZincWorkerUtil}
+import mill.scalalib.api.{Versions, JvmWorkerUtil}
 import scala.annotation.unused
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
@@ -75,12 +75,12 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
    */
   def withDottyCompat(scalaVersion: String): Dep =
     cross match {
-      case cross: Binary if ZincWorkerUtil.isDottyOrScala3(scalaVersion) =>
+      case cross: Binary if JvmWorkerUtil.isDottyOrScala3(scalaVersion) =>
         val compatSuffix =
           scalaVersion match {
-            case ZincWorkerUtil.Scala3Version(_, _) | ZincWorkerUtil.Scala3EarlyVersion(_) =>
+            case JvmWorkerUtil.Scala3Version(_, _) | JvmWorkerUtil.Scala3EarlyVersion(_) =>
               "_2.13"
-            case ZincWorkerUtil.DottyVersion(minor, patch) =>
+            case JvmWorkerUtil.DottyVersion(minor, patch) =>
               if (minor.toInt > 18 || minor.toInt == 18 && patch.toInt >= 1)
                 "_2.13"
               else

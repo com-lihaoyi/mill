@@ -27,7 +27,7 @@ import scala.annotation.nowarn
  */
 trait JavaModule
     extends mill.Module
-    with WithZincWorker
+    with WithJvmWorker
     with TestModule.JavaModuleBase
     with TaskModule
     with RunModule
@@ -38,8 +38,8 @@ trait JavaModule
     with SemanticDbJavaModule
     with AssemblyModule { outer =>
 
-  override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
-  @nowarn
+  override def zincWorker: ModuleRef[JvmWorkerModule] = super.zincWorker
+  @nowarn("cat=deprecation")
   type JavaTests = JavaModuleTests
   @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
   trait JavaModuleTests extends JavaModule with TestModule {
@@ -54,12 +54,12 @@ trait JavaModule
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
     override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
-    override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
+    override def zincWorker: ModuleRef[JvmWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
     override def sources = Task.Sources {
       for (src <- outer.sources()) yield {
-        PathRef(this.millSourcePath / src.path.relativeTo(outer.millSourcePath))
+        PathRef(this.moduleDir / src.path.relativeTo(outer.moduleDir))
       }
     }
 
@@ -355,7 +355,7 @@ trait JavaModule
   /** Should only be called from [[moduleDepsChecked]] */
   private lazy val recModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
-      (millModuleSegments ++ Seq(Segment.Label("moduleDeps"))).render,
+      (moduleSegments ++ Seq(Segment.Label("moduleDeps"))).render,
       this,
       _.moduleDeps
     )
@@ -363,7 +363,7 @@ trait JavaModule
   /** Should only be called from [[compileModuleDeps]] */
   private lazy val recCompileModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
-      (millModuleSegments ++ Seq(Segment.Label("compileModuleDeps"))).render,
+      (moduleSegments ++ Seq(Segment.Label("compileModuleDeps"))).render,
       this,
       _.compileModuleDeps
     )
@@ -371,7 +371,7 @@ trait JavaModule
   /** Should only be called from [[runModuleDepsChecked]] */
   private lazy val recRunModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
-      (millModuleSegments ++ Seq(Segment.Label("runModuleDeps"))).render,
+      (moduleSegments ++ Seq(Segment.Label("runModuleDeps"))).render,
       this,
       m => m.runModuleDeps ++ m.moduleDeps
     )
@@ -379,7 +379,7 @@ trait JavaModule
   /** Should only be called from [[bomModuleDepsChecked]] */
   private lazy val recBomModuleDeps: Seq[BomModule] =
     ModuleUtils.recursive[BomModule](
-      (millModuleSegments ++ Seq(Segment.Label("bomModuleDeps"))).render,
+      (moduleSegments ++ Seq(Segment.Label("bomModuleDeps"))).render,
       null,
       mod => if (mod == null) bomModuleDeps else mod.bomModuleDeps
     )
@@ -437,7 +437,7 @@ trait JavaModule
       val deps = (normalDeps ++ compileDeps ++ runModuleDeps).distinct
 
       val header = Option.when(includeHeader)(
-        s"${if (recursive) "Recursive module" else "Module"} dependencies of ${millModuleSegments.render}:"
+        s"${if (recursive) "Recursive module" else "Module"} dependencies of ${moduleSegments.render}:"
       ).toSeq
       val lines = deps.map { dep =>
         val isNormal = normalDeps.contains(dep)
@@ -446,7 +446,7 @@ trait JavaModule
           Option.when(!isNormal && runtimeDeps.contains(dep))("runtime")
         ).flatten
         val suffix = if (markers.isEmpty) "" else markers.mkString(" (", ",", ")")
-        "  " + dep.millModuleSegments.render + suffix
+        "  " + dep.moduleSegments.render + suffix
       }
       (header ++ lines).mkString("\n")
     }
@@ -459,7 +459,7 @@ trait JavaModule
     // This is exclusive to avoid scrambled output
     Task.Command(exclusive = true) {
       val asString = formatModuleDeps(recursive, true)()
-      Task.log.outputStream.println(asString)
+      Task.log.streams.out.println(asString)
     }
   }
 
@@ -479,7 +479,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(millModuleSegments.parts.mkString("-")),
+        coursier.core.ModuleName(moduleSegments.parts.mkString("-")),
         Map.empty
       ),
       JavaModule.internalVersion
@@ -528,7 +528,7 @@ trait JavaModule
         val dep = coursier.core.Dependency(
           coursier.core.Module(
             coursier.core.Organization("mill-internal"),
-            coursier.core.ModuleName(modDep.millModuleSegments.parts.mkString("-")),
+            coursier.core.ModuleName(modDep.moduleSegments.parts.mkString("-")),
             Map.empty
           ),
           "0+mill-internal"
@@ -878,7 +878,7 @@ trait JavaModule
    * Keep in sync with [[bspCompileClassesPath]]
    */
   def compile: T[mill.scalalib.api.CompilationResult] = Task(persistent = true) {
-    zincWorker()
+    jvmWorker()
       .worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -1437,7 +1437,7 @@ trait JavaModule
    */
   def artifactName: T[String] = artifactNameParts().mkString("-")
 
-  def artifactNameParts: T[Seq[String]] = millModuleSegments.parts
+  def artifactNameParts: T[Seq[String]] = moduleSegments.parts
 
   /**
    * The exact id of the artifact to be published. You probably don't want to override this.
@@ -1494,7 +1494,7 @@ trait JavaModule
     Task.Command {
       super.prepareOffline(all)()
       resolvedIvyDeps()
-      zincWorker().prepareOffline(all)()
+      jvmWorker().prepareOffline(all)()
       resolvedRunIvyDeps()
       Task.sequence(tasks)()
       ()
@@ -1519,7 +1519,7 @@ trait JavaModule
   @internal
   def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
     JvmBuildTarget(
-      javaHome = zincWorker()
+      javaHome = jvmWorker()
         .javaHome()
         .map(p => BspUri(p.path))
         .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p)))),

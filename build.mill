@@ -455,7 +455,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",
-      "-P:acyclic:force",
+      // To better prepare the codebase for code migration to Mill 0.13, we need to have cycles
+      "-P:acyclic:warn",
       "-feature",
       "-Xlint:unused",
       "-Xlint:adapted-args",
