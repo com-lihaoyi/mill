@@ -43,15 +43,25 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(build.runner.server.client)
     def ivyDeps = Agg(
-      build.Deps.windowsAnsi,
+      build.Deps.nativeTerminal,
       build.Deps.coursier,
+      build.Deps.coursierInterface,
       build.Deps.coursierJvm,
       build.Deps.logback
     )
     def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Seq(
-      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
-    )
+    def buildInfoMembers = Task {
+      val jlineNativeVersion = compileClasspath().map(_.path.last)
+        .find(name => name.startsWith("jline-native-") && name.endsWith(".jar"))
+        .map(_.stripPrefix("jline-native-").stripSuffix(".jar"))
+        .getOrElse {
+          sys.error("Cannot get jline-native version from compile class path")
+        }
+      Seq(
+        BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
+        BuildInfo.Value("jlineNativeVersion", jlineNativeVersion)
+      )
+    }
   }
 
   def moduleDeps = Seq(
