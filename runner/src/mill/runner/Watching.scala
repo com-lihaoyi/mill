@@ -108,33 +108,13 @@ object Watching {
     statWatchWait0()
   }
 
-  def validate(w: Watchable) = poll(w) == siganture(w)
+  def validate(w: Watchable) = poll(w) == signature(w)
   def poll(w: Watchable) = w match {
     case mill.runner.api.Watchable.Path(p) => mill.api.PathRef(os.Path(p)).recomputeSig()
     case mill.runner.api.Watchable.Value(f, sig, pretty) => f()
   }
-  def siganture(w: Watchable) = w match {
+  def signature(w: Watchable) = w match {
     case mill.runner.api.Watchable.Path(p) => mill.api.PathRef(os.Path(p)).sig
     case mill.runner.api.Watchable.Value(f, sig, pretty) => sig
   }
-
-//  private[mill] trait Watchable {
-//    //  def poll(): Long
-//    //  def signature: Long
-//    //  def validate(): Boolean = poll() == signature
-//    //  def pretty: String
-//  }
-//
-//  private[mill] object Watchable {
-//    case class Path(p: os.Path) extends Watchable {
-//      //    def poll(): Long =
-//      //    def signature = mill.api.PathRef(p).sig
-//      //    def pretty = p.toString
-//    }
-//
-//    case class Value(f: () => Long, signature: Long, pretty: String) extends Watchable {
-//      //    def poll(): Long = f()
-//    }
-//  }
-
 }
