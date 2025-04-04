@@ -309,7 +309,12 @@ class MillBuildBootstrap(
               "mill.main.RootModuleApi",
               "mill.define.BaseModuleApi",
               "mill.define.EvaluatorApi",
+              "mill.define.Segment",
+              "mill.api.Val",
+              "mill.define.internal.Watchable",
               "scala.",
+//              "mill.api.PathRef",
+              "javax.",
               "fansi.",
               "mill.api.Logger",
               "mill.api.Result",
@@ -528,12 +533,12 @@ object MillBuildBootstrap {
 
     evalTaskResult match {
       case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatched)
-      case Result.Success(Evaluator.Result(watched, evaluated, _, _)) =>
-        evaluated match {
+      case Result.Success(res: EvaluatorApi.Result[Any]) =>
+        res.values match {
           case Result.Failure(msg) =>
-            (Result.Failure(msg), watched ++ addedEvalWatched, moduleWatched)
+            (Result.Failure(msg), res.watchable ++ addedEvalWatched, moduleWatched)
           case Result.Success(results) =>
-            (Result.Success(results), watched ++ addedEvalWatched, moduleWatched)
+            (Result.Success(results), res.watchable ++ addedEvalWatched, moduleWatched)
         }
     }
   }

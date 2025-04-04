@@ -69,8 +69,8 @@ object RunnerState {
         workerCache.map { case (k, (i, v)) =>
           (k.render, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
-        evalWatched.collect { case Watchable.Path(p) => p },
-        moduleWatched.collect { case Watchable.Path(p) => p },
+        evalWatched.collect { case Watchable.Path(p) => PathRef(p) },
+        moduleWatched.collect { case Watchable.Path(p) => PathRef(p) },
         classLoaderOpt.map(_.identity),
         runClasspath,
         runClasspath.hashCode()

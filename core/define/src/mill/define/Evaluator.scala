@@ -17,6 +17,7 @@ trait EvaluatorApi extends AutoCloseable{
 }
 object EvaluatorApi {
   trait Result[T] {
+    def watchable: Seq[Watchable]
     def values: mill.api.Result[Seq[T]]
   }
 }

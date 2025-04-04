@@ -60,7 +60,7 @@ object Watching {
       colors: Colors
   ): Boolean = {
     setIdle(true)
-    val watchedPaths = watched.collect { case p: Watchable.Path => p.p.path }
+    val watchedPaths = watched.collect { case p: Watchable.Path => p.p }
     val watchedValues = watched.size - watchedPaths.size
 
     val watchedValueStr = if (watchedValues == 0) "" else s" and $watchedValues other values"
