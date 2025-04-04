@@ -600,7 +600,7 @@ trait AndroidModule extends JavaModule {
         builder
       }
     )
-    
+
   def d8ArgsFunc = Task {
 
     val d8ArgsBuilder = Seq.newBuilder[String]

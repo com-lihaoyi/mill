@@ -37,7 +37,6 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       defaultPublishJars().map { case (jar, info) => info(jar) }
     }
   }
-  
 
   def androidReleaseAar: T[PathRef] = Task {
     val dest = T.dest
