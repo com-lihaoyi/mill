@@ -2,25 +2,11 @@ package mill.define
 
 import mill.api.*
 import mill.define.internal.Watchable
+import mill.runner.api.EvaluatorApi
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
-trait EvaluatorApi extends AutoCloseable{
-  def evaluate(
-                scriptArgs: Seq[String],
-                selectMode: SelectMode,
-                selectiveExecution: Boolean = false
-              ): mill.api.Result[EvaluatorApi.Result[Any]]
-
-  private[mill] def workerCache: mutable.Map[Segments, (Int, Val)]
-}
-object EvaluatorApi {
-  trait Result[T] {
-    def watchable: Seq[Watchable]
-    def values: mill.api.Result[Seq[T]]
-  }
-}
 trait Evaluator extends AutoCloseable with EvaluatorApi{
   private[mill] def allowPositionalCommandArgs: Boolean
   private[mill] def selectiveExecution: Boolean

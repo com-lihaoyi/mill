@@ -1,5 +1,4 @@
-package mill.define
-
+package mill.runner.api
 sealed trait SelectMode
 
 object SelectMode {

@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
-
+import mill.runner.api.{BaseModuleApi, EvaluatorApi}
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
@@ -33,7 +33,7 @@ private[mill] case class Execution(
     codeSignatures: Map[String, Int],
     systemExit: Int => Nothing,
     exclusiveSystemStreams: SystemStreams,
-    getEvaluator: () => mill.define.EvaluatorApi
+    getEvaluator: () => EvaluatorApi
 ) extends GroupExecution with AutoCloseable {
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)

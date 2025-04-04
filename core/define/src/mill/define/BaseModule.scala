@@ -1,5 +1,5 @@
 package mill.define
-
+import mill.runner.api.BaseModuleApi
 /**
  * Represents a module at the root of a module tree. This can either be a
  * `mill.define.RootModule` representing the `build.mill` file, or a
@@ -32,4 +32,3 @@ abstract class BaseModule(
   def moduleCtx = super.moduleCtx.withDiscover(millDiscover)
 }
 
-trait BaseModuleApi

@@ -2,10 +2,11 @@ package mill.runner
 
 import mill.internal.PrefixLogger
 import mill.define.internal.Watchable
-import mill.main.{BuildInfo, RootModule, RootModuleApi}
+import mill.main.{BuildInfo, RootModule}
+import mill.runner.api.{RootModuleApi, EvaluatorApi}
 import mill.constants.CodeGenConstants.*
 import mill.api.{Logger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
-import mill.define.{BaseModule, Evaluator, Segments, SelectMode, EvaluatorApi}
+import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.eval.EvaluatorImpl
@@ -291,7 +292,7 @@ class MillBuildBootstrap(
         // look at the `moduleWatched` of one frame up (`prevOuterFrameOpt`),
         // and not the `moduleWatched` from the current frame (`prevFrameOpt`)
         val moduleWatchChanged =
-          prevOuterFrameOpt.exists(_.moduleWatched.exists(!_.validate()))
+          prevOuterFrameOpt.exists(_.moduleWatched.exists(w => !Watching.validate(w)))
 
         val classLoader = if (runClasspathChanged || moduleWatchChanged) {
           // Make sure we close the old classloader every time we create a new
@@ -306,23 +307,12 @@ class MillBuildBootstrap(
           ){
             val sharedCl = classOf[MillBuildBootstrap].getClassLoader
             val sharedPrefixes = Seq(
-              "mill.main.RootModuleApi",
-              "mill.define.BaseModuleApi",
-              "mill.define.EvaluatorApi",
-              "mill.define.Segment",
-              "mill.api.Val",
-              "mill.define.internal.Watchable",
+              "mill.runner.api",
               "scala.",
-//              "mill.api.PathRef",
               "javax.",
               "fansi.",
-              "mill.api.Logger",
-              "mill.api.Result",
-              "mill.define.SelectMode",
               "os.",
               "geny.",
-              "mill.exec.JsonArrayLogger",
-              "mill.api.SystemStreams",
             )
             override def findClass(name: String): Class[?] =
               if (sharedPrefixes.exists(name.startsWith)) {

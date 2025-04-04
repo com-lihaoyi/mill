@@ -43,7 +43,7 @@ object Watching {
         return (errorOpt.isEmpty, result)
       }
 
-      val alreadyStale = watchables.exists(!_.validate())
+      val alreadyStale = watchables.exists(w => !validate(w))
       enterKeyPressed = false
       if (!alreadyStale) {
         enterKeyPressed = Watching.watchAndWait(streams, setIdle, streams.in, watchables, colors)
@@ -81,7 +81,7 @@ object Watching {
     val buffer = new Array[Byte](4 * 1024)
 
     @tailrec def statWatchWait0(): Boolean = {
-      if (watched.forall(_.validate())) {
+      if (watched.forall(w => validate(w))) {
         if (lookForEnterKey()) {
           true
         } else {
@@ -107,5 +107,35 @@ object Watching {
 
     statWatchWait0()
   }
+
+
+  def validate(w: Watchable) = poll(w) == siganture(w)
+  def poll(w: Watchable) = w match{
+    case mill.runner.api.Watchable.Path(p) => mill.api.PathRef(p).recomputeSig()
+    case mill.runner.api.Watchable.Value(f, sig, pretty) => f()
+  }
+  def siganture(w: Watchable) = w match{
+    case mill.runner.api.Watchable.Path(p) => mill.api.PathRef(p).sig
+    case mill.runner.api.Watchable.Value(f, sig, pretty) => sig
+  }
+
+//  private[mill] trait Watchable {
+//    //  def poll(): Long
+//    //  def signature: Long
+//    //  def validate(): Boolean = poll() == signature
+//    //  def pretty: String
+//  }
+//
+//  private[mill] object Watchable {
+//    case class Path(p: os.Path) extends Watchable {
+//      //    def poll(): Long =
+//      //    def signature = mill.api.PathRef(p).sig
+//      //    def pretty = p.toString
+//    }
+//
+//    case class Value(f: () => Long, signature: Long, pretty: String) extends Watchable {
+//      //    def poll(): Long = f()
+//    }
+//  }
 
 }

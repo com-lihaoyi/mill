@@ -8,7 +8,7 @@ import mill._
  * internal code and user-land code
  */
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
-  def moduleDeps = Seq(build.core.constants)
+  def moduleDeps = Seq(build.core.constants, build.runner.api)
   def buildInfoPackageName = "mill.api"
   def buildInfoMembers = Seq(
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),

@@ -1,5 +1,4 @@
-package mill.api
-
+package mill.runner.api
 import mill.constants.{DebugLog, InputPumper}
 
 import java.io.{InputStream, OutputStream, PrintStream}
@@ -172,8 +171,7 @@ object SystemStreams {
       override def transferTo(out: OutputStream): Long = delegate().transferTo(out)
     }
   }
-  private def debugPrintln(s: String) =
-    DebugLog.println(pprint.apply(s.toCharArray, width = 999).toString)
+  private def debugPrintln(s: String) = ()
   private[mill] class DebugDelegateStream(delegate0: SystemStreams) extends SystemStreams(
         new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
           override def delegate(): OutputStream = delegate0.out

@@ -11,6 +11,8 @@ import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
+import mill.runner.api.{BaseModuleApi, EvaluatorApi}
+
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -21,7 +23,7 @@ private trait GroupExecution {
   def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path
-  def rootModule: mill.define.BaseModuleApi
+  def rootModule: BaseModuleApi
   def classLoaderSigHash: Int
   def classLoaderIdentityHash: Int
   def workerCache: mutable.Map[Segments, (Int, Val)]
@@ -31,7 +33,7 @@ private trait GroupExecution {
   def codeSignatures: Map[String, Int]
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
-  def getEvaluator: () => mill.define.EvaluatorApi
+  def getEvaluator: () => EvaluatorApi
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 

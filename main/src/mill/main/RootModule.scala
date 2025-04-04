@@ -7,10 +7,8 @@ import mill.define.internal.Watchable
 import scala.annotation.compileTimeOnly
 import scala.collection.mutable
 
-trait RootModuleApi {
-  protected[mill] def watchedValues: mutable.Buffer[Watchable]
-  protected[mill] def evalWatchedValues: mutable.Buffer[Watchable]
-}
+import mill.runner.api.RootModuleApi
+
 /**
  * Used to mark a module in your `build.mill` as a top-level module, so it's
  * tasks can be run directly e.g. via `mill run` rather than
