@@ -9,7 +9,7 @@ This module has some limitations at the moment:
 - Only JVM ecosystem libraries are reported.
 - Only the CycloneDX JSON format is supported
 
-To declare a module that generates an SBT extend the `mill.contrib.sbom.CycloneDXModuleTests` trait when defining your module.
+To declare a module that generates an SBOM extend the `mill.contrib.sbom.CycloneDXModuleTests` trait when defining your module.
 
 Quickstart:
 
@@ -36,7 +36,7 @@ $ mill show sbom-demo.sbomJsonFile # Creates the SBOM file in the JSON format
 ----
 
 == Uploading to Dependency Track
-Uploading the BOM to (https://dependencytrack.org/)[Dependency Track] is supported.
+Uploading the SBOM to https://dependencytrack.org/[Dependency Track] is supported.
 Add the `DependencyTrackModule` and provide the necessary details:
 
 .`build.mill`

@@ -12,7 +12,7 @@ import java.time.Instant
 
 object TestModule extends TestBaseModule {
 
-  val fixedHeader = CycloneDXModule.SbomHeader(
+  val fixedHeader = CycloneDX.SbomHeader(
     UUID.fromString("a9d6a1c7-18d4-4901-891c-cbcc8f2c5241"),
     Instant.parse("2025-03-17T17:00:56.263933698Z")
   )
@@ -20,12 +20,12 @@ object TestModule extends TestBaseModule {
   object noDeps extends JavaModule with CycloneDXJavaModule {}
 
   object withDeps extends JavaModule with CycloneDXJavaModule {
-    override def sbomHeader(): CycloneDXModule.SbomHeader = fixedHeader
+    override def sbomHeader(): CycloneDX.SbomHeader = fixedHeader
     override def ivyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.5.12")
   }
 
   object withModuleDeps extends JavaModule with CycloneDXJavaModule {
-    override def sbomHeader(): CycloneDXModule.SbomHeader = fixedHeader
+    override def sbomHeader(): CycloneDX.SbomHeader = fixedHeader
     override def moduleDeps = Seq(withDeps)
     override def ivyDeps = Agg(ivy"commons-io:commons-io:2.18.0")
   }
