@@ -46,7 +46,7 @@ private[mill] object JsonArrayLogger {
         valueHashChanged: java.lang.Boolean,
         deps: Seq[String],
         inputsHash: Int,
-        previousInputsHash: Int,
+        previousInputsHash: Int
     ): Unit = {
       log(
         Profile.Timing(
@@ -57,7 +57,6 @@ private[mill] object JsonArrayLogger {
           deps,
           inputsHash,
           previousInputsHash
-
         )
       )
     }

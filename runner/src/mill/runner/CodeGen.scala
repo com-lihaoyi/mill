@@ -15,7 +15,6 @@ object CodeGen {
       projectRoot: os.Path,
       allScriptCode: Map[os.Path, String],
       targetDest: os.Path,
-      enclosingClasspath: Seq[os.Path],
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
@@ -75,7 +74,8 @@ object CodeGen {
         // Provide `build` as an alias to the root `build_.package_`, since from the user's
         // perspective it looks like they're writing things that live in `package build`,
         // but at compile-time we rename things, we so provide an alias to preserve the fiction
-        "import build_.{package_ => build}"
+        "import build_.{package_ => build}",
+        "import _root_.mill.main.{MainRootModule => RootModule}"
       ).mkString("\n")
 
       val scriptCode = allScriptCode(scriptPath)
@@ -108,7 +108,6 @@ object CodeGen {
         } else {
           generateBuildScript(
             projectRoot,
-            enclosingClasspath,
             compilerWorkerClasspath,
             millTopLevelProjectRoot,
             output,
@@ -131,7 +130,6 @@ object CodeGen {
 
   private def generateBuildScript(
       projectRoot: os.Path,
-      enclosingClasspath: Seq[os.Path],
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
@@ -160,7 +158,6 @@ object CodeGen {
       if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
       else rootMiscInfo(
         scriptFolderPath,
-        enclosingClasspath,
         compilerWorkerClasspath,
         millTopLevelProjectRoot,
         output
@@ -271,15 +268,13 @@ object CodeGen {
 
   def rootMiscInfo(
       scriptFolderPath: os.Path,
-      enclosingClasspath: Seq[os.Path],
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       output: os.Path
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
-       |object MillMiscInfo extends mill.define.RootModule.Info(
-       |  ${enclosingClasspath.map(p => literalize(p.toString))},
+       |object MillMiscInfo extends mill.define.RootModule0.Info(
        |  ${compilerWorkerClasspath.map(p => literalize(p.toString))},
        |  ${literalize(scriptFolderPath.toString)},
        |  ${literalize(output.toString)},

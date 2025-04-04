@@ -44,7 +44,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
       build.Deps.coursierJvm,
       build.Deps.jline,
       build.Deps.mainargs,
-      build.Deps.requests,
+      build.Deps.requests
     )
     def buildInfoPackageName = "mill.util"
     def buildInfoMembers = Seq(

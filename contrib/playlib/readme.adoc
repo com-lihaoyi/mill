@@ -184,7 +184,7 @@ be find for a production deployment.
 
 == Using `RootModule`
 
-The `RootModule` abstract class allows you to have the build descriptor at the same level as the
+The `RootModule0` abstract class allows you to have the build descriptor at the same level as the
 source code on the filesystem. You can move from there to a multi-module build either by refactoring
 your directory layout into multiple subdirectories or by using mill's nested modules feature.
 
@@ -229,7 +229,7 @@ The directory layout was:
         └── controllers
 ----
 
-by extending `RootModule` in your build:
+by extending `RootModule0` in your build:
 
 .`build.mill`
 [source,scala]

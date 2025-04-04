@@ -1,6 +1,5 @@
 package mill.define
 
-
 import scala.math.Ordering.Implicits.seqOrdering
 
 /**

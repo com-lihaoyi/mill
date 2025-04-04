@@ -13,7 +13,7 @@ import mill.scalalib.api.{CompilationResult, Versions}
 import mill.constants.OutFiles.*
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.util.BuildInfo
-import mill.define.RootModule
+import mill.define.RootModule0
 import mill.runner.worker.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import scala.util.Try
@@ -30,9 +30,9 @@ import mill.runner.worker.api.MillScalaParser
  */
 @internal
 abstract class MillBuildRootModule()(implicit
-    rootModuleInfo: RootModule.Info,
+    rootModuleInfo: RootModule0.Info,
     scalaCompilerResolver: ScalaCompilerWorker.Resolver
-) extends RootModule() with ScalaModule {
+) extends RootModule0() with ScalaModule {
   override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
     .relativeTo(rootModuleInfo.topLevelProjectRoot)
@@ -107,12 +107,13 @@ abstract class MillBuildRootModule()(implicit
         ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}",
         ivy"com.lihaoyi::mill-runner-api:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-core-api:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-core-define:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-kotlinlib:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-scalajslib:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-scalanativelib:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-javascriptlib:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-pythonlib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-runner:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-runner:${Versions.millVersion}"
       )
   }
 
@@ -139,7 +140,6 @@ abstract class MillBuildRootModule()(implicit
         rootModuleInfo.projectRoot / os.up,
         parsed.seenScripts,
         Task.dest,
-        rootModuleInfo.enclosingClasspath,
         rootModuleInfo.compilerWorkerClasspath,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
@@ -252,39 +252,6 @@ abstract class MillBuildRootModule()(implicit
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
-  def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources(
-    rootModuleInfo.enclosingClasspath.map(Result.Success(_))*
-  )
-
-  /**
-   * Dependencies, which should be transitively excluded.
-   * By default, these are the dependencies, which Mill provides itself (via [[unmanagedClasspath]]).
-   * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
-   */
-  protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
-    val allMillDistModules = BuildInfo.millAllDistDependencies
-      .split(',')
-      .filter(_.nonEmpty)
-      .map { str =>
-        str.split(":", 3) match {
-          case Array(org, name, _) => (org, name)
-          case other =>
-            sys.error(
-              s"Unexpected misshapen entry in BuildInfo.millAllDistDependencies ('$str', expected 'org:name')"
-            )
-        }
-      }
-    val isScala3 = JvmWorkerUtil.isScala3(scalaVersion())
-    if (isScala3)
-      allMillDistModules.filter(_._2 != "scala-library").toSeq
-    else
-      allMillDistModules.toSeq
-  }
-
-  override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
-    super.bindDependency.apply().apply(dep).exclude(resolveDepsExclusions()*)
-  }
-
   override def scalacPluginIvyDeps: T[Seq[Dep]] = Seq(
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
   )
@@ -355,18 +322,19 @@ abstract class MillBuildRootModule()(implicit
 object MillBuildRootModule {
 
   class BootstrapModule()(implicit
-      rootModuleInfo: RootModule.Info,
+      rootModuleInfo: RootModule0.Info,
       scalaCompilerResolver: ScalaCompilerWorker.Resolver
   ) extends MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
 
-    protected[mill] def evalWatchedValues: collection.mutable.Buffer[mill.runner.api.Watchable] = collection.mutable.Buffer.empty
+    protected[mill] def evalWatchedValues: collection.mutable.Buffer[mill.runner.api.Watchable] =
+      collection.mutable.Buffer.empty
 
-    protected[mill] def watchedValues: collection.mutable.Buffer[mill.runner.api.Watchable] = collection.mutable.Buffer.empty
+    protected[mill] def watchedValues: collection.mutable.Buffer[mill.runner.api.Watchable] =
+      collection.mutable.Buffer.empty
   }
 
   case class Info(
-      enclosingClasspath: Seq[os.Path],
       projectRoot: os.Path,
       output: os.Path,
       topLevelProjectRoot: os.Path
@@ -374,7 +342,7 @@ object MillBuildRootModule {
 
   def parseBuildFiles(
       parser: MillScalaParser,
-      millBuildRootModuleInfo: RootModule.Info
+      millBuildRootModuleInfo: RootModule0.Info
   ): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
       parser,

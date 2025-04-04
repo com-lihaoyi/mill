@@ -7,7 +7,7 @@ import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
-trait Evaluator extends AutoCloseable with EvaluatorApi{
+trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def allowPositionalCommandArgs: Boolean
   private[mill] def selectiveExecution: Boolean
   private[mill] def workspace: os.Path

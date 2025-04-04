@@ -1,5 +1,6 @@
 package mill.define
 import mill.runner.api.BaseModuleApi
+
 /**
  * Represents a module at the root of a module tree. This can either be a
  * `mill.define.RootModule` representing the `build.mill` file, or a
@@ -21,7 +22,7 @@ abstract class BaseModule(
         external0,
         millFile0
       )
-    ) with Module  with BaseModuleApi{
+    ) with Module with BaseModuleApi {
 
   // `Discover` needs to be defined by every concrete `BaseModule` object, to gather
   // compile-time metadata about the tasks and commands at for use at runtime
@@ -31,4 +32,3 @@ abstract class BaseModule(
   // so it can be used for override detection
   def moduleCtx = super.moduleCtx.withDiscover(millDiscover)
 }
-

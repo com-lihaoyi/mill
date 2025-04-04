@@ -5,7 +5,7 @@ import mill.runner.api.{RootModuleApi, EvaluatorApi}
 import mill.define.Segments
 import mill.define.internal.Watchable
 import upickle.default.{ReadWriter, macroRW}
-import mill.define.RootModule
+import mill.define.RootModule0
 
 /**
  * This contains a list of frames each representing cached data from a single
@@ -28,7 +28,7 @@ import mill.define.RootModule
  */
 @internal
 case class RunnerState(
-    bootstrapModuleOpt: Option[RootModule],
+    bootstrapModuleOpt: Option[RootModule0],
     frames: Seq[RunnerState.Frame],
     errorOpt: Option[String],
     buildFile: Option[String] = None

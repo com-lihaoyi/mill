@@ -2,7 +2,7 @@ package mill.runner
 
 import mill.internal.PrefixLogger
 import mill.define.internal.Watchable
-import mill.define.RootModule
+import mill.define.RootModule0
 import mill.util.BuildInfo
 import mill.runner.api.{RootModuleApi, EvaluatorApi}
 import mill.constants.CodeGenConstants.*
@@ -21,8 +21,8 @@ import scala.util.Using
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
- * and compiling builds/meta-builds and classloading their [[RootModule]]s so we
- * can evaluate the requested tasks on the [[RootModule]] representing the user's
+ * and compiling builds/meta-builds and classloading their [[RootModule0]]s so we
+ * can evaluate the requested tasks on the [[RootModule0]] representing the user's
  * `build.mill` file.
  *
  * When Mill is run in client-server mode, or with `--watch`, then data from
@@ -125,8 +125,7 @@ class MillBuildBootstrap(
         else {
           val bootstrapModule =
             new MillBuildRootModule.BootstrapModule()(
-              new RootModule.Info(
-                millBootClasspath,
+              new RootModule0.Info(
                 scalaCompilerWorker.classpath,
                 recRoot(projectRoot, depth),
                 output,
@@ -299,20 +298,12 @@ class MillBuildBootstrap(
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
-          mill.constants.DebugLog.println("+runClasspath")
-          mill.constants.DebugLog.println(runClasspath.map(_.path.toNIO.toUri.toURL).toArray.mkString("\n"))
-          mill.constants.DebugLog.println("-runClasspath")
           val cl = new RunnerState.URLClassLoader(
             runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
             null
-          ){
+          ) {
             val sharedCl = classOf[MillBuildBootstrap].getClassLoader
-            val sharedPrefixes = Seq(
-              "mill.runner.api",
-              "scala.",
-              "javax.",
-              "fansi.",
-            )
+            val sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.runner.api")
             override def findClass(name: String): Class[?] =
               if (sharedPrefixes.exists(name.startsWith)) sharedCl.loadClass(name)
               else super.findClass(name)

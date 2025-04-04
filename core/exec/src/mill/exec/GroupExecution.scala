@@ -13,7 +13,6 @@ import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 import mill.runner.api.{BaseModuleApi, EvaluatorApi}
 
-
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
  * with a single [[Terminal]].
@@ -269,7 +268,8 @@ private trait GroupExecution {
             os.dynamicPwdFunction.withValue(destFunc) {
               os.checker.withValue(executionChecker) {
                 SystemStreams.withStreams(streams) {
-                  val exposedEvaluator = if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
+                  val exposedEvaluator =
+                    if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
                   Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
                     if (!exclusive) t
                     else {

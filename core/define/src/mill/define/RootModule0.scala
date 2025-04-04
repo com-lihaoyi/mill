@@ -17,8 +17,8 @@ import scala.collection.mutable
  * defined at the top level of the `build.mill` and not nested in any other
  * modules.
  */
-abstract class RootModule()(implicit
-    baseModuleInfo: RootModule.Info,
+abstract class RootModule0()(implicit
+    baseModuleInfo: RootModule0.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
@@ -32,22 +32,19 @@ abstract class RootModule()(implicit
 }
 
 @internal
-object RootModule {
+object RootModule0 {
   class Info(
-      val enclosingClasspath: Seq[os.Path],
       val compilerWorkerClasspath: Seq[os.Path],
       val projectRoot: os.Path,
       val output: os.Path,
       val topLevelProjectRoot: os.Path
   ) {
     def this(
-        enclosingClasspath0: Seq[String],
         compilerWorkerClasspath0: Seq[String],
         projectRoot0: String,
         output0: String,
         topLevelProjectRoot0: String
     ) = this(
-      enclosingClasspath0.map(os.Path(_)),
       compilerWorkerClasspath0.map(os.Path(_)),
       os.Path(projectRoot0),
       os.Path(output0),

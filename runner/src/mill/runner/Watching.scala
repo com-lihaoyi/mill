@@ -108,13 +108,12 @@ object Watching {
     statWatchWait0()
   }
 
-
   def validate(w: Watchable) = poll(w) == siganture(w)
-  def poll(w: Watchable) = w match{
+  def poll(w: Watchable) = w match {
     case mill.runner.api.Watchable.Path(p) => mill.api.PathRef(os.Path(p)).recomputeSig()
     case mill.runner.api.Watchable.Value(f, sig, pretty) => f()
   }
-  def siganture(w: Watchable) = w match{
+  def siganture(w: Watchable) = w match {
     case mill.runner.api.Watchable.Path(p) => mill.api.PathRef(os.Path(p)).sig
     case mill.runner.api.Watchable.Value(f, sig, pretty) => sig
   }
