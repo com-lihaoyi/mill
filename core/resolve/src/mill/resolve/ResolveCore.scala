@@ -119,7 +119,9 @@ private object ResolveCore {
                   tail,
                   r,
                   querySoFar ++ Seq(head),
-                  seenModules ++ moduleClasses(Set(current)),
+                  // `foo.__` wildcards can refer to `foo` as well, so make sure we don't
+                  // mark it as seen to avoid spurious cyclic module reference errors
+                  seenModules ++ moduleClasses(Option.when(r != current)(current)),
                   cache
                 )
               }
