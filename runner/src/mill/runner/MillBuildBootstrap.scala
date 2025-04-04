@@ -297,9 +297,12 @@ class MillBuildBootstrap(
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
+          mill.constants.DebugLog.println("+runClasspath")
+          mill.constants.DebugLog.println(runClasspath.map(_.path.toNIO.toUri.toURL).toArray.mkString("\n"))
+          mill.constants.DebugLog.println("-runClasspath")
           val cl = new RunnerState.URLClassLoader(
             runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
-            getClass.getClassLoader
+            null
           )
           cl
         } else {
