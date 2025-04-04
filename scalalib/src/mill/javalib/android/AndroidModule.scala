@@ -588,25 +588,6 @@ trait AndroidModule extends JavaModule {
    */
   def androidEmulatorArchitecture: String = "x86_64"
 
-//  def d8ArgsFunc: T[mutable.Builder[String, Seq[String]]] = Task {
-//
-//    val d8ArgsBuilder = Seq.newBuilder[String]
-//
-//    d8ArgsBuilder += androidSdkModule().d8Path().path.toString
-//
-//    // TODO explore --incremental flag for incremental builds
-//    d8ArgsBuilder ++= Seq(
-//      "--output",
-//      Task.dest.toString(),
-//      "--lib",
-//      androidSdkModule().androidJarPath().path.toString(),
-//      "--min-api",
-//      androidMinSdk().toString
-//    )
-//
-//    d8ArgsBuilder
-//  }
-
   implicit val builderReadWriter
       : ReadWriter[scala.collection.mutable.Builder[String, Seq[String]]] =
     readwriter[Seq[String]].bimap(
@@ -619,7 +600,8 @@ trait AndroidModule extends JavaModule {
         builder
       }
     )
-  def d8ArgsFunc2 = Task {
+    
+  def d8ArgsFunc = Task {
 
     val d8ArgsBuilder = Seq.newBuilder[String]
 
@@ -661,19 +643,8 @@ trait AndroidModule extends JavaModule {
     val androidSources = androidModuleGeneratedSourcesFunc()
 
     val proguardFile = androidSources.androidReleaseDex.path / "proguard-rules.pro"
-//    val proguardFile = Task.dest/ "proguard-rules.pro"
-//
-//    val knownProguardRules = androidUnpackArchives()
-//      // TODO need also collect rules from other modules,
-//      // but Android lib module doesn't yet exist
-//      .flatMap(_.proguardRules)
-//      .map(p => os.read(p.path))
-//      .appendedAll(mainDexPlatformRules)
-//      .appended(os.read(androidReleaseResources()._1.path / "main-dex-rules.pro"))
-//      .mkString("\n")
-//    os.write(proguardFile, knownProguardRules)
 
-    val d8ArgsBuilder = d8ArgsFunc2()
+    val d8ArgsBuilder = d8ArgsFunc()
 
     // because of release mode
     d8ArgsBuilder += "--release"
@@ -714,19 +685,8 @@ trait AndroidModule extends JavaModule {
     val androidSources = androidModuleGeneratedSourcesFunc()
 
     val proguardFile = androidSources.androidDebugDex.path / "proguard-rules.pro"
-//    val proguardFile = Task.dest / "proguard-rules.pro"
 
-//    val knownProguardRules = androidUnpackArchives()
-//      // TODO need also collect rules from other modules,
-//      // but Android lib module doesn't yet exist
-//      .flatMap(_.proguardRules)
-//      .map(p => os.read(p.path))
-//      .appendedAll(mainDexPlatformRules)
-//      .appended(os.read(androidReleaseResources()._1.path / "main-dex-rules.pro"))
-//      .mkString("\n")
-//    os.write(proguardFile, knownProguardRules)
-
-    val d8ArgsBuilder = d8ArgsFunc2()
+    val d8ArgsBuilder = d8ArgsFunc()
 
     // because of debug mode
     d8ArgsBuilder += "--debug"

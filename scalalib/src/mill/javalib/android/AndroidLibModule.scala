@@ -37,18 +37,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       defaultPublishJars().map { case (jar, info) => info(jar) }
     }
   }
-
-//  implicit val pathRefRW: ReadWriter[mill.api.PathRef] =
-//    readwriter[String].bimap(
-//      pathRef => pathRef.path.toString, // convert to a string
-//      str => mill.api.PathRef(java.nio.file.Paths.get(str)) // construct a PathRef from string
-//    )
-//  def androidLibGeneratedSourcesFunc: T[AndroidLibModuleGeneratedSources] = Task {
-//    val manifestPath = androidMergedManifest().path
-////    val manifestDest = T.dest / "AndroidManifest.xml"
-////    os.copy(manifestPath, manifestDest, createFolders = true)
-//    AndroidLibModuleGeneratedSources(PathRef(manifestPath))
-//  }
+  
 
   def androidReleaseAar: T[PathRef] = Task {
     val dest = T.dest

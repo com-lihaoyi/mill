@@ -5,6 +5,7 @@ runs:
   steps:
     - name: Set ANDROID_SDK_ROOT
       run: echo "ANDROID_SDK_ROOT=$HOME/.android/sdk" >> $GITHUB_ENV
+      shell: bash
 
     - uses: android-actions/setup-android@v3
       with:
