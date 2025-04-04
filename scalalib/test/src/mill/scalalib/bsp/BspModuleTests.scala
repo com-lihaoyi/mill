@@ -8,7 +8,7 @@ import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.FilePath
 import utest.*
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 
 object BspModuleTests extends TestSuite {
 

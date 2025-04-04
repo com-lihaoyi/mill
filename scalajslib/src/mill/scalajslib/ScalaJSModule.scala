@@ -90,7 +90,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // we need to use the scala-library of the currently running mill
     defaultResolver().classpath(
       (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
-        .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
+        .map(Lib.depToBoundDep(_, mill.util.BuildInfo.scalaVersion, ""))
     )
   }
 

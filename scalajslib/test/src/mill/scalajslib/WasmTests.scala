@@ -23,7 +23,7 @@ object WasmTests extends TestSuite {
     override def scalaJSExperimentalUseWebAssembly: T[Boolean] = true
 
     override lazy val millDiscover = {
-      import mill.main.TokenReaders.given
+      import mill.util.TokenReaders.given
       Discover[this.type]
     }
   }
@@ -38,7 +38,7 @@ object WasmTests extends TestSuite {
     override def scalaJSExperimentalUseWebAssembly: T[Boolean] = true
 
     override lazy val millDiscover = {
-      import mill.main.TokenReaders.given
+      import mill.util.TokenReaders.given
       Discover[this.type]
     }
   }

@@ -1,4 +1,4 @@
-package object mill extends mill.api.JsonFormatters with mill.main.TokenReaders0 {
+package object mill extends mill.api.JsonFormatters with mill.util.TokenReaders0 {
   val T = define.Target
   type T[+T] = define.Target[T]
   val Target = define.Target
@@ -10,8 +10,7 @@ package object mill extends mill.api.JsonFormatters with mill.main.TokenReaders0
   val Cross = define.Cross
   type Agg[T] = Seq[T]
   val Agg = Seq
-  type RootModule = mill.main.RootModule
-  val RootModule = mill.main.RootModule
+
   type Args = define.Args
   val Args = define.Args
 

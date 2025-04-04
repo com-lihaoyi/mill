@@ -12,7 +12,7 @@ import mill.api.{Logger, MillException, Result, SystemStreams, WorkspaceRoot, in
 import mill.bsp.{BspContext, BspServerResult}
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 import mill.runner.worker.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}
 

@@ -12,7 +12,8 @@ import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.constants.OutFiles.*
 import mill.constants.CodeGenConstants.buildFileExtensions
-import mill.main.{BuildInfo, RootModule}
+import mill.util.BuildInfo
+import mill.main.RootModule
 import mill.runner.worker.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import scala.util.Try
@@ -102,7 +103,12 @@ abstract class MillBuildRootModule()(implicit
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
     ) ++
-      Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+      Seq(
+        ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}",
+        ivy"com.lihaoyi::mill-runner-api:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-core-api:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-core-define:${Versions.millVersion}",
+      )
   }
 
   override def runIvyDeps = Task {
@@ -272,10 +278,6 @@ abstract class MillBuildRootModule()(implicit
 
   override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
     super.bindDependency.apply().apply(dep).exclude(resolveDepsExclusions()*)
-  }
-
-  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
-    enclosingClasspath()
   }
 
   override def scalacPluginIvyDeps: T[Seq[Dep]] = Seq(

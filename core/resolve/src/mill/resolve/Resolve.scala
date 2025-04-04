@@ -2,16 +2,7 @@ package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
 import mill.define.internal.Reflect
-import mill.define.{
-  BaseModule,
-  Command,
-  Discover,
-  Module,
-  NamedTask,
-  Segments,
-  TaskModule,
-  SelectMode
-}
+import mill.define.{BaseModule, Command, Discover, Module, NamedTask, Segments, SelectMode, TaskModule, SimpleTaskTokenReader}
 import mill.api.Result
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 

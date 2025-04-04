@@ -3,7 +3,7 @@ package mill.bsp
 import mill.api.{Ctx, PathRef}
 import mill.{T, Task, given}
 import mill.define.{Command, Discover, Evaluator, ExternalModule}
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 import mill.scalalib.{CoursierModule, Dep}
 
 object BSP extends ExternalModule with CoursierModule {
