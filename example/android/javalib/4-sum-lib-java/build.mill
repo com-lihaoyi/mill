@@ -60,6 +60,9 @@ object app extends AndroidAppModule {
   def androidMinSdk = 19
   def androidCompileSdk = 35
 
+  def androidApplicationId = "com.example.app"
+  def androidApplicationNamespace = "com.example.app"
+
   override def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++ Seq(
       MavenRepository("file://" + sys.props("user.home") + "/.m2/repository")
