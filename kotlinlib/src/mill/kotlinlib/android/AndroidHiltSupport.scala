@@ -96,8 +96,9 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
     val kotlinClasspath = kspClasspath() :+ androidProcessResources()
 
-    val kotlinSourceFiles: Seq[Path] = kspSources().map(_.path).flatMap(os.walk(_))
-      .filter(path => Seq("kt", "kts").contains(path.ext.toLowerCase()))
+    val kotlinSourceFiles: Seq[Path] =
+      kspSources().map(_.path).filter(os.exists).flatMap(os.walk(_))
+        .filter(path => Seq("kt", "kts").contains(path.ext.toLowerCase()))
 
     val compileWithKotlin = Seq(
       "-d",
