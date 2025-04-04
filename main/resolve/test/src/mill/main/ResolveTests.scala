@@ -229,6 +229,15 @@ object ResolveTests extends TestSuite {
         )),
         Set("nested.single", "classInstance.single")
       )
+      test("wildcard4") - check(
+        "__.__.single",
+        Right(Set(
+          _.classInstance.single,
+          _.nested.single,
+          _.single
+        )),
+        Set("nested.single", "classInstance.single", "single")
+      )
     }
     test("doubleNested") {
       val check = new Checker(doubleNestedModule)
@@ -942,6 +951,15 @@ object ResolveTests extends TestSuite {
         "_:Module._",
         Right(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
+      test - {
+        val res = check.resolveMetadata(Seq("__:Module"))
+        assert(res == Right(List("", "typeA", "typeAB", "typeB", "typeC", "typeC.typeA")))
+      }
+      test - {
+        val res = check.resolveMetadata(Seq("_:Module"))
+        assert(res == Right(List("typeA", "typeAB", "typeB", "typeC")))
+      }
+
       // parens should work
       test - check(
         "(_:Module)._",
