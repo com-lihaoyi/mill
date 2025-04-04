@@ -3,10 +3,14 @@
 runs:
   using: "composite"
   steps:
+    - name: Set new Android SDK Home
+      description: This avoids any pre-existing github setup with old versions of cmdline-tools
+      run: echo "ANDROID_SDK_ROOT=$HOME/.android/" >> $GITHUB_ENV
+      shell: bash
     - uses: android-actions/setup-android@v3
       with:
         log-accepted-android-sdk-licenses: false
-        cmdline-tools-version: 11076708
+        cmdline-tools-version: 13114758
         packages: tools platform-tools emulator system-images;android-35;google_apis_playstore;x86_64
 
     - name: Enable KVM group perms
