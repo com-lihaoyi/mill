@@ -313,14 +313,8 @@ class MillBuildBootstrap(
               "fansi.",
             )
             override def findClass(name: String): Class[?] =
-              if (sharedPrefixes.exists(name.startsWith)) {
-                mill.constants.DebugLog.println("+ " + name)
-                sharedCl.loadClass(name)
-              }
-              else {
-                mill.constants.DebugLog.println("- " + name)
-                super.findClass(name)
-              }
+              if (sharedPrefixes.exists(name.startsWith)) sharedCl.loadClass(name)
+              else super.findClass(name)
           }
           cl
         } else {
@@ -377,7 +371,7 @@ class MillBuildBootstrap(
   }
 
   def makeEvaluator(
-      workerCache: Map[Segments, (Int, Val)],
+      workerCache: Map[String, (Int, Val)],
       codeSignatures: Map[String, Int],
       rootModule: RootModuleApi,
       millClassloaderSigHash: Int,

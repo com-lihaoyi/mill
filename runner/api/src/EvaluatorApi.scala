@@ -7,7 +7,7 @@ trait EvaluatorApi extends AutoCloseable{
                 selectiveExecution: Boolean = false
               ): Result[EvaluatorApi.Result[Any]]
 
-  private[mill] def workerCache: mutable.Map[Segments, (Int, Val)]
+  private[mill] def workerCache: mutable.Map[String, (Int, Val)]
 }
 object EvaluatorApi {
   trait Result[T] {

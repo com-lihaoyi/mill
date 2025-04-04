@@ -55,7 +55,7 @@ object RunnerState {
 
   @internal
   case class Frame(
-      workerCache: Map[Segments, (Int, Val)],
+      workerCache: Map[String, (Int, Val)],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       codeSignatures: Map[String, Int],
@@ -68,7 +68,7 @@ object RunnerState {
     def loggedData: Frame.Logged = {
       Frame.Logged(
         workerCache.map { case (k, (i, v)) =>
-          (k.render, Frame.WorkerInfo(System.identityHashCode(v), i))
+          (k, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
         evalWatched.collect { case Watchable.Path(p) => PathRef(os.Path(p)) },
         moduleWatched.collect { case Watchable.Path(p) => PathRef(os.Path(p)) },

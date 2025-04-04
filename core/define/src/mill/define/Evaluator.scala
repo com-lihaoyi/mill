@@ -15,7 +15,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi{
   private[mill] def outPath: os.Path
   private[mill] def codeSignatures: Map[String, Int]
   private[mill] def rootModule: BaseModule
-  private[mill] def workerCache: mutable.Map[Segments, (Int, Val)]
+  private[mill] def workerCache: mutable.Map[String, (Int, Val)]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
 

@@ -195,7 +195,7 @@ trait MainModule extends BaseModule {
         case (paths, allSegments) =>
           for {
             workerSegments <- evaluator.workerCache.keys.toList
-            if allSegments.exists(workerSegments.startsWith)
+            if allSegments.exists(x => workerSegments.startsWith(x.render))
             case (_, Val(closeable: AutoCloseable)) <-
               evaluator.workerCache.remove(workerSegments)
           } {

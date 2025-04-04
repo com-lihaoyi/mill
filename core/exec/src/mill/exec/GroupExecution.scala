@@ -26,7 +26,7 @@ private trait GroupExecution {
   def rootModule: BaseModuleApi
   def classLoaderSigHash: Int
   def classLoaderIdentityHash: Int
-  def workerCache: mutable.Map[Segments, (Int, Val)]
+  def workerCache: mutable.Map[String, (Int, Val)]
   def env: Map[String, String]
   def failFast: Boolean
   def threadCount: Option[Int]
@@ -341,7 +341,7 @@ private trait GroupExecution {
   ): Unit = {
     for (w <- labelled.asWorker)
       workerCache.synchronized {
-        workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
+        workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
       }
 
     val terminalResult = labelled
@@ -431,7 +431,7 @@ private trait GroupExecution {
     labelled.asWorker
       .flatMap { w =>
         workerCache.synchronized {
-          workerCache.get(w.ctx.segments)
+          workerCache.get(w.ctx.segments.render)
         }
       }
       .flatMap {
@@ -453,7 +453,7 @@ private trait GroupExecution {
           // make sure, we can no longer re-use a closed worker
           labelled.asWorker.foreach { w =>
             workerCache.synchronized {
-              workerCache.remove(w.ctx.segments)
+              workerCache.remove(w.ctx.segments.render)
             }
           }
           None
