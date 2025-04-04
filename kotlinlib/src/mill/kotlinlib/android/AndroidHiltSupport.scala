@@ -1,12 +1,14 @@
 package mill.kotlinlib.android
 
+import coursier.Repository
 import mill.api.{PathRef, Result}
-import mill.define.ModuleRef
+import mill.define.{Discover, ExternalModule, ModuleRef}
+import mill.javalib.android.AndroidSdkModule
 import mill.kotlinlib.DepSyntax
 import mill.kotlinlib.android.AndroidHiltSupport.HiltGeneratedClasses
 import mill.kotlinlib.ksp.KspModule
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
-import mill.main.AndroidHiltModule
+import mill.scalalib.{Dep, JvmWorkerModule}
 import mill.{T, Task}
 import os.Path
 
@@ -92,7 +94,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
     os.makeDir.all(kotlinClasses)
 
-    val kotlinClasspath = compileClasspath() :+ androidProcessResources()
+    val kotlinClasspath = kspClasspath() :+ androidProcessResources()
 
     val kotlinSourceFiles: Seq[Path] = kspSources().map(_.path).flatMap(os.walk(_))
       .filter(path => Seq("kt", "kts").contains(path.ext.toLowerCase()))
@@ -124,7 +126,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     )
 
     val compileCp =
-      compileClasspath().map(_.path) ++ Seq(androidProcessResources().path, kotlinClasses)
+      kspClasspath().map(_.path) ++ Seq(androidProcessResources().path, kotlinClasses)
 
     val worker = jvmWorker().worker()
 
@@ -243,7 +245,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
   }
 
-  def androidHiltModule = ModuleRef(AndroidHiltModule)
+  def androidHiltModule = ModuleRef(AndroidHiltTransform)
 
   /**
    * Transforms the Kotlin classes with Hilt dependency injection context
@@ -274,14 +276,18 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
   }
 
-  override def androidGeneratedCompiledClasses: T[Seq[PathRef]] =
-    androidHiltGeneratedClasses
-
-  def hiltProcessorClasspath: T[Seq[PathRef]] = Task {
-    kspApClasspath() ++ compileClasspath()
+  override def androidGeneratedCompiledClasses: T[Seq[PathRef]] = Task {
+    androidHiltGeneratedClasses()
   }
 
-  override def kotlinPrecompiledClasses: Task[Seq[PathRef]] = androidGeneratedCompiledClasses
+  def hiltProcessorClasspath: T[Seq[PathRef]] = Task {
+    kspApClasspath() ++ kspClasspath()
+  }
+
+  override def compileClasspath: T[Seq[PathRef]] = Task {
+    super.compileClasspath() ++ androidGeneratedCompiledClasses()
+  }
+
 }
 
 object AndroidHiltSupport {
@@ -302,4 +308,21 @@ object AndroidHiltSupport {
     implicit def resultRW: upickle.default.ReadWriter[HiltGeneratedClasses] =
       upickle.default.macroRW
   }
+}
+
+object AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
+
+  override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+    super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
+  }
+
+  def toolsClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      Seq(
+        Dep.millProjectModule("mill-main-androidhilt")
+      )
+    )
+  }
+
+  override lazy val millDiscover: Discover = Discover[this.type]
 }
