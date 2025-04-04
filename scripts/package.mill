@@ -63,8 +63,12 @@ object `package` extends RootModule { scripts =>
     def templateFile = Task.Source("src/mill.sh")
     def finalName = "mill"
   }
+  object millBat extends BootstrapScriptModule {
+    def templateFile = Task.Source("src/mill.bat")
+    def finalName = "mill.bat"
+  }
 
-  def scriptsModules: Seq[BootstrapScriptModule] = Seq(millSh)
+  def scriptsModules: Seq[BootstrapScriptModule] = Seq(millSh, millBat)
 
   def installInRepo: T[Seq[PathRef]] = Task {
     Task.traverse(scriptsModules)(m =>
