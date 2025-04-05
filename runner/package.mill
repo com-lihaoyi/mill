@@ -10,8 +10,9 @@ import mill.contrib.buildinfo.BuildInfo
  * Mostly tested by [[build.integration]] and [[build.example]] tests.
  */
 object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
-  object api extends build.MillPublishScalaModule {
+  object api extends scalalib.ScalaModule with build.MillPublishScalaModule {
     def moduleDeps = Seq(build.core.constants)
+    def mandatoryIvyDeps = super[ScalaModule].mandatoryIvyDeps()
   }
 
   object `worker-api` extends build.MillPublishScalaModule {
