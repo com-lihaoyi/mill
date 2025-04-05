@@ -317,10 +317,10 @@ object TestModule {
         val builder = builderClass.getConstructor().newInstance()
 
         classesDir().foreach { path =>
-                  builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
-                    builder,
-                    path.wrapped.toFile
-                  )
+          builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
+            builder,
+            path.wrapped.toFile
+          )
         }
 
         builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
