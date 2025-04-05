@@ -110,11 +110,13 @@ object Watching {
 
   def validate(w: Watchable) = poll(w) == signature(w)
   def poll(w: Watchable) = w match {
-    case Watchable.Path(p, quick, sig) => new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).recomputeSig()
+    case Watchable.Path(p, quick, sig) =>
+      new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).recomputeSig()
     case Watchable.Value(f, sig, pretty) => f()
   }
   def signature(w: Watchable) = w match {
-    case Watchable.Path(p, quick, sig) => new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).sig
+    case Watchable.Path(p, quick, sig) =>
+      new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).sig
     case Watchable.Value(f, sig, pretty) => sig
   }
 }

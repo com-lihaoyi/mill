@@ -1,4 +1,3 @@
-
 package mill
 
 package object main {

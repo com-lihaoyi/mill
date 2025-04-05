@@ -71,10 +71,10 @@ object RunnerState {
           (k, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
         evalWatched.collect { case Watchable.Path(p, quick, sig) =>
-          new PathRef(os.Path(p), quick, sig, mill.api.PathRef.Revalidate.Once)  
+          new PathRef(os.Path(p), quick, sig, mill.api.PathRef.Revalidate.Once)
         },
-        moduleWatched.collect { case Watchable.Path(p, quick, sig) => 
-          new PathRef(os.Path(p), quick, sig, mill.api.PathRef.Revalidate.Once)  
+        moduleWatched.collect { case Watchable.Path(p, quick, sig) =>
+          new PathRef(os.Path(p), quick, sig, mill.api.PathRef.Revalidate.Once)
         },
         classLoaderOpt.map(_.identity),
         runClasspath,

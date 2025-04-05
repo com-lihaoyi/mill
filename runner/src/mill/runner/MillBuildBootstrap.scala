@@ -517,7 +517,7 @@ object MillBuildBootstrap {
     val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.wrapper_object_getter")
 
     val valueMethod = buildClass.getMethod("value")
-    mill.api.ExecResult.catchWrapException{ valueMethod.invoke(null).asInstanceOf[RootModuleApi] }
+    mill.api.ExecResult.catchWrapException { valueMethod.invoke(null).asInstanceOf[RootModuleApi] }
   }
 
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
