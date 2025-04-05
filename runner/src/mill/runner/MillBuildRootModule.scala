@@ -1,7 +1,6 @@
 package mill.runner
 
 import scala.jdk.CollectionConverters.ListHasAsScala
-
 import coursier.Repository
 import mill.*
 import mill.api.{PathRef, Result, internal}
@@ -16,10 +15,13 @@ import mill.util.BuildInfo
 import mill.define.RootModule0
 import mill.runner.worker.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
-import scala.util.Try
 
+import scala.util.Try
 import mill.define.Target
+import mill.runner.api.Watchable
 import mill.runner.worker.api.MillScalaParser
+
+import scala.collection.mutable
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -29,7 +31,7 @@ import mill.runner.worker.api.MillScalaParser
  * calls within the scripts.
  */
 @internal
-abstract class MillBuildRootModule()(implicit
+class MillBuildRootModule()(implicit
     rootModuleInfo: RootModule0.Info,
     scalaCompilerResolver: ScalaCompilerWorker.Resolver
 ) extends RootModule0() with ScalaModule {
@@ -324,6 +326,9 @@ abstract class MillBuildRootModule()(implicit
       )
   }
 
+  protected[mill] def watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty
+
+  protected[mill] def evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty
 }
 
 object MillBuildRootModule {
@@ -333,12 +338,6 @@ object MillBuildRootModule {
       scalaCompilerResolver: ScalaCompilerWorker.Resolver
   ) extends MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
-
-    protected[mill] def evalWatchedValues: collection.mutable.Buffer[mill.runner.api.Watchable] =
-      collection.mutable.Buffer.empty
-
-    protected[mill] def watchedValues: collection.mutable.Buffer[mill.runner.api.Watchable] =
-      collection.mutable.Buffer.empty
   }
 
   case class Info(
