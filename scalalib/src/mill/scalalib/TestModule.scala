@@ -11,7 +11,8 @@ trait TestModule
     extends TestModule.JavaModuleBase
     with WithJvmWorker
     with RunModule
-    with TaskModule {
+    with TaskModule
+    with mill.runner.api.TestModuleApi {
 
   // FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
   def compile: T[mill.scalalib.api.CompilationResult]
@@ -242,7 +243,7 @@ trait TestModule
     val parent = super.bspBuildTarget
     parent.copy(
       canTest = true,
-      tags = Seq(BspModule.Tag.Test)
+      tags = Seq(mill.runner.api.BspModuleApi.Tag.Test)
     )
   }
 }

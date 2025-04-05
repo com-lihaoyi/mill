@@ -12,7 +12,7 @@ import mill.{T, Task}
 import scala.util.Properties
 
 @experimental
-trait SemanticDbJavaModule extends CoursierModule {
+trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticDbJavaModuleApi  {
   def jvmWorker: ModuleRef[JvmWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]

@@ -1,5 +1,4 @@
-package mill.scalalib.bsp
-
+package mill.runner.api
 abstract class ScalaPlatform(val number: Int)
 
 object ScalaPlatform {

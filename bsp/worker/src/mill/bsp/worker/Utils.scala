@@ -14,7 +14,7 @@ import mill.runner.api.CompileProblemReporter
 import mill.runner.api.ExecResult.{Skipped, Success}
 import mill.define.ExecutionResults
 import mill.scalalib.JavaModule
-import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import mill.runner.api.{BspBuildTarget, BspModuleApi}
 
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps

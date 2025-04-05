@@ -1,4 +1,6 @@
 package mill.runner.api
+
+trait SemanticDbJavaModuleApi
 object SemanticDbJavaModuleApi {
   val buildTimeJavaSemanticDbVersion = Versions.semanticDbJavaVersion
   val buildTimeSemanticDbVersion = Versions.semanticDBVersion

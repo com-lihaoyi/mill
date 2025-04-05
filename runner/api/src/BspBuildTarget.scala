@@ -1,8 +1,7 @@
-package mill.scalalib.bsp
-
+package mill.runner.api
 case class BspBuildTarget(
     displayName: Option[String],
-    baseDirectory: Option[os.Path],
+    baseDirectory: Option[java.nio.file.Path],
     tags: Seq[String],
     languageIds: Seq[String],
     canCompile: Boolean,

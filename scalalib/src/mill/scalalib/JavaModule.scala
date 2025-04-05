@@ -34,7 +34,8 @@ trait JavaModule
     with OfflineSupportModule
     with BspModule
     with SemanticDbJavaModule
-    with AssemblyModule { outer =>
+    with AssemblyModule
+    with mill.runner.api.JavaModuleApi { outer =>
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
@@ -1325,7 +1326,7 @@ trait JavaModule
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    languageIds = Seq(BspModule.LanguageId.Java),
+    languageIds = Seq(mill.runner.api.BspModuleApi.LanguageId.Java),
     canCompile = true,
     canRun = true
   )
@@ -1335,8 +1336,8 @@ trait JavaModule
     JvmBuildTarget(
       javaHome = jvmWorker()
         .javaHome()
-        .map(p => BspUri(p.path))
-        .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p)))),
+        .map(p => BspUri(p.path.toNIO))
+        .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p).toNIO))),
       javaVersion = Option(System.getProperty("java.version"))
     )
   }
