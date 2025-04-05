@@ -7,6 +7,7 @@ import mill.define._
 import mill.internal.PrefixLogger
 import mill.define.MultiBiMap
 
+import mill.runner.api._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable

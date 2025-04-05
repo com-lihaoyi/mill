@@ -80,7 +80,7 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinExplicitApi: T[Boolean] = Task { false }
 
-  type CompileProblemReporter = mill.api.CompileProblemReporter
+  type CompileProblemReporter = mill.runner.api.CompileProblemReporter
 
   protected def jvmWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
 

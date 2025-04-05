@@ -1,14 +1,8 @@
 package mill.eval
 
-import mill.api.{
-  Logger,
-  CompileProblemReporter,
-  DummyTestReporter,
-  ExecResult,
-  PathRef,
-  TestReporter,
-  Val
-}
+import mill.runner.api._
+import mill.api.PathRef
+
 import mill.constants.OutFiles
 import mill.define.*
 import mill.exec.{Execution, PlanImpl}

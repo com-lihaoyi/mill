@@ -2,7 +2,7 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j._
 import ch.epfl.scala.{bsp4j => bsp}
-import mill.api.{CompileProblemReporter, Problem}
+import mill.runner.api.{CompileProblemReporter, Problem}
 
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
@@ -60,9 +60,9 @@ private class BspCompileProblemReporter(
         // instead of sending a `build/publishDiagnostics` we send a `build/logMessage`.
         // see https://github.com/com-lihaoyi/mill/issues/2926
         val messagesType = problem.severity match {
-          case mill.api.Error => MessageType.ERROR
-          case mill.api.Warn => MessageType.WARNING
-          case mill.api.Info => MessageType.INFO
+          case mill.runner.api.Error => MessageType.ERROR
+          case mill.runner.api.Warn => MessageType.WARNING
+          case mill.runner.api.Info => MessageType.INFO
         }
         val msgParam = new LogMessageParams(messagesType, problem.message).tap { it =>
           it.setTask(taskId)
@@ -103,9 +103,9 @@ private class BspCompileProblemReporter(
       d.setSource("mill")
       d.setSeverity(
         problem.severity match {
-          case mill.api.Info => bsp.DiagnosticSeverity.INFORMATION
-          case mill.api.Error => bsp.DiagnosticSeverity.ERROR
-          case mill.api.Warn => bsp.DiagnosticSeverity.WARNING
+          case mill.runner.api.Info => bsp.DiagnosticSeverity.INFORMATION
+          case mill.runner.api.Error => bsp.DiagnosticSeverity.ERROR
+          case mill.runner.api.Warn => bsp.DiagnosticSeverity.WARNING
         }
       )
       problem.diagnosticCode.foreach { existingCode =>
@@ -134,8 +134,8 @@ private class BspCompileProblemReporter(
     warnings += 1
   }
 
-  override def fileVisited(file: os.Path): Unit = {
-    val uri = file.toNIO.toUri.toString
+  override def fileVisited(file: java.nio.file.Path): Unit = {
+    val uri = file.toUri.toString
     val textDocument = new TextDocumentIdentifier(uri)
     sendBuildPublishDiagnostics(textDocument, diagnostics.getAll(textDocument), reset = true)
   }

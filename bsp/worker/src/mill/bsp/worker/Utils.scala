@@ -10,8 +10,8 @@ import ch.epfl.scala.bsp4j.{
   StatusCode,
   TaskId
 }
-import mill.api.{CompileProblemReporter, PathRef}
-import mill.api.ExecResult.{Skipped, Success}
+import mill.runner.api.CompileProblemReporter
+import mill.runner.api.ExecResult.{Skipped, Success}
 import mill.define.ExecutionResults
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
@@ -24,9 +24,7 @@ private object Utils {
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toNIO.toUri.toString)
-
-  def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
+  def sanitizeUri(uri: java.nio.file.Path): String = sanitizeUri(uri.toUri.toString)
 
   // define the function that spawns compilation reporter for each module based on the
   // module's hash code TODO: find something more reliable than the hash code

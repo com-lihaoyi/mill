@@ -11,7 +11,7 @@ import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.runner.api.{BaseModuleApi, EvaluatorApi}
+import mill.runner.api.{SystemStreams => _, _}
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s

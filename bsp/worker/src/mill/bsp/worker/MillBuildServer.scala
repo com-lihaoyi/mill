@@ -3,12 +3,12 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
-import mill.api.ExecResult
-import mill.api.{Logger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
+import mill.runner.api.{ExecResult, EvaluatorApi}
+import mill.runner.api.{Logger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
 import mill.runner.api.{BspServerHandle, BspServerResult}
 import mill.bsp.{Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
-import mill.define.Segment.Label
+import mill.runner.api.Segment.Label
 import mill.define.{Args, Discover, Evaluator, ExecutionResults, ExternalModule, NamedTask, Task}
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
@@ -33,12 +33,9 @@ private class MillBuildServer(
     logStream: PrintStream,
     canReload: Boolean,
     debugMessages: Boolean
-) extends ExternalModule
-    with BuildServer {
+) extends BuildServer {
 
   import MillBuildServer._
-
-  lazy val millDiscover = Discover[this.type]
 
   private[worker] var cancellator: Boolean => Unit = _ => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
@@ -53,7 +50,7 @@ private class MillBuildServer(
 
   private var statePromise: Promise[State] = Promise[State]()
 
-  def updateEvaluator(evaluatorsOpt: Option[Seq[Evaluator]]): Unit = {
+  def updateEvaluator(evaluatorsOpt: Option[Seq[EvaluatorApi]]): Unit = {
     debug(s"Updating Evaluator: $evaluatorsOpt")
     if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
@@ -120,10 +117,10 @@ private class MillBuildServer(
               s"Got client semanticdbVersion: ${version}. Enabling SemanticDB support."
             )
             clientWantsSemanticDb = true
-            SemanticDbJavaModule.contextSemanticDbVersion.set(Option(version))
+            SemanticDbJavaModuleApi.contextSemanticDbVersion.set(Option(version))
           }
           readVersion(d, "javaSemanticdbVersion").foreach { version =>
-            SemanticDbJavaModule.contextJavaSemanticDbVersion.set(Option(version))
+            SemanticDbJavaModuleApi.contextJavaSemanticDbVersion.set(Option(version))
           }
         case _ => // no op
       }
@@ -145,7 +142,7 @@ private class MillBuildServer(
         print("Shutdown build...")
         onEnd(BspServerResult.Shutdown)
     }
-    SemanticDbJavaModule.resetContext()
+    SemanticDbJavaModuleApi.resetContext()
     CompletableFuture.completedFuture(null.asInstanceOf[Object])
   }
   override def onBuildExit(): Unit = {
@@ -156,7 +153,7 @@ private class MillBuildServer(
         print("Exiting build...")
         onEnd(BspServerResult.Shutdown)
     }
-    SemanticDbJavaModule.resetContext()
+    SemanticDbJavaModuleApi.resetContext()
     cancellator(shutdownRequested)
   }
 
@@ -597,7 +594,7 @@ private class MillBuildServer(
         )) {
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
-            val mainModule = new mill.define.BaseModule(moduleDir) with MainModule {
+            val mainModule = new mill.define.BaseModule(topLevelProjectRoot) with MainModule {
               override implicit def millDiscover: Discover = Discover[this.type]
             }
             val compileTargetName = (module.moduleSegments ++ Label("compile")).render

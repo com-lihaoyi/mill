@@ -2,6 +2,7 @@ package mill.api
 
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
+import mill.runner.api.{CompileProblemReporter, TestReporter}
 
 /**
  * Represents the data and utilities that are contextually available inside the

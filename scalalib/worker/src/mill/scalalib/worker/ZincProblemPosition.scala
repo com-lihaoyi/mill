@@ -2,7 +2,8 @@ package mill.scalalib.worker
 
 import java.io.File
 import java.util.Optional
-import mill.api.{ProblemPosition, internal}
+import mill.api._
+import mill.runner.api._
 
 import scala.jdk.OptionConverters.RichOptional
 

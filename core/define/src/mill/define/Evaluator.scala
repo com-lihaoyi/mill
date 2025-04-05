@@ -1,5 +1,6 @@
 package mill.define
 
+import mill.runner.api.{CompileProblemReporter, TestReporter, DummyTestReporter}
 import mill.api.*
 import mill.define.internal.Watchable
 import mill.runner.api.EvaluatorApi

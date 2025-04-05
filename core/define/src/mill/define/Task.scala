@@ -1,6 +1,7 @@
 package mill.define
 
-import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
+import mill.api.PathRef
+import mill.runner.api.{CompileProblemReporter, Logger, Result, TestReporter}
 import mill.define.internal.Applicative.Applyable
 import mill.define.internal.Cacher
 import upickle.default.{ReadWriter as RW, Writer as W}
