@@ -46,10 +46,7 @@ private object Inspect {
 
     def renderFileName(t: NamedTask[?]) = {
       // handle both Windows or Unix separators
-      val fullFileName = t.ctx.fileName.replaceAll(
-        raw"\\",
-        "/"
-      ).replace("out/mill-build/generateScriptSources.dest/build_/", "")
+      val fullFileName = t.ctx.fileName.replaceAll(raw"\\", "/")
       val basePath = WorkspaceRoot.workspaceRoot.toString.replaceAll(raw"\\", "/") + "/"
       mill.constants.DebugLog.println("fullFileName " + fullFileName)
       mill.constants.DebugLog.println("basePath " + basePath)
