@@ -13,9 +13,6 @@ trait TestModule
     with RunModule
     with TaskModule {
 
-//   FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
-//  def compile: T[mill.scalalib.api.CompilationResult]
-
   override def defaultCommandName() = "testForked"
 
   /**
