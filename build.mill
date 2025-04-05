@@ -406,14 +406,14 @@ trait MillJavaModule extends JavaModule {
     if (this == build.main) Seq(build.main, build.main.util)
     else Seq(this, build.main.test)
 
-  def writeLocalTestOverrides = Task.Anon {
+  def localTestOverridesClasspath = Task {
     for ((k, v) <- testTransitiveDeps()) {
       os.write(Task.dest / "mill/local-test-overrides" / k, v, createFolders = true)
     }
-    Seq(PathRef(Task.dest))
+    PathRef(Task.dest)
   }
 
-  def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+  def runClasspath = super.runClasspath() ++ Seq(localTestOverridesClasspath())
 
   def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++

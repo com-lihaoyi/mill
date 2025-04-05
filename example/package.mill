@@ -239,7 +239,8 @@ object `package` extends RootModule with Module {
     def localRunClasspath = build.testkit.localRunClasspath()
 
     def forkEnv = Map(
-      "LANG" -> "C"
+      "LANG" -> "C",
+      "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
     )
 
     /**

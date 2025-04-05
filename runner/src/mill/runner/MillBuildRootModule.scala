@@ -252,6 +252,12 @@ abstract class MillBuildRootModule()(implicit
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task.Input {
+    Option(System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH"))
+      .map(s => PathRef(os.Path(s)))
+      .toSeq
+  }
+
   override def scalacPluginIvyDeps: T[Seq[Dep]] = Seq(
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
   )
