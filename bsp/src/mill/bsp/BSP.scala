@@ -67,11 +67,11 @@ object BSP extends ExternalModule with CoursierModule {
    * @param allBootstrapEvaluators The Evaluator
    * @return The server result, indicating if mill should re-run this command or just exit.
    */
-  def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
+  def startSession(allBootstrapEvaluators: mill.runner.api.EvaluatorApi.AllBootstrapEvaluators)
       : Command[BspServerResult] = Task.Command(exclusive = true) {
     Task.log.streams.err.println("BSP/startSession: Starting BSP session")
     val res = BspContext.bspServerHandle.runSession(
-      allBootstrapEvaluators.value.map(_.asInstanceOf[Evaluator])
+      allBootstrapEvaluators.value.collect{case e: Evaluator => e}
     )
     Task.log.streams.err.println(s"BSP/startSession: Finished BSP session, result: ${res}")
     res

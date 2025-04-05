@@ -62,7 +62,7 @@ private class BspWorkerImpl() extends BspWorker {
 
         override def runSession(evaluators: Seq[mill.runner.api.EvaluatorApi]): BspServerResult = {
           lastResult0 = None
-          millServer.updateEvaluator(Option(evaluators.map(_.asInstanceOf[Evaluator])))
+          millServer.updateEvaluator(Option(evaluators.collect{case e: Evaluator => e}))
           val onReload = Promise[BspServerResult]()
           millServer.onSessionEnd = Some { serverResult =>
             if (!onReload.isCompleted) {

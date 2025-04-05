@@ -7,7 +7,7 @@ import mill.define.Evaluator
  * Usage : `mill mill.contrib.bloop.Bloop/install`
  */
 object Bloop extends BloopImpl(
-      () => Evaluator.allBootstrapEvaluators.value.value.map(_.asInstanceOf[Evaluator]),
+      () => mill.runner.api.EvaluatorApi.allBootstrapEvaluators.value.value.collect{case e: Evaluator => e},
       WorkspaceRoot.workspaceRoot,
       addMillSources = None
     )

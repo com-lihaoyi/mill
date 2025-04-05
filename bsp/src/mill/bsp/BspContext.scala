@@ -6,7 +6,8 @@ import java.io.PrintStream
 import scala.util.control.NonFatal
 
 private[mill] object BspContext {
-  @volatile var bspServerHandle: mill.runner.api.BspServerHandle = null
+  @volatile def bspServerHandle: mill.runner.api.BspServerHandle =
+    mill.runner.api.BspContextApi.bspServerHandle
 }
 
 private[mill] class BspContext(
@@ -21,7 +22,7 @@ private[mill] class BspContext(
   streams.err.println("Running in BSP mode with hardcoded startSession command")
 
   streams.err.println("Trying to load BSP server...")
-  BspContext.bspServerHandle =
+  mill.runner.api.BspContextApi.bspServerHandle =
     try {
       startBspServer(
         streams0 = streams,

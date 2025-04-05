@@ -9,9 +9,9 @@ private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Cons
   )
 }
 private[mill] class AllEvaluatorsTokenReader[T]()
-    extends mainargs.TokensReader.Constant[Evaluator.AllBootstrapEvaluators] {
-  def read(): Either[String, Evaluator.AllBootstrapEvaluators] =
-    Right(Evaluator.allBootstrapEvaluators.value)
+    extends mainargs.TokensReader.Constant[mill.runner.api.EvaluatorApi.AllBootstrapEvaluators] {
+  def read(): Either[String, mill.runner.api.EvaluatorApi.AllBootstrapEvaluators] =
+    Right(mill.runner.api.EvaluatorApi.allBootstrapEvaluators.value)
 }
 
 private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, ?])
@@ -27,7 +27,7 @@ trait TokenReaders0 {
     new mill.util.EvaluatorTokenReader[T]()
 
   implicit def millAllEvaluatorsTokenReader[T]
-      : mainargs.TokensReader[Evaluator.AllBootstrapEvaluators] =
+      : mainargs.TokensReader[mill.runner.api.EvaluatorApi.AllBootstrapEvaluators] =
     new mill.util.AllEvaluatorsTokenReader[T]()
 
   implicit def millTasksTokenReader[T]: mainargs.TokensReader[Tasks[T]] =

@@ -78,13 +78,6 @@ object Evaluator {
       executionResults: ExecutionResults
   ) extends EvaluatorApi.Result[T]
 
-  /**
-   * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
-   */
-  case class AllBootstrapEvaluators(value: Seq[EvaluatorApi])
-
-  private[mill] val allBootstrapEvaluators =
-    new DynamicVariable[Evaluator.AllBootstrapEvaluators](null)
 
   private[mill] val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 }

@@ -1,5 +1,6 @@
 package mill.runner.api
 import collection.mutable
+import scala.util.DynamicVariable
 trait EvaluatorApi extends AutoCloseable {
   def evaluate(
       scriptArgs: Seq[String],
@@ -14,4 +15,14 @@ object EvaluatorApi {
     def watchable: Seq[Watchable]
     def values: mill.runner.api.Result[Seq[T]]
   }
+
+  /**
+   * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
+   */
+  case class AllBootstrapEvaluators(value: Seq[EvaluatorApi])
+
+  private[mill] val allBootstrapEvaluators =
+    new DynamicVariable[AllBootstrapEvaluators](null)
+
 }
+
