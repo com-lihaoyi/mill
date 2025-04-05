@@ -8,6 +8,6 @@ package mill.runner.api
  */
 private[mill] sealed trait Watchable
 private[mill] object Watchable {
-  case class Path(p: java.nio.file.Path) extends Watchable
+  case class Path(p: java.nio.file.Path, quick: Boolean, signature: Int) extends Watchable
   case class Value(f: () => Long, signature: Long, pretty: String) extends Watchable
 }

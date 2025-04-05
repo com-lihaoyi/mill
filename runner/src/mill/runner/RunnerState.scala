@@ -70,8 +70,12 @@ object RunnerState {
         workerCache.map { case (k, (i, v)) =>
           (k, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
-        evalWatched.collect { case Watchable.Path(p) => PathRef(os.Path(p)) },
-        moduleWatched.collect { case Watchable.Path(p) => PathRef(os.Path(p)) },
+        evalWatched.collect { case Watchable.Path(p, quick, sig) =>
+          new PathRef(os.Path(p), quick, sig, mill.api.PathRef.Revalidate.Once)  
+        },
+        moduleWatched.collect { case Watchable.Path(p, quick, sig) => 
+          new PathRef(os.Path(p), quick, sig, mill.api.PathRef.Revalidate.Once)  
+        },
         classLoaderOpt.map(_.identity),
         runClasspath,
         runClasspath.hashCode()

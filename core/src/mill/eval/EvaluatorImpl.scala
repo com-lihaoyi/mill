@@ -142,9 +142,9 @@ final class EvaluatorImpl private[mill] (
         val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
           .collect {
             case (t: SourcesImpl, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
-              ps.map(r => Watchable.Path(r.path.toNIO))
+              ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
             case (t: SourceImpl, ExecResult.Success(Val(p: PathRef))) =>
-              Seq(Watchable.Path(p.path.toNIO))
+              Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
             case (t: InputImpl[_], result) =>
 
               val ctx = new mill.api.Ctx.Impl(
