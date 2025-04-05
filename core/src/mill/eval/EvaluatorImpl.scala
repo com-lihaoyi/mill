@@ -232,8 +232,8 @@ final class EvaluatorImpl private[mill] (
 
 }
 object EvaluatorImpl {
-  def withResolveChecker[T](f: () => T):T = {
-    os.checker.withValue(resolveChecker){
+  def withResolveChecker[T](f: () => T): T = {
+    os.checker.withValue(resolveChecker) {
       f()
     }
   }

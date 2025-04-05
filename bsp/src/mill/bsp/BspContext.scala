@@ -6,7 +6,7 @@ import java.io.PrintStream
 import scala.util.control.NonFatal
 
 private[mill] object BspContext {
-  @volatile var bspServerHandle: BspServerHandle = null
+  @volatile var bspServerHandle: mill.runner.api.BspServerHandle = null
 }
 
 private[mill] class BspContext(
@@ -40,7 +40,7 @@ private[mill] class BspContext(
       streams0: SystemStreams,
       logStream: Option[PrintStream],
       canReload: Boolean
-  ): Result[BspServerHandle] = {
+  ): Result[mill.runner.api.BspServerHandle] = {
     val log: Logger = new Logger {
       override def streams: SystemStreams = new SystemStreams(
         out = streams0.out,

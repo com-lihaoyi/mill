@@ -9,7 +9,8 @@ import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.{Logger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
-import mill.bsp.{BspContext, BspServerResult}
+import mill.bsp.{BspContext}
+import mill.runner.api.BspServerResult
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
 import mill.util.BuildInfo

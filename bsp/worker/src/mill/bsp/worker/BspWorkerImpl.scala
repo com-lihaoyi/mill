@@ -2,7 +2,8 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.util.BuildInfo
-import mill.bsp.{BspServerHandle, BspServerResult, BspWorker, Constants}
+import mill.runner.api.{BspServerHandle, BspServerResult}
+import mill.bsp.{BspWorker, Constants}
 import mill.api.{Result, SystemStreams}
 import mill.define.Evaluator
 import org.eclipse.lsp4j.jsonrpc.Launcher
@@ -59,9 +60,9 @@ private class BspWorkerImpl() extends BspWorker {
       val bspServerHandle = new BspServerHandle {
         private var lastResult0: Option[BspServerResult] = None
 
-        override def runSession(evaluators: Seq[Evaluator]): BspServerResult = {
+        override def runSession(evaluators: Seq[mill.runner.api.EvaluatorApi]): BspServerResult = {
           lastResult0 = None
-          millServer.updateEvaluator(Option(evaluators))
+          millServer.updateEvaluator(Option(evaluators.map(_.asInstanceOf[Evaluator])))
           val onReload = Promise[BspServerResult]()
           millServer.onSessionEnd = Some { serverResult =>
             if (!onReload.isCompleted) {

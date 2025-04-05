@@ -13,7 +13,7 @@ private trait BspWorker {
       logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
-  ): Result[BspServerHandle]
+  ): Result[mill.runner.api.BspServerHandle]
 }
 
 private object BspWorker {

@@ -5,7 +5,8 @@ import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
 import mill.api.ExecResult
 import mill.api.{Logger, CompileProblemReporter, DummyTestReporter, Result, TestReporter}
-import mill.bsp.{BspServerResult, Constants}
+import mill.runner.api.{BspServerHandle, BspServerResult}
+import mill.bsp.{Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
 import mill.define.{Args, Discover, Evaluator, ExecutionResults, ExternalModule, NamedTask, Task}
