@@ -291,11 +291,12 @@ private trait GroupExecution {
               }
             } catch {
               case ex: Result.Exception => ExecResult.Failure(ex.error)
-              case e: Throwable =>
+              case NonFatal(e) =>
                 ExecResult.Exception(
                   e,
                   new OuterStack(new Exception().getStackTrace.toIndexedSeq)
                 )
+              case e: Throwable => throw e
             }
           }
         }
