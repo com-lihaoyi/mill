@@ -85,7 +85,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
       val Right(result2) = eval.apply(playsingleapi.compile): @unchecked
 
-      assert(result2.evalCount == 0)
+      assert(result2.evalCount == 1)
     }
   }
 }

@@ -4,6 +4,7 @@ import mill._
 
 /**
  * This package contains internal helpers and utilities used throughout
+ *
  * Mill's own internal code but not intended for use by user-land code.
  */
 object `package` extends RootModule with build.MillPublishScalaModule {

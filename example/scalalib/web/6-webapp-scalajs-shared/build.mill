@@ -11,7 +11,7 @@ trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
 
 object `package` extends RootModule with AppScalaModule {
   def moduleDeps = Seq(shared.jvm)
-  def ivyDeps = Seq(ivy"com.lihaoyi::cask:0.9.1")
+  def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
 
   def resources = Task {
     os.makeDir(Task.dest / "webapp")
@@ -23,7 +23,7 @@ object `package` extends RootModule with AppScalaModule {
 
   object test extends ScalaTests with TestModule.Utest {
 
-    def ivyDeps = Seq(
+    def ivyDeps = Agg(
       ivy"com.lihaoyi::utest::0.8.5",
       ivy"com.lihaoyi::requests::0.6.9"
     )
@@ -31,7 +31,7 @@ object `package` extends RootModule with AppScalaModule {
 
   object shared extends Module {
     trait SharedModule extends AppScalaModule with PlatformScalaModule {
-      def ivyDeps = Seq(
+      def ivyDeps = Agg(
         ivy"com.lihaoyi::scalatags::0.13.1",
         ivy"com.lihaoyi::upickle::3.0.0"
       )
@@ -43,7 +43,7 @@ object `package` extends RootModule with AppScalaModule {
 
   object client extends AppScalaJSModule {
     def moduleDeps = Seq(shared.js)
-    def ivyDeps = Seq(ivy"org.scala-js::scalajs-dom::2.2.0")
+    def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
   }
 }
 

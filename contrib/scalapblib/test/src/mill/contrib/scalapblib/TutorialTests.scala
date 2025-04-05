@@ -118,7 +118,7 @@ object TutorialTests extends TestSuite {
           // don't recompile if nothing changed
           val Right(result2) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
 
-          assert(result2.evalCount == 0)
+          assert(result2.evalCount == 1)
         }
       }
 

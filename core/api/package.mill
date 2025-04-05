@@ -26,6 +26,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     build.Deps.upickle,
     build.Deps.pprint,
     build.Deps.fansi,
-    build.Deps.sbtTestInterface
+    build.Deps.sbtTestInterface,
+    build.Deps.coursierJvm
   )
 }

@@ -1,5 +1,4 @@
 package mill.api
-
 import mill.constants.EnvVars
 object WorkspaceRoot {
   val workspaceRoot: os.Path =
