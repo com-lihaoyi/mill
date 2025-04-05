@@ -21,7 +21,7 @@ object `package` extends RootModule { scripts =>
     def substitutionMarkers: T[(String, String)] = ("{{{", "}}}")
     def inRepoDir: Task[os.SubPath] = Task.Anon { os.sub / finalName() }
 
-    /** Compiles the script from tje [[templateFile]] and substitutes all [[substitutions]]. */
+    /** Compiles the script from the [[templateFile]] and substitutes all [[substitutions]]. */
     def compile0: T[PathRef] = Task {
       val script = T.dest / finalName()
       val template = templateFile().path
