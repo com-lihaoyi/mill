@@ -38,7 +38,7 @@ trait MainModule extends BaseModule {
     }
 
     def watch(p: os.Path): os.Path = {
-      val watchable = Watchable.Path(p.toNIO)
+      val watchable = Watchable.Path(p.toNIO, false, PathRef(p).sig)
       watchedValues.append(watchable)
       p
     }

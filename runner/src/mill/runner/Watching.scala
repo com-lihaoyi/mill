@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.api.internal
+import mill.api.{internal, PathRef}
 import mill.internal.Colors
 import mill.define.internal.Watchable
 import mill.api.SystemStreams
@@ -110,11 +110,13 @@ object Watching {
 
   def validate(w: Watchable) = poll(w) == signature(w)
   def poll(w: Watchable) = w match {
-    case mill.runner.api.Watchable.Path(p) => mill.api.PathRef(os.Path(p)).recomputeSig()
-    case mill.runner.api.Watchable.Value(f, sig, pretty) => f()
+    case Watchable.Path(p, quick, sig) =>
+      new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).recomputeSig()
+    case Watchable.Value(f, sig, pretty) => f()
   }
   def signature(w: Watchable) = w match {
-    case mill.runner.api.Watchable.Path(p) => mill.api.PathRef(os.Path(p)).sig
-    case mill.runner.api.Watchable.Value(f, sig, pretty) => sig
+    case Watchable.Path(p, quick, sig) =>
+      new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).sig
+    case Watchable.Value(f, sig, pretty) => sig
   }
 }
