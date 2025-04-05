@@ -154,9 +154,9 @@ private[mill] class PromptLogger(
     def enableTicker = PromptLogger.this.enableTicker
     def debugEnabled = PromptLogger.this.debugEnabled
 
-    def infoColor: fansi.Attrs = PromptLogger.this.infoColor
-    def warnColor: fansi.Attrs = PromptLogger.this.warnColor
-    def errorColor: fansi.Attrs = PromptLogger.this.errorColor
+    def infoColor(s: String): String = PromptLogger.this.infoColor(s).render
+    def warnColor(s: String): String = PromptLogger.this.warnColor(s).render
+    def errorColor(s: String): String = PromptLogger.this.errorColor(s).render
     def colored: Boolean = PromptLogger.this.colored
   }
   def ticker(s: String): Unit = ()

@@ -5,18 +5,7 @@ import mill.constants.{DebugLog, InputPumper}
 import java.io.{InputStream, OutputStream, PrintStream}
 import scala.util.DynamicVariable
 
-/**
- * Represents a set of streams that look similar to those provided by the
- * operating system. These may internally be proxied/redirected/processed, but
- * from the consumer's perspective they look just like the stdout/stderr/stdin
- * that any Unix process receives from the OS.
- */
-class SystemStreams(
-    val out: PrintStream,
-    val err: PrintStream,
-    val in: InputStream
-)
-
+type SystemStreams = mill.runner.api.SystemStreams
 object SystemStreams {
 
   /**
@@ -172,8 +161,7 @@ object SystemStreams {
       override def transferTo(out: OutputStream): Long = delegate().transferTo(out)
     }
   }
-  private def debugPrintln(s: String) =
-    DebugLog.println(pprint.apply(s.toCharArray, width = 999).toString)
+  private def debugPrintln(s: String) = ()
   private[mill] class DebugDelegateStream(delegate0: SystemStreams) extends SystemStreams(
         new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
           override def delegate(): OutputStream = delegate0.out

@@ -7,7 +7,7 @@ import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{Ctx, PathRef, Result}
 import mill.constants.EnvVars
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 import mill.scalalib.api.JvmWorkerUtil
 import mill.util.MillModuleUtil
 
@@ -169,7 +169,7 @@ object Lib {
         val res = scalalib.Lib.resolveDependencies(
           repositories = repos.toList,
           deps = Seq(
-            BoundDep(coursier.Dependency(distModule, BuildInfo.millVersion), force = false)
+            BoundDep(coursier.Dependency(distModule, mill.api.BuildInfo.millVersion), force = false)
           ),
           sources = useSources,
           mapDependencies = None,

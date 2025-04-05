@@ -6,7 +6,7 @@ import mill.api.PathRef
 import mill.scalalib.*
 
 import mill.define.Task
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 
 import scala.io.Codec
 import scala.util.Properties

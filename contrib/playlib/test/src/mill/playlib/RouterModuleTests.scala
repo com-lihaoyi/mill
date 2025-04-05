@@ -5,7 +5,7 @@ import mill.define.{Cross, Discover}
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 object RouterModuleTests extends TestSuite with PlayTestSuite {
 
   trait HelloBase extends TestBaseModule

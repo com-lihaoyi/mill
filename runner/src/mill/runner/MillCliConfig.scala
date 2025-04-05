@@ -155,7 +155,7 @@ import mainargs.ParserForClass
 // to under-compilation, we have it in this file
 // see https://github.com/com-lihaoyi/mill/issues/2315
 object MillCliConfigParser {
-  val customName: String = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
+  val customName: String = s"Mill Build Tool, version ${mill.util.BuildInfo.millVersion}"
   val customDoc = """
 Usage: mill [options] task [task-options] [+ task ...]
 """

@@ -69,7 +69,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
   val defaultShouldRelease: Boolean = true
 
   def publishAll(
-      publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+      publishArtifacts: mill.util.Tasks[PublishModule.PublishData],
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       shouldRelease: Boolean = defaultShouldRelease,

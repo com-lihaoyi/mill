@@ -83,7 +83,7 @@ trait VersionFileModule extends Module {
 object VersionFileModule extends define.ExternalModule {
 
   /** Executes the given processes. */
-  def exec(procs: mill.main.Tasks[Seq[os.proc]]) = Task.Command {
+  def exec(procs: mill.util.Tasks[Seq[os.proc]]) = Task.Command {
     for {
       procs <- Task.sequence(procs.value)()
       proc <- procs

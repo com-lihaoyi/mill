@@ -1,4 +1,4 @@
-package mill.main
+package mill.util
 
 import mill.define.{Evaluator, SelectMode}
 

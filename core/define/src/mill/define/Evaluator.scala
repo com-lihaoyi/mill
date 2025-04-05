@@ -2,11 +2,12 @@ package mill.define
 
 import mill.api.*
 import mill.define.internal.Watchable
+import mill.runner.api.EvaluatorApi
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
-trait Evaluator extends AutoCloseable {
+trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def allowPositionalCommandArgs: Boolean
   private[mill] def selectiveExecution: Boolean
   private[mill] def workspace: os.Path
@@ -14,7 +15,7 @@ trait Evaluator extends AutoCloseable {
   private[mill] def outPath: os.Path
   private[mill] def codeSignatures: Map[String, Int]
   private[mill] def rootModule: BaseModule
-  private[mill] def workerCache: mutable.Map[Segments, (Int, Val)]
+  private[mill] def workerCache: mutable.Map[String, (Int, Val)]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
 
@@ -75,12 +76,12 @@ object Evaluator {
       values: mill.api.Result[Seq[T]],
       selectedTasks: Seq[Task[?]],
       executionResults: ExecutionResults
-  )
+  ) extends EvaluatorApi.Result[T]
 
   /**
    * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
    */
-  case class AllBootstrapEvaluators(value: Seq[Evaluator])
+  case class AllBootstrapEvaluators(value: Seq[EvaluatorApi])
 
   private[mill] val allBootstrapEvaluators =
     new DynamicVariable[Evaluator.AllBootstrapEvaluators](null)

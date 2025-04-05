@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.{PathRef, Result, experimental}
 import mill.define.ModuleRef
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.util.Version

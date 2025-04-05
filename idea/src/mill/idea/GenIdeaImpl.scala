@@ -8,7 +8,7 @@ import coursier.maven.Pom
 import mill.api.Ctx
 import mill.api.PathRef
 import mill.define.{Evaluator, Ctx as _, *}
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils

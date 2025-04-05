@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
-import mill.main.TokenReaders.*
+import mill.util.TokenReaders.*
 
 object LauncherTests extends TestSuite {
 

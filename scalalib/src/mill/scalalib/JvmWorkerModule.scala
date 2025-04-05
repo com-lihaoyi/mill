@@ -18,7 +18,7 @@ object JvmWorkerModule extends ExternalModule with JvmWorkerModule with Coursier
 /**
  * A module managing an in-memory Zinc Scala incremental compiler
  */
-trait JvmWorkerModule extends mill.Module with OfflineSupportModule with CoursierModule {
+trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   def jvmId: mill.define.Target[String] = Task[String] { "" }
 
   def jvmIndexVersion: mill.define.Target[String] =

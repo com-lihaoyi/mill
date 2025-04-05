@@ -24,7 +24,7 @@ import os.Path
  * Core configuration required to compile a single Java compilation target
  */
 trait JavaModule
-    extends mill.Module
+    extends mill.define.Module
     with WithJvmWorker
     with TestModule.JavaModuleBase
     with TaskModule

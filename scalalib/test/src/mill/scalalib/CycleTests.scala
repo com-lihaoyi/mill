@@ -5,7 +5,7 @@ import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, intercept, test}
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 
 object CycleTests extends TestSuite {
 

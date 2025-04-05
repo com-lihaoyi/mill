@@ -57,7 +57,7 @@ object ArtifactoryPublishModule extends ExternalModule {
       credentials: String = "",
       artifactoryUri: String,
       artifactorySnapshotUri: String,
-      publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+      publishArtifacts: mill.util.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ): Command[Unit] = Task.Command {

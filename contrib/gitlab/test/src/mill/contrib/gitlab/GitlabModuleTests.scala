@@ -7,7 +7,7 @@ import mill.scalalib.publish.PomSettings
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assertMatch, test}
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 object GitlabModuleTests extends TestSuite {
 
   val emptyLookup = new GitlabTokenLookup {

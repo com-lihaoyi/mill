@@ -14,7 +14,7 @@ import scala.util.DynamicVariable
  * on the contents of the filesystem underneath it. Used to ensure filesystem
  * changes can bust caches which are keyed off hashcodes.
  */
-case class PathRef private (
+case class PathRef private[mill] (
     path: os.Path,
     quick: Boolean,
     sig: Int,

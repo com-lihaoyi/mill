@@ -5,13 +5,13 @@
 // == Project Configuration
 package build
 import mill._, scalalib._, publish._
-import mill.main.BuildInfo.millVersion
+import mill.util.BuildInfo.millVersion
 
 object myplugin extends ScalaModule with PublishModule {
   def scalaVersion = "3.6.2"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
-  def platformSuffix = "_mill" + mill.main.BuildInfo.millBinPlatform
+  def platformSuffix = "_mill" + mill.util.BuildInfo.millBinPlatform
 
   // Depend on `mill-dist` so we can compile against Mill APIs
   def ivyDeps = Seq(ivy"com.lihaoyi:mill-dist:$millVersion")

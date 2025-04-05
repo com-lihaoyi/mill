@@ -6,7 +6,7 @@ import mill.api.{PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.javalib.JavaModule
 import mill.kotlinlib.DepSyntax
-import mill.main.Tasks
+import mill.util.Tasks
 import mill.util.Jvm
 
 /**

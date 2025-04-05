@@ -4,7 +4,7 @@ import mill.Task
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 import mill.define.Discover
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingleapi extends TestBaseModule with PlayApiModule {

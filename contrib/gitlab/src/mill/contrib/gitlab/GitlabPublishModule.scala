@@ -55,7 +55,7 @@ object GitlabPublishModule extends ExternalModule {
       personalToken: String,
       gitlabRoot: String,
       projectId: Int,
-      publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+      publishArtifacts: mill.util.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ): Command[Unit] = Task.Command {

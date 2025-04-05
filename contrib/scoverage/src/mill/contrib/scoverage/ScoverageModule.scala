@@ -4,7 +4,7 @@ import coursier.Repository
 import mill._
 import mill.api.{PathRef, Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 

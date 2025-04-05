@@ -4,7 +4,7 @@ import mill.api.internal
 import mill.define.Task
 import mill._
 
-trait BspModule extends Module {
+trait BspModule extends mill.define.Module {
   import BspModule._
 
   def bspDisplayName0: String = this.moduleSegments.render

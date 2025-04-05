@@ -11,6 +11,7 @@ import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
+import mill.runner.api.{BaseModuleApi, EvaluatorApi}
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -21,17 +22,17 @@ private trait GroupExecution {
   def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path
-  def rootModule: mill.define.BaseModule
+  def rootModule: BaseModuleApi
   def classLoaderSigHash: Int
   def classLoaderIdentityHash: Int
-  def workerCache: mutable.Map[Segments, (Int, Val)]
+  def workerCache: mutable.Map[String, (Int, Val)]
   def env: Map[String, String]
   def failFast: Boolean
   def threadCount: Option[Int]
   def codeSignatures: Map[String, Int]
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
-  def getEvaluator: () => Evaluator
+  def getEvaluator: () => EvaluatorApi
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
@@ -267,7 +268,8 @@ private trait GroupExecution {
             os.dynamicPwdFunction.withValue(destFunc) {
               os.checker.withValue(executionChecker) {
                 SystemStreams.withStreams(streams) {
-                  val exposedEvaluator = if (!exclusive) null else getEvaluator()
+                  val exposedEvaluator =
+                    if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
                   Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
                     if (!exclusive) t
                     else {
@@ -339,7 +341,7 @@ private trait GroupExecution {
   ): Unit = {
     for (w <- labelled.asWorker)
       workerCache.synchronized {
-        workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
+        workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
       }
 
     val terminalResult = labelled
@@ -429,7 +431,7 @@ private trait GroupExecution {
     labelled.asWorker
       .flatMap { w =>
         workerCache.synchronized {
-          workerCache.get(w.ctx.segments)
+          workerCache.get(w.ctx.segments.render)
         }
       }
       .flatMap {
@@ -451,7 +453,7 @@ private trait GroupExecution {
           // make sure, we can no longer re-use a closed worker
           labelled.asWorker.foreach { w =>
             workerCache.synchronized {
-              workerCache.remove(w.ctx.segments)
+              workerCache.remove(w.ctx.segments.render)
             }
           }
           None

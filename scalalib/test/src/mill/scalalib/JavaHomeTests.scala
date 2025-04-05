@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.define.{Args, Discover, ModuleRef, Task}
 import mill.api.ExecResult
 import mill.testkit.{TestBaseModule, UnitTester}
-import mill.main.TokenReaders.*
+import mill.util.TokenReaders.*
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}

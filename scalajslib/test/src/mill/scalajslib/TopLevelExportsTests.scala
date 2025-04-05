@@ -14,7 +14,7 @@ object TopLevelExportsTests extends TestSuite {
     override def moduleKind = ModuleKind.ESModule
 
     override lazy val millDiscover = {
-      import mill.main.TokenReaders.given
+      import mill.util.TokenReaders.given
       Discover[this.type]
     }
   }

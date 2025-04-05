@@ -3,7 +3,7 @@ package scalalib
 
 import mill.util.JarManifest
 import mill.api.{DummyInputStream, PathRef, Result, internal}
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
 

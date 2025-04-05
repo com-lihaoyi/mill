@@ -2,11 +2,11 @@ package mill
 package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
-import mill.define.{Command, ExternalModule, Task}
+import mill.define.{Command, ExternalModule, Task, TaskModule}
 import mill.api.{PathRef, Result}
 import mill.javalib.android.AndroidLibModule
 import mill.util.JarManifest
-import mill.main.Tasks
+import mill.util.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,

@@ -2,7 +2,7 @@ package mill
 package javalib.palantirformat
 
 import mill.define.Discover
-import mill.main.Tasks
+import mill.util.Tasks
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*

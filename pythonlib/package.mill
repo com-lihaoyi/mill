@@ -8,7 +8,7 @@ import mill._
 object `package` extends RootModule with build.MillPublishScalaModule {
   // we depend on scalalib for re-using some common infrastructure (e.g. License
   // management of projects), NOT for reusing build logic
-  def moduleDeps = Seq(build.main, build.scalalib)
+  def moduleDeps = Seq(build.scalalib)
   def testTransitiveDeps =
     super.testTransitiveDeps() ++ Seq(build.scalalib.backgroundwrapper.testDep())
 

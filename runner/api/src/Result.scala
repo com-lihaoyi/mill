@@ -1,5 +1,4 @@
-package mill.api
-
+package mill.runner.api
 import scala.collection.BuildFrom
 import collection.mutable
 

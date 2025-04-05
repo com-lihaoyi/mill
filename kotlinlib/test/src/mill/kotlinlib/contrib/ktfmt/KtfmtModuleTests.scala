@@ -3,10 +3,10 @@ package mill.kotlinlib.ktfmt
 import mill.define.Discover
 import mill.{PathRef, T, api}
 import mill.kotlinlib.KotlinModule
-import mill.main.Tasks
+import mill.util.Tasks
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 object KtfmtModuleTests extends TestSuite {
 
   val kotlinVersion = "1.9.24"

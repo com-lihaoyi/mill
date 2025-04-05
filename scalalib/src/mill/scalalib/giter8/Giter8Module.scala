@@ -5,7 +5,7 @@ import mill.define.{Command, Discover, ExternalModule}
 import mill.util.Jvm
 import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib._
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 
 object Giter8Module extends ExternalModule with Giter8Module {
   lazy val millDiscover = Discover[this.type]

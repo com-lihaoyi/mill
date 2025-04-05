@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.*
 import mill.testkit.TestBaseModule
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import HelloWorldTests.*
 import mill.define.Discover
 trait ScalaAssemblyTestUtils {
