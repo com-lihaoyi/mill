@@ -253,7 +253,7 @@ class MillBuildBootstrap(
     evaluateWithWatches(
       rootModule,
       evaluator,
-      Seq("{runClasspath,compile,codeSignatures}"),
+      Seq("millBuildRootModuleResult"),
       selectiveExecution = false
     ) match {
       case (Result.Failure(error), evalWatches, moduleWatches) =>
@@ -271,16 +271,16 @@ class MillBuildBootstrap(
         nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-            Result.Success(Seq(
-              runClasspath: Seq[PathRef],
-              compile: mill.scalalib.api.CompilationResult,
+            Result.Success(Seq(Tuple3(
+              runClasspath: Seq[String],
+              compileClasses: String,
               codeSignatures: Map[String, Int]
-            )),
+            ))),
             evalWatches,
             moduleWatches
           ) =>
         val runClasspathChanged = !prevFrameOpt.exists(
-          _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
+          _.runClasspath.map(_.sig).sum == runClasspath.map(f => PathRef(os.Path(f)).sig).sum
         )
 
         // handling module watching is a bit weird; we need to know whether
@@ -299,7 +299,7 @@ class MillBuildBootstrap(
           // one, to avoid memory leaks
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
           val cl = new RunnerState.URLClassLoader(
-            runClasspath.map(_.path.toNIO.toUri.toURL).toArray,
+            runClasspath.map(os.Path(_).toNIO.toUri.toURL).toArray,
             null
           ) {
             val sharedCl = classOf[MillBuildBootstrap].getClassLoader
@@ -319,13 +319,14 @@ class MillBuildBootstrap(
           moduleWatches,
           codeSignatures,
           Some(classLoader),
-          runClasspath,
-          Some(compile.classes),
+          runClasspath.map(f => PathRef(os.Path(f))),
+          Some(PathRef(os.Path(compileClasses))),
           Option(evaluator)
         )
 
         nestedState.add(frame = evalState)
-      case _ => ???
+
+      case unknown => sys.error(unknown.toString())
     }
   }
 

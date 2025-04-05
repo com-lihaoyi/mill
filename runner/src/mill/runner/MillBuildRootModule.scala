@@ -34,7 +34,7 @@ import scala.collection.mutable
 class MillBuildRootModule()(implicit
     rootModuleInfo: RootModule0.Info,
     scalaCompilerResolver: ScalaCompilerWorker.Resolver
-) extends RootModule0() with ScalaModule {
+) extends mill.main.MainRootModule() with ScalaModule {
   override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
     .relativeTo(rootModuleInfo.topLevelProjectRoot)
@@ -100,7 +100,7 @@ class MillBuildRootModule()(implicit
     imports
   }
 
-  override def ivyDeps = Task {
+  override def mandatoryIvyDeps = Task {
     Seq.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
@@ -135,6 +135,13 @@ class MillBuildRootModule()(implicit
     generateScriptSources()
   }
 
+  def millBuildRootModuleResult = Task {
+    Tuple3(
+      runClasspath().map(_.path.toNIO.toString),
+      compile().classes.path.toNIO.toString,
+      codeSignatures()
+    )
+  }
   def generateScriptSources: T[Seq[PathRef]] = Task {
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
@@ -325,10 +332,6 @@ class MillBuildRootModule()(implicit
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
   }
-
-  protected[mill] def watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty
-
-  protected[mill] def evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty
 }
 
 object MillBuildRootModule {
