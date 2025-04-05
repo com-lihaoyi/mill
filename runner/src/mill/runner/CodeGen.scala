@@ -184,6 +184,9 @@ object CodeGen {
          |$aliasImports
          |$importSiblingScripts
          |$prelude
+         |object wrapper_object_getter {
+         |  def value = os.checker.withValue(mill.eval.EvaluatorImpl.resolveChecker){ $wrapperObjectName }
+         |}
          |object $wrapperObjectName extends $wrapperObjectName {
          |  ${childAliases.linesWithSeparators.mkString("  ")}
          |  $exportSiblingScripts

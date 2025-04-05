@@ -232,6 +232,11 @@ final class EvaluatorImpl private[mill] (
 
 }
 object EvaluatorImpl {
+  def withResolveChecker[T](f: () => T):T = {
+    os.checker.withValue(resolveChecker){
+      f()
+    }
+  }
   val resolveChecker = new os.Checker {
     def onRead(path: os.ReadablePath): Unit = ()
 

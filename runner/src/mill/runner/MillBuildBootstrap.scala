@@ -180,11 +180,7 @@ class MillBuildBootstrap(
 
         val rootModuleRes = nestedState.frames.headOption match {
           case None => Result.Success(nestedState.bootstrapModuleOpt.get)
-          case Some(nestedFrame) =>
-            try Result.Success(getRootModule(nestedFrame.classLoaderOpt.get))
-            catch {
-              case e: Throwable => Result.Failure(renderFailure(e))
-            }
+          case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
         }
 
         rootModuleRes match {
@@ -517,11 +513,11 @@ object MillBuildBootstrap {
     }
   }
 
-  def getRootModule(runClassLoader: URLClassLoader): RootModuleApi = {
-    val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
-    os.checker.withValue(EvaluatorImpl.resolveChecker) {
-      buildClass.getField("MODULE$").get(buildClass).asInstanceOf[RootModuleApi]
-    }
+  def getRootModule(runClassLoader: URLClassLoader): Result[RootModuleApi] = {
+    val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.wrapper_object_getter")
+
+    val valueMethod = buildClass.getMethod("value")
+    mill.api.ExecResult.catchWrapException{ valueMethod.invoke(null).asInstanceOf[RootModuleApi] }
   }
 
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
