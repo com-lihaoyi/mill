@@ -116,7 +116,8 @@ class MillBuildRootModule()(implicit
         ivy"com.lihaoyi::mill-javascriptlib:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-pythonlib:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-runner:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-main-init:${Versions.millVersion}"
+        ivy"com.lihaoyi::mill-main-init:${Versions.millVersion}",
+        ivy"com.lihaoyi::sourcecode:0.4.3-M5"
       )
   }
 
@@ -269,8 +270,9 @@ class MillBuildRootModule()(implicit
   }
 
   override def scalacPluginIvyDeps: T[Seq[Dep]] = Seq(
-    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}",
-    ivy"com.lihaoyi::sourcecode:0.4.3-M5"
+    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+      .exclude("com.lihaoyi" -> "sourcecode_3"),
+
   )
 
   override def scalacOptions: T[Seq[String]] = Task {
