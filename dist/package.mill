@@ -79,6 +79,7 @@ object `package` extends RootModule with InstallModule {
       build.main.init.sbt.testDep(),
       build.main.init.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
+      build.scalalib.`classgraph-worker`.testDep(),
       build.contrib.bloop.testDep(),
       build.contrib.buildinfo.testDep(),
       build.contrib.scoverage.testDep(),
@@ -197,7 +198,9 @@ object `package` extends RootModule with InstallModule {
         try {
           os.call(
             cmd = (launcher().path.toString, rest),
-            env = forkEnv(),
+            env = forkEnv() ++ Map(
+              "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
+            ),
             cwd = wd
           )
           mill.api.Result.Success(())
