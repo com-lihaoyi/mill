@@ -93,6 +93,7 @@ object `package` extends RootModule with InstallModule {
       build.scalajslib.testDep(),
       build.scalanativelib.testDep(),
       build.kotlinlib.testDep(),
+      build.kotlinlib.worker.impl.testDep(),
       build.javascriptlib.testDep(),
       build.pythonlib.testDep()
     )
