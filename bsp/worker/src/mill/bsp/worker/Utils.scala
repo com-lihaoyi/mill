@@ -30,7 +30,7 @@ private object Utils {
   // module's hash code TODO: find something more reliable than the hash code
   def getBspLoggedReporterPool(
       originId: String,
-      bspIdsByModule: Map[BspModule, BuildTargetIdentifier],
+      bspIdsByModule: Map[BspModuleApi, BuildTargetIdentifier],
       client: BuildClient
   ): Int => Option[CompileProblemReporter] = { (moduleHashCode: Int) =>
     bspIdsByModule.find(_._1.hashCode == moduleHashCode).map {

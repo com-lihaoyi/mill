@@ -224,15 +224,10 @@ private class MillBuildServer(
     completableTasksWithState(
       hint = s"buildTargetSources ${sourcesParams}",
       targetIds = _ => sourcesParams.getTargets.asScala.toSeq,
-      tasks = {
-        case module: JavaModuleApi =>
-          Task.Anon {
-            module.sources().map(p => sourceItem(p.path, false)) ++
-              module.generatedSources().map(p => sourceItem(p.path, true))
-          }
-      }
+      tasks = { case module: JavaModuleApi => module.buildTargetSources }
     ) {
-      case (ev, state, id, module, items) => new SourcesItem(id, items.asJava)
+      case (ev, state, id, module, items) =>
+        new SourcesItem(id, items.map(p => sourceItem(os.Path(p), false)).asJava)
     } { (sourceItems, state) =>
       new SourcesResult(
         (sourceItems.asScala.toSeq ++ state.syntheticRootBspBuildTarget.map(_.synthSources)).asJava
@@ -246,13 +241,7 @@ private class MillBuildServer(
     completable(s"buildtargetInverseSources ${p}") { state =>
       val tasksEvaluators = state.bspModulesIdList.iterator.collect {
         case (id, (m: JavaModuleApi, ev)) =>
-          Task.Anon {
-            val src = m.allSourceFiles()
-            val found = src.map(sanitizeUri).contains(
-              p.getTextDocument.getUri
-            )
-            if (found) Seq(id) else Seq()
-          } -> ev
+          m.buildTargetInverseSources(id, p.getTextDocument.getUri) -> ev
       }.toSeq
 
       val ids = groupList(tasksEvaluators)(_._2)(_._1)
@@ -281,28 +270,13 @@ private class MillBuildServer(
     completableTasks(
       hint = s"buildTargetDependencySources ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      tasks = {
-        case m: JavaModuleApi =>
-          Task.Anon {
-            (
-              m.millResolver().classpath(
-                Seq(
-                  m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-                  m.coursierDependency
-                ),
-                sources = true
-              ),
-              m.unmanagedClasspath(),
-              m.allRepositories()
-            )
-          }
-      }
+      tasks = { case m: JavaModuleApi => m.buildTargetDependencySources }
     ) {
       case (ev, state, id, m: JavaModuleApi, (resolveDepsSources, unmanagedClasspath, repos)) =>
-        val buildSources =
-          mill.scalalib.Lib
-            .resolveMillBuildDeps(repos, None, useSources = true)
-            .map(sanitizeUri(_))
+        val buildSources = Nil
+//          mill.scalalib.Lib
+//            .resolveMillBuildDeps(repos, None, useSources = true)
+//            .map(sanitizeUri(_))
 
         val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
         new DependencySourcesItem(id, cp.asJava)
@@ -324,21 +298,7 @@ private class MillBuildServer(
     completableTasks(
       hint = "buildTargetDependencyModules",
       targetIds = _ => params.getTargets.asScala.toSeq,
-      tasks = { case m: JavaModuleApi =>
-        Task.Anon {
-          (
-            // full list of dependencies, including transitive ones
-            m.millResolver()
-              .resolution(
-                Seq(
-                  m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-                  m.coursierDependency
-                )
-              )
-              .orderedDependencies,
-            m.unmanagedClasspath()
-          )
-        }
+      tasks = { case m: JavaModuleApi => m.buildTargetDependencyModules
       }
     ) {
       case (
@@ -355,8 +315,9 @@ private class MillBuildServer(
 
             new DependencyModule(dep.module.repr, dep.version)
         }
+
         val unmanaged = unmanagedClasspath.map { dep =>
-          new DependencyModule(s"unmanaged-${dep.path.last}", "")
+          new DependencyModule(s"unmanaged-${dep.getFileName}", "")
         }
         new DependencyModulesItem(id, (deps ++ unmanaged).iterator.toSeq.asJava)
       case _ => ???
@@ -369,12 +330,11 @@ private class MillBuildServer(
       s"buildTargetResources ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
-        case m: JavaModuleApi => Task.Anon { m.resources() }
-        case _ => Task.Anon { Nil }
+        case m: JavaModuleApi => m.buildTargetResources
       }
     ) {
       case (ev, state, id, m, resources) =>
-        val resourcesUrls = resources.map(_.path).filter(os.exists).map(sanitizeUri)
+        val resourcesUrls = resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
         new ResourcesItem(id, resourcesUrls.asJava)
 
     } {
@@ -388,23 +348,10 @@ private class MillBuildServer(
       p.setTargets(state.filterNonSynthetic(p.getTargets))
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
-      val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).map {
+      val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).collect {
         case (m: SemanticDbJavaModuleApi, ev) if clientWantsSemanticDb =>
           (m.compiledClassesAndSemanticDbFiles, ev)
         case (m: JavaModuleApi, ev) => (m.compile, ev)
-        case (m: TestModuleApi, ev) =>
-          (Task.Anon { () }, ev)
-          val task = Task.Anon {
-            Task.log.debug(
-              s"Ignoring invalid compile request for test module ${m.bspBuildTarget.displayName}"
-            )
-          }
-          (task, ev)
-        case (m, ev) => Task.Anon {
-            Result.Failure(
-              s"Don't know how to compile non-Java target ${m.bspBuildTarget.displayName}"
-            )
-          } -> ev
       }
 
       val result = compileTasksEvs
@@ -431,20 +378,16 @@ private class MillBuildServer(
         synthTarget <- state.syntheticRootBspBuildTarget
         if params.getTargets.contains(synthTarget.id)
         baseDir <- synthTarget.bt.baseDirectory
-      } yield new OutputPathsItem(synthTarget.id, outputPaths(baseDir, topLevelProjectRoot).asJava)
+      } yield new OutputPathsItem(synthTarget.id, outputPaths(os.Path(baseDir), topLevelProjectRoot).asJava)
 
       val items = for {
         target <- params.getTargets.asScala
         (module, ev) <- state.bspModulesById.get(target)
       } yield {
-        val items =
-          if (module.moduleCtx.external)
-            outputPaths(
-              module.bspBuildTarget.baseDirectory.get,
-              topLevelProjectRoot
-            )
-          else
-            outputPaths(module.bspBuildTarget.baseDirectory.get, topLevelProjectRoot)
+        val items = outputPaths(
+          os.Path(module.bspBuildTarget.baseDirectory.get),
+          topLevelProjectRoot
+        )
 
         new OutputPathsItem(target, items.asJava)
       }
@@ -667,7 +610,7 @@ private class MillBuildServer(
       val evaluated = groups0.flatMap {
         case (ev, targetIdTasks) =>
           val results = evaluate(ev, targetIdTasks.map(_._2))
-          val idByTasks = targetIdTasks.map { case (id, task) => (task: Task[_], id) }.toMap
+          val idByTasks = targetIdTasks.map { case (id, task) => (task: TaskApi[_], id) }.toMap
           val failures = results.transitiveResults.toSeq.collect {
             case (task, res: ExecResult.Failing[_]) if idByTasks.contains(task) =>
               (idByTasks(task), res)

@@ -37,6 +37,8 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   ): mill.api.Result[List[NamedTask[?]]]
   def plan(tasks: Seq[Task[?]]): Plan
 
+  def execute[T](targets: Seq[mill.runner.api.TaskApi[T]]): Evaluator.Result[T] = execute[T](targets.map(_.asInstanceOf[Task[T]]))
+
   def execute[T](
       targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],

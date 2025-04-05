@@ -17,6 +17,8 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
+
+
   def resolveSegments(
       scriptArgs: Seq[String],
       selectMode: SelectMode,

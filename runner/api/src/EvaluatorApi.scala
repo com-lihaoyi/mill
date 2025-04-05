@@ -9,6 +9,9 @@ trait EvaluatorApi extends AutoCloseable {
   ): Result[EvaluatorApi.Result[Any]]
 
   private[mill] def workerCache: mutable.Map[String, (Int, Val)]
+
+  def execute[T](targets: Seq[TaskApi[T]]): EvaluatorApi.Result[T]
+  private[mill] def baseLogger: Logger
 }
 object EvaluatorApi {
   trait Result[T] {

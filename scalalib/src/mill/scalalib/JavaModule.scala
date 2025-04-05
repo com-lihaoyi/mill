@@ -1346,6 +1346,52 @@ trait JavaModule
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
+
+  def sanitizeUri(uri: String): String =
+    if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
+    
+  def buildTargetSources: Task[Seq[java.nio.file.Path]] = Task.Anon {
+    (sources() ++ generatedSources()).map(_.path.toNIO)
+  }
+
+  def buildTargetInverseSources[T](id: T, uri: String): Task[Seq[T]] = Task.Anon {
+      val src = allSourceFiles()
+      val found = src.map(_.path.toString).map(sanitizeUri).contains(uri)
+      if (found) Seq(id) else Seq()
+    }
+
+  def buildTargetDependencySources: Task[(Seq[java.nio.file.Path], Seq[java.nio.file.Path], Any)] = Task.Anon {
+      (
+        millResolver().classpath(
+          Seq(
+            coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+            coursierDependency
+          ),
+          sources = true
+        ).map(_.path.toNIO),
+        unmanagedClasspath().map(_.path.toNIO),
+        allRepositories()
+      )
+    }
+
+  def buildTargetDependencyModules: Task[(Any, Seq[java.nio.file.Path])] = Task.Anon {
+      (
+        // full list of dependencies, including transitive ones
+        millResolver()
+          .resolution(
+            Seq(
+              coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+              coursierDependency
+            )
+          )
+          .orderedDependencies,
+        unmanagedClasspath().map(_.path.toNIO)
+      )
+    }
+
+  def buildTargetResources: Task[Seq[java.nio.file.Path]] = Task.Anon {
+    resources().map(_.path.toNIO)
+  }
 }
 
 object JavaModule {
@@ -1390,6 +1436,8 @@ object JavaModule {
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
   private[mill] def internalVersion = "0+mill-internal"
+
+
 }
 
 /**
