@@ -13,8 +13,8 @@ trait TestModule
     with RunModule
     with TaskModule {
 
-  // FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
-  def compile: T[mill.scalalib.api.CompilationResult]
+//   FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
+//  def compile: T[mill.scalalib.api.CompilationResult]
 
   override def defaultCommandName() = "testForked"
 
@@ -283,6 +283,17 @@ object TestModule {
       super.mandatoryIvyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
 
+    private val classesDir: Task[Option[os.Path]] = this match {
+      case withCompileTask: JavaModule => Task.Anon {
+          Some(withCompileTask.compile().classes.path)
+        }
+      case m => Task.Anon {
+          m.testClasspath().map(_.path).find { path =>
+            os.exists(path) && os.walk.stream(path).exists(p => os.isFile(p) && p.ext == "class")
+          }
+        }
+    }
+
     /**
      * Overridden since Junit5 has its own discovery mechanism.
      *
@@ -305,10 +316,13 @@ object TestModule {
           classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
         val builder = builderClass.getConstructor().newInstance()
 
-        builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
-          builder,
-          compile().classes.path.wrapped.toFile
-        )
+        classesDir().foreach { path =>
+                  builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
+                    builder,
+                    path.wrapped.toFile
+                  )
+        }
+
         builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
           builder,
           testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
