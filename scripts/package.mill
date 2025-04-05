@@ -22,7 +22,7 @@ object `package` extends RootModule { scripts =>
     def inRepoDir: Task[os.SubPath] = Task.Anon { os.sub / finalName() }
 
     /** Compiles the script from tje [[templateFile]] and substitutes all [[substitutions]]. */
-    def compile: T[PathRef] = Task {
+    def compile0: T[PathRef] = Task {
       val script = T.dest / finalName()
       val template = templateFile().path
       val (start, end) = substitutionMarkers()
@@ -73,7 +73,7 @@ object `package` extends RootModule { scripts =>
   def installInRepo: T[Seq[PathRef]] = Task {
     Task.traverse(scriptsModules)(m =>
       Task.Anon {
-        val script = m.compile().path
+        val script = m.compile0().path
         val dest = T.workspace / m.inRepoDir()
         if (os.isDir(dest)) {
           sys.error(s"Install destination is a directory: ${dest}")
