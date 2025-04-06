@@ -14,5 +14,5 @@ trait BspServerHandle {
   def runSession(evaluators: Seq[Evaluator]): BspServerResult
 
   /** Stops the BSP server. */
-  def stop(): Unit
+  def close(): Unit
 }

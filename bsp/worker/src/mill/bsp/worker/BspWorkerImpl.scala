@@ -72,7 +72,7 @@ private class BspWorkerImpl() extends BspWorker {
           res
         }
 
-        override def stop(): Unit = {
+        override def close(): Unit = {
           streams.err.println("Stopping server via handle...")
           listening.cancel(true)
         }

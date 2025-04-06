@@ -9,7 +9,7 @@ import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.{Logger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
-import mill.bsp.{BspContext, BspServerResult}
+import mill.bsp.{BspServerRunner, BspServerResult}
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
 import mill.main.BuildInfo
@@ -219,20 +219,16 @@ object MillMain {
                   (false, stateCache)
                 } else {
                   val scalaCompilerWorker = maybeScalaCompilerWorker.get
-                  val bspContext =
-                    if (bspMode) Some(new BspContext(streams, bspLog)) else None
 
-                  val bspCmd = "mill.bsp.BSP/startSession"
                   val targetsAndParams =
-                    bspContext
-                      .map(_ => Seq(bspCmd))
-                      .getOrElse(config.leftoverArgs.value.toList)
+                    if (bspMode) Seq("version") else config.leftoverArgs.value.toList
 
                   val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
 
-                  var repeatForBsp = true
-                  var loopRes: (Boolean, RunnerState, Option[BspServerResult]) =
+                  var loopRes: (Boolean, RunnerState, Option[Result[BspServerResult]]) =
                     (false, RunnerState.empty, None)
+
+                  var repeatForBsp = true
                   while (repeatForBsp) {
                     repeatForBsp = false
 
@@ -252,7 +248,7 @@ object MillMain {
                           adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
                           withOutLock(
-                            config.noBuildLock.value || bspContext.isDefined,
+                            config.noBuildLock.value || bspMode,
                             config.noWaitForBuildLock.value,
                             out,
                             targetsAndParams,
@@ -301,24 +297,24 @@ object MillMain {
                         colors = colors
                       )
 
-                      val runSessionResOpt = bspContext.map(
-                        _.bspServerHandle.runSession(runnerState.frames.flatMap(_.evaluator))
-                      )
+                      val runSessionResOpt = Option.when(bspMode) {
+                        BspServerRunner
+                          .runSession(streams, bspLog, runnerState.frames.flatMap(_.evaluator))
+                      }
 
                       runSessionResOpt.foreach { runSessionRes =>
                         repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
-                        streams.err.println(s"`$bspCmd` returned with $runSessionRes")
+                        streams.err.println(s"BSP session returned with $runSessionRes")
                       }
 
                       loopRes = (isSuccess, runnerState, runSessionResOpt)
                     }
                   } // while repeatForBsp
 
-                  bspContext.foreach { ctx =>
+                  loopRes._3.foreach { res =>
                     streams.err.println(
-                      s"Exiting BSP runner loop. Stopping BSP server. Last result: ${loopRes._3}"
+                      s"Exiting BSP runner loop. Stopping BSP server. Last result: $res"
                     )
-                    ctx.bspServerHandle.stop()
                   }
 
                   // return with evaluation result
