@@ -625,10 +625,16 @@ private class MillBuildServer(
    * @param f The function must accept the same modules as the partial function given by `tasks`.
    */
   def completableTasks[T, V, W: ClassTag](
-                                           hint: String,
-                                           targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
-                                           tasks: PartialFunction[BspModule, Task[W]]
-  )(f: (Evaluator, BspEvaluators, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
+      hint: String,
+      targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
+      tasks: PartialFunction[BspModule, Task[W]]
+  )(f: (
+      Evaluator,
+      BspEvaluators,
+      BuildTargetIdentifier,
+      BspModule,
+      W
+  ) => T)(agg: java.util.List[T] => V)
       : CompletableFuture[V] =
     completableTasksWithState[T, V, W](hint, targetIds, tasks)(f)((l, _) => agg(l))
 
@@ -637,9 +643,9 @@ private class MillBuildServer(
    * @param f The function must accept the same modules as the partial function given by `tasks`.
    */
   def completableTasksWithState[T, V, W: ClassTag](
-                                                    hint: String,
-                                                    targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
-                                                    tasks: PartialFunction[BspModule, Task[W]]
+      hint: String,
+      targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
+      tasks: PartialFunction[BspModule, Task[W]]
   )(f: (Evaluator, BspEvaluators, BuildTargetIdentifier, BspModule, W) => T)(agg: (
       java.util.List[T],
       BspEvaluators

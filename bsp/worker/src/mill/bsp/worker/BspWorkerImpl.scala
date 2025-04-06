@@ -23,7 +23,8 @@ private class BspWorkerImpl() extends BspClasspathWorker {
   ): mill.api.Result[BspServerHandle] = {
 
     try {
-      lazy val millServer: MillBuildServer with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer =
+      lazy val millServer: MillBuildServer with MillJvmBuildServer with MillJavaBuildServer
+        with MillScalaBuildServer =
         new MillBuildServer(
           topLevelProjectRoot = topLevelBuildRoot,
           bspVersion = Constants.bspProtocolVersion,
@@ -56,7 +57,7 @@ private class BspWorkerImpl() extends BspClasspathWorker {
         override def runSession(evaluators: Seq[Evaluator]): BspServerResult = {
           millServer.updateEvaluator(Option(evaluators))
           millServer.sessionResult = None
-          while(millServer.sessionResult.isEmpty) Thread.sleep(1)
+          while (millServer.sessionResult.isEmpty) Thread.sleep(1)
           millServer.updateEvaluator(None)
           val res = millServer.sessionResult.get
           streams.err.println(s"Reload finished, result: $res")
