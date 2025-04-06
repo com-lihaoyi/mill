@@ -41,31 +41,32 @@ private class MillBuildServer(
       val enableJvmCompileClasspathProvider: Boolean
   )
 
-  private[worker] var sessionResult: Option[BspServerResult] = None
+  // Mutable variables representing the lifecycle stages that the MillBuildServer
+  // progresses through:
+  //
+  // Set when the client connects
   protected var client: BuildClient = scala.compiletime.uninitialized
+  // Set when the `buildInitialize` message comes in
   protected var sessionInfo: SessionInfo = scala.compiletime.uninitialized
-  def initialized = sessionInfo != null
+  // Set when the `MillBuildBootstrap` completes and the evaluators are available
+  private var bspEvaluators: Promise[BspEvaluators] = Promise[BspEvaluators]()
+  // Set when a session is completed, either due to reload or shutdown
+  private[worker] var sessionResult: Option[BspServerResult] = None
+  // Set when the server is shut down
   private var shutdownRequested = false
 
-
-
-  private var statePromise: Promise[State] = Promise[State]()
+  def initialized = sessionInfo != null
 
   def updateEvaluator(evaluatorsOpt: Option[Seq[Evaluator]]): Unit = {
     debug(s"Updating Evaluator: $evaluatorsOpt")
-    if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
+    if (bspEvaluators.isCompleted) bspEvaluators = Promise[BspEvaluators]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
-      statePromise.success(
-        new State(topLevelProjectRoot, evaluators, s => debug(s()))
-      )
+      bspEvaluators.success(new BspEvaluators(topLevelProjectRoot, evaluators, s => debug(s())))
     }
   }
 
-  def print(msg: String): Unit =
-    logStream.println(msg)
-  def debug(msg: => String): Unit =
-    if (debugMessages)
-      logStream.println("[debug] " + msg)
+  def print(msg: String): Unit = logStream.println(msg)
+  def debug(msg: => String): Unit = if (debugMessages) logStream.println("[debug] " + msg)
 
   def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
 
@@ -627,10 +628,10 @@ private class MillBuildServer(
    * @param f The function must accept the same modules as the partial function given by `tasks`.
    */
   def completableTasks[T, V, W: ClassTag](
-      hint: String,
-      targetIds: State => Seq[BuildTargetIdentifier],
-      tasks: PartialFunction[BspModule, Task[W]]
-  )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
+                                           hint: String,
+                                           targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
+                                           tasks: PartialFunction[BspModule, Task[W]]
+  )(f: (Evaluator, BspEvaluators, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
       : CompletableFuture[V] =
     completableTasksWithState[T, V, W](hint, targetIds, tasks)(f)((l, _) => agg(l))
 
@@ -639,15 +640,15 @@ private class MillBuildServer(
    * @param f The function must accept the same modules as the partial function given by `tasks`.
    */
   def completableTasksWithState[T, V, W: ClassTag](
-      hint: String,
-      targetIds: State => Seq[BuildTargetIdentifier],
-      tasks: PartialFunction[BspModule, Task[W]]
-  )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: (
+                                                    hint: String,
+                                                    targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
+                                                    tasks: PartialFunction[BspModule, Task[W]]
+  )(f: (Evaluator, BspEvaluators, BuildTargetIdentifier, BspModule, W) => T)(agg: (
       java.util.List[T],
-      State
+      BspEvaluators
   ) => V): CompletableFuture[V] = {
     val prefix = hint.split(" ").head
-    completable(hint) { (state: State) =>
+    completable(hint) { (state: BspEvaluators) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)
@@ -714,7 +715,7 @@ private class MillBuildServer(
   protected def completable[V](
       hint: String,
       checkInitialized: Boolean = true
-  )(f: State => V): CompletableFuture[V] = {
+  )(f: BspEvaluators => V): CompletableFuture[V] = {
     print(s"Entered ${hint}")
 
     val start = System.currentTimeMillis()
@@ -730,7 +731,7 @@ private class MillBuildServer(
         )
       )
     } else {
-      statePromise.future.onComplete {
+      bspEvaluators.future.onComplete {
         case Success(state) =>
           try {
             requestLock.lock()
