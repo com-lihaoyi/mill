@@ -285,24 +285,27 @@ object MillMain {
                       )
                       var repeatForBsp = true
                       var bspRes: Option[Result[BspServerResult]] = None
+                      var prevRunnerState: Option[RunnerState] = None
                       while (repeatForBsp) {
                         repeatForBsp = false
                         val runSessionRes = BspServerRunner.runSession(
                           streams,
                           bspLog,
                           () =>
-                            runMillBootstrap(
+                            val res = runMillBootstrap(
                               false,
-                              None,
+                              prevRunnerState,
                               Seq("version"),
                               SystemStreams(splitOut, splitErr, DummyInputStream)
                             )
-                              .result
-                              .frames
-                              .flatMap(_.evaluator)
+
+                            prevRunnerState = Some(res.result)
+                            res.result.frames.flatMap(_.evaluator)
                         )
+
                         runSessionRes match {
                           case Result.Success(runSessionRes) =>
+
                             repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
                             bspRes = Some(runSessionRes)
                             splitErr.println(s"BSP session returned with $runSessionRes")
