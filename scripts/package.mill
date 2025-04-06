@@ -16,7 +16,10 @@ object `package` extends RootModule { scripts =>
       "mill-version" -> build.millVersionTruth(),
       "mill-repo-url" -> build.Settings.projectUrl,
       "mill-maven-url" -> build.Settings.mavenRepoUrl,
-      "mill-best-version" -> "0.12.10" // TODO: build.millVersionTruth()
+      "mill-best-version" -> "0.12.10", // TODO: build.millVersionTruth()
+      "mill-download-cache-unix" -> "~/.cache/mill/download",
+      "mill-download-cache-win" -> "%USERPROFILE%\\\\.mill\\\\download",
+      "template-file" -> templateFile().path.relativeTo(T.workspace).toString
     )
     def substitutionMarkers: T[(String, String)] = ("{{{", "}}}")
     def inRepoDir: Task[os.SubPath] = Task.Anon { os.sub / finalName() }
