@@ -39,7 +39,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           }
 
           val compileClasspathTask =
-            if (enableJvmCompileClasspathProvider) {
+            if (sessionInfo.enableJvmCompileClasspathProvider) {
               // We have a dedicated request for it
               Task.Anon { Seq.empty[UnresolvedPath] }
             } else {
@@ -47,7 +47,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             }
 
           val classesPathTask =
-            if (clientWantsSemanticDb) {
+            if (sessionInfo.clientWantsSemanticDb) {
               m.bspCompiledClassesAndSemanticDbFiles
             } else {
               m.bspCompileClassesPath

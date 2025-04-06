@@ -8,12 +8,10 @@ import mill.api.{Logger, CompileProblemReporter, DummyTestReporter, Result, Test
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, Evaluator, ExecutionResults, ExternalModule, NamedTask, Task}
-import mill.main.MainModule
+import mill.define.{Args, Evaluator, ExecutionResults, NamedTask, Task}
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
-import mill.given
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
@@ -32,20 +30,24 @@ private class MillBuildServer(
     logStream: PrintStream,
     canReload: Boolean,
     debugMessages: Boolean,
-    cancellator: Boolean => Unit
+    onShutdown: Boolean => Unit
 ) extends BuildServer {
 
   import MillBuildServer._
 
+  class SessionInfo(
+      val clientWantsSemanticDb: Boolean,
+      /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
+      val enableJvmCompileClasspathProvider: Boolean
+  )
+
   private[worker] var sessionResult: Option[BspServerResult] = None
   protected var client: BuildClient = scala.compiletime.uninitialized
-  private var initialized = false
+  protected var sessionInfo: SessionInfo = scala.compiletime.uninitialized
+  def initialized = sessionInfo != null
   private var shutdownRequested = false
-  protected var clientWantsSemanticDb = false
-  protected var clientIsIntelliJ = false
 
-  /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
-  protected var enableJvmCompileClasspathProvider = false
+
 
   private var statePromise: Promise[State] = Promise[State]()
 
@@ -72,7 +74,7 @@ private class MillBuildServer(
     completableNoState(s"buildInitialize ${request}", checkInitialized = false) {
 
       val clientCapabilities = request.getCapabilities()
-      enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
+      val enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
 
       // TODO: scan BspModules and infer their capabilities
 
@@ -94,10 +96,6 @@ private class MillBuildServer(
       capabilities.setRunProvider(new RunProvider(supportedLangs))
       capabilities.setTestProvider(new TestProvider(supportedLangs))
 
-      // IJ is currently not able to handle files as source paths, only dirs
-      // TODO: Rumor has it, that newer version may handle it, so we need to better detect that
-      clientIsIntelliJ = request.getDisplayName == "IntelliJ-BSP"
-
       def readVersion(json: JsonObject, name: String): Option[String] =
         if (json.has(name)) {
           val rawValue = json.get(name)
@@ -108,6 +106,7 @@ private class MillBuildServer(
           } else None
         } else None
 
+      var clientWantsSemanticDb = false
       request.getData match {
         case d: JsonObject =>
           debug(s"extra data: ${d} of type ${d.getClass}")
@@ -124,7 +123,7 @@ private class MillBuildServer(
         case _ => // no op
       }
 
-      initialized = true
+      sessionInfo = SessionInfo(clientWantsSemanticDb, enableJvmCompileClasspathProvider)
       new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
     }
 
@@ -143,7 +142,7 @@ private class MillBuildServer(
     print("Entered onBuildExit")
     sessionResult = Some(BspServerResult.Shutdown)
     SemanticDbJavaModule.resetContext()
-    cancellator(shutdownRequested)
+    onShutdown(shutdownRequested)
   }
 
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
@@ -387,7 +386,7 @@ private class MillBuildServer(
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
       val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).map {
-        case (m: SemanticDbJavaModule, ev) if clientWantsSemanticDb =>
+        case (m: SemanticDbJavaModule, ev) if sessionInfo.clientWantsSemanticDb =>
           (m.compiledClassesAndSemanticDbFiles, ev)
         case (m: JavaModule, ev) => (m.compile, ev)
         case (m: TestModule, ev) =>

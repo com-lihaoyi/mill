@@ -22,7 +22,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       targetIds = _ => javacOptionsParams.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
         val classesPathTask = m match {
-          case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+          case sem: SemanticDbJavaModule if sessionInfo.clientWantsSemanticDb =>
             sem.bspCompiledClassesAndSemanticDbFiles
           case _ => m.bspCompileClassesPath
         }
