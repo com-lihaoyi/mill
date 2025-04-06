@@ -57,27 +57,20 @@ private class BspWorkerImpl() extends BspWorker {
       }
 
       val bspServerHandle = new BspServerHandle {
-        private var lastResult0: Option[BspServerResult] = None
-
         override def runSession(evaluators: Seq[Evaluator]): BspServerResult = {
-          lastResult0 = None
           millServer.updateEvaluator(Option(evaluators))
           val onReload = Promise[BspServerResult]()
           millServer.onSessionEnd = Some { serverResult =>
             if (!onReload.isCompleted) {
               streams.err.println("Unsetting evaluator on session end")
               millServer.updateEvaluator(None)
-              lastResult0 = Some(serverResult)
               onReload.success(serverResult)
             }
           }
           val res = Await.result(onReload.future, Duration.Inf)
           streams.err.println(s"Reload finished, result: ${res}")
-          lastResult0 = Some(res)
           res
         }
-
-        override def lastResult: Option[BspServerResult] = lastResult0
 
         override def stop(): Unit = {
           streams.err.println("Stopping server via handle...")
