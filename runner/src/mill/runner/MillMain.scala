@@ -8,8 +8,8 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.{Logger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
-import mill.bsp.{BspServerRunner, BspServerResult}
+import mill.api.{DummyInputStream, Logger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
+import mill.bsp.{BspServerResult, BspServerRunner}
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
 import mill.main.BuildInfo
@@ -225,7 +225,8 @@ object MillMain {
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
                         prevState: Option[RunnerState],
-                        targetsAndParams: Seq[String]
+                        targetsAndParams: Seq[String],
+                        streams: SystemStreams
                     ) = withOutLock(
                       config.noBuildLock.value || bspMode,
                       config.noWaitForBuildLock.value,
@@ -237,7 +238,8 @@ object MillMain {
                         streams,
                         config,
                         enableTicker =
-                          config.ticker
+                          if (bspMode) Some(false)
+                          else config.ticker
                             .orElse(config.enableTicker)
                             .orElse(Option.when(config.disableTicker.value)(false)),
                         serverDir,
@@ -281,7 +283,22 @@ object MillMain {
                           streams,
                           bspLog,
                           () =>
-                            runMillBootstrap(false, None, Seq("version"))
+                            runMillBootstrap(
+                              false,
+                              None,
+                              Seq("version"),
+                              SystemStreams(
+                                new mill.internal.MultiStream(
+                                  streams.out,
+                                  os.write.outputStream(WorkspaceRoot.workspaceRoot / "out/mill-bsp.out.log")
+                                ),
+                                new mill.internal.MultiStream(
+                                  streams.out,
+                                  os.write.outputStream(WorkspaceRoot.workspaceRoot / "out/mill-bsp.err.log")
+                                ),
+                                DummyInputStream
+                              )
+                            )
                               .result
                               .frames
                               .flatMap(_.evaluator)
@@ -310,7 +327,12 @@ object MillMain {
                         setIdle = setIdle,
                         evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                           adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
-                          runMillBootstrap(enterKeyPressed, prevState, config.leftoverArgs.value)
+                          runMillBootstrap(
+                            enterKeyPressed,
+                            prevState,
+                            config.leftoverArgs.value,
+                            streams
+                          )
                         },
                         colors = colors
                       )
