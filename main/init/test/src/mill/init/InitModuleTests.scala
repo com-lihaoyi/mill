@@ -44,7 +44,8 @@ object InitModuleTests extends TestSuite {
           initmodule.init(Some(nonExistingModuleId))
         )).executionResults
         assert(results.transitiveFailing.size == 1)
-        assert(errStream.toString.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
+        val err = errStream.toString
+        assert(err.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
       }
     }
   }
