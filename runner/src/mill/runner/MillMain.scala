@@ -275,6 +275,14 @@ object MillMain {
                     }
 
                     if (bspMode) {
+                      val splitOut = new mill.internal.MultiStream(
+                        streams.out,
+                        os.write.outputStream(WorkspaceRoot.workspaceRoot / "out/mill-bsp.out.log")
+                      )
+                      val splitErr = new mill.internal.MultiStream(
+                        streams.out,
+                        os.write.outputStream(WorkspaceRoot.workspaceRoot / "out/mill-bsp.err.log")
+                      )
                       var repeatForBsp = true
                       var bspRes: Option[Result[BspServerResult]] = None
                       while (repeatForBsp) {
@@ -287,30 +295,23 @@ object MillMain {
                               false,
                               None,
                               Seq("version"),
-                              SystemStreams(
-                                new mill.internal.MultiStream(
-                                  streams.out,
-                                  os.write.outputStream(WorkspaceRoot.workspaceRoot / "out/mill-bsp.out.log")
-                                ),
-                                new mill.internal.MultiStream(
-                                  streams.out,
-                                  os.write.outputStream(WorkspaceRoot.workspaceRoot / "out/mill-bsp.err.log")
-                                ),
-                                DummyInputStream
-                              )
+                              SystemStreams(splitOut, splitErr, DummyInputStream)
                             )
                               .result
                               .frames
                               .flatMap(_.evaluator)
                         )
-                        runSessionRes.map { runSessionRes =>
-                          repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
-                          bspRes = Some(runSessionRes)
-                          streams.err.println(s"BSP session returned with $runSessionRes")
+                        runSessionRes match {
+                          case Result.Success(runSessionRes) =>
+                            repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
+                            bspRes = Some(runSessionRes)
+                            splitErr.println(s"BSP session returned with $runSessionRes")
+                          case Result.Failure(err) =>
+                            splitErr.println(s"BSP session returned with $err")
                         }
                       }
 
-                      streams.err.println(
+                      splitErr.println(
                         s"Exiting BSP runner loop. Stopping BSP server. Last result: $bspRes"
                       )
 
