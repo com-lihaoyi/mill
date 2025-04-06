@@ -2,7 +2,7 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.main.BuildInfo
-import mill.bsp.{BspServerHandle, BspServerResult, BspWorker, Constants}
+import mill.bsp.{BspServerHandle, BspServerResult, BspClasspathWorker, Constants}
 import mill.api.{Result, SystemStreams}
 import mill.define.Evaluator
 import org.eclipse.lsp4j.jsonrpc.Launcher
@@ -12,7 +12,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, CancellationException, Promise}
 
-private class BspWorkerImpl() extends BspWorker {
+private class BspWorkerImpl() extends BspClasspathWorker {
 
   override def startBspServer(
       topLevelBuildRoot: os.Path,
@@ -57,29 +57,22 @@ private class BspWorkerImpl() extends BspWorker {
       }
 
       val bspServerHandle = new BspServerHandle {
-        private var lastResult0: Option[BspServerResult] = None
-
         override def runSession(evaluators: Seq[Evaluator]): BspServerResult = {
-          lastResult0 = None
           millServer.updateEvaluator(Option(evaluators))
           val onReload = Promise[BspServerResult]()
           millServer.onSessionEnd = Some { serverResult =>
             if (!onReload.isCompleted) {
               streams.err.println("Unsetting evaluator on session end")
               millServer.updateEvaluator(None)
-              lastResult0 = Some(serverResult)
               onReload.success(serverResult)
             }
           }
           val res = Await.result(onReload.future, Duration.Inf)
           streams.err.println(s"Reload finished, result: ${res}")
-          lastResult0 = Some(res)
           res
         }
 
-        override def lastResult: Option[BspServerResult] = lastResult0
-
-        override def stop(): Unit = {
+        override def close(): Unit = {
           streams.err.println("Stopping server via handle...")
           listening.cancel(true)
         }

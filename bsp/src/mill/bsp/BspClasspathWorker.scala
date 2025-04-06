@@ -6,7 +6,7 @@ import java.io.PrintStream
 import java.net.URL
 import scala.util.boundary
 
-private trait BspWorker {
+private trait BspClasspathWorker {
   def startBspServer(
       topLevelBuildRoot: os.Path,
       streams: SystemStreams,
@@ -16,16 +16,15 @@ private trait BspWorker {
   ): Result[BspServerHandle]
 }
 
-private object BspWorker {
+object BspClasspathWorker {
 
-  private var worker: Option[BspWorker] = None
+  private var worker: Option[BspClasspathWorker] = None
 
   def apply(
       workspace: os.Path,
-      home0: os.Path,
       log: Logger,
       workerLibs: Option[Seq[URL]] = None
-  ): Result[BspWorker] = boundary {
+  ): Result[BspClasspathWorker] = boundary {
     worker match {
       case Some(x) => Result.Success(x)
       case None =>
@@ -52,7 +51,7 @@ private object BspWorker {
 
         val workerCls = cl.loadClass(Constants.bspWorkerImplClass)
         val ctr = workerCls.getConstructor()
-        val workerImpl = ctr.newInstance().asInstanceOf[BspWorker]
+        val workerImpl = ctr.newInstance().asInstanceOf[BspClasspathWorker]
         worker = Some(workerImpl)
         Result.Success(workerImpl)
     }

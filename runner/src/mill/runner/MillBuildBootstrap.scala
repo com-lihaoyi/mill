@@ -36,7 +36,6 @@ import scala.util.Using
 class MillBuildBootstrap(
     projectRoot: os.Path,
     output: os.Path,
-    home: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
     env: Map[String, String],
@@ -382,7 +381,6 @@ class MillBuildBootstrap(
         baseLogger = baseLogger,
         chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
         profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
-        home = home,
         workspace = projectRoot,
         outPath = outPath,
         externalOutPath = outPath,

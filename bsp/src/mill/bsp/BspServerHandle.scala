@@ -13,12 +13,6 @@ trait BspServerHandle {
    */
   def runSession(evaluators: Seq[Evaluator]): BspServerResult
 
-  /**
-   * The result of the latest started session. Once a new session was started but not finished, this may be [[None]].
-   * @return The result of the latest ran session or [[None]] if there weren't any session or the session is currently running.
-   */
-  def lastResult: Option[BspServerResult]
-
   /** Stops the BSP server. */
-  def stop(): Unit
+  def close(): Unit
 }
