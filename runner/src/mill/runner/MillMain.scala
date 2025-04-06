@@ -220,105 +220,102 @@ object MillMain {
                 } else {
                   val scalaCompilerWorker = maybeScalaCompilerWorker.get
 
-                  val targetsAndParams =
-                    if (bspMode) Seq("version") else config.leftoverArgs.value.toList
-
                   val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
-
-                  var loopRes: (Boolean, RunnerState, Option[Result[BspServerResult]]) =
-                    (false, RunnerState.empty, None)
-
-                  var repeatForBsp = true
-                  while (repeatForBsp) {
-                    repeatForBsp = false
-
-                    Using.resource(new TailManager(serverDir)) { tailManager =>
-                      if (config.watch.value) {
-                        // When starting a --watch, clear the `mill-selective-execution.json`
-                        // file, so that the first run always selects everything and only
-                        // subsequent re-runs are selective depending on what changed.
-                        os.remove(out / OutFiles.millSelectiveExecution)
+                  Using.resource(new TailManager(serverDir)) { tailManager =>
+                    def runMillBootstrap(
+                        enterKeyPressed: Boolean,
+                        prevState: Option[RunnerState],
+                        targetsAndParams: Seq[String]
+                    ) = withOutLock(
+                      config.noBuildLock.value || bspMode,
+                      config.noWaitForBuildLock.value,
+                      out,
+                      targetsAndParams,
+                      streams
+                    ) {
+                      Using.resource(getLogger(
+                        streams,
+                        config,
+                        enableTicker =
+                          config.ticker
+                            .orElse(config.enableTicker)
+                            .orElse(Option.when(config.disableTicker.value)(false)),
+                        serverDir,
+                        colored = colored,
+                        colors = colors
+                      )) { logger =>
+                        // Enter key pressed, removing mill-selective-execution.json to
+                        // ensure all tasks re-run even though no inputs may have changed
+                        if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
+                        SystemStreams.withStreams(logger.streams) {
+                          tailManager.withOutErr(logger.streams.out, logger.streams.err) {
+                            new MillBuildBootstrap(
+                              projectRoot = WorkspaceRoot.workspaceRoot,
+                              output = out,
+                              keepGoing = config.keepGoing.value,
+                              imports = config.imports,
+                              env = env,
+                              threadCount = threadCount,
+                              targetsAndParams = targetsAndParams,
+                              prevRunnerState = prevState.getOrElse(stateCache),
+                              logger = logger,
+                              needBuildFile = needBuildFile(config),
+                              requestedMetaLevel = config.metaLevel,
+                              config.allowPositional.value,
+                              systemExit = systemExit,
+                              streams0 = streams0,
+                              selectiveExecution = config.watch.value,
+                              scalaCompilerWorker = scalaCompilerWorker
+                            ).evaluate()
+                          }
+                        }
                       }
-                      val (isSuccess, runnerState) = Watching.watchLoop(
+                    }
+
+                    if (bspMode) {
+                      var repeatForBsp = true
+                      var bspRes: Option[Result[BspServerResult]] = None
+                      while (repeatForBsp) {
+                        repeatForBsp = false
+                        val runSessionRes = BspServerRunner.runSession(
+                          streams,
+                          bspLog,
+                          () =>
+                            runMillBootstrap(false, None, Seq("version"))
+                              .result
+                              .frames
+                              .flatMap(_.evaluator)
+                        )
+                        runSessionRes.map { runSessionRes =>
+                          repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
+                          bspRes = Some(runSessionRes)
+                          streams.err.println(s"BSP session returned with $runSessionRes")
+                        }
+                      }
+
+                      streams.err.println(
+                        s"Exiting BSP runner loop. Stopping BSP server. Last result: $bspRes"
+                      )
+
+                      (true, RunnerState(None, Nil, None))
+                    } else {
+                      // When starting a --watch, clear the `mill-selective-execution.json`
+                      // file, so that the first run always selects everything and only
+                      // subsequent re-runs are selective depending on what changed.
+                      if (config.watch.value) os.remove(out / OutFiles.millSelectiveExecution)
+                      Watching.watchLoop(
                         ringBell = config.ringBell.value,
                         watch = config.watch.value,
                         streams = streams,
                         setIdle = setIdle,
                         evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                           adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
-
-                          withOutLock(
-                            config.noBuildLock.value || bspMode,
-                            config.noWaitForBuildLock.value,
-                            out,
-                            targetsAndParams,
-                            streams
-                          ) {
-                            Using.resource(getLogger(
-                              streams,
-                              config,
-                              enableTicker =
-                                config.ticker
-                                  .orElse(config.enableTicker)
-                                  .orElse(Option.when(config.disableTicker.value)(false)),
-                              serverDir,
-                              colored = colored,
-                              colors = colors
-                            )) { logger =>
-                              // Enter key pressed, removing mill-selective-execution.json to
-                              // ensure all tasks re-run even though no inputs may have changed
-                              if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
-                              SystemStreams.withStreams(logger.streams) {
-                                tailManager.withOutErr(logger.streams.out, logger.streams.err) {
-                                  new MillBuildBootstrap(
-                                    projectRoot = WorkspaceRoot.workspaceRoot,
-                                    output = out,
-                                    home = config.home,
-                                    keepGoing = config.keepGoing.value,
-                                    imports = config.imports,
-                                    env = env,
-                                    threadCount = threadCount,
-                                    targetsAndParams = targetsAndParams,
-                                    prevRunnerState = prevState.getOrElse(stateCache),
-                                    logger = logger,
-                                    needBuildFile = needBuildFile(config),
-                                    requestedMetaLevel = config.metaLevel,
-                                    config.allowPositional.value,
-                                    systemExit = systemExit,
-                                    streams0 = streams0,
-                                    selectiveExecution = config.watch.value,
-                                    scalaCompilerWorker = scalaCompilerWorker
-                                  ).evaluate()
-                                }
-                              }
-                            }
-                          }
+                          runMillBootstrap(enterKeyPressed, prevState, config.leftoverArgs.value)
                         },
                         colors = colors
                       )
-
-                      val runSessionResOpt = Option.when(bspMode) {
-                        BspServerRunner
-                          .runSession(streams, bspLog, runnerState.frames.flatMap(_.evaluator))
-                      }
-
-                      runSessionResOpt.foreach { runSessionRes =>
-                        repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
-                        streams.err.println(s"BSP session returned with $runSessionRes")
-                      }
-
-                      loopRes = (isSuccess, runnerState, runSessionResOpt)
                     }
-                  } // while repeatForBsp
-
-                  loopRes._3.foreach { res =>
-                    streams.err.println(
-                      s"Exiting BSP runner loop. Stopping BSP server. Last result: $res"
-                    )
                   }
-
-                  // return with evaluation result
-                  (loopRes._1, loopRes._2)
                 }
               }
             }

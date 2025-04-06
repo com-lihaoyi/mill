@@ -10,7 +10,7 @@ object BspServerRunner {
   def runSession(
       streams0: SystemStreams,
       logStream: Option[PrintStream],
-      evaluators: Seq[Evaluator]
+      evaluators: () => Seq[Evaluator]
   ): Result[BspServerResult] = {
 
     streams0.err.println("Trying to load BSP server...")
@@ -50,7 +50,7 @@ object BspServerRunner {
     streams0.err.println("BSP server started")
 
     bspServerHandleRes.map { bspServerHandle =>
-      try bspServerHandle.runSession(evaluators)
+      try bspServerHandle.runSession(evaluators())
       finally bspServerHandle.close()
     }
 
