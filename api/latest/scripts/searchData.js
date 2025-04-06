@@ -48,7 +48,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/Ctx.html#systemExit-0","e":false,"i":"","n":"systemExit","t":"systemExit: Int => Nothing","d":"mill.api.Ctx","k":"def","x":""},
 {"l":"mill/api/Ctx.html#testReporter-0","e":false,"i":"","n":"testReporter","t":"testReporter: TestReporter","d":"mill.api.Ctx","k":"def","x":""},
 {"l":"mill/api/Ctx$.html#","e":false,"i":"","n":"Ctx","t":"Ctx","d":"mill.api","k":"object","x":""},
-{"l":"mill/api/Ctx$.html#defaultHome-0","e":false,"i":"","n":"defaultHome","t":"defaultHome: Path","d":"mill.api.Ctx","k":"def","x":""},
 {"l":"mill/api/Ctx$.html#taskCtx-0","e":false,"i":"","n":"taskCtx","t":"taskCtx: Ctx","d":"mill.api.Ctx","k":"def","x":""},
 {"l":"mill/api/Ctx$$Args.html#","e":false,"i":"","n":"Args","t":"Args","d":"mill.api.Ctx","k":"trait","x":""},
 {"l":"mill/api/Ctx$$Args.html#arg-3a9","e":false,"i":"","n":"arg","t":"arg[T](index: Int): T","d":"mill.api.Ctx.Args","k":"def","x":""},
