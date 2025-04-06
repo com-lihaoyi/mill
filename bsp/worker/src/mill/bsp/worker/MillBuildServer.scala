@@ -30,15 +30,15 @@ private class MillBuildServer(
     logStream: PrintStream,
     canReload: Boolean,
     debugMessages: Boolean,
-    onShutdown: Boolean => Unit
+    onShutdown: () => Unit
 ) extends BuildServer {
 
   import MillBuildServer._
 
   class SessionInfo(
       val clientWantsSemanticDb: Boolean,
-      /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
-      val enableJvmCompileClasspathProvider: Boolean
+
+//      val enableJvmCompileClasspathProvider: Boolean
   )
 
   // Mutable variables representing the lifecycle stages that the MillBuildServer
@@ -47,13 +47,13 @@ private class MillBuildServer(
   // Set when the client connects
   protected var client: BuildClient = scala.compiletime.uninitialized
   // Set when the `buildInitialize` message comes in
+  /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
+  var enableJvmCompileClasspathProvider: Boolean = false
   protected var sessionInfo: SessionInfo = scala.compiletime.uninitialized
   // Set when the `MillBuildBootstrap` completes and the evaluators are available
   private var bspEvaluators: Promise[BspEvaluators] = Promise[BspEvaluators]()
   // Set when a session is completed, either due to reload or shutdown
   private[worker] var sessionResult: Option[BspServerResult] = None
-  // Set when the server is shut down
-  private var shutdownRequested = false
 
   def initialized = sessionInfo != null
 
@@ -75,7 +75,7 @@ private class MillBuildServer(
     completableNoState(s"buildInitialize ${request}", checkInitialized = false) {
 
       val clientCapabilities = request.getCapabilities()
-      val enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
+      enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
 
       // TODO: scan BspModules and infer their capabilities
 
@@ -124,7 +124,7 @@ private class MillBuildServer(
         case _ => // no op
       }
 
-      sessionInfo = SessionInfo(clientWantsSemanticDb, enableJvmCompileClasspathProvider)
+      sessionInfo = SessionInfo(clientWantsSemanticDb/*, enableJvmCompileClasspathProvider*/)
       new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
     }
 
@@ -134,8 +134,6 @@ private class MillBuildServer(
 
   override def buildShutdown(): CompletableFuture[Object] = {
     print("Entered buildShutdown")
-    shutdownRequested = true
-    sessionResult = Some(BspServerResult.Shutdown)
     SemanticDbJavaModule.resetContext()
     CompletableFuture.completedFuture(null.asInstanceOf[Object])
   }
@@ -143,7 +141,7 @@ private class MillBuildServer(
     print("Entered onBuildExit")
     sessionResult = Some(BspServerResult.Shutdown)
     SemanticDbJavaModule.resetContext()
-    onShutdown(shutdownRequested)
+    onShutdown()
   }
 
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =

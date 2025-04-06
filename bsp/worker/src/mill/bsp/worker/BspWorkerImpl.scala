@@ -22,11 +22,6 @@ private class BspWorkerImpl() extends BspClasspathWorker {
       canReload: Boolean
   ): mill.api.Result[BspServerHandle] = {
 
-    var shutdownRequestedBeforeExit = false
-
-
-
-
     try {
       lazy val millServer: MillBuildServer with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer =
         new MillBuildServer(
@@ -37,8 +32,7 @@ private class BspWorkerImpl() extends BspClasspathWorker {
           logStream = logStream,
           canReload = canReload,
           debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true"),
-          shutdownBefore => {
-            shutdownRequestedBeforeExit = shutdownBefore
+          onShutdown = () => {
             listening.cancel(true)
           }
         ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
