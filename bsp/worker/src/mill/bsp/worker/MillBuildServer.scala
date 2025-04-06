@@ -8,12 +8,10 @@ import mill.api.{Logger, CompileProblemReporter, DummyTestReporter, Result, Test
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, Evaluator, ExecutionResults, ExternalModule, NamedTask, Task}
-import mill.main.MainModule
+import mill.define.{Args, Evaluator, ExecutionResults, NamedTask, Task}
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
-import mill.given
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
@@ -31,39 +29,42 @@ private class MillBuildServer(
     serverName: String,
     logStream: PrintStream,
     canReload: Boolean,
-    debugMessages: Boolean
+    debugMessages: Boolean,
+    onShutdown: () => Unit
 ) extends BuildServer {
 
   import MillBuildServer._
 
-  private[worker] var cancellator: Boolean => Unit = _ => ()
-  private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
+  class SessionInfo(
+      val clientWantsSemanticDb: Boolean,
+      /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
+      val enableJvmCompileClasspathProvider: Boolean
+  )
+
+  // Mutable variables representing the lifecycle stages that the MillBuildServer
+  // progresses through:
+  //
+  // Set when the client connects
   protected var client: BuildClient = scala.compiletime.uninitialized
-  private var initialized = false
-  private var shutdownRequested = false
-  protected var clientWantsSemanticDb = false
-  protected var clientIsIntelliJ = false
+  // Set when the `buildInitialize` message comes in
+  protected var sessionInfo: SessionInfo = scala.compiletime.uninitialized
+  // Set when the `MillBuildBootstrap` completes and the evaluators are available
+  private var bspEvaluators: Promise[BspEvaluators] = Promise[BspEvaluators]()
+  // Set when a session is completed, either due to reload or shutdown
+  private[worker] var sessionResult: Option[BspServerResult] = None
 
-  /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
-  protected var enableJvmCompileClasspathProvider = false
-
-  private var statePromise: Promise[State] = Promise[State]()
+  def initialized = sessionInfo != null
 
   def updateEvaluator(evaluatorsOpt: Option[Seq[Evaluator]]): Unit = {
     debug(s"Updating Evaluator: $evaluatorsOpt")
-    if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
+    if (bspEvaluators.isCompleted) bspEvaluators = Promise[BspEvaluators]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
-      statePromise.success(
-        new State(topLevelProjectRoot, evaluators, s => debug(s()))
-      )
+      bspEvaluators.success(new BspEvaluators(topLevelProjectRoot, evaluators, s => debug(s())))
     }
   }
 
-  def print(msg: String): Unit =
-    logStream.println(msg)
-  def debug(msg: => String): Unit =
-    if (debugMessages)
-      logStream.println("[debug] " + msg)
+  def print(msg: String): Unit = logStream.println(msg)
+  def debug(msg: => String): Unit = if (debugMessages) logStream.println("[debug] " + msg)
 
   def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
 
@@ -72,8 +73,9 @@ private class MillBuildServer(
     completableNoState(s"buildInitialize ${request}", checkInitialized = false) {
 
       val clientCapabilities = request.getCapabilities()
-      enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
-
+      val enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
+      // Not sure why we need to set this early, but we do
+      sessionInfo = SessionInfo(false, enableJvmCompileClasspathProvider)
       // TODO: scan BspModules and infer their capabilities
 
       val supportedLangs = Constants.languages.asJava
@@ -86,17 +88,13 @@ private class MillBuildServer(
       capabilities.setDependencyModulesProvider(true)
       capabilities.setDependencySourcesProvider(true)
       capabilities.setInverseSourcesProvider(true)
-      capabilities.setJvmCompileClasspathProvider(enableJvmCompileClasspathProvider)
+      capabilities.setJvmCompileClasspathProvider(sessionInfo.enableJvmCompileClasspathProvider)
       capabilities.setJvmRunEnvironmentProvider(true)
       capabilities.setJvmTestEnvironmentProvider(true)
       capabilities.setOutputPathsProvider(true)
       capabilities.setResourcesProvider(true)
       capabilities.setRunProvider(new RunProvider(supportedLangs))
       capabilities.setTestProvider(new TestProvider(supportedLangs))
-
-      // IJ is currently not able to handle files as source paths, only dirs
-      // TODO: Rumor has it, that newer version may handle it, so we need to better detect that
-      clientIsIntelliJ = request.getDisplayName == "IntelliJ-BSP"
 
       def readVersion(json: JsonObject, name: String): Option[String] =
         if (json.has(name)) {
@@ -108,6 +106,7 @@ private class MillBuildServer(
           } else None
         } else None
 
+      var clientWantsSemanticDb = false
       request.getData match {
         case d: JsonObject =>
           debug(s"extra data: ${d} of type ${d.getClass}")
@@ -124,7 +123,7 @@ private class MillBuildServer(
         case _ => // no op
       }
 
-      initialized = true
+      sessionInfo = SessionInfo(clientWantsSemanticDb, enableJvmCompileClasspathProvider)
       new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
     }
 
@@ -134,26 +133,14 @@ private class MillBuildServer(
 
   override def buildShutdown(): CompletableFuture[Object] = {
     print("Entered buildShutdown")
-    shutdownRequested = true
-    onSessionEnd match {
-      case None =>
-      case Some(onEnd) =>
-        print("Shutdown build...")
-        onEnd(BspServerResult.Shutdown)
-    }
     SemanticDbJavaModule.resetContext()
     CompletableFuture.completedFuture(null.asInstanceOf[Object])
   }
   override def onBuildExit(): Unit = {
     print("Entered onBuildExit")
-    onSessionEnd match {
-      case None =>
-      case Some(onEnd) =>
-        print("Exiting build...")
-        onEnd(BspServerResult.Shutdown)
-    }
+    sessionResult = Some(BspServerResult.Shutdown)
     SemanticDbJavaModule.resetContext()
-    cancellator(shutdownRequested)
+    onShutdown()
   }
 
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
@@ -204,12 +191,8 @@ private class MillBuildServer(
     completableNoState("workspaceReload", false) {
       // Instead stop and restart the command
       // BSP.install(evaluator)
-      onSessionEnd match {
-        case None => "unsupportedWorkspaceReload".asInstanceOf[Object]
-        case Some(onEnd) =>
-          print("Reloading workspace...")
-          onEnd(BspServerResult.ReloadWorkspace).asInstanceOf[Object]
-      }
+      sessionResult = Some(BspServerResult.ReloadWorkspace)
+      ().asInstanceOf[Object]
     }
 
   /**
@@ -401,7 +384,7 @@ private class MillBuildServer(
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
       val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).map {
-        case (m: SemanticDbJavaModule, ev) if clientWantsSemanticDb =>
+        case (m: SemanticDbJavaModule, ev) if sessionInfo.clientWantsSemanticDb =>
           (m.compiledClassesAndSemanticDbFiles, ev)
         case (m: JavaModule, ev) => (m.compile, ev)
         case (m: TestModule, ev) =>
@@ -643,9 +626,15 @@ private class MillBuildServer(
    */
   def completableTasks[T, V, W: ClassTag](
       hint: String,
-      targetIds: State => Seq[BuildTargetIdentifier],
+      targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
       tasks: PartialFunction[BspModule, Task[W]]
-  )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
+  )(f: (
+      Evaluator,
+      BspEvaluators,
+      BuildTargetIdentifier,
+      BspModule,
+      W
+  ) => T)(agg: java.util.List[T] => V)
       : CompletableFuture[V] =
     completableTasksWithState[T, V, W](hint, targetIds, tasks)(f)((l, _) => agg(l))
 
@@ -655,14 +644,14 @@ private class MillBuildServer(
    */
   def completableTasksWithState[T, V, W: ClassTag](
       hint: String,
-      targetIds: State => Seq[BuildTargetIdentifier],
+      targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
       tasks: PartialFunction[BspModule, Task[W]]
-  )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: (
+  )(f: (Evaluator, BspEvaluators, BuildTargetIdentifier, BspModule, W) => T)(agg: (
       java.util.List[T],
-      State
+      BspEvaluators
   ) => V): CompletableFuture[V] = {
     val prefix = hint.split(" ").head
-    completable(hint) { (state: State) =>
+    completable(hint) { (state: BspEvaluators) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)
@@ -729,7 +718,7 @@ private class MillBuildServer(
   protected def completable[V](
       hint: String,
       checkInitialized: Boolean = true
-  )(f: State => V): CompletableFuture[V] = {
+  )(f: BspEvaluators => V): CompletableFuture[V] = {
     print(s"Entered ${hint}")
 
     val start = System.currentTimeMillis()
@@ -745,7 +734,7 @@ private class MillBuildServer(
         )
       )
     } else {
-      statePromise.future.onComplete {
+      bspEvaluators.future.onComplete {
         case Success(state) =>
           try {
             requestLock.lock()
