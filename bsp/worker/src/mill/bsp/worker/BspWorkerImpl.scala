@@ -22,23 +22,29 @@ private class BspWorkerImpl() extends BspClasspathWorker {
       canReload: Boolean
   ): mill.api.Result[BspServerHandle] = {
 
-    val millServer =
-      new MillBuildServer(
-        topLevelProjectRoot = topLevelBuildRoot,
-        bspVersion = Constants.bspProtocolVersion,
-        serverVersion = BuildInfo.millVersion,
-        serverName = Constants.serverName,
-        logStream = logStream,
-        canReload = canReload,
-        debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true")
-      ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
-
-    val executor = Executors.newCachedThreadPool()
-
     var shutdownRequestedBeforeExit = false
 
+
+
+
     try {
-      val launcher = new Launcher.Builder[BuildClient]()
+      lazy val millServer: MillBuildServer with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer =
+        new MillBuildServer(
+          topLevelProjectRoot = topLevelBuildRoot,
+          bspVersion = Constants.bspProtocolVersion,
+          serverVersion = BuildInfo.millVersion,
+          serverName = Constants.serverName,
+          logStream = logStream,
+          canReload = canReload,
+          debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true"),
+          shutdownBefore => {
+            shutdownRequestedBeforeExit = shutdownBefore
+            listening.cancel(true)
+          }
+        ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
+
+      lazy val executor = Executors.newCachedThreadPool()
+      lazy val launcher = new Launcher.Builder[BuildClient]()
         .setOutput(streams.out)
         .setInput(streams.in)
         .setLocalService(millServer)
@@ -50,25 +56,16 @@ private class BspWorkerImpl() extends BspClasspathWorker {
         .create()
 
       millServer.onConnectWithClient(launcher.getRemoteProxy)
-      val listening = launcher.startListening()
-      millServer.cancellator = shutdownBefore => {
-        shutdownRequestedBeforeExit = shutdownBefore
-        listening.cancel(true)
-      }
+      lazy val listening = launcher.startListening()
 
       val bspServerHandle = new BspServerHandle {
         override def runSession(evaluators: Seq[Evaluator]): BspServerResult = {
           millServer.updateEvaluator(Option(evaluators))
-          val onReload = Promise[BspServerResult]()
-          millServer.onSessionEnd = Some { serverResult =>
-            if (!onReload.isCompleted) {
-              streams.err.println("Unsetting evaluator on session end")
-              millServer.updateEvaluator(None)
-              onReload.success(serverResult)
-            }
-          }
-          val res = Await.result(onReload.future, Duration.Inf)
-          streams.err.println(s"Reload finished, result: ${res}")
+          millServer.sessionResult = None
+          while(millServer.sessionResult.isEmpty) Thread.sleep(1)
+          millServer.updateEvaluator(None)
+          val res = millServer.sessionResult.get
+          streams.err.println(s"Reload finished, result: $res")
           res
         }
 

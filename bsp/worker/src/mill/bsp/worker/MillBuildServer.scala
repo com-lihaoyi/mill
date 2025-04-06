@@ -31,13 +31,13 @@ private class MillBuildServer(
     serverName: String,
     logStream: PrintStream,
     canReload: Boolean,
-    debugMessages: Boolean
+    debugMessages: Boolean,
+    cancellator: Boolean => Unit
 ) extends BuildServer {
 
   import MillBuildServer._
 
-  private[worker] var cancellator: Boolean => Unit = _ => ()
-  private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
+  private[worker] var sessionResult: Option[BspServerResult] = None
   protected var client: BuildClient = scala.compiletime.uninitialized
   private var initialized = false
   private var shutdownRequested = false
@@ -135,23 +135,13 @@ private class MillBuildServer(
   override def buildShutdown(): CompletableFuture[Object] = {
     print("Entered buildShutdown")
     shutdownRequested = true
-    onSessionEnd match {
-      case None =>
-      case Some(onEnd) =>
-        print("Shutdown build...")
-        onEnd(BspServerResult.Shutdown)
-    }
+    sessionResult = Some(BspServerResult.Shutdown)
     SemanticDbJavaModule.resetContext()
     CompletableFuture.completedFuture(null.asInstanceOf[Object])
   }
   override def onBuildExit(): Unit = {
     print("Entered onBuildExit")
-    onSessionEnd match {
-      case None =>
-      case Some(onEnd) =>
-        print("Exiting build...")
-        onEnd(BspServerResult.Shutdown)
-    }
+    sessionResult = Some(BspServerResult.Shutdown)
     SemanticDbJavaModule.resetContext()
     cancellator(shutdownRequested)
   }
@@ -204,12 +194,8 @@ private class MillBuildServer(
     completableNoState("workspaceReload", false) {
       // Instead stop and restart the command
       // BSP.install(evaluator)
-      onSessionEnd match {
-        case None => "unsupportedWorkspaceReload".asInstanceOf[Object]
-        case Some(onEnd) =>
-          print("Reloading workspace...")
-          onEnd(BspServerResult.ReloadWorkspace).asInstanceOf[Object]
-      }
+      sessionResult = Some(BspServerResult.ReloadWorkspace)
+      ().asInstanceOf[Object]
     }
 
   /**
