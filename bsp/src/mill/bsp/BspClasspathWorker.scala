@@ -16,7 +16,7 @@ private trait BspClasspathWorker {
   ): Result[BspServerHandle]
 }
 
-private object BspClasspathWorker {
+object BspClasspathWorker {
 
   private var worker: Option[BspClasspathWorker] = None
 
