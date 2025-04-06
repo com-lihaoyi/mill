@@ -8,7 +8,15 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.{DummyInputStream, Logger, MillException, Result, SystemStreams, WorkspaceRoot, internal}
+import mill.api.{
+  DummyInputStream,
+  Logger,
+  MillException,
+  Result,
+  SystemStreams,
+  WorkspaceRoot,
+  internal
+}
 import mill.bsp.BspServerResult
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
