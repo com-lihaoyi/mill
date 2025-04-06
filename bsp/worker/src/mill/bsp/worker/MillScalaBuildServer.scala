@@ -39,7 +39,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           }
 
           val compileClasspathTask =
-            if (enableJvmCompileClasspathProvider) {
+            if (sessionInfo.enableJvmCompileClasspathProvider) {
               // We have a dedicated request for it
               Task.Anon { Seq.empty[UnresolvedPath] }
             } else {

@@ -37,8 +37,8 @@ private class MillBuildServer(
 
   class SessionInfo(
       val clientWantsSemanticDb: Boolean,
-
-//      val enableJvmCompileClasspathProvider: Boolean
+      /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
+      val enableJvmCompileClasspathProvider: Boolean
   )
 
   // Mutable variables representing the lifecycle stages that the MillBuildServer
@@ -47,8 +47,6 @@ private class MillBuildServer(
   // Set when the client connects
   protected var client: BuildClient = scala.compiletime.uninitialized
   // Set when the `buildInitialize` message comes in
-  /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
-  var enableJvmCompileClasspathProvider: Boolean = false
   protected var sessionInfo: SessionInfo = scala.compiletime.uninitialized
   // Set when the `MillBuildBootstrap` completes and the evaluators are available
   private var bspEvaluators: Promise[BspEvaluators] = Promise[BspEvaluators]()
@@ -75,8 +73,9 @@ private class MillBuildServer(
     completableNoState(s"buildInitialize ${request}", checkInitialized = false) {
 
       val clientCapabilities = request.getCapabilities()
-      enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
-
+      val enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
+      // Not sure why we need to set this early, but we do
+      sessionInfo = SessionInfo(false, enableJvmCompileClasspathProvider)
       // TODO: scan BspModules and infer their capabilities
 
       val supportedLangs = Constants.languages.asJava
@@ -89,7 +88,7 @@ private class MillBuildServer(
       capabilities.setDependencyModulesProvider(true)
       capabilities.setDependencySourcesProvider(true)
       capabilities.setInverseSourcesProvider(true)
-      capabilities.setJvmCompileClasspathProvider(enableJvmCompileClasspathProvider)
+      capabilities.setJvmCompileClasspathProvider(sessionInfo.enableJvmCompileClasspathProvider)
       capabilities.setJvmRunEnvironmentProvider(true)
       capabilities.setJvmTestEnvironmentProvider(true)
       capabilities.setOutputPathsProvider(true)
@@ -124,7 +123,7 @@ private class MillBuildServer(
         case _ => // no op
       }
 
-      sessionInfo = SessionInfo(clientWantsSemanticDb/*, enableJvmCompileClasspathProvider*/)
+      sessionInfo = SessionInfo(clientWantsSemanticDb, enableJvmCompileClasspathProvider)
       new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
     }
 
