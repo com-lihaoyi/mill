@@ -285,11 +285,11 @@ object MillMain {
                     if (bspMode) {
                       val splitOut = new mill.internal.MultiStream(
                         streams.out,
-                        os.write.outputStream(WorkspaceRoot.workspaceRoot / "out/mill-bsp.out.log")
+                        os.write.outputStream(WorkspaceRoot.workspaceRoot / OutFiles.out / "mill-bsp.out.log")
                       )
                       val splitErr = new mill.internal.MultiStream(
                         streams.out,
-                        os.write.outputStream(WorkspaceRoot.workspaceRoot / "out/mill-bsp.err.log")
+                        os.write.outputStream(WorkspaceRoot.workspaceRoot / OutFiles.out / "mill-bsp.err.log")
                       )
                       val runSessionRes = runBspSession(
                         streams,
@@ -379,7 +379,7 @@ object MillMain {
     val bspServerHandleRes = {
       val wsRoot = mill.api.WorkspaceRoot.workspaceRoot
       mill.bsp.BspClasspathWorker(wsRoot, log).flatMap { worker =>
-        val logDir = wsRoot / "out/mill-bsp"
+        val logDir = wsRoot / OutFiles.out / "mill-bsp"
         os.makeDir.all(logDir)
         worker.startBspServer(
           mill.api.WorkspaceRoot.workspaceRoot,
