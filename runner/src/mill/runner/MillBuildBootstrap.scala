@@ -382,7 +382,6 @@ class MillBuildBootstrap(
         baseLogger = baseLogger,
         chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
         profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
-        home = home,
         workspace = projectRoot,
         outPath = outPath,
         externalOutPath = outPath,

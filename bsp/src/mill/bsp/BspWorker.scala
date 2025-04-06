@@ -22,7 +22,6 @@ private object BspWorker {
 
   def apply(
       workspace: os.Path,
-      home0: os.Path,
       log: Logger,
       workerLibs: Option[Seq[URL]] = None
   ): Result[BspWorker] = boundary {

@@ -220,7 +220,7 @@ object MillMain {
                 } else {
                   val scalaCompilerWorker = maybeScalaCompilerWorker.get
                   val bspContext =
-                    if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
+                    if (bspMode) Some(new BspContext(streams, bspLog)) else None
 
                   val bspCmd = "mill.bsp.BSP/startSession"
                   val targetsAndParams =

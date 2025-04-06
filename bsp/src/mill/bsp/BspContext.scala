@@ -5,11 +5,7 @@ import mill.api.{DummyInputStream, Logger, Result, SystemStreams}
 import java.io.PrintStream
 import scala.util.control.NonFatal
 
-private[mill] class BspContext(
-    streams: SystemStreams,
-    bspLogStream: Option[PrintStream],
-    home: os.Path
-) {
+private[mill] class BspContext(streams: SystemStreams, bspLogStream: Option[PrintStream]) {
   // BSP mode, run with a simple evaluator command to inject the evaluator
   // The command returns when the server exists or the workspace should be reloaded
   // if the `lastResult` is `ReloadWorkspace` we re-run the script in a loop
@@ -55,13 +51,15 @@ private[mill] class BspContext(
       override def debug(s: String): Unit = streams.err.println(s)
     }
 
-    BspWorker(mill.api.WorkspaceRoot.workspaceRoot, home, log).flatMap { worker =>
-      os.makeDir.all(home / Constants.bspDir)
+    val wsRoot = mill.api.WorkspaceRoot.workspaceRoot
+    BspWorker(wsRoot, log).flatMap { worker =>
+      val logDir = wsRoot / "mill-bsp.log"
+      os.makeDir.all(logDir)
       worker.startBspServer(
         mill.api.WorkspaceRoot.workspaceRoot,
         streams,
         logStream.getOrElse(streams.err),
-        home / Constants.bspDir,
+        logDir,
         canReload
       )
     }
