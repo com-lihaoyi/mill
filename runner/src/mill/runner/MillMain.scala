@@ -228,7 +228,7 @@ object MillMain {
                         targetsAndParams: Seq[String],
                         streams: SystemStreams
                     ) = withOutLock(
-                      config.noBuildLock.value || bspMode,
+                      config.noBuildLock.value,
                       config.noWaitForBuildLock.value,
                       out,
                       targetsAndParams,
