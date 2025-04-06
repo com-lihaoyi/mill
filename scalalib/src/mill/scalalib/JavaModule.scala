@@ -1345,6 +1345,54 @@ trait JavaModule
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
+
+  def bspBuildTargetScalacOptions(
+      enableJvmCompileClasspathProvider: Boolean,
+      clientWantsSemanticDb: Boolean
+  ) = {
+    val scalacOptionsTask = this match {
+      case m: ScalaModule => m.allScalacOptions
+      case _ => Task.Anon {
+          Seq.empty[String]
+        }
+    }
+
+    val compileClasspathTask =
+      if (enableJvmCompileClasspathProvider) {
+        // We have a dedicated request for it
+        Task.Anon {
+          Seq.empty[UnresolvedPath]
+        }
+      } else {
+        bspCompileClasspath
+      }
+
+    val classesPathTask =
+      if (clientWantsSemanticDb) {
+        bspCompiledClassesAndSemanticDbFiles
+      } else {
+        bspCompileClassesPath
+      }
+
+    Task.Anon {
+      (scalacOptionsTask(), compileClasspathTask(), classesPathTask())
+    }
+  }
+
+  def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean) = {
+    val classesPathTask = this match {
+      case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+        sem.bspCompiledClassesAndSemanticDbFiles
+      case _ => bspCompileClassesPath
+    }
+    Task.Anon {
+      (
+        classesPathTask(),
+        javacOptions() ++ mandatoryJavacOptions(),
+        bspCompileClasspath()
+      )
+    }
+  }
 }
 
 object JavaModule {

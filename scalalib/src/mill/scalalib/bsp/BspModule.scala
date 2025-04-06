@@ -3,8 +3,8 @@ package mill.scalalib.bsp
 import coursier.Repository
 import mill.api.{PathRef, internal}
 import mill.define.{Command, Task}
-import mill.*
-import mill.scalalib.CoursierModule
+import mill.{Task, *}
+import mill.scalalib.{CoursierModule, TestModule}
 
 trait BspModule extends Module {
   import BspModule._
@@ -71,6 +71,21 @@ trait BspModule extends Module {
   def run(args: Task[Args] = Task.Anon(Args())): Command[Unit]
   def bspRun(args: Seq[String]): Command[Unit] = Task.Command {
     run(Task.Anon(Args(args)))()
+  }
+
+  def allLocalMainClasses: T[Seq[String]]
+
+  def forkArgs: T[Seq[String]]
+
+  def forkEnv: T[Map[String, String]]
+
+  def bspBuildTargetScalaMainClasses = Task.Anon((allLocalMainClasses(), forkArgs(), forkEnv()))
+
+  def bspBuildTargetScalaTestClasses = this match {
+    case m: TestModule =>
+      Task.Anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
+    case _ =>
+      Task.Anon(None)
   }
 
   def bspDisplayName0: String = this.moduleSegments.render
