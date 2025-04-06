@@ -90,7 +90,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       s"buildTarget/scalaTestClasses ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
-        case m: TestModule => m.bspBuildTargetScalaTestClasses 
+        case m: TestModule => m.bspBuildTargetScalaTestClasses
       }
     ) {
       case (ev, state, id, m: TestModule, Some((classpath, testFramework, testClasspath))) =>
