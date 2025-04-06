@@ -34,7 +34,7 @@ object BspServerRunner {
       }
 
       val wsRoot = mill.api.WorkspaceRoot.workspaceRoot
-      BspWorker(wsRoot, log).flatMap { worker =>
+      BspClasspathWorker(wsRoot, log).flatMap { worker =>
         val logDir = wsRoot / "mill-bsp.log"
         os.makeDir.all(logDir)
         worker.startBspServer(

@@ -2,7 +2,7 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.main.BuildInfo
-import mill.bsp.{BspServerHandle, BspServerResult, BspWorker, Constants}
+import mill.bsp.{BspServerHandle, BspServerResult, BspClasspathWorker, Constants}
 import mill.api.{Result, SystemStreams}
 import mill.define.Evaluator
 import org.eclipse.lsp4j.jsonrpc.Launcher
@@ -12,7 +12,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, CancellationException, Promise}
 
-private class BspWorkerImpl() extends BspWorker {
+private class BspWorkerImpl() extends BspClasspathWorker {
 
   override def startBspServer(
       topLevelBuildRoot: os.Path,
