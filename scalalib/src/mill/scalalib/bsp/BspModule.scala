@@ -1,92 +1,11 @@
 package mill.scalalib.bsp
 
-import coursier.Repository
-import mill.api.{PathRef, internal}
-import mill.define.{Command, Task}
-import mill.{Task, *}
-import mill.scalalib.{CoursierModule, TestModule}
+import mill.api.internal
+import mill.define.Task
+import mill._
 
 trait BspModule extends Module {
   import BspModule._
-
-  def sources: T[Seq[PathRef]]
-  def allSourceFiles: T[Seq[PathRef]]
-  def generatedSources: T[Seq[PathRef]]
-  def bspBuildTargetSources: Task[(Seq[os.Path], Seq[os.Path])] = Task.Anon {
-    Tuple2(sources().map(_.path), generatedSources().map(_.path))
-  }
-
-  def sanitizeUri(uri: String): String =
-    if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
-
-  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toNIO.toUri.toString)
-
-  def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
-
-  def bspBuildTargetInverseSources[T](id: T, searched: String): Task[Seq[T]] = Task.Anon {
-    val src = allSourceFiles()
-    val found = src.map(sanitizeUri).contains(searched)
-    if (found) Seq(id) else Seq()
-  }
-
-  def millResolver: Task[CoursierModule.Resolver]
-  def allRepositories: Task[Seq[Repository]]
-  def unmanagedClasspath: T[Seq[PathRef]]
-  def coursierDependency: coursier.core.Dependency
-  def bspBuildTargetDependencySources(includeSources: Boolean) = Task.Anon {
-    val repos = allRepositories()
-    val buildSources = if (!includeSources) Nil
-    else mill.scalalib.Lib
-      .resolveMillBuildDeps(repos, None, useSources = true)
-      .map(sanitizeUri(_))
-
-    (
-      millResolver().classpath(
-        Seq(
-          coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-          coursierDependency
-        ),
-        sources = true
-      ),
-      unmanagedClasspath(),
-      buildSources
-    )
-  }
-
-  def bspBuildTargetDependencyModules = Task.Anon {
-    (
-      // full list of dependencies, including transitive ones
-      millResolver()
-        .resolution(
-          Seq(
-            coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-            coursierDependency
-          )
-        )
-        .orderedDependencies,
-      unmanagedClasspath()
-    )
-  }
-
-  def run(args: Task[Args] = Task.Anon(Args())): Command[Unit]
-  def bspRun(args: Seq[String]): Command[Unit] = Task.Command {
-    run(Task.Anon(Args(args)))()
-  }
-
-  def allLocalMainClasses: T[Seq[String]]
-
-  def forkArgs: T[Seq[String]]
-
-  def forkEnv: T[Map[String, String]]
-
-  def bspBuildTargetScalaMainClasses = Task.Anon((allLocalMainClasses(), forkArgs(), forkEnv()))
-
-  def bspBuildTargetScalaTestClasses = this match {
-    case m: TestModule =>
-      Task.Anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
-    case _ =>
-      Task.Anon(None)
-  }
 
   def bspDisplayName0: String = this.moduleSegments.render
 

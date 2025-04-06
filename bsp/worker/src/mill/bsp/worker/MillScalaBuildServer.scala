@@ -89,7 +89,9 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     completableTasks(
       s"buildTarget/scalaTestClasses ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      tasks = _.bspBuildTargetScalaTestClasses
+      tasks = {
+        case m: TestModule => m.bspBuildTargetScalaTestClasses 
+      }
     ) {
       case (ev, state, id, m: TestModule, Some((classpath, testFramework, testClasspath))) =>
         val (frameworkName, classFingerprint): (String, Seq[(Class[?], Fingerprint)]) =
