@@ -5,10 +5,6 @@ import mill.api.{DummyInputStream, Logger, Result, SystemStreams}
 import java.io.PrintStream
 import scala.util.control.NonFatal
 
-private[mill] object BspContext {
-  @volatile var bspServerHandle: BspServerHandle = null
-}
-
 private[mill] class BspContext(
     streams: SystemStreams,
     bspLogStream: Option[PrintStream],
@@ -21,7 +17,7 @@ private[mill] class BspContext(
   streams.err.println("Running in BSP mode with hardcoded startSession command")
 
   streams.err.println("Trying to load BSP server...")
-  BspContext.bspServerHandle =
+  val bspServerHandle =
     try {
       startBspServer(
         streams0 = streams,

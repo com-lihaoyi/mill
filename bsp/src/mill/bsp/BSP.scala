@@ -41,20 +41,6 @@ object BSP extends ExternalModule with CoursierModule {
     createBspConnection(jobs, Constants.serverName)
   }
 
-  /**
-   * This command only starts a BSP session, which means it injects the current evaluator into an already running BSP server.
-   * This command requires Mill to start with `--bsp` option.
-   * @param allBootstrapEvaluators The Evaluator
-   * @return The server result, indicating if mill should re-run this command or just exit.
-   */
-  def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
-      : Command[BspServerResult] = Task.Command(exclusive = true) {
-    Task.log.streams.err.println("BSP/startSession: Starting BSP session")
-    val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
-    Task.log.streams.err.println(s"BSP/startSession: Finished BSP session, result: ${res}")
-    res
-  }
-
   private def createBspConnection(
       jobs: Int,
       serverName: String

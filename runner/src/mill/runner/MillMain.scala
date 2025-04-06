@@ -242,7 +242,7 @@ object MillMain {
                         // subsequent re-runs are selective depending on what changed.
                         os.remove(out / OutFiles.millSelectiveExecution)
                       }
-                      val (isSuccess, evalStateOpt) = Watching.watchLoop(
+                      val (isSuccess, runnerState) = Watching.watchLoop(
                         ringBell = config.ringBell.value,
                         watch = config.watch.value,
                         streams = streams,
@@ -299,24 +299,24 @@ object MillMain {
                         },
                         colors = colors
                       )
-                      bspContext.foreach { ctx =>
-                        repeatForBsp =
-                          BspContext.bspServerHandle.lastResult == Some(
-                            BspServerResult.ReloadWorkspace
-                          )
-                        streams.err.println(
-                          s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
-                        )
+
+                      val runSessionResOpt = bspContext.map(
+                        _.bspServerHandle.runSession(runnerState.frames.flatMap(_.evaluator))
+                      )
+
+                      runSessionResOpt.foreach { runSessionRes =>
+                        repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
+                        streams.err.println(s"`$bspCmd` returned with $runSessionRes")
                       }
 
-                      loopRes = (isSuccess, evalStateOpt)
+                      loopRes = (isSuccess, runnerState)
                     }
                   } // while repeatForBsp
                   bspContext.foreach { ctx =>
                     streams.err.println(
-                      s"Exiting BSP runner loop. Stopping BSP server. Last result: ${BspContext.bspServerHandle.lastResult}"
+                      s"Exiting BSP runner loop. Stopping BSP server. Last result: ${ctx.bspServerHandle.lastResult}"
                     )
-                    BspContext.bspServerHandle.stop()
+                    ctx.bspServerHandle.stop()
                   }
 
                   // return with evaluation result
