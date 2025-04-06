@@ -32,12 +32,9 @@ private class MillBuildServer(
     logStream: PrintStream,
     canReload: Boolean,
     debugMessages: Boolean
-) extends ExternalModule
-    with BuildServer {
+) extends BuildServer {
 
   import MillBuildServer._
-
-  lazy val millDiscover = Discover[this.type]
 
   private[worker] var cancellator: Boolean => Unit = _ => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
@@ -596,9 +593,7 @@ private class MillBuildServer(
         )) {
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
-            val mainModule = new mill.define.BaseModule(moduleDir) with MainModule {
-              override implicit def millDiscover: Discover = Discover[this.type]
-            }
+            val mainModule = ev.rootModule.asInstanceOf[mill.main.MainModule]
             val compileTargetName = (module.moduleSegments ++ Label("compile")).render
             debug(s"about to clean: ${compileTargetName}")
             val cleanTask = mainModule.clean(ev, Seq(compileTargetName)*)
