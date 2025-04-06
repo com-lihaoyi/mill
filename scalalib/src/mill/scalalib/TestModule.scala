@@ -242,6 +242,13 @@ trait TestModule
       tags = Seq(BspModule.Tag.Test)
     )
   }
+
+  def bspBuildTargetScalaTestClasses = this match {
+    case m: TestModule =>
+      Task.Anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
+    case _ =>
+      Task.Anon(None)
+  }
 }
 
 object TestModule {

@@ -1,0 +1,1323 @@
+[Trace - 00:40:51 pm] Received request 'build/initialize - (1)'
+Params: {
+  "displayName": "IntelliJ-BSP",
+  "version": "2024.3.660",
+  "bspVersion": "2.0",
+  "rootUri": "file:/Users/lihaoyi/Downloads/1-simple/",
+  "capabilities": {
+    "languageIds": [
+      "scala",
+      "java"
+    ]
+  },
+  "data": {
+    "clientClassesRootDir": "file:/Users/lihaoyi/Downloads/1-simple/out/",
+    "supportedScalaVersions": []
+  }
+}
+
+
+[Trace - 00:40:51 pm] Sending response 'build/initialize - (1)'. Processing request took 20ms
+Result: {
+  "displayName": "mill-bsp",
+  "version": "0.13.0-M1-17-e7b043",
+  "bspVersion": "2.2.0-M2",
+  "capabilities": {
+    "compileProvider": {
+      "languageIds": [
+        "java",
+        "scala",
+        "kotlin"
+      ]
+    },
+    "testProvider": {
+      "languageIds": [
+        "java",
+        "scala",
+        "kotlin"
+      ]
+    },
+    "runProvider": {
+      "languageIds": [
+        "java",
+        "scala",
+        "kotlin"
+      ]
+    },
+    "debugProvider": {
+      "languageIds": []
+    },
+    "inverseSourcesProvider": true,
+    "dependencySourcesProvider": true,
+    "dependencyModulesProvider": true,
+    "resourcesProvider": true,
+    "outputPathsProvider": true,
+    "buildTargetChangedProvider": false,
+    "jvmRunEnvironmentProvider": true,
+    "jvmTestEnvironmentProvider": true,
+    "canReload": true,
+    "jvmCompileClasspathProvider": false
+  }
+}
+
+
+[Trace - 00:40:51 pm] Received notification 'build/initialized'
+Params: null
+
+
+[Trace - 00:40:51 pm] Received request 'workspace/reload - (2)'
+Params: null
+
+
+[Trace - 00:40:51 pm] Sending response 'workspace/reload - (2)'. Processing request took 1ms
+Result: "unsupportedWorkspaceReload"
+
+
+[Trace - 00:40:51 pm] Received request 'workspace/buildTargets - (3)'
+Params: null
+
+
+[Trace - 00:40:51 pm] Sending response 'workspace/buildTargets - (3)'. Processing request took 794ms
+Result: {
+  "targets": [
+    {
+      "id": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "displayName": "foo",
+      "baseDirectory": "file:///Users/lihaoyi/Downloads/1-simple/foo",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "file:///Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/",
+        "javaVersion": "17.0.6"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "displayName": "foo.test",
+      "baseDirectory": "file:///Users/lihaoyi/Downloads/1-simple/foo/test",
+      "tags": [
+        "test"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+        }
+      ],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": true,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "file:///Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/",
+        "javaVersion": "17.0.6"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "displayName": "mill-build/",
+      "baseDirectory": "file:///Users/lihaoyi/Downloads/1-simple/mill-build",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "3.6.2",
+        "scalaBinaryVersion": "3",
+        "platform": 1,
+        "jars": [
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.6.2/scala3-compiler_3-3.6.2.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.6.2/scala3-library_3-3.6.2.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.6.2/scala3-interfaces-3.6.2.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.6.2/tasty-core_3-3.6.2.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.7.0-scala-2/scala-asm-9.7.0-scala-2.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.9.6/compiler-interface-1.9.6.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.0/jline-reader-3.27.0.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.0/jline-terminal-3.27.0.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.27.0/jline-terminal-jna-3.27.0.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.9.8/util-interface-1.9.8.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.0/jline-native-3.27.0.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "file:///Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/",
+          "javaVersion": "17.0.6"
+        }
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+      },
+      "displayName": "mill-synthetic-root",
+      "baseDirectory": "file:///Users/lihaoyi/Downloads/1-simple",
+      "tags": [
+        "manual"
+      ],
+      "languageIds": [],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": false,
+        "canTest": false,
+        "canRun": false,
+        "canDebug": false
+      }
+    }
+  ]
+}
+
+
+[Trace - 00:40:51 pm] Received request 'buildTarget/sources - (4)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+    }
+  ]
+}
+
+
+[Trace - 00:40:51 pm] Received request 'buildTarget/dependencySources - (5)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+    }
+  ]
+}
+
+
+[Trace - 00:40:51 pm] Received request 'buildTarget/resources - (6)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+    }
+  ]
+}
+
+
+[Trace - 00:40:51 pm] Received request 'buildTarget/outputPaths - (7)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+    }
+  ]
+}
+
+
+[Trace - 00:40:51 pm] Received request 'buildTarget/scalacOptions - (8)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+    }
+  ]
+}
+
+
+[Trace - 00:40:51 pm] Received request 'buildTarget/javacOptions - (9)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+    }
+  ]
+}
+
+
+[Trace - 00:40:51 pm] Sending response 'buildTarget/sources - (4)'. Processing request took 21ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "sources": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "sources": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "sources": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/build.mill",
+          "kind": 1,
+          "generated": false
+        },
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/out/mill-build/generateScriptSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+      },
+      "sources": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    }
+  ]
+}
+
+
+[Trace - 00:40:52 pm] Sending response 'buildTarget/dependencySources - (5)'. Processing request took 678ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "sources": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA-sources.jar"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "sources": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.2/junit-interface-0.13.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/guava/33.3.0-jre/guava-33.3.0-jre-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA-sources.jar"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "sources": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.6.2/scala3-library_3-3.6.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mill-moduledefs_3/0.11.3-M5/mill-moduledefs_3-0.11.3-M5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15-sources.jar",
+        "file:///Users/lihaoyi/Downloads/1-simple/out/mill-launcher/0.13.0-M1-17-e7b043.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-dist-dist0/0.13.0-M1-17-e7b043/srcs/mill-dist-dist0-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-runner_3/0.13.0-M1-17-e7b043/srcs/mill-runner_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-idea_3/0.13.0-M1-17-e7b043/srcs/mill-idea_3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.6.4/scala3-library_3-3.6.4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mill-moduledefs_3/0.11.3-M5/mill-moduledefs_3-0.11.3-M5-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalalib_3/0.13.0-M1-17-e7b043/srcs/mill-scalalib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-kotlinlib_3/0.13.0-M1-17-e7b043/srcs/mill-kotlinlib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalajslib_3/0.13.0-M1-17-e7b043/srcs/mill-scalajslib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalanativelib_3/0.13.0-M1-17-e7b043/srcs/mill-scalanativelib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-javascriptlib_3/0.13.0-M1-17-e7b043/srcs/mill-javascriptlib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-pythonlib_3/0.13.0-M1-17-e7b043/srcs/mill-pythonlib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-bsp_3/0.13.0-M1-17-e7b043/srcs/mill-bsp_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-codesig_3/0.13.0-M1-17-e7b043/srcs/mill-core-codesig_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-runner-server_3/0.13.0-M1-17-e7b043/srcs/mill-runner-server_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-runner-client_3/0.13.0-M1-17-e7b043/srcs/mill-runner-client_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-runner-worker-api_3/0.13.0-M1-17-e7b043/srcs/mill-runner-worker-api_3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.3-M5/sourcecode_3-0.4.3-M5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scalameta/scalafmt-dynamic_2.13/3.8.5/scalafmt-dynamic_2.13-3.8.5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.3.0/scala-xml_3-2.3.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.15/scala-reflect-2.13.15-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-main_3/0.13.0-M1-17-e7b043/srcs/mill-main_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalalib-api_3/0.13.0-M1-17-e7b043/srcs/mill-scalalib-api_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-testrunner_3/0.13.0-M1-17-e7b043/srcs/mill-testrunner_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-kotlinlib-worker_3/0.13.0-M1-17-e7b043/srcs/mill-kotlinlib-worker_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalajslib-worker-api_3/0.13.0-M1-17-e7b043/srcs/mill-scalajslib-worker-api_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalanativelib-worker-api_3/0.13.0-M1-17-e7b043/srcs/mill-scalanativelib-worker-api_3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.7.1/asm-tree-9.7.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5-M2/os-lib_3-0.11.5-M2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.0/pprint_3-0.9.0-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-internal_3/0.13.0-M1-17-e7b043/srcs/mill-core-internal_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-api_3/0.13.0-M1-17-e7b043/srcs/mill-core-api_3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/windows-ansi/windows-ansi/0.0.6/windows-ansi-0.0.6-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.13/2.1.25-M4/coursier_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-jvm_2.13/2.1.25-M4/coursier-jvm_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.17/logback-classic-1.5.17-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-runner-server-client/0.13.0-M1-17-e7b043/srcs/mill-runner-server-client-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scalameta/scalafmt-interfaces/3.8.5/scalafmt-interfaces-3.8.5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scalameta/scalafmt-sysops_2.13/3.8.5/scalafmt-sysops_2.13-3.8.5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.29-M1/interface-1.0.29-M1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.6/mainargs_3-0.7.6-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jgrapht/jgrapht-core/1.4.0/jgrapht-core-1.4.0-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core_3/0.13.0-M1-17-e7b043/srcs/mill-core_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-constants/0.13.0-M1-17-e7b043/srcs/mill-core-constants-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-main-util_3/0.13.0-M1-17-e7b043/srcs/mill-main-util_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-testrunner-entrypoint/0.13.0-M1-17-e7b043/srcs/mill-testrunner-entrypoint-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.7.1/asm-9.7.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.1/geny_3-1.1.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.0/fansi_3-0.5.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.1.0/upickle_3-4.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.4.1/jansi-2.4.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/dependency_2.13/0.3.2/dependency_2.13-0.3.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.13.5.2/jsoniter-scala-core_2.13-2.13.5.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-core_2.13/2.1.25-M4/coursier-core_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-cache_2.13/2.1.25-M4/coursier-cache_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-proxy-setup/2.1.25-M4/coursier-proxy-setup-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.17.0/jna-5.17.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-env_2.13/2.1.25-M4/coursier-env_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.17/logback-core-1.5.17-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_2.13/1.1.0/scala-parallel-collections_2.13-1.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jheaps/jheaps/0.11/jheaps-0.11-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/guru/nidi/graphviz-java/0.18.1/graphviz-java-0.18.1-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-define_3/0.13.0-M1-17-e7b043/srcs/mill-core-define_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-exec_3/0.13.0-M1-17-e7b043/srcs/mill-core-exec_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-resolve_3/0.13.0-M1-17-e7b043/srcs/mill-core-resolve_3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline/3.28.0/jline-3.28.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/4.1.0/ujson_3-4.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.1.0/upack_3-4.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.1.0/upickle-implicits_3-4.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/versions_2.13/0.5.1/versions_2.13-0.5.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/concurrent-reference-hash-map/1.1.0/concurrent-reference-hash-map-1.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.3.0/scala-xml_2.13-2.3.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.13/2.1.25-M4/coursier-util_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/is-terminal/0.1.2/is-terminal-0.1.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/jniutils/windows-jni-utils/0.3.3/windows-jni-utils-0.3.3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.10.0/plexus-archiver-4.10.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-container-default/2.1.1/plexus-container-default-2.1.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/config_2.13/1.1.3/config_2.13-1.1.3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/tika/tika-core/3.1.0/tika-core-3.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/cache-util/2.1.25-M4/cache-util-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/1.7.30/jul-to-slf4j-1.7.30-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.16.0/jna-platform-5.16.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/jarjarabrams/jarjar-abrams-core_2.13/1.14.1/jarjar-abrams-core_2.13-1.14.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalaparse_3/3.1.1/scalaparse_3-3.1.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.1.0/upickle-core_3-4.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/4.0.1/plexus-utils-4.0.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.5.0/plexus-io-3.5.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-io/commons-io/2.18.0/commons-io-2.18.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.26.2/commons-compress-1.26.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/airlift/aircompressor/0.27/aircompressor-0.27-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/tukaani/xz/1.9/xz-1.9-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.6-3/zstd-jni-1.5.6-3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-classworlds/2.6.0/plexus-classworlds-2.6.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/xbean/xbean-reflect/3.7/xbean-reflect-3.7-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/specification-level_2.13/1.1.3/specification-level_2.13-1.1.3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/jarjar/jarjar/1.14.1/jarjar-1.14.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.17.0/commons-codec-1.17.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/9.6/asm-commons-9.6-sources.jar"
+      ]
+    }
+  ]
+}
+
+
+[Trace - 00:40:52 pm] Sending response 'buildTarget/resources - (6)'. Processing request took 692ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "resources": []
+    }
+  ]
+}
+
+
+[Trace - 00:40:52 pm] Sending response 'buildTarget/outputPaths - (7)'. Processing request took 693ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+      },
+      "outputPaths": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/.idea/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/out/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/.bsp/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/.bloop/",
+          "kind": 2
+        }
+      ]
+    }
+  ]
+}
+
+
+[Trace - 00:40:52 pm] Sending response 'buildTarget/scalacOptions - (8)'. Processing request took 853ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "options": [
+        "-Xplugin:/Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalac-mill-moduledefs-plugin_3.6.2/0.11.3-M5/scalac-mill-moduledefs-plugin_3.6.2-0.11.3-M5.jar",
+        "-deprecation"
+      ],
+      "classpath": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.6.2/scala3-library_3-3.6.2.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mill-moduledefs_3/0.11.3-M5/mill-moduledefs_3-0.11.3-M5.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15.jar",
+        "file:///Users/lihaoyi/Downloads/1-simple/mill-build/compile-resources",
+        "file:///Users/lihaoyi/Downloads/1-simple/out/mill-launcher/0.13.0-M1-17-e7b043.jar"
+      ],
+      "classDirectory": "file:///Users/lihaoyi/Downloads/1-simple/out/mill-build/compile.dest/classes"
+    }
+  ]
+}
+
+
+[Trace - 00:40:52 pm] Sending response 'buildTarget/javacOptions - (9)'. Processing request took 944ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "options": [],
+      "classpath": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
+        "file:///Users/lihaoyi/Downloads/1-simple/foo/compile-resources"
+      ],
+      "classDirectory": "file:///Users/lihaoyi/Downloads/1-simple/out/foo/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "options": [],
+      "classpath": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.2/junit-interface-0.13.2.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/guava/33.3.0-jre/guava-33.3.0-jre.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
+        "file:///Users/lihaoyi/Downloads/1-simple/foo/compile-resources",
+        "file:///Users/lihaoyi/Downloads/1-simple/out/foo/compile.dest/classes",
+        "file:///Users/lihaoyi/Downloads/1-simple/foo/test/compile-resources"
+      ],
+      "classDirectory": "file:///Users/lihaoyi/Downloads/1-simple/out/foo/test/compile.dest/classes"
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Received request 'workspace/reload - (10)'
+Params: null
+
+
+[Trace - 00:41:13 pm] Sending response 'workspace/reload - (10)'. Processing request took 1ms
+Result: {}
+
+
+[Trace - 00:41:13 pm] Received request 'workspace/buildTargets - (11)'
+Params: null
+
+
+[Trace - 00:41:13 pm] Sending response 'workspace/buildTargets - (11)'. Processing request took 182ms
+Result: {
+  "targets": [
+    {
+      "id": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "displayName": "foo",
+      "baseDirectory": "file:///Users/lihaoyi/Downloads/1-simple/foo",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "file:///Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/",
+        "javaVersion": "17.0.6"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "displayName": "foo.test",
+      "baseDirectory": "file:///Users/lihaoyi/Downloads/1-simple/foo/test",
+      "tags": [
+        "test"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+        }
+      ],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": true,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "file:///Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/",
+        "javaVersion": "17.0.6"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "displayName": "mill-build/",
+      "baseDirectory": "file:///Users/lihaoyi/Downloads/1-simple/mill-build",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "3.6.2",
+        "scalaBinaryVersion": "3",
+        "platform": 1,
+        "jars": [
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.6.2/scala3-compiler_3-3.6.2.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.6.2/scala3-library_3-3.6.2.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.6.2/scala3-interfaces-3.6.2.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.6.2/tasty-core_3-3.6.2.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.7.0-scala-2/scala-asm-9.7.0-scala-2.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.9.6/compiler-interface-1.9.6.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.0/jline-reader-3.27.0.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.0/jline-terminal-3.27.0.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.27.0/jline-terminal-jna-3.27.0.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.9.8/util-interface-1.9.8.jar",
+          "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.0/jline-native-3.27.0.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "file:///Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/",
+          "javaVersion": "17.0.6"
+        }
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+      },
+      "displayName": "mill-synthetic-root",
+      "baseDirectory": "file:///Users/lihaoyi/Downloads/1-simple",
+      "tags": [
+        "manual"
+      ],
+      "languageIds": [],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": false,
+        "canTest": false,
+        "canRun": false,
+        "canDebug": false
+      }
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Received request 'buildTarget/sources - (12)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Received request 'buildTarget/dependencySources - (13)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Received request 'buildTarget/resources - (14)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Received request 'buildTarget/outputPaths - (15)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Received request 'buildTarget/scalacOptions - (16)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Received request 'buildTarget/javacOptions - (17)'
+Params: {
+  "targets": [
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+    },
+    {
+      "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Sending response 'buildTarget/sources - (12)'. Processing request took 11ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "sources": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "sources": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "sources": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/build.mill",
+          "kind": 1,
+          "generated": false
+        },
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/out/mill-build/generateScriptSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+      },
+      "sources": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Sending response 'buildTarget/dependencySources - (13)'. Processing request took 396ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "sources": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA-sources.jar"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "sources": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.2/junit-interface-0.13.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/guava/33.3.0-jre/guava-33.3.0-jre-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA-sources.jar"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "sources": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.6.2/scala3-library_3-3.6.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mill-moduledefs_3/0.11.3-M5/mill-moduledefs_3-0.11.3-M5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15-sources.jar",
+        "file:///Users/lihaoyi/Downloads/1-simple/out/mill-launcher/0.13.0-M1-17-e7b043.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-dist-dist0/0.13.0-M1-17-e7b043/srcs/mill-dist-dist0-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-runner_3/0.13.0-M1-17-e7b043/srcs/mill-runner_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-idea_3/0.13.0-M1-17-e7b043/srcs/mill-idea_3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.6.4/scala3-library_3-3.6.4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mill-moduledefs_3/0.11.3-M5/mill-moduledefs_3-0.11.3-M5-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalalib_3/0.13.0-M1-17-e7b043/srcs/mill-scalalib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-kotlinlib_3/0.13.0-M1-17-e7b043/srcs/mill-kotlinlib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalajslib_3/0.13.0-M1-17-e7b043/srcs/mill-scalajslib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalanativelib_3/0.13.0-M1-17-e7b043/srcs/mill-scalanativelib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-javascriptlib_3/0.13.0-M1-17-e7b043/srcs/mill-javascriptlib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-pythonlib_3/0.13.0-M1-17-e7b043/srcs/mill-pythonlib_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-bsp_3/0.13.0-M1-17-e7b043/srcs/mill-bsp_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-codesig_3/0.13.0-M1-17-e7b043/srcs/mill-core-codesig_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-runner-server_3/0.13.0-M1-17-e7b043/srcs/mill-runner-server_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-runner-client_3/0.13.0-M1-17-e7b043/srcs/mill-runner-client_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-runner-worker-api_3/0.13.0-M1-17-e7b043/srcs/mill-runner-worker-api_3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.3-M5/sourcecode_3-0.4.3-M5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scalameta/scalafmt-dynamic_2.13/3.8.5/scalafmt-dynamic_2.13-3.8.5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.3.0/scala-xml_3-2.3.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.15/scala-reflect-2.13.15-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-main_3/0.13.0-M1-17-e7b043/srcs/mill-main_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalalib-api_3/0.13.0-M1-17-e7b043/srcs/mill-scalalib-api_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-testrunner_3/0.13.0-M1-17-e7b043/srcs/mill-testrunner_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-kotlinlib-worker_3/0.13.0-M1-17-e7b043/srcs/mill-kotlinlib-worker_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalajslib-worker-api_3/0.13.0-M1-17-e7b043/srcs/mill-scalajslib-worker-api_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-scalanativelib-worker-api_3/0.13.0-M1-17-e7b043/srcs/mill-scalanativelib-worker-api_3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.7.1/asm-tree-9.7.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5-M2/os-lib_3-0.11.5-M2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.0/pprint_3-0.9.0-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-internal_3/0.13.0-M1-17-e7b043/srcs/mill-core-internal_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-api_3/0.13.0-M1-17-e7b043/srcs/mill-core-api_3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/windows-ansi/windows-ansi/0.0.6/windows-ansi-0.0.6-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.13/2.1.25-M4/coursier_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-jvm_2.13/2.1.25-M4/coursier-jvm_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.17/logback-classic-1.5.17-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-runner-server-client/0.13.0-M1-17-e7b043/srcs/mill-runner-server-client-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scalameta/scalafmt-interfaces/3.8.5/scalafmt-interfaces-3.8.5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scalameta/scalafmt-sysops_2.13/3.8.5/scalafmt-sysops_2.13-3.8.5-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.29-M1/interface-1.0.29-M1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.6/mainargs_3-0.7.6-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jgrapht/jgrapht-core/1.4.0/jgrapht-core-1.4.0-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core_3/0.13.0-M1-17-e7b043/srcs/mill-core_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-constants/0.13.0-M1-17-e7b043/srcs/mill-core-constants-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-main-util_3/0.13.0-M1-17-e7b043/srcs/mill-main-util_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-testrunner-entrypoint/0.13.0-M1-17-e7b043/srcs/mill-testrunner-entrypoint-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.7.1/asm-9.7.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.1/geny_3-1.1.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.0/fansi_3-0.5.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.1.0/upickle_3-4.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.4.1/jansi-2.4.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/dependency_2.13/0.3.2/dependency_2.13-0.3.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.13.5.2/jsoniter-scala-core_2.13-2.13.5.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-core_2.13/2.1.25-M4/coursier-core_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-cache_2.13/2.1.25-M4/coursier-cache_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-proxy-setup/2.1.25-M4/coursier-proxy-setup-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.17.0/jna-5.17.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-env_2.13/2.1.25-M4/coursier-env_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.17/logback-core-1.5.17-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_2.13/1.1.0/scala-parallel-collections_2.13-1.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jheaps/jheaps/0.11/jheaps-0.11-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/guru/nidi/graphviz-java/0.18.1/graphviz-java-0.18.1-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-define_3/0.13.0-M1-17-e7b043/srcs/mill-core-define_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-exec_3/0.13.0-M1-17-e7b043/srcs/mill-core-exec_3-sources.jar",
+        "file:///Users/lihaoyi/.ivy2/local/com.lihaoyi/mill-core-resolve_3/0.13.0-M1-17-e7b043/srcs/mill-core-resolve_3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline/3.28.0/jline-3.28.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/4.1.0/ujson_3-4.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.1.0/upack_3-4.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.1.0/upickle-implicits_3-4.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/versions_2.13/0.5.1/versions_2.13-0.5.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/concurrent-reference-hash-map/1.1.0/concurrent-reference-hash-map-1.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.3.0/scala-xml_2.13-2.3.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.13/2.1.25-M4/coursier-util_2.13-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/is-terminal/0.1.2/is-terminal-0.1.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/jniutils/windows-jni-utils/0.3.3/windows-jni-utils-0.3.3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.10.0/plexus-archiver-4.10.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-container-default/2.1.1/plexus-container-default-2.1.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/config_2.13/1.1.3/config_2.13-1.1.3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/tika/tika-core/3.1.0/tika-core-3.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/cache-util/2.1.25-M4/cache-util-2.1.25-M4-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/1.7.30/jul-to-slf4j-1.7.30-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.16.0/jna-platform-5.16.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/jarjarabrams/jarjar-abrams-core_2.13/1.14.1/jarjar-abrams-core_2.13-1.14.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalaparse_3/3.1.1/scalaparse_3-3.1.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.1.0/upickle-core_3-4.1.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/4.0.1/plexus-utils-4.0.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.5.0/plexus-io-3.5.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-io/commons-io/2.18.0/commons-io-2.18.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.26.2/commons-compress-1.26.2-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/airlift/aircompressor/0.27/aircompressor-0.27-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/tukaani/xz/1.9/xz-1.9-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.6-3/zstd-jni-1.5.6-3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-classworlds/2.6.0/plexus-classworlds-2.6.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/xbean/xbean-reflect/3.7/xbean-reflect-3.7-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/specification-level_2.13/1.1.3/specification-level_2.13-1.1.3-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/jarjar/jarjar/1.14.1/jarjar-1.14.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.17.0/commons-codec-1.17.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0-sources.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/9.6/asm-commons-9.6-sources.jar"
+      ]
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Sending response 'buildTarget/resources - (14)'. Processing request took 406ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "resources": []
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Sending response 'buildTarget/outputPaths - (15)'. Processing request took 406ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-synthetic-root-target"
+      },
+      "outputPaths": [
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/.idea/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/out/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/.bsp/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/.bloop/",
+          "kind": 2
+        }
+      ]
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Sending response 'buildTarget/scalacOptions - (16)'. Processing request took 548ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/mill-build"
+      },
+      "options": [
+        "-Xplugin:/Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalac-mill-moduledefs-plugin_3.6.2/0.11.3-M5/scalac-mill-moduledefs-plugin_3.6.2-0.11.3-M5.jar",
+        "-deprecation"
+      ],
+      "classpath": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.6.2/scala3-library_3-3.6.2.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/mill-moduledefs_3/0.11.3-M5/mill-moduledefs_3-0.11.3-M5.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15.jar",
+        "file:///Users/lihaoyi/Downloads/1-simple/mill-build/compile-resources",
+        "file:///Users/lihaoyi/Downloads/1-simple/out/mill-launcher/0.13.0-M1-17-e7b043.jar"
+      ],
+      "classDirectory": "file:///Users/lihaoyi/Downloads/1-simple/out/mill-build/compile.dest/classes"
+    }
+  ]
+}
+
+
+[Trace - 00:41:13 pm] Sending response 'buildTarget/javacOptions - (17)'. Processing request took 563ms
+Result: {
+  "items": [
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo"
+      },
+      "options": [],
+      "classpath": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
+        "file:///Users/lihaoyi/Downloads/1-simple/foo/compile-resources"
+      ],
+      "classDirectory": "file:///Users/lihaoyi/Downloads/1-simple/out/foo/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///Users/lihaoyi/Downloads/1-simple/foo/test"
+      },
+      "options": [],
+      "classpath": [
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.2/junit-interface-0.13.2.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/guava/33.3.0-jre/guava-33.3.0-jre.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+        "file:///Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
+        "file:///Users/lihaoyi/Downloads/1-simple/foo/compile-resources",
+        "file:///Users/lihaoyi/Downloads/1-simple/out/foo/compile.dest/classes",
+        "file:///Users/lihaoyi/Downloads/1-simple/foo/test/compile-resources"
+      ],
+      "classDirectory": "file:///Users/lihaoyi/Downloads/1-simple/out/foo/test/compile.dest/classes"
+    }
+  ]
+}
+
+
+[Trace - 00:42:05 pm] Received request 'workspace/reload - (18)'
+Params: null
+
+
+[Trace - 00:42:05 pm] Sending response 'workspace/reload - (18)'. Processing request took 1ms
+Result: {}
+
+
+[Trace - 00:52:10 pm] Received notification '$/cancelRequest'
+Params: {
+  "id": "18"
+}
+
+
+[Trace - 00:52:10 pm] Received notification '$/cancelRequest'
+Params: {
+  "id": "1"
+}
+
+
+[Trace - 00:52:10 pm] Received request 'build/shutdown - (19)'
+Params: null
+
+
+[Trace - 00:52:10 pm] Sending response 'build/shutdown - (19)'. Processing request took 2ms
+Result: null
+
+
