@@ -1463,6 +1463,125 @@ trait JavaModule
   def bspBuildTargetResources = Task.Anon { resources().map(_.path.toNIO) }
 
   def bspBuildTargetCompile = Task.Anon { compile().classes.path.toNIO }
+
+  def genIdeaMetadata(ideaConfigVersion: Int,
+                      evaluator: mill.runner.api.EvaluatorApi,
+                      path: mill.runner.api.Segments) = {
+    import mill.runner.api.{JavaFacet, IdeaConfigFile, Scoped, ResolvedModule}
+    val mod = this
+    // same as input of resolvedIvyDeps
+    val allIvyDeps = Task.Anon {
+      Seq(
+        mod.coursierDependency,
+        mod.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
+      ).map(BoundDep(_, force = false))
+    }
+
+    val scalaCompilerClasspath = mod match {
+      case x: ScalaModule => x.scalaCompilerClasspath
+      case _ =>
+        Task.Anon {
+          Seq.empty[PathRef]
+        }
+    }
+
+    val externalLibraryDependencies = Task.Anon {
+      mod.defaultResolver().classpath(mod.mandatoryIvyDeps())
+    }
+
+    val externalDependencies = Task.Anon {
+      mod.resolvedIvyDeps() ++
+        Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
+    }
+    val extCompileIvyDeps = Task.Anon {
+      mod.defaultResolver().classpath(mod.compileIvyDeps())
+    }
+    val extRunIvyDeps = mod.resolvedRunIvyDeps
+
+    val externalSources = Task.Anon {
+      mod.millResolver().classpath(allIvyDeps(), sources = true)
+    }
+
+    val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
+      case mod: ScalaModule => (
+        Task.Anon(mod.scalacPluginIvyDeps()),
+        Task.Anon(mod.allScalacOptions()),
+        Task.Anon {
+          Some(mod.scalaVersion())
+        }
+      )
+      case _ => (
+        Task.Anon(Seq[Dep]()),
+        Task.Anon(Seq[String]()),
+        Task.Anon(None)
+      )
+    }
+
+    val scalacPluginDependencies = Task.Anon {
+      mod.defaultResolver().classpath(scalacPluginsIvyDeps())
+    }
+
+    val facets = Task.Anon {
+      mod.ideaJavaModuleFacets(ideaConfigVersion)()
+    }
+
+    val configFileContributions = Task.Anon {
+      mod.ideaConfigFiles(ideaConfigVersion)()
+    }
+
+    val compilerOutput = Task.Anon {
+      mod.ideaCompileOutput()
+    }
+
+    Task.Anon {
+      val resolvedCp: Seq[Scoped[os.Path]] =
+        externalDependencies().map(_.path).map(Scoped(_, None)) ++
+          extCompileIvyDeps()
+            .map(_.path)
+            .map(Scoped(_, Some("PROVIDED"))) ++
+          extRunIvyDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
+      // unused, but we want to trigger sources, to have them available (automatically)
+      // TODO: make this a separate eval to handle resolve errors
+      externalSources()
+      val resolvedSp: Seq[PathRef] = scalacPluginDependencies()
+      val resolvedCompilerCp: Seq[PathRef] =
+        scalaCompilerClasspath()
+      val resolvedLibraryCp: Seq[PathRef] =
+        externalLibraryDependencies()
+      val scalacOpts: Seq[String] = allScalacOptions()
+      val resolvedFacets: Seq[JavaFacet] = facets()
+      val resolvedConfigFileContributions: Seq[IdeaConfigFile] =
+        configFileContributions()
+      val resolvedCompilerOutput = compilerOutput()
+      val resolvedScalaVersion = scalaVersion()
+
+      ResolvedModule(
+        path = path,
+        // FIXME: why do we need to sources in the classpath?
+        // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
+        classpath = resolvedCp.filter(_.value.ext == "jar").map(s => Scoped(s.value.toNIO, s.scope)),
+        module = mod,
+        pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar").map(_.toNIO),
+        scalaOptions = scalacOpts,
+        scalaCompilerClasspath = resolvedCompilerCp.map(_.path.toNIO),
+        libraryClasspath = resolvedLibraryCp.map(_.path.toNIO),
+        facets = resolvedFacets,
+        configFileContributions = resolvedConfigFileContributions,
+        compilerOutput = resolvedCompilerOutput.path.toNIO,
+        evaluator = evaluator,
+        scalaVersion = resolvedScalaVersion,
+        resources = resources().map(_.path.toNIO),
+        generatedSources = generatedSources().map(_.path.toNIO),
+        allSources = allSources().map(_.path.toNIO)
+      )
+    }
+
+  }
+
+  def buildLibraryPaths: Task[Seq[java.nio.file.Path]] = Task.Anon{
+    Lib.resolveMillBuildDeps(allRepositories(), Option(Task.ctx()), useSources = true)
+    Lib.resolveMillBuildDeps(allRepositories(), Option(Task.ctx()), useSources = false).map(_.toNIO)
+  }
 }
 
 object JavaModule {

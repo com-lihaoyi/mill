@@ -46,6 +46,8 @@ object EvaluatorApi {
 trait ExecutionResultsApi {
   def results: Seq[ExecResult[Val]]
   def transitiveResultsApi: Map[TaskApi[?], ExecResult[Val]]
+
+  def transitiveFailingApi: Map[TaskApi[?], ExecResult.Failing[Val]]
   def uncached: Seq[TaskApi[?]]
 
   def values: Seq[Val]

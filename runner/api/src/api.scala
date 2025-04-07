@@ -78,6 +78,15 @@ trait JavaModuleApi extends ModuleApi {
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
   ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
+
+  def genIdeaMetadata(ideaConfigVersion: Int,
+                      evaluator: mill.runner.api.EvaluatorApi,
+                      path: mill.runner.api.Segments): TaskApi[ResolvedModule]
+
+  def transitiveModuleCompileModuleDeps: Seq[JavaModuleApi]
+  def skipIdea: Boolean
+  def intellijModulePathJava: java.nio.file.Path
+  def buildLibraryPaths: TaskApi[Seq[java.nio.file.Path]]
 }
 object JavaModuleApi
 
@@ -119,4 +128,77 @@ object BspModuleApi {
     val NoIDE = "no-ide"
     val Manual = "manual"
   }
+}
+
+
+final case class ResolvedModule(
+    path: Segments,
+    classpath: Seq[Scoped[java.nio.file.Path]],
+    module: JavaModuleApi,
+    pluginClasspath: Seq[java.nio.file.Path],
+    scalaOptions: Seq[String],
+    scalaCompilerClasspath: Seq[java.nio.file.Path],
+    libraryClasspath: Seq[java.nio.file.Path],
+    facets: Seq[JavaFacet],
+    configFileContributions: Seq[IdeaConfigFile],
+    compilerOutput: java.nio.file.Path,
+    evaluator: EvaluatorApi,
+    scalaVersion: Option[String],
+    resources: Seq[java.nio.file.Path],
+    generatedSources: Seq[java.nio.file.Path],
+    allSources: Seq[java.nio.file.Path],
+)
+
+final case class Scoped[T](value: T, scope: Option[String])
+
+final case class JavaFacet(`type`: String, name: String, config: Element)
+
+/**
+ * Encoding of an Idea XML configuration fragment.
+ * @param name The XML element name
+ * @param attributes The optional XML element attributes
+ * @param childs The optional XML child elements.
+ */
+final case class Element(
+    name: String,
+    attributes: Map[String, String] = Map(),
+    childs: Seq[Element] = Seq()
+)
+
+/**
+ * An Idea config file contribution
+ *
+ * @param subPath   The sub-path of the config file, relative to the Idea config directory (`.idea`)
+ * @param component The Idea component
+ * @param config    The actual (XML) configuration, encoded as [[Element]]s
+ *
+ *                  Note: the `name` fields is deprecated in favour of `subPath`, but kept for backward compatibility.
+ */
+final case class IdeaConfigFile(
+                                 subPath: java.nio.file.Path,
+                                 component: Option[String],
+                                 config: Seq[Element]
+                               ) {
+  // An empty component name meas we contribute a whole file
+  // If we have a fill file, we only accept a single root xml node.
+  require(
+    component.forall(_.nonEmpty) && (component.nonEmpty || config.size == 1),
+    "Files contributions must have exactly one root element."
+  )
+
+  def asWholeFile: Option[(java.nio.file.Path, Element)] =
+    if (component.isEmpty) {
+      Option(subPath -> config.head)
+    } else None
+}
+
+object IdeaConfigFile {
+
+  /** Alternative creator accepting a component string. */
+  def apply(
+             subPath: java.nio.file.Path,
+             component: String,
+             config: Seq[Element]
+           ): IdeaConfigFile =
+    IdeaConfigFile(subPath, if (component == "") None else Option(component), config)
 }

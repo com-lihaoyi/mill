@@ -28,6 +28,8 @@ trait ExecutionResults extends ExecutionResultsApi {
    */
   def transitiveFailing: Map[Task[?], ExecResult.Failing[Val]] =
     transitiveResults.collect { case (k, v: ExecResult.Failing[Val]) => (k, v) }
+  def transitiveFailingApi: Map[TaskApi[?], ExecResult.Failing[Val]] =
+    transitiveFailing.asInstanceOf[Map[TaskApi[?], ExecResult.Failing[Val]]]
 
   /**
    * The values returned by successful tasks in [[results]]
