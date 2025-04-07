@@ -119,7 +119,8 @@ class MillBuildRootModule()(implicit
         ivy"com.lihaoyi::mill-idea:${Versions.millVersion}",
         ivy"com.lihaoyi::sourcecode:0.4.3-M5"
       ) ++
-      Option.when(rootModuleInfo.projectRoot != rootModuleInfo.topLevelProjectRoot){
+      // only include mill-runner for meta-builds
+      Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot){
         ivy"com.lihaoyi::mill-runner:${Versions.millVersion}"
       }
   }
