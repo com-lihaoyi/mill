@@ -21,18 +21,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       s"buildTargetJavacOptions ${javacOptionsParams}",
       targetIds = _ => javacOptionsParams.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
-        val classesPathTask = m match {
-          case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
-            sem.bspCompiledClassesAndSemanticDbFiles
-          case _ => m.bspCompileClassesPath
-        }
-        Task.Anon {
-          (
-            classesPathTask(),
-            m.javacOptions() ++ m.mandatoryJavacOptions(),
-            m.bspCompileClasspath()
-          )
-        }
+        m.bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
       }
     ) {
       // We ignore all non-JavaModule

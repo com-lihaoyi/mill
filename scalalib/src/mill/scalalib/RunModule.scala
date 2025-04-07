@@ -209,6 +209,22 @@ trait RunModule extends WithJvmWorker {
    */
   def launcher: T[PathRef] = Task { launcher0() }
 
+  def bspJvmRunTestEnvironment = {
+    val moduleSpecificTask = this match {
+      case m: (TestModule & JavaModule) => m.getTestEnvironmentVars()
+      case _ => allLocalMainClasses
+    }
+    Task.Anon {
+      (
+        runClasspath(),
+        forkArgs(),
+        forkWorkingDir(),
+        forkEnv(),
+        mainClass(),
+        moduleSpecificTask()
+      )
+    }
+  }
 }
 
 object RunModule {

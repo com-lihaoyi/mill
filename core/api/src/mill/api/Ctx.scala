@@ -131,8 +131,6 @@ object Ctx {
     def workspace: os.Path
   }
 
-  def defaultHome: os.Path = os.home / ".mill/ammonite"
-
   /**
    * Marker annotation.
    */

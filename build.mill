@@ -28,6 +28,8 @@ object Settings {
   val changelogUrl = s"${projectUrl}#changelog"
   val newIssueUrl = s"${projectUrl}/issues/new/choose"
   val docUrl = "https://mill-build.org"
+  val mavenRepoUrl = "https://repo1.maven.org/maven2"
+  val bestMillVersion = "0.12.10"
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root. Publish docs for
@@ -293,24 +295,38 @@ object Deps {
   }
 }
 
-def millVersion: T[String] = Task.Input {
-  if (Task.env.contains("MILL_STABLE_VERSION")) {
+def millVersionIsStable: T[Boolean] = Task.Input {
+  Task.env.contains("MILL_STABLE_VERSION")
+}
+
+def millVersionTruth: T[String] = Task.Input {
+  VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
+}
+
+def millVersion: T[String] = Task {
+  if (millVersionIsStable()) {
     // Ignore local changes when computing the VCS version string,
     // since we make those in CI and can promise they are safe
-    VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
+    millVersionTruth()
   } else "SNAPSHOT"
 }
 
-def millLastTag: T[String] = Task.Input {
-  if (Task.env.contains("MILL_STABLE_VERSION")) {
+def millLastTagTruth: T[String] = Task {
+  VcsVersion.calcVcsState(Task.log).lastTag.getOrElse(
+    sys.error("No (last) git tag found. Your git history seems incomplete!")
+  )
+}
+
+def millLastTag: T[String] = Task {
+  if (millVersionIsStable())
     VcsVersion.calcVcsState(Task.log).lastTag.getOrElse(
       sys.error("No (last) git tag found. Your git history seems incomplete!")
     )
-  } else "SNAPSHOT"
+  else "SNAPSHOT"
 }
 
 def millDownloadPrefix = Task {
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist"
+  s"${Settings.mavenRepoUrl}/com/lihaoyi/mill-dist"
 }
 def millDownloadUrl = Task {
   s"${millDownloadPrefix()}/${millLastTag()}"

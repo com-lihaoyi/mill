@@ -38,7 +38,6 @@ import scala.util.Using
 class MillBuildBootstrap(
     projectRoot: os.Path,
     output: os.Path,
-    home: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
     env: Map[String, String],
@@ -388,7 +387,6 @@ class MillBuildBootstrap(
       // Use the shorter convenience constructor not the primary one
       execCls.getConstructors.minBy(_.getParameterCount).newInstance(
         baseLogger,
-        home.toNIO,
         projectRoot.toNIO,
         outPath.toNIO,
         outPath.toNIO,

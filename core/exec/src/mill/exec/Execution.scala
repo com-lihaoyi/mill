@@ -22,7 +22,6 @@ private[mill] case class Execution(
     baseLogger: Logger,
     chromeProfileLogger: JsonArrayLogger.ChromeProfile,
     profileLogger: JsonArrayLogger.Profile,
-    home: os.Path,
     workspace: os.Path,
     outPath: os.Path,
     externalOutPath: os.Path,
@@ -41,7 +40,6 @@ private[mill] case class Execution(
 
   def this(
       baseLogger: Logger,
-      home: java.nio.file.Path,
       workspace: java.nio.file.Path,
       outPath: java.nio.file.Path,
       externalOutPath: java.nio.file.Path,
@@ -60,7 +58,6 @@ private[mill] case class Execution(
     baseLogger,
     new JsonArrayLogger.ChromeProfile(os.Path(outPath) / millChromeProfile),
     new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
-    os.Path(home),
     os.Path(workspace),
     os.Path(outPath),
     os.Path(externalOutPath),

@@ -50,23 +50,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
     completableTasks(
       name,
       targetIds = _ => targetIds,
-      tasks = {
-        case m: RunModule =>
-          val moduleSpecificTask = m match {
-            case m: (TestModule & JavaModule) => m.getTestEnvironmentVars()
-            case _ => m.allLocalMainClasses
-          }
-          Task.Anon {
-            (
-              m.runClasspath(),
-              m.forkArgs(),
-              m.forkWorkingDir(),
-              m.forkEnv(),
-              m.mainClass(),
-              moduleSpecificTask()
-            )
-          }
-      }
+      tasks = { case m: RunModule => m.bspJvmRunTestEnvironment }
     ) {
       case (
             ev,

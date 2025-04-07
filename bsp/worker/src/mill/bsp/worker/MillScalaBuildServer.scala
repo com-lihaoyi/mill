@@ -33,29 +33,10 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: JavaModule =>
-          val scalacOptionsTask = m match {
-            case m: ScalaModule => m.allScalacOptions
-            case _ => Task.Anon { Seq.empty[String] }
-          }
-
-          val compileClasspathTask =
-            if (enableJvmCompileClasspathProvider) {
-              // We have a dedicated request for it
-              Task.Anon { Seq.empty[UnresolvedPath] }
-            } else {
-              m.bspCompileClasspath
-            }
-
-          val classesPathTask =
-            if (clientWantsSemanticDb) {
-              m.bspCompiledClassesAndSemanticDbFiles
-            } else {
-              m.bspCompileClassesPath
-            }
-
-          Task.Anon {
-            (scalacOptionsTask(), compileClasspathTask(), classesPathTask())
-          }
+          m.bspBuildTargetScalacOptions(
+            sessionInfo.enableJvmCompileClasspathProvider,
+            sessionInfo.clientWantsSemanticDb
+          )
       }
     ) {
       // We ignore all non-JavaModule
@@ -84,11 +65,9 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     completableTasks(
       hint = "buildTarget/scalaMainClasses",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      tasks = { case m: JavaModule =>
-        Task.Anon((m.allLocalMainClasses(), m.compile(), m.forkArgs(), m.forkEnv()))
-      }
+      tasks = { case m: JavaModule => m.bspBuildTargetScalaMainClasses }
     ) {
-      case (ev, state, id, m: JavaModule, (classes, compile, forkArgs, forkEnv)) =>
+      case (ev, state, id, m: JavaModule, (classes, forkArgs, forkEnv)) =>
         // We find all main classes, although we could also find only the configured one
         val mainClasses = classes
         // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
@@ -111,10 +90,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       s"buildTarget/scalaTestClasses ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
-        case m: TestModule =>
-          Task.Anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
-        case _ =>
-          Task.Anon(None)
+        case m: TestModule => m.bspBuildTargetScalaTestClasses
       }
     ) {
       case (ev, state, id, m: TestModule, Some((classpath, testFramework, testClasspath))) =>
