@@ -9,13 +9,13 @@ trait EvaluatorApi extends AutoCloseable {
   ): Result[EvaluatorApi.Result[Any]]
 
   def executeApi[T](
-                  targets: Seq[TaskApi[T]],
-                  reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-                  testReporter: TestReporter = DummyTestReporter,
-                  logger: Logger = null,
-                  serialCommandExec: Boolean = false,
-                  selectiveExecution: Boolean = false
-                ): EvaluatorApi.Result[T] 
+      targets: Seq[TaskApi[T]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = DummyTestReporter,
+      logger: Logger = null,
+      serialCommandExec: Boolean = false,
+      selectiveExecution: Boolean = false
+  ): EvaluatorApi.Result[T]
 
   private[mill] def workerCache: mutable.Map[String, (Int, Val)]
 
@@ -32,7 +32,6 @@ object EvaluatorApi {
     def selectedTasks: Seq[TaskApi[?]]
     def executionResults: ExecutionResultsApi
   }
-
 
   /**
    * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.

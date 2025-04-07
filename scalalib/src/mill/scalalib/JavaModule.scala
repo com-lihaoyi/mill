@@ -865,11 +865,13 @@ trait JavaModule
    * Keep in sync with [[compileClasspath]]
    */
   @internal
-  def bspCompileClasspath: Task[mill.runner.api.EvaluatorApi => Seq[String]] = Task.Anon { (ev: mill.runner.api.EvaluatorApi)  =>
-    (resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
-      bspTransitiveCompileClasspath() ++
-      localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))
-      ).map(_.resolve(os.Path(ev.outPathJava))).map(sanitizeUri)
+  def bspCompileClasspath: Task[mill.runner.api.EvaluatorApi => Seq[String]] = Task.Anon {
+    (ev: mill.runner.api.EvaluatorApi) =>
+      (resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+        bspTransitiveCompileClasspath() ++
+        localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))).map(_.resolve(
+        os.Path(ev.outPathJava)
+      )).map(sanitizeUri)
   }
 
   /**
@@ -1347,7 +1349,6 @@ trait JavaModule
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
 
-
   def bspBuildTargetScalacOptions(
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
@@ -1371,9 +1372,13 @@ trait JavaModule
 
     val classesPathTask =
       if (clientWantsSemanticDb) {
-        Task.Anon((e: mill.runner.api.EvaluatorApi) => bspCompiledClassesAndSemanticDbFiles().resolve(os.Path(e.outPathJava)).toNIO)
+        Task.Anon((e: mill.runner.api.EvaluatorApi) =>
+          bspCompiledClassesAndSemanticDbFiles().resolve(os.Path(e.outPathJava)).toNIO
+        )
       } else {
-        Task.Anon((e: mill.runner.api.EvaluatorApi) => bspCompileClassesPath().resolve(os.Path(e.outPathJava)).toNIO)
+        Task.Anon((e: mill.runner.api.EvaluatorApi) =>
+          bspCompileClassesPath().resolve(os.Path(e.outPathJava)).toNIO
+        )
       }
 
     Task.Anon {
@@ -1444,7 +1449,7 @@ trait JavaModule
           )
         )
         .orderedDependencies
-        .map{d => (d.module.organization.value, d.module.repr, d.version)},
+        .map { d => (d.module.organization.value, d.module.repr, d.version) },
       unmanagedClasspath().map(_.path.toNIO)
     )
   }
@@ -1455,9 +1460,9 @@ trait JavaModule
     run(Task.Anon(Args(args)))()
   }
 
-  def bspBuildTargetResources = Task.Anon{ resources().map(_.path.toNIO) }
+  def bspBuildTargetResources = Task.Anon { resources().map(_.path.toNIO) }
 
-  def bspBuildTargetCompile = Task.Anon{ compile().classes.path.toNIO }
+  def bspBuildTargetCompile = Task.Anon { compile().classes.path.toNIO }
 }
 
 object JavaModule {
@@ -1502,7 +1507,6 @@ object JavaModule {
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
   private[mill] def internalVersion = "0+mill-internal"
-
 
 }
 

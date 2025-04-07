@@ -89,7 +89,7 @@ object ExecResult {
    * @param outerStack The [[OuterStack]] of the failed task.
    */
   case class Exception(throwable: Throwable, outerStack: OuterStack)
-    extends java.lang.Exception(throwable) with Failing[Nothing] {
+      extends java.lang.Exception(throwable) with Failing[Nothing] {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => ExecResult[V]): Exception = this
 

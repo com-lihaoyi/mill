@@ -38,7 +38,8 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   ): mill.api.Result[List[NamedTask[?]]]
   def plan(tasks: Seq[Task[?]]): Plan
 
-  def execute[T](targets: Seq[mill.runner.api.TaskApi[T]]): Evaluator.Result[T] = execute[T](targets.map(_.asInstanceOf[Task[T]]))
+  def execute[T](targets: Seq[mill.runner.api.TaskApi[T]]): Evaluator.Result[T] =
+    execute[T](targets.map(_.asInstanceOf[Task[T]]))
 
   def execute[T](
       targets: Seq[Task[T]],
@@ -55,16 +56,22 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]]
 
-
   def executeApi[T](
-                     targets: Seq[TaskApi[T]],
-                     reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-                     testReporter: TestReporter = DummyTestReporter,
-                     logger: Logger = null,
-                     serialCommandExec: Boolean = false,
-                     selectiveExecution: Boolean = false
-                   ): EvaluatorApi.Result[T] = {
-    execute(targets.map(_.asInstanceOf[Task[T]]), reporter, testReporter, logger, serialCommandExec, selectiveExecution)
+      targets: Seq[TaskApi[T]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = DummyTestReporter,
+      logger: Logger = null,
+      serialCommandExec: Boolean = false,
+      selectiveExecution: Boolean = false
+  ): EvaluatorApi.Result[T] = {
+    execute(
+      targets.map(_.asInstanceOf[Task[T]]),
+      reporter,
+      testReporter,
+      logger,
+      serialCommandExec,
+      selectiveExecution
+    )
   }
 }
 object Evaluator {
@@ -93,7 +100,6 @@ object Evaluator {
       selectedTasks: Seq[Task[?]],
       executionResults: ExecutionResults
   ) extends EvaluatorApi.Result[T]
-
 
   private[mill] val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 }

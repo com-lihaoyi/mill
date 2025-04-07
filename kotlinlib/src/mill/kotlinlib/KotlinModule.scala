@@ -406,7 +406,10 @@ trait KotlinModule extends JavaModule { outer =>
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    languageIds = Seq(mill.runner.api.BspModuleApi.LanguageId.Java, mill.runner.api.BspModuleApi.LanguageId.Kotlin),
+    languageIds = Seq(
+      mill.runner.api.BspModuleApi.LanguageId.Java,
+      mill.runner.api.BspModuleApi.LanguageId.Kotlin
+    ),
     canCompile = true,
     canRun = true
   )

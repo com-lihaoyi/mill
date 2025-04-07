@@ -1,7 +1,7 @@
 package mill.runner.api
 
 trait TaskApi[+T]
-trait NamedTaskApi[+T] extends TaskApi[T]{
+trait NamedTaskApi[+T] extends TaskApi[T] {
   def label: String
 }
 trait ModuleApi {
@@ -9,7 +9,7 @@ trait ModuleApi {
   def moduleDirJava: java.nio.file.Path
   def moduleSegments: Segments
 }
-trait JavaModuleApi extends ModuleApi{
+trait JavaModuleApi extends ModuleApi {
   def bspBuildTargetScalaMainClasses: TaskApi[(Seq[String], Seq[String], Map[String, String])]
   def recursiveModuleDeps: Seq[JavaModuleApi]
   def compileModuleDepsChecked: Seq[JavaModuleApi]
@@ -29,7 +29,8 @@ trait JavaModuleApi extends ModuleApi{
 //    if (found) Seq(id) else Seq()
 //  }
 
-  def bspBuildTargetDependencySources(includeSources: Boolean): TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path], Seq[String])]
+  def bspBuildTargetDependencySources(includeSources: Boolean)
+      : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path], Seq[String])]
 //  Task.Anon {
 //    (
 //      m.millResolver().classpath(
@@ -44,7 +45,8 @@ trait JavaModuleApi extends ModuleApi{
 //    )
 //  }
 
-  def bspBuildTargetDependencyModules: TaskApi[(Seq[(String, String, String)], Seq[java.nio.file.Path])]
+  def bspBuildTargetDependencyModules
+      : TaskApi[(Seq[(String, String, String)], Seq[java.nio.file.Path])]
 //  Task.Anon {
 //    (
 //      // full list of dependencies, including transitive ones
@@ -67,27 +69,35 @@ trait JavaModuleApi extends ModuleApi{
 
   def bspBuildTargetCompile: TaskApi[java.nio.file.Path]
 
-  def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean): TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
+  def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean)
+      : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
   def bspCompileClasspath: TaskApi[EvaluatorApi => Seq[String]]
 
   def bspBuildTargetScalacOptions(
-                                   enableJvmCompileClasspathProvider: Boolean,
-                                   clientWantsSemanticDb: Boolean
-                                 ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
+      enableJvmCompileClasspathProvider: Boolean,
+      clientWantsSemanticDb: Boolean
+  ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
 }
 object JavaModuleApi
 
 trait TestModuleApi extends ModuleApi {
   def testLocal(args: String*): TaskApi[(String, Seq[Any])]
 }
-trait BspModuleApi extends ModuleApi{
+trait BspModuleApi extends ModuleApi {
   def bspBuildTargetData: TaskApi[Option[(String, AnyRef)]]
   def bspBuildTarget: BspBuildTarget
   def bspDisplayName: String
 }
-trait RunModuleApi extends ModuleApi{
-  def bspJvmRunTestEnvironment: TaskApi[(Seq[java.nio.file.Path], Seq[String], java.nio.file.Path, Map[String, String], Option[String], Any)]
+trait RunModuleApi extends ModuleApi {
+  def bspJvmRunTestEnvironment: TaskApi[(
+      Seq[java.nio.file.Path],
+      Seq[String],
+      java.nio.file.Path,
+      Map[String, String],
+      Option[String],
+      Any
+  )]
 }
 
 object BspModuleApi {

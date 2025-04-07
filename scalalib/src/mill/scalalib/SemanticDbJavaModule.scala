@@ -12,7 +12,7 @@ import mill.{T, Task}
 import scala.util.Properties
 
 @experimental
-trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticDbJavaModuleApi  {
+trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticDbJavaModuleApi {
   def jvmWorker: ModuleRef[JvmWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]
@@ -159,7 +159,7 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
     }
   }
 
-  def bspBuildTargetCompileSemanticDb = Task.Anon{
+  def bspBuildTargetCompileSemanticDb = Task.Anon {
     compiledClassesAndSemanticDbFiles().path.toNIO
   }
 }

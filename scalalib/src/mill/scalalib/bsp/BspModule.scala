@@ -38,4 +38,3 @@ trait BspModule extends mill.define.Module with mill.runner.api.BspModuleApi {
   def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon { None }
 
 }
-

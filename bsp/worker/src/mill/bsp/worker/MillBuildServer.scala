@@ -217,7 +217,9 @@ private class MillBuildServer(
     ) {
       case (ev, state, id, module, items) => new SourcesItem(
           id,
-          (items._1.map(p => sourceItem(os.Path(p), false)) ++ items._2.map(p => sourceItem(os.Path(p), true))).asJava
+          (items._1.map(p => sourceItem(os.Path(p), false)) ++ items._2.map(p =>
+            sourceItem(os.Path(p), true)
+          )).asJava
         )
     } { (sourceItems, state) =>
       new SourcesResult(
@@ -263,13 +265,18 @@ private class MillBuildServer(
     completableTasks(
       hint = s"buildTargetDependencySources ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
-
       tasks = {
 //        case m: MillBuildRootModule => m.bspBuildTargetDependencySources(true)
         case m: JavaModuleApi => m.bspBuildTargetDependencySources(false)
       }
     ) {
-      case (ev, state, id, m: JavaModuleApi, (resolveDepsSources, unmanagedClasspath, buildSources)) =>
+      case (
+            ev,
+            state,
+            id,
+            m: JavaModuleApi,
+            (resolveDepsSources, unmanagedClasspath, buildSources)
+          ) =>
         val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
         new DependencySourcesItem(id, cp.asJava)
       case _ => ???
@@ -320,7 +327,8 @@ private class MillBuildServer(
       tasks = { case m: JavaModuleApi => m.bspBuildTargetResources }
     ) {
       case (ev, state, id, m, resources) =>
-        val resourcesUrls = resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
+        val resourcesUrls =
+          resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
         new ResourcesItem(id, resourcesUrls.asJava)
 
     } { values =>
@@ -364,7 +372,10 @@ private class MillBuildServer(
         synthTarget <- state.syntheticRootBspBuildTarget
         if params.getTargets.contains(synthTarget.id)
         baseDir <- synthTarget.bt.baseDirectory
-      } yield new OutputPathsItem(synthTarget.id, outputPaths(os.Path(baseDir), topLevelProjectRoot).asJava)
+      } yield new OutputPathsItem(
+        synthTarget.id,
+        outputPaths(os.Path(baseDir), topLevelProjectRoot).asJava
+      )
 
       val items = for {
         target <- params.getTargets.asScala
@@ -564,7 +575,13 @@ private class MillBuildServer(
       hint: String,
       targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
       tasks: PartialFunction[BspModuleApi, TaskApi[W]]
-  )(f: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(agg: java.util.List[T] => V)
+  )(f: (
+      EvaluatorApi,
+      BspEvaluators,
+      BuildTargetIdentifier,
+      BspModuleApi,
+      W
+  ) => T)(agg: java.util.List[T] => V)
       : CompletableFuture[V] =
     completableTasksWithState[T, V, W](hint, targetIds, tasks)(f)((l, _) => agg(l))
 
@@ -759,12 +776,12 @@ private class MillBuildServer(
   }
 
   def withOutLock[T](
-                      noBuildLock: Boolean,
-                      noWaitForBuildLock: Boolean,
-                      out: os.Path,
-                      targetsAndParams: Seq[String],
-                      streams: SystemStreams
-                    )(t: => T): T = {
+      noBuildLock: Boolean,
+      noWaitForBuildLock: Boolean,
+      out: os.Path,
+      targetsAndParams: Seq[String],
+      streams: SystemStreams
+  )(t: => T): T = {
     if (noBuildLock) t
     else {
       val outLock = Lock.file((out / OutFiles.millLock).toString)

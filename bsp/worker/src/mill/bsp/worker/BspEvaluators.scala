@@ -8,13 +8,13 @@ private class BspEvaluators(
     evaluators: Seq[EvaluatorApi],
     debug: (() => String) => Unit
 ) {
+
   /**
    * Compute all transitive modules from module children and via moduleDeps + compileModuleDeps
    */
   def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
-
 
   lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
     val modules: Seq[(ModuleApi, Seq[ModuleApi], EvaluatorApi)] = evaluators

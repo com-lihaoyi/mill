@@ -27,7 +27,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
         "semanticDbJavaVersion",
         build.Deps.semanticDbJava.version,
         "Java SemanticDB plugin version."
-      ),
+      )
     )
   }
 

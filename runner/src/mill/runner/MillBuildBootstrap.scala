@@ -338,11 +338,14 @@ class MillBuildBootstrap(
 
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
-    val (evaled, evalWatched, moduleWatches) = mill.runner.api.EvaluatorApi.allBootstrapEvaluators.withValue(
-      mill.runner.api.EvaluatorApi.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator))
-    ) {
-      evaluateWithWatches(rootModule, evaluator, targetsAndParams, selectiveExecution)
-    }
+    val (evaled, evalWatched, moduleWatches) =
+      mill.runner.api.EvaluatorApi.allBootstrapEvaluators.withValue(
+        mill.runner.api.EvaluatorApi.AllBootstrapEvaluators(Seq(
+          evaluator
+        ) ++ nestedState.frames.flatMap(_.evaluator))
+      ) {
+        evaluateWithWatches(rootModule, evaluator, targetsAndParams, selectiveExecution)
+      }
 
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
