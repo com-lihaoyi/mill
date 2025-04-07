@@ -45,7 +45,12 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Either[Module, NamedTask[?]]]] = {
-    delegate.resolveModulesOrTasks(scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
+    delegate.resolveModulesOrTasks(
+      scriptArgs,
+      selectMode,
+      allowPositionalCommandArgs,
+      resolveToModuleTasks
+    )
   }
   def plan(tasks: Seq[Task[?]]): Plan = delegate.plan(tasks)
 

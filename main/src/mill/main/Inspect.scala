@@ -236,7 +236,7 @@ private object Inspect {
 
     evaluator.resolveModulesOrTasks(tasks, SelectMode.Multi, resolveToModuleTasks = true).map {
       modulesOrTasks =>
-        val output0 = for (moduleOrTask <- modulesOrTasks)yield {
+        val output0 = for (moduleOrTask <- modulesOrTasks) yield {
           val tree = moduleOrTask match {
             case Left(module) => pprintModule(module, evaluator)
             case Right(task) => pprintTask(task, evaluator)

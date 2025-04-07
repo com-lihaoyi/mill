@@ -34,22 +34,21 @@ private[mill] object Resolve {
     private[mill] override def deduplicate(items: List[Segments]): List[Segments] = items.distinct
   }
 
-
   object Inspect extends Resolve[Either[Module, NamedTask[Any]]] {
     private[mill] def handleResolved(
-                                      rootModule: BaseModule,
-                                      resolved: Seq[Resolved],
-                                      args: Seq[String],
-                                      selector: Segments,
-                                      nullCommandDefaults: Boolean,
-                                      allowPositionalCommandArgs: Boolean,
-                                      resolveToModuleTasks: Boolean,
-                                      cache: ResolveCore.Cache
-                                    ) = {
+        rootModule: BaseModule,
+        resolved: Seq[Resolved],
+        args: Seq[String],
+        selector: Segments,
+        nullCommandDefaults: Boolean,
+        allowPositionalCommandArgs: Boolean,
+        resolveToModuleTasks: Boolean,
+        cache: ResolveCore.Cache
+    ) = {
 
       val taskList: Seq[Result[Either[Module, Option[NamedTask[?]]]]] = resolved.map {
         case m: Resolved.Module =>
-            ResolveCore.instantiateModule(rootModule, m.segments, cache).map(Left(_))
+          ResolveCore.instantiateModule(rootModule, m.segments, cache).map(Left(_))
 
         case t: Resolved.NamedTask =>
           Resolve
@@ -60,8 +59,8 @@ private[mill] object Resolve {
 
       val sequenced = Result.sequence(taskList)
 
-      sequenced.map( flattened =>
-        flattened.flatMap{
+      sequenced.map(flattened =>
+        flattened.flatMap {
           case Left(m) => Some(Left(m))
           case Right(None) => None
           case Right(Some(t)) => Some(Right(t))
@@ -71,14 +70,15 @@ private[mill] object Resolve {
 
   }
 
-
   object Tasks extends Resolve[NamedTask[Any]] {
-    private[Resolve] def handleTask(rootModule: BaseModule,
-                   args: Seq[String],
-                   nullCommandDefaults: Boolean,
-                   allowPositionalCommandArgs: Boolean,
-                   cache: ResolveCore.Cache,
-                   task: Resolved) = task match {
+    private[Resolve] def handleTask(
+        rootModule: BaseModule,
+        args: Seq[String],
+        nullCommandDefaults: Boolean,
+        allowPositionalCommandArgs: Boolean,
+        cache: ResolveCore.Cache,
+        task: Resolved
+    ) = task match {
       case r: Resolved.NamedTask =>
         val instantiated = ResolveCore
           .instantiateModule(rootModule, r.segments.init, cache)
@@ -141,7 +141,14 @@ private[mill] object Resolve {
         cache: ResolveCore.Cache
     ) = {
 
-      val taskList: Seq[Result[Option[NamedTask[?]]]] = resolved.map(handleTask(rootModule, args, nullCommandDefaults, allowPositionalCommandArgs, cache, _))
+      val taskList: Seq[Result[Option[NamedTask[?]]]] = resolved.map(handleTask(
+        rootModule,
+        args,
+        nullCommandDefaults,
+        allowPositionalCommandArgs,
+        cache,
+        _
+      ))
 
       val sequenced = Result.sequence(taskList).map(_.flatten)
 

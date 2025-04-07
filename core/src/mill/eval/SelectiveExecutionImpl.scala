@@ -79,8 +79,6 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
     )
   }
 
-
-
   def computeChangedTasks(
       tasks: Seq[String]
   ): Result[ChangedTasks] = {
@@ -133,11 +131,17 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
     for (changedTasks <- this.computeChangedTasks(tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[?]]
       val plan = PlanImpl.plan(Seq.from(changedTasks.downstreamTasks))
-      val indexToTerminal = plan.sortedGroups.keys().toArray.filter(t => taskSet.contains(t))
+      val indexToTerminal = plan
+        .sortedGroups
+        .keys()
+        .toArray
+        .filter(t => taskSet.contains(t))
+        .sortBy(_.toString) // Sort to ensure determinism
 
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
-
-      val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
+      val reverseInterGroupDeps = SpanningForest.reverseEdges(
+        interGroupDeps.toSeq.sortBy(_._1.toString) // sort to ensure determinism
+      )
 
       val (vertexToIndex, edgeIndices) =
         SpanningForest.graphMapToIndices(indexToTerminal, reverseInterGroupDeps)

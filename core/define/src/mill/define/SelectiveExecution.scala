@@ -29,14 +29,13 @@ private[mill] trait SelectiveExecution {
   def resolveTree(tasks: Seq[String]): Result[ujson.Value]
 
   def computeMetadata(
-               tasks: Seq[NamedTask[?]]
-             ): (SelectiveExecution.Metadata, Map[Task[?], ExecResult[Val]])
+      tasks: Seq[NamedTask[?]]
+  ): (SelectiveExecution.Metadata, Map[Task[?], ExecResult[Val]])
 }
 object SelectiveExecution {
   case class Metadata(inputHashes: Map[String, Int], codeSignatures: Map[String, Int])
 
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
-
 
   case class ChangedTasks(
       resolved: Seq[NamedTask[?]],

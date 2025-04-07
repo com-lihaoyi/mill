@@ -8,7 +8,19 @@ import coursier.maven.Pom
 import mill.api.Ctx
 import mill.api.PathRef
 import mill.define.{Evaluator, Ctx as _, *}
-import mill.runner.api.{BaseModuleApi, EvaluatorApi, ExecutionResultsApi, IdeaConfigFile, JavaFacet, JavaModuleApi, ModuleApi, ScalaJSModuleApi, ScalaModuleApi, ScalaNativeModuleApi, TestModuleApi}
+import mill.runner.api.{
+  BaseModuleApi,
+  EvaluatorApi,
+  ExecutionResultsApi,
+  IdeaConfigFile,
+  JavaFacet,
+  JavaModuleApi,
+  ModuleApi,
+  ScalaJSModuleApi,
+  ScalaModuleApi,
+  ScalaNativeModuleApi,
+  TestModuleApi
+}
 import mill.util.BuildInfo
 
 import collection.mutable

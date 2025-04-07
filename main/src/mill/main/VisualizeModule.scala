@@ -23,7 +23,12 @@ object VisualizeModule extends ExternalModule {
   lazy val millDiscover = Discover[this.type]
 
   private type VizWorker = (
-      LinkedBlockingQueue[(scala.Seq[NamedTask[Any]], scala.Seq[NamedTask[Any]], os.Path, Evaluator)],
+      LinkedBlockingQueue[(
+          scala.Seq[NamedTask[Any]],
+          scala.Seq[NamedTask[Any]],
+          os.Path,
+          Evaluator
+      )],
       LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
   )
 
@@ -74,7 +79,8 @@ object VisualizeModule extends ExternalModule {
       LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path, Evaluator)],
       LinkedBlockingQueue[Result[Seq[PathRef]]]
   )] = mill.define.Task.Worker {
-    val in = new LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path, Evaluator)]()
+    val in =
+      new LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path, Evaluator)]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
 
     val visualizeThread = new java.lang.Thread(() =>
