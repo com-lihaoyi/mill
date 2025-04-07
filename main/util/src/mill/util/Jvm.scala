@@ -1,7 +1,6 @@
 package mill.util
 
 import mill.api.*
-
 import os.ProcessOutput
 
 import java.io.*
@@ -18,10 +17,9 @@ import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
-import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
+import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.util.Task
-import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
-
+import coursier.{Artifacts, Classifier, Dependency, Fetch, Repository, Resolution, Resolve, Type}
 import mill.api.{Ctx, PathRef, Result}
 
 import scala.collection.mutable
@@ -494,7 +492,7 @@ object Jvm {
   /**
    * Resolve dependencies using Coursier, and return very detailed info about their artifacts.
    */
-  def getArtifacts(
+  def fetchArtifacts(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency] = Nil,
@@ -505,7 +503,7 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
-  ): Result[ArtifactResolution] = {
+  ): Result[Fetch.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -539,7 +537,11 @@ object Jvm {
             s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
           )
         case Right(artifacts) =>
-          Result.Success(ArtifactResolution(resolution, artifacts))
+          Result.Success(Fetch.Result(
+            resolution,
+            artifacts.fullDetailedArtifacts0,
+            artifacts.fullExtraArtifacts
+          ))
       }
     }
   }
@@ -563,7 +565,7 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Seq[PathRef]] =
-    getArtifacts(
+    fetchArtifacts(
       repositories,
       deps,
       force,

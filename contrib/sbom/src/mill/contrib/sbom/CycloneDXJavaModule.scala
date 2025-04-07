@@ -1,9 +1,8 @@
 package mill.contrib.sbom
 
-import coursier.{Artifacts, Resolution, VersionConstraint, core as cs}
+import coursier.{Fetch, Resolution, VersionConstraint, core as cs}
 import mill.Task
 import mill.javalib.{BoundDep, JavaModule}
-import mill.util.ArtifactResolution
 
 /**
  * Report the Java/Scala/Kotlin dependencies in a SBOM.
@@ -21,14 +20,11 @@ trait CycloneDXJavaModule extends JavaModule with CycloneDXModule {
    */
   def sbomComponents: Task[Seq[Component]] = Task {
     val resolved = resolvedRunIvyDepsDetails()()
-    resolvedSbomComponents(resolved.resolution, resolved.artifactResult)
+    resolvedSbomComponents(resolved)
   }
 
-  protected def resolvedSbomComponents(
-      resolution: Resolution,
-      artifacts: Artifacts.Result
-  ): Seq[Component] = {
-    val distinctDeps = artifacts.fullDetailedArtifacts
+  protected def resolvedSbomComponents(resolved: Fetch.Result): Seq[Component] = {
+    val distinctDeps = resolved.fullDetailedArtifacts0
       .flatMap {
         case (dep, _, _, Some(path)) => Some(dep -> path)
         case _ => None
@@ -36,15 +32,15 @@ trait CycloneDXJavaModule extends JavaModule with CycloneDXModule {
       // Artifacts.Result.files does eliminate duplicates path: Do the same
       .distinctBy(_._2)
       .map { case (dep, path) =>
-        val license = findLicenses(resolution, dep.module, dep.versionConstraint)
+        val license = findLicenses(resolved.resolution, dep.module, dep.versionConstraint)
         Component.fromDeps(os.Path(path), dep, license)
       }
     distinctDeps
   }
 
   /** Copied from [[resolvedRunIvyDeps]], but getting the raw artifacts */
-  private def resolvedRunIvyDepsDetails(): Task[ArtifactResolution] = Task.Anon {
-    millResolver().artifacts(Seq(
+  private def resolvedRunIvyDepsDetails(): Task[Fetch.Result] = Task.Anon {
+    millResolver().fetch(Seq(
       BoundDep(
         coursierDependency.withConfiguration(cs.Configuration.runtime),
         force = false
