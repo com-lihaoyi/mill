@@ -3,7 +3,7 @@ package mill.scalalib
 import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Repository, Resolve, Type}
+import coursier.{Dependency, Fetch, Repository, Resolve, Type}
 import mill.define.Task
 import mill.define.{PathRef}
 import mill.api.{Result}
@@ -251,15 +251,15 @@ object CoursierModule {
     /**
      * Raw artifact results for the passed dependencies
      */
-    def artifacts[T: CoursierModule.Resolvable](
+    def fetch[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
-    )(implicit ctx: mill.api.Ctx): (ArtifactResolution) = {
+    )(implicit ctx: mill.api.Ctx): Fetch.Result = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
         .toSeq
-      Jvm.getArtifacts(
+      Jvm.fetchArtifacts(
         repositories,
         deps0.map(_.dep),
         sources = sources,
