@@ -38,7 +38,6 @@ import scala.util.Using
 class MillBuildBootstrap(
     projectRoot: os.Path,
     output: os.Path,
-    home: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
     env: Map[String, String],

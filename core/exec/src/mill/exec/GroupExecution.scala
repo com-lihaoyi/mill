@@ -18,7 +18,6 @@ import mill.runner.api.{BaseModuleApi, EvaluatorApi}
  * with a single [[Terminal]].
  */
 private trait GroupExecution {
-  def home: os.Path
   def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path

@@ -1,13 +1,31 @@
 @echo off
 
-rem This is a wrapper script, that automatically download mill from GitHub release pages
-rem You can give the required mill version with --mill-version parameter
-rem If no version is given, it falls back to the value of DEFAULT_MILL_VERSION
+rem This is a wrapper script, that automatically selects or downloads Mill from Maven Central or GitHub release pages.
 rem
-rem Original Project page: https://github.com/lefou/millw
-rem Script Version: 0.4.12
+rem This script determines the Mill version to use by trying these sources
+rem   - env-variable `MILL_VERSION`
+rem   - local file `.mill-version`
+rem   - local file `.config/mill-version`
+rem   - if accessible, find the latest stable version available on Maven Central (https://repo1.maven.org/maven2)
+rem   - env-variable `DEFAULT_MILL_VERSION`
+rem
+rem If a version has the suffix '-native' a native binary will be used.
+rem If a version has the suffix '-jvm' an executable jar file will be used, requiring an already installed Java runtime.
+rem If no such suffix is found, the script will pick a default based on version and platform.
+rem
+rem Once a version was determined, it tries to use either
+rem    - a system-installed mill, if found and it's version matches
+rem    - an already downloaded version under %USERPROFILE%\.mill\download
+rem
+rem If no working mill version was found on the system,
+rem this script downloads a binary file from Maven Central or Github Pages (this is version dependent)
+rem into a cache location (%USERPROFILE%\.mill\download).
+rem
+rem Mill Project URL: https://github.com/com-lihaoyi/mill
+rem Script Version: 0.13.0-M1-13-935205
 rem
 rem If you want to improve this script, please also contribute your changes back!
+rem This script was generated from: scripts/src/mill.bat
 rem
 rem Licensed under the Apache License, Version 2.0
 
@@ -16,7 +34,7 @@ rem but I don't think we need to support them in 2019
 setlocal enabledelayedexpansion
 
 if [!DEFAULT_MILL_VERSION!]==[] (
-    set "DEFAULT_MILL_VERSION=0.11.4"
+    set "DEFAULT_MILL_VERSION=0.12.10"
 )
 
 if [!GITHUB_RELEASE_CDN!]==[] (

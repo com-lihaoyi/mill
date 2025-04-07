@@ -93,7 +93,6 @@ class UnitTester(
     baseLogger = logger,
     chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
     profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
-    home = mill.api.Ctx.defaultHome,
     workspace = module.moduleDir,
     outPath = outPath,
     externalOutPath = outPath,

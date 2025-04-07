@@ -5,7 +5,7 @@ import mill.scalalib.bsp.BspModule
 import mill.scalalib.internal.JavaModuleUtils
 import mill.define.{Evaluator, Module}
 
-private class State(
+private class BspEvaluators(
     workspaceDir: os.Path,
     evaluators: Seq[Evaluator],
     debug: (() => String) => Unit

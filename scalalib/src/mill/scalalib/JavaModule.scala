@@ -1345,6 +1345,112 @@ trait JavaModule
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
+
+  def bspBuildTargetScalacOptions(
+      enableJvmCompileClasspathProvider: Boolean,
+      clientWantsSemanticDb: Boolean
+  ) = {
+    val scalacOptionsTask = this match {
+      case m: ScalaModule => m.allScalacOptions
+      case _ => Task.Anon {
+          Seq.empty[String]
+        }
+    }
+
+    val compileClasspathTask =
+      if (enableJvmCompileClasspathProvider) {
+        // We have a dedicated request for it
+        Task.Anon {
+          Seq.empty[UnresolvedPath]
+        }
+      } else {
+        bspCompileClasspath
+      }
+
+    val classesPathTask =
+      if (clientWantsSemanticDb) {
+        bspCompiledClassesAndSemanticDbFiles
+      } else {
+        bspCompileClassesPath
+      }
+
+    Task.Anon {
+      (scalacOptionsTask(), compileClasspathTask(), classesPathTask())
+    }
+  }
+
+  def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean) = {
+    val classesPathTask = this match {
+      case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+        sem.bspCompiledClassesAndSemanticDbFiles
+      case _ => bspCompileClassesPath
+    }
+    Task.Anon {
+      (
+        classesPathTask(),
+        javacOptions() ++ mandatoryJavacOptions(),
+        bspCompileClasspath()
+      )
+    }
+  }
+
+  def bspBuildTargetSources: Task[(Seq[os.Path], Seq[os.Path])] = Task.Anon {
+    Tuple2(sources().map(_.path), generatedSources().map(_.path))
+  }
+
+  def sanitizeUri(uri: String): String =
+    if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
+
+  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toNIO.toUri.toString)
+
+  def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
+
+  def bspBuildTargetInverseSources[T](id: T, searched: String): Task[Seq[T]] = Task.Anon {
+    val src = allSourceFiles()
+    val found = src.map(sanitizeUri).contains(searched)
+    if (found) Seq(id) else Seq()
+  }
+
+  def bspBuildTargetDependencySources(includeSources: Boolean) = Task.Anon {
+    val repos = allRepositories()
+    val buildSources = if (!includeSources) Nil
+    else mill.scalalib.Lib
+      .resolveMillBuildDeps(repos, None, useSources = true)
+      .map(sanitizeUri(_))
+
+    (
+      millResolver().classpath(
+        Seq(
+          coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+          coursierDependency
+        ),
+        sources = true
+      ),
+      unmanagedClasspath(),
+      buildSources
+    )
+  }
+
+  def bspBuildTargetDependencyModules = Task.Anon {
+    (
+      // full list of dependencies, including transitive ones
+      millResolver()
+        .resolution(
+          Seq(
+            coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+            coursierDependency
+          )
+        )
+        .orderedDependencies,
+      unmanagedClasspath()
+    )
+  }
+
+  def bspBuildTargetScalaMainClasses = Task.Anon((allLocalMainClasses(), forkArgs(), forkEnv()))
+
+  def bspRun(args: Seq[String]): Command[Unit] = Task.Command {
+    run(Task.Anon(Args(args)))()
+  }
 }
 
 object JavaModule {

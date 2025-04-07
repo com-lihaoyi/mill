@@ -10,7 +10,7 @@ case class MillCliConfig(
       doc =
         """(internal) The home directory where Mill looks for config and caches."""
     )
-    home: os.Path = mill.api.Ctx.defaultHome,
+    home: os.Path = os.home,
     // We need to keep it, otherwise, a given --repl would be silently parsed as target and result in misleading error messages.
     // Instead, we fail programmatically when this flag is set.
     @deprecated("No longer supported.", "Mill 0.11.0-M8")

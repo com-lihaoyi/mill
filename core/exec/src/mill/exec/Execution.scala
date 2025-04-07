@@ -21,7 +21,6 @@ private[mill] case class Execution(
     baseLogger: Logger,
     chromeProfileLogger: JsonArrayLogger.ChromeProfile,
     profileLogger: JsonArrayLogger.Profile,
-    home: os.Path,
     workspace: os.Path,
     outPath: os.Path,
     externalOutPath: os.Path,
