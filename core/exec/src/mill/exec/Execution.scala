@@ -39,7 +39,6 @@ private[mill] case class Execution(
 
   def this(
       baseLogger: Logger,
-      home: java.nio.file.Path,
       workspace: java.nio.file.Path,
       outPath: java.nio.file.Path,
       externalOutPath: java.nio.file.Path,
