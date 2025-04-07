@@ -4,7 +4,7 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 import mill.constants.CodeGenConstants.*
 import mill.api.Result
-import mill.runner.FileImportGraph.backtickWrap
+import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.runner.worker.api.MillScalaParser
 import scala.util.control.Breaks.*
