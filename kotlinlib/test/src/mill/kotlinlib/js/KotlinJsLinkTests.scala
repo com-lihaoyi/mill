@@ -4,7 +4,7 @@ import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{Cross, T}
 import utest.{TestSuite, Tests, assert, test}
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 object KotlinJsLinkTests extends TestSuite {
 
   private val kotlinVersion = "1.9.25"

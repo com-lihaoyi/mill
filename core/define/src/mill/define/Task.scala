@@ -1,6 +1,7 @@
 package mill.define
 
-import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
+import mill.api.PathRef
+import mill.runner.api.{CompileProblemReporter, Logger, Result, TestReporter, TaskApi, NamedTaskApi}
 import mill.define.internal.Applicative.Applyable
 import mill.define.internal.Cacher
 import upickle.default.{ReadWriter as RW, Writer as W}
@@ -16,7 +17,7 @@ import scala.quoted.*
  * Generally not instantiated manually, but instead constructed via the
  * [[Target.apply]] & similar macros.
  */
-abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
+abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with TaskApi[T] {
 
   /**
    * What other tasks does this task depend on?
@@ -230,7 +231,7 @@ object Task extends TaskBase {
  * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous
  * `Task.Anon` or `Task.traverse` etc. instances
  */
-trait NamedTask[+T] extends Task[T] {
+trait NamedTask[+T] extends Task[T] with NamedTaskApi[T] {
 
   def ctx0: mill.define.Ctx
   def isPrivate: Option[Boolean]

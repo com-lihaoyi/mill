@@ -1,7 +1,6 @@
 package mill.runner
 
 import scala.jdk.CollectionConverters.ListHasAsScala
-
 import coursier.Repository
 import mill.*
 import mill.api.{PathRef, Result, internal}
@@ -12,13 +11,17 @@ import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.constants.OutFiles.*
 import mill.constants.CodeGenConstants.buildFileExtensions
-import mill.main.{BuildInfo, RootModule}
+import mill.util.BuildInfo
+import mill.define.RootModule0
 import mill.runner.worker.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
-import scala.util.Try
 
+import scala.util.Try
 import mill.define.Target
+import mill.runner.api.Watchable
 import mill.runner.worker.api.MillScalaParser
+
+import scala.collection.mutable
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -28,10 +31,10 @@ import mill.runner.worker.api.MillScalaParser
  * calls within the scripts.
  */
 @internal
-abstract class MillBuildRootModule()(implicit
-    rootModuleInfo: RootModule.Info,
+class MillBuildRootModule()(implicit
+    rootModuleInfo: RootModule0.Info,
     scalaCompilerResolver: ScalaCompilerWorker.Resolver
-) extends RootModule() with ScalaModule {
+) extends mill.main.MainRootModule() with ScalaModule {
   override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
     .relativeTo(rootModuleInfo.topLevelProjectRoot)
@@ -97,12 +100,26 @@ abstract class MillBuildRootModule()(implicit
     imports
   }
 
-  override def ivyDeps = Task {
+  override def mandatoryIvyDeps = Task {
     Seq.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
     ) ++
-      Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+      Seq(
+        ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}",
+        ivy"com.lihaoyi::mill-runner-api:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-core-api:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-core-define:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-kotlinlib:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-scalajslib:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-scalanativelib:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-javascriptlib:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-pythonlib:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-runner:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-main-init:${Versions.millVersion}",
+        ivy"com.lihaoyi::mill-idea:${Versions.millVersion}",
+        ivy"com.lihaoyi::sourcecode:0.4.3-M5"
+      )
   }
 
   override def runIvyDeps = Task {
@@ -120,6 +137,13 @@ abstract class MillBuildRootModule()(implicit
     generateScriptSources()
   }
 
+  def millBuildRootModuleResult = Task {
+    Tuple3(
+      runClasspath().map(_.path.toNIO.toString),
+      compile().classes.path.toNIO.toString,
+      codeSignatures()
+    )
+  }
   def generateScriptSources: T[Seq[PathRef]] = Task {
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
@@ -128,7 +152,6 @@ abstract class MillBuildRootModule()(implicit
         rootModuleInfo.projectRoot / os.up,
         parsed.seenScripts,
         Task.dest,
-        rootModuleInfo.enclosingClasspath,
         rootModuleInfo.compilerWorkerClasspath,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
@@ -241,45 +264,18 @@ abstract class MillBuildRootModule()(implicit
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
-  def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources(
-    rootModuleInfo.enclosingClasspath.map(Result.Success(_))*
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task.Input {
+    Option(System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH"))
+      .map(s => PathRef(os.Path(s)))
+      .toSeq
+  }
+
+  def compileIvyDeps = Seq(
+    ivy"com.lihaoyi::sourcecode:0.4.3-M5"
   )
-
-  /**
-   * Dependencies, which should be transitively excluded.
-   * By default, these are the dependencies, which Mill provides itself (via [[unmanagedClasspath]]).
-   * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
-   */
-  protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
-    val allMillDistModules = BuildInfo.millAllDistDependencies
-      .split(',')
-      .filter(_.nonEmpty)
-      .map { str =>
-        str.split(":", 3) match {
-          case Array(org, name, _) => (org, name)
-          case other =>
-            sys.error(
-              s"Unexpected misshapen entry in BuildInfo.millAllDistDependencies ('$str', expected 'org:name')"
-            )
-        }
-      }
-    val isScala3 = JvmWorkerUtil.isScala3(scalaVersion())
-    if (isScala3)
-      allMillDistModules.filter(_._2 != "scala-library").toSeq
-    else
-      allMillDistModules.toSeq
-  }
-
-  override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
-    super.bindDependency.apply().apply(dep).exclude(resolveDepsExclusions()*)
-  }
-
-  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
-    enclosingClasspath()
-  }
-
   override def scalacPluginIvyDeps: T[Seq[Dep]] = Seq(
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+      .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
   override def scalacOptions: T[Seq[String]] = Task {
@@ -342,20 +338,18 @@ abstract class MillBuildRootModule()(implicit
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
   }
-
 }
 
 object MillBuildRootModule {
 
   class BootstrapModule()(implicit
-      rootModuleInfo: RootModule.Info,
+      rootModuleInfo: RootModule0.Info,
       scalaCompilerResolver: ScalaCompilerWorker.Resolver
   ) extends MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
   }
 
   case class Info(
-      enclosingClasspath: Seq[os.Path],
       projectRoot: os.Path,
       output: os.Path,
       topLevelProjectRoot: os.Path
@@ -363,7 +357,7 @@ object MillBuildRootModule {
 
   def parseBuildFiles(
       parser: MillScalaParser,
-      millBuildRootModuleInfo: RootModule.Info
+      millBuildRootModuleInfo: RootModule0.Info
   ): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
       parser,

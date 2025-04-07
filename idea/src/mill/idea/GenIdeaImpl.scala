@@ -8,22 +8,28 @@ import coursier.maven.Pom
 import mill.api.Ctx
 import mill.api.PathRef
 import mill.define.{Evaluator, Ctx as _, *}
-import mill.main.BuildInfo
-import mill.scalajslib.ScalaJSModule
-import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
-import mill.scalalib.internal.JavaModuleUtils
-import mill.scalalib
+import mill.runner.api.{EvaluatorApi, ModuleApi, JavaModuleApi, BaseModuleApi}
+import mill.util.BuildInfo
+import mill.runner.api.{
+  IdeaConfigFile,
+  JavaFacet,
+  TestModuleApi,
+  ScalaModuleApi,
+  ScalaJSModuleApi,
+  ScalaNativeModuleApi
+}
 import collection.mutable
 import java.net.URL
-import mill.scalalib._
-import mill.scalanativelib.ScalaNativeModule
 
 class GenIdeaImpl(
-    private val evaluators: Seq[Evaluator]
+    private val evaluators: Seq[EvaluatorApi]
 )(implicit ctx: Ctx) {
+  def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
+    Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
+  }
   import GenIdeaImpl._
 
-  val workDir: os.Path = evaluators.head.rootModule.moduleDir
+  val workDir: os.Path = os.Path(evaluators.head.rootModule.moduleDirJava)
   val ideaDir: os.Path = workDir / ".idea"
   val ideaConfigVersion = 4
 
@@ -62,7 +68,7 @@ class GenIdeaImpl(
   }
 
   def xmlFileLayout(
-      evaluators: Seq[Evaluator],
+      evaluators: Seq[EvaluatorApi],
       jdkInfo: (String, String),
       fetchMillModules: Boolean = true
   ): Seq[(os.SubPath, scala.xml.Node)] = {
@@ -70,48 +76,40 @@ class GenIdeaImpl(
     val rootModules = evaluators.zipWithIndex.map { case (ev, idx) =>
       (ev.rootModule, ev, idx)
     }
-    val transitive: Seq[(BaseModule, Seq[Module], Evaluator, Int)] = rootModules
+    val transitive: Seq[(BaseModuleApi, Seq[ModuleApi], EvaluatorApi, Int)] = rootModules
       .map { case (rootModule, ev, idx) =>
-        (rootModule, JavaModuleUtils.transitiveModules(rootModule), ev, idx)
+        (rootModule, transitiveModules(rootModule), ev, idx)
       }
 
-    val foundModules: Seq[(Segments, Module, Evaluator)] = transitive
+    val foundModules: Seq[(Segments, ModuleApi, EvaluatorApi)] = transitive
       .flatMap { case (rootMod, transModules, ev, idx) =>
         transModules.collect {
-          case m: Module =>
-            val rootSegs = rootMod.moduleDir.relativeTo(workDir).segments
+          case m: ModuleApi =>
+            val rootSegs = os.Path(rootMod.moduleDirJava).relativeTo(workDir).segments
             val modSegs = m.moduleSegments.parts
             val segments: Seq[String] = rootSegs ++ modSegs
             (Segments(segments.map(Segment.Label(_))), m, ev)
         }
       }
 
-    val modules: Seq[(Segments, JavaModule, Evaluator)] = foundModules
-      .collect { case (s, x: scalalib.JavaModule, ev) => (s, x, ev) }
+    val modules: Seq[(Segments, JavaModuleApi, EvaluatorApi)] = foundModules
+      .collect { case (s, x: JavaModuleApi, ev) => (s, x, ev) }
       .filterNot(_._2.skipIdea)
       .distinct
 
-    lazy val modulesByEvaluator: Map[Evaluator, Seq[(Segments, JavaModule)]] = modules
+    lazy val modulesByEvaluator: Map[EvaluatorApi, Seq[(Segments, JavaModuleApi)]] = modules
       .groupMap { case (_, _, ev) => ev } { case (s, m, _) => (s, m) }
-
-//    val modules: Seq[(Segments, JavaModule)] =
-//      rootModule.millInternal.segmentsToModules.values
-//        .collect { case x: scalalib.JavaModule => x }
-//        .flatMap(_.transitiveModuleDeps)
-//        .filterNot(_.skipIdea)
-//        .map(x => (x.millModuleSegments, x))
-//        .toSeq
-//        .distinct
 
     val buildLibraryPaths: immutable.Seq[os.Path] = {
       if (!fetchMillModules) Nil
       else {
-        val moduleRepos = modulesByEvaluator.toSeq.flatMap { case (ev, modules) =>
-          ev.execute(modules.map(_._2.allRepositories))
-            .values.get
-        }
-        Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
-        Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = false)
+        modulesByEvaluator.toSeq
+          .flatMap { case (ev, modules) =>
+            ev.executeApi(modules.map(_._2.buildLibraryPaths))
+              .values.get
+          }
+          .flatten
+          .map(os.Path(_))
       }
     }
 
@@ -119,124 +117,23 @@ class GenIdeaImpl(
     val buildDepsPaths = GenIdeaImpl.allJars(evaluators.head.rootModule.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
-    def resolveTasks: Map[Evaluator, Seq[Task[ResolvedModule]]] =
+    def resolveTasks
+        : Map[EvaluatorApi, Seq[mill.runner.api.TaskApi[mill.runner.api.ResolvedModule]]] =
       modulesByEvaluator.map { case (evaluator, m) =>
         evaluator -> m.map {
-          case (path, mod) => {
+          case (path, mod) => mod.genIdeaMetadata(ideaConfigVersion, evaluator, path)
 
-            // same as input of resolvedIvyDeps
-            val allIvyDeps = Task.Anon {
-              Seq(
-                mod.coursierDependency,
-                mod.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
-              ).map(BoundDep(_, force = false))
-            }
-
-            val scalaCompilerClasspath = mod match {
-              case x: ScalaModule => x.scalaCompilerClasspath
-              case _ =>
-                Task.Anon {
-                  Seq.empty[PathRef]
-                }
-            }
-
-            val externalLibraryDependencies = Task.Anon {
-              mod.defaultResolver().classpath(mod.mandatoryIvyDeps())
-            }
-
-            val externalDependencies = Task.Anon {
-              mod.resolvedIvyDeps() ++
-                Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
-            }
-            val extCompileIvyDeps = Task.Anon {
-              mod.defaultResolver().classpath(mod.compileIvyDeps())
-            }
-            val extRunIvyDeps = mod.resolvedRunIvyDeps
-
-            val externalSources = Task.Anon {
-              mod.millResolver().classpath(allIvyDeps(), sources = true)
-            }
-
-            val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
-              case mod: ScalaModule => (
-                  Task.Anon(mod.scalacPluginIvyDeps()),
-                  Task.Anon(mod.allScalacOptions()),
-                  Task.Anon { Some(mod.scalaVersion()) }
-                )
-              case _ => (
-                  Task.Anon(Seq[Dep]()),
-                  Task.Anon(Seq[String]()),
-                  Task.Anon(None)
-                )
-            }
-
-            val scalacPluginDependencies = Task.Anon {
-              mod.defaultResolver().classpath(scalacPluginsIvyDeps())
-            }
-
-            val facets = Task.Anon {
-              mod.ideaJavaModuleFacets(ideaConfigVersion)()
-            }
-
-            val configFileContributions = Task.Anon {
-              mod.ideaConfigFiles(ideaConfigVersion)()
-            }
-
-            val compilerOutput = Task.Anon {
-              mod.ideaCompileOutput()
-            }
-
-            Task.Anon {
-              val resolvedCp: Seq[Scoped[os.Path]] =
-                externalDependencies().map(_.path).map(Scoped(_, None)) ++
-                  extCompileIvyDeps()
-                    .map(_.path)
-                    .map(Scoped(_, Some("PROVIDED"))) ++
-                  extRunIvyDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
-              // unused, but we want to trigger sources, to have them available (automatically)
-              // TODO: make this a separate eval to handle resolve errors
-              externalSources()
-              val resolvedSp: Seq[PathRef] = scalacPluginDependencies()
-              val resolvedCompilerCp: Seq[PathRef] =
-                scalaCompilerClasspath()
-              val resolvedLibraryCp: Seq[PathRef] =
-                externalLibraryDependencies()
-              val scalacOpts: Seq[String] = allScalacOptions()
-              val resolvedFacets: Seq[JavaFacet] = facets()
-              val resolvedConfigFileContributions: Seq[IdeaConfigFile] =
-                configFileContributions()
-              val resolvedCompilerOutput = compilerOutput()
-              val resolvedScalaVersion = scalaVersion()
-
-              ResolvedModule(
-                path = path,
-                // FIXME: why do we need to sources in the classpath?
-                // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
-                classpath = resolvedCp.filter(_.value.ext == "jar"),
-                module = mod,
-                pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar"),
-                scalaOptions = scalacOpts,
-                scalaCompilerClasspath = resolvedCompilerCp.map(_.path),
-                libraryClasspath = resolvedLibraryCp.map(_.path),
-                facets = resolvedFacets,
-                configFileContributions = resolvedConfigFileContributions,
-                compilerOutput = resolvedCompilerOutput.path,
-                evaluator = evaluator,
-                scalaVersion = resolvedScalaVersion
-              )
-            }
-          }
         }
       }
 
-    val resolvedModules: Seq[ResolvedModule] = {
+    val resolvedModules: Seq[mill.runner.api.ResolvedModule] = {
       resolveTasks.toSeq.flatMap { case (evaluator, tasks) =>
-        evaluator.execute(tasks).executionResults match {
-          case r if r.transitiveFailing.nonEmpty =>
+        evaluator.executeApi(tasks).executionResults match {
+          case r if r.transitiveFailingApi.nonEmpty =>
             throw GenIdeaException(
               s"Failure during resolving modules: ${mill.eval.EvaluatorImpl.formatFailing(r)}"
             )
-          case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
+          case r => r.values.map(_.value).asInstanceOf[Seq[mill.runner.api.ResolvedModule]]
         }
       }
     }
@@ -244,7 +141,9 @@ class GenIdeaImpl(
     val moduleLabels = modules.map { case (s, m, e) => (m, s) }.toMap
 
     val allResolved: Seq[os.Path] =
-      (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildLibraryPaths ++ buildDepsPaths)
+      (resolvedModules.flatMap(_.classpath).map(s =>
+        os.Path(s.value)
+      ) ++ buildLibraryPaths ++ buildDepsPaths)
         .distinct
         .sorted
 
@@ -256,7 +155,7 @@ class GenIdeaImpl(
     // whole file
     val ideaWholeConfigFiles: Seq[(os.SubPath, Elem)] =
       wholeFileConfigs.flatMap(_.asWholeFile).map { wf =>
-        os.sub / wf._1 -> ideaConfigElementTemplate(wf._2)
+        os.sub / os.SubPath(wf._1) -> ideaConfigElementTemplate(wf._2)
       }
 
     type FileComponent = (os.SubPath, Option[String])
@@ -266,20 +165,21 @@ class GenIdeaImpl(
         confs: Seq[IdeaConfigFile]
     ): Map[os.SubPath, Seq[IdeaConfigFile]] = {
 
-      var seen: Map[FileComponent, Seq[GenIdeaModule.Element]] = Map()
+      var seen: Map[FileComponent, Seq[mill.runner.api.Element]] = Map()
       var result: Map[os.SubPath, Seq[IdeaConfigFile]] = Map()
       confs.foreach { conf =>
-        val key = conf.subPath -> conf.component
+        val subPath = os.SubPath(conf.subPath)
+        val key = subPath -> conf.component
         seen.get(key) match {
           case None =>
             seen += key -> conf.config
-            result += conf.subPath -> (result
-              .get(conf.subPath)
+            result += subPath -> (result
+              .get(subPath)
               .getOrElse(Seq()) ++ Seq(conf))
           case Some(existing) if conf.config == existing =>
           // identical, ignore
           case Some(existing) =>
-            def details(elements: Seq[GenIdeaModule.Element]) = {
+            def details(elements: Seq[mill.runner.api.Element]) = {
               elements.map(
                 ideaConfigElementTemplate(_).toString().replaceAll("\\n", "")
               )
@@ -297,7 +197,7 @@ class GenIdeaImpl(
     val fileComponentContributions: Seq[(os.SubPath, Elem)] =
       collisionFreeExtraConfigs(configFileContributions).toSeq.map {
         case (file, configs) =>
-          val map: Map[Option[String], Seq[GenIdeaModule.Element]] =
+          val map: Map[Option[String], Seq[mill.runner.api.Element]] =
             configs
               .groupBy(_.component)
               .view
@@ -425,9 +325,9 @@ class GenIdeaImpl(
         .collect { case Some(r) => r }
 
     val compilerSettings = resolvedModules
-      .foldLeft(Map[(Seq[os.Path], Seq[String]), Vector[JavaModule]]()) {
+      .foldLeft(Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]()) {
         (r, q) =>
-          val key = (q.pluginClasspath, q.scalaOptions)
+          val key = (q.pluginClasspath.map(os.Path(_)), q.scalaOptions)
           r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
       }
 
@@ -480,7 +380,7 @@ class GenIdeaImpl(
       }
 
     val moduleFiles: Seq[(os.SubPath, Elem)] = resolvedModules.flatMap {
-      case ResolvedModule(
+      case mill.runner.api.ResolvedModule(
             path,
             resolvedDeps,
             mod,
@@ -492,26 +392,22 @@ class GenIdeaImpl(
             _,
             compilerOutput,
             evaluator,
-            scalaVersion
+            scalaVersion,
+            resources,
+            generatedSources,
+            allSources
           ) =>
-        val Seq(
-          resourcesPathRefs: Seq[PathRef],
-          generatedSourcePathRefs: Seq[PathRef],
-          allSourcesPathRefs: Seq[PathRef]
-        ) = evaluator.execute(Seq(
-          mod.resources,
-          mod.generatedSources,
-          mod.allSources
-        )).values.get
 
-        val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
-        val normalSourcePaths = (allSourcesPathRefs
-          .map(_.path)
+        val generatedSourcePaths = generatedSources.map(os.Path(_))
+        val normalSourcePaths = (allSources
+          .map(os.Path(_))
           .toSet -- generatedSourcePaths.toSet).toSeq
 
         val sanizedDeps: Seq[ScopedOrd[String]] = {
           resolvedDeps
-            .map((s: Scoped[os.Path]) => pathToLibName(s.value) -> s.scope)
+            .map((s: mill.runner.api.Scoped[java.nio.file.Path]) =>
+              pathToLibName(os.Path(s.value)) -> s.scope
+            )
             .iterator
             .toSeq
             .groupBy(_._1)
@@ -551,23 +447,23 @@ class GenIdeaImpl(
             .distinct
         }
 
-        val isTest = mod.isInstanceOf[TestModule]
+        val isTest = mod.isInstanceOf[TestModuleApi]
 
         val sdkName = (mod match {
-          case _: ScalaJSModule => Some("scala-js-SDK")
-          case _: ScalaNativeModule => Some("scala-native-SDK")
-          case _: ScalaModule => Some("scala-SDK")
+          case _: ScalaJSModuleApi => Some("scala-js-SDK")
+          case _: ScalaNativeModuleApi => Some("scala-native-SDK")
+          case _: ScalaModuleApi => Some("scala-SDK")
           case _ => None
         })
           .map { name => s"${name}-${scalaVersion.get}" }
 
         val moduleXml = moduleXmlTemplate(
-          basePath = mod.intellijModulePath,
+          basePath = os.Path(mod.intellijModulePathJava),
           sdkOpt = sdkName,
-          resourcePaths = Seq.from(resourcesPathRefs.map(_.path)),
+          resourcePaths = Seq.from(resources.map(os.Path(_))),
           normalSourcePaths = Seq.from(normalSourcePaths),
           generatedSourcePaths = Seq.from(generatedSourcePaths),
-          compileOutputPath = compilerOutput,
+          compileOutputPath = os.Path(compilerOutput),
           libNames = libNames,
           depNames = depNames,
           isTest = isTest,
@@ -585,7 +481,7 @@ class GenIdeaImpl(
               scalaVersion.map(_.split("[.]", 3).take(2).mkString("Scala_", "_", ""))
 
             val cpFilter: os.Path => Boolean = mod match {
-              case _: ScalaJSModule => entry => !entry.last.startsWith("scala3-library_3")
+              case _: ScalaJSModuleApi => entry => !entry.last.startsWith("scala3-library_3")
               case _ => _ => true
             }
 
@@ -594,7 +490,7 @@ class GenIdeaImpl(
               scalaSdkTemplate(
                 name = nameAndVersion,
                 languageLevel = languageLevel,
-                scalaCompilerClassPath = compilerClasspath.filter(cpFilter),
+                scalaCompilerClassPath = compilerClasspath.map(os.Path(_)).filter(cpFilter),
                 // FIXME: fill in these fields
                 compilerBridgeJar = None,
                 scaladocExtraClasspath = Nil
@@ -628,7 +524,7 @@ class GenIdeaImpl(
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
-  def ideaConfigElementTemplate(element: GenIdeaModule.Element): Elem = {
+  def ideaConfigElementTemplate(element: mill.runner.api.Element): Elem = {
 
     val example = <config/>
 
@@ -651,7 +547,7 @@ class GenIdeaImpl(
   }
 
   def ideaConfigFileTemplate(
-      components: Map[Option[String], Seq[GenIdeaModule.Element]]
+      components: Map[Option[String], Seq[mill.runner.api.Element]]
   ): Elem = {
     <project version={"" + ideaConfigVersion}>
       {
@@ -840,7 +736,7 @@ class GenIdeaImpl(
       libNames: Seq[ScopedOrd[String]],
       depNames: Seq[ScopedOrd[String]],
       isTest: Boolean,
-      facets: Seq[GenIdeaModule.JavaFacet]
+      facets: Seq[mill.runner.api.JavaFacet]
   ): Elem = {
     val genSources = generatedSourcePaths.toSeq.distinct.sorted.partition(_.startsWith(basePath))
     val normSources = normalSourcePaths.iterator.toSeq.sorted.partition(_.startsWith(basePath))
@@ -958,7 +854,7 @@ class GenIdeaImpl(
   }
 
   def scalaCompilerTemplate(
-      settings: Map[(Seq[os.Path], Seq[String]), Seq[JavaModule]]
+      settings: Map[(Seq[os.Path], Seq[String]), Seq[JavaModuleApi]]
   ) = {
 
     <project version={"" + ideaConfigVersion}>
@@ -1029,8 +925,6 @@ object GenIdeaImpl {
   final case class WithSourcesResolved(path: os.Path, sources: Option[os.Path])
       extends ResolvedLibrary
 
-  final case class Scoped[T](value: T, scope: Option[String])
-
   final case class ScopedOrd[T <: Comparable[T]](value: T, scope: Option[String])
       extends Ordered[ScopedOrd[T]] {
     override def compare(that: ScopedOrd[T]): Int =
@@ -1046,24 +940,9 @@ object GenIdeaImpl {
       }
   }
   object ScopedOrd {
-    def apply[T <: Comparable[T]](scoped: Scoped[T]): ScopedOrd[T] =
+    def apply[T <: Comparable[T]](scoped: mill.runner.api.Scoped[T]): ScopedOrd[T] =
       ScopedOrd(scoped.value, scoped.scope)
   }
-
-  final case class ResolvedModule(
-      path: Segments,
-      classpath: Seq[Scoped[os.Path]],
-      module: JavaModule,
-      pluginClasspath: Seq[os.Path],
-      scalaOptions: Seq[String],
-      scalaCompilerClasspath: Seq[os.Path],
-      libraryClasspath: Seq[os.Path],
-      facets: Seq[JavaFacet],
-      configFileContributions: Seq[IdeaConfigFile],
-      compilerOutput: os.Path,
-      evaluator: Evaluator,
-      scalaVersion: Option[String]
-  )
 
   case class GenIdeaException(msg: String) extends RuntimeException
 

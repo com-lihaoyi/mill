@@ -1,6 +1,6 @@
-package mill.api
+package mill.runner.api
 
-import java.io.PrintStream
+import java.io.{InputStream, OutputStream, PrintStream}
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -133,9 +133,9 @@ private[mill] object Logger {
 
     private[mill] def enableTicker: Boolean
 
-    def infoColor: fansi.Attrs
-    def warnColor: fansi.Attrs
-    def errorColor: fansi.Attrs
+    def infoColor(s: String): String
+    def warnColor(s: String): String
+    def errorColor(s: String): String
     def colored: Boolean
   }
   object Prompt {
@@ -153,9 +153,9 @@ private[mill] object Logger {
       def debugEnabled: Boolean = false
 
       def enableTicker: Boolean = false
-      def infoColor: fansi.Attrs = fansi.Attrs.Empty
-      def warnColor: fansi.Attrs = fansi.Attrs.Empty
-      def errorColor: fansi.Attrs = fansi.Attrs.Empty
+      def infoColor(s: String): String = s
+      def warnColor(s: String): String = s
+      def errorColor(s: String): String = s
       def colored: Boolean = false
     }
   }

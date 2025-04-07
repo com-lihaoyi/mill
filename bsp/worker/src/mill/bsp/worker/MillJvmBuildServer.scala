@@ -13,14 +13,11 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.Task
+import mill.runner.api.{TaskApi, JavaModuleApi, RunModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
-import mill.scalalib.{JavaModule, RunModule, TestModule}
 import java.util.concurrent.CompletableFuture
 
 import scala.jdk.CollectionConverters.*
-
-import mill.api.PathRef
 
 private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
 
@@ -50,13 +47,13 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
     completableTasks(
       name,
       targetIds = _ => targetIds,
-      tasks = { case m: RunModule => m.bspJvmRunTestEnvironment }
+      tasks = { case m: RunModuleApi => m.bspJvmRunTestEnvironment }
     ) {
       case (
             ev,
             state,
             id,
-            _: (TestModule & JavaModule),
+            _: (TestModuleApi & JavaModuleApi),
             (
               _,
               forkArgs,
@@ -81,7 +78,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             ev,
             state,
             id,
-            _: RunModule,
+            _: RunModuleApi,
             (
               runClasspath,
               forkArgs,
@@ -91,7 +88,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               localMainClasses: Seq[String]
             )
           ) =>
-        val classpath = runClasspath.map(_.path).map(sanitizeUri)
+        val classpath = runClasspath.map(sanitizeUri)
         val item = new JvmEnvironmentItem(
           id,
           classpath.iterator.toSeq.asJava,
@@ -115,16 +112,14 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       hint = "buildTarget/jvmCompileClasspath",
       targetIds = _ => params.getTargets.asScala.toSeq,
       tasks = {
-        case m: JavaModule => m.bspCompileClasspath
+        case m: JavaModuleApi => m.bspCompileClasspath
       }
     ) {
-      case (ev, _, id, _: JavaModule, compileClasspath) =>
+      case (ev, _, id, _: JavaModuleApi, compileClasspath) =>
 
         new JvmCompileClasspathItem(
           id,
-          compileClasspath.iterator
-            .map(_.resolve(ev.outPath))
-            .map(sanitizeUri).toSeq.asJava
+          compileClasspath(ev).toSeq.asJava
         )
       case _ => ???
     } {

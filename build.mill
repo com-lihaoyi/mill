@@ -421,17 +421,17 @@ trait MillJavaModule extends JavaModule {
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testForkEnv: T[Map[String, String]] = forkEnv()
   def testModuleDeps: Seq[JavaModule] =
-    if (this == build.main) Seq(build.main)
+    if (this == build.main) Seq(build.main, build.main.util)
     else Seq(this, build.main.test)
 
-  def writeLocalTestOverrides = Task.Anon {
+  def localTestOverridesClasspath = Task {
     for ((k, v) <- testTransitiveDeps()) {
       os.write(Task.dest / "mill/local-test-overrides" / k, v, createFolders = true)
     }
-    Seq(PathRef(Task.dest))
+    PathRef(Task.dest)
   }
 
-  def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+  def runClasspath = super.runClasspath() ++ Seq(localTestOverridesClasspath())
 
   def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++
@@ -699,7 +699,10 @@ def formatDep(dep: Dep) = {
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object idea extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.scalalib, build.runner)
+  def moduleDeps = Seq(
+    build.core,
+    build.main.util
+  )
 }
 
 val dummyDeps: Seq[Dep] = Seq(

@@ -7,7 +7,7 @@ import mill.api.{PathRef, Result}
 import mill.define.{Discover, Task}
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 object ResolveDepsTests extends TestSuite {
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val repos =

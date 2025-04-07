@@ -32,7 +32,7 @@ private[mill] object SelectiveExecution {
             log = evaluator.baseLogger,
             env = evaluator.env,
             reporter = _ => None,
-            testReporter = mill.api.DummyTestReporter,
+            testReporter = mill.runner.api.DummyTestReporter,
             workspace = evaluator.workspace,
             systemExit = n => ???,
             fork = null,

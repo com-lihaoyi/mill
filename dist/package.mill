@@ -77,8 +77,10 @@ object `package` extends RootModule with InstallModule {
       build.main.init.maven.testDep(),
       build.main.init.gradle.testDep(),
       build.main.init.sbt.testDep(),
+      build.main.init.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
-      build.contrib.bloop.testDep(),
+      build.scalalib.`classgraph-worker`.testDep(),
+      // build.contrib.bloop.testDep(),
       build.contrib.buildinfo.testDep(),
       build.contrib.scoverage.testDep(),
       build.contrib.scoverage.worker2.testDep(),
@@ -87,8 +89,16 @@ object `package` extends RootModule with InstallModule {
       build.contrib.playlib.worker("2.8").testDep(),
       build.contrib.testng.testDep(),
       build.bsp.worker.testDep(),
+      build.idea.testDep(),
       build.testkit.testDep(),
-      build.runner.worker.testDep()
+      build.runner.worker.testDep(),
+      build.scalalib.worker.testDep(),
+      build.scalajslib.testDep(),
+      build.scalanativelib.testDep(),
+      build.kotlinlib.testDep(),
+      build.kotlinlib.worker.impl.testDep(),
+      build.javascriptlib.testDep(),
+      build.pythonlib.testDep()
     )
   }
 
@@ -189,7 +199,9 @@ object `package` extends RootModule with InstallModule {
         try {
           os.call(
             cmd = (launcher().path.toString, rest),
-            env = forkEnv(),
+            env = forkEnv() ++ Map(
+              "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
+            ),
             cwd = wd
           )
           mill.api.Result.Success(())

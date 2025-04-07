@@ -4,7 +4,7 @@ import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 
 object CoursierMirrorTests extends TestSuite {
 

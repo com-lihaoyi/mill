@@ -1,14 +1,8 @@
 package mill.eval
 
-import mill.api.{
-  Logger,
-  CompileProblemReporter,
-  DummyTestReporter,
-  ExecResult,
-  PathRef,
-  TestReporter,
-  Val
-}
+import mill.runner.api._
+import mill.api.PathRef
+
 import mill.constants.OutFiles
 import mill.define.*
 import mill.exec.{Execution, PlanImpl}
@@ -37,7 +31,7 @@ final class EvaluatorImpl private[mill] (
   private[mill] def baseLogger = execution.baseLogger
   private[mill] def outPath = execution.outPath
   private[mill] def codeSignatures = execution.codeSignatures
-  private[mill] def rootModule = execution.rootModule
+  private[mill] def rootModule = execution.rootModule.asInstanceOf[BaseModule]
   private[mill] def workerCache = execution.workerCache
   private[mill] def env = execution.env
   private[mill] def effectiveThreadCount = execution.effectiveThreadCount
@@ -142,9 +136,9 @@ final class EvaluatorImpl private[mill] (
         val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
           .collect {
             case (t: SourcesImpl, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
-              ps.map(Watchable.Path(_))
+              ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
             case (t: SourceImpl, ExecResult.Success(Val(p: PathRef))) =>
-              Seq(Watchable.Path(p))
+              Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
             case (t: InputImpl[_], result) =>
 
               val ctx = new mill.api.Ctx.Impl(
@@ -232,6 +226,11 @@ final class EvaluatorImpl private[mill] (
 
 }
 object EvaluatorImpl {
+  def withResolveChecker[T](f: () => T): T = {
+    os.checker.withValue(resolveChecker) {
+      f()
+    }
+  }
   val resolveChecker = new os.Checker {
     def onRead(path: os.ReadablePath): Unit = ()
 
@@ -239,8 +238,8 @@ object EvaluatorImpl {
       sys.error(s"Writing to $path not allowed during resolution phase")
     }
   }
-  private[mill] def formatFailing(evaluated: ExecutionResults): String = {
-    (for ((k, fs) <- evaluated.transitiveFailing)
+  private[mill] def formatFailing(evaluated: ExecutionResultsApi): String = {
+    (for ((k, fs) <- evaluated.transitiveFailingApi)
       yield {
         val fss = fs match {
           case ExecResult.Failure(t) => t

@@ -1,6 +1,7 @@
 package mill.testrunner
 
-import mill.api.{Ctx, TestReporter, internal}
+import mill.api.{Ctx, internal}
+import mill.runner.api.TestReporter
 import mill.util.Jvm
 
 @internal object TestRunner {

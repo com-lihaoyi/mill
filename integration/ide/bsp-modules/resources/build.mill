@@ -1,7 +1,8 @@
 package build
 import $packages._
 import mill._
-import mill.api.{PathRef}
+import mill.api.PathRef
+import mill.runner.api.ModuleApi
 import mill.scalalib._
 
 trait HelloBspModule extends ScalaModule {
@@ -19,9 +20,11 @@ object HelloBsp extends HelloBspModule {
 }
 
 def validate() = Task.Command {
-  val transitiveModules = mill.scalalib.internal.JavaModuleUtils.transitiveModules(build)
+  def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
+    Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
+  }
   val file = Task.dest / "transitive-modules.json"
-  val moduleNames = transitiveModules.map(_.moduleSegments.render).mkString("\n")
+  val moduleNames = transitiveModules(build).map(_.moduleSegments.render).mkString("\n")
   val content =
     s"""${moduleNames}
        |""".stripMargin

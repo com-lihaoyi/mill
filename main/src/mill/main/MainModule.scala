@@ -11,6 +11,13 @@ import mill.exec.Cached
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
 
+abstract class MainRootModule()(implicit
+    baseModuleInfo: RootModule0.Info,
+    millModuleEnclosing0: sourcecode.Enclosing,
+    millModuleLine0: sourcecode.Line,
+    millFile0: sourcecode.File
+) extends RootModule0 with MainModule
+
 /**
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
@@ -31,7 +38,7 @@ trait MainModule extends BaseModule {
     }
 
     def watch(p: os.Path): os.Path = {
-      val watchable = Watchable.Path(PathRef(p))
+      val watchable = Watchable.Path(p.toNIO, false, PathRef(p).sig)
       watchedValues.append(watchable)
       p
     }
@@ -195,7 +202,7 @@ trait MainModule extends BaseModule {
         case (paths, allSegments) =>
           for {
             workerSegments <- evaluator.workerCache.keys.toList
-            if allSegments.exists(workerSegments.startsWith)
+            if allSegments.exists(x => workerSegments.startsWith(x.render))
             case (_, Val(closeable: AutoCloseable)) <-
               evaluator.workerCache.remove(workerSegments)
           } {

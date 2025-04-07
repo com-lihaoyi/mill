@@ -1,20 +1,23 @@
 package mill.define
 
+import mill.runner.api.{TaskApi, CompileProblemReporter, TestReporter, DummyTestReporter}
 import mill.api.*
 import mill.define.internal.Watchable
+import mill.runner.api.EvaluatorApi
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
-trait Evaluator extends AutoCloseable {
+trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def allowPositionalCommandArgs: Boolean
   private[mill] def selectiveExecution: Boolean
   private[mill] def workspace: os.Path
   private[mill] def baseLogger: Logger
   private[mill] def outPath: os.Path
+  private[mill] def outPathJava = outPath.toNIO
   private[mill] def codeSignatures: Map[String, Int]
   private[mill] def rootModule: BaseModule
-  private[mill] def workerCache: mutable.Map[Segments, (Int, Val)]
+  private[mill] def workerCache: mutable.Map[String, (Int, Val)]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
 
@@ -35,6 +38,9 @@ trait Evaluator extends AutoCloseable {
   ): mill.api.Result[List[NamedTask[?]]]
   def plan(tasks: Seq[Task[?]]): Plan
 
+  def executeApi[T](targets: Seq[mill.runner.api.TaskApi[T]]): Evaluator.Result[T] =
+    execute[T](targets.map(_.asInstanceOf[Task[T]]))
+
   def execute[T](
       targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
@@ -49,6 +55,24 @@ trait Evaluator extends AutoCloseable {
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]]
+
+  def executeApi[T](
+      targets: Seq[TaskApi[T]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = DummyTestReporter,
+      logger: Logger = null,
+      serialCommandExec: Boolean = false,
+      selectiveExecution: Boolean = false
+  ): EvaluatorApi.Result[T] = {
+    execute(
+      targets.map(_.asInstanceOf[Task[T]]),
+      reporter,
+      testReporter,
+      logger,
+      serialCommandExec,
+      selectiveExecution
+    )
+  }
 }
 object Evaluator {
   // This needs to be a ThreadLocal because we need to pass it into the body of
@@ -75,15 +99,7 @@ object Evaluator {
       values: mill.api.Result[Seq[T]],
       selectedTasks: Seq[Task[?]],
       executionResults: ExecutionResults
-  )
-
-  /**
-   * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
-   */
-  case class AllBootstrapEvaluators(value: Seq[Evaluator])
-
-  private[mill] val allBootstrapEvaluators =
-    new DynamicVariable[Evaluator.AllBootstrapEvaluators](null)
+  ) extends EvaluatorApi.Result[T]
 
   private[mill] val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 }

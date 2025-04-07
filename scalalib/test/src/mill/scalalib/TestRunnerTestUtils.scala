@@ -4,7 +4,7 @@ import mill.api.Result
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import mill.Task
 import os.Path
 import sbt.testing.Status

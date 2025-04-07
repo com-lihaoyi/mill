@@ -9,8 +9,9 @@ import mill.define.{
   Module,
   NamedTask,
   Segments,
+  SelectMode,
   TaskModule,
-  SelectMode
+  SimpleTaskTokenReader
 }
 import mill.api.Result
 import mill.resolve.ResolveCore.{Resolved, makeResultException}

@@ -1,5 +1,4 @@
-package mill.api
-
+package mill.runner.api
 import java.io.File
 
 /**
@@ -11,7 +10,7 @@ trait CompileProblemReporter {
   def logError(problem: Problem): Unit
   def logWarning(problem: Problem): Unit
   def logInfo(problem: Problem): Unit
-  def fileVisited(file: os.Path): Unit
+  def fileVisited(file: java.nio.file.Path): Unit
   def printSummary(): Unit
   def finish(): Unit
   def notifyProgress(percentage: Long, total: Long): Unit

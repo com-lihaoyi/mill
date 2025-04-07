@@ -1,5 +1,4 @@
-package mill.scalalib.bsp
-
+package mill.runner.api
 case class JvmBuildTarget(
     javaHome: Option[BspUri],
     javaVersion: Option[String]

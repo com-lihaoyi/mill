@@ -13,20 +13,21 @@ import mill.scalalib.api.JvmWorkerUtil
  * intended for use in downstream user-land code, but without the various language-specific
  * packages which are defined separately in [[build.scalalib]], [[build.pythonlib]], etc.
  */
-object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
+object `package` extends RootModule with build.MillStableScalaModule {
 
   def moduleDeps = Seq(build.core, build.core.constants, util)
   def ivyDeps = Agg(
     build.Deps.nativeTerminal,
     build.Deps.coursierInterface,
-    build.Deps.mainargs,
-    build.Deps.requests,
     build.Deps.logback,
     build.Deps.jgraphtCore,
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1"
       // We only need the in-memory library for some stuff, and don't
       // need the heavyweight v8 binary that comes bundled with it
-      .exclude("guru.nidi.com.eclipsesource.j2v8" -> "j2v8_macosx_x86_64")
+      .exclude(
+        "guru.nidi.com.eclipsesource.j2v8" -> "j2v8_macosx_x86_64",
+        "guru.nidi.com.eclipsesource.j2v8" -> "j2v8_linux_x86_64"
+      )
   )
 
   def compileIvyDeps = Task {
@@ -34,74 +35,74 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     else Agg(build.Deps.scalaReflect(scalaVersion()))
   }
 
-  def buildInfoPackageName = "mill.main"
-
   private def dist = build.dist.dist0
   // Inlining this method below currently triggers an error like
   // java.lang.IllegalArgumentException: Could not find proxy for …
   private def distAllDeps = dist +: dist.recursiveModuleDeps
 
-  def buildInfoMembers = Seq(
-    BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
-    BuildInfo.Value(
-      "workerScalaVersion213",
-      build.Deps.scala2Version,
-      "Scala 2.13 version used by some workers."
-    ),
-    BuildInfo.Value(
-      "workerScalaVersion212",
-      build.Deps.workerScalaVersion212,
-      "Scala 2.12 version used by some workers."
-    ),
-    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
-    BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
-    BuildInfo.Value(
-      "millDistModule", {
-        val selfDep = dist.publishSelfDependency()
-        s"${selfDep.group}:${selfDep.id}"
-      },
-      "Coordinates of the module pulling the whole of Mill"
-    ),
-    BuildInfo.Value(
-      "millAllDistDependencies", {
-        // Maps internal modules from JavaModule#coursierDependency (like 'mill-internal:thing:0+mill-internal')
-        // to actual coordinates used for publishing (like 'com.lihaoyi:mill-thing:0.13.1')
-        val internalToPublishedModuleMap = Task.traverse(
-          distAllDeps.collect { case m: PublishModule => m }
-        ) { mod =>
-          Task.Anon {
-            val selfDep = mod.publishSelfDependency()
-            (
-              s"${mod.coursierDependency.module.repr}:${mod.coursierDependency.versionConstraint.asString}",
-              s"${selfDep.group}:${selfDep.id}:${selfDep.version}"
-            )
-          }
-        }().toMap
-
-        val result = dist.millResolver().resolution(
-          Seq(BoundDep(dist.coursierDependency, force = false))
-        )
-        result.orderedDependencies
-          .map(dep => s"${dep.module.repr}:${dep.versionConstraint.asString}")
-          .distinct
-          .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
-          .mkString(",")
-      },
-      "All Mill distribution dependencies"
-    ),
-    BuildInfo.Value(
-      "millScalacPluginDeps",
-      build.Deps.millModuledefsString,
-      "Scalac compiler plugin dependencies to compile the build script."
-    )
-  )
-
-  object util extends build.MillStableScalaModule {
-    def moduleDeps = Seq(build.core.api, build.core.constants)
+  object util extends build.MillStableScalaModule with BuildInfo {
+    def moduleDeps = Seq(build.core.api, build.core.constants, build.core.define)
     def ivyDeps = Agg(
       build.Deps.coursier,
       build.Deps.coursierJvm,
-      build.Deps.jline
+      build.Deps.jline,
+      build.Deps.mainargs,
+      build.Deps.requests
+    )
+    def buildInfoPackageName = "mill.util"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value(
+        "workerScalaVersion212",
+        build.Deps.workerScalaVersion212,
+        "Scala 2.12 version used by some workers."
+      ),
+      BuildInfo.Value(
+        "workerScalaVersion213",
+        build.Deps.scala2Version,
+        "Scala 2.13 version used by some workers."
+      ),
+      BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
+      BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+      BuildInfo.Value(
+        "millDistModule", {
+          val selfDep = dist.publishSelfDependency()
+          s"${selfDep.group}:${selfDep.id}"
+        },
+        "Coordinates of the module pulling the whole of Mill"
+      ),
+      BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
+      BuildInfo.Value(
+        "millAllDistDependencies", {
+          // Maps internal modules from JavaModule#coursierDependency (like 'mill-internal:thing:0+mill-internal')
+          // to actual coordinates used for publishing (like 'com.lihaoyi:mill-thing:0.13.1')
+          val internalToPublishedModuleMap = Task.traverse(
+            distAllDeps.collect { case m: PublishModule => m }
+          ) { mod =>
+            Task.Anon {
+              val selfDep = mod.publishSelfDependency()
+              (
+                s"${mod.coursierDependency.module.repr}:${mod.coursierDependency.versionConstraint.asString}",
+                s"${selfDep.group}:${selfDep.id}:${selfDep.version}"
+              )
+            }
+          }().toMap
+
+          val result = dist.millResolver().resolution(
+            Seq(BoundDep(dist.coursierDependency, force = false))
+          )
+          result.orderedDependencies
+            .map(dep => s"${dep.module.repr}:${dep.versionConstraint.asString}")
+            .distinct
+            .map(mod => internalToPublishedModuleMap.getOrElse(mod, mod))
+            .mkString(",")
+        },
+        "All Mill distribution dependencies"
+      ),
+      BuildInfo.Value(
+        "millScalacPluginDeps",
+        build.Deps.millModuledefsString,
+        "Scalac compiler plugin dependencies to compile the build script."
+      )
     )
   }
 

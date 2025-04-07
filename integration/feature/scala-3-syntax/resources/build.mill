@@ -1,6 +1,6 @@
 package build
 import $meta._
-import mill.{Task, Command, RootModule, Cross}, Task.Anon
+import mill.{Task, Command, Cross}, Task.Anon
 import $packages._
 import build.Box
 import build.{given Box[Int]}

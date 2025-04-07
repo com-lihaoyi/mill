@@ -1,4 +1,4 @@
-package mill.resolve
+package mill.define
 
 import mainargs.TokensReader
 import mill.define.Task

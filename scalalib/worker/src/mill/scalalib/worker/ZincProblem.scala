@@ -1,7 +1,8 @@
 package mill.scalalib.worker
 
-import mill.api.{Problem, ProblemPosition, Severity, internal}
-import mill.api.DiagnosticCode
+import mill.runner.api.{Problem, ProblemPosition, Severity}
+import mill.runner.api.DiagnosticCode
+import mill.api.internal
 import scala.jdk.OptionConverters._
 
 @internal
@@ -9,9 +10,9 @@ class ZincProblem(base: xsbti.Problem) extends Problem {
   override def category: String = base.category()
 
   override def severity: Severity = base.severity() match {
-    case xsbti.Severity.Info => mill.api.Info
-    case xsbti.Severity.Warn => mill.api.Warn
-    case xsbti.Severity.Error => mill.api.Error
+    case xsbti.Severity.Info => mill.runner.api.Info
+    case xsbti.Severity.Warn => mill.runner.api.Warn
+    case xsbti.Severity.Error => mill.runner.api.Error
   }
 
   override def message: String = base.message()

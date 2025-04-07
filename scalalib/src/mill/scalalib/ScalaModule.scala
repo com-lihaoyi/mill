@@ -3,7 +3,7 @@ package scalalib
 
 import mill.util.JarManifest
 import mill.api.{DummyInputStream, PathRef, Result, internal}
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
 
@@ -22,7 +22,8 @@ import scala.util.Using
 /**
  * Core configuration required to compile a single Scala compilation target
  */
-trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
+trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
+    with mill.runner.api.ScalaModuleApi { outer =>
 
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
@@ -581,7 +582,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Scala),
+    languageIds = Seq(
+      mill.runner.api.BspModuleApi.LanguageId.Java,
+      mill.runner.api.BspModuleApi.LanguageId.Scala
+    ),
     canCompile = true,
     canRun = true
   )

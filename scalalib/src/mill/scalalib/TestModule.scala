@@ -11,7 +11,8 @@ trait TestModule
     extends TestModule.JavaModuleBase
     with WithJvmWorker
     with RunModule
-    with TaskModule {
+    with TaskModule
+    with mill.runner.api.TestModuleApi {
 
   override def defaultCommandName() = "testForked"
 
@@ -239,7 +240,7 @@ trait TestModule
     val parent = super.bspBuildTarget
     parent.copy(
       canTest = true,
-      tags = Seq(BspModule.Tag.Test)
+      tags = Seq(mill.runner.api.BspModuleApi.Tag.Test)
     )
   }
 

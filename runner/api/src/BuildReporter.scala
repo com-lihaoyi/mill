@@ -1,4 +1,4 @@
-package mill.api
+package mill.runner.api
 
 import sbt.testing.Event
 

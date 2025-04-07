@@ -1,5 +1,4 @@
-package mill.scalalib.bsp
-
+package mill.runner.api
 case class ScalaBuildTarget(
     /** The Scala organization that is used for a target. */
     scalaOrganization: String,

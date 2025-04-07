@@ -1,9 +1,7 @@
-package mill.main
+package mill.util
 
 import mainargs.TokensReader
-import mill.define.{Args, Evaluator, Task}
-import mill.resolve.SimpleTaskTokenReader
-import mill.eval.EvaluatorProxy
+import mill.define.{Args, Evaluator, EvaluatorProxy, Task, SimpleTaskTokenReader}
 
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
   def read(): Either[String, Evaluator] = Right(
@@ -11,9 +9,9 @@ private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Cons
   )
 }
 private[mill] class AllEvaluatorsTokenReader[T]()
-    extends mainargs.TokensReader.Constant[Evaluator.AllBootstrapEvaluators] {
-  def read(): Either[String, Evaluator.AllBootstrapEvaluators] =
-    Right(Evaluator.allBootstrapEvaluators.value)
+    extends mainargs.TokensReader.Constant[mill.runner.api.EvaluatorApi.AllBootstrapEvaluators] {
+  def read(): Either[String, mill.runner.api.EvaluatorApi.AllBootstrapEvaluators] =
+    Right(mill.runner.api.EvaluatorApi.allBootstrapEvaluators.value)
 }
 
 private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, ?])
@@ -26,14 +24,14 @@ private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[
 object TokenReaders extends TokenReaders0
 trait TokenReaders0 {
   implicit def millEvaluatorTokenReader[T]: mainargs.TokensReader[Evaluator] =
-    new mill.main.EvaluatorTokenReader[T]()
+    new mill.util.EvaluatorTokenReader[T]()
 
   implicit def millAllEvaluatorsTokenReader[T]
-      : mainargs.TokensReader[Evaluator.AllBootstrapEvaluators] =
-    new mill.main.AllEvaluatorsTokenReader[T]()
+      : mainargs.TokensReader[mill.runner.api.EvaluatorApi.AllBootstrapEvaluators] =
+    new mill.util.AllEvaluatorsTokenReader[T]()
 
   implicit def millTasksTokenReader[T]: mainargs.TokensReader[Tasks[T]] =
-    new mill.main.Tasks.TokenReader[T]()
+    new mill.util.Tasks.TokenReader[T]()
 
   implicit def millArgsTokenReader: mainargs.TokensReader.ShortNamed[Args] =
     new TokensReader.Leftover[Args, String] {
