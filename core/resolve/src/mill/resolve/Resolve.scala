@@ -50,7 +50,7 @@ private[mill] object Resolve {
         case m: Resolved.Module =>
           ResolveCore.instantiateModule(rootModule, m.segments, cache).map(Left(_))
 
-        case t: Resolved.NamedTask =>
+        case t =>
           Resolve
             .Tasks
             .handleTask(rootModule, args, nullCommandDefaults, allowPositionalCommandArgs, cache, t)

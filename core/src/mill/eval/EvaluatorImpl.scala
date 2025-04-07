@@ -1,12 +1,11 @@
 package mill.eval
 
-import mill.runner.api._
+import mill.runner.api.*
 import mill.api.PathRef
-
 import mill.constants.OutFiles
 import mill.define.*
 import mill.exec.{Execution, PlanImpl}
-import mill.define.internal.Watchable
+import mill.define.internal.{ResolveChecker, Watchable}
 import OutFiles.*
 import mill.resolve.Resolve
 
@@ -52,7 +51,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Segments]] = {
-    os.checker.withValue(EvaluatorImpl.resolveChecker) {
+    os.checker.withValue(ResolveChecker) {
       Resolve.Segments.resolve(
         rootModule,
         scriptArgs,
@@ -73,7 +72,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[NamedTask[?]]] = {
-    os.checker.withValue(EvaluatorImpl.resolveChecker) {
+    os.checker.withValue(ResolveChecker) {
       Evaluator.currentEvaluator0.withValue(this) {
         Resolve.Tasks.resolve(
           rootModule,
@@ -91,7 +90,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Either[Module, NamedTask[?]]]] = {
-    os.checker.withValue(EvaluatorImpl.resolveChecker) {
+    os.checker.withValue(ResolveChecker) {
       Evaluator.currentEvaluator0.withValue(this) {
         Resolve.Inspect.resolve(
           rootModule,
@@ -224,7 +223,7 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(EvaluatorImpl.resolveChecker) {
+    val resolved = os.checker.withValue(ResolveChecker) {
       Evaluator.currentEvaluator0.withValue(this) {
         Resolve.Tasks.resolve(
           rootModule,
@@ -243,18 +242,4 @@ final class EvaluatorImpl private[mill] (
 
   val selective = new mill.eval.SelectiveExecutionImpl(this)
 }
-object EvaluatorImpl {
-  def withResolveChecker[T](f: () => T): T = {
-    os.checker.withValue(resolveChecker) {
-      f()
-    }
-  }
-  val resolveChecker = new os.Checker {
-    def onRead(path: os.ReadablePath): Unit = ()
 
-    def onWrite(path: os.Path): Unit = {
-      sys.error(s"Writing to $path not allowed during resolution phase")
-    }
-  }
-
-}

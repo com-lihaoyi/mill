@@ -131,6 +131,8 @@ class MillBuildRootModule()(implicit
     Seq.from(
       MillIvy.processMillIvyDepSignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
+    ) ++ Seq(
+      ivy"com.lihaoyi::mill-core:${Versions.millVersion}"
     )
   }
 
