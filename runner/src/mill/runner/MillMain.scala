@@ -405,7 +405,9 @@ object MillMain {
         while (repeatForBsp) {
           repeatForBsp = false
           val runnerState = runMillBootstrap(prevRunnerState)
-          val runSessionRes = bspServerHandle.runSession(runnerState.frames.flatMap(_.evaluator.map(_.asInstanceOf[mill.define.Evaluator])))
+          val runSessionRes = bspServerHandle.runSession(
+            runnerState.frames.flatMap(_.evaluator.map(_.asInstanceOf[mill.define.Evaluator]))
+          )
           prevRunnerState = Some(runnerState)
           repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
           bspRes = Some(runSessionRes)
