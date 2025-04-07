@@ -118,7 +118,10 @@ class MillBuildRootModule()(implicit
         ivy"com.lihaoyi::mill-main-init:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-idea:${Versions.millVersion}",
         ivy"com.lihaoyi::sourcecode:0.4.3-M5"
-      )
+      ) ++
+      Option.when(rootModuleInfo.projectRoot != rootModuleInfo.topLevelProjectRoot){
+        ivy"com.lihaoyi::mill-runner:${Versions.millVersion}"
+      }
   }
 
   override def runIvyDeps = Task {
