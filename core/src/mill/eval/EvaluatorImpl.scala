@@ -85,6 +85,24 @@ final class EvaluatorImpl private[mill] (
       }
     }
   }
+  def resolveModulesOrTasks(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): mill.api.Result[List[Either[Module, NamedTask[?]]]] = {
+    os.checker.withValue(EvaluatorImpl.resolveChecker) {
+      Evaluator.currentEvaluator0.withValue(this) {
+        Resolve.Inspect.resolve(
+          rootModule,
+          scriptArgs,
+          selectMode,
+          allowPositionalCommandArgs,
+          resolveToModuleTasks
+        )
+      }
+    }
+  }
 
   /**
    * Takes a sequence of [[Task]]s and returns a [[PlanImpl]] containing the

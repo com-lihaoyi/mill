@@ -17,7 +17,7 @@ import scala.quoted.*
  * Generally not instantiated manually, but instead constructed via the
  * [[Target.apply]] & similar macros.
  */
-abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with TaskApi[T] {
+sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with TaskApi[T] {
 
   /**
    * What other tasks does this task depend on?

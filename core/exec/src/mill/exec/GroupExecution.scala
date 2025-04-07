@@ -362,7 +362,7 @@ private trait GroupExecution {
       os.write.over(
         metaPath,
         upickle.default.stream(
-          Cached(json, hashCode, inputsHash),
+          mill.define.Cached(json, hashCode, inputsHash),
           indent = 4
         ),
         createFolders = true
