@@ -8,16 +8,9 @@ import coursier.maven.Pom
 import mill.api.Ctx
 import mill.api.PathRef
 import mill.define.{Evaluator, Ctx as _, *}
-import mill.runner.api.{EvaluatorApi, ModuleApi, JavaModuleApi, BaseModuleApi}
+import mill.runner.api.{BaseModuleApi, EvaluatorApi, ExecutionResultsApi, IdeaConfigFile, JavaFacet, JavaModuleApi, ModuleApi, ScalaJSModuleApi, ScalaModuleApi, ScalaNativeModuleApi, TestModuleApi}
 import mill.util.BuildInfo
-import mill.runner.api.{
-  IdeaConfigFile,
-  JavaFacet,
-  TestModuleApi,
-  ScalaModuleApi,
-  ScalaJSModuleApi,
-  ScalaNativeModuleApi
-}
+
 import collection.mutable
 import java.net.URL
 
@@ -131,7 +124,7 @@ class GenIdeaImpl(
         evaluator.executeApi(tasks).executionResults match {
           case r if r.transitiveFailingApi.nonEmpty =>
             throw GenIdeaException(
-              s"Failure during resolving modules: ${mill.eval.EvaluatorImpl.formatFailing(r)}"
+              s"Failure during resolving modules: ${ExecutionResultsApi.formatFailing(r)}"
             )
           case r => r.values.map(_.value).asInstanceOf[Seq[mill.runner.api.ResolvedModule]]
         }

@@ -178,7 +178,7 @@ final class EvaluatorImpl private[mill] (
           )
         }
 
-        val errorStr = EvaluatorImpl.formatFailing(evaluated)
+        val errorStr = ExecutionResultsApi.formatFailing(evaluated)
         evaluated.transitiveFailing.size match {
           case 0 =>
             Evaluator.Result(
@@ -237,16 +237,6 @@ object EvaluatorImpl {
     def onWrite(path: os.Path): Unit = {
       sys.error(s"Writing to $path not allowed during resolution phase")
     }
-  }
-  private[mill] def formatFailing(evaluated: ExecutionResultsApi): String = {
-    (for ((k, fs) <- evaluated.transitiveFailingApi)
-      yield {
-        val fss = fs match {
-          case ExecResult.Failure(t) => t
-          case ex: ExecResult.Exception => ex.toString
-        }
-        s"$k $fss"
-      }).mkString("\n")
   }
 
 }
