@@ -7,6 +7,7 @@ import mill.define.*
 import mill.exec.{Execution, PlanImpl}
 import mill.define.internal.{ResolveChecker, Watchable}
 import OutFiles.*
+import mill.define.internal.TopoSorted
 import mill.resolve.Resolve
 
 /**
@@ -109,6 +110,21 @@ final class EvaluatorImpl private[mill] (
    */
   def plan(tasks: Seq[Task[?]]): Plan = PlanImpl.plan(tasks)
 
+
+  def transitiveTargets(tasks: Seq[Task[?]]) = {
+    PlanImpl.transitiveTargets(tasks)
+  }
+
+  def topoSorted(transitive: IndexedSeq[Task[?]]) = {
+    PlanImpl.topoSorted(transitive)
+  }
+
+  def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
+    Task[?],
+    T
+  ]) = {
+    PlanImpl.groupAroundImportantTargets(topoSortedTargets)(important)
+  }
   /**
    * @param targets
    * @param selectiveExecution
