@@ -277,7 +277,7 @@ object CodeGen {
       output: os.Path,
       isMetaBuild: Boolean
   ): String = {
-    s"""${if (isMetaBuild) "import _root_.mill.runner.MillBuildRootModule" else "" }
+    s"""${if (isMetaBuild) "import _root_.mill.runner.MillBuildRootModule" else ""}
        |@_root_.scala.annotation.nowarn
        |object MillMiscInfo extends mill.define.RootModule0.Info(
        |  ${compilerWorkerClasspath.map(p => literalize(p.toString))},

@@ -55,7 +55,7 @@ private[mill] object Util {
   def backtickWrap(s: String): String = s match {
     case s"`$v`" => s
     case _ => if (encode(s) == s && !alphaKeywords.contains(s)) s
-    else "`" + s + "`"
+      else "`" + s + "`"
   }
 
   def leftPad(s: String, targetLength: Int, char: Char): String = {

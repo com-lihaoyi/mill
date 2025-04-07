@@ -214,7 +214,6 @@ object Dep {
 
 }
 
-
 /**
  * Same as [[Dep]] but with already bound cross and platform settings.
  */

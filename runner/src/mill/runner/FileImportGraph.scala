@@ -8,6 +8,7 @@ import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.internal.Util.backtickWrap
+
 /**
  * @param seenScripts
  * @param repos
@@ -32,7 +33,6 @@ case class FileImportGraph(
  */
 @internal
 object FileImportGraph {
-
 
   import mill.api.JsonFormatters.pathReadWrite
   implicit val readWriter: upickle.default.ReadWriter[FileImportGraph] = upickle.default.macroRW

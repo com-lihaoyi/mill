@@ -4,7 +4,17 @@ import java.util.concurrent.LinkedBlockingQueue
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.define.{Discover, Evaluator, ExternalModule, MultiBiMap, NamedTask, SelectMode, Target, Task, Worker}
+import mill.define.{
+  Discover,
+  Evaluator,
+  ExternalModule,
+  MultiBiMap,
+  NamedTask,
+  SelectMode,
+  Target,
+  Task,
+  Worker
+}
 import mill.util.MillModuleUtil.millProjectModule
 import mill.api.{PathRef, Result}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
@@ -26,7 +36,7 @@ object VisualizeModule extends ExternalModule {
           scala.Seq[NamedTask[Any]],
           MultiBiMap[NamedTask[Any], Task[?]],
           mill.define.Plan,
-          os.Path,
+          os.Path
       )],
       LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
   )
@@ -81,19 +91,23 @@ object VisualizeModule extends ExternalModule {
    * can communicate via in/out queues.
    */
   private[mill] def worker: Worker[(
-      LinkedBlockingQueue[(scala.Seq[NamedTask[Any]],
-        scala.Seq[NamedTask[Any]],
-        MultiBiMap[NamedTask[Any], Task[?]],
-        mill.define.Plan,
-        os.Path)],
+      LinkedBlockingQueue[(
+          scala.Seq[NamedTask[Any]],
+          scala.Seq[NamedTask[Any]],
+          MultiBiMap[NamedTask[Any], Task[?]],
+          mill.define.Plan,
+          os.Path
+      )],
       LinkedBlockingQueue[Result[Seq[PathRef]]]
   )] = mill.define.Task.Worker {
     val in =
-      new LinkedBlockingQueue[(scala.Seq[NamedTask[Any]],
-        scala.Seq[NamedTask[Any]],
-        MultiBiMap[NamedTask[Any], Task[?]],
-        mill.define.Plan,
-        os.Path)]()
+      new LinkedBlockingQueue[(
+          scala.Seq[NamedTask[Any]],
+          scala.Seq[NamedTask[Any]],
+          MultiBiMap[NamedTask[Any], Task[?]],
+          mill.define.Plan,
+          os.Path
+      )]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
     val visualizeThread = new java.lang.Thread(() =>
       while (true) {

@@ -27,7 +27,6 @@ private[mill] object PlanImpl {
    * @see [[PlanImpl.topoSorted]]
    */
 
-
   def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
     Task[?],
     T

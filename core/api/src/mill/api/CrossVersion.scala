@@ -3,6 +3,7 @@ import upickle.default.{macroRW, ReadWriter as RW}
 
 sealed trait CrossVersion {
   import CrossVersion._
+
   /** If true, the cross-version suffix should start with a platform suffix if it exists */
   def platformed: Boolean
 

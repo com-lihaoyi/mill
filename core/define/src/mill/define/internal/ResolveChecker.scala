@@ -13,5 +13,4 @@ object ResolveChecker extends os.Checker {
     }
   }
 
-
 }

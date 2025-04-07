@@ -110,7 +110,6 @@ final class EvaluatorImpl private[mill] (
    */
   def plan(tasks: Seq[Task[?]]): Plan = PlanImpl.plan(tasks)
 
-
   def transitiveTargets(tasks: Seq[Task[?]]) = {
     PlanImpl.transitiveTargets(tasks)
   }
@@ -125,6 +124,7 @@ final class EvaluatorImpl private[mill] (
   ]) = {
     PlanImpl.groupAroundImportantTargets(topoSortedTargets)(important)
   }
+
   /**
    * @param targets
    * @param selectiveExecution
@@ -258,4 +258,3 @@ final class EvaluatorImpl private[mill] (
 
   val selective = new mill.eval.SelectiveExecutionImpl(this)
 }
-
