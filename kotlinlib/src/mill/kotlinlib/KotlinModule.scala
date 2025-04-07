@@ -281,9 +281,7 @@ trait KotlinModule extends JavaModule { outer =>
       val isJava = javaSourceFiles.nonEmpty
       val isMixed = isKotlin && isJava
 
-      val compileCp =
-        (compileClasspath() ++ kotlinPrecompiledClasses()).map(_.path).filter(os.exists)
-
+      val compileCp = compileClasspath().map(_.path).filter(os.exists)
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
@@ -395,10 +393,6 @@ trait KotlinModule extends JavaModule { outer =>
       reportCachedProblems = reportOldProblems,
       incrementalCompilation = true
     )
-  }
-
-  def kotlinPrecompiledClasses: Task[Seq[PathRef]] = Task {
-    Seq.empty[PathRef]
   }
 
   private[kotlinlib] def internalReportOldProblems: Task[Boolean] = zincReportCachedProblems
