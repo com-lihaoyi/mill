@@ -31,7 +31,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
 
   override def sources: T[Seq[PathRef]] =
     super[AndroidAppModule].sources() :+ PathRef(moduleDir / "src/main/kotlin")
-    
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
     override def sources: T[Seq[PathRef]] =
