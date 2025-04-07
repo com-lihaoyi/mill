@@ -1,0 +1,111 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.2",
+  "serialNumber": "urn:uuid:a9d6a1c7-18d4-4901-891c-cbcc8f2c5241",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-03-17T17:00:56.263933698Z"
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/commons-io/commons-io@2.18.0?type=jar",
+      "group": "commons-io",
+      "name": "commons-io",
+      "version": "2.18.0",
+      "description": "commons-io:commons-io",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f3ca0f8d63c40e23a56d54101c60d5edee136b42d84bfb85bc7963093109cf8b"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/ch.qos.logback/logback-classic@1.5.12?type=jar",
+      "group": "ch.qos.logback",
+      "name": "logback-classic",
+      "version": "1.5.12",
+      "description": "ch.qos.logback:logback-classic",
+      "licenses": [
+        {
+          "license": {
+            "name": "Eclipse Public License - v 1.0",
+            "url": "http://www.eclipse.org/legal/epl-v10.html"
+          }
+        },
+        {
+          "license": {
+            "name": "GNU Lesser General Public License",
+            "url": "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ebe1a2ce1072b365090d58af40fcb7482d7864a31cd2b1c62c9b1d13f9a80c09"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/ch.qos.logback/logback-core@1.5.12?type=jar",
+      "group": "ch.qos.logback",
+      "name": "logback-core",
+      "version": "1.5.12",
+      "description": "ch.qos.logback:logback-core",
+      "licenses": [
+        {
+          "license": {
+            "name": "Eclipse Public License - v 1.0",
+            "url": "http://www.eclipse.org/legal/epl-v10.html"
+          }
+        },
+        {
+          "license": {
+            "name": "GNU Lesser General Public License",
+            "url": "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f35b41621c2cbf72a9d9f3ce2270ba2040e4808bd6befdd720866e926d3e84a"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.slf4j/slf4j-api@2.0.15?type=jar",
+      "group": "org.slf4j",
+      "name": "slf4j-api",
+      "version": "2.0.15",
+      "description": "org.slf4j:slf4j-api",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT License",
+            "url": "http://www.opensource.org/licenses/mit-license.php"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5bfda32d723dde8ccef9db6bdc2537dabdb87321597c7e00e66a73a5777fbb24"
+        }
+      ]
+    }
+  ]
+}

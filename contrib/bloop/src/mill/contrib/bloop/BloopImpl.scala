@@ -394,7 +394,7 @@ class BloopImpl(
             }
           },
         sources = true
-      )
+      ).artifactResult
 
       def moduleOf(dep: coursier.Dependency): BloopConfig.Module =
         BloopConfig.Module(
