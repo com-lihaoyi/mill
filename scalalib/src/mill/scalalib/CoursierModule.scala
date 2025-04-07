@@ -23,8 +23,8 @@ trait CoursierModule extends mill.Module {
    * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)
    * @return The [[BoundDep]]
    */
-  def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
-    BoundDep(Lib.depToDependencyJava(dep), dep.force)
+  def bindDependency: Task[Dep => BoundDep] = Task.Anon {
+    CoursierModule.defaultBindDependency
   }
 
   /**
@@ -85,12 +85,7 @@ trait CoursierModule extends mill.Module {
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-    val resolve = Resolve()
-    val repos = Await.result(
-      resolve.finalRepositories.future()(resolve.cache.ec),
-      Duration.Inf
-    )
-    repos
+    CoursierModule.defaultRepositories
   }
 
   /**
@@ -170,7 +165,7 @@ trait CoursierModule extends mill.Module {
    * `ResolutionParams#defaultConfiguration` is used.
    */
   def resolutionParams: Task[ResolutionParams] = Task.Anon {
-    ResolutionParams()
+    CoursierModule.defaultResolutionParams
   }
 
 }
@@ -269,4 +264,30 @@ object CoursierModule {
     def bind(t: coursier.core.Dependency, bind: Dep => BoundDep): BoundDep =
       BoundDep(t, force = false)
   }
+
+  def defaultRepositories: Seq[Repository] = {
+    val resolve = Resolve()
+    val repos = Await.result(
+      resolve.finalRepositories.future()(resolve.cache.ec),
+      Duration.Inf
+    )
+    repos
+  }
+
+  def defaultBindDependency: Dep => BoundDep =
+    (dep: Dep) =>
+      BoundDep(Lib.depToDependencyJava(dep), dep.force)
+
+  def defaultResolutionParams: ResolutionParams =
+    ResolutionParams()
+
+  def defaultResolver: Resolver =
+    new CoursierModule.Resolver(
+      repositories = defaultRepositories,
+      bind = defaultBindDependency,
+      mapDependencies = None,
+      customizer = None,
+      coursierCacheCustomizer = None,
+      resolutionParams = defaultResolutionParams
+    )
 }
