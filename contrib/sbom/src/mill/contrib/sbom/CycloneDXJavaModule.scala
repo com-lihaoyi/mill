@@ -3,6 +3,7 @@ package mill.contrib.sbom
 import coursier.{Artifacts, Resolution, VersionConstraint, core as cs}
 import mill.Task
 import mill.javalib.{BoundDep, JavaModule}
+import mill.util.ArtifactResolution
 
 /**
  * Report the Java/Scala/Kotlin dependencies in a SBOM.
@@ -19,8 +20,8 @@ trait CycloneDXJavaModule extends JavaModule with CycloneDXModule {
    * By default, uses the [[ivyDeps]] and [[runIvyDeps]] for the list of components
    */
   def sbomComponents: Task[Seq[Component]] = Task {
-    val (resolution, artifacts) = resolvedRunIvyDepsDetails()()
-    resolvedSbomComponents(resolution, artifacts)
+    val resolved = resolvedRunIvyDepsDetails()()
+    resolvedSbomComponents(resolved.resolution, resolved.artifactResult)
   }
 
   protected def resolvedSbomComponents(
@@ -42,7 +43,7 @@ trait CycloneDXJavaModule extends JavaModule with CycloneDXModule {
   }
 
   /** Copied from [[resolvedRunIvyDeps]], but getting the raw artifacts */
-  private def resolvedRunIvyDepsDetails(): Task[(Resolution, Artifacts.Result)] = Task.Anon {
+  private def resolvedRunIvyDepsDetails(): Task[ArtifactResolution] = Task.Anon {
     millResolver().artifacts(Seq(
       BoundDep(
         coursierDependency.withConfiguration(cs.Configuration.runtime),

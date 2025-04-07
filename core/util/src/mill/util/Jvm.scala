@@ -506,7 +506,7 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
-  ): Result[(Resolution, coursier.Artifacts.Result)] = {
+  ): Result[ArtifactResolution] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -540,7 +540,7 @@ object Jvm {
             s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
           )
         case Right(artifacts) =>
-          Result.Success(resolution -> artifacts)
+          Result.Success(ArtifactResolution(resolution, artifacts))
       }
     }
   }
@@ -575,7 +575,7 @@ object Jvm {
       coursierCacheCustomizer,
       artifactTypes,
       resolutionParams
-    ).map { case (_, artifacts) =>
+    ).map { artifacts =>
       artifacts.files
         .map(os.Path(_))
         .map(PathRef(_, quick = true))
