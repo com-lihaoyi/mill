@@ -24,7 +24,10 @@ object `package` extends RootModule with build.MillStableScalaModule {
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1"
       // We only need the in-memory library for some stuff, and don't
       // need the heavyweight v8 binary that comes bundled with it
-      .exclude("guru.nidi.com.eclipsesource.j2v8" -> "j2v8_macosx_x86_64")
+      .exclude(
+        "guru.nidi.com.eclipsesource.j2v8" -> "j2v8_macosx_x86_64",
+        "guru.nidi.com.eclipsesource.j2v8" -> "j2v8_linux_x86_64"
+      )
   )
 
   def compileIvyDeps = Task {
