@@ -26,10 +26,17 @@ import java.io.File
 @mill.api.experimental
 trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
-  override def sources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+  /**
+   * With Hilt support, sources are compiled as part of the
+   * Hilt compilation flow which involves an asm transform step
+   * on the compiled sources, so we don't want to recompile them.
+   */
+  override def allSources: T[Seq[PathRef]] = generatedSources()
 
-  override def kspSources: T[Seq[PathRef]] = Task { super.sources() }
-
+  /**
+   * In the case of hilt, we are not adding any generated
+   * KSP files in generated sources - yet
+   */
   override def generatedSources: T[Seq[PathRef]] =
     super[AndroidAppKotlinModule].generatedSources()
 
@@ -226,7 +233,13 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     os.makeDir(mergedClasses)
 
     def merge(path: os.Path, mergedClasses: os.Path = mergedClasses): Unit =
-      os.copy(path, mergedClasses, mergeFolders = true, replaceExisting = true)
+      os.copy(
+        path,
+        mergedClasses,
+        mergeFolders = true,
+        replaceExisting = true,
+        createFolders = true
+      )
 
     val tranformedAsmClasses = androidHiltTransformAsm()
 

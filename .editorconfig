@@ -21,7 +21,7 @@ ktlint_standard_no-wildcard-imports = disabled
 [example/kotlinlib/linting/**/*]
 ktlint = disabled
 
-[example/android/kotlinlib/4-todo-architecture-sample/**/*.kt]
+[example/android/kotlinlib/5-todo-architecture-sample/**/*.kt]
 ktlint = disabled
 
 [kotlinlib/test/resources/contrib/ktfmt/**/*]

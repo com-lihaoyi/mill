@@ -186,18 +186,11 @@ trait AndroidAppModule extends AndroidModule {
    *
    * @return os.Path to the Generated DEX File Directory
    */
-  def androidDex: T[PathRef] = Task {
-
-    val inheritedClassFiles = compileClasspath()
-      .map(_.path).filter(os.isDir)
-      .flatMap(os.walk(_))
-      .filter(os.isFile)
-      .filter(_.ext == "class")
-      .map(_.toString())
+  override def androidDex: T[PathRef] = Task {
 
     val appCompiledFiles = os.walk(compile().classes.path)
       .filter(_.ext == "class")
-      .map(_.toString) ++ inheritedClassFiles
+      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString())
 
     val libsJarFiles = compileClasspath()
       .filter(_ != androidSdkModule().androidJarPath())

@@ -13,17 +13,21 @@ object AndroidHiltTransformAsm {
 
     val destination = os.Path(args.last)
 
-    transformAsm(os.walk(scanDirectory).filter(_.ext == "class"), destination)
+    transformAsm(scanDirectory, os.walk(scanDirectory).filter(_.ext == "class"), destination)
 
   }
 
-  def transformAsm(classes: Seq[os.Path], destination: os.Path): Seq[os.Path] = {
+  def transformAsm(
+      baseDir: os.Path,
+      classes: Seq[os.Path],
+      destinationDir: os.Path
+  ): Seq[os.Path] = {
 
-    os.makeDir.all(destination)
-
+    os.makeDir.all(destinationDir)
     classes.map {
       path =>
-        transform(path, destination / path.last)
+        val destination = destinationDir / path.relativeTo(baseDir)
+        transform(path, destination)
     }
 
   }
@@ -58,7 +62,7 @@ object AndroidHiltTransformAsm {
 
       // 6) Write the modified bytes
       val newBytes = cw.toByteArray
-      os.write(destination, newBytes)
+      os.write(destination, newBytes, createFolders = true)
       destination
     } else {
       // If it's not annotated with @AndroidEntryPoint or @HiltAndroidApp, skip rewriting.
