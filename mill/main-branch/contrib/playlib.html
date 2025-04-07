@@ -451,10 +451,6 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="buildinfo.html">BuildInfo</a>
   </li>
 
@@ -955,7 +951,7 @@ be find for a production deployment.</p>
 <h2 id="_using_rootmodule"><a class="anchor" href="#_using_rootmodule"></a>Using <code>RootModule</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>RootModule</code> abstract class allows you to have the build descriptor at the same level as the
+<p>The <code>RootModule0</code> abstract class allows you to have the build descriptor at the same level as the
 source code on the filesystem. You can move from there to a multi-module build either by refactoring
 your directory layout into multiple subdirectories or by using mill’s nested modules feature.</p>
 </div>
@@ -1003,7 +999,7 @@ object core extends PlayModule {
 </div>
 </div>
 <div class="paragraph">
-<p>by extending <code>RootModule</code> in your build:</p>
+<p>by extending <code>RootModule0</code> in your build:</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>

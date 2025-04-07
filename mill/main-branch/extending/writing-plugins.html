@@ -451,10 +451,6 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
@@ -680,13 +676,13 @@ via <a href="import-ivy-plugins.html" class="xref page">import $ivy</a>.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._
-import mill.main.BuildInfo.millVersion
+import mill.util.BuildInfo.millVersion
 
 object myplugin extends ScalaModule with PublishModule {
   def scalaVersion = &quot;3.6.2&quot;
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
-  def platformSuffix = &quot;_mill&quot; + mill.main.BuildInfo.millBinPlatform
+  def platformSuffix = &quot;_mill&quot; + mill.util.BuildInfo.millBinPlatform
 
   // Depend on `mill-dist` so we can compile against Mill APIs
   def ivyDeps = Seq(ivy&quot;com.lihaoyi:mill-dist:$millVersion&quot;)
@@ -860,7 +856,7 @@ the results in-memory:</p>
 
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.define.Discover
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import utest._
 
 object UnitTests extends TestSuite {
