@@ -39,7 +39,6 @@ include::partial$example/extending/imports/3-contrib-import.adoc[]
 // See also the list in nav.adoc
 * xref:contrib/artifactory.adoc[]
 * xref:contrib/bintray.adoc[]
-* xref:contrib/bloop.adoc[]
 * xref:contrib/buildinfo.adoc[]
 * xref:contrib/codeartifact.adoc[]
 * xref:contrib/docker.adoc[]
