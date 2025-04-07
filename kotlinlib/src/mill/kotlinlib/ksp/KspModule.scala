@@ -104,19 +104,22 @@ trait KspModule extends KotlinModule { outer =>
     super.compileClasspath()
   }
 
-  override def kotlinLanguageVersion: T[String] = "1.9"
-
   /**
    * Kotlinc arguments used with KSP
    * @return
    */
-  def kspKotlincOptions: T[Seq[String]] = Seq(
-    "-Xallow-unstable-dependencies",
-    "-no-reflect",
-    "-no-stdlib",
-    "-language-version",
-    kotlinLanguageVersion()
-  )
+  def kspKotlincOptions: T[Seq[String]] = Task {
+    if (kotlinLanguageVersion().isBlank) {
+      throw new RuntimeException("KSP needs a compatible language version to be set!")
+    }
+    Seq(
+      "-Xallow-unstable-dependencies",
+      "-no-reflect",
+      "-no-stdlib",
+      "-language-version",
+      kotlinLanguageVersion()
+    )
+  }
 
   def kspPluginParameters: T[Seq[String]] = Task {
     Seq.empty

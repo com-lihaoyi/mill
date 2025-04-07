@@ -13,12 +13,13 @@ object androidSdkModule0 extends AndroidSdkModule {
 // Actual android application
 object app extends AndroidAppKotlinModule with AndroidHiltSupport {
 
+  def kotlinVersion = "2.0.21"
+  def kotlinLanguageVersion = "1.9"
+
   def kspVersion = "1.0.28"
 
   def androidApplicationNamespace = "com.example.android.architecture.blueprints.todoapp"
   def androidApplicationId = "com.example.android.architecture.blueprints.main"
-
-  def kotlinVersion = "2.0.21"
 
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
