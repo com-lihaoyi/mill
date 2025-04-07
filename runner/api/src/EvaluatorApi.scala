@@ -52,3 +52,16 @@ trait ExecutionResultsApi {
 
   def values: Seq[Val]
 }
+object ExecutionResultsApi {
+  private[mill] def formatFailing(evaluated: ExecutionResultsApi): String = {
+    (for ((k, fs) <- evaluated.transitiveFailingApi)
+      yield {
+        val fss = fs match {
+          case ExecResult.Failure(t) => t
+          case ex: ExecResult.Exception => ex.toString
+        }
+        s"$k $fss"
+      }).mkString("\n")
+  }
+
+}

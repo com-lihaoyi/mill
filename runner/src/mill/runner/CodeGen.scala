@@ -4,7 +4,7 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 import mill.constants.CodeGenConstants.*
 import mill.api.Result
-import mill.runner.FileImportGraph.backtickWrap
+import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.runner.worker.api.MillScalaParser
 import scala.util.control.Breaks.*
@@ -160,7 +160,8 @@ object CodeGen {
         scriptFolderPath,
         compilerWorkerClasspath,
         millTopLevelProjectRoot,
-        output
+        output,
+        projectRoot != millTopLevelProjectRoot
       )
 
     val objectData = parser.parseObjectData(scriptCode)
@@ -185,7 +186,7 @@ object CodeGen {
          |$importSiblingScripts
          |$prelude
          |object wrapper_object_getter {
-         |  def value = os.checker.withValue(mill.eval.EvaluatorImpl.resolveChecker){ $wrapperObjectName }
+         |  def value = os.checker.withValue(mill.define.internal.ResolveChecker){ $wrapperObjectName }
          |}
          |object $wrapperObjectName extends $wrapperObjectName {
          |  ${childAliases.linesWithSeparators.mkString("  ")}
@@ -273,9 +274,10 @@ object CodeGen {
       scriptFolderPath: os.Path,
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
-      output: os.Path
+      output: os.Path,
+      isMetaBuild: Boolean
   ): String = {
-    s"""import _root_.mill.runner.MillBuildRootModule
+    s"""${if (isMetaBuild) "import _root_.mill.runner.MillBuildRootModule" else ""}
        |@_root_.scala.annotation.nowarn
        |object MillMiscInfo extends mill.define.RootModule0.Info(
        |  ${compilerWorkerClasspath.map(p => literalize(p.toString))},

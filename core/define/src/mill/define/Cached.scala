@@ -1,7 +1,7 @@
-package mill.exec
+package mill.define
 
 private[mill] case class Cached(value: ujson.Value, valueHash: Int, inputsHash: Int)
 
-private object Cached {
+private[mill] object Cached {
   implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
 }

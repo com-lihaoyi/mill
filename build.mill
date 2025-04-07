@@ -699,10 +699,7 @@ def formatDep(dep: Dep) = {
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object idea extends MillPublishScalaModule {
-  def moduleDeps = Seq(
-    build.core,
-    build.main.util
-  )
+  def moduleDeps = Seq(build.main.util)
 }
 
 val dummyDeps: Seq[Dep] = Seq(

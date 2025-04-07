@@ -10,9 +10,9 @@
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-3.6.2" level="project"/>
         <orderEntry type="library" name="aircompressor-0.27.jar" level="project"/>
-        <orderEntry type="library" name="asm-9.7.1.jar" level="project"/>
+        <orderEntry type="library" name="asm-9.6.jar" level="project"/>
         <orderEntry type="library" name="asm-commons-9.6.jar" level="project"/>
-        <orderEntry type="library" name="asm-tree-9.7.1.jar" level="project"/>
+        <orderEntry type="library" name="asm-tree-9.6.jar" level="project"/>
         <orderEntry type="library" name="cache-util-2.1.25-M4.jar" level="project"/>
         <orderEntry type="library" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" name="commons-compress-1.26.2.jar" level="project"/>
@@ -55,13 +55,12 @@
         <orderEntry type="library" name="mainargs_3-0.7.6.jar" level="project"/>
         <orderEntry type="library" name="mill-bsp_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-codesig_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>
         <orderEntry type="library" name="mill-core-define_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-exec_3.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-internal_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-resolve_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-core_3.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core_3.jar" level="project"/>
         <orderEntry type="library" name="mill-idea_3.jar" level="project"/>
         <orderEntry type="library" name="mill-javascriptlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-kotlinlib-worker_3.jar" level="project"/>
@@ -73,11 +72,6 @@
         <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
         <orderEntry type="library" name="mill-pythonlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-client_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-server-client.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-server_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-worker-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalajslib-worker-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalajslib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalalib-api_3.jar" level="project"/>

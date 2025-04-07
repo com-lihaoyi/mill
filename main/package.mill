@@ -15,7 +15,7 @@ import mill.scalalib.api.JvmWorkerUtil
  */
 object `package` extends RootModule with build.MillStableScalaModule {
 
-  def moduleDeps = Seq(build.core, build.core.constants, util)
+  def moduleDeps = Seq(build.core.constants, util)
   def ivyDeps = Agg(
     build.Deps.nativeTerminal,
     build.Deps.coursierInterface,

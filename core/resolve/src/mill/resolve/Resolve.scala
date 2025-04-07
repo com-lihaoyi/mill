@@ -34,18 +34,7 @@ private[mill] object Resolve {
     private[mill] override def deduplicate(items: List[Segments]): List[Segments] = items.distinct
   }
 
-  /**
-   * HACK: Dummy task used to wrap [[Module]]s so they can participate in
-   * `resolve`/`inspect`/etc.
-   */
-  class ModuleTask[+T](val module: Module) extends NamedTask[T] {
-    override def ctx0 = module.moduleCtx
-    override def isPrivate = None
-    override val inputs = Nil
-    override def evaluate0 = ???
-  }
-
-  object Tasks extends Resolve[NamedTask[Any]] {
+  object Inspect extends Resolve[Either[Module, NamedTask[Any]]] {
     private[mill] def handleResolved(
         rootModule: BaseModule,
         resolved: Seq[Resolved],
@@ -57,58 +46,109 @@ private[mill] object Resolve {
         cache: ResolveCore.Cache
     ) = {
 
-      val taskList: Seq[Result[Option[NamedTask[?]]]] = resolved.map {
-        case r: Resolved.NamedTask =>
-          val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init, cache)
-            .flatMap(instantiateNamedTask(r, _, cache))
-          instantiated.map(Some(_))
+      val taskList: Seq[Result[Either[Module, Option[NamedTask[?]]]]] = resolved.map {
+        case m: Resolved.Module =>
+          ResolveCore.instantiateModule(rootModule, m.segments, cache).map(Left(_))
 
-        case r: Resolved.Command =>
-          val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init, cache)
-            .flatMap { mod =>
-              instantiateCommand(
-                rootModule,
-                r,
-                mod,
-                args,
-                nullCommandDefaults,
-                allowPositionalCommandArgs
-              )
-            }
-          instantiated.map(Some(_))
-
-        case r: Resolved.Module =>
-          ResolveCore.instantiateModule(rootModule, r.segments, cache).flatMap {
-            case value if resolveToModuleTasks => Result.Success(Some(new ModuleTask(value)))
-            case value: TaskModule if !resolveToModuleTasks =>
-              val directChildrenOrErr = ResolveCore.resolveDirectChildren(
-                rootModule,
-                value.getClass,
-                Some(value.defaultCommandName()),
-                value.moduleSegments,
-                cache = cache
-              )
-
-              directChildrenOrErr.flatMap(directChildren =>
-                directChildren.head match {
-                  case r: Resolved.NamedTask => instantiateNamedTask(r, value, cache).map(Some(_))
-                  case r: Resolved.Command =>
-                    instantiateCommand(
-                      rootModule,
-                      r,
-                      value,
-                      args,
-                      nullCommandDefaults,
-                      allowPositionalCommandArgs
-                    ).map(Some(_))
-                  case _ => ???
-                }
-              )
-            case _ => Result.Success(None)
-          }
+        case t =>
+          Resolve
+            .Tasks
+            .handleTask(rootModule, args, nullCommandDefaults, allowPositionalCommandArgs, cache, t)
+            .map(Right(_))
       }
+
+      val sequenced = Result.sequence(taskList)
+
+      sequenced.map(flattened =>
+        flattened.flatMap {
+          case Left(m) => Some(Left(m))
+          case Right(None) => None
+          case Right(Some(t)) => Some(Right(t))
+        }
+      )
+    }
+
+  }
+
+  object Tasks extends Resolve[NamedTask[Any]] {
+    private[Resolve] def handleTask(
+        rootModule: BaseModule,
+        args: Seq[String],
+        nullCommandDefaults: Boolean,
+        allowPositionalCommandArgs: Boolean,
+        cache: ResolveCore.Cache,
+        task: Resolved
+    ) = task match {
+      case r: Resolved.NamedTask =>
+        val instantiated = ResolveCore
+          .instantiateModule(rootModule, r.segments.init, cache)
+          .flatMap(instantiateNamedTask(r, _, cache))
+        instantiated.map(Some(_))
+
+      case r: Resolved.Command =>
+        val instantiated = ResolveCore
+          .instantiateModule(rootModule, r.segments.init, cache)
+          .flatMap { mod =>
+            instantiateCommand(
+              rootModule,
+              r,
+              mod,
+              args,
+              nullCommandDefaults,
+              allowPositionalCommandArgs
+            )
+          }
+        instantiated.map(Some(_))
+
+      case r: Resolved.Module =>
+        ResolveCore.instantiateModule(rootModule, r.segments, cache).flatMap {
+          case value: TaskModule =>
+            val directChildrenOrErr = ResolveCore.resolveDirectChildren(
+              rootModule,
+              value.getClass,
+              Some(value.defaultCommandName()),
+              value.moduleSegments,
+              cache = cache
+            )
+
+            directChildrenOrErr.flatMap(directChildren =>
+              directChildren.head match {
+                case r: Resolved.NamedTask => instantiateNamedTask(r, value, cache).map(Some(_))
+                case r: Resolved.Command =>
+                  instantiateCommand(
+                    rootModule,
+                    r,
+                    value,
+                    args,
+                    nullCommandDefaults,
+                    allowPositionalCommandArgs
+                  ).map(Some(_))
+                case _ => ???
+              }
+            )
+          case _ => Result.Success(None)
+        }
+
+    }
+    private[mill] def handleResolved(
+        rootModule: BaseModule,
+        resolved: Seq[Resolved],
+        args: Seq[String],
+        selector: Segments,
+        nullCommandDefaults: Boolean,
+        allowPositionalCommandArgs: Boolean,
+        resolveToModuleTasks: Boolean,
+        cache: ResolveCore.Cache
+    ) = {
+
+      val taskList: Seq[Result[Option[NamedTask[?]]]] = resolved.map(handleTask(
+        rootModule,
+        args,
+        nullCommandDefaults,
+        allowPositionalCommandArgs,
+        cache,
+        _
+      ))
 
       val sequenced = Result.sequence(taskList).map(_.flatten)
 

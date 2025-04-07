@@ -1,13 +1,13 @@
 package mill.eval
 
-import mill.runner.api._
+import mill.runner.api.*
 import mill.api.PathRef
-
 import mill.constants.OutFiles
 import mill.define.*
 import mill.exec.{Execution, PlanImpl}
-import mill.define.internal.Watchable
+import mill.define.internal.{ResolveChecker, Watchable}
 import OutFiles.*
+import mill.define.internal.TopoSorted
 import mill.resolve.Resolve
 
 /**
@@ -52,7 +52,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Segments]] = {
-    os.checker.withValue(EvaluatorImpl.resolveChecker) {
+    os.checker.withValue(ResolveChecker) {
       Resolve.Segments.resolve(
         rootModule,
         scriptArgs,
@@ -73,9 +73,27 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[NamedTask[?]]] = {
-    os.checker.withValue(EvaluatorImpl.resolveChecker) {
+    os.checker.withValue(ResolveChecker) {
       Evaluator.currentEvaluator0.withValue(this) {
         Resolve.Tasks.resolve(
+          rootModule,
+          scriptArgs,
+          selectMode,
+          allowPositionalCommandArgs,
+          resolveToModuleTasks
+        )
+      }
+    }
+  }
+  def resolveModulesOrTasks(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): mill.api.Result[List[Either[Module, NamedTask[?]]]] = {
+    os.checker.withValue(ResolveChecker) {
+      Evaluator.currentEvaluator0.withValue(this) {
+        Resolve.Inspect.resolve(
           rootModule,
           scriptArgs,
           selectMode,
@@ -91,6 +109,21 @@ final class EvaluatorImpl private[mill] (
    * transitive upstream tasks necessary to evaluate those provided.
    */
   def plan(tasks: Seq[Task[?]]): Plan = PlanImpl.plan(tasks)
+
+  def transitiveTargets(tasks: Seq[Task[?]]) = {
+    PlanImpl.transitiveTargets(tasks)
+  }
+
+  def topoSorted(transitive: IndexedSeq[Task[?]]) = {
+    PlanImpl.topoSorted(transitive)
+  }
+
+  def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
+    Task[?],
+    T
+  ]) = {
+    PlanImpl.groupAroundImportantTargets(topoSortedTargets)(important)
+  }
 
   /**
    * @param targets
@@ -112,7 +145,7 @@ final class EvaluatorImpl private[mill] (
       if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
         val (named, unnamed) =
           targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
-        val changedTasks = SelectiveExecution.computeChangedTasks0(this, named)
+        val changedTasks = this.selective.computeChangedTasks0(named)
 
         val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
 
@@ -172,13 +205,12 @@ final class EvaluatorImpl private[mill] (
           .toMap
 
         if (selectiveExecutionEnabled) {
-          SelectiveExecution.saveMetadata(
-            this,
+          this.selective.saveMetadata(
             SelectiveExecution.Metadata(allInputHashes, codeSignatures)
           )
         }
 
-        val errorStr = EvaluatorImpl.formatFailing(evaluated)
+        val errorStr = ExecutionResultsApi.formatFailing(evaluated)
         evaluated.transitiveFailing.size match {
           case 0 =>
             Evaluator.Result(
@@ -207,7 +239,7 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(EvaluatorImpl.resolveChecker) {
+    val resolved = os.checker.withValue(ResolveChecker) {
       Evaluator.currentEvaluator0.withValue(this) {
         Resolve.Tasks.resolve(
           rootModule,
@@ -224,29 +256,5 @@ final class EvaluatorImpl private[mill] (
 
   def close(): Unit = execution.close()
 
-}
-object EvaluatorImpl {
-  def withResolveChecker[T](f: () => T): T = {
-    os.checker.withValue(resolveChecker) {
-      f()
-    }
-  }
-  val resolveChecker = new os.Checker {
-    def onRead(path: os.ReadablePath): Unit = ()
-
-    def onWrite(path: os.Path): Unit = {
-      sys.error(s"Writing to $path not allowed during resolution phase")
-    }
-  }
-  private[mill] def formatFailing(evaluated: ExecutionResultsApi): String = {
-    (for ((k, fs) <- evaluated.transitiveFailingApi)
-      yield {
-        val fss = fs match {
-          case ExecResult.Failure(t) => t
-          case ex: ExecResult.Exception => ex.toString
-        }
-        s"$k $fss"
-      }).mkString("\n")
-  }
-
+  val selective = new mill.eval.SelectiveExecutionImpl(this)
 }

@@ -39,7 +39,41 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
   ): mill.api.Result[List[NamedTask[?]]] = {
     delegate.resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
+  def resolveModulesOrTasks(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): mill.api.Result[List[Either[Module, NamedTask[?]]]] = {
+    delegate.resolveModulesOrTasks(
+      scriptArgs,
+      selectMode,
+      allowPositionalCommandArgs,
+      resolveToModuleTasks
+    )
+  }
   def plan(tasks: Seq[Task[?]]): Plan = delegate.plan(tasks)
+
+  def groupAroundImportantTargets[T](topoSortedTargets: mill.define.internal.TopoSorted)(
+      important: PartialFunction[
+        Task[?],
+        T
+      ]
+  ): MultiBiMap[T, Task[?]] = delegate.groupAroundImportantTargets(topoSortedTargets)(important)
+
+  /**
+   * Collects all transitive dependencies (targets) of the given targets,
+   * including the given targets.
+   */
+  def transitiveTargets(sourceTargets: Seq[Task[?]]): IndexedSeq[Task[?]] =
+    delegate.transitiveTargets(sourceTargets)
+
+  /**
+   * Takes the given targets, finds all the targets they transitively depend
+   * on, and sort them topologically. Fails if there are dependency cycles
+   */
+  def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.internal.TopoSorted =
+    delegate.topoSorted(transitiveTargets)
 
   def execute[T](
       targets: Seq[Task[T]],
@@ -67,4 +101,6 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
     delegate.evaluate(scriptArgs, selectMode, selectiveExecution)
   }
   def close = delegate.close()
+
+  def selective = delegate.selective
 }

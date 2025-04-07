@@ -36,7 +36,33 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[NamedTask[?]]]
+  def resolveModulesOrTasks(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): mill.api.Result[List[Either[Module, NamedTask[?]]]]
+
   def plan(tasks: Seq[Task[?]]): Plan
+
+  def groupAroundImportantTargets[T](topoSortedTargets: mill.define.internal.TopoSorted)(
+      important: PartialFunction[
+        Task[?],
+        T
+      ]
+  ): MultiBiMap[T, Task[?]]
+
+  /**
+   * Collects all transitive dependencies (targets) of the given targets,
+   * including the given targets.
+   */
+  def transitiveTargets(sourceTargets: Seq[Task[?]]): IndexedSeq[Task[?]]
+
+  /**
+   * Takes the given targets, finds all the targets they transitively depend
+   * on, and sort them topologically. Fails if there are dependency cycles
+   */
+  def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.internal.TopoSorted
 
   def executeApi[T](targets: Seq[mill.runner.api.TaskApi[T]]): Evaluator.Result[T] =
     execute[T](targets.map(_.asInstanceOf[Task[T]]))
@@ -73,6 +99,11 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       selectiveExecution
     )
   }
+
+  /**
+   * APIs related to selective execution
+   */
+  def selective: SelectiveExecution
 }
 object Evaluator {
   // This needs to be a ThreadLocal because we need to pass it into the body of

@@ -6,7 +6,7 @@ import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.SelectMode
 import mill.define.internal.Watchable
-import mill.exec.Cached
+import mill.define.Cached
 
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable

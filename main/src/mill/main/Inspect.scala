@@ -44,9 +44,9 @@ private object Inspect {
       }
     }
 
-    def renderFileName(t: NamedTask[?]) = {
+    def renderFileName(ctx: mill.define.Ctx) = {
       // handle both Windows or Unix separators
-      val fullFileName = t.ctx.fileName.replaceAll(raw"\\", "/")
+      val fullFileName = ctx.fileName.replaceAll(raw"\\", "/")
       val basePath = WorkspaceRoot.workspaceRoot.toString.replaceAll(raw"\\", "/") + "/"
       mill.constants.DebugLog.println("fullFileName " + fullFileName)
       mill.constants.DebugLog.println("basePath " + basePath)
@@ -57,7 +57,7 @@ private object Inspect {
           fullFileName.split('/').last
         }
       mill.constants.DebugLog.println("name " + name)
-      s"${name}:${t.ctx.lineNum}"
+      s"${name}:${ctx.lineNum}"
     }
 
     def pprintTask(t: NamedTask[?], evaluator: Evaluator): Tree.Lazy = {
@@ -127,7 +127,7 @@ private object Inspect {
         Iterator(
           ctx.applyPrefixColor(t.toString).toString,
           "(",
-          renderFileName(t),
+          renderFileName(t.ctx),
           ")",
           allDocs.mkString("\n"),
           "\n"
@@ -141,8 +141,8 @@ private object Inspect {
       }
     }
 
-    def pprintModule(t: mill.resolve.Resolve.ModuleTask[?], evaluator: Evaluator): Tree.Lazy = {
-      val cls = t.module.getClass
+    def pprintModule(module: mill.Module, evaluator: Evaluator): Tree.Lazy = {
+      val cls = module.getClass
 
       // For `RootModule`s named `package_`, the scaladoc annotation ends
       // up on the companion `class` rather than on the `object`.
@@ -171,7 +171,7 @@ private object Inspect {
         .getMethods
         .find(m => decode(m.getName) == methodName)
         .toSeq
-        .map(_.invoke(t.module).asInstanceOf[Seq[Module]])
+        .map(_.invoke(module).asInstanceOf[Seq[Module]])
         .flatten
 
       val javaModuleDeps = getModuleDeps("moduleDeps")
@@ -180,22 +180,23 @@ private object Inspect {
       val hasModuleDeps =
         javaModuleDeps.nonEmpty || javaCompileModuleDeps.nonEmpty || javaRunModuleDeps.nonEmpty
 
-      val defaultTaskOpt = t.module match {
-        case taskMod: TaskModule => Some(s"${t.module}.${taskMod.defaultCommandName()}")
+      val defaultTaskOpt = module match {
+        case taskMod: TaskModule => Some(s"${module}.${taskMod.defaultCommandName()}")
         case _ => None
       }
 
       val methodMap = evaluator.rootModule.moduleCtx.discover.classInfo
       val tasks = methodMap
         .get(cls)
-        .map { node => node.declaredTasks.map(task => s"${t.module}.${task.name}") }
+        .map { node => node.declaredTasks.map(task => s"${module}.${task.name}") }
         .toSeq.flatten
+
       pprint.Tree.Lazy { ctx =>
         Iterator(
           // module name(module/file:line)
           Iterator(
-            ctx.applyPrefixColor(t.module.toString).toString,
-            s"(${renderFileName(t)})"
+            ctx.applyPrefixColor(module.toString).toString,
+            s"(${renderFileName(module.moduleCtx)})"
           ),
           // Scaladoc
           Iterator(scaladocOpt).flatten,
@@ -233,28 +234,27 @@ private object Inspect {
       }
     }
 
-    evaluator.resolveTasks(tasks, SelectMode.Multi, resolveToModuleTasks = true).map {
-      tasks =>
-        val output = (for {
-          task <- tasks
-          tree = task match {
-            case t: mill.resolve.Resolve.ModuleTask[_] => pprintModule(t, evaluator)
-            case t => pprintTask(t, evaluator)
+    evaluator.resolveModulesOrTasks(tasks, SelectMode.Multi, resolveToModuleTasks = true).map {
+      modulesOrTasks =>
+        val output0 = for (moduleOrTask <- modulesOrTasks) yield {
+          val tree = moduleOrTask match {
+            case Left(module) => pprintModule(module, evaluator)
+            case Right(task) => pprintTask(task, evaluator)
           }
-          defaults = pprint.PPrinter()
-          renderer = new Renderer(
+          val defaults = pprint.PPrinter()
+          val renderer = new Renderer(
             defaults.defaultWidth,
             defaults.colorApplyPrefix,
             defaults.colorLiteral,
             defaults.defaultIndent
           )
-          rendered = renderer.rec(tree, 0, 0).iter
-          truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
-        } yield {
+          val rendered = renderer.rec(tree, 0, 0).iter
+          val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
           val sb = new StringBuilder()
           for { str <- truncated ++ Iterator("\n") } sb.append(str)
           sb.toString()
-        }).mkString("\n")
+        }
+        val output = output0.mkString("\n")
         println(output)
         fansi.Str(output).plainText
     }
