@@ -500,6 +500,7 @@ trait AndroidModule extends JavaModule {
       .filter(_.ext == "class")
       .map(PathRef(_))
   }
+
   /**
    * Converts the generated JAR file into a DEX file using the `d8` tool.
    *
