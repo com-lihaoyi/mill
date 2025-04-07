@@ -26,7 +26,7 @@
       },
       "dataKind": "jvm",
       "data": {
-        "javaHome": " java-home",
+        "javaHome": "java-home",
         "javaVersion": "<java-version>"
       }
     },
@@ -188,8 +188,7 @@
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-terminal/<jline-terminal-version>/jline-terminal-<jline-terminal-version>.jar",
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/<jline-terminal-jna-version>/jline-terminal-jna-<jline-terminal-jna-version>.jar",
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
-          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/<util-interface-version>/util-interface-<util-interface-version>.jar",
-          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-native/<jline-native-version>/jline-native-<jline-native-version>.jar"
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/<util-interface-version>/util-interface-<util-interface-version>.jar"
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
