@@ -35,7 +35,6 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   object worker extends build.MillPublishScalaModule {
     def compileModuleDeps = Seq(
       build.bsp,
-//      build.scalalib,
       build.runner.server.client,
       build.runner.api
     ) ++ build.scalalib.compileModuleDeps

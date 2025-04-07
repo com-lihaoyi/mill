@@ -1,8 +1,9 @@
 package build
-import $packages._
-import mill._
-import mill.api.{PathRef}
-import mill.scalalib._
+import $packages.*
+import mill.*
+import mill.api.PathRef
+import mill.runner.api.ModuleApi
+import mill.scalalib.*
 
 trait HelloBspModule extends ScalaModule {
   def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
@@ -19,7 +20,10 @@ object HelloBsp extends HelloBspModule {
 }
 
 def validate() = Task.Command {
-  val transitiveModules = mill.scalalib.internal.JavaModuleUtils.transitiveModules(build)
+  def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
+    Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
+  }
+  val transitiveModules = transitiveModules(build)
   val file = Task.dest / "transitive-modules.json"
   val moduleNames = transitiveModules.map(_.moduleSegments.render).mkString("\n")
   val content =
