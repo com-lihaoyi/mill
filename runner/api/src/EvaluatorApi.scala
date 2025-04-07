@@ -19,7 +19,7 @@ trait EvaluatorApi extends AutoCloseable {
 
   private[mill] def workerCache: mutable.Map[String, (Int, Val)]
 
-  def execute[T](targets: Seq[TaskApi[T]]): EvaluatorApi.Result[T]
+  def executeApi[T](targets: Seq[TaskApi[T]]): EvaluatorApi.Result[T]
   private[mill] def baseLogger: Logger
   private[mill] def rootModule: BaseModuleApi
   private[mill] def outPathJava: java.nio.file.Path

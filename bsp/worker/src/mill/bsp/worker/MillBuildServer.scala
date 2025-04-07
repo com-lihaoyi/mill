@@ -240,7 +240,7 @@ private class MillBuildServer(
       }.toSeq
 
       val ids = groupList(tasksEvaluators)(_._2)(_._1)
-        .flatMap { case (ev, ts) => ev.execute(ts).values.get }
+        .flatMap { case (ev, ts) => ev.executeApi(ts).values.get }
         .flatten
 
       new InverseSourcesResult(ids.asJava)
