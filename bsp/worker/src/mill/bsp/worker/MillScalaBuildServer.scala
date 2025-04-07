@@ -24,38 +24,36 @@ import scala.util.chaining.scalaUtilChainingOps
 private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
-      : CompletableFuture[ScalacOptionsResult] = ???
-//    completableTasks(
-//      hint = s"buildTarget/scalacOptions ${p}",
-//      targetIds = _ => p.getTargets.asScala.toSeq,
-//      tasks = {
-//        case m: JavaModuleApi =>
-//          m.bspBuildTargetScalacOptions(
-//            sessionInfo.enableJvmCompileClasspathProvider,
-//            sessionInfo.clientWantsSemanticDb
-//          )
-//      }
-//    ) {
-//      // We ignore all non-JavaModule
-//      case (
-//            ev,
-//            state,
-//            id,
-//            m: JavaModuleApi,
-//            (allScalacOptions, compileClasspath, classesPathTask)
-//          ) =>
-//        new ScalacOptionsItem(
-//          id,
-//          allScalacOptions.asJava,
-//          compileClasspath.iterator
-//            .map(_.resolve(ev.outPath))
-//            .map(sanitizeUri).toSeq.asJava,
-//          sanitizeUri(classesPathTask.resolve(ev.outPath))
-//        )
-//      case _ => ???
-//    } {
-//      new ScalacOptionsResult(_)
-//    }
+      : CompletableFuture[ScalacOptionsResult] =
+    completableTasks(
+      hint = s"buildTarget/scalacOptions ${p}",
+      targetIds = _ => p.getTargets.asScala.toSeq,
+      tasks = {
+        case m: JavaModuleApi =>
+          m.bspBuildTargetScalacOptions(
+            sessionInfo.enableJvmCompileClasspathProvider,
+            sessionInfo.clientWantsSemanticDb
+          )
+      }
+    ) {
+      // We ignore all non-JavaModule
+      case (
+            ev,
+            state,
+            id,
+            m: JavaModuleApi,
+            (allScalacOptions, compileClasspath, classesPathTask)
+          ) =>
+        new ScalacOptionsItem(
+          id,
+          allScalacOptions.asJava,
+          compileClasspath(ev).asJava,
+          sanitizeUri(classesPathTask(ev))
+        )
+      case _ => ???
+    } { values =>
+      new ScalacOptionsResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
+    }
 
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
       : CompletableFuture[ScalaMainClassesResult] =

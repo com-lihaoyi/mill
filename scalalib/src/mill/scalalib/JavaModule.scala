@@ -1371,9 +1371,9 @@ trait JavaModule
 
     val classesPathTask =
       if (clientWantsSemanticDb) {
-        bspCompiledClassesAndSemanticDbFiles
+        Task.Anon((e: mill.runner.api.EvaluatorApi) => bspCompiledClassesAndSemanticDbFiles().resolve(os.Path(e.outPathJava)).toNIO)
       } else {
-        bspCompileClassesPath
+        Task.Anon((e: mill.runner.api.EvaluatorApi) => bspCompileClassesPath().resolve(os.Path(e.outPathJava)).toNIO)
       }
 
     Task.Anon {
