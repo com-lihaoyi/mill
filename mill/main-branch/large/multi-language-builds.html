@@ -682,7 +682,7 @@ object server extends JavaModule {
   )
 
   /** Bundle client &amp; sentiment-analysis as resource */
-  def resources = Task.Sources {
+  def resources = Task {
     os.copy(client.bundle().path, Task.dest / &quot;static&quot;)
     os.makeDir.all(Task.dest / &quot;analysis&quot;)
     os.copy(`sentiment-analysis`.bundle().path, Task.dest / &quot;analysis&quot; / &quot;analysis.pex&quot;)
