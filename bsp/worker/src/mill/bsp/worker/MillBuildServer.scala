@@ -181,7 +181,9 @@ private class MillBuildServer(
 
     } { (targets, state) =>
       new WorkspaceBuildTargetsResult(
-        (targets.asScala ++ state.syntheticRootBspBuildTarget.map(_.target)).asJava
+        (targets.asScala ++ state.syntheticRootBspBuildTarget.map(_.target))
+          .sortBy(_.getId.getUri)
+          .asJava
       )
     }
 
@@ -219,7 +221,9 @@ private class MillBuildServer(
         )
     } { (sourceItems, state) =>
       new SourcesResult(
-        (sourceItems.asScala.toSeq ++ state.syntheticRootBspBuildTarget.map(_.synthSources)).asJava
+        (sourceItems.asScala.toSeq ++ state.syntheticRootBspBuildTarget.map(_.synthSources))
+          .sortBy(_.getTarget.getUri)
+          .asJava
       )
     }
 
@@ -269,8 +273,8 @@ private class MillBuildServer(
         val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
         new DependencySourcesItem(id, cp.asJava)
       case _ => ???
-    } {
-      new DependencySourcesResult(_)
+    } { values =>
+      new DependencySourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   /**
@@ -305,8 +309,8 @@ private class MillBuildServer(
         }
         new DependencyModulesItem(id, (deps ++ unmanaged).iterator.toSeq.asJava)
       case _ => ???
-    } {
-      new DependencyModulesResult(_)
+    } { values =>
+      new DependencyModulesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   override def buildTargetResources(p: ResourcesParams): CompletableFuture[ResourcesResult] =
@@ -319,8 +323,8 @@ private class MillBuildServer(
         val resourcesUrls = resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
         new ResourcesItem(id, resourcesUrls.asJava)
 
-    } {
-      new ResourcesResult(_)
+    } { values =>
+      new ResourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   // TODO: if the client wants to give compilation arguments and the module
@@ -374,7 +378,7 @@ private class MillBuildServer(
         new OutputPathsItem(target, items.asJava)
       }
 
-      new OutputPathsResult((items ++ synthOutpaths).asJava)
+      new OutputPathsResult((items ++ synthOutpaths).sortBy(_.getTarget.getUri).asJava)
     }
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
