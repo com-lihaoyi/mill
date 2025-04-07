@@ -58,7 +58,6 @@ private[mill] case class Execution(
     baseLogger,
     new JsonArrayLogger.ChromeProfile(os.Path(outPath) / millChromeProfile),
     new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
-    os.Path(home),
     os.Path(workspace),
     os.Path(outPath),
     os.Path(externalOutPath),

@@ -387,7 +387,6 @@ class MillBuildBootstrap(
       // Use the shorter convenience constructor not the primary one
       execCls.getConstructors.minBy(_.getParameterCount).newInstance(
         baseLogger,
-        home.toNIO,
         projectRoot.toNIO,
         outPath.toNIO,
         outPath.toNIO,
