@@ -1,9 +1,9 @@
 package build
-import $packages.*
-import mill.*
+import $packages._
+import mill._
 import mill.api.PathRef
 import mill.runner.api.ModuleApi
-import mill.scalalib.*
+import mill.scalalib._
 
 trait HelloBspModule extends ScalaModule {
   def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
