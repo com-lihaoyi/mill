@@ -23,9 +23,8 @@ def validate() = Task.Command {
   def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
-  val transitiveModules = transitiveModules(build)
   val file = Task.dest / "transitive-modules.json"
-  val moduleNames = transitiveModules.map(_.moduleSegments.render).mkString("\n")
+  val moduleNames = transitiveModules(build).map(_.moduleSegments.render).mkString("\n")
   val content =
     s"""${moduleNames}
        |""".stripMargin
