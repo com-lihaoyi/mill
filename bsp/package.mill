@@ -36,7 +36,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     def compileModuleDeps = Seq(
       build.bsp,
 //      build.scalalib,
-//      build.testrunner,
+      build.runner.server.client,
       build.runner.api
     ) ++ build.scalalib.compileModuleDeps
     def ivyDeps = Agg(

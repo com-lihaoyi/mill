@@ -5,7 +5,7 @@ import mill.constants.{DebugLog, InputPumper}
 import java.io.{InputStream, OutputStream, PrintStream}
 import scala.util.DynamicVariable
 
-type SystemStreams = mill.runner.api.SystemStreams
+
 object SystemStreams {
 
   /**

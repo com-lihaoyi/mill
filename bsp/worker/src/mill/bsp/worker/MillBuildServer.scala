@@ -8,7 +8,9 @@ import mill.bsp.{Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.runner.api.Segment.Label
 import mill.given
-
+import mill.constants.OutFiles
+import mill.client.lock.Lock
+import scala.util.Using
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import scala.collection.mutable
@@ -294,11 +296,8 @@ private class MillBuildServer(
             (ivyDeps, unmanagedClasspath)
           ) =>
         val deps = ivyDeps.collect {
-          case dep if dep.module.organization != JavaModule.internalOrg =>
-            // TODO: add data with "maven" data kind using a ...
-//          MavenDependencyModule
-
-            new DependencyModule(dep.module.repr, dep.version)
+          case (org, repr, version) if org != "mill-internal" =>
+            new DependencyModule(repr, version)
         }
 
         val unmanaged = unmanagedClasspath.map { dep =>
@@ -333,8 +332,8 @@ private class MillBuildServer(
       val taskId = params.hashCode()
       val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).collect {
         case (m: SemanticDbJavaModuleApi, ev) if sessionInfo.clientWantsSemanticDb =>
-          (m.compiledClassesAndSemanticDbFiles, ev)
-        case (m: JavaModuleApi, ev) => (m.compile, ev)
+          (m.bspBuildTargetCompileSemanticDb, ev)
+        case (m: JavaModuleApi, ev) => (m.bspBuildTargetCompile, ev)
       }
 
       val result = compileTasksEvs
@@ -393,7 +392,7 @@ private class MillBuildServer(
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client),
         logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
       )
-      val response = runResult.transitiveResults(runTask) match {
+      val response = runResult.transitiveResultsApi(runTask) match {
         case r if r.asSuccess.isDefined => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
       }
@@ -594,7 +593,7 @@ private class MillBuildServer(
         case (ev, targetIdTasks) =>
           val results = evaluate(ev, targetIdTasks.map(_._2))
           val idByTasks = targetIdTasks.map { case (id, task) => (task: TaskApi[_], id) }.toMap
-          val failures = results.transitiveResults.toSeq.collect {
+          val failures = results.transitiveResultsApi.toSeq.collect {
             case (task, res: ExecResult.Failing[_]) if idByTasks.contains(task) =>
               (idByTasks(task), res)
           }
@@ -611,7 +610,7 @@ private class MillBuildServer(
 
           val resultsById = targetIdTasks.flatMap {
             case (id, task) =>
-              results.transitiveResults(task)
+              results.transitiveResultsApi(task)
                 .asSuccess
                 .map(_.value.value.asInstanceOf[W])
                 .map((id, _))
@@ -733,19 +732,19 @@ private class MillBuildServer(
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: Logger = null
-  ): ExecutionResults = {
+  ): ExecutionResultsApi = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
-    mill.runner.MillMain.withOutLock(
+    withOutLock(
       noBuildLock = false,
       noWaitForBuildLock = false,
-      out = evaluator.outPath,
+      out = os.Path(evaluator.outPathJava),
       targetsAndParams = goals.toSeq.map {
-        case n: NamedTask[_] => n.label
+        case n: NamedTaskApi[_] => n.label
         case t => t.toString
       },
       streams = logger0.streams
     ) {
-      evaluator.execute(
+      evaluator.executeApi(
         goals,
         reporter,
         testReporter,
@@ -754,6 +753,47 @@ private class MillBuildServer(
       ).executionResults
     }
   }
+
+  def withOutLock[T](
+                      noBuildLock: Boolean,
+                      noWaitForBuildLock: Boolean,
+                      out: os.Path,
+                      targetsAndParams: Seq[String],
+                      streams: SystemStreams
+                    )(t: => T): T = {
+    if (noBuildLock) t
+    else {
+      val outLock = Lock.file((out / OutFiles.millLock).toString)
+
+      def activeTaskString =
+        try {
+          os.read(out / OutFiles.millActiveCommand)
+        } catch {
+          case e => "<unknown>"
+        }
+
+      def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
+
+      Using.resource {
+        val tryLocked = outLock.tryLock()
+        if (tryLocked.isLocked()) tryLocked
+        else if (noWaitForBuildLock) {
+          throw new Exception(s"$activeTaskPrefix failing")
+        } else {
+
+          streams.err.println(
+            s"$activeTaskPrefix waiting for it to be done..."
+          )
+          outLock.lock()
+        }
+      } { _ =>
+        os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
+        try t
+        finally os.remove.all(out / OutFiles.millActiveCommand)
+      }
+    }
+  }
+
 }
 
 private object MillBuildServer {

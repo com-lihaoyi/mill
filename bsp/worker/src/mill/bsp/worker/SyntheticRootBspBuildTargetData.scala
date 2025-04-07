@@ -15,12 +15,12 @@ import ch.epfl.scala.bsp4j.BuildTarget
  */
 class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
   val id: BuildTargetIdentifier = new BuildTargetIdentifier(
-    Utils.sanitizeUri(topLevelProjectRoot / "mill-synthetic-root-target")
+    Utils.sanitizeUri((topLevelProjectRoot / "mill-synthetic-root-target").toNIO)
   )
 
   val bt: BspBuildTarget = BspBuildTarget(
     displayName = Some("mill-synthetic-root"),
-    baseDirectory = Some(topLevelProjectRoot),
+    baseDirectory = Some(topLevelProjectRoot.toNIO),
     tags = Seq(Tag.Manual),
     languageIds = Seq.empty,
     canCompile = false,
@@ -42,7 +42,7 @@ object SyntheticRootBspBuildTargetData {
       workspaceDir: os.Path
   ): Option[SyntheticRootBspBuildTargetData] = {
     def containsWorkspaceDir(path: Option[os.Path]) = path.exists(workspaceDir.startsWith)
-    if (existingModules.exists { m => containsWorkspaceDir(m.bspBuildTarget.baseDirectory) }) None
+    if (existingModules.exists { m => containsWorkspaceDir(m.bspBuildTarget.baseDirectory.map(os.Path(_))) }) None
     else Some(new SyntheticRootBspBuildTargetData(workspaceDir))
   }
 }

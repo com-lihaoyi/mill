@@ -1,6 +1,6 @@
 package mill.bsp
 
-import mill.api.{Logger, SystemStreams, Result}
+import mill.runner.api.{Logger, SystemStreams, Result}
 
 import java.io.PrintStream
 import java.net.URL

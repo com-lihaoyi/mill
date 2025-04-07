@@ -159,6 +159,9 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
     }
   }
 
+  def bspBuildTargetCompileSemanticDb = Task.Anon{
+    compiledClassesAndSemanticDbFiles().path.toNIO
+  }
 }
 
 object SemanticDbJavaModule {

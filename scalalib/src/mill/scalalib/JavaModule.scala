@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import coursier.{core => cs}
+import coursier.core as cs
 import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.parse.JavaOrScalaModule
@@ -17,7 +17,6 @@ import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
-
 import os.Path
 
 /**
@@ -866,10 +865,11 @@ trait JavaModule
    * Keep in sync with [[compileClasspath]]
    */
   @internal
-  def bspCompileClasspath: T[Seq[UnresolvedPath]] = Task {
-    resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+  def bspCompileClasspath: Task[mill.runner.api.EvaluatorApi => Seq[String]] = Task.Anon { (ev: mill.runner.api.EvaluatorApi)  =>
+    (resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
       bspTransitiveCompileClasspath() ++
       localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))
+      ).map(_.resolve(os.Path(ev.outPathJava))).map(sanitizeUri)
   }
 
   /**
@@ -1359,11 +1359,11 @@ trait JavaModule
         }
     }
 
-    val compileClasspathTask =
+    val compileClasspathTask: Task[mill.runner.api.EvaluatorApi => Seq[String]] =
       if (enableJvmCompileClasspathProvider) {
         // We have a dedicated request for it
         Task.Anon {
-          Seq.empty[UnresolvedPath]
+          (e: mill.runner.api.EvaluatorApi) => Seq.empty[String]
         }
       } else {
         bspCompileClasspath
@@ -1387,11 +1387,11 @@ trait JavaModule
         sem.bspCompiledClassesAndSemanticDbFiles
       case _ => bspCompileClassesPath
     }
-    Task.Anon {
+    Task.Anon { (ev: mill.runner.api.EvaluatorApi) =>
       (
-        classesPathTask(),
+        classesPathTask().resolve(os.Path(ev.outPathJava)).toNIO,
         javacOptions() ++ mandatoryJavacOptions(),
-        bspCompileClasspath()
+        bspCompileClasspath.apply().apply(ev)
       )
     }
   }
@@ -1443,7 +1443,8 @@ trait JavaModule
             coursierDependency
           )
         )
-        .orderedDependencies,
+        .orderedDependencies
+        .map{d => (d.module.organization.value, d.module.repr, d.version)},
       unmanagedClasspath().map(_.path.toNIO)
     )
   }
@@ -1455,6 +1456,8 @@ trait JavaModule
   }
 
   def bspBuildTargetResources = Task.Anon{ resources().map(_.path.toNIO) }
+
+  def bspBuildTargetCompile = Task.Anon{ compile().classes.path.toNIO }
 }
 
 object JavaModule {

@@ -1,8 +1,9 @@
 package mill.define
 
 import mill.api.*
+import mill.runner.api.{TaskApi, ExecutionResultsApi}
 
-trait ExecutionResults {
+trait ExecutionResults extends ExecutionResultsApi{
 
   /**
    * The values returned by the tasks specified by the user
@@ -14,6 +15,7 @@ trait ExecutionResults {
    * tasks, and their results
    */
   def transitiveResults: Map[Task[?], ExecResult[Val]]
+  def transitiveResultsApi: Map[TaskApi[?], ExecResult[Val]] = transitiveResults.asInstanceOf[Map[TaskApi[?], ExecResult[Val]]]
 
   /**
    * The tasks that were executed without being read from cache

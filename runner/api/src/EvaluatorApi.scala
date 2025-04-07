@@ -8,17 +8,31 @@ trait EvaluatorApi extends AutoCloseable {
       selectiveExecution: Boolean = false
   ): Result[EvaluatorApi.Result[Any]]
 
+  def executeApi[T](
+                  targets: Seq[TaskApi[T]],
+                  reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+                  testReporter: TestReporter = DummyTestReporter,
+                  logger: Logger = null,
+                  serialCommandExec: Boolean = false,
+                  selectiveExecution: Boolean = false
+                ): EvaluatorApi.Result[T] 
+
   private[mill] def workerCache: mutable.Map[String, (Int, Val)]
 
   def execute[T](targets: Seq[TaskApi[T]]): EvaluatorApi.Result[T]
   private[mill] def baseLogger: Logger
   private[mill] def rootModule: BaseModuleApi
+  private[mill] def outPathJava: java.nio.file.Path
 }
 object EvaluatorApi {
   trait Result[T] {
     def watchable: Seq[Watchable]
     def values: mill.runner.api.Result[Seq[T]]
+
+    def selectedTasks: Seq[TaskApi[?]]
+    def executionResults: ExecutionResultsApi
   }
+
 
   /**
    * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
@@ -30,3 +44,10 @@ object EvaluatorApi {
 
 }
 
+trait ExecutionResultsApi {
+  def results: Seq[ExecResult[Val]]
+  def transitiveResultsApi: Map[TaskApi[?], ExecResult[Val]]
+  def uncached: Seq[TaskApi[?]]
+
+  def values: Seq[Val]
+}

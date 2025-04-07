@@ -1,6 +1,8 @@
 package mill.runner.api
 
-trait SemanticDbJavaModuleApi
+trait SemanticDbJavaModuleApi {
+  def bspBuildTargetCompileSemanticDb: TaskApi[java.nio.file.Path]
+}
 object SemanticDbJavaModuleApi {
   val buildTimeJavaSemanticDbVersion = Versions.semanticDbJavaVersion
   val buildTimeSemanticDbVersion = Versions.semanticDBVersion
@@ -19,4 +21,5 @@ object SemanticDbJavaModuleApi {
     contextJavaSemanticDbVersion.set(None)
     contextSemanticDbVersion.set(None)
   }
+
 }

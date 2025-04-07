@@ -1,6 +1,6 @@
 package mill.define
 
-import mill.runner.api.{CompileProblemReporter, TestReporter, DummyTestReporter}
+import mill.runner.api.{TaskApi, CompileProblemReporter, TestReporter, DummyTestReporter}
 import mill.api.*
 import mill.define.internal.Watchable
 import mill.runner.api.EvaluatorApi
@@ -14,6 +14,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def workspace: os.Path
   private[mill] def baseLogger: Logger
   private[mill] def outPath: os.Path
+  private[mill] def outPathJava = outPath.toNIO
   private[mill] def codeSignatures: Map[String, Int]
   private[mill] def rootModule: BaseModule
   private[mill] def workerCache: mutable.Map[String, (Int, Val)]
@@ -53,6 +54,18 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]]
+
+
+  def executeApi[T](
+                     targets: Seq[TaskApi[T]],
+                     reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+                     testReporter: TestReporter = DummyTestReporter,
+                     logger: Logger = null,
+                     serialCommandExec: Boolean = false,
+                     selectiveExecution: Boolean = false
+                   ): EvaluatorApi.Result[T] = {
+    execute(targets.map(_.asInstanceOf[Task[T]]), reporter, testReporter, logger, serialCommandExec, selectiveExecution)
+  }
 }
 object Evaluator {
   // This needs to be a ThreadLocal because we need to pass it into the body of

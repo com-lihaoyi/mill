@@ -216,9 +216,9 @@ trait RunModule extends WithJvmWorker {
     }
     Task.Anon {
       (
-        runClasspath(),
+        runClasspath().map(_.path.toNIO),
         forkArgs(),
-        forkWorkingDir(),
+        forkWorkingDir().toNIO,
         forkEnv(),
         mainClass(),
         moduleSpecificTask()
