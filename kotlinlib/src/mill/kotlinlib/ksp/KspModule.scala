@@ -48,7 +48,7 @@ trait KspModule extends KotlinModule { outer =>
   }
 
   override def generatedSources: T[Seq[PathRef]] = Task {
-    super.generatedSources() ++ generateSourcesWithKSP().sources
+    super.generatedSources() ++ generatedSourcesWithKSP().sources
   }
 
   def kspPluginsResolved: T[Agg[PathRef]] = Task {
@@ -110,7 +110,7 @@ trait KspModule extends KotlinModule { outer =>
    * Kotlinc arguments used with KSP
    * @return
    */
-  def kspKotlinc: T[Seq[String]] = Seq(
+  def kspKotlincOptions: T[Seq[String]] = Seq(
     "-Xallow-unstable-dependencies",
     "-no-reflect",
     "-no-stdlib",
@@ -128,7 +128,7 @@ trait KspModule extends KotlinModule { outer =>
    * so that the generated  sources are in the [[compileClasspath]]
    * for the main compile task.
    */
-  def generateSourcesWithKSP: Target[GeneratedKSPSources] = Task {
+  def generatedSourcesWithKSP: Target[GeneratedKSPSources] = Task {
     val sourceFiles = kspSources().map(_.path).filter(os.exists)
 
     val compileCp = kspClasspath().map(_.path).filter(os.exists)
@@ -166,7 +166,8 @@ trait KspModule extends KotlinModule { outer =>
       s"$pluginOpt:mapAnnotationArgumentsInJava=false"
     ) ++ kspPluginParameters().map(p => s"$pluginOpt:$p")
 
-    val kspCompilerArgs = kspKotlinc() ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
+    val kspCompilerArgs =
+      kspKotlincOptions() ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
 
     Task.log.info(
       s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOutputDir} ..."

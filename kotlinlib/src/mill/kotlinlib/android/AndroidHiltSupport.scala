@@ -22,7 +22,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
   override def kspSources: T[Seq[PathRef]] = Task { super.sources() }
 
   override def generatedSources: T[Seq[PathRef]] =
-    super[AndroidAppKotlinModule].generatedSources
+    super[AndroidAppKotlinModule].generatedSources()
 
   override def kspClasspath: T[Seq[PathRef]] =
     Seq(androidProcessResources()) ++ super.kspClasspath()
@@ -42,14 +42,6 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     )
   }
 
-  override def kspPluginsResolved: T[Seq[PathRef]] = Task {
-    super.kspPluginsResolved()
-  }
-
-  override def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
-    super.kotlinSymbolProcessorsResolved()
-  }
-
   override def kspPluginParameters: T[Seq[String]] = Task {
     super.kspPluginParameters() ++
       Seq(
@@ -64,7 +56,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
     val directory = Task.dest / "ap_generated/out"
 
     os.makeDir.all(directory)
-    val generatedKSPSources = generateSourcesWithKSP()
+    val generatedKSPSources = generatedSourcesWithKSP()
 
     val generatedPath = Task.dest / "generated"
     os.makeDir(generatedPath)
