@@ -8,23 +8,6 @@ import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 // https://kotlinlang.org/docs/compose-compiler-options.html possible options
 trait AndroidKotlinModule extends KotlinModule {
 
-  override def kotlincOptions = super.kotlincOptions() ++ {
-    if (androidEnableCompose()) {
-      Seq(
-        // TODO expose Compose configuration options
-        // https://kotlinlang.org/docs/compose-compiler-options.html possible options
-        s"-Xplugin=${kotlincPluginJars().map(_.path).mkString(",")}",
-        "-P",
-        "plugin:androidx.compose.compiler.plugins.kotlin:generateFunctionKeyMetaClasses=false," +
-          "plugin:androidx.compose.compiler.plugins.kotlin:traceMarkersEnabled=true",
-        "-verbose",
-        "-opt-in=kotlin.RequiresOptIn",
-        "-opt-in=kotlin.Experimental",
-        "-Xallow-unstable-dependencies"
-      )
-    } else Seq.empty
-  }
-
   /**
    * Enable Jetpack Compose support in the module. Default is `false`.
    */
