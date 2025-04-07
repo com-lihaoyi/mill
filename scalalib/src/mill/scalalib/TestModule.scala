@@ -2,6 +2,7 @@ package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task, TaskModule}
+import mill.runner.api.TestReporter
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
@@ -146,6 +147,8 @@ trait TestModule
    */
   def testReportXml: T[Option[String]] = T(Some("test-report.xml"))
 
+  def testLogLevel: T[TestReporter.LogLevel] = Task(TestReporter.LogLevel.Debug)
+
   /**
    * Returns a Tuple where the first element is the main-class, second and third are main-class-arguments and the forth is classpath
    */
@@ -166,7 +169,8 @@ trait TestModule
         resultPath = resultPath,
         colored = Task.log.prompt.colored,
         testCp = testClasspath().map(_.path),
-        globSelectors = Left(selectors)
+        globSelectors = Left(selectors),
+        logLevel = testLogLevel()
       )
 
       val argsFile = Task.dest / "testargs"
@@ -216,7 +220,8 @@ trait TestModule
         forkWorkingDir(),
         testReportXml(),
         jvmWorker().javaHome().map(_.path),
-        testParallelism()
+        testParallelism(),
+        testLogLevel()
       )
       testModuleUtil.runTests()
     }

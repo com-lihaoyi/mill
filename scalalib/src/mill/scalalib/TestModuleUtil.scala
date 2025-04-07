@@ -2,6 +2,7 @@ package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
 import mill.constants.EnvVars
+import mill.runner.api.TestReporter
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
 import mill.Task
@@ -32,7 +33,8 @@ private final class TestModuleUtil(
     forkWorkingDir: os.Path,
     testReportXml: Option[String],
     javaHome: Option[os.Path],
-    testParallelism: Boolean
+    testParallelism: Boolean,
+    testLogLevel: TestReporter.LogLevel
 )(implicit ctx: mill.api.Ctx) {
 
   private val (jvmArgs, props: Map[String, String]) =
@@ -139,7 +141,8 @@ private final class TestModuleUtil(
       resultPath = resultPath,
       colored = Task.log.prompt.colored,
       testCp = testClasspath.map(_.path),
-      globSelectors = selector
+      globSelectors = selector,
+      logLevel = testLogLevel
     )
 
     val argsFile = baseFolder / "testargs"
