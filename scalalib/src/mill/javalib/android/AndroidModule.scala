@@ -491,6 +491,15 @@ trait AndroidModule extends JavaModule {
    */
   def androidEmulatorArchitecture: String = "x86_64"
 
+  /** All individual classfiles inherited from the classpath that will be included into the dex */
+  def inheritedClassFiles: T[Seq[PathRef]] = Task {
+    compileClasspath()
+      .map(_.path).filter(os.isDir)
+      .flatMap(os.walk(_))
+      .filter(os.isFile)
+      .filter(_.ext == "class")
+      .map(PathRef(_))
+  }
   /**
    * Converts the generated JAR file into a DEX file using the `d8` tool.
    *
@@ -498,15 +507,9 @@ trait AndroidModule extends JavaModule {
    */
   def androidDex: T[PathRef] = Task {
 
-    val inheritedClassFiles = compileClasspath().map(_.path).filter(os.isDir)
-      .flatMap(os.walk(_))
-      .filter(os.isFile)
-      .filter(_.ext == "class")
-      .map(_.toString())
-
     val appCompiledFiles = os.walk(compile().classes.path)
       .filter(_.ext == "class")
-      .map(_.toString) ++ inheritedClassFiles
+      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString)
 
     val libsJarFiles = compileClasspath()
       .filter(_ != androidSdkModule().androidJarPath())
