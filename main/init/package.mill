@@ -5,6 +5,10 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
 
+import java.util.zip.ZipOutputStream
+
+import scala.util.Using
+
 object `package` extends RootModule with build.MillPublishScalaModule {
 
   def moduleDeps = Seq(build.main, build.main.init.buildgen, build.scalalib)
@@ -121,6 +125,20 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       // def moduleDeps = Seq(buildgen.tree())
       def ivyDeps = Agg(build.Deps.upickle)
       def compileIvyDeps = Agg(build.Deps.sbt) // for definition references only
+
+      def docJar =
+        if (crossScalaVersion == build.Deps.scalaVersion)
+          // Without this, docJar currently outputs more than 50k lines of warning. Disabling it.
+          Task {
+            val jar = Task.dest / "empty.jar"
+            Using.resource(os.write.outputStream(jar)) { os =>
+              val zos = new ZipOutputStream(os)
+              zos.finish()
+            }
+            PathRef(jar)
+          }
+        else
+          super.docJar
     }
 
     // no need to publish this
