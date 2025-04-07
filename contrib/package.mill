@@ -173,19 +173,19 @@ object `package` extends RootModule {
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }
 
-  object bloop extends ContribModule with BuildInfo {
-    def compileModuleDeps = Seq(build.scalalib, build.scalajslib, build.scalanativelib)
-    def ivyDeps = Agg(build.Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
-    def testModuleDeps = super.testModuleDeps ++ Seq(
-      build.scalalib,
-      build.scalajslib,
-      build.scalanativelib
-    )
-
-    def buildInfoPackageName = "mill.contrib.bloop"
-    def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Seq(BuildInfo.Value("bloop", build.Deps.bloopConfig.version))
-  }
+  // object bloop extends ContribModule with BuildInfo {
+  //   def compileModuleDeps = Seq(build.scalalib, build.scalajslib, build.scalanativelib)
+  //   def ivyDeps = Agg(build.Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
+  //   def testModuleDeps = super.testModuleDeps ++ Seq(
+  //     build.scalalib,
+  //     build.scalajslib,
+  //     build.scalanativelib
+  //   )
+  //
+  //   def buildInfoPackageName = "mill.contrib.bloop"
+  //   def buildInfoObjectName = "Versions"
+  //   def buildInfoMembers = Seq(BuildInfo.Value("bloop", build.Deps.bloopConfig.version))
+  // }
 
   object artifactory extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib)

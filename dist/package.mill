@@ -80,7 +80,7 @@ object `package` extends RootModule with InstallModule {
       build.main.init.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
       build.scalalib.`classgraph-worker`.testDep(),
-      build.contrib.bloop.testDep(),
+      // build.contrib.bloop.testDep(),
       build.contrib.buildinfo.testDep(),
       build.contrib.scoverage.testDep(),
       build.contrib.scoverage.worker2.testDep(),
