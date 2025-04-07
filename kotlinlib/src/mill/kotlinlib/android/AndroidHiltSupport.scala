@@ -14,6 +14,15 @@ import os.Path
 
 import java.io.File
 
+/**
+* Trait for mixing in AndroidAppKotlinModule to
+* support the Hilt Dependency Injection framework for Android.
+*
+* It prepends compilation steps by using Kotlin Symbol Processing
+* for pre-processing the Hilt annotations and generating the necessary classes for Hilt to work, then
+* compiles all the sources together with a Java pre-processor step and finally a transform ASM step
+* to achieve the compile time dependency injection!
+*/
 @mill.api.experimental
 trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
