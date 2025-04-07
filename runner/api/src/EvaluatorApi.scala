@@ -12,6 +12,7 @@ trait EvaluatorApi extends AutoCloseable {
 
   def execute[T](targets: Seq[TaskApi[T]]): EvaluatorApi.Result[T]
   private[mill] def baseLogger: Logger
+  private[mill] def rootModule: BaseModuleApi
 }
 object EvaluatorApi {
   trait Result[T] {

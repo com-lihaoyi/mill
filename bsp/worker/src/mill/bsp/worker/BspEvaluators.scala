@@ -1,25 +1,31 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
-import mill.scalalib.internal.JavaModuleUtils
-import mill.define.{Evaluator, Module}
-import mill.runner.api.{BspModuleApi, EvaluatorApi}
+import mill.runner.api.{BaseModuleApi, BspModuleApi, EvaluatorApi, ModuleApi}
 
 private class BspEvaluators(
     workspaceDir: os.Path,
     evaluators: Seq[EvaluatorApi],
     debug: (() => String) => Unit
 ) {
+  /**
+   * Compute all transitive modules from module children and via moduleDeps + compileModuleDeps
+   */
+  def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
+    Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
+  }
+
+
   lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
-    val modules: Seq[(Module, Seq[Module], EvaluatorApi)] = evaluators
-      .map(ev => (ev.rootModule, JavaModuleUtils.transitiveModules(ev.rootModule), ev))
+    val modules: Seq[(ModuleApi, Seq[ModuleApi], EvaluatorApi)] = evaluators
+      .map(ev => (ev.rootModule, transitiveModules(ev.rootModule), ev))
 
     modules
       .flatMap { case (rootModule, modules, eval) =>
         modules.collect {
           case m: BspModuleApi =>
             val uri = Utils.sanitizeUri(
-              rootModule.moduleDir / m.moduleSegments.parts
+              (os.Path(rootModule.moduleDirJava) / m.moduleSegments.parts).toNIO
             )
 
             (new BuildTargetIdentifier(uri), (m, eval))
@@ -32,7 +38,7 @@ private class BspEvaluators(
     map
   }
 
-  lazy val rootModules: Seq[mill.define.BaseModule] = evaluators.map(_.rootModule)
+  lazy val rootModules: Seq[BaseModuleApi] = evaluators.map(_.rootModule)
 
   lazy val bspIdByModule: Map[BspModuleApi, BuildTargetIdentifier] =
     bspModulesById.view.mapValues(_._1).map(_.swap).toMap

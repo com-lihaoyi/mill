@@ -1,2 +1,2 @@
 package mill.runner.api
-trait BaseModuleApi
+trait BaseModuleApi extends ModuleApi

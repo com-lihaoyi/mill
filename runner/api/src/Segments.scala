@@ -1,4 +1,4 @@
-package mill.define
+package mill.runner.api
 
 import scala.math.Ordering.Implicits.seqOrdering
 

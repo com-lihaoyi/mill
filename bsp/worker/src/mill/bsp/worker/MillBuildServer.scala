@@ -8,11 +8,6 @@ import mill.bsp.{Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.runner.api.Segment.Label
 import mill.given
-import mill.define.Segment.Label
-import mill.define.{Args, Evaluator, ExecutionResults, NamedTask, Task}
-import mill.runner.MillBuildRootModule
-import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
-import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
@@ -218,7 +213,7 @@ private class MillBuildServer(
     ) {
       case (ev, state, id, module, items) => new SourcesItem(
           id,
-          (items._1.map(sourceItem(_, false)) ++ items._2.map(sourceItem(_, true))).asJava
+          (items._1.map(p => sourceItem(os.Path(p), false)) ++ items._2.map(p => sourceItem(os.Path(p), true))).asJava
         )
     } { (sourceItems, state) =>
       new SourcesResult(
@@ -319,7 +314,7 @@ private class MillBuildServer(
     completableTasks(
       s"buildTargetResources ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
-      tasks = { case m: JavaModuleApi => m.resources }
+      tasks = { case m: JavaModuleApi => m.bspBuildTargetResources }
     ) {
       case (ev, state, id, m, resources) =>
         val resourcesUrls = resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
@@ -564,7 +559,7 @@ private class MillBuildServer(
    */
   def completableTasks[T, V, W: ClassTag](
       hint: String,
-      targetIds: State => Seq[BuildTargetIdentifier],
+      targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
       tasks: PartialFunction[BspModuleApi, TaskApi[W]]
   )(f: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(agg: java.util.List[T] => V)
       : CompletableFuture[V] =
@@ -578,7 +573,7 @@ private class MillBuildServer(
       hint: String,
       targetIds: BspEvaluators => Seq[BuildTargetIdentifier],
       tasks: PartialFunction[BspModuleApi, TaskApi[W]]
-  )(f: (EvaluatorApi, State, BuildTargetIdentifier, BspModuleApi, W) => T)(agg: (
+  )(f: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(agg: (
       java.util.List[T],
       BspEvaluators
   ) => V): CompletableFuture[V] = {

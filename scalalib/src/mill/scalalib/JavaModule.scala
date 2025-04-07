@@ -1396,8 +1396,8 @@ trait JavaModule
     }
   }
 
-  def bspBuildTargetSources: Task[(Seq[os.Path], Seq[os.Path])] = Task.Anon {
-    Tuple2(sources().map(_.path), generatedSources().map(_.path))
+  def bspBuildTargetSources = Task.Anon {
+    Tuple2(sources().map(_.path.toNIO), generatedSources().map(_.path.toNIO))
   }
 
   def sanitizeUri(uri: String): String =
@@ -1427,8 +1427,8 @@ trait JavaModule
           coursierDependency
         ),
         sources = true
-      ),
-      unmanagedClasspath(),
+      ).map(_.path.toNIO),
+      unmanagedClasspath().map(_.path.toNIO),
       buildSources
     )
   }
@@ -1444,7 +1444,7 @@ trait JavaModule
           )
         )
         .orderedDependencies,
-      unmanagedClasspath()
+      unmanagedClasspath().map(_.path.toNIO)
     )
   }
 
@@ -1453,6 +1453,8 @@ trait JavaModule
   def bspRun(args: Seq[String]): Command[Unit] = Task.Command {
     run(Task.Anon(Args(args)))()
   }
+
+  def bspBuildTargetResources = Task.Anon{ resources().map(_.path.toNIO) }
 }
 
 object JavaModule {

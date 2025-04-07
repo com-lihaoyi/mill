@@ -8,7 +8,6 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.bsp.{BspContext}
 import mill.runner.api.BspServerResult
 import mill.api.{
   DummyInputStream,
@@ -19,7 +18,6 @@ import mill.api.{
   WorkspaceRoot,
   internal
 }
-import mill.bsp.BspServerResult
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
 import mill.util.BuildInfo
