@@ -26,7 +26,7 @@
       },
       "dataKind": "jvm",
       "data": {
-        "javaHome": " java-home",
+        "javaHome": "java-home",
         "javaVersion": "<java-version>"
       }
     },
