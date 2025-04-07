@@ -80,6 +80,11 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       selectiveExecution
     )
   }
+
+  /**
+   * APIs related to selective execution
+   */
+  def selective: SelectiveExecution
 }
 object Evaluator {
   // This needs to be a ThreadLocal because we need to pass it into the body of

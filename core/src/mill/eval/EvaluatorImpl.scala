@@ -130,7 +130,7 @@ final class EvaluatorImpl private[mill] (
       if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
         val (named, unnamed) =
           targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
-        val changedTasks = SelectiveExecution.computeChangedTasks0(this, named)
+        val changedTasks = this.selective.computeChangedTasks0(named)
 
         val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
 
@@ -190,8 +190,7 @@ final class EvaluatorImpl private[mill] (
           .toMap
 
         if (selectiveExecutionEnabled) {
-          SelectiveExecution.saveMetadata(
-            this,
+          this.selective.saveMetadata(
             SelectiveExecution.Metadata(allInputHashes, codeSignatures)
           )
         }
@@ -242,6 +241,7 @@ final class EvaluatorImpl private[mill] (
 
   def close(): Unit = execution.close()
 
+  val selective = new mill.eval.SelectiveExecutionImpl(this)
 }
 object EvaluatorImpl {
   def withResolveChecker[T](f: () => T): T = {

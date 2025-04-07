@@ -75,4 +75,6 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
     delegate.evaluate(scriptArgs, selectMode, selectiveExecution)
   }
   def close = delegate.close()
+
+  def selective = delegate.selective
 }
