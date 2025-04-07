@@ -280,7 +280,7 @@ object TestModule {
       super.mandatoryIvyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
 
-    private val classesDir: Task[Option[os.Path]] = this match {
+    private def classesDir: Task[Option[os.Path]] = this match {
       case withCompileTask: JavaModule => Task.Anon {
           Some(withCompileTask.compile().classes.path)
         }
