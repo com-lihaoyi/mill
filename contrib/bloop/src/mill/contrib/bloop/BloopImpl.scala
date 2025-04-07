@@ -377,7 +377,7 @@ class BloopImpl(
 
     val millBuildDependencies: Task[List[BloopConfig.Module]] = Task.Anon {
 
-      val (_, result) = module.defaultResolver().artifacts(
+      val result = module.defaultResolver().artifacts(
         BuildInfo.millAllDistDependencies
           .split(',')
           .filter(_.nonEmpty)
@@ -394,7 +394,7 @@ class BloopImpl(
             }
           },
         sources = true
-      )
+      ).artifactResult
 
       def moduleOf(dep: coursier.Dependency): BloopConfig.Module =
         BloopConfig.Module(

@@ -6,7 +6,7 @@ import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
 import mill.api.{PathRef, Result}
-import mill.util.Jvm
+import mill.util.{ArtifactResolution, Jvm}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -242,7 +242,7 @@ object CoursierModule {
     def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
-    )(implicit ctx: mill.api.Ctx): (coursier.Resolution, coursier.Artifacts.Result) = {
+    )(implicit ctx: mill.api.Ctx): (ArtifactResolution) = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
