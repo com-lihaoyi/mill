@@ -12,7 +12,7 @@ import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.T
 
-trait ScalaJSModule extends scalalib.ScalaModule { outer =>
+trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSModuleApi { outer =>
 
   def scalaJSVersion: T[String]
 

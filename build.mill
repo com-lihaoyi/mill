@@ -701,7 +701,7 @@ object idea extends MillPublishScalaModule {
     build.core,
     build.scalalib,
     build.scalajslib,
-    build.scalanativelib,
+    build.scalanativelib
   )
 }
 

@@ -79,9 +79,11 @@ trait JavaModuleApi extends ModuleApi {
       clientWantsSemanticDb: Boolean
   ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
 
-  def genIdeaMetadata(ideaConfigVersion: Int,
-                      evaluator: mill.runner.api.EvaluatorApi,
-                      path: mill.runner.api.Segments): TaskApi[ResolvedModule]
+  def genIdeaMetadata(
+      ideaConfigVersion: Int,
+      evaluator: mill.runner.api.EvaluatorApi,
+      path: mill.runner.api.Segments
+  ): TaskApi[ResolvedModule]
 
   def transitiveModuleCompileModuleDeps: Seq[JavaModuleApi]
   def skipIdea: Boolean
@@ -90,6 +92,9 @@ trait JavaModuleApi extends ModuleApi {
 }
 object JavaModuleApi
 
+trait ScalaModuleApi extends JavaModuleApi
+trait ScalaJSModuleApi extends JavaModuleApi
+trait ScalaNativeModuleApi extends JavaModuleApi
 trait TestModuleApi extends ModuleApi {
   def testLocal(args: String*): TaskApi[(String, Seq[Any])]
 }
@@ -130,7 +135,6 @@ object BspModuleApi {
   }
 }
 
-
 final case class ResolvedModule(
     path: Segments,
     classpath: Seq[Scoped[java.nio.file.Path]],
@@ -146,7 +150,7 @@ final case class ResolvedModule(
     scalaVersion: Option[String],
     resources: Seq[java.nio.file.Path],
     generatedSources: Seq[java.nio.file.Path],
-    allSources: Seq[java.nio.file.Path],
+    allSources: Seq[java.nio.file.Path]
 )
 
 final case class Scoped[T](value: T, scope: Option[String])
@@ -175,10 +179,10 @@ final case class Element(
  *                  Note: the `name` fields is deprecated in favour of `subPath`, but kept for backward compatibility.
  */
 final case class IdeaConfigFile(
-                                 subPath: java.nio.file.Path,
-                                 component: Option[String],
-                                 config: Seq[Element]
-                               ) {
+    subPath: java.nio.file.Path,
+    component: Option[String],
+    config: Seq[Element]
+) {
   // An empty component name meas we contribute a whole file
   // If we have a fill file, we only accept a single root xml node.
   require(
@@ -196,9 +200,9 @@ object IdeaConfigFile {
 
   /** Alternative creator accepting a component string. */
   def apply(
-             subPath: java.nio.file.Path,
-             component: String,
-             config: Seq[Element]
-           ): IdeaConfigFile =
+      subPath: java.nio.file.Path,
+      component: String,
+      config: Seq[Element]
+  ): IdeaConfigFile =
     IdeaConfigFile(subPath, if (component == "") None else Option(component), config)
 }

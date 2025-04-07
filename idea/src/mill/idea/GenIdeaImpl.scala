@@ -11,12 +11,17 @@ import mill.define.{Evaluator, Ctx as _, *}
 import mill.runner.api.{EvaluatorApi, ModuleApi, JavaModuleApi, BaseModuleApi}
 import mill.util.BuildInfo
 import mill.scalajslib.ScalaJSModule
-import mill.runner.api.{IdeaConfigFile, JavaFacet}
+import mill.runner.api.{
+  IdeaConfigFile,
+  JavaFacet,
+  TestModuleApi,
+  ScalaModuleApi,
+  ScalaJSModuleApi,
+  ScalaNativeModuleApi
+}
 import mill.scalalib.internal.JavaModuleUtils
-import mill.scalalib
 import collection.mutable
 import java.net.URL
-import mill.scalalib._
 import mill.scalanativelib.ScalaNativeModule
 
 class GenIdeaImpl(
@@ -79,7 +84,7 @@ class GenIdeaImpl(
     val foundModules: Seq[(Segments, ModuleApi, EvaluatorApi)] = transitive
       .flatMap { case (rootMod, transModules, ev, idx) =>
         transModules.collect {
-          case m: Module =>
+          case m: ModuleApi =>
             val rootSegs = os.Path(rootMod.moduleDirJava).relativeTo(workDir).segments
             val modSegs = m.moduleSegments.parts
             val segments: Seq[String] = rootSegs ++ modSegs
@@ -88,7 +93,7 @@ class GenIdeaImpl(
       }
 
     val modules: Seq[(Segments, JavaModuleApi, EvaluatorApi)] = foundModules
-      .collect { case (s, x: scalalib.JavaModule, ev) => (s, x, ev) }
+      .collect { case (s, x: JavaModuleApi, ev) => (s, x, ev) }
       .filterNot(_._2.skipIdea)
       .distinct
 
@@ -112,7 +117,8 @@ class GenIdeaImpl(
     val buildDepsPaths = GenIdeaImpl.allJars(evaluators.head.rootModule.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
-    def resolveTasks: Map[EvaluatorApi, Seq[mill.runner.api.TaskApi[mill.runner.api.ResolvedModule]]] =
+    def resolveTasks
+        : Map[EvaluatorApi, Seq[mill.runner.api.TaskApi[mill.runner.api.ResolvedModule]]] =
       modulesByEvaluator.map { case (evaluator, m) =>
         evaluator -> m.map {
           case (path, mod) => mod.genIdeaMetadata(ideaConfigVersion, evaluator, path)
@@ -135,7 +141,9 @@ class GenIdeaImpl(
     val moduleLabels = modules.map { case (s, m, e) => (m, s) }.toMap
 
     val allResolved: Seq[os.Path] =
-      (resolvedModules.flatMap(_.classpath).map(s => os.Path(s.value)) ++ buildLibraryPaths ++ buildDepsPaths)
+      (resolvedModules.flatMap(_.classpath).map(s =>
+        os.Path(s.value)
+      ) ++ buildLibraryPaths ++ buildDepsPaths)
         .distinct
         .sorted
 
@@ -165,7 +173,7 @@ class GenIdeaImpl(
         seen.get(key) match {
           case None =>
             seen += key -> conf.config
-            result += subPath-> (result
+            result += subPath -> (result
               .get(subPath)
               .getOrElse(Seq()) ++ Seq(conf))
           case Some(existing) if conf.config == existing =>
@@ -397,7 +405,9 @@ class GenIdeaImpl(
 
         val sanizedDeps: Seq[ScopedOrd[String]] = {
           resolvedDeps
-            .map((s: mill.runner.api.Scoped[java.nio.file.Path]) => pathToLibName(os.Path(s.value)) -> s.scope)
+            .map((s: mill.runner.api.Scoped[java.nio.file.Path]) =>
+              pathToLibName(os.Path(s.value)) -> s.scope
+            )
             .iterator
             .toSeq
             .groupBy(_._1)
@@ -437,12 +447,12 @@ class GenIdeaImpl(
             .distinct
         }
 
-        val isTest = mod.isInstanceOf[TestModule]
+        val isTest = mod.isInstanceOf[TestModuleApi]
 
         val sdkName = (mod match {
-          case _: ScalaJSModule => Some("scala-js-SDK")
-          case _: ScalaNativeModule => Some("scala-native-SDK")
-          case _: ScalaModule => Some("scala-SDK")
+          case _: ScalaJSModuleApi => Some("scala-js-SDK")
+          case _: ScalaNativeModuleApi => Some("scala-native-SDK")
+          case _: ScalaModuleApi => Some("scala-SDK")
           case _ => None
         })
           .map { name => s"${name}-${scalaVersion.get}" }
@@ -915,8 +925,6 @@ object GenIdeaImpl {
   final case class WithSourcesResolved(path: os.Path, sources: Option[os.Path])
       extends ResolvedLibrary
 
-
-
   final case class ScopedOrd[T <: Comparable[T]](value: T, scope: Option[String])
       extends Ordered[ScopedOrd[T]] {
     override def compare(that: ScopedOrd[T]): Int =
@@ -935,7 +943,6 @@ object GenIdeaImpl {
     def apply[T <: Comparable[T]](scoped: mill.runner.api.Scoped[T]): ScopedOrd[T] =
       ScopedOrd(scoped.value, scoped.scope)
   }
-
 
   case class GenIdeaException(msg: String) extends RuntimeException
 

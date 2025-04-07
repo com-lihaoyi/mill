@@ -1464,9 +1464,11 @@ trait JavaModule
 
   def bspBuildTargetCompile = Task.Anon { compile().classes.path.toNIO }
 
-  def genIdeaMetadata(ideaConfigVersion: Int,
-                      evaluator: mill.runner.api.EvaluatorApi,
-                      path: mill.runner.api.Segments) = {
+  def genIdeaMetadata(
+      ideaConfigVersion: Int,
+      evaluator: mill.runner.api.EvaluatorApi,
+      path: mill.runner.api.Segments
+  ) = {
     import mill.runner.api.{JavaFacet, IdeaConfigFile, Scoped, ResolvedModule}
     val mod = this
     // same as input of resolvedIvyDeps
@@ -1504,17 +1506,17 @@ trait JavaModule
 
     val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
       case mod: ScalaModule => (
-        Task.Anon(mod.scalacPluginIvyDeps()),
-        Task.Anon(mod.allScalacOptions()),
-        Task.Anon {
-          Some(mod.scalaVersion())
-        }
-      )
+          Task.Anon(mod.scalacPluginIvyDeps()),
+          Task.Anon(mod.allScalacOptions()),
+          Task.Anon {
+            Some(mod.scalaVersion())
+          }
+        )
       case _ => (
-        Task.Anon(Seq[Dep]()),
-        Task.Anon(Seq[String]()),
-        Task.Anon(None)
-      )
+          Task.Anon(Seq[Dep]()),
+          Task.Anon(Seq[String]()),
+          Task.Anon(None)
+        )
     }
 
     val scalacPluginDependencies = Task.Anon {
@@ -1559,7 +1561,8 @@ trait JavaModule
         path = path,
         // FIXME: why do we need to sources in the classpath?
         // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
-        classpath = resolvedCp.filter(_.value.ext == "jar").map(s => Scoped(s.value.toNIO, s.scope)),
+        classpath =
+          resolvedCp.filter(_.value.ext == "jar").map(s => Scoped(s.value.toNIO, s.scope)),
         module = mod,
         pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar").map(_.toNIO),
         scalaOptions = scalacOpts,
@@ -1578,7 +1581,7 @@ trait JavaModule
 
   }
 
-  def buildLibraryPaths: Task[Seq[java.nio.file.Path]] = Task.Anon{
+  def buildLibraryPaths: Task[Seq[java.nio.file.Path]] = Task.Anon {
     Lib.resolveMillBuildDeps(allRepositories(), Option(Task.ctx()), useSources = true)
     Lib.resolveMillBuildDeps(allRepositories(), Option(Task.ctx()), useSources = false).map(_.toNIO)
   }
