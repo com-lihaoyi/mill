@@ -1054,7 +1054,6 @@ trait JavaModule
     )
   }
 
-
   def launcher: T[PathRef] = Task { launcher0() }
 
   /**

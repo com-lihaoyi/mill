@@ -178,7 +178,7 @@ trait RunModule extends WithJvmWorker with mill.runner.api.RunModuleApi {
       )
     }
 
-   /**
+  /**
    * Runs this module's code in a background process, until it dies or
    * `runBackground` is used again. This lets you continue using Mill while
    * the process is running in the background: editing files, compiling, and
