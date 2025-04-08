@@ -1,6 +1,7 @@
 package mill.javascriptlib
 
-import mill._
+import mill.*
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 
@@ -19,6 +20,8 @@ object HelloWorldTests extends TestSuite {
     object qux extends TypeScriptModule {
       override def moduleDeps: Seq[TypeScriptModule] = Seq(foo, foo.bar)
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-typescript"
@@ -28,7 +31,7 @@ object HelloWorldTests extends TestSuite {
       val baos = new ByteArrayOutputStream()
       val eval = UnitTester(HelloWorldJavascript, resourcePath, outStream = new PrintStream(baos))
 
-      val Right(result) = eval.apply(HelloWorldJavascript.qux.run(Args("James")))
+      val Right(result) = eval.apply(HelloWorldJavascript.qux.run(Args("James"))): @unchecked
 
       assert(baos.toString() == "Hello James Qux\n")
     }

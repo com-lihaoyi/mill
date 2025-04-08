@@ -15,14 +15,12 @@ object foo extends PythonModule {
   def mainScript = Task.Source { "custom-src/foo2.py" }
 
   // Add (or replace) source folders for the module to use
-  def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
-  }
+  def customSources = Task.Sources("custom-src")
+  def sources = Task { super.sources() ++ customSources() }
 
   // Add (or replace) resource folders for the module to use
-  def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
-  }
+  def customResources = Task.Sources("custom-resources")
+  def resources = Task { super.resources() ++ customResources() }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {
@@ -48,10 +46,10 @@ object foo extends PythonModule {
 
 }
 
-// Note the use of `millSourcePath`, `Task.dest`, and `PathRef` when preforming
+// Note the use of `moduleDir`, `Task.dest`, and `PathRef` when preforming
 // various filesystem operations:
 //
-// 1. `millSourcePath`: Base path of the module. For the root module, it's the repo root.
+// 1. `moduleDir`: Base path of the module. For the root module, it's the repo root.
 //    For inner modules, it's the module path (e.g., `foo/bar/qux` for `foo.bar.qux`). Can be overridden if needed.
 //
 // 2. `Task.dest`: Destination folder in the `out/` folder for task output.

@@ -2,10 +2,9 @@ package mill.pythonlib
 
 import mill._
 import mill.api.Result
-import mill.util.Util
-import mill.util.Jvm
+import mill.util.{Jvm}
 import mill.api.Ctx
-import mill.main.client.ServerFiles
+import mill.constants.ServerFiles
 
 trait PythonModule extends PipModule with TaskModule { outer =>
 
@@ -67,7 +66,10 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def mainScript: T[PathRef] = Task.Source { "src/main.py" }
 
   override def pythonToolDeps: T[Seq[String]] = Task {
-    super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1")
+    super.pythonToolDeps() ++ Seq(
+      "mypy==1.13.0",
+      "pex==2.24.1"
+    )
   }
 
   /**
@@ -133,7 +135,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     Map(
       "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
       "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
-      if (Task.log.colored) { "FORCE_COLOR" -> "1" }
+      if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
       else { "NO_COLOR" -> "1" }
     )
   }
@@ -161,7 +163,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def run(args: mill.define.Args) = Task.Command {
     runner().run(
-      (
+      args = (
         mainScript().path,
         args.value
       )
@@ -177,29 +179,31 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(Task.dest)
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
-    Jvm.spawnProcess(
-      mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
-      classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
-      jvmArgs = Nil,
-      env = runnerEnvTask(),
-      mainArgs = Seq(
-        procUuidPath.toString,
-        procLockfile.toString,
-        procUuid,
-        "500",
-        "<subprocess>",
-        pythonExe().path.toString,
-        mainScript().path.toString
-      ) ++ args.value,
-      cwd = Task.workspace,
-      stdin = "",
-      // Hack to forward the background subprocess output to the Mill server process
-      // stdout/stderr files, so the output will get properly slurped up by the Mill server
-      // and shown to any connected Mill client even if the current command has completed
-      stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
-      stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
-      javaHome = mill.scalalib.JvmWorkerModule.javaHome().map(_.path)
-    )
+    os.checker.withValue(os.Checker.Nop) {
+      Jvm.spawnProcess(
+        mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
+        classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+        jvmArgs = Nil,
+        env = runnerEnvTask(),
+        mainArgs = Seq(
+          procUuidPath.toString,
+          procLockfile.toString,
+          procUuid,
+          "500",
+          "<subprocess>",
+          pythonExe().path.toString,
+          mainScript().path.toString
+        ) ++ args.value,
+        cwd = Task.workspace,
+        stdin = "",
+        // Hack to forward the background subprocess output to the Mill server process
+        // stdout/stderr files, so the output will get properly slurped up by the Mill server
+        // and shown to any connected Mill client even if the current command has completed
+        stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+        stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
+        javaHome = mill.scalalib.JvmWorkerModule.javaHome().map(_.path)
+      )
+    }
     ()
   }
 
@@ -210,7 +214,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * for you to test and operate your code interactively.
    */
   def console(): Command[Unit] = Task.Command(exclusive = true) {
-    if (!Util.isInteractive()) {
+    if (!mill.constants.Util.hasConsole()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
       runner().run()
