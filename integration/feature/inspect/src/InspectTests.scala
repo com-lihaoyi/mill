@@ -109,6 +109,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    core.runIvyDeps
           |    core.bomIvyDeps
           |    core.depManagement
+          |    core.checkGradleModules
           |""".stripMargin,
         ivyDepsTree
       )
