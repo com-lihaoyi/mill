@@ -18,15 +18,15 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     )
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Task {
-      val jansiVersion = compileClasspath().map(_.path.last)
-        .find(name => name.startsWith("jansi-") && name.endsWith(".jar"))
-        .map(_.stripPrefix("jansi-").stripSuffix(".jar"))
+      val jlineNativeVersion = compileClasspath().map(_.path.last)
+        .find(name => name.startsWith("jline-native-") && name.endsWith(".jar"))
+        .map(_.stripPrefix("jline-native-").stripSuffix(".jar"))
         .getOrElse {
-          sys.error("Cannot get jansi version from compile class path")
+          sys.error("Cannot get jline-native version from compile class path")
         }
       Seq(
         BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
-        BuildInfo.Value("jansiVersion", jansiVersion)
+        BuildInfo.Value("jlineNativeVersion", jlineNativeVersion)
       )
     }
   }

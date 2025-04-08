@@ -38,7 +38,6 @@ object MillMain {
   }
 
   def main(args: Array[String]): Unit = SystemStreams.withTopLevelSystemStreamProxy {
-    adjustLogbackOutputFile()
     val initialSystemStreams = SystemStreams.original
     // setup streams
     val (runnerStreams, cleanupStreams, bspLog) =
@@ -436,10 +435,6 @@ object MillMain {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
-
-  def adjustLogbackOutputFile(): Unit =
-    if (!sys.props.contains("mill.log.file"))
-      sys.props("mill.log.file") = s"${OutFiles.out}/mill.log"
 
   def withOutLock[T](
       noBuildLock: Boolean,

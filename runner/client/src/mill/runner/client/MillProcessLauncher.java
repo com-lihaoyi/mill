@@ -252,28 +252,7 @@ public class MillProcessLauncher {
   private static final boolean canUseNativeTerminal;
 
   static {
-    // Load jansi native library
-    JansiLoader jansiLoader = new JansiLoader(mill.runner.client.Versions.jansiVersion());
-    File jansiLib = jansiLoader.tryLoadFast();
-    if (jansiLib == null) jansiLib = jansiLoader.loadSlow();
-
-    // We have the jansi native library, we proceed to load it.
-    System.load(jansiLib.getAbsolutePath());
-
-    // Tell jansi not to attempt to load a native library on its own
-    Class cls = org.fusesource.jansi.internal.JansiLoader.class;
-    java.lang.reflect.Field fld;
-    try {
-      fld = cls.getDeclaredField("loaded");
-    } catch (NoSuchFieldException ex) {
-      throw new RuntimeException(ex);
-    }
-    fld.setAccessible(true);
-    try {
-      fld.set(null, Boolean.TRUE);
-    } catch (IllegalAccessException ex) {
-      throw new RuntimeException(ex);
-    }
+    JLineNativeLoader.initJLineNative();
 
     boolean canUse;
     if (mill.main.client.Util.hasConsole()) {
