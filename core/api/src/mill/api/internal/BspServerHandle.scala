@@ -10,6 +10,8 @@ trait BspServerHandle {
    */
   def startSession(evaluators: Seq[EvaluatorApi], errored: Boolean): Future[BspServerResult]
 
+  def resetSession(): Unit
+
   /** Stops the BSP server. */
   def close(): Unit
 }

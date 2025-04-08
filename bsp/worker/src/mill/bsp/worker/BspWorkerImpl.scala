@@ -60,6 +60,10 @@ object BspWorkerImpl {
           sessionResultPromise.future
         }
 
+        override def resetSession(): Unit = {
+          millServer.updateEvaluator(None, errored = false)
+        }
+
         override def close(): Unit = {
           streams.err.println("Stopping server via handle...")
           listening.cancel(true)
