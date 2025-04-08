@@ -53,6 +53,7 @@ object BspWorkerImpl {
             evaluators: Seq[EvaluatorApi],
             errored: Boolean
         ): Future[BspServerResult] = {
+          // FIXME We might be losing some shutdown requests here
           val sessionResultPromise = Promise[BspServerResult]()
           millServer.sessionResult = sessionResultPromise
           millServer.updateEvaluator(Option(evaluators), errored = errored)
