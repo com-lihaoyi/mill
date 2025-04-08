@@ -57,7 +57,6 @@ trait AndroidModule extends JavaModule {
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
    */
   def androidManifest: Task[PathRef] = Task.Source("src/main/AndroidManifest.xml")
-  
 
   /**
    * The minimum SDK version to use. Default is 1.
@@ -155,7 +154,6 @@ trait AndroidModule extends JavaModule {
 
     PathRef(debugKeystoreTaskFile)
   }
-
 
   /**
    * Classpath for the manifest merger run.

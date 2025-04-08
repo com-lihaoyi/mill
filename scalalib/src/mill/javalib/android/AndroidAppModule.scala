@@ -632,7 +632,6 @@ trait AndroidAppModule extends AndroidModule {
     os.zip(unsignedApk, r8DexFiles)
     os.zip(unsignedApk, metaInf)
 
-
     val alignedApk: os.Path = Task.dest / "app.aligned.apk"
 
     os.call((
@@ -643,7 +642,6 @@ trait AndroidAppModule extends AndroidModule {
       unsignedApk.toString,
       alignedApk
     ))
-
 
     val signedApk = Task.dest / "app.apk"
 
@@ -659,7 +657,6 @@ trait AndroidAppModule extends AndroidModule {
     T.log.info(s"Calling apksigner with arguments: ${signArgs.mkString(" ")}")
 
     os.call(signArgs)
-
 
     val emulator = runningEmulator()
 
@@ -699,7 +696,6 @@ trait AndroidAppModule extends AndroidModule {
     os.zip(unsignedApk, r8DexFiles)
     os.zip(unsignedApk, metaInf)
 
-
     val alignedApk: os.Path = Task.dest / "app.aligned.apk"
 
     os.call((
@@ -710,7 +706,6 @@ trait AndroidAppModule extends AndroidModule {
       unsignedApk.toString,
       alignedApk
     ))
-
 
     val signedApk = Task.dest / "app.apk"
 
@@ -726,7 +721,6 @@ trait AndroidAppModule extends AndroidModule {
     T.log.info(s"Calling apksigner with arguments: ${signArgs.mkString(" ")}")
 
     os.call(signArgs)
-
 
     val emulator = runningEmulator()
 
