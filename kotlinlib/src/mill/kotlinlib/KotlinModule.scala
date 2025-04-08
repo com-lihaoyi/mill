@@ -34,7 +34,6 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinApiVersion: T[String] = Task { kotlinVersion().split("[.]").take(2).mkString(".") }
 
-
   /**
    * All individual source files fed into the compiler.
    */
