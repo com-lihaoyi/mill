@@ -832,10 +832,10 @@ trait AndroidModule extends JavaModule {
 
 object AndroidModule {
   case class AndroidModuleGeneratedSources(
-                                            androidDebugDex: PathRef,
-                                            androidReleaseDex: PathRef,
-                                            mainDexListOutput: PathRef
-                                          )
+      androidDebugDex: PathRef,
+      androidReleaseDex: PathRef,
+      mainDexListOutput: PathRef
+  )
 
   object AndroidModuleGeneratedSources {
     implicit def resultRW: upickle.default.ReadWriter[AndroidModuleGeneratedSources] =

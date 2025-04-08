@@ -821,7 +821,7 @@ trait AndroidAppModule extends AndroidModule {
 
     r8ArgsBuilder += androidSdkModule().r8Path().path.toString
 
-    if(androidIsDebug())
+    if (androidIsDebug())
       r8ArgsBuilder += "--debug"
     else
       r8ArgsBuilder += "--release"
