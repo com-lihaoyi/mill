@@ -4,16 +4,22 @@ import java.util.concurrent.LinkedBlockingQueue
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.define.{Discover, Evaluator, ExternalModule, NamedTask, Target}
+import mill.define.{
+  Discover,
+  Evaluator,
+  ExternalModule,
+  MultiBiMap,
+  NamedTask,
+  SelectMode,
+  Target,
+  Task,
+  Worker
+}
 import mill.util.MillModuleUtil.millProjectModule
 import mill.api.{PathRef, Result}
-import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
-import mill.exec
-import mill.exec.PlanImpl
-import mill.define.SelectMode
 
 object VisualizeModule extends ExternalModule {
   def repositories: Seq[Repository] = Seq(
@@ -25,7 +31,13 @@ object VisualizeModule extends ExternalModule {
   lazy val millDiscover = Discover[this.type]
 
   private type VizWorker = (
-      LinkedBlockingQueue[(scala.Seq[NamedTask[Any]], scala.Seq[NamedTask[Any]], os.Path)],
+      LinkedBlockingQueue[(
+          scala.Seq[NamedTask[Any]],
+          scala.Seq[NamedTask[Any]],
+          MultiBiMap[NamedTask[Any], Task[?]],
+          mill.define.Plan,
+          os.Path
+      )],
       LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
   )
 
@@ -41,7 +53,13 @@ object VisualizeModule extends ExternalModule {
         transitiveTasks: List[NamedTask[Any]]
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
-      in.put((tasks, transitiveTasks, ctx.dest))
+      val transitive = evaluator.transitiveTargets(tasks)
+      val topoSorted = evaluator.topoSorted(transitive)
+      val sortedGroups = evaluator.groupAroundImportantTargets(topoSorted) {
+        case x: NamedTask[Any] if transitiveTasks.contains(x) => x
+      }
+      val plan = evaluator.plan(transitiveTasks)
+      in.put((tasks, transitiveTasks, sortedGroups, plan, ctx.dest))
       val res = out.take()
       res.map { v =>
         println(upickle.default.write(v.map(_.path.toString()), indent = 2))
@@ -73,22 +91,28 @@ object VisualizeModule extends ExternalModule {
    * can communicate via in/out queues.
    */
   private[mill] def worker: Worker[(
-      LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path)],
+      LinkedBlockingQueue[(
+          scala.Seq[NamedTask[Any]],
+          scala.Seq[NamedTask[Any]],
+          MultiBiMap[NamedTask[Any], Task[?]],
+          mill.define.Plan,
+          os.Path
+      )],
       LinkedBlockingQueue[Result[Seq[PathRef]]]
   )] = mill.define.Task.Worker {
-    val in = new LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path)]()
+    val in =
+      new LinkedBlockingQueue[(
+          scala.Seq[NamedTask[Any]],
+          scala.Seq[NamedTask[Any]],
+          MultiBiMap[NamedTask[Any], Task[?]],
+          mill.define.Plan,
+          os.Path
+      )]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
-
     val visualizeThread = new java.lang.Thread(() =>
       while (true) {
         val res = Result.Success {
-          val (tasks, transitiveTasks, dest) = in.take()
-          val transitive = PlanImpl.transitiveTargets(tasks)
-          val topoSorted = PlanImpl.topoSorted(transitive)
-          val sortedGroups = PlanImpl.groupAroundImportantTargets(topoSorted) {
-            case x: NamedTask[Any] if transitiveTasks.contains(x) => x
-          }
-          val plan = exec.PlanImpl.plan(transitiveTasks)
+          val (tasks, transitiveTasks, sortedGroups, plan, dest) = in.take()
 
           val goalSet = transitiveTasks.toSet
           import guru.nidi.graphviz.model.Factory._

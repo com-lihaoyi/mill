@@ -3,10 +3,31 @@ package mill.bsp
 import mill.api.{Ctx, PathRef}
 import mill.{T, Task, given}
 import mill.define.{Command, Discover, Evaluator, ExternalModule}
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 import mill.scalalib.{CoursierModule, Dep}
 
+import mill.api.internal
+import mill.api.Mirrors
+import mill.api.Mirrors.autoMirror
+import mill.runner.api.BspServerResult
+
 object BSP extends ExternalModule with CoursierModule {
+
+  implicit val jsonifyReloadWorkspace
+      : upickle.default.ReadWriter[BspServerResult.ReloadWorkspace.type] =
+    upickle.default.macroRW
+
+  implicit val jsonifyShutdown: upickle.default.ReadWriter[BspServerResult.Shutdown.type] =
+    upickle.default.macroRW
+
+  implicit val jsonifyFailure: upickle.default.ReadWriter[BspServerResult.Failure.type] =
+    upickle.default.macroRW
+
+  implicit val jsonify: upickle.default.ReadWriter[BspServerResult] =
+    upickle.default.macroRW
+
+  private given Root_BspServerResult: Mirrors.Root[BspServerResult] =
+    Mirrors.autoRoot[BspServerResult]
 
   lazy val millDiscover = Discover[this.type]
 

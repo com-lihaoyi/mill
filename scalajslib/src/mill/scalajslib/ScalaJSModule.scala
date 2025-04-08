@@ -12,7 +12,7 @@ import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.T
 
-trait ScalaJSModule extends scalalib.ScalaModule { outer =>
+trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSModuleApi { outer =>
 
   def scalaJSVersion: T[String]
 
@@ -90,7 +90,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // we need to use the scala-library of the currently running mill
     defaultResolver().classpath(
       (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
-        .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
+        .map(Lib.depToBoundDep(_, mill.util.BuildInfo.scalaVersion, ""))
     )
   }
 

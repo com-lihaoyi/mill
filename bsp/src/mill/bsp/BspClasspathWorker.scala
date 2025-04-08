@@ -1,6 +1,7 @@
 package mill.bsp
 
-import mill.api.{Ctx, DummyTestReporter, Logger, SystemStreams, Result}
+import mill.api.Ctx
+import mill.runner.api.{DummyTestReporter, Logger, SystemStreams, Result}
 import mill.scalalib.{CoursierModule, Dep}
 
 import java.io.PrintStream
@@ -13,7 +14,7 @@ private trait BspClasspathWorker {
       logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
-  ): Result[BspServerHandle]
+  ): Result[mill.runner.api.BspServerHandle]
 }
 
 object BspClasspathWorker {
@@ -33,7 +34,7 @@ object BspClasspathWorker {
         }
         .orElse {
           // load extra classpath entries from file
-          val resources = s"${Constants.serverName}-${mill.main.BuildInfo.millVersion}.resources"
+          val resources = s"${Constants.serverName}-${mill.util.BuildInfo.millVersion}.resources"
           val cpFile = workspace / Constants.bspDir / resources
           if (os.exists(cpFile)) {
             // TODO: if outdated, we could regenerate the resource file and re-load the worker

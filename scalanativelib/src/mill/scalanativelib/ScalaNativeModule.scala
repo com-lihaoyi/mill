@@ -20,7 +20,7 @@ import mill.api.PathRef
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
-trait ScalaNativeModule extends ScalaModule { outer =>
+trait ScalaNativeModule extends ScalaModule with mill.runner.api.ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 
@@ -92,7 +92,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def bridgeFullClassPath: T[Seq[PathRef]] = Task {
     scalaNativeWorkerClasspath() ++ defaultResolver().classpath(
-      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
+      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.util.BuildInfo.scalaVersion, ""))
     )
   }
 

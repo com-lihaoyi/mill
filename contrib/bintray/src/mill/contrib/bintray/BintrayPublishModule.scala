@@ -67,7 +67,7 @@ object BintrayPublishModule extends ExternalModule {
       bintrayOwner: String,
       bintrayRepo: String,
       release: Boolean = true,
-      publishArtifacts: mill.main.Tasks[BintrayPublishData],
+      publishArtifacts: mill.util.Tasks[BintrayPublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ): Command[Unit] = Task.Command {

@@ -14,7 +14,7 @@ import ch.epfl.scala.bsp4j.{
   TestStart,
   TestStatus
 }
-import mill.api.TestReporter
+import mill.runner.api.TestReporter
 import sbt.testing.{
   Event,
   NestedSuiteSelector,

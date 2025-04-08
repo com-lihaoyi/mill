@@ -8,7 +8,7 @@ import mill.util.Jvm
 /**
  * Core configuration required to compile a single Java compilation target
  */
-trait AssemblyModule extends mill.Module {
+trait AssemblyModule extends mill.define.Module {
   outer =>
 
   def finalMainClassOpt: T[Either[String, String]]

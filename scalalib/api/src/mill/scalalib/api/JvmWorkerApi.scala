@@ -1,6 +1,7 @@
 package mill.scalalib.api
 
-import mill.api.{CompileProblemReporter, PathRef}
+import mill.runner.api.CompileProblemReporter
+import mill.api.PathRef
 
 object JvmWorkerApi {
   type Ctx = mill.api.Ctx.Dest & mill.api.Ctx.Log

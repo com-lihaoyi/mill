@@ -14,7 +14,7 @@ import scala.util.control.NonFatal
 
 import mill.scalalib.classgraph.ClassgraphWorkerModule
 
-trait RunModule extends WithJvmWorker {
+trait RunModule extends WithJvmWorker with mill.runner.api.RunModuleApi {
 
   def classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 
@@ -179,6 +179,22 @@ trait RunModule extends WithJvmWorker {
     }
 
   /**
+   * Runs this module's code in a background process, until it dies or
+   * `runBackground` is used again. This lets you continue using Mill while
+   * the process is running in the background: editing files, compiling, and
+   * only re-starting the background process when you're ready.
+   *
+   * You can also use `-w foo.runBackground` to make Mill watch for changes
+   * and automatically recompile your code & restart the background process
+   * when ready. This is useful when working on long-running server processes
+   * that would otherwise run forever
+   */
+  def runBackground(args: String*): Command[Unit] = {
+    val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
+    Task.Command { task() }
+  }
+
+  /**
    * If true, stdout and stderr of the process executed by `runBackground`
    * or `runMainBackground` is sent to mill's stdout/stderr (which usually
    * flow to the console).
@@ -216,9 +232,9 @@ trait RunModule extends WithJvmWorker {
     }
     Task.Anon {
       (
-        runClasspath(),
+        runClasspath().map(_.path.toNIO),
         forkArgs(),
-        forkWorkingDir(),
+        forkWorkingDir().toNIO,
         forkEnv(),
         mainClass(),
         moduleSpecificTask()

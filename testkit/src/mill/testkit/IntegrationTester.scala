@@ -2,7 +2,7 @@ package mill.testkit
 
 import mill.constants.OutFiles
 import mill.define.Segments
-import mill.exec.Cached
+import mill.define.Cached
 import mill.define.SelectMode
 import ujson.Value
 

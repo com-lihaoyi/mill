@@ -17,7 +17,7 @@ import scala.concurrent.duration.Duration
  * It's mainly used in [[JavaModule]], but can also be used stand-alone,
  * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].
  */
-trait CoursierModule extends mill.Module {
+trait CoursierModule extends mill.define.Module {
 
   /**
    * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)

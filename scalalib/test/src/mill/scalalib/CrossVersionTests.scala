@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.define.Discover
 import mill.define.ExecutionPaths
-import mill.main.TokenReaders.*
+import mill.util.TokenReaders.*
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
