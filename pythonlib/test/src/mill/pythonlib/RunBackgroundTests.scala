@@ -3,7 +3,7 @@ package mill.pythonlib
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 import mill.*
-import mill.client.lock.Lock
+import mill.main.client.lock.Lock
 import mill.define.Discover
 
 object RunBackgroundTests extends TestSuite {
@@ -12,7 +12,7 @@ object RunBackgroundTests extends TestSuite {
     object foo extends PythonModule {
       override def mainScript = Task.Source("src/foo.py")
     }
-    lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "run-background"

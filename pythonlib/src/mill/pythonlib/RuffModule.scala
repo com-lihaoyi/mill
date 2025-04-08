@@ -2,7 +2,7 @@ package mill.pythonlib
 
 import mill._
 import mill.define.{Args, ExternalModule, Discover}
-import mill.util.Tasks
+import mill.main.Tasks
 
 /**
  * Linting and formatting functionality provided by [ruff](https://docs.astral.sh/ruff/).

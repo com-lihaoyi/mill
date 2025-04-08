@@ -694,11 +694,11 @@ trait TypeScriptModule extends Module { outer =>
       case s if s.startsWith("@") =>
         val withoutAt = s.drop(1) // Remove leading @
         val parts = withoutAt.split("@", 2) // Split on the first '@' in the rest
-        ("@" + parts(0), parts.lift(1).getOrElse("")) // Re-add '@' to the first part
+        ("@" + parts(0), ujson.Str(parts.lift(1).getOrElse(""))) // Re-add '@' to the first part
 
       case _ =>
         val parts = input.split("@", 2) // Regular case, split on the first '@'
-        (parts(0), parts.lift(1).getOrElse("")) // Handle case where '@' is missing
+        (parts(0), ujson.Str(parts.lift(1).getOrElse(""))) // Handle case where '@' is missing
     }
 
     val json = packageJson()
