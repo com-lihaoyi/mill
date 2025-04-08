@@ -14,6 +14,7 @@ import mill.scalalib.publish._
 import mill.define.SelectMode
 import mill.T
 import mill.define.Cross
+import scala.util.Properties
 
 // plugins and dependencies
 import $meta._
@@ -404,9 +405,15 @@ trait MillJavaModule extends JavaModule {
   // Test setup
   def testDep = Task { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
 
-  // Workaround for Zinc/JNA bug
-  // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-  def testArgs: T[Seq[String]] = Task { Seq("-Djna.nosys=true") }
+  def testArgs: T[Seq[String]] = Task {
+    // Workaround for Zinc/JNA bug
+    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+    val jnaArgs = Seq("-Djna.nosys=true")
+    val userLang =
+      if (Properties.isMac || Properties.isWin) Seq("-Duser.language=en")
+      else Nil
+    jnaArgs ++ userLang
+  }
   def testDepPaths = Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
   def testTransitiveDeps: T[Map[String, String]] = Task {
