@@ -747,7 +747,6 @@ trait AndroidModule extends JavaModule {
   def mainDexRules: T[Option[PathRef]] = T {
     Some(PathRef(androidResources()._1.path / "main-dex-rules.pro"))
   }
-  
 
   def mainDexList: T[Option[PathRef]] = T {
     None
@@ -804,10 +803,10 @@ trait AndroidModule extends JavaModule {
 
 object AndroidModule {
   case class AndroidModuleGeneratedSources(
-                                            androidDebugDex: PathRef,
-                                            androidReleaseDex: PathRef,
-                                            mainDexListOutput: PathRef
-                                          )
+      androidDebugDex: PathRef,
+      androidReleaseDex: PathRef,
+      mainDexListOutput: PathRef
+  )
 
   object AndroidModuleGeneratedSources {
     implicit def resultRW: upickle.default.ReadWriter[AndroidModuleGeneratedSources] =
