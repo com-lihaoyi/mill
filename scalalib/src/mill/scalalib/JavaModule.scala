@@ -1054,23 +1054,6 @@ trait JavaModule
     )
   }
 
-  /**
-   * Any command-line parameters you want to pass to the forked JVM under `run`,
-   * `test` or `repl`
-   */
-  override def forkArgs: T[Seq[String]] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.forkArgs()
-  }
-
-  /**
-   * Any environment variables you want to pass to the forked JVM under `run`,
-   * `test` or `repl`
-   */
-  override def forkEnv: T[Map[String, String]] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.forkEnv()
-  }
 
   def launcher: T[PathRef] = Task { launcher0() }
 
@@ -1205,36 +1188,6 @@ trait JavaModule
   }
 
   /**
-   * Same as `runBackground`, but lets you specify a main class to run
-   */
-  override def runMainBackground(
-      @arg(positional = true) mainClass: String,
-      args: String*
-  ): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runMainBackground(mainClass, args*)
-  }
-
-  /**
-   * Same as `runLocal`, but lets you specify a main class to run
-   */
-  override def runMainLocal(
-      @arg(positional = true) mainClass: String,
-      args: String*
-  ): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runMainLocal(mainClass, args*)
-  }
-
-  /**
-   * Same as `run`, but lets you specify a main class to run
-   */
-  override def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runMain(mainClass, args*)
-  }
-
-  /**
    * Override this to change the published artifact id.
    * For example, by default a scala module foo.baz might be published as foo-baz_2.12 and a java module would be foo-baz.
    * Setting this to baz would result in a scala artifact baz_2.12 or a java artifact baz.
@@ -1254,11 +1207,6 @@ trait JavaModule
    * The suffix appended to the artifact IDs during publishing
    */
   def artifactSuffix: T[String] = platformSuffix()
-
-  override def forkWorkingDir: T[Path] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.forkWorkingDir()
-  }
 
   /**
    * Files extensions that need to be managed by Zinc together with class files.
