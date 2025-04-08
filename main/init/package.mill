@@ -4,6 +4,7 @@ import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
+import mill.util.Jvm
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
@@ -121,6 +122,15 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       // def moduleDeps = Seq(buildgen.tree())
       def ivyDeps = Agg(build.Deps.upickle)
       def compileIvyDeps = Agg(build.Deps.sbt) // for definition references only
+
+      def docJar =
+        if (crossScalaVersion == build.Deps.scalaVersion)
+          // Without this, docJar currently outputs more than 50k lines of warning. Disabling it.
+          Task {
+            PathRef(Jvm.createJar(Task.dest / "empty.jar", Seq.empty[os.Path]))
+          }
+        else
+          super.docJar
     }
 
     // no need to publish this
