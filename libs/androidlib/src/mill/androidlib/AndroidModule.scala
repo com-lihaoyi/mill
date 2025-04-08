@@ -735,4 +735,110 @@ trait AndroidModule extends JavaModule {
     PathRef(signedApk)
   }
 
+  /** ProGuard/R8 rules configuration files (user-provided and generated) */
+  def proguardReleaseConfigs: T[Seq[PathRef]] = {
+    Seq(
+      PathRef(moduleDir / "proguard-rules.pro"),
+      PathRef(androidModuleGeneratedSourcesFunc().androidReleaseDex.path / "proguard-rules.pro"),
+      PathRef(moduleDir / "test-proguard-rules.pro")
+    )
+  }
+
+  def proguardDebugConfigs: T[Seq[PathRef]] = {
+    Seq(
+      PathRef(moduleDir / "proguard-rules.pro"),
+      PathRef(androidModuleGeneratedSourcesFunc().androidDebugDex.path / "proguard-rules.pro"),
+      PathRef(moduleDir / "test-proguard-rules.pro")
+    )
+  }
+
+  // Additional library classes (if any) that should be treated as provided
+  def libraryClasses: T[Seq[PathRef]] = T {
+    Seq(
+      androidSdkModule().androidJarPath(),
+      androidSdkModule().r8LibPath(),
+      androidSdkModule().r8LibClasspath(),
+      androidSdkModule().androidCoreModulesPath(),
+      androidSdkModule().androidOptionalApacheHttpLegacy(),
+      androidSdkModule().androidOptionalCar(),
+      androidSdkModule().androidOptionalTestMock(),
+      androidSdkModule().androidOptionalTestBase(),
+      androidSdkModule().androidOptionalTestRunner()
+    )
+  }
+
+  def enableDesugaring: T[Boolean] = Task {
+    true
+  }
+
+  // Optional multi-dex rules or main-dex list files for legacy multidex support
+  def mainDexRules: T[Option[PathRef]] = T {
+    Some(PathRef(androidResources()._1.path / "main-dex-rules.pro"))
+  }
+
+
+  def mainDexList: T[Option[PathRef]] = T {
+    None
+  }
+
+  def mainDexListOutput: T[Option[PathRef]] = T {
+    Some(androidModuleGeneratedSourcesFunc().mainDexListOutput)
+  }
+
+  // Optional baseline profile for ART rewriting
+  def baselineProfile: T[Option[PathRef]] = T {
+    None
+  }
+
+  def androidModuleGeneratedSourcesFunc: T[AndroidModuleGeneratedSources] = Task {
+    val androidDebugDex = T.dest / "androidDebugDex.dest"
+    os.makeDir(androidDebugDex)
+    val androidReleaseDex = T.dest / "androidReleaseDex.dest"
+    os.makeDir(androidReleaseDex)
+    val mainDexListOutput = T.dest / "main-dex-list-output.txt"
+
+    val proguardFileDebug = androidDebugDex / "proguard-rules.pro"
+
+    val knownProguardRulesDebug = androidUnpackArchives()
+      // TODO need also collect rules from other modules,
+      // but Android lib module doesn't yet exist
+      .flatMap(_.proguardRules)
+      .map(p => os.read(p.path))
+      .appendedAll(mainDexPlatformRules)
+      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .mkString("\n")
+    os.write(proguardFileDebug, knownProguardRulesDebug)
+
+    val proguardFileRelease = androidReleaseDex / "proguard-rules.pro"
+
+    val knownProguardRulesRelease = androidUnpackArchives()
+      // TODO need also collect rules from other modules,
+      // but Android lib module doesn't yet exist
+      .flatMap(_.proguardRules)
+      .map(p => os.read(p.path))
+      .appendedAll(mainDexPlatformRules)
+      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .mkString("\n")
+    os.write(proguardFileRelease, knownProguardRulesRelease)
+
+    AndroidModuleGeneratedSources(
+      androidDebugDex = PathRef(androidDebugDex),
+      androidReleaseDex = PathRef(androidReleaseDex),
+      mainDexListOutput = PathRef(mainDexListOutput)
+    )
+  }
+
+}
+
+object AndroidModule {
+  case class AndroidModuleGeneratedSources(
+                                            androidDebugDex: PathRef,
+                                            androidReleaseDex: PathRef,
+                                            mainDexListOutput: PathRef
+                                          )
+
+  object AndroidModuleGeneratedSources {
+    implicit def resultRW: upickle.default.ReadWriter[AndroidModuleGeneratedSources] =
+      upickle.default.macroRW
+  }
 }
