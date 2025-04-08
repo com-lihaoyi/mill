@@ -13,7 +13,9 @@ import mill.runner.worker.api.MillScalaParser
 import mill.runner.meta.{CliImports, FileImportGraph, MillBuildRootModule, ScalaCompilerWorker}
 import java.io.File
 import java.net.URLClassLoader
+import java.util.UUID
 
+import scala.annotation.tailrec
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 
@@ -304,8 +306,30 @@ class MillBuildBootstrap(
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
+
+          // Copy the compilation output to a dedicated directory, so that it's not
+          // deleted or overwritten by other Mill runners while we use it
+          val (tmpDir0, runClasspath0) = {
+            val tmpDir = output / "mill-bootstrap" / UUID.randomUUID().toString
+            val cp = runClasspath.map(os.Path(_))
+            val updatedCp = cp.map { elem =>
+              if (elem.startsWith(output)) {
+                @tailrec def dest(count: Int = 0): os.Path = {
+                  val suffix = if (count == 0) "" else s"-$count"
+                  val candidate = tmpDir / (elem.last + suffix)
+                  if (os.exists(candidate)) dest(count + 1)
+                  else candidate
+                }
+                val dest0 = dest()
+                os.copy(elem, dest0, createFolders = true)
+                dest0
+              } else
+                elem
+            }
+            (tmpDir, updatedCp)
+          }
           val cl = new RunnerState.URLClassLoader(
-            runClasspath.map(os.Path(_).toNIO.toUri.toURL).toArray,
+            runClasspath0.map(_.toNIO.toUri.toURL).toArray,
             null
           ) {
             val sharedCl = classOf[MillBuildBootstrap].getClassLoader
@@ -313,6 +337,11 @@ class MillBuildBootstrap(
             override def findClass(name: String): Class[?] =
               if (sharedPrefixes.exists(name.startsWith)) sharedCl.loadClass(name)
               else super.findClass(name)
+            override def close(): Unit = {
+              super.close()
+              // might fail on Windows sometimes…
+              os.remove.all(tmpDir0)
+            }
           }
           cl
         } else {
