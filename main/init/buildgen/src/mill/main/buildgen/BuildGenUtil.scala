@@ -10,8 +10,8 @@ import mill.constants.CodeGenConstants.{
 }
 import mill.constants.OutFiles
 import mill.main.buildgen.BuildObject.Companions
-import mill.runner.FileImportGraph.backtickWrap
-import mill.scalalib.CrossVersion
+import mill.internal.Util.backtickWrap
+import mill.api.CrossVersion
 
 import scala.collection.immutable.SortedSet
 import scala.util.boundary

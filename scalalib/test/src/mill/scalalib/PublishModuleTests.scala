@@ -15,7 +15,7 @@ import mill.scalalib.publish.{
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import java.io.PrintStream
 import scala.jdk.CollectionConverters.*
 import scala.xml.NodeSeq

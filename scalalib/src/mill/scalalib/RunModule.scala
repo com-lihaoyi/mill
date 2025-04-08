@@ -14,7 +14,7 @@ import scala.util.control.NonFatal
 
 import mill.scalalib.classgraph.ClassgraphWorkerModule
 
-trait RunModule extends WithJvmWorker {
+trait RunModule extends WithJvmWorker with mill.runner.api.RunModuleApi {
 
   def classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 
@@ -216,9 +216,9 @@ trait RunModule extends WithJvmWorker {
     }
     Task.Anon {
       (
-        runClasspath(),
+        runClasspath().map(_.path.toNIO),
         forkArgs(),
-        forkWorkingDir(),
+        forkWorkingDir().toNIO,
         forkEnv(),
         mainClass(),
         moduleSpecificTask()

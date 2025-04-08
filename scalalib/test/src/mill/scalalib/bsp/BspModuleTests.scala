@@ -8,7 +8,7 @@ import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.FilePath
 import utest.*
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 
 object BspModuleTests extends TestSuite {
 
@@ -50,7 +50,7 @@ object BspModuleTests extends TestSuite {
         ): @unchecked
 
         val relResult =
-          result.value.iterator.map(_.resolve(eval.evaluator.outPath).last).toSeq.sorted
+          result.value(eval.evaluator).map(s => os.Path(new java.net.URI(s)).last).toSeq.sorted
         val expected = Seq(
           "compile-resources",
           "slf4j-api-1.7.34.jar",
@@ -67,8 +67,8 @@ object BspModuleTests extends TestSuite {
           MultiBase.HelloBsp2.bspCompileClasspath
         ): @unchecked
 
-        val relResults: Seq[FilePath] = result.value.iterator.map { p =>
-          val path = p.resolve(eval.evaluator.outPath)
+        val relResults: Seq[FilePath] = result.value(eval.evaluator).iterator.map { p =>
+          val path = os.Path(new java.net.URI(p))
           val name = path.last
           if (name.endsWith(".jar")) os.rel / name
           else path

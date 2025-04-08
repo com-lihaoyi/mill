@@ -1,10 +1,11 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
-import mill.main.BuildInfo
-import mill.bsp.{BspServerHandle, BspServerResult, BspClasspathWorker, Constants}
-import mill.api.{Result, SystemStreams}
-import mill.define.Evaluator
+import mill.bsp.BuildInfo
+import mill.runner.api.{BspServerHandle, BspServerResult}
+import mill.bsp.{Constants}
+import mill.bsp.{BspClasspathWorker, Constants}
+import mill.runner.api.{Result, SystemStreams}
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.{PrintStream, PrintWriter}
@@ -20,7 +21,7 @@ private class BspWorkerImpl() extends BspClasspathWorker {
       logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
-  ): mill.api.Result[BspServerHandle] = {
+  ): mill.runner.api.Result[BspServerHandle] = {
 
     try {
       lazy val millServer: MillBuildServer with MillJvmBuildServer with MillJavaBuildServer
@@ -54,7 +55,7 @@ private class BspWorkerImpl() extends BspClasspathWorker {
       lazy val listening = launcher.startListening()
 
       val bspServerHandle = new BspServerHandle {
-        override def runSession(evaluators: Seq[Evaluator]): BspServerResult = {
+        override def runSession(evaluators: Seq[mill.runner.api.EvaluatorApi]): BspServerResult = {
           millServer.updateEvaluator(Option(evaluators))
           millServer.sessionResult = None
           while (millServer.sessionResult.isEmpty) Thread.sleep(1)

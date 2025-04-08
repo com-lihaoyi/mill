@@ -21,21 +21,7 @@
       "environmentVariables": {},
       "mainClasses": []
     },
-    {
-      "target": {
-        "uri": "file:///workspace/lib"
-      },
-      "classpath": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
-        "file:///workspace/lib/compile-resources",
-        "file:///workspace/lib/resources",
-        "file:///workspace/out/lib/compile.dest/classes"
-      ],
-      "jvmOptions": [],
-      "workingDirectory": "/workspace",
-      "environmentVariables": {},
-      "mainClasses": []
-    },
+
     {
       "target": {
         "uri": "file:///workspace/hello-java"
@@ -75,6 +61,21 @@
         "file:///workspace/hello-scala/compile-resources",
         "file:///workspace/hello-scala/resources",
         "file:///workspace/out/hello-scala/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
+        "file:///workspace/lib/compile-resources",
+        "file:///workspace/lib/resources",
+        "file:///workspace/out/lib/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",

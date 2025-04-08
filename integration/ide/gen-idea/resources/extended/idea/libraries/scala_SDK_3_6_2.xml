@@ -3,6 +3,8 @@
         <properties>
             <language-level>Scala_3_6</language-level>
             <compiler-classpath>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.15.0/jna-5.15.0.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.0/jline-native-3.27.0.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.0/jline-reader-3.27.0.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.27.0/jline-terminal-jna-3.27.0.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.0/jline-terminal-3.27.0.jar"/>

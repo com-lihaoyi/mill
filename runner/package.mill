@@ -10,6 +10,27 @@ import mill.contrib.buildinfo.BuildInfo
  * Mostly tested by [[build.integration]] and [[build.example]] tests.
  */
 object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
+  object api extends build.MillPublishScalaModule with BuildInfo {
+    def moduleDeps = Seq(build.core.constants)
+    def ivyDeps = Seq(build.Deps.sbtTestInterface)
+
+    def buildInfoObjectName = "Versions"
+
+    def buildInfoPackageName = "mill.runner.api"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value(
+        "semanticDBVersion",
+        build.Deps.semanticDBscala.version,
+        "SemanticDB version."
+      ),
+      BuildInfo.Value(
+        "semanticDbJavaVersion",
+        build.Deps.semanticDbJava.version,
+        "Java SemanticDB plugin version."
+      )
+    )
+  }
+
   object `worker-api` extends build.MillPublishScalaModule {
     // def ivyDeps = Agg(build.Deps.osLib)
   }
@@ -65,12 +86,9 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   }
 
   def moduleDeps = Seq(
+    build.core,
+    build.main,
     build.scalalib,
-    build.kotlinlib,
-    build.scalajslib,
-    build.scalanativelib,
-    build.javascriptlib,
-    build.pythonlib,
     build.bsp,
     build.core.codesig,
     build.runner.server,

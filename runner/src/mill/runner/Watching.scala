@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.api.internal
+import mill.api.{internal, PathRef}
 import mill.internal.Colors
 import mill.define.internal.Watchable
 import mill.api.SystemStreams
@@ -43,7 +43,7 @@ object Watching {
         return (errorOpt.isEmpty, result)
       }
 
-      val alreadyStale = watchables.exists(!_.validate())
+      val alreadyStale = watchables.exists(w => !validate(w))
       enterKeyPressed = false
       if (!alreadyStale) {
         enterKeyPressed = Watching.watchAndWait(streams, setIdle, streams.in, watchables, colors)
@@ -60,7 +60,7 @@ object Watching {
       colors: Colors
   ): Boolean = {
     setIdle(true)
-    val watchedPaths = watched.collect { case p: Watchable.Path => p.p.path }
+    val watchedPaths = watched.collect { case p: Watchable.Path => p.p }
     val watchedValues = watched.size - watchedPaths.size
 
     val watchedValueStr = if (watchedValues == 0) "" else s" and $watchedValues other values"
@@ -81,7 +81,7 @@ object Watching {
     val buffer = new Array[Byte](4 * 1024)
 
     @tailrec def statWatchWait0(): Boolean = {
-      if (watched.forall(_.validate())) {
+      if (watched.forall(w => validate(w))) {
         if (lookForEnterKey()) {
           true
         } else {
@@ -108,4 +108,15 @@ object Watching {
     statWatchWait0()
   }
 
+  def validate(w: Watchable) = poll(w) == signature(w)
+  def poll(w: Watchable) = w match {
+    case Watchable.Path(p, quick, sig) =>
+      new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).recomputeSig()
+    case Watchable.Value(f, sig, pretty) => f()
+  }
+  def signature(w: Watchable) = w match {
+    case Watchable.Path(p, quick, sig) =>
+      new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).sig
+    case Watchable.Value(f, sig, pretty) => sig
+  }
 }

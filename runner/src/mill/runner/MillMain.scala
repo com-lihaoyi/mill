@@ -8,6 +8,7 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
+import mill.runner.api.BspServerResult
 import mill.api.{
   DummyInputStream,
   Logger,
@@ -17,10 +18,9 @@ import mill.api.{
   WorkspaceRoot,
   internal
 }
-import mill.bsp.BspServerResult
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 import mill.runner.worker.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}
 
@@ -303,7 +303,7 @@ object MillMain {
                             false,
                             prevRunnerState,
                             Seq("version"),
-                            SystemStreams(splitOut, splitErr, DummyInputStream)
+                            new SystemStreams(splitOut, splitErr, DummyInputStream)
                           ).result,
                         splitErr
                       )

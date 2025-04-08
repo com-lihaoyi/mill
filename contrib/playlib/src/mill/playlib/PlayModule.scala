@@ -33,7 +33,7 @@ trait PlayModule extends PlayApiModule with Static with Twirl {
       // which will then be further compiled by the Scala compiler corresponding to `scalaVersion`.
       // The Scala 3 version of `twirl-compiler` generates code that
       // is not source compatible with scala 2 - so we should downgrade it to 2.13 version.
-      mill.main.BuildInfo.workerScalaVersion213
+      mill.util.BuildInfo.workerScalaVersion213
     else
       super.twirlScalaVersion()
   }

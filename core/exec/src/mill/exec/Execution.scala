@@ -7,10 +7,13 @@ import mill.define._
 import mill.internal.PrefixLogger
 import mill.define.MultiBiMap
 
+import mill.runner.api._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
+import mill.runner.api.{BaseModuleApi, EvaluatorApi}
+import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -22,18 +25,54 @@ private[mill] case class Execution(
     workspace: os.Path,
     outPath: os.Path,
     externalOutPath: os.Path,
-    rootModule: BaseModule,
+    rootModule: BaseModuleApi,
     classLoaderSigHash: Int,
     classLoaderIdentityHash: Int,
-    workerCache: mutable.Map[Segments, (Int, Val)],
+    workerCache: mutable.Map[String, (Int, Val)],
     env: Map[String, String],
     failFast: Boolean,
     threadCount: Option[Int],
     codeSignatures: Map[String, Int],
     systemExit: Int => Nothing,
     exclusiveSystemStreams: SystemStreams,
-    getEvaluator: () => Evaluator
+    getEvaluator: () => EvaluatorApi
 ) extends GroupExecution with AutoCloseable {
+
+  def this(
+      baseLogger: Logger,
+      workspace: java.nio.file.Path,
+      outPath: java.nio.file.Path,
+      externalOutPath: java.nio.file.Path,
+      rootModule: BaseModuleApi,
+      classLoaderSigHash: Int,
+      classLoaderIdentityHash: Int,
+      workerCache: mutable.Map[String, (Int, Val)],
+      env: Map[String, String],
+      failFast: Boolean,
+      threadCount: Option[Int],
+      codeSignatures: Map[String, Int],
+      systemExit: Int => Nothing,
+      exclusiveSystemStreams: SystemStreams,
+      getEvaluator: () => EvaluatorApi
+  ) = this(
+    baseLogger,
+    new JsonArrayLogger.ChromeProfile(os.Path(outPath) / millChromeProfile),
+    new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
+    os.Path(workspace),
+    os.Path(outPath),
+    os.Path(externalOutPath),
+    rootModule,
+    classLoaderSigHash,
+    classLoaderIdentityHash,
+    workerCache,
+    env,
+    failFast,
+    threadCount,
+    codeSignatures,
+    systemExit,
+    exclusiveSystemStreams,
+    getEvaluator
+  )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
 
@@ -194,12 +233,27 @@ private[mill] case class Execution(
                 val duration = endTime - startTime
 
                 val threadId = threadNumberer.getThreadId(Thread.currentThread())
-                chromeProfileLogger.log(terminal, "job", startTime, duration, threadId, res.cached)
+                chromeProfileLogger.log(
+                  terminal.toString,
+                  "job",
+                  startTime,
+                  duration,
+                  threadId,
+                  res.cached
+                )
 
                 if (!res.cached) uncached.put(terminal, ())
                 if (res.valueHashChanged) changedValueHash.put(terminal, ())
 
-                profileLogger.log(terminal, duration, res, deps)
+                profileLogger.log(
+                  terminal.toString,
+                  duration,
+                  res.cached,
+                  res.valueHashChanged,
+                  deps.map(_.toString),
+                  res.inputsHash,
+                  res.previousInputsHash
+                )
 
                 Some(res)
               }

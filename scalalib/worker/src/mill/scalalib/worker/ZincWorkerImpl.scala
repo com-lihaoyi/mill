@@ -1,7 +1,8 @@
 package mill.scalalib.worker
 
 import mill.util.CachedFactory
-import mill.api.{CompileProblemReporter, PathRef, Result, internal}
+import mill.runner.api._
+import mill.api._
 import mill.constants.CodeGenConstants
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerApi, JvmWorkerUtil}
 import os.Path
@@ -642,7 +643,7 @@ class JvmWorkerImpl(
       case e: CompileFailed =>
         Result.Failure(e.toString)
     } finally {
-      reporter.foreach(r => sources.foreach(r.fileVisited(_)))
+      reporter.foreach(r => sources.foreach(f => r.fileVisited(f.toNIO)))
       reporter.foreach(_.finish())
       previousScalaColor match {
         case null => sys.props.remove(scalaColorProp)

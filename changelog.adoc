@@ -1156,7 +1156,7 @@ _Changes since {prev-version}:_
 * Make `mill.define.Module` a `trait` to allow abstract/virtual modules to be ``trait``s rather than ``class``es
 {link-pr}/2536[#2536]
 
-* Move `mill.BuildInfo` to `mill.main.BuildInfo` to avoid name conflicts with
+* Move `mill.BuildInfo` to `mill.util.BuildInfo` to avoid name conflicts with
 `mill.contrib.buildinfo.BuildInfo`
 {link-pr}/2537[#2537]
 

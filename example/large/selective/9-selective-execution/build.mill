@@ -153,26 +153,18 @@ bar.sources
 > mill selective.resolveTree __.test
 {
   "bar.sources": {
-    "bar.test.sources": {
-      "bar.test.allSources": {
-        "bar.test.allSourceFiles": {
-          "bar.test.compile": {
-            "bar.test.localRunClasspath": {
-              "bar.test.testClasspath": {
-                "bar.test.testForked": {}
-              }
-            }
-          }
-        }
-      }
-    },
     "bar.allSources": {
       "bar.allSourceFiles": {
         "bar.compile": {
-          "foo.test.upstreamCompileOutput": {
-            "foo.test.compile": {
-              "foo.test.localRunClasspath": {
-                "foo.test.testClasspath": {
+          "bar.localRunClasspath": {
+            "bar.localClasspath": {
+              "bar.test.transitiveLocalClasspath": {
+                "bar.test.runClasspath": {
+                  "bar.test.testForked": {}
+                }
+              },
+              "foo.test.transitiveLocalClasspath": {
+                "foo.test.runClasspath": {
                   "foo.test.testForked": {}
                 }
               }

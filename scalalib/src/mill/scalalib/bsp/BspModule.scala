@@ -4,8 +4,8 @@ import mill.api.internal
 import mill.define.Task
 import mill._
 
-trait BspModule extends Module {
-  import BspModule._
+trait BspModule extends mill.define.Module with mill.runner.api.BspModuleApi {
+  import mill.runner.api.BspModuleApi._
 
   def bspDisplayName0: String = this.moduleSegments.render
 
@@ -18,7 +18,7 @@ trait BspModule extends Module {
   @internal
   def bspBuildTarget: BspBuildTarget = BspBuildTarget(
     displayName = Some(bspDisplayName),
-    baseDirectory = Some(moduleDir),
+    baseDirectory = Some(moduleDir.toNIO),
     tags = Seq(Tag.Library, Tag.Application),
     languageIds = Seq(),
     canCompile = false,
@@ -37,25 +37,4 @@ trait BspModule extends Module {
   @internal
   def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon { None }
 
-}
-
-object BspModule {
-
-  /** Used to define the [[BspBuildTarget.languageIds]] field. */
-  object LanguageId {
-    val Java = "java"
-    val Scala = "scala"
-    val Kotlin = "kotlin"
-  }
-
-  /** Used to define the [[BspBuildTarget.tags]] field. */
-  object Tag {
-    val Library = "library"
-    val Application = "application"
-    val Test = "test"
-    val IntegrationTest = "integration-test"
-    val Benchmark = "benchmark"
-    val NoIDE = "no-ide"
-    val Manual = "manual"
-  }
 }

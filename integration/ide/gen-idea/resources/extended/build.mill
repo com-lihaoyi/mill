@@ -2,7 +2,7 @@ import $meta._
 
 import mill._
 import mill.api.PathRef
-import mill.scalalib.GenIdeaModule._
+import mill.runner.api.{JavaFacet, IdeaConfigFile, Element}
 import mill.scalalib.TestModule
 
 trait HelloWorldModule extends scalalib.ScalaModule {
@@ -52,13 +52,13 @@ trait HelloWorldModule extends scalalib.ScalaModule {
         Seq(
           // whole file
           IdeaConfigFile(
-            os.sub / "runConfigurations/testrun.xml",
+            (os.sub / "runConfigurations/testrun.xml").toNIO,
             None,
             Seq(Element("test"))
           ),
           // components in project file
           IdeaConfigFile(
-            os.sub / "compiler.xml",
+            (os.sub / "compiler.xml").toNIO,
             component = "AjcSettings",
             config = Seq(
               Element(
@@ -68,7 +68,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
             )
           ),
           IdeaConfigFile(
-            os.sub / "compiler.xml",
+            (os.sub / "compiler.xml").toNIO,
             component = "CompilerConfiguration",
             config = Seq(
               Element(

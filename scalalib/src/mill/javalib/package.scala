@@ -43,6 +43,6 @@ package object javalib extends mill.scalalib.JsonFormatters {
   type BoundDep = mill.scalalib.BoundDep
   val BoundDep = mill.scalalib.BoundDep
 
-  type CrossVersion = mill.scalalib.CrossVersion
-  val CrossVersion = mill.scalalib.CrossVersion
+  type CrossVersion = mill.api.CrossVersion
+  val CrossVersion = mill.api.CrossVersion
 }
