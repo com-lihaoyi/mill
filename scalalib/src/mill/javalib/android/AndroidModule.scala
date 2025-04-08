@@ -1015,7 +1015,7 @@ trait AndroidModule extends JavaModule {
   }
 
   def mainDexListOutput: T[Option[PathRef]] = T {
-    Some(PathRef(Task.dest / "runR8.dest/minify/main-dex-list-output.txt"))
+    Some(androidModuleGeneratedSourcesFunc().mainDexListOutput)
   }
 
   // Optional baseline profile for ART rewriting
@@ -1028,6 +1028,7 @@ trait AndroidModule extends JavaModule {
     os.makeDir(androidDebugDex)
     val androidReleaseDex = T.dest / "androidReleaseDex.dest"
     os.makeDir(androidReleaseDex)
+    val mainDexListOutput = T.dest / "main-dex-list-output.txt"
 
     val proguardFileDebug = androidDebugDex / "proguard-rules.pro"
 
@@ -1055,7 +1056,8 @@ trait AndroidModule extends JavaModule {
 
     AndroidModuleGeneratedSources(
       androidDebugDex = PathRef(androidDebugDex),
-      androidReleaseDex = PathRef(androidReleaseDex)
+      androidReleaseDex = PathRef(androidReleaseDex),
+      mainDexListOutput = PathRef(mainDexListOutput)
     )
   }
 
@@ -1064,7 +1066,8 @@ trait AndroidModule extends JavaModule {
 object AndroidModule {
   case class AndroidModuleGeneratedSources(
       androidDebugDex: PathRef,
-      androidReleaseDex: PathRef
+      androidReleaseDex: PathRef,
+      mainDexListOutput: PathRef
   )
 
   object AndroidModuleGeneratedSources {
