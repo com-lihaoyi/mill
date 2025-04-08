@@ -4,17 +4,32 @@ import mill.api._
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.moduledefs.Scaladoc
-import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.{Util, Watchable}
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 import scala.collection.mutable
 import scala.reflect.NameTransformer.decode
 
 object MainModule {
+
+  @nowarn("cat=deprecation")
+  def resolveTasks[T](
+      evaluator: Evaluator,
+      targets: Seq[String],
+      selectMode: mill.define.SelectMode,
+      resolveToModuleTasks: Boolean
+  )(f: List[NamedTask[Any]] => T): Result[T] = resolveTasks(
+    evaluator,
+    targets,
+    selectMode match {
+      case mill.define.SelectMode.Multi => SelectMode.Multi
+      case mill.define.SelectMode.Separated => SelectMode.Separated
+    },
+    resolveToModuleTasks
+  )(f)
 
   def resolveTasks[T](
       evaluator: Evaluator,
@@ -32,6 +47,20 @@ object MainModule {
       case Right(tasks) => Result.Success(f(tasks))
     }
   }
+
+  @nowarn("cat=deprecation")
+  def resolveTasks[T](
+      evaluator: Evaluator,
+      targets: Seq[String],
+      selectMode: mill.define.SelectMode
+  )(f: List[NamedTask[Any]] => T): Result[T] = resolveTasks(
+    evaluator,
+    targets,
+    selectMode match {
+      case mill.define.SelectMode.Multi => SelectMode.Multi
+      case mill.define.SelectMode.Separated => SelectMode.Separated
+    }
+  )(f)
 
   def resolveTasks[T](
       evaluator: Evaluator,
@@ -61,7 +90,7 @@ object MainModule {
     RunScript.evaluateTasksNamed(
       evaluator.withBaseLogger(redirectLogger),
       targets,
-      Separated,
+      SelectMode.Separated,
       selectiveExecution = evaluator.selectiveExecution
     ) match {
       case Left(err) => Result.Failure(err)
@@ -238,7 +267,7 @@ trait MainModule extends BaseModule0 {
           if (seen(t)) Nil // do nothing
           else t match {
             case t: mill.define.Target[_]
-                if evaluator.rootModule.millInternal.targets.contains(t) =>
+                if evaluator.rootModule.moduleInternal.targets.contains(t) =>
               Seq(t.ctx.segments)
             case _ =>
               seen.add(t)

@@ -5,9 +5,11 @@ import mill.api.Loose.Agg
 
 import scala.annotation.nowarn
 
+@deprecated("Use JvmWorkerApi instead", "Mill 0.12.11")
 object ZincWorkerApi {
   type Ctx = mill.api.Ctx.Dest with mill.api.Ctx.Log with mill.api.Ctx.Home
 }
+@deprecated("Use JvmWorkerApi instead", "Mill 0.12.11")
 trait ZincWorkerApi {
 
   /** Compile a Java-only project */
@@ -147,6 +149,7 @@ trait ZincWorkerApi {
   /**
    * Find main classes by inspecting the Zinc compilation analysis file.
    */
+  @deprecated("Use ClassgraphWorker.discoverMainClasses instead", "Mill 0.12.10")
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String]
 
   def docJar(
@@ -160,6 +163,7 @@ trait ZincWorkerApi {
   /**
    * Discover main classes by inspecting the classpath.
    */
+  @deprecated("Use ClassgraphWorker.discoverMainClasses instead", "Mill 0.12.10")
   def discoverMainClasses(classpath: Seq[os.Path]): Seq[String] = {
     // We need this default-impl to keep binary compatibility (0.11.x)
     Seq.empty

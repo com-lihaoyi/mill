@@ -3,7 +3,6 @@ package contrib.scalapblib
 
 import coursier.core.Version
 import mill.api.{IO, Loose, PathRef}
-import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 
 import java.util.zip.ZipInputStream
@@ -54,7 +53,7 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBProtocPath: T[Option[String]] = Task { None }
 
   def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
-    millSourcePath / "protobuf"
+    moduleDir / "protobuf"
   }
 
   def scalaPBOptions: T[String] = Task {
@@ -76,10 +75,11 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBClasspath: T[Loose.Agg[PathRef]] = Task {
-    resolveDependencies(
-      repositoriesTask(),
+    val scalaPBScalaVersion = "2.13.1"
+    defaultResolver().classpath(
       Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
-        .map(Lib.depToBoundDep(_, "2.13.1"))
+        .map(Lib.depToBoundDep(_, scalaPBScalaVersion)),
+      resolutionParamsMapOpt = Some(_.withScalaVersion(scalaPBScalaVersion))
     )
   }
 
@@ -91,7 +91,7 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
-    millResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),
         coursierDependency

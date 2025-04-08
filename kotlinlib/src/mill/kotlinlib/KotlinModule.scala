@@ -11,9 +11,8 @@ import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
+import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
-import mill.util.Util.millProjectModule
 import mill.{Agg, T}
 
 import java.io.File
@@ -61,7 +60,9 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * The version of the Kotlin compiler to be used.
    * Default is derived from [[kotlinVersion]].
+   * This is deprecated, as it's identical to [[kotlinVersion]]
    */
+  @deprecated("Use kotlinVersion instead", "Mill 0.12.10")
   def kotlinCompilerVersion: T[String] = Task { kotlinVersion() }
 
   /**
@@ -81,15 +82,14 @@ trait KotlinModule extends JavaModule { outer =>
 
   type CompileProblemReporter = mill.api.CompileProblemReporter
 
-  protected def zincWorkerRef: ModuleRef[ZincWorkerModule] = zincWorker
+  protected def zincWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
 
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
   private[kotlinlib] def kotlinWorkerClasspath = Task {
-    millProjectModule(
-      "mill-kotlinlib-worker-impl",
-      repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-kotlinlib-worker-impl")
+    ))
   }
 
   /**
@@ -97,9 +97,8 @@ trait KotlinModule extends JavaModule { outer =>
    * Default is derived from [[kotlinCompilerIvyDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
-    resolveDeps(
-      Task.Anon { kotlinCompilerIvyDeps().map(bindDependency()) }
-    )().toSeq ++ kotlinWorkerClasspath()
+    defaultResolver().classpath(kotlinCompilerIvyDeps()).iterator.toSeq ++
+      kotlinWorkerClasspath()
   }
 
   /**
@@ -117,6 +116,23 @@ trait KotlinModule extends JavaModule { outer =>
           Agg(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
         else Seq()
       )
+  }
+
+  /**
+   * Compiler Plugin dependencies.
+   */
+  def kotlincPluginIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+
+  /**
+   * The resolved plugin jars
+   */
+  def kotlincPluginJars: T[Seq[PathRef]] = Task {
+    val jars = defaultResolver().resolveDeps(
+      kotlincPluginIvyDeps()
+        // Don't resolve transitive jars
+        .map(d => d.exclude("*" -> "*"))
+    )
+    jars.toSeq
   }
 
   def kotlinWorkerTask: Task[KotlinWorker] = Task.Anon {
@@ -210,7 +226,7 @@ trait KotlinModule extends JavaModule { outer =>
    * Classpath for running Dokka.
    */
   private def dokkaCliClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Agg(
         ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       )
@@ -218,7 +234,7 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   private def dokkaPluginsClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Agg(
         ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
         ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
@@ -287,7 +303,7 @@ trait KotlinModule extends JavaModule { outer =>
           when(kotlinExplicitApi())(
             "-Xexplicit-api=strict"
           ),
-          kotlincOptions(),
+          allKotlincOptions(),
           extraKotlinArgs,
           // parameters
           (kotlinSourceFiles ++ javaSourceFiles).map(_.toString())
@@ -324,20 +340,29 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
-  def kotlincOptions: T[Seq[String]] = Task {
-    val options = Seq.newBuilder[String]
-    options += "-no-stdlib"
+  def kotlincOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /**
+   * Mandatory command-line options to pass to the Kotlin compiler
+   * that shouldn't be removed by overriding `scalacOptions`
+   */
+  protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
-    if (!languageVersion.isBlank) {
-      options += "-language-version"
-      options += languageVersion
-    }
     val kotlinkotlinApiVersion = kotlinApiVersion()
-    if (!kotlinkotlinApiVersion.isBlank) {
-      options += "-api-version"
-      options += kotlinkotlinApiVersion
-    }
-    options.result()
+    val plugins = kotlincPluginJars().map(_.path)
+
+    Seq("-no-stdlib") ++
+      when(!languageVersion.isBlank)("-language-version", languageVersion) ++
+      when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
+      plugins.map(p => s"-Xplugin=$p")
+  }
+
+  /**
+   * Aggregation of all the options passed to the Kotlin compiler.
+   * In most cases, instead of overriding this Target you want to override `kotlincOptions` instead.
+   */
+  def allKotlincOptions: T[Seq[String]] = Task {
+    mandatoryKotlincOptions() ++ kotlincOptions()
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
@@ -372,9 +397,14 @@ trait KotlinModule extends JavaModule { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends JavaTests with KotlinModule {
+    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
+    override def kotlincPluginIvyDeps: T[Seq[Dep]] =
+      Task { outer.kotlincPluginIvyDeps() }
+    // TODO: make Xfriend-path an explicit setting
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")

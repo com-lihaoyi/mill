@@ -10,6 +10,7 @@ import java.util.jar.{Attributes, Manifest}
  * @param main   the main manifest attributes
  * @param groups additional attributes for named entries
  */
+@deprecated("Use mill.uitl.JarManifest instead", "Mill 0.12.10")
 final class JarManifest private (
     val main: Map[String, String],
     val groups: Map[String, Map[String, String]]
@@ -44,6 +45,7 @@ final class JarManifest private (
   }
 }
 
+@deprecated("Use mill.uitl.JarManifest instead", "Mill 0.12.10")
 object JarManifest {
 
   final val Empty: JarManifest = JarManifest()

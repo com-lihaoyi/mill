@@ -5,7 +5,7 @@ import coursier.core.Reconciliation
 import coursier.params.ResolutionParams
 import coursier.util.ModuleMatchers
 import mill.{Agg, T, Task}
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
 import mill.define.ModuleRef
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
@@ -30,16 +30,24 @@ import mill.scalalib.TestModule.Junit5
 trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer =>
 
   override def sources: T[Seq[PathRef]] =
-    super[AndroidAppModule].sources() :+ PathRef(millSourcePath / "src/main/kotlin")
+    super[AndroidAppModule].sources() :+ PathRef(moduleDir / "src/main/kotlin")
 
-  override def kotlincOptions = super.kotlincOptions() ++ {
+  override def kotlincPluginIvyDeps = Task {
+    val kv = kotlinVersion()
+
+    val deps = super.kotlincPluginIvyDeps()
+
     if (androidEnableCompose()) {
-      Seq(
-        // TODO expose Compose configuration options
-        // https://kotlinlang.org/docs/compose-compiler-options.html possible options
-        s"-Xplugin=${composeProcessor().path}"
-      )
-    } else Seq.empty
+      if (kv.startsWith("1")) {
+        // cut-off usages for Kotlin 1.x, because of the need to maintain the table of
+        // Compose compiler version -> Kotlin version
+        Result.Failure("Compose can be used only with Kotlin version 2 or newer.")
+      } else {
+        Result.Success(deps ++ Seq(
+          ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
+        ))
+      }
+    } else Result.Success(deps)
   }
 
   /**
@@ -47,21 +55,9 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
    */
   def androidEnableCompose: T[Boolean] = false
 
-  private def composeProcessor = Task {
-    // cut-off usages for Kotlin 1.x, because of the need to maintain the table of
-    // Compose compiler version -> Kotlin version
-    if (kotlinVersion().startsWith("1"))
-      throw new IllegalStateException("Compose can be used only with Kotlin version 2 or newer.")
-    defaultResolver().resolveDeps(
-      Agg(
-        ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
-      )
-    ).head
-  }
-
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
     override def sources: T[Seq[PathRef]] =
-      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.millSourcePath / "src/test/kotlin"))
+      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.moduleDir / "src/test/kotlin"))
   }
 
   trait AndroidAppKotlinInstrumentedTests extends AndroidAppKotlinModule
@@ -72,7 +68,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppInstrumentedTests].sources() :+ PathRef(
-        outer.millSourcePath / "src/androidTest/kotlin"
+        outer.moduleDir / "src/androidTest/kotlin"
       )
   }
 
@@ -81,31 +77,30 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     /* There are no testclasses for screenshot tests, just the engine running a diff over the images */
     override def discoveredTestClasses: T[Seq[String]] = Task { Seq.empty[String] }
 
-    override def mapDependencies: Task[Dependency => Dependency] = outer.mapDependencies
+    override def mapDependencies: Task[Dependency => Dependency] =
+      Task.Anon(outer.mapDependencies())
 
-    override def androidCompileSdk: T[Int] = outer.androidCompileSdk
+    override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
 
-    override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest
+    override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest()
 
     override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
 
+    // FIXME: avoid hardcoded version
     def layoutLibVersion: String = "14.0.9"
+    // FIXME: avoid hardcoded version
     def composePreviewRendererVersion: String = "0.0.1-alpha08"
 
     def namespace: String
 
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
 
-    override final def kotlinVersion = outer.kotlinVersion
-
-    override def kotlincOptions = super.kotlincOptions() ++ Seq(
-      s"-Xplugin=${composeProcessor().path}"
-    )
+    override final def kotlinVersion: T[String] = outer.kotlinVersion()
 
     override def sources: T[Seq[PathRef]] = Task.Sources(
       Seq(
-        PathRef(outer.millSourcePath / "src/screenshotTest/kotlin"),
-        PathRef(outer.millSourcePath / "src/screenshotTest/java")
+        PathRef(outer.moduleDir / "src/screenshotTest/kotlin"),
+        PathRef(outer.moduleDir / "src/screenshotTest/java")
       )
     )
 
@@ -114,7 +109,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
      * For more information see [[https://developer.android.com/studio/preview/compose-screenshot-testing]]
      */
     def composePreviewRenderer: T[Agg[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Agg(
           ivy"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
         )
@@ -122,7 +117,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     }
 
     final def layoutLibRenderer: T[Agg[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Agg(
           ivy"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
         )
@@ -130,7 +125,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     }
 
     final def layoutLibRuntime: T[Agg[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Agg(
           ivy"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
         )
@@ -138,7 +133,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     }
 
     final def layoutLibFrameworkRes: T[Agg[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Agg(
           ivy"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
         )
@@ -154,6 +149,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       PathRef(extractDestination)
     }
 
+    // FIXME: avoid hardcoded version
     def uiToolingVersion: String = "1.7.6"
 
     /*
@@ -312,7 +308,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       super.runClasspath() ++ androidPreviewScreenshotTestEngineClasspath() ++ compileClasspath()
 
     def androidPreviewScreenshotTestEngineClasspath: T[Agg[PathRef]] = Task {
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         Seq(
           ivy"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08"
         )

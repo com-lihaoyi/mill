@@ -5,7 +5,7 @@ import coursier.core.{BomDependency, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
 
 import scala.annotation.nowarn
 import scala.concurrent.Await
@@ -35,10 +35,10 @@ trait CoursierModule extends mill.Module {
   }
 
   /**
-   * A `CoursierModule.Resolver` to resolve dependencies.
+   * A [[CoursierModule.Resolver]] to resolve dependencies.
    *
-   * Unlike `defaultResolver`, this resolver can resolve Mill modules too
-   * (obtained via `JavaModule#coursierDependency`).
+   * Unlike [[defaultResolver]], this resolver can resolve Mill modules too
+   * (obtained via [[JavaModule.coursierDependency]]).
    *
    * @return `CoursierModule.Resolver` instance
    */
@@ -58,7 +58,7 @@ trait CoursierModule extends mill.Module {
    * A `CoursierModule.Resolver` to resolve dependencies.
    *
    * Can be used to resolve external dependencies, if you need to download an external
-   * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#resolveDeps`.
+   * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#classpath`.
    *
    * @return `CoursierModule.Resolver` instance
    */
@@ -140,7 +140,7 @@ trait CoursierModule extends mill.Module {
   private[mill] def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
 
   /**
-   * The repositories used to resolved dependencie with [[resolveDeps()]].
+   * The repositories used to resolve dependencies with [[classpath()]].
    *
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
@@ -271,34 +271,84 @@ object CoursierModule {
         ResolutionParams()
       )
 
+    /**
+     * Class path of the passed dependencies
+     *
+     * @param deps root dependencies to resolve
+     * @param sources whether to fetch source JARs or standard JARs
+     */
+    def classpath[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false,
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
+        mapDependencies: Option[Dependency => Dependency] = null
+    )(implicit ctx: mill.api.Ctx.Log): Agg[PathRef] =
+      resolveDepsSafe(
+        deps,
+        sources,
+        artifactTypes,
+        resolutionParamsMapOpt,
+        mapDependencies
+      ).getOrThrow
+
+    @deprecated("Use classpath instead", "Mill 0.12.10")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
-        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
+        mapDependencies: Option[Dependency => Dependency] = null
+    )(implicit ctx: mill.api.Ctx.Log): Agg[PathRef] =
+      classpath(deps, sources, artifactTypes, resolutionParamsMapOpt, mapDependencies)
+
+    @deprecated("Use classpath instead", "Mill 0.12.10")
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean,
+        artifactTypes: Option[Set[coursier.Type]],
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams]
     ): Agg[PathRef] = {
+      implicit val ctx0: mill.api.Ctx.Log = ctx.orNull
+      resolveDeps(
+        deps,
+        sources,
+        artifactTypes,
+        resolutionParamsMapOpt,
+        None
+      )
+    }
+
+    def resolveDepsSafe[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false,
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
+        mapDependencies: Option[Dependency => Dependency] = null
+    )(implicit ctx: mill.api.Ctx.Log): Result[Agg[PathRef]] =
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
         artifactTypes = artifactTypes,
-        mapDependencies = mapDependencies,
+        mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
+        ctx = Option(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
-      ).getOrThrow
-    }
+      )
 
-    // bin-compat shim
+    @deprecated("Use classpath instead", "Mill 0.12.10")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean,
         artifactTypes: Option[Set[coursier.Type]]
-    ): Agg[PathRef] =
-      resolveDeps(deps, sources, artifactTypes, None)
+    ): Agg[PathRef] = {
+      implicit val ctx0: mill.api.Ctx.Log = ctx.orNull
+      classpath(deps, sources, artifactTypes, None)
+    }
 
-    @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+    @deprecated("Use classpath instead", "Mill 0.12.10")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean
@@ -318,6 +368,10 @@ object CoursierModule {
      * @param resolutionParams coursier resolution parameters
      * @return dependencies with empty version filled
      */
+    @deprecated(
+      "Use resolution instead, and extract the values you're interested in from it",
+      "Mill 0.12.10"
+    )
     def processDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         resolutionParams: ResolutionParams = ResolutionParams(),
@@ -357,41 +411,46 @@ object CoursierModule {
     }
 
     /**
-     * All dependencies pulled by the passed dependencies
+     * Raw coursier resolution of the passed dependencies
      *
      * @param deps root dependencies
-     * @return full - ordered - list of dependencies pulled by `deps`
      */
-    def allDeps[T: CoursierModule.Resolvable](
+    def resolution[T: CoursierModule.Resolvable](
         deps: IterableOnce[T]
-    ): Seq[coursier.core.Dependency] = {
+    )(implicit ctx: mill.api.Ctx.Log): coursier.core.Resolution = {
       val deps0 = deps
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
         .iterator.toSeq
-      val res = Lib.resolveDependenciesMetadataSafe(
+      Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx,
+        ctx = Option(ctx),
         resolutionParams = ResolutionParams(),
         boms = Nil
       ).getOrThrow
-
-      res.orderedDependencies
     }
 
-    def getArtifacts[T: CoursierModule.Resolvable](
+    @deprecated(
+      "Use resolution instead, and call orderedDependencies on its returned value",
+      "Mill 0.12.10"
+    )
+    def allDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T]
+    ): Seq[coursier.core.Dependency] = {
+      implicit val ctx0: mill.api.Ctx.Log = ctx.orNull
+      resolution(deps).orderedDependencies
+    }
+
+    /**
+     * Raw artifact results for the passed dependencies
+     */
+    def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
-        sources: Boolean = false,
-        mapDependencies: Option[Dependency => Dependency] = None,
-        customizer: Option[Resolution => Resolution] = None,
-        ctx: Option[mill.api.Ctx.Log] = None,
-        coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-        artifactTypes: Option[Set[Type]] = None,
-        resolutionParams: ResolutionParams = ResolutionParams()
-    ): coursier.Artifacts.Result = {
+        sources: Boolean = false
+    )(implicit ctx0: mill.api.Ctx.Log): coursier.Artifacts.Result = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
@@ -400,7 +459,7 @@ object CoursierModule {
         repositories,
         deps0.map(_.dep),
         sources = sources,
-        ctx = ctx
+        ctx = Option(ctx0)
       ).getOrThrow
     }
   }

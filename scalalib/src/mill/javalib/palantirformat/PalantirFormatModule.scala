@@ -13,7 +13,7 @@ trait PalantirFormatBaseModule extends CoursierModule {
    * Classpath for running Palantir Java Format.
    */
   def palantirformatClasspath: T[Loose.Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Agg(ivy"com.palantir.javaformat:palantir-java-format:${palantirformatVersion()}")
     )
   }
@@ -40,9 +40,7 @@ trait PalantirFormatBaseModule extends CoursierModule {
   /**
    * Path to options file for Palantir Java Format CLI. Defaults to `millSourcePath` `/` `palantirformat.options`.
    */
-  def palantirformatOptions: T[PathRef] = Task.Source(
-    millSourcePath / "palantirformat.options"
-  )
+  def palantirformatOptions: T[PathRef] = Task.Source("palantirformat.options")
 
   /**
    * Palantir Java Format version. Defaults to `2.50.0`.
@@ -63,7 +61,7 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
    * @param check if an exception should be raised when formatting errors are found
    *              - when set, files are not formatted
    * @param sources list of file or folder path(s) to be processed
-   *                - path must be relative to [[millSourcePath]]
+   *                - path must be relative to [[moduleDir]]
    *                - when empty, all [[sources]] are processed
    */
   def palantirformat(
@@ -73,7 +71,7 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
 
     val _sources =
       if (sources.value.isEmpty) this.sources()
-      else sources.value.iterator.map(rel => PathRef(millSourcePath / os.RelPath(rel)))
+      else sources.value.iterator.map(rel => PathRef(moduleDir / os.RelPath(rel)))
 
     PalantirFormatModule.palantirAction(
       _sources,

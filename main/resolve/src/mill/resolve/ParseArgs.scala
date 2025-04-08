@@ -5,7 +5,7 @@ import fastparse._
 import mill.define.{Segment, Segments}
 import mill.util.EitherOps
 
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 
 object ParseArgs {
 
@@ -16,6 +16,19 @@ object ParseArgs {
 
   /** Separator used in [[SelectMode.Separated]] mode to separate a target-args-tuple from the next target. */
   val TargetSeparator = "+"
+
+  // Forward compatibility with Mill 0.13
+  @nowarn("cat=deprecation")
+  def apply(
+      scriptArgs: Seq[String],
+      selectMode: mill.define.SelectMode
+  ): Either[String, Seq[TargetsWithParams]] = apply(
+    scriptArgs,
+    selectMode match {
+      case mill.define.SelectMode.Multi => SelectMode.Multi
+      case mill.define.SelectMode.Separated => SelectMode.Separated
+    }
+  )
 
   def apply(
       scriptArgs: Seq[String],

@@ -25,9 +25,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
     }
   }
 
-  def twirlSources: T[Seq[PathRef]] = Task.Sources {
-    millSourcePath / "views"
-  }
+  def twirlSources: T[Seq[PathRef]] = Task.Sources("views")
 
   /**
    * Replicate the logic from twirl build,
@@ -73,7 +71,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   lazy val twirlCoursierResolver: TwirlResolver = new TwirlResolver {}
 
   def twirlClasspath: T[Loose.Agg[PathRef]] = Task {
-    twirlCoursierResolver.defaultResolver().resolveDeps(twirlIvyDeps())
+    twirlCoursierResolver.defaultResolver().classpath(twirlIvyDeps())
   }
 
   def twirlImports: T[Seq[String]] = Task {

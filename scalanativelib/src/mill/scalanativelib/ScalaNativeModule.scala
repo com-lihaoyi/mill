@@ -5,8 +5,7 @@ import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{Result, internal}
 import mill.define.{Command, Task}
-import mill.util.Util.millProjectModule
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
@@ -34,16 +33,15 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def scalaNativeBinaryVersion =
-    Task { ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
+    Task { JvmWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerVersion =
-    Task { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
+    Task { JvmWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath = Task {
-    millProjectModule(
-      s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
-      repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule(s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}")
+    ))
   }
 
   def toolsIvyDeps = Task {
@@ -67,7 +65,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         if (scalaNativeVersion().startsWith("0.4")) scalaNativeVersion()
         else s"${scalaVersion()}+${scalaNativeVersion()}"
 
-      if (ZincWorkerUtil.isScala3(scalaVersion()))
+      if (JvmWorkerUtil.isScala3(scalaVersion()))
         Agg(ivy"org.scala-native::scala3lib::$version")
       else Agg(ivy"org.scala-native::scalalib::$version")
     }
@@ -95,11 +93,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def bridgeFullClassPath: T[Agg[PathRef]] = Task {
-    Lib.resolveDependencies(
-      repositoriesTask(),
-      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
-      ctx = Some(Task.log)
-    ).map(t => (scalaNativeWorkerClasspath() ++ t))
+    scalaNativeWorkerClasspath() ++ defaultResolver().classpath(
+      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, ""))
+    )
   }
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = Task {
@@ -299,7 +295,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       ScalaBuildTarget(
         scalaOrganization = scalaOrganization(),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,
         jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
         jvmBuildTarget = None

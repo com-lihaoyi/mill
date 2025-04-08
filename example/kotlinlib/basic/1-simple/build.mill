@@ -6,8 +6,6 @@ import mill._, kotlinlib._
 object foo extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
-  def mainClass = Some("foo.FooKt")
-
   def ivyDeps = Agg(
     ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
@@ -70,9 +68,6 @@ foo.run
 foo.compile(KotlinModule...)
     Compiles all the sources to JVM class files.
     Compiles the current module to generate compiled classfiles/bytecode.
-    When you override this, you probably also want/need to override [[bspCompileClassesPath]],
-    as that needs to point to the same compilation output path.
-    Keep in sync with [[bspCompileClassesPath]]
 Inputs:
     foo.allJavaSourceFiles
     foo.allKotlinSourceFiles
@@ -80,7 +75,7 @@ Inputs:
     foo.upstreamCompileOutput
     foo.javacOptions
     foo.zincReportCachedProblems
-    foo.kotlincOptions
+    foo.allKotlincOptions
     foo.kotlinCompilerClasspath
 ...
 

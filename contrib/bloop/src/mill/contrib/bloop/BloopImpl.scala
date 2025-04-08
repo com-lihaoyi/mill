@@ -402,7 +402,7 @@ class BloopImpl(
 
     val millBuildDependencies: Task[List[BloopConfig.Module]] = Task.Anon {
 
-      val result = module.defaultResolver().getArtifacts(
+      val result = module.defaultResolver().artifacts(
         BuildInfo.millEmbeddedDeps
           .split(',')
           .filter(_.nonEmpty)
@@ -507,7 +507,7 @@ class BloopImpl(
 
       BloopConfig.Project(
         name = name(module),
-        directory = module.millSourcePath.toNIO,
+        directory = module.moduleDir.toNIO,
         workspaceDir = Some(wd.toNIO),
         sources = mSources,
         sourcesGlobs = None,

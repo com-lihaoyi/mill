@@ -117,7 +117,9 @@ private object ResolveCore {
                   tail,
                   r,
                   querySoFar ++ Seq(head),
-                  seenModules ++ moduleClasses(Set(current)),
+                  // `foo.__` wildcards can refer to `foo` as well, so make sure we don't
+                  // mark it as seen to avoid spurious cyclic module reference errors
+                  seenModules ++ moduleClasses(Option.when(r != current)(current)),
                   cache
                 )
               }
@@ -149,7 +151,6 @@ private object ResolveCore {
                     m.cls,
                     None,
                     current.segments,
-                    Nil,
                     seenModules,
                     cache
                   )
@@ -174,12 +175,17 @@ private object ResolveCore {
                   m.cls,
                   None,
                   current.segments,
-                  typePattern,
                   seenModules,
                   cache
                 )
 
-                transitiveOrErr.map(transitive => self ++ transitive)
+                transitiveOrErr.map(transitive =>
+                  (self ++ transitive).collect {
+                    case r @ Resolved.Module(segments, cls)
+                        if classMatchesTypePred(typePattern)(cls) =>
+                      r
+                  }
+                )
 
               case pattern if pattern.startsWith("_:") =>
                 val typePattern = pattern.split(":").drop(1)
@@ -188,9 +194,13 @@ private object ResolveCore {
                   m.cls,
                   None,
                   current.segments,
-                  typePattern,
                   cache
-                )
+                ).map {
+                  _.collect {
+                    case r @ Resolved.Module(segments, cls)
+                        if classMatchesTypePred(typePattern)(cls) => r
+                  }
+                }
 
               case _ =>
                 resolveDirectChildren(
@@ -232,7 +242,7 @@ private object ResolveCore {
                 case Right(searchModules) =>
                   recurse(
                     searchModules
-                      .map(m => Resolved.Module(m.millModuleSegments, m.getClass))
+                      .map(m => Resolved.Module(m.moduleSegments, m.getClass))
                   )
               }
 
@@ -254,7 +264,7 @@ private object ResolveCore {
           assert(s != "_", s)
           resolveDirectChildren0(
             rootModule,
-            current.millModuleSegments,
+            current.moduleSegments,
             current.getClass,
             Some(s),
             cache = cache
@@ -289,15 +299,14 @@ private object ResolveCore {
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments,
-      typePattern: Seq[String],
       seenModules: Set[Class[_]],
       cache: Cache
   ): Either[String, Seq[Resolved]] = {
     if (seenModules.contains(cls)) Left(cyclicModuleErrorMsg(segments))
     else {
       val errOrDirect =
-        resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern, cache)
-      val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil, cache)
+        resolveDirectChildren(rootModule, cls, nameOpt, segments, cache)
+      val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, cache)
 
       val errOrModules = directTraverse.map { modules =>
         modules.flatMap {
@@ -314,7 +323,6 @@ private object ResolveCore {
               m.cls,
               nameOpt,
               m.segments,
-              typePattern,
               seenModules + cls,
               cache
             ))
@@ -368,7 +376,6 @@ private object ResolveCore {
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments,
-      typePattern: Seq[String] = Nil,
       cache: Cache
   ): Either[String, Seq[Resolved]] = {
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
@@ -392,12 +399,9 @@ private object ResolveCore {
 
     for {
       crosses <- crossesOrErr
-      filteredCrosses = crosses.filter { c =>
-        classMatchesTypePred(typePattern)(c.cls)
-      }
-      direct0 <- resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern, cache)
+      direct0 <- resolveDirectChildren0(rootModule, segments, cls, nameOpt, cache)
       direct <- Right(expandSegments(direct0))
-    } yield direct ++ filteredCrosses
+    } yield direct ++ crosses
   }
 
   def resolveDirectChildren0(
@@ -405,7 +409,6 @@ private object ResolveCore {
       segments: Segments,
       cls: Class[_],
       nameOpt: Option[String],
-      typePattern: Seq[String] = Nil,
       cache: Cache
   ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
@@ -415,12 +418,11 @@ private object ResolveCore {
         instantiateModule(rootModule, segments, cache).map {
           case m: DynamicModule =>
             m.millModuleDirectChildren
-              .filter(c => namePred(c.millModuleSegments.last.value))
-              .filter(c => classMatchesTypePred(typePattern)(c.getClass))
+              .filter(c => namePred(c.moduleSegments.last.value))
               .map(c =>
                 (
                   Resolved.Module(
-                    Segments.labels(c.millModuleSegments.last.value),
+                    Segments.labels(c.moduleSegments.last.value),
                     c.getClass
                   ),
                   Some((x: Module) => Right(c))
@@ -431,7 +433,7 @@ private object ResolveCore {
         val reflectMemberObjects = Reflect
           .reflectNestedObjects02[Module](cls, namePred, cache.getMethods)
           .collect {
-            case (name, memberCls, getter) if classMatchesTypePred(typePattern)(memberCls) =>
+            case (name, memberCls, getter) =>
               val resolved = Resolved.Module(Segments.labels(cache.decode(name)), memberCls)
               val getter2 = Some((mod: Module) => catchWrapException(getter(mod)))
               (resolved, getter2)

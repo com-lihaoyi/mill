@@ -23,7 +23,7 @@ object Cross {
      */
     trait CrossValue extends Module[T1] {
       def crossValue: T1 = Module.this.crossValue
-      override def crossWrapperSegments: List[String] = Module.this.millModuleSegments.parts
+      override def crossWrapperSegments: List[String] = Module.this.moduleSegments.parts
     }
   }
 

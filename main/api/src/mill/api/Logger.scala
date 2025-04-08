@@ -1,6 +1,7 @@
 package mill.api
 
 import java.io.{InputStream, PrintStream}
+import scala.annotation.nowarn
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -30,9 +31,14 @@ trait Logger extends AutoCloseable {
   def colored: Boolean
 
   private[mill] def unprefixedSystemStreams: SystemStreams = systemStreams
+  @deprecated("For read-access use `streams` instead", "Mill 0.12.11")
   def systemStreams: SystemStreams
+  @nowarn("cat=deprecation")
+  def streams = systemStreams
 
+  @deprecated("Use streams.err instead", "Mill 0.12.11")
   def errorStream: PrintStream = systemStreams.err
+  @deprecated("Use streams.out instead", "Mill 0.12.11")
   def outputStream: PrintStream = systemStreams.out
 
   /**

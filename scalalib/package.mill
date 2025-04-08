@@ -1,26 +1,14 @@
 package build.scalalib
-import scala.util.chaining._
-import com.github.lolgab.mill.mima.Mima
-import coursier.maven.MavenRepository
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
-import mill.api.JarManifest
-import mill.define.NamedTask
-import mill.main.Tasks
-import mill.scalalib._
-import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.publish._
-import mill.util.Jvm
-import mill.resolve.SelectMode
 import mill.contrib.buildinfo.BuildInfo
-import mill.T
-import mill.define.Cross
+
+import scala.util.chaining._
 object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(build.main, build.scalalib.api, build.testrunner)
   def ivyDeps = Agg(build.Deps.scalafmtDynamic, build.Deps.scalaXml)
   def testIvyDeps = super.testIvyDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
+  def testTransitiveDeps =
+    super.testTransitiveDeps() ++ Seq(worker.testDep(), `classgraph-worker`.testDep())
 
   object backgroundwrapper extends build.MillPublishJavaModule with build.MillJavaModule {
     def ivyDeps = Agg(build.Deps.sbtTestInterface)
@@ -78,11 +66,16 @@ object `package` extends RootModule with build.MillStableScalaModule {
 
   object worker extends build.MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(api)
-    def ivyDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core, build.Deps.scalap(scalaVersion()))
+    def ivyDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core)
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
       BuildInfo.Value("zinc", build.Deps.zinc.dep.version, "Version of Zinc.")
     )
+  }
+
+  object `classgraph-worker` extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(api)
+    def ivyDeps = Agg(build.Deps.classgraph)
   }
 }

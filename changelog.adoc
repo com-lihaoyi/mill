@@ -12,6 +12,26 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+
+[#0-12-10]
+=== 0.12.10 - 2025-04-01
+:version: 0.12.10
+:milestone-name: 0.12.10
+:milestone: 113
+:prev-version: 0.12.9
+
+* Find main classes with ClassGraph ({link-pr}/4832[#4832])
+* First-class support for Kotlin compiler plugins ({link-pr}/4782[#4782])
+* Minor improvements to native distribution size ({link-pr}/4829[#4829])
+* Fix main class discovery for `KotlinModule` ({link-pr}/4803[#4803])
+* Fix uTest task creation for multi-test-class modules ({link-pr}/4812[#4812])
+* Less confusing error messages ({link-pr}/4791[#4791])
+* Add Kotlin support for BuildInfo module ({link-pr}/4780[#4780])
+* Fix potential `ArrayIndexOutOfBoundsException` ({link-pr}/4769[#4769])
+* Short progress indicators when running tests within a module ({link-pr}/4656[#4656])
+* Add failed tasks count to Mill progress indicator ({link-pr}/4764[#4764])
+* Fix main class discovery in Scala 3 ({link-pr}/4761[#4761])
+
 [#0-12-9]
 === 0.12.9 - 2025-03-16
 :version: 0.12.9

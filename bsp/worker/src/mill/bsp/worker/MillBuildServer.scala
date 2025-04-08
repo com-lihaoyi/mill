@@ -303,7 +303,7 @@ private class MillBuildServer(
         case m: JavaModule =>
           Task.Anon {
             (
-              m.millResolver().resolveDeps(
+              m.millResolver().classpath(
                 Seq(
                   m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
                   m.coursierDependency
@@ -346,12 +346,14 @@ private class MillBuildServer(
         Task.Anon {
           (
             // full list of dependencies, including transitive ones
-            m.millResolver().allDeps(
-              Seq(
-                m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-                m.coursierDependency
+            m.millResolver()
+              .resolution(
+                Seq(
+                  m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                  m.coursierDependency
+                )
               )
-            ),
+              .orderedDependencies,
             m.unmanagedClasspath()
           )
         }
@@ -600,7 +602,7 @@ private class MillBuildServer(
             val mainModule = new MainModule {
               override implicit def millDiscover: Discover = Discover[this.type]
             }
-            val compileTargetName = (module.millModuleSegments ++ Label("compile")).render
+            val compileTargetName = (module.moduleSegments ++ Label("compile")).render
             debug(s"about to clean: ${compileTargetName}")
             val cleanTask = mainModule.clean(ev, Seq(compileTargetName): _*)
             val cleanResult = evaluate(
@@ -621,7 +623,7 @@ private class MillBuildServer(
             )
             else {
               val outPaths = ev.pathsResolver.resolveDest(
-                module.millModuleSegments ++ Label("compile")
+                module.moduleSegments ++ Label("compile")
               )
               val outPathSeq = Seq(outPaths.dest, outPaths.meta, outPaths.log)
 

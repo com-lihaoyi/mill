@@ -44,19 +44,21 @@ private[mill] class BspContext(
       logStream: Option[PrintStream],
       canReload: Boolean
   ): Either[String, BspServerHandle] = {
+    // avoid name collision
+    val outerStreams = streams
     val log: Logger = new Logger {
       override def colored: Boolean = false
       override def systemStreams: SystemStreams = new SystemStreams(
-        out = streams.out,
-        err = streams.err,
+        out = outerStreams.out,
+        err = outerStreams.err,
         in = DummyInputStream
       )
 
-      override def info(s: String): Unit = streams.err.println(s)
-      override def error(s: String): Unit = streams.err.println(s)
-      override def ticker(s: String): Unit = streams.err.println(s)
-      override def setPromptDetail(key: Seq[String], s: String): Unit = streams.err.println(s)
-      override def debug(s: String): Unit = streams.err.println(s)
+      override def info(s: String): Unit = outerStreams.err.println(s)
+      override def error(s: String): Unit = outerStreams.err.println(s)
+      override def ticker(s: String): Unit = outerStreams.err.println(s)
+      override def setPromptDetail(key: Seq[String], s: String): Unit = outerStreams.err.println(s)
+      override def debug(s: String): Unit = outerStreams.err.println(s)
 
       override def debugEnabled: Boolean = true
 

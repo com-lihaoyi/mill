@@ -6,7 +6,7 @@ import mill.main.BuildInfo
 import mill.util.{Jvm, Util}
 import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
-import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
+import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
 import mainargs.Flag
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
@@ -40,7 +40,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * @return
    */
   def scalaOrganization: T[String] = Task {
-    if (ZincWorkerUtil.isDotty(scalaVersion()))
+    if (JvmWorkerUtil.isDotty(scalaVersion()))
       "ch.epfl.lamp"
     else
       "org.scala-lang"
@@ -61,9 +61,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
     super.mapDependencies().andThen { (d: coursier.Dependency) =>
       val artifacts =
-        if (ZincWorkerUtil.isDotty(scalaVersion()))
+        if (JvmWorkerUtil.isDotty(scalaVersion()))
           Set("dotty-library", "dotty-compiler")
-        else if (ZincWorkerUtil.isScala3(scalaVersion()))
+        else if (JvmWorkerUtil.isScala3(scalaVersion()))
           Set("scala3-library", "scala3-compiler")
         else
           Set("scala-library", "scala-compiler", "scala-reflect")
@@ -88,7 +88,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       publish.Artifact.fromDep(
         _: Dep,
         scalaVersion(),
-        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platformSuffix()
       )
     }
@@ -172,7 +172,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   private def enablePluginScalacOptions: T[Seq[String]] = Task {
 
-    val resolvedJars = defaultResolver().resolveDeps(
+    val resolvedJars = defaultResolver().classpath(
       scalacPluginIvyDeps().map(_.exclude("*" -> "*"))
     )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
@@ -182,7 +182,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Scalac options to activate the compiler plugins for ScalaDoc generation.
    */
   private def enableScalaDocPluginScalacOptions: T[Seq[String]] = Task {
-    val resolvedJars = defaultResolver().resolveDeps(
+    val resolvedJars = defaultResolver().classpath(
       scalaDocPluginIvyDeps().map(_.exclude("*" -> "*"))
     )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
@@ -207,7 +207,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   def scalaDocOptions: T[Seq[String]] = Task {
     val defaults =
-      if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
+      if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
         Seq(
           "-project",
           artifactName()
@@ -222,14 +222,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * on maven central
    */
   def scalacPluginClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(scalacPluginIvyDeps())
+    defaultResolver().classpath(scalacPluginIvyDeps())
   }
 
   /**
    * Classpath of the scaladoc (or dottydoc) tool.
    */
   def scalaDocClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion())
     )
   }
@@ -238,7 +238,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * The ivy coordinates of Scala's own standard library
    */
   def scalaDocPluginClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       scalaDocPluginIvyDeps()
     )
   }
@@ -256,7 +256,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Classpath of the Scala Compiler & any compiler plugins
    */
   def scalaCompilerClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
         scalaLibraryIvyDeps()
     )
@@ -270,7 +270,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         |You may want to select another version. Upgrading to a more recent Scala version is recommended.
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
-    zincWorker()
+    jvmWorker()
       .worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -309,9 +309,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     }
 
   override def docSources: T[Seq[PathRef]] = Task {
-    if (
-      ZincWorkerUtil.isScala3(scalaVersion()) && !ZincWorkerUtil.isScala3Milestone(scalaVersion())
-    ) Seq(compile().classes)
+    if (JvmWorkerUtil.isScala3(scalaVersion()) && !JvmWorkerUtil.isScala3Milestone(scalaVersion()))
+      Seq(compile().classes)
     else allSources()
   }
 
@@ -328,7 +327,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
       if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(Task.dest))
       else {
-        zincWorker()
+        jvmWorker()
           .worker()
           .docJar(
             scalaVersion(),
@@ -344,9 +343,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       }
     }
 
-    if (
-      ZincWorkerUtil.isDotty(scalaVersion()) || ZincWorkerUtil.isScala3Milestone(scalaVersion())
-    ) { // dottydoc
+    if (JvmWorkerUtil.isDotty(scalaVersion()) || JvmWorkerUtil.isScala3Milestone(scalaVersion())) { // dottydoc
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
@@ -370,7 +367,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         javadocDir / "_site"
       )
 
-    } else if (ZincWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
+    } else if (JvmWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
@@ -436,7 +433,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
       Jvm.callProcess(
         mainClass =
-          if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
+          if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
             "dotty.tools.repl.Main"
           else
             "scala.tools.nsc.MainGenericRunner",
@@ -473,7 +470,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   def resolvedAmmoniteReplIvyDeps = Task {
-    millResolver().resolveDeps {
+    millResolver().classpath {
       val scaVersion = scalaVersion()
       val ammVersion = ammoniteVersion()
       if (scaVersion != BuildInfo.scalaVersion && ammVersion == Versions.ammonite) {
@@ -536,12 +533,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   def artifactScalaVersion: T[String] = Task {
     if (crossFullScalaVersion()) scalaVersion()
-    else ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
+    else JvmWorkerUtil.scalaBinaryVersion(scalaVersion())
   }
 
   override def zincAuxiliaryClassFileExtensions: T[Seq[String]] = Task {
     super.zincAuxiliaryClassFileExtensions() ++ (
-      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
+      if (JvmWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
       else Seq.empty[String]
     )
   }
@@ -562,16 +559,16 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     Task.Command {
       super.prepareOffline(all)()
       // resolve the compile bridge jar
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         scalacPluginIvyDeps()
       )
-      defaultResolver().resolveDeps(
+      defaultResolver().classpath(
         scalaDocPluginIvyDeps()
       )
-      zincWorker().scalaCompilerBridgeJar(
+      jvmWorker().scalaCompilerBridgeJar(
         scalaVersion(),
         scalaOrganization(),
-        repositoriesTask()
+        defaultResolver()
       )
       Task.sequence(tasks)()
       ()
@@ -596,7 +593,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       ScalaBuildTarget(
         scalaOrganization = scalaOrganization(),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
         jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
         jvmBuildTarget = Some(bspJvmBuildTargetTask())
@@ -607,7 +604,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   override def semanticDbScalaVersion: T[String] = scalaVersion()
 
   override protected def semanticDbPluginClasspath = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       scalacPluginIvyDeps() ++ semanticDbPluginIvyDeps()
     )
   }
@@ -622,7 +619,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     val stopAfterSemanticDbOpts =
       if (isMixedProject) Seq.empty else Seq("-Ystop-after:semanticdb-typer")
 
-    val additionalScalacOptions = if (ZincWorkerUtil.isScala3(sv)) {
+    val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
       Seq("-Xsemanticdb", s"-sourceroot:${T.workspace}")
     } else {
       Seq(
@@ -643,7 +640,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     Task.log.debug(s"effective scalac options: ${scalacOptions}")
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    zincWorker().worker()
+    jvmWorker().worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),

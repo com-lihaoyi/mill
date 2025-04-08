@@ -130,7 +130,7 @@ trait AndroidAppModule extends JavaModule {
    * Users can customize the keystore file name to change this path.
    */
   def androidReleaseKeyPath: T[Option[PathRef]] = Task {
-    androidReleaseKeyName().map(name => PathRef(millSourcePath / name))
+    androidReleaseKeyName().map(name => PathRef(moduleDir / name))
   }
 
   /**
@@ -269,7 +269,7 @@ trait AndroidAppModule extends JavaModule {
    */
   override def resources: T[Seq[PathRef]] = Task {
     val libResFolders = androidUnpackArchives().flatMap(_.resources)
-    libResFolders :+ PathRef(millSourcePath / "src/main/res")
+    libResFolders :+ PathRef(moduleDir / "src/main/res")
   }
 
   @internal
@@ -279,7 +279,7 @@ trait AndroidAppModule extends JavaModule {
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    baseDirectory = Some(millSourcePath / "src/main"),
+    baseDirectory = Some(moduleDir / "src/main"),
     tags = Seq("application")
   )
 
@@ -573,7 +573,7 @@ trait AndroidAppModule extends JavaModule {
    * Classpath for the manifest merger run.
    */
   def manifestMergerClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Agg(
         ivy"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
       )
@@ -762,7 +762,7 @@ trait AndroidAppModule extends JavaModule {
     os.call(
       Seq(
         androidSdkModule().lintToolPath().path.toString,
-        (millSourcePath / "src/main").toString,
+        (moduleDir / "src/main").toString,
         "--classpath",
         cp,
         "--sources",
@@ -1047,7 +1047,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   trait AndroidAppTests extends JavaTests {
-    private def testPath = parent.millSourcePath / "src/test"
+    private def testPath = parent.moduleDir / "src/test"
 
     override def sources: T[Seq[PathRef]] = Seq(PathRef(testPath / "java"))
 
@@ -1061,7 +1061,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   trait AndroidAppInstrumentedTests extends AndroidAppModule with AndroidTestModule {
-    private def androidMainSourcePath = parent.millSourcePath
+    private def androidMainSourcePath = parent.moduleDir
     private def androidTestPath = androidMainSourcePath / "src/androidTest"
 
     override def moduleDeps: Seq[JavaModule] = Seq(parent)

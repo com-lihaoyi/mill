@@ -55,14 +55,14 @@ class UnitTester(
     env: Map[String, String],
     resetSourcePath: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
-  val outPath: os.Path = module.millSourcePath / "out"
+  val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
-    os.remove.all(module.millSourcePath)
-    os.makeDir.all(module.millSourcePath)
+    os.remove.all(module.moduleDir)
+    os.makeDir.all(module.moduleDir)
 
     for (sourceFileRoot <- Option(sourceRoot)) {
-      os.copy.over(sourceFileRoot, module.millSourcePath, createFolders = true)
+      os.copy.over(sourceFileRoot, module.moduleDir, createFolders = true)
     }
   }
 
@@ -88,7 +88,7 @@ class UnitTester(
   }
   val evaluator: EvaluatorImpl = mill.eval.EvaluatorImpl.make(
     mill.api.Ctx.defaultHome,
-    module.millSourcePath,
+    module.moduleDir,
     outPath,
     outPath,
     module,
@@ -135,7 +135,7 @@ class UnitTester(
           evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
           evaluated.evaluated.collect {
             case t: TargetImpl[_]
-                if module.millInternal.targets.contains(t)
+                if module.moduleInternal.targets.contains(t)
                   && !t.ctx.external => t
             case t: mill.define.Command[_] => t
           }.size
@@ -176,7 +176,7 @@ class UnitTester(
     val evaluated = evaluator.evaluate(targets)
       .evaluated
       .flatMap(_.asTarget)
-      .filter(module.millInternal.targets.contains)
+      .filter(module.moduleInternal.targets.contains)
       .filter(!_.isInstanceOf[InputImpl[_]])
     assert(
       evaluated.toSet == expected.toSet,

@@ -31,7 +31,7 @@ trait DetektModule extends KotlinModule {
       mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
       classPath = detektClasspath().map(_.path).toVector,
       mainArgs = args,
-      cwd = millSourcePath, // allow passing relative paths for sources like src/a/b
+      cwd = moduleDir, // allow passing relative paths for sources like src/a/b
       stdin = os.Inherit,
       stdout = os.Inherit,
       check = false
@@ -60,7 +60,7 @@ trait DetektModule extends KotlinModule {
    * Classpath for running Dekekt.
    */
   def detektClasspath: T[Loose.Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Agg(ivy"io.gitlab.arturbosch.detekt:detekt-cli:${detektVersion()}")
     )
   }
