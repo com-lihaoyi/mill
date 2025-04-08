@@ -57,13 +57,7 @@ trait AndroidModule extends JavaModule {
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
    */
   def androidManifest: Task[PathRef] = Task.Source("src/main/AndroidManifest.xml")
-
-  /**
-   * Controls debug vs release build type. Default is `true`, meaning debug build will be generated.
-   *
-   * This option will probably go away in the future once build variants are supported.
-   */
-//  def androidIsDebug: T[Boolean] = true
+  
 
   /**
    * The minimum SDK version to use. Default is 1.
@@ -162,14 +156,6 @@ trait AndroidModule extends JavaModule {
     PathRef(debugKeystoreTaskFile)
   }
 
-//  protected def androidKeystore: T[PathRef] = Task {
-//    val pathRef = if (androidIsDebug()) {
-//      androidDebugKeystore()
-//    } else {
-//      androidReleaseKeyPath().get
-//    }
-//    pathRef
-//  }
 
   /**
    * Classpath for the manifest merger run.
@@ -1013,7 +999,6 @@ trait AndroidModule extends JavaModule {
     )
   }
 
-  /** Toggle desugaring in R8 (usually true for full R8 mode when minSdk < 24) */
   def enableDesugaring: T[Boolean] = Task {
     true
   }

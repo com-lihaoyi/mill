@@ -387,9 +387,7 @@ trait AndroidAppModule extends AndroidModule {
     val destDir = Task.dest / "minify"
     os.makeDir.all(destDir)
 
-    // because it is an app we need a directory for the dex files
     val outputPath = destDir
-    //    else destDir / "classes-shrunk.jar"
 
     T.log.debug("outptuPath: " + outputPath)
 
@@ -448,9 +446,6 @@ trait AndroidAppModule extends AndroidModule {
       androidMinSdk().toString,
       "--dex"
     )
-    //    } else {
-    //      r8ArgsBuilder += "--classfile"
-    //    }
 
     // Multi-dex arguments (if any are provided)
     val multiDexArgs =
@@ -502,7 +497,6 @@ trait AndroidAppModule extends AndroidModule {
     val destDir = Task.dest / "minify"
     os.makeDir.all(destDir)
 
-    // because it is an app we need a directory for the dex files
     val outputPath = destDir
 
     T.log.debug("outptuPath: " + outputPath)
@@ -636,7 +630,6 @@ trait AndroidAppModule extends AndroidModule {
     os.zip(unsignedApk, r8DexFiles)
     os.zip(unsignedApk, metaInf)
 
-    //      PathRef(unsignedApk)
 
     val alignedApk: os.Path = Task.dest / "app.aligned.apk"
 
@@ -649,7 +642,6 @@ trait AndroidAppModule extends AndroidModule {
       alignedApk
     ))
 
-    //      PathRef(alignedApk)
 
     val signedApk = Task.dest / "app.apk"
 
@@ -666,7 +658,6 @@ trait AndroidAppModule extends AndroidModule {
 
     os.call(signArgs)
 
-    //      PathRef(signedApk)
 
     val emulator = runningEmulator()
 
@@ -706,7 +697,6 @@ trait AndroidAppModule extends AndroidModule {
     os.zip(unsignedApk, r8DexFiles)
     os.zip(unsignedApk, metaInf)
 
-    //      PathRef(unsignedApk)
 
     val alignedApk: os.Path = Task.dest / "app.aligned.apk"
 
@@ -719,7 +709,6 @@ trait AndroidAppModule extends AndroidModule {
       alignedApk
     ))
 
-    //      PathRef(alignedApk)
 
     val signedApk = Task.dest / "app.apk"
 
@@ -736,7 +725,6 @@ trait AndroidAppModule extends AndroidModule {
 
     os.call(signArgs)
 
-    //      PathRef(signedApk)
 
     val emulator = runningEmulator()
 
