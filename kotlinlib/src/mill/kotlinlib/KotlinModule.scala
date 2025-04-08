@@ -30,9 +30,10 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlinLanguageVersion: T[String] = Task { kotlinVersion().split("[.]").take(2).mkString(".") }
 
   /**
-   * The compiler API version. Default is derived from [[kotlinVersion]].
+   * The compiler API version. Default is derived from [[kotlinLanguageVersion]],
+   * as the value typically can not be greater than [[kotlinLanguageVersion]].
    */
-  def kotlinApiVersion: T[String] = Task { kotlinVersion().split("[.]").take(2).mkString(".") }
+  def kotlinApiVersion: T[String] = Task { kotlinLanguageVersion() }
 
   /**
    * All individual source files fed into the compiler.
