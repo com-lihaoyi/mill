@@ -31,7 +31,7 @@ trait CheckstyleModule extends JavaModule {
       Seq("-f", checkstyleFormat()) ++
       (if (stdout) Seq.empty else Seq("-o", output.toString())) ++
       (if (leftover.value.nonEmpty) leftover.value else sources().map(_.path.toString()))
-    val jvmArgs = sys.props.get("user.language")
+    val jvmArgs = checkstyleLanguage()
       .map(lang => s"-Duser.language=$lang")
       .toSeq
 
@@ -107,6 +107,15 @@ trait CheckstyleModule extends JavaModule {
    */
   def checkstyleOptions: T[Seq[String]] = Task {
     Seq.empty[String]
+  }
+
+  /**
+   * User language of the JVM running checkstyle.
+   *
+   * This can affect the messages in the checkstyle output file.
+   */
+  def checkstyleLanguage: T[Option[String]] = Task.Input {
+    sys.props.get("user.language")
   }
 
   /**
