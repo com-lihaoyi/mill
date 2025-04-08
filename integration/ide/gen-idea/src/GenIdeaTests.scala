@@ -2,7 +2,6 @@ package mill.integration
 
 import utest.{Tests, assert, _}
 
-import scala.util.Try
 import mill.testkit.UtestIntegrationTestSuite
 import GenIdeaUtils._
 import os.Path
