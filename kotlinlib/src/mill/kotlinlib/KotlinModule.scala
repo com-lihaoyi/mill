@@ -20,6 +20,22 @@ import java.io.File
 trait KotlinModule extends JavaModule { outer =>
 
   /**
+   * The Kotlin version to be used (for API and Language level settings).
+   */
+  def kotlinVersion: T[String]
+
+  /**
+   * The compiler language version. Default is derived from [[kotlinVersion]].
+   */
+  def kotlinLanguageVersion: T[String] = Task { kotlinVersion().split("[.]").take(2).mkString(".") }
+
+  /**
+   * The compiler API version. Default is derived from [[kotlinLanguageVersion]],
+   * as the value typically can not be greater than [[kotlinLanguageVersion]].
+   */
+  def kotlinApiVersion: T[String] = Task { kotlinLanguageVersion() }
+
+  /**
    * All individual source files fed into the compiler.
    */
   override def allSourceFiles: T[Seq[PathRef]] = Task {
@@ -43,11 +59,6 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   /**
-   * The Kotlin version to be used (for API and Language level settings).
-   */
-  def kotlinVersion: T[String]
-
-  /**
    * The dependencies of this module.
    * Defaults to add the kotlin-stdlib dependency matching the [[kotlinVersion]].
    */
@@ -56,24 +67,6 @@ trait KotlinModule extends JavaModule { outer =>
       ivy"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
     )
   }
-
-  /**
-   * The version of the Kotlin compiler to be used.
-   * Default is derived from [[kotlinVersion]].
-   * This is deprecated, as it's identical to [[kotlinVersion]]
-   */
-  @deprecated("Use kotlinVersion instead", "Mill 0.13.0-M1")
-  def kotlinCompilerVersion: T[String] = Task { kotlinVersion() }
-
-  /**
-   * The compiler language version. Default is not set.
-   */
-  def kotlinLanguageVersion: T[String] = Task { "" }
-
-  /**
-   * The compiler API version. Default is not set.
-   */
-  def kotlinApiVersion: T[String] = Task { "" }
 
   /**
    * Flag to use explicit API check in the compiler. Default is `false`.
@@ -121,7 +114,7 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
     val useEmbeddable = kotlinUseEmbeddableCompiler()
-    val kv = kotlinCompilerVersion()
+    val kv = kotlinVersion()
     val isOldKotlin = Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4")
       .exists(prefix => kv.startsWith(prefix))
 
@@ -423,7 +416,6 @@ trait KotlinModule extends JavaModule { outer =>
     override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
-    override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
     override def kotlincPluginIvyDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginIvyDeps() }
       // TODO: make Xfriend-path an explicit setting
