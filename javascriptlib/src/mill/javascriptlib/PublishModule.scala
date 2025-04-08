@@ -1,7 +1,6 @@
 package mill.javascriptlib
 
 import mill.*
-import os.*
 
 trait PublishModule extends TypeScriptModule {
 
