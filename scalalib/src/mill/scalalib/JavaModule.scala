@@ -1204,27 +1204,6 @@ trait JavaModule
     }
   }
 
-  override def runBackgroundLogToConsole: Boolean = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runBackgroundLogToConsole
-  }
-
-  /**
-   * Runs this module's code in a background process, until it dies or
-   * `runBackground` is used again. This lets you continue using Mill while
-   * the process is running in the background: editing files, compiling, and
-   * only re-starting the background process when you're ready.
-   *
-   * You can also use `-w foo.runBackground` to make Mill watch for changes
-   * and automatically recompile your code & restart the background process
-   * when ready. This is useful when working on long-running server processes
-   * that would otherwise run forever
-   */
-  def runBackground(args: String*): Command[Unit] = {
-    val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
-    Task.Command { task() }
-  }
-
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
