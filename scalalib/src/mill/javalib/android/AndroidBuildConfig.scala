@@ -3,13 +3,13 @@ package mill.javalib.android
 import mill.*
 import mill.api.PathRef
 
-
 trait AndroidBuildConfig extends mill.Module { this: AndroidAppModule =>
 
   def androidAppVersionCode: Task[Int] = Task { 1 }
   def androidAppVersionName: Task[String] = Task { "1.0" }
 
-  /** Generates a BuildConfig.java in the [[androidApplicationNamespace]] package
+  /**
+   * Generates a BuildConfig.java in the [[androidApplicationNamespace]] package
    * TODO user configurable version code and version names
    */
   def generatedBuildConfig: T[PathRef] = Task {
@@ -25,7 +25,10 @@ trait AndroidBuildConfig extends mill.Module { this: AndroidAppModule =>
          |}
         """.stripMargin
 
-    val destination = Task.dest / "source" / os.SubPath(androidApplicationNamespace.replace(".", "/")) / "BuildConfig.java"
+    val destination = Task.dest / "source" / os.SubPath(androidApplicationNamespace.replace(
+      ".",
+      "/"
+    )) / "BuildConfig.java"
 
     os.write(destination, content, createFolders = true)
 
