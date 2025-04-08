@@ -2,7 +2,7 @@ package myplugin
 
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.define.Discover
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import utest._
 
 object UnitTests extends TestSuite {

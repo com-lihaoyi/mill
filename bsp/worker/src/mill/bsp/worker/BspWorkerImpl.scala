@@ -1,10 +1,11 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
-import mill.main.BuildInfo
-import mill.bsp.{BspServerHandle, BspServerResult, BspWorker, Constants}
-import mill.api.{Result, SystemStreams}
-import mill.define.Evaluator
+import mill.bsp.BuildInfo
+import mill.runner.api.{BspServerHandle, BspServerResult}
+import mill.bsp.{Constants}
+import mill.bsp.{BspClasspathWorker, Constants}
+import mill.runner.api.{Result, SystemStreams}
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.{PrintStream, PrintWriter}
@@ -12,7 +13,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, CancellationException, Promise}
 
-private class BspWorkerImpl() extends BspWorker {
+private class BspWorkerImpl() extends BspClasspathWorker {
 
   override def startBspServer(
       topLevelBuildRoot: os.Path,
@@ -20,25 +21,26 @@ private class BspWorkerImpl() extends BspWorker {
       logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
-  ): mill.api.Result[BspServerHandle] = {
-
-    val millServer =
-      new MillBuildServer(
-        topLevelProjectRoot = topLevelBuildRoot,
-        bspVersion = Constants.bspProtocolVersion,
-        serverVersion = BuildInfo.millVersion,
-        serverName = Constants.serverName,
-        logStream = logStream,
-        canReload = canReload,
-        debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true")
-      ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
-
-    val executor = Executors.newCachedThreadPool()
-
-    var shutdownRequestedBeforeExit = false
+  ): mill.runner.api.Result[BspServerHandle] = {
 
     try {
-      val launcher = new Launcher.Builder[BuildClient]()
+      lazy val millServer: MillBuildServer with MillJvmBuildServer with MillJavaBuildServer
+        with MillScalaBuildServer =
+        new MillBuildServer(
+          topLevelProjectRoot = topLevelBuildRoot,
+          bspVersion = Constants.bspProtocolVersion,
+          serverVersion = BuildInfo.millVersion,
+          serverName = Constants.serverName,
+          logStream = logStream,
+          canReload = canReload,
+          debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true"),
+          onShutdown = () => {
+            listening.cancel(true)
+          }
+        ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
+
+      lazy val executor = Executors.newCachedThreadPool()
+      lazy val launcher = new Launcher.Builder[BuildClient]()
         .setOutput(streams.out)
         .setInput(streams.in)
         .setLocalService(millServer)
@@ -50,36 +52,20 @@ private class BspWorkerImpl() extends BspWorker {
         .create()
 
       millServer.onConnectWithClient(launcher.getRemoteProxy)
-      val listening = launcher.startListening()
-      millServer.cancellator = shutdownBefore => {
-        shutdownRequestedBeforeExit = shutdownBefore
-        listening.cancel(true)
-      }
+      lazy val listening = launcher.startListening()
 
       val bspServerHandle = new BspServerHandle {
-        private var lastResult0: Option[BspServerResult] = None
-
-        override def runSession(evaluators: Seq[Evaluator]): BspServerResult = {
-          lastResult0 = None
+        override def runSession(evaluators: Seq[mill.runner.api.EvaluatorApi]): BspServerResult = {
           millServer.updateEvaluator(Option(evaluators))
-          val onReload = Promise[BspServerResult]()
-          millServer.onSessionEnd = Some { serverResult =>
-            if (!onReload.isCompleted) {
-              streams.err.println("Unsetting evaluator on session end")
-              millServer.updateEvaluator(None)
-              lastResult0 = Some(serverResult)
-              onReload.success(serverResult)
-            }
-          }
-          val res = Await.result(onReload.future, Duration.Inf)
-          streams.err.println(s"Reload finished, result: ${res}")
-          lastResult0 = Some(res)
+          millServer.sessionResult = None
+          while (millServer.sessionResult.isEmpty) Thread.sleep(1)
+          millServer.updateEvaluator(None)
+          val res = millServer.sessionResult.get
+          streams.err.println(s"Reload finished, result: $res")
           res
         }
 
-        override def lastResult: Option[BspServerResult] = lastResult0
-
-        override def stop(): Unit = {
+        override def close(): Unit = {
           streams.err.println("Stopping server via handle...")
           listening.cancel(true)
         }

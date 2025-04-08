@@ -238,9 +238,7 @@ object `package` extends RootModule with Module {
     def runClasspath = build.main.test.runClasspath()
     def localRunClasspath = build.testkit.localRunClasspath()
 
-    def forkEnv = Map(
-      "LANG" -> "C"
-    )
+    def forkEnv = Map("LANG" -> "C")
 
     /**
      * Parses a `build.mill` for specific comments and return the split-by-type content

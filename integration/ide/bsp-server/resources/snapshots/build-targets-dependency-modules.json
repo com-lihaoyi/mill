@@ -17,25 +17,6 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/lib"
-      },
-      "modules": [
-        {
-          "name": "junit:junit",
-          "version": "4.13.2"
-        },
-        {
-          "name": "org.slf4j:slf4j-api",
-          "version": "2.0.16"
-        },
-        {
-          "name": "org.hamcrest:hamcrest-core",
-          "version": "1.3"
-        }
-      ]
-    },
-    {
-      "target": {
         "uri": "file:///workspace/hello-java"
       },
       "modules": []
@@ -63,6 +44,25 @@
         {
           "name": "org.scala-lang:scala-library",
           "version": "<scala-version>"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "modules": [
+        {
+          "name": "junit:junit",
+          "version": "4.13.2"
+        },
+        {
+          "name": "org.slf4j:slf4j-api",
+          "version": "2.0.16"
+        },
+        {
+          "name": "org.hamcrest:hamcrest-core",
+          "version": "1.3"
         }
       ]
     }

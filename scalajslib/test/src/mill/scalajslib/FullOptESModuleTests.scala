@@ -17,7 +17,7 @@ object FullOptESModuleTests extends TestSuite {
     }
 
     override lazy val millDiscover = {
-      import mill.main.TokenReaders.given
+      import mill.util.TokenReaders.given
       Discover[this.type]
     }
   }

@@ -16,7 +16,7 @@ object SmallModulesForTests extends TestSuite {
     override def moduleSplitStyle = ModuleSplitStyle.SmallModulesFor(List("app"))
 
     override lazy val millDiscover = {
-      import mill.main.TokenReaders.given
+      import mill.util.TokenReaders.given
       Discover[this.type]
     }
   }

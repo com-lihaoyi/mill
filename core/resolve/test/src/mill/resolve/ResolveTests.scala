@@ -212,6 +212,15 @@ object ResolveTests extends TestSuite {
         )),
         Set("nested.single", "classInstance.single")
       )
+      test("wildcard4") - check(
+        "__.__.single",
+        Result.Success(Set(
+          _.classInstance.single,
+          _.nested.single,
+          _.single
+        )),
+        Set("nested.single", "classInstance.single", "single")
+      )
     }
     test("doubleNested") {
       val check = new Checker(doubleNestedModule)

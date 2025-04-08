@@ -1,0 +1,10 @@
+<component name="libraryTable">
+    <library name="scala-library-2.13.14.jar">
+        <CLASSES>
+            <root url="jar://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar!/"/>
+        </CLASSES>
+        <SOURCES>
+            <root url="jar://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14-sources.jar!/"/>
+        </SOURCES>
+    </library>
+</component>

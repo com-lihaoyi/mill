@@ -28,6 +28,8 @@ object Settings {
   val changelogUrl = s"${projectUrl}#changelog"
   val newIssueUrl = s"${projectUrl}/issues/new/choose"
   val docUrl = "https://mill-build.org"
+  val mavenRepoUrl = "https://repo1.maven.org/maven2"
+  val bestMillVersion = "0.12.10"
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root. Publish docs for
@@ -193,7 +195,9 @@ object Deps {
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.3-M5"
   val upickle = ivy"com.lihaoyi::upickle:4.1.0"
-  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
+  // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
+  // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
+  val nativeTerminal = ivy"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
   val zinc = ivy"org.scala-sbt::zinc:1.10.8".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
@@ -293,24 +297,38 @@ object Deps {
   }
 }
 
-def millVersion: T[String] = Task.Input {
-  if (Task.env.contains("MILL_STABLE_VERSION")) {
+def millVersionIsStable: T[Boolean] = Task.Input {
+  Task.env.contains("MILL_STABLE_VERSION")
+}
+
+def millVersionTruth: T[String] = Task.Input {
+  VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
+}
+
+def millVersion: T[String] = Task {
+  if (millVersionIsStable()) {
     // Ignore local changes when computing the VCS version string,
     // since we make those in CI and can promise they are safe
-    VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
+    millVersionTruth()
   } else "SNAPSHOT"
 }
 
-def millLastTag: T[String] = Task.Input {
-  if (Task.env.contains("MILL_STABLE_VERSION")) {
+def millLastTagTruth: T[String] = Task {
+  VcsVersion.calcVcsState(Task.log).lastTag.getOrElse(
+    sys.error("No (last) git tag found. Your git history seems incomplete!")
+  )
+}
+
+def millLastTag: T[String] = Task {
+  if (millVersionIsStable())
     VcsVersion.calcVcsState(Task.log).lastTag.getOrElse(
       sys.error("No (last) git tag found. Your git history seems incomplete!")
     )
-  } else "SNAPSHOT"
+  else "SNAPSHOT"
 }
 
 def millDownloadPrefix = Task {
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist"
+  s"${Settings.mavenRepoUrl}/com/lihaoyi/mill-dist"
 }
 def millDownloadUrl = Task {
   s"${millDownloadPrefix()}/${millLastTag()}"
@@ -403,17 +421,17 @@ trait MillJavaModule extends JavaModule {
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testForkEnv: T[Map[String, String]] = forkEnv()
   def testModuleDeps: Seq[JavaModule] =
-    if (this == build.main) Seq(build.main)
+    if (this == build.main) Seq(build.main, build.main.util)
     else Seq(this, build.main.test)
 
-  def writeLocalTestOverrides = Task.Anon {
+  def localTestOverridesClasspath = Task {
     for ((k, v) <- testTransitiveDeps()) {
       os.write(Task.dest / "mill/local-test-overrides" / k, v, createFolders = true)
     }
-    Seq(PathRef(Task.dest))
+    PathRef(Task.dest)
   }
 
-  def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+  def runClasspath = super.runClasspath() ++ Seq(localTestOverridesClasspath())
 
   def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++
@@ -681,7 +699,7 @@ def formatDep(dep: Dep) = {
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object idea extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.scalalib, build.runner)
+  def moduleDeps = Seq(build.main.util)
 }
 
 val dummyDeps: Seq[Dep] = Seq(

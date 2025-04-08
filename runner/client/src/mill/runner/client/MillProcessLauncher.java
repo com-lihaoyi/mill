@@ -2,7 +2,8 @@ package mill.runner.client;
 
 import static mill.constants.OutFiles.*;
 
-import io.github.alexarchambault.windowsansi.WindowsAnsi;
+import io.github.alexarchambault.nativeterm.NativeTerminal;
+import io.github.alexarchambault.nativeterm.TerminalSize;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,6 +73,16 @@ public class MillProcessLauncher {
     Path sandbox = serverDir.resolve(ServerFiles.sandbox);
     Files.createDirectories(sandbox);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
+
+    String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
+    if (jdkJavaOptions == null) jdkJavaOptions = "";
+    String javaOpts = System.getenv("JAVA_OPTS");
+    if (javaOpts == null) javaOpts = "";
+
+    String opts = (jdkJavaOptions + " " + javaOpts).trim();
+    if (!opts.isEmpty()) {
+      builder.environment().put("JDK_JAVA_OPTIONS", opts);
+    }
 
     builder.directory(sandbox.toFile());
     return builder.start();
@@ -279,15 +290,33 @@ public class MillProcessLauncher {
 
   private static AtomicReference<String> memoizedTerminalDims = new AtomicReference();
 
+  private static final boolean canUseNativeTerminal;
+
+  static {
+    JLineNativeLoader.initJLineNative();
+
+    boolean canUse;
+    if (mill.constants.Util.hasConsole()) {
+      try {
+        NativeTerminal.getSize();
+        canUse = true;
+      } catch (Throwable ex) {
+        canUse = false;
+      }
+    } else canUse = false;
+
+    canUseNativeTerminal = canUse;
+  }
+
   static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
 
     try {
-      if (java.lang.System.console() == null) str = "0 0";
+      if (!mill.constants.Util.hasConsole()) str = "0 0";
       else {
-        if (isWin()) {
+        if (canUseNativeTerminal) {
 
-          WindowsAnsi.Size size = WindowsAnsi.terminalSize();
+          TerminalSize size = NativeTerminal.getSize();
           int width = size.getWidth();
           int height = size.getHeight();
           str = width + " " + height;

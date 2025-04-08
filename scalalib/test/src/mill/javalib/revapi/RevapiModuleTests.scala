@@ -7,7 +7,7 @@ import mill.scalalib.publish.{PomSettings, VersionControl}
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{T, Task}
 import utest.*
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 
 object RevapiModuleTests extends TestSuite {
 

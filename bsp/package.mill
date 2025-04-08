@@ -16,7 +16,8 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
         "bsp4jVersion",
         build.Deps.bsp4j.version,
         "BSP4j version (BSP Protocol version)."
-      )
+      ),
+      BuildInfo.Value("millVersion", build.millVersion(), "Mill version.")
     )
   }
 
@@ -34,10 +35,13 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   object worker extends build.MillPublishScalaModule {
     def compileModuleDeps = Seq(
       build.bsp,
-      build.scalalib,
-      build.testrunner,
-      build.runner
+      build.runner.server.client,
+      build.runner.api
     ) ++ build.scalalib.compileModuleDeps
-    def ivyDeps = Agg(build.Deps.bsp4j, build.Deps.sbtTestInterface)
+    def ivyDeps = Agg(
+      build.Deps.bsp4j,
+      build.Deps.sbtTestInterface,
+      build.Deps.osLib
+    )
   }
 }

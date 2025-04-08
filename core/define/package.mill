@@ -25,6 +25,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
     build.Deps.jnaPlatform,
     build.Deps.jarjarabrams,
     build.Deps.mainargs,
-    build.Deps.scalaparse
+    build.Deps.scalaparse,
+    ivy"org.apache.commons:commons-lang3:3.16.0"
   )
 }
