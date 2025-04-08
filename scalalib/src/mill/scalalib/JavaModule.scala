@@ -1054,24 +1054,6 @@ trait JavaModule
     )
   }
 
-  /**
-   * Any command-line parameters you want to pass to the forked JVM under `run`,
-   * `test` or `repl`
-   */
-  override def forkArgs: T[Seq[String]] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.forkArgs()
-  }
-
-  /**
-   * Any environment variables you want to pass to the forked JVM under `run`,
-   * `test` or `repl`
-   */
-  override def forkEnv: T[Map[String, String]] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.forkEnv()
-  }
-
   def launcher: T[PathRef] = Task { launcher0() }
 
   /**
@@ -1204,57 +1186,6 @@ trait JavaModule
     }
   }
 
-  override def runBackgroundLogToConsole: Boolean = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runBackgroundLogToConsole
-  }
-
-  /**
-   * Runs this module's code in a background process, until it dies or
-   * `runBackground` is used again. This lets you continue using Mill while
-   * the process is running in the background: editing files, compiling, and
-   * only re-starting the background process when you're ready.
-   *
-   * You can also use `-w foo.runBackground` to make Mill watch for changes
-   * and automatically recompile your code & restart the background process
-   * when ready. This is useful when working on long-running server processes
-   * that would otherwise run forever
-   */
-  def runBackground(args: String*): Command[Unit] = {
-    val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
-    Task.Command { task() }
-  }
-
-  /**
-   * Same as `runBackground`, but lets you specify a main class to run
-   */
-  override def runMainBackground(
-      @arg(positional = true) mainClass: String,
-      args: String*
-  ): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runMainBackground(mainClass, args*)
-  }
-
-  /**
-   * Same as `runLocal`, but lets you specify a main class to run
-   */
-  override def runMainLocal(
-      @arg(positional = true) mainClass: String,
-      args: String*
-  ): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runMainLocal(mainClass, args*)
-  }
-
-  /**
-   * Same as `run`, but lets you specify a main class to run
-   */
-  override def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runMain(mainClass, args*)
-  }
-
   /**
    * Override this to change the published artifact id.
    * For example, by default a scala module foo.baz might be published as foo-baz_2.12 and a java module would be foo-baz.
@@ -1275,11 +1206,6 @@ trait JavaModule
    * The suffix appended to the artifact IDs during publishing
    */
   def artifactSuffix: T[String] = platformSuffix()
-
-  override def forkWorkingDir: T[Path] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.forkWorkingDir()
-  }
 
   /**
    * Files extensions that need to be managed by Zinc together with class files.
