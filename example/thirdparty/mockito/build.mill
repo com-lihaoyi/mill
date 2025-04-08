@@ -38,7 +38,7 @@ object libraries {
 }
 
 trait MockitoModule extends MavenModule {
-  override def zincWorker = ModuleRef(build.ZincWorkerJava11)
+  override def jvmWorker = ModuleRef(build.JvmWorkerJava11)
   def javacOptions = Seq("-encoding", "UTF-8")
   def testModuleDeps: Seq[JavaModule] = Nil
   def testIvyDeps: T[Seq[Dep]] = Seq.empty[Dep]
@@ -72,7 +72,7 @@ trait MockitoModule extends MavenModule {
 
 object `package` extends RootModule with MockitoModule {
 
-  object ZincWorkerJava11 extends ZincWorkerModule {
+  object JvmWorkerJava11 extends JvmWorkerModule {
     def jvmId = "temurin:11.0.24"
   }
 
@@ -226,7 +226,7 @@ object `package` extends RootModule with MockitoModule {
 //      def testIvyDeps = Seq(libraries.junit4, libraries.osgi)
 //      def testRuntimeIvyDeps = Seq(libraries.equinox)
 //      trait BundleModule extends MockitoModule{
-//        def bundleName: String = millModuleSegments.last.value
+//        def bundleName: String = moduleSegments.last.value
 //        override def moduleDir = `osgi-test`.moduleDir
 //        def sources = Task.Sources(moduleDir / "src" / bundleName / "java")
 //

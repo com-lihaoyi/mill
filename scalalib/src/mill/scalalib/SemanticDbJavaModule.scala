@@ -1,9 +1,10 @@
 package mill.scalalib
 
 import mill.api.{PathRef, Result, experimental}
+import mill.runner.api.SemanticDbJavaModuleApi
 import mill.define.ModuleRef
-import mill.main.BuildInfo
-import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
+import mill.util.BuildInfo
+import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.util.Version
 import mill.{T, Task}
@@ -11,8 +12,8 @@ import mill.{T, Task}
 import scala.util.Properties
 
 @experimental
-trait SemanticDbJavaModule extends CoursierModule {
-  def zincWorker: ModuleRef[ZincWorkerModule]
+trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticDbJavaModuleApi {
+  def jvmWorker: ModuleRef[JvmWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]
   def zincIncrementalCompilation: T[Boolean]
@@ -24,19 +25,19 @@ trait SemanticDbJavaModule extends CoursierModule {
   def compileClasspath: T[Seq[PathRef]]
 
   def semanticDbVersion: T[String] = Task.Input {
-    val builtin = SemanticDbJavaModule.buildTimeSemanticDbVersion
+    val builtin = SemanticDbJavaModuleApi.buildTimeSemanticDbVersion
     val requested = Task.env.getOrElse[String](
       "SEMANTICDB_VERSION",
-      SemanticDbJavaModule.contextSemanticDbVersion.get().getOrElse(builtin)
+      SemanticDbJavaModuleApi.contextSemanticDbVersion.get().getOrElse(builtin)
     )
     Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
   }
 
   def semanticDbJavaVersion: T[String] = Task.Input {
-    val builtin = SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
+    val builtin = SemanticDbJavaModuleApi.buildTimeJavaSemanticDbVersion
     val requested = Task.env.getOrElse[String](
       "JAVASEMANTICDB_VERSION",
-      SemanticDbJavaModule.contextJavaSemanticDbVersion.get().getOrElse(builtin)
+      SemanticDbJavaModuleApi.contextJavaSemanticDbVersion.get().getOrElse(builtin)
     )
     Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
   }
@@ -46,7 +47,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   protected def semanticDbPluginIvyDeps: T[Seq[Dep]] = Task {
     val sv = semanticDbScalaVersion()
     val semDbVersion = semanticDbVersion()
-    if (!ZincWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
+    if (!JvmWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
       val msg =
         """|
            |With Scala 2 you must provide a semanticDbVersion
@@ -54,7 +55,7 @@ trait SemanticDbJavaModule extends CoursierModule {
            |def semanticDbVersion = ???
            |""".stripMargin
       Result.Failure(msg)
-    } else if (ZincWorkerUtil.isScala3(sv)) {
+    } else if (JvmWorkerUtil.isScala3(sv)) {
       Result.Success(Seq.empty[Dep])
     } else {
       Result.Success(Seq(
@@ -109,7 +110,7 @@ trait SemanticDbJavaModule extends CoursierModule {
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    zincWorker().worker()
+    jvmWorker().worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
@@ -158,26 +159,12 @@ trait SemanticDbJavaModule extends CoursierModule {
     }
   }
 
+  def bspBuildTargetCompileSemanticDb = Task.Anon {
+    compiledClassesAndSemanticDbFiles().path.toNIO
+  }
 }
 
 object SemanticDbJavaModule {
-  val buildTimeJavaSemanticDbVersion = Versions.semanticDbJavaVersion
-  val buildTimeSemanticDbVersion = Versions.semanticDBVersion
-
-  private[mill] val contextSemanticDbVersion: InheritableThreadLocal[Option[String]] =
-    new InheritableThreadLocal[Option[String]] {
-      protected override def initialValue(): Option[String] = None.asInstanceOf[Option[String]]
-    }
-
-  private[mill] val contextJavaSemanticDbVersion: InheritableThreadLocal[Option[String]] =
-    new InheritableThreadLocal[Option[String]] {
-      protected override def initialValue(): Option[String] = None.asInstanceOf[Option[String]]
-    }
-
-  private[mill] def resetContext(): Unit = {
-    contextJavaSemanticDbVersion.set(None)
-    contextSemanticDbVersion.set(None)
-  }
 
   def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(implicit
       ctx: mill.api.Ctx

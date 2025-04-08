@@ -10,8 +10,13 @@ trait PublishModule extends TypeScriptModule {
    *
    * This is an equivalent of a `package.json`
    */
-  override def npmDevDeps: T[Seq[String]] =
-    Task { Seq("glob@^10.4.5", "ts-patch@3.3.0", "typescript-transform-paths@3.5.3") }
+  override def npmDevDeps: T[Seq[String]] = Task {
+    Seq(
+      "glob@^10.4.5",
+      "ts-patch@3.3.0",
+      "typescript-transform-paths@3.5.3"
+    )
+  }
 
   def pubBundledOut: T[String] = Task { "dist" }
 

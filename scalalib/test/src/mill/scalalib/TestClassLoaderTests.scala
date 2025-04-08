@@ -4,7 +4,7 @@ import mill.define.Discover
 import mill.Task
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import utest.*
 
 object TestClassLoaderTests extends TestSuite {

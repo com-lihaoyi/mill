@@ -6,7 +6,7 @@ import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{PathRef, T}
 import utest.framework.TestPath
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import java.nio.file.FileSystems
 
 class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {

@@ -307,9 +307,9 @@ object SbtBuildGenMain
       crossVersion match {
         case CrossVersion.Disabled => None
         // The formatter doesn't work well for the import `import mill.scalalib.CrossVersion as MillCrossVersion` in IntelliJ IDEA, so FQNs are used here.
-        case CrossVersion.Binary => Some(mill.scalalib.CrossVersion.Binary(false))
-        case CrossVersion.Full => Some(mill.scalalib.CrossVersion.Full(false))
-        case CrossVersion.Constant(value) => Some(mill.scalalib.CrossVersion.Constant(value, false))
+        case CrossVersion.Binary => Some(mill.api.CrossVersion.Binary(false))
+        case CrossVersion.Full => Some(mill.api.CrossVersion.Full(false))
+        case CrossVersion.Constant(value) => Some(mill.api.CrossVersion.Constant(value, false))
       },
       version = revision,
       tpe = tpe.orNull,

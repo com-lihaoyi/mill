@@ -92,13 +92,15 @@ trait AndroidAppModule extends AndroidModule {
   }
 
   @internal
-  override def bspCompileClasspath: T[Seq[UnresolvedPath]] = Task {
-    compileClasspath().map(_.path).map(UnresolvedPath.ResolvedPath(_))
+  override def bspCompileClasspath = Task.Anon { (ev: mill.runner.api.EvaluatorApi) =>
+    compileClasspath().map(
+      _.path
+    ).map(UnresolvedPath.ResolvedPath(_)).map(_.resolve(os.Path(ev.outPathJava))).map(sanitizeUri)
   }
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    baseDirectory = Some(moduleDir / "src/main"),
+    baseDirectory = Some((moduleDir / "src/main").toNIO),
     tags = Seq("application")
   )
 
@@ -764,7 +766,7 @@ trait AndroidAppModule extends AndroidModule {
     override def resources: T[Seq[PathRef]] = Task.Sources("src/test/res")
 
     override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-      baseDirectory = Some(moduleDir / "src/test"),
+      baseDirectory = Some((moduleDir / "src/test").toNIO),
       canTest = true
     )
 
@@ -862,7 +864,7 @@ trait AndroidAppModule extends AndroidModule {
 
     @internal
     override def bspBuildTarget: BspBuildTarget = super[AndroidTestModule].bspBuildTarget.copy(
-      baseDirectory = Some(moduleDir / "src/androidTest"),
+      baseDirectory = Some((moduleDir / "src/androidTest").toNIO),
       canRun = false
     )
 

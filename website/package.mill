@@ -1,7 +1,8 @@
 package build.website
 import org.jsoup._
-import mill.util.Jvm
-import mill._, scalalib._
+import mill.util.{Jvm, Version}
+import mill._
+import scalalib._
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 import scala.jdk.CollectionConverters._
 
@@ -26,7 +27,7 @@ object `package` extends RootModule {
         !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
       }
     def scalaVersion = build.Deps.scalaVersion
-    def moduleDeps = build.millInternal.modules.collect {
+    def moduleDeps = build.moduleInternal.modules.collect {
       case m: build.MillStableScalaModule => m
       case m: JavaModule if m eq build.kotlinlib => m
     }
@@ -40,8 +41,8 @@ object `package` extends RootModule {
   private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
   def npmBase: T[os.Path] = Task(persistent = true) { Task.dest }
   def prepareAntora(npmDir: os.Path) = {
-    Jvm.runSubprocess(
-      commandArgs = Seq(
+    os.call(
+      cmd = (
         npmExe,
         "--no-audit",
         "install",
@@ -50,8 +51,8 @@ object `package` extends RootModule {
         "gitlab:antora/xref-validator",
         "@antora/lunr-extension@v1.0.0-alpha.6"
       ),
-      envArgs = Map(),
-      workingDir = npmDir
+      env = Map(),
+      cwd = npmDir
     )
   }
 
@@ -63,15 +64,15 @@ object `package` extends RootModule {
     val cmdArgs =
       Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
     ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
-    Jvm.runSubprocess(
-      commandArgs = cmdArgs,
-      envArgs = Map("CI" -> "true"),
-      workingDir = workDir
+    os.call(
+      cmd = cmdArgs,
+      env = Map("CI" -> "true"),
+      cwd = workDir
     )
     PathRef(workDir / "build/site")
   }
 
-  def source0 = Task.Source(millSourcePath / "docs")
+  def source0 = Task.Source("docs")
   def projectChangelog = Task.Source(Task.workspace / "changelog.adoc")
   def source = Task {
     os.copy(source0().path, Task.dest, mergeFolders = true)
@@ -84,7 +85,7 @@ object `package` extends RootModule {
     val renderedExamples: Seq[(os.SubPath, PathRef)] =
       Task.traverse(build.example.exampleModules)(m =>
         Task.Anon {
-          (m.millSourcePath.subRelativeTo(build.example.millSourcePath), m.rendered())
+          (m.moduleDir.subRelativeTo(build.example.moduleDir), m.rendered())
         }
       )()
 
@@ -96,7 +97,7 @@ object `package` extends RootModule {
 
     val contribReadmes = Task.traverse(build.contrib.contribModules)(m =>
       Task.Anon {
-        m.millModuleSegments.parts.last -> m.readme()
+        m.moduleSegments.parts.last -> m.readme()
       }
     )()
 
@@ -106,7 +107,10 @@ object `package` extends RootModule {
       createFolders = true
     )
 
-    expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
+    expandDiagramsInDirectoryAdocFile(
+      Task.dest,
+      mill.main.VisualizeModule.toolsClasspath().map(_.path)
+    )
 
     PathRef(Task.dest)
   }
@@ -170,9 +174,9 @@ object `package` extends RootModule {
       (p, i, os.temp(s), os.temp.dir())
     }
 
-    mill.util.Jvm.runSubprocess(
-      "mill.main.graphviz.GraphvizTools",
-      visualizeClassPath,
+    mill.util.Jvm.callProcess(
+      mainClass = "mill.main.graphviz.GraphvizTools",
+      classPath = visualizeClassPath.toSeq,
       mainArgs = orderedDiagrams.map { case (p, i, src, dest) =>
         T.log.debug(s"Rendering graphviz: ${p} (${i}) to ${dest}")
         s"$src;$dest;svg"
@@ -185,7 +189,7 @@ object `package` extends RootModule {
 
   }
 
-  def supplementalFiles = Task.Source(millSourcePath / "docs" / "supplemental-ui")
+  def supplementalFiles = Task.Source("docs/supplemental-ui")
 
   /**
    * The doc root ready to be built by antora for the current branch.
@@ -228,16 +232,19 @@ object `package` extends RootModule {
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
   }
 
-  def blogFolder0 = Task.Source(millSourcePath / "blog")
+  def blogFolder0 = Task.Source("blog")
   def blogFolder = Task {
     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
-    expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
+    expandDiagramsInDirectoryAdocFile(
+      Task.dest,
+      mill.main.VisualizeModule.toolsClasspath().map(_.path)
+    )
     PathRef(Task.dest)
   }
   def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
     val taggedSources = for (path <- extraSources) yield {
-      s"""    - url: ${build.baseDir}
-         |      start_path: ${path.relativeTo(build.baseDir)}
+      s"""    - url: ${Task.workspace}
+         |      start_path: ${path.relativeTo(Task.workspace)}
          |      edit_url: false
          |""".stripMargin
     }
@@ -250,7 +257,7 @@ object `package` extends RootModule {
        |
        |content:
        |  sources:
-       |    - url: ${if (authorMode) build.baseDir else build.Settings.projectUrl}
+       |    - url: ${if (authorMode) Task.workspace else build.Settings.projectUrl}
        |      branches: []
        |      tags: ${build.Settings.legacyDocTags.filter(_ => !authorMode).map(
         "'" + _ + "'"
@@ -260,11 +267,11 @@ object `package` extends RootModule {
        |
        |${taggedSources.mkString("\n\n")}
        |
-       |    - url: ${build.baseDir}
-       |      start_path: ${devAntoraSources().path.relativeTo(build.baseDir)}
+       |    - url: ${Task.workspace}
+       |      start_path: ${devAntoraSources().path.relativeTo(Task.workspace)}
        |
-       |    - url: ${build.baseDir}
-       |      start_path: ${blogFolder().path.relativeTo(build.baseDir)}
+       |    - url: ${Task.workspace}
+       |      start_path: ${blogFolder().path.relativeTo(Task.workspace)}
        |ui:
        |  bundle:
        |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
@@ -306,12 +313,12 @@ object `package` extends RootModule {
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
       expandDiagramsInDirectoryAdocFile(
         outputFolder,
-        mill.main.VisualizeModule.classpath().map(_.path)
+        mill.main.VisualizeModule.toolsClasspath().map(_.path)
       )
 
-      val useOldDownloadUrl = Ordering.Implicits.seqOrdering[Seq, String].lt(
-        millVersion.split('.'),
-        Seq("0", "12", "6")
+      val useOldDownloadUrl = Version.OsgiOrdering.lt(
+        Version.parse(millVersion),
+        Version.parse("0.12.6")
       )
 
       val millDownloadUrl =
@@ -329,21 +336,21 @@ object `package` extends RootModule {
 
   def localPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true).apply().apply(oldDocSources().map(_.path))
-    Task.log.outputStream.println(
+    Task.log.streams.out.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
   def fastPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true).apply().apply(Nil)
-    Task.log.outputStream.println(
+    Task.log.streams.out.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
 
   def generatePages(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
-    Task.log.errorStream.println("Creating Antora playbook ...")
+    Task.log.streams.err.println("Creating Antora playbook ...")
     // dependency to sources
     source()
     val docSite = Task.dest
@@ -354,7 +361,7 @@ object `package` extends RootModule {
       data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
       createFolders = true
     )
-    Task.log.errorStream.println("Running Antora ...")
+    Task.log.streams.err.println("Running Antora ...")
     runAntora(
       npmDir = npmBase(),
       workDir = docSite,
@@ -370,12 +377,12 @@ object `package` extends RootModule {
     os.write(siteDir / ".nojekyll", "")
 
     // sanitize devAntora source URLs
-    Task.log.errorStream.println("Sanitizing links ...")
-    sanitizeDevUrls(siteDir, devAntoraSources().path, build.baseDir / "docs", build.baseDir)
+    Task.log.streams.err.println("Sanitizing links ...")
+    sanitizeDevUrls(siteDir, devAntoraSources().path, Task.workspace / "docs", Task.workspace)
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
     val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
-    Task.log.errorStream.println(s"Copying API docs from ${unidocSrc} ...")
+    Task.log.streams.err.println(s"Copying API docs from ${unidocSrc} ...")
     os.copy(unidocSrc, siteDir / "api/latest", createFolders = true)
 
     PathRef(siteDir)

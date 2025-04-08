@@ -15,10 +15,10 @@ object MillIvy {
 
     // replace special MILL_ placeholders
     val replaced = millSigs.map(_
-      .replace("$MILL_VERSION", mill.main.BuildInfo.millVersion)
-      .replace("${MILL_VERSION}", mill.main.BuildInfo.millVersion)
-      .replace("$MILL_BIN_PLATFORM", mill.main.BuildInfo.millBinPlatform)
-      .replace("${MILL_BIN_PLATFORM}", mill.main.BuildInfo.millBinPlatform))
+      .replace("$MILL_VERSION", mill.util.BuildInfo.millVersion)
+      .replace("${MILL_VERSION}", mill.util.BuildInfo.millVersion)
+      .replace("$MILL_BIN_PLATFORM", mill.util.BuildInfo.millBinPlatform)
+      .replace("${MILL_BIN_PLATFORM}", mill.util.BuildInfo.millBinPlatform))
 
     replaced
   }

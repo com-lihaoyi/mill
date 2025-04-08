@@ -295,12 +295,8 @@ object `package` extends RootModule {
       object `arrow-core-retrofit` extends ArrowJvmModule {
         def moduleDeps = Seq(`arrow-core`.jvm)
         def compileIvyDeps = Seq(libraries.squareupRetrofitLib)
-        def processors = Task {
-          defaultResolver().classpath(Seq(libraries.kotlinxSerializationPlugin))
-        }
 
         object test extends ArrowJvmTests {
-          def kotlincOptions = super.kotlincOptions() ++ Seq(s"-Xplugin=${processors().head.path}")
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-core`.jvm)
           def ivyDeps = super.ivyDeps() ++ Seq(
             libraries.kotlinTestJunit5,
@@ -314,6 +310,10 @@ object `package` extends RootModule {
             libraries.squareupRetrofitConverterKotlinxSerialization,
             libraries.squareupMoshiKotlin
           )
+          def kotlincPluginIvyDeps = super.kotlincPluginIvyDeps() ++ Seq(
+            libraries.kotlinxSerializationPlugin
+          )
+
         }
       }
       object `arrow-core-serialization` extends ArrowMultiplatformModule {
@@ -328,8 +328,9 @@ object `package` extends RootModule {
               libraries.kotestAssertionsCoreJvm,
               libraries.kotestPropertyJvm
             )
-            def kotlincOptions =
-              super.kotlincOptions() ++ Seq(s"-Xplugin=${processors().head.path}")
+            def kotlincPluginIvyDeps = super.kotlincPluginIvyDeps() ++ Seq(
+              libraries.kotlinxSerializationPlugin
+            )
           }
         }
         object js extends ArrowPlatformJsModule {
@@ -342,14 +343,11 @@ object `package` extends RootModule {
               libraries.kotestAssertionsCoreJs,
               libraries.kotestPropertyJs
             )
-            def kotlincOptions =
-              super.kotlincOptions() ++ Seq(s"-Xplugin=${processors().head.path}")
+            def kotlincPluginIvyDeps = super.kotlincPluginIvyDeps() ++ Seq(
+              libraries.kotlinxSerializationPlugin
+            )
             def testTimeout = 60_000L
           }
-        }
-
-        def processors = Task {
-          defaultResolver().classpath(Seq(libraries.kotlinxSerializationPlugin))
         }
       }
 

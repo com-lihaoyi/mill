@@ -17,8 +17,8 @@ package object javalib extends mill.scalalib.JsonFormatters {
 
   type NativeImageModule = mill.scalalib.NativeImageModule
 
-  val ZincWorkerModule = mill.scalalib.ZincWorkerModule
-  type ZincWorkerModule = mill.scalalib.ZincWorkerModule
+  val JvmWorkerModule = mill.scalalib.JvmWorkerModule
+  type JvmWorkerModule = mill.scalalib.JvmWorkerModule
 
   type CoursierModule = mill.scalalib.CoursierModule
 
@@ -43,6 +43,6 @@ package object javalib extends mill.scalalib.JsonFormatters {
   type BoundDep = mill.scalalib.BoundDep
   val BoundDep = mill.scalalib.BoundDep
 
-  type CrossVersion = mill.scalalib.CrossVersion
-  val CrossVersion = mill.scalalib.CrossVersion
+  type CrossVersion = mill.api.CrossVersion
+  val CrossVersion = mill.api.CrossVersion
 }

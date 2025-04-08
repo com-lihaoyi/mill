@@ -3,7 +3,7 @@ package mill.contrib.versionfile
 import mill.Task
 import mill.testkit.{UnitTester, TestBaseModule}
 import utest.{TestSuite, Tests, assert, test}
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import mill.define.Discover
 object VersionFileModuleTests extends TestSuite {
 

@@ -1,9 +1,10 @@
 package mill.scalalib
 
 import upickle.default.{macroRW, ReadWriter as RW}
-import mill.scalalib.CrossVersion.*
+import mill.api.CrossVersion.*
+import mill.api.CrossVersion
 import coursier.core.{Configuration, Dependency, MinimizedExclusions}
-import mill.scalalib.api.{Versions, ZincWorkerUtil}
+import mill.scalalib.api.{Versions, JvmWorkerUtil}
 import scala.annotation.unused
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
@@ -53,7 +54,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
 
   def organization = dep.module.organization.value
   def name = dep.module.name.value
-  def version = dep.version
+  def version = dep.versionConstraint.asString
 
   /**
    * If scalaVersion is a Dotty version, replace the cross-version suffix
@@ -75,12 +76,12 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
    */
   def withDottyCompat(scalaVersion: String): Dep =
     cross match {
-      case cross: Binary if ZincWorkerUtil.isDottyOrScala3(scalaVersion) =>
+      case cross: Binary if JvmWorkerUtil.isDottyOrScala3(scalaVersion) =>
         val compatSuffix =
           scalaVersion match {
-            case ZincWorkerUtil.Scala3Version(_, _) | ZincWorkerUtil.Scala3EarlyVersion(_) =>
+            case JvmWorkerUtil.Scala3Version(_, _) | JvmWorkerUtil.Scala3EarlyVersion(_) =>
               "_2.13"
-            case ZincWorkerUtil.DottyVersion(minor, patch) =>
+            case JvmWorkerUtil.DottyVersion(minor, patch) =>
               if (minor.toInt > 18 || minor.toInt == 18 && patch.toInt >= 1)
                 "_2.13"
               else
@@ -164,6 +165,7 @@ object Dep {
 
     prospective.filter(parse(_) == dep)
   }
+
   private val rw0: RW[Dep] = macroRW
 
   // Use literal JSON strings for common cases so that files
@@ -199,59 +201,17 @@ object Dep {
 
   /**
    * Convenience to access Mill modules as dependencies, e.g. to load the into worker classpaths.
-   * @param artifactName The module artifact name
+   *
+   * @param artifactName   The module artifact name
    * @param artifactSuffix The artifact suffix typically representing the Scala version.
    *                       Defaults to the Scala binary platform Mill runs on.
    */
-  private[mill] def millProjectModule(artifactName: String, artifactSuffix: String = "_3"): Dep =
-    ivy"com.lihaoyi:${artifactName}${artifactSuffix}:${Versions.millVersion}"
-
-}
-
-sealed trait CrossVersion {
-
-  /** If true, the cross-version suffix should start with a platform suffix if it exists */
-  def platformed: Boolean
-
-  def isBinary: Boolean =
-    this.isInstanceOf[Binary]
-  def isConstant: Boolean =
-    this.isInstanceOf[Constant]
-  def isFull: Boolean =
-    this.isInstanceOf[Full]
-
-  /** The string that should be appended to the module name to get the artifact name */
-  def suffixString(binaryVersion: String, fullVersion: String, platformSuffix: String): String = {
-    val firstSuffix = if (platformed) platformSuffix else ""
-    val suffix = this match {
-      case cross: Constant =>
-        s"${firstSuffix}${cross.value}"
-      case cross: Binary =>
-        s"${firstSuffix}_${binaryVersion}"
-      case cross: Full =>
-        s"${firstSuffix}_${fullVersion}"
-    }
-    require(!suffix.contains("/"), "Artifact suffix must not contain `/`s")
-    suffix
-  }
-}
-object CrossVersion {
-  case class Constant(value: String, platformed: Boolean) extends CrossVersion
-  object Constant {
-    implicit def rw: RW[Constant] = macroRW
-  }
-  case class Binary(platformed: Boolean) extends CrossVersion
-  object Binary {
-    implicit def rw: RW[Binary] = macroRW
-  }
-  case class Full(platformed: Boolean) extends CrossVersion
-  object Full {
-    implicit def rw: RW[Full] = macroRW
+  private[mill] def millProjectModule(artifactName: String, artifactSuffix: String = "_3"): Dep = {
+    // we don't use `ivy` string context here to avoid a cyclic dependency
+    val dep = s"com.lihaoyi:${artifactName}${artifactSuffix}:${Versions.millVersion}"
+    Dep.parse(dep)
   }
 
-  def empty(platformed: Boolean): Constant = Constant(value = "", platformed)
-
-  implicit def rw: RW[CrossVersion] = RW.merge(Constant.rw, Binary.rw, Full.rw)
 }
 
 /**

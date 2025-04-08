@@ -4,7 +4,7 @@ import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{Cross, T}
 import utest.{TestSuite, Tests, assert, test}
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 object KotlinJsLinkTests extends TestSuite {
 
   private val kotlinVersion = "1.9.25"
@@ -13,7 +13,7 @@ object KotlinJsLinkTests extends TestSuite {
 
   trait KotlinJsCrossModule extends KotlinJsModule with Cross.Module[Boolean] {
     override def kotlinVersion = KotlinJsLinkTests.kotlinVersion
-    override def splitPerModule: T[Boolean] = crossValue
+    override def kotlinJsSplitPerModule: T[Boolean] = crossValue
     override def kotlinJsBinaryKind: T[Option[BinaryKind]] = Some(BinaryKind.Executable)
     override def moduleDeps = Seq(module.bar)
     // drop cross-value

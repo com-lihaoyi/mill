@@ -62,7 +62,7 @@ trait JpackageModule extends JavaModule {
     val mainJarName = jars.head.last
 
     val args: Seq[String] = Seq(
-      Jvm.jdkTool("jpackage", this.zincWorker().javaHome().map(_.path)),
+      Jvm.jdkTool("jpackage", this.jvmWorker().javaHome().map(_.path)),
       "--type",
       appType,
       "--name",

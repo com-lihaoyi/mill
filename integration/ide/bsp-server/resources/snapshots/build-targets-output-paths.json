@@ -8,12 +8,6 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/lib"
-      },
-      "outputPaths": []
-    },
-    {
-      "target": {
         "uri": "file:///workspace/hello-java"
       },
       "outputPaths": []
@@ -27,6 +21,12 @@
     {
       "target": {
         "uri": "file:///workspace/hello-scala"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
       },
       "outputPaths": []
     },

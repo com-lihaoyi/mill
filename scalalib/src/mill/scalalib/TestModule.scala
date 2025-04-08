@@ -9,12 +9,10 @@ import mill.T
 
 trait TestModule
     extends TestModule.JavaModuleBase
-    with WithZincWorker
+    with WithJvmWorker
     with RunModule
-    with TaskModule {
-
-  // FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
-  def compile: T[mill.scalalib.api.CompilationResult]
+    with TaskModule
+    with mill.runner.api.TestModuleApi {
 
   override def defaultCommandName() = "testForked"
 
@@ -41,15 +39,15 @@ trait TestModule
   def testFramework: T[String]
 
   def discoveredTestClasses: T[Seq[String]] = Task {
-    val classes = if (zincWorker().javaHome().isDefined) {
+    val classes = if (jvmWorker().javaHome().isDefined) {
       Jvm.callProcess(
         mainClass = "mill.testrunner.DiscoverTestsMain",
-        classPath = zincWorker().scalalibClasspath().map(_.path).toVector,
+        classPath = jvmWorker().scalalibClasspath().map(_.path).toVector,
         mainArgs =
           runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
             testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
             Seq("--framework", testFramework()),
-        javaHome = zincWorker().javaHome().map(_.path),
+        javaHome = jvmWorker().javaHome().map(_.path),
         stdin = os.Inherit,
         stdout = os.Pipe,
         cwd = Task.dest
@@ -175,10 +173,10 @@ trait TestModule
       os.write(argsFile, upickle.default.write(testArgs))
 
       val testRunnerClasspathArg =
-        zincWorker().scalalibClasspath()
+        jvmWorker().scalalibClasspath()
           .map(_.path.toNIO.toUri.toURL).mkString(",")
 
-      val cp = (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(_.path.toString)
+      val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toString)
 
       Result.Success((mainClass, testRunnerClasspathArg, argsFile.toString, cp))
     }
@@ -205,19 +203,19 @@ trait TestModule
         testUseArgsFile(),
         forkArgs(),
         globSelectors(),
-        zincWorker().scalalibClasspath(),
+        jvmWorker().scalalibClasspath(),
         resources(),
         testFramework(),
         runClasspath(),
         testClasspath(),
         args(),
         testForkGrouping(),
-        zincWorker().testrunnerEntrypointClasspath(),
+        jvmWorker().testrunnerEntrypointClasspath(),
         forkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
         testReportXml(),
-        zincWorker().javaHome().map(_.path),
+        jvmWorker().javaHome().map(_.path),
         testParallelism()
       )
       testModuleUtil.runTests()
@@ -242,8 +240,15 @@ trait TestModule
     val parent = super.bspBuildTarget
     parent.copy(
       canTest = true,
-      tags = Seq(BspModule.Tag.Test)
+      tags = Seq(mill.runner.api.BspModuleApi.Tag.Test)
     )
+  }
+
+  def bspBuildTargetScalaTestClasses = this match {
+    case m: TestModule =>
+      Task.Anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
+    case _ =>
+      Task.Anon(None)
   }
 }
 
@@ -283,6 +288,17 @@ object TestModule {
       super.mandatoryIvyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
 
+    private lazy val classesDir: Task[Option[os.Path]] = this match {
+      case withCompileTask: JavaModule => Task.Anon {
+          Some(withCompileTask.compile().classes.path)
+        }
+      case m => Task.Anon {
+          m.testClasspath().map(_.path).find { path =>
+            os.exists(path) && os.walk.stream(path).exists(p => os.isFile(p) && p.ext == "class")
+          }
+        }
+    }
+
     /**
      * Overridden since Junit5 has its own discovery mechanism.
      *
@@ -305,10 +321,13 @@ object TestModule {
           classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
         val builder = builderClass.getConstructor().newInstance()
 
-        builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
-          builder,
-          compile().classes.path.wrapped.toFile
-        )
+        classesDir().foreach { path =>
+          builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
+            builder,
+            path.wrapped.toFile
+          )
+        }
+
         builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
           builder,
           testClasspath().map(_.path.wrapped.toUri().toURL()).toArray

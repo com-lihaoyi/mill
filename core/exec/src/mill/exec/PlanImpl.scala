@@ -2,6 +2,7 @@ package mill.exec
 
 import mill.define.{NamedTask, Task, Plan}
 import mill.define.MultiBiMap
+import mill.define.internal.TopoSorted
 
 private[mill] object PlanImpl {
   def plan(goals: Seq[Task[?]]): Plan = {
@@ -25,7 +26,6 @@ private[mill] object PlanImpl {
    *
    * @see [[PlanImpl.topoSorted]]
    */
-  class TopoSorted(val values: IndexedSeq[Task[?]])
 
   def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
     Task[?],

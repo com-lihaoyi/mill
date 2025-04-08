@@ -15,10 +15,11 @@ object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
       val expectedBase = workspacePath / "idea"
       val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
 
-      eval("mill.idea.GenIdea/")
+      eval("mill.idea.GenIdea/", check = true, stdout = os.Inherit, stderr = os.Inherit)
 
       for (resource <- resources) {
         GenIdeaUtils.assertIdeaXmlResourceMatchesFile(
+          tester.workspaceSourcePath,
           workspacePath,
           resource
         )

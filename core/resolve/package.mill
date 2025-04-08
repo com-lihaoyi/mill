@@ -8,5 +8,5 @@ import mill._
  * executed via [[build.core.exec]]
  */
 object `package` extends RootModule with build.MillStableScalaModule {
-  def moduleDeps = Seq(build.core.define, build.core.internal)
+  def moduleDeps = Seq(build.core.api, build.core.define, build.core.internal)
 }
