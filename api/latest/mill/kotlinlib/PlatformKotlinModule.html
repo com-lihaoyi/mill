@@ -4502,7 +4502,7 @@ node27 -> node8;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The compiler API version. Default is not set.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The compiler API version. Default is derived from [[kotlinLanguageVersion]],\n * as the value typically can not be greater than [[kotlinLanguageVersion]].\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -4516,11 +4516,11 @@ node27 -> node8;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The compiler API version. Default is not set.</p>
+             <p>The compiler API version. Default is derived from <a href="KotlinModule.html#kotlinLanguageVersion-0">kotlinLanguageVersion</a>, as the value typically can not be greater than <a href="KotlinModule.html#kotlinLanguageVersion-0">kotlinLanguageVersion</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The compiler API version. Default is not set.</p>
+              <p>The compiler API version. Default is derived from <a href="KotlinModule.html#kotlinLanguageVersion-0">kotlinLanguageVersion</a>, as the value typically can not be greater than <a href="KotlinModule.html#kotlinLanguageVersion-0">kotlinLanguageVersion</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -4653,7 +4653,7 @@ node27 -> node8;
             <div class="cover">
              <div class="doc">
               <p>The Ivy/Coursier dependencies resembling the Kotlin compiler.</p>
-              <p>Default is derived from <a href="KotlinModule.html#kotlinCompilerVersion-0">kotlinCompilerVersion</a> and <a href="KotlinModule.html#kotlinUseEmbeddableCompiler-0">kotlinUseEmbeddableCompiler</a>.</p>
+              <p>Default is derived from <span data-unresolved-link="" title="Problem linking kotlinCompilerVersion: No DRI found for query">kotlinCompilerVersion</span> and <a href="KotlinModule.html#kotlinUseEmbeddableCompiler-0">kotlinUseEmbeddableCompiler</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -4723,7 +4723,7 @@ node27 -> node8;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The compiler language version. Default is not set.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The compiler language version. Default is derived from [[kotlinVersion]].\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -4737,11 +4737,11 @@ node27 -> node8;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The compiler language version. Default is not set.</p>
+             <p>The compiler language version. Default is derived from <a href="KotlinModule.html#kotlinVersion-0">kotlinVersion</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The compiler language version. Default is not set.</p>
+              <p>The compiler language version. Default is derived from <a href="KotlinModule.html#kotlinVersion-0">kotlinVersion</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -8573,64 +8573,6 @@ node27 -> node8;
         </div>
        </div>
       </section>
-      <section id="Deprecated-and-Inherited-methods">
-       <div class="documentableList expand">
-        <div class="documentableList-expander">
-         <button class="icon-button show-content expand"></button>
-         <h4 class="groupHeader h200">Deprecated and Inherited methods</h4>
-        </div>
-        <div class="documentableElement" id="kotlinCompilerVersion-0" data-f-inherited="KotlinModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The version of the Kotlin compiler to be used.\n * Default is derived from [[kotlinVersion]].\n * This is deprecated, as it\'s identical to [[kotlinVersion]]\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="PlatformKotlinModule.html#kotlinCompilerVersion-0" t="n" class="documentableName deprecated">kotlinCompilerVersion</a>: <a href="../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">String</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>The version of the Kotlin compiler to be used. Default is derived from <a href="KotlinModule.html#kotlinVersion-0">kotlinVersion</a>. This is deprecated, as it's identical to <a href="KotlinModule.html#kotlinVersion-0">kotlinVersion</a></p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>The version of the Kotlin compiler to be used. Default is derived from <a href="KotlinModule.html#kotlinVersion-0">kotlinVersion</a>. This is deprecated, as it's identical to <a href="KotlinModule.html#kotlinVersion-0">kotlinVersion</a></p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Deprecated
-              </dt>
-              <dd class="body-medium">
-               true
-              </dd>
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="KotlinModule.html#kotlinCompilerVersion-0">KotlinModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/kotlinlib/src/mill/kotlinlib/KotlinModule.scala" target="_blank">KotlinModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-       </div>
-      </section>
      </div>
     </section>
     <section id="Implicits">
@@ -8687,4 +8629,4 @@ node27 -> node8;
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Inherited-classlikes">Inherited classlikes</a></li><li><a href="#Inherited-types">Inherited types</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Inherited-methods">Inherited methods</a></li><li><a href="#Inherited-and-Abstract-methods">Inherited and Abstract methods</a></li><li><a href="#Deprecated-and-Inherited-methods">Deprecated and Inherited methods</a></li></ul></li><li><a href="#Implicits">Implicits</a><ul><li><a href="#Inherited-implicits">Inherited implicits</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Inherited-classlikes">Inherited classlikes</a></li><li><a href="#Inherited-types">Inherited types</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Inherited-methods">Inherited methods</a></li><li><a href="#Inherited-and-Abstract-methods">Inherited and Abstract methods</a></li></ul></li><li><a href="#Implicits">Implicits</a><ul><li><a href="#Inherited-implicits">Inherited implicits</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
