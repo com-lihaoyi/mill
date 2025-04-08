@@ -4,14 +4,15 @@ import mill._
 import mill.javalib.android.{AndroidSdkModule, AndroidTestModule}
 import mill.kotlinlib._
 import mill.kotlinlib.android.{AndroidAppKotlinModule, AndroidHiltSupport}
+import mill.javalib.android.AndroidBuildConfig
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
-// Actual android application
-object app extends AndroidAppKotlinModule with AndroidHiltSupport {
+// Mill configuration for the Android Todo App project.
+object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHiltSupport {
 
   def kotlinVersion = "2.0.21"
   def kotlinLanguageVersion = "1.9"
