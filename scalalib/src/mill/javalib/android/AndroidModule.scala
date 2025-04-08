@@ -736,7 +736,4 @@ trait AndroidModule extends JavaModule {
     PathRef(signedApk)
   }
 
-  def androidGeneratedCompiledClasses: T[Seq[PathRef]] = Task {
-    Seq.empty[PathRef]
-  }
 }
