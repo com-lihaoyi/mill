@@ -8,11 +8,9 @@ import mill.runner.api.{RootModuleApi, EvaluatorApi}
 import mill.constants.CodeGenConstants.*
 import mill.api.{Logger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
 import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
-import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
-import mill.eval.EvaluatorImpl
 import mill.runner.worker.api.MillScalaParser
-import mill.runner.worker.ScalaCompilerWorker
+import mill.runner.meta.{ScalaCompilerWorker, CliImports, FileImportGraph, MillBuildRootModule}
 
 import java.io.File
 import java.net.URLClassLoader

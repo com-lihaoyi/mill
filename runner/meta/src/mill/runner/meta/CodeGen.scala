@@ -1,5 +1,4 @@
-package mill.runner
-
+package mill.runner.meta
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 import mill.constants.CodeGenConstants.*

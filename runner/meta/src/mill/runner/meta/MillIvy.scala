@@ -1,5 +1,4 @@
-package mill.runner
-
+package mill.runner.meta
 object MillIvy {
   def processMillIvyDepSignature(signatures: Set[String]): Set[String] = {
     val millSigs: Set[String] =

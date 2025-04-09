@@ -1,5 +1,4 @@
-package mill.runner
-
+package mill.runner.meta
 import mill.api.internal
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.*
