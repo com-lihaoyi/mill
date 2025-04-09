@@ -34,7 +34,6 @@ object app extends AndroidAppModule {
   override def androidVirtualDeviceIdentifier: String = "java-test"
 
   object test extends AndroidAppTests with TestModule.Junit4 {
-    def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"junit:junit:4.13.2"
     )
@@ -51,15 +50,13 @@ object app extends AndroidAppModule {
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
     def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy"androidx.test.ext:junit:1.2.1".exclude((
-        "org.jetbrains.kotlinx",
-        "kotlinx-coroutines-core-jvm"
-      )),
+      ivy"androidx.test.ext:junit:1.2.1".exclude(
+        ("org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm")
+      ),
       ivy"androidx.test:runner:1.6.2",
-      ivy"androidx.test.espresso:espresso-core:3.5.1".exclude((
-        "org.jetbrains.kotlinx",
-        "kotlinx-coroutines-core-jvm"
-      )),
+      ivy"androidx.test.espresso:espresso-core:3.5.1".exclude(
+        ("org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm")
+      ),
       ivy"junit:junit:4.13.2"
     )
   }

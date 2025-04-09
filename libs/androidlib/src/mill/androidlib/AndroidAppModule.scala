@@ -861,7 +861,7 @@ trait AndroidAppModule extends AndroidModule {
     r8ArgsBuilder ++= baselineArgs
 
     // Library arguments: pass each bootclasspath and any additional library classes as --lib.
-    val libArgs = libraryClasses().flatMap(ref => Seq("--lib", ref.path.toString))
+    val libArgs = libraryClassesPaths().flatMap(ref => Seq("--lib", ref.path.toString))
 
     r8ArgsBuilder ++= libArgs
 
