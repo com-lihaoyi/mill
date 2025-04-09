@@ -120,7 +120,6 @@ jobs:
         with:
           millargs: ${{ matrix.millargs }}
           coursierarchive: "/tmp"
-          install-android-sdk: false
           shell: bash
 
   linux:
@@ -228,7 +227,7 @@ jobs:
     uses: ./.github/workflows/post-build-selective.yml
     with:
       install-android-sdk: ${{ matrix.install-android-sdk }}
-      install-sbt: ${{ matrix.install-sbt }}
+      install-sbt: ${{ matrix.install-sbt || false }}
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
       shell: bash
@@ -277,7 +276,7 @@ jobs:
       # running the graal native image binary on windows
       coursierarchive: "C:/coursier-arc"
       shell: powershell
-      install-sbt: ${{ matrix.install-sbt }}
+      install-sbt: ${{ matrix.install-sbt || false }}
 
   itest:
     needs: build-linux
