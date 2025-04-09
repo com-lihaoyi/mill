@@ -9,3 +9,25 @@ index 521b6533dd6..1c8b6ff79ea 100644
  import mill.scalalib._
  
  object `package` extends MillBuildRootModule {
+diff --git a/website/package.mill b/website/package.mill
+index c30c14440e4..f3e6aa41ed3 100644
+--- a/website/package.mill
++++ b/website/package.mill
+@@ -57,7 +57,7 @@ object `package` extends RootModule {
+   }
+ 
+   def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
+-      ctx: mill.api.Ctx.Log
++      ctx: mill.define.TaskCtx.Log
+   ) = {
+ 
+     prepareAntora(npmDir)
+@@ -116,7 +116,7 @@ object `package` extends RootModule {
+   }
+ 
+   def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Agg[os.Path])(implicit
+-      ctx: mill.api.Ctx
++      ctx: mill.define.TaskCtx
+   ) = {
+ 
+     // Walk all files to render graphviz templates ourselves because the only Antora graphviz
