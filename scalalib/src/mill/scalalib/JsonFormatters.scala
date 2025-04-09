@@ -3,6 +3,7 @@ package mill.scalalib
 import upickle.default.{ReadWriter => RW}
 import mill.api.Mirrors
 import mill.api.Mirrors.autoMirror
+import mill.runner.api.TestReporter
 
 trait JsonFormatters {
   import JsonFormatters.mirrors.given
@@ -116,6 +117,11 @@ trait JsonFormatters {
     )
   implicit lazy val projectFormat: RW[coursier.core.Project] = upickle.default.macroRW
 
+  implicit lazy val logLevelRW: upickle.default.ReadWriter[TestReporter.LogLevel] =
+    implicitly[upickle.default.ReadWriter[String]].bimap(
+      _.asString,
+      TestReporter.LogLevel.fromString(_)
+    )
 }
 object JsonFormatters extends JsonFormatters {
   private[mill] object mirrors {

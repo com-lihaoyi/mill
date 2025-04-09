@@ -59,6 +59,8 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5 {
     "-enableassertions"
   )
 
+  def testLogLevel = mill.runner.api.TestReporter.LogLevel.Info
+
   def compile = Task {
     // Hack to satisfy fragile tests that look for /test-classes/ in the file paths
     val sup = super.compile()
@@ -636,16 +638,18 @@ object `transport-udt` extends NettyModule {
 
 > ./mill -j5 __.compile
 
-> ./mill 'codec-{dns,haproxy,http,http2,memcache,mqtt,redis,smtp,socks,stomp,xml}.test'
+> ./mill 'codec-stomp.test.testForked'
 ...Test io.netty.handler.codec.stomp.StompSubframeEncoderTest#testEscapeStompHeaders() started
-...Test io.netty.handler.codec.stomp.StompSubframeEncoderTest#testEscapeStompHeaders() finished...
 ...
 
-> ./mill 'transport-blockhound-tests.testForked'
+> ./mill 'codec-{dns,haproxy,http,http2,memcache,mqtt,redis,smtp,socks,xml}.test.testForked' -q +v
 
-> ./mill 'transport-{native-unix-common,sctp}.test'
+> ./mill 'transport-blockhound-tests.testForked' -q +v
+
+> ./mill 'transport-native-unix-common.test.testForked'
 ...Test io.netty.channel.unix.UnixChannelUtilTest#testUnPooledAllocatorIsBufferCopyNeededForWrite() started
-...Test io.netty.channel.unix.UnixChannelUtilTest#testUnPooledAllocatorIsBufferCopyNeededForWrite() finished...
 ...
+
+> ./mill 'transport-{native-unix-common,sctp}.test.testForked' -q +v
 
 */
