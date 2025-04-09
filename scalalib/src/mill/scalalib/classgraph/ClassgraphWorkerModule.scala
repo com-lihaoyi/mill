@@ -1,16 +1,23 @@
 package mill.scalalib.classgraph
 
-import mill.{T, Task}
+import mainargs.Flag
+import mill.{Command, T, Task}
 import mill.api.{Ctx, PathRef}
 import mill.define.{Discover, ExternalModule, Worker}
-import mill.scalalib.{CoursierModule, Dep}
+import mill.scalalib.{CoursierModule, OfflineSupportModule, Dep}
 
-trait ClassgraphWorkerModule extends CoursierModule {
+trait ClassgraphWorkerModule extends CoursierModule with OfflineSupportModule {
 
   def classgraphWorkerClasspath: T[Seq[PathRef]] = T {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule("mill-scalalib-classgraph-worker")
     ))
+  }
+
+  override def prepareOffline(all: Flag): Command[Unit] = Task.Command {
+    super.prepareOffline(all)()
+    classgraphWorkerClasspath()
+    ()
   }
 
   def classgraphWorker: Worker[ClassgraphWorker] = Task.Worker {

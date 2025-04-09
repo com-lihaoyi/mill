@@ -1245,6 +1245,7 @@ trait JavaModule
     Task.Command {
       super.prepareOffline(all)()
       resolvedIvyDeps()
+      classgraphWorkerModule().prepareOffline(all)()
       jvmWorker().prepareOffline(all)()
       resolvedRunIvyDeps()
       Task.sequence(tasks)()
