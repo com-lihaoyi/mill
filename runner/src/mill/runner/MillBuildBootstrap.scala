@@ -296,7 +296,7 @@ class MillBuildBootstrap(
             null
           ) {
             val sharedCl = classOf[MillBuildBootstrap].getClassLoader
-            val sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.runner.api")
+            val sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api")
             override def findClass(name: String): Class[?] =
               if (sharedPrefixes.exists(name.startsWith)) sharedCl.loadClass(name)
               else super.findClass(name)
