@@ -1,5 +1,4 @@
-package mill.runner
-
+package mill.runner.meta
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 import mill.constants.CodeGenConstants.*
@@ -239,7 +238,7 @@ object CodeGen {
           if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule(build.millDiscover) "
           else if (millTopLevelProjectRoot == scriptFolderPath)
             s"extends _root_.mill.main.MainRootModule "
-          else s"extends _root_.mill.runner.MillBuildRootModule() "
+          else s"extends _root_.mill.runner.meta.MillBuildRootModule() "
 
         s"""$headerCode
            |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
@@ -277,7 +276,7 @@ object CodeGen {
       output: os.Path,
       isMetaBuild: Boolean
   ): String = {
-    s"""${if (isMetaBuild) "import _root_.mill.runner.MillBuildRootModule" else ""}
+    s"""${if (isMetaBuild) "import _root_.mill.runner.meta.MillBuildRootModule" else ""}
        |@_root_.scala.annotation.nowarn
        |object MillMiscInfo extends mill.define.RootModule0.Info(
        |  ${compilerWorkerClasspath.map(p => literalize(p.toString))},

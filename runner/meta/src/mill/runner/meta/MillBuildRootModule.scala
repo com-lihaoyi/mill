@@ -1,5 +1,4 @@
-package mill.runner
-
+package mill.runner.meta
 import scala.jdk.CollectionConverters.ListHasAsScala
 import coursier.Repository
 import mill.*
@@ -13,7 +12,7 @@ import mill.constants.OutFiles.*
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.util.BuildInfo
 import mill.define.RootModule0
-import mill.runner.worker.ScalaCompilerWorker
+import mill.runner.meta.ScalaCompilerWorker
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 
 import scala.util.Try
@@ -122,7 +121,7 @@ class MillBuildRootModule()(implicit
       ) ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
-        ivy"com.lihaoyi::mill-runner:${Versions.millVersion}"
+        ivy"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
       }
   }
 

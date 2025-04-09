@@ -9,7 +9,7 @@ import mill.contrib.buildinfo.BuildInfo
  *
  * Mostly tested by [[build.integration]] and [[build.example]] tests.
  */
-object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
+object `package` extends RootModule with build.MillPublishScalaModule {
   object api extends build.MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(build.core.constants)
     def ivyDeps = Seq(build.Deps.sbtTestInterface)
@@ -84,25 +84,33 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
       )
     }
   }
+  object meta extends build.MillPublishScalaModule with BuildInfo {
+    def moduleDeps = Seq(
+      build.scalalib,
+      build.core.codesig,
+      build.runner.client,
+      `worker-api`,
+      build.main
+    )
+
+    def buildInfoPackageName = "mill.runner.meta"
+
+    def buildInfoMembers = Seq(
+      BuildInfo.Value(
+        "bootstrapDeps",
+        worker.bootstrapDeps().mkString(";"),
+        "Depedendencies used to bootstrap the scala compiler worker."
+      )
+    )
+  }
 
   def moduleDeps = Seq(
-    build.core,
-    build.main,
-    build.scalalib,
     build.bsp,
-    build.core.codesig,
+    build.core,
     build.runner.server,
     client,
-    `worker-api`
+    `worker-api`,
+    meta
   )
 
-  def buildInfoPackageName = "mill.runner.worker"
-
-  def buildInfoMembers = Seq(
-    BuildInfo.Value(
-      "bootstrapDeps",
-      worker.bootstrapDeps().mkString(";"),
-      "Depedendencies used to bootstrap the scala compiler worker."
-    )
-  )
 }

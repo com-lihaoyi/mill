@@ -1,5 +1,4 @@
-package mill.runner.worker
-
+package mill.runner.meta
 import mill.PathRef
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.api.Result

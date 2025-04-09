@@ -21,7 +21,7 @@ import mill.api.{
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
 import mill.util.BuildInfo
-import mill.runner.worker.ScalaCompilerWorker
+import mill.runner.meta.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}
 
 import java.lang.reflect.InvocationTargetException
