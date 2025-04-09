@@ -4,7 +4,7 @@ import mill.internal.PrefixLogger
 import mill.define.internal.Watchable
 import mill.define.{RootModule0, PathRef, WorkspaceRoot}
 import mill.util.BuildInfo
-import mill.runner.api.{RootModuleApi, EvaluatorApi}
+import mill.api.{RootModuleApi, EvaluatorApi}
 import mill.constants.CodeGenConstants.*
 import mill.api.{Logger, Result, SystemStreams, Val, internal}
 import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
@@ -337,8 +337,8 @@ class MillBuildBootstrap(
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) =
-      mill.runner.api.EvaluatorApi.allBootstrapEvaluators.withValue(
-        mill.runner.api.EvaluatorApi.AllBootstrapEvaluators(Seq(
+      mill.api.EvaluatorApi.allBootstrapEvaluators.withValue(
+        mill.api.EvaluatorApi.AllBootstrapEvaluators(Seq(
           evaluator
         ) ++ nestedState.frames.flatMap(_.evaluator))
       ) {

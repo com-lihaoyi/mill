@@ -1,4 +1,7 @@
-package mill.runner.api
+package mill.api
+
+import mill.api.ScalaPlatform
+
 case class ScalaBuildTarget(
     /** The Scala organization that is used for a target. */
     scalaOrganization: String,

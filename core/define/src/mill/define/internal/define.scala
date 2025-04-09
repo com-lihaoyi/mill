@@ -1,6 +1,6 @@
 package mill.define
 
 package object internal {
-  val Watchable = mill.runner.api.Watchable
-  type Watchable = mill.runner.api.Watchable
+  val Watchable = mill.api.Watchable
+  type Watchable = mill.api.Watchable
 }

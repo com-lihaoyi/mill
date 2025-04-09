@@ -1,4 +1,7 @@
-package mill.runner.api
+package mill.api
+
+import mill.api.SelectMode
+
 sealed trait SelectMode
 
 object SelectMode {

@@ -11,7 +11,7 @@ import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.runner.api.{SystemStreams => _, _}
+import mill.api.{SystemStreams => _, _}
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -266,7 +266,7 @@ private trait GroupExecution {
 
             os.dynamicPwdFunction.withValue(destFunc) {
               os.checker.withValue(executionChecker) {
-                SystemStreams.withStreams(streams) {
+                mill.define.SystemStreams.withStreams(streams) {
                   val exposedEvaluator =
                     if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
                   Evaluator.currentEvaluator0.withValue(exposedEvaluator) {

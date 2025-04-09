@@ -8,7 +8,7 @@ import coursier.maven.Pom
 import mill.define.TaskCtx
 import mill.define.PathRef
 import mill.define.{Evaluator, TaskCtx as _, *}
-import mill.runner.api.{
+import mill.api.{
   BaseModuleApi,
   EvaluatorApi,
   ExecutionResultsApi,
@@ -123,7 +123,7 @@ class GenIdeaImpl(
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
     def resolveTasks
-        : Map[EvaluatorApi, Seq[mill.runner.api.TaskApi[mill.runner.api.ResolvedModule]]] =
+        : Map[EvaluatorApi, Seq[mill.api.TaskApi[mill.api.ResolvedModule]]] =
       modulesByEvaluator.map { case (evaluator, m) =>
         evaluator -> m.map {
           case (path, mod) => mod.genIdeaMetadata(ideaConfigVersion, evaluator, path)
@@ -131,14 +131,14 @@ class GenIdeaImpl(
         }
       }
 
-    val resolvedModules: Seq[mill.runner.api.ResolvedModule] = {
+    val resolvedModules: Seq[mill.api.ResolvedModule] = {
       resolveTasks.toSeq.flatMap { case (evaluator, tasks) =>
         evaluator.executeApi(tasks).executionResults match {
           case r if r.transitiveFailingApi.nonEmpty =>
             throw GenIdeaException(
               s"Failure during resolving modules: ${ExecutionResultsApi.formatFailing(r)}"
             )
-          case r => r.values.map(_.value).asInstanceOf[Seq[mill.runner.api.ResolvedModule]]
+          case r => r.values.map(_.value).asInstanceOf[Seq[mill.api.ResolvedModule]]
         }
       }
     }
@@ -170,7 +170,7 @@ class GenIdeaImpl(
         confs: Seq[IdeaConfigFile]
     ): Map[os.SubPath, Seq[IdeaConfigFile]] = {
 
-      var seen: Map[FileComponent, Seq[mill.runner.api.Element]] = Map()
+      var seen: Map[FileComponent, Seq[mill.api.Element]] = Map()
       var result: Map[os.SubPath, Seq[IdeaConfigFile]] = Map()
       confs.foreach { conf =>
         val subPath = os.SubPath(conf.subPath)
@@ -184,7 +184,7 @@ class GenIdeaImpl(
           case Some(existing) if conf.config == existing =>
           // identical, ignore
           case Some(existing) =>
-            def details(elements: Seq[mill.runner.api.Element]) = {
+            def details(elements: Seq[mill.api.Element]) = {
               elements.map(
                 ideaConfigElementTemplate(_).toString().replaceAll("\\n", "")
               )
@@ -202,7 +202,7 @@ class GenIdeaImpl(
     val fileComponentContributions: Seq[(os.SubPath, Elem)] =
       collisionFreeExtraConfigs(configFileContributions).toSeq.map {
         case (file, configs) =>
-          val map: Map[Option[String], Seq[mill.runner.api.Element]] =
+          val map: Map[Option[String], Seq[mill.api.Element]] =
             configs
               .groupBy(_.component)
               .view
@@ -385,7 +385,7 @@ class GenIdeaImpl(
       }
 
     val moduleFiles: Seq[(os.SubPath, Elem)] = resolvedModules.flatMap {
-      case mill.runner.api.ResolvedModule(
+      case mill.api.ResolvedModule(
             path,
             resolvedDeps,
             mod,
@@ -410,7 +410,7 @@ class GenIdeaImpl(
 
         val sanizedDeps: Seq[ScopedOrd[String]] = {
           resolvedDeps
-            .map((s: mill.runner.api.Scoped[java.nio.file.Path]) =>
+            .map((s: mill.api.Scoped[java.nio.file.Path]) =>
               pathToLibName(os.Path(s.value)) -> s.scope
             )
             .iterator
@@ -529,7 +529,7 @@ class GenIdeaImpl(
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
-  def ideaConfigElementTemplate(element: mill.runner.api.Element): Elem = {
+  def ideaConfigElementTemplate(element: mill.api.Element): Elem = {
 
     val example = <config/>
 
@@ -552,7 +552,7 @@ class GenIdeaImpl(
   }
 
   def ideaConfigFileTemplate(
-      components: Map[Option[String], Seq[mill.runner.api.Element]]
+      components: Map[Option[String], Seq[mill.api.Element]]
   ): Elem = {
     <project version={"" + ideaConfigVersion}>
       {
@@ -741,7 +741,7 @@ class GenIdeaImpl(
       libNames: Seq[ScopedOrd[String]],
       depNames: Seq[ScopedOrd[String]],
       isTest: Boolean,
-      facets: Seq[mill.runner.api.JavaFacet]
+      facets: Seq[mill.api.JavaFacet]
   ): Elem = {
     val genSources = generatedSourcePaths.toSeq.distinct.sorted.partition(_.startsWith(basePath))
     val normSources = normalSourcePaths.iterator.toSeq.sorted.partition(_.startsWith(basePath))
@@ -945,7 +945,7 @@ object GenIdeaImpl {
       }
   }
   object ScopedOrd {
-    def apply[T <: Comparable[T]](scoped: mill.runner.api.Scoped[T]): ScopedOrd[T] =
+    def apply[T <: Comparable[T]](scoped: mill.api.Scoped[T]): ScopedOrd[T] =
       ScopedOrd(scoped.value, scoped.scope)
   }
 

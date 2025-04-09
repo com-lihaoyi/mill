@@ -1,4 +1,6 @@
-package mill.runner.api
+package mill.api
+
+import mill.api.Watchable
 
 /**
  * Represents something that can be watched by the Mill build tool. Most often

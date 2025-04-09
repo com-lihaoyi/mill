@@ -20,7 +20,7 @@ import mill.define.PathRef
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
-trait ScalaNativeModule extends ScalaModule with mill.runner.api.ScalaNativeModuleApi { outer =>
+trait ScalaNativeModule extends ScalaModule with mill.api.ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 

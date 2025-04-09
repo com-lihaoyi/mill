@@ -1,4 +1,5 @@
-package mill.runner.api
+package mill.api
+
 case class BspBuildTarget(
     displayName: Option[String],
     baseDirectory: Option[java.nio.file.Path],

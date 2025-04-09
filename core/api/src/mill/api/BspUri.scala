@@ -1,4 +1,7 @@
-package mill.runner.api
+package mill.api
+
+import mill.api.BspUri
+
 case class BspUri(uri: String)
 
 object BspUri {

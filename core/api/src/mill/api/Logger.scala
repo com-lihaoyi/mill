@@ -1,4 +1,6 @@
-package mill.runner.api
+package mill.api
+
+import mill.api.{Logger, SystemStreams}
 
 import java.io.{InputStream, OutputStream, PrintStream}
 

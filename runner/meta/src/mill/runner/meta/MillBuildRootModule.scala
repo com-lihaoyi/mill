@@ -17,7 +17,7 @@ import mill.runner.worker.api.ScalaCompilerWorkerApi
 
 import scala.util.Try
 import mill.define.Target
-import mill.runner.api.Watchable
+import mill.api.Watchable
 import mill.runner.worker.api.MillScalaParser
 
 import scala.collection.mutable

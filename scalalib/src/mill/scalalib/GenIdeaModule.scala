@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.define.Task
 import mill.{Module, PathRef, T}
 import os.SubPath
-import mill.runner.api.{JavaFacet, IdeaConfigFile}
+import mill.api.{JavaFacet, IdeaConfigFile}
 
 /**
  * Module specific configuration of the Idea project file generator.

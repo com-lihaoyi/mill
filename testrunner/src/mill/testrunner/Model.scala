@@ -2,7 +2,7 @@ package mill.testrunner
 
 import mill.define.JsonFormatters._
 import mill.api.internal
-import mill.runner.api.TestReporter
+import mill.api.TestReporter
 
 @internal case class TestArgs(
     framework: String,

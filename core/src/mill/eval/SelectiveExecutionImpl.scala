@@ -197,7 +197,7 @@ object SelectiveExecutionImpl {
             log = evaluator.baseLogger,
             env = evaluator.env,
             reporter = _ => None,
-            testReporter = mill.runner.api.DummyTestReporter,
+            testReporter = mill.api.DummyTestReporter,
             workspace = evaluator.workspace,
             systemExit = n => ???,
             fork = null,

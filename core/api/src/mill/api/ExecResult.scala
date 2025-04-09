@@ -1,4 +1,6 @@
-package mill.runner.api
+package mill.api
+
+import mill.api.{ExecResult, Result}
 
 import java.lang.reflect.InvocationTargetException
 import scala.language.implicitConversions

@@ -1,4 +1,7 @@
-package mill.runner.api
+package mill.api
+
+import mill.api.ScalaPlatform
+
 abstract class ScalaPlatform(val number: Int)
 
 object ScalaPlatform {

@@ -15,7 +15,7 @@ import scala.util.control.NonFatal
 
 import mill.scalalib.classgraph.ClassgraphWorkerModule
 
-trait RunModule extends WithJvmWorker with mill.runner.api.RunModuleApi {
+trait RunModule extends WithJvmWorker with mill.api.RunModuleApi {
 
   def classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 

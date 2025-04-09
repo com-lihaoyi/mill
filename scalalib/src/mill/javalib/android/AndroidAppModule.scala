@@ -92,7 +92,7 @@ trait AndroidAppModule extends AndroidModule {
   }
 
   @internal
-  override def bspCompileClasspath = Task.Anon { (ev: mill.runner.api.EvaluatorApi) =>
+  override def bspCompileClasspath = Task.Anon { (ev: mill.api.EvaluatorApi) =>
     compileClasspath().map(
       _.path
     ).map(UnresolvedPath.ResolvedPath(_)).map(_.resolve(os.Path(ev.outPathJava))).map(sanitizeUri)

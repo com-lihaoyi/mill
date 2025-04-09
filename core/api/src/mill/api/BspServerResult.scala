@@ -1,4 +1,7 @@
-package mill.runner.api
+package mill.api
+
+import mill.api.BspServerResult
+
 //@internal
 sealed trait BspServerResult
 

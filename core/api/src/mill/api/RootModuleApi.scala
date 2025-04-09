@@ -1,5 +1,8 @@
-package mill.runner.api
-import collection.mutable
+package mill.api
+
+import mill.api.Watchable
+
+import scala.collection.mutable
 trait RootModuleApi {
   protected[mill] def watchedValues: mutable.Buffer[Watchable]
   protected[mill] def evalWatchedValues: mutable.Buffer[Watchable]

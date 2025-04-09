@@ -59,7 +59,7 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5 {
     "-enableassertions"
   )
 
-  def testLogLevel = mill.runner.api.TestReporter.LogLevel.Info
+  def testLogLevel = mill.api.TestReporter.LogLevel.Info
 
   def compile = Task {
     // Hack to satisfy fragile tests that look for /test-classes/ in the file paths

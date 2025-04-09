@@ -2,7 +2,7 @@ package mill.testrunner
 
 import mill.define.TaskCtx
 import mill.api.internal
-import mill.runner.api.TestReporter
+import mill.api.TestReporter
 import mill.util.Jvm
 
 @internal object TestRunner {

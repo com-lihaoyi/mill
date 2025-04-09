@@ -1,4 +1,6 @@
-package mill.runner.api
+package mill.api
+
+import mill.api.*
 
 trait TaskApi[+T]
 trait NamedTaskApi[+T] extends TaskApi[T] {
@@ -81,8 +83,8 @@ trait JavaModuleApi extends ModuleApi {
 
   def genIdeaMetadata(
       ideaConfigVersion: Int,
-      evaluator: mill.runner.api.EvaluatorApi,
-      path: mill.runner.api.Segments
+      evaluator: mill.api.EvaluatorApi,
+      path: mill.api.Segments
   ): TaskApi[ResolvedModule]
 
   def transitiveModuleCompileModuleDeps: Seq[JavaModuleApi]

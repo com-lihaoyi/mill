@@ -3,10 +3,10 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
-import mill.runner.api.{JvmBuildTarget, ScalaBuildTarget, *}
+import mill.api.{JvmBuildTarget, ScalaBuildTarget, *}
 import mill.bsp.{Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
-import mill.runner.api.Segment.Label
+import mill.api.Segment.Label
 import mill.given
 import mill.constants.OutFiles
 import mill.client.lock.Lock

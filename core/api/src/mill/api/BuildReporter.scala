@@ -1,5 +1,6 @@
-package mill.runner.api
+package mill.api
 
+import mill.api.TestReporter
 import sbt.testing.Event
 
 /**

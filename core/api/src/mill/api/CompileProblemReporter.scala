@@ -1,4 +1,7 @@
-package mill.runner.api
+package mill.api
+
+import mill.api.{DiagnosticCode, Problem, ProblemPosition, Severity}
+
 import java.io.File
 
 /**

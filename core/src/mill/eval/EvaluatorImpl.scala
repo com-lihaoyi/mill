@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.runner.api.*
+import mill.api.*
 import mill.define.PathRef
 import mill.constants.OutFiles
 import mill.define.*

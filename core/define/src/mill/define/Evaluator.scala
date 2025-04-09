@@ -1,9 +1,9 @@
 package mill.define
 
-import mill.runner.api.{TaskApi, CompileProblemReporter, TestReporter, DummyTestReporter}
+import mill.api.{TaskApi, CompileProblemReporter, TestReporter, DummyTestReporter}
 import mill.api.*
 import mill.define.internal.Watchable
-import mill.runner.api.EvaluatorApi
+import mill.api.EvaluatorApi
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
@@ -64,7 +64,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
    */
   def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.internal.TopoSorted
 
-  def executeApi[T](targets: Seq[mill.runner.api.TaskApi[T]]): Evaluator.Result[T] =
+  def executeApi[T](targets: Seq[mill.api.TaskApi[T]]): Evaluator.Result[T] =
     execute[T](targets.map(_.asInstanceOf[Task[T]]))
 
   def execute[T](

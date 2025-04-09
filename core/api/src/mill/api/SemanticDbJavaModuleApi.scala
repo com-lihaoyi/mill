@@ -1,11 +1,12 @@
-package mill.runner.api
+package mill.api
+
 
 trait SemanticDbJavaModuleApi {
   def bspBuildTargetCompileSemanticDb: TaskApi[java.nio.file.Path]
 }
 object SemanticDbJavaModuleApi {
-  val buildTimeJavaSemanticDbVersion = Versions.semanticDbJavaVersion
-  val buildTimeSemanticDbVersion = Versions.semanticDBVersion
+  val buildTimeJavaSemanticDbVersion = BuildInfo.semanticDbJavaVersion
+  val buildTimeSemanticDbVersion = BuildInfo.semanticDBVersion
 
   private[mill] val contextSemanticDbVersion: InheritableThreadLocal[Option[String]] =
     new InheritableThreadLocal[Option[String]] {

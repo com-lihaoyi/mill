@@ -15,7 +15,7 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-trait Module extends Module.BaseClass with Ctx.Wrapper with mill.runner.api.ModuleApi {
+trait Module extends Module.BaseClass with Ctx.Wrapper with mill.api.ModuleApi {
   implicit def moduleNestedCtx: Ctx.Nested = moduleCtx
     .withMillSourcePath(moduleDir)
     .withSegments(moduleSegments)

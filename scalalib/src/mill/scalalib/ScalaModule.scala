@@ -23,7 +23,7 @@ import scala.util.Using
  * Core configuration required to compile a single Scala compilation target
  */
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
-    with mill.runner.api.ScalaModuleApi { outer =>
+    with mill.api.ScalaModuleApi { outer =>
 
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
@@ -583,8 +583,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     languageIds = Seq(
-      mill.runner.api.BspModuleApi.LanguageId.Java,
-      mill.runner.api.BspModuleApi.LanguageId.Scala
+      mill.api.BspModuleApi.LanguageId.Java,
+      mill.api.BspModuleApi.LanguageId.Scala
     ),
     canCompile = true,
     canRun = true

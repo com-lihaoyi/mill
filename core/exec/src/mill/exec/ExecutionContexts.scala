@@ -71,7 +71,7 @@ private object ExecutionContexts {
         0,
         () =>
           os.dynamicPwdFunction.withValue(() => submitterPwd) {
-            mill.api.SystemStreams.withStreams(submitterStreams) {
+            mill.define.SystemStreams.withStreams(submitterStreams) {
               runnable.run()
             }
           }
@@ -136,7 +136,7 @@ private object ExecutionContexts {
         run0 = () => {
           val result = scala.util.Try(logger.withPromptLine {
             os.dynamicPwdFunction.withValue(() => makeDest()) {
-              mill.api.SystemStreams.withStreams(logger.streams) {
+              mill.define.SystemStreams.withStreams(logger.streams) {
                 t(logger)
               }
             }

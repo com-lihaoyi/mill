@@ -1,5 +1,8 @@
-package mill.runner.api
-import collection.mutable
+package mill.api
+
+import mill.api.*
+
+import scala.collection.mutable
 import scala.util.DynamicVariable
 trait EvaluatorApi extends AutoCloseable {
   def evaluate(
@@ -27,7 +30,7 @@ trait EvaluatorApi extends AutoCloseable {
 object EvaluatorApi {
   trait Result[T] {
     def watchable: Seq[Watchable]
-    def values: mill.runner.api.Result[Seq[T]]
+    def values: mill.api.Result[Seq[T]]
 
     def selectedTasks: Seq[TaskApi[?]]
     def executionResults: ExecutionResultsApi

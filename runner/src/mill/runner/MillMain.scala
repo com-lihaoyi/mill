@@ -8,7 +8,7 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.runner.api.BspServerResult
+import mill.api.BspServerResult
 import mill.api.{DummyInputStream, Logger, MillException, Result, SystemStreams,internal}
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
@@ -41,8 +41,8 @@ object MillMain {
       (false, onError)
   }
 
-  def main(args: Array[String]): Unit = SystemStreams.withTopLevelSystemStreamProxy {
-    val initialSystemStreams = SystemStreams.original
+  def main(args: Array[String]): Unit = mill.define.SystemStreams.withTopLevelSystemStreamProxy {
+    val initialSystemStreams = mill.define.SystemStreams.original
     // setup streams
     val (runnerStreams, cleanupStreams, bspLog) =
       if (args.headOption == Option("--bsp")) {
@@ -123,7 +123,7 @@ object MillMain {
       serverDir: os.Path
   ): (Boolean, RunnerState) = {
     val streams = streams0
-    SystemStreams.withStreams(streams) {
+    mill.define.SystemStreams.withStreams(streams) {
       os.SubProcess.env.withValue(env) {
         MillCliConfigParser.parse(args) match {
           // Cannot parse args
@@ -250,7 +250,7 @@ object MillMain {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
                         if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
-                        SystemStreams.withStreams(logger.streams) {
+                        mill.define.SystemStreams.withStreams(logger.streams) {
                           tailManager.withOutErr(logger.streams.out, logger.streams.err) {
                             new MillBuildBootstrap(
                               projectRoot = WorkspaceRoot.workspaceRoot,

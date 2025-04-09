@@ -7,12 +7,12 @@ import mill.define._
 import mill.internal.PrefixLogger
 import mill.define.MultiBiMap
 
-import mill.runner.api._
+import mill.api._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
-import mill.runner.api.{BaseModuleApi, EvaluatorApi}
+import mill.api.{BaseModuleApi, EvaluatorApi}
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 /**
