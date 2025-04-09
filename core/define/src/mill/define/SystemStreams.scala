@@ -6,8 +6,6 @@ import mill.api.{DummyInputStream}
 import java.io.{InputStream, OutputStream, PrintStream}
 import scala.util.DynamicVariable
 
-
-
 object SystemStreams {
 
   /**
@@ -164,7 +162,8 @@ object SystemStreams {
     }
   }
   private def debugPrintln(s: String) = ()
-  private[mill] class DebugDelegateStream(delegate0: mill.api.SystemStreams) extends mill.api.SystemStreams(
+  private[mill] class DebugDelegateStream(delegate0: mill.api.SystemStreams)
+      extends mill.api.SystemStreams(
         new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
           override def delegate(): OutputStream = delegate0.out
 

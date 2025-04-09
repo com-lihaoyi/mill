@@ -1,6 +1,5 @@
 package mill.api.internal
 
-
 case class ScalaBuildTarget(
     /** The Scala organization that is used for a target. */
     scalaOrganization: String,

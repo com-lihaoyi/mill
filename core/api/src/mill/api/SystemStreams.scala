@@ -13,7 +13,7 @@ import java.io.{InputStream, OutputStream, PrintStream}
  * that any Unix process receives from the OS.
  */
 class SystemStreams(
-                     val out: PrintStream,
-                     val err: PrintStream,
-                     val in: InputStream
-                   )
+    val out: PrintStream,
+    val err: PrintStream,
+    val in: InputStream
+)

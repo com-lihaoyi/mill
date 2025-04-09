@@ -38,7 +38,9 @@ trait DetektModule extends KotlinModule {
     ).exitCode
   }
 
-  private def detektHandleErrors(check: Boolean, exitCode: Int)(implicit ctx: mill.define.TaskCtx) = {
+  private def detektHandleErrors(check: Boolean, exitCode: Int)(implicit
+      ctx: mill.define.TaskCtx
+  ) = {
 
     if (exitCode == 0) {} // do nothing
     else if (exitCode == 1) {

@@ -88,7 +88,9 @@ object Applicative {
                 '{ $itemsRef(${ Expr(exprs.size - 1) }).asInstanceOf[tt] }.asTerm
           case t
               if t.symbol.exists
-                && t.symbol.annotations.exists(_.tpe =:= TypeRepr.of[mill.define.TaskCtx.ImplicitStub]) =>
+                && t.symbol.annotations.exists(
+                  _.tpe =:= TypeRepr.of[mill.define.TaskCtx.ImplicitStub]
+                ) =>
             ctxRef.asTerm
 
           case t => super.transformTerm(t)(owner)

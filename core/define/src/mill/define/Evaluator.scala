@@ -4,7 +4,7 @@ import mill.api.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
 import mill.define.internal.Watchable
 import mill.api.internal.{EvaluatorApi, TaskApi}
-  import scala.util.DynamicVariable
+import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 

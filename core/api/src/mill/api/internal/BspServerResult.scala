@@ -1,6 +1,5 @@
 package mill.api.internal
 
-
 sealed trait BspServerResult
 
 object BspServerResult {

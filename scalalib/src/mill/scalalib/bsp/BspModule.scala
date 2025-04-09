@@ -5,9 +5,7 @@ import mill._
 import mill.api.internal.BspModuleApi._
 import mill.api.internal.{BspBuildTarget, internal}
 
-
 trait BspModule extends mill.define.Module with mill.api.internal.BspModuleApi {
-  
 
   def bspDisplayName0: String = this.moduleSegments.render
 

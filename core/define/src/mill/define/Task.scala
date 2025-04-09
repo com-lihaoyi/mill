@@ -70,8 +70,8 @@ object Task extends TaskBase {
   }
 
   inline def Sources(inline values: os.SubPath*)(implicit
-                                                 inline ctx: mill.define.Ctx,
-                                                 dummy: Boolean = true
+      inline ctx: mill.define.Ctx,
+      dummy: Boolean = true
   ): Target[Seq[PathRef]] = ${
     TaskMacros.sourcesImpl(
       '{ values.map(sub => PathRef(ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub))) }
@@ -343,7 +343,8 @@ class TaskBase {
   /**
    * Report build results to BSP for IDE integration
    */
-  def reporter(implicit ctx: mill.define.TaskCtx): Int => Option[CompileProblemReporter] = ctx.reporter
+  def reporter(implicit ctx: mill.define.TaskCtx): Int => Option[CompileProblemReporter] =
+    ctx.reporter
 
   /**
    * This is the `os.Path` pointing to the project root directory.
@@ -375,12 +376,12 @@ class TaskBase {
 }
 
 class TargetImpl[+T](
-                      val inputs: Seq[Task[Any]],
-                      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-                      val ctx0: mill.define.Ctx,
-                      val readWriter: RW[?],
-                      val isPrivate: Option[Boolean],
-                      override val persistent: Boolean
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+    val ctx0: mill.define.Ctx,
+    val readWriter: RW[?],
+    val isPrivate: Option[Boolean],
+    override val persistent: Boolean
 ) extends Target[T] {
   override def asTarget: Option[Target[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
@@ -388,12 +389,12 @@ class TargetImpl[+T](
 }
 
 class Command[+T](
-                   val inputs: Seq[Task[Any]],
-                   val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-                   val ctx0: mill.define.Ctx,
-                   val writer: W[?],
-                   val isPrivate: Option[Boolean],
-                   val exclusive: Boolean
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+    val ctx0: mill.define.Ctx,
+    val writer: W[?],
+    val isPrivate: Option[Boolean],
+    val exclusive: Boolean
 ) extends NamedTask[T] {
 
   override def asCommand: Some[Command[T]] = Some(this)
@@ -402,20 +403,20 @@ class Command[+T](
 }
 
 class Worker[+T](
-                  val inputs: Seq[Task[Any]],
-                  val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-                  val ctx0: mill.define.Ctx,
-                  val isPrivate: Option[Boolean]
+    val inputs: Seq[Task[Any]],
+    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+    val ctx0: mill.define.Ctx,
+    val isPrivate: Option[Boolean]
 ) extends NamedTask[T] {
   override def persistent = false
   override def asWorker: Some[Worker[T]] = Some(this)
 }
 
 class InputImpl[T](
-                    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-                    val ctx0: mill.define.Ctx,
-                    val writer: upickle.default.Writer[?],
-                    val isPrivate: Option[Boolean]
+    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+    val ctx0: mill.define.Ctx,
+    val writer: upickle.default.Writer[?],
+    val isPrivate: Option[Boolean]
 ) extends Target[T] {
   val inputs = Nil
   override def sideHash: Int = util.Random.nextInt()
@@ -424,9 +425,9 @@ class InputImpl[T](
 }
 
 class SourcesImpl(
-                   evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
-                   ctx0: mill.define.Ctx,
-                   isPrivate: Option[Boolean]
+    evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
+    ctx0: mill.define.Ctx,
+    isPrivate: Option[Boolean]
 ) extends InputImpl[Seq[PathRef]](
       evaluate0,
       ctx0,
@@ -435,9 +436,9 @@ class SourcesImpl(
     ) {}
 
 class SourceImpl(
-                  evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
-                  ctx0: mill.define.Ctx,
-                  isPrivate: Option[Boolean]
+    evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
+    ctx0: mill.define.Ctx,
+    isPrivate: Option[Boolean]
 ) extends InputImpl[PathRef](
       evaluate0,
       ctx0,
@@ -478,9 +479,9 @@ private object TaskMacros {
   def targetResultImpl[T: Type](using
       Quotes
   )(t: Expr[Result[T]])(
-                                 rw: Expr[RW[T]],
-                                 ctx: Expr[mill.define.Ctx],
-                                 persistent: Expr[Boolean]
+      rw: Expr[RW[T]],
+      ctx: Expr[mill.define.Ctx],
+      persistent: Expr[Boolean]
   ): Expr[Target[T]] = {
     val expr = appImpl[Target, T](
       (in, ev) => '{ new TargetImpl[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
@@ -538,9 +539,9 @@ private object TaskMacros {
   def commandImpl[T: Type](using
       Quotes
   )(t: Expr[Result[T]])(
-                            w: Expr[W[T]],
-                            ctx: Expr[mill.define.Ctx],
-                            exclusive: Expr[Boolean]
+      w: Expr[W[T]],
+      ctx: Expr[mill.define.Ctx],
+      exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {
     appImpl[Command, T](
       (in, ev) =>

@@ -10,7 +10,14 @@ import mill.util.Jvm.createJar
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
 import mainargs.Flag
 import mill.define.{Task, PathRef}
-import mill.api.internal.{BspBuildTarget, BspModuleApi, ScalaBuildTarget, ScalaModuleApi, ScalaPlatform, internal}
+import mill.api.internal.{
+  BspBuildTarget,
+  BspModuleApi,
+  ScalaBuildTarget,
+  ScalaModuleApi,
+  ScalaPlatform,
+  internal
+}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 import mill.scalalib.bsp.BspModule
 

@@ -24,7 +24,9 @@ trait ClassgraphWorkerModule extends CoursierModule {
         .loadClass("mill.scalalib.classgraph.impl.ClassgraphWorkerImpl")
         .getConstructor().newInstance().asInstanceOf[ClassgraphWorker]
 
-      override def discoverMainClasses(classpath: Seq[os.Path])(implicit ctx: TaskCtx): Seq[String] =
+      override def discoverMainClasses(classpath: Seq[os.Path])(implicit
+          ctx: TaskCtx
+      ): Seq[String] =
         worker.discoverMainClasses(classpath)
 
       override def close(): Unit = {

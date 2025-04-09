@@ -11,7 +11,15 @@ import coursier.{Repository, Type}
 import mainargs.{Flag, arg}
 import mill.util.JarManifest
 import mill.api.{MillException, Result, Segments}
-import mill.api.internal.{BspBuildTarget, EvaluatorApi, IdeaConfigFile, JavaFacet, ResolvedModule, Scoped, internal}
+import mill.api.internal.{
+  BspBuildTarget,
+  EvaluatorApi,
+  IdeaConfigFile,
+  JavaFacet,
+  ResolvedModule,
+  Scoped,
+  internal
+}
 import mill.define.{TaskCtx, PathRef}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
 import mill.scalalib.internal.ModuleUtils

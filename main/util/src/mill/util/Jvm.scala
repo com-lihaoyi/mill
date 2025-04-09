@@ -427,7 +427,7 @@ object Jvm {
       isWin && !(org.jline.utils.OSUtils.IS_CYGWIN || org.jline.utils.OSUtils.IS_MSYSTEM)
     val outputPath = ctx.dest / (if (isBatch) "run.bat" else "run")
     val classPathStrs = classPath.map(_.toString)
-    
+
     os.write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
 
     if (!isWin) {

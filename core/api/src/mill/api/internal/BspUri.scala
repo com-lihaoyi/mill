@@ -1,6 +1,5 @@
 package mill.api.internal
 
-
 case class BspUri(uri: String)
 
 object BspUri {

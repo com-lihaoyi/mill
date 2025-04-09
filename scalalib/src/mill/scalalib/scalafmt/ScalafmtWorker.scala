@@ -22,7 +22,9 @@ private[scalafmt] class ScalafmtWorker extends AutoCloseable {
     reformatAction(input, scalafmtConfig, dryRun = false)
   }
 
-  def checkFormat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: TaskCtx): Result[Unit] = {
+  def checkFormat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit
+      ctx: TaskCtx
+  ): Result[Unit] = {
 
     val misformatted = reformatAction(input, scalafmtConfig, dryRun = true)
     if (misformatted.isEmpty) {

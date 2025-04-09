@@ -46,6 +46,7 @@ object TestReporter {
     override def logStart(event: Event): Unit = {}
     override def logFinish(event: Event): Unit = {}
   }
+
   /**
    * Dummy Test Reporter that doesn't report
    * anything for any testing event.
@@ -55,4 +56,3 @@ object TestReporter {
     override def logFinish(event: Event): Unit = {}
   }
 }
-

@@ -18,10 +18,10 @@ import scala.jdk.CollectionConverters.*
  */
 private[mill] object OverrideMapping {
   def computeSegments(
-                       enclosingValue: mill.define.Ctx.Wrapper,
-                       discover: Discover,
-                       lastSegmentStr: String,
-                       enclosingClassValue: Class[?]
+      enclosingValue: mill.define.Ctx.Wrapper,
+      discover: Discover,
+      lastSegmentStr: String,
+      enclosingClassValue: Class[?]
   ) = {
     Option(enclosingValue) match {
       case Some(value) =>
