@@ -1,6 +1,5 @@
-// tag::header[]
-
 = Understanding JVM Garbage Collector Performance
+// tag::header[]
 :author: Li Haoyi
 :revdate: 10 January 2025
 

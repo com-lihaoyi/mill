@@ -1,6 +1,5 @@
-// tag::header[]
-
 = Invalidating build caches using JVM bytecode callgraph analysis
+// tag::header[]
 :author: Li Haoyi
 :revdate: 10 March 2025
 

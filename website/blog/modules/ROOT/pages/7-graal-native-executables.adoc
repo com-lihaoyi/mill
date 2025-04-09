@@ -1,6 +1,5 @@
-// tag::header[]
-
 = How to Compile Java into Native Binaries with Mill and Graal
+// tag::header[]
 :author: Li Haoyi
 :revdate: 1 February 2025
 

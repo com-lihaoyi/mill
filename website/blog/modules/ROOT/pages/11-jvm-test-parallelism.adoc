@@ -1,8 +1,8 @@
-// tag::header[]
-
 = Strategies for Efficiently Parallelizing JVM Test Suites
+// tag::header[]
 :author: Li Haoyi
 :revdate: 17 March 2025
+
 
 _{author}, {revdate}_
 

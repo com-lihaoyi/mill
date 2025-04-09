@@ -1,6 +1,5 @@
-// tag::header[]
-
 = Fast Incremental JVM Assembly Jar Creation with Mill
+// tag::header[]
 :author: Li Haoyi
 :revdate: 16 February 2025
 

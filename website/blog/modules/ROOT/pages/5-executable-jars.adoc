@@ -1,6 +1,5 @@
-// tag::header[]
-
 = How JVM Executable Assembly Jars Work
+// tag::header[]
 :author: Li Haoyi
 :revdate: 2 January 2025
 _{author}, {revdate}_

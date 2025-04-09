@@ -1,7 +1,6 @@
-// tag::header[]
-
 = How Fast Does Java Compile?
 :page-aliases: xref:mill:ROOT:comparisons/java-compile.adoc
+// tag::header[]
 :author: Li Haoyi
 :revdate: 29 November 2024
 
