@@ -6,7 +6,7 @@ import mainargs.Flag
 import mill.api.{Result, internal}
 import mill.define.{Command, Task}
 import mill.scalalib.api.JvmWorkerUtil
-import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
+import mill.api.bsp.{ScalaBuildTarget, ScalaPlatform, ScalaNativeModuleApi}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalanativelib.api._
@@ -20,7 +20,7 @@ import mill.define.PathRef
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
-trait ScalaNativeModule extends ScalaModule with mill.api.ScalaNativeModuleApi { outer =>
+trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 

@@ -1,4 +1,4 @@
-package mill.api
+package mill.api.bsp
 
 import mill.api.*
 
@@ -14,7 +14,7 @@ trait EvaluatorApi extends AutoCloseable {
   def executeApi[T](
       targets: Seq[TaskApi[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = null,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false

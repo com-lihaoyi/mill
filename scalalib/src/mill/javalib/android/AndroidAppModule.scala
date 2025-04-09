@@ -4,7 +4,7 @@ import mill._
 import mill.scalalib._
 import mill.api.{Logger, internal}
 import mill.define.{ModuleRef, Task, PathRef}
-import mill.scalalib.bsp.BspBuildTarget
+import mill.api.bsp.{BspBuildTarget, EvaluatorApi}
 import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.RelPath
@@ -92,7 +92,7 @@ trait AndroidAppModule extends AndroidModule {
   }
 
   @internal
-  override def bspCompileClasspath = Task.Anon { (ev: mill.api.EvaluatorApi) =>
+  override def bspCompileClasspath = Task.Anon { (ev: EvaluatorApi) =>
     compileClasspath().map(
       _.path
     ).map(UnresolvedPath.ResolvedPath(_)).map(_.resolve(os.Path(ev.outPathJava))).map(sanitizeUri)

@@ -1,6 +1,5 @@
-package mill.api
+package mill.api.bsp
 
-import mill.api.BspServerHandle
 
 private[mill] object BspContextApi {
   @volatile var bspServerHandle: BspServerHandle = null

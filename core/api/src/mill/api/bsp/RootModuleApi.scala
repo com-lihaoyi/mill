@@ -1,4 +1,4 @@
-package mill.api
+package mill.api.bsp
 
 import mill.api.Watchable
 

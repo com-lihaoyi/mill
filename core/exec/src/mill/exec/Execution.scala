@@ -3,6 +3,7 @@ package mill.exec
 import mill.api.ExecResult.Aborted
 
 import mill.api._
+import mill.api.bsp._
 import mill.define._
 import mill.internal.PrefixLogger
 import mill.define.MultiBiMap
@@ -12,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
-import mill.api.{BaseModuleApi, EvaluatorApi}
+import mill.api.bsp.{BaseModuleApi, EvaluatorApi}
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 /**
@@ -84,7 +85,7 @@ private[mill] case class Execution(
   def executeTasks(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false
   ): Execution.Results = logger.prompt.withPromptUnpaused {
@@ -104,7 +105,7 @@ private[mill] case class Execution(
       goals: Seq[Task[?]],
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       ec: mill.define.TaskCtx.Fork.Impl,
       serialCommandExec: Boolean
   ): Execution.Results = {

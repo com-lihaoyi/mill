@@ -2,7 +2,7 @@ package mill.scalalib.worker
 
 import mill.util.CachedFactory
 import mill.api._
-import mill.api._
+import mill.api.bsp._
 import mill.define.PathRef
 import mill.constants.CodeGenConstants
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerApi, JvmWorkerUtil}

@@ -1,4 +1,4 @@
-package mill.api
+package mill.api.bsp
 
 import mill.api.*
 
@@ -83,7 +83,7 @@ trait JavaModuleApi extends ModuleApi {
 
   def genIdeaMetadata(
       ideaConfigVersion: Int,
-      evaluator: mill.api.EvaluatorApi,
+      evaluator: EvaluatorApi,
       path: mill.api.Segments
   ): TaskApi[ResolvedModule]
 

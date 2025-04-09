@@ -1,3 +1,3 @@
-package mill.api
+package mill.api.bsp
 
 trait BaseModuleApi extends ModuleApi

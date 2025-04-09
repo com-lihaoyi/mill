@@ -1,5 +1,6 @@
-package mill.api
+package mill.api.bsp
 
+import mill.api.BuildInfo
 
 trait SemanticDbJavaModuleApi {
   def bspBuildTargetCompileSemanticDb: TaskApi[java.nio.file.Path]

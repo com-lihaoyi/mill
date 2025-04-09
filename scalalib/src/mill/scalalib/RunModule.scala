@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier
 import mainargs.arg
 import mill.define.JsonFormatters.pathReadWrite
 import mill.api.Result
+import mill.api.bsp.RunModuleApi
 import mill.define.{Ctx, PathRef, TaskCtx}
 import mill.constants.ServerFiles
 import mill.define.{Command, ModuleRef, Task}
@@ -15,7 +16,7 @@ import scala.util.control.NonFatal
 
 import mill.scalalib.classgraph.ClassgraphWorkerModule
 
-trait RunModule extends WithJvmWorker with mill.api.RunModuleApi {
+trait RunModule extends WithJvmWorker with RunModuleApi {
 
   def classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 

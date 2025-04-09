@@ -1,7 +1,9 @@
 package mill.define
 
 import mill.define.PathRef
-import mill.api.{CompileProblemReporter, Logger, Result, TestReporter, TaskApi, NamedTaskApi}
+import mill.api.bsp.{TaskApi, NamedTaskApi}
+import mill.api.{Logger, Result}
+import mill.api.bsp.{CompileProblemReporter, TestReporter}
 import mill.define.internal.Applicative.Applyable
 import mill.define.internal.Cacher
 import upickle.default.{ReadWriter as RW, Writer as W}

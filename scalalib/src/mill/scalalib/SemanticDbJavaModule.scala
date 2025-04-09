@@ -1,19 +1,20 @@
 package mill.scalalib
 
 import mill.api.{Result, experimental}
+import mill.api.bsp.BspBuildTarget
 import mill.define.{PathRef}
-import mill.api.SemanticDbJavaModuleApi
+import mill.api.bsp.SemanticDbJavaModuleApi
 import mill.define.ModuleRef
 import mill.util.BuildInfo
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
-import mill.scalalib.bsp.BspBuildTarget
+import mill.api.bsp.BspBuildTarget
 import mill.util.Version
 import mill.{T, Task}
 
 import scala.util.Properties
 
 @experimental
-trait SemanticDbJavaModule extends CoursierModule with mill.api.SemanticDbJavaModuleApi {
+trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
   def jvmWorker: ModuleRef[JvmWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]

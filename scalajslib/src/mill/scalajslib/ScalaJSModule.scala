@@ -9,10 +9,10 @@ import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.define.{PathRef, Command, Task}
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
-import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
+import mill.api.bsp.{ScalaBuildTarget, ScalaPlatform, ScalaJSModuleApi}
 import mill.T
 
-trait ScalaJSModule extends scalalib.ScalaModule with mill.api.ScalaJSModuleApi { outer =>
+trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =>
 
   def scalaJSVersion: T[String]
 

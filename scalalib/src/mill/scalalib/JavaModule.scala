@@ -10,12 +10,14 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import coursier.{Repository, Type}
 import mainargs.{Flag, arg}
 import mill.util.JarManifest
-import mill.api.{MillException, Result, internal}
+import mill.api.{MillException, Result, internal, Segments}
+import mill.api.bsp.{BspBuildTarget, JavaFacet, IdeaConfigFile, Scoped, ResolvedModule, EvaluatorApi}
 import mill.define.{TaskCtx, PathRef}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
-import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
+import mill.api.bsp.{BspBuildTarget, BspUri, JvmBuildTarget, JavaModuleApi, BspModuleApi}
+import mill.scalalib.bsp.BspModule
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 import os.Path
@@ -35,7 +37,7 @@ trait JavaModule
     with BspModule
     with SemanticDbJavaModule
     with AssemblyModule
-    with mill.api.JavaModuleApi { outer =>
+    with JavaModuleApi { outer =>
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
@@ -866,8 +868,8 @@ trait JavaModule
    * Keep in sync with [[compileClasspath]]
    */
   @internal
-  def bspCompileClasspath: Task[mill.api.EvaluatorApi => Seq[String]] = Task.Anon {
-    (ev: mill.api.EvaluatorApi) =>
+  def bspCompileClasspath: Task[EvaluatorApi => Seq[String]] = Task.Anon {
+    (ev: EvaluatorApi) =>
       (resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
         bspTransitiveCompileClasspath() ++
         localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))).map(_.resolve(
@@ -1255,7 +1257,7 @@ trait JavaModule
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    languageIds = Seq(mill.api.BspModuleApi.LanguageId.Java),
+    languageIds = Seq(BspModuleApi.LanguageId.Java),
     canCompile = true,
     canRun = true
   )
@@ -1287,11 +1289,11 @@ trait JavaModule
         }
     }
 
-    val compileClasspathTask: Task[mill.api.EvaluatorApi => Seq[String]] =
+    val compileClasspathTask: Task[EvaluatorApi => Seq[String]] =
       if (enableJvmCompileClasspathProvider) {
         // We have a dedicated request for it
         Task.Anon {
-          (e: mill.api.EvaluatorApi) => Seq.empty[String]
+          (e: EvaluatorApi) => Seq.empty[String]
         }
       } else {
         bspCompileClasspath
@@ -1299,11 +1301,11 @@ trait JavaModule
 
     val classesPathTask =
       if (clientWantsSemanticDb) {
-        Task.Anon((e: mill.api.EvaluatorApi) =>
+        Task.Anon((e: EvaluatorApi) =>
           bspCompiledClassesAndSemanticDbFiles().resolve(os.Path(e.outPathJava)).toNIO
         )
       } else {
-        Task.Anon((e: mill.api.EvaluatorApi) =>
+        Task.Anon((e: EvaluatorApi) =>
           bspCompileClassesPath().resolve(os.Path(e.outPathJava)).toNIO
         )
       }
@@ -1319,7 +1321,7 @@ trait JavaModule
         sem.bspCompiledClassesAndSemanticDbFiles
       case _ => bspCompileClassesPath
     }
-    Task.Anon { (ev: mill.api.EvaluatorApi) =>
+    Task.Anon { (ev: EvaluatorApi) =>
       (
         classesPathTask().resolve(os.Path(ev.outPathJava)).toNIO,
         javacOptions() ++ mandatoryJavacOptions(),
@@ -1393,10 +1395,10 @@ trait JavaModule
 
   def genIdeaMetadata(
       ideaConfigVersion: Int,
-      evaluator: mill.api.EvaluatorApi,
-      path: mill.api.Segments
+      evaluator: EvaluatorApi,
+      path: Segments
   ) = {
-    import mill.api.{JavaFacet, IdeaConfigFile, Scoped, ResolvedModule}
+
     val mod = this
     // same as input of resolvedIvyDeps
     val allIvyDeps = Task.Anon {

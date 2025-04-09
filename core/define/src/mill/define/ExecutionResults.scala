@@ -1,7 +1,7 @@
 package mill.define
 
 import mill.api.*
-import mill.api.{TaskApi, ExecutionResultsApi}
+import mill.api.bsp.{TaskApi, ExecutionResultsApi}
 
 trait ExecutionResults extends ExecutionResultsApi {
 

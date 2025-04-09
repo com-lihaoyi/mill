@@ -8,7 +8,7 @@ import mill.scalalib.{CoursierModule, Dep}
 
 import mill.api.internal
 import Mirrors.autoMirror
-import mill.api.BspServerResult
+import mill.api.bsp.BspServerResult
 
 object BSP extends ExternalModule with CoursierModule {
 

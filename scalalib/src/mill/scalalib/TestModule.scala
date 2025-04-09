@@ -3,18 +3,19 @@ package mill.scalalib
 import mill.define.{TaskCtx, PathRef}
 import mill.api.{Result}
 import mill.define.{Command, Task, TaskModule}
-import mill.api.TestReporter
-import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import mill.api.bsp.{BspBuildTarget, BspModuleApi, TestReporter}
+import mill.scalalib.bsp.BspModule
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
 import mill.T
+import mill.api.bsp.{TestModuleApi, BspBuildTarget}
 
 trait TestModule
     extends TestModule.JavaModuleBase
     with WithJvmWorker
     with RunModule
     with TaskModule
-    with mill.api.TestModuleApi {
+    with TestModuleApi {
 
   override def defaultCommandName() = "testForked"
 
@@ -246,7 +247,7 @@ trait TestModule
     val parent = super.bspBuildTarget
     parent.copy(
       canTest = true,
-      tags = Seq(mill.api.BspModuleApi.Tag.Test)
+      tags = Seq(BspModuleApi.Tag.Test)
     )
   }
 

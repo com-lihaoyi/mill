@@ -1,6 +1,5 @@
-package mill.api
+package mill.api.bsp
 
-import mill.api.TestReporter
 import sbt.testing.Event
 
 /**
@@ -47,13 +46,13 @@ object TestReporter {
     override def logStart(event: Event): Unit = {}
     override def logFinish(event: Event): Unit = {}
   }
+  /**
+   * Dummy Test Reporter that doesn't report
+   * anything for any testing event.
+   */
+  object DummyTestReporter extends TestReporter {
+    override def logStart(event: Event): Unit = {}
+    override def logFinish(event: Event): Unit = {}
+  }
 }
 
-/**
- * Dummy Test Reporter that doesn't report
- * anything for any testing event.
- */
-object DummyTestReporter extends TestReporter {
-  override def logStart(event: Event): Unit = {}
-  override def logFinish(event: Event): Unit = {}
-}

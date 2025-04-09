@@ -1,5 +1,5 @@
 package mill.define
-import mill.api.BaseModuleApi
+import mill.api.bsp.BaseModuleApi
 
 /**
  * Represents a module at the root of a module tree. This can either be a

@@ -3,7 +3,7 @@ package mill.define
 import mill.api.internal
 import mill.define.Discover
 import mill.define.internal.Watchable
-import mill.api.RootModuleApi
+import mill.api.bsp.RootModuleApi
 
 import scala.annotation.compileTimeOnly
 import scala.collection.mutable

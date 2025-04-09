@@ -1,6 +1,7 @@
 package mill.define
 
 import mill.api
+import mill.api.bsp.ModuleApi
 import mill.api.internal
 import mill.define.internal.{OverrideMapping, Reflect}
 
@@ -15,7 +16,7 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-trait Module extends Module.BaseClass with Ctx.Wrapper with mill.api.ModuleApi {
+trait Module extends Module.BaseClass with Ctx.Wrapper with ModuleApi {
   implicit def moduleNestedCtx: Ctx.Nested = moduleCtx
     .withMillSourcePath(moduleDir)
     .withSegments(moduleSegments)

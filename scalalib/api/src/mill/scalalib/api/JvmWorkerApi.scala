@@ -1,6 +1,6 @@
 package mill.scalalib.api
 
-import mill.api.CompileProblemReporter
+import mill.api.bsp.CompileProblemReporter
 import mill.define.PathRef
 
 object JvmWorkerApi {

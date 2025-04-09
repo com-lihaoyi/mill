@@ -1,6 +1,7 @@
 package mill.eval
 
 import mill.api.{ExecResult, Result, Val}
+import mill.api.bsp.TestReporter
 import mill.constants.OutFiles
 import mill.define.{Evaluator, InputImpl, NamedTask, SelectMode, Task, SelectiveExecution}
 import mill.define.SelectiveExecution.ChangedTasks
@@ -197,7 +198,7 @@ object SelectiveExecutionImpl {
             log = evaluator.baseLogger,
             env = evaluator.env,
             reporter = _ => None,
-            testReporter = mill.api.DummyTestReporter,
+            testReporter = TestReporter.DummyTestReporter,
             workspace = evaluator.workspace,
             systemExit = n => ???,
             fork = null,

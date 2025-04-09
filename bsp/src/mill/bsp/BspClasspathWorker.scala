@@ -1,7 +1,7 @@
 package mill.bsp
 
 import mill.api.{Logger, SystemStreams, Result}
-
+import mill.api.bsp.BspServerHandle
 import java.io.PrintStream
 import java.net.URL
 import scala.util.boundary
@@ -13,7 +13,7 @@ private trait BspClasspathWorker {
       logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
-  ): Result[mill.api.BspServerHandle]
+  ): Result[BspServerHandle]
 }
 
 object BspClasspathWorker {

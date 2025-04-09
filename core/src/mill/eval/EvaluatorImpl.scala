@@ -1,6 +1,7 @@
 package mill.eval
 
 import mill.api.*
+import mill.api.bsp.{ExecutionResultsApi, TestReporter, CompileProblemReporter}
 import mill.define.PathRef
 import mill.constants.OutFiles
 import mill.define.*
@@ -133,7 +134,7 @@ final class EvaluatorImpl private[mill] (
   def execute[T](
       targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false

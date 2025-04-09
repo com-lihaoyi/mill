@@ -1,6 +1,5 @@
-package mill.api
+package mill.api.bsp
 
-import mill.api.{DiagnosticCode, Problem, ProblemPosition, Severity}
 
 import java.io.File
 

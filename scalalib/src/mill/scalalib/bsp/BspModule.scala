@@ -3,9 +3,12 @@ package mill.scalalib.bsp
 import mill.api.internal
 import mill.define.Task
 import mill._
+import mill.api.bsp.BspModuleApi._
+import mill.api.bsp.BspBuildTarget
 
-trait BspModule extends mill.define.Module with mill.api.BspModuleApi {
-  import mill.api.BspModuleApi._
+
+trait BspModule extends mill.define.Module with mill.api.bsp.BspModuleApi {
+  
 
   def bspDisplayName0: String = this.moduleSegments.render
 

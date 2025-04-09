@@ -10,8 +10,9 @@ import mill.util.Jvm.createJar
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
 import mainargs.Flag
 import mill.define.{Task, PathRef}
-import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
+import mill.api.bsp.{BspBuildTarget, ScalaBuildTarget, ScalaPlatform, ScalaModuleApi, BspModuleApi}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
+import mill.scalalib.bsp.BspModule
 
 // this import requires scala-reflect library to be on the classpath
 // it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?
@@ -23,7 +24,7 @@ import scala.util.Using
  * Core configuration required to compile a single Scala compilation target
  */
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
-    with mill.api.ScalaModuleApi { outer =>
+    with ScalaModuleApi { outer =>
 
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
@@ -583,8 +584,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     languageIds = Seq(
-      mill.api.BspModuleApi.LanguageId.Java,
-      mill.api.BspModuleApi.LanguageId.Scala
+      BspModuleApi.LanguageId.Java,
+      BspModuleApi.LanguageId.Scala
     ),
     canCompile = true,
     canRun = true

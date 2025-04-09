@@ -1,6 +1,6 @@
 package mill.testrunner
 
-import mill.api.TestReporter
+import mill.api.bsp.TestReporter
 import mill.api.internal
 import os.Path
 import sbt.testing._

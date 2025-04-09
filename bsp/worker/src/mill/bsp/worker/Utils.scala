@@ -10,9 +10,8 @@ import ch.epfl.scala.bsp4j.{
   StatusCode,
   TaskId
 }
-import mill.api.CompileProblemReporter
 import mill.api.ExecResult.{Skipped, Success}
-import mill.api.{TaskApi, JavaModuleApi, BspBuildTarget, BspModuleApi, ExecutionResultsApi}
+import mill.api.bsp.{TaskApi, JavaModuleApi, BspBuildTarget, BspModuleApi, ExecutionResultsApi, CompileProblemReporter}
 
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps

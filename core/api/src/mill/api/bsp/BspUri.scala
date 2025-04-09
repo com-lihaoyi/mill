@@ -1,6 +1,5 @@
-package mill.api
+package mill.api.bsp
 
-import mill.api.BspUri
 
 case class BspUri(uri: String)
 
