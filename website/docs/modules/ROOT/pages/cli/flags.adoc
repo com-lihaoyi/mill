@@ -28,7 +28,7 @@ To see a cheat sheet of all the command line flags that Mill supports, you can u
 [source]
 ----
 $ ./mill --help
-Mill Build Tool, version 0.12.5-13-0e02e6
+Mill Build Tool, version 0.13.0-M1
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:
@@ -65,8 +65,6 @@ options:
   -d --debug           Show debug output on STDOUT
   --disable-callgraph  Disables fine-grained invalidation of tasks based on analyzing code changes.
                        If passed, you need to manually run `clean` yourself after build changes.
-  --disable-prompt     Disables the new multi-line status prompt used for showing thread status at
-                       the command line and falls back to the legacy ticker
   --help               Print this help message and exit.
   -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
                        input. This implies --no-server. Must be the first argument.
@@ -112,7 +110,7 @@ You can use the `--watch` flag to make Mill watch a task's inputs,
 re-evaluating the task as necessary when the inputs
 change:
 
-[source,bash]
+[source,shell]
 ----
 > mill --watch foo.compile
 > mill --watch foo.run
@@ -127,7 +125,7 @@ your `build.mill` will automatically get picked up.
 For long-running processes like web servers, you can use `runBackground` to make sure they recompile and restart when code changes,
 forcefully terminating the previous process even though it may be still alive:
 
-[source,bash]
+[source,shell]
 ----
 > mill -w foo.runBackground
 ----
@@ -140,7 +138,7 @@ Defaults to the number of cores available on your system.
 
 Example: Use up to 4 parallel threads to compile all modules:
 
-[source,bash]
+[source,shell]
 ----
 mill -j4 __.compile
 ----

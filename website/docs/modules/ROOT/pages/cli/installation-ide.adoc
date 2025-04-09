@@ -17,7 +17,7 @@ globally.
 The Mill example projects in this documentation come with `./mill` and `./mill.bat`
 bootstrap script, included. You can also download the boostrap script manually:
 
-[source,bash,subs="verbatim,attributes"]
+[source,shell,subs="verbatim,attributes"]
 ----
 # Mac/Linux
 curl -L {mill-download-url}/mill -o mill
@@ -41,7 +41,7 @@ Downloading a `mill` bootstrap script to the root of your project repository hel
 new contributors to build your project, as they don't have to install Mill before they can start.
 Anyone who wants to work with the project can simply use the `./mill` script directly.
 
-[source,bash]
+[source,shell]
 ----
 ./mill --version
 ./mill __.compile # double underscore
@@ -69,7 +69,7 @@ order to run, and imposes some Java startup overhead (100-200ms) when running Mi
 command line. You can also use Mill's native executables by appending a `-native` suffix to the
 Mill version:
 
-[source,bash,subs="verbatim,attributes"]
+[source,shell,subs="verbatim,attributes"]
 ----
 echo {version}-native > .mill-version
 ----
@@ -96,7 +96,7 @@ JVM launcher instead.
 Mill allows you to specify the exact JVM version you want to use to run the build tool
 via a  `.mill-jvm-version` file such as:
 
-[source,bash]
+[source,shell]
 ----
 echo temurin:17.0.6 > .mill-jvm-version
 ----
@@ -104,15 +104,16 @@ echo temurin:17.0.6 > .mill-jvm-version
 This has two benefits
 
 * `.mill-jvm-version` can also be used with Mill's default JVM launcher if you want
-your Mill process to use a different JVM than what you have installed globally. This
+your Mill process to use a different JVM than what you have installed globally.This
 can help ensure your project uses a consistent JVM version and behaves identically regardless
 of what the developer may have installed on their laptop or dev environment
 
 * `.mill-jvm-version` can be used together with <<Mill Native Executable>>s to build your
-project without needing a JVM pre-installed at all. This simplifies project setup and
+project without needing a JVM pre-installed at all.This simplifies project setup and
 onboarding of new developers.
 
 
+[#_ide_support]
 == IDE Support
 :link-metals: https://scalameta.org/metals/
 
@@ -137,8 +138,6 @@ choice which build system configuration to use for the import, which case select
 
 image::basic/IntellijSelectBsp.png[]
 
-
-
 This will provide support both for your application code,
 as well as the code in the `build.mill`:
 
@@ -159,7 +158,7 @@ image::basic/IntellijRefresh.png[]
 To prepare your project for IDEs, and in general any BSP client, you can also
 run this command to generate the BSP configuration files:
 
-[source,bash]
+[source,shell]
 ----
 ./mill mill.bsp.BSP/install
 ----
@@ -173,7 +172,7 @@ which are currently not specifically configured over BSP.
 
 To generate IntelliJ IDEA project files into `.idea/`, run:
 
-[source,bash]
+[source,shell]
 ----
 ./mill mill.idea.GenIdea/
 ----
@@ -246,14 +245,14 @@ the `./mill` bootstrap script will use the `DEFAULT_MILL_VERSION` it has built i
 To choose a different Mill version on an ad-hoc basis, e.g. for experimentation, you can pass
 in a `MILL_VERSION` environment variable, e.g.
 
-[source,bash]
+[source,shell]
 ----
 MILL_VERSION=0.5.0-3-4faefb mill __.compile
 ----
 
 or
 
-[source,bash]
+[source,shell]
 ----
 MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
 ----
@@ -287,14 +286,13 @@ To resolve this, you can set an environment variable COURSIER_REPOSITORIES (see 
 to point at your own server that mirrors the Maven Central artifacts.
 The below command should pass the environment variable to the `mill` command.
 
-[source]
+[source,shell]
 ----
 COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _
 ----
 
 If you are using bootstrap script, a more permanent solution could be to set the environment variable
 at the top of the bootstrap script, or as a user environment variable.
-
 
 
 == Automatic Mill updates
@@ -349,7 +347,7 @@ a xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script] instead.
 
 Installation via https://github.com/Homebrew/homebrew-core/blob/master/Formula/m/mill.rb[homebrew]:
 
-[source,sh]
+[source,shell]
 ----
 brew install mill
 ----
@@ -359,7 +357,7 @@ brew install mill
 
 Arch Linux has an https://archlinux.org/packages/extra/any/mill/[Extra package for mill]:
 
-[source,bash]
+[source,shell]
 ----
 pacman -S mill
 ----
@@ -368,7 +366,7 @@ pacman -S mill
 
 Installation via http://man.freebsd.org/pkg/8[pkg(8)]:
 
-[source,sh]
+[source,shell]
 ----
 pkg install mill
 
@@ -376,7 +374,7 @@ pkg install mill
 
 === Gentoo Linux
 
-[source,sh]
+[source,shell]
 ----
 emerge dev-java/mill-bin
 ----
@@ -388,7 +386,7 @@ To get started, download Mill from
 
 If you're using https://scoop.sh[Scoop] you can install Mill via
 
-[source,bash]
+[source,shell]
 ----
 scoop install mill
 ----
@@ -406,7 +404,7 @@ section. Note that:
 
 * On Cygwin, run the following after downloading mill:
 
-[source,bash]
+[source,shell]
 ----
 sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
 ----
@@ -416,18 +414,19 @@ sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp 
 You can download and run
 a https://hub.docker.com/r/nightscape/scala-mill/["Docker image containing OpenJDK, Scala and Mill"] using
 
-[source,bash]
+[source,shell]
 ----
 docker pull nightscape/scala-mill
 docker run -it nightscape/scala-mill
 ----
 
+[#_manual]
 === Manual
 
 To get started, download Mill and install it into your HOME ".local/bin" via the following
 `curl`/`chmod` command:
 
-[source,bash,subs="verbatim,attributes"]
+[source,shell,subs="verbatim,attributes"]
 ----
 sh -c "curl -L {mill-github-url}/releases/download/{version}/{version} > ~/.local/bin/mill && chmod +x ~/.local/bin/mill"
 ----
@@ -444,7 +443,7 @@ You can install and manage Mill via the Multiple Runtime Version Manager - https
 Support by `asdf` is currently possible by using the https://github.com/asdf-community/asdf-mill[`asdf-mill` plugin]:
 
 .Steps to install the `mill` plugin and Mill with `asdf`
-[source,bash]
+[source,shell]
 ----
 asdf plugin add mill
 asdf install mill latest

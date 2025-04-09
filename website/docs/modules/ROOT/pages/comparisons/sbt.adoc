@@ -2,7 +2,6 @@
 :page-aliases: Case_Study_Mill_vs_sbt.adoc, Case_Study_Mill_vs_SBT.adoc
 
 
-
 Compared to `sbt`,
 
 * **Mill makes customizing the build yourself much easier**: most of what build tools
@@ -95,7 +94,7 @@ since Mill doesn't bundle them and instead expects them to be invoked separately
 
 === Parallel Clean Compile All
 
-[source,bash]
+[source,shell]
 ----
 $ sbt clean; time sbt test:compile
 34.28s
@@ -122,7 +121,7 @@ comparison for sequential execution times.
 
 === Clean Compile Single-Module
 
-[source,bash]
+[source,shell]
 ----
 > sbt clean; time sbt gatling-commons/compile
 10.1
@@ -146,7 +145,7 @@ and all the downstream submodules.
 
 === Incremental Compile Single-Module
 
-[source,bash]
+[source,shell]
 ----
 $ echo "" >> gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
 $ time sbt gatling-commons/compile
@@ -178,7 +177,7 @@ a fraction of a second, while Cold `sbt` has substantial overhead.
 
 === No-Op Compile Single-Module
 
-[source,bash]
+[source,shell]
 ----
 $ time sbt gatling-commons/compile
 4.2s
