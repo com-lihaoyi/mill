@@ -4,7 +4,8 @@ import java.io.File
 import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
 import mill.define.TaskCtx
-import mill.api.{Result, internal}
+import mill.api.Result
+import mill.api.internal.internal
 import mill.define.{Discover, Worker}
 import mill.util.CachedFactory
 import mill.{PathRef, Task}

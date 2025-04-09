@@ -1,9 +1,11 @@
 package mill.define
 
+import mill.api.internal.internal
+
 import scala.quoted.*
 import scala.deriving.Mirror
 
-@mill.api.internal
+@internal
 object Mirrors {
 
   /** A store for one or more mirrors, with Root type `R`. */

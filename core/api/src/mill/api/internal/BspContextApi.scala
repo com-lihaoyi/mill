@@ -1,4 +1,4 @@
-package mill.api.bsp
+package mill.api.internal
 
 
 private[mill] object BspContextApi {

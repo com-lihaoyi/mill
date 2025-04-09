@@ -4,7 +4,7 @@ import mill.given
 import mill.Task
 import mill.api.Result
 import mill.define.{Command, Discover, Evaluator, ExternalModule}
-import mill.api.bsp.EvaluatorApi
+import mill.api.internal.EvaluatorApi
 
 object GenIdea extends ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "idea"

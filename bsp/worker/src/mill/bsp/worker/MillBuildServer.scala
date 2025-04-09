@@ -3,7 +3,7 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
-import mill.api.bsp.{JvmBuildTarget, ScalaBuildTarget, *}
+import mill.api.internal.{JvmBuildTarget, ScalaBuildTarget, *}
 import mill.api.*
 import mill.bsp.{Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}

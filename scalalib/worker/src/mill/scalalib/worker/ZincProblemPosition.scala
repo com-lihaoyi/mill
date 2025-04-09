@@ -3,7 +3,8 @@ package mill.scalalib.worker
 import java.io.File
 import java.util.Optional
 import mill.api._
-import mill.api.bsp._
+import mill.api.internal._
+import mill.api.internal.internal
 
 import scala.jdk.OptionConverters.RichOptional
 

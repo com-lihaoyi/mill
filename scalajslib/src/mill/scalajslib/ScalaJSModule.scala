@@ -2,14 +2,14 @@ package mill
 package scalajslib
 
 import mainargs.{Flag, arg}
-import mill.api.{Result, internal}
+import mill.api.Result
 import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.define.{PathRef, Command, Task}
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
-import mill.api.bsp.{ScalaBuildTarget, ScalaPlatform, ScalaJSModuleApi}
+import mill.api.internal.{ScalaBuildTarget, ScalaJSModuleApi, ScalaPlatform, internal}
 import mill.T
 
 trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =>

@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.*
-import mill.api.bsp.{ExecutionResultsApi, TestReporter, CompileProblemReporter}
+import mill.api.internal.{ExecutionResultsApi, TestReporter, CompileProblemReporter}
 import mill.define.PathRef
 import mill.constants.OutFiles
 import mill.define.*

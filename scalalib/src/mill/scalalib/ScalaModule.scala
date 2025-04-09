@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import mill.util.JarManifest
-import mill.api.{DummyInputStream, Result, internal}
+import mill.api.{DummyInputStream, Result}
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
@@ -10,7 +10,7 @@ import mill.util.Jvm.createJar
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
 import mainargs.Flag
 import mill.define.{Task, PathRef}
-import mill.api.bsp.{BspBuildTarget, ScalaBuildTarget, ScalaPlatform, ScalaModuleApi, BspModuleApi}
+import mill.api.internal.{BspBuildTarget, BspModuleApi, ScalaBuildTarget, ScalaModuleApi, ScalaPlatform, internal}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 import mill.scalalib.bsp.BspModule
 

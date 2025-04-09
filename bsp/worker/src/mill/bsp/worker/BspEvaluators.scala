@@ -1,7 +1,7 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
-import mill.api.bsp.{BaseModuleApi, BspModuleApi, EvaluatorApi, ModuleApi}
+import mill.api.internal.{BaseModuleApi, BspModuleApi, EvaluatorApi, ModuleApi}
 
 private class BspEvaluators(
     workspaceDir: os.Path,

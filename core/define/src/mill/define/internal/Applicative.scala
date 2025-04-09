@@ -1,7 +1,6 @@
 package mill.define.internal
 
-import mill.api.internal
-
+import mill.api.internal.internal
 import scala.annotation.compileTimeOnly
 
 import scala.quoted.*

@@ -3,12 +3,12 @@ package mill.scalalib
 import mill.define.{TaskCtx, PathRef}
 import mill.api.{Result}
 import mill.define.{Command, Task, TaskModule}
-import mill.api.bsp.{BspBuildTarget, BspModuleApi, TestReporter}
+import mill.api.internal.{BspBuildTarget, BspModuleApi, TestReporter}
 import mill.scalalib.bsp.BspModule
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
 import mill.T
-import mill.api.bsp.{TestModuleApi, BspBuildTarget}
+import mill.api.internal.{TestModuleApi, BspBuildTarget}
 
 trait TestModule
     extends TestModule.JavaModuleBase

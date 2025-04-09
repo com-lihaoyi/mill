@@ -1,7 +1,7 @@
 package mill.bsp
 
 import mill.api.{Logger, SystemStreams, Result}
-import mill.api.bsp.BspServerHandle
+import mill.api.internal.BspServerHandle
 import java.io.PrintStream
 import java.net.URL
 import scala.util.boundary

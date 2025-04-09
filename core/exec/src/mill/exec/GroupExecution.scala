@@ -12,7 +12,7 @@ import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 import mill.api.{SystemStreams => _, _}
-import mill.api.bsp.{EvaluatorApi, BaseModuleApi, CompileProblemReporter, TestReporter}
+import mill.api.internal.{EvaluatorApi, BaseModuleApi, CompileProblemReporter, TestReporter}
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s

@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.define.Mirrors
 import upickle.default.{ReadWriter => RW}
 import mill.define.Mirrors.autoMirror
-import mill.api.bsp.TestReporter
+import mill.api.internal.TestReporter
 
 trait JsonFormatters {
   import JsonFormatters.mirrors.given

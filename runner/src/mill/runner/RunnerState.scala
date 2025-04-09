@@ -1,7 +1,7 @@
 package mill.runner
 
-import mill.api.{Val, internal}
-import mill.api.bsp.{RootModuleApi, EvaluatorApi}
+import mill.api.Val
+import mill.api.internal.{EvaluatorApi, RootModuleApi, internal}
 import mill.define.{PathRef, Segments}
 import mill.define.internal.Watchable
 import upickle.default.{ReadWriter, macroRW}

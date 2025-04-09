@@ -10,13 +10,13 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import coursier.{Repository, Type}
 import mainargs.{Flag, arg}
 import mill.util.JarManifest
-import mill.api.{MillException, Result, internal, Segments}
-import mill.api.bsp.{BspBuildTarget, JavaFacet, IdeaConfigFile, Scoped, ResolvedModule, EvaluatorApi}
+import mill.api.{MillException, Result, Segments}
+import mill.api.internal.{BspBuildTarget, EvaluatorApi, IdeaConfigFile, JavaFacet, ResolvedModule, Scoped, internal}
 import mill.define.{TaskCtx, PathRef}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
-import mill.api.bsp.{BspBuildTarget, BspUri, JvmBuildTarget, JavaModuleApi, BspModuleApi}
+import mill.api.internal.{BspBuildTarget, BspUri, JvmBuildTarget, JavaModuleApi, BspModuleApi}
 import mill.scalalib.bsp.BspModule
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm

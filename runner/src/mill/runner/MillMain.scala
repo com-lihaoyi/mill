@@ -8,11 +8,11 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.bsp.BspServerResult
-import mill.api.{DummyInputStream, Logger, MillException, Result, SystemStreams,internal}
+import mill.api.internal.{BspServerResult, internal}
+import mill.api.{DummyInputStream, Logger, MillException, Result, SystemStreams}
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
-import mill.define.{WorkspaceRoot}
+import mill.define.WorkspaceRoot
 import mill.util.BuildInfo
 import mill.runner.meta.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}

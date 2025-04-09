@@ -1,8 +1,7 @@
 package mill.define
 
 import mill.api
-import mill.api.bsp.ModuleApi
-import mill.api.internal
+import mill.api.internal.{ModuleApi, internal}
 import mill.define.internal.{OverrideMapping, Reflect}
 
 import scala.reflect.ClassTag

@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.{ExecResult, Result, Val}
-import mill.api.bsp.TestReporter
+import mill.api.internal.TestReporter
 import mill.constants.OutFiles
 import mill.define.{Evaluator, InputImpl, NamedTask, SelectMode, Task, SelectiveExecution}
 import mill.define.SelectiveExecution.ChangedTasks

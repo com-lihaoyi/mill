@@ -1268,9 +1268,9 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 _Changes since {prev-version}:_
 
 * Introduced automatic `PathRef` validation for cached targets; default-enabled it for `CoursierModule.resolveDeps` and various `resolvedIvyDeps` targets
-* `bsp`: Update Protocol version to 2.1.0-M4
-* `bsp`: Support new `mainClasses` field in run and test environments
-* `bsp`: Fixed handling of Mill plugins and other improvements
+* `internal`: Update Protocol version to 2.1.0-M4
+* `internal`: Support new `mainClasses` field in run and test environments
+* `internal`: Fixed handling of Mill plugins and other improvements
 * `scalanativelib`: new `nativeDump` setting in `ScalaNativeModule`
 * `contrib.twirllib`: Use newer scala-parser-combinators version when used with Scala 3
 * `contrib.scalapblib`: Added new flag to search for proto files in dependencies
@@ -1343,7 +1343,7 @@ _Changes since {prev-version}:_
 * `scalajslib`: Fetch more tooling dependencies in `prepareOffline`
 * `scalanativelib`: Fetch more tooling dependencies in `prepareOffline`
 * `scalanativelib`: Updated tools to version 0.4.10
-* `bsp`: Improved support for the `mill-build` module which should improve the editing experience for `build.sc` and other build files
+* `internal`: Improved support for the `mill-build` module which should improve the editing experience for `build.sc` and other build files
 * Cleanups and internal improvements
 * Updated dependencies: Ammonite 3.0.0-M0-1, junixsocket 2.6.2, semanticdb-java 0.8.13, upickle 3.0.0-M2
 

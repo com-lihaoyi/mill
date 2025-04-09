@@ -1,7 +1,6 @@
 package mill.testrunner
 
-import mill.api.internal
-import mill.api.bsp.TestReporter
+import mill.api.internal.{TestReporter, internal}
 
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {

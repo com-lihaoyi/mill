@@ -1,4 +1,4 @@
-package mill.api.bsp
+package mill.api.internal
 
 
 abstract class ScalaPlatform(val number: Int)

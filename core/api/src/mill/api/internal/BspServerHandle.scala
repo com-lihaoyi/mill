@@ -1,4 +1,4 @@
-package mill.api.bsp
+package mill.api.internal
 
 
 /** With this server handle you can interact with a running Mill BSP server. */

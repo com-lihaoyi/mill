@@ -5,10 +5,8 @@ import mill.{T, Task, given}
 import mill.define.{Command, Discover, Evaluator, ExternalModule, Mirrors}
 import mill.util.BuildInfo
 import mill.scalalib.{CoursierModule, Dep}
-
-import mill.api.internal
 import Mirrors.autoMirror
-import mill.api.bsp.BspServerResult
+import mill.api.internal.{BspServerResult, internal}
 
 object BSP extends ExternalModule with CoursierModule {
 

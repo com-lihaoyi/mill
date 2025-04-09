@@ -1,5 +1,6 @@
 package mill.runner.meta
-import mill.api.internal
+
+import mill.api.internal.internal
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.*
 import mill.runner.worker.api.{ImportTree, MillScalaParser}

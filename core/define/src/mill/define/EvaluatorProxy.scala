@@ -1,7 +1,7 @@
 package mill.define
 
 import mill.api.*
-import mill.api.bsp.*
+import mill.api.internal.*
 import mill.define.*
 import mill.api.*
 final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {

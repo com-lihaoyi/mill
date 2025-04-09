@@ -3,7 +3,7 @@ package mill.exec
 import mill.api.ExecResult.Aborted
 
 import mill.api._
-import mill.api.bsp._
+import mill.api.internal._
 import mill.define._
 import mill.internal.PrefixLogger
 import mill.define.MultiBiMap
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
-import mill.api.bsp.{BaseModuleApi, EvaluatorApi}
+import mill.api.internal.{BaseModuleApi, EvaluatorApi}
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 /**

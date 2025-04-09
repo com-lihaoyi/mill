@@ -1,6 +1,6 @@
 package mill.testrunner
 
-import mill.api.internal
+import mill.api.internal.internal
 import os.Path
 
 @internal object GetTestTasksMain {

@@ -6,11 +6,11 @@
 package mill
 package kotlinlib
 
-import mill.api.{Result, internal}
+import mill.api.Result
 import mill.define.{PathRef, Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, JvmWorkerApi}
-import mill.api.bsp.{BspBuildTarget, BspModuleApi, CompileProblemReporter}
+import mill.api.internal.{BspBuildTarget, BspModuleApi, CompileProblemReporter, internal}
 import mill.scalalib.{JavaModule, Lib, JvmWorkerModule}
 import mill.util.Jvm
 import mill.T

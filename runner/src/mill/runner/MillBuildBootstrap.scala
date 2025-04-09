@@ -4,9 +4,9 @@ import mill.internal.PrefixLogger
 import mill.define.internal.Watchable
 import mill.define.{RootModule0, PathRef, WorkspaceRoot}
 import mill.util.BuildInfo
-import mill.api.bsp.{RootModuleApi, EvaluatorApi}
+import mill.api.internal.{EvaluatorApi, RootModuleApi, internal}
 import mill.constants.CodeGenConstants.*
-import mill.api.{Logger, Result, SystemStreams, Val, internal}
+import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser

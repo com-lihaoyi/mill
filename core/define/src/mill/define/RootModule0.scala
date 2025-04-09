@@ -1,9 +1,8 @@
 package mill.define
 
-import mill.api.internal
 import mill.define.Discover
 import mill.define.internal.Watchable
-import mill.api.bsp.RootModuleApi
+import mill.api.internal.{RootModuleApi, internal}
 
 import scala.annotation.compileTimeOnly
 import scala.collection.mutable

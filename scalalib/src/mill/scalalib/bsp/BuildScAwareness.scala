@@ -1,10 +1,11 @@
 package mill.scalalib.bsp
 
+import mill.api.internal.internal
 import upickle.default.{ReadWriter, macroRW}
 
 import scala.collection.mutable
 import mill.define.JsonFormatters.pathReadWrite
-import mill.api.{experimental, internal}
+import mill.api.experimental
 
 @internal
 @experimental

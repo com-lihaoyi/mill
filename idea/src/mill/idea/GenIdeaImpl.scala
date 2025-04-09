@@ -8,7 +8,7 @@ import coursier.maven.Pom
 import mill.define.TaskCtx
 import mill.define.PathRef
 import mill.define.{Evaluator, TaskCtx as _, *}
-import mill.api.bsp.{
+import mill.api.internal.{
   BaseModuleApi,
   EvaluatorApi,
   ExecutionResultsApi,
@@ -25,7 +25,7 @@ import mill.util.BuildInfo
 
 import collection.mutable
 import java.net.URL
-import mill.api.bsp._
+import mill.api.internal._
 class GenIdeaImpl(
     private val evaluators: Seq[EvaluatorApi]
 )(implicit ctx: TaskCtx) {

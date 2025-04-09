@@ -1,4 +1,4 @@
-package mill.api
+package mill.api.internal
 
 import scala.annotation.StaticAnnotation
 
