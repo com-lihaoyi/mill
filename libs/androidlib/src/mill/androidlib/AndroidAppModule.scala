@@ -819,7 +819,7 @@ trait AndroidAppModule extends AndroidModule {
 
     val r8ArgsBuilder = Seq.newBuilder[String]
 
-    r8ArgsBuilder += androidSdkModule().r8Path().path.toString
+    r8ArgsBuilder += androidSdkModule().r8Exe().path.toString
 
     if (androidIsDebug())
       r8ArgsBuilder += "--debug"

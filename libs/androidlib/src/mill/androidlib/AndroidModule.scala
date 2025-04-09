@@ -752,12 +752,10 @@ trait AndroidModule extends JavaModule {
     )
   }
 
-  // Additional library classes (if any) that should be treated as provided
+  /** Additional library classes (if any) that should be treated as provided */
   def libraryClassesPaths: T[Seq[PathRef]] = T {
     Seq(
       androidSdkModule().androidJarPath(),
-      androidSdkModule().r8LibPath(),
-      androidSdkModule().r8LibClasspath(),
       androidSdkModule().androidCoreModulesPath(),
       androidSdkModule().androidOptionalApacheHttpLegacy(),
       androidSdkModule().androidOptionalCar(),
@@ -771,25 +769,31 @@ trait AndroidModule extends JavaModule {
     true
   }
 
-  // Specifies the path to the main-dex rules file, which contains ProGuard rules
-  // for determining which classes should be included in the primary DEX file.
+  /**
+   * Specifies the path to the main-dex rules file, which contains ProGuard rules
+   * for determining which classes should be included in the primary DEX file.
+   */
   def mainDexRules: T[Option[PathRef]] = T {
     Some(PathRef(androidResources()._1.path / "main-dex-rules.pro"))
   }
 
-  // Returns the path to the main-dex list file, which explicitly lists the classes
-  // to be included in the primary DEX file. Currently, this is not defined.
+  /**
+   * Returns the path to the main-dex list file, which explicitly lists the classes
+   * to be included in the primary DEX file. Currently, this is not defined.
+   */
   def mainDexList: T[Option[PathRef]] = T {
     None
   }
 
-  // Provides the output path for the generated main-dex list file, which is used
-  // during the DEX generation process.
+  /**
+   *  Provides the output path for the generated main-dex list file, which is used
+   *  during the DEX generation process.
+   */
   def mainDexListOutput: T[Option[PathRef]] = T {
     Some(androidModuleGeneratedSourcesFunc().mainDexListOutput)
   }
 
-  // Optional baseline profile for ART rewriting
+  /** Optional baseline profile for ART rewriting */
   def baselineProfile: T[Option[PathRef]] = T {
     None
   }

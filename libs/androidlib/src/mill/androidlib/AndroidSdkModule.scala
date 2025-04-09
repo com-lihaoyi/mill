@@ -225,16 +225,8 @@ trait AndroidSdkModule extends Module {
    *
    * @return A task containing a [[PathRef]] pointing to the r8 directory.
    */
-  def r8Path: T[PathRef] = Task {
+  def r8Exe: T[PathRef] = Task {
     PathRef(sdkPath().path / "cmdline-tools/latest/bin/r8")
-  }
-
-  def r8LibPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "cmdline-tools/latest/lib/r8.jar")
-  }
-
-  def r8LibClasspath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "cmdline-tools/latest/lib/r8-classpath.jar")
   }
 
   /**
