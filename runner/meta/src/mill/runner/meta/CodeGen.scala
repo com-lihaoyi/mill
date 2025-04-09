@@ -150,7 +150,7 @@ object CodeGen {
 
     val prelude =
       s"""import MillMiscInfo._
-         |import _root_.mill.util.TokenReaders.given, _root_.mill.api.JsonFormatters.given
+         |import _root_.mill.util.TokenReaders.given, _root_.mill.define.JsonFormatters.given
          |""".stripMargin
 
     val miscInfo =

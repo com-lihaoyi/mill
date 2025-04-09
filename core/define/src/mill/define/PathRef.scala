@@ -1,5 +1,6 @@
-package mill.api
+package mill.define
 
+import mill.api.DummyOutputStream
 import upickle.default.ReadWriter as RW
 
 import java.nio.file as jnio

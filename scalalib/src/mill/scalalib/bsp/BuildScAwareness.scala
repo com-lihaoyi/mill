@@ -3,7 +3,7 @@ package mill.scalalib.bsp
 import upickle.default.{ReadWriter, macroRW}
 
 import scala.collection.mutable
-import mill.api.JsonFormatters.pathReadWrite
+import mill.define.JsonFormatters.pathReadWrite
 import mill.api.{experimental, internal}
 
 @internal

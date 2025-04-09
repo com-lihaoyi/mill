@@ -1,7 +1,7 @@
 import $meta._
 
 import mill._
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.runner.api.{JavaFacet, IdeaConfigFile, Element}
 import mill.scalalib.TestModule
 

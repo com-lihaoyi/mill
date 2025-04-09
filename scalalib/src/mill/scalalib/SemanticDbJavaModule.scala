@@ -1,6 +1,7 @@
 package mill.scalalib
 
-import mill.api.{PathRef, Result, experimental}
+import mill.api.{Result, experimental}
+import mill.define.{PathRef}
 import mill.runner.api.SemanticDbJavaModuleApi
 import mill.define.ModuleRef
 import mill.util.BuildInfo
@@ -167,7 +168,7 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
 object SemanticDbJavaModule {
 
   def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(implicit
-      ctx: mill.api.Ctx
+      ctx: mill.define.TaskCtx
   ): Seq[String] = {
     // these are only needed for Java 17+
     val extracJavacExports =

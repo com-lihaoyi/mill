@@ -1,6 +1,6 @@
 package mill.scalalib.dependency
 
-import mill.api.Ctx.Log
+import mill.define.TaskCtx.Log
 import mill.define.*
 import mill.scalalib.dependency.updates.{
   DependencyUpdates,

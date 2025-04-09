@@ -1,6 +1,7 @@
 package mill.scalalib
 
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.{TaskCtx, PathRef}
+import mill.api.{Result}
 import mill.constants.EnvVars
 import mill.runner.api.TestReporter
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
@@ -35,7 +36,7 @@ private final class TestModuleUtil(
     javaHome: Option[os.Path],
     testParallelism: Boolean,
     testLogLevel: TestReporter.LogLevel
-)(implicit ctx: mill.api.Ctx) {
+)(implicit ctx: mill.define.TaskCtx) {
 
   private val (jvmArgs, props: Map[String, String]) =
     TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
@@ -127,7 +128,7 @@ private final class TestModuleUtil(
       // - Right((startingTestClass, testClassQueueFolder, claimFolder)):
       //     - first test class to run, folder containing test classes for test runner to claim from, and the worker's base folder.
       selector: Either[Seq[String], (Option[String], os.Path, os.Path)]
-  )(implicit ctx: mill.api.Ctx) = {
+  )(implicit ctx: mill.define.TaskCtx) = {
     if (!os.exists(baseFolder)) os.makeDir.all(baseFolder)
 
     val outputPath = baseFolder / "out.json"
@@ -176,7 +177,7 @@ private final class TestModuleUtil(
 
   private def runTestDefault(
       filteredClassLists: Seq[Seq[String]]
-  )(implicit ctx: mill.api.Ctx) = {
+  )(implicit ctx: mill.define.TaskCtx) = {
 
     def runTestRunnerSubprocess(
         base: os.Path,
@@ -256,7 +257,7 @@ private final class TestModuleUtil(
 
   private def runTestQueueScheduler(
       filteredClassLists: Seq[Seq[String]]
-  )(implicit ctx: mill.api.Ctx) = {
+  )(implicit ctx: mill.define.TaskCtx) = {
 
     val filteredClassCount = filteredClassLists.map(_.size).sum
 
@@ -456,7 +457,7 @@ private[scalalib] object TestModuleUtil {
           java.util.concurrent.ConcurrentMap[os.Path, String => Unit],
           java.util.concurrent.ConcurrentMap[os.Path, Unit]
       ) => T
-  )(implicit ctx: mill.api.Ctx): T = {
+  )(implicit ctx: mill.define.TaskCtx): T = {
     val workerStatusMap = new java.util.concurrent.ConcurrentHashMap[os.Path, String => Unit]()
     val workerResultSet = new java.util.concurrent.ConcurrentHashMap[os.Path, Unit]()
 
@@ -517,7 +518,7 @@ private[scalalib] object TestModuleUtil {
   private[scalalib] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Option[Ctx.Env]
+      ctx: Option[TaskCtx.Env]
   ): Result[(String, Seq[TestResult])] = {
 
     val badTests: Seq[TestResult] =
@@ -544,7 +545,7 @@ private[scalalib] object TestModuleUtil {
   private[scalalib] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env & Ctx.Dest,
+      ctx: TaskCtx.Env & TaskCtx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] = {

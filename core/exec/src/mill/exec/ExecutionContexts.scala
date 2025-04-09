@@ -15,7 +15,7 @@ private object ExecutionContexts {
    * spawning a separate thread or thread-pool. Used to turn parallel-async
    * Future code into nice single-threaded code without needing to rewrite it
    */
-  object RunNow extends mill.api.Ctx.Fork.Impl {
+  object RunNow extends mill.define.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = Await.result(t, Duration.Inf)
     def execute(runnable: Runnable): Unit = runnable.run()
     def reportFailure(cause: Throwable): Unit = {}
@@ -23,7 +23,7 @@ private object ExecutionContexts {
 
     def blocking[T](t: => T): T = t
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
-        ctx: mill.api.Ctx
+        ctx: mill.define.TaskCtx
     ): Future[T] =
       Future.successful(t(ctx.log))
   }
@@ -32,7 +32,7 @@ private object ExecutionContexts {
    * A simple thread-pool-based ExecutionContext with configurable thread count
    * and AutoCloseable support
    */
-  class ThreadPool(threadCount0: Int) extends mill.api.Ctx.Fork.Impl {
+  class ThreadPool(threadCount0: Int) extends mill.define.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
     private val executor: ThreadPoolExecutor = new ThreadPoolExecutor(
       threadCount0,
@@ -113,7 +113,7 @@ private object ExecutionContexts {
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
-        ctx: mill.api.Ctx
+        ctx: mill.define.TaskCtx
     ): Future[T] = {
       val logger = new MultiLogger(
         new PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),

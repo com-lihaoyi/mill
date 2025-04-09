@@ -1,6 +1,6 @@
 package mill.javalib.revapi
 
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.define.Discover
 import mill.javalib.*
 import mill.scalalib.publish.{PomSettings, VersionControl}

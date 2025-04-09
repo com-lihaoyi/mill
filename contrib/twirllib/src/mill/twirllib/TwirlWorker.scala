@@ -4,7 +4,7 @@ package twirllib
 import java.io.File
 import java.net.URLClassLoader
 
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.scalalib.api.CompilationResult
 
 import scala.jdk.CollectionConverters._
@@ -148,7 +148,7 @@ class TwirlWorker {
       constructorAnnotations: Seq[String],
       codec: Codec,
       inclusiveDot: Boolean
-  )(implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
+  )(implicit ctx: mill.define.TaskCtx): mill.api.Result[CompilationResult] = {
     val compiler = twirl(twirlClasspath)
     val formatExtsRegex = formats.keys.map(Regex.quote).mkString("|")
 

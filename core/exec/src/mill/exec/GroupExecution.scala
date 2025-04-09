@@ -50,7 +50,7 @@ private trait GroupExecution {
       deps: Seq[Task[?]],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
-      executionContext: mill.api.Ctx.Fork.Api,
+      executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean
   ): GroupExecution.Results = {
     logger.withPromptLine {
@@ -195,7 +195,7 @@ private trait GroupExecution {
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
-      executionContext: mill.api.Ctx.Fork.Api,
+      executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
       isCommand: Boolean,
       deps: Seq[Task[?]]
@@ -228,7 +228,7 @@ private trait GroupExecution {
       val res = {
         if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
-          val args = new mill.api.Ctx.Impl(
+          val args = new mill.define.TaskCtx.Impl(
             args = targetInputValues.map(_.value).toIndexedSeq,
             dest0 = () => makeDest(),
             log = multiLogger,

@@ -2,7 +2,7 @@ package mill.kotlinlib.ktlint
 
 import mainargs.arg
 import mill._
-import mill.api.{PathRef}
+import mill.define.{PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.javalib.JavaModule
 import mill.kotlinlib.DepSyntax
@@ -101,7 +101,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       config: Option[PathRef],
       options: Seq[String],
       classPath: Seq[PathRef]
-  )(implicit ctx: api.Ctx): Unit = {
+  )(implicit ctx: mill.define.TaskCtx): Unit = {
     if (ktlintArgs.check) {
       ctx.log.info("checking format in kotlin sources ...")
     } else {

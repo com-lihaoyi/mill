@@ -2,8 +2,8 @@ package mill.runner.meta
 import scala.jdk.CollectionConverters.ListHasAsScala
 import coursier.Repository
 import mill.*
-import mill.api.{PathRef, Result, internal}
-import mill.define.{Discover, Task}
+import mill.api.{Result, internal}
+import mill.define.{PathRef, Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.Jvm
 import mill.scalalib.api.JvmWorkerUtil

@@ -1,4 +1,4 @@
-package mill.api
+package mill.define
 
 import utest.*
 

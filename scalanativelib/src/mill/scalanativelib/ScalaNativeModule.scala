@@ -16,7 +16,7 @@ import mill.scalanativelib.worker.{
   api => workerApi
 }
 import mill.T
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 

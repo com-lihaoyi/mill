@@ -2,8 +2,8 @@ package mill.javalib.android
 
 import mill._
 import mill.scalalib._
-import mill.api.{Logger, PathRef, internal}
-import mill.define.{ModuleRef, Task}
+import mill.api.{Logger, internal}
+import mill.define.{ModuleRef, Task, PathRef}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.testrunner.TestResult
 import mill.util.Jvm

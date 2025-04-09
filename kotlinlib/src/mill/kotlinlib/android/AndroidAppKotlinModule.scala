@@ -5,7 +5,7 @@ import coursier.core.Reconciliation
 import coursier.params.ResolutionParams
 import coursier.util.ModuleMatchers
 import mill.{T, Task}
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}

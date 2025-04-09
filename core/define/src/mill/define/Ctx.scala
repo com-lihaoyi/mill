@@ -43,15 +43,15 @@ object Ctx extends LowPriCtx {
     private[mill] def moduleLinearized: Seq[Class[?]]
   }
   private case class Impl(
-      enclosing: String,
-      lineNum: Int,
-      millSourcePath: os.Path,
-      segments: Segments,
-      external: Boolean,
-      fileName: String,
-      enclosingModule: Ctx.Wrapper,
-      crossValues: Seq[Any],
-      discover: Discover
+                           enclosing: String,
+                           lineNum: Int,
+                           millSourcePath: os.Path,
+                           segments: Segments,
+                           external: Boolean,
+                           fileName: String,
+                           enclosingModule: Ctx.Wrapper,
+                           crossValues: Seq[Any],
+                           discover: Discover
   ) extends Ctx {
     def enclosingCls = enclosingModule.getClass
     def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)

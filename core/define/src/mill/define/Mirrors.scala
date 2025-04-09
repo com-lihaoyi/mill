@@ -1,4 +1,4 @@
-package mill.api
+package mill.define
 
 import scala.quoted.*
 import scala.deriving.Mirror

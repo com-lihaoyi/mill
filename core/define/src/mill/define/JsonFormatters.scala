@@ -1,5 +1,6 @@
-package mill.api
+package mill.define
 
+import mill.define.JsonFormatters
 import os.Path
 import upickle.default.ReadWriter as RW
 

@@ -1,7 +1,7 @@
 package mill.javalib.android
 
 import coursier.Repository
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.define.{ModuleRef, Target, Task}
 import mill.T
 import mill.scalalib.*

@@ -1,6 +1,6 @@
 package mill.testrunner
 
-import mill.api.JsonFormatters._
+import mill.define.JsonFormatters._
 import mill.api.internal
 import mill.runner.api.TestReporter
 

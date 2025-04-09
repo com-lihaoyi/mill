@@ -27,7 +27,7 @@ object UnitTests extends TestSuite {
 
         // Evaluating tasks by passing in their Mill selector
         val Right(result2) = eval("resources")
-        val Seq(pathrefs: Seq[mill.api.PathRef]) = result2.value
+        val Seq(pathrefs: Seq[PathRef]) = result2.value
         assert(
           pathrefs.exists(pathref =>
             os.exists(pathref.path / "line-count.txt") &&

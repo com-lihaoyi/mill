@@ -122,10 +122,10 @@ object Cross {
   }
 
   class Factory[T: ClassTag](
-      val makeList: Seq[(Class[?], mill.define.Ctx => T)],
-      val crossValuesListLists: Seq[Seq[Any]],
-      val crossSegmentsList: Seq[Seq[String]],
-      val crossValuesRaw: Seq[Any]
+                              val makeList: Seq[(Class[?], mill.define.Ctx => T)],
+                              val crossValuesListLists: Seq[Seq[Any]],
+                              val crossSegmentsList: Seq[Seq[String]],
+                              val crossValuesRaw: Seq[Any]
   )
 
   object Factory {

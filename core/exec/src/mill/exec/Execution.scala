@@ -105,7 +105,7 @@ private[mill] case class Execution(
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      ec: mill.api.Ctx.Fork.Impl,
+      ec: mill.define.TaskCtx.Fork.Impl,
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)
@@ -137,7 +137,7 @@ private[mill] case class Execution(
 
     def evaluateTerminals(
         terminals: Seq[Task[?]],
-        forkExecutionContext: mill.api.Ctx.Fork.Impl,
+        forkExecutionContext: mill.define.TaskCtx.Fork.Impl,
         exclusive: Boolean
     ) = {
       implicit val taskExecutionContext =

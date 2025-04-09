@@ -3,14 +3,14 @@ package contrib.scalapblib
 
 import java.io.File
 
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.define.{Discover, ExternalModule, Worker}
 
 class ScalaPBWorker extends AutoCloseable {
 
   private var scalaPBInstanceCache = Option.empty[(Long, ScalaPBWorkerApi)]
 
-  private def scalaPB(scalaPBClasspath: Seq[PathRef])(implicit ctx: mill.api.Ctx) = {
+  private def scalaPB(scalaPBClasspath: Seq[PathRef])(implicit ctx: mill.define.TaskCtx) = {
     val classloaderSig = scalaPBClasspath.hashCode
     scalaPBInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
@@ -79,7 +79,7 @@ class ScalaPBWorker extends AutoCloseable {
       scalaPBOptions: String,
       dest: os.Path,
       scalaPBCExtraArgs: Seq[String]
-  )(implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
+  )(implicit ctx: mill.define.TaskCtx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
     val sources = scalaPBSources.flatMap {
       path =>

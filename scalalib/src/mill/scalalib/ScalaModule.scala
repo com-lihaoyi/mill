@@ -2,14 +2,14 @@ package mill
 package scalalib
 
 import mill.util.JarManifest
-import mill.api.{DummyInputStream, PathRef, Result, internal}
+import mill.api.{DummyInputStream, Result, internal}
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
 
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
 import mainargs.Flag
-import mill.define.Task
+import mill.define.{Task, PathRef}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 

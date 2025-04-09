@@ -1,20 +1,22 @@
-package mill.api
+package mill.define
+
+import mill.api.{Logger, experimental}
+import mill.runner.api.{CompileProblemReporter, TestReporter}
 
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
-import mill.runner.api.{CompileProblemReporter, TestReporter}
 
 /**
  * Represents the data and utilities that are contextually available inside the
  * implementation of a `Task`.
  */
-trait Ctx extends Ctx.Dest
-    with Ctx.Log
-    with Ctx.Args
-    with Ctx.Env
-    with Ctx.Workspace
-    with Ctx.Fork
-    with Ctx.Jobs {
+trait TaskCtx extends TaskCtx.Dest
+    with TaskCtx.Log
+    with TaskCtx.Args
+    with TaskCtx.Env
+    with TaskCtx.Workspace
+    with TaskCtx.Fork
+    with TaskCtx.Jobs {
   def reporter: Int => Option[CompileProblemReporter]
 
   def testReporter: TestReporter
@@ -24,20 +26,20 @@ trait Ctx extends Ctx.Dest
 /**
  * Provides access to various resources in the context of a current execution Target.
  */
-object Ctx {
+object TaskCtx {
 
   private[mill] class Impl(
-      val args: IndexedSeq[?],
-      dest0: () => os.Path,
-      val log: Logger,
-      val env: Map[String, String],
-      val reporter: Int => Option[CompileProblemReporter],
-      val testReporter: TestReporter,
-      val workspace: os.Path,
-      val systemExit: Int => Nothing,
-      val fork: Ctx.Fork.Api,
-      val jobs: Int
-  ) extends Ctx {
+                            val args: IndexedSeq[?],
+                            dest0: () => os.Path,
+                            val log: Logger,
+                            val env: Map[String, String],
+                            val reporter: Int => Option[CompileProblemReporter],
+                            val testReporter: TestReporter,
+                            val workspace: os.Path,
+                            val systemExit: Int => Nothing,
+                            val fork: TaskCtx.Fork.Api,
+                            val jobs: Int
+  ) extends TaskCtx {
     def dest: os.Path = dest0()
 
     def arg[T](index: Int): T = {
@@ -50,7 +52,7 @@ object Ctx {
     "Target.ctx() / Task.ctx() / Task.* APIs can only be used with a Task{...} block"
   )
   @ImplicitStub
-  implicit def taskCtx: Ctx = ???
+  implicit def taskCtx: TaskCtx = ???
 
   /**
    * Access to the targets [[dest]] path.
@@ -190,7 +192,7 @@ object Ctx {
           message: String,
           priority: Int = 0
       )(t: Logger => T)(implicit
-          ctx: mill.api.Ctx
+          ctx: mill.define.TaskCtx
       ): Future[T]
     }
 

@@ -1,6 +1,7 @@
 package mill.scalalib
 
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.{TaskCtx, PathRef}
+import mill.api.{Result}
 import mill.define.{Command, Task, TaskModule}
 import mill.runner.api.TestReporter
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
@@ -420,13 +421,13 @@ object TestModule {
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Option[Ctx.Env]
+      ctx: Option[TaskCtx.Env]
   ): Result[(String, Seq[TestResult])] = TestModuleUtil.handleResults(doneMsg, results, ctx)
 
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env & Ctx.Dest,
+      ctx: TaskCtx.Env & TaskCtx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] =

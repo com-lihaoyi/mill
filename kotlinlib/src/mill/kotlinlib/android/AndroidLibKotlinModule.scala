@@ -1,6 +1,6 @@
 package mill.kotlinlib.android
 import mill.T
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.javalib.android.AndroidLibModule
 
 trait AndroidLibKotlinModule extends AndroidLibModule with AndroidKotlinModule { outer =>

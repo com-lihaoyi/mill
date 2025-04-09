@@ -1,14 +1,13 @@
 package mill.bsp
 
-import mill.api.{Ctx, PathRef}
+import mill.define.{Ctx, PathRef}
 import mill.{T, Task, given}
-import mill.define.{Command, Discover, Evaluator, ExternalModule}
+import mill.define.{Command, Discover, Evaluator, ExternalModule, Mirrors}
 import mill.util.BuildInfo
 import mill.scalalib.{CoursierModule, Dep}
 
 import mill.api.internal
-import mill.api.Mirrors
-import mill.api.Mirrors.autoMirror
+import Mirrors.autoMirror
 import mill.runner.api.BspServerResult
 
 object BSP extends ExternalModule with CoursierModule {
@@ -65,7 +64,7 @@ object BSP extends ExternalModule with CoursierModule {
   private def createBspConnection(
       jobs: Int,
       serverName: String
-  )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
+  )(implicit ctx: mill.define.TaskCtx): (PathRef, ujson.Value) = {
     // we create a json connection file
     val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
     if (os.exists(bspFile)) ctx.log.warn(s"Overwriting BSP connection file: ${bspFile}")

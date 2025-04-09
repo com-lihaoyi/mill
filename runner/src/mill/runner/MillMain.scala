@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.api
+import mill.{api, define}
 
 import java.io.{PipedInputStream, PrintStream}
 import java.nio.file.Files
@@ -9,17 +9,10 @@ import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.runner.api.BspServerResult
-import mill.api.{
-  DummyInputStream,
-  Logger,
-  MillException,
-  Result,
-  SystemStreams,
-  WorkspaceRoot,
-  internal
-}
+import mill.api.{DummyInputStream, Logger, MillException, Result, SystemStreams,internal}
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
+import mill.define.{WorkspaceRoot}
 import mill.util.BuildInfo
 import mill.runner.meta.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}
@@ -381,12 +374,12 @@ object MillMain {
     }
 
     val bspServerHandleRes = {
-      val wsRoot = mill.api.WorkspaceRoot.workspaceRoot
+      val wsRoot = WorkspaceRoot.workspaceRoot
       mill.bsp.BspClasspathWorker(wsRoot, log).flatMap { worker =>
         val logDir = wsRoot / OutFiles.out / "mill-bsp"
         os.makeDir.all(logDir)
         worker.startBspServer(
-          mill.api.WorkspaceRoot.workspaceRoot,
+          define.WorkspaceRoot.workspaceRoot,
           streams0,
           logStream.getOrElse(streams0.err),
           logDir,

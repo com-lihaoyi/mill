@@ -1,7 +1,7 @@
 package mill.scalalib.classgraph
 
-import mill.api.Ctx
+import mill.define.TaskCtx
 
 trait ClassgraphWorker {
-  def discoverMainClasses(classpath: Seq[os.Path])(implicit ctx: Ctx): Seq[String]
+  def discoverMainClasses(classpath: Seq[os.Path])(implicit ctx: TaskCtx): Seq[String]
 }

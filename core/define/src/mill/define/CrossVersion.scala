@@ -1,8 +1,10 @@
-package mill.api
+package mill.define
+
+import mill.define.CrossVersion
 import upickle.default.{macroRW, ReadWriter as RW}
 
 sealed trait CrossVersion {
-  import CrossVersion._
+  import CrossVersion.*
 
   /** If true, the cross-version suffix should start with a platform suffix if it exists */
   def platformed: Boolean

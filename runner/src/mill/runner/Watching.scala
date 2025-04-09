@@ -1,8 +1,9 @@
 package mill.runner
 
-import mill.api.{internal, PathRef}
+import mill.api.{internal}
 import mill.internal.Colors
 import mill.define.internal.Watchable
+import mill.define.PathRef
 import mill.api.SystemStreams
 
 import java.io.InputStream

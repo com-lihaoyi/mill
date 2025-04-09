@@ -1,7 +1,7 @@
 package mill.scalalib.api
 
-import mill.api.PathRef
-import mill.api.JsonFormatters._
+import mill.define.PathRef
+import mill.define.JsonFormatters._
 
 // analysisFile is represented by os.Path, so we won't break caches after file changes
 case class CompilationResult(analysisFile: os.Path, classes: PathRef)

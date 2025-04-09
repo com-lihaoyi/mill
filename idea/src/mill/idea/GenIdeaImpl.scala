@@ -5,9 +5,9 @@ import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
-import mill.api.Ctx
-import mill.api.PathRef
-import mill.define.{Evaluator, Ctx as _, *}
+import mill.define.TaskCtx
+import mill.define.PathRef
+import mill.define.{Evaluator, TaskCtx as _, *}
 import mill.runner.api.{
   BaseModuleApi,
   EvaluatorApi,
@@ -28,7 +28,7 @@ import java.net.URL
 
 class GenIdeaImpl(
     private val evaluators: Seq[EvaluatorApi]
-)(implicit ctx: Ctx) {
+)(implicit ctx: TaskCtx) {
   def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
