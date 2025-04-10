@@ -6,7 +6,7 @@ import mill._, scalalib._, publish._
 // when preparing the resources for test suite execution
 os.checker.withValue(os.Checker.Nop) {
   os.copy.over(
-    interp.watch(WorkspaceRoot.workspaceRoot / "acyclic"),
+    interp.watch(mill.define.WorkspaceRoot.workspaceRoot / "acyclic"),
     os.pwd / "acyclic",
     createFolders = true
   )
