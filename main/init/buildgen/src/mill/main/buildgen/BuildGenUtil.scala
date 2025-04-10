@@ -177,7 +177,6 @@ object BuildGenUtil {
        else None)
   }
 
-
   def buildModuleFqn(dirs: Seq[String]): String =
     (rootModuleAlias +: dirs).iterator.map(backtickWrap).mkString(".")
 

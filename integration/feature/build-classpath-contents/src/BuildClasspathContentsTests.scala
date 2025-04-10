@@ -8,7 +8,8 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
 
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
-      val result1 = tester.eval(("--meta-level", "1", "show", "compileClasspath"), stderr = os.Inherit)
+      val result1 =
+        tester.eval(("--meta-level", "1", "show", "compileClasspath"), stderr = os.Inherit)
       val deserialized = upickle.default.read[Seq[mill.define.PathRef]](result1.out)
       val simplified = deserialized
         .map(_.path)
