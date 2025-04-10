@@ -32,11 +32,11 @@ This should work regardless of if you are using a mill or sbt project layout.
 
 You can then run common flyway commands like
 
-[source,bash]
+[source,console]
 ----
-mill foo.flywayClean
-mill foo.flywayInfo
-mill foo.flywayMigrate
+> mill foo.flywayClean
+> mill foo.flywayInfo
+> mill foo.flywayMigrate
 ----
 
 CAUTION: You should never hard-code credentials or check them into a version control system.

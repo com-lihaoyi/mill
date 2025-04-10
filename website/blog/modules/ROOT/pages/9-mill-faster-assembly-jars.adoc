@@ -320,7 +320,7 @@ what is interesting is what happens for incremental builds. For example, below w
 add a `class dummy` line of code to `Foo.scala` to force it to re-compile
 the code and re-build the assembly:
 
-[source,bash]
+[source,console]
 ----
 > echo "class dummy" >> src/main/scala/foo/Foo.scala
 
@@ -342,7 +342,7 @@ while `sbt` and Maven took the same ~20s that they took the first time the
 jar was built. If you play around with it, you will see that the assembly jar
 does contain classfiles associated with our newly-added code:
 
-[source,bash]
+[source,console]
 ----
 > jar tf out/assembly.dest/out.jar | grep dummy
 foo/dummy.class

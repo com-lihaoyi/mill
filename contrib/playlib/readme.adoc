@@ -316,7 +316,7 @@ The following filesystem layout is expected by default:
 
 `RouterModule` adds the `compileRouter` task to the module:
 
-[source,bash]
+[source,console]
 ----
 $ mill app.compileRouter
 ----

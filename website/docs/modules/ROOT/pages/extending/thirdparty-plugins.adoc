@@ -727,7 +727,7 @@ object main extends ScalaModule with Mima {
 
 You can then check the binary compatibility of the module with:
 
-[source,bash]
+[source,console]
 ----
 > mill main.mimaReportBinaryIssues
 Binary compatibility check passed.
@@ -787,7 +787,7 @@ object hello extends ScalaModule with NativeImage {
 
 Then run the `nativeImage` task to build the native-image binary.
 
-[source,bash]
+[source,console]
 ----
 > ./mill hello.nativeImage
 ...
@@ -867,7 +867,7 @@ object project extends PublishModule with PublishM2Module {
 
 Publishing to default local Maven repository
 
-[source,bash]
+[source,console]
 ----
 > mill project.publishM2Local
 [40/40] project.publishM2Local
@@ -876,7 +876,7 @@ Publishing to /home/user/.m2/repository
 
 Publishing to custom local Maven repository
 
-[source,bash]
+[source,console]
 ----
 > mill project.publishM2Local /tmp/m2repo
 [40/40] project.publishM2Local

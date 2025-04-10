@@ -57,7 +57,7 @@ build.mill
 
 You can operate on this build via commands such as
 
-[source,bash]
+[source,console]
 ----
 > ./mill bar.compile
 
@@ -76,7 +76,7 @@ For the purposes of this article, we will consider what happens when you run
 
 Initial `.mill` build files:
 
-[source,bash]
+[source,txt]
 ----
 bar/
     package.mill #optional
@@ -100,7 +100,7 @@ such that updates can happen relatively quickly even in large projects.
 
 After compilation, the `.mill` files are converted into JVM classfiles as shown below:
 
-[source,bash]
+[source,txt]
 ----
 bar/
     package.class
