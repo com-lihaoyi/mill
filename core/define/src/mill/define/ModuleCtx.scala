@@ -10,7 +10,7 @@ import scala.annotation.{compileTimeOnly, implicitNotFound}
 @implicitNotFound(
   "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
 )
-trait Ctx extends Ctx.Nested {
+trait ModuleCtx extends ModuleCtx.Nested {
   def enclosing: String
 
   /**
@@ -30,16 +30,16 @@ trait Ctx extends Ctx.Nested {
    */
   private[mill] def enclosingCls: Class[?]
 
-  private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
-  private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
-  private[mill] def withSegments(segments: Segments): Ctx
-  private[mill] def withEnclosingModule(enclosingModule: Ctx.Wrapper): Ctx
-  private[mill] def withDiscover(discover: Discover): Ctx
+  private[mill] def withCrossValues(crossValues: Seq[Any]): ModuleCtx
+  private[mill] def withMillSourcePath(millSourcePath: os.Path): ModuleCtx
+  private[mill] def withSegments(segments: Segments): ModuleCtx
+  private[mill] def withEnclosingModule(enclosingModule: ModuleCtx.Wrapper): ModuleCtx
+  private[mill] def withDiscover(discover: Discover): ModuleCtx
 }
 
-object Ctx extends LowPriCtx {
+object ModuleCtx extends LowPriCtx {
   trait Wrapper {
-    def moduleCtx: Ctx
+    def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
   }
   private case class Impl(
@@ -49,21 +49,22 @@ object Ctx extends LowPriCtx {
       segments: Segments,
       external: Boolean,
       fileName: String,
-      enclosingModule: Ctx.Wrapper,
+      enclosingModule: ModuleCtx.Wrapper,
       crossValues: Seq[Any],
       discover: Discover
-  ) extends Ctx {
+  ) extends ModuleCtx {
     def enclosingCls = enclosingModule.getClass
-    def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
-    def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
-    def withSegments(segments: Segments): Ctx = copy(segments = segments)
-    def withEnclosingModule(enclosingModule: Ctx.Wrapper): Ctx =
+    def withCrossValues(crossValues: Seq[Any]): ModuleCtx = copy(crossValues = crossValues)
+    def withMillSourcePath(millSourcePath: os.Path): ModuleCtx =
+      copy(millSourcePath = millSourcePath)
+    def withSegments(segments: Segments): ModuleCtx = copy(segments = segments)
+    def withEnclosingModule(enclosingModule: ModuleCtx.Wrapper): ModuleCtx =
       copy(enclosingModule = enclosingModule)
-    def withDiscover(discover: Discover): Ctx = copy(discover = discover)
+    def withDiscover(discover: Discover): ModuleCtx = copy(discover = discover)
   }
 
   /**
-   * A subset of the [[Ctx]] interface that are implicitly propagated
+   * A subset of the [[ModuleCtx]] interface that are implicitly propagated
    * from the enclosing Module.
    */
   trait Nested {
@@ -71,7 +72,7 @@ object Ctx extends LowPriCtx {
     /**
      * The runtime [[Module]] object that contains this definition
      */
-    private[mill] def enclosingModule: Ctx.Wrapper
+    private[mill] def enclosingModule: ModuleCtx.Wrapper
 
     /**
      * The enclosing module's default source root
@@ -101,8 +102,8 @@ object Ctx extends LowPriCtx {
       millModuleLine0: sourcecode.Line,
       fileName: sourcecode.File,
       enclosingClass: EnclosingClass,
-      ctx: Ctx.Nested
-  ): Ctx = {
+      ctx: ModuleCtx.Nested
+  ): ModuleCtx = {
     // Manually break apart `sourcecode.Enclosing` instead of using
     // `sourcecode.Name` to work around bug with anonymous classes
     // returning `$anon` names
@@ -134,7 +135,7 @@ object Ctx extends LowPriCtx {
       segments0: Segments,
       external0: Boolean,
       fileName: sourcecode.File
-  ): Ctx = {
+  ): ModuleCtx = {
 
     Impl(
       millModuleEnclosing0.value,
@@ -157,5 +158,5 @@ trait LowPriCtx {
   @compileTimeOnly(
     "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
   )
-  implicit def dummyInfo: Ctx = sys.error("implicit Ctx must be provided")
+  implicit def dummyInfo: ModuleCtx = sys.error("implicit Ctx must be provided")
 }

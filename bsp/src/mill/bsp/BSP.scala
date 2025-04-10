@@ -1,6 +1,6 @@
 package mill.bsp
 
-import mill.define.{Ctx, PathRef}
+import mill.define.{ModuleCtx, PathRef}
 import mill.{T, Task, given}
 import mill.define.{Command, Discover, Evaluator, ExternalModule, Mirrors}
 import mill.util.BuildInfo

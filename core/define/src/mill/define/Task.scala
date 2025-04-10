@@ -64,13 +64,13 @@ object Task extends TaskBase {
    * [[TargetImpl]]s need to be invalidated and re-computed.
    */
   inline def Sources(inline values: Result[os.Path]*)(implicit
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[Seq[PathRef]] = ${
     TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
   }
 
   inline def Sources(inline values: os.SubPath*)(implicit
-      inline ctx: mill.define.Ctx,
+      inline ctx: mill.define.ModuleCtx,
       dummy: Boolean = true
   ): Target[Seq[PathRef]] = ${
     TaskMacros.sourcesImpl(
@@ -83,12 +83,12 @@ object Task extends TaskBase {
    * using `Task.Source`.
    */
   inline def Source(inline value: Result[os.Path])(implicit
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[PathRef] =
     ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
 
   inline def Source(inline value: os.SubPath)(implicit
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[PathRef] =
     ${ TaskMacros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
 
@@ -110,7 +110,7 @@ object Task extends TaskBase {
    */
   inline def Input[T](inline value: Result[T])(implicit
       inline w: upickle.default.Writer[T],
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[T] =
     ${ TaskMacros.inputImpl[T]('value)('w, 'ctx) }
 
@@ -123,7 +123,7 @@ object Task extends TaskBase {
    */
   inline def Command[T](inline t: Result[T])(implicit
       inline w: W[T],
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }) }
 
   /**
@@ -141,7 +141,7 @@ object Task extends TaskBase {
   class CommandFactory private[mill] (val exclusive: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
         inline w: W[T],
-        inline ctx: mill.define.Ctx
+        inline ctx: mill.define.ModuleCtx
     ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }) }
   }
 
@@ -159,7 +159,7 @@ object Task extends TaskBase {
    * responsibility of ensuring the implementation is idempotent regardless of
    * what in-memory state the worker may have.
    */
-  inline def Worker[T](inline t: Result[T])(implicit inline ctx: mill.define.Ctx): Worker[T] =
+  inline def Worker[T](inline t: Result[T])(implicit inline ctx: mill.define.ModuleCtx): Worker[T] =
     ${ TaskMacros.workerImpl2[T]('t)('ctx) }
 
   /**
@@ -173,7 +173,7 @@ object Task extends TaskBase {
 
   inline def apply[T](inline t: Result[T])(implicit
       inline rw: RW[T],
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
@@ -197,7 +197,7 @@ object Task extends TaskBase {
   class ApplyFactory private[mill] (val persistent: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
         inline rw: RW[T],
-        inline ctx: mill.define.Ctx
+        inline ctx: mill.define.ModuleCtx
     ): Target[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
@@ -235,7 +235,7 @@ object Task extends TaskBase {
  */
 trait NamedTask[+T] extends Task[T] with NamedTaskApi[T] {
 
-  def ctx0: mill.define.Ctx
+  def ctx0: mill.define.ModuleCtx
   def isPrivate: Option[Boolean]
   def label: String = ctx.segments.value.last match {
     case Segment.Label(v) => v
@@ -249,7 +249,7 @@ trait NamedTask[+T] extends Task[T] with NamedTaskApi[T] {
 
   def evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T]
 
-  val ctx: Ctx = ctx0
+  val ctx: ModuleCtx = ctx0
 
   def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
 
@@ -272,13 +272,13 @@ object Target extends TaskBase {
    */
   implicit inline def apply[T](inline t: T)(implicit
       inline rw: RW[T],
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
   implicit inline def apply[T](inline t: Result[T])(implicit
       inline rw: RW[T],
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
@@ -378,7 +378,7 @@ class TaskBase {
 class TargetImpl[+T](
     val inputs: Seq[Task[Any]],
     val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.Ctx,
+    val ctx0: mill.define.ModuleCtx,
     val readWriter: RW[?],
     val isPrivate: Option[Boolean],
     override val persistent: Boolean
@@ -391,7 +391,7 @@ class TargetImpl[+T](
 class Command[+T](
     val inputs: Seq[Task[Any]],
     val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.Ctx,
+    val ctx0: mill.define.ModuleCtx,
     val writer: W[?],
     val isPrivate: Option[Boolean],
     val exclusive: Boolean
@@ -405,7 +405,7 @@ class Command[+T](
 class Worker[+T](
     val inputs: Seq[Task[Any]],
     val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.Ctx,
+    val ctx0: mill.define.ModuleCtx,
     val isPrivate: Option[Boolean]
 ) extends NamedTask[T] {
   override def persistent = false
@@ -414,7 +414,7 @@ class Worker[+T](
 
 class InputImpl[T](
     val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.Ctx,
+    val ctx0: mill.define.ModuleCtx,
     val writer: upickle.default.Writer[?],
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
@@ -426,7 +426,7 @@ class InputImpl[T](
 
 class SourcesImpl(
     evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
-    ctx0: mill.define.Ctx,
+    ctx0: mill.define.ModuleCtx,
     isPrivate: Option[Boolean]
 ) extends InputImpl[Seq[PathRef]](
       evaluate0,
@@ -437,7 +437,7 @@ class SourcesImpl(
 
 class SourceImpl(
     evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
-    ctx0: mill.define.Ctx,
+    ctx0: mill.define.ModuleCtx,
     isPrivate: Option[Boolean]
 ) extends InputImpl[PathRef](
       evaluate0,
@@ -480,7 +480,7 @@ private object TaskMacros {
       Quotes
   )(t: Expr[Result[T]])(
       rw: Expr[RW[T]],
-      ctx: Expr[mill.define.Ctx],
+      ctx: Expr[mill.define.ModuleCtx],
       persistent: Expr[Boolean]
   ): Expr[Target[T]] = {
     val expr = appImpl[Target, T](
@@ -496,7 +496,7 @@ private object TaskMacros {
   )(
       values: Expr[Result[Seq[PathRef]]]
   )(
-      ctx: Expr[mill.define.Ctx]
+      ctx: Expr[mill.define.ModuleCtx]
   ): Expr[Target[Seq[PathRef]]] = {
     val expr = appImpl[Target, Seq[PathRef]](
       (in, ev) => '{ new SourcesImpl($ev, $ctx, ${ taskIsPrivate() }) },
@@ -509,7 +509,7 @@ private object TaskMacros {
   def sourceImpl(using
       Quotes
   )(value: Expr[Result[PathRef]])(
-      ctx: Expr[mill.define.Ctx]
+      ctx: Expr[mill.define.ModuleCtx]
   ): Expr[Target[PathRef]] = {
 
     val expr = appImpl[Target, PathRef](
@@ -525,7 +525,7 @@ private object TaskMacros {
       Quotes
   )(value: Expr[Result[T]])(
       w: Expr[upickle.default.Writer[T]],
-      ctx: Expr[mill.define.Ctx]
+      ctx: Expr[mill.define.ModuleCtx]
   ): Expr[Target[T]] = {
 
     val expr = appImpl[Target, T](
@@ -540,7 +540,7 @@ private object TaskMacros {
       Quotes
   )(t: Expr[Result[T]])(
       w: Expr[W[T]],
-      ctx: Expr[mill.define.Ctx],
+      ctx: Expr[mill.define.ModuleCtx],
       exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {
     appImpl[Command, T](
@@ -555,7 +555,7 @@ private object TaskMacros {
   def workerImpl2[T: Type](using
       Quotes
   )(t: Expr[Result[T]])(
-      ctx: Expr[mill.define.Ctx]
+      ctx: Expr[mill.define.ModuleCtx]
   ): Expr[Worker[T]] = {
 
     val expr = appImpl[Worker, T](

@@ -6,7 +6,7 @@ import mainargs.arg
 import mill.define.JsonFormatters.pathReadWrite
 import mill.api.Result
 import mill.api.internal.RunModuleApi
-import mill.define.{Ctx, PathRef, TaskCtx}
+import mill.define.{ModuleCtx, PathRef, TaskCtx}
 import mill.constants.ServerFiles
 import mill.define.{Command, ModuleRef, Task}
 import mill.util.Jvm

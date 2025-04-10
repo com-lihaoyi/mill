@@ -15,8 +15,8 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-trait Module extends Module.BaseClass with Ctx.Wrapper with ModuleApi {
-  implicit def moduleNestedCtx: Ctx.Nested = moduleCtx
+trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
+  implicit def moduleNestedCtx: ModuleCtx.Nested = moduleCtx
     .withMillSourcePath(moduleDir)
     .withSegments(moduleSegments)
     .withEnclosingModule(this)
@@ -55,7 +55,7 @@ object Module {
    * messes up the module discovery process
    */
   @internal
-  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.define.internal.Cacher {
+  class BaseClass(implicit outerCtx0: mill.define.ModuleCtx) extends mill.define.internal.Cacher {
     def moduleCtx = outerCtx0
   }
 
