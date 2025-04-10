@@ -335,7 +335,7 @@ object foo extends ScalaModule with ExplicitDepsModule {
 }
 ----
 
-[source,shell script]
+[source,console]
 ----
 > mill foo.checkExplicitDeps
 [37/37] main.checkExplicitDeps
@@ -406,7 +406,7 @@ object `jvm-project` extends JavaModule with GitVersionedPublishModule {
 }
 ----
 
-[source,shell script]
+[source,console]
 ----
 > mill show jvm-project.publishVersion
 [1/1] show
@@ -750,7 +750,7 @@ object example extends MissinglinkCheckModule
 
 Runtime missinglink check command
 
-[source,shell script]
+[source,console]
 ----
 > mill example.missinglinkCheck
 ----
@@ -950,7 +950,7 @@ case class MyClass(foo: String, bar: Int)
 
 Generate Typescript command:
 
-[source,shell script]
+[source,console]
 ----
 > mill example.generateTypescript
 ----
@@ -983,7 +983,7 @@ object project extends ScalaModule with ScalafixModule {
 }
 ----
 
-[source,shell script]
+[source,console]
 ----
 > mill project.fix
 [29/29] project.fix
@@ -1057,7 +1057,7 @@ object app extends MavenModule with SpringBootModule {
 }
 ----
 
-[source,shell]
+[source,console]
 ----
 # Package as executable Spring-Boot Application
 $ mill app.springBootAssembly
@@ -1089,9 +1089,9 @@ object app extends ScalaModule with SqueryGeneratorModule {
   def squeryGeneratorConfig: T[SqueryGeneratorConfig] = ...
 ----
 
-[source,shell]
+.Generate source files
+[source,console]
 ----
-# Generate source files
 $ ./mill root.squeryGenerate
 ----
 
@@ -1114,9 +1114,9 @@ object example extends JavaAppPackagingModule {
 }
 ----
 
-[source,shell]
+.Package as zip archive with Bash start script
+[source,console]
 ----
-# Package as zip archive with Bash start script
 $ mill example.universalPackage
 ----
 

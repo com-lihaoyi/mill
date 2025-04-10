@@ -54,7 +54,7 @@ what this build means: a `JavaModule` with two ivy dependencies `argparse4j` and
 and a `test` submodule supporting `Junit4`.
 This build can then be compiled, tested, run, or packaged into an assembly from the command line:
 
-[source,shell]
+[source,console]
 ----
 > /mill foo.compile
 compiling 1 Java source...

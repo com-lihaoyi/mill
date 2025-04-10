@@ -76,7 +76,7 @@ we can explain the difference in performing the same task with the two different
 
 === Sequential Clean Compile All
 
-[source,shell]
+[source,console]
 ----
 $ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
 17.6s
@@ -118,7 +118,7 @@ on under the hood that I'm not aware of.
 
 === Parallel Clean Compile All
 
-[source,shell]
+[source,console]
 ----
 $ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
 13.8s
@@ -145,7 +145,7 @@ each tool.
 
 === Clean Compile Single-Module
 
-[source,shell]
+[source,console]
 ----
 $ ./gradlew clean; time ./gradlew :classes --no-build-cache
 4.14s
@@ -168,7 +168,7 @@ the results above.
 
 === Incremental Compile Single-Module
 
-[source,shell]
+[source,console]
 ----
 $ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
 1.37s
@@ -194,7 +194,7 @@ showing a ~2.7x speedup for this task
 
 === No-Op Compile Single-Module
 
-[source,shell]
+[source,console]
 ----
 $ time ./gradlew :classes
 0.95s

@@ -58,7 +58,7 @@ digraph G {
 If you run this for the first time, you can see the ``println``s indicating both
 tasks were evaluated:
 
-[source,shell]
+[source,console]
 ----
 > ./mill show '{fooTask,barTask}'
 evaluating fooTask
@@ -72,7 +72,7 @@ evaluating barTask
 If you then run it again after changing `foo.txt`, you will see that only `fooTask` re-evaluates,
 and `barTask` does not:
 
-[source,shell]
+[source,console]
 ----
 > echo " changed" >> foo.txt
 
@@ -119,7 +119,7 @@ to `toLowerCase`:
 If you make this change, you would want `fooTask` to re-evaluate since its implementation
 changed, but `barTask` to not re-evaluate since because nothing we changed affected it:
 
-[source,shell]
+[source,console]
 ----
 > ./mill show '{fooTask,barTask}'
 evaluating fooTask

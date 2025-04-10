@@ -121,7 +121,7 @@ From this build, we can use the `./mill`
 xref:mill:ROOT:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script]
 to build an assembly that we can run using `java -jar`:
 
-[source,shell]
+[source,console]
 ----
 > ./mill show assembly
 ".../out/assembly.dest/out.jar"
@@ -172,7 +172,7 @@ lazy val root = (project in file("."))
 
 You can then use `sbt assembly` to build a jar, and `java -jar` to execute it:
 
-[source,shell]
+[source,console]
 ----
 > sbt assembly
 Built: .../target/scala-2.12/spark-app-assembly-0.1.jar
@@ -287,7 +287,7 @@ that requires you enable `maven-compiler-plugin` and `maven-scala-plugin`:
 Once this is all set up, you can use `./mvnw package` to build the `jar-with-dependencies`
 that you can execute with `java -jar`:
 
-[source,shell]
+[source,console]
 ----
 > ./mvnw package
 Building jar: .../target/spark-app-0.1-jar-with-dependencies.jar

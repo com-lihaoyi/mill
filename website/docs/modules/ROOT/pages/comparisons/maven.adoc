@@ -39,7 +39,7 @@ compiling Java, compiling and linking C code via JNI, custom codegen using Groov
 running JUnit tests and some integration tests using H2Spec. All 47 Maven subprojects are
 modelled using Mill, with the entire Netty codebase being approximately 500,000 lines of code.
 
-[source,shell]
+[source,console]
 ----
 $ git ls-files | grep \\.java | xargs wc -l
 ...
@@ -84,7 +84,7 @@ we can explain the difference in performing the same task with the two different
 [#_sequential_clean_compile_all]
 === Sequential Clean Compile All
 
-[source,shell]
+[source,console]
 ----
 $ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
 98.80s
@@ -140,7 +140,7 @@ into `.jar` files. But even if we _did_ want Mill to generate the ``.jar``s, the
 overhead of doing so is just a few seconds, far less than the minutes that
 Maven's overhead adds to the clean build:
 
-[source,shell]
+[source,console]
 ----
 $ ./mill clean; time ./mill -j1 __.jar
 26.74s
@@ -158,7 +158,7 @@ to avoid.
 [#_parallel_clean_compile_all]
 === Parallel Clean Compile All
 
-[source,shell]
+[source,console]
 ----
 $ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 48.92s
@@ -183,7 +183,7 @@ when performing a clean build of the Netty repository.
 [#_clean_compile_single_module]
 === Clean Compile Single-Module
 
-[source,shell]
+[source,console]
 ----
 $ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
 4.85s
@@ -208,7 +208,7 @@ at what you would expect, whereas Maven's has a significant overhead.
 [#_incremental_compile_single_module]
 === Incremental Compile Single-Module
 
-[source,shell]
+[source,console]
 ----
 $ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
@@ -257,7 +257,7 @@ diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/s
  }
 ----
 
-[source,shell]
+[source,console]
 ----
 $ time ./mill common.test.compile
 [info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
@@ -284,7 +284,7 @@ diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/s
          return id;
 ----
 
-[source,shell]
+[source,console]
 ----
 $ time ./mill common.test.compile
 [25/48] common.compile
@@ -310,7 +310,7 @@ the same thing in Maven
 [#_no_op_compile_single_module]
 === No-Op Compile Single-Module
 
-[source,shell]
+[source,console]
 ----
 $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 5.08s

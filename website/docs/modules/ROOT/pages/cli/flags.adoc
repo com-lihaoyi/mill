@@ -110,7 +110,7 @@ You can use the `--watch` flag to make Mill watch a task's inputs,
 re-evaluating the task as necessary when the inputs
 change:
 
-[source,shell]
+[source,console]
 ----
 > mill --watch foo.compile
 > mill --watch foo.run
@@ -125,7 +125,7 @@ your `build.mill` will automatically get picked up.
 For long-running processes like web servers, you can use `runBackground` to make sure they recompile and restart when code changes,
 forcefully terminating the previous process even though it may be still alive:
 
-[source,shell]
+[source,console]
 ----
 > mill -w foo.runBackground
 ----
@@ -138,9 +138,9 @@ Defaults to the number of cores available on your system.
 
 Example: Use up to 4 parallel threads to compile all modules:
 
-[source,shell]
+[source,console]
 ----
-mill -j4 __.compile
+> mill -j4 __.compile
 ----
 
 You can also set Mill's parallelism to some multiple of the number of cores, e.g.
