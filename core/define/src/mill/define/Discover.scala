@@ -101,11 +101,11 @@ object Discover {
       def filterDefs(methods: List[Symbol]): List[Symbol] =
         methods.filterNot { m =>
           m.isSuperAccessor
-            || m.hasAnnotation(deprecatedSym)
-            || m.flags.is(
+          || m.hasAnnotation(deprecatedSym)
+          || m.flags.is(
             Flags.Synthetic | Flags.Invisible | Flags.Private | Flags.Protected
           )
-            || m.privateWithin.nonEmpty // for some reason `Flags.Private` doesn't always work
+          || m.privateWithin.nonEmpty // for some reason `Flags.Private` doesn't always work
         }
 
       def sortedMethods(curCls: TypeRepr, sub: TypeRepr, methods: Seq[Symbol]): Seq[Symbol] =
