@@ -2,7 +2,7 @@ import $meta._
 
 import mill._
 import mill.define.PathRef
-import mill.api.{JavaFacet, IdeaConfigFile, Element}
+import mill.api.internal.{JavaFacet, IdeaConfigFile, Element}
 import mill.scalalib.TestModule
 
 trait HelloWorldModule extends scalalib.ScalaModule {
