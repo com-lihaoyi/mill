@@ -180,10 +180,12 @@ import mill._, javalib._
 object foo extends JavaModule {
 }
 ----
-```bash
+
+[source,console]
+----
 > mill compile
 Compiling 1 Java source...
-```
+----
 
 If you want to add a custom task, this is as simple as defining a method e.g.
 `def lineCount = Task { ... }`. The body of `Task` performs the action we want, and
