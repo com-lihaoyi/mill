@@ -64,7 +64,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
    */
   def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.internal.TopoSorted
 
-  def executeApi[T](targets: Seq[TaskApi[T]]): Evaluator.Result[T] =
+  private[mill] def executeApi[T](targets: Seq[TaskApi[T]]): Evaluator.Result[T] =
     execute[T](targets.map(_.asInstanceOf[Task[T]]))
 
   def execute[T](
@@ -82,7 +82,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]]
 
-  def executeApi[T](
+  private[mill] def executeApi[T](
       targets: Seq[TaskApi[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,

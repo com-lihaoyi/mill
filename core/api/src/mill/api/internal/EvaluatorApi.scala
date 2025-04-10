@@ -11,7 +11,7 @@ trait EvaluatorApi extends AutoCloseable {
       selectiveExecution: Boolean = false
   ): Result[EvaluatorApi.Result[Any]]
 
-  def executeApi[T](
+  private[mill] def executeApi[T](
       targets: Seq[TaskApi[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
@@ -22,7 +22,7 @@ trait EvaluatorApi extends AutoCloseable {
 
   private[mill] def workerCache: mutable.Map[String, (Int, Val)]
 
-  def executeApi[T](targets: Seq[TaskApi[T]]): EvaluatorApi.Result[T]
+  private[mill] def executeApi[T](targets: Seq[TaskApi[T]]): EvaluatorApi.Result[T]
   private[mill] def baseLogger: Logger
   private[mill] def rootModule: BaseModuleApi
   private[mill] def outPathJava: java.nio.file.Path
@@ -48,9 +48,9 @@ object EvaluatorApi {
 
 trait ExecutionResultsApi {
   def results: Seq[ExecResult[Val]]
-  def transitiveResultsApi: Map[TaskApi[?], ExecResult[Val]]
+  private[mill] def transitiveResultsApi: Map[TaskApi[?], ExecResult[Val]]
 
-  def transitiveFailingApi: Map[TaskApi[?], ExecResult.Failing[Val]]
+  private[mill] def transitiveFailingApi: Map[TaskApi[?], ExecResult.Failing[Val]]
   def uncached: Seq[TaskApi[?]]
 
   def values: Seq[Val]

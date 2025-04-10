@@ -8,80 +8,41 @@ trait NamedTaskApi[+T] extends TaskApi[T] {
 }
 trait ModuleApi {
   def moduleDirectChildren: Seq[ModuleApi]
-  def moduleDirJava: java.nio.file.Path
+  private[mill] def moduleDirJava: java.nio.file.Path
   def moduleSegments: Segments
 }
 trait JavaModuleApi extends ModuleApi {
-  def bspBuildTargetScalaMainClasses: TaskApi[(Seq[String], Seq[String], Map[String, String])]
+  private[mill] def bspBuildTargetScalaMainClasses
+      : TaskApi[(Seq[String], Seq[String], Map[String, String])]
   def recursiveModuleDeps: Seq[JavaModuleApi]
   def compileModuleDepsChecked: Seq[JavaModuleApi]
-  def bspRun(args: Seq[String]): TaskApi[Unit]
-  def bspBuildTargetSources: TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path])]
-//  Task.Anon {
-//    module.sources().map(p => sourceItem(p.path, false)) ++
-//      module.generatedSources().map(p => sourceItem(p.path, true))
-//  }
+  private[mill] def bspRun(args: Seq[String]): TaskApi[Unit]
+  private[mill] def bspBuildTargetSources
+      : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path])]
 
-  def bspBuildTargetInverseSources[T](id: T, uri: String): TaskApi[Seq[T]]
-//  Task.Anon {
-//    val src = m.allSourceFiles()
-//    val found = src.map(sanitizeUri).contains(
-//      p.getTextDocument.getUri
-//    )
-//    if (found) Seq(id) else Seq()
-//  }
+  private[mill] def bspBuildTargetInverseSources[T](id: T, uri: String): TaskApi[Seq[T]]
 
-  def bspBuildTargetDependencySources(includeSources: Boolean)
+  private[mill] def bspBuildTargetDependencySources(includeSources: Boolean)
       : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path], Seq[String])]
-//  Task.Anon {
-//    (
-//      m.millResolver().classpath(
-//        Seq(
-//          m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-//          m.coursierDependency
-//        ),
-//        sources = true
-//      ),
-//      m.unmanagedClasspath(),
-//      m.allRepositories()
-//    )
-//  }
 
-  def bspBuildTargetDependencyModules
+  private[mill] def bspBuildTargetDependencyModules
       : TaskApi[(Seq[(String, String, String)], Seq[java.nio.file.Path])]
-//  Task.Anon {
-//    (
-//      // full list of dependencies, including transitive ones
-//      m.millResolver()
-//        .resolution(
-//          Seq(
-//            m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-//            m.coursierDependency
-//          )
-//        )
-//        .orderedDependencies,
-//      m.unmanagedClasspath()
-//    )
-//  }
 
-  def bspBuildTargetResources: TaskApi[Seq[java.nio.file.Path]]
-//  Task.Anon {
-//    m.resources()
-//  }
+  private[mill] def bspBuildTargetResources: TaskApi[Seq[java.nio.file.Path]]
 
-  def bspBuildTargetCompile: TaskApi[java.nio.file.Path]
+  private[mill] def bspBuildTargetCompile: TaskApi[java.nio.file.Path]
 
-  def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean)
+  private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean)
       : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
-  def bspCompileClasspath: TaskApi[EvaluatorApi => Seq[String]]
+  private[mill] def bspCompileClasspath: TaskApi[EvaluatorApi => Seq[String]]
 
-  def bspBuildTargetScalacOptions(
+  private[mill] def bspBuildTargetScalacOptions(
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
   ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
 
-  def genIdeaMetadata(
+  private[mill] def genIdeaMetadata(
       ideaConfigVersion: Int,
       evaluator: EvaluatorApi,
       path: mill.api.Segments
@@ -89,7 +50,7 @@ trait JavaModuleApi extends ModuleApi {
 
   def transitiveModuleCompileModuleDeps: Seq[JavaModuleApi]
   def skipIdea: Boolean
-  def intellijModulePathJava: java.nio.file.Path
+  private[mill] def intellijModulePathJava: java.nio.file.Path
   def buildLibraryPaths: TaskApi[Seq[java.nio.file.Path]]
 }
 object JavaModuleApi
@@ -101,12 +62,12 @@ trait TestModuleApi extends ModuleApi {
   def testLocal(args: String*): TaskApi[(String, Seq[Any])]
 }
 trait BspModuleApi extends ModuleApi {
-  def bspBuildTargetData: TaskApi[Option[(String, AnyRef)]]
-  def bspBuildTarget: BspBuildTarget
-  def bspDisplayName: String
+  private[mill] def bspBuildTargetData: TaskApi[Option[(String, AnyRef)]]
+  private[mill] def bspBuildTarget: BspBuildTarget
+  private[mill] def bspDisplayName: String
 }
 trait RunModuleApi extends ModuleApi {
-  def bspJvmRunTestEnvironment: TaskApi[(
+  private[mill] def bspJvmRunTestEnvironment: TaskApi[(
       Seq[java.nio.file.Path],
       Seq[String],
       java.nio.file.Path,
