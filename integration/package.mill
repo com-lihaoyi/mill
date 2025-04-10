@@ -63,11 +63,6 @@ object `package` extends RootModule {
       def runClasspath = IntegrationTestModule.this.runClasspath()
       def localRunClasspath = IntegrationTestModule.this.localRunClasspath()
 
-      def compile: T[mill.scalalib.api.CompilationResult] =
-        Task {
-          mill.scalalib.api.CompilationResult(null, null)
-        } // binary compatibility stub, not used
-
     }
 
     object local extends IntegrationLauncherModule {
