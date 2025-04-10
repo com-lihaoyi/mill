@@ -867,7 +867,7 @@ trait AndroidAppModule extends AndroidModule {
 
     // ProGuard configuration files: add our extra rules file and all provided config files.
     val pgArgs = Seq("--pg-conf", extraRulesFile.toString) ++
-      proguardReleaseConfigs().flatMap(cfg => Seq("--pg-conf", cfg.path.toString))
+      proguardConfigs().flatMap(cfg => Seq("--pg-conf", cfg.path.toString))
 
     r8ArgsBuilder ++= pgArgs
 

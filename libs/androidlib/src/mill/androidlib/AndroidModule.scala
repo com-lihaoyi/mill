@@ -736,18 +736,10 @@ trait AndroidModule extends JavaModule {
   }
 
   /** ProGuard/R8 rules configuration files (user-provided and generated) */
-  def proguardReleaseConfigs: T[Seq[PathRef]] = {
+  def proguardConfigs: T[Seq[PathRef]] = {
     Seq(
       PathRef(moduleDir / "proguard-rules.pro"),
       PathRef(androidModuleGeneratedSourcesFunc().androidReleaseDex.path / "proguard-rules.pro"),
-      PathRef(moduleDir / "test-proguard-rules.pro")
-    )
-  }
-
-  def proguardDebugConfigs: T[Seq[PathRef]] = {
-    Seq(
-      PathRef(moduleDir / "proguard-rules.pro"),
-      PathRef(androidModuleGeneratedSourcesFunc().androidDebugDex.path / "proguard-rules.pro"),
       PathRef(moduleDir / "test-proguard-rules.pro")
     )
   }
