@@ -3,6 +3,9 @@ package mill.scalalib
 import mill.*
 import mill.constants.Util
 
+import java.math.BigInteger
+import java.security.MessageDigest
+
 import scala.util.Properties
 
 /**
@@ -74,7 +77,14 @@ trait NativeImageModule extends WithJvmWorker {
       .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
       case Some(home) =>
         val tool = if (Properties.isWin) "native-image.cmd" else "native-image"
-        val path = home / "bin" / tool
+        val actualHome = maybeCopiedGraalVmHome(home, checkExists = true) match {
+          case Some(home0) =>
+            System.err.println(s"Using $home0 as GraalVM")
+            home0
+          case None =>
+            home
+        }
+        val path = actualHome / "bin" / tool
         if (os.exists(path))
           // native-image is externally managed, better revalidate it at least once
           PathRef(path).withRevalidateOnce
@@ -83,4 +93,64 @@ trait NativeImageModule extends WithJvmWorker {
         throw new RuntimeException("JvmWorkerModule.javaHome/GRAALVM_HOME not defined")
     }
   }
+
+  /**
+   * The path under which GraalVM distributions should be copied before we use native-image
+   *
+   * If this returns an actual path rather than `None`, the GraalVM distribution (obtained
+   * either from [[JvmWorkerModule.javaHome]] or from `GRAALVM_HOME`, see [[nativeImageTool]] above)
+   * is copied under a sub-directory of this path. The sub-directory name is a hash of the
+   * full path of original GraalVM distribution directory.
+   *
+   * This can be handy on Windows, where too long paths for header files in the GraalVM
+   * distribution can make native image generation fail. Copying the GraalVM distribution
+   * under a directory with a smaller length allows to work around that.
+   *
+   * Note that this method returns `None` by default, except in Windows CI environments,
+   * where it returns a path like `C:\jvms` to copy JVMs under.
+   */
+  def nativeImageGraalVmCopyBase: Option[os.Path] =
+    if (Properties.isWin && System.getenv("CI") != null)
+      Some(os.Path("C:/jvms"))
+    else
+      None
+
+  private def maybeCopiedGraalVmHome(home: os.Path, checkExists: Boolean = false): Option[os.Path] =
+    nativeImageGraalVmCopyBase
+      .map { base =>
+        val sha1 = {
+          val bytes = MessageDigest.getInstance("SHA-1").digest(home.toString.getBytes)
+          val baseSha1 = new BigInteger(1, bytes).toString(16)
+          "0" * (40 - baseSha1.length) + baseSha1
+        }
+        base / sha1.take(8)
+      }
+      .filter(dir => !checkExists || os.exists(dir))
+
+  /**
+   * Run this command to copy the GraalVM distribution under `nativeImageGraalVmCopyBase`
+   *
+   * If [[nativeImageGraalVmCopyBase]] returns `None`, this command has no effect.
+   * If the GraalVM distribution was already copied, this command has no effect either.
+   * Else, it copies the GraalVM distribution, as described in [[nativeImageGraalVmCopyBase]].
+   *
+   * You may want to run this command early in your CI, so that the copied GraalVM distribution
+   * gets picked early on.
+   */
+  def nativeImageMaybeCopyGraal(): Command[Unit] =
+    if (nativeImageGraalVmCopyBase.isEmpty)
+      Task.Command {}
+    else
+      Task.Command {
+        val originalHome = jvmWorker().javaHome().map(_.path).getOrElse {
+          sys.error("No JVM defined via jvmWorker")
+        }
+        for (dest <- maybeCopiedGraalVmHome(originalHome))
+          if (os.exists(dest))
+            System.err.println(s"$dest already exists")
+          else {
+            System.err.println(s"Copying $originalHome to $dest")
+            os.copy(originalHome, dest, createFolders = true)
+          }
+      }
 }

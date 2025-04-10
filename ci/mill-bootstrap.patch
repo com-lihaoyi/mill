@@ -1,19 +1,26 @@
 diff --git a/dist/package.mill b/dist/package.mill
-index d0d68e63fce..7a91f6de8b9 100644
+index e93db5bd1d0..52954600e2b 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
-@@ -342,41 +342,10 @@ object `package` extends RootModule with InstallModule {
+@@ -343,87 +343,10 @@ object `package` extends RootModule with InstallModule {
  
      def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
  
 -    // copying the original method from NativeImageModule until re-bootstrapping
--    // for the withRevalidateOnce
+-    // for the withRevalidateOnce and the GraalVM copy stuff
 -    def nativeImageTool: T[PathRef] = Task {
 -      jvmWorker().javaHome().map(_.path)
 -        .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
 -        case Some(home) =>
--          val tool = if (scala.util.Properties.isWin) "native-image.cmd" else "native-image"
--          val path = home / "bin" / tool
+-          val tool = if (Properties.isWin) "native-image.cmd" else "native-image"
+-          val actualHome = maybeCopiedGraalVmHome(home, checkExists = true) match {
+-            case Some(home0) =>
+-              System.err.println(s"Using $home0 as GraalVM")
+-              home0
+-            case None =>
+-              home
+-          }
+-          val path = actualHome / "bin" / tool
 -          if (os.exists(path))
 -            // native-image is externally managed, better revalidate it at least once
 -            PathRef(path).withRevalidateOnce
@@ -25,6 +32,46 @@ index d0d68e63fce..7a91f6de8b9 100644
 -
      def jvmWorker = ModuleRef(JvmWorkerGraalvm)
  
+-    def nativeImageGraalVmCopyBase: Option[os.Path] =
+-      if (Properties.isWin && System.getenv("CI") != null)
+-        Some(os.Path("C:/jvms"))
+-      else
+-        None
+-
+-    private def maybeCopiedGraalVmHome(
+-        home: os.Path,
+-        checkExists: Boolean = false
+-    ): Option[os.Path] =
+-      nativeImageGraalVmCopyBase
+-        .map { base =>
+-          import java.math.BigInteger
+-          import java.security.MessageDigest
+-          val sha1 = {
+-            val bytes = MessageDigest.getInstance("SHA-1").digest(home.toString.getBytes)
+-            val baseSha1 = new BigInteger(1, bytes).toString(16)
+-            "0" * (40 - baseSha1.length) + baseSha1
+-          }
+-          base / sha1.take(8)
+-        }
+-        .filter(dir => !checkExists || os.exists(dir))
+-
+-    def nativeImageMaybeCopyGraal(): Command[Unit] =
+-      if (nativeImageGraalVmCopyBase.isEmpty)
+-        Task.Command {}
+-      else
+-        Task.Command {
+-          val originalHome = jvmWorker().javaHome().map(_.path).getOrElse {
+-            sys.error("No JVM defined via jvmWorker")
+-          }
+-          for (dest <- maybeCopiedGraalVmHome(originalHome))
+-            if (os.exists(dest))
+-              System.err.println(s"$dest already exists")
+-            else {
+-              System.err.println(s"Copying $originalHome to $dest")
+-              os.copy(originalHome, dest, createFolders = true)
+-            }
+-        }
+-
      object JvmWorkerGraalvm extends JvmWorkerModule {
        def jvmId = build.Settings.graalvmJvmId
 -      // copying the original method from NativeImageModule until re-bootstrapping
@@ -37,7 +84,6 @@ index d0d68e63fce..7a91f6de8b9 100644
 -            ctx = Some(implicitly[mill.api.Ctx.Log]),
 -            jvmIndexVersion = jvmIndexVersion()
 -          ).get
--          // Java home is externally managed, better revalidate it at least once
 -          PathRef(path, quick = true).withRevalidateOnce
 -        }
 -      }
