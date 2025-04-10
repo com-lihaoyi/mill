@@ -43,7 +43,7 @@ private[mill] class LinePrefixOutputStream(
       if (bufferString.length > 0) {
         val s = fansi.Str.apply(bufferString, errorMode = fansi.ErrorMode.Sanitize)
         if (s.length > 0) {
-          // only change last value if we have some ansi string
+          // only change last value if we have some proper ansi string
           endOfLastLineColor = s.getColor(s.length - 1)
         }
       }
