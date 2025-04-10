@@ -11,11 +11,18 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
       val result1 =
         tester.eval(("--meta-level", "1", "show", "compileClasspath"), stderr = os.Inherit)
       val deserialized = upickle.default.read[Seq[mill.define.PathRef]](result1.out)
+      val millPublishedJars = deserialized
+        .map(_.path.last)
+        .filter(_.startsWith("mill-"))
+        .sorted
+      val millLocalClasspath = deserialized
+        .map(_.path)
+        .filter(_.startsWith(workspaceRoot))
+        .map(_.subRelativeTo(workspaceRoot))
+        .filter(!_.startsWith("out/integration"))
+        .map(_.toString)
+        .sorted
       if (sys.env("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER") == "true") {
-        val simplified = deserialized
-          .map(_.path.last)
-          .filter(_.startsWith("mill-"))
-          .sorted
 
         val expected = List(
           "mill-bsp_3.jar",
@@ -42,15 +49,9 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           "mill-testrunner_3.jar"
         )
 
-        assert(simplified == expected)
+        assert(millPublishedJars == expected)
+        assert(millLocalClasspath == Nil)
       } else {
-        val simplified = deserialized
-          .map(_.path)
-          .filter(_.startsWith(workspaceRoot))
-          .map(_.subRelativeTo(workspaceRoot))
-          .filter(!_.startsWith("out/integration"))
-          .map(_.toString)
-          .sorted
 
         // Make sure we don't include `core. exec`, `core.resolve`, `core`, `runner`, `runner.server`,
         // etc. since users should not need to write code that compiles against those interfaces
@@ -88,7 +89,8 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           "scalalib/resources"
         )
 
-        assert(simplified == expected)
+        assert(millLocalClasspath == expected)
+        assert(millPublishedJars == Seq("mill-moduledefs_3-0.11.3-M5.jar"))
       }
     }
   }
