@@ -1,12 +1,10 @@
-//[source,scala]
-//----
 //// SNIPPET:BUILD
-// This section sets up a basic Android project using Mill. <1>
+// This section sets up a basic Android project using Mill.
 // We utilize `AndroidAppModule` and `AndroidSdkModule` to streamline the process of
 // building an Android application with minimal configuration.
 //
 // By extending `AndroidAppModule`, we inherit all Android-related tasks such as
-// resource generation, APK building, DEX conversion, and APK signing. <2>
+// resource generation, APK building, DEX conversion, and APK signing.
 // Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
 
 package build
@@ -15,12 +13,12 @@ import mill._, javalib._
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 import mill.javalib.android.AndroidTestModule
 
-// Create and configure an Android SDK module to manage Android SDK paths and tools. <3>
+// Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
-// Actual android application <4>
+// Actual android application
 object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
@@ -32,21 +30,21 @@ object app extends AndroidAppModule {
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") } // <5>
+  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDeviceIdentifier: String = "java-test"
 
-  // Unit tests for the application <6>
+  // Unit tests for the application
   object test extends AndroidAppTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Seq(
       ivy"junit:junit:4.13.2"
     )
   }
 
-  // Instrumented tests (runs on device/emulator) <7>
+  // Instrumented tests (runs on emulator)
   object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {
     def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
     override def instrumentationPackage = "com.helloworld.app"
@@ -69,14 +67,6 @@ object app extends AndroidAppModule {
 
 }
 //// SNIPPET:END
-//----
-//<1> High-level summary of the build file, describing how it sets up an Android project in Mill.
-//<2> Explanation of how `AndroidAppModule` automatically provides tasks for building an Android app (resource generation, APK building, signing, etc.).
-//<3> The `androidSdkModule0` object extends `AndroidSdkModule`, controlling SDK versioning and tool paths.
-//<4> The `app` object defines the main Android application module by extending `AndroidAppModule`.
-//<5> **Release key configuration**. These lines demonstrate how to declare release key credentials (FOR DEMO ONLY - DO NOT use in production).
-//<6> The `test` object includes local JUnit-based unit tests.
-//<7> The `it` object includes instrumented tests, which run on an emulator
 
 ////SNIPPET:END
 
