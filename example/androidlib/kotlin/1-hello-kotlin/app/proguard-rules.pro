@@ -1,6 +1,6 @@
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
-# override def proguardReleaseConfigs: T[Seq[PathRef]] in build.mill
+# override def proguardConfigs: T[Seq[PathRef]] in build.mill
 
 #
 # For more details, see
