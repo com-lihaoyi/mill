@@ -18,7 +18,6 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         .filter(!_.startsWith("out/integration"))
         .map(_.toString)
         .sorted
-      pprint.log(simplified)
 
       // Make sure we don't include `core. exec`, `core.resolve`, `core`, `runner`, `runner.server`,
       // etc. since users should not need to write code that compiles against those interfaces
