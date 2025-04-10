@@ -4,7 +4,7 @@ import mill.define.ModuleRef
 import mill.util.Jvm
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 
-import scala.util.{Properties, Using}
+import scala.util.Using
 
 trait InstallModule extends build.MillPublishJavaModule {
   // All modules that we want to aggregate as part of this `dev` assembly.
@@ -362,43 +362,6 @@ object `package` extends RootModule with InstallModule {
 
     def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
-    def maybeCopyGraal(): Command[Unit] = Task.Command {
-
-      def resolveJavaHome(id: String): java.io.File = {
-        import coursier.cache.{ArchiveCache, FileCache}
-        import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
-        import coursier.util.Task
-        import coursier.Resolve
-        val coursierCache0 = FileCache[Task]()
-          .withLogger(coursier.cache.loggers.RefreshLogger.create())
-        val jvmCache = JvmCache()
-          .withArchiveCache(ArchiveCache().withCache(coursierCache0))
-          .withIndex(
-            JvmIndex.load(
-              cache = coursierCache0,
-              repositories = Resolve().repositories,
-              indexChannel = JvmChannel.module(
-                JvmChannel.centralModule(),
-                version = build.Deps.coursierJvmIndexVersion
-              )
-            )
-          )
-
-        val javaHome = JavaHome().withCache(jvmCache)
-          // when given a version like "17", always pick highest version in the index
-          // rather than the highest already on disk
-          .withUpdate(true)
-
-        javaHome.get(id).unsafeRun()(coursierCache0.ec)
-      }
-
-      val dest = T.workspace / "jvm"
-      if (Properties.isWin && System.getenv("CI") != null && !os.exists(dest)) {
-        val path = resolveJavaHome(build.Settings.graalvmJvmId)
-        os.copy(os.Path(path), dest)
-      }
-    }
-
     object JvmWorkerGraalvm extends JvmWorkerModule {
       def jvmId = build.Settings.graalvmJvmId
       // copying the original method from NativeImageModule until re-bootstrapping
@@ -411,12 +374,8 @@ object `package` extends RootModule with InstallModule {
             ctx = Some(implicitly[mill.api.Ctx.Log]),
             jvmIndexVersion = jvmIndexVersion()
           ).get
-          if (Properties.isWin && System.getenv("CI") != null) {
-            val copied = T.workspace / "jvm"
-            System.err.println(s"Using $copied as GraalVM")
-            PathRef(copied, quick = true).withRevalidateOnce
-          } else
-            PathRef(path, quick = true).withRevalidateOnce
+          // Java home is externally managed, better revalidate it at least once
+          PathRef(path, quick = true).withRevalidateOnce
         }
       }
     }

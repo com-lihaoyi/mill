@@ -66,6 +66,3 @@ runs:
 
     - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
       shell: bash
-
-    - run: ./mill -i -k dist.native.maybeCopyGraal
-      shell: ${{ inputs.shell }}
