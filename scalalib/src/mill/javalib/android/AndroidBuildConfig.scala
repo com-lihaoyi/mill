@@ -3,6 +3,11 @@ package mill.javalib.android
 import mill.*
 import mill.api.PathRef
 
+/**
+ * Generates a BuildConfig.java file for Android applications.
+ * This is a basic implementation of AGP's build config feature!
+ */
+@mill.api.experimental
 trait AndroidBuildConfig extends mill.Module { this: AndroidAppModule =>
 
   def androidAppVersionCode: Task[Int] = Task { 1 }
@@ -10,7 +15,7 @@ trait AndroidBuildConfig extends mill.Module { this: AndroidAppModule =>
 
   /**
    * Generates a BuildConfig.java in the [[androidApplicationNamespace]] package
-   * TODO user configurable version code and version names
+   * TODO add support for custom fields
    */
   def generatedBuildConfig: T[PathRef] = Task {
     val buildType = if (androidIsDebug()) "debug" else "release"
