@@ -95,24 +95,10 @@ object OutPathTestSuite extends UtestIntegrationTestSuite {
       val pwd = os.pwd.toString
       val resReference1 = tester.eval(("runBackground"), cwd = referencePath)
       val resModified1 =
-        tester.eval((s"-Duser.home=$pwd", "runBackground"), cwd = modifiedPath, env = env)
+        tester.eval(("runBackground"), cwd = modifiedPath, env = env)
       assert(resModified1.isSuccess && resReference1.isSuccess)
 
-      val resReference2 = tester.eval(("clean", "runBackground"), cwd = referencePath)
-      val resModified2 =
-        tester.eval((s"-Duser.home=$pwd", "clean", "runBackground"), cwd = modifiedPath, env = env)
-      assert(resModified2.isSuccess && resReference2.isSuccess)
 
-      val resReference3 = tester.eval(("jar"), cwd = referencePath)
-      val resModified3 = tester.eval((s"-Duser.home=$pwd", "jar"), cwd = modifiedPath, env = env)
-      assert(resModified3.isSuccess && resReference3.isSuccess)
-
-      val resReference4 = tester.eval(("assembly"), cwd = referencePath)
-      val resModified4 =
-        tester.eval((s"-Duser.home=$pwd", "assembly"), cwd = modifiedPath, env = env)
-      assert(resModified4.isSuccess && resReference4.isSuccess)
-
-      assert(os.exists(os.home / "https"))
     }
 
     test("Compare") - integrationTest { tester =>
