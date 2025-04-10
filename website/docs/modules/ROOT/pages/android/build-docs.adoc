@@ -1,14 +1,9 @@
+= Android Build File
+
+This is an example of a build file for an Android application using Mill. It demonstrates how to set up an Android project, configure the SDK, and define tasks for building and testing the application.
+
 [source,scala]
 ----
-//// SNIPPET:BUILD
-// This section sets up a basic Android project using Mill. <1>
-// We utilize `AndroidAppModule` and `AndroidSdkModule` to streamline the process of
-// building an Android application with minimal configuration.
-//
-// By extending `AndroidAppModule`, we inherit all Android-related tasks such as
-// resource generation, APK building, DEX conversion, and APK signing. <2>
-// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
-
 package build
 
 import mill._, javalib._
