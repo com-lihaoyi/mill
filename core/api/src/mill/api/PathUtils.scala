@@ -11,18 +11,18 @@ import java.io.File;
  * Defines a trait which handles deerialization of paths, in a way that can be used by both path refs and paths
  */
 trait PathUtils {
+
   //TEMPORARY! A better solution needs to be found.
   def findOutRoot(): os.Path = {
     val outFolderName = OutFiles.out
-    val workingDir = os.Path(new File("").getCanonicalPath().toString)
-    val root = sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(workingDir)(os.Path(_, workingDir))
+    val root = os.Path(new File("").getCanonicalPath().toString)
     var currentPath = root
 
     for (i <- 1 to 100){
       if (os.exists(currentPath / "mill-java-home")) {
         return currentPath
       } else {
-        if (currentPath.segments.length == 1) {
+        if (currentPath == os.root) {
           return root
         } else {
           currentPath = currentPath / ".."
