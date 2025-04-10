@@ -27,5 +27,6 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     build.Deps.pprint,
     build.Deps.fansi,
     build.Deps.sbtTestInterface,
-    build.Deps.osLib)
+    build.Deps.osLib,
+    build.Deps.coursierJvm)
 }
