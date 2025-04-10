@@ -23,6 +23,9 @@ object CoursierClient {
       )
 
     val javaHome = JavaHome().withCache(jvmCache)
+      // when given a version like "17", always pick highest version in the index
+      // rather than the highest already on disk
+      .withUpdate(true)
 
     pprint.err.log(archiveCache.location)
     pprint.err.log(id)
