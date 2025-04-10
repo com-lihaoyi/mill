@@ -1,18 +1,20 @@
 package mill.scalalib
 
-import mill.api.{PathRef, Result, experimental}
-import mill.runner.api.SemanticDbJavaModuleApi
+import mill.api.{Result, experimental}
+import mill.api.internal.BspBuildTarget
+import mill.define.{PathRef}
+import mill.api.internal.SemanticDbJavaModuleApi
 import mill.define.ModuleRef
 import mill.util.BuildInfo
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
-import mill.scalalib.bsp.BspBuildTarget
+import mill.api.internal.BspBuildTarget
 import mill.util.Version
 import mill.{T, Task}
 
 import scala.util.Properties
 
 @experimental
-trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticDbJavaModuleApi {
+trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
   def jvmWorker: ModuleRef[JvmWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]
@@ -167,7 +169,7 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
 object SemanticDbJavaModule {
 
   def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(implicit
-      ctx: mill.api.Ctx
+      ctx: mill.define.TaskCtx
   ): Seq[String] = {
     // these are only needed for Java 17+
     val extracJavacExports =

@@ -1,6 +1,6 @@
 package mill.javalib.errorprone
 
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.scalalib.{Dep, DepSyntax, JavaModule}
 import mill.{T, Task}
 

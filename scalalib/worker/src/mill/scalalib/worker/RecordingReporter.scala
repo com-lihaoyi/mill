@@ -1,6 +1,6 @@
 package mill.scalalib.worker
 
-import mill.api.internal
+import mill.api.internal.internal
 import sbt.internal.inc.Analysis
 import xsbti.compile.CompileAnalysis
 

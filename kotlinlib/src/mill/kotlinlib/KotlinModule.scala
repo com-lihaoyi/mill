@@ -6,11 +6,11 @@
 package mill
 package kotlinlib
 
-import mill.api.{PathRef, Result, internal}
-import mill.define.{Command, ModuleRef, Task}
+import mill.api.Result
+import mill.define.{PathRef, Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, JvmWorkerApi}
-import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import mill.api.internal.{BspBuildTarget, BspModuleApi, CompileProblemReporter, internal}
 import mill.scalalib.{JavaModule, Lib, JvmWorkerModule}
 import mill.util.Jvm
 import mill.T
@@ -72,8 +72,6 @@ trait KotlinModule extends JavaModule { outer =>
    * Flag to use explicit API check in the compiler. Default is `false`.
    */
   def kotlinExplicitApi: T[Boolean] = Task { false }
-
-  type CompileProblemReporter = mill.runner.api.CompileProblemReporter
 
   protected def jvmWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
 
@@ -400,8 +398,8 @@ trait KotlinModule extends JavaModule { outer =>
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     languageIds = Seq(
-      mill.runner.api.BspModuleApi.LanguageId.Java,
-      mill.runner.api.BspModuleApi.LanguageId.Kotlin
+      BspModuleApi.LanguageId.Java,
+      BspModuleApi.LanguageId.Kotlin
     ),
     canCompile = true,
     canRun = true

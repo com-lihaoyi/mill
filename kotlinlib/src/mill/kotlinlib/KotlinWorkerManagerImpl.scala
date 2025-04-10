@@ -6,16 +6,16 @@
 package mill.kotlinlib
 
 import mill.PathRef
-import mill.api.Ctx
+import mill.define.TaskCtx
 import mill.kotlinlib.worker.api.KotlinWorker
 
 import java.net.{URL, URLClassLoader}
 
-class KotlinWorkerManagerImpl(ctx: Ctx) extends KotlinWorkerManager with AutoCloseable {
+class KotlinWorkerManagerImpl(ctx: TaskCtx) extends KotlinWorkerManager with AutoCloseable {
 
   private var workerCache: Map[Seq[PathRef], (KotlinWorker, Int)] = Map.empty
 
-  override def get(toolsClasspath: Seq[PathRef])(implicit ctx: Ctx): KotlinWorker = {
+  override def get(toolsClasspath: Seq[PathRef])(implicit ctx: TaskCtx): KotlinWorker = {
     val toolsCp = toolsClasspath.distinct
     val (worker, count) = workerCache.get(toolsCp) match {
       case Some((w, count)) =>

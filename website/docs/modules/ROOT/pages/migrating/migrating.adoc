@@ -277,7 +277,7 @@ new Mill build:
 * You may need to update code to use the `MILL_TEST_RESOURCE_DIR` environment variable
   rather than the `"resources/"` folder directly in code, since Mill runs tests in
   xref:depth/sandboxing.adoc[Sandboxes] that guard against unwanted filesystem access.
-* Similarly, you may need to us `Task.workspace` or `mill.api.WorkspaceRoot.workspaceRoot`
+* Similarly, you may need to us `Task.workspace` or `WorkspaceRoot.workspaceRoot`
   to access the project root folder in custom build tasks, since the Mill build process
   also runs in a sandbox by default
 * Some tests may require xref:fundamentals/configuring-jvm-versions.adoc[] to run

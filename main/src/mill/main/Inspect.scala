@@ -44,7 +44,7 @@ private object Inspect {
       }
     }
 
-    def renderFileName(ctx: mill.define.Ctx) = {
+    def renderFileName(ctx: mill.define.ModuleCtx) = {
       // handle both Windows or Unix separators
       val fullFileName = ctx.fileName.replaceAll(raw"\\", "/")
       val basePath = WorkspaceRoot.workspaceRoot.toString.replaceAll(raw"\\", "/") + "/"

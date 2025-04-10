@@ -1,6 +1,6 @@
 package mill.playlib
 
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
 import mill.scalalib.api._

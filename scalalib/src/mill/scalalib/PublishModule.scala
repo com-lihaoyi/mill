@@ -3,7 +3,8 @@ package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task, TaskModule}
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.javalib.android.AndroidLibModule
 import mill.util.JarManifest
 import mill.util.Tasks

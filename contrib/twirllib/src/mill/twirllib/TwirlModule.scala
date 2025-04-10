@@ -2,7 +2,7 @@ package mill
 package twirllib
 
 import coursier.Repository
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.scalalib.*
 
 import mill.define.Task

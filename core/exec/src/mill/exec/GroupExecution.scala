@@ -11,7 +11,8 @@ import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.runner.api.{SystemStreams => _, _}
+import mill.api.{SystemStreams => _, _}
+import mill.api.internal.{EvaluatorApi, BaseModuleApi, CompileProblemReporter, TestReporter}
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -50,7 +51,7 @@ private trait GroupExecution {
       deps: Seq[Task[?]],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
-      executionContext: mill.api.Ctx.Fork.Api,
+      executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean
   ): GroupExecution.Results = {
     logger.withPromptLine {
@@ -195,7 +196,7 @@ private trait GroupExecution {
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
-      executionContext: mill.api.Ctx.Fork.Api,
+      executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
       isCommand: Boolean,
       deps: Seq[Task[?]]
@@ -228,7 +229,7 @@ private trait GroupExecution {
       val res = {
         if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
-          val args = new mill.api.Ctx.Impl(
+          val args = new mill.define.TaskCtx.Impl(
             args = targetInputValues.map(_.value).toIndexedSeq,
             dest0 = () => makeDest(),
             log = multiLogger,
@@ -266,7 +267,7 @@ private trait GroupExecution {
 
             os.dynamicPwdFunction.withValue(destFunc) {
               os.checker.withValue(executionChecker) {
-                SystemStreams.withStreams(streams) {
+                mill.define.SystemStreams.withStreams(streams) {
                   val exposedEvaluator =
                     if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
                   Evaluator.currentEvaluator0.withValue(exposedEvaluator) {

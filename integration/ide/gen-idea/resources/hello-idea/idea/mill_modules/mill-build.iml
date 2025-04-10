@@ -71,7 +71,6 @@
         <orderEntry type="library" name="mill-main_3.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
         <orderEntry type="library" name="mill-pythonlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalajslib-worker-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalajslib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalalib-api_3.jar" level="project"/>

@@ -1,7 +1,5 @@
 package mill.define
 
-import mill.api.WorkspaceRoot
-
 /**
  * A module defined outside of the `build.mill` file, and is instead
  * provided builtin by some Mill library or plugin

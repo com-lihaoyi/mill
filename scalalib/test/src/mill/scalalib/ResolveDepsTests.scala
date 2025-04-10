@@ -2,7 +2,8 @@ package mill.scalalib
 
 import coursier.maven.MavenRepository
 import mill.api.Result.{Failure, Success}
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 
 import mill.define.{Discover, Task}
 import mill.testkit.{TestBaseModule, UnitTester}

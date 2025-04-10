@@ -1,8 +1,8 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j._
-import mill.runner.api.Logger
-import mill.runner.api.ProxyLogger
+import mill.api.Logger
+import mill.api.ProxyLogger
 
 /**
  * BSP-specialized logger class which sends `task-progress`
