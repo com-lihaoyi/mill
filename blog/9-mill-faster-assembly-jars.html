@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -369,7 +369,7 @@ to build an assembly that we can run using <code>java -jar</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show assembly
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show assembly
 &quot;.../out/assembly.dest/out.jar&quot;
 Total time: 27s
 
@@ -422,7 +422,7 @@ that built in by default.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sbt assembly
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sbt assembly
 Built: .../target/scala-2.12/spark-app-assembly-0.1.jar
 Total time: 18s
 
@@ -540,7 +540,7 @@ that you can execute with <code>java -jar</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mvnw package
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mvnw package
 Building jar: .../target/spark-app-0.1-jar-with-dependencies.jar
 Total time: 20s
 
@@ -579,7 +579,7 @@ the code and re-build the assembly:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; echo &quot;class dummy&quot; &gt;&gt; src/main/scala/foo/Foo.scala
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo &quot;class dummy&quot; &gt;&gt; src/main/scala/foo/Foo.scala
 
 &gt; ./mill show assembly
 &quot;.../out/assembly.dest/out.jar&quot;
@@ -602,7 +602,7 @@ does contain classfiles associated with our newly-added code:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; jar tf out/assembly.dest/out.jar | grep dummy
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; jar tf out/assembly.dest/out.jar | grep dummy
 foo/dummy.class
 
 &gt; jar tf target/scala-2.12/spark-app-assembly-0.1.jar | grep dummy

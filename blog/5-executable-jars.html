@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -235,7 +235,7 @@ assembly jars it creates are directly executable:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.assembly # generate the assembly jar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.assembly # generate the assembly jar
 &quot;ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar&quot;
 
 &gt; out/foo/assembly.dest/out.jar # run the assembly jar directly
@@ -287,7 +287,7 @@ public class Foo{
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.assembly
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.assembly
 &quot;ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar&quot;
 
 &gt; /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
@@ -330,7 +330,7 @@ of a <code>.jar</code> file, <code>unzip -l</code> works as well:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; jar tf /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; jar tf /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
 META-INF/MANIFEST.MF
 META-INF/
 foo/
@@ -339,7 +339,7 @@ foo/Foo.class</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; unzip -l /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; unzip -l /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
 Archive:  /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
 warning [/Users/lihaoyi/test/out/foo/assembly.dest/out.jar]:  203 extra bytes at beginning or within zipfile
   (attempting to process anyway)
@@ -365,7 +365,7 @@ metadata including the <code>Main-Class: foo.Foo</code> which is the entrypoint 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ unzip -p /Users/lihaoyi/test/out/foo/assembly.dest/out.jar META-INF/MANIFEST.MF
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ unzip -p /Users/lihaoyi/test/out/foo/assembly.dest/out.jar META-INF/MANIFEST.MF
 warning [/Users/lihaoyi/test/out/foo/assembly.dest/out.jar]:  203 extra bytes at beginning or within zipfile
   (attempting to process anyway)
 Manifest-Version: 1.0
@@ -769,7 +769,7 @@ N&lt;91&gt;&lt;FA&gt;%&lt;FD&gt;3ri^T*&lt;8F&gt;&lt;E1&gt;1&lt;8B&gt;&lt;E8&gt;C
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.assembly # generate the assembly jar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.assembly # generate the assembly jar
 &quot;ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar&quot;
 
 &gt; out/foo/assembly.dest/out.jar # run the assembly jar directly
@@ -782,7 +782,7 @@ Hello World</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.assembly
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.assembly
 &quot;ref:v0:bd2c6c70:C:\\Users\\haoyi\\test\\out\\foo\\assembly.dest\\out.jar&quot;
 
 &gt; cp out\foo\assembly.dest\out.jar out.bat

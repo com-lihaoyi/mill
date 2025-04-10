@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -703,7 +703,7 @@ Native for native integration and <code>mainargs</code> for command-line argumen
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run --text hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run --text hello
 &lt;h1&gt;hello&lt;/h1&gt;
 
 &gt; ./mill show nativeLink  # Build and link native binary
@@ -772,7 +772,7 @@ can be extended if necessary to more elaborate use cases.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 Running HelloWorld function
 Done...
 Reversed: !dlroW ,olleH
@@ -857,7 +857,7 @@ and also Scala user forum <a href="https://users.scala-lang.org/t/how-to-test-sc
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.run hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.run hello
 Running HelloWorld function
 Done...
 Bar value: Argument length is 5
@@ -912,7 +912,7 @@ object `package` extends RootModule with ScalaNativeModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 ...
 Value: &lt;h1&gt;hello&lt;/h1&gt;
 

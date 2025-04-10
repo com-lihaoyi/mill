@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -843,7 +843,7 @@ console.log(&quot;Hello &quot; + user.name + &quot; &quot; + user.lastName)</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill compile
 error: .../src/hello.ts(...): error ... Property 'name' does not exist on type...
 
 &gt; sed -i.bak 's/user.name/user.firstName/g' src/hello.ts
@@ -962,7 +962,7 @@ the user, rather than capturing it for use in our command.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run James Bond
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill run James Bond
 Hello James Bond</code></pre>
 </div>
 </div>
@@ -1064,7 +1064,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; Qux&quot;)</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run James
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run James
 Hello James Foo
 
 &gt; mill foo.bar.run James
@@ -1084,11 +1084,6 @@ but they are each independent and do not depend on one another.</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 522.6,-363 522.6,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-116 504.16,-116 504.16,-8 14.44,-8"></polygon>
-<text text-anchor="middle" x="259.3" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 510.6,-351 510.6,-124 8,-124"></polygon>
@@ -1098,6 +1093,11 @@ but they are each independent and do not depend on one another.</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 502.6,-318 502.6,-210 16,-210"></polygon>
 <text text-anchor="middle" x="259.3" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-116 504.16,-116 504.16,-8 14.44,-8"></polygon>
+<text text-anchor="middle" x="259.3" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -1455,7 +1455,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; &quot; + user.lastName 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run James Bond
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill qux.run James Bond
 Hello James Bond Professor</code></pre>
 </div>
 </div>
@@ -1832,7 +1832,7 @@ standalone using <code>node</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run James Bond prof
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill qux.run James Bond prof
 Hello James Bond Professor
 
 &gt; mill show qux.bundle
@@ -1852,11 +1852,6 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 701.13,-363 701.13,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
-<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 558.42,-351 558.42,-124 8,-124"></polygon>
@@ -1866,6 +1861,11 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 550.42,-318 550.42,-210 16,-210"></polygon>
 <text text-anchor="middle" x="283.21" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
+<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">

@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -618,7 +618,7 @@ run things on a single thread:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">netty$ ./mill show 'codec-{dns,haproxy,http,http2,memcache,mqtt,redis,smtp,socks,stomp,xml}.__.discoveredTestClasses' + 'transport-{blockhound-tests,native-unix-common,sctp}.__.discoveredTestClasses'
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">netty$ ./mill show 'codec-{dns,haproxy,http,http2,memcache,mqtt,redis,smtp,socks,stomp,xml}.__.discoveredTestClasses' + 'transport-{blockhound-tests,native-unix-common,sctp}.__.discoveredTestClasses'
 mill$ ./mill -j1 scalalib.test</code></pre>
 </div>
 </div>
@@ -951,6 +951,22 @@ making full use of the three cores available in the example:</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 156.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-156 491.85,-156 491.85,4 -4,4"></polygon>
+<g id="clust3" class="cluster">
+<title>cluster_c3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 357.08,-48 357.08,-8 254.31,-8"></polygon>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_c1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 357.08,-144 357.08,-104 254.31,-104"></polygon>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_c4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-104 377.08,-144 479.85,-144 479.85,-104 377.08,-104"></polygon>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_c5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-56 377.08,-96 479.85,-96 479.85,-56 377.08,-56"></polygon>
+</g>
 <g id="clust6" class="cluster">
 <title>cluster_c6</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-8 377.08,-48 479.85,-48 479.85,-8 377.08,-8"></polygon>
@@ -958,6 +974,18 @@ making full use of the three cores available in the example:</p>
 <g id="clust7" class="cluster">
 <title>cluster_b1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 111.15,-48 111.15,-8 8.38,-8"></polygon>
+</g>
+<g id="clust8" class="cluster">
+<title>cluster_b2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"></polygon>
+</g>
+<g id="clust9" class="cluster">
+<title>cluster_b3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_c2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 357.08,-96 357.08,-56 254.31,-56"></polygon>
 </g>
 <g id="clust10" class="cluster">
 <title>cluster_b4</title>
@@ -970,34 +998,6 @@ making full use of the three cores available in the example:</p>
 <g id="clust12" class="cluster">
 <title>cluster_a2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-56 8,-96 111.54,-96 111.54,-56 8,-56"></polygon>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_c2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 357.08,-96 357.08,-56 254.31,-56"></polygon>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_c1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 357.08,-144 357.08,-104 254.31,-104"></polygon>
-</g>
-<g id="clust8" class="cluster">
-<title>cluster_b2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"></polygon>
-</g>
-<g id="clust9" class="cluster">
-<title>cluster_b3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_c5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-56 377.08,-96 479.85,-96 479.85,-56 377.08,-56"></polygon>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_c3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 357.08,-48 357.08,-8 254.31,-8"></polygon>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_c4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-104 377.08,-144 479.85,-144 479.85,-104 377.08,-104"></polygon>
 </g>
 <!-- TestClassB1 -->
 <g id="node1" class="node">
@@ -1273,29 +1273,21 @@ a new one created for the new test class’s module.</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 156.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-156 491.85,-156 491.85,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_c1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 479.85,-144 479.85,-104 254.31,-104"></polygon>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_c2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 479.85,-96 479.85,-56 254.31,-56"></polygon>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_c3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 479.85,-48 479.85,-8 254.31,-8"></polygon>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_b1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 234.31,-48 234.31,-8 8.38,-8"></polygon>
+<g id="clust6" class="cluster">
+<title>cluster_b3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_b2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"></polygon>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_b3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
+<g id="clust4" class="cluster">
+<title>cluster_b1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 234.31,-48 234.31,-8 8.38,-8"></polygon>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_c3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 479.85,-48 479.85,-8 254.31,-8"></polygon>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_a1</title>
@@ -1304,6 +1296,14 @@ a new one created for the new test class’s module.</p>
 <g id="clust8" class="cluster">
 <title>cluster_a2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-56 8,-96 111.54,-96 111.54,-56 8,-56"></polygon>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_c1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 479.85,-144 479.85,-104 254.31,-104"></polygon>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_c2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 479.85,-96 479.85,-56 254.31,-56"></polygon>
 </g>
 <!-- TestClassB1 -->
 <g id="node1" class="node">
@@ -1560,6 +1560,10 @@ without needing to spawn a second process and paying the cost of doing so.</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 156.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-156 492.62,-156 492.62,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_c1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 480.62,-48 480.62,-8 8.38,-8"></polygon>
+</g>
 <g id="clust4" class="cluster">
 <title>cluster_c5</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="255.08,-104 255.08,-144 480.62,-144 480.62,-104 255.08,-104"></polygon>
@@ -1571,10 +1575,6 @@ without needing to spawn a second process and paying the cost of doing so.</p>
 <g id="clust2" class="cluster">
 <title>cluster_b1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-56 8.38,-96 480.62,-96 480.62,-56 8.38,-56"></polygon>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_c1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 480.62,-48 480.62,-8 8.38,-8"></polygon>
 </g>
 <!-- TestClassC1 -->
 <g id="node1" class="node">
@@ -1855,12 +1855,15 @@ ran using Mill in the above examples, we used these commands, resulting in the f
 timings for various testing strategies:</p>
 </div>
 <div class="listingblock">
+<div class="title">Maven Serial</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Maven Serial
-./mvnw -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test
-
-# Maven Parallel
-./mvnw -T 10 -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mvnw -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Maven Parallel</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mvnw -T 10 -pl codec-dns,codec-haproxy,codec-http,codec-http2,codec-memcache,codec-mqtt,codec-redis,codec-smtp,codec-socks,codec-stomp,codec-xml,transport-blockhound-tests,transport-native-unix-common,transport-sctp test</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1934,7 +1937,7 @@ Mill and Gradle are shown below, along with the timings:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill test + subprojects.android.test + subprojects.errorprone.test + subprojects.extTest.test + subprojects.inlineTest.test + subprojects.junit-jupiter.test + subprojects.junitJupiterExtensionTest.test + subprojects.junitJupiterInlineMockMakerExtensionTest.test + subprojects.junitJupiterParallelTest.test + subprojects.memory-test.test + subprojects.programmatic-test.test + subprojects.proxy.test + subprojects.subclass.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill test + subprojects.android.test + subprojects.errorprone.test + subprojects.extTest.test + subprojects.inlineTest.test + subprojects.junit-jupiter.test + subprojects.junitJupiterExtensionTest.test + subprojects.junitJupiterInlineMockMakerExtensionTest.test + subprojects.junitJupiterParallelTest.test + subprojects.memory-test.test + subprojects.programmatic-test.test + subprojects.proxy.test + subprojects.subclass.test
 
 $ ./gradlew cleanTest &amp;&amp; ./gradlew :test android:test errorprone:test extTest:test inlineTest:test junit-jupiter:test junitJupiterExtensionTest:test junitJupiterInlineMockMakerExtensionTest:test junitJupiterParallelTest:test memory-test:test programmatic-test:test proxy:test subclass:test</code></pre>
 </div>
@@ -2014,7 +2017,7 @@ and repeating the benchmarks gives us the timings below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill __.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill __.test
 $ sbt test</code></pre>
 </div>
 </div>

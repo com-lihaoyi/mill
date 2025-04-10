@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -905,7 +905,7 @@ common kind of tasks:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show assembly
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show assembly
 &quot;.../out/assembly.dest/assembly.jar&quot;
 
 &gt; java -jar out/assembly.dest/assembly.jar i am cow
@@ -1310,7 +1310,7 @@ documentation for more details:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show lineCount
 Computing line count
 18
 
@@ -1462,7 +1462,7 @@ def jar = Task {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill jar
 Generating classfiles
 Generating jar
 
@@ -1572,7 +1572,7 @@ in <code>def largeFile</code> above running even though the <code>largeFile()</c
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show lineCount
 18
 
 &gt; ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() &lt; 999`
@@ -1639,7 +1639,7 @@ def summarizeClassFileStats = Task {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show summarizeClassFileStats
 {
   &quot;totalFileSize&quot;: ...,
   &quot;largestFile&quot;: &quot;...&quot;
@@ -1727,7 +1727,7 @@ params of the form <code>--main-class &lt;str&gt; &lt;arg1&gt; &lt;arg2&gt; â€¦â
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run --main-class foo.Foo hello world
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run --main-class foo.Foo hello world
 Foo.value: 31337
 args: hello world
 foo.txt resource: My Example Text</code></pre>
@@ -1755,7 +1755,7 @@ arguments to be passed positionally, as shown below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run foo.Foo hello world # this raises an error because `--main-class` is not given
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run foo.Foo hello world # this raises an error because `--main-class` is not given
 error: Missing argument: --mainClass &lt;str&gt;
 Expected Signature: run
   --mainClass &lt;str&gt;
@@ -1826,7 +1826,7 @@ even if the external <code>git</code> status changes:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git init .
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init .
 &gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
 
 &gt; ./mill show gitStatusTask
@@ -1866,7 +1866,7 @@ the output of <code>gitStatusInput</code> changes will <code>gitStatusTask2</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
 
 &gt; ./mill show gitStatusTask2
 &quot;version-...-Initial-Commit&quot;
@@ -1907,7 +1907,7 @@ def myPropertyTask = Task {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show myPropertyTask
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show myPropertyTask
 &quot;Hello Prop null&quot;
 
 &gt; ./mill -Dmy-property=world show myPropertyTask # Task is correctly invalidated when prop is added
@@ -1944,7 +1944,7 @@ def myEnvTask = Task {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show myEnvTask
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show myEnvTask
 &quot;Hello Env null&quot;
 
 &gt; MY_ENV=world ./mill show myEnvTask # Task is correctly invalidated when env is added
@@ -2032,7 +2032,7 @@ the disk contents to start fresh.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show compressedData
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show compressedData
 Evaluating compressedData
 Compressing: hello.txt
 Compressing: world.txt
@@ -2183,7 +2183,7 @@ in-memory cache</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show compressedData
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show compressedData
 Evaluating compressedData
 Compressing: hello.txt
 Compressing: world.txt
@@ -2369,7 +2369,7 @@ def compressed3 = Task {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; # 3 streams are created on demand, 1 is torn down afer due to maxCacheSize = 2 limit
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; # 3 streams are created on demand, 1 is torn down afer due to maxCacheSize = 2 limit
 &gt; ./mill show '{compressed1,compressed2,compressed3}'
 setup ByteArrayOutputStream
 setup ByteArrayOutputStream
@@ -2431,7 +2431,7 @@ altogether.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show helloFileData
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show helloFileData
 &quot;Hello&quot;
 
 &gt; ./mill printFileData --file-name hello.txt

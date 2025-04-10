@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -745,7 +745,7 @@ a task of interest, such as <code>run</code>, you can visualize their relationsh
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill visualizePlan run</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill visualizePlan run</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -784,7 +784,7 @@ the same</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill run
 Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 FooA.value: hello A
@@ -836,7 +836,7 @@ object `package` extends RootModule with KotlinModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 hello WORLD
 
 &gt; echo 'fun deprecatedMain(){Thread.currentThread().stop()}' &gt;&gt; src/foo/Foo.kt
@@ -855,7 +855,7 @@ via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.runLocal</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.runLocal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -868,8 +868,8 @@ them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.run arg1 arg2 arg3
-mill foo.runLocal arg1 arg2 arg3</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run arg1 arg2 arg3
+&gt; mill foo.runLocal arg1 arg2 arg3</code></pre>
 </div>
 </div>
 </div>
@@ -903,7 +903,7 @@ object foo extends KotlinModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
 ... foo.FooTests...simple ...
 ...</code></pre>
 </div>
@@ -1098,7 +1098,7 @@ object foo extends KotlinModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
 Test foo.ProjectTest simple started
 Test foo.ProjectTest simple finished...
 ...</code></pre>
@@ -1128,7 +1128,7 @@ object foo extends KotlinModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.docJar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.docJar
 ...
 ...Generation completed successfully...
 
@@ -1165,7 +1165,7 @@ some library you can explicitly specify which one to use.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 Hello Qux</code></pre>
 </div>
 </div>
@@ -1382,7 +1382,7 @@ implementation.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run --text hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill run --text hello
 text: hello
 MyDeps.value: com.github.ajalt.clikt:clikt-jvm:4.4.0
 my.line.count: 17
@@ -1520,7 +1520,7 @@ object foo3 extends KotlinModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
 Compiling...
 Running...
 Hello World</code></pre>
@@ -1612,7 +1612,7 @@ can also be extracted out into a <code>trait</code> for re-use if you have multi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 Hello, World!
 
 &gt; ./mill test

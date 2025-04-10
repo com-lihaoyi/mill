@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -748,7 +748,7 @@ a task of interest, such as <code>run</code>, you can visualize their relationsh
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill visualizePlan run</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill visualizePlan run</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -787,7 +787,7 @@ the same</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill run
 Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 FooA.value: hello A
@@ -814,7 +814,7 @@ my.custom.property: my-prop-value</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/Foo2 {/Foo2 { println(this + &quot;hello&quot;)/g' custom-src/Foo2.scala
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sed -i.bak 's/Foo2 {/Foo2 { println(this + &quot;hello&quot;)/g' custom-src/Foo2.scala
 
 &gt; mill compile # demonstrate -deprecation/-Xfatal-warnings flags
 error: object Foo2 { println(this + &quot;hello&quot;)
@@ -846,7 +846,7 @@ object `package` extends RootModule with ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 hello WORLD</code></pre>
 </div>
 </div>
@@ -860,7 +860,7 @@ via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.runLocal</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.runLocal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -873,8 +873,8 @@ them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.run arg1 arg2 arg3
-mill foo.runLocal arg1 arg2 arg3</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run arg1 arg2 arg3
+&gt; mill foo.runLocal arg1 arg2 arg3</code></pre>
 </div>
 </div>
 </div>
@@ -909,7 +909,7 @@ object foo extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
 ... foo.FooTests...simple ...
 ...</code></pre>
 </div>
@@ -1075,7 +1075,7 @@ use the  <code>:::</code> syntax shown above in the example.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
 ...
 error: Unwanted cyclic dependency
 error: ...src/Foo.scala...
@@ -1108,7 +1108,7 @@ object foo extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.docJar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.docJar
 
 &gt; unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
 ...
@@ -1167,7 +1167,7 @@ documentation.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.docJar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show bar.docJar
 
 &gt; unzip -p out/bar/docJar.dest/out.jar bar/Bar.html
 ...
@@ -1198,7 +1198,7 @@ some library you can explicitly specify which one to use.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 Hello Qux</code></pre>
 </div>
 </div>
@@ -1242,7 +1242,7 @@ apply to the cross-module with that version prefix.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill resolve __.run
 foo[2.12.17].run
 foo[2.13.8].run
 bar[2.12.17].run
@@ -1331,7 +1331,7 @@ sources as browsable from the <code>unidocSourceUrl</code> base (e.g. on Github)
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.unidocLocal
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.unidocLocal
 &quot;.../out/foo/unidocLocal.dest&quot;
 
 &gt; cat out/foo/unidocLocal.dest/foo/Foo.html
@@ -1556,7 +1556,7 @@ implementation.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run --text hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill run --text hello
 text: hello
 MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
 my.line.count: 14
@@ -1694,7 +1694,7 @@ object foo3 extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
 Compiling...
 Running...
 Hello World</code></pre>

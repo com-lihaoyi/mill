@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -680,7 +680,7 @@ object foo extends TypeScriptModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run James Bond prof
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run James Bond prof
 Hello James Bond Professor
 
 &gt; mill foo.test
@@ -720,7 +720,7 @@ object foo extends RsWithServeModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.test
 PASS src/test/App.test.tsx
 ...renders learn react link...
 Test Suites:...1 passed, 1 total
@@ -772,7 +772,7 @@ object foo extends TypeScriptModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
 Line Count: 21
 
 &gt; mill show foo.bundle
@@ -813,7 +813,7 @@ This example demonstrates inter-related typescript modules</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run James Bond prof
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill qux.run James Bond prof
 Hello James Bond Professor
 
 &gt; mill show qux.bundle
@@ -862,7 +862,7 @@ Runninng <code>mill server.run</code> serves bundled static HTML files through t
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill client.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill client.test
 PASS .../App.test.tsx
 ...
 
@@ -919,7 +919,7 @@ Runninng <code>mill app.run</code> serves bundled static HTML files through the 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill client.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill client.test
 PASS src/test/App.test.tsx
 ...
 

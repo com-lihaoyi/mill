@@ -77,7 +77,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -345,7 +345,7 @@ from Gradle, but the following stackoverflow answer gives us some tips:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./gradlew clean &amp;&amp; ./gradlew :classes --no-build-cache --debug | grep &quot;classpath &quot;</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./gradlew clean &amp;&amp; ./gradlew :classes --no-build-cache --debug | grep &quot;classpath &quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -368,7 +368,7 @@ times gives us the timings below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; time javac -cp $MY_CLASSPATH src/main/java/**/*.java
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; time javac -cp $MY_CLASSPATH src/main/java/**/*.java
 1.290s
 1.250s
 1.293s</code></pre>
@@ -379,7 +379,7 @@ times gives us the timings below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find src/main/java | grep \\.java | xargs wc -l
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; find src/main/java | grep \\.java | xargs wc -l
 ...
 41601 total</code></pre>
 </div>
@@ -488,7 +488,7 @@ settle on approximately the following numbers:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">359ms
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">359ms
 378ms
 353ms</code></pre>
 </div>
@@ -530,7 +530,7 @@ to see how many lines of code we are looking at:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find common/src/main/java | grep \\.java | xargs wc -l
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; find common/src/main/java | grep \\.java | xargs wc -l
 29712 total</code></pre>
 </div>
 </div>
@@ -547,7 +547,7 @@ but the following stackoverflow answer gives us a hint in how to do so:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mvnw clean; time ./mvnw -e -X -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mvnw clean; time ./mvnw -e -X -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -555,7 +555,7 @@ but the following stackoverflow answer gives us a hint in how to do so:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">-classpath /Users/lihaoyi/Github/netty/common/target/classes:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/svm/19.3.6/svm-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/sdk/graal-sdk/19.3.6/graal-sdk-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/objectfile/19.3.6/objectfile-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/pointsto/19.3.6/pointsto-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/truffle/truffle-nfi/19.3.6/truffle-nfi-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/truffle/truffle-api/19.3.6/truffle-api-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/compiler/compiler/19.3.6/compiler-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/jctools/jctools-core/4.0.5/jctools-core-4.0.5.jar:/Users/lihaoyi/.m2/repository/org/jetbrains/annotations-java5/23.0.0/annotations-java5-23.0.0.jar:/Users/lihaoyi/.m2/repository/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar:/Users/lihaoyi/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar:/Users/lihaoyi/.m2/repository/org/apache/logging/log4j/log4j-1.2-api/2.17.2/log4j-1.2-api-2.17.2.jar:/Users/lihaoyi/.m2/repository/org/apache/logging/log4j/log4j-api/2.17.2/log4j-api-2.17.2.jar:/Users/lihaoyi/.m2/repository/io/projectreactor/tools/blockhound/1.0.6.RELEASE/blockhound-1.0.6.RELEASE.jar</code></pre>
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">-classpath /Users/lihaoyi/Github/netty/common/target/classes:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/svm/19.3.6/svm-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/sdk/graal-sdk/19.3.6/graal-sdk-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/objectfile/19.3.6/objectfile-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/pointsto/19.3.6/pointsto-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/truffle/truffle-nfi/19.3.6/truffle-nfi-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/truffle/truffle-api/19.3.6/truffle-api-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/compiler/compiler/19.3.6/compiler-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/jctools/jctools-core/4.0.5/jctools-core-4.0.5.jar:/Users/lihaoyi/.m2/repository/org/jetbrains/annotations-java5/23.0.0/annotations-java5-23.0.0.jar:/Users/lihaoyi/.m2/repository/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar:/Users/lihaoyi/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar:/Users/lihaoyi/.m2/repository/org/apache/logging/log4j/log4j-1.2-api/2.17.2/log4j-1.2-api-2.17.2.jar:/Users/lihaoyi/.m2/repository/org/apache/logging/log4j/log4j-api/2.17.2/log4j-api-2.17.2.jar:/Users/lihaoyi/.m2/repository/io/projectreactor/tools/blockhound/1.0.6.RELEASE/blockhound-1.0.6.RELEASE.jar</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -563,7 +563,7 @@ but the following stackoverflow answer gives us a hint in how to do so:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; javac -cp $MY_CLASSPATH common/src/main/java/**/*.java
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; javac -cp $MY_CLASSPATH common/src/main/java/**/*.java
 1.624s
 1.757s
 1.606s</code></pre>
@@ -574,7 +574,7 @@ but the following stackoverflow answer gives us a hint in how to do so:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">294ms
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">294ms
 282ms
 285ms</code></pre>
 </div>
@@ -605,7 +605,7 @@ Mockito-Core codebase using Gradle or Mill:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./gradlew clean; time ./gradlew :classes --no-build-cache
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./gradlew clean; time ./gradlew :classes --no-build-cache
 4.14s
 4.41s
 4.41s
@@ -621,7 +621,7 @@ $ ./mill clean; time ./mill compile
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
 4.85s
 4.96s
 4.89s

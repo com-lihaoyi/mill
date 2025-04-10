@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -720,7 +720,7 @@ modelled using Mill, with the entire Netty codebase being approximately 500,000 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ git ls-files | grep \\.java | xargs wc -l
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ git ls-files | grep \\.java | xargs wc -l
 ...
 513805 total</code></pre>
 </div>
@@ -808,7 +808,7 @@ we can explain the difference in performing the same task with the two different
 <h3 id="_sequential_clean_compile_all"><a class="anchor" href="#_sequential_clean_compile_all"></a>Sequential Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
 98.80s
 96.14s
 99.95s
@@ -868,7 +868,7 @@ Maven’s overhead adds to the clean build:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill clean; time ./mill -j1 __.jar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill clean; time ./mill -j1 __.jar
 26.74s
 26.02s
 26.53s</code></pre>
@@ -887,7 +887,7 @@ to avoid.</p>
 <h3 id="_parallel_clean_compile_all"><a class="anchor" href="#_parallel_clean_compile_all"></a>Parallel Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 48.92s
 48.41s
 49.50s
@@ -914,7 +914,7 @@ when performing a clean build of the Netty repository.</p>
 <h3 id="_clean_compile_single_module"><a class="anchor" href="#_clean_compile_single_module"></a>Clean Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
 4.85s
 4.96s
 4.89s
@@ -941,7 +941,7 @@ at what you would expect, whereas Maven’s has a significant overhead.</p>
 <h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
 Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
@@ -980,9 +980,6 @@ the file that changed, taking barely half a second:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">$ git diff
 diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
-index de16653cee..9818f6b3ce 100644
---- a/common/src/main/java/io/netty/util/AbstractConstant.java
-+++ b/common/src/main/java/io/netty/util/AbstractConstant.java
 @@ -83,7 +83,7 @@ public abstract class AbstractConstant&lt;T extends AbstractConstant&lt;T&gt;&gt; implements
              return 1;
          }
@@ -996,7 +993,7 @@ index de16653cee..9818f6b3ce 100644
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mill common.test.compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mill common.test.compile
 [info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 0m 00.55s6</code></pre>
 </div>
@@ -1009,9 +1006,6 @@ require downstream code to re-compile, and we can see that below:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">$ git diff
 diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
-index de16653cee..f5f5a93e0d 100644
---- a/common/src/main/java/io/netty/util/AbstractConstant.java
-+++ b/common/src/main/java/io/netty/util/AbstractConstant.java
 @@ -41,6 +41,10 @@ public abstract class AbstractConstant&lt;T extends AbstractConstant&lt;T&gt;&gt; implements
          return name;
      }
@@ -1027,7 +1021,7 @@ index de16653cee..f5f5a93e0d 100644
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mill common.test.compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mill common.test.compile
 [25/48] common.compile
 [info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 [info] compiling 2 Java sources to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
@@ -1055,7 +1049,7 @@ the same thing in Maven</p>
 <h3 id="_no_op_compile_single_module"><a class="anchor" href="#_no_op_compile_single_module"></a>No-Op Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 5.08s
 5.25s
 5.26s
@@ -1149,7 +1143,7 @@ uses a Groovy script for code generation. This is configured via:</p>
 import $ivy.`org.codehaus.groovy:groovy-ant:3.0.9`
 import $ivy.`ant:ant-optional:1.5.3-1`
 
-object common extends NettyModule{
+object common extends NettyModule {
   ...
   def script = Task.Source(&quot;src&quot; / &quot;main&quot; / &quot;script&quot;)
   def generatedSources = Task {

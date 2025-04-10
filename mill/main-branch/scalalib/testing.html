@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -728,7 +728,7 @@ it will run the <code>.test</code> task as the default task for that module.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.compile
 compiling 1 ... source...
 
 &gt; mill foo.test.compile
@@ -798,7 +798,7 @@ details on how to use each one from the command line.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill bar.test
 ...bar.BarTests...hello ...
 ...bar.BarTests...world ...</code></pre>
 </div>
@@ -809,7 +809,7 @@ details on how to use each one from the command line.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill __.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill __.test
 ...bar.BarTests...hello ...
 ...bar.BarTests...world ...
 ...foo.FooTests...hello ...
@@ -822,7 +822,7 @@ details on how to use each one from the command line.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.test</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -831,7 +831,7 @@ for <code>foo.test.testForked</code>, as <code>testForked</code> is the default 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test.testCached</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.test.testCached</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -843,7 +843,7 @@ file upstream of them.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test.testLocal</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.test.testLocal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -880,13 +880,13 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test foo.FooMoreTests
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.test foo.FooMoreTests
 ...foo.FooMoreTests...hello ...</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.test bar.BarTests.hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill bar.test bar.BarTests.hello
 ...bar.BarTests...hello ...</code></pre>
 </div>
 </div>
@@ -962,7 +962,7 @@ test helper throughout multiple modules' test suites</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.test
 Using BazTestUtils.bazAssertEquals
 ... qux.QuxTests...simple ...
 ...
@@ -1007,7 +1007,7 @@ object qux extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill 'qux.{test,integration}' # run both test suites
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill 'qux.{test,integration}' # run both test suites
 ...qux.QuxTests...hello...
 ...qux.QuxTests...world...
 ...qux.QuxIntegrationTests...helloworld...
@@ -1049,7 +1049,7 @@ object foo extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill -j 3 foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill -j 3 foo.test
 
 &gt; find out/foo/test/testForked.dest
 ...
@@ -1139,7 +1139,7 @@ separate <code>sandbox</code> folder and <code>.log</code> file:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.test
 
 &gt; find out/foo/test/testForked.dest
 ...
@@ -1214,7 +1214,7 @@ object foo extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill -j 4 foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill -j 4 foo.test
 
 &gt; find out/foo/test/testForked.dest
 ...

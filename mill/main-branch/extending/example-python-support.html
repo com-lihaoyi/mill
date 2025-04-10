@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -896,7 +896,7 @@ of our pipeline:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill typeCheck
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill typeCheck
 Success: no issues found in 1 source file
 
 &gt; ./mill run Mill Python
@@ -988,7 +988,7 @@ The following commands run each module and display their output:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run Mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run Mill
 Hello, Mill Foo!
 
 &gt; ./mill foo.bar.run Mill
@@ -1007,11 +1007,6 @@ Hello, Mill Qux!</code></pre>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 492.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-492 308.95,-492 308.95,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-159 290.51,-159 290.51,-8 14.44,-8"></polygon>
-<text text-anchor="middle" x="152.47" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-167 8,-480 296.95,-480 296.95,-167 8,-167"></polygon>
@@ -1021,6 +1016,11 @@ Hello, Mill Qux!</code></pre>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-296 16,-447 288.95,-447 288.95,-296 16,-296"></polygon>
 <text text-anchor="middle" x="152.47" y="-430.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-159 290.51,-159 290.51,-8 14.44,-8"></polygon>
+<text text-anchor="middle" x="152.47" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.pythonExe -->
 <g id="node1" class="node">
@@ -1333,7 +1333,7 @@ if __name__ == &quot;__main__&quot;:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.run 10 20
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.run 10 20
 Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 </div>
 </div>
@@ -1346,6 +1346,11 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 494.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-494 461.04,-494 461.04,4 -4,4"></polygon>
+<g id="clust3" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="172.97,-8 172.97,-159 449.04,-159 449.04,-8 172.97,-8"></polygon>
+<text text-anchor="middle" x="311" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust1" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-169 8,-482 307.44,-482 307.44,-169 8,-169"></polygon>
@@ -1355,11 +1360,6 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-298 16,-449 299.44,-449 299.44,-298 16,-298"></polygon>
 <text text-anchor="middle" x="157.72" y="-432.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="172.97,-8 172.97,-159 449.04,-159 449.04,-8 172.97,-8"></polygon>
-<text text-anchor="middle" x="311" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- bar.pythonExe -->
 <g id="node1" class="node">
@@ -1703,7 +1703,7 @@ object qux extends PythonModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.run
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 
 &gt; ./mill show qux.bundle

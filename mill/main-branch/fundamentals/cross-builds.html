@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -696,15 +696,15 @@ trait FooModule extends Cross.Module[String] {
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-360 310.83,-360 310.83,4 -4,4"></polygon>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"></polygon>
-<text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 298.83,-232 298.83,-124 8,-124"></polygon>
 <text text-anchor="middle" x="153.41" y="-215.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"></polygon>
+<text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_2</title>
@@ -804,7 +804,7 @@ be overridden.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show foo[2.10].suffix
 &quot;_2.10&quot;
 
 &gt; mill show foo[2.10].bigSuffix
@@ -881,7 +881,7 @@ it by specifying <code>def defaultCrossSegments</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix # explicit cross value given
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show foo[2.10].suffix # explicit cross value given
 &quot;_2.10&quot;
 
 &gt; mill show foo[].suffix # no cross value given, defaults to first cross value
@@ -920,7 +920,7 @@ can do so by overriding <code>moduleDir</code> as shown above.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].sources
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show foo[2.10].sources
 [
   &quot;.../foo/2.10&quot;
 ]
@@ -984,11 +984,6 @@ def qux = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quo
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 197.64,-231 197.64,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
-<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
@@ -998,6 +993,11 @@ def qux = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quo
 <title>cluster_0</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
 <text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
+<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -1061,7 +1061,7 @@ in <code>def qux</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show foo[2.10].suffix
 &quot;_2.10&quot;
 
 &gt; mill show bar
@@ -1101,6 +1101,16 @@ trait BarModule extends Cross.Module[String] {
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 300.72,-231 300.72,4 -4,4"></polygon>
+<g id="clust4" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-81 148.64,-146 288.72,-146 288.72,-81 148.64,-81"></polygon>
+<text text-anchor="middle" x="218.68" y="-129.4" font-family="Times,serif" font-size="14.00">bar[2.11]</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"></polygon>
+<text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
+</g>
 <g id="clust6" class="cluster">
 <title>cluster_3</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"></polygon>
@@ -1111,25 +1121,15 @@ trait BarModule extends Cross.Module[String] {
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
 <text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
 </g>
-<g id="clust5" class="cluster">
-<title>cluster_5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"></polygon>
-<text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
+<text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
 <text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-81 148.64,-146 288.72,-146 288.72,-81 148.64,-81"></polygon>
-<text text-anchor="middle" x="218.68" y="-129.4" font-family="Times,serif" font-size="14.00">bar[2.11]</text>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
-<text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -1199,7 +1199,7 @@ of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&qu
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed foo[__].suffix
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill showNamed foo[__].suffix
 {
   &quot;foo[2.10].suffix&quot;: &quot;_2.10&quot;,
   &quot;foo[2.11].suffix&quot;: &quot;_2.11&quot;,
@@ -1251,30 +1251,30 @@ def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 564.06,-231 564.06,4 -4,4"></polygon>
-<g id="clust3" class="cluster">
-<title>cluster_4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="192.57,-81 192.57,-146 491.96,-146 491.96,-81 192.57,-81"></polygon>
-<text text-anchor="middle" x="342.27" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11,js]</text>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="352.27,-154 352.27,-219 498.19,-219 498.19,-154 352.27,-154"></polygon>
-<text text-anchor="middle" x="425.23" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10,jvm]</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_6</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
-<text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 153.91,-146 153.91,-81 20.44,-81"></polygon>
-<text text-anchor="middle" x="87.17" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
+<g id="clust2" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="358.49,-81 358.49,-146 491.96,-146 491.96,-81 358.49,-81"></polygon>
+<text text-anchor="middle" x="425.23" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.10,js]</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.21,-154 14.21,-219 332.27,-219 332.27,-154 14.21,-154"></polygon>
 <text text-anchor="middle" x="173.24" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12,jvm]</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="352.27,-154 352.27,-219 498.19,-219 498.19,-154 352.27,-154"></polygon>
+<text text-anchor="middle" x="425.23" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.11,jvm]</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 326.04,-146 326.04,-81 20.44,-81"></polygon>
+<text text-anchor="middle" x="173.24" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_6</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
+<text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
 </g>
 <!-- foo[2.12,native].suffix -->
 <g id="node1" class="node">
@@ -1352,7 +1352,7 @@ above.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10,jvm].suffix
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show foo[2.10,jvm].suffix
 &quot;_2.10_jvm&quot;
 
 &gt; mill showNamed foo[__].suffix
@@ -1408,7 +1408,7 @@ corresponding <code>Cross.ArgN</code> trait. Providing tuples of the wrong arity
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[a].param1
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show foo[a].param1
 &quot;Param Value: a&quot;
 
 &gt; mill show foo[b].param1
@@ -1622,7 +1622,7 @@ get automatically duplicated once for each <code>crossValue = &quot;a&quot;</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[a].bar.param
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show foo[a].bar.param
 &quot;Bar Param Value: a&quot;
 
 &gt; mill show foo[b].qux.param
@@ -1675,7 +1675,7 @@ with the current cross-module.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show bar[2.10].bigSuffix
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show bar[2.10].bigSuffix
 ...
 &quot;[[[_2.10]]]&quot;</code></pre>
 </div>
@@ -1733,7 +1733,7 @@ re-compute the value and re-create the module structure if the value changes.</p
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve modules[_]
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill resolve modules[_]
 modules[bar]
 modules[foo]
 modules[qux]
@@ -1869,7 +1869,7 @@ into a single task’s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill dist
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill dist
 
 &gt; cat out/dist.dest/index.html                    # root index page
 ...
@@ -1905,7 +1905,7 @@ enough posts that the build is becoming noticeably slow.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show &quot;post[1-My-First-Post.md].render&quot;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show &quot;post[1-My-First-Post.md].render&quot;
 &quot;.../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html&quot;
 
 &gt; cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html

@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -703,7 +703,7 @@ to the right place.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">$ ./mill --help
-Mill Build Tool, version 0.12.5-13-0e02e6
+Mill Build Tool, version 0.13.0-M1
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:
@@ -740,8 +740,6 @@ options:
   -d --debug           Show debug output on STDOUT
   --disable-callgraph  Disables fine-grained invalidation of tasks based on analyzing code changes.
                        If passed, you need to manually run `clean` yourself after build changes.
-  --disable-prompt     Disables the new multi-line status prompt used for showing thread status at
-                       the command line and falls back to the legacy ticker
   --help               Print this help message and exit.
   -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
                        input. This implies --no-server. Must be the first argument.
@@ -795,7 +793,7 @@ change:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill --watch foo.compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill --watch foo.compile
 &gt; mill --watch foo.run
 &gt; mill -w foo.compile
 &gt; mill -w foo.run</code></pre>
@@ -812,7 +810,7 @@ forcefully terminating the previous process even though it may be still alive:</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill -w foo.runBackground</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill -w foo.runBackground</code></pre>
 </div>
 </div>
 </div>
@@ -827,7 +825,7 @@ Defaults to the number of cores available on your system.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill -j4 __.compile</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill -j4 __.compile</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -892,7 +890,7 @@ root that contains JVM options one per line.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; JAVA_OPTS='-Xss10m -Xmx10G' ./mill __.compile</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; JAVA_OPTS='-Xss10m -Xmx10G' ./mill __.compile</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -920,7 +918,7 @@ as a single token and fail argument parsing)</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs"># PWD on mac/linux
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># PWD on mac/linux
 -Dmy.jvm.property=${PWD}</code></pre>
 </div>
 </div>

@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -713,7 +713,7 @@ dependencies</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run i am cow
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run i am cow
 JSONified using Jackson: [&quot;i&quot;,&quot;am&quot;,&quot;cow&quot;]</code></pre>
 </div>
 </div>
@@ -769,7 +769,7 @@ dependencies. That is why we can run <code>foo</code> as show below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.runBackground
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.runBackground
 
 &gt; curl http://localhost:8079
 &lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;</code></pre>
@@ -839,7 +839,7 @@ filesystem, e.g. in the above snippet any jars that happen to live in the
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run '{&quot;name&quot;:&quot;John&quot;,&quot;age&quot;:30}'     # mac/linux
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run '{&quot;name&quot;:&quot;John&quot;,&quot;age&quot;:30}'     # mac/linux
 Key: name, Value: John
 Key: age, Value: 30</code></pre>
 </div>
@@ -876,7 +876,7 @@ object `package` extends RootModule with JavaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run &quot;textfile.txt&quot; # mac/linux
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run &quot;textfile.txt&quot; # mac/linux
 I am cow
 hear me moo
 I weigh twice as much as you</code></pre>
@@ -993,7 +993,7 @@ object bar extends JavaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run --text hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run --text hello
 
 &gt; ./mill bar.compile</code></pre>
 </div>

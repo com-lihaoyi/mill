@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -685,10 +685,10 @@ object foo extends ScalaModule with JmhModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.runJmh             # Runs all detected jmh benchmarks
-mill foo.listJmhBenchmarks  # List detected jmh benchmarks
-mill foo.runJmh -h          # List available arguments to runJmh
-mill foo.runJmh regexp      # Run all benchmarks matching `regexp`</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.runJmh             # Runs all detected jmh benchmarks
+&gt; mill foo.listJmhBenchmarks  # List detected jmh benchmarks
+&gt; mill foo.runJmh -h          # List available arguments to runJmh
+&gt; mill foo.runJmh regexp      # Run all benchmarks matching `regexp`</code></pre>
 </div>
 </div>
 <div class="paragraph">

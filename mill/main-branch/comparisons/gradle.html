@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -800,7 +800,7 @@ we can explain the difference in performing the same task with the two different
 <h3 id="_sequential_clean_compile_all"><a class="anchor" href="#_sequential_clean_compile_all"></a>Sequential Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
 17.6s
 18.2s
 17.4s
@@ -847,7 +847,7 @@ on under the hood that I’m not aware of.</p>
 <h3 id="_parallel_clean_compile_all"><a class="anchor" href="#_parallel_clean_compile_all"></a>Parallel Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
 13.8s
 12.3s
 11.4s
@@ -878,7 +878,7 @@ each tool.</p>
 <h3 id="_clean_compile_single_module"><a class="anchor" href="#_clean_compile_single_module"></a>Clean Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./gradlew clean; time ./gradlew :classes --no-build-cache
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./gradlew clean; time ./gradlew :classes --no-build-cache
 4.14s
 4.41s
 4.41s
@@ -904,7 +904,7 @@ the results above.</p>
 <h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo &quot;&quot; &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo &quot;&quot; &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
 1.37s
 1.39s
 1.28s
@@ -933,7 +933,7 @@ showing a ~2.7x speedup for this task</p>
 <h3 id="_no_op_compile_single_module"><a class="anchor" href="#_no_op_compile_single_module"></a>No-Op Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./gradlew :classes
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./gradlew :classes
 0.95s
 0.93s
 0.94s
@@ -981,7 +981,7 @@ For example, in Mill, overriding the resources to duplicate a file can be done a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">tasks.register('copyMockMethodDispatcher', Copy) {
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">tasks.register('copyMockMethodDispatcher', Copy) {
     dependsOn compileJava
 
     from &quot;${sourceSets.main.java.classesDirectory.get()}/org/mockito/internal/creation/bytebuddy/inject/MockMethodDispatcher.class&quot;
@@ -1249,13 +1249,13 @@ Java, Kotlin, or Scala:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><em>of course</em> you can find the overridden definitions!</p>
+<p><em>of course</em>, you can find the overridden definitions!</p>
 </li>
 <li>
-<p><em>of course</em> you can pull up the documentation in a click!</p>
+<p><em>of course</em>, you can pull up the documentation in a click!</p>
 </li>
 <li>
-<p><em>of course</em> you can navigate around the codebase with your IDE, up and down
+<p><em>of course</em>, you can navigate around the codebase with your IDE, up and down
 the call graph, to see who calls who!</p>
 </li>
 </ul>

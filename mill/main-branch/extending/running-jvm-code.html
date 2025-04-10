@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -767,7 +767,7 @@ by <code>foo.run</code> and printed to the terminal output as shown below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;Groovy!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</code></pre>
 </div>
 </div>
@@ -841,7 +841,7 @@ the classes and methods you want, and <code>.invoke</code> to call them.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;Groovy!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</code></pre>
 </div>
 </div>
@@ -927,7 +927,7 @@ method of <code>groovy.ui.GroovyMain</code>, which also happens to require us to
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;Foo Groovy!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
 
 &gt; ./mill bar.run
@@ -1002,7 +1002,7 @@ task automatically.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
 ...
 Foo.value: HELLO</code></pre>
 </div>
@@ -1080,7 +1080,7 @@ right place, and instead we need to pass in the <code>Task.dest</code> path expl
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
 ...
 Foo.value: HELLO</code></pre>
 </div>
@@ -1154,7 +1154,7 @@ object bar extends JavaModule</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
 Setting up Classloader
 Setting up Classloader
 Setting up Classloader

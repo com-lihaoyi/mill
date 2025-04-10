@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -730,7 +730,7 @@ control.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show sdist
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show sdist
 &quot;.../out/sdist.dest/dist/testpkg_mill-0.0.2.tar.gz&quot;
 
 &gt; mill show wheel
@@ -757,10 +757,10 @@ configuration. You can also configure it with environment variables, prefixed wi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export MILL_TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/
-export MILL_TWINE_USERNAME=&lt;username, not necessary for PyPI&gt;
-export MILL_TWINE_PASSWORD=&lt;apitoken&gt;
-mill __.publish</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; export MILL_TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/
+&gt; export MILL_TWINE_USERNAME=&lt;username, not necessary for PyPI&gt;
+&gt; export MILL_TWINE_PASSWORD=&lt;apitoken&gt;
+&gt; mill __.publish</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -789,7 +789,7 @@ can also do this with Mill, by running:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill __.checkPublish
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill __.checkPublish
 ... PASSED</code></pre>
 </div>
 </div>
@@ -879,7 +879,7 @@ object `package` extends RootModule with PythonModule with PublishModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill sdist
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill sdist
 ...
 hello from custom setup.py!
 ...</code></pre>

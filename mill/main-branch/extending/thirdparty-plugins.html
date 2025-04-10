@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -1084,7 +1084,7 @@ object foo extends ScalaModule with ExplicitDepsModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill foo.checkExplicitDeps
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.checkExplicitDeps
 [37/37] main.checkExplicitDeps
 Found undeclared dependencies: (add these to ivyDeps)
     ivy&quot;org.typelevel::cats-kernel:2.7.0&quot;,
@@ -1171,7 +1171,7 @@ object `jvm-project` extends JavaModule with GitVersionedPublishModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill show jvm-project.publishVersion
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show jvm-project.publishVersion
 [1/1] show
 [2/2] com.goyeau.mill.git.GitVersionModule.version
 &quot;0.0.0-470-6d0b3d9&quot;</code></pre>
@@ -1573,7 +1573,7 @@ object main extends ScalaModule with Mima {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill main.mimaReportBinaryIssues
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill main.mimaReportBinaryIssues
 Binary compatibility check passed.</code></pre>
 </div>
 </div>
@@ -1604,7 +1604,7 @@ object example extends MissinglinkCheckModule</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill example.missinglinkCheck</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill example.missinglinkCheck</code></pre>
 </div>
 </div>
 </div>
@@ -1648,7 +1648,7 @@ object hello extends ScalaModule with NativeImage {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill hello.nativeImage
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill hello.nativeImage
 ...
 ------------------------------------------------------------------------------------------------------------------------
                         5.9s (4.9% of total time) in 32 GCs | Peak RSS: 5.71GB | CPU load: 5.84
@@ -1745,7 +1745,7 @@ object project extends PublishModule with PublishM2Module {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill project.publishM2Local
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill project.publishM2Local
 [40/40] project.publishM2Local
 Publishing to /home/user/.m2/repository</code></pre>
 </div>
@@ -1755,7 +1755,7 @@ Publishing to /home/user/.m2/repository</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill project.publishM2Local /tmp/m2repo
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill project.publishM2Local /tmp/m2repo
 [40/40] project.publishM2Local
 Publishing to /tmp/m2repo</code></pre>
 </div>
@@ -1850,7 +1850,7 @@ override def typescriptGenerationImports = Seq(&quot;mymodel._&quot;, &quot;MyTy
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill example.generateTypescript</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill example.generateTypescript</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1891,7 +1891,7 @@ object project extends ScalaModule with ScalafixModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill project.fix
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill project.fix
 [29/29] project.fix
 /project/project/src/MyClass.scala:12:11: error: [DisableSyntax.var] mutable state should be avoided
   private var hashLength = 7
@@ -1989,7 +1989,7 @@ object app extends MavenModule with SpringBootModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># Package as executable Spring-Boot Application
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console"># Package as executable Spring-Boot Application
 $ mill app.springBootAssembly</code></pre>
 </div>
 </div>
@@ -2024,9 +2024,9 @@ object app extends ScalaModule with SqueryGeneratorModule {
 </div>
 </div>
 <div class="listingblock">
+<div class="title">Generate source files</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># Generate source files
-$ ./mill root.squeryGenerate</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill root.squeryGenerate</code></pre>
 </div>
 </div>
 </div>
@@ -2053,9 +2053,9 @@ object example extends JavaAppPackagingModule {
 </div>
 </div>
 <div class="listingblock">
+<div class="title">Package as zip archive with Bash start script</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># Package as zip archive with Bash start script
-$ mill example.universalPackage</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill example.universalPackage</code></pre>
 </div>
 </div>
 </div>

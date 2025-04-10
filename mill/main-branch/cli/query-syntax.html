@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -678,7 +678,7 @@ In most places, where Mill accepts a task, it really accepts a task selector que
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill for.compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill for.compile
 &gt; mill for.run hello world
 &gt; mill foo.testCached</code></pre>
 </div>
@@ -835,7 +835,7 @@ A fully qualified type can be denoted with the <code>_root_</code> package.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">&gt; mill resolve __:TestModule.jar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill resolve __:TestModule.jar
 &gt; mill resolve &quot;(__:scalalib.TestModule).jar&quot;
 &gt; mill resolve &quot;(__:mill.scalalib.TestModule).jar&quot;
 &gt; mill resolve &quot;(__:_root_.mill.scalalib.TestModule).jar&quot;</code></pre>
@@ -846,7 +846,7 @@ A fully qualified type can be denoted with the <code>_root_</code> package.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">&gt; mill resolve __:^TestModule.jar</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill resolve __:^TestModule.jar</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -854,7 +854,7 @@ A fully qualified type can be denoted with the <code>_root_</code> package.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">&gt; mill resolve &quot;__:JavaModule:^ScalaModule:^TestModule.jar&quot;</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill resolve &quot;__:JavaModule:^ScalaModule:^TestModule.jar&quot;</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -889,7 +889,7 @@ That means, you can’t filter based on the result type of a task.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">&gt; mill foo.run hello                         <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run hello                         <i class="conum" data-value="1"></i><b>(1)</b>
 &gt; mill {foo,bar}.run hello                   <i class="conum" data-value="2"></i><b>(2)</b>
 &gt; mill __:JavaModule:^TestModule.run hello   <i class="conum" data-value="3"></i><b>(3)</b>
 &gt; mill foo.run hello + bar.run world         <i class="conum" data-value="4"></i><b>(4)</b></code></pre>

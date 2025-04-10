@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -690,7 +690,7 @@ object foo extends Module {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.tDestTask
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.tDestTask
 .../out/foo/tDestTask.dest</code></pre>
 </div>
 </div>
@@ -708,7 +708,7 @@ such that that also points towards a running task’s own <code>.dest/</code> fo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill osPwdTask
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill osPwdTask
 .../out/osPwdTask.dest</code></pre>
 </div>
 </div>
@@ -726,7 +726,7 @@ its <code>os.getcwd()</code>, which is our <code>osProcTask.dest/</code> sandbox
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill osProcTask
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill osProcTask
 .../out/osProcTask.dest</code></pre>
 </div>
 </div>
@@ -746,7 +746,7 @@ def externalPwdTask = Task { println(externalPwd.toString) }</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill externalPwdTask
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill externalPwdTask
 .../out/mill-server/.../sandbox</code></pre>
 </div>
 </div>
@@ -868,7 +868,7 @@ public class BarTests {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill __.test</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill __.test</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -897,7 +897,7 @@ working directory, without colliding with each other on disk:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find . | grep generated.html
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; find . | grep generated.html
 .../out/foo/test/testForked.dest/worker-0/sandbox/generated.html
 .../out/bar/test/testForked.dest/worker-0/sandbox/generated.html
 
@@ -959,7 +959,7 @@ def myTask = Task { println(Task.workspace) }</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill myTask</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill myTask</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1013,12 +1013,12 @@ public class FooTests {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill __.test</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill __.test</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find . | grep .html
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; find . | grep .html
 ...
 .../out/foo/test/testForked.dest/worker-0/sandbox/foo.html
 

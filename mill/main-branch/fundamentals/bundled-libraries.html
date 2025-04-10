@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -724,7 +724,7 @@ without conflict</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill command # mac/linux
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill command # mac/linux
 .../out/task1.dest/file.txt
 hello
 .../out/task2.dest/file.txt
@@ -790,7 +790,7 @@ def taskString = Task { &quot;hello &quot; + taskInt() + &quot; world &quot; + t
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskInt
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskInt
 123
 
 &gt; ./mill show taskBoolean
@@ -816,7 +816,7 @@ def taskMap = Task { Map(&quot;int&quot; -&gt; taskInt().toString, &quot;boolean
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskSeq
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskSeq
 [
   123,
   246,
@@ -846,7 +846,7 @@ def taskMap = Task { Map(&quot;int&quot; -&gt; taskInt().toString, &quot;boolean
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskPath
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskPath
 &quot;.../out/taskPath.dest/file.txt&quot;</code></pre>
 </div>
 </div>
@@ -867,7 +867,7 @@ should return a <code>PathRef</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskPathRef
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskPathRef
 &quot;ref.../out/taskPathRef.dest/file.txt&quot;</code></pre>
 </div>
 </div>
@@ -963,7 +963,7 @@ invokes Bazel to compile them:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show compiledRemoteApis
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show compiledRemoteApis
 downloading bazel...
 downloading bazel-remote-apis sources...
 Loading: ...
@@ -993,7 +993,7 @@ the Bazel invocation are skipped and the earlier output directly and immediately
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show compiledRemoteApis
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show compiledRemoteApis
 [
   &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar&quot;,
   &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar&quot;,
@@ -1063,7 +1063,7 @@ given at the command line</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill commandSimple --str hello -i 123
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill commandSimple --str hello -i 123
 hello 123 true</code></pre>
 </div>
 </div>
@@ -1082,7 +1082,7 @@ supports parsing OS-Lib <code>os.Path</code>s from the command line:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill commandTakingPath --path foo/bar/baz.txt
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill commandTakingPath --path foo/bar/baz.txt
 ...foo/bar/baz.txt</code></pre>
 </div>
 </div>
@@ -1106,7 +1106,7 @@ task:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill commandTakingTask --str helloworld
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill commandTakingTask --str helloworld
 arg: helloworld</code></pre>
 </div>
 </div>
@@ -1123,7 +1123,7 @@ def taskCallingCommand = Task {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskCallingCommand
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskCallingCommand
 &quot;arg: HELLO&quot;</code></pre>
 </div>
 </div>
@@ -1168,7 +1168,7 @@ it needs to run in the order necessary to reach `taskCallingCommand</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill customPlanCommand taskCallingCommand
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill customPlanCommand taskCallingCommand
 upstreamTask
 commandTakingTask
 taskCallingCommand</code></pre>

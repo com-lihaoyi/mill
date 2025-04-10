@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -786,7 +786,7 @@ given input string in HTML templates with proper escaping.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve foo._ # List what tasks are available to run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve foo._ # List what tasks are available to run
 foo.assembly
 ...
 foo.compile
@@ -856,7 +856,7 @@ metadata output for a particular task.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill runBackground # run the main method in the background
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill runBackground # run the main method in the background
 
 $ mill clean &lt;task&gt;  # delete the cached output of a task, terminate any runBackground
 
@@ -1030,7 +1030,7 @@ in the output of <code>mill run</code> below.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
 ...
 Line Count: 17
 
@@ -1148,7 +1148,7 @@ below which lists out all the <code>run</code> tasks:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill resolve __.run
 foo.run
 bar.run
 
@@ -1211,7 +1211,7 @@ preceding it with a backslash (<code>\</code>).</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo._.compile # Runs `compile` for all direct sub-modules of `foo`
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo._.compile # Runs `compile` for all direct sub-modules of `foo`
 
 &gt; mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
 
@@ -1294,7 +1294,7 @@ Mill at the same time</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.compile
 Compiling 1 Kotlin source...
 
 &gt; mill foo.test.compile
@@ -1410,7 +1410,7 @@ repetitive module structure in a typical project</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill resolve __.run
 bar.run
 bar.test.run
 foo.run

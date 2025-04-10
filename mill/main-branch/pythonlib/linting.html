@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -694,7 +694,7 @@ object `package` extends RootModule with PythonModule with RuffModule</code></pr
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat src/main.py # initial poorly formatted source code
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat src/main.py # initial poorly formatted source code
 from typing import Self
 class IntWrapper:
    def __init__(self, x:int):
@@ -748,7 +748,7 @@ formatting options as desired. For example,</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; echo indent-width=2 &gt; ruff.toml
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo indent-width=2 &gt; ruff.toml
 
 &gt; mill ruffFormat
 ...1 file reformatted
@@ -791,7 +791,7 @@ shorter name that’s easier to type.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill mill.pythonlib.RuffModule/formatAll</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.pythonlib.RuffModule/formatAll</code></pre>
 </div>
 </div>
 </div>
@@ -820,7 +820,7 @@ def doit(x: int):
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill ruffCheck
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill ruffCheck
 error: ...
 error: ...F401 [*] `os` imported but unused
 error:   |
@@ -848,7 +848,7 @@ error: [*] 2 fixable with the `--fix` option.</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill ruffCheck --fix
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill ruffCheck --fix
 Found 2 errors (2 fixed, 0 remaining).
 
 &gt; cat src/main.py
@@ -909,7 +909,7 @@ def test_other():
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test.coverageReport
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill test.coverageReport
 Name ...                        Stmts   Miss  Cover
 ...------------------------------------------------
 .../src/main.py                 4      1    75%
@@ -924,7 +924,7 @@ For example, you can use it to fail if a coverage threshold is not met:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test.coverageReport --fail-under 90
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill test.coverageReport --fail-under 90
 error: ...
 error: Coverage failure: total of 89 is less than fail-under=90</code></pre>
 </div>

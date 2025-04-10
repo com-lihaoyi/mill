@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -695,13 +695,13 @@ modules introduce a few new tasks and changes the behavior of an existing one.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.scoverage.compile              # compiles your module with test instrumentation
-                                        # (you don't have to run this manually, running the test task will force its invocation)
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.scoverage.compile              # compiles your module with test instrumentation
+                                          # (you don't have to run this manually, running the test task will force its invocation)
 
-mill foo.test                           # tests your project and collects metrics on code coverage
-mill foo.scoverage.htmlReport           # uses the metrics collected by a previous test run to generate a coverage report in html format
-mill foo.scoverage.xmlReport            # uses the metrics collected by a previous test run to generate a coverage report in xml format
-mill foo.scoverage.xmlCoberturaReport   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format</code></pre>
+&gt; mill foo.test                           # tests your project and collects metrics on code coverage
+&gt; mill foo.scoverage.htmlReport           # uses the metrics collected by a previous test run to generate a coverage report in html format
+&gt; mill foo.scoverage.xmlReport            # uses the metrics collected by a previous test run to generate a coverage report in xml format
+&gt; mill foo.scoverage.xmlCoberturaReport   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -735,11 +735,11 @@ module, <code>ScoverageReport</code>, is available to help aggregate the reports
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill __.test                                 # run tests for all modules
-mill scoverage.htmlReportAll                 # generates report in html format for all modules
-mill scoverage.xmlReportAll                  # generates report in xml format for all modules
-mill scoverage.xmlCoberturaReportAll         # generates report in Cobertura's xml format for all modules
-mill scoverage.consoleReportAll              # reports to the console for all modules</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill __.test                                 # run tests for all modules
+&gt; mill scoverage.htmlReportAll                 # generates report in html format for all modules
+&gt; mill scoverage.xmlReportAll                  # generates report in xml format for all modules
+&gt; mill scoverage.xmlCoberturaReportAll         # generates report in Cobertura's xml format for all modules
+&gt; mill scoverage.consoleReportAll              # reports to the console for all modules</code></pre>
 </div>
 </div>
 <div class="paragraph">

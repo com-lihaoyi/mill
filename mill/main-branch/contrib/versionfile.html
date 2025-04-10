@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -694,7 +694,7 @@ In the example above, that would be <code>/versionFile/version</code> relative t
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ 0.1.0-SNAPSHOT &gt; versionFile/version</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ 0.1.0-SNAPSHOT &gt; versionFile/version</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -702,7 +702,7 @@ In the example above, that would be <code>/versionFile/version</code> relative t
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill versionFile.setReleaseVersion           # Sets release
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill versionFile.setReleaseVersion           # Sets release
 $ mill versionFile.setNextVersion --bump minor # Sets snapshot</code></pre>
 </div>
 </div>
@@ -711,7 +711,7 @@ $ mill versionFile.setNextVersion --bump minor # Sets snapshot</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill versionFile.setReleaseVersion
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill versionFile.setReleaseVersion
 $ echo 0.1.0 &gt; versionFile/version
 $ mill versionFile.setNextVersion --bump minor # Will now set the version to 0.2.0-SNAPSHOT</code></pre>
 </div>
@@ -773,7 +773,7 @@ then overwrites the previous content in the version file with this new version.<
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill versionFile.setReleaseVersion</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill versionFile.setReleaseVersion</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -817,7 +817,7 @@ then overwrites the previous content in the version file with this new version.<
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill versionFile.setNextVersion --bump minor</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill versionFile.setNextVersion --bump minor</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -848,7 +848,7 @@ then overwrites the previous content in the version file with this new version.<
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill versionFile.setVersion --version 0.5.2-SNAPSHOT</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill versionFile.setVersion --version 0.5.2-SNAPSHOT</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -864,21 +864,21 @@ then overwrites the previous content in the version file with this new version.<
 <p>If you need to output the version numbers (for example for other CI tools you might use), you can use the following commands:</p>
 </div>
 <div class="listingblock">
+<div class="title">Show the current version from the version file</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Show the current version from the version file.
-$ mill show versionFile.currentVersion</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill show versionFile.currentVersion</code></pre>
 </div>
 </div>
 <div class="listingblock">
+<div class="title">Show the version that would be used as release version</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Show the version that would be used as release version.
-$ mill show versionFile.releaseVersion</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill show versionFile.releaseVersion</code></pre>
 </div>
 </div>
 <div class="listingblock">
+<div class="title">Show the version that would be used as next version with the given --bump argument</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Show the version that would be used as next version with the given --bump argument.
-$ mill show versionFile.nextVersion --bump minor</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill show versionFile.nextVersion --bump minor</code></pre>
 </div>
 </div>
 </div>
@@ -891,7 +891,7 @@ $ mill show versionFile.nextVersion --bump minor</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.tag
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.tag
 $ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.push</code></pre>
 </div>
 </div>

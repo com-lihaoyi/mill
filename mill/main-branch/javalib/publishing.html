@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -711,7 +711,7 @@ done by overriding <code>def assemblyRules</code> as shown above</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.assembly
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.assembly
 
 &gt; unzip -p ./out/foo/assembly.dest/out.jar application.conf || true
 Bar Application Conf
@@ -730,7 +730,7 @@ to use via <code>JAVA_HOME</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; JAVA_OPTS=-Dtest.property=1337 ./out/foo/assembly.dest/out.jar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; JAVA_OPTS=-Dtest.property=1337 ./out/foo/assembly.dest/out.jar
 Loaded test.property: 1337</code></pre>
 </div>
 </div>
@@ -764,7 +764,7 @@ via a custom <code>JvmWorkerModule</code> overriding <code>def jvmId</code> (sho
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.nativeImage
 GraalVM Native Image: Generating...native-executable...
 Finished generating...native-executable...
 
@@ -814,7 +814,7 @@ which is available in the <code>graalvm-community:23</code> JDK selected above.<
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.nativeImage
 
 &gt; ./out/foo/nativeImage.dest/native-executable --text hello-world
 &lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
@@ -837,7 +837,7 @@ if you want to experiment it or view its <code>--help</code> text to see what yo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImageTool # mac/linux
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.nativeImageTool # mac/linux
 &quot;.../bin/native-image&quot;
 
 &gt; ./mill show foo.nativeImageTool # windows
@@ -930,12 +930,12 @@ and 2 being &quot;ZIP compression&quot;.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">export JAVA_HOME=/Users/mac/.sdkman/candidates/java/17.0.9-oracle/</code></pre>
+<pre>export JAVA_HOME=/Users/mac/.sdkman/candidates/java/17.0.9-oracle/</pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.jlinkAppImage
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.jlinkAppImage
 
 &gt; mill show foo.jlinkAppImage
 &quot;.../out/foo/jlinkAppImage.dest/jlink-runtime&quot;
@@ -1005,7 +1005,7 @@ foo/
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.jpackageAppImage
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.jpackageAppImage
 
 &gt; mill show foo.jpackageAppImage
 &quot;.../out/foo/jpackageAppImage.dest/image&quot;</code></pre>
@@ -1063,7 +1063,7 @@ cannot be used to produce a native installer for another OS like Windows or Linu
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ls -l ./out/foo/jpackageAppImage.dest/image
+<pre>&gt; ls -l ./out/foo/jpackageAppImage.dest/image
 ... foo-1.0.dmg</pre>
 </div>
 </div>
@@ -1076,7 +1076,7 @@ cannot be used to produce a native installer for another OS like Windows or Linu
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ls -l ./out/foo/jpackageAppImage.dest/image
+<pre>&gt; ls -l ./out/foo/jpackageAppImage.dest/image
 ... foo-1.0.pkg</pre>
 </div>
 </div>
@@ -1089,7 +1089,7 @@ cannot be used to produce a native installer for another OS like Windows or Linu
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ls -l ./out/foo/jpackageAppImage.dest/image
+<pre>&gt; ls -l ./out/foo/jpackageAppImage.dest/image
 ... foo.app/
 ./out/foo/jpackageAppImage.dest/image/foo.app/Contents/MacOS/foo
 ... foo.Foo readConf
@@ -1132,7 +1132,7 @@ machine or to the central maven repository</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.publishLocal
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.publishLocal
 Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...</code></pre>
 </div>
 </div>
@@ -1223,7 +1223,7 @@ In real usage, the old version would be downloaded from the publish repository.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.publishLocal
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill bar.publishLocal
 Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
 
 &gt; cp dev/src/Visibility.java bar/src/Visibility.java
@@ -1307,7 +1307,7 @@ for publishing:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># The LHS and RHS of the User Token, accessible through the sonatype
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># The LHS and RHS of the User Token, accessible through the sonatype
 # website `Profile` / `User Token` / `Access User Token`
 export MILL_SONATYPE_USERNAME=...
 export MILL_SONATYPE_PASSWORD=...
@@ -1342,7 +1342,7 @@ the <a href="../fundamentals/modules.html#_default_tasks" class="xref page">defa
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.PublishModule/</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1350,7 +1350,7 @@ the <a href="../fundamentals/modules.html#_default_tasks" class="xref page">defa
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1360,7 +1360,7 @@ In that case, you can pass in a <code>--sonatypeUri</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.PublishModule/ \
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/ \
         --sonatypeUri https://s01.oss.sonatype.org/service/local</code></pre>
 </div>
 </div>
@@ -1452,7 +1452,7 @@ maven path under <code>sonatypeUri</code> instead of staging path.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.PublishModule/ \
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/ \
         --publishArtifacts foo.publishArtifacts \
         --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
         --sonatypeUri http://example.company.com/release \

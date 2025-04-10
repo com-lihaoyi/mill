@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -821,7 +821,7 @@ since Mill doesn’t bundle them and instead expects them to be invoked separate
 <h3 id="_parallel_clean_compile_all"><a class="anchor" href="#_parallel_clean_compile_all"></a>Parallel Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ sbt clean; time sbt test:compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ sbt clean; time sbt test:compile
 34.28s
 32.84s
 34.55s
@@ -850,7 +850,7 @@ comparison for sequential execution times.</p>
 <h3 id="_clean_compile_single_module"><a class="anchor" href="#_clean_compile_single_module"></a>Clean Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sbt clean; time sbt gatling-commons/compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sbt clean; time sbt gatling-commons/compile
 10.1
 10.7
 10.1
@@ -876,7 +876,7 @@ and all the downstream submodules.</p>
 <h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo &quot;&quot; &gt;&gt; gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo &quot;&quot; &gt;&gt; gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
 $ time sbt gatling-commons/compile
 6.6s
 6.2s
@@ -911,7 +911,7 @@ a fraction of a second, while Cold <code>sbt</code> has substantial overhead.</p
 <h3 id="_no_op_compile_single_module"><a class="anchor" href="#_no_op_compile_single_module"></a>No-Op Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time sbt gatling-commons/compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time sbt gatling-commons/compile
 4.2s
 4.2s
 4.2s

@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -684,7 +684,7 @@ object foo extends JavaModule {}</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.compile # compile once
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.compile # compile once
 
 &gt; echo &quot;&quot; &gt;&gt; foo/src/foo/Foo.java
 
@@ -719,7 +719,7 @@ its files in the <code>out/foo/compile.*</code> paths:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find out/foo/compile.* -maxdepth 0
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; find out/foo/compile.* -maxdepth 0
 out/foo/compile.json
 out/foo/compile.log
 out/foo/compile.dest</code></pre>
@@ -795,7 +795,7 @@ of files in the outfolder under the <code>out/mill-*</code> prefix:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find out/mill-* -maxdepth 0
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; find out/mill-* -maxdepth 0
 out/mill-chrome-profile.json
 out/mill-dependency-tree.json
 out/mill-invalidation-tree.json
@@ -817,7 +817,7 @@ were cached, and if not whether their outputs changed as a result of them being 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat out/mill-profile.json
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat out/mill-profile.json
 [
   {
     &quot;label&quot;: &quot;mill.scalalib.JvmWorkerModule.worker&quot;,
@@ -880,7 +880,7 @@ that hsows how <code>foo.compile</code> depends on <code>foo.allSourceFiles</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat out/mill-dependency-tree.json
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat out/mill-dependency-tree.json
 {
   &quot;foo.compile&quot;: {
     &quot;foo.allSourceFiles&quot;: {
@@ -920,7 +920,7 @@ a second time, and thus this file shows how <code>foo.sources</code> invalidated
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat out/mill-invalidation-tree.json
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat out/mill-invalidation-tree.json
 {
   &quot;foo.sources&quot;: {
     &quot;foo.allSources&quot;: {
@@ -949,7 +949,7 @@ the <code>build.mill</code> codebase.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/{}/{println(123)}/g' build.mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sed -i.bak 's/{}/{println(123)}/g' build.mill
 
 &gt; ./mill foo.compile # compile after changing build.mill
 
@@ -1025,7 +1025,7 @@ object foo extends Module {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; MILL_OUTPUT_DIR=build-stuff/working-dir ./mill foo.printDest
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; MILL_OUTPUT_DIR=build-stuff/working-dir ./mill foo.printDest
 ...
 .../build-stuff/working-dir/foo/printDest.dest</code></pre>
 </div>

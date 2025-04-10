@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -734,7 +734,7 @@ it will run the <code>.test</code> task as the default task for that module.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Hello World
 
 &gt; ./mill foo.test.testForked
@@ -782,7 +782,7 @@ details on how to use each one from the command line.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.test
 ...test_bar.py::test_hello PASSED...
 ...test_bar.py::test_world PASSED...
 ...test_bar.py::test_mock PASSED...
@@ -795,7 +795,7 @@ details on how to use each one from the command line.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill __.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill __.test
 test_hello (test_foo.TestScript...) ... ok
 test_mock (test_foo.TestScript...) ... ok
 test_world (test_foo.TestScript...) ... ok
@@ -812,7 +812,7 @@ OK
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
 test_hello (test_foo.TestScript...) ... ok
 test_mock (test_foo.TestScript...) ... ok
 test_world (test_foo.TestScript...) ... ok
@@ -830,7 +830,7 @@ for <code>foo.test.testForked</code>, as <code>testForked</code> is the default 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test.testCached
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test.testCached
 test_hello (test_foo.TestScript...) ... ok
 test_mock (test_foo.TestScript...) ... ok
 test_world (test_foo.TestScript...) ... ok
@@ -876,7 +876,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.test bar/test/src/test_bar.py::test_mock # explicitly select the test class you wish to run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.test bar/test/src/test_bar.py::test_mock # explicitly select the test class you wish to run
 ...test_bar.py::test_mock PASSED...
 ...1 passed...</code></pre>
 </div>
@@ -995,7 +995,7 @@ test helper throughout multiple modules test suites</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
 ...Using BarTestUtils.bar_assert_equals...
 ...test_equal_string (test.TestScript...)...
 ...ok...
@@ -1049,7 +1049,7 @@ object foo extends PythonModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test # run Unit test suite
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test # run Unit test suite
 test_hello (test.TestScript...) ... ok
 test_world (test.TestScript...) ... ok
 ...Ran 2 tests...

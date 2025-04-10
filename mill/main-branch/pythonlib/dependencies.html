@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -693,7 +693,7 @@ constraints, or even direct references to wheels.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 [10 20 30 40 50]</code></pre>
 </div>
 </div>
@@ -718,7 +718,7 @@ object `package` extends RootModule with PythonModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 [10 20 30 40 50]</code></pre>
 </div>
 </div>
@@ -755,7 +755,7 @@ filesystem, e.g. in the above snippet any files that happen to live in the
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 Hello, world!</code></pre>
 </div>
 </div>
@@ -788,7 +788,7 @@ object `package` extends RootModule with PythonModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 Hello, world!</code></pre>
 </div>
 </div>
@@ -874,7 +874,7 @@ an environment variable:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 2</code></pre>
 </div>
 </div>
@@ -908,7 +908,7 @@ object `package` extends RootModule with PythonModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show pipInstallArgs
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show pipInstallArgs
 {
   &quot;args&quot;: [
     &quot;--index-url&quot;,

@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -329,7 +329,7 @@ tasks were evaluated:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show '{fooTask,barTask}'
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show '{fooTask,barTask}'
 evaluating fooTask
 evaluating barTask
 {
@@ -344,7 +344,7 @@ and <code>barTask</code> does not:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; echo &quot; changed&quot; &gt;&gt; foo.txt
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo &quot; changed&quot; &gt;&gt; foo.txt
 
 &gt; ./mill '{fooTask,barTask}'
 evaluating fooTask
@@ -429,7 +429,7 @@ changed, but <code>barTask</code> to not re-evaluate since because nothing we ch
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show '{fooTask,barTask}'
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show '{fooTask,barTask}'
 evaluating fooTask
 {
   &quot;fooTask&quot;: &quot;foo.txt contents&quot;,
@@ -455,7 +455,7 @@ can be cached:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show '{fooTask,barTask}'
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show '{fooTask,barTask}'
 evaluating barTask
 {
   &quot;fooTask&quot;: &quot;FOO.TXT CONTENTS&quot;,
@@ -571,7 +571,7 @@ like this for decades - but we can do better.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_basic_callgraph_analysis"><a class="anchor" href="#_basic_callgraph_analysis"></a>Basic Callgraph Analysis</h2>
+<h2 id="_basic_calligraphy_analysis"><a class="anchor" href="#_basic_calligraphy_analysis"></a>Basic Calligraphy Analysis</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The basic idea behind Mill’s callgraph analysis is that JVM <code>Function0</code> objects
@@ -763,7 +763,7 @@ tasks that call that method (directly or transitively) need to be re-evaluated.<
 </div>
 </div>
 <div class="sect1">
-<h2 id="_object_oriented_callgraphs"><a class="anchor" href="#_object_oriented_callgraphs"></a>Object Oriented Callgraphs</h2>
+<h2 id="_object_oriented_callgraphs"><a class="anchor" href="#_object_oriented_callgraphs"></a>Object-Oriented Callgraphs</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Although callgraph analysis on the static methods shown above is simple,

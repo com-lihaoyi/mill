@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -332,7 +332,7 @@ we can run this program as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill foo.run --text &quot;hello-world&quot;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill foo.run --text &quot;hello-world&quot;
 [55/55] foo.run
 [55] &lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
 </div>
@@ -343,7 +343,7 @@ outside of the build tool:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill show foo.assembly
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill show foo.assembly
 &quot;.../out/foo/assembly.dest/out.jar&quot;
 
 $ out/foo/assembly.dest/out.jar --text &quot;hello world&quot;
@@ -414,7 +414,7 @@ the ArgParse4J library that the example project depends on</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill show foo.nativeImage
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill show foo.nativeImage
 &quot;.../out/foo/nativeImage.dest/native-executable&quot;
 
 $ out/foo/nativeImage.dest/native-executable --text &quot;hello world&quot;
@@ -437,7 +437,7 @@ if you want to use it directly or view its <code>--help</code> documentation:</p
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ~/Github/mill/mill show foo.nativeImageTool
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ~/Github/mill/mill show foo.nativeImageTool
 &quot;.../graalvm-community-openjdk-17.0.9+9.1/Contents/Home/bin/native-image&quot;
 
 $ .../graalvm-community-openjdk-17.0.9+9.1/Contents/Home/bin/native-image --help
@@ -534,7 +534,7 @@ that the executable assembly takes about ~1s to create, while the native image t
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mill show foo.assembly
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mill show foo.assembly
 [1-41] [info] compiling 1 Java source...
 &quot;.../out/foo/assembly.dest/out.jar&quot;
 ./mill show foo.assembly  0.12s user 0.06s system 21% cpu 0.818 total</code></pre>
@@ -545,7 +545,7 @@ that the executable assembly takes about ~1s to create, while the native image t
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mill show foo.nativeImage
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mill show foo.nativeImage
 [1-50] GraalVM Native Image: Generating 'native-executable' (executable)...
 ...
 [1-50] [2/8] Performing analysis...  [****]                                                                     (7.9s @ 0.77GB)
@@ -563,13 +563,13 @@ that the executable assembly takes about ~1s to create, while the native image t
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ls -lh out/foo/assembly.dest/out.jar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ls -lh out/foo/assembly.dest/out.jar
 -rwxr-xr-x  1 lihaoyi  staff   2.5M Jan 16 15:33 out/foo/assembly.dest/out.jar</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ls -lh out/foo/nativeImage.dest/native-executable
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ls -lh out/foo/nativeImage.dest/native-executable
 -rwxr-xr-x  1 lihaoyi  staff    17M Jan 16 15:34 out/foo/nativeImage.dest/native-executable</code></pre>
 </div>
 </div>
@@ -592,7 +592,7 @@ the native image takes ~60ms</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./out/foo/assembly.dest/out.jar --text hello-world
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./out/foo/assembly.dest/out.jar --text hello-world
 &lt;h1&gt;hello-world&lt;/h1&gt;
 ./out/foo/assembly.dest/out.jar --text hello-world
 0.35s user 0.04s system 165% cpu 0.235 total</code></pre>
@@ -603,7 +603,7 @@ the native image takes ~60ms</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./out/foo/nativeImage.dest/native-executable --text hello-world
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./out/foo/nativeImage.dest/native-executable --text hello-world
 &lt;h1&gt;hello-world&lt;/h1&gt;
 ./out/foo/nativeImage.dest/native-executable --text hello-world
 0.04s user 0.01s system 87% cpu 0.062 total</code></pre>
@@ -666,7 +666,7 @@ of iterations per second they are able to achieve below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./out/foo/assembly.dest/out.jar --text hello-world
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./out/foo/assembly.dest/out.jar --text hello-world
 135
 170
 178
@@ -687,7 +687,7 @@ of iterations per second they are able to achieve below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./out/foo/nativeImage.dest/native-executable --text hello-world
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./out/foo/nativeImage.dest/native-executable --text hello-world
 171
 163
 180
@@ -726,7 +726,7 @@ would typically achieve.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ jps
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ jps
 58547 MillMain
 86276 MillServerMain
 24895 Jps
@@ -742,7 +742,7 @@ $ top | grep 9263
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ps aux | grep native-executable
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ps aux | grep native-executable
 lihaoyi          43880  46.1  0.1 408681792  30176 s000  S+    3:40PM   0:05.84 ./out/foo/nativeImage.dest/native-executable --text hello-world
 lihaoyi          86276   0.0  2.1 420349904 720416 s000  S     3:14PM   1:00.88 /Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/bin/java -cp /Users/lihaoyi/.cache/mill/download/0.12.5-68-e4bf78 mill.runner.MillServerMain /Users/lihaoyi/Github/mill/blog/modules/ROOT/attachments/7-graal-native-executables/out/mill-server/aa508f0984fd2811f6c6d8fae1362f1774e4f5f7-1
 lihaoyi          48496   0.0  0.0 408626896   1376 s002  S+    3:40PM   0:00.00 grep native-executable
@@ -971,7 +971,7 @@ override def jar = nativeImage()</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># JVM platform-agnostic artifact
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># JVM platform-agnostic artifact
 com.lihaoyi:mill-dist:0.12.6
 # native platform-specific artifacts
 com.lihaoyi:mill-dist-native-mac-amd64:0.12.6
@@ -996,9 +996,9 @@ com.lihaoyi:mill-dist-native-windows-amd64:0.12.6</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-mac-aarch64/0.12.6/mill-dist-native-mac-aarch64-0.12.6.jar -o mill-dist-native
-chmod +x mill-dist-native
-./mill-dist-native version
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-mac-aarch64/0.12.6/mill-dist-native-mac-aarch64-0.12.6.jar -o mill-dist-native
+&gt; chmod +x mill-dist-native
+&gt; ./mill-dist-native version
 0.12.6</code></pre>
 </div>
 </div>

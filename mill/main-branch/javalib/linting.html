@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -713,7 +713,7 @@ the <code>error-prone</code> compiler plugin automatically detects various kind 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show errorProneOptions
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show errorProneOptions
 [
   &quot;-XepAllErrorsAsWarnings&quot;
 ]
@@ -797,7 +797,7 @@ object `package` extends RootModule with CheckstyleModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill checkstyle # run checkstyle to produce a report, defaults to warning without error
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill checkstyle # run checkstyle to produce a report, defaults to warning without error
 ...src/InputWhitespaceCharacters.java:3:23: Line contains a tab character...
 ...src/InputWhitespaceCharacters.java:16:3: Line contains a tab character...
 ...src/InputFileName1.java:2:1: Top-level class MyAnnotation1 has to reside in its own source file...
@@ -997,7 +997,7 @@ which is useful in CI validation jobs to ensure code is formatted before merging
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill palantirformat --check    # check should fail initially
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill palantirformat --check    # check should fail initially
 ...checking format in 1 java sources ...
 ...src/A.java
 error: ...palantirformat aborted due to format error(s) (or invalid plugin settings/palantirformat options)
@@ -1015,7 +1015,7 @@ error: ...palantirformat aborted due to format error(s) (or invalid plugin setti
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill mill.javalib.palantirformat.PalantirFormatModule/ # alternatively, use external module to check/format
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.javalib.palantirformat.PalantirFormatModule/ # alternatively, use external module to check/format
 ...formatting 1 java sources ...</code></pre>
 </div>
 </div>

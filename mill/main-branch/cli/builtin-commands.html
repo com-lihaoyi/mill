@@ -78,7 +78,7 @@
     <div id="topbar-nav" class="navbar-menu">
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
-        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
@@ -718,7 +718,7 @@ from the command line using <code>resolve _</code>, <code>resolve foo._</code>, 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve _
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill resolve _
 foo
 bar
 clean
@@ -751,7 +751,7 @@ Lists within curly braces (<code>{</code>, <code>}</code>) are also supported.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve foo.{compile,run}
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill resolve foo.{compile,run}
 &gt; mill resolve &quot;foo.{compile,run}&quot;
 &gt; mill resolve foo.compile foo.run
 &gt; mill resolve _.compile  # list the compile tasks for every top-level module
@@ -778,7 +778,7 @@ exploring the structure of your build from the command line.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill inspect foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill inspect foo.run
 foo.run(RunModule...)
     Runs this module's code in a subprocess and waits for it to finish
     args &lt;str&gt;...
@@ -813,7 +813,7 @@ is looking for the <code>foo</code> module’s source files:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.sources
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show foo.sources
 [
   &quot;.../foo/src&quot;
 ]
@@ -832,7 +832,7 @@ file produced by the compilation:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show foo.compile
 {
   &quot;analysisFile&quot;: &quot;.../out/foo/compile.dest/...&quot;,
   &quot;classes&quot;: &quot;.../out/foo/compile.dest/classes&quot;
@@ -851,7 +851,7 @@ JSON results of the given task.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show 'foo.{sources,compileClasspath}'
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show 'foo.{sources,compileClasspath}'
 {
   &quot;foo.sources&quot;: [
     &quot;.../foo/src&quot;
@@ -874,7 +874,7 @@ dictionary, whether there is one or more task in the selection</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed 'foo.sources'
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill showNamed 'foo.sources'
 {
   &quot;foo.sources&quot;: [
     &quot;.../foo/src&quot;
@@ -912,7 +912,7 @@ expect it to.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill path foo.assembly foo.sources
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill path foo.assembly foo.sources
 foo.sources
 foo.allSources
 foo.allSourceFiles
@@ -941,7 +941,7 @@ any individual upstream task to see exactly how <code>foo</code> depends on it.<
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill plan foo.compileClasspath
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill plan foo.compileClasspath
 foo.transitiveCompileClasspath
 foo.compileResources
 foo.unmanagedClasspath
@@ -977,7 +977,7 @@ due to differences in time taken to run
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill clean</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill clean</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -986,7 +986,7 @@ It also accepts arguments to clean specific modules, or specific tasks.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill clean             # clean all outputs
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill clean             # clean all outputs
 &gt; mill clean foo         # clean all outputs for module 'foo' (including nested modules)
 &gt; mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
 &gt; mill clean foo.{compile,run}
@@ -1003,7 +1003,7 @@ It also accepts arguments to clean specific modules, or specific tasks.</p>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill visualize foo._
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill visualize foo._
 [
   &quot;.../out/visualize.dest/out.dot&quot;,
   &quot;.../out/visualize.dest/out.json&quot;,
@@ -1041,7 +1041,7 @@ module, but you can also use <code>visualize</code> on a single task in multiple
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill visualize __.compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill visualize __.compile
 
 &gt; cat out/visualize.dest/out.dot
 digraph &quot;example1&quot; {
@@ -1083,7 +1083,7 @@ it does mean that there will be some duplicate edges that are not shown.
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill visualizePlan foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill visualizePlan foo.run
 [
   &quot;.../out/visualizePlan.dest/out.dot&quot;,
   &quot;.../out/visualizePlan.dest/out.json&quot;,
@@ -1114,7 +1114,7 @@ dependencies are shown with a dotted border.</p>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill init
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill init
 Run `mill init &lt;example-id&gt;` with one of these examples as an argument to download and extract example.
 Run `mill init --show-all` to see full list of examples.
 Run `mill init &lt;Giter8 template&gt;` to generate project from Giter8 template.
