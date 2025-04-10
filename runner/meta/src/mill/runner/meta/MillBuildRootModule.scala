@@ -107,7 +107,6 @@ class MillBuildRootModule()(implicit
     ) ++
       Seq(
         ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}",
-        ivy"com.lihaoyi::mill-runner-api:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-core-api:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-core-define:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-kotlinlib:${Versions.millVersion}",
