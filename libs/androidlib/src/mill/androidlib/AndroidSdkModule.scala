@@ -83,49 +83,36 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
+   * Provides all the Android libraries classpaths, including `android.jar` and other necessary files,
+   * for the Android R8 tool.
+   */
+  def androidLibsClasspaths: T[Seq[PathRef]] = Task {
+    installAndroidSdkComponents()
+    Seq(
+      PathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar"),
+      PathRef(sdkPath().path / "platforms" / platformsVersion() / "core-for-system-modules.jar"),
+      PathRef(
+        sdkPath().path / "platforms" / platformsVersion() / "optional" / "org.apache.http.legacy.jar"
+      ),
+      PathRef(sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.car.jar"),
+      PathRef(
+        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.mock.jar"
+      ),
+      PathRef(
+        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.base.jar"
+      ),
+      PathRef(
+        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.runner.jar"
+      )
+    )
+  }
+
+  /**
    * Provides the path to the `android.jar` file, necessary for compiling Android apps.
    */
   def androidJarPath: T[PathRef] = Task {
     installAndroidSdkComponents()
     PathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar")
-  }
-
-  def androidCoreModulesPath: T[PathRef] = Task {
-    installAndroidSdkComponents()
-    PathRef(sdkPath().path / "platforms" / platformsVersion() / "core-for-system-modules.jar")
-  }
-
-  def androidOptionalApacheHttpLegacy: T[PathRef] = Task {
-    installAndroidSdkComponents()
-    PathRef(
-      sdkPath().path / "platforms" / platformsVersion() / "optional" / "org.apache.http.legacy.jar"
-    )
-  }
-
-  def androidOptionalCar: T[PathRef] = Task {
-    installAndroidSdkComponents()
-    PathRef(sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.car.jar")
-  }
-
-  def androidOptionalTestMock: T[PathRef] = Task {
-    installAndroidSdkComponents()
-    PathRef(
-      sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.mock.jar"
-    )
-  }
-
-  def androidOptionalTestBase: T[PathRef] = Task {
-    installAndroidSdkComponents()
-    PathRef(
-      sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.base.jar"
-    )
-  }
-
-  def androidOptionalTestRunner: T[PathRef] = Task {
-    installAndroidSdkComponents()
-    PathRef(
-      sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.runner.jar"
-    )
   }
 
   /**

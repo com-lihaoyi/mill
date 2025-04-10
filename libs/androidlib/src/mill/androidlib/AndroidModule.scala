@@ -744,17 +744,9 @@ trait AndroidModule extends JavaModule {
     )
   }
 
-  /** Additional library classes (if any) that should be treated as provided */
-  def libraryClassesPaths: T[Seq[PathRef]] = T {
-    Seq(
-      androidSdkModule().androidJarPath(),
-      androidSdkModule().androidCoreModulesPath(),
-      androidSdkModule().androidOptionalApacheHttpLegacy(),
-      androidSdkModule().androidOptionalCar(),
-      androidSdkModule().androidOptionalTestMock(),
-      androidSdkModule().androidOptionalTestBase(),
-      androidSdkModule().androidOptionalTestRunner()
-    )
+  /** Additional library classes provided */
+  def libraryClassesPaths: T[Seq[PathRef]] = Task {
+    androidSdkModule().androidLibsClasspaths()
   }
 
   def enableDesugaring: T[Boolean] = Task {
@@ -765,7 +757,7 @@ trait AndroidModule extends JavaModule {
    * Specifies the path to the main-dex rules file, which contains ProGuard rules
    * for determining which classes should be included in the primary DEX file.
    */
-  def mainDexRules: T[Option[PathRef]] = T {
+  def mainDexRules: T[Option[PathRef]] = Task {
     Some(PathRef(androidResources()._1.path / "main-dex-rules.pro"))
   }
 
@@ -773,7 +765,7 @@ trait AndroidModule extends JavaModule {
    * Returns the path to the main-dex list file, which explicitly lists the classes
    * to be included in the primary DEX file. Currently, this is not defined.
    */
-  def mainDexList: T[Option[PathRef]] = T {
+  def mainDexList: T[Option[PathRef]] = Task {
     None
   }
 
@@ -781,12 +773,12 @@ trait AndroidModule extends JavaModule {
    *  Provides the output path for the generated main-dex list file, which is used
    *  during the DEX generation process.
    */
-  def mainDexListOutput: T[Option[PathRef]] = T {
+  def mainDexListOutput: T[Option[PathRef]] = Task {
     Some(androidModuleGeneratedSourcesFunc().mainDexListOutput)
   }
 
   /** Optional baseline profile for ART rewriting */
-  def baselineProfile: T[Option[PathRef]] = T {
+  def baselineProfile: T[Option[PathRef]] = Task {
     None
   }
 
