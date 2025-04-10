@@ -52,8 +52,7 @@ object OutPathTestSuite extends UtestIntegrationTestSuite {
           val keys = jsonRecurse(json.obj, pathy)
           result = result ++ keys
         } catch {
-          case e: Exception => {
-          }
+          case e: Exception => {}
         }
       }
     })
@@ -98,7 +97,6 @@ object OutPathTestSuite extends UtestIntegrationTestSuite {
         tester.eval(("runBackground"), cwd = modifiedPath, env = env)
       assert(resModified1.isSuccess && resReference1.isSuccess)
 
-
     }
 
     test("Compare") - integrationTest { tester =>
@@ -110,16 +108,16 @@ object OutPathTestSuite extends UtestIntegrationTestSuite {
         assert(reference.contains(k))
 
         val referenceValue = reference.get(k).get
-        if (v.contains("$")){
-          //Normalization fails when the Coursier_Cache is set to a file within the Mill Directory
+        if (v.contains("$")) {
+          // Normalization fails when the Coursier_Cache is set to a file within the Mill Directory
           val modifiedFirst = v.split("/")(0)
           val referenceFirst = referenceValue.split("/")(0)
           assert(modifiedFirst == referenceFirst)
         }
       }
-      //reference.foreach { case (k, v) =>
-       // assert(modified.contains(k))
-      //}
+      // reference.foreach { case (k, v) =>
+      // assert(modified.contains(k))
+      // }
     }
   }
 }

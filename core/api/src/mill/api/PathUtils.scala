@@ -3,9 +3,9 @@ import os.Path
 import upickle.default.ReadWriter as RW
 import scala.reflect.ClassTag
 import scala.util.matching.Regex
-import mill.api.WorkspaceRoot
 import mill.constants.EnvVars
 import mill.constants.{OutFiles}
+import java.io.File;
 
 /**
  * Defines a trait which handles deerialization of paths, in a way that can be used by both path refs and paths
@@ -14,7 +14,8 @@ trait PathUtils {
   //TEMPORARY! A better solution needs to be found.
   def findOutRoot(): os.Path = {
     val outFolderName = OutFiles.out
-    val root = WorkspaceRoot.workspaceRoot / outFolderName
+    val workingDir = os.Path(new File("").getCanonicalPath().toString)
+    val root = sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(workingDir)(os.Path(_, workingDir))
     var currentPath = root
 
     for (i <- 1 to 100){
@@ -35,9 +36,7 @@ trait PathUtils {
    */
   implicit def substitutions(): List[(os.Path, String)] = {
     val out = findOutRoot()
-
     var result = List((out, "*$WorkplaceRoot*"))
-
     val javaHome = os.Path(System.getProperty("java.home"))
     result = result :+ (javaHome, "*$JavaHome*")
 
