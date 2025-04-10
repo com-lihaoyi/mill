@@ -228,6 +228,7 @@ jobs:
     with:
       install-android-sdk: ${{ matrix.install-android-sdk }}
       install-sbt: ${{ matrix.install-sbt || false }}
+      coursierarchive: "/tmp"
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
       shell: bash
