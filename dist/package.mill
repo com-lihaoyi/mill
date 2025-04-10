@@ -202,7 +202,8 @@ object `package` extends RootModule with InstallModule {
             env = forkEnv() ++ Map(
               "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
             ),
-            cwd = wd
+            cwd = wd,
+            stdout = os.Inherit
           )
           mill.api.Result.Success(())
         } catch {
