@@ -1,3 +1,49 @@
+diff --git a/dist/package.mill b/dist/package.mill
+index d0d68e63fce..7a91f6de8b9 100644
+--- a/dist/package.mill
++++ b/dist/package.mill
+@@ -342,41 +342,10 @@ object `package` extends RootModule with InstallModule {
+ 
+     def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
+ 
+-    // copying the original method from NativeImageModule until re-bootstrapping
+-    // for the withRevalidateOnce
+-    def nativeImageTool: T[PathRef] = Task {
+-      jvmWorker().javaHome().map(_.path)
+-        .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
+-        case Some(home) =>
+-          val tool = if (scala.util.Properties.isWin) "native-image.cmd" else "native-image"
+-          val path = home / "bin" / tool
+-          if (os.exists(path))
+-            // native-image is externally managed, better revalidate it at least once
+-            PathRef(path).withRevalidateOnce
+-          else throw new RuntimeException(s"$path not found")
+-        case None =>
+-          throw new RuntimeException("JvmWorkerModule.javaHome/GRAALVM_HOME not defined")
+-      }
+-    }
+-
+     def jvmWorker = ModuleRef(JvmWorkerGraalvm)
+ 
+     object JvmWorkerGraalvm extends JvmWorkerModule {
+       def jvmId = build.Settings.graalvmJvmId
+-      // copying the original method from NativeImageModule until re-bootstrapping
+-      // for the withRevalidateOnce
+-      def javaHome: T[Option[PathRef]] = Task {
+-        Option(jvmId()).filter(_ != "").map { id =>
+-          val path = mill.util.Jvm.resolveJavaHome(
+-            id = id,
+-            coursierCacheCustomizer = coursierCacheCustomizer(),
+-            ctx = Some(implicitly[mill.api.Ctx.Log]),
+-            jvmIndexVersion = jvmIndexVersion()
+-          ).get
+-          // Java home is externally managed, better revalidate it at least once
+-          PathRef(path, quick = true).withRevalidateOnce
+-        }
+-      }
+     }
+   }
+ }
 diff --git a/mill-build/build.mill b/mill-build/build.mill
 index 521b6533dd6..1c8b6ff79ea 100644
 --- a/mill-build/build.mill
