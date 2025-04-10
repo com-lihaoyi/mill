@@ -614,7 +614,7 @@ object Jvm {
       id: String,
       ctx: Option[mill.define.TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = "latest.release"
+      jvmIndexVersion: String = mill.util.BuildInfo.coursierJvmIndexVersion
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     val jvmCache = JvmCache()
