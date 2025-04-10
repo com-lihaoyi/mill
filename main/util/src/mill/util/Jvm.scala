@@ -624,6 +624,7 @@ object Jvm {
       .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
     val javaHome = JavaHome()
       .withCache(jvmCache)
+    pprint.err.log(id)
     val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
     Result.Success(os.Path(file))
 

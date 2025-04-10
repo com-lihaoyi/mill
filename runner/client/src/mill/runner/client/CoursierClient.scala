@@ -23,6 +23,7 @@ object CoursierClient {
 
     val javaHome = JavaHome().withCache(jvmCache)
 
+    pprint.err.log(id)
     javaHome.get(id).unsafeRun()(coursierCache0.ec)
   }
 }
