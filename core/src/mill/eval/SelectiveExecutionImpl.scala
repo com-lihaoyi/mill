@@ -1,6 +1,7 @@
 package mill.eval
 
 import mill.api.{ExecResult, Result, Val}
+import mill.api.internal.TestReporter
 import mill.constants.OutFiles
 import mill.define.{Evaluator, InputImpl, NamedTask, SelectMode, Task, SelectiveExecution}
 import mill.define.SelectiveExecution.ChangedTasks
@@ -191,13 +192,13 @@ object SelectiveExecutionImpl {
     ): (SelectiveExecution.Metadata, Map[Task[?], ExecResult[Val]]) = {
       val results: Map[NamedTask[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: InputImpl[_] =>
-          val ctx = new mill.api.Ctx.Impl(
+          val ctx = new mill.define.TaskCtx.Impl(
             args = Vector(),
             dest0 = () => null,
             log = evaluator.baseLogger,
             env = evaluator.env,
             reporter = _ => None,
-            testReporter = mill.runner.api.DummyTestReporter,
+            testReporter = TestReporter.DummyTestReporter,
             workspace = evaluator.workspace,
             systemExit = n => ???,
             fork = null,

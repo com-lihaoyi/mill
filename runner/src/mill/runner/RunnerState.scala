@@ -1,8 +1,8 @@
 package mill.runner
 
-import mill.api.{PathRef, Val, internal}
-import mill.runner.api.{RootModuleApi, EvaluatorApi}
-import mill.define.Segments
+import mill.api.Val
+import mill.api.internal.{EvaluatorApi, RootModuleApi, internal}
+import mill.define.{PathRef, Segments}
 import mill.define.internal.Watchable
 import upickle.default.{ReadWriter, macroRW}
 import mill.define.RootModule0
@@ -71,10 +71,10 @@ object RunnerState {
           (k, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
         evalWatched.collect { case Watchable.Path(p, quick, sig) =>
-          new PathRef(os.Path(p), quick, sig, mill.api.PathRef.Revalidate.Once)
+          new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once)
         },
         moduleWatched.collect { case Watchable.Path(p, quick, sig) =>
-          new PathRef(os.Path(p), quick, sig, mill.api.PathRef.Revalidate.Once)
+          new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once)
         },
         classLoaderOpt.map(_.identity),
         runClasspath,

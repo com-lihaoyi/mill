@@ -1,6 +1,7 @@
 package mill.main.gradle
 
 import mainargs.{ParserForClass, arg, main}
+import mill.api.internal.internal
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.gradle.JavaModel.{Dep, ExternalDep}
@@ -40,7 +41,7 @@ import scala.jdk.CollectionConverters.*
  *  - custom tasks
  *  - non-Java sources
  */
-@mill.api.internal
+@internal
 object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep] {
   override type C = Config
 
@@ -364,7 +365,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
   }
 
   @main
-  @mill.api.internal
+  @internal
   case class Config(
       shared: BuildGenUtil.Config,
       @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')

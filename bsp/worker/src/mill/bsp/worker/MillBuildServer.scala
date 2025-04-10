@@ -3,10 +3,11 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
-import mill.runner.api.{JvmBuildTarget, ScalaBuildTarget, *}
+import mill.api.internal.{JvmBuildTarget, ScalaBuildTarget, *}
+import mill.api.*
 import mill.bsp.{Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
-import mill.runner.api.Segment.Label
+import mill.api.Segment.Label
 import mill.given
 import mill.constants.OutFiles
 import mill.client.lock.Lock
@@ -355,7 +356,7 @@ private class MillBuildServer(
             ev,
             ts,
             Utils.getBspLoggedReporterPool(p.getOriginId, state.bspIdByModule, client),
-            DummyTestReporter,
+            TestReporter.DummyTestReporter,
             new MillBspLogger(client, taskId, ev.baseLogger)
           )
         }
@@ -751,7 +752,7 @@ private class MillBuildServer(
       evaluator: EvaluatorApi,
       goals: Seq[TaskApi[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = null
   ): ExecutionResultsApi = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)

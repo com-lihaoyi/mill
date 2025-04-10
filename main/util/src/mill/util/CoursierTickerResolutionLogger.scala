@@ -2,7 +2,7 @@ package mill.util
 
 import coursier.cache.CacheLogger
 
-import mill.api.Ctx
+import mill.define.TaskCtx
 
 import scala.collection.mutable
 
@@ -14,7 +14,7 @@ import scala.collection.mutable
  * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
  */
 
-private class CoursierTickerResolutionLogger(ctx: Ctx.Log) extends CacheLogger {
+private class CoursierTickerResolutionLogger(ctx: TaskCtx.Log) extends CacheLogger {
   case class DownloadState(var current: Long, var total: Long)
 
   var downloads = new mutable.TreeMap[String, DownloadState]()

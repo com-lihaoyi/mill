@@ -1,6 +1,7 @@
 package mill.init
 
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.main.buildgen.BuildGenUtil
 import mill.scalalib.{CoursierModule, Dep}
 import mill.scalalib.scalafmt.ScalafmtWorkerModule

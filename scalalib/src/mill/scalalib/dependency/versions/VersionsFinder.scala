@@ -3,7 +3,7 @@ package mill.scalalib.dependency.versions
 import mill.define.{BaseModule, Evaluator, Task}
 import mill.scalalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
 import mill.scalalib.{BoundDep, JavaModule, Lib}
-import mill.api.Ctx.Log
+import mill.define.TaskCtx.Log
 
 import java.time.{Clock, Instant, ZoneId}
 import java.util.concurrent.atomic.AtomicInteger

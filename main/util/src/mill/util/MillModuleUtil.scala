@@ -2,7 +2,8 @@ package mill.util
 
 import coursier.Repository
 
-import mill.api.{BuildInfo, PathRef, Result}
+import mill.api.{BuildInfo, Result}
+import mill.define.{PathRef}
 
 import java.nio.file.{Files, Paths}
 

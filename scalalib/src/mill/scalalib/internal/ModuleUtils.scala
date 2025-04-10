@@ -1,10 +1,11 @@
 package mill.scalalib.internal
 
 import mill.api.BuildScriptException
+import mill.api.internal.internal
 
 import scala.annotation.tailrec
 
-@mill.api.internal
+@internal
 object ModuleUtils {
 
   /**
