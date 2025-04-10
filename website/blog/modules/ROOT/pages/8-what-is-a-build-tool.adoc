@@ -1,6 +1,5 @@
-// tag::header[]
-
 = What does a Build Tool do?
+// tag::header[]
 :author: Li Haoyi
 :revdate: 13 February 2025
 

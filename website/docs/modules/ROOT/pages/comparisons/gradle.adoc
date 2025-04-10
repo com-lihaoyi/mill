@@ -2,7 +2,6 @@
 :page-aliases: Case_Study_Mill_vs_Gradle.adoc
 
 
-
 Compared to Gradle, Mill tries to improve in the following ways:
 
 * **Performance**: Mill compiles the same project 3-4x faster than Gradle. Mill is generally
@@ -77,7 +76,8 @@ we can explain the difference in performing the same task with the two different
 
 === Sequential Clean Compile All
 
-```bash
+[source,console]
+----
 $ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
 17.6s
 18.2s
@@ -87,7 +87,7 @@ $ ./mill clean; time ./mill -j 1 __.compile
 6.19s
 5.86s
 5.28s
-```
+----
 
 This benchmark measures the time taken to sequentially compiled all the Java code in
 the Mockito code base. The goal of this benchmark is to try and measure the "clean compile
@@ -118,7 +118,7 @@ on under the hood that I'm not aware of.
 
 === Parallel Clean Compile All
 
-[source,bash]
+[source,console]
 ----
 $ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
 13.8s
@@ -145,7 +145,7 @@ each tool.
 
 === Clean Compile Single-Module
 
-[source,bash]
+[source,console]
 ----
 $ ./gradlew clean; time ./gradlew :classes --no-build-cache
 4.14s
@@ -168,7 +168,7 @@ the results above.
 
 === Incremental Compile Single-Module
 
-[source,bash]
+[source,console]
 ----
 $ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
 1.37s
@@ -194,7 +194,7 @@ showing a ~2.7x speedup for this task
 
 === No-Op Compile Single-Module
 
-[source,bash]
+[source,console]
 ----
 $ time ./gradlew :classes
 0.95s
@@ -235,7 +235,7 @@ def resources = Task {
 
 In Gradle, it is written as:
 
-[source,scala]
+[source,groovy]
 ----
 tasks.register('copyMockMethodDispatcher', Copy) {
     dependsOn compileJava
@@ -401,9 +401,9 @@ that no other build tool supports.
 Note that the IDE experience that Mill provides should already be very familiar to anyone writing
 Java, Kotlin, or Scala:
 
-* _of course_ you can find the overridden definitions!
-* _of course_ you can pull up the documentation in a click!
-* _of course_ you can navigate around the codebase with your IDE, up and down
+* _of course_, you can find the overridden definitions!
+* _of course_, you can pull up the documentation in a click!
+* _of course_, you can navigate around the codebase with your IDE, up and down
   the call graph, to see who calls who!
 
 What Mill provides isn't rocket science, but rather it is just about taking your existing experience

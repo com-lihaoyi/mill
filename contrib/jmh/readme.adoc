@@ -22,12 +22,12 @@ object foo extends ScalaModule with JmhModule {
 
 Here are some sample commands:
 
-[source,bash]
+[source,console]
 ----
-mill foo.runJmh             # Runs all detected jmh benchmarks
-mill foo.listJmhBenchmarks  # List detected jmh benchmarks
-mill foo.runJmh -h          # List available arguments to runJmh
-mill foo.runJmh regexp      # Run all benchmarks matching `regexp`
+> mill foo.runJmh             # Runs all detected jmh benchmarks
+> mill foo.listJmhBenchmarks  # List detected jmh benchmarks
+> mill foo.runJmh -h          # List available arguments to runJmh
+> mill foo.runJmh regexp      # Run all benchmarks matching `regexp`
 ----
 
 For Scala JMH samples see https://github.com/sbt/sbt-jmh/tree/main/plugin/src/sbt-test/sbt-jmh/run/src/main/scala/org/openjdk/jmh/samples[sbt-jmh].

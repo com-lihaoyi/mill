@@ -33,7 +33,7 @@ object foo extends JavaModule {
 }
 ----
 
-[source,bash]
+[source,console]
 ----
 > /mill foo.compile
 compiling 1 Java source...
@@ -180,10 +180,12 @@ import mill._, javalib._
 object foo extends JavaModule {
 }
 ----
-```bash
+
+[source,console]
+----
 > mill compile
 Compiling 1 Java source...
-```
+----
 
 If you want to add a custom task, this is as simple as defining a method e.g.
 `def lineCount = Task { ... }`. The body of `Task` performs the action we want, and
@@ -206,7 +208,7 @@ Once we define a new task, we can immediately begin using it in our build.
 `lineCount` is not used by any existing `JavaModule` tasks, but we can still
 show its value via the Mill command line to force it to evaluate:
 
-[source,bash]
+[source,console]
 ----
 > mill show foo.lineCount
 17
@@ -252,7 +254,7 @@ work. That means if you call `mill foo.run`, it will automatically pick up the n
 including the generated `line-count.txt` file and make it available to
 the application code to use e.g. to print it out at runtime:
 
-[source,bash]
+[source,console]
 ----
 > mill foo.run
 Line Count: 18
@@ -310,7 +312,7 @@ is inspectable from the Mill command line via `show`, and we wire it up into
 `def resources` so it can be inspected and used at runtime by the application
 (in this case just printed out):
 
-[source,bash]
+[source,console]
 ----
 > mill show foo.htmlSnippet
 "<h1>Line count is: 17</h1>"
