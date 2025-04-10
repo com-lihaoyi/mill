@@ -1396,7 +1396,7 @@ trait JavaModule
   private[mill] def bspBuildTargetScalaMainClasses =
     Task.Anon((allLocalMainClasses(), forkArgs(), forkEnv()))
 
-  private[mill] def bspRun(args: Seq[String]): Command[Unit] = Task.Command {
+  private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
     run(Task.Anon(Args(args)))()
   }
 
