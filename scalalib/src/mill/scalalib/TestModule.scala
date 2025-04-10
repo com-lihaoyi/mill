@@ -251,7 +251,7 @@ trait TestModule
     )
   }
 
-  def bspBuildTargetScalaTestClasses = this match {
+  private[mill] def bspBuildTargetScalaTestClasses = this match {
     case m: TestModule =>
       Task.Anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
     case _ =>

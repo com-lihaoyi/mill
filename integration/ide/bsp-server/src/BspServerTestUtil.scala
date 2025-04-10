@@ -18,7 +18,7 @@ object BspServerTestUtil {
 
   val updateSnapshots = false
 
-  def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
+  private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
   trait DummyBuildClient extends b.BuildClient {
     def onBuildLogMessage(params: b.LogMessageParams): Unit = ()

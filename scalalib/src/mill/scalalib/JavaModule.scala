@@ -671,7 +671,7 @@ trait JavaModule
    * Keep in sync with [[transitiveLocalClasspath]]
    */
   @internal
-  def bspTransitiveLocalClasspath: T[Seq[UnresolvedPath]] = Task {
+  private[mill] def bspTransitiveLocalClasspath: T[Seq[UnresolvedPath]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps)(_.bspLocalClasspath)().flatten
   }
 
@@ -691,7 +691,7 @@ trait JavaModule
    * Keep in sync with [[transitiveCompileClasspath]]
    */
   @internal
-  def bspTransitiveCompileClasspath: T[Seq[UnresolvedPath]] = Task {
+  private[mill] def bspTransitiveCompileClasspath: T[Seq[UnresolvedPath]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         m.localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
@@ -797,7 +797,7 @@ trait JavaModule
    * Keep in sync with [[compile]]
    */
   @internal
-  def bspCompileClassesPath: T[UnresolvedPath] =
+  private[mill] def bspCompileClassesPath: T[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
       Task {
         Task.log.debug(
@@ -829,7 +829,7 @@ trait JavaModule
    *
    * Keep in sync with [[localRunClasspath]]
    */
-  def bspLocalRunClasspath: T[Seq[UnresolvedPath]] = Task {
+  private[mill] def bspLocalRunClasspath: T[Seq[UnresolvedPath]] = Task {
     Seq.from(super.localRunClasspath() ++ resources())
       .map(p => UnresolvedPath.ResolvedPath(p.path)) ++
       Seq(bspCompileClassesPath())
@@ -855,7 +855,7 @@ trait JavaModule
    * Keep in sync with [[localClasspath]]
    */
   @internal
-  def bspLocalClasspath: T[Seq[UnresolvedPath]] = Task {
+  private[mill] def bspLocalClasspath: T[Seq[UnresolvedPath]] = Task {
     (localCompileClasspath()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++
       bspLocalRunClasspath()
   }
@@ -876,7 +876,7 @@ trait JavaModule
    * Keep in sync with [[compileClasspath]]
    */
   @internal
-  def bspCompileClasspath: Task[EvaluatorApi => Seq[String]] = Task.Anon {
+  private[mill] def bspCompileClasspath: Task[EvaluatorApi => Seq[String]] = Task.Anon {
     (ev: EvaluatorApi) =>
       (resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
         bspTransitiveCompileClasspath() ++
@@ -1272,7 +1272,7 @@ trait JavaModule
   )
 
   @internal
-  def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
+  private[mill] def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
     JvmBuildTarget(
       javaHome = jvmWorker()
         .javaHome()
@@ -1287,7 +1287,7 @@ trait JavaModule
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
 
-  def bspBuildTargetScalacOptions(
+  private[mill] def bspBuildTargetScalacOptions(
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
   ) = {
@@ -1324,7 +1324,7 @@ trait JavaModule
     }
   }
 
-  def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean) = {
+  private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean) = {
     val classesPathTask = this match {
       case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
         sem.bspCompiledClassesAndSemanticDbFiles
@@ -1339,7 +1339,7 @@ trait JavaModule
     }
   }
 
-  def bspBuildTargetSources = Task.Anon {
+  private[mill] def bspBuildTargetSources = Task.Anon {
     Tuple2(sources().map(_.path.toNIO), generatedSources().map(_.path.toNIO))
   }
 
@@ -1350,13 +1350,14 @@ trait JavaModule
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
-  def bspBuildTargetInverseSources[T](id: T, searched: String): Task[Seq[T]] = Task.Anon {
-    val src = allSourceFiles()
-    val found = src.map(sanitizeUri).contains(searched)
-    if (found) Seq(id) else Seq()
-  }
+  private[mill] def bspBuildTargetInverseSources[T](id: T, searched: String): Task[Seq[T]] =
+    Task.Anon {
+      val src = allSourceFiles()
+      val found = src.map(sanitizeUri).contains(searched)
+      if (found) Seq(id) else Seq()
+    }
 
-  def bspBuildTargetDependencySources(includeSources: Boolean) = Task.Anon {
+  private[mill] def bspBuildTargetDependencySources(includeSources: Boolean) = Task.Anon {
     val repos = allRepositories()
     val buildSources = if (!includeSources) Nil
     else mill.scalalib.Lib
@@ -1376,7 +1377,7 @@ trait JavaModule
     )
   }
 
-  def bspBuildTargetDependencyModules = Task.Anon {
+  private[mill] def bspBuildTargetDependencyModules = Task.Anon {
     (
       // full list of dependencies, including transitive ones
       millResolver()
@@ -1392,17 +1393,18 @@ trait JavaModule
     )
   }
 
-  def bspBuildTargetScalaMainClasses = Task.Anon((allLocalMainClasses(), forkArgs(), forkEnv()))
+  private[mill] def bspBuildTargetScalaMainClasses =
+    Task.Anon((allLocalMainClasses(), forkArgs(), forkEnv()))
 
-  def bspRun(args: Seq[String]): Command[Unit] = Task.Command {
+  private[mill] def bspRun(args: Seq[String]): Command[Unit] = Task.Command {
     run(Task.Anon(Args(args)))()
   }
 
-  def bspBuildTargetResources = Task.Anon { resources().map(_.path.toNIO) }
+  private[mill] def bspBuildTargetResources = Task.Anon { resources().map(_.path.toNIO) }
 
-  def bspBuildTargetCompile = Task.Anon { compile().classes.path.toNIO }
+  private[mill] def bspBuildTargetCompile = Task.Anon { compile().classes.path.toNIO }
 
-  def genIdeaMetadata(
+  private[mill] def genIdeaMetadata(
       ideaConfigVersion: Int,
       evaluator: EvaluatorApi,
       path: Segments

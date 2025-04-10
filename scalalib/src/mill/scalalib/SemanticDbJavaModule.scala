@@ -21,7 +21,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
   def zincIncrementalCompilation: T[Boolean]
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.scalalib.api.CompilationResult]
-  def bspBuildTarget: BspBuildTarget
+  private[mill] def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
   def compileClasspath: T[Seq[PathRef]]
@@ -138,7 +138,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
   }
 
   // keep in sync with compiledClassesAndSemanticDbFiles
-  def bspCompiledClassesAndSemanticDbFiles: T[UnresolvedPath] = {
+  private[mill] def bspCompiledClassesAndSemanticDbFiles: T[UnresolvedPath] = {
     if (
       compiledClassesAndSemanticDbFiles.ctx.enclosing == s"${classOf[SemanticDbJavaModule].getName}#compiledClassesAndSemanticDbFiles"
     ) {
@@ -161,7 +161,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
     }
   }
 
-  def bspBuildTargetCompileSemanticDb = Task.Anon {
+  private[mill] def bspBuildTargetCompileSemanticDb = Task.Anon {
     compiledClassesAndSemanticDbFiles().path.toNIO
   }
 }
