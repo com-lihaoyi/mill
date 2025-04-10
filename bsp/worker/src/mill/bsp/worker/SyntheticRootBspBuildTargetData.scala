@@ -2,9 +2,9 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, SourceItem, SourceItemKind, SourcesItem}
 import mill.bsp.worker.Utils.{makeBuildTarget, sanitizeUri}
-import mill.runner.api.BspBuildTarget
-import mill.runner.api.BspModuleApi
-import mill.runner.api.BspModuleApi.Tag
+import mill.api.internal.BspBuildTarget
+import mill.api.internal.BspModuleApi
+import mill.api.internal.BspModuleApi.Tag
 
 import scala.jdk.CollectionConverters._
 import ch.epfl.scala.bsp4j.BuildTarget

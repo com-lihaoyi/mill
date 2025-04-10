@@ -4,7 +4,7 @@ import mill.define.Task
 import mill.playlib.api.Versions
 import mill.scalalib._
 import mill.{Args, T}
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.define.Target
 
 trait PlayApiModule extends Dependencies with Router with Server {

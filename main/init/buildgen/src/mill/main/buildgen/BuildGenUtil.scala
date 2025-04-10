@@ -2,6 +2,7 @@ package mill.main.buildgen
 
 import geny.Generator
 import mainargs.{Flag, arg}
+import mill.api.internal.internal
 import mill.constants.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
@@ -11,12 +12,12 @@ import mill.constants.CodeGenConstants.{
 import mill.constants.OutFiles
 import mill.main.buildgen.BuildObject.Companions
 import mill.internal.Util.backtickWrap
-import mill.api.CrossVersion
+import mill.define.CrossVersion
 
 import scala.collection.immutable.SortedSet
 import scala.util.boundary
 
-@mill.api.internal
+@internal
 object BuildGenUtil {
 
   def renderIrTrait(value: IrTrait): String = {

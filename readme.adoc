@@ -60,7 +60,7 @@ object foo extends JavaModule {
 }
 ----
 
-[source,bash]
+[source,console]
 ----
 
 > ./mill foo.compile # compile sources into classfiles

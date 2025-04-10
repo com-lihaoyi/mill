@@ -43,6 +43,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
   object worker extends Cross[WorkerModule]("1")
   trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
+    def moduleDeps = Seq(build.core.define)
     def scalajsWorkerVersion = crossValue
     def moduleDir: os.Path = super.moduleDir / scalajsWorkerVersion
     def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.core.constants, build.core.api)

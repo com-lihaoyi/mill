@@ -286,7 +286,7 @@ $txt
             case ("example", txt) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
-[source,bash,subs="attributes,verbatim"]
+[source,console,subs="attributes,verbatim"]
 ----
 $txt
 ----"""

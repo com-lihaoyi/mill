@@ -1,11 +1,11 @@
 package mill.testrunner
 
-import mill.api.internal
+import mill.api.internal.internal
 import os.Path
 
 @internal object GetTestTasksMain {
   private implicit def PathTokensReader2: mainargs.TokensReader.Simple[os.Path] =
-    mill.api.JsonFormatters.PathTokensReader2
+    mill.define.JsonFormatters.PathTokensReader2
   @mainargs.main
   def main(
       runCp: Seq[os.Path],

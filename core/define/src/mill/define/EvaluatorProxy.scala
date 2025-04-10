@@ -1,8 +1,9 @@
 package mill.define
 
 import mill.api.*
+import mill.api.internal.*
 import mill.define.*
-import mill.runner.api.*
+import mill.api.*
 final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
   override def allowPositionalCommandArgs = delegate.allowPositionalCommandArgs
   override def selectiveExecution = delegate.selectiveExecution
@@ -78,7 +79,7 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
   def execute[T](
       targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false

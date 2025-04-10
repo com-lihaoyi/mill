@@ -22,7 +22,8 @@ import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 
-import mill.api.{Ctx, PathRef, Result}
+import mill.api.{Result}
+import mill.define.{TaskCtx, PathRef}
 
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
@@ -77,7 +78,7 @@ object Jvm {
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true,
       check: Boolean = true
-  )(implicit ctx: Ctx): CommandResult = {
+  )(implicit ctx: TaskCtx): CommandResult = {
     val cp = cpPassingJarPath match {
       case Some(passingJarPath) if classPath.nonEmpty =>
         createClasspathPassingJar(passingJarPath, classPath.toSeq)
@@ -419,7 +420,7 @@ object Jvm {
   }
 
   def createLauncher(mainClass: String, classPath: Seq[os.Path], jvmArgs: Seq[String])(implicit
-      ctx: Ctx.Dest
+      ctx: TaskCtx.Dest
   ): PathRef = {
     val isWin = scala.util.Properties.isWin
     val isBatch =
@@ -480,7 +481,7 @@ object Jvm {
     !System.getProperty("java.specification.version").startsWith("1.")
 
   private def coursierCache(
-      ctx: Option[mill.api.Ctx.Log],
+      ctx: Option[mill.define.TaskCtx.Log],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
   ) =
     FileCache[Task]()
@@ -501,7 +502,7 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.define.TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
@@ -558,7 +559,7 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.define.TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
@@ -581,7 +582,7 @@ object Jvm {
     }
 
   def jvmIndex(
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.define.TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): JvmIndex = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
@@ -589,7 +590,7 @@ object Jvm {
   }
 
   def jvmIndex0(
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.define.TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = "latest.release"
   ): Task[JvmIndex] = {
@@ -611,7 +612,7 @@ object Jvm {
    */
   def resolveJavaHome(
       id: String,
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.define.TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = "latest.release"
   ): Result[os.Path] = {
@@ -634,7 +635,7 @@ object Jvm {
       force: IterableOnce[Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
+      ctx: Option[mill.define.TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       boms: IterableOnce[BomDependency] = Nil

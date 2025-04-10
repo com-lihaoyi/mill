@@ -1,7 +1,9 @@
 package mill.define
 
-import mill.api.PathRef
-import mill.runner.api.{CompileProblemReporter, Logger, Result, TestReporter, TaskApi, NamedTaskApi}
+import mill.define.PathRef
+import mill.api.internal.{TaskApi, NamedTaskApi}
+import mill.api.{Logger, Result}
+import mill.api.internal.{CompileProblemReporter, TestReporter}
 import mill.define.internal.Applicative.Applyable
 import mill.define.internal.Cacher
 import upickle.default.{ReadWriter as RW, Writer as W}
@@ -27,7 +29,7 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
   /**
    * Evaluate this task
    */
-  def evaluate(args: mill.api.Ctx): Result[T]
+  def evaluate(args: mill.define.TaskCtx): Result[T]
 
   /**
    * Even if this tasks's inputs did not change, does it need to re-evaluate
@@ -62,13 +64,13 @@ object Task extends TaskBase {
    * [[TargetImpl]]s need to be invalidated and re-computed.
    */
   inline def Sources(inline values: Result[os.Path]*)(implicit
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[Seq[PathRef]] = ${
     TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
   }
 
   inline def Sources(inline values: os.SubPath*)(implicit
-      inline ctx: mill.define.Ctx,
+      inline ctx: mill.define.ModuleCtx,
       dummy: Boolean = true
   ): Target[Seq[PathRef]] = ${
     TaskMacros.sourcesImpl(
@@ -81,12 +83,12 @@ object Task extends TaskBase {
    * using `Task.Source`.
    */
   inline def Source(inline value: Result[os.Path])(implicit
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[PathRef] =
     ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
 
   inline def Source(inline value: os.SubPath)(implicit
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[PathRef] =
     ${ TaskMacros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
 
@@ -108,7 +110,7 @@ object Task extends TaskBase {
    */
   inline def Input[T](inline value: Result[T])(implicit
       inline w: upickle.default.Writer[T],
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[T] =
     ${ TaskMacros.inputImpl[T]('value)('w, 'ctx) }
 
@@ -121,7 +123,7 @@ object Task extends TaskBase {
    */
   inline def Command[T](inline t: Result[T])(implicit
       inline w: W[T],
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }) }
 
   /**
@@ -139,7 +141,7 @@ object Task extends TaskBase {
   class CommandFactory private[mill] (val exclusive: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
         inline w: W[T],
-        inline ctx: mill.define.Ctx
+        inline ctx: mill.define.ModuleCtx
     ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }) }
   }
 
@@ -157,7 +159,7 @@ object Task extends TaskBase {
    * responsibility of ensuring the implementation is idempotent regardless of
    * what in-memory state the worker may have.
    */
-  inline def Worker[T](inline t: Result[T])(implicit inline ctx: mill.define.Ctx): Worker[T] =
+  inline def Worker[T](inline t: Result[T])(implicit inline ctx: mill.define.ModuleCtx): Worker[T] =
     ${ TaskMacros.workerImpl2[T]('t)('ctx) }
 
   /**
@@ -171,7 +173,7 @@ object Task extends TaskBase {
 
   inline def apply[T](inline t: Result[T])(implicit
       inline rw: RW[T],
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
@@ -195,7 +197,7 @@ object Task extends TaskBase {
   class ApplyFactory private[mill] (val persistent: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
         inline rw: RW[T],
-        inline ctx: mill.define.Ctx
+        inline ctx: mill.define.ModuleCtx
     ): Target[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
@@ -209,19 +211,19 @@ object Task extends TaskBase {
 
   private[define] class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
     val inputs: Seq[Task[?]] = inputs0
-    def evaluate(ctx: mill.api.Ctx): Result[Seq[T]] = {
+    def evaluate(ctx: mill.define.TaskCtx): Result[Seq[T]] = {
       for (i <- 0 until ctx.args.length)
         yield ctx.args(i).asInstanceOf[T]
     }
   }
 
   private[define] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
-    def evaluate(ctx: mill.api.Ctx): Result[V] = f(ctx.arg(0))
+    def evaluate(ctx: mill.define.TaskCtx): Result[V] = f(ctx.arg(0))
     val inputs: Seq[Task[?]] = List(source)
   }
 
   private[define] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
-    def evaluate(ctx: mill.api.Ctx): Result[(T, V)] = (ctx.arg(0), ctx.arg(1))
+    def evaluate(ctx: mill.define.TaskCtx): Result[(T, V)] = (ctx.arg(0), ctx.arg(1))
     val inputs: Seq[Task[?]] = List(source1, source2)
   }
 }
@@ -233,7 +235,7 @@ object Task extends TaskBase {
  */
 trait NamedTask[+T] extends Task[T] with NamedTaskApi[T] {
 
-  def ctx0: mill.define.Ctx
+  def ctx0: mill.define.ModuleCtx
   def isPrivate: Option[Boolean]
   def label: String = ctx.segments.value.last match {
     case Segment.Label(v) => v
@@ -243,11 +245,11 @@ trait NamedTask[+T] extends Task[T] with NamedTaskApi[T] {
   }
   override def toString = ctx.segments.render
 
-  def evaluate(ctx: mill.api.Ctx): Result[T] = evaluate0(ctx.args, ctx)
+  def evaluate(ctx: mill.define.TaskCtx): Result[T] = evaluate0(ctx.args, ctx)
 
-  def evaluate0: (Seq[Any], mill.api.Ctx) => Result[T]
+  def evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T]
 
-  val ctx: Ctx = ctx0
+  val ctx: ModuleCtx = ctx0
 
   def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
 
@@ -270,13 +272,13 @@ object Target extends TaskBase {
    */
   implicit inline def apply[T](inline t: T)(implicit
       inline rw: RW[T],
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
   implicit inline def apply[T](inline t: Result[T])(implicit
       inline rw: RW[T],
-      inline ctx: mill.define.Ctx
+      inline ctx: mill.define.ModuleCtx
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
@@ -292,9 +294,9 @@ object Target extends TaskBase {
 class TaskBase {
 
   /**
-   * Returns the [[mill.api.Ctx]] that is available within this task
+   * Returns the [[mill.define.TaskCtx]] that is available within this task
    */
-  def ctx()(implicit c: mill.api.Ctx): mill.api.Ctx = c
+  def ctx()(implicit c: mill.define.TaskCtx): mill.define.TaskCtx = c
 
   /**
    * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
@@ -304,7 +306,7 @@ class TaskBase {
    * every Target or Command, so you can be sure that you will not collide or
    * interfere with anyone else writing to those same paths.
    */
-  def dest(implicit ctx: mill.api.Ctx.Dest): os.Path = ctx.dest
+  def dest(implicit ctx: mill.define.TaskCtx.Dest): os.Path = ctx.dest
 
   /**
    * `Task.log` is the default logger provided for every task. While your task is running,
@@ -316,7 +318,7 @@ class TaskBase {
    * Messages logged with `log.debug` appear by default only in the log files.
    * You can use the `--debug` option when running mill to show them on the console too.
    */
-  def log(implicit ctx: mill.api.Ctx.Log): Logger = ctx.log
+  def log(implicit ctx: mill.define.TaskCtx.Log): Logger = ctx.log
 
   /**
    * `Task.env` is the environment variable map passed to the Mill command when
@@ -326,22 +328,23 @@ class TaskBase {
    * Note that you should not use `sys.env`, as Mill's long-lived server
    * process means that `sys.env` variables may not be up to date.
    */
-  def env(implicit ctx: mill.api.Ctx.Env): Map[String, String] = ctx.env
+  def env(implicit ctx: mill.define.TaskCtx.Env): Map[String, String] = ctx.env
 
   /**
-   * Returns the implicit [[mill.api.Ctx.Args.args]] in scope.
+   * Returns the implicit [[mill.define.TaskCtx.Args.args]] in scope.
    */
-  def args(implicit ctx: mill.api.Ctx.Args): IndexedSeq[?] = ctx.args
+  def args(implicit ctx: mill.define.TaskCtx.Args): IndexedSeq[?] = ctx.args
 
   /**
    * Report test results to BSP for IDE integration
    */
-  def testReporter(implicit ctx: mill.api.Ctx): TestReporter = ctx.testReporter
+  def testReporter(implicit ctx: mill.define.TaskCtx): TestReporter = ctx.testReporter
 
   /**
    * Report build results to BSP for IDE integration
    */
-  def reporter(implicit ctx: mill.api.Ctx): Int => Option[CompileProblemReporter] = ctx.reporter
+  def reporter(implicit ctx: mill.define.TaskCtx): Int => Option[CompileProblemReporter] =
+    ctx.reporter
 
   /**
    * This is the `os.Path` pointing to the project root directory.
@@ -351,13 +354,13 @@ class TaskBase {
    * project directory in classic cli scenarios, but might not in other
    * use cases like BSP or LSP server usage).
    */
-  def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
+  def workspace(implicit ctx: mill.define.TaskCtx): os.Path = ctx.workspace
 
   /**
    * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
    * async futures within your task in a Mill-friendly mannter
    */
-  def fork(implicit ctx: mill.api.Ctx): mill.api.Ctx.Fork.Api = ctx.fork
+  def fork(implicit ctx: mill.define.TaskCtx): mill.define.TaskCtx.Fork.Api = ctx.fork
 
   /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
@@ -374,8 +377,8 @@ class TaskBase {
 
 class TargetImpl[+T](
     val inputs: Seq[Task[Any]],
-    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
-    val ctx0: mill.define.Ctx,
+    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+    val ctx0: mill.define.ModuleCtx,
     val readWriter: RW[?],
     val isPrivate: Option[Boolean],
     override val persistent: Boolean
@@ -387,8 +390,8 @@ class TargetImpl[+T](
 
 class Command[+T](
     val inputs: Seq[Task[Any]],
-    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
-    val ctx0: mill.define.Ctx,
+    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+    val ctx0: mill.define.ModuleCtx,
     val writer: W[?],
     val isPrivate: Option[Boolean],
     val exclusive: Boolean
@@ -401,8 +404,8 @@ class Command[+T](
 
 class Worker[+T](
     val inputs: Seq[Task[Any]],
-    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
-    val ctx0: mill.define.Ctx,
+    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+    val ctx0: mill.define.ModuleCtx,
     val isPrivate: Option[Boolean]
 ) extends NamedTask[T] {
   override def persistent = false
@@ -410,8 +413,8 @@ class Worker[+T](
 }
 
 class InputImpl[T](
-    val evaluate0: (Seq[Any], mill.api.Ctx) => Result[T],
-    val ctx0: mill.define.Ctx,
+    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+    val ctx0: mill.define.ModuleCtx,
     val writer: upickle.default.Writer[?],
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
@@ -422,8 +425,8 @@ class InputImpl[T](
 }
 
 class SourcesImpl(
-    evaluate0: (Seq[Any], mill.api.Ctx) => Result[Seq[PathRef]],
-    ctx0: mill.define.Ctx,
+    evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
+    ctx0: mill.define.ModuleCtx,
     isPrivate: Option[Boolean]
 ) extends InputImpl[Seq[PathRef]](
       evaluate0,
@@ -433,8 +436,8 @@ class SourcesImpl(
     ) {}
 
 class SourceImpl(
-    evaluate0: (Seq[Any], mill.api.Ctx) => Result[PathRef],
-    ctx0: mill.define.Ctx,
+    evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
+    ctx0: mill.define.ModuleCtx,
     isPrivate: Option[Boolean]
 ) extends InputImpl[PathRef](
       evaluate0,
@@ -443,9 +446,9 @@ class SourceImpl(
       isPrivate
     ) {}
 
-class AnonImpl[T](val inputs: Seq[Task[_]], evaluate0: (Seq[Any], mill.api.Ctx) => Result[T])
+class AnonImpl[T](val inputs: Seq[Task[_]], evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T])
     extends Task[T] {
-  def evaluate(ctx: mill.api.Ctx) = evaluate0(ctx.args, ctx)
+  def evaluate(ctx: mill.define.TaskCtx) = evaluate0(ctx.args, ctx)
 }
 
 private object TaskMacros {
@@ -454,12 +457,12 @@ private object TaskMacros {
   )(
       traverseCtx: (
           Expr[Seq[Task[Any]]],
-          Expr[(Seq[Any], mill.api.Ctx) => Result[T]]
+          Expr[(Seq[Any], mill.define.TaskCtx) => Result[T]]
       ) => Expr[M[T]],
       t: Expr[Result[T]],
       allowTaskReferences: Boolean = true
   ): Expr[M[T]] =
-    Applicative.impl[M, Task, Result, T, mill.api.Ctx](traverseCtx, t, allowTaskReferences)
+    Applicative.impl[M, Task, Result, T, mill.define.TaskCtx](traverseCtx, t, allowTaskReferences)
 
   private def taskIsPrivate()(using Quotes): Expr[Option[Boolean]] =
     Cacher.withMacroOwner {
@@ -477,7 +480,7 @@ private object TaskMacros {
       Quotes
   )(t: Expr[Result[T]])(
       rw: Expr[RW[T]],
-      ctx: Expr[mill.define.Ctx],
+      ctx: Expr[mill.define.ModuleCtx],
       persistent: Expr[Boolean]
   ): Expr[Target[T]] = {
     val expr = appImpl[Target, T](
@@ -493,7 +496,7 @@ private object TaskMacros {
   )(
       values: Expr[Result[Seq[PathRef]]]
   )(
-      ctx: Expr[mill.define.Ctx]
+      ctx: Expr[mill.define.ModuleCtx]
   ): Expr[Target[Seq[PathRef]]] = {
     val expr = appImpl[Target, Seq[PathRef]](
       (in, ev) => '{ new SourcesImpl($ev, $ctx, ${ taskIsPrivate() }) },
@@ -506,7 +509,7 @@ private object TaskMacros {
   def sourceImpl(using
       Quotes
   )(value: Expr[Result[PathRef]])(
-      ctx: Expr[mill.define.Ctx]
+      ctx: Expr[mill.define.ModuleCtx]
   ): Expr[Target[PathRef]] = {
 
     val expr = appImpl[Target, PathRef](
@@ -522,7 +525,7 @@ private object TaskMacros {
       Quotes
   )(value: Expr[Result[T]])(
       w: Expr[upickle.default.Writer[T]],
-      ctx: Expr[mill.define.Ctx]
+      ctx: Expr[mill.define.ModuleCtx]
   ): Expr[Target[T]] = {
 
     val expr = appImpl[Target, T](
@@ -537,7 +540,7 @@ private object TaskMacros {
       Quotes
   )(t: Expr[Result[T]])(
       w: Expr[W[T]],
-      ctx: Expr[mill.define.Ctx],
+      ctx: Expr[mill.define.ModuleCtx],
       exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {
     appImpl[Command, T](
@@ -552,7 +555,7 @@ private object TaskMacros {
   def workerImpl2[T: Type](using
       Quotes
   )(t: Expr[Result[T]])(
-      ctx: Expr[mill.define.Ctx]
+      ctx: Expr[mill.define.ModuleCtx]
   ): Expr[Worker[T]] = {
 
     val expr = appImpl[Worker, T](

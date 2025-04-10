@@ -5,6 +5,7 @@ import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
 import mill.define.{
+  PathRef,
   Discover,
   Evaluator,
   ExternalModule,
@@ -16,7 +17,7 @@ import mill.define.{
   Worker
 }
 import mill.util.MillModuleUtil.millProjectModule
-import mill.api.{PathRef, Result}
+import mill.api.{Result}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
@@ -44,7 +45,7 @@ object VisualizeModule extends ExternalModule {
   private[mill] def visualize0(
       evaluator: Evaluator,
       targets: Seq[String],
-      ctx: mill.api.Ctx,
+      ctx: mill.define.TaskCtx,
       vizWorker: VizWorker,
       planTasks: Option[List[NamedTask[?]]] = None
   ): Result[Seq[PathRef]] = {

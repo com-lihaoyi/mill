@@ -1,7 +1,7 @@
 package mill.javalib.checkstyle
 
 import mill._
-import mill.api.{PathRef}
+import mill.define.{PathRef}
 import mill.scalalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
 
@@ -57,7 +57,7 @@ trait CheckstyleModule extends JavaModule {
       check: Boolean,
       exitCode: Int,
       output: os.Path
-  )(implicit ctx: mill.api.Ctx): Int = {
+  )(implicit ctx: mill.define.TaskCtx): Int = {
 
     val reported = os.exists(output)
     if (reported) {

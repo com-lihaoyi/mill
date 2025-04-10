@@ -1,6 +1,5 @@
-// tag::header[]
-
 = How to Compile Java into Native Binaries with Mill and Graal
+// tag::header[]
 :author: Li Haoyi
 :revdate: 1 February 2025
 
@@ -96,7 +95,7 @@ object foo extends JavaModule {
 Now, using a `./mill` xref:mill:ROOT:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script],
 we can run this program as follows:
 
-[source,bash]
+[source,console]
 ----
 $ ./mill foo.run --text "hello-world"
 [55/55] foo.run
@@ -106,7 +105,7 @@ $ ./mill foo.run --text "hello-world"
 Or turn it into an xref:5-executable-jars.adoc[Executable Assembly Jar] that can be run
 outside of the build tool:
 
-[source,bash]
+[source,console]
 ----
 $ ./mill show foo.assembly
 ".../out/foo/assembly.dest/out.jar"
@@ -163,7 +162,7 @@ Notable changes:
 
 Now, we can use build a native image using `foo.nativeImage`:
 
-[source,bash]
+[source,console]
 ----
 $ ./mill show foo.nativeImage
 ".../out/foo/nativeImage.dest/native-executable"
@@ -179,7 +178,7 @@ You can download this example below:
 You can also access the `native-image` tool directly from the Mill download folder,
 if you want to use it directly or view its `--help` documentation:
 
-[source,bash]
+[source,console]
 ----
 $ ~/Github/mill/mill show foo.nativeImageTool
 ".../graalvm-community-openjdk-17.0.9+9.1/Contents/Home/bin/native-image"
@@ -232,7 +231,7 @@ that the executable assembly takes about ~1s to create, while the native image t
 
 _Executable Assembly_
 
-[source,bash]
+[source,console]
 ----
 $ time ./mill show foo.assembly
 [1-41] [info] compiling 1 Java source...
@@ -242,7 +241,7 @@ $ time ./mill show foo.assembly
 
 _Native Image_
 
-[source,bash]
+[source,console]
 ----
 $ time ./mill show foo.nativeImage
 [1-50] GraalVM Native Image: Generating 'native-executable' (executable)...
@@ -258,13 +257,13 @@ $ time ./mill show foo.nativeImage
 
 Graal native image binaries are typically larger than the equivalent executable assembly:
 
-[source,bash]
+[source,console]
 ----
 $ ls -lh out/foo/assembly.dest/out.jar
 -rwxr-xr-x  1 lihaoyi  staff   2.5M Jan 16 15:33 out/foo/assembly.dest/out.jar
 ----
 
-[source,bash]
+[source,console]
 ----
 $ ls -lh out/foo/nativeImage.dest/native-executable
 -rwxr-xr-x  1 lihaoyi  staff    17M Jan 16 15:34 out/foo/nativeImage.dest/native-executable
@@ -283,7 +282,7 @@ the native image takes ~60ms
 
 _Executable Assembly_
 
-[source,bash]
+[source,console]
 ----
 $ time ./out/foo/assembly.dest/out.jar --text hello-world
 <h1>hello-world</h1>
@@ -293,7 +292,7 @@ $ time ./out/foo/assembly.dest/out.jar --text hello-world
 
 _Native Image_
 
-[source,bash]
+[source,console]
 ----
 $ time ./out/foo/nativeImage.dest/native-executable --text hello-world
 <h1>hello-world</h1>
@@ -352,7 +351,7 @@ of iterations per second they are able to achieve below:
 
 _Executable Assembly_
 
-[source,bash]
+[source,console]
 ----
 $ ./out/foo/assembly.dest/out.jar --text hello-world
 135
@@ -372,7 +371,7 @@ $ ./out/foo/assembly.dest/out.jar --text hello-world
 
 _Native Image_
 
-[source,bash]
+[source,console]
 ----
 $ time ./out/foo/nativeImage.dest/native-executable --text hello-world
 171
@@ -406,7 +405,7 @@ While our programs are looping, we can also see how much memory they take via `t
 
 _Executable Assembly_
 
-[source,bash]
+[source,console]
 ----
 $ jps
 58547 MillMain
@@ -421,7 +420,7 @@ $ top | grep 9263
 
 _Native Image_
 
-[source,bash]
+[source,console]
 ----
 $ ps aux | grep native-executable
 lihaoyi          43880  46.1  0.1 408681792  30176 s000  S+    3:40PM   0:05.84 ./out/foo/nativeImage.dest/native-executable --text hello-world
@@ -619,7 +618,7 @@ override def jar = nativeImage()
 
 This results in the following artifacts being published:
 
-[source,bash]
+[source,sh]
 ----
 # JVM platform-agnostic artifact
 com.lihaoyi:mill-dist:0.12.6
@@ -637,11 +636,11 @@ These artifacts can be seen online:
 
 And downloaded via
 
-[source,bash]
+[source,console]
 ----
-curl https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-mac-aarch64/0.12.6/mill-dist-native-mac-aarch64-0.12.6.jar -o mill-dist-native
-chmod +x mill-dist-native
-./mill-dist-native version
+> curl https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-mac-aarch64/0.12.6/mill-dist-native-mac-aarch64-0.12.6.jar -o mill-dist-native
+> chmod +x mill-dist-native
+> ./mill-dist-native version
 0.12.6
 ----
 

@@ -11,7 +11,7 @@ import org.flywaydb.core.internal.info.MigrationInfoDumper
 import scala.jdk.CollectionConverters._
 
 import mill.{T, Task}
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.define.Command
 import mill.scalalib.{Dep, JavaModule}
 import org.flywaydb.core.api.output.{BaselineResult, CleanResult, MigrateOutput, MigrateResult}

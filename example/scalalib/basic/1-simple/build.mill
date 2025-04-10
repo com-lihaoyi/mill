@@ -138,7 +138,7 @@ error: Missing argument: --text <str>
 //
 // Additional Mill tasks you would likely need include:
 //
-// [source,bash]
+// [source,console]
 // ----
 // $ mill runBackground # run the main method in the background
 //

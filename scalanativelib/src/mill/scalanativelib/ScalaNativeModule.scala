@@ -3,10 +3,10 @@ package scalanativelib
 
 import mainargs.Flag
 
-import mill.api.{Result, internal}
+import mill.api.Result
 import mill.define.{Command, Task}
 import mill.scalalib.api.JvmWorkerUtil
-import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
+import mill.api.internal.{ScalaBuildTarget, ScalaNativeModuleApi, ScalaPlatform, internal}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalanativelib.api._
@@ -16,11 +16,11 @@ import mill.scalanativelib.worker.{
   api => workerApi
 }
 import mill.T
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
-trait ScalaNativeModule extends ScalaModule with mill.runner.api.ScalaNativeModuleApi { outer =>
+trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 

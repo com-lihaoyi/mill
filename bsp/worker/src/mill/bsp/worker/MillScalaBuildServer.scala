@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsParams,
   ScalacOptionsResult
 }
-import mill.runner.api.{TaskApi, JavaModuleApi, TestModuleApi}
+import mill.api.internal.{TaskApi, JavaModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 import sbt.testing.Fingerprint
 
