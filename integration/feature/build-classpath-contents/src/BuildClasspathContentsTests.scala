@@ -15,12 +15,13 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         .filter(_.startsWith(workspaceRoot))
         .map(_.subRelativeTo(workspaceRoot))
         .filter(!_.startsWith("out/integration"))
-        .sortBy(_.toString)
+        .map(_.toString)
+        .sorted
       pprint.log(simplified)
 
       // Make sure we don't include `core. exec`, `core.resolve`, `core`, `runner`, `runner.server`,
       // etc. since users should not need to write code that compiles against those interfaces
-      val expected: Seq[os.SubPath] = List(
+      val expected: Seq[String] = List(
         "out/bsp/buildInfoResources.dest",
         "out/bsp/compile.dest/classes",
         "out/core/api/buildInfoResources.dest",
@@ -36,7 +37,6 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         "out/kotlinlib/compile.dest/classes",
         "out/kotlinlib/worker/compile.dest/classes",
         "out/main/compile.dest/classes",
-        "out/main/init/buildgen/compile.dest/classes",
         "out/main/init/compile.dest/classes",
         "out/main/init/exampleList.dest",
         "out/main/util/buildInfoResources.dest",
