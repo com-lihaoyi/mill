@@ -8,8 +8,9 @@ object CoursierClient {
   def resolveJavaHome(id: String): java.io.File = {
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
+    val archiveCache = ArchiveCache().withCache(coursierCache0)
     val jvmCache = JvmCache()
-      .withArchiveCache(ArchiveCache().withCache(coursierCache0))
+      .withArchiveCache(archiveCache)
       .withIndex(
         JvmIndex.load(
           cache = coursierCache0,
@@ -23,6 +24,7 @@ object CoursierClient {
 
     val javaHome = JavaHome().withCache(jvmCache)
 
+    pprint.err.log(archiveCache.location)
     pprint.err.log(id)
     javaHome.get(id).unsafeRun()(coursierCache0.ec)
   }
