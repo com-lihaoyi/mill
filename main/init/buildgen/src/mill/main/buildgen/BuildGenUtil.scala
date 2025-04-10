@@ -177,10 +177,6 @@ object BuildGenUtil {
        else None)
   }
 
-  def buildFiles(workspace: os.Path): geny.Generator[os.Path] =
-    os.walk.stream(workspace, skip = (workspace / OutFiles.out).equals)
-      .filter(file => buildFileExtensions.contains(file.ext))
-
   def buildModuleFqn(dirs: Seq[String]): String =
     (rootModuleAlias +: dirs).iterator.map(backtickWrap).mkString(".")
 
@@ -431,19 +427,6 @@ object BuildGenUtil {
       s"def $defName = Task.Anon { $s }"
     )
 
-  def scalafmtConfigFile: os.Path =
-    os.temp(
-      """version = "3.8.4"
-        |runner.dialect = scala213
-        |newlines.source=fold
-        |newlines.topLevelStatementBlankLines = [
-        |  {
-        |    blanks { before = 1 }
-        |  }
-        |]
-        |""".stripMargin
-    )
-
   def renderArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
@@ -556,7 +539,7 @@ object BuildGenUtil {
 
     println("removing existing Mill build files")
     val workspace = os.pwd
-    buildFiles(workspace).foreach(os.remove.apply)
+    mill.init.Util.buildFiles(workspace).foreach(os.remove.apply)
 
     nodes.foreach { node =>
       val file = buildFile(node.dirs)

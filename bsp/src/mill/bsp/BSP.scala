@@ -9,23 +9,6 @@ import Mirrors.autoMirror
 import mill.api.internal.{BspServerResult, internal}
 
 object BSP extends ExternalModule with CoursierModule {
-
-  implicit val jsonifyReloadWorkspace
-      : upickle.default.ReadWriter[BspServerResult.ReloadWorkspace.type] =
-    upickle.default.macroRW
-
-  implicit val jsonifyShutdown: upickle.default.ReadWriter[BspServerResult.Shutdown.type] =
-    upickle.default.macroRW
-
-  implicit val jsonifyFailure: upickle.default.ReadWriter[BspServerResult.Failure.type] =
-    upickle.default.macroRW
-
-  implicit val jsonify: upickle.default.ReadWriter[BspServerResult] =
-    upickle.default.macroRW
-
-  private given Root_BspServerResult: Mirrors.Root[BspServerResult] =
-    Mirrors.autoRoot[BspServerResult]
-
   lazy val millDiscover = Discover[this.type]
 
   private def bspWorkerLibs: T[Seq[PathRef]] = Task {

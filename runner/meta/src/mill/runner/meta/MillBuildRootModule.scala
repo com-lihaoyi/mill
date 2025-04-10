@@ -132,6 +132,8 @@ class MillBuildRootModule()(implicit
       MillIvy.processMillIvyDepSignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     ) ++ Seq(
+      // Needed at runtime to insantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
+      // classloader but should not be available for users to compile against
       ivy"com.lihaoyi::mill-core:${Versions.millVersion}"
     )
   }

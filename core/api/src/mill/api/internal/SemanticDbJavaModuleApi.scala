@@ -3,7 +3,7 @@ package mill.api.internal
 import mill.api.BuildInfo
 
 trait SemanticDbJavaModuleApi {
-  def bspBuildTargetCompileSemanticDb: TaskApi[java.nio.file.Path]
+  private[mill] def bspBuildTargetCompileSemanticDb: TaskApi[java.nio.file.Path]
 }
 object SemanticDbJavaModuleApi {
   val buildTimeJavaSemanticDbVersion = BuildInfo.semanticDbJavaVersion
