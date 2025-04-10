@@ -65,7 +65,7 @@ lint.xml
 src
 
 > cat out/app/androidLintRun.dest/report.txt # Display content of the linting report
-AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
+AndroidManifest.xml:3: ...Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
 
 > sed -i.bak 's/ android:debuggable="true"//g' app/src/main/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
 
@@ -89,7 +89,7 @@ AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out al
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
-AndroidManifest.xml:3: Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
+AndroidManifest.xml:3: ...Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
 
 > sed -i.bak 's/severity="warning"/severity="ignore"/g' app/lint.xml # Revert the severity level of `MissingApplicationIcon`
 
@@ -98,7 +98,7 @@ AndroidManifest.xml:3: Warning: Should explicitly set android:icon, there is no 
 > ./mill app.androidLintRun # Rerun it for the linting tool to detect the UnusedResources
 
 > cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
-res/values/strings.xml:5: Warning: The resource R.string.unused_string appears to be unused [UnusedResources]
+res/values/strings.xml:5: ...Warning: The resource R.string.unused_string appears to be unused [UnusedResources]
 
 > sed -i 's|<resources|<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources"|' app/src/main/res/values/strings.xml # Suppress linting check for UnusedResources issue
 
@@ -121,7 +121,7 @@ res/values/strings.xml:5: Warning: The resource R.string.unused_string appears t
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Output the report content
-java/com/helloworld/app/MainActivity.java:46: Error: Access to private field privateField of class SyntheticAccessorViolation requires synthetic accessor [SyntheticAccessor]
+java/com/helloworld/app/MainActivity.java:46: ...Error: Access to private field privateField of class SyntheticAccessorViolation requires synthetic accessor [SyntheticAccessor]
 
 > sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java # Add SuppressLint import
 
