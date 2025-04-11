@@ -1,8 +1,7 @@
 package mill.kotlinlib.android
 
 import coursier.Repository
-import mill.api.PathRef
-import mill.define.{Discover, ExternalModule, ModuleRef}
+import mill.define.{Discover, ExternalModule, ModuleRef, PathRef}
 import mill.javalib.android.AndroidSdkModule
 import mill.kotlinlib.DepSyntax
 import mill.kotlinlib.ksp.KspModule
@@ -78,7 +77,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       toolsClasspath: Seq[PathRef],
       compiledClasses: PathRef,
       destination: PathRef
-  )(implicit ctx: mill.api.Ctx): PathRef = {
+  )(implicit ctx: mill.define.TaskCtx): PathRef = {
 
     val kotlinCompiledClassesDir = compiledClasses.path
 
