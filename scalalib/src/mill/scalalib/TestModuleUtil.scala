@@ -102,20 +102,10 @@ private final class TestModuleUtil(
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    val result = if (testParallelism) {
+    if (testParallelism) {
       runTestQueueScheduler(filteredClassLists)
     } else {
       runTestDefault(filteredClassLists)
-    }
-
-    result match {
-      case Result.Failure(errMsg) => Result.Failure(errMsg)
-      case Result.Success((doneMsg, results)) =>
-        if (results.isEmpty && selectors.nonEmpty) throw doesNotMatchError
-        try TestModuleUtil.handleResults(doneMsg, results, Task.ctx(), testReportXml)
-        catch {
-          case e: Throwable => Result.Failure("Test reporting failed: " + e)
-        }
     }
   }
 

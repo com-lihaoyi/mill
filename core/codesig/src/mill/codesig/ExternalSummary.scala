@@ -5,6 +5,7 @@ import mill.codesig.JvmModel.*
 import org.objectweb.asm.{ClassReader, ClassVisitor, MethodVisitor, Opcodes}
 
 import java.net.URLClassLoader
+import scala.util.Try
 
 case class ExternalSummary(
     directMethods: Map[JCls, Map[MethodSig, Boolean]],
@@ -47,7 +48,8 @@ object ExternalSummary {
 
     def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
 
-    def load0(cls: JCls): Unit = {
+    // Some macros implementations will fail the ClassReader, we can skip them
+    def load0(cls: JCls): Unit = Try {
       val visitor = new MyClassVisitor()
       val resourcePath =
         os.resource(upstreamClassloader) / os.SubPath(cls.name.replace('.', '/') + ".class")
@@ -61,7 +63,7 @@ object ExternalSummary {
       methodsPerCls(cls) = visitor.methods
       ancestorsPerCls(cls) = visitor.ancestors
       ancestorsPerCls(cls).foreach(load)
-    }
+    }.getOrElse(())
 
     (allDirectAncestors ++ allMethodCallParamClasses)
       .filter(!localSummary.contains(_))
