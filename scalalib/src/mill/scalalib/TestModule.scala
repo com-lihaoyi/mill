@@ -205,10 +205,12 @@ trait TestModule
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] =
     Task.Anon {
+      val testGlobSelectors = globSelectors()
+      val reportXml = testReportXml()
       val testModuleUtil = new TestModuleUtil(
         testUseArgsFile(),
         forkArgs(),
-        globSelectors(),
+        testGlobSelectors,
         jvmWorker().scalalibClasspath(),
         resources(),
         testFramework(),
@@ -220,12 +222,25 @@ trait TestModule
         forkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
-        testReportXml(),
+        reportXml,
         jvmWorker().javaHome().map(_.path),
         testParallelism(),
         testLogLevel()
       )
-      testModuleUtil.runTests()
+      val result = testModuleUtil.runTests()
+
+      result match {
+        case Result.Failure(errMsg) => Result.Failure(errMsg)
+        case Result.Success((doneMsg, results)) =>
+          if (results.isEmpty && testGlobSelectors.nonEmpty) throw new Result.Exception(
+            s"Test selector does not match any test: ${testGlobSelectors.mkString(" ")}" +
+              "\nRun discoveredTestClasses to see available tests"
+          )
+          try TestModule.handleResults(doneMsg, results, Task.ctx(), reportXml)
+          catch {
+            case e: Throwable => Result.Failure("Test reporting failed: " + e)
+          }
+      }
     }
 
   /**
