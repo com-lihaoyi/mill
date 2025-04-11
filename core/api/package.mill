@@ -32,7 +32,6 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   )
 
   def ivyDeps = Agg(
-<<<<<<< HEAD
     build.Deps.osLib,
     build.Deps.mainargs,
     build.Deps.upickle,
@@ -40,8 +39,5 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     build.Deps.fansi,
     build.Deps.sbtTestInterface,
     build.Deps.coursierJvm
-=======
-    build.Deps.sbtTestInterface
->>>>>>> upstream/main
   )
 }

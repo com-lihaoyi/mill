@@ -94,7 +94,11 @@ object OutPathTestSuite extends UtestIntegrationTestSuite {
       val pwd = os.pwd.toString
       val resReference1 = tester.eval(("runBackground"), cwd = referencePath)
       val resModified1 =
-        tester.eval(("runBackground"), cwd = modifiedPath, env = env)
+        tester.eval(
+          ("-Duser.home=/home/albassort/", "runBackground"),
+          cwd = modifiedPath,
+          env = env
+        )
       assert(resModified1.isSuccess && resReference1.isSuccess)
 
     }
