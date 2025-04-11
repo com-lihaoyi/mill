@@ -94,6 +94,21 @@ trait NativeImageModule extends WithJvmWorker {
     }
   }
 
+  /**
+   * The path under which GraalVM distributions should be copied before we use native-image
+   *
+   * If this returns an actual path rather than `None`, the GraalVM distribution (obtained
+   * either from [[JvmWorkerModule.javaHome]] or from `GRAALVM_HOME`, see [[nativeImageTool]] above)
+   * is copied under a sub-directory of this path. The sub-directory name is a hash of the
+   * full path of original GraalVM distribution directory.
+   *
+   * This can be handy on Windows, where too long paths for header files in the GraalVM
+   * distribution can make native image generation fail. Copying the GraalVM distribution
+   * under a directory with a smaller length allows to work around that.
+   *
+   * Note that this method returns `None` by default, except in Windows CI environments,
+   * where it returns a path like `C:\jvms` to copy JVMs under.
+   */
   def nativeImageGraalVmCopyBase: Option[os.Path] =
     if (Properties.isWin && System.getenv("CI") != null)
       Some(os.Path("C:/jvms"))
@@ -112,6 +127,16 @@ trait NativeImageModule extends WithJvmWorker {
       }
       .filter(dir => !checkExists || os.exists(dir))
 
+  /**
+   * Run this command to copy the GraalVM distribution under `nativeImageGraalVmCopyBase`
+   *
+   * If [[nativeImageGraalVmCopyBase]] returns `None`, this command has no effect.
+   * If the GraalVM distribution was already copied, this command has no effect either.
+   * Else, it copies the GraalVM distribution, as described in [[nativeImageGraalVmCopyBase]].
+   *
+   * You may want to run this command early in your CI, so that the copied GraalVM distribution
+   * gets picked early on.
+   */
   def nativeImageMaybeCopyGraal(): Command[Unit] =
     if (nativeImageGraalVmCopyBase.isEmpty)
       Task.Command {}
