@@ -1,6 +1,6 @@
 package mill.scalalib.publish
 
-import mill.api.Ctx
+import mill.define.TaskCtx
 
 class LocalIvyPublisher(localIvyRepo: os.Path) {
 
@@ -19,7 +19,7 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
       ivy: Either[String, os.Path],
       artifact: Artifact,
       publishInfos: Seq[PublishInfo]
-  )(implicit ctx: Ctx.Log): Seq[os.Path] = {
+  )(implicit ctx: TaskCtx.Log): Seq[os.Path] = {
 
     ctx.log.info(s"Publishing ${artifact} to ivy repo ${localIvyRepo}")
     val releaseDir = localIvyRepo / artifact.group / artifact.id / artifact.version

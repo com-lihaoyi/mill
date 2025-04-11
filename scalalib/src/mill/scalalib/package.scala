@@ -10,6 +10,6 @@ package object scalalib extends mill.scalalib.JsonFormatters {
     }
   }
 
-  val CrossVersion = mill.api.CrossVersion
-  type CrossVersion = mill.api.CrossVersion
+  val CrossVersion = mill.define.CrossVersion
+  type CrossVersion = mill.define.CrossVersion
 }

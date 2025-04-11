@@ -1,19 +1,21 @@
 package mill.scalalib
 
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.{TaskCtx, PathRef}
+import mill.api.{Result}
 import mill.define.{Command, Task, TaskModule}
-import mill.runner.api.TestReporter
-import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import mill.api.internal.{BspBuildTarget, BspModuleApi, TestReporter}
+import mill.scalalib.bsp.BspModule
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
 import mill.T
+import mill.api.internal.{TestModuleApi, BspBuildTarget}
 
 trait TestModule
     extends TestModule.JavaModuleBase
     with WithJvmWorker
     with RunModule
     with TaskModule
-    with mill.runner.api.TestModuleApi {
+    with TestModuleApi {
 
   override def defaultCommandName() = "testForked"
 
@@ -245,11 +247,11 @@ trait TestModule
     val parent = super.bspBuildTarget
     parent.copy(
       canTest = true,
-      tags = Seq(mill.runner.api.BspModuleApi.Tag.Test)
+      tags = Seq(BspModuleApi.Tag.Test)
     )
   }
 
-  def bspBuildTargetScalaTestClasses = this match {
+  private[mill] def bspBuildTargetScalaTestClasses = this match {
     case m: TestModule =>
       Task.Anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
     case _ =>
@@ -420,13 +422,13 @@ object TestModule {
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Option[Ctx.Env]
+      ctx: Option[TaskCtx.Env]
   ): Result[(String, Seq[TestResult])] = TestModuleUtil.handleResults(doneMsg, results, ctx)
 
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env & Ctx.Dest,
+      ctx: TaskCtx.Env & TaskCtx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] =

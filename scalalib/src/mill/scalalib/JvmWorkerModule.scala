@@ -2,7 +2,8 @@ package mill.scalalib
 
 import mainargs.Flag
 import mill._
-import mill.api.{Ctx, PathRef, Result}
+import mill.api.Result
+import mill.define.{TaskCtx, PathRef}
 import mill.define.{Discover, ExternalModule, Task}
 import mill.scalalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
@@ -61,7 +62,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       val path = mill.util.Jvm.resolveJavaHome(
         id = id,
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.api.Ctx.Log]),
+        ctx = Some(implicitly[mill.define.TaskCtx.Log]),
         jvmIndexVersion = jvmIndexVersion()
       ).get
       PathRef(path, quick = true)
@@ -109,7 +110,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: Ctx): (Option[Seq[PathRef]], PathRef) = {
+  )(implicit ctx: TaskCtx): (Option[Seq[PathRef]], PathRef) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, JvmWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -158,7 +159,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: Ctx): Seq[PathRef] = {
+  )(implicit ctx: TaskCtx): Seq[PathRef] = {
     resolver.classpath(
       deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library

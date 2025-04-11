@@ -4,7 +4,7 @@ import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.api.Result
 
 import mill.api.ExecResult.catchWrapException
-import mill.api.internal
+import mill.api.internal.internal
 
 @internal
 private[runner] object ScalaCompilerWorker {

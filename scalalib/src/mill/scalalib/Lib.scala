@@ -5,7 +5,8 @@ import coursier.core.BomDependency
 import coursier.params.ResolutionParams
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.{TaskCtx, PathRef}
+import mill.api.Result
 import mill.constants.EnvVars
 import mill.util.BuildInfo
 import mill.scalalib.api.JvmWorkerUtil
@@ -32,7 +33,7 @@ object Lib {
       deps: IterableOnce[BoundDep],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[Ctx.Log] = None,
+      ctx: Option[TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
@@ -66,7 +67,7 @@ object Lib {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[Ctx.Log] = None,
+      ctx: Option[TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
@@ -152,7 +153,7 @@ object Lib {
 
   def resolveMillBuildDeps(
       repos: Seq[Repository],
-      ctx: Option[mill.api.Ctx.Log],
+      ctx: Option[mill.define.TaskCtx.Log],
       useSources: Boolean
   ): Seq[os.Path] = {
     MillModuleUtil.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {

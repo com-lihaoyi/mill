@@ -8,7 +8,8 @@ import mill._
  * internal code and user-land code
  */
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
-  def moduleDeps = Seq(build.core.constants, build.runner.api)
+  def moduleDeps = Seq(build.core.constants)
+
   def buildInfoPackageName = "mill.api"
   def buildInfoMembers = Seq(
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
@@ -17,10 +18,21 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
       "millReportNewIssueUrl",
       build.Settings.newIssueUrl,
       "URL to create a new issue in Mills issue tracker."
+    ),
+    BuildInfo.Value(
+      "semanticDBVersion",
+      build.Deps.semanticDBscala.version,
+      "SemanticDB version."
+    ),
+    BuildInfo.Value(
+      "semanticDbJavaVersion",
+      build.Deps.semanticDbJava.version,
+      "Java SemanticDB plugin version."
     )
   )
 
   def ivyDeps = Agg(
+<<<<<<< HEAD
     build.Deps.osLib,
     build.Deps.mainargs,
     build.Deps.upickle,
@@ -28,5 +40,8 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     build.Deps.fansi,
     build.Deps.sbtTestInterface,
     build.Deps.coursierJvm
+=======
+    build.Deps.sbtTestInterface
+>>>>>>> upstream/main
   )
 }

@@ -1,7 +1,7 @@
 package mill.init
 
-import mill.api.{PathRef, Result}
-import mill.main.buildgen.BuildGenUtil
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.scalalib.{CoursierModule, Dep}
 import mill.scalalib.scalafmt.ScalafmtWorkerModule
 import mill.util.Jvm
@@ -20,7 +20,7 @@ trait BuildGenModule extends CoursierModule with TaskModule {
 
   def buildGenMainClass: T[String]
 
-  def buildGenScalafmtConfig: T[PathRef] = PathRef(BuildGenUtil.scalafmtConfigFile)
+  def buildGenScalafmtConfig: T[PathRef] = PathRef(mill.init.Util.scalafmtConfigFile)
 
   def init(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     val root = moduleDir
@@ -37,7 +37,7 @@ trait BuildGenModule extends CoursierModule with TaskModule {
     ).exitCode
 
     if (exitCode == 0) {
-      val files = BuildGenUtil.buildFiles(root).map(PathRef(_)).toSeq
+      val files = mill.init.Util.buildFiles(root).map(PathRef(_)).toSeq
       val config = buildGenScalafmtConfig()
       Task.log.info("formatting Mill build files")
       ScalafmtWorkerModule.worker().reformat(files, config)

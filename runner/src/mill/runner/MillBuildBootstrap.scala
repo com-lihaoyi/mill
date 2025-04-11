@@ -2,11 +2,11 @@ package mill.runner
 
 import mill.internal.PrefixLogger
 import mill.define.internal.Watchable
-import mill.define.RootModule0
+import mill.define.{RootModule0, PathRef, WorkspaceRoot}
 import mill.util.BuildInfo
-import mill.runner.api.{RootModuleApi, EvaluatorApi}
+import mill.api.internal.{EvaluatorApi, RootModuleApi, internal}
 import mill.constants.CodeGenConstants.*
-import mill.api.{Logger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
+import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
@@ -296,7 +296,7 @@ class MillBuildBootstrap(
             null
           ) {
             val sharedCl = classOf[MillBuildBootstrap].getClassLoader
-            val sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.runner.api")
+            val sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api")
             override def findClass(name: String): Class[?] =
               if (sharedPrefixes.exists(name.startsWith)) sharedCl.loadClass(name)
               else super.findClass(name)
@@ -337,8 +337,8 @@ class MillBuildBootstrap(
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) =
-      mill.runner.api.EvaluatorApi.allBootstrapEvaluators.withValue(
-        mill.runner.api.EvaluatorApi.AllBootstrapEvaluators(Seq(
+      EvaluatorApi.allBootstrapEvaluators.withValue(
+        EvaluatorApi.AllBootstrapEvaluators(Seq(
           evaluator
         ) ++ nestedState.frames.flatMap(_.evaluator))
       ) {

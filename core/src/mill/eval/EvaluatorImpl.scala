@@ -1,7 +1,8 @@
 package mill.eval
 
-import mill.runner.api.*
-import mill.api.PathRef
+import mill.api.*
+import mill.api.internal.{ExecutionResultsApi, TestReporter, CompileProblemReporter}
+import mill.define.PathRef
 import mill.constants.OutFiles
 import mill.define.*
 import mill.exec.{Execution, PlanImpl}
@@ -133,7 +134,7 @@ final class EvaluatorImpl private[mill] (
   def execute[T](
       targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
@@ -174,7 +175,7 @@ final class EvaluatorImpl private[mill] (
               Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
             case (t: InputImpl[_], result) =>
 
-              val ctx = new mill.api.Ctx.Impl(
+              val ctx = new mill.define.TaskCtx.Impl(
                 args = Vector(),
                 dest0 = () => null,
                 log = logger,

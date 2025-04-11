@@ -65,13 +65,11 @@
         <orderEntry type="library" name="mill-javascriptlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-kotlinlib-worker_3.jar" level="project"/>
         <orderEntry type="library" name="mill-kotlinlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-main-init-buildgen_3.jar" level="project"/>
         <orderEntry type="library" name="mill-main-init_3.jar" level="project"/>
         <orderEntry type="library" name="mill-main-util_3.jar" level="project"/>
         <orderEntry type="library" name="mill-main_3.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
         <orderEntry type="library" name="mill-pythonlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalajslib-worker-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalajslib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalalib-api_3.jar" level="project"/>

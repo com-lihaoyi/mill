@@ -2,7 +2,7 @@ package mill.scalalib.classgraph
 
 import mainargs.Flag
 import mill.{Command, T, Task}
-import mill.api.{Ctx, PathRef}
+import mill.define.{TaskCtx, PathRef}
 import mill.define.{Discover, ExternalModule, Worker}
 import mill.scalalib.{CoursierModule, OfflineSupportModule, Dep}
 
@@ -31,7 +31,9 @@ trait ClassgraphWorkerModule extends CoursierModule with OfflineSupportModule {
         .loadClass("mill.scalalib.classgraph.impl.ClassgraphWorkerImpl")
         .getConstructor().newInstance().asInstanceOf[ClassgraphWorker]
 
-      override def discoverMainClasses(classpath: Seq[os.Path])(implicit ctx: Ctx): Seq[String] =
+      override def discoverMainClasses(classpath: Seq[os.Path])(implicit
+          ctx: TaskCtx
+      ): Seq[String] =
         worker.discoverMainClasses(classpath)
 
       override def close(): Unit = {

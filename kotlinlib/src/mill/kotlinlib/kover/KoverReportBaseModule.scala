@@ -6,7 +6,7 @@ package mill.kotlinlib.kover
 
 import mill._
 import mill.api.Result.Success
-import mill.api.{PathRef}
+import mill.define.{PathRef}
 import mill.kotlinlib.{Dep, DepSyntax, Versions}
 import mill.scalalib.CoursierModule
 

@@ -3,16 +3,17 @@ package mill.exec
 import mill.api.ExecResult.Aborted
 
 import mill.api._
+import mill.api.internal._
 import mill.define._
 import mill.internal.PrefixLogger
 import mill.define.MultiBiMap
 
-import mill.runner.api._
+import mill.api._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
-import mill.runner.api.{BaseModuleApi, EvaluatorApi}
+import mill.api.internal.{BaseModuleApi, EvaluatorApi}
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 /**
@@ -84,7 +85,7 @@ private[mill] case class Execution(
   def executeTasks(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false
   ): Execution.Results = logger.prompt.withPromptUnpaused {
@@ -104,8 +105,8 @@ private[mill] case class Execution(
       goals: Seq[Task[?]],
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
-      ec: mill.api.Ctx.Fork.Impl,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      ec: mill.define.TaskCtx.Fork.Impl,
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)
@@ -137,7 +138,7 @@ private[mill] case class Execution(
 
     def evaluateTerminals(
         terminals: Seq[Task[?]],
-        forkExecutionContext: mill.api.Ctx.Fork.Impl,
+        forkExecutionContext: mill.define.TaskCtx.Fork.Impl,
         exclusive: Boolean
     ) = {
       implicit val taskExecutionContext =

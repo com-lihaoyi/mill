@@ -2,6 +2,7 @@ package mill.main.buildgen
 
 import geny.Generator
 import mainargs.{Flag, arg}
+import mill.api.internal.internal
 import mill.constants.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
@@ -11,12 +12,12 @@ import mill.constants.CodeGenConstants.{
 import mill.constants.OutFiles
 import mill.main.buildgen.BuildObject.Companions
 import mill.internal.Util.backtickWrap
-import mill.api.CrossVersion
+import mill.define.CrossVersion
 
 import scala.collection.immutable.SortedSet
 import scala.util.boundary
 
-@mill.api.internal
+@internal
 object BuildGenUtil {
 
   def renderIrTrait(value: IrTrait): String = {
@@ -175,10 +176,6 @@ object BuildGenUtil {
        else if (packagesSize > 1) Seq("$packages._")
        else None)
   }
-
-  def buildFiles(workspace: os.Path): geny.Generator[os.Path] =
-    os.walk.stream(workspace, skip = (workspace / OutFiles.out).equals)
-      .filter(file => buildFileExtensions.contains(file.ext))
 
   def buildModuleFqn(dirs: Seq[String]): String =
     (rootModuleAlias +: dirs).iterator.map(backtickWrap).mkString(".")
@@ -430,19 +427,6 @@ object BuildGenUtil {
       s"def $defName = Task.Anon { $s }"
     )
 
-  def scalafmtConfigFile: os.Path =
-    os.temp(
-      """version = "3.8.4"
-        |runner.dialect = scala213
-        |newlines.source=fold
-        |newlines.topLevelStatementBlankLines = [
-        |  {
-        |    blanks { before = 1 }
-        |  }
-        |]
-        |""".stripMargin
-    )
-
   def renderArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
@@ -555,7 +539,7 @@ object BuildGenUtil {
 
     println("removing existing Mill build files")
     val workspace = os.pwd
-    buildFiles(workspace).foreach(os.remove.apply)
+    mill.init.Util.buildFiles(workspace).foreach(os.remove.apply)
 
     nodes.foreach { node =>
       val file = buildFile(node.dirs)

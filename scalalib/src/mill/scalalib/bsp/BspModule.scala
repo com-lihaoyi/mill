@@ -1,22 +1,22 @@
 package mill.scalalib.bsp
 
-import mill.api.internal
 import mill.define.Task
 import mill._
+import mill.api.internal.BspModuleApi._
+import mill.api.internal.{BspBuildTarget, internal}
 
-trait BspModule extends mill.define.Module with mill.runner.api.BspModuleApi {
-  import mill.runner.api.BspModuleApi._
+trait BspModule extends mill.define.Module with mill.api.internal.BspModuleApi {
 
-  def bspDisplayName0: String = this.moduleSegments.render
+  private[mill] def bspDisplayName0: String = this.moduleSegments.render
 
-  def bspDisplayName: String = bspDisplayName0 match {
+  private[mill] def bspDisplayName: String = bspDisplayName0 match {
     case "" => "root-module"
     case n => n
   }
 
   /** Use to fill most fields of `BuildTarget`. */
   @internal
-  def bspBuildTarget: BspBuildTarget = BspBuildTarget(
+  private[mill] def bspBuildTarget: BspBuildTarget = BspBuildTarget(
     displayName = Some(bspDisplayName),
     baseDirectory = Some(moduleDir.toNIO),
     tags = Seq(Tag.Library, Tag.Application),
@@ -35,6 +35,6 @@ trait BspModule extends mill.define.Module with mill.runner.api.BspModuleApi {
    * - [[ScalaBuildTarget]]
    */
   @internal
-  def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon { None }
+  private[mill] def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon { None }
 
 }

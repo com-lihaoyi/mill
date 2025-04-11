@@ -2,8 +2,8 @@ package mill.runner.meta
 import scala.jdk.CollectionConverters.ListHasAsScala
 import coursier.Repository
 import mill.*
-import mill.api.{PathRef, Result, internal}
-import mill.define.{Discover, Task}
+import mill.api.Result
+import mill.define.{PathRef, Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.Jvm
 import mill.scalalib.api.JvmWorkerUtil
@@ -17,7 +17,8 @@ import mill.runner.worker.api.ScalaCompilerWorkerApi
 
 import scala.util.Try
 import mill.define.Target
-import mill.runner.api.Watchable
+import mill.api.Watchable
+import mill.api.internal.internal
 import mill.runner.worker.api.MillScalaParser
 
 import scala.collection.mutable
@@ -106,7 +107,6 @@ class MillBuildRootModule()(implicit
     ) ++
       Seq(
         ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}",
-        ivy"com.lihaoyi::mill-runner-api:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-core-api:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-core-define:${Versions.millVersion}",
         ivy"com.lihaoyi::mill-kotlinlib:${Versions.millVersion}",
@@ -132,6 +132,8 @@ class MillBuildRootModule()(implicit
       MillIvy.processMillIvyDepSignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     ) ++ Seq(
+      // Needed at runtime to insantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
+      // classloader but should not be available for users to compile against
       ivy"com.lihaoyi::mill-core:${Versions.millVersion}"
     )
   }

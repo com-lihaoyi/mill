@@ -2,7 +2,7 @@ package mill
 package contrib.scalapblib
 
 import coursier.core.Version
-import mill.api.{PathRef}
+import mill.define.{PathRef}
 import mill.scalalib._
 
 import java.util.zip.ZipInputStream

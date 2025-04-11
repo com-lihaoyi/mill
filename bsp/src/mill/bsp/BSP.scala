@@ -1,34 +1,14 @@
 package mill.bsp
 
-import mill.api.{Ctx, PathRef}
+import mill.define.{ModuleCtx, PathRef}
 import mill.{T, Task, given}
-import mill.define.{Command, Discover, Evaluator, ExternalModule}
+import mill.define.{Command, Discover, Evaluator, ExternalModule, Mirrors}
 import mill.util.BuildInfo
 import mill.scalalib.{CoursierModule, Dep}
-
-import mill.api.internal
-import mill.api.Mirrors
-import mill.api.Mirrors.autoMirror
-import mill.runner.api.BspServerResult
+import Mirrors.autoMirror
+import mill.api.internal.{BspServerResult, internal}
 
 object BSP extends ExternalModule with CoursierModule {
-
-  implicit val jsonifyReloadWorkspace
-      : upickle.default.ReadWriter[BspServerResult.ReloadWorkspace.type] =
-    upickle.default.macroRW
-
-  implicit val jsonifyShutdown: upickle.default.ReadWriter[BspServerResult.Shutdown.type] =
-    upickle.default.macroRW
-
-  implicit val jsonifyFailure: upickle.default.ReadWriter[BspServerResult.Failure.type] =
-    upickle.default.macroRW
-
-  implicit val jsonify: upickle.default.ReadWriter[BspServerResult] =
-    upickle.default.macroRW
-
-  private given Root_BspServerResult: Mirrors.Root[BspServerResult] =
-    Mirrors.autoRoot[BspServerResult]
-
   lazy val millDiscover = Discover[this.type]
 
   private def bspWorkerLibs: T[Seq[PathRef]] = Task {
@@ -65,7 +45,7 @@ object BSP extends ExternalModule with CoursierModule {
   private def createBspConnection(
       jobs: Int,
       serverName: String
-  )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
+  )(implicit ctx: mill.define.TaskCtx): (PathRef, ujson.Value) = {
     // we create a json connection file
     val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
     if (os.exists(bspFile)) ctx.log.warn(s"Overwriting BSP connection file: ${bspFile}")

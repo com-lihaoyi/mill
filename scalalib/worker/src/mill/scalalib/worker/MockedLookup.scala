@@ -1,8 +1,7 @@
 package mill.scalalib.worker
 
+import mill.api.internal.internal
 import java.util.Optional
-
-import mill.api.internal
 import sbt.internal.inc.Locate
 import xsbti.VirtualFile
 import xsbti.compile.{CompileAnalysis, DefinesClass, PerClasspathEntryLookup}

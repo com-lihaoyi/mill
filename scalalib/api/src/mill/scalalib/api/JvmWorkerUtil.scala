@@ -1,6 +1,6 @@
 package mill.scalalib.api
 
-import mill.api.PathRef
+import mill.define.PathRef
 import scala.util.matching.Regex
 
 object JvmWorkerUtil {

@@ -3,8 +3,10 @@ package mill.scalalib
 import java.lang.reflect.Modifier
 
 import mainargs.arg
-import mill.api.JsonFormatters.pathReadWrite
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.JsonFormatters.pathReadWrite
+import mill.api.Result
+import mill.api.internal.RunModuleApi
+import mill.define.{ModuleCtx, PathRef, TaskCtx}
 import mill.constants.ServerFiles
 import mill.define.{Command, ModuleRef, Task}
 import mill.util.Jvm
@@ -14,7 +16,7 @@ import scala.util.control.NonFatal
 
 import mill.scalalib.classgraph.ClassgraphWorkerModule
 
-trait RunModule extends WithJvmWorker with mill.runner.api.RunModuleApi {
+trait RunModule extends WithJvmWorker with RunModuleApi {
 
   def classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 
@@ -225,7 +227,7 @@ trait RunModule extends WithJvmWorker with mill.runner.api.RunModuleApi {
    */
   def launcher: T[PathRef] = Task { launcher0() }
 
-  def bspJvmRunTestEnvironment = {
+  private[mill] def bspJvmRunTestEnvironment = {
     val moduleSpecificTask = this match {
       case m: (TestModule & JavaModule) => m.getTestEnvironmentVars()
       case _ => allLocalMainClasses
@@ -277,7 +279,7 @@ object RunModule {
         extraRunClasspath: Seq[os.Path] = Nil,
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false
-    )(implicit ctx: Ctx): Unit
+    )(implicit ctx: TaskCtx): Unit
   }
   private class RunnerImpl(
       mainClass0: Either[String, String],
@@ -298,7 +300,7 @@ object RunModule {
         extraRunClasspath: Seq[os.Path] = Nil,
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false
-    )(implicit ctx: Ctx): Unit = {
+    )(implicit ctx: TaskCtx): Unit = {
       val dest = ctx.dest
       val cwd = Option(workingDir).getOrElse(dest)
       val mainClass1 = Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity))

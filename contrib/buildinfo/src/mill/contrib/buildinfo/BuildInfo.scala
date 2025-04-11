@@ -1,7 +1,7 @@
 package mill.contrib.buildinfo
 
 import mill.{T, Task}
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.kotlinlib.KotlinModule
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.scalanativelib.ScalaNativeModule

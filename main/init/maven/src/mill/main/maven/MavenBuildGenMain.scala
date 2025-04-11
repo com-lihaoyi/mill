@@ -1,6 +1,7 @@
 package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
+import mill.api.internal.internal
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import org.apache.maven.model.{Dependency, Model, Parent}
@@ -35,7 +36,7 @@ import scala.jdk.CollectionConverters.*
  *  - build extensions
  *  - build profiles
  */
-@mill.api.internal
+@internal
 object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] {
   override type C = Config
 
@@ -276,7 +277,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   }
 
   @main
-  @mill.api.internal
+  @internal
   case class Config(
       shared: BuildGenUtil.Config,
       @arg(doc = "use cache for Maven repository system")

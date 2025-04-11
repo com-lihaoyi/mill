@@ -1,5 +1,6 @@
 package mill.main.maven
 
+import mill.api.internal.internal
 import org.apache.maven.model.Model
 import org.apache.maven.model.building.{
   DefaultModelBuilderFactory,
@@ -20,7 +21,7 @@ import java.util.Properties
  *
  * The implementation is inspired by [[https://github.com/sbt/sbt-pom-reader/ sbt-pom-reader]].
  */
-@mill.api.internal
+@internal
 class Modeler(
     config: ModelerConfig,
     builder: ModelBuilder,
@@ -44,7 +45,7 @@ class Modeler(
     result.getEffectiveModel
   }
 }
-@mill.api.internal
+@internal
 object Modeler {
 
   def apply(
@@ -80,7 +81,7 @@ object Modeler {
   }
 }
 
-@mill.api.internal
+@internal
 trait ModelerConfig {
   def cacheRepository: mainargs.Flag
   def processPlugins: mainargs.Flag

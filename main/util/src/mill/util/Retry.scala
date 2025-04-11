@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.api.Ctx
+import mill.define.TaskCtx
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
@@ -67,7 +67,7 @@ case class Retry(
 object Retry {
 
   /** Use this logger to log from a Mill task */
-  def ctxLogger(implicit ctx: Ctx.Log): String => Unit =
+  def ctxLogger(implicit ctx: TaskCtx.Log): String => Unit =
     ctx.log.warn(_)
 
   /** Use this logger to log with a `PrintStream`, such as `System.err` */

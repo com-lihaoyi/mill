@@ -1,6 +1,7 @@
 package mill.main.sbt
 
 import mainargs.{ParserForClass, arg, main}
+import mill.api.internal.internal
 import mill.constants.Util
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
@@ -48,7 +49,7 @@ import scala.collection.immutable.SortedSet
  *  - sources other than Scala on JVM and Java, such as Scala.js and Scala Native
  *  - cross builds
  */
-@mill.api.internal
+@internal
 object SbtBuildGenMain
     extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Option[Project]]])] {
   override type C = Config
@@ -307,9 +308,9 @@ object SbtBuildGenMain
       crossVersion match {
         case CrossVersion.Disabled => None
         // The formatter doesn't work well for the import `import mill.scalalib.CrossVersion as MillCrossVersion` in IntelliJ IDEA, so FQNs are used here.
-        case CrossVersion.Binary => Some(mill.api.CrossVersion.Binary(false))
-        case CrossVersion.Full => Some(mill.api.CrossVersion.Full(false))
-        case CrossVersion.Constant(value) => Some(mill.api.CrossVersion.Constant(value, false))
+        case CrossVersion.Binary => Some(mill.define.CrossVersion.Binary(false))
+        case CrossVersion.Full => Some(mill.define.CrossVersion.Full(false))
+        case CrossVersion.Constant(value) => Some(mill.define.CrossVersion.Constant(value, false))
       },
       version = revision,
       tpe = tpe.orNull,
@@ -498,7 +499,7 @@ object SbtBuildGenMain
   }
 
   @main
-  @mill.api.internal
+  @internal
   case class Config(
       shared: BuildGenUtil.BasicConfig,
       @arg(

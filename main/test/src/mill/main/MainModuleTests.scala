@@ -1,9 +1,9 @@
 package mill.main
 
-import mill.api.{ExecResult, PathRef, Result, Val}
+import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles
 import mill.{Task, given}
-import mill.define.{Cross, Discover, Module, TaskModule}
+import mill.define.{PathRef, Cross, Discover, Module, TaskModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, test}

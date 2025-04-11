@@ -1,7 +1,7 @@
 package mill.testrunner
 
-import mill.api.{Ctx, internal}
-import mill.runner.api.TestReporter
+import mill.define.TaskCtx
+import mill.api.internal.{TestReporter, internal}
 import mill.util.Jvm
 
 @internal object TestRunner {
@@ -13,7 +13,7 @@ import mill.util.Jvm
       args: Seq[String],
       testReporter: TestReporter,
       classFilter: Class[?] => Boolean = _ => true
-  )(implicit ctx: Ctx.Log): (String, Seq[mill.testrunner.TestResult]) = {
+  )(implicit ctx: TaskCtx.Log): (String, Seq[mill.testrunner.TestResult]) = {
     Jvm.withClassLoader(
       classPath = entireClasspath.toVector,
       sharedPrefixes = Seq("sbt.testing.")

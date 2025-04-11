@@ -19,7 +19,8 @@
 // For example, if you want to run all tests related to the code changes in a pull
 // request branch, you can do that as follows:
 //
-// ```bash
+// [source,console]
+// ----
 // > git checkout main # start from the target branch of the PR
 //
 // > ./mill selective.prepare
@@ -27,7 +28,7 @@
 // > git checkout pull-request-branch # go to the pull request branch
 //
 // > ./mill selective.run __.test
-// ```
+// ----
 //
 // The example below demonstrates selective test execution on a small 3-module Java build,
 // where `bar` depends on `foo` but `qux` is standalone:

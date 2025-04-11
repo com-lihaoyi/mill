@@ -1,6 +1,7 @@
 package mill.scalalib
 
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.util.JarManifest
 import mill.define.{Target => T, _}
 import mill.util.Jvm
