@@ -77,6 +77,9 @@ options:
   --meta-level <int>   Select a meta-level to run the given tasks. Level 0 is the main project in
                        `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc.
   --no-server          Run without a background server. Must be the first argument.
+  --offline            Try to work offline. This tells modules that support it to work offline and
+                       avoid any access to the internet. This is on a best effort basis. There are
+                       currently no guarantees that modules don't attempt to fetch remote sources.
   -s --silent          Make ivy logs during script import resolution go silent instead of printing
   --ticker <bool>      Enable ticker log (e.g. short-lived prints of stages and progress bars).
   -v --version         Show mill version information and exit.
@@ -84,6 +87,7 @@ options:
   task <str>...        The name or a pattern of the tasks(s) you want to build.
 
 Please see the documentation at https://mill-build.org for more details
+
 ----
 
 == Notable Flags
