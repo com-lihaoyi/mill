@@ -8,10 +8,6 @@ inputs:
     required: true
     type: string
 
-  coursierarchive:
-    default: ''
-    type: string
-
 runs:
   using: "composite"
   steps:
@@ -29,6 +25,9 @@ runs:
     #- run: cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
     #  shell: bash
 
+    - run: ./mill -i -k dist.native.nativeImageMaybeCopyGraal
+      shell: ${{ inputs.shell }}
+
     - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}
 
@@ -38,8 +37,6 @@ runs:
     #  shell: ${{ inputs.shell }}
 
     - run: ./mill -i -k selective.run ${{ inputs.millargs }}
-      env:
-        COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
       shell: ${{ inputs.shell }}
 
     - name: Publish Test Report
