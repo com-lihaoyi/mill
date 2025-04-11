@@ -17,7 +17,6 @@ object ExampleParser {
     for (line <- os.read.lines(buildFile)) {
       val (newState, restOpt) = line match {
         case s"/** Usage" => ("example", None)
-        case s"/** Hidden" => ("hidden", None)
         case s"/** See Also: $path */" =>
           (s"see:$path", Some(os.read(os.Path(path, testRepoRoot))))
         case s"*/" => ("scala", None)
