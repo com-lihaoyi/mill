@@ -20,11 +20,6 @@ private[dependency] object VersionsFinder {
       case javaModule: JavaModule => javaModule
     }
 
-    val resolvedDependencies = evaluator.execute {
-      val progress = new Progress(javaModules.size)
-      javaModules.map(classpath(progress))
-    }.values.get
-
     // Using a fixed time clock, so that the TTL cut-off is the same for all version checks,
     // and we don't run into race conditions like one check assuming a file in cache is valid,
     // another one a fraction of a second later assuming it's invalid and proceeding to
@@ -32,9 +27,14 @@ private[dependency] object VersionsFinder {
     // (see https://github.com/com-lihaoyi/mill/issues/3876).
     val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
 
+    val resolvedDependencies = evaluator.execute {
+      val progress = new Progress(javaModules.size)
+      javaModules.map(classpath(progress, ctx.offline, clock))
+    }.values.get
+
     evaluator.execute {
       val progress = new Progress(resolvedDependencies.map(_._3.size).sum)
-      resolvedDependencies.map(resolveVersions(progress, clock))
+      resolvedDependencies.map(resolveVersions(progress))
     }.values.get
   }
 
@@ -43,7 +43,7 @@ private[dependency] object VersionsFinder {
     def next(): Int = counter.getAndIncrement()
   }
 
-  private def classpath(progress: Progress)(
+  private def classpath(progress: Progress, offline: Boolean, clock: Clock)(
       javaModule: JavaModule
   ): Task[ResolvedDependencies] =
     Task.Anon {
@@ -60,7 +60,7 @@ private[dependency] object VersionsFinder {
       val custom = javaModule.resolutionCustomizer()
       val cacheCustom = javaModule.coursierCacheCustomizer()
 
-      val metadataLoaders = repos.flatMap(MetadataLoaderFactory(_))
+      val metadataLoaders = repos.flatMap(MetadataLoaderFactory(_, offline, clock))
 
       val dependencies = (deps ++ compileIvyDeps ++ runIvyDeps)
         .map(bindDependency)
@@ -83,7 +83,7 @@ private[dependency] object VersionsFinder {
       }
     }
 
-  private def resolveVersions(progress: Progress, clock: Clock)(
+  private def resolveVersions(progress: Progress)(
       resolvedDependencies: ResolvedDependencies
   ): Task[ModuleDependenciesVersions] = Task.Anon {
     val (javaModule, metadataLoaders, dependencies) = resolvedDependencies
@@ -92,10 +92,10 @@ private[dependency] object VersionsFinder {
       Task.log.ticker(
         s"Analyzing dependencies [${progress.next()}/${progress.count}]: ${javaModule} / ${dependency.module}"
       )
-      val currentVersion = Version(dependency.version)
+      val currentVersion = Version(dependency.versionConstraint.asString)
       val allVersions =
         metadataLoaders
-          .flatMap(_.getVersions(dependency.module, clock))
+          .flatMap(_.getVersions(dependency.module))
           .toSet
       DependencyVersions(dependency, currentVersion, allVersions)
     }

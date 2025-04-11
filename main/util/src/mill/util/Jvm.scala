@@ -681,6 +681,7 @@ object Jvm {
                 |It can not download new dependencies from remote repositories.
                 |You may need to run Mill without the `--offline` option at least once
                 |to download required remote dependencies.
+                |Run `mill __.prepareOffline` to fetch most remote resources at once.
                 |
                 |""".stripMargin
             else ""
