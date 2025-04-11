@@ -5,7 +5,7 @@ import lib.*
 final case class MyNumber(val value: Int)
 
 object MyNumber {
-  
+
   given gCombinator: Combinator[MyNumber] = new Combinator[MyNumber] {
     def combine(a: MyNumber, b: MyNumber): MyNumber = MyNumber(a.value + b.value)
   }
