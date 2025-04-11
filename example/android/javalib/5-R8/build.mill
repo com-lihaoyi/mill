@@ -1,25 +1,22 @@
-//// SNIPPET:BUILD
-// This section sets up a basic Android project using Mill.
-// We utilize `AndroidAppModule` and `AndroidSdkModule` to streamline the process of
-// building an Android application with minimal configuration.
-//
-// By extending `AndroidAppModule`, we inherit all Android-related tasks such as
-// resource generation, APK building, DEX conversion, and APK signing.
-// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
-
+// R8 is a code shrinker and obfuscator for Android applications. Is designed to optimize the size of the APK
+// while maintaining the functionality of the app.
+// When using R8, you can configure the rules for code shrinking and obfuscation in a ProGuard configuration file.
+// You need 2 files on the root of your project:
+// 1. proguard-rules.pro: This file contains the rules for R8 to follow when shrinking and obfuscating the code.
+// 2. test-proguard-rules.pro: This file contains the rules for R8 to follow when shrinking and obfuscating the unit and instrumented tests.
+// You can also override the default Proguard files by using override def proguardConfigs: T[Seq[PathRef]]
+// See Also: app/proguard-rules.pro & app/test-proguard-rules.pro
 package build
 
 import mill._, javalib._
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 import mill.javalib.android.AndroidTestModule
 
-// Create and configure an Android SDK module to manage Android SDK paths and tools.
-object androidSdkModule0 extends AndroidSdkModule {
+object androidSdkModule0 extends AndroidSdkModule { // <1>
   def buildToolsVersion = "35.0.0"
 }
 
-// Actual android application
-object app extends AndroidAppModule {
+object app extends AndroidAppModule { // <2>
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
@@ -66,9 +63,9 @@ object app extends AndroidAppModule {
   }
 
 }
-//// SNIPPET:END
 
-////SNIPPET:END
+// <1> Create and configure an Android SDK module to manage Android SDK paths and tools.
+// <2> The actual Android application
 
 /** Usage
 
@@ -89,86 +86,9 @@ object app extends AndroidAppModule {
 
 */
 
-// This command triggers the build process, which installs the Android Setup, compiles the Java
-// code, generates Android resources, converts Java bytecode to DEX format, packages everything
-// into an APK, optimizes the APK using `zipalign`, and finally signs it.
-//
-// This Mill build configuration is designed to build a simple "Hello World" Android application.
-// By extending `AndroidAppModule`, we leverage its predefined Android build tasks, ensuring that
-// all necessary steps (resource generation, APK creation, and signing) are executed automatically.
-//
-// #### Project Structure:
-// The project follows the standard Android app layout. Below is a typical project folder structure:
-//
-// ----
-// .
-//├── app
-//│     └── src
-//│         ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.java
-//│         ├── main
-//│         │     ├── AndroidManifest.xml
-//│         │     ├── java/com/helloworld/app/MainActivity.java
-//│         │     └── res
-//│         │         └── values
-//│         │             ├── colors.xml
-//│         │             └── strings.xml
-//│         └── test/java/com/helloworld/app/ExampleUnitTest.java
-//└── build.mill
-// ----
-//
-
-/** Usage
-
-> ./mill show app.test
-...compiling 2 Java source...
-
-> cat out/app/test/testForked.dest/worker-0/out.json
-["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]
-
-*/
-
-// This command runs unit tests on your local environment.
-
-/** Usage
-
-> ./mill show app.createAndroidVirtualDevice
-...Name: java-test, DeviceId: medium_phone...
-
-> ./mill show app.startAndroidEmulator
-
-> ./mill show app.adbDevices
-...emulator-5554...device...
-
-> ./mill show app.it
-...
-[
-  "",
-  [
-    {
-      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "duration": ...,
-      "status": "Success"
-    }
-  ]
-]
-...
-
-> cat out/app/it/testTask.dest/test-report.xml
-...
-<?xml version='1.0' encoding='UTF-8'?>
-<testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
-        <testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="...">
-        <properties>
-      </properties>
-        <testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="...">
-        </testcase>
-      </testsuite>
-      </testsuites>
-...
-
-> ./mill show app.stopAndroidEmulator
-
-> ./mill show app.deleteAndroidVirtualDevice
-
-*/
+// R8 will run automatically when you run the androidReleaseInstall task.
+// If you want to create the APK without R8, you can use the androidApk task to create the not-optimized APK. You can also
+// run the andoidInstall task that will automaticaly run the androidApk and also install it in the emulator.
+// The androidReleaseInstall task will install the optimized APK on the emulator.
+// So first you need to create the emulator and start it.
+// After the emulator is started, you can run the androidReleaseInstall task and see the app in the emulator.
