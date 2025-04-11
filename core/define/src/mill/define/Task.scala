@@ -146,7 +146,7 @@ object Task extends TaskBase {
   class CommandFactory private[mill] (val exclusive: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
         inline w: W[T],
-        inline ctx: mill.define.Ctx
+        inline ctx: mill.define.ModuleCtx
     ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }) }
   }
 
@@ -546,7 +546,7 @@ private object TaskMacros {
       Quotes
   )(t: Expr[Result[T]])(
       w: Expr[W[T]],
-      ctx: Expr[mill.define.Ctx],
+      ctx: Expr[mill.define.ModuleCtx],
       exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {
     appImpl[Command, T](

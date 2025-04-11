@@ -233,20 +233,21 @@ trait JavaModule
         testUseArgsFile(),
         forkArgs(),
         Seq.empty,
-        zincWorker().scalalibClasspath(),
+        jvmWorker().scalalibClasspath(),
         resources(),
         testFramework(),
         runClasspath(),
         testClasspaths,
         args.toSeq,
         testClasses,
-        zincWorker().testrunnerEntrypointClasspath(),
+        jvmWorker().testrunnerEntrypointClasspath(),
         forkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
         quickTestReportXml,
-        zincWorker().javaHome().map(_.path),
-        testParallelism()
+        jvmWorker().javaHome().map(_.path),
+        testParallelism(),
+        testLogLevel()
       )
 
       val results = testModuleUtil.runTests()

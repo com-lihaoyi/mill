@@ -1,0 +1,18 @@
+package build
+
+import mill._, scalalib._
+
+object lib extends ScalaModule {
+  def scalaVersion = "3.3.1"
+}
+
+object app extends ScalaModule {
+  def scalaVersion = "3.3.1"
+  def moduleDeps = Seq(lib)
+
+  object test extends ScalaTests {
+    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+    def moduleDeps = Seq(app)
+  }
+}
