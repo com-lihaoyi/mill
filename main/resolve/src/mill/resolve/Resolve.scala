@@ -380,18 +380,18 @@ trait Resolve[T] {
 
       case Some(scoping) =>
         for {
-          moduleCls <- try Right(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
-          catch {
-            case e: ClassNotFoundException =>
-              try Right(rootModule.getClass.getClassLoader.loadClass(
-                scoping.render + ".PackageExternalModule$"
-              ))
-              catch {
-                case e: ClassNotFoundException =>
-                  Left("Cannot resolve external module " + scoping.render)
-              }
-          }
-
+          moduleCls <-
+            try Right(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
+            catch {
+              case e: ClassNotFoundException =>
+                try Right(rootModule.getClass.getClassLoader.loadClass(
+                    scoping.render + ".PackageExternalModule$"
+                  ))
+                catch {
+                  case e: ClassNotFoundException =>
+                    Left("Cannot resolve external module " + scoping.render)
+                }
+            }
 
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
             case alias: PackageExternalModule => Right(alias.value)

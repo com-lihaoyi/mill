@@ -36,6 +36,7 @@ trait KtfmtBaseModule extends JavaModule {
 }
 
 object PackageExternalModule extends mill.define.PackageExternalModule(KtfmtModule)
+
 /**
  * Performs formatting checks on Kotlin source files using [[https://github.com/facebook/ktfmt Ktfmt]].
  */
