@@ -208,11 +208,13 @@ trait KotlinModule extends JavaModule { outer =>
 
       Task.log.info("dokka options: " + options)
 
-      Jvm.callProcess(
-        mainClass = "",
-        classPath = Seq.empty,
-        jvmArgs = Seq("-jar", dokkaCliClasspath().head.path.toString()),
-        mainArgs = options,
+      os.call(
+        cmd = (
+          Jvm.javaExe(jvmWorker().javaHome().map(_.path)),
+          "-jar",
+          dokkaCliClasspath().head.path.toString(),
+          options
+        ),
         stdin = os.Inherit,
         stdout = os.Inherit
       )

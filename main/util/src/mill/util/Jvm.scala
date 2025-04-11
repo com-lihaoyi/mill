@@ -419,7 +419,12 @@ object Jvm {
     )
   }
 
-  def createLauncher(mainClass: String, classPath: Seq[os.Path], jvmArgs: os.Shellable, destFolder: os.Path): PathRef = {
+  def createLauncher(
+      mainClass: String,
+      classPath: Seq[os.Path],
+      jvmArgs: os.Shellable,
+      destFolder: os.Path
+  ): PathRef = {
     val isWin = scala.util.Properties.isWin
     val isBatch =
       isWin && !(org.jline.utils.OSUtils.IS_CYGWIN || org.jline.utils.OSUtils.IS_MSYSTEM)
