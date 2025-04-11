@@ -161,6 +161,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/internal/Warn$.html#","e":false,"i":"","n":"Warn","t":"Warn extends Severity","d":"mill.api.internal","k":"object","x":""},
 {"l":"mill/api/internal/internal.html#","e":false,"i":"","n":"internal","t":"internal extends StaticAnnotation","d":"mill.api.internal","k":"class","x":""},
 {"l":"mill/api/BuildInfo$.html#","e":false,"i":"","n":"BuildInfo","t":"BuildInfo","d":"mill.api","k":"object","x":""},
+{"l":"mill/api/BuildInfo$.html#coursierJvmIndexVersion-0","e":false,"i":"","n":"coursierJvmIndexVersion","t":"coursierJvmIndexVersion: String","d":"mill.api.BuildInfo","k":"val","x":""},
 {"l":"mill/api/BuildInfo$.html#millDocUrl-0","e":false,"i":"","n":"millDocUrl","t":"millDocUrl: String","d":"mill.api.BuildInfo","k":"val","x":""},
 {"l":"mill/api/BuildInfo$.html#millReportNewIssueUrl-0","e":false,"i":"","n":"millReportNewIssueUrl","t":"millReportNewIssueUrl: String","d":"mill.api.BuildInfo","k":"val","x":""},
 {"l":"mill/api/BuildInfo$.html#millVersion-0","e":false,"i":"","n":"millVersion","t":"millVersion: String","d":"mill.api.BuildInfo","k":"val","x":""},
