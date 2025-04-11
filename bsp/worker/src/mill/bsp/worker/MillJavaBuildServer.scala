@@ -18,7 +18,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       : CompletableFuture[JavacOptionsResult] =
     completableTasks(
       s"buildTargetJavacOptions ${javacOptionsParams}",
-      targetIds = _ => javacOptionsParams.getTargets.asScala.toSeq,
+      targetIds = _ => javacOptionsParams.getTargets.asScala,
       tasks = { case m: JavaModuleApi =>
         m.bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
       }
@@ -29,7 +29,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
         new JavacOptionsItem(
           id,
           javacOptions.asJava,
-          classpath.iterator.toSeq.asJava,
+          classpath.asJava,
           sanitizeUri(classesPath)
         )
 

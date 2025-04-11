@@ -5,7 +5,8 @@ import mill._
 
 /**
  * This module contains the core data types that are shared between Mill's
- * internal code and user-land code
+ * internal code and user-land code. Should have zero or minimal dependencies
+ * to ensure the two codebases are not bound to the same versions of shared libraries
  */
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.constants)

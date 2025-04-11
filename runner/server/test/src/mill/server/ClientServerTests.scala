@@ -1,4 +1,4 @@
-package mill.main.server
+package mill.server
 
 import mill.api.SystemStreams
 import mill.client.lock.Locks

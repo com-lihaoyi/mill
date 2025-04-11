@@ -22,8 +22,8 @@ trait JavaModuleApi extends ModuleApi {
 
   private[mill] def bspBuildTargetInverseSources[T](id: T, uri: String): TaskApi[Seq[T]]
 
-  private[mill] def bspBuildTargetDependencySources(includeSources: Boolean)
-      : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path], Seq[String])]
+  private[mill] def bspBuildTargetDependencySources
+      : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path])]
 
   private[mill] def bspBuildTargetDependencyModules
       : TaskApi[(Seq[(String, String, String)], Seq[java.nio.file.Path])]
@@ -51,7 +51,6 @@ trait JavaModuleApi extends ModuleApi {
   def transitiveModuleCompileModuleDeps: Seq[JavaModuleApi]
   def skipIdea: Boolean
   private[mill] def intellijModulePathJava: java.nio.file.Path
-  def buildLibraryPaths: TaskApi[Seq[java.nio.file.Path]]
 }
 object JavaModuleApi
 
@@ -60,6 +59,13 @@ trait ScalaJSModuleApi extends JavaModuleApi
 trait ScalaNativeModuleApi extends JavaModuleApi
 trait TestModuleApi extends ModuleApi {
   def testLocal(args: String*): TaskApi[(String, Seq[Any])]
+  private[mill] def bspBuildTargetScalaTestClasses: TaskApi[(String, Seq[String])]
+}
+trait MainModuleApi extends ModuleApi {
+  private[mill] def bspClean(
+      evaluator: EvaluatorApi,
+      targets: String*
+  ): TaskApi[Seq[java.nio.file.Path]]
 }
 trait BspModuleApi extends ModuleApi {
   private[mill] def bspBuildTargetData: TaskApi[Option[(String, AnyRef)]]
@@ -109,7 +115,6 @@ final case class ResolvedModule(
     facets: Seq[JavaFacet],
     configFileContributions: Seq[IdeaConfigFile],
     compilerOutput: java.nio.file.Path,
-    evaluator: EvaluatorApi,
     scalaVersion: Option[String],
     resources: Seq[java.nio.file.Path],
     generatedSources: Seq[java.nio.file.Path],

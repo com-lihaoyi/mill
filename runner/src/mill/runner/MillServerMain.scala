@@ -37,7 +37,7 @@ class MillServerMain(
     serverDir: os.Path,
     acceptTimeoutMillis: Int,
     locks: Locks
-) extends mill.main.server.Server[RunnerState](
+) extends mill.server.Server[RunnerState](
       serverDir,
       acceptTimeoutMillis,
       locks

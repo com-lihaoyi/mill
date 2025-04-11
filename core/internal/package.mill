@@ -7,7 +7,7 @@ import mill._
  * Mill's own internal code but not intended for use by user-land code.
  */
 object `package` extends RootModule with build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.api)
+  def moduleDeps = Seq(build.core.api, build.core.util)
 
   def ivyDeps = Agg(
     build.Deps.millModuledefs,

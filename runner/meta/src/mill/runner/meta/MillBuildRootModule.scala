@@ -134,7 +134,7 @@ class MillBuildRootModule()(implicit
     ) ++ Seq(
       // Needed at runtime to insantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
       // classloader but should not be available for users to compile against
-      ivy"com.lihaoyi::mill-core:${Versions.millVersion}"
+      ivy"com.lihaoyi::mill-core-eval:${Versions.millVersion}"
     )
   }
 

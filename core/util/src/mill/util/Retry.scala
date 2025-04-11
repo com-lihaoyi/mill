@@ -5,7 +5,6 @@ import mill.define.TaskCtx
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
-
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise}
 

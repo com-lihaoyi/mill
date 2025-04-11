@@ -150,36 +150,4 @@ object Lib {
       ))
     } yield path
   }
-
-  def resolveMillBuildDeps(
-      repos: Seq[Repository],
-      ctx: Option[mill.define.TaskCtx.Log],
-      useSources: Boolean
-  ): Seq[os.Path] = {
-    MillModuleUtil.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {
-      case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
-      case None =>
-        val distModule = BuildInfo.millDistModule.split(":", 2) match {
-          case Array(org, name) =>
-            coursier.Module(coursier.Organization(org), coursier.ModuleName(name))
-          case _ =>
-            sys.error(
-              s"Malformed BuildInfo.millDistModule value: '${BuildInfo.millDistModule}' (expected 'org:name')"
-            )
-        }
-        val res = scalalib.Lib.resolveDependencies(
-          repositories = repos.toList,
-          deps = Seq(
-            BoundDep(coursier.Dependency(distModule, mill.api.BuildInfo.millVersion), force = false)
-          ),
-          sources = useSources,
-          mapDependencies = None,
-          customizer = None,
-          coursierCacheCustomizer = None,
-          ctx = ctx
-        )
-        res.get.toList.map(_.path)
-    }
-  }
-
 }

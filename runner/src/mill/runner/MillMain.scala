@@ -16,10 +16,10 @@ import mill.define.WorkspaceRoot
 import mill.util.BuildInfo
 import mill.runner.meta.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}
-
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
 import scala.util.Using
+import mill.server.Server
 
 @internal
 object MillMain {
@@ -74,9 +74,9 @@ object MillMain {
     if (Properties.isWin && Util.hasConsole())
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
-    val processId = mill.main.server.Server.computeProcessId()
+    val processId = Server.computeProcessId()
     val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
-    mill.main.server.Server.watchProcessIdFile(
+    Server.watchProcessIdFile(
       out / OutFiles.millNoServer / processId / ServerFiles.processId,
       processId,
       running = () => true,
@@ -228,7 +228,7 @@ object MillMain {
                         prevState: Option[RunnerState],
                         targetsAndParams: Seq[String],
                         streams: SystemStreams
-                    ) = withOutLock(
+                    ) = Server.withOutLock(
                       config.noBuildLock.value,
                       config.noWaitForBuildLock.value,
                       out,
@@ -503,45 +503,4 @@ object MillMain {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
-
-  def withOutLock[T](
-      noBuildLock: Boolean,
-      noWaitForBuildLock: Boolean,
-      out: os.Path,
-      targetsAndParams: Seq[String],
-      streams: SystemStreams
-  )(t: => T): T = {
-    if (noBuildLock) t
-    else {
-      val outLock = Lock.file((out / OutFiles.millLock).toString)
-
-      def activeTaskString =
-        try {
-          os.read(out / OutFiles.millActiveCommand)
-        } catch {
-          case e => "<unknown>"
-        }
-
-      def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
-
-      Using.resource {
-        val tryLocked = outLock.tryLock()
-        if (tryLocked.isLocked()) tryLocked
-        else if (noWaitForBuildLock) {
-          throw new Exception(s"$activeTaskPrefix failing")
-        } else {
-
-          streams.err.println(
-            s"$activeTaskPrefix waiting for it to be done..."
-          )
-          outLock.lock()
-        }
-      } { _ =>
-        os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
-        try t
-        finally os.remove.all(out / OutFiles.millActiveCommand)
-      }
-    }
-  }
-
 }

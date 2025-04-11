@@ -1,4 +1,4 @@
-package mill.main.server
+package mill.server
 
 import mill.api.SystemStreams
 import mill.constants.ProxyStream.Output
@@ -12,6 +12,8 @@ import java.io.*
 import java.net.{InetAddress, Socket}
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
+import scala.util.Using
+import mill.constants.OutFiles
 
 /**
  * Models a long-lived server that receives requests from a client and calls a [[main0]]
@@ -291,4 +293,40 @@ object Server {
         }
     }
   }
+
+  def withOutLock[T](
+      noBuildLock: Boolean,
+      noWaitForBuildLock: Boolean,
+      out: os.Path,
+      targetsAndParams: Seq[String],
+      streams: SystemStreams
+  )(t: => T): T = {
+    if (noBuildLock) t
+    else {
+      val outLock = Lock.file((out / OutFiles.millLock).toString)
+
+      def activeTaskString =
+        try os.read(out / OutFiles.millActiveCommand)
+        catch {
+          case e => "<unknown>"
+        }
+
+      def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
+
+      Using.resource {
+        val tryLocked = outLock.tryLock()
+        if (tryLocked.isLocked()) tryLocked
+        else if (noWaitForBuildLock) throw new Exception(s"$activeTaskPrefix failing")
+        else {
+          streams.err.println(s"$activeTaskPrefix waiting for it to be done...")
+          outLock.lock()
+        }
+      } { _ =>
+        os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
+        try t
+        finally os.remove.all(out / OutFiles.millActiveCommand)
+      }
+    }
+  }
+
 }
