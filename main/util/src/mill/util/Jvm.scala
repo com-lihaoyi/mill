@@ -651,6 +651,7 @@ object Jvm {
       .map { d => d.module -> d.version }
       .toMap
 
+    val offlineMode = ctx.fold(false)(_.offline)
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
     val resolutionParams0 = resolutionParams
@@ -673,9 +674,20 @@ object Jvm {
           case cantDownload: CantDownloadModule => cantDownload
         }
         if (error.errors.length == cantDownloadErrors.length) {
+          val extraHeader =
+            if (offlineMode)
+              """
+                |*** Mill is in offline mode (--offline) ***
+                |It can not download new dependencies from remote repositories.
+                |You may need to run Mill without the `--offline` option at least once
+                |to download required remote dependencies.
+                |
+                |""".stripMargin
+            else ""
+
           val header =
             s"""|
-                |Resolution failed for ${cantDownloadErrors.length} modules:
+                |${extraHeader}Resolution failed for ${cantDownloadErrors.length} modules:
                 |--------------------------------------------
                 |""".stripMargin
 
@@ -688,7 +700,7 @@ object Jvm {
 
           val errLines = cantDownloadErrors
             .map { err =>
-              s"  ${err.module.trim}:${err.version} \n\t" +
+              s"  ${err.module.trim}:${err.versionConstraint.asString} \n\t" +
                 err.perRepositoryErrors.mkString("\n\t")
             }
             .mkString("\n")
