@@ -80,37 +80,24 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     }
 
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
-      : CompletableFuture[ScalaTestClassesResult] = ???
-//    completableTasks(
-//      s"buildTarget/scalaTestClasses ${p}",
-//      targetIds = _ => p.getTargets.asScala.toSeq,
-//      tasks = {
-//        case m: TestModuleApi => m.bspBuildTargetScalaTestClasses
-//      }
-//    ) {
-//      case (ev, state, id, m: TestModuleApi, Some((classpath, testFramework, testClasspath))) =>
-//        val (frameworkName, classFingerprint): (String, Seq[(Class[?], Fingerprint)]) =
-//          Jvm.withClassLoader(
-//            classPath = classpath.map(_.path).toVector,
-//            sharedPrefixes = Seq("sbt.testing.")
-//          ) { classLoader =>
-//            val framework = Framework.framework(testFramework)(classLoader)
-//            val discoveredTests = TestRunnerUtils.discoverTests(
-//              classLoader,
-//              framework,
-//              Seq.from(testClasspath.map(_.path))
-//            )
-//            (framework.name(), discoveredTests)
-//          }: @unchecked
-//        val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
-//        new ScalaTestClassesItem(id, classes.asJava).tap { it =>
-//          it.setFramework(frameworkName)
-//        }
-//      case (ev, state, id, _, _) =>
-//        // Not a test module, so no test classes
-//        new ScalaTestClassesItem(id, Seq.empty[String].asJava)
-//    } {
-//      new ScalaTestClassesResult(_)
-//    }
+      : CompletableFuture[ScalaTestClassesResult] =
+    completableTasks(
+      s"buildTarget/scalaTestClasses ${p}",
+      targetIds = _ => p.getTargets.asScala.toSeq,
+      tasks = {
+        case m: TestModuleApi => m.bspBuildTargetScalaTestClasses
+      }
+    ) {
+      case (ev, state, id, m: TestModuleApi, (frameworkName, classes)) =>
+        val item = new ScalaTestClassesItem(id, classes.asJava)
+        item.setFramework(frameworkName)
+        item
+
+      case (ev, state, id, _, _) =>
+        // Not a test module, so no test classes
+        new ScalaTestClassesItem(id, Seq.empty[String].asJava)
+    } {
+      new ScalaTestClassesResult(_)
+    }
 
 }
