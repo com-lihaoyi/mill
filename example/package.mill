@@ -283,7 +283,6 @@ $txt
 ----
 """
             case ("comment", txt) => txt + "\n"
-            case ("hidden", _) => // ignored
             case ("example", txt) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
