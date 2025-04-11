@@ -1506,7 +1506,6 @@ trait JavaModule
         facets = resolvedFacets,
         configFileContributions = resolvedConfigFileContributions,
         compilerOutput = resolvedCompilerOutput.path.toNIO,
-        evaluator = evaluator,
         scalaVersion = resolvedScalaVersion,
         resources = resources().map(_.path.toNIO),
         generatedSources = generatedSources().map(_.path.toNIO),

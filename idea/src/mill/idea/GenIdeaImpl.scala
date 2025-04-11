@@ -377,7 +377,6 @@ class GenIdeaImpl(
             facets,
             _,
             compilerOutput,
-            evaluator,
             scalaVersion,
             resources,
             generatedSources,

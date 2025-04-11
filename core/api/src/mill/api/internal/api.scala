@@ -114,7 +114,6 @@ final case class ResolvedModule(
     facets: Seq[JavaFacet],
     configFileContributions: Seq[IdeaConfigFile],
     compilerOutput: java.nio.file.Path,
-    evaluator: EvaluatorApi,
     scalaVersion: Option[String],
     resources: Seq[java.nio.file.Path],
     generatedSources: Seq[java.nio.file.Path],
