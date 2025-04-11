@@ -1,6 +1,6 @@
 package mill.util
 
-import utest.{assert, TestSuite, Tests, test}
+import utest.{TestSuite, Tests, assert, test}
 
 object VersionTests extends TestSuite {
 

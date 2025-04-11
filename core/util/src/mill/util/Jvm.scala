@@ -1,33 +1,26 @@
 package mill.util
 
-import mill.api.*
-
-import os.ProcessOutput
-
-import java.io.*
-import java.net.URLClassLoader
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.Files
-import scala.util.Properties.isWin
-import os.CommandResult
-
-import java.util.jar.{JarEntry, JarOutputStream}
-import coursier.cache.FileCache
+import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{BomDependency, Module}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
+import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
-import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
+import mill.api.*
+import mill.define.{PathRef, TaskCtx}
+import os.{CommandResult, ProcessOutput}
 
-import mill.api.{Result}
-import mill.define.{TaskCtx, PathRef}
-
+import java.io.*
+import java.net.URLClassLoader
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
+import java.util.jar.{JarEntry, JarOutputStream}
 import scala.collection.mutable
+import scala.util.Properties.isWin
 import scala.util.chaining.scalaUtilChainingOps
-import coursier.cache.ArchiveCache
 
 object Jvm {
 
@@ -617,7 +610,7 @@ object Jvm {
       id: String,
       ctx: Option[mill.define.TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = mill.util.BuildInfo.coursierJvmIndexVersion
+      jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     val jvmCache = JvmCache()
