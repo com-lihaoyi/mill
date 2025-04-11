@@ -102,7 +102,8 @@ object `package` extends RootModule with build.MillStableScalaModule {
         "millScalacPluginDeps",
         build.Deps.millModuledefsString,
         "Scalac compiler plugin dependencies to compile the build script."
-      )
+      ),
+      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
     )
   }
 

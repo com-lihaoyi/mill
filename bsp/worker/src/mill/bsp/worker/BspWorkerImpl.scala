@@ -72,7 +72,10 @@ private class BspWorkerImpl() extends BspClasspathWorker {
       }
 
       new Thread(() => {
-        listening.get()
+        try listening.get()
+        catch {
+          case _: CancellationException => // normal exit
+        }
         streams.err.println("Shutting down executor")
         executor.shutdown()
       }).start()
