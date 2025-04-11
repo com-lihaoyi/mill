@@ -8,6 +8,10 @@ inputs:
     required: true
     type: string
 
+  coursierarchive:
+    default: ''
+    type: string
+
 runs:
   using: "composite"
   steps:
@@ -37,6 +41,8 @@ runs:
     #  shell: ${{ inputs.shell }}
 
     - run: ./mill -i -k selective.run ${{ inputs.millargs }}
+      env:
+        COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
       shell: ${{ inputs.shell }}
 
     - name: Publish Test Report
