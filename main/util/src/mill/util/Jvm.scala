@@ -617,16 +617,16 @@ object Jvm {
       jvmIndexVersion: String = mill.util.BuildInfo.coursierJvmIndexVersion
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
-    val archiveCache = ArchiveCache().withCache(coursierCache0)
     val jvmCache = JvmCache()
-      .withArchiveCache(archiveCache)
+      .withArchiveCache(
+        ArchiveCache().withCache(coursierCache0)
+      )
       .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
     val javaHome = JavaHome()
       .withCache(jvmCache)
       // when given a version like "17", always pick highest version in the index
       // rather than the highest already on disk
       .withUpdate(true)
-    pprint.err.log(archiveCache.location)
     pprint.err.log(id)
     val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
     Result.Success(os.Path(file))
