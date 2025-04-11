@@ -23,7 +23,7 @@ abstract class MainRootModule()(implicit
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends BaseModule with MainModuleApi{
+trait MainModule extends BaseModule with MainModuleApi {
   protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   object interp {
@@ -163,7 +163,10 @@ trait MainModule extends BaseModule with MainModuleApi{
       }
     }
 
-  private[mill] def bspClean(evaluator: EvaluatorApi, targets: String*): TaskApi[Seq[java.nio.file.Path]] = Task.Anon{
+  private[mill] def bspClean(
+      evaluator: EvaluatorApi,
+      targets: String*
+  ): TaskApi[Seq[java.nio.file.Path]] = Task.Anon {
     clean(evaluator.asInstanceOf[Evaluator], targets*)().map(_.path.toNIO)
   }
 

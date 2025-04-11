@@ -529,7 +529,8 @@ private class MillBuildServer(
               Seq(cleanTask),
               logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
             )
-            val cleanedPaths = cleanResult.results.head.get.value.asInstanceOf[Seq[java.nio.file.Path]]
+            val cleanedPaths =
+              cleanResult.results.head.get.value.asInstanceOf[Seq[java.nio.file.Path]]
             if (cleanResult.transitiveFailingApi.size > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.transitiveResultsApi(cleanTask) match {
