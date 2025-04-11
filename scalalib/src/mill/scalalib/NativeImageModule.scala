@@ -75,9 +75,7 @@ trait NativeImageModule extends WithJvmWorker {
       case Some(home) =>
         val tool = if (Properties.isWin) "native-image.cmd" else "native-image"
         val path = home / "bin" / tool
-        if (os.exists(path))
-          // native-image is externally managed, better revalidate it at least once
-          PathRef(path).withRevalidateOnce
+        if (os.exists(path)) PathRef(path)
         else throw new RuntimeException(s"$path not found")
       case None =>
         throw new RuntimeException("JvmWorkerModule.javaHome/GRAALVM_HOME not defined")
