@@ -58,6 +58,7 @@ trait KtlintModule extends JavaModule {
   }
 }
 
+object PackageExternalModule extends mill.define.PackageExternalModule(KtlintModule)
 object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
   override def defaultCommandName(): String = "reformatAll"
 

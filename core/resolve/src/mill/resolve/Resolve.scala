@@ -11,6 +11,7 @@ import mill.define.{
   Segments,
   SelectMode,
   TaskModule,
+  PackageExternalModule,
   SimpleTaskTokenReader
 }
 import mill.api.Result
@@ -397,13 +398,16 @@ private[mill] trait Resolve[T] {
             try Result.Success(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
             catch {
               case e: ClassNotFoundException =>
-                try Result.Success(rootModule.getClass.getClassLoader.loadClass(scoping.render + ".ExternalModule$"))
+                try Result.Success(rootModule.getClass.getClassLoader.loadClass(
+                    scoping.render + ".PackageExternalModule$"
+                  ))
                 catch {
                   case e: ClassNotFoundException =>
                     Result.Failure("Cannot resolve external module " + scoping.render)
                 }
             }
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
+            case alias: PackageExternalModule => Result.Success(alias.value)
             case rootModule: BaseModule => Result.Success(rootModule)
             case _ => Result.Failure("Class " + scoping.render + " is not an BaseModule")
           }
