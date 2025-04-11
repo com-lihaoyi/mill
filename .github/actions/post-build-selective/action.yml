@@ -9,7 +9,7 @@ inputs:
     type: string
 
   coursierarchive:
-    required: true
+    default: ''
     type: string
 
 runs:
@@ -22,8 +22,6 @@ runs:
       shell: ${{ inputs.shell }}
 
     - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
-      env:
-        COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
       shell: ${{ inputs.shell }}
 
     # This generates a lot of logs and slows down the github actions UI like crazy, 
@@ -32,8 +30,6 @@ runs:
     #  shell: bash
 
     - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
-      env:
-        COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
       shell: ${{ inputs.shell }}
 
     # Comment this out because it can be very verbose when broad codesig
