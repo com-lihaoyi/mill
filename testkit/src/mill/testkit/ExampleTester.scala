@@ -201,7 +201,7 @@ class ExampleTester(
     val parsed = ExampleParser(workspaceSourcePath)
     val ignoreErrors = System.getenv("CI") != null &&
       os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
-    val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
+    val usageComment = parsed.collect { case ("example" | "hidden", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
     try {
