@@ -95,3 +95,5 @@ abstract class ExternalModule(implicit
     Segments(millModuleEnclosing0.value.split('.').map(Segment.Label).toIndexedSeq)
   }
 }
+
+class PackageExternalModule(val value: ExternalModule)

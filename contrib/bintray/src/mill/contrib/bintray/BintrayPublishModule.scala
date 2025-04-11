@@ -50,6 +50,7 @@ trait BintrayPublishModule extends PublishModule {
   }
 }
 
+object PackageExternalModule extends mill.define.PackageExternalModule(BintrayPublishModule)
 object BintrayPublishModule extends ExternalModule {
 
   /**

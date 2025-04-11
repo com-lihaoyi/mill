@@ -80,6 +80,7 @@ trait VersionFileModule extends Module {
     )
 }
 
+object PackageExternalModule extends mill.define.PackageExternalModule(VersionFileModule)
 object VersionFileModule extends define.ExternalModule {
 
   /** Executes the given processes. */

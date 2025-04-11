@@ -8,6 +8,7 @@ import mill.define.Discover
 
 import utest._
 
+object PackageExternalModule extends mill.define.PackageExternalModule(TestExternalModule)
 object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "x"
   def x = Task { 13 }
@@ -25,6 +26,10 @@ object ModuleTests extends TestSuite {
       val check = UnitTester(Build, null)
       val result = check.apply("mill.eval.TestExternalModule/x")
       assert(result == Right(Result(Vector(13), 0)))
+
+      val result1 = check.apply("mill.exec/x") // short alias
+      assert(result1 == Right(Result(Vector(13), 0)))
+
       val result2 = check.apply("mill.eval.TestExternalModule/")
       assert(result2 == Right(Result(Vector(13), 0)))
     }
