@@ -2,7 +2,7 @@ package mill.runner
 
 import mill.internal.PrefixLogger
 import mill.define.internal.Watchable
-import mill.define.{RootModule0, PathRef, WorkspaceRoot}
+import mill.define.{PathRef, RootModule0, WorkspaceRoot}
 import mill.util.BuildInfo
 import mill.api.internal.{EvaluatorApi, RootModuleApi, internal}
 import mill.constants.CodeGenConstants.*
@@ -10,12 +10,14 @@ import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
 import mill.runner.worker.api.MillScalaParser
-import mill.runner.meta.{ScalaCompilerWorker, CliImports, FileImportGraph, MillBuildRootModule}
-
+import mill.runner.meta.{CliImports, FileImportGraph, MillBuildRootModule, ScalaCompilerWorker}
 import java.io.File
 import java.net.URLClassLoader
+
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
+
+import mill.exec.Execution
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -49,7 +51,8 @@ class MillBuildBootstrap(
     systemExit: Int => Nothing,
     streams0: SystemStreams,
     selectiveExecution: Boolean,
-    scalaCompilerWorker: ScalaCompilerWorker.ResolvedWorker
+    scalaCompilerWorker: ScalaCompilerWorker.ResolvedWorker,
+    offline: Boolean
 ) { outer =>
   import MillBuildBootstrap._
 
@@ -386,6 +389,7 @@ class MillBuildBootstrap(
       allowPositionalCommandArgs,
       selectiveExecution,
       // Use the shorter convenience constructor not the primary one
+      // TODO: Check if named tuples could make this call more typesafe
       execCls.getConstructors.minBy(_.getParameterCount).newInstance(
         baseLogger,
         projectRoot.toNIO,
@@ -401,7 +405,8 @@ class MillBuildBootstrap(
         codeSignatures,
         systemExit,
         streams0,
-        () => evaluator
+        () => evaluator,
+        offline
       )
     ).asInstanceOf[EvaluatorApi]
 

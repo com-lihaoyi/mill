@@ -362,6 +362,8 @@ class TaskBase {
    */
   def fork(implicit ctx: mill.define.TaskCtx): mill.define.TaskCtx.Fork.Api = ctx.fork
 
+  def offline(implicit ctx: mill.define.TaskCtx): Boolean = ctx.offline
+
   /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
    */

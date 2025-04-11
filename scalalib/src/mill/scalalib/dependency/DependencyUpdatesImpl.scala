@@ -13,7 +13,7 @@ object DependencyUpdatesImpl {
 
   def apply(
       evaluator: Evaluator,
-      ctx: Log,
+      ctx: TaskCtx,
       rootModule: BaseModule,
       discover: Discover,
       allowPreRelease: Boolean

@@ -202,7 +202,8 @@ object SelectiveExecutionImpl {
             workspace = evaluator.workspace,
             systemExit = n => ???,
             fork = null,
-            jobs = evaluator.effectiveThreadCount
+            jobs = evaluator.effectiveThreadCount,
+            offline = evaluator.offline
           )
           task -> task.evaluate(ctx).map(Val(_))
         }

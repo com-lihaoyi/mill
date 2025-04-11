@@ -52,7 +52,8 @@ private trait GroupExecution {
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.define.TaskCtx.Fork.Api,
-      exclusive: Boolean
+      exclusive: Boolean,
+      offline: Boolean
   ): GroupExecution.Results = {
     logger.withPromptLine {
       val externalInputsHash = MurmurHash3.orderedHash(
@@ -118,19 +119,20 @@ private trait GroupExecution {
 
               val (newResults, newEvaluated) =
                 executeGroup(
-                  group,
-                  results,
-                  inputsHash,
+                  group = group,
+                  results = results,
+                  inputsHash = inputsHash,
                   paths = Some(paths),
                   maybeTargetLabel = Some(terminal.toString),
                   counterMsg = countMsg,
-                  zincProblemReporter,
-                  testReporter,
-                  logger,
-                  executionContext,
-                  exclusive,
-                  labelled.isInstanceOf[Command[?]],
-                  deps
+                  reporter = zincProblemReporter,
+                  testReporter = testReporter,
+                  logger = logger,
+                  executionContext = executionContext,
+                  exclusive = exclusive,
+                  isCommand = labelled.isInstanceOf[Command[?]],
+                  deps = deps,
+                  offline = offline
                 )
 
               val valueHash = newResults(labelled) match {
@@ -159,19 +161,20 @@ private trait GroupExecution {
           }
         case task =>
           val (newResults, newEvaluated) = executeGroup(
-            group,
-            results,
-            inputsHash,
+            group = group,
+            results = results,
+            inputsHash = inputsHash,
             paths = None,
             maybeTargetLabel = None,
             counterMsg = countMsg,
-            zincProblemReporter,
-            testReporter,
-            logger,
-            executionContext,
-            exclusive,
-            task.isInstanceOf[Command[?]],
-            deps
+            reporter = zincProblemReporter,
+            testReporter = testReporter,
+            logger = logger,
+            executionContext = executionContext,
+            exclusive = exclusive,
+            isCommand = task.isInstanceOf[Command[?]],
+            deps = deps,
+            offline = offline
           )
           GroupExecution.Results(
             newResults,
@@ -199,7 +202,8 @@ private trait GroupExecution {
       executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
       isCommand: Boolean,
-      deps: Seq[Task[?]]
+      deps: Seq[Task[?]],
+      offline: Boolean
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[?]]
@@ -239,7 +243,8 @@ private trait GroupExecution {
             workspace = workspace,
             systemExit = systemExit,
             fork = executionContext,
-            jobs = effectiveThreadCount
+            jobs = effectiveThreadCount,
+            offline = offline
           )
           // Tasks must be allowed to write to upstream worker's dest folders, because
           // the point of workers is to manualy manage long-lived state which includes

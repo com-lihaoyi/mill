@@ -13,9 +13,12 @@ object Dependency extends ExternalModule {
       allowPreRelease: Boolean = false
   ): Command[Seq[ModuleDependenciesUpdates]] =
     Task.Command(exclusive = true) {
+      if (Task.offline) {
+        Task.log.warn("`updates` might not find recent updates in --offline mode")
+      }
       DependencyUpdatesImpl(
         ev,
-        implicitly,
+        Task.ctx(),
         ev.rootModule,
         ev.rootModule.moduleCtx.discover,
         allowPreRelease

@@ -62,7 +62,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       val path = mill.util.Jvm.resolveJavaHome(
         id = id,
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.define.TaskCtx.Log]),
+        ctx = Some(Task.ctx()),
         jvmIndexVersion = jvmIndexVersion()
       ).get
       PathRef(path, quick = true)
