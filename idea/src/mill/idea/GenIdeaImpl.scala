@@ -105,19 +105,6 @@ class GenIdeaImpl(
     lazy val modulesByEvaluator: Map[EvaluatorApi, Seq[(Segments, JavaModuleApi)]] = modules
       .groupMap { case (_, _, ev) => ev } { case (s, m, _) => (s, m) }
 
-    val buildLibraryPaths: immutable.Seq[os.Path] = {
-      if (!fetchMillModules) Nil
-      else {
-        modulesByEvaluator.toSeq
-          .flatMap { case (ev, modules) =>
-            ev.executeApi(modules.map(_._2.buildLibraryPaths))
-              .values.get
-          }
-          .flatten
-          .map(os.Path(_))
-      }
-    }
-
     // is head the right one?
     val buildDepsPaths = GenIdeaImpl.allJars(evaluators.head.rootModule.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
@@ -146,9 +133,7 @@ class GenIdeaImpl(
     val moduleLabels = modules.map { case (s, m, e) => (m, s) }.toMap
 
     val allResolved: Seq[os.Path] =
-      (resolvedModules.flatMap(_.classpath).map(s =>
-        os.Path(s.value)
-      ) ++ buildLibraryPaths ++ buildDepsPaths)
+      (resolvedModules.flatMap(_.classpath).map(s => os.Path(s.value)) ++ buildDepsPaths)
         .distinct
         .sorted
 

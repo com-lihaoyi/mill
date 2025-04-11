@@ -1357,12 +1357,8 @@ trait JavaModule
       if (found) Seq(id) else Seq()
     }
 
-  private[mill] def bspBuildTargetDependencySources(includeSources: Boolean) = Task.Anon {
+  private[mill] def bspBuildTargetDependencySources = Task.Anon {
     val repos = allRepositories()
-    val buildSources = if (!includeSources) Nil
-    else mill.scalalib.Lib
-      .resolveMillBuildDeps(repos, None, useSources = true)
-      .map(sanitizeUri(_))
 
     (
       millResolver().classpath(
@@ -1372,8 +1368,7 @@ trait JavaModule
         ),
         sources = true
       ).map(_.path.toNIO),
-      unmanagedClasspath().map(_.path.toNIO),
-      buildSources
+      unmanagedClasspath().map(_.path.toNIO)
     )
   }
 
@@ -1519,11 +1514,6 @@ trait JavaModule
       )
     }
 
-  }
-
-  def buildLibraryPaths: Task[Seq[java.nio.file.Path]] = Task.Anon {
-    Lib.resolveMillBuildDeps(allRepositories(), Option(Task.ctx()), useSources = true)
-    Lib.resolveMillBuildDeps(allRepositories(), Option(Task.ctx()), useSources = false).map(_.toNIO)
   }
 }
 

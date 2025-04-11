@@ -57,9 +57,11 @@
         <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>
         <orderEntry type="library" name="mill-core-define_3.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-util_3.jar" level="project"/>
         <orderEntry type="library" name="mill-idea_3.jar" level="project"/>
         <orderEntry type="library" name="mill-javascriptlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-kotlinlib-worker_3.jar" level="project"/>

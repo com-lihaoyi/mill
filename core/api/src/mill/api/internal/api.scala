@@ -22,8 +22,8 @@ trait JavaModuleApi extends ModuleApi {
 
   private[mill] def bspBuildTargetInverseSources[T](id: T, uri: String): TaskApi[Seq[T]]
 
-  private[mill] def bspBuildTargetDependencySources(includeSources: Boolean)
-      : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path], Seq[String])]
+  private[mill] def bspBuildTargetDependencySources
+      : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path])]
 
   private[mill] def bspBuildTargetDependencyModules
       : TaskApi[(Seq[(String, String, String)], Seq[java.nio.file.Path])]
@@ -51,7 +51,6 @@ trait JavaModuleApi extends ModuleApi {
   def transitiveModuleCompileModuleDeps: Seq[JavaModuleApi]
   def skipIdea: Boolean
   private[mill] def intellijModulePathJava: java.nio.file.Path
-  def buildLibraryPaths: TaskApi[Seq[java.nio.file.Path]]
 }
 object JavaModuleApi
 
