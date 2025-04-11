@@ -1,3 +1,16 @@
+diff --git a/.github/workflows/run-tests.yml b/.github/workflows/run-tests.yml
+index 7afdd53994b..5ec15bb6b0a 100644
+--- a/.github/workflows/run-tests.yml
++++ b/.github/workflows/run-tests.yml
+@@ -263,7 +263,7 @@ jobs:
+             millargs: "'integration.invalidation.__.native.server'"
+             install-sbt: false
+ 
+-          - java-version: 17.0.14
++          - java-version: 17
+             millargs: "'integration.bootstrap[no-java-bootstrap].native.server'"
+ 
+     uses: ./.github/workflows/post-build-selective.yml
 diff --git a/dist/package.mill b/dist/package.mill
 index e93db5bd1d0..52954600e2b 100644
 --- a/dist/package.mill

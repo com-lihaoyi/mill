@@ -263,7 +263,7 @@ jobs:
             millargs: "'integration.invalidation.__.native.server'"
             install-sbt: false
 
-          - java-version: 17
+          - java-version: 17.0.14
             millargs: "'integration.bootstrap[no-java-bootstrap].native.server'"
 
     uses: ./.github/workflows/post-build-selective.yml
