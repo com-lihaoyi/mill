@@ -894,8 +894,6 @@ trait AndroidAppModule extends AndroidModule {
     val unsignedApk = Task.dest / "app.unsigned.apk"
     os.copy(androidResources()._1.path / "res.apk", unsignedApk)
 
-    androidDex()
-
     val r8DexFiles = os.walk(runR8().path)
       .filter(_.ext == "dex")
       .map(os.zip.ZipSource.fromPath)
