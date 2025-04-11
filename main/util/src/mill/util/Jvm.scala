@@ -617,12 +617,19 @@ object Jvm {
       id: String,
       ctx: Option[mill.define.TaskCtx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = "latest.release"
+      jvmIndexVersion: String = "latest.release",
+      useShortPaths: Boolean = false
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    val shortPathDirOpt = Option.when(useShortPaths) {
+      if (isWin) os.Path(System.getenv("UserProfile")) / ".mill/cache/jvm"
+      else os.home / ".cache/mill/jvm"
+    }
     val jvmCache = JvmCache()
       .withArchiveCache(
-        ArchiveCache().withCache(coursierCache0)
+        ArchiveCache()
+          .withCache(coursierCache0)
+          .withShortPathDirectory(shortPathDirOpt)
       )
       .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
     val javaHome = JavaHome()
