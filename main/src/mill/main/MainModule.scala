@@ -10,6 +10,7 @@ import mill.define.Cached
 
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
+import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 
 abstract class MainRootModule()(implicit
     baseModuleInfo: RootModule0.Info,
@@ -22,7 +23,7 @@ abstract class MainRootModule()(implicit
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends BaseModule {
+trait MainModule extends BaseModule with MainModuleApi{
   protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   object interp {
@@ -161,6 +162,10 @@ trait MainModule extends BaseModule {
         ujson.Obj.from(res.flatMap(_._2))
       }
     }
+
+  private[mill] def bspClean(evaluator: EvaluatorApi, targets: String*): TaskApi[Seq[java.nio.file.Path]] = Task.Anon{
+    clean(evaluator.asInstanceOf[Evaluator], targets*)().map(_.path.toNIO)
+  }
 
   /**
    * Deletes the given targets from the out directory. Providing no targets

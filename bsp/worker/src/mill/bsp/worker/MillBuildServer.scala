@@ -512,46 +512,40 @@ private class MillBuildServer(
       : CompletableFuture[CleanCacheResult] =
     completable(s"buildTargetCleanCache ${cleanCacheParams}") { state =>
       cleanCacheParams.setTargets(state.filterNonSynthetic(cleanCacheParams.getTargets))
-      val (msg, cleaned) = ("", true)
 
-//      val (msg, cleaned) =
-//        cleanCacheParams.getTargets.asScala.foldLeft((
-//          "",
-//          true
-//        )) {
-//          case ((msg, cleaned), targetId) =>
-//            val (module, ev) = state.bspModulesById(targetId)
-//            val mainModule = ev.rootModule.asInstanceOf[mill.main.MainModule]
-//            val compileTargetName = (module.moduleSegments ++ Label("compile")).render
-//            debug(s"about to clean: ${compileTargetName}")
-//            val cleanTask = mainModule.clean(ev, Seq(compileTargetName)*)
-//            val cleanResult = evaluate(
-//              ev,
-//              Seq(cleanTask),
-//              logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
-//            )
-//            if (cleanResult.transitiveFailing.size > 0) (
-//              msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
-//                (cleanResult.transitiveResults(cleanTask) match {
-//                  case ex: ExecResult.Exception => ex.toString()
-//                  case ExecResult.Skipped => "Task was skipped"
-//                  case ExecResult.Aborted => "Task was aborted"
-//                  case _ => "could not retrieve the failure message"
-//                }),
-//              false
-//            )
-//            else {
-//              val outPaths = mill.define.ExecutionPaths.resolve(
-//                ev.outPath,
-//                module.moduleSegments ++ Label("compile")
-//              )
-//              val outPathSeq = Seq(outPaths.dest, outPaths.meta, outPaths.log)
-//
-//              while (outPathSeq.exists(os.exists(_))) Thread.sleep(10)
-//
-//              (msg + s"${module.bspBuildTarget.displayName} cleaned \n", cleaned)
-//            }
-//        }
+      val (msg, cleaned) =
+        cleanCacheParams.getTargets.asScala.foldLeft((
+          "",
+          true
+        )) {
+          case ((msg, cleaned), targetId) =>
+            val (module, ev) = state.bspModulesById(targetId)
+            val mainModule = ev.rootModule.asInstanceOf[mill.api.internal.MainModuleApi]
+            val compileTargetName = (module.moduleSegments ++ Label("compile")).render
+            debug(s"about to clean: ${compileTargetName}")
+            val cleanTask = mainModule.bspClean(ev, Seq(compileTargetName)*)
+            val cleanResult = evaluate(
+              ev,
+              Seq(cleanTask),
+              logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
+            )
+            val cleanedPaths = cleanResult.results.head.get.value.asInstanceOf[Seq[java.nio.file.Path]]
+            if (cleanResult.transitiveFailingApi.size > 0) (
+              msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
+                (cleanResult.transitiveResultsApi(cleanTask) match {
+                  case ex: ExecResult.Exception => ex.toString()
+                  case ExecResult.Skipped => "Task was skipped"
+                  case ExecResult.Aborted => "Task was aborted"
+                  case _ => "could not retrieve the failure message"
+                }),
+              false
+            )
+            else {
+              while (cleanedPaths.exists(p => os.exists(os.Path(p)))) Thread.sleep(10)
+
+              (msg + s"${module.bspBuildTarget.displayName} cleaned \n", cleaned)
+            }
+        }
 
       new CleanCacheResult(cleaned).tap { it =>
         it.setMessage(msg)

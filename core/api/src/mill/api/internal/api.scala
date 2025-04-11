@@ -60,6 +60,9 @@ trait ScalaNativeModuleApi extends JavaModuleApi
 trait TestModuleApi extends ModuleApi {
   def testLocal(args: String*): TaskApi[(String, Seq[Any])]
 }
+trait MainModuleApi extends ModuleApi{
+  private[mill] def bspClean(evaluator: EvaluatorApi, targets: String*): TaskApi[Seq[java.nio.file.Path]]
+}
 trait BspModuleApi extends ModuleApi {
   private[mill] def bspBuildTargetData: TaskApi[Option[(String, AnyRef)]]
   private[mill] def bspBuildTarget: BspBuildTarget
