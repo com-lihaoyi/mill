@@ -23,7 +23,6 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
         stderr = os.Inherit
       )
 
-      pprint.err.log(System.getProperty("java.version"))
       assert(res1.out == System.getProperty("java.version"))
 
       // Any `JavaModule`s run from the Mill server should also inherit

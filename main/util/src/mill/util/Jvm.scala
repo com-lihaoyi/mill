@@ -627,7 +627,6 @@ object Jvm {
       // when given a version like "17", always pick highest version in the index
       // rather than the highest already on disk
       .withUpdate(true)
-    pprint.err.log(id)
     val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
     Result.Success(os.Path(file))
 

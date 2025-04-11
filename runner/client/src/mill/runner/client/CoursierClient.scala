@@ -26,7 +26,6 @@ object CoursierClient {
       // rather than the highest already on disk
       .withUpdate(true)
 
-    pprint.err.log(id)
     javaHome.get(id).unsafeRun()(coursierCache0.ec)
   }
 }
