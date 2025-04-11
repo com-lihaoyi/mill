@@ -3,6 +3,11 @@ import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib._
 
+/**
+ * Utility code that is used in both `mill-runner` and `build.mill`, but cannot
+ * be part of the interface between the two classloader environments to ensure
+ * isolation between them
+ */
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.api, build.core.constants, build.core.define)
 
