@@ -11,7 +11,6 @@ import java.io.File;
  * Defines a trait which handles deerialization of paths, in a way that can be used by both path refs and paths
  */
 trait PathUtils {
-
   //TEMPORARY! A better solution needs to be found.
   def findOutRoot(): os.Path = {
     val outFolderName = OutFiles.out
@@ -29,7 +28,7 @@ trait PathUtils {
         }
       }
     }
-    return root
+    root
   } 
   /*
    * Returns a list of paths and their variables to be substituted with.
