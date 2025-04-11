@@ -13,7 +13,7 @@ object Dependency extends ExternalModule {
       allowPreRelease: Boolean = false
   ): Command[Seq[ModuleDependenciesUpdates]] =
     Task.Command(exclusive = true) {
-      if(Task.offline) {
+      if (Task.offline) {
         T.log.warn("`updates` might not find recent updates in --offline mode")
       }
       DependencyUpdatesImpl(
