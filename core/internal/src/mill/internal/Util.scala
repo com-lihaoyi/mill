@@ -57,13 +57,4 @@ private[mill] object Util {
     case _ => if (encode(s) == s && !alphaKeywords.contains(s)) s
       else "`" + s + "`"
   }
-
-  def leftPad(s: String, targetLength: Int, char: Char): String = {
-    char.toString * (targetLength - s.length) + s
-  }
-
-  def renderSecondsSuffix(millis: Long) = (millis / 1000).toInt match {
-    case 0 => ""
-    case n => s" ${n}s"
-  }
 }

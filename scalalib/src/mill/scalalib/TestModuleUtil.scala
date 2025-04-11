@@ -5,7 +5,7 @@ import mill.api.{Result}
 import mill.constants.EnvVars
 import mill.api.internal.TestReporter
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
-import mill.util.Jvm
+import mill.util.{Jvm, Util}
 import mill.Task
 import sbt.testing.Status
 
@@ -217,7 +217,7 @@ private final class TestModuleUtil(
                   ).mkString(", ") + s", ${multiple.length} suites"
               }
 
-              val paddedIndex = mill.internal.Util.leftPad(i.toString, maxLength, '0')
+              val paddedIndex = mill.util.Util.leftPad(i.toString, maxLength, '0')
               val folderName = testClassList match {
                 case Seq(single) => single
                 case multiple =>
@@ -334,7 +334,7 @@ private final class TestModuleUtil(
       case multipleTestClassLists =>
         val maxLength = multipleTestClassLists.length.toString.length
         multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
-          val paddedIndex = mill.internal.Util.leftPad(i.toString, maxLength, '0')
+          val paddedIndex = mill.util.Util.leftPad(i.toString, maxLength, '0')
           val folderName = testClassList match {
             case Seq(single) => single
             case multiple =>
@@ -363,12 +363,12 @@ private final class TestModuleUtil(
           // Don't have re-calculate for every processes
           groupName = groupFolder.last
           (jobs, maxProcessLength) = jobsProcessLength(numTests)
-          paddedGroupIndex = mill.internal.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
+          paddedGroupIndex = mill.util.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
           processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
         } yield {
 
           val paddedProcessIndex =
-            mill.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
+            mill.util.Util.leftPad(processIndex.toString, maxProcessLength, '0')
 
           val processFolder = groupFolder / s"worker-$paddedProcessIndex"
 
@@ -475,7 +475,7 @@ private[scalalib] object TestModuleUtil {
             os.read.lines(claimLog).lastOption.foreach { currentTestClass =>
               testClassTimeMap.putIfAbsent(currentTestClass, now)
               val last = testClassTimeMap.get(currentTestClass)
-              callback(s"$currentTestClass${mill.internal.Util.renderSecondsSuffix(now - last)}")
+              callback(s"$currentTestClass${Util.renderSecondsSuffix(now - last)}")
             }
           }
           var totalSuccess = 0L

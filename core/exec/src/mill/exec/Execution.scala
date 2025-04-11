@@ -169,7 +169,7 @@ private[mill] case class Execution(
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
             try {
-              val countMsg = mill.internal.Util.leftPad(
+              val countMsg = mill.util.Util.leftPad(
                 count.getAndIncrement().toString,
                 terminals.length.toString.length,
                 '0'
