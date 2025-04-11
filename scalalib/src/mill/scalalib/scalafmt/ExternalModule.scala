@@ -37,7 +37,7 @@ trait ScalafmtModule extends JavaModule {
   )
 
   // TODO: Do we want provide some defaults or write a default file?
-  private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = Task.Anon {
+  private[scalafmt] def resolvedScalafmtConfig: Task[PathRef] = Task.Anon {
     val locs = scalafmtConfig()
     locs.find(p => os.exists(p.path)) match {
       case None => Result.Failure(
@@ -74,7 +74,7 @@ trait ScalafmtModule extends JavaModule {
 
 }
 
-object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule {
+object ExternalModule extends ExternalModule with ScalafmtModule with TaskModule {
   override def defaultCommandName(): String = "reformatAll"
 
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
