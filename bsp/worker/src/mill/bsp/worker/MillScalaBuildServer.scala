@@ -89,10 +89,10 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       }
     ) {
       case (ev, state, id, m: TestModuleApi, (frameworkName, classes)) =>
+        val item = new ScalaTestClassesItem(id, classes.asJava)
+        item.setFramework(frameworkName)
+        item
 
-        new ScalaTestClassesItem(id, classes.asJava).tap { it =>
-          it.setFramework(frameworkName)
-        }
       case (ev, state, id, _, _) =>
         // Not a test module, so no test classes
         new ScalaTestClassesItem(id, Seq.empty[String].asJava)

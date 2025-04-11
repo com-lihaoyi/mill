@@ -21,6 +21,7 @@ import scala.reflect.ClassTag
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+import mill.server.Server
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
     bspVersion: String,
@@ -748,7 +749,7 @@ private class MillBuildServer(
       logger: Logger = null
   ): ExecutionResultsApi = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
-    withOutLock(
+    Server.withOutLock(
       noBuildLock = false,
       noWaitForBuildLock = false,
       out = os.Path(evaluator.outPathJava),
@@ -768,46 +769,6 @@ private class MillBuildServer(
     }
   }
 
-  def withOutLock[T](
-      noBuildLock: Boolean,
-      noWaitForBuildLock: Boolean,
-      out: os.Path,
-      targetsAndParams: Seq[String],
-      streams: SystemStreams
-  )(t: => T): T = {
-    if (noBuildLock) t
-    else {
-      val outLock = Lock.file((out / OutFiles.millLock).toString)
-
-      def activeTaskString =
-        try {
-          os.read(out / OutFiles.millActiveCommand)
-        } catch {
-          case e => "<unknown>"
-        }
-
-      def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
-
-      Using.resource {
-        val tryLocked = outLock.tryLock()
-        if (tryLocked.isLocked()) tryLocked
-        else if (noWaitForBuildLock) {
-          throw new Exception(s"$activeTaskPrefix failing")
-        } else {
-
-          streams.err.println(
-            s"$activeTaskPrefix waiting for it to be done..."
-          )
-          outLock.lock()
-        }
-      } { _ =>
-        os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
-        try t
-        finally os.remove.all(out / OutFiles.millActiveCommand)
-      }
-    }
-  }
-
 }
 
 private object MillBuildServer {
@@ -816,7 +777,8 @@ private object MillBuildServer {
    * Same as Iterable.groupMap, but returns a sequence instead of a map, and preserves
    * the order of appearance of the keys from the input sequence
    */
-  private def groupList[A, K, B](seq: collection.Seq[A])(key: A => K)(f: A => B): Seq[(K, Seq[B])] = {
+  private def groupList[A, K, B](seq: collection.Seq[A])(key: A => K)(f: A => B)
+      : Seq[(K, Seq[B])] = {
     val map = new mutable.HashMap[K, mutable.ListBuffer[B]]
     val list = new mutable.ListBuffer[(K, mutable.ListBuffer[B])]
     for (a <- seq) {
@@ -833,7 +795,7 @@ private object MillBuildServer {
     }
     list
       .iterator
-      .map { case (k, l) => (k, l.result())}
+      .map { case (k, l) => (k, l.result()) }
       .toList
   }
 

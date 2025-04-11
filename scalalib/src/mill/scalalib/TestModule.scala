@@ -251,7 +251,7 @@ trait TestModule
     )
   }
 
-  private[mill] def bspBuildTargetScalaTestClasses = Task.Anon{
+  private[mill] def bspBuildTargetScalaTestClasses = Task.Anon {
     val (frameworkName, classFingerprint) =
       mill.util.Jvm.withClassLoader(
         classPath = runClasspath().map(_.path),

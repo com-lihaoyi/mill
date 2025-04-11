@@ -116,11 +116,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       }
     ) {
       case (ev, _, id, _: JavaModuleApi, compileClasspath) =>
-
-        new JvmCompileClasspathItem(
-          id,
-          compileClasspath(ev).asJava
-        )
+        new JvmCompileClasspathItem(id, compileClasspath(ev).asJava)
       case _ => ???
     } {
       new JvmCompileClasspathResult(_)
