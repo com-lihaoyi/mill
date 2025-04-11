@@ -27,7 +27,7 @@ object ModuleTests extends TestSuite {
       val result = check.apply("mill.eval.TestExternalModule/x")
       assert(result == Right(Result(Vector(13), 0)))
 
-      val result1 = check.apply("mill.exec/x") // short alias
+      val result1 = check.apply("mill.eval/x") // short alias
       assert(result1 == Right(Result(Vector(13), 0)))
 
       val result2 = check.apply("mill.eval.TestExternalModule/")
