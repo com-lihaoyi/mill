@@ -217,7 +217,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
         Seq(classpathJar)
       }
 
-    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs(), Task.dest)
   }
 
   /**
