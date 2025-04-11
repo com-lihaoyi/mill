@@ -1,5 +1,4 @@
 package mill.integration
-import mill.api.JsonFormatters._
 import mill.testkit.UtestIntegrationTestSuite
 import os.*
 import utest._
@@ -96,10 +95,10 @@ object OutPathTestSuite extends UtestIntegrationTestSuite {
       val resModified1 =
         tester.eval(
           ("-Duser.home=/home/albassort/", "runBackground"),
-          cwd = modifiedPath,
-          env = env
+          cwd = modifiedPath
         )
-      assert(resModified1.isSuccess && resReference1.isSuccess)
+      assert(resReference1.isSuccess)
+      assert(resModified1.isSuccess)
 
     }
 
