@@ -1,7 +1,6 @@
 package mill.javalib.android
 
-import mill.*
-import mill.api.PathRef
+import mill._
 
 /**
  * Generates a BuildConfig.java file for Android applications.
