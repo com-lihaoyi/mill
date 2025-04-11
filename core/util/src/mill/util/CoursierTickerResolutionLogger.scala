@@ -1,7 +1,6 @@
 package mill.util
 
 import coursier.cache.CacheLogger
-
 import mill.define.TaskCtx
 
 import scala.collection.mutable

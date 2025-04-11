@@ -16,6 +16,7 @@ import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
 import coursier.core.{BomDependency, Module}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
+import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
@@ -24,6 +25,7 @@ import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Reso
 import mill.api.Result
 import mill.define.{PathRef, TaskCtx}
 import scala.collection.mutable
+import scala.util.Properties.isWin
 import scala.util.chaining.scalaUtilChainingOps
 
 object Jvm {
@@ -59,9 +61,9 @@ object Jvm {
    */
   def callProcess(
       mainClass: String,
-      mainArgs: Iterable[String] = Seq.empty,
+      mainArgs: os.Shellable = Seq.empty,
       javaHome: Option[os.Path] = None,
-      jvmArgs: Iterable[String] = Seq.empty,
+      jvmArgs: os.Shellable = Seq.empty,
       classPath: Iterable[os.Path],
       cpPassingJarPath: Option[os.Path] = None,
       env: Map[String, String] = Map.empty,
@@ -83,14 +85,14 @@ object Jvm {
       case _ => classPath
     }
 
-    val commandArgs = (Vector(javaExe(javaHome)) ++
-      jvmArgs ++
+    val commandArgs = Vector(javaExe(javaHome)) ++
+      jvmArgs.value ++
       Option.when(cp.nonEmpty)(Vector(
         "-cp",
         cp.mkString(java.io.File.pathSeparator)
       )).getOrElse(Vector.empty) ++
       Vector(mainClass) ++
-      mainArgs).filterNot(_.isBlank)
+      mainArgs.value
 
     if (cwd != null) os.makeDir.all(cwd)
 
@@ -144,9 +146,9 @@ object Jvm {
    */
   def spawnProcess(
       mainClass: String,
-      mainArgs: Iterable[String] = Seq.empty,
+      mainArgs: os.Shellable = Seq.empty,
       javaHome: Option[os.Path] = None,
-      jvmArgs: Iterable[String] = Seq.empty,
+      jvmArgs: os.Shellable = Seq.empty,
       classPath: Iterable[os.Path],
       cpPassingJarPath: Option[os.Path] = None,
       env: Map[String, String] = Map.empty,
@@ -166,13 +168,13 @@ object Jvm {
       case _ => classPath
     }
 
-    val commandArgs = (Vector(javaExe(javaHome)) ++
-      jvmArgs ++
+    val commandArgs = Vector(javaExe(javaHome)) ++
+      jvmArgs.value ++
       Option.when(cp.nonEmpty)(
         Vector("-cp", cp.mkString(java.io.File.pathSeparator))
       ).getOrElse(Vector.empty) ++
       Vector(mainClass) ++
-      mainArgs).filterNot(_.isBlank)
+      mainArgs.value
 
     if (cwd != null) os.makeDir.all(cwd)
 
@@ -380,15 +382,15 @@ object Jvm {
       mainClass: String,
       shellClassPath: Seq[String],
       cmdClassPath: Seq[String],
-      jvmArgs: Seq[String],
+      jvmArgs: os.Shellable,
       shebang: Boolean = false,
-      shellJvmArgs: Seq[String] = Nil,
-      cmdJvmArgs: Seq[String] = Nil
+      shellJvmArgs: os.Shellable = Nil,
+      cmdJvmArgs: os.Shellable = Nil
   ): String = {
 
     universalScript(
       shellCommands = {
-        val jvmArgsStr = (jvmArgs ++ shellJvmArgs).mkString(" ")
+        val jvmArgsStr = (jvmArgs.value ++ shellJvmArgs.value).mkString(" ")
         val classpathStr = shellClassPath.mkString(":")
 
         s"""if [ -z "$$JAVA_HOME" ] ; then
@@ -401,7 +403,7 @@ object Jvm {
            |""".stripMargin
       },
       cmdCommands = {
-        val jvmArgsStr = (jvmArgs ++ cmdJvmArgs).mkString(" ")
+        val jvmArgsStr = (jvmArgs.value ++ cmdJvmArgs.value).mkString(" ")
         val classpathStr = cmdClassPath.mkString(";")
         s"""setlocal EnableDelayedExpansion
            |set "JAVACMD=java.exe"
@@ -416,13 +418,16 @@ object Jvm {
     )
   }
 
-  def createLauncher(mainClass: String, classPath: Seq[os.Path], jvmArgs: Seq[String])(implicit
-      ctx: TaskCtx.Dest
+  def createLauncher(
+      mainClass: String,
+      classPath: Seq[os.Path],
+      jvmArgs: os.Shellable,
+      destFolder: os.Path
   ): PathRef = {
     val isWin = scala.util.Properties.isWin
     val isBatch =
       isWin && !(org.jline.utils.OSUtils.IS_CYGWIN || org.jline.utils.OSUtils.IS_MSYSTEM)
-    val outputPath = ctx.dest / (if (isBatch) "run.bat" else "run")
+    val outputPath = destFolder / (if (isBatch) "run.bat" else "run")
     val classPathStrs = classPath.map(_.toString)
 
     os.write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
