@@ -15,6 +15,7 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
   override def workerCache = delegate.workerCache
   override def env = delegate.env
   override def effectiveThreadCount = delegate.effectiveThreadCount
+  override def offline: Boolean = delegate.offline
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
