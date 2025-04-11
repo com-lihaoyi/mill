@@ -67,3 +67,7 @@ The `AndroidAppBundle` trait is used to create and manage Android App Bundles (A
 - **androidUnsignedBundle:** Uses the `bundleTool` to build an unsigned AAB from the bundle zip.
 
 - **androidBundle:** Signs the AAB using a specified keystore with the `jarsigner` tool, producing a signed Android App Bundle (AAB).
+
+== Using the R8 optimization tool in Android modules
+
+include::partial$example/android/javalib/5-R8.adoc[]
