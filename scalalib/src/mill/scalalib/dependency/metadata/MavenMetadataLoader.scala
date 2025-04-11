@@ -18,9 +18,9 @@ private[dependency] final case class MavenMetadataLoader(
   private val cache = coursier.cache.FileCache[Task]()
     .withClock(clock)
     .pipe { cache =>
-    if (offline) cache.withCachePolicies(Seq(LocalOnly))
-    else cache
-  }
+      if (offline) cache.withCachePolicies(Seq(LocalOnly))
+      else cache
+    }
 
   override def getVersions(module: coursier.Module): List[Version] = {
     // TODO fallback to 'versionsFromListing' if 'versions' doesn't work? (needs to be made public in coursier first)

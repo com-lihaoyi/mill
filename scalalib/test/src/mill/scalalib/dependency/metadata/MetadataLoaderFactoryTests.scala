@@ -48,7 +48,7 @@ object MetadataLoaderFactoryTests extends TestSuite {
         "https://dl.bintray.com/sbt/sbt-plugin-releases/" + coursier.ivy.Pattern.default.string,
         dropInfoAttributes = true
       ): @unchecked
-      assertMatch(MetadataLoaderFactory(ivyRepo, _ , _)) { case None => }
+      assertMatch(MetadataLoaderFactory(ivyRepo, _, _)) { case None => }
     }
     test("otherRepository") {
       val otherRepo = new CustomRepository
