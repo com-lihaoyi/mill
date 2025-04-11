@@ -41,6 +41,7 @@ trait ArtifactoryPublishModule extends PublishModule {
   }
 }
 
+object PackageExternalModule extends mill.define.PackageExternalModule(ArtifactoryPublishModule)
 object ArtifactoryPublishModule extends ExternalModule {
 
   /**
