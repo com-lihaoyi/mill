@@ -176,8 +176,8 @@ The module has an `exec` task that allows you to execute tasks of type `T[Seq[os
 
 [source,console]
 ----
-$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.tag
-$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.push
+$ mill mill.contrib.versionfile/exec --procs versionFile.tag
+$ mill mill.contrib.versionfile/exec --procs versionFile.push
 ----
 
 === Built-in git operations

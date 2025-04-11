@@ -40,7 +40,7 @@ object `package` extends RootModule with KotlinModule with KoverModule {
 // `./mill test` then `./mill show kover.htmlReport` and get your
 // coverage in HTML format.
 // Also reports for all modules can be collected in a single place by
-// running `./mill show mill.kotlinlib.kover.Kover/htmlReportAll`.
+// running `./mill show mill.kotlinlib.kover/htmlReportAll`.
 
 /** Usage
 
@@ -63,7 +63,7 @@ kover.xmlReport
 ...
 ...Kover HTML Report: Overall Coverage Summary...
 
-> ./mill show mill.kotlinlib.kover.Kover/htmlReportAll # collect reports from all modules
+> ./mill show mill.kotlinlib.kover/htmlReportAll # collect reports from all modules
 ...
 ...out/mill/kotlinlib/kover/Kover/htmlReportAll.dest/kover-report...
 
