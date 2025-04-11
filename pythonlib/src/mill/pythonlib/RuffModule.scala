@@ -79,7 +79,6 @@ trait RuffModule extends PythonModule {
 
 }
 
-object PackageExternalModule extends mill.define.PackageExternalModule(RuffModule)
 object RuffModule extends ExternalModule with RuffModule with TaskModule {
 
   override def defaultCommandName(): String = "formatAll"
