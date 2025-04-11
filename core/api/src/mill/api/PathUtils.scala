@@ -11,13 +11,13 @@ import java.io.File;
  * Defines a trait which handles deerialization of paths, in a way that can be used by both path refs and paths
  */
 trait PathUtils {
-  //TEMPORARY! A better solution needs to be found.
+  // TEMPORARY! A better solution needs to be found.
   def findOutRoot(): os.Path = {
     val outFolderName = OutFiles.out
     val root = os.Path(new File("").getCanonicalPath().toString)
     var currentPath = root
 
-    for (i <- 1 to 100){
+    for (i <- 1 to 100) {
       if (os.exists(currentPath / "mill-java-home")) {
         return currentPath
       } else {
@@ -29,13 +29,15 @@ trait PathUtils {
       }
     }
     root
-  } 
+  }
+
+  lazy val outFolderRoot: os.Path = findOutRoot()
+
   /*
    * Returns a list of paths and their variables to be substituted with.
    */
   implicit def substitutions(): List[(os.Path, String)] = {
-    val out = findOutRoot()
-    var result = List((out, "*$WorkplaceRoot*"))
+    var result = List((outFolderRoot, "*$WorkplaceRoot*"))
     val javaHome = os.Path(System.getProperty("java.home"))
     result = result :+ (javaHome, "*$JavaHome*")
 
@@ -79,7 +81,7 @@ trait PathUtils {
     var result = a
     var depth = 0
     subs.foreach { case (path, sub) =>
-      val pathDepth =  path.segments.length
+      val pathDepth = path.segments.length
       val pathString = path.toString
       // In the case that a path is in the folder of another path, it picks the path with the most depth
       if (result.startsWith(sub) && pathDepth >= depth) {
@@ -90,5 +92,5 @@ trait PathUtils {
 
     // println(s"2!! $a -> $result")
     os.Path(result)
-  } 
+  }
 }
