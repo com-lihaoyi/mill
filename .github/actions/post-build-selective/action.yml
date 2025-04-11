@@ -25,7 +25,7 @@ runs:
     #- run: cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
     #  shell: bash
 
-    - run: ./mill -i -k dist.native.maybeCopyGraal
+    - run: ./mill -i -k dist.native.nativeImageMaybeCopyGraal
       shell: ${{ inputs.shell }}
 
     - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}

@@ -21,6 +21,12 @@ object JvmWorkerGraalvm extends JvmWorkerModule {
 // We recommend you xref:fundamentals/configuring-jvm-versions.adoc[configure a specific JDK version]
 // via a custom `JvmWorkerModule` overriding `def jvmId` (shown above), as not every JVM can build Graal native images.
 
+/** Hidden
+
+> ./mill foo.nativeImageMaybeCopyGraal # needed on the Windows CI
+
+*/
+
 /** Usage
 
 > ./mill show foo.nativeImage
