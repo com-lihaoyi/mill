@@ -25,7 +25,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       : CompletableFuture[JvmRunEnvironmentResult] = {
     jvmRunTestEnvironment(
       s"buildTarget/jvmRunEnvironment ${params}",
-      params.getTargets.asScala.toSeq,
+      params.getTargets.asScala,
       new JvmRunEnvironmentResult(_)
     )
   }
@@ -34,14 +34,14 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       : CompletableFuture[JvmTestEnvironmentResult] = {
     jvmRunTestEnvironment(
       s"buildTarget/jvmTestEnvironment ${params}",
-      params.getTargets.asScala.toSeq,
+      params.getTargets.asScala,
       new JvmTestEnvironmentResult(_)
     )
   }
 
   def jvmRunTestEnvironment[V](
       name: String,
-      targetIds: Seq[BuildTargetIdentifier],
+      targetIds: collection.Seq[BuildTargetIdentifier],
       agg: java.util.List[JvmEnvironmentItem] => V
   ): CompletableFuture[V] = {
     completableTasks(
@@ -91,7 +91,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val classpath = runClasspath.map(sanitizeUri)
         val item = new JvmEnvironmentItem(
           id,
-          classpath.iterator.toSeq.asJava,
+          classpath.asJava,
           forkArgs.asJava,
           forkWorkingDir.toString(),
           forkEnv.asJava
@@ -110,7 +110,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       : CompletableFuture[JvmCompileClasspathResult] =
     completableTasks(
       hint = "buildTarget/jvmCompileClasspath",
-      targetIds = _ => params.getTargets.asScala.toSeq,
+      targetIds = _ => params.getTargets.asScala,
       tasks = {
         case m: JavaModuleApi => m.bspCompileClasspath
       }
@@ -119,7 +119,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
 
         new JvmCompileClasspathItem(
           id,
-          compileClasspath(ev).toSeq.asJava
+          compileClasspath(ev).asJava
         )
       case _ => ???
     } {

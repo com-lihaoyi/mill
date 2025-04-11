@@ -251,11 +251,18 @@ trait TestModule
     )
   }
 
-  private[mill] def bspBuildTargetScalaTestClasses = this match {
-    case m: TestModule =>
-      Task.Anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
-    case _ =>
-      Task.Anon(None)
+  private[mill] def bspBuildTargetScalaTestClasses = Task.Anon{
+    val (frameworkName, classFingerprint) =
+      mill.util.Jvm.withClassLoader(
+        classPath = runClasspath().map(_.path),
+        sharedPrefixes = Seq("sbt.testing.")
+      ) { classLoader =>
+        val framework = Framework.framework(testFramework())(classLoader)
+        framework.name() -> mill.testrunner.TestRunnerUtils
+          .discoverTests(classLoader, framework, testClasspath().map(_.path))
+      }
+    val classes = classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
+    (frameworkName, classes)
   }
 }
 
