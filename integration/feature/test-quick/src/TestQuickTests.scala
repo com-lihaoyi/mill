@@ -102,7 +102,10 @@ object TestQuickTests extends UtestIntegrationTestSuite {
       // Fourth run, Combinator.scala changed sematically, should run MyNumberCombinatorTests & MyStringCombinatorTests
       modifyFile(
         workspacePath / "lib" / "src" / "Combinator.scala",
-        _.replace("def combine2(a: T, b: T, c: T): T = combine(combine(a, b), c)", "def combine2(a: T, b: T, c: T): T = combine(a, combine(b, c))")
+        _.replace(
+          "def combine2(a: T, b: T, c: T): T = combine(combine(a, b), c)",
+          "def combine2(a: T, b: T, c: T): T = combine(a, combine(b, c))"
+        )
       )
       val fourthRun = eval("app.test.testQuick")
       val fourthRunOutLines = fourthRun.out.linesIterator.toSeq

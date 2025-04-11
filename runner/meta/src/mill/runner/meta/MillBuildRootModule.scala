@@ -171,7 +171,10 @@ class MillBuildRootModule()(implicit
   }
 
   @internal
-  override protected def callGraphAnalysisIgnoreCalls(callSiteOpt: Option[MethodDef], calledSig: MethodSig): Boolean = {
+  override protected def callGraphAnalysisIgnoreCalls(
+      callSiteOpt: Option[MethodDef],
+      calledSig: MethodSig
+  ): Boolean = {
     // We can ignore all calls to methods that look like Targets when traversing
     // the call graph. We can do this because we assume `def` Targets are pure,
     // and so any changes in their behavior will be picked up by the runtime build
@@ -207,7 +210,7 @@ class MillBuildRootModule()(implicit
           isSimpleTarget(callSiteSig.desc) && calledSig.name.contains("$anonfun")
         )
       }
-    
+
     // We ignore Commands for the same reason as we ignore Targets, and also because
     // their implementations get gathered up all the via the `Discover` macro, but this
     // is primarily for use as external entrypoints and shouldn't really be counted as
@@ -225,13 +228,14 @@ class MillBuildRootModule()(implicit
       calledSig.name == "millDiscover$lzyINIT1" ||
         calledSig.name == "millDiscover" ||
         callSiteOpt.exists(_.sig.name == "millDiscover")
-    
+
     (isSimpleTarget(calledSig.desc) && !isForwarderCallsiteOrLambda) || isCommand || isMillDiscover
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
     os.remove.all(Task.dest / "previous")
-    if (os.exists(Task.dest / "current")) os.move.over(Task.dest / "current", Task.dest / "previous")
+    if (os.exists(Task.dest / "current"))
+      os.move.over(Task.dest / "current", Task.dest / "previous")
 
     val debugEnabled = Task.log.debugEnabled
 
@@ -239,7 +243,8 @@ class MillBuildRootModule()(implicit
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
         upstreamClasspath = compileClasspath().toSeq.map(_.path),
-        ignoreCall = (callSiteOpt, calledSig) => callGraphAnalysisIgnoreCalls(callSiteOpt, calledSig),
+        ignoreCall =
+          (callSiteOpt, calledSig) => callGraphAnalysisIgnoreCalls(callSiteOpt, calledSig),
         logger = new mill.codesig.Logger(
           Task.dest / "current",
           Option.when(debugEnabled)(Task.dest / "current")
@@ -251,7 +256,7 @@ class MillBuildRootModule()(implicit
             )
           )
       )
-    
+
     callAnalysis.transitiveCallGraphHashes
   }
 

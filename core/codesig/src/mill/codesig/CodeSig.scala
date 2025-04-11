@@ -5,9 +5,9 @@ import mill.codesig.JvmModel.*
 object CodeSig {
 
   private def callGraphAnalysis(
-    classFiles: Seq[os.Path],
-    upstreamClasspath: Seq[os.Path],
-    ignoreCall: (Option[MethodDef], MethodSig) => Boolean
+      classFiles: Seq[os.Path],
+      upstreamClasspath: Seq[os.Path],
+      ignoreCall: (Option[MethodDef], MethodSig) => Boolean
   )(implicit st: SymbolTable): CallGraphAnalysis = {
     val localSummary = LocalSummary.apply(classFiles.iterator.map(os.read.inputStream(_)))
 
@@ -24,9 +24,9 @@ object CodeSig {
   }
 
   def getCallGraphAnalysis(
-    classFiles: Seq[os.Path],
-    upstreamClasspath: Seq[os.Path],
-    ignoreCall: (Option[MethodDef], MethodSig) => Boolean
+      classFiles: Seq[os.Path],
+      upstreamClasspath: Seq[os.Path],
+      ignoreCall: (Option[MethodDef], MethodSig) => Boolean
   ): CallGraphAnalysis = {
     implicit val st: SymbolTable = new SymbolTable()
 
@@ -41,7 +41,7 @@ object CodeSig {
       prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
   ): CallGraphAnalysis = {
     implicit val st: SymbolTable = new SymbolTable()
-    
+
     val callAnalysis = callGraphAnalysis(classFiles, upstreamClasspath, ignoreCall)
 
     logger.log(callAnalysis.localSummary)
