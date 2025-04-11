@@ -29,7 +29,8 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
       "semanticDbJavaVersion",
       build.Deps.semanticDbJava.version,
       "Java SemanticDB plugin version."
-    )
+    ),
+    BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
   )
 
   def ivyDeps = Agg(

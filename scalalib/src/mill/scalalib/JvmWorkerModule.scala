@@ -65,7 +65,8 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
         ctx = Some(implicitly[mill.define.TaskCtx.Log]),
         jvmIndexVersion = jvmIndexVersion()
       ).get
-      PathRef(path, quick = true)
+      // Java home is externally managed, better revalidate it at least once
+      PathRef(path, quick = true).withRevalidateOnce
     }
   }
 

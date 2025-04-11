@@ -405,6 +405,9 @@ object MillMain {
           splitErr.println(s"BSP session returned with $runSessionRes")
         }
 
+        // should make the lsp4j-managed BSP server exit
+        streams0.in.close()
+
         bspRes.get
       } finally bspServerHandle.close()
     }
