@@ -8,7 +8,7 @@ import mill.define.Discover
 
 import utest._
 
-object PackageExternalModule extends mill.define.PackageExternalModule(TestExternalModule)
+object PackageDefaultExternalModule extends ExternalModule.Alias(TestExternalModule)
 object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "x"
   def x = Task { 13 }

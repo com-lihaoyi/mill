@@ -65,7 +65,7 @@ trait KtfmtModule extends KtfmtBaseModule {
   }
 }
 
-object PackageExternalModule extends mill.define.PackageExternalModule(KtfmtModule)
+object PackageDefaultExternalModule extends ExternalModule.Alias(KtfmtModule)
 object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
 
   lazy val millDiscover = Discover[this.type]

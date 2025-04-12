@@ -32,7 +32,7 @@ trait CodeartifactPublishModule extends PublishModule {
     }
 }
 
-object PackageExternalModule extends mill.define.PackageExternalModule(CodeartifactPublishModule)
+object PackageDefaultExternalModule extends ExternalModule.Alias(CodeartifactPublishModule)
 object CodeartifactPublishModule extends ExternalModule {
   def publishAll(
       credentials: String,
