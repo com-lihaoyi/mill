@@ -697,7 +697,7 @@ object mymodule extends SonatypeCentralPublishModule {
 <div class="listingblock">
 <div class="content">
 <pre>$ mill -i \
-mill.contrib.sonatypecentral.SonatypeCentralPublishModule/publishAll \
+mill.contrib.sonatypecentral/publishAll \
 --username myusername \
 --password mypassword \
 --gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
@@ -736,7 +736,7 @@ mill.contrib.sonatypecentral.SonatypeCentralPublishModule/publishAll \
 <div class="sect3">
 <h4 id="_publishall"><a class="anchor" href="#_publishall"></a>publishAll</h4>
 <div class="paragraph">
-<p>The <code>mill.contrib.sonatypecentral.SonatypeCentralPublishModule/publishAll</code> method takes the following arguments:</p>
+<p>The <code>mill.contrib.sonatypecentral/publishAll</code> method takes the following arguments:</p>
 </div>
 <div class="paragraph">
 <p><code>username</code>: The username for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_USERNAME</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br /></p>

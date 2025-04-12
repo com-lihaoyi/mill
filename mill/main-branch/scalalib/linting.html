@@ -807,9 +807,9 @@ runner.dialect = scala213</code></pre>
 </div>
 <div class="paragraph">
 <p>Mill supports code formatting via <a href="https://scalameta.org/scalafmt/">scalafmt</a> out of the box.
-You can reformat your project’s code globally with <code>mill mill.scalalib.scalafmt.ScalafmtModule/</code> command,
-specific modules via <code>mill mill.scalalib.scalafmt.ScalafmtModule/ '{foo,bar}.sources</code>
-or only check the code’s format with <code>+mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll</code>.
+You can reformat your project’s code globally with <code>mill mill.scalalib.scalafmt/</code> command,
+specific modules via <code>mill mill.scalalib.scalafmt/ '{foo,bar}.sources</code>
+or only check the code’s format with <code>+mill mill.scalalib.scalafmt/checkFormatAll</code>.
 By default, ScalaFmt checks for a <code>.scalafmt.conf</code> file at the root of repository.</p>
 </div>
 <div class="listingblock">
@@ -826,10 +826,10 @@ Array[String
 }
 
 
-&gt; mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
+&gt; mill mill.scalalib.scalafmt/checkFormatAll
 error: ...Found 1 misformatted files
 
-&gt; mill mill.scalalib.scalafmt.ScalafmtModule/
+&gt; mill mill.scalalib.scalafmt/
 
 &gt; cat src/Foo.scala
 package foo
@@ -837,7 +837,7 @@ object Foo {
   def main(args: Array[String]): Unit = { println(&quot;hello world&quot;) }
 }
 
-&gt; mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
+&gt; mill mill.scalalib.scalafmt/checkFormatAll
 Everything is formatted already</code></pre>
 </div>
 </div>
@@ -848,7 +848,7 @@ Everything is formatted already</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo &quot;maxColumn: 50&quot; &gt;&gt; .scalafmt.conf
 
-&gt; mill mill.scalalib.scalafmt.ScalafmtModule/
+&gt; mill mill.scalalib.scalafmt/
 
 &gt; cat src/Foo.scala
 package foo
@@ -860,7 +860,7 @@ object Foo {
 </div>
 </div>
 <div class="paragraph">
-<p>If entering the long fully-qualified module name <code>mill.scalalib.scalafmt.ScalafmtModule/</code>
+<p>If entering the long fully-qualified module name <code>mill.scalalib.scalafmt/</code>
 is tedious, you can add
 an <a href="../fundamentals/modules.html#_aliasing_external_modules" class="xref page">External Module Alias</a>
 to give it a shorter name that’s easier to type</p>

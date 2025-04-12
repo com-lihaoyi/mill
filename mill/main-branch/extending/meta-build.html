@@ -692,7 +692,7 @@ You only need a <code>.scalafmt.conf</code> config file which at least needs con
 <div class="listingblock">
 <div class="title">Run Scalafmt on the <code>build.mill</code> (and potentially included files)</div>
 <div class="content">
-<pre>$ mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/</pre>
+<pre>$ mill --meta-level 1 mill.scalalib.scalafmt/</pre>
 </div>
 </div>
 <div class="ulist">
@@ -701,7 +701,7 @@ You only need a <code>.scalafmt.conf</code> config file which at least needs con
 <p><code>--meta-level 1</code> selects the first meta-build. Without any customization, this is the only built-in meta-build.</p>
 </li>
 <li>
-<p><code>mill.scalalib.scalafmt.ScalafmtModule/reformatAll</code> is a generic task to format scala source files with Scalafmt. It requires the tasks that refer to the source files as argument</p>
+<p><code>mill.scalalib.scalafmt/reformatAll</code> is a generic task to format scala source files with Scalafmt. It requires the tasks that refer to the source files as argument</p>
 </li>
 <li>
 <p><code>sources</code> this selects the <code>sources</code> tasks of the meta-build, which at least contains the <code>build.mill</code>.</p>
