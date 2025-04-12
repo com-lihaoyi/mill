@@ -5,6 +5,7 @@ import mill.testkit.UnitTester.Result
 import mill.testkit.TestBaseModule
 import mill.Task
 import mill.define.Discover
+import mill.define.ExternalModule
 
 import utest._
 
