@@ -41,7 +41,7 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
   }
 }
 
-object PackageDefaultExternalModule extends ExternalModule.Alias(PalantirFormatModule)
+object `package` extends ExternalModule.Alias(PalantirFormatModule)
 object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule with TaskModule {
 
   override def defaultCommandName(): String = "formatAll"

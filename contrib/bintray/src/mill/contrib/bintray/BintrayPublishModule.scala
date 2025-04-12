@@ -50,7 +50,7 @@ trait BintrayPublishModule extends PublishModule {
   }
 }
 
-object PackageDefaultExternalModule extends ExternalModule.Alias(BintrayPublishModule)
+object `package` extends ExternalModule.Alias(BintrayPublishModule)
 object BintrayPublishModule extends ExternalModule {
 
   /**

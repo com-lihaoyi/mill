@@ -58,7 +58,7 @@ trait KtlintModule extends JavaModule {
   }
 }
 
-object PackageDefaultExternalModule extends ExternalModule.Alias(KtlintModule)
+object `package` extends ExternalModule.Alias(KtlintModule)
 object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
   override def defaultCommandName(): String = "reformatAll"
 
