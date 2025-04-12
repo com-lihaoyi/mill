@@ -397,9 +397,16 @@ private[mill] trait Resolve[T] {
             try Result.Success(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
             catch {
               case e: ClassNotFoundException =>
-                Result.Failure("Cannot resolve external module " + scoping.render)
+                try Result.Success(rootModule.getClass.getClassLoader.loadClass(
+                    scoping.render + ".PackageDefaultExternalModule$"
+                  ))
+                catch {
+                  case e: ClassNotFoundException =>
+                    Result.Failure("Cannot resolve external module " + scoping.render)
+                }
             }
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
+            case alias: mill.define.ExternalModule.Alias => Result.Success(alias.value)
             case rootModule: BaseModule => Result.Success(rootModule)
             case _ => Result.Failure("Class " + scoping.render + " is not an BaseModule")
           }

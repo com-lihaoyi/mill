@@ -5,9 +5,11 @@ import mill.testkit.UnitTester.Result
 import mill.testkit.TestBaseModule
 import mill.Task
 import mill.define.Discover
+import mill.define.ExternalModule
 
 import utest._
 
+object PackageDefaultExternalModule extends ExternalModule.Alias(TestExternalModule)
 object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "x"
   def x = Task { 13 }
@@ -32,6 +34,9 @@ object ModuleTests extends TestSuite {
       val check = UnitTester(Build, null)
       val result = check.apply("mill.exec.TestExternalModule/x")
       assert(result == Right(Result(Vector(13), 0)))
+
+      val result1 = check.apply("mill.exec/x") // short alias
+      assert(result1 == Right(Result(Vector(13), 0)))
 
       val result2 = check.apply("mill.exec.TestExternalModule/")
       assert(result2 == Right(Result(Vector(13), 0)))
