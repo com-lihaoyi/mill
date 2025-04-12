@@ -60,7 +60,6 @@ trait SonatypeCentralPublishModule extends PublishModule {
     }
 }
 
-object `package` extends ExternalModule.Alias(SonatypeCentralPublishModule)
 object SonatypeCentralPublishModule extends ExternalModule {
 
   val defaultCredentials: String = ""

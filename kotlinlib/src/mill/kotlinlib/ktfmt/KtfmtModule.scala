@@ -35,8 +35,6 @@ trait KtfmtBaseModule extends JavaModule {
   }
 }
 
-object `package` extends ExternalModule.Alias(KtfmtModule)
-
 /**
  * Performs formatting checks on Kotlin source files using [[https://github.com/facebook/ktfmt Ktfmt]].
  */

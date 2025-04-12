@@ -49,7 +49,6 @@ trait GitlabPublishModule extends PublishModule { outer =>
   }
 }
 
-object `package` extends ExternalModule.Alias(GitlabPublishModule)
 object GitlabPublishModule extends ExternalModule {
 
   def publishAll(
