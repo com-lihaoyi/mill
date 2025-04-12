@@ -97,6 +97,7 @@ abstract class ExternalModule(implicit
 }
 
 object ExternalModule {
+
   /**
    * Allows you to define a new top-level [[ExternalModule]] that is simply an alias
    * to an existing one. Useful for renaming an [[ExternalModule]] while preserving
