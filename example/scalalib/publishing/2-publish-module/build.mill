@@ -51,8 +51,6 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 // can be resolved from the local repository, with no missing dependencies.
 
 //// SNIPPET:BUILD
-package build
-
 import mill._, scalalib._, publish._
 
 import mill.scalalib.sonatypecentral.SonatypeCentralPublishModule
