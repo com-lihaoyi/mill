@@ -71,7 +71,7 @@ trait ScalafmtModule extends JavaModule {
 
 }
 
-object PackageExternalModule extends mill.define.PackageExternalModule(ScalafmtModule)
+object PackageDefaultExternalModule extends ExternalModule.Alias(ScalafmtModule)
 object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule {
   override def defaultCommandName(): String = "reformatAll"
 

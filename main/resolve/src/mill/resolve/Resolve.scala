@@ -12,7 +12,7 @@ import mill.define.{
   Segments,
   Target,
   TaskModule,
-  PackageExternalModule
+  ExternalModule
 }
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
@@ -385,7 +385,7 @@ trait Resolve[T] {
             catch {
               case e: ClassNotFoundException =>
                 try Right(rootModule.getClass.getClassLoader.loadClass(
-                    scoping.render + ".PackageExternalModule$"
+                    scoping.render + ".PackageDefaultExternalModule$"
                   ))
                 catch {
                   case e: ClassNotFoundException =>
@@ -394,7 +394,7 @@ trait Resolve[T] {
             }
 
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
-            case alias: PackageExternalModule => Right(alias.value)
+            case alias: ExternalModule.Alias => Right(alias.value)
             case rootModule: BaseModule => Right(rootModule)
             case _ => Left("Class " + scoping.render + " is not an BaseModule")
           }

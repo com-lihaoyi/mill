@@ -5,10 +5,11 @@ import mill.testkit.UnitTester.Result
 import mill.testkit.TestBaseModule
 import mill.{T, Task}
 import mill.define.Discover
+import mill.define.ExternalModule
 
 import utest._
 
-object PackageExternalModule extends mill.define.PackageExternalModule(TestExternalModule)
+object PackageDefaultExternalModule extends ExternalModule.Alias(TestExternalModule)
 object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "x"
   def x = Task { 13 }

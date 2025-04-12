@@ -114,7 +114,7 @@ trait KoverModule extends KotlinModule { outer =>
   }
 }
 
-object PackageExternalModule extends mill.define.PackageExternalModule(Kover)
+object PackageDefaultExternalModule extends ExternalModule.Alias(Kover)
 
 /**
  * Allows the aggregation of coverage reports across multi-module projects.
