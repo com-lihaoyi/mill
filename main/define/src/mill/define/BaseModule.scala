@@ -95,3 +95,13 @@ abstract class ExternalModule(implicit
     Segments(millModuleEnclosing0.value.split('.').map(Segment.Label).toIndexedSeq)
   }
 }
+
+object ExternalModule {
+
+  /**
+   * Allows you to define a new top-level [[ExternalModule]] that is simply an alias
+   * to an existing one. Useful for renaming an [[ExternalModule]] while preserving
+   * backwards compatibility to the existing implementation and name
+   */
+  class Alias(val value: ExternalModule)
+}

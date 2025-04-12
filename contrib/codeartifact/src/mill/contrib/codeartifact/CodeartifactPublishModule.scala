@@ -32,6 +32,7 @@ trait CodeartifactPublishModule extends PublishModule {
     }
 }
 
+object PackageDefaultExternalModule extends ExternalModule.Alias(CodeartifactPublishModule)
 object CodeartifactPublishModule extends ExternalModule {
   def publishAll(
       credentials: String,

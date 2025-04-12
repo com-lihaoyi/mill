@@ -8,6 +8,7 @@ import mill.eval.Evaluator
 
 import scala.util.control.NonFatal
 
+object PackageDefaultExternalModule extends ExternalModule.Alias(GenIdea)
 object GenIdea extends ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "idea"
   def idea(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators): Command[Unit] = Task.Command {
