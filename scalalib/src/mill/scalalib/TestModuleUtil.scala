@@ -102,9 +102,12 @@ private final class TestModuleUtil(
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    val result = if (testParallelism) {
+    // Fast path for single test class case - no need for parallel infrastructure
+    val result = if (testParallelism && filteredClassLists.flatten.size > 1) {
+      // Only use the queue scheduler for multiple test classes when parallelism is enabled
       runTestQueueScheduler(filteredClassLists)
     } else {
+      // Use the default runner for single test class or when parallelism is disabled
       runTestDefault(filteredClassLists)
     }
 
@@ -198,67 +201,78 @@ private final class TestModuleUtil(
       )
     }
 
-    TestModuleUtil.withTestProgressTickerThread(filteredClassLists.map(_.size).sum) {
-      (_, workerResultSet) =>
-        filteredClassLists match {
-          // When no tests at all are discovered, run at least one test JVM
-          // process to go through the test framework setup/teardown logic
-          case Nil => runTestRunnerSubprocess(Task.dest, Nil, workerResultSet)
-          case Seq(singleTestClassList) =>
-            runTestRunnerSubprocess(Task.dest, singleTestClassList, workerResultSet)
-          case multipleTestClassLists =>
-            val maxLength = multipleTestClassLists.length.toString.length
-            val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
-              val groupPromptMessage = testClassList match {
-                case Seq(single) => single
-                case multiple =>
-                  TestModuleUtil.collapseTestClassNames(
-                    multiple
-                  ).mkString(", ") + s", ${multiple.length} suites"
+    // Fast path for single test class - skip the progress ticker thread for simpler UI
+    if (filteredClassLists.size == 1 && filteredClassLists.head.size == 1) {
+      val workerResultSet = new java.util.concurrent.ConcurrentHashMap[os.Path, Unit]()
+      runTestRunnerSubprocess(Task.dest, filteredClassLists.head, workerResultSet)
+    } else {
+      TestModuleUtil.withTestProgressTickerThread(filteredClassLists.map(_.size).sum) {
+        (_, workerResultSet) =>
+          filteredClassLists match {
+            // When no tests at all are discovered, run at least one test JVM
+            // process to go through the test framework setup/teardown logic
+            case Nil => runTestRunnerSubprocess(Task.dest, Nil, workerResultSet)
+            case Seq(singleTestClassList) =>
+              runTestRunnerSubprocess(Task.dest, singleTestClassList, workerResultSet)
+            case multipleTestClassLists =>
+              val maxLength = multipleTestClassLists.length.toString.length
+              val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
+                val groupPromptMessage = testClassList match {
+                  case Seq(single) => single
+                  case multiple =>
+                    TestModuleUtil.collapseTestClassNames(
+                      multiple
+                    ).mkString(", ") + s", ${multiple.length} suites"
+                }
+
+                val paddedIndex = mill.util.Util.leftPad(i.toString, maxLength, '0')
+                val folderName = testClassList match {
+                  case Seq(single) => single
+                  case multiple =>
+                    s"group-$paddedIndex-${multiple.head}"
+                }
+
+                // set priority = -1 to always prioritize test subprocesses over normal Mill
+                // tasks. This minimizes the number of blocked tasks since Mill tasks can be
+                // blocked on test subprocesses, but not vice versa, so better to schedule
+                // the test subprocesses first
+                Task.fork.async(
+                  Task.dest / folderName,
+                  paddedIndex,
+                  groupPromptMessage,
+                  priority = -1
+                ) {
+                  log =>
+                    (
+                      folderName,
+                      runTestRunnerSubprocess(
+                        Task.dest / folderName,
+                        testClassList,
+                        workerResultSet
+                      )
+                    )
+                }
               }
 
-              val paddedIndex = mill.util.Util.leftPad(i.toString, maxLength, '0')
-              val folderName = testClassList match {
-                case Seq(single) => single
-                case multiple =>
-                  s"group-$paddedIndex-${multiple.head}"
+              val outputs = Task.fork.awaitAll(futures)
+
+              val (lefts, rights) = outputs.partitionMap {
+                case (name, Result.Failure(v)) => Left(name + " " + v)
+                case (name, Result.Success((msg, results))) => Right((name + " " + msg, results))
               }
 
-              // set priority = -1 to always prioritize test subprocesses over normal Mill
-              // tasks. This minimizes the number of blocked tasks since Mill tasks can be
-              // blocked on test subprocesses, but not vice versa, so better to schedule
-              // the test subprocesses first
-              Task.fork.async(
-                Task.dest / folderName,
-                paddedIndex,
-                groupPromptMessage,
-                priority = -1
-              ) {
-                log =>
-                  (
-                    folderName,
-                    runTestRunnerSubprocess(Task.dest / folderName, testClassList, workerResultSet)
-                  )
-              }
-            }
-
-            val outputs = Task.fork.awaitAll(futures)
-
-            val (lefts, rights) = outputs.partitionMap {
-              case (name, Result.Failure(v)) => Left(name + " " + v)
-              case (name, Result.Success((msg, results))) => Right((name + " " + msg, results))
-            }
-
-            if (lefts.nonEmpty) Result.Failure(lefts.mkString("\n"))
-            else Result.Success((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
-        }
+              if (lefts.nonEmpty) Result.Failure(lefts.mkString("\n"))
+              else Result.Success((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
+          }
+      }
     }
   }
 
   private def runTestQueueScheduler(
       filteredClassLists: Seq[Seq[String]]
   )(implicit ctx: mill.define.TaskCtx) = {
-
+    // This method should only be called when there are multiple test classes
+    // The check for single test class is already done in runTests()
     val filteredClassCount = filteredClassLists.map(_.size).sum
 
     def prepareTestClassesFolder(selectors2: Seq[String], base: os.Path): os.Path = {
@@ -447,12 +461,11 @@ private final class TestModuleUtil(
 
     subprocessResult
   }
-
 }
 
 private[scalalib] object TestModuleUtil {
 
-  private def withTestProgressTickerThread[T](totalClassCount: Long)(
+  private[scalalib] def withTestProgressTickerThread[T](totalClassCount: Long)(
       body: (
           java.util.concurrent.ConcurrentMap[os.Path, String => Unit],
           java.util.concurrent.ConcurrentMap[os.Path, Unit]
@@ -497,7 +510,7 @@ private[scalalib] object TestModuleUtil {
     } finally executor.shutdown()
   }
 
-  private def loadArgsAndProps(useArgsFile: Boolean, forkArgs: Seq[String]) = {
+  private[scalalib] def loadArgsAndProps(useArgsFile: Boolean, forkArgs: Seq[String]) = {
     if (useArgsFile) {
       val (props, jvmArgs) = forkArgs.partition(_.startsWith("-D"))
       val sysProps =
