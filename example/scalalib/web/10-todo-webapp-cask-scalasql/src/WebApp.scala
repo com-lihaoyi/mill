@@ -85,7 +85,6 @@ object WebApp extends cask.MainRoutes {
     list(state)
   }
 
-  // check this
   @cask.post("/toggle/:state/:index")
   def toggle(state: String, index: Int) = {
     val value1: Sc[Boolean] = dbClient.transaction { db =>
