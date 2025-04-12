@@ -18,10 +18,10 @@ object WebApp extends cask.MainRoutes {
 
     //  Table Definition and its corresponding ORM mapping
     case class Todos[T[_]](
-                            id: T[Int],
-                            checked: T[Boolean],
-                            text: T[String]
-                          )
+        id: T[Int],
+        checked: T[Boolean],
+        text: T[String]
+    )
 
     object Todos extends Table[Todos]
 
@@ -45,7 +45,8 @@ object WebApp extends cask.MainRoutes {
             checked BOOLEAN NOT NULL,
             text VARCHAR NOT NULL
         );
-        """)
+        """
+        )
         println("Schema initialized (if not exists).") // Optional logging
       }
     }
@@ -111,7 +112,8 @@ object WebApp extends cask.MainRoutes {
               ELSE TRUE
           END;
           |
-          |""".stripMargin)
+          |""".stripMargin
+      )
     }
     list(state)
   }
