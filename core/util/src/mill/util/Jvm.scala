@@ -1,23 +1,29 @@
 package mill.util
 
-import coursier.cache.{ArchiveCache, FileCache}
+import mill.api.*
+import os.ProcessOutput
+import java.io.*
+import java.net.URLClassLoader
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.Files
+
+import scala.util.Properties.isWin
+
+import os.CommandResult
+import java.util.jar.{JarEntry, JarOutputStream}
+
+import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
 import coursier.core.{BomDependency, Module}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
+import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
-import mill.api.*
+import mill.api.Result
 import mill.define.{PathRef, TaskCtx}
-import os.{CommandResult, ProcessOutput}
-
-import java.io.*
-import java.net.URLClassLoader
-import java.nio.file.Files
-import java.nio.file.attribute.PosixFilePermission
-import java.util.jar.{JarEntry, JarOutputStream}
 import scala.collection.mutable
 import scala.util.Properties.isWin
 import scala.util.chaining.scalaUtilChainingOps
@@ -477,7 +483,7 @@ object Jvm {
     !System.getProperty("java.specification.version").startsWith("1.")
 
   private def coursierCache(
-      ctx: Option[mill.define.TaskCtx.Log],
+      ctx: Option[mill.define.TaskCtx],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
   ) =
     FileCache[Task]()
@@ -486,6 +492,10 @@ object Jvm {
       }
       .pipe { cache =>
         ctx.fold(cache)(c => cache.withLogger(new CoursierTickerResolutionLogger(c)))
+      }
+      .pipe { cache =>
+        if (ctx.fold(false)(_.offline)) cache.withCachePolicies(Seq(CachePolicy.LocalOnly))
+        else cache
       }
 
   /**
@@ -498,7 +508,7 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.define.TaskCtx.Log] = None,
+      ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
@@ -555,7 +565,7 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.define.TaskCtx.Log] = None,
+      ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
@@ -578,7 +588,7 @@ object Jvm {
     }
 
   def jvmIndex(
-      ctx: Option[mill.define.TaskCtx.Log] = None,
+      ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): JvmIndex = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
@@ -586,7 +596,7 @@ object Jvm {
   }
 
   def jvmIndex0(
-      ctx: Option[mill.define.TaskCtx.Log] = None,
+      ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = "latest.release"
   ): Task[JvmIndex] = {
@@ -608,7 +618,7 @@ object Jvm {
    */
   def resolveJavaHome(
       id: String,
-      ctx: Option[mill.define.TaskCtx.Log] = None,
+      ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion
   ): Result[os.Path] = {
@@ -634,7 +644,7 @@ object Jvm {
       force: IterableOnce[Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.define.TaskCtx.Log] = None,
+      ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       boms: IterableOnce[BomDependency] = Nil
@@ -649,6 +659,7 @@ object Jvm {
       .map { d => d.module -> d.version }
       .toMap
 
+    val offlineMode = ctx.fold(false)(_.offline)
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
     val resolutionParams0 = resolutionParams
@@ -671,9 +682,21 @@ object Jvm {
           case cantDownload: CantDownloadModule => cantDownload
         }
         if (error.errors.length == cantDownloadErrors.length) {
+          val extraHeader =
+            if (offlineMode)
+              """
+                |*** Mill is in offline mode (--offline) ***
+                |It can not download new dependencies from remote repositories.
+                |You may need to run Mill without the `--offline` option at least once
+                |to download required remote dependencies.
+                |Run `mill __.prepareOffline` to fetch most remote resources at once.
+                |
+                |""".stripMargin
+            else ""
+
           val header =
             s"""|
-                |Resolution failed for ${cantDownloadErrors.length} modules:
+                |${extraHeader}Resolution failed for ${cantDownloadErrors.length} modules:
                 |--------------------------------------------
                 |""".stripMargin
 
@@ -686,7 +709,7 @@ object Jvm {
 
           val errLines = cantDownloadErrors
             .map { err =>
-              s"  ${err.module.trim}:${err.version} \n\t" +
+              s"  ${err.module.trim}:${err.versionConstraint.asString} \n\t" +
                 err.perRepositoryErrors.mkString("\n\t")
             }
             .mkString("\n")

@@ -33,7 +33,7 @@ object Lib {
       deps: IterableOnce[BoundDep],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[TaskCtx.Log] = None,
+      ctx: Option[TaskCtx] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
@@ -67,7 +67,7 @@ object Lib {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[TaskCtx.Log] = None,
+      ctx: Option[TaskCtx] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
@@ -150,4 +150,5 @@ object Lib {
       ))
     } yield path
   }
+
 }

@@ -268,7 +268,8 @@ object MillMain {
                               systemExit = systemExit,
                               streams0 = streams0,
                               selectiveExecution = config.watch.value,
-                              scalaCompilerWorker = scalaCompilerWorker
+                              scalaCompilerWorker = scalaCompilerWorker,
+                              offline = config.offline.value
                             ).evaluate()
                           }
                         }
