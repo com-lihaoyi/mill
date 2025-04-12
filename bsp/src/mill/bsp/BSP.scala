@@ -8,6 +8,7 @@ import mill.scalalib.{CoursierModule, Dep}
 import Mirrors.autoMirror
 import mill.api.internal.{BspServerResult, internal}
 
+object PackageDefaultExternalModule extends ExternalModule.Alias(BSP)
 object BSP extends ExternalModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
 

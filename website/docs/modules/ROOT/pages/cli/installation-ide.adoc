@@ -163,7 +163,7 @@ run this command to generate the BSP configuration files:
 
 [source,console]
 ----
-> ./mill mill.bsp.BSP/install
+> ./mill mill.bsp/install
 ----
 
 ==== IntelliJ IDEA XML Support
@@ -177,7 +177,7 @@ To generate IntelliJ IDEA project files into `.idea/`, run:
 
 [source,console]
 ----
-> ./mill mill.idea.GenIdea/
+> ./mill mill.idea/
 ----
 
 This will generate the XML files IntelliJ uses to configure your project
@@ -201,7 +201,7 @@ This will generate the XML files IntelliJ uses to configure your project
 
 After the files are generated, you can open the folder in IntelliJ to load the project
 into your IDE. If you make changes to your Mill `build.mill`, you can update the project config
-those updates by running `./mill mill.idea.GenIdea/` again.
+those updates by running `./mill mill.idea/` again.
 
 === VSCode
 
