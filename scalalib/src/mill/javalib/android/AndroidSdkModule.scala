@@ -1,12 +1,19 @@
 package mill.javalib.android
 
 import coursier.MavenRepository
-import mill._
-
+import mill.*
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+
 import scala.xml.XML
+
+import coursier.cache.FileCache
+import scala.util.chaining.given
+
+import coursier.cache.CachePolicy.{LocalOnly, LocalOnlyIfValid}
+import coursier.util.Artifact
+import mill.api.Result
 
 /**
  * Trait for managing the Android SDK in a Mill build system.
@@ -59,10 +66,21 @@ trait AndroidSdkModule extends Module {
    *
    * For More Read Bundle Tool [[https://developer.android.com/tools/bundletool Documentation]]
    */
-  def bundleToolPath: T[PathRef] = Task {
-    val bundleToolJar = Task.dest / "bundleTool.jar"
-    os.write(bundleToolJar, requests.get(bundleToolUrl()).bytes)
-    PathRef(bundleToolJar)
+  def bundleToolPath: T[PathRef] = Task() {
+    // TODO: Use caching API once available, https://github.com/com-lihaoyi/mill/issues/3930
+    val cache = FileCache().pipe { cache =>
+      if (Task.offline) cache.withCachePolicies(Seq(LocalOnly)) else cache
+    }
+    val url = bundleToolUrl()
+    cache.file(Artifact(url))
+      .run.unsafeRun()(cache.ec)
+      .fold(ex =>
+        if (Task.offline)
+          Result.Failure(s"Can't fetch bundle tools (from ${}) while in offline mode")
+        else Result.Failure(ex.getMessage())
+      ) { file =>
+        Result.Success(PathRef(file).withRevalidateOnce)
+      }
   }
 
   /**
@@ -260,14 +278,17 @@ trait AndroidSdkModule extends Module {
   }
 
   def remoteReposInfo(): Command[PathRef] = Task.Command {
-    // shouldn't be persistent, allow it to be re-downloaded again.
-    // it will be called only if some packages are not installed.
-    val path = Task.dest / "repository.xml"
-    os.write(
-      Task.dest / "repository.xml",
-      requests.get(remotePackagesUrl).bytes
-    )
-    PathRef(path)
+    if (Task.offline) Result.Failure("Can't fetch remote repositories in offline mode.")
+    else Result.create {
+      // shouldn't be persistent, allow it to be re-downloaded again.
+      // it will be called only if some packages are not installed.
+      val path = Task.dest / "repository.xml"
+      os.write(
+        Task.dest / "repository.xml",
+        requests.get(remotePackagesUrl).bytes
+      )
+      PathRef(path)
+    }
   }
 
   private def sha1 = MessageDigest.getInstance("sha1")
