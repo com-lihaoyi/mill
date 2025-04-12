@@ -67,20 +67,21 @@ trait AndroidSdkModule extends Module {
    * For More Read Bundle Tool [[https://developer.android.com/tools/bundletool Documentation]]
    */
   def bundleToolPath: T[PathRef] = Task() {
-    // TODO: Use caching API once available, https://github.com/com-lihaoyi/mill/issues/3930
-    val cache = FileCache().pipe { cache =>
-      if (Task.offline) cache.withCachePolicies(Seq(LocalOnly)) else cache
-    }
     val url = bundleToolUrl()
-    cache.file(Artifact(url))
-      .run.unsafeRun()(cache.ec)
-      .fold(ex =>
-        if (Task.offline)
-          Result.Failure(s"Can't fetch bundle tools (from ${}) while in offline mode")
-        else Result.Failure(ex.getMessage())
-      ) { file =>
-        Result.Success(PathRef(file).withRevalidateOnce)
+    // TODO: Use caching API once available, https://github.com/com-lihaoyi/mill/issues/3930
+    val cache = FileCache()
+      .pipe { cache =>
+        if (Task.offline) cache.withCachePolicies(Seq(LocalOnly)) else cache
       }
+    cache.file(Artifact(url)).run.unsafeRun()(cache.ec) match {
+      case Right(file) =>
+        Result.Success(PathRef(os.Path(file)).withRevalidateOnce)
+      case Left(ex) if Task.offline =>
+        Result.Failure(s"Can't fetch bundle tools (from ${url}) while in offline mode.")
+      case Left(ex) =>
+        Result.Failure(ex.getMessage())
+
+    }
   }
 
   /**
