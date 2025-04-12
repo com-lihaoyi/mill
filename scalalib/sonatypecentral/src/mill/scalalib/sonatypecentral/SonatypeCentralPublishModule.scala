@@ -1,11 +1,11 @@
-package mill.contrib.sonatypecentral
+package mill.scalalib.sonatypecentral
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill._
 import scalalib._
 import define.{ExternalModule, Task}
 import mill.api.Result
-import mill.contrib.sonatypecentral.SonatypeCentralPublishModule.{
+import mill.scalalib.sonatypecentral.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
   defaultConnectTimeout,
   defaultCredentials,
