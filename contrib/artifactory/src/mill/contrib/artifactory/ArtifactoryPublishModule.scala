@@ -41,7 +41,6 @@ trait ArtifactoryPublishModule extends PublishModule {
   }
 }
 
-object `package` extends ExternalModule.Alias(ArtifactoryPublishModule)
 object ArtifactoryPublishModule extends ExternalModule {
 
   /**
