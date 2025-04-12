@@ -6,7 +6,6 @@ import mill.api.Result
 import mill.define.{Command, Discover, Evaluator, ExternalModule}
 import mill.api.internal.EvaluatorApi
 
-object PackageDefaultExternalModule extends ExternalModule.Alias(GenIdea)
 object GenIdea extends ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "idea"
   def idea(allBootstrapEvaluators: EvaluatorApi.AllBootstrapEvaluators)
