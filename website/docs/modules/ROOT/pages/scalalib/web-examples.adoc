@@ -45,4 +45,6 @@ include::partial$example/scalalib/web/8-cross-platform-version-publishing.adoc[]
 
 include::partial$example/scalalib/web/9-wasm.adoc[]
 
+== TodoMVC Scalasql Web App 
 
+include::partial$example/scalalib/web/10-todo-webapp-cask-scalasql.adoc[]
