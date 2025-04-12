@@ -149,4 +149,3 @@ there are also others that you can use. Mill supports these largely through cont
 * xref:contrib/codeartifact.adoc[]
 * xref:contrib/artifactory.adoc[]
 * xref:contrib/bintray.adoc[]
-* xref:contrib/sonatypecentral.adoc[]
