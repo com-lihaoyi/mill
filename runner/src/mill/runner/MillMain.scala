@@ -219,7 +219,7 @@ object MillMain {
                 val portStr = ports.get.mkString(",")
 
                 val portJvmProperties = (
-                  "MILL_AVAILABLE_PORTS",
+                  "MILL_TEST_FREE_PORT",
                   portStr
                 )
 

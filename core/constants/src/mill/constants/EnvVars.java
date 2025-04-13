@@ -52,4 +52,9 @@ public class EnvVars {
    * the local disk and not from Maven Central
    */
   public static final String MILL_BUILD_LIBRARIES = "MILL_BUILD_LIBRARIES";
+   /**
+   * Used to store free ports for Mill's tests to use.
+   */ 
+  public static final String MILL_TEST_FREE_PORT = "MILL_TEST_FREE_PORT";
+ 
 }
