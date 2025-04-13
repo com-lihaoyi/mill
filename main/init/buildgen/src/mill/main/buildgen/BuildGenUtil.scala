@@ -78,13 +78,13 @@ object BuildGenUtil {
         // `testSandboxWorkingDir` is disabled as other build tools such as `sbt` don't run tests in the sandbox.
         s"""$declare {
            |
-           |${renderBomJvmDeps(scopedDeps.testBomJvmDeps)}
+           |${renderBomMvnDeps(scopedDeps.testBomMvnDeps)}
            |
-           |${renderJvmDeps(scopedDeps.testJvmDeps)}
+           |${renderMvnDeps(scopedDeps.testMvnDeps)}
            |
            |${renderModuleDeps(scopedDeps.testModuleDeps)}
            |
-           |${renderCompileJvmDeps(scopedDeps.testCompileJvmDeps)}
+           |${renderCompileMvnDeps(scopedDeps.testCompileMvnDeps)}
            |
            |${renderCompileModuleDeps(scopedDeps.testCompileModuleDeps)}
            |
@@ -114,17 +114,17 @@ object BuildGenUtil {
         if (baseTrait != null) baseTrait.repositories else Seq.empty
       )}
        |
-       |${renderBomJvmDeps(scopedDeps.mainBomJvmDeps)}
+       |${renderBomMvnDeps(scopedDeps.mainBomMvnDeps)}
        |
-       |${renderJvmDeps(scopedDeps.mainJvmDeps)}
+       |${renderMvnDeps(scopedDeps.mainMvnDeps)}
        |
        |${renderModuleDeps(scopedDeps.mainModuleDeps)}
        |
-       |${renderCompileJvmDeps(scopedDeps.mainCompileJvmDeps)}
+       |${renderCompileMvnDeps(scopedDeps.mainCompileMvnDeps)}
        |
        |${renderCompileModuleDeps(scopedDeps.mainCompileModuleDeps)}
        |
-       |${renderRunJvmDeps(scopedDeps.mainRunJvmDeps)}
+       |${renderRunMvnDeps(scopedDeps.mainRunMvnDeps)}
        |
        |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
        |
@@ -431,23 +431,23 @@ object BuildGenUtil {
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
 
-  def renderBomJvmDeps(args: IterableOnce[String]): String =
-    optional("def bomJvmDeps = super.bomJvmDeps() ++ Seq", args)
+  def renderBomMvnDeps(args: IterableOnce[String]): String =
+    optional("def bomMvnDeps = super.bomMvnDeps() ++ Seq", args)
 
-  def renderJvmDeps(args: IterableOnce[String]): String =
-    optional("def jvmDeps = super.jvmDeps() ++ Seq", args)
+  def renderMvnDeps(args: IterableOnce[String]): String =
+    optional("def mvnDeps = super.mvnDeps() ++ Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
-  def renderCompileJvmDeps(args: IterableOnce[String]): String =
-    optional("def compileJvmDeps = super.compileJvmDeps() ++ Seq", args)
+  def renderCompileMvnDeps(args: IterableOnce[String]): String =
+    optional("def compileMvnDeps = super.compileMvnDeps() ++ Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
-  def renderRunJvmDeps(args: IterableOnce[String]): String =
-    optional("def runJvmDeps = super.runJvmDeps() ++ Seq", args)
+  def renderRunMvnDeps(args: IterableOnce[String]): String =
+    optional("def runMvnDeps = super.runMvnDeps() ++ Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)

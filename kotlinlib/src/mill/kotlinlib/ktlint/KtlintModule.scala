@@ -32,7 +32,7 @@ trait KtlintModule extends JavaModule {
    */
   def ktlintClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(jvm"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
+      Seq(mvn"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
     )
   }
 

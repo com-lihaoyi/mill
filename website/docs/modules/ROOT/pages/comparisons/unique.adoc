@@ -40,9 +40,9 @@ package build
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def jvmDeps = Seq(
-    jvm"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    jvm"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   object test extends JavaTests with TestModule.Junit4
@@ -239,7 +239,7 @@ definition in `build.foo`, allowing us to jump to it if we want to see what it d
 
 image::unique/IntellijDefinition.png[]
 
-In the `JavaModule` example earlier, IntelliJ is able to see the `def jvmDeps` configuration
+In the `JavaModule` example earlier, IntelliJ is able to see the `def mvnDeps` configuration
 override, and find the exact override definitions in the parent class hierarchy:
 
 image::unique/IntellijOverride.png[]

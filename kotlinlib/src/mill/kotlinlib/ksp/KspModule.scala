@@ -42,8 +42,8 @@ trait KspModule extends KotlinModule { outer =>
    */
   def kspPlugins: T[Agg[Dep]] = Task {
     Agg(
-      jvm"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
-      jvm"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${kspVersion()}"
+      mvn"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
+      mvn"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${kspVersion()}"
     )
   }
 

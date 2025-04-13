@@ -8,15 +8,15 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some("com.example.HelloKtorKt")
 
-  def jvmDeps = Seq(
-    jvm"io.ktor:ktor-server-core-jvm:2.3.12",
-    jvm"io.ktor:ktor-server-netty-jvm:2.3.12"
+  def mvnDeps = Seq(
+    mvn"io.ktor:ktor-server-core-jvm:2.3.12",
+    mvn"io.ktor:ktor-server-netty-jvm:2.3.12"
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def jvmDeps = super.jvmDeps() ++ Seq(
-      jvm"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      jvm"io.ktor:ktor-server-test-host-jvm:2.3.12"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"io.ktor:ktor-server-test-host-jvm:2.3.12"
     )
   }
 }

@@ -60,7 +60,7 @@ The basic approach taken for any such migration is as follows:
 2. *A parallel Mill build is set up for the project.*
 
 ** Sub-project `pom.xml` and `build.gradle` files need to be translated into Mill ``Module``s
-** Third-party dependencies need to be translated into Mill's `def jvmDeps`
+** Third-party dependencies need to be translated into Mill's `def mvnDeps`
 ** Third-party Plugins need to be replaced by their Mill equivalent, or re-implemented
 ** Custom build logic may need to be re-implemented in Mill
 
@@ -163,7 +163,7 @@ will require some degree of third party dependencies that will need to be config
 
 == Translating Third-Party Dependencies
 
-* Define the third-party dependencies for each module with `def jvmDeps`.
+* Define the third-party dependencies for each module with `def mvnDeps`.
 
 These are a relatively straightforward translation:
 
@@ -199,7 +199,7 @@ libraryDependencies += "com.google.guava" % "guava" % "3.3.1-jre"
 a|
 [source,scala]
 ----
-def jvmDeps = Seq(jvm"com.google.guava:guava:3.3.1-jre")
+def mvnDeps = Seq(mvn"com.google.guava:guava:3.3.1-jre")
 ----
 |===
 
@@ -219,14 +219,14 @@ libraryDependencies += "com.lihaoyi" %% "scalatags" % "0.12.0"
 a|
 [source,scala]
 ----
-def jvmDeps = Seq(jvm"com.lihaoyi::scalatags:0.12.0")
+def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.12.0")
 ----
 |===
 
 * Again, test-only third-party dependencies are defined inside the `object test` submodule.
 
-* Compile-only dependencies can be defined with `def compileJvmDeps`, and runtime-only/provided
-  dependencies defined with `def runJvmDeps`
+* Compile-only dependencies can be defined with `def compileMvnDeps`, and runtime-only/provided
+  dependencies defined with `def runMvnDeps`
 
 The documentation for xref:javalib/dependencies.adoc[] and xref:fundamentals/library-deps.adoc[]
 has more details: how to configure unmanaged jars, repositories, pinning versions, etc.

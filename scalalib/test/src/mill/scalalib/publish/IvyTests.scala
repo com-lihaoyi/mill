@@ -72,18 +72,18 @@ object IvyTests extends TestSuite {
 
       test("dependencies") {
         val dependencies = fullIvy \ "dependencies" \ "dependency"
-        val jvmDeps = deps
+        val mvnDeps = deps
 
-        assert(dependencies.size == jvmDeps.size)
+        assert(dependencies.size == mvnDeps.size)
 
         dependencies.zipWithIndex.foreach { case (dep, index) =>
           assert(
-            mandatoryAttr(dep, "org") == jvmDeps(index).artifact.group,
-            mandatoryAttr(dep, "name") == jvmDeps(index).artifact.id,
-            mandatoryAttr(dep, "rev") == jvmDeps(index).artifact.version,
+            mandatoryAttr(dep, "org") == mvnDeps(index).artifact.group,
+            mandatoryAttr(dep, "name") == mvnDeps(index).artifact.id,
+            mandatoryAttr(dep, "rev") == mvnDeps(index).artifact.version,
             (dep \ "exclude").zipWithIndex forall { case (exclude, j) =>
-              mandatoryAttr(exclude, "org") == jvmDeps(index).exclusions(j)._1 &&
-              mandatoryAttr(exclude, "name") == jvmDeps(index).exclusions(j)._2
+              mandatoryAttr(exclude, "org") == mvnDeps(index).exclusions(j)._1 &&
+              mandatoryAttr(exclude, "name") == mvnDeps(index).exclusions(j)._2
             }
           )
         }

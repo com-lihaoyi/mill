@@ -27,7 +27,7 @@ object CrossVersionTests extends TestSuite {
           |└─ org.scala-lang:scala-library:2.13.10
           |""".stripMargin
       override def scalaVersion = "2.13.10"
-      override def jvmDeps = Seq(jvm"com.lihaoyi::upickle:1.4.0")
+      override def mvnDeps = Seq(mvn"com.lihaoyi::upickle:1.4.0")
     }
 
     object JavaDependsOnScala213 extends JavaModule {
@@ -47,7 +47,7 @@ object CrossVersionTests extends TestSuite {
           |└─ org.slf4j:slf4j-api:1.7.35
           |""".stripMargin
       override def moduleDeps = Seq(StandaloneScala213)
-      override def jvmDeps = Seq(jvm"org.slf4j:slf4j-api:1.7.35")
+      override def mvnDeps = Seq(mvn"org.slf4j:slf4j-api:1.7.35")
     }
 
     object Scala3DependsOnScala213 extends ScalaModule {
@@ -70,7 +70,7 @@ object CrossVersionTests extends TestSuite {
           |""".stripMargin
       override def scalaVersion = "3.2.1"
       override def moduleDeps = Seq(StandaloneScala213)
-      override def jvmDeps = Seq(jvm"com.lihaoyi::sourcecode:0.2.7")
+      override def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode:0.2.7")
     }
 
     object JavaDependsOnScala3 extends JavaModule {
@@ -94,12 +94,12 @@ object CrossVersionTests extends TestSuite {
           |└─ org.slf4j:slf4j-api:1.7.35
           |""".stripMargin
       override def moduleDeps = Seq(Scala3DependsOnScala213)
-      override def jvmDeps = Seq(jvm"org.slf4j:slf4j-api:1.7.35")
+      override def mvnDeps = Seq(mvn"org.slf4j:slf4j-api:1.7.35")
     }
 
     object sandwitch3 extends ScalaModule {
       override def scalaVersion = "3.0.2"
-      override def jvmDeps = Seq(jvm"com.lihaoyi::upickle:1.4.0")
+      override def mvnDeps = Seq(mvn"com.lihaoyi::upickle:1.4.0")
     }
 
     object sandwitch213 extends ScalaModule {
@@ -135,21 +135,21 @@ object CrossVersionTests extends TestSuite {
       mod: JavaModule,
       expectedDeps: Seq[String],
       expectedLibs: Seq[String],
-      expectedJvmDepsTree: Option[String] = None
+      expectedMvnDepsTree: Option[String] = None
   )(implicit
       testPath: TestPath
   ) = {
     val eval = init()
-    eval.apply(mod.jvmDepsTree(JvmDepsTreeArgs()))
+    eval.apply(mod.mvnDepsTree(MvnDepsTreeArgs()))
 
-    expectedJvmDepsTree.foreach { tree =>
+    expectedMvnDepsTree.foreach { tree =>
       if (!scala.util.Properties.isWin) {
         // Escape-sequence formatting isn't working under bare Windows
         val expectedDepsTree = tree
         val depsTree =
           os.read(ExecutionPaths.resolve(
             eval.outPath,
-            mod.jvmDepsTree(JvmDepsTreeArgs())
+            mod.mvnDepsTree(MvnDepsTreeArgs())
           ).log)
         assert(depsTree == expectedDepsTree)
       }
@@ -179,7 +179,7 @@ object CrossVersionTests extends TestSuite {
           "upickle-implicits_2.13-1.4.0.jar",
           "upickle_2.13-1.4.0.jar"
         ),
-        expectedJvmDepsTree = Some(StandaloneScala213.tree)
+        expectedMvnDepsTree = Some(StandaloneScala213.tree)
       )
     }
 
@@ -201,7 +201,7 @@ object CrossVersionTests extends TestSuite {
           "upickle-implicits_2.13-1.4.0.jar",
           "upickle_2.13-1.4.0.jar"
         ),
-        expectedJvmDepsTree = Some(JavaDependsOnScala213.tree)
+        expectedMvnDepsTree = Some(JavaDependsOnScala213.tree)
       )
     }
 
@@ -225,7 +225,7 @@ object CrossVersionTests extends TestSuite {
           "upickle-implicits_2.13-1.4.0.jar",
           "upickle_2.13-1.4.0.jar"
         ),
-        expectedJvmDepsTree = Some(Scala3DependsOnScala213.tree)
+        expectedMvnDepsTree = Some(Scala3DependsOnScala213.tree)
       )
     }
 
@@ -251,7 +251,7 @@ object CrossVersionTests extends TestSuite {
           "upickle-implicits_2.13-1.4.0.jar",
           "upickle_2.13-1.4.0.jar"
         ),
-        expectedJvmDepsTree = Some(JavaDependsOnScala3.tree)
+        expectedMvnDepsTree = Some(JavaDependsOnScala3.tree)
       )
     }
 
@@ -273,7 +273,7 @@ object CrossVersionTests extends TestSuite {
           "upack_3-1.4.0.jar",
           "upickle-implicits_3-1.4.0.jar"
         ),
-        expectedJvmDepsTree = Some(sandwitch213.tree)
+        expectedMvnDepsTree = Some(sandwitch213.tree)
       )
     }
 

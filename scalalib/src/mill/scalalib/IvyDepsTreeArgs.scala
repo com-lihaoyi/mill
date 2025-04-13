@@ -7,22 +7,22 @@ import mainargs.arg
  * Arguments for the ivDepsTree command.
  *
  * @param inverse Invert the tree representation, so that the root is on the bottom.
- * @param withCompile Include the compile-time only dependencies (`compileJvmDeps`, provided scope) into the tree.
- * @param withRuntime Include the runtime dependencies (`runJvmDeps`, runtime scope) into the tree.
+ * @param withCompile Include the compile-time only dependencies (`compileMvnDeps`, provided scope) into the tree.
+ * @param withRuntime Include the runtime dependencies (`runMvnDeps`, runtime scope) into the tree.
  * @param whatDependsOn possible list of modules (org:artifact) to target in the tree in order to see
  *                      where a dependency stems from.
  */
-class JvmDepsTreeArgs private (
+class MvnDepsTreeArgs private (
     @arg(
       doc =
         "Invert the tree representation, so that the root is on the bottom val inverse (will be forced when used with whatDependsOn)"
     )
     val inverse: Flag,
     @arg(doc =
-      "Include the compile-time only dependencies (`compileJvmDeps`, provided scope) into the tree."
+      "Include the compile-time only dependencies (`compileMvnDeps`, provided scope) into the tree."
     )
     val withCompile: Flag,
-    @arg(doc = "Include the runtime dependencies (`runJvmDeps`, runtime scope) into the tree.")
+    @arg(doc = "Include the runtime dependencies (`runMvnDeps`, runtime scope) into the tree.")
     val withRuntime: Flag,
     @arg(
       doc =
@@ -31,14 +31,14 @@ class JvmDepsTreeArgs private (
     val whatDependsOn: List[String]
 )
 
-object JvmDepsTreeArgs {
+object MvnDepsTreeArgs {
   def apply(
       inverse: Flag = Flag(),
       withCompile: Flag = Flag(),
       withRuntime: Flag = Flag(),
       whatDependsOn: List[String] = List.empty
-  ) = new JvmDepsTreeArgs(inverse, withCompile, withRuntime, whatDependsOn)
+  ) = new MvnDepsTreeArgs(inverse, withCompile, withRuntime, whatDependsOn)
 
-  implicit val argsReader: mainargs.ParserForClass[JvmDepsTreeArgs] =
-    mainargs.ParserForClass[JvmDepsTreeArgs]
+  implicit val argsReader: mainargs.ParserForClass[MvnDepsTreeArgs] =
+    mainargs.ParserForClass[MvnDepsTreeArgs]
 }

@@ -24,7 +24,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   object test extends SbtTests with TestModule.Munit {
 
-    def jvmDeps = super.jvmDeps() ++ Seq(jvm"org.scalameta::munit:0.7.29")
+    def mvnDeps = super.mvnDeps() ++ Seq(mvn"org.scalameta::munit:0.7.29")
 
     def testSandboxWorkingDir = false
     def testParallelism = false

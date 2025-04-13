@@ -13,14 +13,14 @@ object ScalaTypeLevelTests extends TestSuite {
       override def scalaOrganization = "org.typelevel"
       override def ammoniteVersion = "1.6.7"
 
-      override def jvmDeps = Seq(
-        jvm"com.github.julien-truffaut::monocle-macro::1.4.0"
+      override def mvnDeps = Seq(
+        mvn"com.github.julien-truffaut::monocle-macro::1.4.0"
       )
-      override def scalacPluginJvmDeps = super.scalacPluginJvmDeps() ++ Seq(
-        jvm"org.scalamacros:::paradise:2.1.0"
+      override def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++ Seq(
+        mvn"org.scalamacros:::paradise:2.1.0"
       )
-      override def scalaDocPluginJvmDeps = super.scalaDocPluginJvmDeps() ++ Seq(
-        jvm"com.typesafe.genjavadoc:::genjavadoc-plugin:0.11"
+      override def scalaDocPluginMvnDeps = super.scalaDocPluginMvnDeps() ++ Seq(
+        mvn"com.typesafe.genjavadoc:::genjavadoc-plugin:0.11"
       )
     }
 

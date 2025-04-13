@@ -413,7 +413,7 @@ object SbtBuildGenMain
       }
     ).groupMap(_._1)(_._2)
 
-    val jvmDepsByType = allDependencies.libraryDependencies
+    val mvnDepsByType = allDependencies.libraryDependencies
       .iterator
       .filterNot(isScalaStandardLibrary)
       .flatMap(dep =>
@@ -440,57 +440,57 @@ object SbtBuildGenMain
     val runModuleDeps = moduleDepsByType.getOrElse(Run, Seq.empty)
     val testModuleDeps = moduleDepsByType.getOrElse(Test, Seq.empty)
 
-    val testJvmDeps = jvmDepsByType.getOrElse(Test, Seq.empty)
+    val testMvnDeps = mvnDepsByType.getOrElse(Test, Seq.empty)
 
     val hasTest = os.exists(os.Path(project.projectDirectory) / "src/test")
-    val testModule = Option.when(hasTest)(testJvmDeps.collectFirst(Function.unlift(dep =>
+    val testModule = Option.when(hasTest)(testMvnDeps.collectFirst(Function.unlift(dep =>
       testModulesByGroup.get(dep.organization)
     ))).flatten
 
     cfg.shared.depsObject.fold({
-      val defaultJvmDeps = jvmDepsByType.getOrElse(Default, Seq.empty)
-      val compileJvmDeps = jvmDepsByType.getOrElse(Compile, Seq.empty)
-      val runJvmDeps = jvmDepsByType.getOrElse(Run, Seq.empty)
+      val defaultMvnDeps = mvnDepsByType.getOrElse(Default, Seq.empty)
+      val compileMvnDeps = mvnDepsByType.getOrElse(Compile, Seq.empty)
+      val runMvnDeps = mvnDepsByType.getOrElse(Run, Seq.empty)
 
       IrScopedDeps(
         Seq.empty,
         SortedSet.empty,
-        SortedSet.from(defaultJvmDeps.iterator.map(renderIvy)),
+        SortedSet.from(defaultMvnDeps.iterator.map(renderIvy)),
         SortedSet.from(defaultModuleDeps),
-        SortedSet.from(compileJvmDeps.iterator.map(renderIvy)),
+        SortedSet.from(compileMvnDeps.iterator.map(renderIvy)),
         SortedSet.from(compileModuleDeps),
-        SortedSet.from(runJvmDeps.iterator.map(renderIvy)),
+        SortedSet.from(runMvnDeps.iterator.map(renderIvy)),
         SortedSet.from(runModuleDeps),
         testModule,
         SortedSet.empty,
-        SortedSet.from(testJvmDeps.iterator.map(renderIvy)),
+        SortedSet.from(testMvnDeps.iterator.map(renderIvy)),
         SortedSet.from(testModuleDeps),
         SortedSet.empty,
         SortedSet.empty
       )
     })(objectName => {
-      val extractedJvmDeps = jvmDepsByType.view.mapValues(_.map(dep => {
+      val extractedMvnDeps = mvnDepsByType.view.mapValues(_.map(dep => {
         val depName = s"`${dep.organization}:${dep.name}`"
         ((depName, renderIvy(dep)), s"$objectName.$depName")
       }))
 
-      val extractedDefaultJvmDeps = extractedJvmDeps.getOrElse(Default, Seq.empty)
-      val extractedCompileJvmDeps = extractedJvmDeps.getOrElse(Compile, Seq.empty)
-      val extractedRunJvmDeps = extractedJvmDeps.getOrElse(Run, Seq.empty)
-      val extractedTestJvmDeps = extractedJvmDeps.getOrElse(Test, Seq.empty)
+      val extractedDefaultMvnDeps = extractedMvnDeps.getOrElse(Default, Seq.empty)
+      val extractedCompileMvnDeps = extractedMvnDeps.getOrElse(Compile, Seq.empty)
+      val extractedRunMvnDeps = extractedMvnDeps.getOrElse(Run, Seq.empty)
+      val extractedTestMvnDeps = extractedMvnDeps.getOrElse(Test, Seq.empty)
 
       IrScopedDeps(
-        extractedJvmDeps.values.flatMap(_.map(_._1)).toSeq,
+        extractedMvnDeps.values.flatMap(_.map(_._1)).toSeq,
         SortedSet.empty,
-        SortedSet.from(extractedDefaultJvmDeps.iterator.map(_._2)),
+        SortedSet.from(extractedDefaultMvnDeps.iterator.map(_._2)),
         SortedSet.from(defaultModuleDeps),
-        SortedSet.from(extractedCompileJvmDeps.iterator.map(_._2)),
+        SortedSet.from(extractedCompileMvnDeps.iterator.map(_._2)),
         SortedSet.from(compileModuleDeps),
-        SortedSet.from(extractedRunJvmDeps.iterator.map(_._2)),
+        SortedSet.from(extractedRunMvnDeps.iterator.map(_._2)),
         SortedSet.from(runModuleDeps),
         testModule,
         SortedSet.empty,
-        SortedSet.from(extractedTestJvmDeps.iterator.map(_._2)),
+        SortedSet.from(extractedTestMvnDeps.iterator.map(_._2)),
         SortedSet.from(testModuleDeps),
         SortedSet.empty,
         SortedSet.empty

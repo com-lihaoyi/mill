@@ -11,8 +11,8 @@ object `package` extends RootModule with PublishModule with MavenModule {
 
   def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
-  def compileJvmDeps = super.compileJvmDeps() ++
-    Seq(jvm"javax.servlet.jsp:jsp-api:2.2", jvm"javax.servlet:servlet-api:2.5")
+  def compileMvnDeps = super.compileMvnDeps() ++
+    Seq(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")
 
   def pomSettings = PomSettings(
     "Webapp.",

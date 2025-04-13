@@ -5,9 +5,9 @@ import mill._, javalib._
 object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = "com.novocode.junit.JUnitFramework"
-    def jvmDeps = Seq(
-      jvm"com.novocode:junit-interface:0.11",
-      jvm"org.mockito:mockito-core:4.6.1"
+    def mvnDeps = Seq(
+      mvn"com.novocode:junit-interface:0.11",
+      mvn"org.mockito:mockito-core:4.6.1"
     )
     def testForkGrouping =
       discoveredTestClasses().groupMapReduce(_.contains("GroupX"))(Seq(_))(_ ++ _).toSeq.sortBy(

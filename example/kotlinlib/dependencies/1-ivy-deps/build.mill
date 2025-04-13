@@ -6,8 +6,8 @@ object `package` extends RootModule with KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def jvmDeps = Seq(
-    jvm"com.fasterxml.jackson.core:jackson-databind:2.13.4"
+  def mvnDeps = Seq(
+    mvn"com.fasterxml.jackson.core:jackson-databind:2.13.4"
   )
 }
 

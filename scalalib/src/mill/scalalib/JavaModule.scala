@@ -67,9 +67,9 @@ trait JavaModule
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
     override def sourcesFolders = outer.sourcesFolders
 
-    override def bomJvmDeps = Task[Seq[Dep]] {
-      super.bomJvmDeps() ++
-        outer.bomJvmDeps()
+    override def bomMvnDeps = Task[Seq[Dep]] {
+      super.bomMvnDeps() ++
+        outer.bomMvnDeps()
     }
     override def depManagement = Task[Seq[Dep]] {
       super.depManagement() ++
@@ -112,46 +112,46 @@ trait JavaModule
 
   /**
    * Mandatory ivy dependencies that are typically always required and shouldn't be removed by
-   * overriding [[jvmDeps]], e.g. the scala-library in the [[ScalaModule]].
+   * overriding [[mvnDeps]], e.g. the scala-library in the [[ScalaModule]].
    */
-  def mandatoryJvmDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def mandatoryMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   /**
    * Any ivy dependencies you want to add to this Module, in the format
-   * jvm"org::name:version" for Scala dependencies or jvm"org:name:version"
+   * mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
    * for Java dependencies
    */
-  def jvmDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def mvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   /**
-   * Aggregation of mandatoryJvmDeps and jvmDeps.
-   * In most cases, instead of overriding this Target you want to override `jvmDeps` instead.
+   * Aggregation of mandatoryMvnDeps and mvnDeps.
+   * In most cases, instead of overriding this Target you want to override `mvnDeps` instead.
    */
-  def allJvmDeps: T[Seq[Dep]] = Task { jvmDeps() ++ mandatoryJvmDeps() }
+  def allMvnDeps: T[Seq[Dep]] = Task { mvnDeps() ++ mandatoryMvnDeps() }
 
   /**
-   * Same as `jvmDeps`, but only present at compile time. Useful for e.g.
+   * Same as `mvnDeps`, but only present at compile time. Useful for e.g.
    * macro-related dependencies like `scala-reflect` that doesn't need to be
    * present at runtime
    */
-  def compileJvmDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def compileMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   /**
    * Additional dependencies, only present at runtime. Useful for e.g.
    * selecting different versions of a dependency to use at runtime after your
    * code has already been compiled.
    */
-  def runJvmDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def runMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   /**
    * Any Bill of Material (BOM) dependencies you want to add to this Module, in the format
-   * jvm"org:name:version"
+   * mvn"org:name:version"
    */
-  def bomJvmDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def bomMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   def allBomDeps: Task[Seq[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
-      bomJvmDeps().map(bindDependency()).map { bomDep =>
+      bomMvnDeps().map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
@@ -186,8 +186,8 @@ trait JavaModule
    * excludes org.slf4j:slf4j-api from com.lihaoyi::cask that it forces to version 0.9.4
    * {{{
    *   def depManagement = super.depManagement() ++ Seq(
-   *     jvm"com.lihaoyi::os-lib:0.11.3",
-   *     jvm"com.lihaoyi::cask:0.9.5".exclude("org.slf4j", "slf4j-api")
+   *     mvn"com.lihaoyi::os-lib:0.11.3",
+   *     mvn"com.lihaoyi::cask:0.9.5".exclude("org.slf4j", "slf4j-api")
    *   )
    * }}}
    */
@@ -540,7 +540,7 @@ trait JavaModule
         }
 
     val dependencies =
-      (mandatoryJvmDeps() ++ jvmDeps()).map(bindDependency()).map(_.dep).iterator.toSeq.flatMap {
+      (mandatoryMvnDeps() ++ mvnDeps()).map(bindDependency()).map(_.dep).iterator.toSeq.flatMap {
         dep =>
           // Standard dependencies, like above
           // We pull their compile scope when our compile scope is asked,
@@ -550,12 +550,12 @@ trait JavaModule
             (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
           )
       } ++
-        compileJvmDeps().map(bindDependency()).map(_.dep).map { dep =>
+        compileMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
           // Compile-only (aka provided) dependencies, like above
           // We pull their compile scope when our provided scope is asked (see scopes above)
           (cs.Configuration.provided, dep.withConfiguration(cs.Configuration.compile))
         } ++
-        runJvmDeps().map(bindDependency()).map(_.dep).map { dep =>
+        runMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
           // Runtime dependencies, like above
           // We pull their runtime scope when our runtime scope is pulled
           (
@@ -619,7 +619,7 @@ trait JavaModule
     // Basically, all relevant Mill modules are aggregated and converted to a
     // coursier.Project (provided by JavaModule#coursierProject).
     //
-    // Dependencies, both external ones (like jvmDeps, bomJvmDeps, etc.) and internal ones
+    // Dependencies, both external ones (like mvnDeps, bomMvnDeps, etc.) and internal ones
     // (like moduleDeps) are put in coursier.Project#dependencies. The coursier.Dependency
     // used to represent each module is built by JavaModule#coursierDependency. So we put
     // JavaModule#coursierDependency in the dependencies field of other modules'
@@ -628,7 +628,7 @@ trait JavaModule
     // coursier.Project#dependencies accepts (coursier.Configuration, coursier.Dependency) tuples.
     // The configuration is different for compile-time only / runtime / BOM dependencies
     // (it's respectively provided, runtime, import). The configuration is compile for
-    // standard jvmDeps / moduleDeps.
+    // standard mvnDeps / moduleDeps.
     //
     JavaModule.InternalRepo(transitiveCoursierProjects().distinctBy(_.module.name.value))
   }
@@ -867,7 +867,7 @@ trait JavaModule
    * Keep in sync with [[bspCompileClasspath]]
    */
   def compileClasspath: T[Seq[PathRef]] = Task {
-    resolvedJvmDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
+    resolvedMvnDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
   }
 
   /**
@@ -878,7 +878,7 @@ trait JavaModule
   @internal
   private[mill] def bspCompileClasspath: Task[EvaluatorApi => Seq[String]] = Task.Anon {
     (ev: EvaluatorApi) =>
-      (resolvedJvmDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+      (resolvedMvnDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
         bspTransitiveCompileClasspath() ++
         localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))).map(_.resolve(
         os.Path(ev.outPathJava)
@@ -896,7 +896,7 @@ trait JavaModule
   /**
    * Resolved dependencies
    */
-  def resolvedJvmDeps: T[Seq[PathRef]] = Task {
+  def resolvedMvnDeps: T[Seq[PathRef]] = Task {
     millResolver().classpath(
       Seq(
         BoundDep(
@@ -912,7 +912,7 @@ trait JavaModule
   }
 
   def upstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
-    resolvedRunJvmDeps()
+    resolvedRunMvnDeps()
   }
   def upstreamLocalAssemblyClasspath: T[Seq[PathRef]] = Task {
     transitiveLocalClasspath()
@@ -923,10 +923,10 @@ trait JavaModule
    * assembly, but without this module's contribution
    */
   def upstreamAssemblyClasspath: T[Seq[PathRef]] = Task {
-    resolvedRunJvmDeps() ++ transitiveLocalClasspath()
+    resolvedRunMvnDeps() ++ transitiveLocalClasspath()
   }
 
-  def resolvedRunJvmDeps: T[Seq[PathRef]] = Task {
+  def resolvedRunMvnDeps: T[Seq[PathRef]] = Task {
     millResolver().classpath(
       Seq(
         BoundDep(
@@ -946,7 +946,7 @@ trait JavaModule
    */
   override def runClasspath: T[Seq[PathRef]] = Task {
     super.runClasspath() ++
-      resolvedRunJvmDeps().toSeq ++
+      resolvedRunMvnDeps().toSeq ++
       transitiveLocalClasspath() ++
       localClasspath()
   }
@@ -1097,7 +1097,7 @@ trait JavaModule
       val roots = whatDependsOn match {
         case List() =>
           val mandatoryModules =
-            mandatoryJvmDeps().map(bindDependency()).iterator.map(_.dep.module).toSet
+            mandatoryMvnDeps().map(bindDependency()).iterator.map(_.dep.module).toSet
           val (mandatory, main) = resolution.dependenciesOf(coursierDependency)
             .partition(dep => mandatoryModules.contains(dep.module))
           additionalDeps().iterator.toSeq.map(_.dep) ++ main ++ mandatory
@@ -1138,7 +1138,7 @@ trait JavaModule
   /**
    * Command to print the transitive dependency tree to STDOUT.
    */
-  def jvmDepsTree(args: JvmDepsTreeArgs = JvmDepsTreeArgs()): Command[Unit] = {
+  def mvnDepsTree(args: MvnDepsTreeArgs = MvnDepsTreeArgs()): Command[Unit] = {
 
     val (invalidModules, validModules) =
       args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_)).partitionMap(identity)
@@ -1255,10 +1255,10 @@ trait JavaModule
 
     Task.Command {
       super.prepareOffline(all)()
-      resolvedJvmDeps()
+      resolvedMvnDeps()
       classgraphWorkerModule().prepareOffline(all)()
       jvmWorker().prepareOffline(all)()
-      resolvedRunJvmDeps()
+      resolvedRunMvnDeps()
       Task.sequence(tasks)()
       ()
     }
@@ -1406,8 +1406,8 @@ trait JavaModule
   ) = {
 
     val mod = this
-    // same as input of resolvedJvmDeps
-    val allJvmDeps = Task.Anon {
+    // same as input of resolvedMvnDeps
+    val allMvnDeps = Task.Anon {
       Seq(
         mod.coursierDependency,
         mod.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
@@ -1423,25 +1423,25 @@ trait JavaModule
     }
 
     val externalLibraryDependencies = Task.Anon {
-      mod.defaultResolver().classpath(mod.mandatoryJvmDeps())
+      mod.defaultResolver().classpath(mod.mandatoryMvnDeps())
     }
 
     val externalDependencies = Task.Anon {
-      mod.resolvedJvmDeps() ++
+      mod.resolvedMvnDeps() ++
         Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
     }
-    val extCompileJvmDeps = Task.Anon {
-      mod.defaultResolver().classpath(mod.compileJvmDeps())
+    val extCompileMvnDeps = Task.Anon {
+      mod.defaultResolver().classpath(mod.compileMvnDeps())
     }
-    val extRunJvmDeps = mod.resolvedRunJvmDeps
+    val extRunMvnDeps = mod.resolvedRunMvnDeps
 
     val externalSources = Task.Anon {
-      mod.millResolver().classpath(allJvmDeps(), sources = true)
+      mod.millResolver().classpath(allMvnDeps(), sources = true)
     }
 
-    val (scalacPluginsJvmDeps, allScalacOptions, scalaVersion) = mod match {
+    val (scalacPluginsMvnDeps, allScalacOptions, scalaVersion) = mod match {
       case mod: ScalaModule => (
-          Task.Anon(mod.scalacPluginJvmDeps()),
+          Task.Anon(mod.scalacPluginMvnDeps()),
           Task.Anon(mod.allScalacOptions()),
           Task.Anon {
             Some(mod.scalaVersion())
@@ -1455,7 +1455,7 @@ trait JavaModule
     }
 
     val scalacPluginDependencies = Task.Anon {
-      mod.defaultResolver().classpath(scalacPluginsJvmDeps())
+      mod.defaultResolver().classpath(scalacPluginsMvnDeps())
     }
 
     val facets = Task.Anon {
@@ -1473,10 +1473,10 @@ trait JavaModule
     Task.Anon {
       val resolvedCp: Seq[Scoped[os.Path]] =
         externalDependencies().map(_.path).map(Scoped(_, None)) ++
-          extCompileJvmDeps()
+          extCompileMvnDeps()
             .map(_.path)
             .map(Scoped(_, Some("PROVIDED"))) ++
-          extRunJvmDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
+          extRunMvnDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
       // unused, but we want to trigger sources, to have them available (automatically)
       // TODO: make this a separate eval to handle resolve errors
       externalSources()

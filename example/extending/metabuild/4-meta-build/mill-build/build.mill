@@ -3,7 +3,7 @@ import mill._, scalalib._
 
 object `package` extends MillBuildRootModule {
   val scalatagsVersion = "0.13.1"
-  def jvmDeps = Seq(jvm"com.lihaoyi::scalatags:$scalatagsVersion")
+  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:$scalatagsVersion")
 
   def generatedSources = Task {
     os.write(

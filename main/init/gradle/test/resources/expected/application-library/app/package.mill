@@ -6,14 +6,14 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with MavenModule {
 
-  def jvmDeps = super.jvmDeps() ++ Seq(jvm"org.apache.commons:commons-text")
+  def mvnDeps = super.mvnDeps() ++ Seq(mvn"org.apache.commons:commons-text")
 
   def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
 
   object test extends MavenTests with TestModule.Junit5 {
 
-    def jvmDeps = super.jvmDeps() ++
-      Seq(jvm"org.junit.jupiter:junit-jupiter:5.10.3")
+    def mvnDeps = super.mvnDeps() ++
+      Seq(mvn"org.junit.jupiter:junit-jupiter:5.10.3")
 
     def testSandboxWorkingDir = false
     def testParallelism = false

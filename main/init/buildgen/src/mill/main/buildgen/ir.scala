@@ -124,19 +124,19 @@ object IrBuild {
 
 case class IrScopedDeps(
     // TODO The type is `Seq` and this is deduplicated and sorted in `BuildGenUtil`. Make the type `SortedMap` here for consistency?
-    namedJvmDeps: Seq[(String, String)] = Nil,
-    mainBomJvmDeps: SortedSet[String] = SortedSet(),
-    mainJvmDeps: SortedSet[String] = SortedSet(),
+    namedMvnDeps: Seq[(String, String)] = Nil,
+    mainBomMvnDeps: SortedSet[String] = SortedSet(),
+    mainMvnDeps: SortedSet[String] = SortedSet(),
     mainModuleDeps: SortedSet[String] = SortedSet(),
-    mainCompileJvmDeps: SortedSet[String] = SortedSet(),
+    mainCompileMvnDeps: SortedSet[String] = SortedSet(),
     mainCompileModuleDeps: SortedSet[String] = SortedSet(),
-    mainRunJvmDeps: SortedSet[String] = SortedSet(),
+    mainRunMvnDeps: SortedSet[String] = SortedSet(),
     mainRunModuleDeps: SortedSet[String] = SortedSet(),
     testModule: Option[String] = None,
-    testBomJvmDeps: SortedSet[String] = SortedSet(),
-    testJvmDeps: SortedSet[String] = SortedSet(),
+    testBomMvnDeps: SortedSet[String] = SortedSet(),
+    testMvnDeps: SortedSet[String] = SortedSet(),
     testModuleDeps: SortedSet[String] = SortedSet(),
-    testCompileJvmDeps: SortedSet[String] = SortedSet(),
+    testCompileMvnDeps: SortedSet[String] = SortedSet(),
     testCompileModuleDeps: SortedSet[String] = SortedSet()
 )
 

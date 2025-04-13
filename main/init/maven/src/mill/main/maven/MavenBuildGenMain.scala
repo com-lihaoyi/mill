@@ -220,7 +220,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       cfg.shared.basicConfig.depsObject.fold(interpIvy(_)) { objName => dep =>
         {
           val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
-          sd = sd.copy(namedJvmDeps = sd.namedJvmDeps :+ (depName, interpIvy(dep)))
+          sd = sd.copy(namedMvnDeps = sd.namedMvnDeps :+ (depName, interpIvy(dep)))
           s"$objName.$depName"
         }
       }
@@ -236,21 +236,21 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
           else {
             if (isBom(id)) println(s"assuming compile dependency $id is a BOM")
             val ivy = ivyDep(dep)
-            sd = sd.copy(mainJvmDeps = sd.mainJvmDeps + ivy)
+            sd = sd.copy(mainMvnDeps = sd.mainMvnDeps + ivy)
           }
         case "provided" =>
           if (packages.isDefinedAt(id))
             sd = sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id))
           else {
             val ivy = ivyDep(dep)
-            sd = sd.copy(mainCompileJvmDeps = sd.mainCompileJvmDeps + ivy)
+            sd = sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + ivy)
           }
         case "runtime" =>
           if (packages.isDefinedAt(id))
             sd = sd.copy(mainRunModuleDeps = sd.mainRunModuleDeps + packages(id))
           else {
             val ivy = ivyDep(dep)
-            sd = sd.copy(mainRunJvmDeps = sd.mainRunJvmDeps + ivy)
+            sd = sd.copy(mainRunMvnDeps = sd.mainRunMvnDeps + ivy)
           }
 
         case "test" =>
@@ -259,9 +259,9 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
           else {
             val ivy = ivyDep(dep)
             if (isBom(id)) {
-              sd = sd.copy(testBomJvmDeps = sd.testBomJvmDeps + ivy)
+              sd = sd.copy(testBomMvnDeps = sd.testBomMvnDeps + ivy)
             } else {
-              sd = sd.copy(testJvmDeps = sd.testJvmDeps + ivy)
+              sd = sd.copy(testMvnDeps = sd.testMvnDeps + ivy)
             }
           }
 

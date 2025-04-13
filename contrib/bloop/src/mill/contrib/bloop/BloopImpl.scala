@@ -205,7 +205,7 @@
 //        Task.Anon { m.localCompileClasspath().map(_.path) ++ Seq(classes(m)) }
 //      )().flatten
 //
-//      module.resolvedJvmDeps().map(_.path) ++
+//      module.resolvedMvnDeps().map(_.path) ++
 //        transitiveCompileClasspath ++
 //        module.localCompileClasspath().map(_.path)
 //    }
@@ -220,7 +220,7 @@
 //      else
 //        Task.Anon {
 //          val cp = module.transitiveModuleDeps.map(classes) ++
-//            module.resolvedRunJvmDeps().map(_.path) ++
+//            module.resolvedRunMvnDeps().map(_.path) ++
 //            module.unmanagedClasspath().map(_.path)
 //          Some(cp.map(_.toNIO).toList)
 //        }
@@ -442,7 +442,7 @@
 //
 //    val bloopDependencies: Task[List[BloopConfig.Module]] = Task.Anon {
 //      val repos = module.allRepositories()
-//      // same as input of resolvedJvmDeps
+//      // same as input of resolvedMvnDeps
 //      val coursierDeps = Seq(
 //        module.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
 //        module.coursierDependency

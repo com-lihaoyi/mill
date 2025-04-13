@@ -42,9 +42,9 @@ object TestRunnerTestUtils {
     object utest extends ScalaTests with TestModule.Utest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def testParallelism = enableParallelism
-      override def jvmDeps = Task {
-        super.jvmDeps() ++ Seq(
-          jvm"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
+      override def mvnDeps = Task {
+        super.mvnDeps() ++ Seq(
+          mvn"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
       }
     }
@@ -52,17 +52,17 @@ object TestRunnerTestUtils {
     object scalatest extends ScalaTests with TestModule.ScalaTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def testParallelism = enableParallelism
-      override def jvmDeps = Task {
-        super.jvmDeps() ++ Seq(
-          jvm"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
+      override def mvnDeps = Task {
+        super.mvnDeps() ++ Seq(
+          mvn"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
         )
       }
     }
 
     trait DoneMessage extends ScalaTests {
-      override def jvmDeps = Task {
-        super.jvmDeps() ++ Seq(
-          jvm"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
+      override def mvnDeps = Task {
+        super.mvnDeps() ++ Seq(
+          mvn"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
         )
       }
       override def testParallelism = enableParallelism
@@ -81,10 +81,10 @@ object TestRunnerTestUtils {
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def testParallelism = enableParallelism
-      override def jvmDeps = Task {
-        super.jvmDeps() ++ Seq(
-          jvm"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
-          jvm"dev.zio::zio-test-sbt:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
+      override def mvnDeps = Task {
+        super.mvnDeps() ++ Seq(
+          mvn"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
+          mvn"dev.zio::zio-test-sbt:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
         )
       }
     }

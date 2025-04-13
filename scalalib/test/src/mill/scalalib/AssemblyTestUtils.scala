@@ -13,20 +13,20 @@ trait AssemblyTestUtils {
 
       def sources = Task.Sources(Task.workspace / "src")
 
-      def jvmDeps = super.jvmDeps() ++ Seq(
-        jvm"com.lihaoyi::scalatags:0.8.2",
-        jvm"com.lihaoyi::mainargs:0.4.0",
-        jvm"org.apache.avro:avro:1.11.1"
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn"com.lihaoyi::scalatags:0.8.2",
+        mvn"com.lihaoyi::mainargs:0.4.0",
+        mvn"org.apache.avro:avro:1.11.1"
       )
     }
 
     trait ExtraDeps extends ScalaModule {
-      def jvmDeps = super.jvmDeps() ++ Seq(
-        jvm"dev.zio::zio:2.0.15",
-        jvm"org.typelevel::cats-core:2.9.0",
-        jvm"org.apache.spark::spark-core:3.4.0",
-        jvm"dev.zio::zio-metrics-connectors:2.0.8",
-        jvm"dev.zio::zio-http:3.0.0-RC2"
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn"dev.zio::zio:2.0.15",
+        mvn"org.typelevel::cats-core:2.9.0",
+        mvn"org.apache.spark::spark-core:3.4.0",
+        mvn"dev.zio::zio-metrics-connectors:2.0.8",
+        mvn"dev.zio::zio-http:3.0.0-RC2"
       )
     }
 

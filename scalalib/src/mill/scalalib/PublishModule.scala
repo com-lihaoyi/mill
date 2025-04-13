@@ -84,7 +84,7 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  def publishJvmDeps
+  def publishMvnDeps
       : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Seq[Dependency]] =
     Task.Anon {
       (rootDepVersions: Map[coursier.core.Module, String], bomDepMgmt: DependencyManagement.Map) =>
@@ -111,12 +111,12 @@ trait PublishModule extends JavaModule { outer =>
           resolvePublishDependency0(BoundDep(dep0, force = false).toDep)
         }
 
-        val ivyPomDeps = allJvmDeps().map(process)
+        val ivyPomDeps = allMvnDeps().map(process)
 
-        val runIvyPomDeps = runJvmDeps().map(process)
+        val runIvyPomDeps = runMvnDeps().map(process)
           .filter(!ivyPomDeps.contains(_))
 
-        val compileIvyPomDeps = compileJvmDeps().map(process)
+        val compileIvyPomDeps = compileMvnDeps().map(process)
           .filter(!ivyPomDeps.contains(_))
 
         val modulePomDeps = Task.sequence(moduleDepsChecked.collect {
@@ -139,14 +139,14 @@ trait PublishModule extends JavaModule { outer =>
 
   def publishXmlDeps: Task[Seq[Dependency]] = Task.Anon {
     val ivyPomDeps =
-      allJvmDeps()
+      allMvnDeps()
         .map(resolvePublishDependency.apply().apply(_))
 
-    val runIvyPomDeps = runJvmDeps()
+    val runIvyPomDeps = runMvnDeps()
       .map(resolvePublishDependency.apply().apply(_))
       .filter(!ivyPomDeps.contains(_))
 
-    val compileIvyPomDeps = compileJvmDeps()
+    val compileIvyPomDeps = compileMvnDeps()
       .map(resolvePublishDependency.apply().apply(_))
       .filter(!ivyPomDeps.contains(_))
 
@@ -178,7 +178,7 @@ trait PublishModule extends JavaModule { outer =>
       Dependency(a, Scope.Import)
     }
     Seq(fromBomMods*) ++
-      bomJvmDeps().map(resolvePublishDependency.apply().apply(_))
+      bomMvnDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
   /**
@@ -244,7 +244,7 @@ trait PublishModule extends JavaModule { outer =>
       )
     val publishXmlDeps0 = {
       val rootDepVersions = results.map(_.moduleVersion).toMap
-      publishJvmDeps.apply().apply(rootDepVersions, bomDepMgmt)
+      publishMvnDeps.apply().apply(rootDepVersions, bomDepMgmt)
     }
     val overrides = {
       val bomDepMgmt0 = {

@@ -31,7 +31,7 @@ import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
  *   def scoverageVersion = "2.1.1"
  *
  *   object test extends ScoverageTests {
- *     def jvmDeps = Seq(jvm"org.scalatest::scalatest:3.2.19")
+ *     def mvnDeps = Seq(mvn"org.scalatest::scalatest:3.2.19")
  *     def testFrameworks = Seq("org.scalatest.tools.Framework")
  *   }
  * }
@@ -64,7 +64,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     if (isScala3()) {
       Seq.empty
     } else {
-      Seq(jvm"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
+      Seq(mvn"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
     }
   }
 
@@ -74,10 +74,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       Seq.empty
     } else {
       Seq(
-        jvm"org.scoverage:::scalac-scoverage-plugin:${sv}",
-        jvm"org.scoverage::scalac-scoverage-domain:${sv}",
-        jvm"org.scoverage::scalac-scoverage-serializer:${sv}",
-        jvm"org.scoverage::scalac-scoverage-reporter:${sv}"
+        mvn"org.scoverage:::scalac-scoverage-plugin:${sv}",
+        mvn"org.scoverage::scalac-scoverage-domain:${sv}",
+        mvn"org.scoverage::scalac-scoverage-serializer:${sv}",
+        mvn"org.scoverage::scalac-scoverage-reporter:${sv}"
       )
     }
   }
@@ -95,7 +95,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  private def scoverageReporterJvmDeps: T[Seq[Dep]] = Task {
+  private def scoverageReporterMvnDeps: T[Seq[Dep]] = Task {
     checkVersions()
 
     val sv = scoverageVersion()
@@ -105,15 +105,15 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     val scalaBinVersion = JvmWorkerUtil.scalaBinaryVersion(millScalaVersion)
     // In Scoverage 2.x, the reporting API is no longer bundled in the plugin jar
     Seq(
-      jvm"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
-      jvm"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
-      jvm"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
+      mvn"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
+      mvn"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
+      mvn"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
     )
   }
 
   def scoverageToolsClasspath: T[Seq[PathRef]] = Task {
     scoverageReportWorkerClasspath() ++
-      defaultResolver().classpath(scoverageReporterJvmDeps())
+      defaultResolver().classpath(scoverageReporterMvnDeps())
   }
 
   def scoverageClasspath: T[Seq[PathRef]] = Task {
@@ -158,14 +158,14 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       internalRepositories() ++ outer.repositoriesTask()
     }
-    override def compileJvmDeps: T[Seq[Dep]] = Task { outer.compileJvmDeps() }
-    override def jvmDeps: T[Seq[Dep]] =
-      Task { outer.jvmDeps() ++ outer.scoverageRuntimeDeps() }
+    override def compileMvnDeps: T[Seq[Dep]] = Task { outer.compileMvnDeps() }
+    override def mvnDeps: T[Seq[Dep]] =
+      Task { outer.mvnDeps() ++ outer.scoverageRuntimeDeps() }
     override def unmanagedClasspath: T[Seq[PathRef]] = Task { outer.unmanagedClasspath() }
 
     /** Add the scoverage scalac plugin. */
-    override def scalacPluginJvmDeps: T[Seq[Dep]] =
-      Task { outer.scalacPluginJvmDeps() ++ outer.scoveragePluginDeps() }
+    override def scalacPluginMvnDeps: T[Seq[Dep]] =
+      Task { outer.scalacPluginMvnDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
     override def scalacOptions: T[Seq[String]] =

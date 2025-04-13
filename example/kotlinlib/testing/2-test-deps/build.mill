@@ -10,9 +10,9 @@ object qux extends KotlinModule {
 
   object test extends KotlinTests with TestModule.Junit5 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
-    def jvmDeps = super.jvmDeps() ++ Seq(
-      jvm"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      jvm"com.google.guava:guava:33.3.0-jre"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"com.google.guava:guava:33.3.0-jre"
     )
   }
 }
@@ -22,9 +22,9 @@ object baz extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def jvmDeps = super.jvmDeps() ++ Seq(
-      jvm"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      jvm"com.google.guava:guava:33.3.0-jre"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"com.google.guava:guava:33.3.0-jre"
     )
   }
 }

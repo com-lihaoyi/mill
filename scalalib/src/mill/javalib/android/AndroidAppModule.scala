@@ -106,7 +106,7 @@ trait AndroidAppModule extends AndroidModule {
 
   def androidTransformAarFiles: T[Seq[UnpackedDep]] = Task {
     val transformDest = Task.dest / "transform"
-    val aarFiles = super.resolvedRunJvmDeps()
+    val aarFiles = super.resolvedRunMvnDeps()
       .map(_.path)
       .filter(_.ext == "aar")
       .distinct
@@ -115,9 +115,9 @@ trait AndroidAppModule extends AndroidModule {
     extractAarFiles(aarFiles, transformDest)
   }
 
-  override def resolvedRunJvmDeps: T[Seq[PathRef]] = Task {
+  override def resolvedRunMvnDeps: T[Seq[PathRef]] = Task {
     val transformedAarFilesToJar: Seq[PathRef] = androidTransformAarFiles().flatMap(_.classesJar)
-    val jarFiles = super.resolvedRunJvmDeps()
+    val jarFiles = super.resolvedRunMvnDeps()
       .filter(_.path.ext == "jar")
       .distinct
     transformedAarFilesToJar ++ jarFiles
@@ -130,7 +130,7 @@ trait AndroidAppModule extends AndroidModule {
     // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
     // TODO support baseline profiles shipped with Android libs.
 
-    (super.compileClasspath().filter(_.path.ext != "aar") ++ resolvedRunJvmDeps()).map(
+    (super.compileClasspath().filter(_.path.ext != "aar") ++ resolvedRunMvnDeps()).map(
       _.path
     ).distinct.map(PathRef(_))
   }
@@ -309,7 +309,7 @@ trait AndroidAppModule extends AndroidModule {
   def manifestMergerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        jvm"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
+        mvn"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
       )
     )
   }

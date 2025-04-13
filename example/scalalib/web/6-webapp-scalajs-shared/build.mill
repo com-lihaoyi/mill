@@ -11,7 +11,7 @@ trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
 
 object `package` extends RootModule with AppScalaModule {
   def moduleDeps = Seq(shared.jvm)
-  def jvmDeps = Seq(jvm"com.lihaoyi::cask:0.9.1")
+  def mvnDeps = Seq(mvn"com.lihaoyi::cask:0.9.1")
 
   def resources = Task {
     os.makeDir(Task.dest / "webapp")
@@ -23,17 +23,17 @@ object `package` extends RootModule with AppScalaModule {
 
   object test extends ScalaTests with TestModule.Utest {
 
-    def jvmDeps = Seq(
-      jvm"com.lihaoyi::utest::0.8.5",
-      jvm"com.lihaoyi::requests::0.6.9"
+    def mvnDeps = Seq(
+      mvn"com.lihaoyi::utest::0.8.5",
+      mvn"com.lihaoyi::requests::0.6.9"
     )
   }
 
   object shared extends Module {
     trait SharedModule extends AppScalaModule with PlatformScalaModule {
-      def jvmDeps = Seq(
-        jvm"com.lihaoyi::scalatags::0.13.1",
-        jvm"com.lihaoyi::upickle::3.0.0"
+      def mvnDeps = Seq(
+        mvn"com.lihaoyi::scalatags::0.13.1",
+        mvn"com.lihaoyi::upickle::3.0.0"
       )
     }
 
@@ -43,7 +43,7 @@ object `package` extends RootModule with AppScalaModule {
 
   object client extends AppScalaJSModule {
     def moduleDeps = Seq(shared.js)
-    def jvmDeps = Seq(jvm"org.scala-js::scalajs-dom::2.2.0")
+    def mvnDeps = Seq(mvn"org.scala-js::scalajs-dom::2.2.0")
   }
 }
 

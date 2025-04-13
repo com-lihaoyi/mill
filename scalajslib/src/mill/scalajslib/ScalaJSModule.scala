@@ -29,8 +29,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
 
   def scalaJSWorkerVersion = Task { JvmWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
-  override def scalaLibraryJvmDeps: T[Seq[Dep]] = Task {
-    val deps = super.scalaLibraryJvmDeps()
+  override def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
+    val deps = super.scalaLibraryMvnDeps()
     if (JvmWorkerUtil.isScala3(scalaVersion())) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
       deps.map(dep =>
@@ -49,18 +49,18 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     ))
   }
 
-  def scalaJSJsEnvJvmDeps: T[Seq[Dep]] = Task {
+  def scalaJSJsEnvMvnDeps: T[Seq[Dep]] = Task {
     val dep = jsEnvConfig() match {
       case _: JsEnvConfig.NodeJs =>
-        jvm"${ScalaJSBuildInfo.scalajsEnvNodejs}"
+        mvn"${ScalaJSBuildInfo.scalajsEnvNodejs}"
       case _: JsEnvConfig.JsDom =>
-        jvm"${ScalaJSBuildInfo.scalajsEnvJsdomNodejs}"
+        mvn"${ScalaJSBuildInfo.scalajsEnvJsdomNodejs}"
       case _: JsEnvConfig.ExoegoJsDomNodeJs =>
-        jvm"${ScalaJSBuildInfo.scalajsEnvExoegoJsdomNodejs}"
+        mvn"${ScalaJSBuildInfo.scalajsEnvExoegoJsdomNodejs}"
       case _: JsEnvConfig.Phantom =>
-        jvm"${ScalaJSBuildInfo.scalajsEnvPhantomJs}"
+        mvn"${ScalaJSBuildInfo.scalajsEnvPhantomJs}"
       case _: JsEnvConfig.Selenium =>
-        jvm"${ScalaJSBuildInfo.scalajsEnvSelenium}"
+        mvn"${ScalaJSBuildInfo.scalajsEnvSelenium}"
     }
 
     Seq(dep)
@@ -68,24 +68,24 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
 
   def scalaJSLinkerClasspath: T[Seq[PathRef]] = Task {
     val commonDeps = Seq(
-      jvm"org.scala-js:scalajs-sbt-test-adapter_2.13:${scalaJSVersion()}"
+      mvn"org.scala-js:scalajs-sbt-test-adapter_2.13:${scalaJSVersion()}"
     )
     val scalajsImportMapDeps = scalaJSVersion() match {
       case s"1.$n.$_" if n.toIntOption.exists(_ >= 16) && scalaJSImportMap().nonEmpty =>
-        Seq(jvm"${ScalaJSBuildInfo.scalajsImportMap}")
+        Seq(mvn"${ScalaJSBuildInfo.scalajsImportMap}")
       case _ => Seq.empty[Dep]
     }
 
     val envDeps = scalaJSBinaryVersion() match {
       case "0.6" =>
         Seq(
-          jvm"org.scala-js::scalajs-tools:${scalaJSVersion()}",
-          jvm"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
+          mvn"org.scala-js::scalajs-tools:${scalaJSVersion()}",
+          mvn"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
         )
       case "1" =>
         Seq(
-          jvm"org.scala-js:scalajs-linker_2.13:${scalaJSVersion()}"
-        ) ++ scalaJSJsEnvJvmDeps()
+          mvn"org.scala-js:scalajs-linker_2.13:${scalaJSVersion()}"
+        ) ++ scalaJSJsEnvMvnDeps()
     }
     // we need to use the scala-library of the currently running mill
     defaultResolver().classpath(
@@ -212,24 +212,24 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     super.mandatoryScalacOptions() ++ scalajsFlag
   }
 
-  override def scalacPluginJvmDeps = Task {
-    super.scalacPluginJvmDeps() ++ {
+  override def scalacPluginMvnDeps = Task {
+    super.scalacPluginMvnDeps() ++ {
       if (JvmWorkerUtil.isScala3(scalaVersion())) {
         Seq.empty
       } else {
-        Seq(jvm"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
+        Seq(mvn"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
       }
     }
   }
 
   /** Adds the Scala.js Library as mandatory dependency. */
-  override def mandatoryJvmDeps = Task {
-    val prev = super.mandatoryJvmDeps()
+  override def mandatoryMvnDeps = Task {
+    val prev = super.mandatoryMvnDeps()
     val scalaVer = scalaVersion()
     val scalaJSVer = scalaJSVersion()
 
     val scalaJSLibrary =
-      jvm"org.scala-js::scalajs-library:$scalaJSVer".withDottyCompat(scalaVer)
+      mvn"org.scala-js::scalajs-library:$scalaJSVer".withDottyCompat(scalaVer)
 
     /* For Scala 2.x and Scala.js >= 1.15.0, explicitly add scalajs-scalalib,
      * in order to support forward binary incompatible changes in the standard library.
@@ -238,7 +238,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       scalaVer.startsWith("2.") && scalaJSVer.startsWith("1.")
       && scalaJSVer.drop(2).takeWhile(_.isDigit).toInt >= 15
     ) {
-      val scalaJSScalalib = jvm"org.scala-js::scalajs-scalalib:$scalaVer+$scalaJSVer"
+      val scalaJSScalalib = mvn"org.scala-js::scalajs-scalalib:$scalaVer+$scalaJSVer"
       prev ++ Seq(scalaJSLibrary, scalaJSScalalib)
     } else {
       prev ++ Seq(scalaJSLibrary)
@@ -345,8 +345,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   def scalaJSTestDeps = Task {
     defaultResolver().classpath(
       Seq(
-        jvm"org.scala-js::scalajs-library:${scalaJSVersion()}",
-        jvm"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
+        mvn"org.scala-js::scalajs-library:${scalaJSVersion()}",
+        mvn"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
       )
         .map(_.withDottyCompat(scalaVersion()))
     )

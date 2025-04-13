@@ -12,7 +12,7 @@ trait PalantirFormatBaseModule extends CoursierModule {
    */
   def palantirformatClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(jvm"com.palantir.javaformat:palantir-java-format:${palantirformatVersion()}")
+      Seq(mvn"com.palantir.javaformat:palantir-java-format:${palantirformatVersion()}")
     )
   }
 

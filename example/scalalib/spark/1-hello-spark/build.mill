@@ -3,15 +3,15 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.15"
-  def jvmDeps = Seq(
-    jvm"org.apache.spark::spark-core:3.5.4",
-    jvm"org.apache.spark::spark-sql:3.5.4"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.4",
+    mvn"org.apache.spark::spark-sql:3.5.4"
   )
 
   def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
 
   object test extends ScalaTests {
-    def jvmDeps = Seq(jvm"com.lihaoyi::utest:0.8.5")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
 
     def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
