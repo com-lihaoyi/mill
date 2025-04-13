@@ -28,7 +28,7 @@ object `package` extends RootModule with ScalaModule {
 
 // This example demonstrates how to set up a Scala webserver using the popular
 // https://http4s.org/[Http4S] web framework and associated libraries.
-// implementing the popular Todo-MVC demo application. It also uses the popular 
+// implementing the popular Todo-MVC demo application. It also uses the popular
 // https://github.com/com-lihaoyi/scalasql/[Scalasql] typesafe ORM library for
 // querying of in memory H2 database. It includes a test suite
 // that spins up the web server locally and makes HTTP requests against it.

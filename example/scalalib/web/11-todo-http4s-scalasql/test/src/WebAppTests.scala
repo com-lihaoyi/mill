@@ -39,7 +39,10 @@ object WebAppTests extends EffectTestSuite[IO] {
     test("POST /list/all returns the current list") {
       for {
         client <- mkClient
-        _ <- client.status(Request[IO](method = Method.POST, uri = uri"/add/all").withEntity("Walk dog"))
+        _ <- client.status(Request[IO](
+          method = Method.POST,
+          uri = uri"/add/all"
+        ).withEntity("Walk dog"))
         res <- client.expect[String](Request[IO](method = Method.POST, uri = uri"/list/all"))
       } yield assert(res.contains("Walk dog"))
     }
@@ -47,7 +50,10 @@ object WebAppTests extends EffectTestSuite[IO] {
     test("POST /toggle/all toggles all todos") {
       for {
         client <- mkClient
-        _ <- client.status(Request[IO](method = Method.POST, uri = uri"/add/all").withEntity("Clean room"))
+        _ <- client.status(Request[IO](
+          method = Method.POST,
+          uri = uri"/add/all"
+        ).withEntity("Clean room"))
         _ <- client.status(Request[IO](method = Method.POST, uri = uri"/toggle-all/all"))
         res <- client.expect[String](Request[IO](method = Method.POST, uri = uri"/list/all"))
       } yield assert(res.contains("checked"))
@@ -58,7 +64,7 @@ object WebAppTests extends EffectTestSuite[IO] {
         client <- mkClient
         _ <- client.expect[String](
           Request[IO](method = Method.POST, uri = uri"/add/all").withEntity("Temp Task")
-          )        
+        )
         // Note: `Temp Task` is the fourth task created in this test suite, hence we delete task with index 4
         _ <- client.status(Request[IO](method = Method.POST, uri = uri"/delete/all/4"))
         res <- client.expect[String](Request[IO](method = Method.POST, uri = uri"/list/all"))

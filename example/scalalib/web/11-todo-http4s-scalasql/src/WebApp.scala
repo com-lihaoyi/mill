@@ -144,7 +144,7 @@ object WebApp extends IOApp.Simple {
                 db.updateRaw("UPDATE todos SET checked = NOT checked")
               }
             }
-            _ <- IO.println("Updated rows"+ updatedRows)
+            _ <- IO.println("Updated rows" + updatedRows)
             todos <- fetchTodos
             response <- Ok(renderBody(state, todos))
           } yield response
@@ -153,7 +153,7 @@ object WebApp extends IOApp.Simple {
         case GET -> Root => Ok(index)
       }
 
-      def fetchTodos : cats.effect.IO[Seq[webapp.WebApp.Todo]] = {
+      def fetchTodos: cats.effect.IO[Seq[webapp.WebApp.Todo]] = {
         IO.blocking {
           dbClient.transaction { db =>
             db.run(Todos.select).sortBy(_.id)
