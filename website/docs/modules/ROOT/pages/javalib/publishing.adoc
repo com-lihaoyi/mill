@@ -35,6 +35,10 @@ include::partial$example/javalib/publishing/6-jpackage.adoc[]
 
 include::partial$example/javalib/publishing/2-publish-module.adoc[]
 
+== Publishing to Sonatype Maven Central
+
+include::partial$example/javalib/publishing/9-publish-module-sonatype.adoc[]
+
 == Checking API compatibility
 
 Mill provides the ability to check API changes with the https://revapi.org/revapi-site/main/index.html[Revapi] analysis and change tracking tool.
