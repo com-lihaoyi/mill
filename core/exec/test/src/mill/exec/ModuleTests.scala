@@ -9,7 +9,7 @@ import mill.define.ExternalModule
 
 import utest._
 
-object PackageDefaultExternalModule extends ExternalModule.Alias(TestExternalModule)
+object `package` extends ExternalModule.Alias(TestExternalModule)
 object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "x"
   def x = Task { 13 }
