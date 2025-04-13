@@ -84,7 +84,7 @@ trait CheckstyleModule extends JavaModule {
    */
   def checkstyleClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(ivy"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
+      Seq(jvm"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
     )
   }
 

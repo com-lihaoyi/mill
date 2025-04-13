@@ -3,7 +3,7 @@ import $meta._
 import mill._, scalalib._
 
 object `package` extends MillBuildRootModule {
-  def libraryDeps = Seq(ivy"com.lihaoyi::scalatags:${constant.MetaConstant.scalatagsVersion}")
+  def jvmDeps = Seq(jvm"com.lihaoyi::scalatags:${constant.MetaConstant.scalatagsVersion}")
 
   def generatedSources = Task {
     os.write(

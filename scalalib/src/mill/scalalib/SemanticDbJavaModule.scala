@@ -46,7 +46,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
 
   def semanticDbScalaVersion: T[String] = BuildInfo.scalaVersion
 
-  protected def semanticDbPluginLibraryDeps: T[Seq[Dep]] = Task {
+  protected def semanticDbPluginJvmDeps: T[Seq[Dep]] = Task {
     val sv = semanticDbScalaVersion()
     val semDbVersion = semanticDbVersion()
     if (!JvmWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
@@ -61,12 +61,12 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
       Result.Success(Seq.empty[Dep])
     } else {
       Result.Success(Seq(
-        ivy"org.scalameta:semanticdb-scalac_${sv}:${semDbVersion}"
+        jvm"org.scalameta:semanticdb-scalac_${sv}:${semDbVersion}"
       ))
     }
   }
 
-  private def semanticDbJavaPluginLibraryDeps: T[Seq[Dep]] = Task {
+  private def semanticDbJavaPluginJvmDeps: T[Seq[Dep]] = Task {
     val sv = semanticDbJavaVersion()
     if (sv.isEmpty) {
       val msg =
@@ -78,7 +78,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
       Result.Failure(msg)
     } else {
       Result.Success(Seq(
-        ivy"com.sourcegraph:semanticdb-javac:${sv}"
+        jvm"com.sourcegraph:semanticdb-javac:${sv}"
       ))
     }
   }
@@ -88,17 +88,17 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
    */
   protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = Task {
     val resolvedJars = defaultResolver().classpath(
-      semanticDbPluginLibraryDeps().map(_.exclude("*" -> "*"))
+      semanticDbPluginJvmDeps().map(_.exclude("*" -> "*"))
     )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
   protected def semanticDbPluginClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(semanticDbPluginLibraryDeps())
+    defaultResolver().classpath(semanticDbPluginJvmDeps())
   }
 
-  protected def resolvedSemanticDbJavaPluginLibraryDeps: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(semanticDbJavaPluginLibraryDeps())
+  protected def resolvedSemanticDbJavaPluginJvmDeps: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(semanticDbJavaPluginJvmDeps())
   }
 
   def semanticDbData: T[PathRef] = Task(persistent = true) {
@@ -117,7 +117,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath =
-          (compileClasspath() ++ resolvedSemanticDbJavaPluginLibraryDeps()).map(_.path),
+          (compileClasspath() ++ resolvedSemanticDbJavaPluginJvmDeps()).map(_.path),
         javacOptions = javacOpts,
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),

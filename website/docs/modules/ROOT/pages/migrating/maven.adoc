@@ -169,5 +169,5 @@ How to fix test compilation errors?
 
 * The test framework configured may be for an unsupported version; try upgrading the
   corresponding dependencies.
-* Mill does not add `compileLibraryDeps` dependencies to the transitive dependencies of the nested
-test module; specify the dependencies again, in `libraryDeps` or `runLibraryDeps`.
+* Mill does not add `compileJvmDeps` dependencies to the transitive dependencies of the nested
+test module; specify the dependencies again, in `jvmDeps` or `runJvmDeps`.

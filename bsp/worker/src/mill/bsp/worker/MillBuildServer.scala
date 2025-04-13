@@ -303,9 +303,9 @@ private class MillBuildServer(
             state,
             id,
             m: JavaModuleApi,
-            (libraryDeps, unmanagedClasspath)
+            (jvmDeps, unmanagedClasspath)
           ) =>
-        val deps = libraryDeps.collect {
+        val deps = jvmDeps.collect {
           case (org, repr, version) if org != "mill-internal" =>
             new DependencyModule(repr, version)
         }

@@ -6,9 +6,9 @@ import $packages._
 trait JUnitTests extends TestModule.Junit4 {
 
   /**
-   * Overridden libraryDeps Docs!!!
+   * Overridden jvmDeps Docs!!!
    */
-  def libraryDeps = Seq(ivy"com.novocode:junit-interface:0.11")
+  def jvmDeps = Seq(jvm"com.novocode:junit-interface:0.11")
   def task = Task {
     "???"
   }

@@ -4,9 +4,9 @@ import mill._, scalalib._, scalajslib._
 object foo extends ScalaJSModule {
   def scalaVersion = "2.13.14"
   def scalaJSVersion = "1.16.0"
-  def libraryDeps = Seq(ivy"com.lihaoyi::scalatags::0.13.1")
+  def jvmDeps = Seq(jvm"com.lihaoyi::scalatags::0.13.1")
   object test extends ScalaJSTests {
-    def libraryDeps = Seq(ivy"com.lihaoyi::utest::0.8.5")
+    def jvmDeps = Seq(jvm"com.lihaoyi::utest::0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -16,7 +16,7 @@ object foo extends ScalaJSModule {
 // `scalaJSVersion` to be provided.
 //
 // By default, Scala.js code gets access to the `scala.scalajs.js` package,
-// which contains the core JS APIs like `js.JSON`, `js.Date`, etc. `libraryDeps` of
+// which contains the core JS APIs like `js.JSON`, `js.Date`, etc. `jvmDeps` of
 // Scala.js-compatible dependencies can be given, which need two colons (`::`)
 // on the right to indicate it's a Scala.js dependency. These can be both Scala
 // libraries compiled to JS, or facades for Javascript libraries. If running in

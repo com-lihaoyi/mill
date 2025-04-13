@@ -23,14 +23,14 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
   }
 
   trait KotlinJsQuxCrossModule extends KotlinJsCrossModule {
-    override def libraryDeps = {
+    override def jvmDeps = {
       // 0.10+ cannot be built with Kotlin 1.8 (it was built with Kotlin 1.9.10 itself). ABI incompatibility?
       val kotlinxHtmlVersion = crossValue.split("\\.").map(_.toInt) match {
         case Array(1, 8, _) => "0.9.1"
         case _ => "0.11.0"
       }
-      super.libraryDeps() ++ Seq(
-        ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion"
+      super.jvmDeps() ++ Seq(
+        jvm"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion"
       )
     }
   }

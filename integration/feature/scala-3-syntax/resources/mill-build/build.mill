@@ -4,6 +4,6 @@ import mill.*
 import mill.scalalib.*
 
 object `package` extends MillBuildRootModule:
-  def libraryDeps = Seq(
-    ivy"org.scala-lang::toolkit:0.5.0"
+  def jvmDeps = Seq(
+    jvm"org.scala-lang::toolkit:0.5.0"
   )

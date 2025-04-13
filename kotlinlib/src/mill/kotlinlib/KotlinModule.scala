@@ -62,9 +62,9 @@ trait KotlinModule extends JavaModule { outer =>
    * The dependencies of this module.
    * Defaults to add the kotlin-stdlib dependency matching the [[kotlinVersion]].
    */
-  override def mandatoryLibraryDeps: T[Seq[Dep]] = Task {
-    super.mandatoryLibraryDeps() ++ Seq(
-      ivy"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
+  override def mandatoryJvmDeps: T[Seq[Dep]] = Task {
+    super.mandatoryJvmDeps() ++ Seq(
+      jvm"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
     )
   }
 
@@ -79,10 +79,10 @@ trait KotlinModule extends JavaModule { outer =>
 
   /**
    * The Java classpath resembling the Kotlin compiler.
-   * Default is derived from [[kotlinCompilerLibraryDeps]].
+   * Default is derived from [[kotlinCompilerJvmDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
-    val deps = kotlinCompilerLibraryDeps() ++ Seq(
+    val deps = kotlinCompilerJvmDeps() ++ Seq(
       Dep.millProjectModule("mill-kotlinlib-worker-impl")
     )
     defaultResolver().classpath(deps)
@@ -110,22 +110,22 @@ trait KotlinModule extends JavaModule { outer =>
    *
    * Default is derived from [[kotlinCompilerVersion]] and [[kotlinUseEmbeddableCompiler]].
    */
-  def kotlinCompilerLibraryDeps: T[Seq[Dep]] = Task {
+  def kotlinCompilerJvmDeps: T[Seq[Dep]] = Task {
     val useEmbeddable = kotlinUseEmbeddableCompiler()
     val kv = kotlinVersion()
     val isOldKotlin = Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4")
       .exists(prefix => kv.startsWith(prefix))
 
     val compilerDep = if (useEmbeddable) {
-      ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kv}"
+      jvm"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kv}"
     } else {
-      ivy"org.jetbrains.kotlin:kotlin-compiler:${kv}"
+      jvm"org.jetbrains.kotlin:kotlin-compiler:${kv}"
     }
 
     val scriptCompilerDep = if (useEmbeddable) {
-      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kv}"
+      jvm"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kv}"
     } else {
-      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kv}"
+      jvm"org.jetbrains.kotlin:kotlin-scripting-compiler:${kv}"
     }
 
     Seq(compilerDep) ++ when(!isOldKotlin)(scriptCompilerDep)
@@ -134,14 +134,14 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Compiler Plugin dependencies.
    */
-  def kotlincPluginLibraryDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def kotlincPluginJvmDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   /**
    * The resolved plugin jars
    */
   def kotlincPluginJars: T[Seq[PathRef]] = Task {
     val jars = defaultResolver().classpath(
-      kotlincPluginLibraryDeps()
+      kotlincPluginJvmDeps()
         // Don't resolve transitive jars
         .map(d => d.exclude("*" -> "*"))
     )
@@ -243,7 +243,7 @@ trait KotlinModule extends JavaModule { outer =>
   private def dokkaCliClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
+        jvm"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       )
     )
   }
@@ -251,8 +251,8 @@ trait KotlinModule extends JavaModule { outer =>
   private def dokkaPluginsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
-        ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
+        jvm"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
+        jvm"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
         Dep.parse(Versions.kotlinxHtmlJvmDep),
         Dep.parse(Versions.freemarkerDep)
       )
@@ -416,8 +416,8 @@ trait KotlinModule extends JavaModule { outer =>
     override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
-    override def kotlincPluginLibraryDeps: T[Seq[Dep]] =
-      Task { outer.kotlincPluginLibraryDeps() }
+    override def kotlincPluginJvmDeps: T[Seq[Dep]] =
+      Task { outer.kotlincPluginJvmDeps() }
       // TODO: make Xfriend-path an explicit setting
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++

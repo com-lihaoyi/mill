@@ -2,14 +2,14 @@ package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def libraryDeps = Seq(
-    ivy"org.springframework.boot:spring-boot-starter-web:2.5.6",
-    ivy"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
+  def jvmDeps = Seq(
+    jvm"org.springframework.boot:spring-boot-starter-web:2.5.6",
+    jvm"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
   )
 
   object test extends JavaTests with TestModule.Junit5 {
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 }

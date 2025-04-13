@@ -15,7 +15,7 @@ trait KtfmtBaseModule extends JavaModule {
    */
   def ktfmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(ivy"com.facebook:ktfmt:${ktfmtVersion()}")
+      Seq(jvm"com.facebook:ktfmt:${ktfmtVersion()}")
     )
   }
 

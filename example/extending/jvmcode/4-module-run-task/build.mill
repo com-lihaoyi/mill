@@ -18,7 +18,7 @@ object foo extends ScalaModule {
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
-  def libraryDeps = Seq(ivy"com.lihaoyi::os-lib:0.10.7")
+  def jvmDeps = Seq(jvm"com.lihaoyi::os-lib:0.10.7")
 }
 
 // In this example, we use

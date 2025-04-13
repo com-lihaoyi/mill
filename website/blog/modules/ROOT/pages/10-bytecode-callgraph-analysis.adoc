@@ -934,7 +934,7 @@ the callgraph analysis, using Mill's own Mill build as the test case.
    invalidates `16/8154` tasks, all downstream of `millVersion` which is invalidated by the dirty hash of
    the repo checkout changing
 
-2. Changing `scalajslib.worker[1].libraryDeps` by re-ordering them, invalidates `17/8154` tasks
+2. Changing `scalajslib.worker[1].jvmDeps` by re-ordering them, invalidates `17/8154` tasks
    (just the ones above, + the one edited)
 
 3. Changing `MillScalaModule#scalacOptions` by removing `-feature`, invalidates `836/8154` tasks

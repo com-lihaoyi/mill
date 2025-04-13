@@ -12,9 +12,9 @@ object foo extends KotlinModule with NativeImageModule {
     "--initialize-at-build-time=com.github.ajalt.mordant.internal.nativeimage.NativeImagePosixMppImpls"
   )
 
-  def libraryDeps = Seq(
-    ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
-    ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+  def jvmDeps = Seq(
+    jvm"com.github.ajalt.clikt:clikt-jvm:4.4.0",
+    jvm"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 
   def jvmWorker = ModuleRef(JvmWorkerGraalvm)

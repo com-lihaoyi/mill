@@ -2,5 +2,5 @@ import mill._
 import mill.scalalib._
 
 object `package` extends MillBuildRootModule {
-  def libraryDeps = Seq(ivy"org.scalameta::munit:0.7.29")
+  def jvmDeps = Seq(jvm"org.scalameta::munit:0.7.29")
 }

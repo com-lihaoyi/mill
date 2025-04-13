@@ -31,19 +31,19 @@
 //      val bloopVersion = mill.contrib.bloop.Versions.bloop
 //      override def mainClass = Some("foo.bar.Main")
 //
-//      override def libraryDeps = Seq(
-//        ivy"ch.epfl.scala::bloop-config:$bloopVersion"
+//      override def jvmDeps = Seq(
+//        jvm"ch.epfl.scala::bloop-config:$bloopVersion"
 //      )
 //      override def scalacOptions = Seq(
 //        "-language:higherKinds"
 //      )
 //
-//      override def compileLibraryDeps = Seq(
-//        ivy"org.reactivestreams:reactive-streams:1.0.3"
+//      override def compileJvmDeps = Seq(
+//        jvm"org.reactivestreams:reactive-streams:1.0.3"
 //      )
 //
-//      override def runLibraryDeps = Seq(
-//        ivy"org.postgresql:postgresql:42.3.3"
+//      override def runJvmDeps = Seq(
+//        jvm"org.postgresql:postgresql:42.3.3"
 //      )
 //
 //      object test extends ScalaTests with TestModule.Utest

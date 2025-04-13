@@ -31,11 +31,11 @@ object `package` extends RootModule with PublishModule with MavenModule {
 
   object test extends MavenTests with TestModule.Junit4 {
 
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"junit:junit-dep:4.10",
-      ivy"org.hamcrest:hamcrest-core:1.2.1",
-      ivy"org.hamcrest:hamcrest-library:1.2.1",
-      ivy"org.mockito:mockito-core:1.8.5"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"junit:junit-dep:4.10",
+      jvm"org.hamcrest:hamcrest-core:1.2.1",
+      jvm"org.hamcrest:hamcrest-library:1.2.1",
+      jvm"org.mockito:mockito-core:1.8.5"
     )
 
     def testSandboxWorkingDir = false

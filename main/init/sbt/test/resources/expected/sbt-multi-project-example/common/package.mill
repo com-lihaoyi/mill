@@ -32,13 +32,13 @@ object `package` extends RootModule with SbtModule with PublishModule {
     )
   }
 
-  def libraryDeps = super.libraryDeps() ++ Seq(
-    ivy"ch.qos.logback:logback-classic:1.2.3",
-    ivy"com.typesafe.akka::akka-stream:2.5.6",
-    ivy"com.typesafe.scala-logging::scala-logging:3.7.2",
-    ivy"com.typesafe:config:1.3.1",
-    ivy"net.logstash.logback:logstash-logback-encoder:4.11",
-    ivy"org.slf4j:jcl-over-slf4j:1.7.25"
+  def jvmDeps = super.jvmDeps() ++ Seq(
+    jvm"ch.qos.logback:logback-classic:1.2.3",
+    jvm"com.typesafe.akka::akka-stream:2.5.6",
+    jvm"com.typesafe.scala-logging::scala-logging:3.7.2",
+    jvm"com.typesafe:config:1.3.1",
+    jvm"net.logstash.logback:logstash-logback-encoder:4.11",
+    jvm"org.slf4j:jcl-over-slf4j:1.7.25"
   )
 
   def pomSettings = PomSettings(
@@ -66,9 +66,9 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   object test extends SbtTests with TestModule.ScalaTest {
 
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"org.scalacheck::scalacheck:1.13.5",
-      ivy"org.scalatest::scalatest:3.0.4"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"org.scalacheck::scalacheck:1.13.5",
+      jvm"org.scalatest::scalatest:3.0.4"
     )
 
     def testSandboxWorkingDir = false

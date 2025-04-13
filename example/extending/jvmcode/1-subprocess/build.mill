@@ -19,7 +19,7 @@ import mill.util.Jvm
 
 object foo extends JavaModule {
   def groovyClasspath: Task[Seq[PathRef]] = Task {
-    defaultResolver().classpath(Seq(ivy"org.codehaus.groovy:groovy:3.0.9"))
+    defaultResolver().classpath(Seq(jvm"org.codehaus.groovy:groovy:3.0.9"))
   }
 
   def groovyScript = Task.Source("generate.groovy")

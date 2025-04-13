@@ -25,12 +25,12 @@ object BomTests extends TestSuite {
   object modules extends TestBaseModule {
     object bom extends Module {
       object placeholder extends JavaModule with TestPublishModule {
-        // Empty version in libraryDeps should be filled with BOM
-        def bomLibraryDeps = Seq(
-          ivy"com.google.cloud:libraries-bom:26.50.0"
+        // Empty version in jvmDeps should be filled with BOM
+        def bomJvmDeps = Seq(
+          jvm"com.google.cloud:libraries-bom:26.50.0"
         )
-        def libraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-java"
+        def jvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-java"
         )
 
         object dependee extends JavaModule with TestPublishModule {
@@ -49,8 +49,8 @@ object BomTests extends TestSuite {
 
         object check extends JavaModule {
           // Empty version with no BOM - should fail
-          def libraryDeps = Seq(
-            ivy"com.google.protobuf:protobuf-java"
+          def jvmDeps = Seq(
+            jvm"com.google.protobuf:protobuf-java"
           )
         }
       }
@@ -58,11 +58,11 @@ object BomTests extends TestSuite {
       object versionOverride extends JavaModule with TestPublishModule {
         // protobuf-java is a dependency of scalapbc
         // The BOM overrides its version
-        def bomLibraryDeps = Seq(
-          ivy"com.google.cloud:libraries-bom:26.50.0"
+        def bomJvmDeps = Seq(
+          jvm"com.google.cloud:libraries-bom:26.50.0"
         )
-        def libraryDeps = Seq(
-          ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
+        def jvmDeps = Seq(
+          jvm"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
         )
 
         object dependee extends JavaModule with TestPublishModule {
@@ -81,8 +81,8 @@ object BomTests extends TestSuite {
 
         object check extends JavaModule {
           // No BOM - checking that the protobuf version is different than the one with the BOM
-          def libraryDeps = Seq(
-            ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
+          def jvmDeps = Seq(
+            jvm"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
           )
         }
       }
@@ -90,8 +90,8 @@ object BomTests extends TestSuite {
       object invalid extends Module {
         object exclude extends JavaModule {
           // excludes aren't accepted alongside BOM coordinates
-          def bomLibraryDeps = Seq(
-            ivy"com.google.cloud:libraries-bom:26.50.0".exclude(("foo", "thing"))
+          def bomJvmDeps = Seq(
+            jvm"com.google.cloud:libraries-bom:26.50.0".exclude(("foo", "thing"))
           )
         }
       }
@@ -100,11 +100,11 @@ object BomTests extends TestSuite {
     object depMgmt extends JavaModule with TestPublishModule {
       // scalapbc depends on protobuf-java
       // depManagement should override protobuf-java version
-      def libraryDeps = Seq(
-        ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
+      def jvmDeps = Seq(
+        jvm"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
       )
       def depManagement = Seq(
-        ivy"com.google.protobuf:protobuf-java:4.28.3"
+        jvm"com.google.protobuf:protobuf-java:4.28.3"
       )
 
       object transitive extends JavaModule with TestPublishModule {
@@ -115,14 +115,14 @@ object BomTests extends TestSuite {
       object extraExclude extends JavaModule with TestPublishModule {
         // Adding an exclude to an ivyDep from depManagement, while
         // the version in ivyDep is preserved
-        def libraryDeps = Seq(
-          ivy"com.lihaoyi:cask_2.13:0.9.5"
+        def jvmDeps = Seq(
+          jvm"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Seq(
           // The exclude should be automatically added to the dependency above
           // thanks to dependency management, but the version should be left
           // untouched
-          ivy"com.lihaoyi:cask_2.13:0.9.3"
+          jvm"com.lihaoyi:cask_2.13:0.9.3"
             .exclude(("org.slf4j", "slf4j-api"))
         )
 
@@ -135,11 +135,11 @@ object BomTests extends TestSuite {
       object exclude extends JavaModule with TestPublishModule {
         // Adding an exclude to and overriding the version of a transitive dependency
         // from depManagement
-        def libraryDeps = Seq(
-          ivy"com.lihaoyi:cask_2.13:0.9.5"
+        def jvmDeps = Seq(
+          jvm"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Seq(
-          ivy"org.java-websocket:Java-WebSocket:1.5.2"
+          jvm"org.java-websocket:Java-WebSocket:1.5.2"
             .exclude(("org.slf4j", "slf4j-api"))
         )
 
@@ -150,11 +150,11 @@ object BomTests extends TestSuite {
       }
 
       object onlyExclude extends JavaModule with TestPublishModule {
-        def libraryDeps = Seq(
-          ivy"com.lihaoyi:cask_2.13:0.9.5"
+        def jvmDeps = Seq(
+          jvm"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Seq(
-          ivy"org.java-websocket:Java-WebSocket"
+          jvm"org.java-websocket:Java-WebSocket"
             .exclude(("org.slf4j", "slf4j-api"))
         )
 
@@ -166,7 +166,7 @@ object BomTests extends TestSuite {
       object invalid extends Module {
         object transitive extends JavaModule {
           def depManagement = {
-            val dep = ivy"org.java-websocket:Java-WebSocket:1.5.3"
+            val dep = jvm"org.java-websocket:Java-WebSocket:1.5.3"
             Seq(
               dep.copy(
                 dep = dep.dep.withTransitive(false)
@@ -177,11 +177,11 @@ object BomTests extends TestSuite {
       }
 
       object placeholder extends JavaModule with TestPublishModule {
-        def libraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-java"
+        def jvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-java"
         )
         def depManagement = Seq(
-          ivy"com.google.protobuf:protobuf-java:4.28.3"
+          jvm"com.google.protobuf:protobuf-java:4.28.3"
         )
 
         object transitive extends JavaModule with TestPublishModule {
@@ -192,68 +192,68 @@ object BomTests extends TestSuite {
 
     object precedence extends Module {
       object higher extends JavaModule with TestPublishModule {
-        def bomLibraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        def bomJvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Seq(
-          ivy"com.google.protobuf:protobuf-java:4.28.3"
+          jvm"com.google.protobuf:protobuf-java:4.28.3"
         )
 
-        def libraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-java"
+        def jvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-java"
         )
       }
 
       object higherTransitive extends JavaModule with TestPublishModule {
-        def bomLibraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        def bomJvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Seq(
-          ivy"com.google.protobuf:protobuf-java:4.28.3"
+          jvm"com.google.protobuf:protobuf-java:4.28.3"
         )
 
-        def libraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-java-util"
+        def jvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-java-util"
         )
       }
 
       object lower extends JavaModule with TestPublishModule {
-        def bomLibraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        def bomJvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Seq(
-          ivy"com.google.protobuf:protobuf-java:3.22.0"
+          jvm"com.google.protobuf:protobuf-java:3.22.0"
         )
 
-        def libraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-java"
+        def jvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-java"
         )
       }
 
       object lowerTransitive extends JavaModule with TestPublishModule {
-        def bomLibraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        def bomJvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Seq(
-          ivy"com.google.protobuf:protobuf-java:3.22.0"
+          jvm"com.google.protobuf:protobuf-java:3.22.0"
         )
 
-        def libraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-java-util"
+        def jvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-java-util"
         )
       }
 
       object addExclude extends JavaModule with TestPublishModule {
-        def bomLibraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-bom:4.28.3"
+        def bomJvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-bom:4.28.3"
         )
         def depManagement = Seq(
-          ivy"com.google.protobuf:protobuf-java-util"
+          jvm"com.google.protobuf:protobuf-java-util"
             .exclude(("com.google.protobuf", "protobuf-java"))
         )
 
-        def libraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-java-util"
+        def jvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-java-util"
         )
 
         object transitive extends JavaModule with TestPublishModule {
@@ -263,12 +263,12 @@ object BomTests extends TestSuite {
 
       object firstInDepMgmt extends JavaModule with TestPublishModule {
         def depManagement = Seq(
-          ivy"com.google.protobuf:protobuf-java:3.22.0",
-          ivy"com.google.protobuf:protobuf-java:4.28.3"
+          jvm"com.google.protobuf:protobuf-java:3.22.0",
+          jvm"com.google.protobuf:protobuf-java:4.28.3"
         )
 
-        def libraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-java"
+        def jvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-java"
         )
 
         object transitive extends JavaModule with TestPublishModule {
@@ -278,12 +278,12 @@ object BomTests extends TestSuite {
 
       object firstInDepMgmtTransitively extends JavaModule with TestPublishModule {
         def depManagement = Seq(
-          ivy"com.google.protobuf:protobuf-java:3.22.0",
-          ivy"com.google.protobuf:protobuf-java:4.28.3"
+          jvm"com.google.protobuf:protobuf-java:3.22.0",
+          jvm"com.google.protobuf:protobuf-java:4.28.3"
         )
 
-        def libraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-java-util:4.28.3"
+        def jvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-java-util:4.28.3"
         )
 
         object transitive extends JavaModule with TestPublishModule {
@@ -297,24 +297,24 @@ object BomTests extends TestSuite {
         // This BOM has a versions for protobuf-java-util marked as provided,
         // and one for scala-parallel-collections_2.13 in the default scope.
         // Both should be taken into account here.
-        def bomLibraryDeps = Seq(
-          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        def bomJvmDeps = Seq(
+          jvm"org.apache.spark:spark-parent_2.13:3.5.3"
         )
-        def compileLibraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-java-util",
-          ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+        def compileJvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-java-util",
+          jvm"org.scala-lang.modules:scala-parallel-collections_2.13"
         )
 
         object leak extends JavaModule with TestPublishModule {
           // Same as above, except the dependencies are in the
           // default scope for us here, so the protobuf-java-util version
           // shouldn't be read, as it's in provided scope in the BOM.
-          def bomLibraryDeps = Seq(
-            ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+          def bomJvmDeps = Seq(
+            jvm"org.apache.spark:spark-parent_2.13:3.5.3"
           )
-          def libraryDeps = Seq(
-            ivy"com.google.protobuf:protobuf-java-util",
-            ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+          def jvmDeps = Seq(
+            jvm"com.google.protobuf:protobuf-java-util",
+            jvm"org.scala-lang.modules:scala-parallel-collections_2.13"
           )
         }
       }
@@ -322,36 +322,36 @@ object BomTests extends TestSuite {
       object runtimeScope extends JavaModule with TestPublishModule {
         // BOM has a version for org.mvnpm.at.hpcc-js:wasm marked as runtime.
         // This version should be taken into account in runtime deps here.
-        def bomLibraryDeps = Seq(
-          ivy"io.quarkus:quarkus-bom:3.15.1"
+        def bomJvmDeps = Seq(
+          jvm"io.quarkus:quarkus-bom:3.15.1"
         )
-        def runLibraryDeps = Seq(
-          ivy"org.mvnpm.at.hpcc-js:wasm"
+        def runJvmDeps = Seq(
+          jvm"org.mvnpm.at.hpcc-js:wasm"
         )
       }
 
       object runtimeScopeLeak extends JavaModule with TestPublishModule {
         // BOM has a version for org.mvnpm.at.hpcc-js:wasm marked as runtime.
         // This version shouldn't be taken into account in main deps here.
-        def bomLibraryDeps = Seq(
-          ivy"io.quarkus:quarkus-bom:3.15.1"
+        def bomJvmDeps = Seq(
+          jvm"io.quarkus:quarkus-bom:3.15.1"
         )
-        def libraryDeps = Seq(
-          ivy"org.mvnpm.at.hpcc-js:wasm"
+        def jvmDeps = Seq(
+          jvm"org.mvnpm.at.hpcc-js:wasm"
         )
       }
 
       object testScope extends JavaModule with TestPublishModule {
         // BOM has a version for scalatest_2.13 marked as test scope.
         // This version should be taken into account in test modules here.
-        def bomLibraryDeps = Seq(
-          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        def bomJvmDeps = Seq(
+          jvm"org.apache.spark:spark-parent_2.13:3.5.3"
         )
         object test extends JavaTests {
           def testFramework = "com.novocode.junit.JUnitFramework"
-          def libraryDeps = Seq(
-            ivy"com.novocode:junit-interface:0.11",
-            ivy"org.scalatest:scalatest_2.13"
+          def jvmDeps = Seq(
+            jvm"com.novocode:junit-interface:0.11",
+            jvm"org.scalatest:scalatest_2.13"
           )
         }
       }
@@ -359,23 +359,23 @@ object BomTests extends TestSuite {
       object testScopeLeak extends JavaModule with TestPublishModule {
         // BOM has a version for scalatest_2.13 marked as test scope.
         // This version shouldn't be taken into account in main module here.
-        def bomLibraryDeps = Seq(
-          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        def bomJvmDeps = Seq(
+          jvm"org.apache.spark:spark-parent_2.13:3.5.3"
         )
-        def libraryDeps = Seq(
-          ivy"org.scalatest:scalatest_2.13"
+        def jvmDeps = Seq(
+          jvm"org.scalatest:scalatest_2.13"
         )
       }
     }
 
     object depMgmtScope extends Module {
       object provided extends JavaModule with TestPublishModule {
-        // Version in depManagement should be used in compileLibraryDeps
+        // Version in depManagement should be used in compileJvmDeps
         def depManagement = Seq(
-          ivy"org.scala-lang.modules:scala-parallel-collections_2.13:1.0.4"
+          jvm"org.scala-lang.modules:scala-parallel-collections_2.13:1.0.4"
         )
-        def compileLibraryDeps = Seq(
-          ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+        def compileJvmDeps = Seq(
+          jvm"org.scala-lang.modules:scala-parallel-collections_2.13"
         )
       }
 
@@ -383,10 +383,10 @@ object BomTests extends TestSuite {
         // Dep mgmt has a version for org.mvnpm.at.hpcc-js:wasm
         // This version should be taken into account in runtime deps here.
         def depManagement = Seq(
-          ivy"org.mvnpm.at.hpcc-js:wasm:2.15.3"
+          jvm"org.mvnpm.at.hpcc-js:wasm:2.15.3"
         )
-        def runLibraryDeps = Seq(
-          ivy"org.mvnpm.at.hpcc-js:wasm"
+        def runJvmDeps = Seq(
+          jvm"org.mvnpm.at.hpcc-js:wasm"
         )
       }
 
@@ -394,26 +394,26 @@ object BomTests extends TestSuite {
         // Dep mgmt in main module has a version for scalatest_2.13.
         // This version should be taken into account in test modules here.
         def depManagement = Seq(
-          ivy"org.scalatest:scalatest_2.13:3.2.16"
+          jvm"org.scalatest:scalatest_2.13:3.2.16"
         )
         object test extends JavaTests {
           def testFramework = "com.novocode.junit.JUnitFramework"
-          def libraryDeps = Seq(
-            ivy"com.novocode:junit-interface:0.11",
-            ivy"org.scalatest:scalatest_2.13"
+          def jvmDeps = Seq(
+            jvm"com.novocode:junit-interface:0.11",
+            jvm"org.scalatest:scalatest_2.13"
           )
         }
       }
     }
 
     object bomOnModuleDependency extends JavaModule with TestPublishModule {
-      def libraryDeps = Seq(
-        ivy"com.google.protobuf:protobuf-java:3.23.4"
+      def jvmDeps = Seq(
+        jvm"com.google.protobuf:protobuf-java:3.23.4"
       )
 
       object dependee extends JavaModule with TestPublishModule {
-        def bomLibraryDeps = Seq(
-          ivy"com.google.cloud:libraries-bom:26.50.0"
+        def bomJvmDeps = Seq(
+          jvm"com.google.cloud:libraries-bom:26.50.0"
         )
         def moduleDeps = Seq(bomOnModuleDependency)
       }
@@ -422,13 +422,13 @@ object BomTests extends TestSuite {
     object bomModule extends Module {
       object depMgmtBomMod extends BomModule with TestPublishModule {
         def depManagement = Seq(
-          ivy"com.lihaoyi:os-lib_2.13:0.11.3"
+          jvm"com.lihaoyi:os-lib_2.13:0.11.3"
         )
 
         object bomUser extends JavaModule with TestPublishModule {
           def bomModuleDeps = Seq(depMgmtBomMod)
-          def libraryDeps = Seq(
-            ivy"com.lihaoyi:os-lib_2.13"
+          def jvmDeps = Seq(
+            jvm"com.lihaoyi:os-lib_2.13"
           )
         }
       }
@@ -436,93 +436,93 @@ object BomTests extends TestSuite {
       object scalaDepMgmtBomMod extends ScalaModule with BomModule with TestPublishModule {
         def scalaVersion = "2.13.15"
         def depManagement = Seq(
-          ivy"com.lihaoyi::os-lib:0.11.3"
+          jvm"com.lihaoyi::os-lib:0.11.3"
         )
 
         object bomUser extends ScalaModule with TestPublishModule {
           def scalaVersion = "2.13.15"
           def bomModuleDeps = Seq(scalaDepMgmtBomMod)
-          def libraryDeps = Seq(
-            ivy"com.lihaoyi::os-lib"
+          def jvmDeps = Seq(
+            jvm"com.lihaoyi::os-lib"
           )
         }
       }
 
       object bomWithBom extends BomModule with TestPublishModule {
-        def bomLibraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        def bomJvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Seq(
-          ivy"com.lihaoyi:os-lib_2.13:0.11.3"
+          jvm"com.lihaoyi:os-lib_2.13:0.11.3"
         )
 
         object bomUser extends JavaModule with TestPublishModule {
           def bomModuleDeps = Seq(bomWithBom)
-          def libraryDeps = Seq(
-            ivy"com.lihaoyi:os-lib_2.13",
-            ivy"com.google.protobuf:protobuf-java"
+          def jvmDeps = Seq(
+            jvm"com.lihaoyi:os-lib_2.13",
+            jvm"com.google.protobuf:protobuf-java"
           )
         }
       }
 
       object bomWithBomOverride extends BomModule with TestPublishModule {
-        def bomLibraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        def bomJvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Seq(
-          ivy"com.lihaoyi:os-lib_2.13:0.11.3",
-          ivy"com.google.protobuf:protobuf-java:4.28.0"
+          jvm"com.lihaoyi:os-lib_2.13:0.11.3",
+          jvm"com.google.protobuf:protobuf-java:4.28.0"
         )
 
         object bomUser extends JavaModule with TestPublishModule {
           def bomModuleDeps = Seq(bomWithBomOverride)
-          def libraryDeps = Seq(
-            ivy"com.lihaoyi:os-lib_2.13",
-            ivy"com.google.protobuf:protobuf-java"
+          def jvmDeps = Seq(
+            jvm"com.lihaoyi:os-lib_2.13",
+            jvm"com.google.protobuf:protobuf-java"
           )
         }
       }
 
       object chainedBoms extends BomModule with TestPublishModule {
-        def bomLibraryDeps = Seq(
-          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        def bomJvmDeps = Seq(
+          jvm"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Seq(
-          ivy"com.fasterxml.jackson.core:jackson-core:2.18.1"
+          jvm"com.fasterxml.jackson.core:jackson-core:2.18.1"
         )
 
         object simpleOverrides extends BomModule with TestPublishModule {
           def bomModuleDeps = Seq(chainedBoms)
-          def bomLibraryDeps = Seq(
-            ivy"com.google.protobuf:protobuf-bom:4.28.2"
+          def bomJvmDeps = Seq(
+            jvm"com.google.protobuf:protobuf-bom:4.28.2"
           )
           def depManagement = Seq(
-            ivy"com.fasterxml.jackson.core:jackson-core:2.18.2"
+            jvm"com.fasterxml.jackson.core:jackson-core:2.18.2"
           )
 
           object bomUser extends JavaModule with TestPublishModule {
             def bomModuleDeps = Seq(simpleOverrides)
-            def libraryDeps = Seq(
-              ivy"com.fasterxml.jackson.core:jackson-core",
-              ivy"com.google.protobuf:protobuf-java"
+            def jvmDeps = Seq(
+              jvm"com.fasterxml.jackson.core:jackson-core",
+              jvm"com.google.protobuf:protobuf-java"
             )
           }
         }
 
         object crossedOverrides extends BomModule with TestPublishModule {
           def bomModuleDeps = Seq(chainedBoms)
-          def bomLibraryDeps = Seq(
-            ivy"com.fasterxml.jackson:jackson-bom:2.18.2"
+          def bomJvmDeps = Seq(
+            jvm"com.fasterxml.jackson:jackson-bom:2.18.2"
           )
           def depManagement = Seq(
-            ivy"com.google.protobuf:protobuf-java:4.28.2"
+            jvm"com.google.protobuf:protobuf-java:4.28.2"
           )
 
           object bomUser extends JavaModule with TestPublishModule {
             def bomModuleDeps = Seq(crossedOverrides)
-            def libraryDeps = Seq(
-              ivy"com.fasterxml.jackson.core:jackson-core",
-              ivy"com.google.protobuf:protobuf-java"
+            def jvmDeps = Seq(
+              jvm"com.fasterxml.jackson.core:jackson-core",
+              jvm"com.google.protobuf:protobuf-java"
             )
           }
         }

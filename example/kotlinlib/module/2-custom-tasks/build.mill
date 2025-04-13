@@ -6,23 +6,23 @@ object `package` extends RootModule with KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def libraryDeps = Seq(ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0")
+  def jvmDeps = Seq(jvm"com.github.ajalt.clikt:clikt-jvm:4.4.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
-    val prettyLibraryDeps = for (ivyDep <- libraryDeps()) yield {
+    val prettyJvmDeps = for (ivyDep <- jvmDeps()) yield {
       val org = ivyDep.organization
       val name = ivyDep.name
       val version = ivyDep.version
       s""" "$org:$name:$version" """
     }
-    val libraryDepsString = prettyLibraryDeps.mkString(" + \"\\n\" + \n")
+    val jvmDepsString = prettyJvmDeps.mkString(" + \"\\n\" + \n")
     os.write(
       Task.dest / s"MyDeps.kt",
       s"""
          |package foo
          |
          |object MyDeps {
-         |  const val VALUE = $libraryDepsString;
+         |  const val VALUE = $jvmDepsString;
          |}
       """.stripMargin
     )

@@ -8,10 +8,10 @@ object foo extends KotlinModule {
 
   object test extends KotlinTests {
     def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-    def libraryDeps = Seq(
-      ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
+    def jvmDeps = Seq(
+      jvm"com.github.sbt.junit:jupiter-interface:0.11.4",
+      jvm"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      jvm"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     def testForkGrouping =

@@ -22,7 +22,7 @@ trait KoverReportBaseModule extends CoursierModule {
   }
 
   def koverCliDep: Target[Seq[Dep]] = Task {
-    Seq(ivy"org.jetbrains.kotlinx:kover-cli:${koverVersion()}")
+    Seq(jvm"org.jetbrains.kotlinx:kover-cli:${koverVersion()}")
   }
 
   /**

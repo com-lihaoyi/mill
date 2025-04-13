@@ -13,25 +13,25 @@ object `package` extends RootModule with KotlinModule {
   val ktorVersion = "2.3.12"
   val exposedVersion = "0.53.0"
 
-  def libraryDeps = Seq(
-    ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
-    ivy"org.jetbrains.exposed:exposed-core:$exposedVersion",
-    ivy"org.jetbrains.exposed:exposed-jdbc:$exposedVersion",
-    ivy"com.h2database:h2:2.2.224",
-    ivy"io.ktor:ktor-server-webjars-jvm:$ktorVersion",
-    ivy"org.webjars:jquery:3.2.1",
-    ivy"io.ktor:ktor-server-thymeleaf-jvm:$ktorVersion",
-    ivy"org.webjars:webjars-locator:0.41",
-    ivy"org.webjars.npm:todomvc-common:1.0.5",
-    ivy"org.webjars.npm:todomvc-app-css:2.4.1",
-    ivy"ch.qos.logback:logback-classic:1.4.14"
+  def jvmDeps = Seq(
+    jvm"io.ktor:ktor-server-core-jvm:$ktorVersion",
+    jvm"io.ktor:ktor-server-netty-jvm:$ktorVersion",
+    jvm"org.jetbrains.exposed:exposed-core:$exposedVersion",
+    jvm"org.jetbrains.exposed:exposed-jdbc:$exposedVersion",
+    jvm"com.h2database:h2:2.2.224",
+    jvm"io.ktor:ktor-server-webjars-jvm:$ktorVersion",
+    jvm"org.webjars:jquery:3.2.1",
+    jvm"io.ktor:ktor-server-thymeleaf-jvm:$ktorVersion",
+    jvm"org.webjars:webjars-locator:0.41",
+    jvm"org.webjars.npm:todomvc-common:1.0.5",
+    jvm"org.webjars.npm:todomvc-app-css:2.4.1",
+    jvm"ch.qos.logback:logback-classic:1.4.14"
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"io.ktor:ktor-server-test-host-jvm:2.3.12"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      jvm"io.ktor:ktor-server-test-host-jvm:2.3.12"
     )
   }
 }

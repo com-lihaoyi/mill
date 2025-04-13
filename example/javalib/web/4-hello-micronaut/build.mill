@@ -3,18 +3,18 @@ import mill._, javalib._
 
 object `package` extends RootModule with MicronautModule {
   def micronautVersion = "4.5.3"
-  def libraryDeps = Seq(
-    ivy"io.micronaut:micronaut-http-server-netty:$micronautVersion",
-    ivy"io.micronaut.serde:micronaut-serde-jackson:2.10.1",
-    ivy"ch.qos.logback:logback-classic:1.5.3"
+  def jvmDeps = Seq(
+    jvm"io.micronaut:micronaut-http-server-netty:$micronautVersion",
+    jvm"io.micronaut.serde:micronaut-serde-jackson:2.10.1",
+    jvm"ch.qos.logback:logback-classic:1.5.3"
   )
 
   object test extends MavenTests with TestModule.Junit5 {
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"io.micronaut:micronaut-http-client:$micronautVersion",
-      ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
-      ivy"org.junit.jupiter:junit-jupiter-api:5.8.1",
-      ivy"org.junit.jupiter:junit-jupiter-engine:5.8.1"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"io.micronaut:micronaut-http-client:$micronautVersion",
+      jvm"io.micronaut.test:micronaut-test-junit5:4.4.0",
+      jvm"org.junit.jupiter:junit-jupiter-api:5.8.1",
+      jvm"org.junit.jupiter:junit-jupiter-engine:5.8.1"
     )
 
     // Micronaut test not compatible with running in parallel
@@ -28,11 +28,11 @@ trait MicronautModule extends MavenModule {
   def processors = Task {
     defaultResolver().classpath(
       Seq(
-        ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
-        ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
-        ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",
-        ivy"io.micronaut.validation:micronaut-validation-processor:4.5.0",
-        ivy"io.micronaut:micronaut-inject-java:$micronautVersion"
+        jvm"io.micronaut.data:micronaut-data-processor:4.7.0",
+        jvm"io.micronaut:micronaut-http-validation:$micronautVersion",
+        jvm"io.micronaut.serde:micronaut-serde-processor:2.9.0",
+        jvm"io.micronaut.validation:micronaut-validation-processor:4.5.0",
+        jvm"io.micronaut:micronaut-inject-java:$micronautVersion"
       )
     )
   }

@@ -12,15 +12,15 @@ object ExclusionsTests extends TestSuite {
     object scala213 extends ScalaNativeModule {
       def scalaNativeVersion = "0.4.3"
       def scalaVersion = "2.13.10"
-      override def libraryDeps = super.libraryDeps() ++ Seq(
-        ivy"com.github.scopt:scopt_native0.4_3:4.0.1"
+      override def jvmDeps = super.jvmDeps() ++ Seq(
+        jvm"com.github.scopt:scopt_native0.4_3:4.0.1"
       )
     }
     object scala3 extends ScalaNativeModule {
       def scalaNativeVersion = "0.4.3"
       def scalaVersion = "3.1.1"
-      override def libraryDeps = super.libraryDeps() ++ Seq(
-        ivy"com.github.scopt:scopt_native0.4_2.13:4.0.1"
+      override def jvmDeps = super.jvmDeps() ++ Seq(
+        jvm"com.github.scopt:scopt_native0.4_2.13:4.0.1"
       )
     }
     override lazy val millDiscover = Discover[this.type]
@@ -30,7 +30,7 @@ object ExclusionsTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("scala3 scala native libraries are excluded in Scala 2.13") {
-      val Right(result) = exclusionsEvaluator(Exclusions.scala213.resolvedLibraryDeps): @unchecked
+      val Right(result) = exclusionsEvaluator(Exclusions.scala213.resolvedJvmDeps): @unchecked
       val jars = result.value.iterator.map(_.path.last).toSet
       assert(jars.contains("nativelib_native0.4_2.13-0.4.3.jar"))
       assert(!jars.contains("nativelib_native0.4_3-0.4.3.jar"))
@@ -38,7 +38,7 @@ object ExclusionsTests extends TestSuite {
       assert(!jars.contains("clib_native0.4_3-0.4.3.jar"))
     }
     test("scala2.13 scala native libraries are excluded in Scala 3") {
-      val Right(result) = exclusionsEvaluator(Exclusions.scala3.resolvedLibraryDeps): @unchecked
+      val Right(result) = exclusionsEvaluator(Exclusions.scala3.resolvedJvmDeps): @unchecked
       val jars = result.value.iterator.map(_.path.last).toSet
       assert(jars.contains("nativelib_native0.4_3-0.4.3.jar"))
       assert(!jars.contains("nativelib_native0.4_2.13-0.4.3.jar"))

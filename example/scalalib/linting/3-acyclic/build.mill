@@ -11,7 +11,7 @@
 //   interface-implementation-separation to resolve.
 //
 // As a Scala compiler plugin, Acyclic can be enabled on any `ScalaModule` by
-// adding its `compileLibraryDeps,` `scalacPluginLibraryDeps`, and `scalacOptions` as
+// adding its `compileJvmDeps,` `scalacPluginJvmDeps`, and `scalacOptions` as
 // shown below:
 
 package build
@@ -19,8 +19,8 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.11"
-  def compileLibraryDeps = Seq(ivy"com.lihaoyi:::acyclic:0.3.15")
-  def scalacPluginLibraryDeps = Seq(ivy"com.lihaoyi:::acyclic:0.3.15")
+  def compileJvmDeps = Seq(jvm"com.lihaoyi:::acyclic:0.3.15")
+  def scalacPluginJvmDeps = Seq(jvm"com.lihaoyi:::acyclic:0.3.15")
   def scalacOptions = Seq("-P:acyclic:force")
 }
 

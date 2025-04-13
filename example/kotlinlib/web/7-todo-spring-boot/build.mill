@@ -5,37 +5,37 @@ object `package` extends RootModule with KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def mainClass = Some("com.example.TodomvcApplicationKt")
-  def libraryDeps = Seq(
-    ivy"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
-    ivy"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
-    ivy"org.springframework.boot:spring-boot-starter-validation:2.5.4",
-    ivy"org.springframework.boot:spring-boot-starter-web:2.5.4",
-    ivy"org.jetbrains.kotlin:kotlin-reflect:2.0.21",
-    ivy"javax.xml.bind:jaxb-api:2.3.1",
-    ivy"org.webjars:webjars-locator:0.41",
-    ivy"org.webjars.npm:todomvc-common:1.0.5",
-    ivy"org.webjars.npm:todomvc-app-css:2.4.1"
+  def jvmDeps = Seq(
+    jvm"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
+    jvm"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
+    jvm"org.springframework.boot:spring-boot-starter-validation:2.5.4",
+    jvm"org.springframework.boot:spring-boot-starter-web:2.5.4",
+    jvm"org.jetbrains.kotlin:kotlin-reflect:2.0.21",
+    jvm"javax.xml.bind:jaxb-api:2.3.1",
+    jvm"org.webjars:webjars-locator:0.41",
+    jvm"org.webjars.npm:todomvc-common:1.0.5",
+    jvm"org.webjars.npm:todomvc-app-css:2.4.1"
   )
 
   trait HelloTests extends KotlinTests with TestModule.Junit5 {
     def mainClass = Some("com.example.TodomvcApplicationKt")
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 
   object test extends HelloTests {
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"com.h2database:h2:2.3.230"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"com.h2database:h2:2.3.230"
     )
   }
 
   object integration extends HelloTests {
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"org.testcontainers:testcontainers:1.18.0",
-      ivy"org.testcontainers:junit-jupiter:1.18.0",
-      ivy"org.testcontainers:postgresql:1.18.0",
-      ivy"org.postgresql:postgresql:42.6.0"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"org.testcontainers:testcontainers:1.18.0",
+      jvm"org.testcontainers:junit-jupiter:1.18.0",
+      jvm"org.testcontainers:postgresql:1.18.0",
+      jvm"org.postgresql:postgresql:42.6.0"
     )
   }
 }

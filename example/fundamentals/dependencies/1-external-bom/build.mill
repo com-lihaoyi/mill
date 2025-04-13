@@ -1,15 +1,15 @@
-// Pass an external BOM to a `JavaModule` / `ScalaModule` / `KotlinModule` with `bomLibraryDeps`, like
+// Pass an external BOM to a `JavaModule` / `ScalaModule` / `KotlinModule` with `bomJvmDeps`, like
 
 //// SNIPPET:BUILD1
 package build
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def bomLibraryDeps = Seq(
-    ivy"com.google.cloud:libraries-bom:26.50.0"
+  def bomJvmDeps = Seq(
+    jvm"com.google.cloud:libraries-bom:26.50.0"
   )
-  def libraryDeps = Seq(
-    ivy"io.grpc:grpc-protobuf"
+  def jvmDeps = Seq(
+    jvm"io.grpc:grpc-protobuf"
   )
 }
 
@@ -20,6 +20,6 @@ object foo extends JavaModule {
 // But the BOM specifies another version for that dependency, `4.28.3`, so
 // protobuf-java `4.28.3` ends up being pulled here.
 //
-// Several BOMs can be passed to `bomLibraryDeps`. If several specify a version for a dependency,
-// the version from the first one in the `bomLibraryDeps` list is used. If several specify exclusions
+// Several BOMs can be passed to `bomJvmDeps`. If several specify a version for a dependency,
+// the version from the first one in the `bomJvmDeps` list is used. If several specify exclusions
 // for a dependency, all exclusions are added to that dependency.

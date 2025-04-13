@@ -12,7 +12,7 @@ import mill.internal.Util.backtickWrap
 /**
  * @param seenScripts
  * @param repos
- * @param libraryDeps
+ * @param jvmDeps
  * @param importGraphEdges
  * @param errors
  * @param metaBuild If `true`, a meta-build is enabled
@@ -21,7 +21,7 @@ import mill.internal.Util.backtickWrap
 case class FileImportGraph(
     seenScripts: Map[os.Path, String],
     repos: Seq[(String, os.Path)],
-    libraryDeps: Set[String],
+    jvmDeps: Set[String],
     errors: Seq[String],
     metaBuild: Boolean,
     buildFile: String
@@ -127,7 +127,7 @@ object FileImportGraph {
             } seenRepo.addOne((repo, s))
             (start, "_root_._", end)
 
-          case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
+          case ImportTree(Seq(("$jvm", _), rest @ _*), mapping, start, end) =>
             seenIvy.addAll(mapping.map(_._1))
             (start, "_root_._", end)
 

@@ -6,15 +6,15 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with MavenModule {
 
-  def libraryDeps = super.libraryDeps() ++ Seq(
-    ivy"com.google.guava:guava:33.2.1-jre",
-    ivy"org.apache.commons:commons-math3:3.6.1"
+  def jvmDeps = super.jvmDeps() ++ Seq(
+    jvm"com.google.guava:guava:33.2.1-jre",
+    jvm"org.apache.commons:commons-math3:3.6.1"
   )
 
   object test extends MavenTests with TestModule.Junit5 {
 
-    def libraryDeps = super.libraryDeps() ++
-      Seq(ivy"org.junit.jupiter:junit-jupiter:5.10.3")
+    def jvmDeps = super.jvmDeps() ++
+      Seq(jvm"org.junit.jupiter:junit-jupiter:5.10.3")
 
     def testSandboxWorkingDir = false
     def testParallelism = false

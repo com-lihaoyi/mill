@@ -7,10 +7,10 @@ object foo extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def moduleDeps = Seq(bar)
-  def runLibraryDeps = Seq(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+  def runJvmDeps = Seq(
+    jvm"javax.servlet:servlet-api:2.5",
+    jvm"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    jvm"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
   def mainClass = Some("bar.BarKt")
 }
@@ -21,10 +21,10 @@ object bar extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def compileLibraryDeps = Seq(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+  def compileJvmDeps = Seq(
+    jvm"javax.servlet:servlet-api:2.5",
+    jvm"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    jvm"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
 }
 

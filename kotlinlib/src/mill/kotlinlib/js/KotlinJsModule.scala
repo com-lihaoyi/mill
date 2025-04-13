@@ -63,13 +63,13 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
-  override def mandatoryLibraryDeps: T[Seq[Dep]] = Task {
-    super.mandatoryLibraryDeps()
+  override def mandatoryJvmDeps: T[Seq[Dep]] = Task {
+    super.mandatoryJvmDeps()
       // TODO: find source or docs, why this is the correct behavior
       // Filter out the non-js kotlin-stdlib
       .filterNot(d => d.organization == "org.jetbrains.kotlin" && d.name == "kotlin-stdlib") ++
       Seq(
-        ivy"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
+        jvm"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
       )
   }
 
@@ -676,8 +676,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Run tests for Kotlin/JS target using `kotlin.test` package.
    */
   trait KotlinTestPackageTests extends KotlinJsTests {
-    override def mandatoryLibraryDeps: T[Seq[Dep]] = super.mandatoryLibraryDeps() ++ Seq(
-      ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
+    override def mandatoryJvmDeps: T[Seq[Dep]] = super.mandatoryJvmDeps() ++ Seq(
+      jvm"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
   }
 
@@ -692,13 +692,13 @@ trait KotlinJsModule extends KotlinModule { outer =>
      */
     def kotestVersion: T[String]
 
-    override def kotlincPluginLibraryDeps: T[Seq[Dep]] = super.kotlincPluginLibraryDeps() ++ Seq(
-      ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
+    override def kotlincPluginJvmDeps: T[Seq[Dep]] = super.kotlincPluginJvmDeps() ++ Seq(
+      jvm"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
     )
 
-    override def mandatoryLibraryDeps: T[Seq[Dep]] = super.mandatoryLibraryDeps() ++ Seq(
-      ivy"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
-      ivy"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
+    override def mandatoryJvmDeps: T[Seq[Dep]] = super.mandatoryJvmDeps() ++ Seq(
+      jvm"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
+      jvm"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
     )
   }
 

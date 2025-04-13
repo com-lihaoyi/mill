@@ -70,8 +70,8 @@ object PublishModuleTests extends TestSuite {
           Seq(Developer("lefou", "Tobias Roeser", "https://github.com/lefou"))
       )
       override def versionScheme = Some(VersionScheme.EarlySemVer)
-      override def libraryDeps = Seq(
-        ivy"org.slf4j:slf4j-api:2.0.7"
+      override def jvmDeps = Seq(
+        jvm"org.slf4j:slf4j-api:2.0.7"
       )
       // ensure, these target won't be called
       override def jar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
@@ -97,11 +97,11 @@ object PublishModuleTests extends TestSuite {
       )
     }
     object main extends JavaModule with TestPublishModule {
-      def libraryDeps = Seq(
-        ivy"org.slf4j:slf4j-api:2.0.15"
+      def jvmDeps = Seq(
+        jvm"org.slf4j:slf4j-api:2.0.15"
       )
-      def runLibraryDeps = Seq(
-        ivy"ch.qos.logback:logback-classic:1.5.12"
+      def runJvmDeps = Seq(
+        jvm"ch.qos.logback:logback-classic:1.5.12"
       )
     }
 
@@ -209,7 +209,7 @@ object PublishModuleTests extends TestSuite {
       }
     }
 
-    test("ivy") {
+    test("jvm") {
       test("should include scala-library dependency") - UnitTester(
         HelloWorldWithPublish,
         resourcePath

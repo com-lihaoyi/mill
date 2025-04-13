@@ -15,8 +15,8 @@ import mill.scalalib._
 object project extends ScalaModule {
   object test extends ScalaTests {
     def testFramework = "mill.testng.TestNGFramework"
-    def libraryDeps = super.libraryDeps ++ Seq(
-      ivy"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}"
+    def jvmDeps = super.jvmDeps ++ Seq(
+      jvm"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}"
     )
   }
 }

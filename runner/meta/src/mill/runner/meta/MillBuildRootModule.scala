@@ -27,7 +27,7 @@ import scala.collection.mutable
  * Mill module for pre-processing a Mill `build.mill` and related files and then
  * compiling them as a normal [[ScalaModule]]. Parses `build.mill`, walks any
  * `import $file`s, wraps the script files to turn them into valid Scala code
- * and then compiles them with the `libraryDeps` extracted from the `import $ivy`
+ * and then compiles them with the `jvmDeps` extracted from the `import $ivy`
  * calls within the scripts.
  */
 @internal
@@ -100,41 +100,41 @@ class MillBuildRootModule()(implicit
     imports
   }
 
-  override def mandatoryLibraryDeps = Task {
+  override def mandatoryJvmDeps = Task {
     Seq.from(
-      MillIvy.processMillLibraryDepsignature(parseBuildFiles().libraryDeps)
+      MillIvy.processMillJvmDepsignature(parseBuildFiles().jvmDeps)
         .map(mill.scalalib.Dep.parse)
     ) ++
       Seq(
-        ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}",
-        ivy"com.lihaoyi::mill-core-api:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-core-define:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-kotlinlib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-scalajslib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-scalanativelib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-javascriptlib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-pythonlib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-main-init:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-idea:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-bsp:${Versions.millVersion}",
-        ivy"com.lihaoyi::sourcecode:0.4.3-M5"
+        jvm"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}",
+        jvm"com.lihaoyi::mill-core-api:${Versions.millVersion}",
+        jvm"com.lihaoyi::mill-core-define:${Versions.millVersion}",
+        jvm"com.lihaoyi::mill-kotlinlib:${Versions.millVersion}",
+        jvm"com.lihaoyi::mill-scalajslib:${Versions.millVersion}",
+        jvm"com.lihaoyi::mill-scalanativelib:${Versions.millVersion}",
+        jvm"com.lihaoyi::mill-javascriptlib:${Versions.millVersion}",
+        jvm"com.lihaoyi::mill-pythonlib:${Versions.millVersion}",
+        jvm"com.lihaoyi::mill-main-init:${Versions.millVersion}",
+        jvm"com.lihaoyi::mill-idea:${Versions.millVersion}",
+        jvm"com.lihaoyi::mill-bsp:${Versions.millVersion}",
+        jvm"com.lihaoyi::sourcecode:0.4.3-M5"
       ) ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
-        ivy"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
+        jvm"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
       }
   }
 
-  override def runLibraryDeps = Task {
+  override def runJvmDeps = Task {
     val imports = cliImports()
     val ivyImports = imports.collect { case s"ivy:$rest" => rest }
     Seq.from(
-      MillIvy.processMillLibraryDepsignature(ivyImports.toSet)
+      MillIvy.processMillJvmDepsignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     ) ++ Seq(
       // Needed at runtime to insantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
       // classloader but should not be available for users to compile against
-      ivy"com.lihaoyi::mill-core-eval:${Versions.millVersion}"
+      jvm"com.lihaoyi::mill-core-eval:${Versions.millVersion}"
     )
   }
 
@@ -277,11 +277,11 @@ class MillBuildRootModule()(implicit
       .toSeq
   }
 
-  def compileLibraryDeps = Seq(
-    ivy"com.lihaoyi::sourcecode:0.4.3-M5"
+  def compileJvmDeps = Seq(
+    jvm"com.lihaoyi::sourcecode:0.4.3-M5"
   )
-  override def scalacPluginLibraryDeps: T[Seq[Dep]] = Seq(
-    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+  override def scalacPluginJvmDeps: T[Seq[Dep]] = Seq(
+    jvm"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 

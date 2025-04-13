@@ -79,10 +79,10 @@ The following compile dependencies will automatically be added to your build:
 [source,scala]
 ----
 Seq(
-  ivy"com.typesafe.play::play:${playVersion()}",
-  ivy"com.typesafe.play::play-guice:${playVersion()}",
-  ivy"com.typesafe.play::play-server:${playVersion()}",
-  ivy"com.typesafe.play::play-logback:${playVersion()}"
+  jvm"com.typesafe.play::play:${playVersion()}",
+  jvm"com.typesafe.play::play-guice:${playVersion()}",
+  jvm"com.typesafe.play::play-server:${playVersion()}",
+  jvm"com.typesafe.play::play-logback:${playVersion()}"
 )
 ----
 
@@ -91,17 +91,17 @@ added (the actual version depends on the version of Play you are pulling `2.6.x`
 
 [source,scala]
 ----
-ivy"org.scalatestplus.play::scalatestplus-play::5.1.0"
+jvm"org.scalatestplus.play::scalatestplus-play::5.1.0"
 ----
 
 In order to have a working `start` command the following runtime dependency is also added:
 
 ----
-ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
+jvm"com.typesafe.play::play-akka-http-server:${playVersion()}"
 ----
 or
 ----
-ivy"com.typesafe.play::play-pekko-http-server:${playVersion()}"
+jvm"com.typesafe.play::play-pekko-http-server:${playVersion()}"
 ----
 depending on the play version
 
@@ -145,7 +145,7 @@ The following helpers are available to provide additional Play Framework depende
 * `ws()` - optional,
 * `caffeine()` - optional.
 
-If you want to add an optional library using the helper you can do so by overriding `libraryDeps`
+If you want to add an optional library using the helper you can do so by overriding `jvmDeps`
 like in the following example build:
 
 .`build.mill`
@@ -162,7 +162,7 @@ object core extends PlayApiModule {
 
     object test extends PlayTests
 
-    override def libraryDeps = Task { super.libraryDeps() ++ Seq(ws(), filters()) }
+    override def jvmDeps = Task { super.jvmDeps() ++ Seq(ws(), filters()) }
 }
 ----
 

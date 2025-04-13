@@ -26,17 +26,17 @@ object `package` extends RootModule with PublishModule with MavenModule {
   object test extends MavenTests with TestModule.Junit5 with JmhModule {
     def testSandboxWorkingDir = false
     def jmhCoreVersion = "1.37"
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"org.junit.jupiter:junit-jupiter:5.10.3",
-      ivy"org.junit-pioneer:junit-pioneer:1.9.1",
-      ivy"net.bytebuddy:byte-buddy:1.14.18",
-      ivy"net.bytebuddy:byte-buddy-agent:1.14.18",
-      ivy"org.mockito:mockito-inline:4.11.0",
-      ivy"com.google.jimfs:jimfs:1.3.0",
-      ivy"org.apache.commons:commons-lang3:3.14.0",
-      ivy"commons-codec:commons-codec:1.17.1",
-      ivy"org.openjdk.jmh:jmh-core:1.37",
-      ivy"org.openjdk.jmh:jmh-generator-annprocess:1.37"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"org.junit.jupiter:junit-jupiter:5.10.3",
+      jvm"org.junit-pioneer:junit-pioneer:1.9.1",
+      jvm"net.bytebuddy:byte-buddy:1.14.18",
+      jvm"net.bytebuddy:byte-buddy-agent:1.14.18",
+      jvm"org.mockito:mockito-inline:4.11.0",
+      jvm"com.google.jimfs:jimfs:1.3.0",
+      jvm"org.apache.commons:commons-lang3:3.14.0",
+      jvm"commons-codec:commons-codec:1.17.1",
+      jvm"org.openjdk.jmh:jmh-core:1.37",
+      jvm"org.openjdk.jmh:jmh-generator-annprocess:1.37"
     )
   }
 }

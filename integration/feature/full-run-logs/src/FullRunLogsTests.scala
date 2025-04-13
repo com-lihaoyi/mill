@@ -95,11 +95,11 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // Profile logs for the thing called by show
       assert(millProfile.exists(_.obj("label").str == "compile"))
       assert(millProfile.exists(_.obj("label").str == "compileClasspath"))
-      assert(millProfile.exists(_.obj("label").str == "libraryDeps"))
+      assert(millProfile.exists(_.obj("label").str == "jvmDeps"))
       assert(millProfile.exists(_.obj("label").str == "javacOptions"))
       assert(millChromeProfile.exists(_.obj("name").str == "compile"))
       assert(millChromeProfile.exists(_.obj("name").str == "compileClasspath"))
-      assert(millChromeProfile.exists(_.obj("name").str == "libraryDeps"))
+      assert(millChromeProfile.exists(_.obj("name").str == "jvmDeps"))
       assert(millChromeProfile.exists(_.obj("name").str == "javacOptions"))
       // Profile logs for show itself
       assert(millProfile.exists(_.obj("label").str == "show"))

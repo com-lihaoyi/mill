@@ -16,11 +16,11 @@ trait MyModule extends KotlinModule with PublishModule {
 
   def kotlinVersion = "1.9.24"
 
-  def libraryDeps = Seq(ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0")
+  def jvmDeps = Seq(jvm"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0")
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }
 }

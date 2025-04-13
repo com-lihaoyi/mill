@@ -6,14 +6,14 @@ import mill._, kotlinlib._
 object foo extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
-  def libraryDeps = Seq(
-    ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
-    ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+  def jvmDeps = Seq(
+    jvm"com.github.ajalt.clikt:clikt-jvm:4.4.0",
+    jvm"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def libraryDeps = Seq(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    def jvmDeps = Seq(
+      jvm"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }
 }

@@ -98,7 +98,7 @@ object MillInitMavenDotEnvTests extends BuildGenTestSuite {
 
       val compileRes = eval("__.compile")
       assert(
-        // JavaModule.JavaTests does not pick compileLibraryDeps from outer module
+        // JavaModule.JavaTests does not pick compileJvmDeps from outer module
         compileRes.err.contains(
           "DotEnvModuleTest.java:3:25: package com.google.inject does not exist"
         ),
@@ -290,7 +290,7 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "codec-stomp.test.compile",
               "codec-xml.test.compile",
               "codec.test.compile", /* missing native dependency */
-              "common.test.compile", /* missing outer compileLibraryDeps */
+              "common.test.compile", /* missing outer compileJvmDeps */
               "example.compile",
               "handler-proxy.test.compile",
               "handler-ssl-ocsp.compile",

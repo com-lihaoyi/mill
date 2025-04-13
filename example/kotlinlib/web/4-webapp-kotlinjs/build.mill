@@ -15,10 +15,10 @@ object `package` extends RootModule with KotlinModule {
 
   override def mainClass = Some("webapp.WebApp")
 
-  override def libraryDeps = Seq(
-    ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-html-builder-jvm:$ktorVersion"
+  override def jvmDeps = Seq(
+    jvm"io.ktor:ktor-server-core-jvm:$ktorVersion",
+    jvm"io.ktor:ktor-server-netty-jvm:$ktorVersion",
+    jvm"io.ktor:ktor-server-html-builder-jvm:$ktorVersion"
   )
 
   override def resources = Task {
@@ -32,9 +32,9 @@ object `package` extends RootModule with KotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    override def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
+    override def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      jvm"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
     )
   }
 
@@ -43,8 +43,8 @@ object `package` extends RootModule with KotlinModule {
 
     override def kotlinJsSplitPerModule = false
 
-    override def libraryDeps = Seq(
-      ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion"
+    override def jvmDeps = Seq(
+      jvm"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion"
     )
   }
 }

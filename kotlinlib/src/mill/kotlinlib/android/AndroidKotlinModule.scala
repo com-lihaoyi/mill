@@ -13,10 +13,10 @@ trait AndroidKotlinModule extends KotlinModule {
    */
   def androidEnableCompose: T[Boolean] = false
 
-  override def kotlincPluginLibraryDeps: T[Seq[Dep]] = Task {
+  override def kotlincPluginJvmDeps: T[Seq[Dep]] = Task {
     val kv = kotlinVersion()
 
-    val deps = super.kotlincPluginLibraryDeps()
+    val deps = super.kotlincPluginJvmDeps()
 
     if (androidEnableCompose()) {
       if (kv.startsWith("1")) {
@@ -25,7 +25,7 @@ trait AndroidKotlinModule extends KotlinModule {
         Result.Failure("Compose can be used only with Kotlin version 2 or newer.")
       } else {
         Result.Success(deps ++ Seq(
-          ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
+          jvm"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
         ))
       }
     } else Result.Success(deps)

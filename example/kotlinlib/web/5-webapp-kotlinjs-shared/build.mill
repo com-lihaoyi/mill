@@ -23,13 +23,13 @@ object `package` extends RootModule with AppKotlinModule {
 
   override def moduleDeps = Seq(shared.jvm)
 
-  override def libraryDeps = Seq(
-    ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-html-builder-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion",
-    ivy"ch.qos.logback:logback-classic:1.5.8"
+  override def jvmDeps = Seq(
+    jvm"io.ktor:ktor-server-core-jvm:$ktorVersion",
+    jvm"io.ktor:ktor-server-netty-jvm:$ktorVersion",
+    jvm"io.ktor:ktor-server-html-builder-jvm:$ktorVersion",
+    jvm"io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion",
+    jvm"io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion",
+    jvm"ch.qos.logback:logback-classic:1.5.8"
   )
 
   override def resources = Task {
@@ -41,30 +41,30 @@ object `package` extends RootModule with AppKotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    override def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
+    override def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      jvm"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
     )
   }
 
   object shared extends Module {
 
     trait SharedModule extends AppKotlinModule with PlatformKotlinModule {
-      override def kotlincPluginLibraryDeps = Seq(
-        ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
+      override def kotlincPluginJvmDeps = Seq(
+        jvm"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
       )
     }
 
     object jvm extends SharedModule {
-      override def libraryDeps = super.libraryDeps() ++ Seq(
-        ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion",
-        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion"
+      override def jvmDeps = super.jvmDeps() ++ Seq(
+        jvm"org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion",
+        jvm"org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion"
       )
     }
     object js extends SharedModule with AppKotlinJsModule {
-      override def libraryDeps = super.libraryDeps() ++ Seq(
-        ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
-        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
+      override def jvmDeps = super.jvmDeps() ++ Seq(
+        jvm"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
+        jvm"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
       )
     }
   }
@@ -72,9 +72,9 @@ object `package` extends RootModule with AppKotlinModule {
   object client extends AppKotlinJsModule {
     override def kotlinJsSplitPerModule = false
     override def moduleDeps = Seq(shared.js)
-    override def libraryDeps = Seq(
-      ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
-      ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
+    override def jvmDeps = Seq(
+      jvm"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
+      jvm"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
     )
   }
 }

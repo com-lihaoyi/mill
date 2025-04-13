@@ -4,10 +4,10 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def moduleDeps = Seq(bar)
-  def runLibraryDeps = Seq(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+  def runJvmDeps = Seq(
+    jvm"javax.servlet:servlet-api:2.5",
+    jvm"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    jvm"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
   def mainClass = Some("bar.Bar")
 }
@@ -15,10 +15,10 @@ object foo extends JavaModule {
 //// SNIPPET:BUILD2
 
 object bar extends JavaModule {
-  def compileLibraryDeps = Seq(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+  def compileJvmDeps = Seq(
+    jvm"javax.servlet:servlet-api:2.5",
+    jvm"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    jvm"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
 }
 

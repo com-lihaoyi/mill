@@ -16,24 +16,24 @@ object `hello-kotlin` extends kotlinlib.KotlinModule {
 }
 
 // testing a two-module setup, with one module depending on the other,
-// involving libraryDeps, but also compile-time only and runtime only dependencies
+// involving jvmDeps, but also compile-time only and runtime only dependencies
 object lib extends scalalib.JavaModule {
   import scalalib._
-  def compileLibraryDeps = Seq(
-    ivy"junit:junit:4.13.2"
+  def compileJvmDeps = Seq(
+    jvm"junit:junit:4.13.2"
   )
-  def libraryDeps = Seq(
-    ivy"org.slf4j:slf4j-api:2.0.16"
+  def jvmDeps = Seq(
+    jvm"org.slf4j:slf4j-api:2.0.16"
   )
 }
 
 object app extends scalalib.JavaModule {
   import scalalib._
   def moduleDeps = Seq(lib)
-  def libraryDeps = Seq(
-    ivy"ch.qos.logback:logback-core:1.5.15"
+  def jvmDeps = Seq(
+    jvm"ch.qos.logback:logback-core:1.5.15"
   )
-  def runLibraryDeps = Seq(
-    ivy"com.mysql:mysql-connector-j:9.1.0"
+  def runJvmDeps = Seq(
+    jvm"com.mysql:mysql-connector-j:9.1.0"
   )
 }

@@ -45,7 +45,7 @@ trait HelloWorldTests extends utest.TestSuite {
       )
 
       object test extends ScoverageTests with TestModule.ScalaTest {
-        override def libraryDeps = Seq(ivy"org.scalatest::scalatest:${testScalatestVersion}")
+        override def jvmDeps = Seq(jvm"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
 
@@ -58,7 +58,7 @@ trait HelloWorldTests extends utest.TestSuite {
       def scoverageVersion = testScoverageVersion
 
       object test extends SbtTests with ScoverageTests with TestModule.ScalaTest {
-        override def libraryDeps = Seq(ivy"org.scalatest::scalatest:${testScalatestVersion}")
+        override def jvmDeps = Seq(jvm"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
 
@@ -86,13 +86,13 @@ trait HelloWorldTests extends utest.TestSuite {
               result.evalCount > 0
             )
           }
-          test("libraryDeps") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
+          test("jvmDeps") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(HelloWorld.core.scoverage.libraryDeps): @unchecked
+              eval.apply(HelloWorld.core.scoverage.jvmDeps): @unchecked
 
             val expected = if (isScala3) Seq.empty
             else Seq(
-              ivy"org.scoverage::scalac-scoverage-runtime:${testScoverageVersion}"
+              jvm"org.scoverage::scalac-scoverage-runtime:${testScoverageVersion}"
             )
 
             assert(
@@ -100,22 +100,22 @@ trait HelloWorldTests extends utest.TestSuite {
               result.evalCount > 0
             )
           }
-          test("scalacPluginLibraryDeps") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
+          test("scalacPluginJvmDeps") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(HelloWorld.core.scoverage.scalacPluginLibraryDeps): @unchecked
+              eval.apply(HelloWorld.core.scoverage.scalacPluginJvmDeps): @unchecked
 
             val expected = (isScov3, isScala3) match {
               case (true, true) => Seq.empty
               case (true, false) =>
                 Seq(
-                  ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}",
-                  ivy"org.scoverage::scalac-scoverage-domain:${testScoverageVersion}",
-                  ivy"org.scoverage::scalac-scoverage-serializer:${testScoverageVersion}",
-                  ivy"org.scoverage::scalac-scoverage-reporter:${testScoverageVersion}"
+                  jvm"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}",
+                  jvm"org.scoverage::scalac-scoverage-domain:${testScoverageVersion}",
+                  jvm"org.scoverage::scalac-scoverage-serializer:${testScoverageVersion}",
+                  jvm"org.scoverage::scalac-scoverage-reporter:${testScoverageVersion}"
                 )
               case (false, _) =>
                 Seq(
-                  ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}"
+                  jvm"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}"
                 )
             }
             assert(

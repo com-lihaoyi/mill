@@ -16,38 +16,38 @@ trait NettyBaseModule extends MavenModule {
 trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5 {
   def testSandboxWorkingDir = false
   def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-  def libraryDeps = Seq(
-    ivy"com.github.sbt.junit:jupiter-interface:0.11.2",
-    ivy"org.hamcrest:hamcrest-library:1.3",
-    ivy"org.assertj:assertj-core:3.18.0",
-    ivy"org.junit.jupiter:junit-jupiter-api:5.9.0",
-    ivy"org.junit.jupiter:junit-jupiter-params:5.9.0",
-    ivy"org.mockito:mockito-core:2.18.3",
-    ivy"org.reflections:reflections:0.10.2",
-    ivy"com.google.code.gson:gson:2.8.9",
-    ivy"com.google.guava:guava:28.2-jre",
-    ivy"org.jctools:jctools-core:4.0.5",
-    ivy"io.netty:netty-tcnative-classes:2.0.65.Final",
-    ivy"io.netty:netty-tcnative-boringssl-static:2.0.65.Final",
-    ivy"com.barchart.udt:barchart-udt-bundle:2.3.0",
-    ivy"com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
-    ivy"com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
-    ivy"com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
-    ivy"com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0",
-    ivy"com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
-    ivy"com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
-    ivy"org.jboss.marshalling:jboss-marshalling:2.0.5.Final",
-    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0",
-    ivy"org.apache.commons:commons-compress:1.26.0",
-    ivy"com.jcraft:jzlib:1.1.3",
-    ivy"net.jpountz.lz4:lz4:1.3.0",
-    ivy"com.ning:compress-lzf:1.0.3",
-    ivy"com.github.jponge:lzma-java:1.3",
-    ivy"com.github.luben:zstd-jni:1.5.5-11",
-    ivy"ch.qos.logback:logback-classic:1.1.7",
-    ivy"org.eclipse.jetty.npn:npn-api:1.1.1.v20141010",
-    ivy"org.bouncycastle:bcpkix-jdk15on:1.69",
-    ivy"org.bouncycastle:bctls-jdk15on:1.69"
+  def jvmDeps = Seq(
+    jvm"com.github.sbt.junit:jupiter-interface:0.11.2",
+    jvm"org.hamcrest:hamcrest-library:1.3",
+    jvm"org.assertj:assertj-core:3.18.0",
+    jvm"org.junit.jupiter:junit-jupiter-api:5.9.0",
+    jvm"org.junit.jupiter:junit-jupiter-params:5.9.0",
+    jvm"org.mockito:mockito-core:2.18.3",
+    jvm"org.reflections:reflections:0.10.2",
+    jvm"com.google.code.gson:gson:2.8.9",
+    jvm"com.google.guava:guava:28.2-jre",
+    jvm"org.jctools:jctools-core:4.0.5",
+    jvm"io.netty:netty-tcnative-classes:2.0.65.Final",
+    jvm"io.netty:netty-tcnative-boringssl-static:2.0.65.Final",
+    jvm"com.barchart.udt:barchart-udt-bundle:2.3.0",
+    jvm"com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
+    jvm"com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
+    jvm"com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
+    jvm"com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0",
+    jvm"com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
+    jvm"com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
+    jvm"org.jboss.marshalling:jboss-marshalling:2.0.5.Final",
+    jvm"com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    jvm"org.apache.commons:commons-compress:1.26.0",
+    jvm"com.jcraft:jzlib:1.1.3",
+    jvm"net.jpountz.lz4:lz4:1.3.0",
+    jvm"com.ning:compress-lzf:1.0.3",
+    jvm"com.github.jponge:lzma-java:1.3",
+    jvm"com.github.luben:zstd-jni:1.5.5-11",
+    jvm"ch.qos.logback:logback-classic:1.1.7",
+    jvm"org.eclipse.jetty.npn:npn-api:1.1.1.v20141010",
+    jvm"org.bouncycastle:bcpkix-jdk15on:1.69",
+    jvm"org.bouncycastle:bctls-jdk15on:1.69"
   )
 
   def forkArgs = Seq(
@@ -72,11 +72,11 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5 {
 trait NettyTestSuiteModule extends NettyBaseTestSuiteModule {}
 trait NettyModule extends NettyBaseModule {
   def testModuleDeps: Seq[MavenModule] = Nil
-  def testLibraryDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def testJvmDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   object test extends NettyBaseTestSuiteModule with MavenTests {
     def moduleDeps = super.moduleDeps ++ testModuleDeps
-    def libraryDeps = super.libraryDeps() ++ testLibraryDeps()
+    def jvmDeps = super.jvmDeps() ++ testJvmDeps()
     def forkWorkingDir = NettyModule.this.moduleDir
     def forkArgs = super.forkArgs() ++ Seq(
       "-Dnativeimage.handlerMetadataArtifactId=netty-" + NettyModule.this.moduleSegments.last.value
@@ -95,7 +95,7 @@ trait NettyJniModule extends NettyModule {
   def clang = Task {
     val Seq(sourceJar) = defaultResolver()
       .classpath(
-        Seq(ivy"io.netty:netty-jni-util:0.0.9.Final"),
+        Seq(jvm"io.netty:netty-jni-util:0.0.9.Final"),
         sources = true
       )
       .toSeq
@@ -138,24 +138,24 @@ object bom extends NettyModule {}
 
 object buffer extends NettyModule {
   def moduleDeps = Seq(common)
-  def testLibraryDeps = Seq(ivy"org.jctools:jctools-core:4.0.5")
+  def testJvmDeps = Seq(jvm"org.jctools:jctools-core:4.0.5")
 }
 
 object codec extends NettyModule {
   def moduleDeps = Seq(common, buffer, transport)
   def testModuleDeps = Seq(transport.test)
-  def libraryDeps = Seq(
-    ivy"com.google.protobuf:protobuf-java:2.6.1"
+  def jvmDeps = Seq(
+    jvm"com.google.protobuf:protobuf-java:2.6.1"
   )
-  def compileLibraryDeps = Seq(
-    ivy"org.jboss.marshalling:jboss-marshalling:2.0.5.Final",
-    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0",
-    ivy"com.jcraft:jzlib:1.1.3",
-    ivy"net.jpountz.lz4:lz4:1.3.0",
-    ivy"com.ning:compress-lzf:1.0.3",
-    ivy"com.github.jponge:lzma-java:1.3",
-    ivy"com.github.luben:zstd-jni:1.5.5-11",
-    ivy"com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5"
+  def compileJvmDeps = Seq(
+    jvm"org.jboss.marshalling:jboss-marshalling:2.0.5.Final",
+    jvm"com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    jvm"com.jcraft:jzlib:1.1.3",
+    jvm"net.jpountz.lz4:lz4:1.3.0",
+    jvm"com.ning:compress-lzf:1.0.3",
+    jvm"com.github.jponge:lzma-java:1.3",
+    jvm"com.github.luben:zstd-jni:1.5.5-11",
+    jvm"com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5"
   )
 }
 
@@ -172,20 +172,20 @@ object `codec-haproxy` extends NettyModule {
 object `codec-http` extends NettyModule {
   def moduleDeps = Seq(common, buffer, transport, codec, handler)
   def testModuleDeps = Seq(transport.test)
-  def compileLibraryDeps = Seq(
-    ivy"com.jcraft:jzlib:1.1.3",
-    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0"
+  def compileJvmDeps = Seq(
+    jvm"com.jcraft:jzlib:1.1.3",
+    jvm"com.aayushatharva.brotli4j:brotli4j:1.16.0"
   )
-  def testLibraryDeps = Seq(
-    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0"
+  def testJvmDeps = Seq(
+    jvm"com.aayushatharva.brotli4j:brotli4j:1.16.0"
   )
 }
 
 object `codec-http2` extends NettyModule {
   def moduleDeps = Seq(common, buffer, transport, codec, handler, `codec-http`)
   def testModuleDeps = Seq(transport.test)
-  def compileLibraryDeps = Seq(
-    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0"
+  def compileJvmDeps = Seq(
+    jvm"com.aayushatharva.brotli4j:brotli4j:1.16.0"
   )
 }
 
@@ -222,29 +222,29 @@ object `codec-stomp` extends NettyModule {
 object `codec-xml` extends NettyModule {
   def moduleDeps = Seq(buffer, transport, codec)
   def testModuleDeps = Seq(transport.test)
-  def libraryDeps = Seq(
-    ivy"com.fasterxml:aalto-xml:1.0.0"
+  def jvmDeps = Seq(
+    jvm"com.fasterxml:aalto-xml:1.0.0"
   )
 }
 
 object common extends NettyModule {
-  def compileLibraryDeps = Seq(
-    ivy"org.jctools:jctools-core:4.0.5",
-    ivy"org.graalvm.nativeimage:svm:19.3.6",
-    ivy"org.jetbrains:annotations-java5:23.0.0",
-    ivy"io.projectreactor.tools:blockhound:1.0.6.RELEASE",
-    ivy"commons-logging:commons-logging:1.2",
-    ivy"org.apache.logging.log4j:log4j-api:2.17.2",
-    ivy"org.apache.logging.log4j:log4j-1.2-api:2.17.2",
-    ivy"org.slf4j:slf4j-api:1.7.30"
+  def compileJvmDeps = Seq(
+    jvm"org.jctools:jctools-core:4.0.5",
+    jvm"org.graalvm.nativeimage:svm:19.3.6",
+    jvm"org.jetbrains:annotations-java5:23.0.0",
+    jvm"io.projectreactor.tools:blockhound:1.0.6.RELEASE",
+    jvm"commons-logging:commons-logging:1.2",
+    jvm"org.apache.logging.log4j:log4j-api:2.17.2",
+    jvm"org.apache.logging.log4j:log4j-1.2-api:2.17.2",
+    jvm"org.slf4j:slf4j-api:1.7.30"
   )
-  def testLibraryDeps = Seq(
-    ivy"org.jetbrains:annotations-java5:23.0.0",
-    ivy"commons-logging:commons-logging:1.2",
-    ivy"org.apache.logging.log4j:log4j-api:2.17.2",
-    ivy"org.apache.logging.log4j:log4j-core:2.17.2",
-    ivy"org.apache.logging.log4j:log4j-1.2-api:2.17.2",
-    ivy"org.jctools:jctools-core:4.0.5"
+  def testJvmDeps = Seq(
+    jvm"org.jetbrains:annotations-java5:23.0.0",
+    jvm"commons-logging:commons-logging:1.2",
+    jvm"org.apache.logging.log4j:log4j-api:2.17.2",
+    jvm"org.apache.logging.log4j:log4j-core:2.17.2",
+    jvm"org.apache.logging.log4j:log4j-1.2-api:2.17.2",
+    jvm"org.jctools:jctools-core:4.0.5"
   )
 
   def script = Task.Source("src/main/script")
@@ -268,10 +268,10 @@ object common extends NettyModule {
 object `dev-tools` extends NettyModule {}
 
 object example extends NettyModule {
-  def libraryDeps = Seq(
-    ivy"org.bouncycastle:bcpkix-jdk15on:1.69",
-    ivy"org.bouncycastle:bctls-jdk15on:1.69",
-    ivy"com.sun.activation:javax.activation:1.2.0"
+  def jvmDeps = Seq(
+    jvm"org.bouncycastle:bcpkix-jdk15on:1.69",
+    jvm"org.bouncycastle:bctls-jdk15on:1.69",
+    jvm"com.sun.activation:javax.activation:1.2.0"
   )
   def moduleDeps = Seq(
     common,
@@ -298,20 +298,20 @@ object example extends NettyModule {
 object handler extends NettyModule {
   def moduleDeps = Seq(common, resolver, buffer, transport, `transport-native-unix-common`, codec)
   def testModuleDeps = Seq(transport.test)
-  def compileLibraryDeps = Seq(
-    ivy"org.bouncycastle:bcpkix-jdk15on:1.69",
-    ivy"org.bouncycastle:bctls-jdk15on:1.69",
-    ivy"org.conscrypt:conscrypt-openjdk-uber:2.5.2",
-    ivy"io.netty:netty-tcnative-classes:2.0.65.Final",
-    ivy"org.eclipse.jetty.alpn:alpn-api:1.1.2.v20150522",
-    ivy"org.eclipse.jetty.npn:npn-api:1.1.1.v20141010"
+  def compileJvmDeps = Seq(
+    jvm"org.bouncycastle:bcpkix-jdk15on:1.69",
+    jvm"org.bouncycastle:bctls-jdk15on:1.69",
+    jvm"org.conscrypt:conscrypt-openjdk-uber:2.5.2",
+    jvm"io.netty:netty-tcnative-classes:2.0.65.Final",
+    jvm"org.eclipse.jetty.alpn:alpn-api:1.1.2.v20150522",
+    jvm"org.eclipse.jetty.npn:npn-api:1.1.1.v20141010"
   )
 
-  def testLibraryDeps = Seq(
-    ivy"org.bouncycastle:bcpkix-jdk15on:1.69",
-    ivy"org.bouncycastle:bctls-jdk15on:1.69",
-    ivy"software.amazon.cryptools:AmazonCorrettoCryptoProvider:1.1.0;classifier=linux-x86_64",
-    ivy"org.conscrypt:conscrypt-openjdk-uber:2.5.2"
+  def testJvmDeps = Seq(
+    jvm"org.bouncycastle:bcpkix-jdk15on:1.69",
+    jvm"org.bouncycastle:bctls-jdk15on:1.69",
+    jvm"software.amazon.cryptools:AmazonCorrettoCryptoProvider:1.1.0;classifier=linux-x86_64",
+    jvm"org.conscrypt:conscrypt-openjdk-uber:2.5.2"
   )
 }
 
@@ -322,9 +322,9 @@ object `handler-proxy` extends NettyModule {
 
 object `handler-ssl-ocsp` extends NettyModule {
   def moduleDeps = Seq(`codec-http`, transport, `resolver-dns`)
-  def libraryDeps = Seq(
-    ivy"org.bouncycastle:bcpkix-jdk15on:1.69",
-    ivy"org.bouncycastle:bctls-jdk15on:1.69"
+  def jvmDeps = Seq(
+    jvm"org.bouncycastle:bcpkix-jdk15on:1.69",
+    jvm"org.bouncycastle:bctls-jdk15on:1.69"
   )
 }
 
@@ -341,12 +341,12 @@ object microbench extends NettyModule {
     `transport-native-kqueue`
   )
 
-  def libraryDeps = Seq(
-    ivy"org.junit.jupiter:junit-jupiter-api:5.9.0",
-    ivy"org.jctools:jctools-core:4.0.5",
-    ivy"org.openjdk.jmh:jmh-core:1.36",
-    ivy"org.openjdk.jmh:jmh-generator-annprocess:1.36",
-    ivy"org.agrona:Agrona:0.5.1"
+  def jvmDeps = Seq(
+    jvm"org.junit.jupiter:junit-jupiter-api:5.9.0",
+    jvm"org.jctools:jctools-core:4.0.5",
+    jvm"org.openjdk.jmh:jmh-core:1.36",
+    jvm"org.openjdk.jmh:jmh-generator-annprocess:1.36",
+    jvm"org.agrona:Agrona:0.5.1"
   )
 }
 
@@ -357,8 +357,8 @@ object resolver extends NettyModule {
 object `resolver-dns` extends NettyModule {
   def moduleDeps = Seq(common, buffer, resolver, transport, codec, `codec-dns`, handler)
   def testModuleDeps = Seq(transport.test)
-  def testLibraryDeps = Seq(
-    ivy"org.apache.directory.server:apacheds-protocol-dns:1.5.7"
+  def testJvmDeps = Seq(
+    jvm"org.apache.directory.server:apacheds-protocol-dns:1.5.7"
   )
 }
 
@@ -370,8 +370,8 @@ object `resolver-dns-native-macos` extends NettyJniModule {
   def jniLibraryName = "libnetty_resolver_dns_native_macos_aarch_64.jnilib"
   def moduleDeps = Seq(resolver)
   def testModuleDeps = Seq(`resolver-dns`, `resolver-dns-classes-macos`)
-  def testLibraryDeps = Seq(
-    ivy"org.apache.directory.server:apacheds-protocol-dns:1.5.7"
+  def testJvmDeps = Seq(
+    jvm"org.apache.directory.server:apacheds-protocol-dns:1.5.7"
   )
 
 }
@@ -379,9 +379,9 @@ object `resolver-dns-native-macos` extends NettyJniModule {
 object testsuite extends NettyTestSuiteModule {
   def moduleDeps =
     Seq(common, resolver, transport, `transport-sctp`, handler, `codec-http`, `transport-udt`)
-  def libraryDeps = super.libraryDeps() ++ Seq(
-    ivy"org.slf4j:slf4j-api:1.7.30",
-    ivy"org.tukaani:xz:1.5"
+  def jvmDeps = super.jvmDeps() ++ Seq(
+    jvm"org.slf4j:slf4j-api:1.7.30",
+    jvm"org.tukaani:xz:1.5"
   )
 }
 
@@ -497,12 +497,12 @@ object `testsuite-osgi` extends NettyTestSuiteModule {
 
   override def sources = Task.Sources("src/test/java")
 
-  def libraryDeps = super.libraryDeps() ++ Seq(
-    ivy"org.apache.felix:org.apache.felix.configadmin:1.9.14",
-    ivy"org.ops4j.pax.exam:pax-exam-junit4:4.13.0",
-    ivy"org.ops4j.pax.exam:pax-exam-container-native:4.13.0",
-    ivy"org.ops4j.pax.exam:pax-exam-link-assembly:4.13.0",
-    ivy"org.apache.felix:org.apache.felix.framework:6.0.2"
+  def jvmDeps = super.jvmDeps() ++ Seq(
+    jvm"org.apache.felix:org.apache.felix.configadmin:1.9.14",
+    jvm"org.ops4j.pax.exam:pax-exam-junit4:4.13.0",
+    jvm"org.ops4j.pax.exam:pax-exam-container-native:4.13.0",
+    jvm"org.ops4j.pax.exam:pax-exam-link-assembly:4.13.0",
+    jvm"org.apache.felix:org.apache.felix.framework:6.0.2"
   )
 }
 
@@ -517,8 +517,8 @@ object transport extends NettyModule {
 
 object `transport-blockhound-tests` extends NettyTestSuiteModule {
   def moduleDeps = Seq(transport, handler, `resolver-dns`)
-  def libraryDeps = super.libraryDeps() ++ Seq(
-    ivy"io.projectreactor.tools:blockhound:1.0.6.RELEASE"
+  def jvmDeps = super.jvmDeps() ++ Seq(
+    jvm"io.projectreactor.tools:blockhound:1.0.6.RELEASE"
   )
 }
 
@@ -536,8 +536,8 @@ object `transport-native-epoll` extends NettyJniModule {
     Seq(common, buffer, transport, `transport-native-unix-common`, `transport-classes-epoll`)
   def testModuleDeps = Seq(testsuite, `transport-native-unix-common-tests`)
 
-  def testLibraryDeps = Seq(
-    ivy"io.github.artsok:rerunner-jupiter:2.1.6"
+  def testJvmDeps = Seq(
+    jvm"io.github.artsok:rerunner-jupiter:2.1.6"
   )
 
   // Stub this out on OS-X
@@ -556,7 +556,7 @@ object `transport-native-kqueue` extends NettyJniModule {
 
 object `transport-native-unix-common` extends NettyModule {
   def moduleDeps = Seq(common, buffer, transport)
-  def libraryDeps = Seq(ivy"org.junit.jupiter:junit-jupiter-api:5.9.0")
+  def jvmDeps = Seq(jvm"org.junit.jupiter:junit-jupiter-api:5.9.0")
 
   def makefile = Task.Source("Makefile")
   def cSources = Task.Source("src/main/c")
@@ -569,7 +569,7 @@ object `transport-native-unix-common` extends NettyModule {
 
   def make = Task {
     val Seq(sourceJar) = defaultResolver().classpath(
-      Seq(ivy"io.netty:netty-jni-util:0.0.9.Final"),
+      Seq(jvm"io.netty:netty-jni-util:0.0.9.Final"),
       sources = true
     )
 
@@ -612,8 +612,8 @@ object `transport-native-unix-common-tests` extends NettyTestSuiteModule {
 
 object `transport-rxtx` extends NettyModule {
   def moduleDeps = Seq(buffer, transport)
-  def libraryDeps = Seq(
-    ivy"org.rxtx:rxtx:2.1.7"
+  def jvmDeps = Seq(
+    jvm"org.rxtx:rxtx:2.1.7"
   )
 }
 
@@ -624,10 +624,10 @@ object `transport-sctp` extends NettyModule {
 
 object `transport-udt` extends NettyModule {
   def moduleDeps = Seq(common, buffer, transport)
-  def libraryDeps = Seq(
-    ivy"com.barchart.udt:barchart-udt-bundle:2.3.0",
-    ivy"com.google.caliper:caliper:0.5-rc1",
-    ivy"com.yammer.metrics:metrics-core:2.2.0"
+  def jvmDeps = Seq(
+    jvm"com.barchart.udt:barchart-udt-bundle:2.3.0",
+    jvm"com.google.caliper:caliper:0.5-rc1",
+    jvm"com.yammer.metrics:metrics-core:2.2.0"
   )
 }
 

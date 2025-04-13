@@ -6,7 +6,7 @@ trait MyModule extends ScalaNativeModule {
   def scalaNativeVersion = "0.5.5"
 
   object test extends ScalaNativeTests {
-    def libraryDeps = Seq(ivy"com.lihaoyi::utest::0.8.5")
+    def jvmDeps = Seq(jvm"com.lihaoyi::utest::0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -14,7 +14,7 @@ trait MyModule extends ScalaNativeModule {
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
 
-  def libraryDeps = Seq(ivy"com.lihaoyi::mainargs::0.7.6")
+  def jvmDeps = Seq(jvm"com.lihaoyi::mainargs::0.7.6")
 }
 
 object bar extends MyModule
@@ -28,7 +28,7 @@ object bar extends MyModule
 // Note that we split out the `test` submodule configuration common to both
 // modules into a separate `trait MyModule`. This lets us avoid the need to
 // copy-paste common settings, while still letting us define any per-module
-// configuration such as `libraryDeps` specific to a particular module.
+// configuration such as `jvmDeps` specific to a particular module.
 //
 // The above builds expect the following project layout:
 //

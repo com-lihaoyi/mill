@@ -52,9 +52,9 @@ private[dependency] object VersionsFinder {
       )
 
       val bindDependency = javaModule.bindDependency()
-      val deps = javaModule.libraryDeps()
-      val compileLibraryDeps = javaModule.compileLibraryDeps()
-      val runLibraryDeps = javaModule.runLibraryDeps()
+      val deps = javaModule.jvmDeps()
+      val compileJvmDeps = javaModule.compileJvmDeps()
+      val runJvmDeps = javaModule.runJvmDeps()
       val repos = javaModule.repositoriesTask()
       val mapDeps = javaModule.mapDependencies()
       val custom = javaModule.resolutionCustomizer()
@@ -62,7 +62,7 @@ private[dependency] object VersionsFinder {
 
       val metadataLoaders = repos.flatMap(MetadataLoaderFactory(_))
 
-      val dependencies = (deps ++ compileLibraryDeps ++ runLibraryDeps)
+      val dependencies = (deps ++ compileJvmDeps ++ runJvmDeps)
         .map(bindDependency)
         .iterator
         .toSeq

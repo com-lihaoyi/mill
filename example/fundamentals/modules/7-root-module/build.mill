@@ -5,14 +5,14 @@ package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def libraryDeps = Seq(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  def jvmDeps = Seq(
+    jvm"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    jvm"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   object test extends JavaTests with TestModule.Junit4 {
-    def libraryDeps = super.libraryDeps() ++ Seq(
-      ivy"com.google.guava:guava:33.3.0-jre"
+    def jvmDeps = super.jvmDeps() ++ Seq(
+      jvm"com.google.guava:guava:33.3.0-jre"
     )
   }
 }

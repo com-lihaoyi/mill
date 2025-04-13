@@ -16,25 +16,25 @@ object dagger extends KspModule {
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-  def libraryDeps = Agg(
-    ivy"com.google.dagger:dagger-compiler:2.55"
+  def jvmDeps = Agg(
+    jvm"com.google.dagger:dagger-compiler:2.55"
   )
 
   def kotlinSymbolProcessors = Agg(
-    ivy"com.google.dagger:dagger-compiler:2.55"
+    jvm"com.google.dagger:dagger-compiler:2.55"
   )
 
   object test extends KspTests with TestModule.Junit5 {
 
     def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-    def libraryDeps = super.libraryDeps() ++ Agg(
-      ivy"com.google.dagger:dagger-compiler:2.55",
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    def jvmDeps = super.jvmDeps() ++ Agg(
+      jvm"com.google.dagger:dagger-compiler:2.55",
+      jvm"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
 
     def kotlinSymbolProcessors = Agg(
-      ivy"com.google.dagger:dagger-compiler:2.55"
+      jvm"com.google.dagger:dagger-compiler:2.55"
     )
 
   }
