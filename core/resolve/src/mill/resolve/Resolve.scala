@@ -398,7 +398,7 @@ private[mill] trait Resolve[T] {
             catch {
               case e: ClassNotFoundException =>
                 try Result.Success(rootModule.getClass.getClassLoader.loadClass(
-                    scoping.render + ".PackageDefaultExternalModule$"
+                    scoping.render + ".package$"
                   ))
                 catch {
                   case e: ClassNotFoundException =>

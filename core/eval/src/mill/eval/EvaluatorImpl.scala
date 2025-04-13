@@ -36,6 +36,7 @@ final class EvaluatorImpl private[mill] (
   private[mill] def workerCache = execution.workerCache
   private[mill] def env = execution.env
   private[mill] def effectiveThreadCount = execution.effectiveThreadCount
+  override private[mill] def offline: Boolean = execution.offline
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
@@ -185,7 +186,8 @@ final class EvaluatorImpl private[mill] (
                 workspace = workspace,
                 systemExit = _ => ???,
                 fork = null,
-                jobs = execution.effectiveThreadCount
+                jobs = execution.effectiveThreadCount,
+                offline = offline
               )
               val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
               Seq(Watchable.Value(
