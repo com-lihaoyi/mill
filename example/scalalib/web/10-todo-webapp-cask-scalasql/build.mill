@@ -27,8 +27,8 @@ object `package` extends RootModule with ScalaModule {
 }
 
 // This example demonstrates how to set up a simple Scala webserver
-// implementing the popular Todo-MVC demo application. It uses the 
-// Cask web framework to handle HTTP requests and Scalasql to interact 
+// implementing the popular Todo-MVC demo application. It uses the
+// Cask web framework to handle HTTP requests and Scalasql to interact
 // with an in-memory H2 database. It includes a test suite
 // that spins up the web server locally, creates a postgres testcontainer
 // and makes HTTP requests against it.

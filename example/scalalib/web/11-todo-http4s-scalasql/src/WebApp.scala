@@ -78,18 +78,18 @@ object WebApp extends IOApp.Simple {
         case POST -> Root / "list" / state => {
           for {
             todos <- fetchTodos
-            response <-  Ok(renderBody(state, todos))
+            response <- Ok(renderBody(state, todos))
           } yield response
         }
 
         case request @ POST -> Root / "add" / state => {
           for {
             text <- request.as[String]
-            _ <- IO.delay { dbClient.transaction { db =>
+            _ <- IO.delay {
+              dbClient.transaction { db =>
                 db.run(Todos.insert.batched(_.checked, _.text)(
-                    (false, text)
-                  )
-                )
+                  (false, text)
+                ))
               }
             }
             todos <- fetchTodos
@@ -99,10 +99,11 @@ object WebApp extends IOApp.Simple {
 
         case POST -> Root / "delete" / state / IntVar(index) => {
           for {
-            _ <- IO.delay { dbClient.transaction { db =>
-                  db.run(Todos.delete(_.id === index))
-                }
+            _ <- IO.delay {
+              dbClient.transaction { db =>
+                db.run(Todos.delete(_.id === index))
               }
+            }
             todos <- fetchTodos
             response <- Ok(renderBody(state, todos))
           } yield response
@@ -110,10 +111,11 @@ object WebApp extends IOApp.Simple {
 
         case POST -> Root / "toggle" / state / IntVar(index) => {
           for {
-            _ <- IO.delay { dbClient.transaction { db =>
-                  db.run(Todos.select.filter(_.id === index)).map(_.checked).head
-                }
+            _ <- IO.delay {
+              dbClient.transaction { db =>
+                db.run(Todos.select.filter(_.id === index)).map(_.checked).head
               }
+            }
             todos <- fetchTodos
             response <- Ok(renderBody(state, todos))
           } yield response
@@ -121,18 +123,19 @@ object WebApp extends IOApp.Simple {
 
         case POST -> Root / "clear-completed" / state => {
           for {
-            _ <- IO.delay { dbClient.transaction { db =>
-                  db.run(Todos.delete(_.checked === true))
-                }
+            _ <- IO.delay {
+              dbClient.transaction { db =>
+                db.run(Todos.delete(_.checked === true))
               }
+            }
             todos <- fetchTodos
             response <- Ok(renderBody(state, todos))
           } yield response
         }
 
         case POST -> Root / "toggle-all" / state => {
-            for {
-            _ <- IO.delay { 
+          for {
+            _ <- IO.delay {
               dbClient.transaction { db =>
                 db.updateRaw(
                   """
@@ -141,9 +144,10 @@ object WebApp extends IOApp.Simple {
                         ELSE TRUE
                     END;
                     |
-                    |""".stripMargin)
-                  }
+                    |""".stripMargin
+                )
               }
+            }
             todos <- fetchTodos
             response <- Ok(renderBody(state, todos))
           } yield response
@@ -154,9 +158,9 @@ object WebApp extends IOApp.Simple {
 
       def fetchTodos = {
         IO.delay {
-              dbClient.transaction { db =>
-                db.run(Todos.select).sortBy(_.id)
-              }.map(r => Todo(r.checked, r.text))
+          dbClient.transaction { db =>
+            db.run(Todos.select).sortBy(_.id)
+          }.map(r => Todo(r.checked, r.text))
         }
       }
 
