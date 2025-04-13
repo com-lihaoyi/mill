@@ -48,3 +48,7 @@ include::partial$example/scalalib/web/9-wasm.adoc[]
 == TodoMVC Scalasql Web App 
 
 include::partial$example/scalalib/web/10-todo-webapp-cask-scalasql.adoc[]
+
+== TodoMVC Http4s Scalasql Web App
+
+include::partial$example/scalalib/web/11-todo-http4s-scalasql.adoc[]
