@@ -1,22 +1,26 @@
 package mill.define
 
+import mill.api.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
 import mill.define.internal.Watchable
+import mill.api.internal.{EvaluatorApi, TaskApi}
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
-trait Evaluator extends AutoCloseable {
+trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def allowPositionalCommandArgs: Boolean
   private[mill] def selectiveExecution: Boolean
   private[mill] def workspace: os.Path
   private[mill] def baseLogger: Logger
   private[mill] def outPath: os.Path
+  private[mill] def outPathJava = outPath.toNIO
   private[mill] def codeSignatures: Map[String, Int]
   private[mill] def rootModule: BaseModule
-  private[mill] def workerCache: mutable.Map[Segments, (Int, Val)]
+  private[mill] def workerCache: mutable.Map[String, (Int, Val)]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
+  private[mill] def offline: Boolean
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
@@ -33,12 +37,41 @@ trait Evaluator extends AutoCloseable {
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[NamedTask[?]]]
+  def resolveModulesOrTasks(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): mill.api.Result[List[Either[Module, NamedTask[?]]]]
+
   def plan(tasks: Seq[Task[?]]): Plan
+
+  def groupAroundImportantTargets[T](topoSortedTargets: mill.define.internal.TopoSorted)(
+      important: PartialFunction[
+        Task[?],
+        T
+      ]
+  ): MultiBiMap[T, Task[?]]
+
+  /**
+   * Collects all transitive dependencies (targets) of the given targets,
+   * including the given targets.
+   */
+  def transitiveTargets(sourceTargets: Seq[Task[?]]): IndexedSeq[Task[?]]
+
+  /**
+   * Takes the given targets, finds all the targets they transitively depend
+   * on, and sort them topologically. Fails if there are dependency cycles
+   */
+  def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.internal.TopoSorted
+
+  private[mill] def executeApi[T](targets: Seq[TaskApi[T]]): Evaluator.Result[T] =
+    execute[T](targets.map(_.asInstanceOf[Task[T]]))
 
   def execute[T](
       targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
@@ -49,6 +82,29 @@ trait Evaluator extends AutoCloseable {
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]]
+
+  private[mill] def executeApi[T](
+      targets: Seq[TaskApi[T]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      logger: Logger = null,
+      serialCommandExec: Boolean = false,
+      selectiveExecution: Boolean = false
+  ): EvaluatorApi.Result[T] = {
+    execute(
+      targets.map(_.asInstanceOf[Task[T]]),
+      reporter,
+      testReporter,
+      logger,
+      serialCommandExec,
+      selectiveExecution
+    )
+  }
+
+  /**
+   * APIs related to selective execution
+   */
+  def selective: SelectiveExecution
 }
 object Evaluator {
   // This needs to be a ThreadLocal because we need to pass it into the body of
@@ -75,15 +131,7 @@ object Evaluator {
       values: mill.api.Result[Seq[T]],
       selectedTasks: Seq[Task[?]],
       executionResults: ExecutionResults
-  )
-
-  /**
-   * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
-   */
-  case class AllBootstrapEvaluators(value: Seq[Evaluator])
-
-  private[mill] val allBootstrapEvaluators =
-    new DynamicVariable[Evaluator.AllBootstrapEvaluators](null)
+  ) extends EvaluatorApi.Result[T]
 
   private[mill] val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 }

@@ -1,8 +1,9 @@
 package mill.scalalib
 
+import mill.define.Mirrors
 import upickle.default.{ReadWriter => RW}
-import mill.api.Mirrors
-import mill.api.Mirrors.autoMirror
+import mill.define.Mirrors.autoMirror
+import mill.api.internal.TestReporter
 
 trait JsonFormatters {
   import JsonFormatters.mirrors.given
@@ -22,6 +23,15 @@ trait JsonFormatters {
     implicitly[RW[String]].bimap(
       _.asString,
       coursier.version.Version(_)
+    )
+  implicit lazy val variantMatcherFormat: RW[coursier.core.VariantSelector.VariantMatcher] =
+    RW.merge(
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.Api.type],
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.Runtime.type],
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.Equals],
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.MinimumVersion],
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.AnyOf],
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.EndsWith]
     )
   implicit lazy val variantSelectorFormat: RW[coursier.core.VariantSelector] =
     RW.merge(
@@ -107,6 +117,11 @@ trait JsonFormatters {
     )
   implicit lazy val projectFormat: RW[coursier.core.Project] = upickle.default.macroRW
 
+  implicit lazy val logLevelRW: upickle.default.ReadWriter[TestReporter.LogLevel] =
+    implicitly[upickle.default.ReadWriter[String]].bimap(
+      _.asString,
+      TestReporter.LogLevel.fromString(_)
+    )
 }
 object JsonFormatters extends JsonFormatters {
   private[mill] object mirrors {
@@ -198,5 +213,17 @@ object JsonFormatters extends JsonFormatters {
     given Root_coursier_core_Project
         : Mirrors.Root[coursier.core.Project] =
       Mirrors.autoRoot[coursier.core.Project]
+    given Root_coursier_core_VariantSelector_VariantMatcher_Equals
+        : Mirrors.Root[coursier.core.VariantSelector.VariantMatcher.Equals] =
+      Mirrors.autoRoot[coursier.core.VariantSelector.VariantMatcher.Equals]
+    given Root_coursier_core_VariantSelector_VariantMatcher_MinimumVersion
+        : Mirrors.Root[coursier.core.VariantSelector.VariantMatcher.MinimumVersion] =
+      Mirrors.autoRoot[coursier.core.VariantSelector.VariantMatcher.MinimumVersion]
+    given Root_coursier_core_VariantSelector_VariantMatcher_AnyOf
+        : Mirrors.Root[coursier.core.VariantSelector.VariantMatcher.AnyOf] =
+      Mirrors.autoRoot[coursier.core.VariantSelector.VariantMatcher.AnyOf]
+    given Root_coursier_core_VariantSelector_VariantMatcher_EndsWith
+        : Mirrors.Root[coursier.core.VariantSelector.VariantMatcher.EndsWith] =
+      Mirrors.autoRoot[coursier.core.VariantSelector.VariantMatcher.EndsWith]
   }
 }

@@ -3,7 +3,7 @@ package mill.pythonlib
 import mill._
 import mill.api.Result
 import mill.util.{Jvm}
-import mill.api.Ctx
+import mill.define.TaskCtx
 import mill.constants.ServerFiles
 
 trait PythonModule extends PipModule with TaskModule { outer =>
@@ -66,7 +66,10 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def mainScript: T[PathRef] = Task.Source { "src/main.py" }
 
   override def pythonToolDeps: T[Seq[String]] = Task {
-    super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1")
+    super.pythonToolDeps() ++ Seq(
+      "mypy==1.13.0",
+      "pex==2.24.1"
+    )
   }
 
   /**
@@ -160,7 +163,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def run(args: mill.define.Args) = Task.Command {
     runner().run(
-      (
+      args = (
         mainScript().path,
         args.value
       )
@@ -179,7 +182,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     os.checker.withValue(os.Checker.Nop) {
       Jvm.spawnProcess(
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
-        classPath = mill.scalalib.ZincWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+        classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
         env = runnerEnvTask(),
         mainArgs = Seq(
@@ -198,7 +201,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         // and shown to any connected Mill client even if the current command has completed
         stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
         stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
-        javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path)
+        javaHome = mill.scalalib.JvmWorkerModule.javaHome().map(_.path)
       )
     }
     ()
@@ -253,7 +256,7 @@ object PythonModule {
         command: String = null,
         env: Map[String, String] = null,
         workingDir: os.Path = null
-    )(implicit ctx: Ctx): Unit
+    )(implicit ctx: TaskCtx): Unit
   }
 
   private class RunnerImpl(
@@ -267,7 +270,7 @@ object PythonModule {
         command: String = null,
         env: Map[String, String] = null,
         workingDir: os.Path = null
-    )(implicit ctx: Ctx): Unit = {
+    )(implicit ctx: TaskCtx): Unit = {
       os.call(
         cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
         env = Option(env).getOrElse(env0),

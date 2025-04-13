@@ -1,6 +1,6 @@
 package mill.testrunner
 
-import mill.api.{DummyTestReporter, internal}
+import mill.api.internal.{TestReporter, internal}
 
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
@@ -8,16 +8,31 @@ import mill.api.{DummyTestReporter, internal}
       val testArgs = upickle.default.read[mill.testrunner.TestArgs](os.read(os.Path(args(1))))
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
-      val filter = TestRunnerUtils.globFilter(testArgs.globSelectors)
-
-      val result = TestRunnerUtils.runTestFramework0(
-        frameworkInstances = Framework.framework(testArgs.framework),
-        testClassfilePath = Seq.from(testArgs.testCp),
-        args = testArgs.arguments,
-        classFilter = cls => filter(cls.getName),
-        cl = classLoader,
-        testReporter = DummyTestReporter
-      )
+      val result = testArgs.globSelectors match {
+        case Left(selectors) =>
+          val filter = TestRunnerUtils.globFilter(selectors)
+          TestRunnerUtils.runTestFramework0(
+            frameworkInstances = Framework.framework(testArgs.framework),
+            testClassfilePath = Seq.from(testArgs.testCp),
+            args = testArgs.arguments,
+            classFilter = cls => filter(cls.getName),
+            cl = classLoader,
+            testReporter = TestReporter(testArgs.logLevel),
+            resultPathOpt = Some(testArgs.resultPath)
+          )
+        case Right((startingTestClass, testClassQueueFolder, claimFolder)) =>
+          TestRunnerUtils.queueTestFramework0(
+            frameworkInstances = Framework.framework(testArgs.framework),
+            testClassfilePath = Seq.from(testArgs.testCp),
+            args = testArgs.arguments,
+            startingTestClass = startingTestClass,
+            testClassQueueFolder = testClassQueueFolder,
+            claimFolder = claimFolder,
+            cl = classLoader,
+            testReporter = TestReporter(testArgs.logLevel),
+            resultPath = testArgs.resultPath
+          )
+      }
 
       // Clear interrupted state in case some badly-behaved test suite
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,

@@ -1,6 +1,7 @@
 package mill.scalalib
 
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.util.JarManifest
 import mill.define.{Target => T, _}
 import mill.util.Jvm
@@ -8,7 +9,7 @@ import mill.util.Jvm
 /**
  * Core configuration required to compile a single Java compilation target
  */
-trait AssemblyModule extends mill.Module {
+trait AssemblyModule extends mill.define.Module {
   outer =>
 
   def finalMainClassOpt: T[Either[String, String]]

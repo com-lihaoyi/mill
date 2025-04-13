@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters.*
  */
 private[mill] object OverrideMapping {
   def computeSegments(
-      enclosingValue: mill.define.Ctx.Wrapper,
+      enclosingValue: mill.define.ModuleCtx.Wrapper,
       discover: Discover,
       lastSegmentStr: String,
       enclosingClassValue: Class[?]

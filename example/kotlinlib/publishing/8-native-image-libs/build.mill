@@ -6,8 +6,6 @@ import mill.define.ModuleRef
 object foo extends KotlinModule with NativeImageModule {
   def kotlinVersion = "1.9.24"
 
-  def mainClass = Some("foo.FooKt")
-
   def nativeImageOptions = Seq(
     "--no-fallback",
     "-Os",
@@ -19,10 +17,10 @@ object foo extends KotlinModule with NativeImageModule {
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:23.0.2"
 }
 

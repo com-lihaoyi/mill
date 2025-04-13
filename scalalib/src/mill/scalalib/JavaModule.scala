@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import coursier.{core => cs}
+import coursier.core as cs
 import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.parse.JavaOrScalaModule
@@ -10,22 +10,32 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import coursier.{Repository, Type}
 import mainargs.{Flag, arg}
 import mill.util.JarManifest
-import mill.api.{Ctx, MillException, PathRef, Result, internal}
+import mill.api.{MillException, Result, Segments}
+import mill.api.internal.{
+  BspBuildTarget,
+  EvaluatorApi,
+  IdeaConfigFile,
+  JavaFacet,
+  ResolvedModule,
+  Scoped,
+  internal
+}
+import mill.define.{TaskCtx, PathRef}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
-import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
+import mill.api.internal.{BspBuildTarget, BspUri, JvmBuildTarget, JavaModuleApi, BspModuleApi}
+import mill.scalalib.bsp.BspModule
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
-
 import os.Path
 
 /**
  * Core configuration required to compile a single Java compilation target
  */
 trait JavaModule
-    extends mill.Module
-    with WithZincWorker
+    extends mill.define.Module
+    with WithJvmWorker
     with TestModule.JavaModuleBase
     with TaskModule
     with RunModule
@@ -34,9 +44,10 @@ trait JavaModule
     with OfflineSupportModule
     with BspModule
     with SemanticDbJavaModule
-    with AssemblyModule { outer =>
+    with AssemblyModule
+    with JavaModuleApi { outer =>
 
-  override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
@@ -51,7 +62,7 @@ trait JavaModule
       outer.resolutionCustomizer
 
     override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
-    override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
+    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
     override def sourcesFolders = outer.sourcesFolders
@@ -97,41 +108,6 @@ trait JavaModule
   def defaultCommandName(): String = "run"
   def resolvePublishDependency: Task[Dep => publish.Dependency] = Task.Anon {
     Artifact.fromDepJava(_: Dep)
-  }
-
-  /**
-   * Allows you to specify an explicit main class to use for the `run` command.
-   * If none is specified, the classpath is searched for an appropriate main
-   * class to use if one exists
-   */
-  def mainClass: T[Option[String]] = None
-
-  def finalMainClassOpt: T[Either[String, String]] = Task {
-    mainClass() match {
-      case Some(m) => Right(m)
-      case None =>
-        if (zincWorker().javaHome().isDefined) {
-          super[RunModule].finalMainClassOpt()
-        } else {
-          zincWorker().worker().discoverMainClasses(compile()) match {
-            case Seq() => Left("No main class specified or found")
-            case Seq(main) => Right(main)
-            case mains =>
-              Left(
-                s"Multiple main classes found (${mains.mkString(",")}) " +
-                  "please explicitly specify which one to use by overriding `mainClass` " +
-                  "or using `runMain <main-class> <...args>` instead of `run`"
-              )
-          }
-        }
-    }
-  }
-
-  def finalMainClass: T[String] = Task {
-    finalMainClassOpt() match {
-      case Right(main) => Result.Success(main)
-      case Left(msg) => Result.Failure(msg)
-    }
   }
 
   /**
@@ -695,7 +671,7 @@ trait JavaModule
    * Keep in sync with [[transitiveLocalClasspath]]
    */
   @internal
-  def bspTransitiveLocalClasspath: T[Seq[UnresolvedPath]] = Task {
+  private[mill] def bspTransitiveLocalClasspath: T[Seq[UnresolvedPath]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps)(_.bspLocalClasspath)().flatten
   }
 
@@ -715,7 +691,7 @@ trait JavaModule
    * Keep in sync with [[transitiveCompileClasspath]]
    */
   @internal
-  def bspTransitiveCompileClasspath: T[Seq[UnresolvedPath]] = Task {
+  private[mill] def bspTransitiveCompileClasspath: T[Seq[UnresolvedPath]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         m.localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
@@ -800,7 +776,7 @@ trait JavaModule
    * Keep in sync with [[bspCompileClassesPath]]
    */
   def compile: T[mill.scalalib.api.CompilationResult] = Task(persistent = true) {
-    zincWorker()
+    jvmWorker()
       .worker()
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
@@ -821,7 +797,7 @@ trait JavaModule
    * Keep in sync with [[compile]]
    */
   @internal
-  def bspCompileClassesPath: T[UnresolvedPath] =
+  private[mill] def bspCompileClassesPath: T[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
       Task {
         Task.log.debug(
@@ -853,7 +829,7 @@ trait JavaModule
    *
    * Keep in sync with [[localRunClasspath]]
    */
-  def bspLocalRunClasspath: T[Seq[UnresolvedPath]] = Task {
+  private[mill] def bspLocalRunClasspath: T[Seq[UnresolvedPath]] = Task {
     Seq.from(super.localRunClasspath() ++ resources())
       .map(p => UnresolvedPath.ResolvedPath(p.path)) ++
       Seq(bspCompileClassesPath())
@@ -879,7 +855,7 @@ trait JavaModule
    * Keep in sync with [[localClasspath]]
    */
   @internal
-  def bspLocalClasspath: T[Seq[UnresolvedPath]] = Task {
+  private[mill] def bspLocalClasspath: T[Seq[UnresolvedPath]] = Task {
     (localCompileClasspath()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++
       bspLocalRunClasspath()
   }
@@ -900,10 +876,13 @@ trait JavaModule
    * Keep in sync with [[compileClasspath]]
    */
   @internal
-  def bspCompileClasspath: T[Seq[UnresolvedPath]] = Task {
-    resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
-      bspTransitiveCompileClasspath() ++
-      localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))
+  private[mill] def bspCompileClasspath: Task[EvaluatorApi => Seq[String]] = Task.Anon {
+    (ev: EvaluatorApi) =>
+      (resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+        bspTransitiveCompileClasspath() ++
+        localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))).map(_.resolve(
+        os.Path(ev.outPathJava)
+      )).map(sanitizeUri)
   }
 
   /**
@@ -918,7 +897,7 @@ trait JavaModule
    * Resolved dependencies
    */
   def resolvedIvyDeps: T[Seq[PathRef]] = Task {
-    millResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.provided),
@@ -948,7 +927,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Seq[PathRef]] = Task {
-    millResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.runtime),
@@ -1086,24 +1065,6 @@ trait JavaModule
     )
   }
 
-  /**
-   * Any command-line parameters you want to pass to the forked JVM under `run`,
-   * `test` or `repl`
-   */
-  override def forkArgs: T[Seq[String]] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.forkArgs()
-  }
-
-  /**
-   * Any environment variables you want to pass to the forked JVM under `run`,
-   * `test` or `repl`
-   */
-  override def forkEnv: T[Map[String, String]] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.forkEnv()
-  }
-
   def launcher: T[PathRef] = Task { launcher0() }
 
   /**
@@ -1236,57 +1197,6 @@ trait JavaModule
     }
   }
 
-  override def runBackgroundLogToConsole: Boolean = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runBackgroundLogToConsole
-  }
-
-  /**
-   * Runs this module's code in a background process, until it dies or
-   * `runBackground` is used again. This lets you continue using Mill while
-   * the process is running in the background: editing files, compiling, and
-   * only re-starting the background process when you're ready.
-   *
-   * You can also use `-w foo.runBackground` to make Mill watch for changes
-   * and automatically recompile your code & restart the background process
-   * when ready. This is useful when working on long-running server processes
-   * that would otherwise run forever
-   */
-  def runBackground(args: String*): Command[Unit] = {
-    val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
-    Task.Command { task() }
-  }
-
-  /**
-   * Same as `runBackground`, but lets you specify a main class to run
-   */
-  override def runMainBackground(
-      @arg(positional = true) mainClass: String,
-      args: String*
-  ): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runMainBackground(mainClass, args*)
-  }
-
-  /**
-   * Same as `runLocal`, but lets you specify a main class to run
-   */
-  override def runMainLocal(
-      @arg(positional = true) mainClass: String,
-      args: String*
-  ): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runMainLocal(mainClass, args*)
-  }
-
-  /**
-   * Same as `run`, but lets you specify a main class to run
-   */
-  override def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runMain(mainClass, args*)
-  }
-
   /**
    * Override this to change the published artifact id.
    * For example, by default a scala module foo.baz might be published as foo-baz_2.12 and a java module would be foo-baz.
@@ -1308,11 +1218,6 @@ trait JavaModule
    */
   def artifactSuffix: T[String] = platformSuffix()
 
-  override def forkWorkingDir: T[Path] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.forkWorkingDir()
-  }
-
   /**
    * Files extensions that need to be managed by Zinc together with class files.
    * This means, if zinc needs to remove a class file, it will also remove files
@@ -1327,7 +1232,7 @@ trait JavaModule
     val tasks =
       if (all.value) Seq(
         Task.Anon {
-          millResolver().resolveDeps(
+          millResolver().classpath(
             Seq(
               coursierDependency.withConfiguration(cs.Configuration.provided),
               coursierDependency
@@ -1340,7 +1245,7 @@ trait JavaModule
           )
         },
         Task.Anon {
-          millResolver().resolveDeps(
+          millResolver().classpath(
             Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
             sources = true
           )
@@ -1351,7 +1256,8 @@ trait JavaModule
     Task.Command {
       super.prepareOffline(all)()
       resolvedIvyDeps()
-      zincWorker().prepareOffline(all)()
+      classgraphWorkerModule().prepareOffline(all)()
+      jvmWorker().prepareOffline(all)()
       resolvedRunIvyDeps()
       Task.sequence(tasks)()
       ()
@@ -1360,18 +1266,18 @@ trait JavaModule
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    languageIds = Seq(BspModule.LanguageId.Java),
+    languageIds = Seq(BspModuleApi.LanguageId.Java),
     canCompile = true,
     canRun = true
   )
 
   @internal
-  def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
+  private[mill] def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
     JvmBuildTarget(
-      javaHome = zincWorker()
+      javaHome = jvmWorker()
         .javaHome()
-        .map(p => BspUri(p.path))
-        .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p)))),
+        .map(p => BspUri(p.path.toNIO))
+        .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p).toNIO))),
       javaVersion = Option(System.getProperty("java.version"))
     )
   }
@@ -1379,6 +1285,234 @@ trait JavaModule
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
+  }
+
+  private[mill] def bspBuildTargetScalacOptions(
+      enableJvmCompileClasspathProvider: Boolean,
+      clientWantsSemanticDb: Boolean
+  ) = {
+    val scalacOptionsTask = this match {
+      case m: ScalaModule => m.allScalacOptions
+      case _ => Task.Anon {
+          Seq.empty[String]
+        }
+    }
+
+    val compileClasspathTask: Task[EvaluatorApi => Seq[String]] =
+      if (enableJvmCompileClasspathProvider) {
+        // We have a dedicated request for it
+        Task.Anon {
+          (e: EvaluatorApi) => Seq.empty[String]
+        }
+      } else {
+        bspCompileClasspath
+      }
+
+    val classesPathTask =
+      if (clientWantsSemanticDb) {
+        Task.Anon((e: EvaluatorApi) =>
+          bspCompiledClassesAndSemanticDbFiles().resolve(os.Path(e.outPathJava)).toNIO
+        )
+      } else {
+        Task.Anon((e: EvaluatorApi) =>
+          bspCompileClassesPath().resolve(os.Path(e.outPathJava)).toNIO
+        )
+      }
+
+    Task.Anon {
+      (scalacOptionsTask(), compileClasspathTask(), classesPathTask())
+    }
+  }
+
+  private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean) = {
+    val classesPathTask = this match {
+      case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+        sem.bspCompiledClassesAndSemanticDbFiles
+      case _ => bspCompileClassesPath
+    }
+    Task.Anon { (ev: EvaluatorApi) =>
+      (
+        classesPathTask().resolve(os.Path(ev.outPathJava)).toNIO,
+        javacOptions() ++ mandatoryJavacOptions(),
+        bspCompileClasspath.apply().apply(ev)
+      )
+    }
+  }
+
+  private[mill] def bspBuildTargetSources = Task.Anon {
+    Tuple2(sources().map(_.path.toNIO), generatedSources().map(_.path.toNIO))
+  }
+
+  def sanitizeUri(uri: String): String =
+    if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
+
+  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toNIO.toUri.toString)
+
+  def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
+
+  private[mill] def bspBuildTargetInverseSources[T](id: T, searched: String): Task[Seq[T]] =
+    Task.Anon {
+      val src = allSourceFiles()
+      val found = src.map(sanitizeUri).contains(searched)
+      if (found) Seq(id) else Seq()
+    }
+
+  private[mill] def bspBuildTargetDependencySources = Task.Anon {
+    val repos = allRepositories()
+
+    (
+      millResolver().classpath(
+        Seq(
+          coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+          coursierDependency
+        ),
+        sources = true
+      ).map(_.path.toNIO),
+      unmanagedClasspath().map(_.path.toNIO)
+    )
+  }
+
+  private[mill] def bspBuildTargetDependencyModules = Task.Anon {
+    (
+      // full list of dependencies, including transitive ones
+      millResolver()
+        .resolution(
+          Seq(
+            coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+            coursierDependency
+          )
+        )
+        .orderedDependencies
+        .map { d => (d.module.organization.value, d.module.repr, d.version) },
+      unmanagedClasspath().map(_.path.toNIO)
+    )
+  }
+
+  private[mill] def bspBuildTargetScalaMainClasses =
+    Task.Anon((allLocalMainClasses(), forkArgs(), forkEnv()))
+
+  private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
+    run(Task.Anon(Args(args)))()
+  }
+
+  private[mill] def bspBuildTargetResources = Task.Anon { resources().map(_.path.toNIO) }
+
+  private[mill] def bspBuildTargetCompile = Task.Anon { compile().classes.path.toNIO }
+
+  private[mill] def genIdeaMetadata(
+      ideaConfigVersion: Int,
+      evaluator: EvaluatorApi,
+      path: Segments
+  ) = {
+
+    val mod = this
+    // same as input of resolvedIvyDeps
+    val allIvyDeps = Task.Anon {
+      Seq(
+        mod.coursierDependency,
+        mod.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
+      ).map(BoundDep(_, force = false))
+    }
+
+    val scalaCompilerClasspath = mod match {
+      case x: ScalaModule => x.scalaCompilerClasspath
+      case _ =>
+        Task.Anon {
+          Seq.empty[PathRef]
+        }
+    }
+
+    val externalLibraryDependencies = Task.Anon {
+      mod.defaultResolver().classpath(mod.mandatoryIvyDeps())
+    }
+
+    val externalDependencies = Task.Anon {
+      mod.resolvedIvyDeps() ++
+        Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
+    }
+    val extCompileIvyDeps = Task.Anon {
+      mod.defaultResolver().classpath(mod.compileIvyDeps())
+    }
+    val extRunIvyDeps = mod.resolvedRunIvyDeps
+
+    val externalSources = Task.Anon {
+      mod.millResolver().classpath(allIvyDeps(), sources = true)
+    }
+
+    val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
+      case mod: ScalaModule => (
+          Task.Anon(mod.scalacPluginIvyDeps()),
+          Task.Anon(mod.allScalacOptions()),
+          Task.Anon {
+            Some(mod.scalaVersion())
+          }
+        )
+      case _ => (
+          Task.Anon(Seq[Dep]()),
+          Task.Anon(Seq[String]()),
+          Task.Anon(None)
+        )
+    }
+
+    val scalacPluginDependencies = Task.Anon {
+      mod.defaultResolver().classpath(scalacPluginsIvyDeps())
+    }
+
+    val facets = Task.Anon {
+      mod.ideaJavaModuleFacets(ideaConfigVersion)()
+    }
+
+    val configFileContributions = Task.Anon {
+      mod.ideaConfigFiles(ideaConfigVersion)()
+    }
+
+    val compilerOutput = Task.Anon {
+      mod.ideaCompileOutput()
+    }
+
+    Task.Anon {
+      val resolvedCp: Seq[Scoped[os.Path]] =
+        externalDependencies().map(_.path).map(Scoped(_, None)) ++
+          extCompileIvyDeps()
+            .map(_.path)
+            .map(Scoped(_, Some("PROVIDED"))) ++
+          extRunIvyDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
+      // unused, but we want to trigger sources, to have them available (automatically)
+      // TODO: make this a separate eval to handle resolve errors
+      externalSources()
+      val resolvedSp: Seq[PathRef] = scalacPluginDependencies()
+      val resolvedCompilerCp: Seq[PathRef] =
+        scalaCompilerClasspath()
+      val resolvedLibraryCp: Seq[PathRef] =
+        externalLibraryDependencies()
+      val scalacOpts: Seq[String] = allScalacOptions()
+      val resolvedFacets: Seq[JavaFacet] = facets()
+      val resolvedConfigFileContributions: Seq[IdeaConfigFile] =
+        configFileContributions()
+      val resolvedCompilerOutput = compilerOutput()
+      val resolvedScalaVersion = scalaVersion()
+
+      ResolvedModule(
+        path = path,
+        // FIXME: why do we need to sources in the classpath?
+        // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
+        classpath =
+          resolvedCp.filter(_.value.ext == "jar").map(s => Scoped(s.value.toNIO, s.scope)),
+        module = mod,
+        pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar").map(_.toNIO),
+        scalaOptions = scalacOpts,
+        scalaCompilerClasspath = resolvedCompilerCp.map(_.path.toNIO),
+        libraryClasspath = resolvedLibraryCp.map(_.path.toNIO),
+        facets = resolvedFacets,
+        configFileContributions = resolvedConfigFileContributions,
+        compilerOutput = resolvedCompilerOutput.path.toNIO,
+        scalaVersion = resolvedScalaVersion,
+        resources = resources().map(_.path.toNIO),
+        generatedSources = generatedSources().map(_.path.toNIO),
+        allSources = allSources().map(_.path.toNIO)
+      )
+    }
+
   }
 }
 
@@ -1424,6 +1558,7 @@ object JavaModule {
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
   private[mill] def internalVersion = "0+mill-internal"
+
 }
 
 /**

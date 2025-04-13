@@ -1,10 +1,9 @@
 package build
 import $meta._
-import mill.{Task, Command, RootModule, Cross}, Task.Anon
+import mill.{Task, Command, Cross}, Task.Anon
 import $packages._
 import build.Box
 import build.{given Box[Int]}
-
 
 given Cross.ToSegments[DayValue](d => List(d.toString))
 
@@ -25,7 +24,6 @@ object `package` extends RootModule:
   def someTopLevelCommand(): Command[Unit] = Task.Command:
     println(s"Hello, world! ${summon[Box[Int]]} ${build.sub.subTask()}")
   end someTopLevelCommand
-
 
   object day extends Cross[DayModule](DayValue.values.toSeq)
 

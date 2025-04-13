@@ -1,7 +1,7 @@
 package mill.javalib.android
 
 import coursier.Repository
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.define.{ModuleRef, Target, Task}
 import mill.T
 import mill.scalalib.*
@@ -43,7 +43,7 @@ trait AndroidModule extends JavaModule {
       super.artifactTypes() + coursier.Type("aar")
     }
 
-  override def sources: T[Seq[PathRef]] = Task.Sources(moduleDir / "src/main/java")
+  override def sources: T[Seq[PathRef]] = Task.Sources("src/main/java")
 
   /**
    * Provides access to the Android SDK configuration.
@@ -172,7 +172,7 @@ trait AndroidModule extends JavaModule {
    * Classpath for the manifest merger run.
    */
   def manifestMergerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
       )

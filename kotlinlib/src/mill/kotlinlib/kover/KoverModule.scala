@@ -5,8 +5,8 @@
 package mill.kotlinlib.kover
 
 import mill.*
-import mill.api.{PathRef, Result}
-import mill.api.Result.Success
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.define.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
@@ -55,7 +55,7 @@ trait KoverModule extends KotlinModule { outer =>
    * Reads the Kover version from system environment variable `KOVER_VERSION` or defaults to a hardcoded version.
    */
   def koverVersion: T[String] = Task.Input {
-    Success[String](Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
+    Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion)
   }
 
   def koverBinaryReport: T[PathRef] = Task(persistent = true) {
@@ -93,7 +93,7 @@ trait KoverModule extends KotlinModule { outer =>
 
     /** The Kover Agent is used at test-runtime. */
     private def koverAgentJar: T[PathRef] = Task {
-      val jars = defaultResolver().resolveDeps(koverAgentDep())
+      val jars = defaultResolver().classpath(koverAgentDep())
       jars.iterator.next()
     }
 
@@ -121,8 +121,8 @@ trait KoverModule extends KotlinModule { outer =>
  * all modules that extend [[KoverModule]].
  *
  * - ./mill __.test                                              # run tests for all modules
- * - ./mill mill.kotlinlib.kover.Kover/htmlReportAll     # generates report in html format for all modules
- * - ./mill mill.kotlinlib.kover.Kover/xmlReportAll      # generates report in xml format for all modules
+ * - ./mill mill.kotlinlib.kover/htmlReportAll     # generates report in html format for all modules
+ * - ./mill mill.kotlinlib.kover/xmlReportAll      # generates report in xml format for all modules
  *
  * The aggregated report will be available at either `out/mill/kotlinlib/contrib/kover/Kover/htmlReportAll.dest/`
  * for html reports or `out/mill/kotlinlib/contrib/kover/Kover/xmlReportAll.dest/` for xml reports.
@@ -201,7 +201,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       reportType: ReportType,
       classpath: Seq[Path],
       workingDir: os.Path
-  )(implicit ctx: api.Ctx): PathRef = {
+  )(implicit ctx: mill.define.TaskCtx): PathRef = {
     val args = Seq.newBuilder[String]
     args += "report"
     args ++= binaryReportsPaths.map(_.toString())

@@ -32,8 +32,21 @@ object TestRunnerScalatestTests extends TestSuite {
         3,
         Map(
           // No test grouping is triggered because we only run one test class
-          testrunner.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
-          testrunnerGrouping.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs")
+          testrunner.scalatest -> Set(
+            "out.json",
+            "result.log",
+            "sandbox",
+            "test-report.xml",
+            "testargs"
+          ),
+          testrunnerGrouping.scalatest -> Set(
+            "out.json",
+            "result.log",
+            "sandbox",
+            "test-report.xml",
+            "testargs"
+          ),
+          testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
 
@@ -42,12 +55,19 @@ object TestRunnerScalatestTests extends TestSuite {
         Seq("*"),
         9,
         Map(
-          testrunner.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunner.scalatest -> Set(
+            "out.json",
+            "result.log",
+            "sandbox",
+            "test-report.xml",
+            "testargs"
+          ),
           testrunnerGrouping.scalatest -> Set(
             "group-0-mill.scalalib.ScalaTestSpec",
             "mill.scalalib.ScalaTestSpec3",
             "test-report.xml"
-          )
+          ),
+          testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("include") - tester.testOnly(
@@ -74,12 +94,19 @@ object TestRunnerScalatestTests extends TestSuite {
         Seq("*", "--", "-z", "A Set 2"),
         3,
         Map(
-          testrunner.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunner.scalatest -> Set(
+            "out.json",
+            "result.log",
+            "sandbox",
+            "test-report.xml",
+            "testargs"
+          ),
           testrunnerGrouping.scalatest -> Set(
             "group-0-mill.scalalib.ScalaTestSpec",
             "mill.scalalib.ScalaTestSpec3",
             "test-report.xml"
-          )
+          ),
+          testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
         )
       )
       test("includeAndExclude") - tester.testOnly0 { (eval, mod) =>

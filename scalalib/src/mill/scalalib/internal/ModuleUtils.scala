@@ -1,10 +1,11 @@
 package mill.scalalib.internal
 
 import mill.api.BuildScriptException
+import mill.api.internal.internal
 
 import scala.annotation.tailrec
 
-@mill.api.internal
+@internal
 object ModuleUtils {
 
   /**
@@ -17,7 +18,7 @@ object ModuleUtils {
    * @param deps A function provided the direct dependencies
    * @throws BuildScriptException if there were cycles in the dependencies
    */
-  // FIXME: Remove or consolidate with copy in ZincWorkerImpl
+  // FIXME: Remove or consolidate with copy in JvmWorkerImpl
   def recursive[T](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
 
     @tailrec def rec(

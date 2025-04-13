@@ -5,19 +5,19 @@
  */
 package mill.kotlinlib.worker.impl
 
-import mill.api.{Ctx, Result}
+import mill.define.{TaskCtx}
+import mill.api.{Result}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import org.jetbrains.kotlin.cli.js.K2JSCompiler
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 
-import scala.annotation.nowarn
-
 class KotlinWorkerImpl extends KotlinWorker {
 
-  def compile(target: KotlinWorkerTarget, args: Seq[String])(implicit ctx: Ctx): Result[Unit] = {
+  def compile(target: KotlinWorkerTarget, args: Seq[String])(implicit
+      ctx: TaskCtx
+  ): Result[Unit] = {
     ctx.log.debug("Using kotlin compiler arguments: " + args.map(v => s"'${v}'").mkString(" "))
 
-    @nowarn("msg=match may not be exhaustive") // false positive
     val compiler = target match {
       case KotlinWorkerTarget.Jvm => new K2JVMCompiler()
       case KotlinWorkerTarget.Js => new K2JSCompiler()

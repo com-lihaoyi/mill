@@ -5,10 +5,11 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.*
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.api.Result
-import mill.define.{Discover, ExternalModule}
+import mill.define.{Discover, ExternalModule, TaskModule}
 import mill.scalalib.*
 import mainargs.arg
-import mill.main.Tasks
+import mill.util.Tasks
+import mill.util.Jvm
 
 trait ScalafmtModule extends JavaModule {
 
@@ -100,6 +101,40 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
           resolvedScalafmtConfig()
         )
     }
+
+  /**
+   * Class path of the scalafmt CLI
+   */
+  def scalafmtClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      Seq(
+        ivy"org.scalameta:scalafmt-cli_2.13:${mill.scalalib.api.Versions.scalafmtVersion}"
+      )
+    )
+  }
+
+  /**
+   * Main class of the scalafmt CLI
+   *
+   * Added in case the main class changes in the future, and users need to change it.
+   */
+  protected def scalafmtMainClass: String = "org.scalafmt.cli.Cli"
+
+  /**
+   * Runs the scalafmt CLI with the given arguments in an external process.
+   *
+   * Note that this runs the scalafmt CLI on the JVM, rather than a native launcher of the CLI.
+   */
+  def scalafmt(args: String*): Command[Unit] = Task.Command {
+    Jvm.callProcess(
+      scalafmtMainClass,
+      args,
+      classPath = scalafmtClasspath().map(_.path),
+      cwd = T.workspace,
+      stdin = os.Inherit,
+      stdout = os.Inherit
+    )
+  }
 
   lazy val millDiscover = Discover[this.type]
 }

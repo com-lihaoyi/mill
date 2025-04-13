@@ -2,8 +2,7 @@ package mill
 package contrib.scalapblib
 
 import coursier.core.Version
-import mill.api.{PathRef}
-import mill.scalalib.Lib.resolveDependencies
+import mill.define.{PathRef}
 import mill.scalalib._
 
 import java.util.zip.ZipInputStream
@@ -76,10 +75,11 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBClasspath: T[Seq[PathRef]] = Task {
-    resolveDependencies(
-      repositoriesTask(),
+    val scalaPBScalaVersion = "2.13.1"
+    defaultResolver().classpath(
       Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
-        .map(Lib.depToBoundDep(_, "2.13.1"))
+        .map(Lib.depToBoundDep(_, scalaPBScalaVersion)),
+      resolutionParamsMapOpt = Some(_.withScalaVersion(scalaPBScalaVersion))
     )
   }
 
@@ -91,7 +91,7 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
-    millResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),
         coursierDependency

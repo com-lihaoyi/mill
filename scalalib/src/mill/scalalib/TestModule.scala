@@ -1,20 +1,21 @@
 package mill.scalalib
 
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.{TaskCtx, PathRef}
+import mill.api.{Result}
 import mill.define.{Command, Task, TaskModule}
-import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import mill.api.internal.{BspBuildTarget, BspModuleApi, TestReporter}
+import mill.scalalib.bsp.BspModule
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
 import mill.T
+import mill.api.internal.{TestModuleApi, BspBuildTarget}
 
 trait TestModule
     extends TestModule.JavaModuleBase
-    with WithZincWorker
+    with WithJvmWorker
     with RunModule
-    with TaskModule {
-
-  // FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
-  def compile: T[mill.scalalib.api.CompilationResult]
+    with TaskModule
+    with TestModuleApi {
 
   override def defaultCommandName() = "testForked"
 
@@ -41,15 +42,15 @@ trait TestModule
   def testFramework: T[String]
 
   def discoveredTestClasses: T[Seq[String]] = Task {
-    val classes = if (zincWorker().javaHome().isDefined) {
+    val classes = if (jvmWorker().javaHome().isDefined) {
       Jvm.callProcess(
         mainClass = "mill.testrunner.DiscoverTestsMain",
-        classPath = zincWorker().scalalibClasspath().map(_.path).toVector,
+        classPath = jvmWorker().scalalibClasspath().map(_.path).toVector,
         mainArgs =
           runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
             testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
             Seq("--framework", testFramework()),
-        javaHome = zincWorker().javaHome().map(_.path),
+        javaHome = jvmWorker().javaHome().map(_.path),
         stdin = os.Inherit,
         stdout = os.Pipe,
         cwd = Task.dest
@@ -97,14 +98,23 @@ trait TestModule
   }
 
   /**
-   * How the test classes in this module will be split into multiple JVM processes
-   * and run in parallel during testing. Defaults to all of them running in one process
-   * sequentially, but can be overridden to split them into separate groups that run
-   * in parallel.
+   * How the test classes in this module will be split.
+   * Test classes from different groups are ensured to never
+   * run on the same JVM process, and therefore can be run in parallel.
+   * When used in combination with [[testParallelism]],
+   * every JVM test running process will guarantee to never claim tests
+   * from different test groups.
    */
   def testForkGrouping: T[Seq[Seq[String]]] = Task {
     Seq(discoveredTestClasses())
   }
+
+  /**
+   * Whether to use the test parallelism to run tests in multiple JVM processes.
+   * When used in combination with [[testForkGrouping]], every JVM test running process
+   * will guarantee to never claim tests from different test groups.
+   */
+  def testParallelism: T[Boolean] = T(true)
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -139,6 +149,8 @@ trait TestModule
    */
   def testReportXml: T[Option[String]] = T(Some("test-report.xml"))
 
+  def testLogLevel: T[TestReporter.LogLevel] = Task(TestReporter.LogLevel.Debug)
+
   /**
    * Returns a Tuple where the first element is the main-class, second and third are main-class-arguments and the forth is classpath
    */
@@ -147,6 +159,7 @@ trait TestModule
     Task.Anon {
       val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
       val outputPath = Task.dest / "out.json"
+      val resultPath = Task.dest / "results.log"
       val selectors = Seq.empty
 
       val testArgs = TestArgs(
@@ -155,19 +168,21 @@ trait TestModule
         arguments = args(),
         sysProps = Map.empty,
         outputPath = outputPath,
+        resultPath = resultPath,
         colored = Task.log.prompt.colored,
         testCp = testClasspath().map(_.path),
-        globSelectors = selectors
+        globSelectors = Left(selectors),
+        logLevel = testLogLevel()
       )
 
       val argsFile = Task.dest / "testargs"
       os.write(argsFile, upickle.default.write(testArgs))
 
       val testRunnerClasspathArg =
-        zincWorker().scalalibClasspath()
+        jvmWorker().scalalibClasspath()
           .map(_.path.toNIO.toUri.toURL).mkString(",")
 
-      val cp = (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(_.path.toString)
+      val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toString)
 
       Result.Success((mainClass, testRunnerClasspathArg, argsFile.toString, cp))
     }
@@ -190,24 +205,27 @@ trait TestModule
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] =
     Task.Anon {
-      TestModuleUtil.runTests(
+      val testModuleUtil = new TestModuleUtil(
         testUseArgsFile(),
         forkArgs(),
         globSelectors(),
-        zincWorker().scalalibClasspath(),
+        jvmWorker().scalalibClasspath(),
         resources(),
         testFramework(),
         runClasspath(),
         testClasspath(),
         args(),
         testForkGrouping(),
-        zincWorker().testrunnerEntrypointClasspath(),
+        jvmWorker().testrunnerEntrypointClasspath(),
         forkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
         testReportXml(),
-        zincWorker().javaHome().map(_.path)
+        jvmWorker().javaHome().map(_.path),
+        testParallelism(),
+        testLogLevel()
       )
+      testModuleUtil.runTests()
     }
 
   /**
@@ -229,8 +247,22 @@ trait TestModule
     val parent = super.bspBuildTarget
     parent.copy(
       canTest = true,
-      tags = Seq(BspModule.Tag.Test)
+      tags = Seq(BspModuleApi.Tag.Test)
     )
+  }
+
+  private[mill] def bspBuildTargetScalaTestClasses = Task.Anon {
+    val (frameworkName, classFingerprint) =
+      mill.util.Jvm.withClassLoader(
+        classPath = runClasspath().map(_.path),
+        sharedPrefixes = Seq("sbt.testing.")
+      ) { classLoader =>
+        val framework = Framework.framework(testFramework())(classLoader)
+        framework.name() -> mill.testrunner.TestRunnerUtils
+          .discoverTests(classLoader, framework, testClasspath().map(_.path))
+      }
+    val classes = classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
+    (frameworkName, classes)
   }
 }
 
@@ -270,6 +302,17 @@ object TestModule {
       super.mandatoryIvyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
 
+    private lazy val classesDir: Task[Option[os.Path]] = this match {
+      case withCompileTask: JavaModule => Task.Anon {
+          Some(withCompileTask.compile().classes.path)
+        }
+      case m => Task.Anon {
+          m.testClasspath().map(_.path).find { path =>
+            os.exists(path) && os.walk.stream(path).exists(p => os.isFile(p) && p.ext == "class")
+          }
+        }
+    }
+
     /**
      * Overridden since Junit5 has its own discovery mechanism.
      *
@@ -292,10 +335,13 @@ object TestModule {
           classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
         val builder = builderClass.getConstructor().newInstance()
 
-        builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
-          builder,
-          compile().classes.path.wrapped.toFile
-        )
+        classesDir().foreach { path =>
+          builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
+            builder,
+            path.wrapped.toFile
+          )
+        }
+
         builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
           builder,
           testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
@@ -376,16 +422,20 @@ object TestModule {
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
   }
 
+  trait ScalaCheck extends TestModule {
+    override def testFramework: T[String] = "org.scalacheck.ScalaCheckFramework"
+  }
+
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Option[Ctx.Env]
+      ctx: Option[TaskCtx.Env]
   ): Result[(String, Seq[TestResult])] = TestModuleUtil.handleResults(doneMsg, results, ctx)
 
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env & Ctx.Dest,
+      ctx: TaskCtx.Env & TaskCtx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] =

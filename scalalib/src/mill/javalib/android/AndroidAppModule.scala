@@ -2,9 +2,9 @@ package mill.javalib.android
 
 import mill._
 import mill.scalalib._
-import mill.api.{Logger, PathRef, internal}
-import mill.define.{ModuleRef, Task}
-import mill.scalalib.bsp.BspBuildTarget
+import mill.api.Logger
+import mill.define.{ModuleRef, Task, PathRef}
+import mill.api.internal.{BspBuildTarget, EvaluatorApi, internal}
 import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.RelPath
@@ -92,13 +92,15 @@ trait AndroidAppModule extends AndroidModule {
   }
 
   @internal
-  override def bspCompileClasspath: T[Seq[UnresolvedPath]] = Task {
-    compileClasspath().map(_.path).map(UnresolvedPath.ResolvedPath(_))
+  override def bspCompileClasspath = Task.Anon { (ev: EvaluatorApi) =>
+    compileClasspath().map(
+      _.path
+    ).map(UnresolvedPath.ResolvedPath(_)).map(_.resolve(os.Path(ev.outPathJava))).map(sanitizeUri)
   }
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    baseDirectory = Some(moduleDir / "src/main"),
+    baseDirectory = Some((moduleDir / "src/main").toNIO),
     tags = Seq("application")
   )
 
@@ -305,7 +307,7 @@ trait AndroidAppModule extends AndroidModule {
    * Classpath for the manifest merger run.
    */
   def manifestMergerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(
         ivy"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
       )
@@ -764,7 +766,7 @@ trait AndroidAppModule extends AndroidModule {
     override def resources: T[Seq[PathRef]] = Task.Sources("src/test/res")
 
     override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-      baseDirectory = Some(moduleDir / "src/test"),
+      baseDirectory = Some((moduleDir / "src/test").toNIO),
       canTest = true
     )
 
@@ -862,7 +864,7 @@ trait AndroidAppModule extends AndroidModule {
 
     @internal
     override def bspBuildTarget: BspBuildTarget = super[AndroidTestModule].bspBuildTarget.copy(
-      baseDirectory = Some(moduleDir / "src/androidTest"),
+      baseDirectory = Some((moduleDir / "src/androidTest").toNIO),
       canRun = false
     )
 

@@ -1,10 +1,10 @@
 package mill.kotlinlib.ktfmt
 
 import mill._
-import mill.api.{PathRef}
+import mill.define.{PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.kotlinlib.{DepSyntax, Versions}
-import mill.main.Tasks
+import mill.util.Tasks
 import mill.scalalib.JavaModule
 import mill.util.Jvm
 
@@ -14,7 +14,7 @@ trait KtfmtBaseModule extends JavaModule {
    * Classpath for running Ktfmt.
    */
   def ktfmtClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       Seq(ivy"com.facebook:ktfmt:${ktfmtVersion()}")
     )
   }
@@ -99,7 +99,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
       sources: IterableOnce[PathRef],
       classPath: Seq[PathRef],
       options: Seq[String]
-  )(implicit ctx: api.Ctx): Unit = {
+  )(implicit ctx: mill.define.TaskCtx): Unit = {
 
     ctx.log.info("running ktfmt ...")
 

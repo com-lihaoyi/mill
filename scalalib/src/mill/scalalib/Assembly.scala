@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.util.JarManifest
 import os.Generator
 

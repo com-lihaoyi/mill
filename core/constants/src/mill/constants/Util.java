@@ -10,8 +10,12 @@ import java.util.Locale;
 
 public class Util {
 
-  public static boolean isWindows =
-      System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
+  private static String lowerCaseOsName() {
+    return System.getProperty("os.name").toLowerCase(Locale.ROOT);
+  }
+
+  public static boolean isWindows = lowerCaseOsName().startsWith("windows");
+  public static boolean isLinux = lowerCaseOsName().equals("linux");
   public static boolean isJava9OrAbove =
       !System.getProperty("java.specification.version").startsWith("1.");
 
@@ -34,6 +38,24 @@ public class Util {
     return new String(hexChars);
   }
 
+  private static final boolean hasConsole0;
+
+  static {
+    Console console = System.console();
+
+    boolean foundConsole;
+    if (console != null) {
+      try {
+        Method method = console.getClass().getMethod("isTerminal");
+        foundConsole = (Boolean) method.invoke(console);
+      } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException ignored) {
+        foundConsole = true;
+      }
+    } else foundConsole = false;
+
+    hasConsole0 = foundConsole;
+  }
+
   /**
    * Determines if we have an interactive console attached to the application.
    * <p>
@@ -46,17 +68,7 @@ public class Util {
    * This method takes into account these differences and is compatible with
    * both JDK versions before 22 and later.
    */
-  @SuppressWarnings("SystemConsoleNull")
   public static boolean hasConsole() {
-    Console console = System.console();
-
-    if (console != null) {
-      try {
-        Method method = console.getClass().getMethod("isTerminal");
-        return (Boolean) method.invoke(console);
-      } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException ignored) {
-        return true;
-      }
-    } else return false;
+    return hasConsole0;
   }
 }

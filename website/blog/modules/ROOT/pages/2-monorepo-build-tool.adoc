@@ -1,6 +1,5 @@
-// tag::header[]
-
 = Why Use a Monorepo Build Tool?
+// tag::header[]
 :author: Li Haoyi
 :revdate: 17 December 2024
 

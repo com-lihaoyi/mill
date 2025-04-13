@@ -1,6 +1,5 @@
-// tag::header[]
-
 = How To Manage Flaky Tests in your CI Workflows
+// tag::header[]
 :author: Li Haoyi
 :revdate: 1 January 2025
 

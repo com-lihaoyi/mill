@@ -3,17 +3,14 @@
 
 
 This page documents a playbook for migrating existing projects
-from Maven, Gradle, or SBT to Mill.
+from Maven, Gradle, or `sbt` to Mill.
 
 Some build tools also have additional semi-automated
 tooling.
 
 * xref:migrating/maven.adoc[]
 * xref:migrating/gradle.adoc[]
-
-Other automation is work-in-process.
-
-* https://github.com/com-lihaoyi/mill/issues/3450[SBT]
+* xref:migrating/sbt.adoc[]
 
 While automation helps with
 some of the scaffolding the general principles laid out on this page still apply.
@@ -46,7 +43,7 @@ faster and easier to use build system are significant (see xref:comparisons/why-
 especially multiplied over an entire team of engineers who may be working on
 the codebase for multiple years. Generally the more actively a project is developed, and the
 longer you expect development to continue, the more worthwhile it is to migrate from
-Maven/Gradle/SBT
+Maven/Gradle/`sbt`
 to Mill.
 
 == How to Approach Migration
@@ -191,7 +188,7 @@ a|
 implementation "com.google.guava:guava:3.3.1-jre"
 ----
 
-| SBT
+| `sbt`
 a|
 [source,scala]
 ----
@@ -206,12 +203,12 @@ def ivyDeps = Seq(ivy"com.google.guava:guava:3.3.1-jre")
 ----
 |===
 
-If you are building a Scala project using SBT:
+If you are building a Scala project using `sbt`:
 
 [cols="1,3"]
 |===
 | Build Tool | Dependency
-| SBT
+| `sbt`
 a|
 [source,scala]
 ----
@@ -237,7 +234,7 @@ has more details: how to configure unmanaged jars, repositories, pinning version
 
 == Translating Third-Party Plugins
 
-At a high level, you want to take plugins that you use in Maven/Gradle/SBT and replace
+At a high level, you want to take plugins that you use in Maven/Gradle/`sbt` and replace
 them either with builtin Mill functionality:
 
 * xref:javalib/linting.adoc[]
@@ -280,7 +277,7 @@ new Mill build:
 * You may need to update code to use the `MILL_TEST_RESOURCE_DIR` environment variable
   rather than the `"resources/"` folder directly in code, since Mill runs tests in
   xref:depth/sandboxing.adoc[Sandboxes] that guard against unwanted filesystem access.
-* Similarly, you may need to us `Task.workspace` or `mill.api.WorkspaceRoot.workspaceRoot`
+* Similarly, you may need to use `Task.workspace` or `WorkspaceRoot.workspaceRoot`
   to access the project root folder in custom build tasks, since the Mill build process
   also runs in a sandbox by default
 * Some tests may require xref:fundamentals/configuring-jvm-versions.adoc[] to run

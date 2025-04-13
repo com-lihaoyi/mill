@@ -5,7 +5,7 @@ import java.util.Base64
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 
-import mill.main.BuildInfo
+import mill.api.BuildInfo
 import requests.BaseSession
 import ujson.ParseException
 import requests.Session

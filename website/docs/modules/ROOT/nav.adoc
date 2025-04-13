@@ -29,24 +29,26 @@
 ** xref:kotlinlib/publishing.adoc[]
 // ** xref:kotlinlib/build-examples.adoc[]
 ** xref:kotlinlib/web-examples.adoc[]
-* xref:pythonlib/intro.adoc[]
-** xref:pythonlib/module-config.adoc[]
-** xref:pythonlib/dependencies.adoc[]
-** xref:pythonlib/linting.adoc[]
-** xref:pythonlib/testing.adoc[]
-** xref:pythonlib/publishing.adoc[]
-** xref:pythonlib/web-examples.adoc[]
+[]
 * Experimental Platform Support
-** Building Android Apps
-*** xref:android/java.adoc[]
-*** xref:android/kotlin.adoc[]
-*** xref:android/android-linting.adoc[]
+** xref:pythonlib/intro.adoc[]
+*** xref:pythonlib/module-config.adoc[]
+*** xref:pythonlib/dependencies.adoc[]
+*** xref:pythonlib/linting.adoc[]
+*** xref:pythonlib/testing.adoc[]
+*** xref:pythonlib/publishing.adoc[]
+*** xref:pythonlib/web-examples.adoc
 ** xref:javascriptlib/intro.adoc[]
 *** xref:javascriptlib/dependencies.adoc[]
 *** xref:javascriptlib/module-config.adoc[]
 *** xref:javascriptlib/testing.adoc[]
-*** xref:javascriptlib/publishing.adoc[]
 *** xref:javascriptlib/linting.adoc[]
+*** xref:javascriptlib/publishing.adoc[]
+*** xref:javascriptlib/build-examples.adoc[]
+** Building Android Apps
+*** xref:android/java.adoc[]
+*** xref:android/kotlin.adoc[]
+*** xref:android/android-linting.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
@@ -60,6 +62,7 @@
 * xref:migrating/migrating.adoc[]
 ** xref:migrating/maven.adoc[]
 ** xref:migrating/gradle.adoc[]
+** xref:migrating/sbt.adoc[]
 // This section gives a tour of the various user-facing features of Mill:
 // library deps, out folder, queries, tasks, etc.. These are things that
 // every Mill user will likely encounter, and are touched upon in the various
@@ -82,7 +85,6 @@
 // See also the list in Contrib_Plugins.adoc
 *** xref:contrib/artifactory.adoc[]
 *** xref:contrib/bintray.adoc[]
-*** xref:contrib/bloop.adoc[]
 *** xref:contrib/buildinfo.adoc[]
 *** xref:contrib/codeartifact.adoc[]
 *** xref:contrib/docker.adoc[]

@@ -1,9 +1,9 @@
 package mill.javalib.palantirformat
 
-import mill.api.{Ctx, PathRef}
+import mill.define.{TaskCtx, PathRef}
 import mill.define.{Discover, ExternalModule, TaskModule}
-import mill.main.Tasks
-import mill.main.TokenReaders.*
+import mill.util.Tasks
+import mill.util.TokenReaders.*
 import mill.scalalib.JavaModule
 import mill.util.Jvm
 import mill.{Command, T, Task}
@@ -77,7 +77,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       options: PathRef,
       classPath: Seq[PathRef],
       jvmArgs: Seq[String]
-  )(implicit ctx: Ctx): Unit = {
+  )(implicit ctx: TaskCtx): Unit = {
 
     val javaFiles = sources
       .iterator

@@ -59,6 +59,8 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5 {
     "-enableassertions"
   )
 
+  def testLogLevel = mill.api.internal.TestReporter.LogLevel.Info
+
   def compile = Task {
     // Hack to satisfy fragile tests that look for /test-classes/ in the file paths
     val sup = super.compile()
@@ -92,8 +94,8 @@ trait NettyJniModule extends NettyModule {
   }
   def clang = Task {
     val Seq(sourceJar) = defaultResolver()
-      .resolveDeps(
-        Seq(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency()),
+      .classpath(
+        Seq(ivy"io.netty:netty-jni-util:0.0.9.Final"),
         sources = true
       )
       .toSeq
@@ -566,10 +568,10 @@ object `transport-native-unix-common` extends NettyModule {
   }
 
   def make = Task {
-    val Seq(sourceJar) = resolveDeps(
-      deps = Task.Anon(Seq(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
+    val Seq(sourceJar) = defaultResolver().classpath(
+      Seq(ivy"io.netty:netty-jni-util:0.0.9.Final"),
       sources = true
-    )().toSeq
+    )
 
     os.copy(makefile().path, Task.dest / "Makefile")
     os.copy(cSources().path, Task.dest / "src/main/c", createFolders = true)
@@ -636,16 +638,18 @@ object `transport-udt` extends NettyModule {
 
 > ./mill -j5 __.compile
 
-> ./mill 'codec-{dns,haproxy,http,http2,memcache,mqtt,redis,smtp,socks,stomp,xml}.test'
+> ./mill 'codec-stomp.test.testForked'
 ...Test io.netty.handler.codec.stomp.StompSubframeEncoderTest#testEscapeStompHeaders() started
-...Test io.netty.handler.codec.stomp.StompSubframeEncoderTest#testEscapeStompHeaders() finished...
 ...
 
-> ./mill 'transport-blockhound-tests.testForked'
+> ./mill 'codec-{dns,haproxy,http,http2,memcache,mqtt,redis,smtp,socks,xml}.test.testForked' -q +v
 
-> ./mill 'transport-{native-unix-common,sctp}.test'
+> ./mill 'transport-blockhound-tests.testForked' -q +v
+
+> ./mill 'transport-native-unix-common.test.testForked'
 ...Test io.netty.channel.unix.UnixChannelUtilTest#testUnPooledAllocatorIsBufferCopyNeededForWrite() started
-...Test io.netty.channel.unix.UnixChannelUtilTest#testUnPooledAllocatorIsBufferCopyNeededForWrite() finished...
 ...
+
+> ./mill 'transport-{native-unix-common,sctp}.test.testForked' -q +v
 
 */

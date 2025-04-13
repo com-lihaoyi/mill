@@ -1,18 +1,24 @@
 package mill.scalalib
 
 import java.lang.reflect.Modifier
+
 import mainargs.arg
-import mill.api.JsonFormatters.pathReadWrite
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.JsonFormatters.pathReadWrite
+import mill.api.Result
+import mill.api.internal.RunModuleApi
+import mill.define.{ModuleCtx, PathRef, TaskCtx}
 import mill.constants.ServerFiles
-import mill.define.{Command, Task}
+import mill.define.{Command, ModuleRef, Task}
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
-
 import scala.util.control.NonFatal
 
-trait RunModule extends WithZincWorker {
+import mill.scalalib.classgraph.ClassgraphWorkerModule
+
+trait RunModule extends WithJvmWorker with RunModuleApi {
+
+  def classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 
   /**
    * Any command-line parameters you want to pass to the forked JVM.
@@ -45,21 +51,11 @@ trait RunModule extends WithZincWorker {
    */
   def mainClass: T[Option[String]] = None
 
+  /**
+   * All main classes detected in this module that can serve as program entry-points.
+   */
   def allLocalMainClasses: T[Seq[String]] = Task {
-    val classpath = localRunClasspath().map(_.path)
-    if (zincWorker().javaHome().isDefined) {
-      Jvm.callProcess(
-        mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
-        classPath = zincWorker().classpath().map(_.path).toVector,
-        mainArgs = Seq(classpath.mkString(",")),
-        javaHome = zincWorker().javaHome().map(_.path),
-        stdin = os.Inherit,
-        stdout = os.Pipe,
-        cwd = Task.dest
-      ).out.lines()
-    } else {
-      zincWorker().worker().discoverMainClasses(classpath)
-    }
+    classgraphWorkerModule().classgraphWorker().discoverMainClasses(localRunClasspath().map(_.path))
   }
 
   def finalMainClassOpt: T[Either[String, String]] = Task {
@@ -71,8 +67,9 @@ trait RunModule extends WithZincWorker {
           case Seq(main) => Right(main)
           case mains =>
             Left(
-              s"Multiple main classes found (${mains.mkString(",")}) " +
-                "please explicitly specify which one to use by overriding mainClass"
+              s"Multiple main classes found (${mains.mkString(",")}). " +
+                "Please explicitly specify which one to use by overriding `mainClass` " +
+                "or using `runMain <main-class> <...args>` instead of `run`"
             )
         }
     }
@@ -151,7 +148,7 @@ trait RunModule extends WithZincWorker {
       forkArgs(),
       forkEnv(),
       runUseArgsFile(),
-      zincWorker().javaHome().map(_.path)
+      jvmWorker().javaHome().map(_.path)
     )
   }
 
@@ -177,11 +174,27 @@ trait RunModule extends WithZincWorker {
         ) ++ args().value,
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
         workingDir = forkWorkingDir(),
-        extraRunClasspath = zincWorker().backgroundWrapperClasspath().map(_.path).toSeq,
+        extraRunClasspath = jvmWorker().backgroundWrapperClasspath().map(_.path).toSeq,
         background = true,
         runBackgroundLogToConsole = runBackgroundLogToConsole
       )
     }
+
+  /**
+   * Runs this module's code in a background process, until it dies or
+   * `runBackground` is used again. This lets you continue using Mill while
+   * the process is running in the background: editing files, compiling, and
+   * only re-starting the background process when you're ready.
+   *
+   * You can also use `-w foo.runBackground` to make Mill watch for changes
+   * and automatically recompile your code & restart the background process
+   * when ready. This is useful when working on long-running server processes
+   * that would otherwise run forever
+   */
+  def runBackground(args: String*): Command[Unit] = {
+    val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
+    Task.Command { task() }
+  }
 
   /**
    * If true, stdout and stderr of the process executed by `runBackground`
@@ -204,7 +217,7 @@ trait RunModule extends WithZincWorker {
         Seq(classpathJar)
       }
 
-    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs(), Task.dest)
   }
 
   /**
@@ -214,6 +227,22 @@ trait RunModule extends WithZincWorker {
    */
   def launcher: T[PathRef] = Task { launcher0() }
 
+  private[mill] def bspJvmRunTestEnvironment = {
+    val moduleSpecificTask = this match {
+      case m: (TestModule & JavaModule) => m.getTestEnvironmentVars()
+      case _ => allLocalMainClasses
+    }
+    Task.Anon {
+      (
+        runClasspath().map(_.path.toNIO),
+        forkArgs(),
+        forkWorkingDir().toNIO,
+        forkEnv(),
+        mainClass(),
+        moduleSpecificTask()
+      )
+    }
+  }
 }
 
 object RunModule {
@@ -250,7 +279,7 @@ object RunModule {
         extraRunClasspath: Seq[os.Path] = Nil,
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false
-    )(implicit ctx: Ctx): Unit
+    )(implicit ctx: TaskCtx): Unit
   }
   private class RunnerImpl(
       mainClass0: Either[String, String],
@@ -271,7 +300,7 @@ object RunModule {
         extraRunClasspath: Seq[os.Path] = Nil,
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false
-    )(implicit ctx: Ctx): Unit = {
+    )(implicit ctx: TaskCtx): Unit = {
       val dest = ctx.dest
       val cwd = Option(workingDir).getOrElse(dest)
       val mainClass1 = Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity))
@@ -332,4 +361,5 @@ object RunModule {
       }
     }
   }
+
 }

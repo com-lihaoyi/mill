@@ -1,7 +1,8 @@
 package mill.kotlinlib.ksp
 
 import mill._
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.define.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
@@ -51,7 +52,7 @@ trait KspModule extends KotlinModule { outer =>
   }
 
   def kspPluginsResolved: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(kspPlugins())
+    defaultResolver().classpath(kspPlugins())
   }
 
   /**
@@ -63,12 +64,12 @@ trait KspModule extends KotlinModule { outer =>
   }
 
   def kotlinSymbolProcessorsResolved: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(
+    defaultResolver().classpath(
       kotlinSymbolProcessors()
     )
   }
 
-  override def kotlinCompilerEmbeddable: Task[Boolean] = Task { true }
+  override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
 
   /*
    * The symbol processing plugin id
@@ -130,7 +131,7 @@ trait KspModule extends KotlinModule { outer =>
         "-classpath",
         compileCp.iterator.mkString(File.pathSeparator)
       ),
-      kotlincOptions(),
+      allKotlincOptions(),
       kspCompilerArgs,
       // parameters
       sourceFiles.map(_.toString())

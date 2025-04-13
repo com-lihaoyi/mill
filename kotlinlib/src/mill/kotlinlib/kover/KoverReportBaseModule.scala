@@ -6,7 +6,7 @@ package mill.kotlinlib.kover
 
 import mill._
 import mill.api.Result.Success
-import mill.api.{PathRef}
+import mill.define.{PathRef}
 import mill.kotlinlib.{Dep, DepSyntax, Versions}
 import mill.scalalib.CoursierModule
 
@@ -29,6 +29,6 @@ trait KoverReportBaseModule extends CoursierModule {
    * Classpath for running Kover.
    */
   def koverCliClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(koverCliDep())
+    defaultResolver().classpath(koverCliDep())
   }
 }

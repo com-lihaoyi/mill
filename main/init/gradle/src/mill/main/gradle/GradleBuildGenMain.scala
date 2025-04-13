@@ -1,8 +1,10 @@
 package mill.main.gradle
 
 import mainargs.{ParserForClass, arg, main}
+import mill.api.internal.internal
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
+import mill.main.gradle.JavaModel.{Dep, ExternalDep}
 import mill.util.Jvm
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.tooling.GradleConnector
@@ -21,6 +23,7 @@ import scala.jdk.CollectionConverters.*
  * ===Capabilities===
  * The conversion
  *  - handles deeply nested modules
+ *  - captures publish settings
  *  - configures dependencies for configurations:
  *    - implementation / api
  *    - compileOnly / compileOnlyApi
@@ -33,14 +36,14 @@ import scala.jdk.CollectionConverters.*
  *    - TestNG
  *
  * ===Limitations===
- * The conversion does not support
+ * The conversion does not support:
  *  - custom dependency configurations
  *  - custom tasks
  *  - non-Java sources
  */
-@mill.api.internal
-object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
-  type C = GradleBuildGenMain.Config
+@internal
+object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep] {
+  override type C = Config
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
@@ -54,7 +57,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     val connector = GradleConnector.newConnector()
 
     val args =
-      cfg.shared.jvmId.map { id =>
+      cfg.shared.basicConfig.jvmId.map { id =>
         println(s"resolving Java home for jvmId $id")
         val home = Jvm.resolveJavaHome(id).get
         s"-Dorg.gradle.java.home=$home"
@@ -75,7 +78,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
           (Node(dirs, project), children)
         }
 
-        convertWriteOut(cfg, cfg.shared, input)
+        convertWriteOut(cfg, cfg.shared.basicConfig, input)
 
         println("converted Gradle build to Mill")
       } finally connection.close()
@@ -124,44 +127,56 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
         Option.when(null != project.maven().pom()) { "PublishModule" }
 
     val javacOptions = getJavacOptions(project)
+    val scalaVersion = None
+    val scalacOptions = None
     val repos = getRepositories(project)
     val pomSettings = extractPomSettings(project)
     val publishVersion = getPublishVersion(project)
     val publishProperties = getPublishProperties(project, cfg.shared)
 
     val typedef = IrTrait(
-      cfg.shared.jvmId,
+      cfg.shared.basicConfig.jvmId,
       baseModule,
       supertypes,
       javacOptions,
+      scalaVersion,
+      scalacOptions,
       pomSettings,
       publishVersion,
       publishProperties,
       repos
     )
 
-    IrBaseInfo(javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)
+    IrBaseInfo(typedef)
   }
+
+  override type ModuleFqnMap = Map[String, String]
+  override def getModuleFqnMap(moduleNodes: Seq[Node[ProjectModel]])
+      : ModuleFqnMap =
+    buildModuleFqnMap(moduleNodes)(_.path())
 
   override def extractIrBuild(
       cfg: Config,
-      baseInfo: IrBaseInfo,
+      // baseInfo: IrBaseInfo,
       build: Node[ProjectModel],
-      packages: Map[(String, String, String), String]
+      moduleFqnMap: ModuleFqnMap
   ): IrBuild = {
     val project = build.value
-    val scopedDeps = extractScopedDeps(project, packages, cfg)
+    val scopedDeps = extractScopedDeps(project, moduleFqnMap, cfg)
     val version = getPublishVersion(project)
     IrBuild(
       scopedDeps = scopedDeps,
-      testModule = cfg.shared.testModule,
+      testModule = cfg.shared.basicConfig.testModule,
+      testModuleMainType = "MavenTests",
       hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
-      repositories = getRepositories(project).diff(baseInfo.repositories),
-      javacOptions = getJavacOptions(project).diff(baseInfo.javacOptions),
+      repositories = getRepositories(project),
+      javacOptions = getJavacOptions(project),
+      scalaVersion = None,
+      scalacOptions = None,
       projectName = getArtifactId(project),
-      pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,
-      publishVersion = if (version == baseInfo.publishVersion) null else version,
+      pomSettings = extractPomSettings(project),
+      publishVersion = version,
       packaging = getPomPackaging(project),
       // not available
       pomParentArtifact = null,
@@ -173,29 +188,27 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
   }
 
   def getModuleSupertypes(cfg: Config): Seq[String] =
-    Seq(cfg.shared.baseModule.getOrElse("MavenModule"))
+    Seq(cfg.shared.basicConfig.baseModule.getOrElse("MavenModule"))
 
-  override def getPackage(project: ProjectModel): (String, String, String) = {
-    (project.group(), project.name(), project.version())
-  }
+  override def getArtifactId(project: ProjectModel): String = project.name()
 
-  override def getArtifactId(model: ProjectModel): String = model.name()
+  def getMillSourcePath(project: ProjectModel): Path = os.Path(project.directory())
 
-  def getMillSourcePath(model: ProjectModel): Path = os.Path(model.directory())
-
-  override def getSuperTypes(
+  override def getSupertypes(
       cfg: Config,
       baseInfo: IrBaseInfo,
       build: Node[ProjectModel]
-  ): Seq[String] = {
+  ): Seq[String] =
     Seq("RootModule") ++
-      Option.when(null != build.value.maven().pom() && baseInfo.noPom) { "PublishModule" } ++
+      Option.when(null != build.value.maven().pom() && {
+        val baseTrait = baseInfo.moduleTypedef
+        baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
+      }) { "PublishModule" } ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
         getModuleSupertypes(cfg)
       }.toSeq.flatten
-  }
 
-  def groupArtifactVersion(dep: JavaModel.Dep): (String, String, String) =
+  def getDepGav(dep: ExternalDep): (String, String, String) =
     (dep.group(), dep.name(), dep.version())
 
   def getJavacOptions(project: ProjectModel): Seq[String] = {
@@ -223,17 +236,17 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
         .toSeq
     } else Seq.empty
 
-  def getPublishVersion(project: ProjectModel): String =
+  def getPublishVersion(project: ProjectModel): String | Null =
     project.version() match {
       case "" | "unspecified" => null
       case version => version
     }
 
-  def interpIvy(dep: JavaModel.Dep): String = {
-    BuildGenUtil.renderIvyString(dep.group(), dep.name(), dep.version())
+  def interpIvy(dep: ExternalDep): String = {
+    BuildGenUtil.renderIvyString(dep.group(), dep.name(), version = dep.version())
   }
 
-  def extractPomSettings(project: ProjectModel): IrPom = {
+  def extractPomSettings(project: ProjectModel): IrPom | Null = {
     val pom = project.maven.pom()
     if (null == pom) null
     else {
@@ -254,32 +267,35 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     }
   }
 
+  // TODO consider renaming to `extractConfigurationDeps` as Gradle calls them configurations instead of scopes
   def extractScopedDeps(
       project: ProjectModel,
-      packages: PartialFunction[(String, String, String), String],
+      getModuleFqn: PartialFunction[String, String],
       cfg: Config
   ): IrScopedDeps = {
     var sd = IrScopedDeps()
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()
     if (null != _java) {
-      val ivyDep: JavaModel.Dep => String =
-        cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
+      val ivyDep: ExternalDep => String =
+        cfg.shared.basicConfig.depsObject.fold(interpIvy(_)) { objName => dep =>
           val depName = s"`${dep.group()}:${dep.name()}`"
           sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))
           s"$objName.$depName"
         }
 
       def appendIvyDepPackage(
-          deps: IterableOnce[JavaModel.Dep],
+          deps: IterableOnce[Dep],
           onPackage: String => IrScopedDeps,
           onIvy: (String, (String, String, String)) => IrScopedDeps
       ): Unit = {
         for (dep <- deps.iterator) {
-          val id = groupArtifactVersion(dep)
-          if (packages.isDefinedAt(id)) sd = onPackage(packages(id))
+          if (dep.isProjectDepOrExternalDep)
+            sd = onPackage(getModuleFqn(dep.projectDep().path()))
           else {
-            val ivy = ivyDep(dep)
+            val externalDep = dep.externalDep()
+            val id = getDepGav(externalDep)
+            val ivy = ivyDep(externalDep)
             sd = onIvy(ivy, id)
           }
         }
@@ -322,11 +338,10 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
                 if (isBom(id)) sd.copy(testBomIvyDeps = sd.testBomIvyDeps + v)
                 else sd.copy(testIvyDeps = sd.testIvyDeps + v)
             )
-            config.deps.forEach { dep =>
-              if (hasTest && sd.testModule.isEmpty) {
-                sd = sd.copy(testModule = testModulesByGroup.get(dep.group()))
-              }
-            }
+            config.deps.forEach(dep =>
+              if (hasTest && sd.testModule.isEmpty && !dep.isProjectDepOrExternalDep)
+                sd = sd.copy(testModule = testModulesByGroup.get(dep.externalDep().group()))
+            )
 
           case TEST_COMPILE_ONLY_CONFIGURATION_NAME =>
             appendIvyDepPackage(
@@ -337,8 +352,11 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
 
           case name =>
             config.deps.forEach { dep =>
-              val id = groupArtifactVersion(dep)
-              println(s"ignoring $name dependency $id")
+              val depString = if (dep.isProjectDepOrExternalDep)
+                escape(dep.projectDep().path())
+              else
+                getDepGav(dep.externalDep()).toString()
+              println(s"ignoring $name dependency $depString")
             }
         }
       }
@@ -347,7 +365,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
   }
 
   @main
-  @mill.api.internal
+  @internal
   case class Config(
       shared: BuildGenUtil.Config,
       @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')

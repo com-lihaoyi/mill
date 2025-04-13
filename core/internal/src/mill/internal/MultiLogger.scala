@@ -88,9 +88,12 @@ private[mill] class MultiLogger(
 
     override def debugEnabled: Boolean = logger1.prompt.debugEnabled || logger2.prompt.debugEnabled
 
-    override def infoColor: Attrs = logger1.prompt.infoColor ++ logger2.prompt.infoColor
-    override def warnColor: Attrs = logger1.prompt.warnColor ++ logger2.prompt.warnColor
-    override def errorColor: Attrs = logger1.prompt.errorColor ++ logger2.prompt.errorColor
+    override def infoColor(s: String): String =
+      logger1.prompt.infoColor(logger2.prompt.infoColor(s))
+    override def warnColor(s: String): String =
+      logger1.prompt.warnColor(logger2.prompt.warnColor(s))
+    override def errorColor(s: String): String =
+      logger1.prompt.errorColor(logger2.prompt.errorColor(s))
     override def colored: Boolean = logger1.prompt.colored || logger2.prompt.colored
   }
   def debug(s: String): Unit = {
@@ -99,6 +102,10 @@ private[mill] class MultiLogger(
   }
 
   private[mill] override def logKey = logger1.logKey ++ logger2.logKey
+
+  private[mill] override def message = logger1.message ++ logger2.message
+
+  private[mill] override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
 
   override def withOutStream(outStream: PrintStream): Logger = {
     new MultiLogger(

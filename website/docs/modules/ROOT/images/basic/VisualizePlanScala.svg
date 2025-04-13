@@ -3,21 +3,21 @@
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 733.0)">
 <title>example1</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-733 2747.25,-733 2747.25,4 -4,4"/>
-<!-- mill.scalalib.ZincWorkerModule.classpath -->
+<!-- mill.scalalib.JvmWorkerModule.classpath -->
 <g id="node1" class="node">
-<title>mill.scalalib.ZincWorkerModule.classpath</title>
+<title>mill.scalalib.JvmWorkerModule.classpath</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1572.38,-671 1323.12,-671 1323.12,-635 1572.38,-635 1572.38,-671"/>
-<text text-anchor="middle" x="1447.75" y="-647.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.classpath</text>
+<text text-anchor="middle" x="1447.75" y="-647.95" font-family="Times,serif" font-size="14.00">mill.scalalib.JvmWorkerModule.classpath</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.worker -->
+<!-- mill.scalalib.JvmWorkerModule.worker -->
 <g id="node2" class="node">
-<title>mill.scalalib.ZincWorkerModule.worker</title>
+<title>mill.scalalib.JvmWorkerModule.worker</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1861.75,-586 1623.75,-586 1623.75,-550 1861.75,-550 1861.75,-586"/>
-<text text-anchor="middle" x="1742.75" y="-562.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.worker</text>
+<text text-anchor="middle" x="1742.75" y="-562.95" font-family="Times,serif" font-size="14.00">mill.scalalib.JvmWorkerModule.worker</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.classpath&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
+<!-- mill.scalalib.JvmWorkerModule.classpath&#45;&gt;mill.scalalib.JvmWorkerModule.worker -->
 <g id="edge1" class="edge">
-<title>mill.scalalib.ZincWorkerModule.classpath&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
+<title>mill.scalalib.JvmWorkerModule.classpath&#45;&gt;mill.scalalib.JvmWorkerModule.worker</title>
 <path fill="none" stroke="black" d="M1564.47,-634.57C1572.47,-632.07 1580.31,-629.22 1587.75,-626 1605.86,-618.16 1605.94,-608.5 1623.75,-600 1631.5,-596.3 1639.74,-592.98 1648.13,-590"/>
 <polygon fill="black" stroke="black" points="1649.01,-593.39 1657.37,-586.89 1646.77,-586.76 1649.01,-593.39"/>
 </g>
@@ -27,21 +27,21 @@
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="2037.12,-355 1976.88,-355 1976.88,-319 2037.12,-319 2037.12,-355"/>
 <text text-anchor="middle" x="2007" y="-331.95" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.worker&#45;&gt;compile -->
+<!-- mill.scalalib.JvmWorkerModule.worker&#45;&gt;compile -->
 <g id="edge2" class="edge">
-<title>mill.scalalib.ZincWorkerModule.worker&#45;&gt;compile</title>
+<title>mill.scalalib.JvmWorkerModule.worker&#45;&gt;compile</title>
 <path fill="none" stroke="black" d="M1792.35,-549.62C1814.75,-539.81 1840.93,-526.37 1861.75,-510 1915.93,-467.4 1963.88,-401.46 1988.5,-364.5"/>
 <polygon fill="black" stroke="black" points="1991.13,-366.87 1993.7,-356.59 1985.28,-363.03 1991.13,-366.87"/>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.zincLogDebug -->
+<!-- mill.scalalib.JvmWorkerModule.zincLogDebug -->
 <g id="node3" class="node">
-<title>mill.scalalib.ZincWorkerModule.zincLogDebug</title>
+<title>mill.scalalib.JvmWorkerModule.zincLogDebug</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1587.75,-617 1307.75,-617 1307.75,-581 1587.75,-581 1587.75,-617"/>
-<text text-anchor="middle" x="1447.75" y="-593.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.zincLogDebug</text>
+<text text-anchor="middle" x="1447.75" y="-593.95" font-family="Times,serif" font-size="14.00">mill.scalalib.JvmWorkerModule.zincLogDebug</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
+<!-- mill.scalalib.JvmWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.JvmWorkerModule.worker -->
 <g id="edge3" class="edge">
-<title>mill.scalalib.ZincWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
+<title>mill.scalalib.JvmWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.JvmWorkerModule.worker</title>
 <path fill="none" stroke="black" d="M1587.96,-584.27C1595.98,-583.42 1604.04,-582.57 1612.03,-581.72"/>
 <polygon fill="black" stroke="black" points="1612.19,-585.23 1621.77,-580.69 1611.46,-578.27 1612.19,-585.23"/>
 </g>

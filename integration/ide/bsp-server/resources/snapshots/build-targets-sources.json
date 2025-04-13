@@ -14,18 +14,6 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/lib"
-      },
-      "sources": [
-        {
-          "uri": "file:///workspace/lib/src",
-          "kind": 2,
-          "generated": false
-        }
-      ]
-    },
-    {
-      "target": {
         "uri": "file:///workspace/hello-java"
       },
       "sources": [
@@ -55,6 +43,18 @@
       "sources": [
         {
           "uri": "file:///workspace/hello-scala/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/lib/src",
           "kind": 2,
           "generated": false
         }

@@ -1,7 +1,7 @@
 package mill.define
 
 import mill.api
-import mill.api.internal
+import mill.api.internal.{ModuleApi, internal}
 import mill.define.internal.{OverrideMapping, Reflect}
 
 import scala.reflect.ClassTag
@@ -15,8 +15,8 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-trait Module extends Module.BaseClass with Ctx.Wrapper {
-  implicit def moduleNestedCtx: Ctx.Nested = moduleCtx
+trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
+  implicit def moduleNestedCtx: ModuleCtx.Nested = moduleCtx
     .withMillSourcePath(moduleDir)
     .withSegments(moduleSegments)
     .withEnclosingModule(this)
@@ -36,6 +36,7 @@ trait Module extends Module.BaseClass with Ctx.Wrapper {
     moduleInternal.reflectNestedObjects[Module]().toSeq
 
   def moduleDir: os.Path = moduleCtx.millSourcePath
+  def moduleDirJava = moduleDir.toNIO
 
   def moduleSegments: Segments = moduleCtx.segments
 
@@ -54,7 +55,7 @@ object Module {
    * messes up the module discovery process
    */
   @internal
-  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.define.internal.Cacher {
+  class BaseClass(implicit outerCtx0: mill.define.ModuleCtx) extends mill.define.internal.Cacher {
     def moduleCtx = outerCtx0
   }
 

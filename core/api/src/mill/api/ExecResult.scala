@@ -1,5 +1,7 @@
 package mill.api
 
+import mill.api.{ExecResult, Result}
+
 import java.lang.reflect.InvocationTargetException
 import scala.language.implicitConversions
 
@@ -124,17 +126,17 @@ object ExecResult {
   }
 
   def catchWrapException[T](t: => T): Result[T] = {
-    try mill.api.Result.Success(t)
+    try Result.Success(t)
     catch {
       case e: InvocationTargetException =>
-        mill.api.Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
+        Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
       case e: Exception =>
-        mill.api.Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
+        Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
     }
   }
 
   def makeResultException(e: Throwable, base: java.lang.Exception): Left[String, Nothing] = {
-    val outerStack = new mill.api.ExecResult.OuterStack(base.getStackTrace)
-    Left(mill.api.ExecResult.Exception(e, outerStack).toString)
+    val outerStack = new ExecResult.OuterStack(base.getStackTrace)
+    Left(ExecResult.Exception(e, outerStack).toString)
   }
 }

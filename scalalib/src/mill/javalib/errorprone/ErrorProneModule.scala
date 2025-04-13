@@ -1,6 +1,6 @@
 package mill.javalib.errorprone
 
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.scalalib.{Dep, DepSyntax, JavaModule}
 import mill.{T, Task}
 
@@ -31,7 +31,7 @@ trait ErrorProneModule extends JavaModule {
    * The classpath of the `error-prone` compiler plugin.
    */
   def errorProneClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(errorProneDeps())
+    defaultResolver().classpath(errorProneDeps())
   }
 
   /**

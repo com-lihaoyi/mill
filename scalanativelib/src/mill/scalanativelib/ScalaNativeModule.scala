@@ -3,11 +3,10 @@ package scalanativelib
 
 import mainargs.Flag
 
-import mill.api.{Result, internal}
+import mill.api.Result
 import mill.define.{Command, Task}
-import mill.util.MillModuleUtil.millProjectModule
-import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
+import mill.scalalib.api.JvmWorkerUtil
+import mill.api.internal.{ScalaBuildTarget, ScalaNativeModuleApi, ScalaPlatform, internal}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalanativelib.api._
@@ -17,11 +16,11 @@ import mill.scalanativelib.worker.{
   api => workerApi
 }
 import mill.T
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
-trait ScalaNativeModule extends ScalaModule { outer =>
+trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 
@@ -32,16 +31,15 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def scalaNativeBinaryVersion =
-    Task { ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
+    Task { JvmWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerVersion =
-    Task { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
+    Task { JvmWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath = Task {
-    millProjectModule(
-      s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
-      repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule(s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}")
+    ))
   }
 
   def toolsIvyDeps = Task {
@@ -65,7 +63,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         if (scalaNativeVersion().startsWith("0.4")) scalaNativeVersion()
         else s"${scalaVersion()}+${scalaNativeVersion()}"
 
-      if (ZincWorkerUtil.isScala3(scalaVersion()))
+      if (JvmWorkerUtil.isScala3(scalaVersion()))
         Seq(ivy"org.scala-native::scala3lib::$version")
       else Seq(ivy"org.scala-native::scalalib::$version")
     }
@@ -93,11 +91,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def bridgeFullClassPath: T[Seq[PathRef]] = Task {
-    Lib.resolveDependencies(
-      repositoriesTask(),
-      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
-      ctx = Some(Task.log)
-    ).map(t => (scalaNativeWorkerClasspath() ++ t))
+    scalaNativeWorkerClasspath() ++ defaultResolver().classpath(
+      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.util.BuildInfo.scalaVersion, ""))
+    )
   }
 
   override def scalacPluginIvyDeps: T[Seq[Dep]] = Task {
@@ -225,6 +221,15 @@ trait ScalaNativeModule extends ScalaModule { outer =>
    */
   def nativeMultithreading: T[Option[Boolean]] = Task { None }
 
+  /**
+   * List of service providers which shall be allowed in the final binary.
+   * Example:
+   *   Map("java.nio.file.spi.FileSystemProvider" -> Seq("my.lib.MyCustomFileSystem"))
+   *   Makes the implementation for the FileSystemProvider trait in `my.lib.MyCustomFileSystem`
+   *   included in the binary for reflective instantiation.
+   */
+  def nativeServiceProviders: T[Map[String, Seq[String]]] = Task { Map.empty[String, Seq[String]] }
+
   private def nativeConfig: Task[NativeConfig] = Task.Anon {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
     withScalaNativeBridge.apply().apply(_.config(
@@ -245,6 +250,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeIncrementalCompilation(),
       nativeDump(),
       nativeMultithreading(),
+      nativeServiceProviders(),
       toWorkerApi(logLevel()),
       toWorkerApi(nativeBuildTarget())
     )) match {
@@ -296,7 +302,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       ScalaBuildTarget(
         scalaOrganization = scalaOrganization(),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,
         jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
         jvmBuildTarget = None

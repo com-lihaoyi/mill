@@ -1,4 +1,5 @@
 package mill.define
+import mill.api.internal.BaseModuleApi
 
 /**
  * Represents a module at the root of a module tree. This can either be a
@@ -13,7 +14,7 @@ abstract class BaseModule(
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
 ) extends Module.BaseClass()(
-      mill.define.Ctx.makeRoot(
+      mill.define.ModuleCtx.makeRoot(
         implicitly,
         implicitly,
         millSourcePath0,
@@ -21,7 +22,7 @@ abstract class BaseModule(
         external0,
         millFile0
       )
-    ) with Module {
+    ) with Module with BaseModuleApi {
 
   // `Discover` needs to be defined by every concrete `BaseModule` object, to gather
   // compile-time metadata about the tasks and commands at for use at runtime

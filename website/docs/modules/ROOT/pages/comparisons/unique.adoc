@@ -1,10 +1,9 @@
 = What Makes Mill Unique
 
 
-
-https://mill-build.org/[Mill] is a JVM build tool that targets Java/Scala/Kotlin and has
+{mill-doc-url}[Mill] is a JVM build tool that targets Java/Scala/Kotlin and has
 potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good
-traction among its users, benchmarks that demonstrate 2-10x faster builds than its competitors,
+traction among its users, benchmarks that demonstrate 3-6x faster builds than its competitors,
 and a unique "direct-style" design that make it easy to use and extend. This page discusses
 some of the most interesting design decisions in Mill, and how it sets Mill apart from
 other build tools on the market.
@@ -55,7 +54,7 @@ what this build means: a `JavaModule` with two ivy dependencies `argparse4j` and
 and a `test` submodule supporting `Junit4`.
 This build can then be compiled, tested, run, or packaged into an assembly from the command line:
 
-[source,bash]
+[source,console]
 ----
 > /mill foo.compile
 compiling 1 Java source...
@@ -75,12 +74,12 @@ Test foo.FooTest.testSimple finished, ...
 <h1>hello</h1>
 ----
 
-Mill was originally a Scala build tool competing with https://scala-sbt.org/[SBT], and by 2023 it
+Mill was originally a Scala build tool competing with https://scala-sbt.org/[`sbt`], and by 2023 it
 had reached around 5-10% market share in the Scala community
 (https://www.jetbrains.com/lp/devecosystem-2023/scala/[Jetbrains Survey],
 https://scalasurvey2023.virtuslab.com/[VirtusLabs Survey]).
 It recently grew first-class Java support, demonstrating
-xref:comparisons/why-mill.adoc[2-10x speedups] over existing Java build tools
+xref:comparisons/why-mill.adoc[3-6x speedups] over existing Java build tools
 like Maven or Gradle. Mill also has gained experimental support for Java-adjacent platforms
 like xref:kotlinlib/intro.adoc[Kotlin] and
 xref:android/java.adoc[Android], and has demonstrated the ability to branch out into supporting
@@ -412,7 +411,7 @@ ecosystems rely on tools like Maven or Gradle to build their code, and I believe
 can provide a better alternative. Even today, there are already many advantages of
 using Mill over the incumbent build tools:
 
-1. Mill today runs the equivalent local workflows xref:comparisons/maven.adoc[4-10x faster than Maven]
+1. Mill today runs the equivalent local workflows xref:comparisons/maven.adoc[3-6x faster than Maven]
    and xref:comparisons/gradle.adoc[2-4x faster than Gradle], with automatic parallelization and caching for
    every part of your build
 

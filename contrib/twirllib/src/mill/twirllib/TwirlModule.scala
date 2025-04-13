@@ -2,11 +2,11 @@ package mill
 package twirllib
 
 import coursier.Repository
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.scalalib.*
 
 import mill.define.Task
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 
 import scala.io.Codec
 import scala.util.Properties
@@ -76,7 +76,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   lazy val twirlCoursierResolver: TwirlResolver = new TwirlResolver {}
 
   def twirlClasspath: T[Seq[PathRef]] = Task {
-    twirlCoursierResolver.defaultResolver().resolveDeps(twirlIvyDeps())
+    twirlCoursierResolver.defaultResolver().classpath(twirlIvyDeps())
   }
 
   def twirlImports: T[Seq[String]] = Task {

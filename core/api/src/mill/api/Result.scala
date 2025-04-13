@@ -1,7 +1,8 @@
 package mill.api
 
-import scala.collection.BuildFrom
-import collection.mutable
+import mill.api.Result
+
+import scala.collection.{BuildFrom, mutable}
 
 /**
  * Represents a computation that either succeeds with a value [[T]] or
