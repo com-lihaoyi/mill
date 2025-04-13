@@ -144,7 +144,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
 
     override def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
-    override def mandatoryIvyDeps: T[Seq[Dep]] = super.mandatoryIvyDeps() ++
+    override def mandatoryLibraryDeps: T[Seq[Dep]] = super.mandatoryLibraryDeps() ++
       Seq(
         ivy"androidx.compose.ui:ui:$uiToolingVersion",
         ivy"androidx.compose.ui:ui-tooling:$uiToolingVersion",

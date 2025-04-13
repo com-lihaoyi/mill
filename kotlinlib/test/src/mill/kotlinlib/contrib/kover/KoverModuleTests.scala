@@ -23,7 +23,7 @@ object KoverModuleTests extends TestSuite {
         super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
 
       }
-      override def ivyDeps = super.ivyDeps() ++ Seq(
+      override def libraryDeps = super.libraryDeps() ++ Seq(
         ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
       )
     }

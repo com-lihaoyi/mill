@@ -9,7 +9,7 @@ import mill.define.Target
 
 trait PlayApiModule extends Dependencies with Router with Server {
   trait PlayTests extends ScalaTests with TestModule.ScalaTest {
-    override def ivyDeps = Task {
+    override def libraryDeps = Task {
       val scalatestPlusPlayVersion = playMinorVersion() match {
         case Versions.PLAY_2_6 => "3.1.3"
         case Versions.PLAY_2_7 => "4.0.3"

@@ -47,7 +47,7 @@ object lib extends AndroidLibModule with PublishModule {
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   object test extends AndroidLibTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    def libraryDeps = super.libraryDeps() ++ Seq(
       ivy"junit:junit:4.13.2"
     )
   }
@@ -66,14 +66,14 @@ object app extends AndroidAppModule {
     )
   }
 
-  def ivyDeps = super.ivyDeps() ++ Seq(
+  def libraryDeps = super.libraryDeps() ++ Seq(
     ivy"com.example.sumlib:lib:0.0.1"
   )
 
   object test extends AndroidAppTests with TestModule.Junit4 {
     def testFramework = "com.novocode.junit.JUnitFramework"
 
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    def libraryDeps = super.libraryDeps() ++ Seq(
       ivy"junit:junit:4.13.2"
     )
 

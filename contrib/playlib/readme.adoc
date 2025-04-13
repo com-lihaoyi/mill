@@ -145,7 +145,7 @@ The following helpers are available to provide additional Play Framework depende
 * `ws()` - optional,
 * `caffeine()` - optional.
 
-If you want to add an optional library using the helper you can do so by overriding `ivyDeps`
+If you want to add an optional library using the helper you can do so by overriding `libraryDeps`
 like in the following example build:
 
 .`build.mill`
@@ -162,7 +162,7 @@ object core extends PlayApiModule {
 
     object test extends PlayTests
 
-    override def ivyDeps = Task { super.ivyDeps() ++ Seq(ws(), filters()) }
+    override def libraryDeps = Task { super.libraryDeps() ++ Seq(ws(), filters()) }
 }
 ----
 

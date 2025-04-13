@@ -78,13 +78,13 @@ object BuildGenUtil {
         // `testSandboxWorkingDir` is disabled as other build tools such as `sbt` don't run tests in the sandbox.
         s"""$declare {
            |
-           |${renderBomIvyDeps(scopedDeps.testBomIvyDeps)}
+           |${renderBomLibraryDeps(scopedDeps.testBomLibraryDeps)}
            |
-           |${renderIvyDeps(scopedDeps.testIvyDeps)}
+           |${renderLibraryDeps(scopedDeps.testLibraryDeps)}
            |
            |${renderModuleDeps(scopedDeps.testModuleDeps)}
            |
-           |${renderCompileIvyDeps(scopedDeps.testCompileIvyDeps)}
+           |${renderCompileLibraryDeps(scopedDeps.testCompileLibraryDeps)}
            |
            |${renderCompileModuleDeps(scopedDeps.testCompileModuleDeps)}
            |
@@ -114,17 +114,17 @@ object BuildGenUtil {
         if (baseTrait != null) baseTrait.repositories else Seq.empty
       )}
        |
-       |${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
+       |${renderBomLibraryDeps(scopedDeps.mainBomLibraryDeps)}
        |
-       |${renderIvyDeps(scopedDeps.mainIvyDeps)}
+       |${renderLibraryDeps(scopedDeps.mainLibraryDeps)}
        |
        |${renderModuleDeps(scopedDeps.mainModuleDeps)}
        |
-       |${renderCompileIvyDeps(scopedDeps.mainCompileIvyDeps)}
+       |${renderCompileLibraryDeps(scopedDeps.mainCompileLibraryDeps)}
        |
        |${renderCompileModuleDeps(scopedDeps.mainCompileModuleDeps)}
        |
-       |${renderRunIvyDeps(scopedDeps.mainRunIvyDeps)}
+       |${renderRunLibraryDeps(scopedDeps.mainRunLibraryDeps)}
        |
        |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
        |
@@ -431,23 +431,23 @@ object BuildGenUtil {
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
 
-  def renderBomIvyDeps(args: IterableOnce[String]): String =
-    optional("def bomIvyDeps = super.bomIvyDeps() ++ Seq", args)
+  def renderBomLibraryDeps(args: IterableOnce[String]): String =
+    optional("def bomLibraryDeps = super.bomLibraryDeps() ++ Seq", args)
 
-  def renderIvyDeps(args: IterableOnce[String]): String =
-    optional("def ivyDeps = super.ivyDeps() ++ Seq", args)
+  def renderLibraryDeps(args: IterableOnce[String]): String =
+    optional("def libraryDeps = super.libraryDeps() ++ Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
-  def renderCompileIvyDeps(args: IterableOnce[String]): String =
-    optional("def compileIvyDeps = super.compileIvyDeps() ++ Seq", args)
+  def renderCompileLibraryDeps(args: IterableOnce[String]): String =
+    optional("def compileLibraryDeps = super.compileLibraryDeps() ++ Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
-  def renderRunIvyDeps(args: IterableOnce[String]): String =
-    optional("def runIvyDeps = super.runIvyDeps() ++ Seq", args)
+  def renderRunLibraryDeps(args: IterableOnce[String]): String =
+    optional("def runLibraryDeps = super.runLibraryDeps() ++ Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)

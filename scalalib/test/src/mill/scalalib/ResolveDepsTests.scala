@@ -34,7 +34,7 @@ object ResolveDepsTests extends TestSuite {
 
   object TestCase extends TestBaseModule {
     object pomStuff extends JavaModule {
-      def ivyDeps = Seq(
+      def libraryDeps = Seq(
         // Dependency whose packaging is "pom", as it's meant to be used
         // as a "parent dependency" by other dependencies, rather than be pulled
         // as we do here. We do it anyway, to check that pulling the "pom" artifact
@@ -46,7 +46,7 @@ object ResolveDepsTests extends TestSuite {
     }
 
     object scope extends JavaModule {
-      def ivyDeps = Seq(
+      def libraryDeps = Seq(
         ivy"androidx.compose.animation:animation-core:1.1.1",
         ivy"androidx.compose.ui:ui:1.1.1"
       )

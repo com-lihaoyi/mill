@@ -5,7 +5,7 @@ import scalatags.Text.all._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.4"
-  def ivyDeps = Seq(
+  def libraryDeps = Seq(
     ivy"com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}",
     ivy"com.lihaoyi::os-lib:0.10.7"
   )
@@ -19,7 +19,7 @@ object `package` extends RootModule with ScalaModule {
 
 // This example illustrates usage of the `mill-build/` folder. Mill's `build.mill`
 // file and it's `import $file` and `$ivy` are a shorthand syntax for defining
-// a Mill `ScalaModule`, with sources and `ivyDeps` and so on, which is
+// a Mill `ScalaModule`, with sources and `libraryDeps` and so on, which is
 // compiled and executed to perform your build. This "meta-build" module lives in
 // `mill-build/`, and can be enabled via the `import $meta._` statement above.
 
@@ -28,7 +28,7 @@ object `package` extends RootModule with ScalaModule {
 
 // Typically, if you wanted to use a library such as Scalatags in both your `build.mill`
 // as well as your application code, you would need to duplicate the version of Scalatags
-// used in both your `import $ivy` statement as well as your `def ivyDeps` statement.
+// used in both your `import $ivy` statement as well as your `def libraryDeps` statement.
 // The meta-build lets us avoid this duplication: we use `generatedSources` in
 // `mill-build/build.mill` to create a `DepVersions` object that the `build.mill` can use to pass the
 // `scalatagsVersion` to the application without having to copy-paste the

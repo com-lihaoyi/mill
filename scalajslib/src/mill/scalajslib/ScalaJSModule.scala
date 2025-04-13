@@ -29,8 +29,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
 
   def scalaJSWorkerVersion = Task { JvmWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
-  override def scalaLibraryIvyDeps: T[Seq[Dep]] = Task {
-    val deps = super.scalaLibraryIvyDeps()
+  override def scalaLibraryLibraryDeps: T[Seq[Dep]] = Task {
+    val deps = super.scalaLibraryLibraryDeps()
     if (JvmWorkerUtil.isScala3(scalaVersion())) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
       deps.map(dep =>
@@ -49,7 +49,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     ))
   }
 
-  def scalaJSJsEnvIvyDeps: T[Seq[Dep]] = Task {
+  def scalaJSJsEnvLibraryDeps: T[Seq[Dep]] = Task {
     val dep = jsEnvConfig() match {
       case _: JsEnvConfig.NodeJs =>
         ivy"${ScalaJSBuildInfo.scalajsEnvNodejs}"
@@ -85,7 +85,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       case "1" =>
         Seq(
           ivy"org.scala-js:scalajs-linker_2.13:${scalaJSVersion()}"
-        ) ++ scalaJSJsEnvIvyDeps()
+        ) ++ scalaJSJsEnvLibraryDeps()
     }
     // we need to use the scala-library of the currently running mill
     defaultResolver().classpath(
@@ -212,8 +212,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     super.mandatoryScalacOptions() ++ scalajsFlag
   }
 
-  override def scalacPluginIvyDeps = Task {
-    super.scalacPluginIvyDeps() ++ {
+  override def scalacPluginLibraryDeps = Task {
+    super.scalacPluginLibraryDeps() ++ {
       if (JvmWorkerUtil.isScala3(scalaVersion())) {
         Seq.empty
       } else {
@@ -223,8 +223,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   }
 
   /** Adds the Scala.js Library as mandatory dependency. */
-  override def mandatoryIvyDeps = Task {
-    val prev = super.mandatoryIvyDeps()
+  override def mandatoryLibraryDeps = Task {
+    val prev = super.mandatoryLibraryDeps()
     val scalaVer = scalaVersion()
     val scalaJSVer = scalaJSVersion()
 

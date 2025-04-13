@@ -62,8 +62,8 @@ trait KotlinModule extends JavaModule { outer =>
    * The dependencies of this module.
    * Defaults to add the kotlin-stdlib dependency matching the [[kotlinVersion]].
    */
-  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-    super.mandatoryIvyDeps() ++ Seq(
+  override def mandatoryLibraryDeps: T[Seq[Dep]] = Task {
+    super.mandatoryLibraryDeps() ++ Seq(
       ivy"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
     )
   }
@@ -79,10 +79,10 @@ trait KotlinModule extends JavaModule { outer =>
 
   /**
    * The Java classpath resembling the Kotlin compiler.
-   * Default is derived from [[kotlinCompilerIvyDeps]].
+   * Default is derived from [[kotlinCompilerLibraryDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
-    val deps = kotlinCompilerIvyDeps() ++ Seq(
+    val deps = kotlinCompilerLibraryDeps() ++ Seq(
       Dep.millProjectModule("mill-kotlinlib-worker-impl")
     )
     defaultResolver().classpath(deps)
@@ -110,7 +110,7 @@ trait KotlinModule extends JavaModule { outer =>
    *
    * Default is derived from [[kotlinCompilerVersion]] and [[kotlinUseEmbeddableCompiler]].
    */
-  def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
+  def kotlinCompilerLibraryDeps: T[Seq[Dep]] = Task {
     val useEmbeddable = kotlinUseEmbeddableCompiler()
     val kv = kotlinVersion()
     val isOldKotlin = Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4")
@@ -134,14 +134,14 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Compiler Plugin dependencies.
    */
-  def kotlincPluginIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def kotlincPluginLibraryDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   /**
    * The resolved plugin jars
    */
   def kotlincPluginJars: T[Seq[PathRef]] = Task {
     val jars = defaultResolver().classpath(
-      kotlincPluginIvyDeps()
+      kotlincPluginLibraryDeps()
         // Don't resolve transitive jars
         .map(d => d.exclude("*" -> "*"))
     )
@@ -416,8 +416,8 @@ trait KotlinModule extends JavaModule { outer =>
     override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
-    override def kotlincPluginIvyDeps: T[Seq[Dep]] =
-      Task { outer.kotlincPluginIvyDeps() }
+    override def kotlincPluginLibraryDeps: T[Seq[Dep]] =
+      Task { outer.kotlincPluginLibraryDeps() }
       // TODO: make Xfriend-path an explicit setting
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++

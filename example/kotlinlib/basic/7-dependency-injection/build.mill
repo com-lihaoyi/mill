@@ -16,7 +16,7 @@ object dagger extends KspModule {
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-  def ivyDeps = Agg(
+  def libraryDeps = Agg(
     ivy"com.google.dagger:dagger-compiler:2.55"
   )
 
@@ -28,7 +28,7 @@ object dagger extends KspModule {
 
     def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def libraryDeps = super.libraryDeps() ++ Agg(
       ivy"com.google.dagger:dagger-compiler:2.55",
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )

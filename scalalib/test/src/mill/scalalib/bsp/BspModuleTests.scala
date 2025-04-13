@@ -17,12 +17,12 @@ object BspModuleTests extends TestSuite {
   object MultiBase extends TestBaseModule {
     object HelloBsp extends ScalaModule {
       def scalaVersion = testScalaVersion
-      override def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:1.7.34")
+      override def libraryDeps = Seq(ivy"org.slf4j:slf4j-api:1.7.34")
     }
     object HelloBsp2 extends ScalaModule {
       def scalaVersion = testScalaVersion
       override def moduleDeps = Seq(HelloBsp)
-      override def ivyDeps = Seq(ivy"ch.qos.logback:logback-classic:1.1.10")
+      override def libraryDeps = Seq(ivy"ch.qos.logback:logback-classic:1.1.10")
     }
     lazy val millDiscover = Discover[this.type]
   }

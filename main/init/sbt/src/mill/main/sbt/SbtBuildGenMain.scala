@@ -413,7 +413,7 @@ object SbtBuildGenMain
       }
     ).groupMap(_._1)(_._2)
 
-    val ivyDepsByType = allDependencies.libraryDependencies
+    val libraryDepsByType = allDependencies.libraryDependencies
       .iterator
       .filterNot(isScalaStandardLibrary)
       .flatMap(dep =>
@@ -440,57 +440,57 @@ object SbtBuildGenMain
     val runModuleDeps = moduleDepsByType.getOrElse(Run, Seq.empty)
     val testModuleDeps = moduleDepsByType.getOrElse(Test, Seq.empty)
 
-    val testIvyDeps = ivyDepsByType.getOrElse(Test, Seq.empty)
+    val testLibraryDeps = libraryDepsByType.getOrElse(Test, Seq.empty)
 
     val hasTest = os.exists(os.Path(project.projectDirectory) / "src/test")
-    val testModule = Option.when(hasTest)(testIvyDeps.collectFirst(Function.unlift(dep =>
+    val testModule = Option.when(hasTest)(testLibraryDeps.collectFirst(Function.unlift(dep =>
       testModulesByGroup.get(dep.organization)
     ))).flatten
 
     cfg.shared.depsObject.fold({
-      val defaultIvyDeps = ivyDepsByType.getOrElse(Default, Seq.empty)
-      val compileIvyDeps = ivyDepsByType.getOrElse(Compile, Seq.empty)
-      val runIvyDeps = ivyDepsByType.getOrElse(Run, Seq.empty)
+      val defaultLibraryDeps = libraryDepsByType.getOrElse(Default, Seq.empty)
+      val compileLibraryDeps = libraryDepsByType.getOrElse(Compile, Seq.empty)
+      val runLibraryDeps = libraryDepsByType.getOrElse(Run, Seq.empty)
 
       IrScopedDeps(
         Seq.empty,
         SortedSet.empty,
-        SortedSet.from(defaultIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(defaultLibraryDeps.iterator.map(renderIvy)),
         SortedSet.from(defaultModuleDeps),
-        SortedSet.from(compileIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(compileLibraryDeps.iterator.map(renderIvy)),
         SortedSet.from(compileModuleDeps),
-        SortedSet.from(runIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(runLibraryDeps.iterator.map(renderIvy)),
         SortedSet.from(runModuleDeps),
         testModule,
         SortedSet.empty,
-        SortedSet.from(testIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(testLibraryDeps.iterator.map(renderIvy)),
         SortedSet.from(testModuleDeps),
         SortedSet.empty,
         SortedSet.empty
       )
     })(objectName => {
-      val extractedIvyDeps = ivyDepsByType.view.mapValues(_.map(dep => {
+      val extractedLibraryDeps = libraryDepsByType.view.mapValues(_.map(dep => {
         val depName = s"`${dep.organization}:${dep.name}`"
         ((depName, renderIvy(dep)), s"$objectName.$depName")
       }))
 
-      val extractedDefaultIvyDeps = extractedIvyDeps.getOrElse(Default, Seq.empty)
-      val extractedCompileIvyDeps = extractedIvyDeps.getOrElse(Compile, Seq.empty)
-      val extractedRunIvyDeps = extractedIvyDeps.getOrElse(Run, Seq.empty)
-      val extractedTestIvyDeps = extractedIvyDeps.getOrElse(Test, Seq.empty)
+      val extractedDefaultLibraryDeps = extractedLibraryDeps.getOrElse(Default, Seq.empty)
+      val extractedCompileLibraryDeps = extractedLibraryDeps.getOrElse(Compile, Seq.empty)
+      val extractedRunLibraryDeps = extractedLibraryDeps.getOrElse(Run, Seq.empty)
+      val extractedTestLibraryDeps = extractedLibraryDeps.getOrElse(Test, Seq.empty)
 
       IrScopedDeps(
-        extractedIvyDeps.values.flatMap(_.map(_._1)).toSeq,
+        extractedLibraryDeps.values.flatMap(_.map(_._1)).toSeq,
         SortedSet.empty,
-        SortedSet.from(extractedDefaultIvyDeps.iterator.map(_._2)),
+        SortedSet.from(extractedDefaultLibraryDeps.iterator.map(_._2)),
         SortedSet.from(defaultModuleDeps),
-        SortedSet.from(extractedCompileIvyDeps.iterator.map(_._2)),
+        SortedSet.from(extractedCompileLibraryDeps.iterator.map(_._2)),
         SortedSet.from(compileModuleDeps),
-        SortedSet.from(extractedRunIvyDeps.iterator.map(_._2)),
+        SortedSet.from(extractedRunLibraryDeps.iterator.map(_._2)),
         SortedSet.from(runModuleDeps),
         testModule,
         SortedSet.empty,
-        SortedSet.from(extractedTestIvyDeps.iterator.map(_._2)),
+        SortedSet.from(extractedTestLibraryDeps.iterator.map(_._2)),
         SortedSet.from(testModuleDeps),
         SortedSet.empty,
         SortedSet.empty

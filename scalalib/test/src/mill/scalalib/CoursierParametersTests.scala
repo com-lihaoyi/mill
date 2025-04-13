@@ -13,7 +13,7 @@ object CoursierParametersTests extends TestSuite {
   object CoursierTest extends TestBaseModule {
     object core extends ScalaModule {
       def scalaVersion = "2.13.12"
-      def ivyDeps = Task {
+      def libraryDeps = Task {
         Seq(ivy"com.lihaoyi::pprint:0.9.0")
       }
       def resolutionParams = Task.Anon {

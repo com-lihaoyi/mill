@@ -220,7 +220,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       cfg.shared.basicConfig.depsObject.fold(interpIvy(_)) { objName => dep =>
         {
           val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
-          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))
+          sd = sd.copy(namedLibraryDeps = sd.namedLibraryDeps :+ (depName, interpIvy(dep)))
           s"$objName.$depName"
         }
       }
@@ -236,21 +236,21 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
           else {
             if (isBom(id)) println(s"assuming compile dependency $id is a BOM")
             val ivy = ivyDep(dep)
-            sd = sd.copy(mainIvyDeps = sd.mainIvyDeps + ivy)
+            sd = sd.copy(mainLibraryDeps = sd.mainLibraryDeps + ivy)
           }
         case "provided" =>
           if (packages.isDefinedAt(id))
             sd = sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id))
           else {
             val ivy = ivyDep(dep)
-            sd = sd.copy(mainCompileIvyDeps = sd.mainCompileIvyDeps + ivy)
+            sd = sd.copy(mainCompileLibraryDeps = sd.mainCompileLibraryDeps + ivy)
           }
         case "runtime" =>
           if (packages.isDefinedAt(id))
             sd = sd.copy(mainRunModuleDeps = sd.mainRunModuleDeps + packages(id))
           else {
             val ivy = ivyDep(dep)
-            sd = sd.copy(mainRunIvyDeps = sd.mainRunIvyDeps + ivy)
+            sd = sd.copy(mainRunLibraryDeps = sd.mainRunLibraryDeps + ivy)
           }
 
         case "test" =>
@@ -259,9 +259,9 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
           else {
             val ivy = ivyDep(dep)
             if (isBom(id)) {
-              sd = sd.copy(testBomIvyDeps = sd.testBomIvyDeps + ivy)
+              sd = sd.copy(testBomLibraryDeps = sd.testBomLibraryDeps + ivy)
             } else {
-              sd = sd.copy(testIvyDeps = sd.testIvyDeps + ivy)
+              sd = sd.copy(testLibraryDeps = sd.testLibraryDeps + ivy)
             }
           }
 

@@ -27,7 +27,7 @@ import scala.collection.mutable
  * Mill module for pre-processing a Mill `build.mill` and related files and then
  * compiling them as a normal [[ScalaModule]]. Parses `build.mill`, walks any
  * `import $file`s, wraps the script files to turn them into valid Scala code
- * and then compiles them with the `ivyDeps` extracted from the `import $ivy`
+ * and then compiles them with the `libraryDeps` extracted from the `import $ivy`
  * calls within the scripts.
  */
 @internal
@@ -100,9 +100,9 @@ class MillBuildRootModule()(implicit
     imports
   }
 
-  override def mandatoryIvyDeps = Task {
+  override def mandatoryLibraryDeps = Task {
     Seq.from(
-      MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
+      MillIvy.processMillLibraryDepsignature(parseBuildFiles().libraryDeps)
         .map(mill.scalalib.Dep.parse)
     ) ++
       Seq(
@@ -125,11 +125,11 @@ class MillBuildRootModule()(implicit
       }
   }
 
-  override def runIvyDeps = Task {
+  override def runLibraryDeps = Task {
     val imports = cliImports()
     val ivyImports = imports.collect { case s"ivy:$rest" => rest }
     Seq.from(
-      MillIvy.processMillIvyDepSignature(ivyImports.toSet)
+      MillIvy.processMillLibraryDepsignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     ) ++ Seq(
       // Needed at runtime to insantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
@@ -277,10 +277,10 @@ class MillBuildRootModule()(implicit
       .toSeq
   }
 
-  def compileIvyDeps = Seq(
+  def compileLibraryDeps = Seq(
     ivy"com.lihaoyi::sourcecode:0.4.3-M5"
   )
-  override def scalacPluginIvyDeps: T[Seq[Dep]] = Seq(
+  override def scalacPluginLibraryDeps: T[Seq[Dep]] = Seq(
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )

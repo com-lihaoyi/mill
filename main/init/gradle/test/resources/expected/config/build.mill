@@ -19,13 +19,13 @@ object `package` extends RootModule {
 
   object app extends BaseModule {
 
-    def ivyDeps = super.ivyDeps() ++ Seq(Deps.`org.apache.commons:commons-text`)
+    def libraryDeps = super.libraryDeps() ++ Seq(Deps.`org.apache.commons:commons-text`)
 
     def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
 
     object tests extends MavenTests with TestModule.Junit5 {
 
-      def ivyDeps = super.ivyDeps() ++
+      def libraryDeps = super.libraryDeps() ++
         Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
       def testSandboxWorkingDir = false
@@ -37,7 +37,7 @@ object `package` extends RootModule {
 
     object tests extends MavenTests with TestModule.Junit5 {
 
-      def ivyDeps = super.ivyDeps() ++
+      def libraryDeps = super.libraryDeps() ++
         Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
       def testSandboxWorkingDir = false

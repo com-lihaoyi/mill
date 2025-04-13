@@ -20,7 +20,7 @@ object MultiModuleTests extends TestSuite {
       override def moduleDeps = Seq(shared)
       override def mainClass = Some("Main")
       object test extends ScalaJSTests with TestModule.Utest {
-        override def ivyDeps =
+        override def libraryDeps =
           Seq(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
       }
     }

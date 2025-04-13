@@ -13,8 +13,8 @@ trait ScalaPBModule extends ScalaModule {
 
   override def generatedSources = Task { super.generatedSources() :+ compileScalaPB() }
 
-  override def ivyDeps = Task {
-    super.ivyDeps() ++
+  override def libraryDeps = Task {
+    super.libraryDeps() ++
       Seq(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
       (if (!scalaPBGrpc()) Seq()
        else Seq(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))

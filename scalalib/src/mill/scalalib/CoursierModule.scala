@@ -102,8 +102,8 @@ trait CoursierModule extends mill.define.Module {
    * `JavaModule#coursierDependency`).
    *
    * Beware that this needs to evaluate `JavaModule#coursierProject` of all
-   * module dependencies of the current module, which itself evaluates `JavaModule#ivyDeps`
-   * and related tasks. You shouldn't depend on this task from implementations of `ivyDeps`,
+   * module dependencies of the current module, which itself evaluates `JavaModule#libraryDeps`
+   * and related tasks. You shouldn't depend on this task from implementations of `libraryDeps`,
    * which would introduce cycles between Mill tasks.
    */
   def allRepositories: Task[Seq[Repository]] = Task.Anon {

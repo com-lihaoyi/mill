@@ -6,13 +6,13 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with MavenModule {
 
-  def ivyDeps = super.ivyDeps() ++ Seq(ivy"org.apache.commons:commons-text")
+  def libraryDeps = super.libraryDeps() ++ Seq(ivy"org.apache.commons:commons-text")
 
   def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
 
   object test extends MavenTests with TestModule.Junit5 {
 
-    def ivyDeps = super.ivyDeps() ++
+    def libraryDeps = super.libraryDeps() ++
       Seq(ivy"org.junit.jupiter:junit-jupiter:5.10.3")
 
     def testSandboxWorkingDir = false

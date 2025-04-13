@@ -91,7 +91,7 @@ object Lib {
     res.map(_.map(_.withRevalidateOnce))
   }
 
-  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
+  def scalaCompilerLibraryDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion))
       Seq(
         ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
@@ -106,7 +106,7 @@ object Lib {
         ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
       )
 
-  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
+  def scalaDocLibraryDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion))
       Seq(
         ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
@@ -123,9 +123,9 @@ object Lib {
       )
     else
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
-      scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
+      scalaCompilerLibraryDeps(scalaOrganization, scalaVersion)
 
-  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
+  def scalaRuntimeLibraryDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion)) {
       Seq(
         ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()

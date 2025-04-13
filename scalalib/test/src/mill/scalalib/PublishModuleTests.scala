@@ -70,7 +70,7 @@ object PublishModuleTests extends TestSuite {
           Seq(Developer("lefou", "Tobias Roeser", "https://github.com/lefou"))
       )
       override def versionScheme = Some(VersionScheme.EarlySemVer)
-      override def ivyDeps = Seq(
+      override def libraryDeps = Seq(
         ivy"org.slf4j:slf4j-api:2.0.7"
       )
       // ensure, these target won't be called
@@ -97,10 +97,10 @@ object PublishModuleTests extends TestSuite {
       )
     }
     object main extends JavaModule with TestPublishModule {
-      def ivyDeps = Seq(
+      def libraryDeps = Seq(
         ivy"org.slf4j:slf4j-api:2.0.15"
       )
-      def runIvyDeps = Seq(
+      def runLibraryDeps = Seq(
         ivy"ch.qos.logback:logback-classic:1.5.12"
       )
     }

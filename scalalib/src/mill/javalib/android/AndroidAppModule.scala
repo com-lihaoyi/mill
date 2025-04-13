@@ -106,7 +106,7 @@ trait AndroidAppModule extends AndroidModule {
 
   def androidTransformAarFiles: T[Seq[UnpackedDep]] = Task {
     val transformDest = Task.dest / "transform"
-    val aarFiles = super.resolvedRunIvyDeps()
+    val aarFiles = super.resolvedRunLibraryDeps()
       .map(_.path)
       .filter(_.ext == "aar")
       .distinct
@@ -115,9 +115,9 @@ trait AndroidAppModule extends AndroidModule {
     extractAarFiles(aarFiles, transformDest)
   }
 
-  override def resolvedRunIvyDeps: T[Seq[PathRef]] = Task {
+  override def resolvedRunLibraryDeps: T[Seq[PathRef]] = Task {
     val transformedAarFilesToJar: Seq[PathRef] = androidTransformAarFiles().flatMap(_.classesJar)
-    val jarFiles = super.resolvedRunIvyDeps()
+    val jarFiles = super.resolvedRunLibraryDeps()
       .filter(_.path.ext == "jar")
       .distinct
     transformedAarFilesToJar ++ jarFiles
@@ -130,7 +130,7 @@ trait AndroidAppModule extends AndroidModule {
     // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
     // TODO support baseline profiles shipped with Android libs.
 
-    (super.compileClasspath().filter(_.path.ext != "aar") ++ resolvedRunIvyDeps()).map(
+    (super.compileClasspath().filter(_.path.ext != "aar") ++ resolvedRunLibraryDeps()).map(
       _.path
     ).distinct.map(PathRef(_))
   }

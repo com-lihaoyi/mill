@@ -64,7 +64,7 @@ object `package` extends RootModule with BaseModule {
 
   object common extends BaseModule {
 
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    def libraryDeps = super.libraryDeps() ++ Seq(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.typesafe.akka:akka-stream`,
       Deps.`com.typesafe.scala-logging:scala-logging`,
@@ -75,7 +75,7 @@ object `package` extends RootModule with BaseModule {
 
     object tests extends SbtTests with TestModule.ScalaTest {
 
-      def ivyDeps = super.ivyDeps() ++
+      def libraryDeps = super.libraryDeps() ++
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
@@ -87,7 +87,7 @@ object `package` extends RootModule with BaseModule {
 
     def scalacOptions = super.scalacOptions() ++ Seq("-V")
 
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    def libraryDeps = super.libraryDeps() ++ Seq(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.github.julien-truffaut:monocle-core`,
       Deps.`com.github.julien-truffaut:monocle-macro`,
@@ -125,7 +125,7 @@ object `package` extends RootModule with BaseModule {
 
     object tests extends SbtTests with TestModule.ScalaTest {
 
-      def ivyDeps = super.ivyDeps() ++
+      def libraryDeps = super.libraryDeps() ++
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
@@ -145,7 +145,7 @@ object `package` extends RootModule with BaseModule {
       "-deprecation"
     )
 
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    def libraryDeps = super.libraryDeps() ++ Seq(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.github.pureconfig:pureconfig`,
       Deps.`com.typesafe.akka:akka-stream`,
@@ -182,7 +182,7 @@ object `package` extends RootModule with BaseModule {
 
     object tests extends SbtTests with TestModule.ScalaTest {
 
-      def ivyDeps = super.ivyDeps() ++
+      def libraryDeps = super.libraryDeps() ++
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
@@ -194,7 +194,7 @@ object `package` extends RootModule with BaseModule {
 
     object nested extends BaseModule {
 
-      def ivyDeps = super.ivyDeps() ++
+      def libraryDeps = super.libraryDeps() ++
         Seq(Deps.`io.netty:netty-transport-native-epoll`)
 
       def pomSettings = PomSettings(

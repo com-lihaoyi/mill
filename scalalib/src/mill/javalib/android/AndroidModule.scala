@@ -189,9 +189,9 @@ trait AndroidModule extends JavaModule {
     // implementation = runtime, but both are actually used for compilation and packaging of the final DEX.
     // More here https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_separation.
     //
-    // In Gradle terms using only `resolvedRunIvyDeps` won't be complete, because source modules can be also
+    // In Gradle terms using only `resolvedRunLibraryDeps` won't be complete, because source modules can be also
     // api/implementation, but Mill has no such configurations.
-    val aarFiles = (super.compileClasspath() ++ super.resolvedRunIvyDeps())
+    val aarFiles = (super.compileClasspath() ++ super.resolvedRunLibraryDeps())
       .map(_.path)
       .filter(_.ext == "aar")
       .distinct

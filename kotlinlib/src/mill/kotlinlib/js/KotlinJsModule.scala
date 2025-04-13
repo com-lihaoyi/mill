@@ -63,8 +63,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
-  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-    super.mandatoryIvyDeps()
+  override def mandatoryLibraryDeps: T[Seq[Dep]] = Task {
+    super.mandatoryLibraryDeps()
       // TODO: find source or docs, why this is the correct behavior
       // Filter out the non-js kotlin-stdlib
       .filterNot(d => d.organization == "org.jetbrains.kotlin" && d.name == "kotlin-stdlib") ++
@@ -676,7 +676,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Run tests for Kotlin/JS target using `kotlin.test` package.
    */
   trait KotlinTestPackageTests extends KotlinJsTests {
-    override def mandatoryIvyDeps: T[Seq[Dep]] = super.mandatoryIvyDeps() ++ Seq(
+    override def mandatoryLibraryDeps: T[Seq[Dep]] = super.mandatoryLibraryDeps() ++ Seq(
       ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
   }
@@ -692,11 +692,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
      */
     def kotestVersion: T[String]
 
-    override def kotlincPluginIvyDeps: T[Seq[Dep]] = super.kotlincPluginIvyDeps() ++ Seq(
+    override def kotlincPluginLibraryDeps: T[Seq[Dep]] = super.kotlincPluginLibraryDeps() ++ Seq(
       ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
     )
 
-    override def mandatoryIvyDeps: T[Seq[Dep]] = super.mandatoryIvyDeps() ++ Seq(
+    override def mandatoryLibraryDeps: T[Seq[Dep]] = super.mandatoryLibraryDeps() ++ Seq(
       ivy"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
       ivy"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
     )

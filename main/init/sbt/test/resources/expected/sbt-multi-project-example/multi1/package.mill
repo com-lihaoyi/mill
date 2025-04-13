@@ -33,7 +33,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
     )
   }
 
-  def ivyDeps = super.ivyDeps() ++ Seq(
+  def libraryDeps = super.libraryDeps() ++ Seq(
     ivy"ch.qos.logback:logback-classic:1.2.3",
     ivy"com.github.julien-truffaut::monocle-core:1.4.0",
     ivy"com.github.julien-truffaut::monocle-macro:1.4.0",
@@ -71,7 +71,7 @@ object `package` extends RootModule with SbtModule with PublishModule {
 
   object test extends SbtTests with TestModule.ScalaTest {
 
-    def ivyDeps = super.ivyDeps() ++ Seq(
+    def libraryDeps = super.libraryDeps() ++ Seq(
       ivy"org.scalacheck::scalacheck:1.13.5",
       ivy"org.scalatest::scalatest:3.0.4"
     )

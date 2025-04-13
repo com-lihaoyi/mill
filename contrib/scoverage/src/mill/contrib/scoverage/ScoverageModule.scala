@@ -31,7 +31,7 @@ import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
  *   def scoverageVersion = "2.1.1"
  *
  *   object test extends ScoverageTests {
- *     def ivyDeps = Seq(ivy"org.scalatest::scalatest:3.2.19")
+ *     def libraryDeps = Seq(ivy"org.scalatest::scalatest:3.2.19")
  *     def testFrameworks = Seq("org.scalatest.tools.Framework")
  *   }
  * }
@@ -95,7 +95,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  private def scoverageReporterIvyDeps: T[Seq[Dep]] = Task {
+  private def scoverageReporterLibraryDeps: T[Seq[Dep]] = Task {
     checkVersions()
 
     val sv = scoverageVersion()
@@ -113,7 +113,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
   def scoverageToolsClasspath: T[Seq[PathRef]] = Task {
     scoverageReportWorkerClasspath() ++
-      defaultResolver().classpath(scoverageReporterIvyDeps())
+      defaultResolver().classpath(scoverageReporterLibraryDeps())
   }
 
   def scoverageClasspath: T[Seq[PathRef]] = Task {
@@ -158,14 +158,14 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       internalRepositories() ++ outer.repositoriesTask()
     }
-    override def compileIvyDeps: T[Seq[Dep]] = Task { outer.compileIvyDeps() }
-    override def ivyDeps: T[Seq[Dep]] =
-      Task { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
+    override def compileLibraryDeps: T[Seq[Dep]] = Task { outer.compileLibraryDeps() }
+    override def libraryDeps: T[Seq[Dep]] =
+      Task { outer.libraryDeps() ++ outer.scoverageRuntimeDeps() }
     override def unmanagedClasspath: T[Seq[PathRef]] = Task { outer.unmanagedClasspath() }
 
     /** Add the scoverage scalac plugin. */
-    override def scalacPluginIvyDeps: T[Seq[Dep]] =
-      Task { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
+    override def scalacPluginLibraryDeps: T[Seq[Dep]] =
+      Task { outer.scalacPluginLibraryDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
     override def scalacOptions: T[Seq[String]] =

@@ -45,7 +45,7 @@ trait HelloWorldTests extends utest.TestSuite {
       )
 
       object test extends ScoverageTests with TestModule.ScalaTest {
-        override def ivyDeps = Seq(ivy"org.scalatest::scalatest:${testScalatestVersion}")
+        override def libraryDeps = Seq(ivy"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
 
@@ -58,7 +58,7 @@ trait HelloWorldTests extends utest.TestSuite {
       def scoverageVersion = testScoverageVersion
 
       object test extends SbtTests with ScoverageTests with TestModule.ScalaTest {
-        override def ivyDeps = Seq(ivy"org.scalatest::scalatest:${testScalatestVersion}")
+        override def libraryDeps = Seq(ivy"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
 
@@ -86,9 +86,9 @@ trait HelloWorldTests extends utest.TestSuite {
               result.evalCount > 0
             )
           }
-          test("ivyDeps") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
+          test("libraryDeps") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(HelloWorld.core.scoverage.ivyDeps): @unchecked
+              eval.apply(HelloWorld.core.scoverage.libraryDeps): @unchecked
 
             val expected = if (isScala3) Seq.empty
             else Seq(
@@ -100,9 +100,9 @@ trait HelloWorldTests extends utest.TestSuite {
               result.evalCount > 0
             )
           }
-          test("scalacPluginIvyDeps") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
+          test("scalacPluginLibraryDeps") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps): @unchecked
+              eval.apply(HelloWorld.core.scoverage.scalacPluginLibraryDeps): @unchecked
 
             val expected = (isScov3, isScala3) match {
               case (true, true) => Seq.empty

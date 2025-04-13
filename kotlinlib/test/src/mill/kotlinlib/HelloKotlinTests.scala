@@ -27,12 +27,12 @@ object HelloKotlinTests extends TestSuite {
       override def mainClass = Some("hello.HelloKt")
 
       object test extends KotlinTests with TestModule.Junit4 {
-        override def ivyDeps = super.ivyDeps() ++ Seq(
+        override def libraryDeps = super.libraryDeps() ++ Seq(
           ivy"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}"
         )
       }
       object kotest extends KotlinTests with TestModule.Junit5 {
-        override def ivyDeps = super.ivyDeps() ++ Seq(
+        override def libraryDeps = super.libraryDeps() ++ Seq(
           ivy"io.kotest:kotest-runner-junit5-jvm:${junit5Version}"
         )
       }
@@ -56,7 +56,7 @@ object HelloKotlinTests extends TestSuite {
       val eval = testEval()
 
       HelloKotlin.main.crossModules.foreach(m => {
-        val Right(compiler) = eval.apply(m.kotlinCompilerIvyDeps): @unchecked
+        val Right(compiler) = eval.apply(m.kotlinCompilerLibraryDeps): @unchecked
 
         assert(
           compiler.value.map(_.dep.module)
@@ -76,7 +76,7 @@ object HelloKotlinTests extends TestSuite {
       val eval = testEval()
 
       HelloKotlin.main.crossModules.foreach(m => {
-        val Right(compiler) = eval.apply(m.test.kotlinCompilerIvyDeps): @unchecked
+        val Right(compiler) = eval.apply(m.test.kotlinCompilerLibraryDeps): @unchecked
 
         assert(
           compiler.value.map(_.dep.module)

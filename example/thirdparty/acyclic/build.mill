@@ -38,11 +38,11 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  def compileIvyDeps = Seq(Deps.scalaCompiler(crossScalaVersion))
+  def compileLibraryDeps = Seq(Deps.scalaCompiler(crossScalaVersion))
 
   object test extends ScalaTests with TestModule.Utest {
     def sources = Task.Sources("src", "resources")
-    def ivyDeps = Seq(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
+    def libraryDeps = Seq(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
 }
 

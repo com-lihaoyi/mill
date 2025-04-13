@@ -36,7 +36,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
-    override def scalacPluginIvyDeps: T[Seq[Dep]] = outer.scalacPluginIvyDeps()
+    override def scalacPluginLibraryDeps: T[Seq[Dep]] = outer.scalacPluginLibraryDeps()
     override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
     override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
     override def mandatoryScalacOptions: T[Seq[String]] =
@@ -165,9 +165,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /**
    * Allows you to make use of Scala compiler plugins.
    */
-  def scalacPluginIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def scalacPluginLibraryDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
-  def scalaDocPluginIvyDeps: T[Seq[Dep]] = Task { scalacPluginIvyDeps() }
+  def scalaDocPluginLibraryDeps: T[Seq[Dep]] = Task { scalacPluginLibraryDeps() }
 
   /**
    * Mandatory command-line options to pass to the Scala compiler
@@ -181,7 +181,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   private def enablePluginScalacOptions: T[Seq[String]] = Task {
 
     val resolvedJars = defaultResolver().classpath(
-      scalacPluginIvyDeps().map(_.exclude("*" -> "*"))
+      scalacPluginLibraryDeps().map(_.exclude("*" -> "*"))
     )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
@@ -191,7 +191,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   private def enableScalaDocPluginScalacOptions: T[Seq[String]] = Task {
     val resolvedJars = defaultResolver().classpath(
-      scalaDocPluginIvyDeps().map(_.exclude("*" -> "*"))
+      scalaDocPluginLibraryDeps().map(_.exclude("*" -> "*"))
     )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
@@ -230,7 +230,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * on maven central
    */
   def scalacPluginClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(scalacPluginIvyDeps())
+    defaultResolver().classpath(scalacPluginLibraryDeps())
   }
 
   /**
@@ -238,7 +238,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaDocClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion())
+      Lib.scalaDocLibraryDeps(scalaOrganization(), scalaVersion())
     )
   }
 
@@ -247,17 +247,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaDocPluginClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      scalaDocPluginIvyDeps()
+      scalaDocPluginLibraryDeps()
     )
   }
 
-  def scalaLibraryIvyDeps: T[Seq[Dep]] = Task {
-    Lib.scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
+  def scalaLibraryLibraryDeps: T[Seq[Dep]] = Task {
+    Lib.scalaRuntimeLibraryDeps(scalaOrganization(), scalaVersion())
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
-  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-    super.mandatoryIvyDeps() ++ scalaLibraryIvyDeps()
+  override def mandatoryLibraryDeps: T[Seq[Dep]] = Task {
+    super.mandatoryLibraryDeps() ++ scalaLibraryLibraryDeps()
   }
 
   /**
@@ -265,8 +265,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaCompilerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
-        scalaLibraryIvyDeps()
+      Lib.scalaCompilerLibraryDeps(scalaOrganization(), scalaVersion()) ++
+        scalaLibraryLibraryDeps()
     )
   }
 
@@ -475,10 +475,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     localClasspath() ++
       transitiveLocalClasspath() ++
       unmanagedClasspath() ++
-      resolvedAmmoniteReplIvyDeps()
+      resolvedAmmoniteReplLibraryDeps()
   }
 
-  def resolvedAmmoniteReplIvyDeps = Task {
+  def resolvedAmmoniteReplLibraryDeps = Task {
     millResolver().classpath {
       val scaVersion = scalaVersion()
       val ammVersion = ammoniteVersion()
@@ -560,7 +560,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * @param all If `true` , fetches also sources, Ammonite and compiler dependencies.
    */
   override def prepareOffline(all: Flag): Command[Unit] = {
-    val ammonite = resolvedAmmoniteReplIvyDeps
+    val ammonite = resolvedAmmoniteReplLibraryDeps
     val tasks =
       if (all.value) Seq(ammonite)
       else Seq()
@@ -569,10 +569,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       super.prepareOffline(all)()
       // resolve the compile bridge jar
       defaultResolver().classpath(
-        scalacPluginIvyDeps()
+        scalacPluginLibraryDeps()
       )
       defaultResolver().classpath(
-        scalaDocPluginIvyDeps()
+        scalaDocPluginLibraryDeps()
       )
       jvmWorker().scalaCompilerBridgeJar(
         scalaVersion(),
@@ -617,7 +617,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   override protected def semanticDbPluginClasspath = Task {
     defaultResolver().classpath(
-      scalacPluginIvyDeps() ++ semanticDbPluginIvyDeps()
+      scalacPluginLibraryDeps() ++ semanticDbPluginLibraryDeps()
     )
   }
 
@@ -657,7 +657,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath =
-          (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
+          (compileClasspath() ++ resolvedSemanticDbJavaPluginLibraryDeps()).map(_.path),
         javacOptions = javacOpts,
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),

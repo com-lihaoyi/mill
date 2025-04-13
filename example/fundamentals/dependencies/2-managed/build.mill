@@ -9,7 +9,7 @@ object foo extends JavaModule {
     ivy"com.google.protobuf:protobuf-java:4.28.3",
     ivy"io.grpc:grpc-protobuf:1.67.1"
   )
-  def ivyDeps = Seq(
+  def libraryDeps = Seq(
     ivy"io.grpc:grpc-protobuf"
   )
 }
@@ -28,14 +28,14 @@ object bar extends JavaModule {
     ivy"io.grpc:grpc-protobuf:1.67.1"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
-  def ivyDeps = Seq(
+  def libraryDeps = Seq(
     ivy"io.grpc:grpc-protobuf"
   )
 }
 
-// Here, grpc-protobuf has an empty version in `ivyDeps`, so the one in `depManagement`,
+// Here, grpc-protobuf has an empty version in `libraryDeps`, so the one in `depManagement`,
 // `1.67.1`, is used. Also, `com.google.protobuf:protobuf-java` is excluded from grpc-protobuf
-// in `depManagement`, so it ends up being excluded from it in `ivyDeps` too.
+// in `depManagement`, so it ends up being excluded from it in `libraryDeps` too.
 
 // If one wants to add exclusions via `depManagement`, specifying a version is optional,
 // like
@@ -45,7 +45,7 @@ object baz extends JavaModule {
     ivy"io.grpc:grpc-protobuf"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
-  def ivyDeps = Seq(
+  def libraryDeps = Seq(
     ivy"io.grpc:grpc-protobuf:1.67.1"
   )
 }
@@ -56,8 +56,8 @@ object baz extends JavaModule {
 // One can manage and publish Bill of Material (BOM) modules from Mill, by using `BomModule`:
 
 object myBom extends BomModule {
-  // Importing external BOMs from our BOM module with bomIvyDeps
-  def bomIvyDeps = Seq(
+  // Importing external BOMs from our BOM module with bomLibraryDeps
+  def bomLibraryDeps = Seq(
     ivy"com.google.protobuf:protobuf-bom:4.28.1"
   )
   // Managing versions directly from our BOM module with depManagement
@@ -71,7 +71,7 @@ object bomUser extends JavaModule {
   def bomModuleDeps = Seq(
     myBom
   )
-  def ivyDeps = Seq(
+  def libraryDeps = Seq(
     ivy"io.grpc:grpc-protobuf"
   )
 }
@@ -80,7 +80,7 @@ object bomUser extends JavaModule {
 // packaging type `pom`, usable as a BOM from other build tools:
 
 object myPublishedBom extends BomModule with MyPublishModule {
-  def bomIvyDeps = Seq(
+  def bomLibraryDeps = Seq(
     ivy"com.google.protobuf:protobuf-bom:4.28.1"
   )
   def depManagement = Seq(
@@ -94,7 +94,7 @@ object publishedBomUser extends JavaModule with MyPublishModule {
   def bomModuleDeps = Seq(
     myPublishedBom
   )
-  def ivyDeps = Seq(
+  def libraryDeps = Seq(
     ivy"io.grpc:grpc-protobuf"
   )
 }

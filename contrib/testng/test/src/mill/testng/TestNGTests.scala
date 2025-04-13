@@ -12,10 +12,10 @@ object TestNGTests extends TestSuite {
   object demo extends TestBaseModule with JavaModule {
 
     object test extends JavaTests {
-      override def runIvyDeps = super.runIvyDeps() ++ Seq(
+      override def runLibraryDeps = super.runLibraryDeps() ++ Seq(
         Dep.millProjectModule("mill-contrib-testng", artifactSuffix = "")
       )
-      override def ivyDeps = super.ivyDeps() ++ Seq(
+      override def libraryDeps = super.libraryDeps() ++ Seq(
         ivy"org.testng:testng:6.11",
         ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
       )
@@ -25,13 +25,13 @@ object TestNGTests extends TestSuite {
     }
 
     object testng extends JavaTests with TestModule.TestNg {
-      def ivyDeps = super.ivyDeps() ++ Seq(
+      def libraryDeps = super.libraryDeps() ++ Seq(
         ivy"org.testng:testng:7.10.2"
       )
     }
 
     object testngGrouping extends JavaTests with TestModule.TestNg {
-      def ivyDeps = super.ivyDeps() ++ Seq(
+      def libraryDeps = super.libraryDeps() ++ Seq(
         ivy"org.testng:testng:7.10.2"
       )
       def testForkGrouping = discoveredTestClasses().grouped(1).toSeq

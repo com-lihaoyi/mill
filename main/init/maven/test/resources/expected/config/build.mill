@@ -81,7 +81,7 @@ object `package` extends RootModule with MyModule {
 
       object tests extends MavenTests with TestModule.Junit4 {
 
-        def ivyDeps = super.ivyDeps() ++ Seq(
+        def libraryDeps = super.libraryDeps() ++ Seq(
           Deps.`junit:junit-dep`,
           Deps.`org.hamcrest:hamcrest-core`,
           Deps.`org.hamcrest:hamcrest-library`,
@@ -100,7 +100,7 @@ object `package` extends RootModule with MyModule {
 
       def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
-      def compileIvyDeps = super.compileIvyDeps() ++
+      def compileLibraryDeps = super.compileLibraryDeps() ++
         Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
       def pomSettings = PomSettings(
@@ -140,7 +140,7 @@ object `package` extends RootModule with MyModule {
     def javacOptions = super.javacOptions() ++
       Seq("-source", "1.6", "-target", "1.6")
 
-    def ivyDeps = super.ivyDeps() ++
+    def libraryDeps = super.libraryDeps() ++
       Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
     def pomSettings = PomSettings(
@@ -164,7 +164,7 @@ object `package` extends RootModule with MyModule {
 
     object tests extends MavenTests with TestModule.Junit4 {
 
-      def ivyDeps = super.ivyDeps() ++ Seq(
+      def libraryDeps = super.libraryDeps() ++ Seq(
         Deps.`junit:junit-dep`,
         Deps.`org.hamcrest:hamcrest-core`,
         Deps.`org.hamcrest:hamcrest-library`,

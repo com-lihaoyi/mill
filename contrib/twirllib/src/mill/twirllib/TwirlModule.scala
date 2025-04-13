@@ -44,7 +44,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   /**
    * @since Mill after 0.10.5
    */
-  def twirlIvyDeps: T[Seq[Dep]] = Task {
+  def twirlLibraryDeps: T[Seq[Dep]] = Task {
     Seq(
       if (twirlVersion().startsWith("1."))
         ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}"
@@ -76,7 +76,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   lazy val twirlCoursierResolver: TwirlResolver = new TwirlResolver {}
 
   def twirlClasspath: T[Seq[PathRef]] = Task {
-    twirlCoursierResolver.defaultResolver().classpath(twirlIvyDeps())
+    twirlCoursierResolver.defaultResolver().classpath(twirlLibraryDeps())
   }
 
   def twirlImports: T[Seq[String]] = Task {

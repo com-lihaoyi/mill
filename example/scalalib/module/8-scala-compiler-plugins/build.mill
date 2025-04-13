@@ -4,14 +4,14 @@ import mill._, scalalib._
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def compileIvyDeps = Seq(ivy"com.lihaoyi:::acyclic:0.3.6")
+  def compileLibraryDeps = Seq(ivy"com.lihaoyi:::acyclic:0.3.6")
   def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginIvyDeps = Seq(ivy"com.lihaoyi:::acyclic:0.3.6")
+  def scalacPluginLibraryDeps = Seq(ivy"com.lihaoyi:::acyclic:0.3.6")
 }
 
 //
-// You can use Scala compiler plugins by setting `scalacPluginIvyDeps`. The above
-// example also adds the plugin to `compileIvyDeps`, since that plugin's artifact
+// You can use Scala compiler plugins by setting `scalacPluginLibraryDeps`. The above
+// example also adds the plugin to `compileLibraryDeps`, since that plugin's artifact
 // is needed on the compilation classpath (though not at runtime).
 //
 // NOTE: Remember that compiler plugins are published against the full Scala

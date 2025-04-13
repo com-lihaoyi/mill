@@ -40,7 +40,7 @@ package build
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def ivyDeps = Seq(
+  def libraryDeps = Seq(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
@@ -239,7 +239,7 @@ definition in `build.foo`, allowing us to jump to it if we want to see what it d
 
 image::unique/IntellijDefinition.png[]
 
-In the `JavaModule` example earlier, IntelliJ is able to see the `def ivyDeps` configuration
+In the `JavaModule` example earlier, IntelliJ is able to see the `def libraryDeps` configuration
 override, and find the exact override definitions in the parent class hierarchy:
 
 image::unique/IntellijOverride.png[]
