@@ -385,7 +385,7 @@ trait Resolve[T] {
             catch {
               case e: ClassNotFoundException =>
                 try Right(rootModule.getClass.getClassLoader.loadClass(
-                    scoping.render + ".PackageDefaultExternalModule$"
+                    scoping.render + ".package$"
                   ))
                 catch {
                   case e: ClassNotFoundException =>

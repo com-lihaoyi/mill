@@ -7,7 +7,6 @@ import mill.main.BuildInfo
 import mill.eval.Evaluator
 import mill.scalalib.{CoursierModule, Dep}
 
-object PackageDefaultExternalModule extends ExternalModule.Alias(BSP)
 object BSP extends ExternalModule with CoursierModule {
 
   lazy val millDiscover: Discover = Discover[this.type]
