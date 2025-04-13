@@ -36,34 +36,3 @@ Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
 // `publishLocal` also accepts `--transitive=true`, to also publish locally the
 // transitive dependencies of the module being published. This ensures the module
 // can be resolved from the local repository, with no missing dependencies.
-
-//// SNIPPET:BUILD
-package build
-
-import mill._, javalib._, publish._
-
-import mill.scalalib.sonatypecentral.SonatypeCentralPublishModule
-
-object foo extends SonatypeCentralPublishModule {
-  def scalaVersion = "2.13.8"
-  def publishVersion = "0.0.1"
-
-  def pomSettings = PomSettings(
-    description = "Hello",
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/example",
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-  )
-}
-
-// This example configured for publishing to Maven Central via Sonatype's 
-// central repository workflow. Extends SonatypeCentralPublishModule which provides
-// simplified publishing tasks without requiring Nexus repository manager.
-
-/** Usage
-
-> ./mill foo.publishSonatypeCentral
-
-*/

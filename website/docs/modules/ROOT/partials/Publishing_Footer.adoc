@@ -1,4 +1,4 @@
-== Publishing to Sonatype Maven Central
+== Instructions for Publishing to Sonatype Maven Central
 
 Once you've mixed in `PublishModule`, apart from publishing locally, you can also publish
 your project's modules to maven central
@@ -40,6 +40,18 @@ export MILL_PGP_SECRET_BASE64=...
 
 # The passphrase associated with your PGP key
 export MILL_PGP_PASSPHRASE=...
+----
+
+Sonatype Maven Central needs your public key to be uploaded so it can use to verify your artifacts.
+
+
+[source.sh]
+----
+# Send your public key to ubuntu server so Sonatype Maven Central can use for verification of the artifacts
+gpg --keyserver  keyserver.ubuntu.com --send-keys longIDHere
+
+# Check the server for information about the public key. information will be displayed if found
+gpg --keyserver  keyserver.ubuntu.com --recv-keys longIDHere
 ----
 
 === Publishing

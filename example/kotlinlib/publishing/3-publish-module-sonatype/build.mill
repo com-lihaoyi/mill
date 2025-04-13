@@ -1,6 +1,7 @@
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._, publish._
+
+import mill._, kotlinlib._, publish._
 
 import mill.scalalib.sonatypecentral.SonatypeCentralPublishModule
 
