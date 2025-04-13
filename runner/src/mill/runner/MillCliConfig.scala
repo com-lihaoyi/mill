@@ -155,7 +155,18 @@ case class MillCliConfig(
           |There are currently no guarantees that modules don't attempt to fetch remote sources."""
           .stripMargin
     )
-    offline: Flag = Flag()
+    offline: Flag = Flag(),
+    @arg(
+      doc =
+        """Provides specified ports for Mill to propagate into System Properties. 
+          |The ports must be between 1024 to 65535.
+          |The ports must be free at the time of Mill launching, and should remain free.
+          |If no ports are specified, free ports will be determined on startup
+          """
+          .stripMargin,
+      name = "ports"
+    )
+    ports: Option[String]
 )
 
 import mainargs.ParserForClass
