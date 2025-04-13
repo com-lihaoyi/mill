@@ -17,6 +17,7 @@ import scalasql.H2Dialect._
 import scalasql.core.DbClient
 import scalasql.{Sc, Table}
 import webapp.WebApp.DB.Todos
+import cats.effect.unsafe.implicits.global
 
 object WebApp extends IOApp.Simple {
   case class Todo(checked: Boolean, text: String)
@@ -113,7 +114,10 @@ object WebApp extends IOApp.Simple {
           for {
             _ <- IO.delay {
               dbClient.transaction { db =>
-                db.run(Todos.select.filter(_.id === index)).map(_.checked).head
+                val current = db.run(Todos.select.filter(_.id === index)).map(_.checked).head
+                db.updateRaw(
+                  s"UPDATE todos SET checked = ${!current} WHERE id = $index"
+                )
               }
             }
             todos <- fetchTodos
@@ -123,7 +127,7 @@ object WebApp extends IOApp.Simple {
 
         case POST -> Root / "clear-completed" / state => {
           for {
-            _ <- IO.delay {
+            _ <- IO.blocking {
               dbClient.transaction { db =>
                 db.run(Todos.delete(_.checked === true))
               }
@@ -135,19 +139,12 @@ object WebApp extends IOApp.Simple {
 
         case POST -> Root / "toggle-all" / state => {
           for {
-            _ <- IO.delay {
+            updatedRows <- IO.blocking {
               dbClient.transaction { db =>
-                db.updateRaw(
-                  """
-                    UPDATE todos SET checked = CASE
-                        WHEN (SELECT COUNT(*) FROM todos WHERE checked = TRUE) > 0 THEN FALSE
-                        ELSE TRUE
-                    END;
-                    |
-                    |""".stripMargin
-                )
+                db.updateRaw("UPDATE todos SET checked = NOT checked")
               }
             }
+            _ <- IO.println("Updated rows"+ updatedRows)
             todos <- fetchTodos
             response <- Ok(renderBody(state, todos))
           } yield response
@@ -156,16 +153,16 @@ object WebApp extends IOApp.Simple {
         case GET -> Root => Ok(index)
       }
 
-      def fetchTodos = {
-        IO.delay {
+      def fetchTodos : cats.effect.IO[Seq[webapp.WebApp.Todo]] = {
+        IO.blocking {
           dbClient.transaction { db =>
             db.run(Todos.select).sortBy(_.id)
           }.map(r => Todo(r.checked, r.text))
         }
       }
 
-      def renderBody(state: String, todos: Seq[Todo]) =
-        todosRef.get.map { todos =>
+      def renderBody(state: String, todos: Seq[Todo]) = {
+        IO {
           val filteredTodos = state match {
             case "all" => todos.zipWithIndex
             case "active" => todos.zipWithIndex.filter(!_._1.checked)
@@ -224,8 +221,9 @@ object WebApp extends IOApp.Simple {
             )
           )
         }
+      }
 
-      def index = renderBody("all", Seq()).map { renderedBody =>
+      def index = renderBody("all", fetchTodos.unsafeRunSync()).map { renderedBody =>
         doctype("html")(
           html(
             lang := "en",
