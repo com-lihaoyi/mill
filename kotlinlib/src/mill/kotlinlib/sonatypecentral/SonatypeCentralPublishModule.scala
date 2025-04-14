@@ -5,7 +5,7 @@ import mill._
 import scalalib._
 import define.{ExternalModule, Task}
 import mill.api.Result
-import mill.scalalib.sonatypecentral.SonatypeCentralPublishModule.{
+import mill.kotlinlib.sonatypecentral.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
   defaultConnectTimeout,
   defaultCredentials,
