@@ -2,7 +2,6 @@ package mill.kotlinlib.android.hilt
 
 import com.android.build.api.instrumentation.{ClassContext, ClassData}
 import dagger.hilt.android.plugin.transform.AndroidEntryPointClassVisitor
-import mill.*
 import org.objectweb.asm.*
 
 /**

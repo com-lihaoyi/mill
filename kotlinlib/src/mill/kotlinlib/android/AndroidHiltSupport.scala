@@ -1,14 +1,11 @@
 package mill.kotlinlib.android
 
-import coursier.Repository
-import mill.define.{Discover, ExternalModule, ModuleRef, PathRef}
-import mill.javalib.android.AndroidSdkModule
+import mill.define.{ModuleRef, PathRef}
 import mill.kotlinlib.DepSyntax
 import mill.kotlinlib.ksp.KspModule
+import mill.scalalib.Dep
 import mill.scalalib.api.CompilationResult
-import mill.scalalib.{Dep, JvmWorkerModule}
 import mill.{T, Task}
-import os.Path
 
 /**
  * Trait for mixing in AndroidAppKotlinModule to
@@ -32,7 +29,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
           if (dep.dep.module.name.value == "hilt-android-compiler")
             Seq(
               dep,
-              ivy"com.google.dagger:hilt-compiler:${dep.version}"
+              mvn"com.google.dagger:hilt-compiler:${dep.version}"
             )
           else
             Seq(dep)
