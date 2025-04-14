@@ -3,7 +3,7 @@ package build
 
 import mill._, kotlinlib._, publish._
 
-import mill.scalalib.sonatypecentral.SonatypeCentralPublishModule
+import mill.kotlinlib.sonatypecentral.SonatypeCentralPublishModule
 
 object foo extends SonatypeCentralPublishModule {
   def scalaVersion = "2.13.8"
