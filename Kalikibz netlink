@@ -1,0 +1,61 @@
+==================================
+[ K A L I K I B Z ] - Wireless Internet Provider
+==================================
+
+Select Data Package:
+1. 1 Hour Unlimited - Ksh 10
+2. 6 Hours Unlimited - Ksh 20 
+3. 12 Hours Unlimited - Ksh 30
+4. 24 Hours Unlimited - Ksh 40
+
+Enter option (1-4): [INPUT]
+
+PAYMENT PROCESSING
+Enter Kenyan Phone Number: [INPUT]
+
+[SUBMIT BUTTON]
+
+<<SYSTEM FUNCTIONALITY>>
+- Validates phone number format (07XXXXXXXX)
+- Triggers mobile money prompt via:
+   * M-Pesa STK Push (if Safaricom)
+   * Airtel Money (if Airtel)
+- Payment automatically routed to 0740888135
+- Sends confirmation SMS to user
+- Grants WAN access via your router for duration:
+   1. Creates timed firewall rule (1/6/12/24hrs)
+   2. Maps device MAC/IP to allowed list
+   3. Automatic disconnection after expiry
+
+[ROUTER INTEGRATION]
+- Uses cron jobs/API to:
+   - Reset bandwidth counters periodically
+   - Sync with PPPoE authentication
+   - Monitor connected devices
+   - Log all transactions
+
+[SECURITY FEATURES]
+- TLS encryption for payments
+- Rate limiting
+- IP/MAC binding
+- Fraud detection system
+
+[ADMIN DASHBOARD]
+- Real-time users monitor
+- Payment records
+- Network health stats
+- Package configuration
+
+<<USER INSTRUCTIONS>>
+1. Connect to "kalikibz" WiFi
+2. Launch portal -> Select package
+3. Complete mobile payment
+4. Instant internet access
+
+<<DISCLAIMER>>
+This software requires:
+- Python/Node.js backend
+- MySQL database
+- RouterOS API integration
+- Mobile money API licenses
+- Proper cybersecurity implementatio
