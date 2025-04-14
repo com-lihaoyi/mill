@@ -80,7 +80,7 @@ trait VersionFileModule extends Module {
     )
 }
 
-object `package` extends define.ExternalModule.Alias(VersionFileModule)
+
 object VersionFileModule extends define.ExternalModule {
 
   /** Executes the given processes. */
