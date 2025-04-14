@@ -777,9 +777,16 @@ index 20136702d33..268c800b973 100644
  
    def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
 diff --git a/mill-build/build.mill b/mill-build/build.mill
-index 521b6533dd6..416788f7201 100644
+index 521b6533dd6..f32b3cbcf65 100644
 --- a/mill-build/build.mill
 +++ b/mill-build/build.mill
+@@ -1,5 +1,5 @@
+ import mill._
+-import mill.runner.MillBuildRootModule
++import mill.runner.meta.MillBuildRootModule
+ import mill.scalalib._
+ 
+ object `package` extends MillBuildRootModule {
 @@ -7,15 +7,15 @@ object `package` extends MillBuildRootModule {
    private def sources0 = Task.Sources("src-testkit")
    def sources = super.sources() ++ sources0()
