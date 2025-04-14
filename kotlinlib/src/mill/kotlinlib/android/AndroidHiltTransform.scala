@@ -4,6 +4,7 @@ import coursier.Repository
 import mill.define.{Discover, ExternalModule, PathRef}
 import mill.javalib.android.AndroidSdkModule
 import mill.scalalib.{Dep, JvmWorkerModule}
+import mill.{T, Task}
 
 /**
  * A module that can be used to run bytecode transformations

@@ -50,7 +50,7 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
       )
   }
 
-  def androidHiltModule = ModuleRef(AndroidHiltTransform)
+  def androidHiltModule: ModuleRef[AndroidHiltTransform] = ModuleRef(AndroidHiltTransform)
 
   /** Compile and then transform asm for Hilt DI */
   override def compile: T[CompilationResult] = Task {
@@ -59,7 +59,11 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
         super.compile().classes
       }
     )()
-    CompilationResult(super.compile().analysisFile, transformClasses)
+
+    val analysisFile = Task.dest / "kotlin.analysis.dummy"
+    os.write(target = analysisFile, data = "", createFolders = true)
+
+    CompilationResult(analysisFile, transformClasses)
   }
 
   def hiltProcessorClasspath: T[Seq[PathRef]] = Task {

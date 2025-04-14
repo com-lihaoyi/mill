@@ -68,7 +68,6 @@ trait AndroidAppModule extends AndroidModule {
    * Can be used for build variants.
    *
    * Build variant feature is not yet implemented!
-   *
    */
   def androidApplicationId: String
 
@@ -786,7 +785,6 @@ trait AndroidAppModule extends AndroidModule {
     override def androidTargetSdk: T[Int] = parent.androidTargetSdk()
     override def androidSdkModule: ModuleRef[AndroidSdkModule] = parent.androidSdkModule
     override def androidManifest: T[PathRef] = parent.androidManifest()
-
 
     override def androidApplicationId: String = parent.androidApplicationId
 
