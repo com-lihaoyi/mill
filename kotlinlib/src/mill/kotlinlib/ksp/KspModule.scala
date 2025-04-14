@@ -121,6 +121,14 @@ trait KspModule extends KotlinModule { outer =>
     )
   }
 
+  /**
+   * Any extra plugin parameters to be passed to the KSP plugin.
+   * These depend on the plugin being used and the relevant plugin docs
+   * should be consulted.
+   *
+   * For example see [[mill.kotlinlib.android.AndroidHiltSupport]]
+   * @return
+   */
   def kspPluginParameters: T[Seq[String]] = Task {
     Seq.empty
   }

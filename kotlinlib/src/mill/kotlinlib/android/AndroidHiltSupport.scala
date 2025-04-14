@@ -54,48 +54,12 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
   /** Compile and then transform asm for Hilt DI */
   override def compile: T[CompilationResult] = Task {
-    val compilationResult: CompilationResult = super.compile()
-    val transformed = Task.dest / "transformed/classes"
-    val transformedClasses = androidHiltTransformAsm(
-      androidHiltModule().toolsClasspath(),
-      compilationResult.classes,
-      PathRef(transformed)
-    )
-    CompilationResult(
-      compilationResult.analysisFile,
-      transformedClasses
-    )
-  }
-
-  /**
-   * Transforms the Kotlin classes with Hilt dependency injection context
-   * and returns the new path of the kotlin compiled classpath. This uses
-   * the [mill.main.android.hilt.AndroidHiltTransformAsm] that uses
-   * the hilt gradle plugin and the android build tools
-   */
-  private def androidHiltTransformAsm(
-      toolsClasspath: Seq[PathRef],
-      compiledClasses: PathRef,
-      destination: PathRef
-  )(implicit ctx: mill.define.TaskCtx): PathRef = {
-
-    val kotlinCompiledClassesDir = compiledClasses.path
-
-    val transformedClasses = destination.path
-
-    os.makeDir.all(transformedClasses)
-    val mainClass = "mill.main.android.hilt.AndroidHiltTransformAsm"
-
-    val classPath = toolsClasspath.map(_.path)
-
-    mill.util.Jvm.callProcess(
-      mainClass = mainClass,
-      classPath = classPath,
-      mainArgs = Seq(kotlinCompiledClassesDir.toString, transformedClasses.toString)
-    )
-
-    PathRef(transformedClasses)
-
+    val transformClasses = androidHiltModule().androidHiltTransformAsm(
+      Task.Anon {
+        super.compile().classes
+      }
+    )()
+    CompilationResult(super.compile().analysisFile, transformClasses)
   }
 
   def hiltProcessorClasspath: T[Seq[PathRef]] = Task {
@@ -113,9 +77,38 @@ object AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
   def toolsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        Dep.millProjectModule("mill-main-androidhilt")
+        Dep.millProjectModule("mill-kotlinlib-androidhilt")
       )
     )
+  }
+
+  /**
+   * Transforms the Kotlin classes with Hilt dependency injection context
+   * and returns the new path of the kotlin compiled classpath. This uses
+   * the [mill.main.android.hilt.AndroidHiltTransformAsm] that uses
+   * the hilt gradle plugin and the android build tools
+   */
+  def androidHiltTransformAsm(
+      compiledClasses: Task[PathRef]
+  ): Task[PathRef] = Task.Anon {
+
+    val kotlinCompiledClassesDir = compiledClasses().path
+    val transformedClasses = Task.dest / "transformed/classes"
+
+    os.makeDir.all(transformedClasses)
+
+    val mainClass = "mill.kotlinlib.android.hilt.AndroidHiltTransformAsm"
+
+    val classPath = toolsClasspath().map(_.path)
+
+    mill.util.Jvm.callProcess(
+      mainClass = mainClass,
+      classPath = classPath,
+      mainArgs = Seq(kotlinCompiledClassesDir.toString, transformedClasses.toString)
+    )
+
+    PathRef(transformedClasses)
+
   }
 
   override lazy val millDiscover: Discover = Discover[this.type]

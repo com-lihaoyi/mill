@@ -74,7 +74,6 @@ object `package` extends RootModule with InstallModule {
 
     def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
       build.main.graphviz.testDep(),
-      build.main.androidhilt.testDep(),
       build.main.init.maven.testDep(),
       build.main.init.gradle.testDep(),
       build.main.init.sbt.testDep(),
@@ -98,6 +97,7 @@ object `package` extends RootModule with InstallModule {
       build.scalanativelib.testDep(),
       build.kotlinlib.testDep(),
       build.kotlinlib.worker.impl.testDep(),
+      build.kotlinlib.androidhilt.testDep(),
       build.javascriptlib.testDep(),
       build.pythonlib.testDep()
     )

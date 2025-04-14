@@ -1,10 +1,23 @@
-package mill.main.android.hilt
+package mill.kotlinlib.android.hilt
 
 import com.android.build.api.instrumentation.{ClassContext, ClassData}
 import dagger.hilt.android.plugin.transform.AndroidEntryPointClassVisitor
-import mill._
-import org.objectweb.asm._
+import mill.*
+import org.objectweb.asm.*
 
+/**
+ * A standalone executable utility to transform compiled classes with Hilt dependency injection context.
+ *
+ * Example usage:
+ * `java -classpath <classpath> mill.kotlinlib.android.hilt.AndroidHiltTransformAsm <input-directory> <output-directory>`
+ * where the input directory is the directory containing the compiled classes and the output-directory
+ * an already existing directory to place the transformed classes.
+ *
+ * The classes are only transformed if they contain the @AndroidEntryPoint or @HiltAndroidApp annotations,
+ * otherwise they are copied as is. This code is an adaptation of the gradle hilt plugin transformASM task that can be found
+ * in [[https://github.com/google/dagger/blob/b3d3443e3581b8530cd85929614a1765cd37b12c/java/dagger/hilt/android/plugin/main/src/main/kotlin/dagger/hilt/android/plugin/transform/AndroidEntryPointClassVisitor.kt#L122]]
+ */
+@mill.api.experimental
 object AndroidHiltTransformAsm {
 
   def main(args: Array[String]): Unit = {

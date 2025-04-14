@@ -4,8 +4,7 @@ import mill._
 import mill.scalalib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.{Cross, Task}
-import mill.javalib.android.AndroidSdkModule
+import mill.define.Cross
 import mill.scalalib.api.JvmWorkerUtil
 
 /**
@@ -41,17 +40,6 @@ object `package` extends RootModule with build.MillStableScalaModule {
   object graphviz extends build.MillPublishScalaModule {
     def moduleDeps = Seq(build.main, build.scalalib)
     def ivyDeps = Agg(build.Deps.jgraphtCore) ++ build.Deps.graphvizJava ++ build.Deps.javet
-  }
-
-  object androidhilt extends build.MillPublishScalaModule {
-    def repositoriesTask = Task.Anon {
-      super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
-    }
-    def moduleDeps = Seq(build.main, build.kotlinlib)
-    def ivyDeps = Agg(
-      build.Deps.hiltGradlePlugin,
-      build.Deps.androidTools
-    )
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
