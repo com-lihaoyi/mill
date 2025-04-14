@@ -2,21 +2,19 @@ package mill
 package scalanativelib
 
 import mainargs.Flag
-
 import mill.api.Result
-import mill.define.{Command, Task}
+import mill.define.{Command, PathRef, Target, Task}
 import mill.scalalib.api.JvmWorkerUtil
 import mill.api.internal.{ScalaBuildTarget, ScalaNativeModuleApi, ScalaPlatform, internal}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
-import mill.scalanativelib.api._
+import mill.scalanativelib.api.*
 import mill.scalanativelib.worker.{
   ScalaNativeWorker,
   ScalaNativeWorkerExternalModule,
-  api => workerApi
+  api as workerApi
 }
 import mill.T
-import mill.define.PathRef
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
@@ -36,7 +34,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def scalaNativeWorkerVersion =
     Task { JvmWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
-  def scalaNativeWorkerClasspath = Task {
+  def scalaNativeWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule(s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}")
     ))
@@ -350,7 +348,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     )
   }
 
-  override def prepareOffline(all: Flag): Command[Unit] = {
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
     val tasks =
       if (all.value) Seq(
         scalaNativeWorkerClasspath,
@@ -358,9 +356,10 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       )
       else Seq()
     Task.Command {
-      super.prepareOffline(all)()
-      Task.sequence(tasks)()
-      ()
+      (
+        super.prepareOffline(all)() ++
+          Task.sequence(tasks)()
+      ).distinct
     }
   }
 

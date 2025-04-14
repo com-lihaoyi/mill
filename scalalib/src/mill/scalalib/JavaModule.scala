@@ -1228,7 +1228,7 @@ trait JavaModule
   /**
    * @param all If `true` fetches also source dependencies
    */
-  override def prepareOffline(all: Flag): Command[Unit] = {
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
     val tasks =
       if (all.value) Seq(
         Task.Anon {
@@ -1254,13 +1254,14 @@ trait JavaModule
       else Seq()
 
     Task.Command {
-      super.prepareOffline(all)()
-      resolvedIvyDeps()
-      classgraphWorkerModule().prepareOffline(all)()
-      jvmWorker().prepareOffline(all)()
-      resolvedRunIvyDeps()
-      Task.sequence(tasks)()
-      ()
+      (
+        super.prepareOffline(all)() ++
+          resolvedIvyDeps() ++
+          classgraphWorkerModule().prepareOffline(all)() ++
+          jvmWorker().prepareOffline(all)() ++
+          resolvedRunIvyDeps() ++
+          Task.sequence(tasks)().flatten
+      ).distinct
     }
   }
 

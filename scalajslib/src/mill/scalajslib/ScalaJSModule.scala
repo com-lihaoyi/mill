@@ -309,14 +309,15 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
    */
   def scalaJSMinify: T[Boolean] = Task { true }
 
-  override def prepareOffline(all: Flag): Command[Unit] = {
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
     val tasks =
       if (all.value) Seq(scalaJSToolsClasspath)
       else Seq()
     Task.Command {
-      super.prepareOffline(all)()
-      Task.sequence(tasks)()
-      ()
+      (
+        super.prepareOffline(all)() ++
+          Task.sequence(tasks)()
+      ).distinct
     }
   }
 
