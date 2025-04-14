@@ -55,7 +55,21 @@ trait AndroidAppModule extends AndroidModule {
 
   private val parent: AndroidAppModule = this
 
+  /**
+   * The namespace of the android application which is used
+   * to specify the fully qualified classpath of the activity.
+   *
+   * For instance, it is used as the package name in Android Manifest
+   */
   def androidApplicationNamespace: String
+
+  /**
+   * Android Application Id which is typically package.main .
+   * Can be used for build variants.
+   *
+   * Build variant feature is not yet implemented!
+   *
+   */
   def androidApplicationId: String
 
   /**
@@ -772,6 +786,7 @@ trait AndroidAppModule extends AndroidModule {
     override def androidTargetSdk: T[Int] = parent.androidTargetSdk()
     override def androidSdkModule: ModuleRef[AndroidSdkModule] = parent.androidSdkModule
     override def androidManifest: T[PathRef] = parent.androidManifest()
+
 
     override def androidApplicationId: String = parent.androidApplicationId
 
