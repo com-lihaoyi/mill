@@ -358,7 +358,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     Task.Command {
       (
         super.prepareOffline(all)() ++
-          Task.sequence(tasks)()
+          Task.sequence(tasks)().flatten
       ).distinct
     }
   }
