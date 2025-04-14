@@ -145,7 +145,7 @@ Publish ... to /home/.../.m2/repository/...
 > ./mill show app.test
 ...
 [
-  "",
+  " ",
   [
     {
       "fullyQualifiedName": "com.example.ExampleUnitTest.text_size_is_correct",
