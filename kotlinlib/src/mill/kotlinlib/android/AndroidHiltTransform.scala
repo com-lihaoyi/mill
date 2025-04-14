@@ -19,6 +19,17 @@ trait AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
   }
 
   /**
+   * The classpath of the AndroidHiltTransformAsm executable.
+   */
+  def toolsClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      Seq(
+        Dep.millProjectModule("mill-kotlinlib-androidhilt")
+      )
+    )
+  }
+
+  /**
    * Transforms the Kotlin classes with Hilt dependency injection context
    * and returns the new path of the kotlin compiled classpath. This uses
    * the [[mill.kotlinlib.android.hilt.AndroidHiltTransformAsm]] that uses
@@ -35,15 +46,9 @@ trait AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
 
     val mainClass = "mill.kotlinlib.android.hilt.AndroidHiltTransformAsm"
 
-    val classPath: Seq[os.Path] = defaultResolver().classpath(
-      Seq(
-        Dep.millProjectModule("mill-kotlinlib-androidhilt")
-      )
-    ).map(_.path)
-
     mill.util.Jvm.callProcess(
       mainClass = mainClass,
-      classPath = classPath,
+      classPath = toolsClasspath().map(_.path),
       mainArgs = Seq(kotlinCompiledClassesDir.toString, transformedClasses.toString)
     )
 
