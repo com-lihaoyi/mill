@@ -7,15 +7,16 @@ package mill
 package kotlinlib
 
 import mill.api.Result
-import mill.define.{PathRef, Command, ModuleRef, Task}
+import mill.define.{Command, ModuleRef, PathRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, JvmWorkerApi}
 import mill.api.internal.{BspBuildTarget, BspModuleApi, CompileProblemReporter, internal}
-import mill.scalalib.{JavaModule, Lib, JvmWorkerModule}
+import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.T
-
 import java.io.File
+
+import mainargs.Flag
 
 trait KotlinModule extends JavaModule { outer =>
 
@@ -406,6 +407,16 @@ trait KotlinModule extends JavaModule { outer =>
     canCompile = true,
     canRun = true
   )
+
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
+    (
+      super.prepareOffline(all)() ++
+        kotlinCompilerClasspath() ++
+        kotlinCompilerClasspath() ++
+        dokkaCliClasspath() ++
+        dokkaPluginsClasspath()
+    ).distinct
+  }
 
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
