@@ -170,8 +170,8 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
         .sorted
     } else Seq.empty
 
-  def interpIvy(dep: Dependency): String =
-    BuildGenUtil.renderIvyString(
+  def interpMvn(dep: Dependency): String =
+    BuildGenUtil.renderMvnString(
       dep.getGroupId,
       dep.getArtifactId,
       None,
@@ -216,11 +216,11 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     var sd = IrScopedDeps()
 
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
-    val ivyDep: Dependency => String = {
-      cfg.shared.basicConfig.depsObject.fold(interpIvy(_)) { objName => dep =>
+    val mvnDep: Dependency => String = {
+      cfg.shared.basicConfig.depsObject.fold(interpMvn(_)) { objName => dep =>
         {
           val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
-          sd = sd.copy(namedMvnDeps = sd.namedMvnDeps :+ (depName, interpIvy(dep)))
+          sd = sd.copy(namedMvnDeps = sd.namedMvnDeps :+ (depName, interpMvn(dep)))
           s"$objName.$depName"
         }
       }
@@ -235,33 +235,33 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
             sd = sd.copy(mainModuleDeps = sd.mainModuleDeps + packages(id))
           else {
             if (isBom(id)) println(s"assuming compile dependency $id is a BOM")
-            val ivy = ivyDep(dep)
-            sd = sd.copy(mainMvnDeps = sd.mainMvnDeps + ivy)
+            val mvn = mvnDep(dep)
+            sd = sd.copy(mainMvnDeps = sd.mainMvnDeps + mvn)
           }
         case "provided" =>
           if (packages.isDefinedAt(id))
             sd = sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id))
           else {
-            val ivy = ivyDep(dep)
-            sd = sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + ivy)
+            val mvn = mvnDep(dep)
+            sd = sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + mvn)
           }
         case "runtime" =>
           if (packages.isDefinedAt(id))
             sd = sd.copy(mainRunModuleDeps = sd.mainRunModuleDeps + packages(id))
           else {
-            val ivy = ivyDep(dep)
-            sd = sd.copy(mainRunMvnDeps = sd.mainRunMvnDeps + ivy)
+            val mvn = mvnDep(dep)
+            sd = sd.copy(mainRunMvnDeps = sd.mainRunMvnDeps + mvn)
           }
 
         case "test" =>
           if (packages.isDefinedAt(id))
             sd = sd.copy(testModuleDeps = sd.testModuleDeps + packages(id))
           else {
-            val ivy = ivyDep(dep)
+            val mvn = mvnDep(dep)
             if (isBom(id)) {
-              sd = sd.copy(testBomMvnDeps = sd.testBomMvnDeps + ivy)
+              sd = sd.copy(testBomMvnDeps = sd.testBomMvnDeps + mvn)
             } else {
-              sd = sd.copy(testMvnDeps = sd.testMvnDeps + ivy)
+              sd = sd.copy(testMvnDeps = sd.testMvnDeps + mvn)
             }
           }
 

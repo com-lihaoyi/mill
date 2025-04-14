@@ -299,10 +299,10 @@ object SbtBuildGenMain
   def getPublishVersion(buildInfo: BuildInfo): String | Null =
     buildInfo.buildPublicationInfo.version.orNull
 
-  // originally named `ivyInterp` in the Maven and module
-  def renderIvy(dependency: LibraryDependency): String = {
+  // originally named `mvnInterp` in the Maven and module
+  def renderMvn(dependency: LibraryDependency): String = {
     import dependency.*
-    renderIvyString(
+    renderMvnString(
       organization,
       name,
       crossVersion match {
@@ -455,15 +455,15 @@ object SbtBuildGenMain
       IrScopedDeps(
         Seq.empty,
         SortedSet.empty,
-        SortedSet.from(defaultMvnDeps.iterator.map(renderIvy)),
+        SortedSet.from(defaultMvnDeps.iterator.map(renderMvn)),
         SortedSet.from(defaultModuleDeps),
-        SortedSet.from(compileMvnDeps.iterator.map(renderIvy)),
+        SortedSet.from(compileMvnDeps.iterator.map(renderMvn)),
         SortedSet.from(compileModuleDeps),
-        SortedSet.from(runMvnDeps.iterator.map(renderIvy)),
+        SortedSet.from(runMvnDeps.iterator.map(renderMvn)),
         SortedSet.from(runModuleDeps),
         testModule,
         SortedSet.empty,
-        SortedSet.from(testMvnDeps.iterator.map(renderIvy)),
+        SortedSet.from(testMvnDeps.iterator.map(renderMvn)),
         SortedSet.from(testModuleDeps),
         SortedSet.empty,
         SortedSet.empty
@@ -471,7 +471,7 @@ object SbtBuildGenMain
     })(objectName => {
       val extractedMvnDeps = mvnDepsByType.view.mapValues(_.map(dep => {
         val depName = s"`${dep.organization}:${dep.name}`"
-        ((depName, renderIvy(dep)), s"$objectName.$depName")
+        ((depName, renderMvn(dep)), s"$objectName.$depName")
       }))
 
       val extractedDefaultMvnDeps = extractedMvnDeps.getOrElse(Default, Seq.empty)

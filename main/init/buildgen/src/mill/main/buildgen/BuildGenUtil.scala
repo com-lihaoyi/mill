@@ -286,7 +286,7 @@ object BuildGenUtil {
   def escapeOption(value: String): String =
     if (null == value) "None" else s"Some(\"$value\")"
 
-  def renderIvyString(
+  def renderMvnString(
       group: String,
       artifact: String,
       crossVersion: Option[CrossVersion] = None,
@@ -325,7 +325,7 @@ object BuildGenUtil {
       .map { case (group, artifact) => s";exclude=$group:$artifact" }
       .mkString
 
-    s"ivy\"$group$sepArtifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
+    s"mvn\"$group$sepArtifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
   }
 
   def isBom(groupArtifactVersion: (String, String, String)): Boolean =
