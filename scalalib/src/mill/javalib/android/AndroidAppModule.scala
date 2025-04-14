@@ -767,11 +767,11 @@ trait AndroidAppModule extends AndroidModule {
 
   trait AndroidAppTests extends AndroidAppModule with JavaTests {
 
-    override def androidCompileSdk: T[Int] = parent.androidCompileSdk
-    override def androidMinSdk: T[Int] = parent.androidMinSdk
-    override def androidTargetSdk: T[Int] = parent.androidTargetSdk
-    override def androidSdkModule = parent.androidSdkModule
-    override def androidManifest: T[PathRef] = parent.androidManifest
+    override def androidCompileSdk: T[Int] = parent.androidCompileSdk()
+    override def androidMinSdk: T[Int] = parent.androidMinSdk()
+    override def androidTargetSdk: T[Int] = parent.androidTargetSdk()
+    override def androidSdkModule: ModuleRef[AndroidSdkModule] = parent.androidSdkModule
+    override def androidManifest: T[PathRef] = parent.androidManifest()
 
     override def androidApplicationId: String = parent.androidApplicationId
 
@@ -795,20 +795,20 @@ trait AndroidAppModule extends AndroidModule {
 
     override def moduleDeps: Seq[JavaModule] = Seq(parent)
 
-    override def androidCompileSdk: T[Int] = parent.androidCompileSdk
-    override def androidMinSdk: T[Int] = parent.androidMinSdk
-    override def androidTargetSdk: T[Int] = parent.androidTargetSdk
+    override def androidCompileSdk: T[Int] = parent.androidCompileSdk()
+    override def androidMinSdk: T[Int] = parent.androidMinSdk()
+    override def androidTargetSdk: T[Int] = parent.androidTargetSdk()
 
-    override def androidIsDebug: T[Boolean] = parent.androidIsDebug
+    override def androidIsDebug: T[Boolean] = parent.androidIsDebug()
 
     override def androidApplicationId: String = parent.androidApplicationId
     override def androidApplicationNamespace: String = parent.androidApplicationNamespace
 
-    override def androidReleaseKeyAlias: T[Option[String]] = parent.androidReleaseKeyAlias
-    override def androidReleaseKeyName: T[Option[String]] = parent.androidReleaseKeyName
-    override def androidReleaseKeyPass: T[Option[String]] = parent.androidReleaseKeyPass
-    override def androidReleaseKeyStorePass: T[Option[String]] = parent.androidReleaseKeyStorePass
-    override def androidReleaseKeyPath: T[Option[PathRef]] = parent.androidReleaseKeyPath
+    override def androidReleaseKeyAlias: T[Option[String]] = parent.androidReleaseKeyAlias()
+    override def androidReleaseKeyName: T[Option[String]] = parent.androidReleaseKeyName()
+    override def androidReleaseKeyPass: T[Option[String]] = parent.androidReleaseKeyPass()
+    override def androidReleaseKeyStorePass: T[Option[String]] = parent.androidReleaseKeyStorePass()
+    override def androidReleaseKeyPath: T[Option[PathRef]] = parent.androidReleaseKeyPath()
 
     override def androidEmulatorPort: String = parent.androidEmulatorPort
 
@@ -827,7 +827,7 @@ trait AndroidAppModule extends AndroidModule {
      * will need to be created. Then this needs to point to the location of that debug
      * AndroidManifest.xml
      */
-    override def androidManifest: T[PathRef] = parent.androidManifest
+    override def androidManifest: T[PathRef] = parent.androidManifest()
 
     override def androidVirtualDeviceIdentifier: String = parent.androidVirtualDeviceIdentifier
     override def androidEmulatorArchitecture: String = parent.androidEmulatorArchitecture
@@ -881,7 +881,7 @@ trait AndroidAppModule extends AndroidModule {
     }
 
     /** Builds the apk including the integration tests (e.g. from androidTest) */
-    def androidInstantApk: T[PathRef] = androidApk
+    def androidInstantApk: T[PathRef] = androidApk()
 
     @internal
     override def bspBuildTarget: BspBuildTarget = super[AndroidTestModule].bspBuildTarget.copy(

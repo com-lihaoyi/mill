@@ -68,25 +68,17 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
 }
 
-object AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
+trait AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
 
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
 
-  def toolsClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      Seq(
-        Dep.millProjectModule("mill-kotlinlib-androidhilt")
-      )
-    )
-  }
-
   /**
    * Transforms the Kotlin classes with Hilt dependency injection context
    * and returns the new path of the kotlin compiled classpath. This uses
-   * the [mill.main.android.hilt.AndroidHiltTransformAsm] that uses
-   * the hilt gradle plugin and the android build tools
+   * the [[mill.kotlinlib.android.hilt.AndroidHiltTransformAsm]] that uses
+   * the hilt gradle plugin and the android build tools.
    */
   def androidHiltTransformAsm(
       compiledClasses: Task[PathRef]
@@ -99,7 +91,11 @@ object AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
 
     val mainClass = "mill.kotlinlib.android.hilt.AndroidHiltTransformAsm"
 
-    val classPath = toolsClasspath().map(_.path)
+    val classPath: Seq[os.Path] = defaultResolver().classpath(
+      Seq(
+        Dep.millProjectModule("mill-kotlinlib-androidhilt")
+      )
+    ).map(_.path)
 
     mill.util.Jvm.callProcess(
       mainClass = mainClass,
@@ -113,3 +109,5 @@ object AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
 
   override lazy val millDiscover: Discover = Discover[this.type]
 }
+
+object AndroidHiltTransform extends AndroidHiltTransform
