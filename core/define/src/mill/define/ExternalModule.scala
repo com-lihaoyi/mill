@@ -3,6 +3,11 @@ package mill.define
 /**
  * A module defined outside of the `build.mill` file, and is instead
  * provided builtin by some Mill library or plugin
+ *
+ * Implementors should make sure, the final override of [[millDiscover]] happens in the final object.
+ * {{{
+ *    override protected def millDiscover: Discover = Discover[this.type]
+ * }}}
  */
 abstract class ExternalModule(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
