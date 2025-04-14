@@ -127,7 +127,7 @@ object FileImportGraph {
             } seenRepo.addOne((repo, s))
             (start, "_root_._", end)
 
-          case ImportTree(Seq(("$jvm", _), rest @ _*), mapping, start, end) =>
+          case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
             seenIvy.addAll(mapping.map(_._1))
             (start, "_root_._", end)
 
