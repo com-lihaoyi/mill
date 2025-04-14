@@ -23,7 +23,7 @@ object foo extends ScoverageModule  {
   def scoverageVersion = "2.1.1"
 
   object test extends ScoverageTests with TestModule.ScalaTest {
-    def ivyDeps = Seq(ivy"org.scalatest::scalatest:3.2.19")
+    def mvnDeps = Seq(mvn"org.scalatest::scalatest:3.2.19")
   }
 }
 ----

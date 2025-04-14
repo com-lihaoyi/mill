@@ -91,52 +91,52 @@ object Lib {
     res.map(_.map(_.withRevalidateOnce))
   }
 
-  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
+  def scalaCompilerMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion))
       Seq(
-        ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
       )
     else if (JvmWorkerUtil.isScala3(scalaVersion))
       Seq(
-        ivy"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
       )
     else
       Seq(
-        ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
-        ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
+        mvn"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
       )
 
-  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
+  def scalaDocMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion))
       Seq(
-        ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
       )
     else if (JvmWorkerUtil.isScala3Milestone(scalaVersion))
       Seq(
         // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
-        ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
       )
     else if (JvmWorkerUtil.isScala3(scalaVersion))
       Seq(
         // scalaVersion >= 3.0.0-RC1 uses scaladoc
-        ivy"$scalaOrganization::scaladoc:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::scaladoc:$scalaVersion".forceVersion()
       )
     else
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
-      scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
+      scalaCompilerMvnDeps(scalaOrganization, scalaVersion)
 
-  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
+  def scalaRuntimeMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion)) {
       Seq(
-        ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
       )
     } else if (JvmWorkerUtil.isScala3(scalaVersion))
       Seq(
-        ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
       )
     else
       Seq(
-        ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
       )
 
   def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {

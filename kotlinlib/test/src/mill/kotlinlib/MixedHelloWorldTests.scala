@@ -21,8 +21,8 @@ object MixedHelloWorldTests extends TestSuite {
       override def mainClass = Some("hello.JavaHello")
 
       object test extends KotlinTests with TestModule.Junit4 {
-        override def ivyDeps = super.ivyDeps() ++ Seq(
-          ivy"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}"
+        override def mvnDeps = super.mvnDeps() ++ Seq(
+          mvn"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}"
         )
       }
     }

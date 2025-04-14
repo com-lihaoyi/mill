@@ -21,8 +21,8 @@ object `package` extends RootModule with PublishModule with MavenModule {
     )
   }
 
-  def ivyDeps = super.ivyDeps() ++
-    Seq(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
+  def mvnDeps = super.mvnDeps() ++
+    Seq(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")
 
   def pomSettings = PomSettings(
     "Sample single module Maven project with a working, deployable site.",
@@ -45,11 +45,11 @@ object `package` extends RootModule with PublishModule with MavenModule {
 
   object test extends MavenTests with TestModule.Junit4 {
 
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy"junit:junit-dep:4.10",
-      ivy"org.hamcrest:hamcrest-core:1.2.1",
-      ivy"org.hamcrest:hamcrest-library:1.2.1",
-      ivy"org.mockito:mockito-core:1.8.5"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"junit:junit-dep:4.10",
+      mvn"org.hamcrest:hamcrest-core:1.2.1",
+      mvn"org.hamcrest:hamcrest-library:1.2.1",
+      mvn"org.mockito:mockito-core:1.8.5"
     )
 
     def resources = Task.Sources {

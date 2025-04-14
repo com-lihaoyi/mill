@@ -9,7 +9,7 @@ object app extends SbtModule {
 
   def scalacOptions = Seq("-Vclasspath")
 
-  def ivyDeps = Seq(
-    ivy"io.getquill::quill-sql:3.18.0"
+  def mvnDeps = Seq(
+    mvn"io.getquill::quill-sql:3.18.0"
   )
 }

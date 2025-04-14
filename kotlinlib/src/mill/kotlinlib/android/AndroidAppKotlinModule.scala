@@ -86,7 +86,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     def composePreviewRenderer: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          ivy"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
+          mvn"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
         )
       )
     }
@@ -94,7 +94,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     final def layoutLibRenderer: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          ivy"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
         )
       )
     }
@@ -102,7 +102,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     final def layoutLibRuntime: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          ivy"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
         )
       )
     }
@@ -110,7 +110,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     final def layoutLibFrameworkRes: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          ivy"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
         )
       )
     }
@@ -144,12 +144,12 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
 
     override def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
-    override def mandatoryIvyDeps: T[Seq[Dep]] = super.mandatoryIvyDeps() ++
+    override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++
       Seq(
-        ivy"androidx.compose.ui:ui:$uiToolingVersion",
-        ivy"androidx.compose.ui:ui-tooling:$uiToolingVersion",
-        ivy"androidx.compose.ui:ui-test-manifest:$uiToolingVersion",
-        ivy"androidx.compose.ui:ui-tooling-preview-android:$uiToolingVersion"
+        mvn"androidx.compose.ui:ui:$uiToolingVersion",
+        mvn"androidx.compose.ui:ui-tooling:$uiToolingVersion",
+        mvn"androidx.compose.ui:ui-test-manifest:$uiToolingVersion",
+        mvn"androidx.compose.ui:ui-tooling-preview-android:$uiToolingVersion"
       )
 
     /** The location to store the generated preview summary */
@@ -287,7 +287,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     def androidPreviewScreenshotTestEngineClasspath: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          ivy"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08"
+          mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08"
         )
       )
     }

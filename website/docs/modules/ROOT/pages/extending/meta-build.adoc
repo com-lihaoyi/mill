@@ -35,7 +35,7 @@ $ mill --meta-level 1 mill.scalalib.scalafmt/
 
 == Finding plugin updates
 
-Mill plugins are defined as `ivyDeps` in the meta-build.
+Mill plugins are defined as `mvnDeps` in the meta-build.
 Hence, you can easily search for updates with the external `mill.scalalib.Dependency` module.
 
 .Check for Mill Plugin updates
