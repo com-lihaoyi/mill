@@ -704,14 +704,14 @@ import mill._, kotlinlib._
 object foo extends KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def ivyDeps = Seq(
-    ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;,
-    ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;,
+    mvn&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = Seq(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+    def mvnDeps = Seq(
+      mvn&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
 }</code></pre>
@@ -926,8 +926,8 @@ object foo extends KotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
 }</code></pre>
@@ -1073,23 +1073,23 @@ trait MyModule extends KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Seq(
-    ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;
   )
 }
 
 object bar extends MyModule {
   def mainClass = Some(&quot;bar.BarKt&quot;)
-  def ivyDeps = Seq(
-    ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
+  def mvnDeps = Seq(
+    mvn&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
   )
 }</code></pre>
 </div>
@@ -1106,7 +1106,7 @@ within <code>foo</code> and <code>bar</code> respectively</p>
 <p>Note that we split out the <code>test</code> submodule configuration common to both
 modules into a separate <code>trait MyModule</code>. This <a href="../fundamentals/modules.html" class="xref page">Trait Module</a>
 lets us avoid the need to copy-paste common settings, while still letting
-us define any per-module configuration such as <code>ivyDeps</code> specific to a
+us define any per-module configuration such as <code>mvnDeps</code> specific to a
 particular module. This is a common pattern within Mill builds.</p>
 </div>
 <div class="paragraph">
@@ -1247,8 +1247,8 @@ object foo extends KotlinModule with KotlinMavenModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinMavenTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
 }</code></pre>
@@ -1338,11 +1338,11 @@ trait MyModule extends KotlinModule with PublishModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def ivyDeps = Seq(ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;)
+  def mvnDeps = Seq(mvn&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;)
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
 }

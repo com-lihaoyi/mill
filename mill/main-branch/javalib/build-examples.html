@@ -674,12 +674,12 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, publish._
 
-def sharedCompileIvyDeps = Task {
+def sharedCompileMvnDeps = Task {
   Seq(
-    ivy&quot;com.google.auto.service:auto-service:1.0.1&quot;,
-    ivy&quot;com.google.code.findbugs:jsr305:3.0.2&quot;,
-    ivy&quot;org.checkerframework:checker-compat-qual:2.5.5&quot;,
-    ivy&quot;com.ibm.icu:icu4j:73.1&quot;
+    mvn&quot;com.google.auto.service:auto-service:1.0.1&quot;,
+    mvn&quot;com.google.code.findbugs:jsr305:3.0.2&quot;,
+    mvn&quot;org.checkerframework:checker-compat-qual:2.5.5&quot;,
+    mvn&quot;com.ibm.icu:icu4j:73.1&quot;
   )
 }
 
@@ -695,19 +695,19 @@ object jimfs extends PublishModule with MavenModule {
     developers = Nil
   )
 
-  def ivyDeps = sharedCompileIvyDeps() ++ Seq(
-    ivy&quot;com.google.guava:guava:31.1-android&quot;
+  def mvnDeps = sharedCompileMvnDeps() ++ Seq(
+    mvn&quot;com.google.guava:guava:31.1-android&quot;
   )
 
   def javacOptions = Seq(&quot;-processor&quot;, &quot;com.google.auto.service.processor.AutoServiceProcessor&quot;)
 
   object test extends MavenTests {
-    def ivyDeps = sharedCompileIvyDeps() ++ Seq(
-      ivy&quot;junit:junit:4.13.2&quot;,
-      ivy&quot;com.google.guava:guava-testlib:31.1-android&quot;,
-      ivy&quot;com.google.truth:truth:1.1.3&quot;,
-      ivy&quot;com.github.sbt:junit-interface:0.13.2&quot;,
-      ivy&quot;com.ibm.icu:icu4j:73.1&quot;
+    def mvnDeps = sharedCompileMvnDeps() ++ Seq(
+      mvn&quot;junit:junit:4.13.2&quot;,
+      mvn&quot;com.google.guava:guava-testlib:31.1-android&quot;,
+      mvn&quot;com.google.truth:truth:1.1.3&quot;,
+      mvn&quot;com.github.sbt:junit-interface:0.13.2&quot;,
+      mvn&quot;com.ibm.icu:icu4j:73.1&quot;
     )
 
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
@@ -724,7 +724,7 @@ to disk.</p>
 <p>It has a relatively simple codebase structure, a single module and test suite.
 It has a number of compile-time-only dependencies shared between the library and
 test suite. One wrinkle is that it uses annotation processors as part of its build,
-which Mill supports by providing the relevant <code>ivyDeps</code> of the annotation processor
+which Mill supports by providing the relevant <code>mvnDeps</code> of the annotation processor
 and providing <code>javacOptions</code> to invoke it.</p>
 </div>
 <div class="paragraph">
@@ -772,17 +772,17 @@ object `package` extends RootModule with PublishModule with MavenModule {
   object test extends MavenTests with TestModule.Junit5 with JmhModule {
     def testSandboxWorkingDir = false
     def jmhCoreVersion = &quot;1.37&quot;
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;org.junit.jupiter:junit-jupiter:5.10.3&quot;,
-      ivy&quot;org.junit-pioneer:junit-pioneer:1.9.1&quot;,
-      ivy&quot;net.bytebuddy:byte-buddy:1.14.18&quot;,
-      ivy&quot;net.bytebuddy:byte-buddy-agent:1.14.18&quot;,
-      ivy&quot;org.mockito:mockito-inline:4.11.0&quot;,
-      ivy&quot;com.google.jimfs:jimfs:1.3.0&quot;,
-      ivy&quot;org.apache.commons:commons-lang3:3.14.0&quot;,
-      ivy&quot;commons-codec:commons-codec:1.17.1&quot;,
-      ivy&quot;org.openjdk.jmh:jmh-core:1.37&quot;,
-      ivy&quot;org.openjdk.jmh:jmh-generator-annprocess:1.37&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;org.junit.jupiter:junit-jupiter:5.10.3&quot;,
+      mvn&quot;org.junit-pioneer:junit-pioneer:1.9.1&quot;,
+      mvn&quot;net.bytebuddy:byte-buddy:1.14.18&quot;,
+      mvn&quot;net.bytebuddy:byte-buddy-agent:1.14.18&quot;,
+      mvn&quot;org.mockito:mockito-inline:4.11.0&quot;,
+      mvn&quot;com.google.jimfs:jimfs:1.3.0&quot;,
+      mvn&quot;org.apache.commons:commons-lang3:3.14.0&quot;,
+      mvn&quot;commons-codec:commons-codec:1.17.1&quot;,
+      mvn&quot;org.openjdk.jmh:jmh-core:1.37&quot;,
+      mvn&quot;org.openjdk.jmh:jmh-generator-annprocess:1.37&quot;
     )
   }
 }</code></pre>

@@ -318,10 +318,10 @@ import mill._, javalib._
 import mill.define.ModuleRef
 
 object foo extends JavaModule {
-  def ivyDeps = Seq(
-    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
-    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;,
-    ivy&quot;org.slf4j:slf4j-nop:2.0.7&quot;
+  def mvnDeps = Seq(
+    mvn&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;,
+    mvn&quot;org.slf4j:slf4j-nop:2.0.7&quot;
   )
 }</code></pre>
 </div>
@@ -369,10 +369,10 @@ import mill._, javalib._
 import mill.define.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
-  def ivyDeps = Seq(
-    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
-    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;,
-    ivy&quot;org.slf4j:slf4j-nop:2.0.7&quot;
+  def mvnDeps = Seq(
+    mvn&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;,
+    mvn&quot;org.slf4j:slf4j-nop:2.0.7&quot;
   )
 
   def jvmWorker = ModuleRef(JvmWorkerGraalvm)

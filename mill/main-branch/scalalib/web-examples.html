@@ -680,17 +680,17 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Seq(
-    ivy&quot;com.lihaoyi::cask:0.9.1&quot;,
-    ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.lihaoyi::cask:0.9.1&quot;,
+    mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;
   )
 
   object test extends ScalaTests {
     def testFramework = &quot;utest.runner.Framework&quot;
 
-    def ivyDeps = Seq(
-      ivy&quot;com.lihaoyi::utest::0.8.5&quot;,
-      ivy&quot;com.lihaoyi::requests::0.6.9&quot;
+    def mvnDeps = Seq(
+      mvn&quot;com.lihaoyi::utest::0.8.5&quot;,
+      mvn&quot;com.lihaoyi::requests::0.6.9&quot;
     )
   }
 }</code></pre>
@@ -729,10 +729,10 @@ import java.util.Arrays
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Seq(
-    ivy&quot;com.lihaoyi::cask:0.9.1&quot;,
-    ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;,
-    ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.lihaoyi::cask:0.9.1&quot;,
+    mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;,
+    mvn&quot;com.lihaoyi::os-lib:0.10.7&quot;
   )
 
   def resources = Task {
@@ -752,9 +752,9 @@ object `package` extends RootModule with ScalaModule {
 
   object test extends ScalaTests {
     def testFramework = &quot;utest.runner.Framework&quot;
-    def ivyDeps = Seq(
-      ivy&quot;com.lihaoyi::utest::0.8.5&quot;,
-      ivy&quot;com.lihaoyi::requests::0.6.9&quot;
+    def mvnDeps = Seq(
+      mvn&quot;com.lihaoyi::utest::0.8.5&quot;,
+      mvn&quot;com.lihaoyi::requests::0.6.9&quot;
     )
   }
 
@@ -817,20 +817,20 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Seq(
-    ivy&quot;org.http4s::http4s-ember-server::0.23.30&quot;,
-    ivy&quot;org.http4s::http4s-dsl::0.23.30&quot;,
-    ivy&quot;org.http4s::http4s-scalatags::0.25.2&quot;,
-    ivy&quot;io.circe::circe-generic::0.14.10&quot;
+  def mvnDeps = Seq(
+    mvn&quot;org.http4s::http4s-ember-server::0.23.30&quot;,
+    mvn&quot;org.http4s::http4s-dsl::0.23.30&quot;,
+    mvn&quot;org.http4s::http4s-scalatags::0.25.2&quot;,
+    mvn&quot;io.circe::circe-generic::0.14.10&quot;
   )
 
   object test extends ScalaTests {
     def testFramework = &quot;utest.runner.Framework&quot;
 
-    def ivyDeps = Seq(
-      ivy&quot;com.lihaoyi::utest::0.8.5&quot;,
-      ivy&quot;org.typelevel::cats-effect-testing-utest::1.6.0&quot;,
-      ivy&quot;org.http4s::http4s-client::0.23.30&quot;
+    def mvnDeps = Seq(
+      mvn&quot;com.lihaoyi::utest::0.8.5&quot;,
+      mvn&quot;org.typelevel::cats-effect-testing-utest::1.6.0&quot;,
+      mvn&quot;org.http4s::http4s-client::0.23.30&quot;
     )
   }
 }</code></pre>
@@ -870,9 +870,9 @@ import mill._, scalalib._, scalajslib._
 object foo extends ScalaJSModule {
   def scalaVersion = &quot;2.13.14&quot;
   def scalaJSVersion = &quot;1.16.0&quot;
-  def ivyDeps = Seq(ivy&quot;com.lihaoyi::scalatags::0.13.1&quot;)
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags::0.13.1&quot;)
   object test extends ScalaJSTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest::0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -885,7 +885,7 @@ object foo extends ScalaJSModule {
 </div>
 <div class="paragraph">
 <p>By default, Scala.js code gets access to the <code>scala.scalajs.js</code> package,
-which contains the core JS APIs like <code>js.JSON</code>, <code>js.Date</code>, etc. <code>ivyDeps</code> of
+which contains the core JS APIs like <code>js.JSON</code>, <code>js.Date</code>, etc. <code>mvnDeps</code> of
 Scala.js-compatible dependencies can be given, which need two colons (<code>::</code>)
 on the right to indicate it’s a Scala.js dependency. These can be both Scala
 libraries compiled to JS, or facades for Javascript libraries. If running in
@@ -938,9 +938,9 @@ import mill._, scalalib._, scalajslib._
 object `package` extends RootModule with ScalaModule {
 
   def scalaVersion = &quot;2.13.14&quot;
-  def ivyDeps = Seq(
-    ivy&quot;com.lihaoyi::cask:0.9.1&quot;,
-    ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.lihaoyi::cask:0.9.1&quot;,
+    mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;
   )
 
   def resources = Task {
@@ -956,16 +956,16 @@ object `package` extends RootModule with ScalaModule {
   object test extends ScalaTests {
     def testFramework = &quot;utest.runner.Framework&quot;
 
-    def ivyDeps = Seq(
-      ivy&quot;com.lihaoyi::utest::0.8.5&quot;,
-      ivy&quot;com.lihaoyi::requests::0.6.9&quot;
+    def mvnDeps = Seq(
+      mvn&quot;com.lihaoyi::utest::0.8.5&quot;,
+      mvn&quot;com.lihaoyi::requests::0.6.9&quot;
     )
   }
 
   object client extends ScalaJSModule {
     def scalaVersion = &quot;2.13.14&quot;
     def scalaJSVersion = &quot;1.16.0&quot;
-    def ivyDeps = Seq(ivy&quot;org.scala-js::scalajs-dom::2.2.0&quot;)
+    def mvnDeps = Seq(mvn&quot;org.scala-js::scalajs-dom::2.2.0&quot;)
   }
 }</code></pre>
 </div>
@@ -1022,7 +1022,7 @@ trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
 
 object `package` extends RootModule with AppScalaModule {
   def moduleDeps = Seq(shared.jvm)
-  def ivyDeps = Seq(ivy&quot;com.lihaoyi::cask:0.9.1&quot;)
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::cask:0.9.1&quot;)
 
   def resources = Task {
     os.makeDir(Task.dest / &quot;webapp&quot;)
@@ -1034,17 +1034,17 @@ object `package` extends RootModule with AppScalaModule {
 
   object test extends ScalaTests with TestModule.Utest {
 
-    def ivyDeps = Seq(
-      ivy&quot;com.lihaoyi::utest::0.8.5&quot;,
-      ivy&quot;com.lihaoyi::requests::0.6.9&quot;
+    def mvnDeps = Seq(
+      mvn&quot;com.lihaoyi::utest::0.8.5&quot;,
+      mvn&quot;com.lihaoyi::requests::0.6.9&quot;
     )
   }
 
   object shared extends Module {
     trait SharedModule extends AppScalaModule with PlatformScalaModule {
-      def ivyDeps = Seq(
-        ivy&quot;com.lihaoyi::scalatags::0.13.1&quot;,
-        ivy&quot;com.lihaoyi::upickle::3.0.0&quot;
+      def mvnDeps = Seq(
+        mvn&quot;com.lihaoyi::scalatags::0.13.1&quot;,
+        mvn&quot;com.lihaoyi::upickle::3.0.0&quot;
       )
     }
 
@@ -1054,7 +1054,7 @@ object `package` extends RootModule with AppScalaModule {
 
   object client extends AppScalaJSModule {
     def moduleDeps = Seq(shared.js)
-    def ivyDeps = Seq(ivy&quot;org.scala-js::scalajs-dom::2.2.0&quot;)
+    def mvnDeps = Seq(mvn&quot;org.scala-js::scalajs-dom::2.2.0&quot;)
   }
 }</code></pre>
 </div>
@@ -1123,11 +1123,11 @@ trait FooModule extends Cross.Module[String] {
       developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
     )
 
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::scalatags::0.13.1&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags::0.13.1&quot;)
   }
 
   trait FooTestModule extends TestModule {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest::0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 
@@ -1147,7 +1147,7 @@ trait FooModule extends Cross.Module[String] {
   object qux extends Module {
     object jvm extends Shared {
       def moduleDeps = Seq(bar.jvm)
-      def ivyDeps = super.ivyDeps() ++ Seq(ivy&quot;com.lihaoyi::upickle::3.0.0&quot;)
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn&quot;com.lihaoyi::upickle::3.0.0&quot;)
 
       object test extends ScalaTests with FooTestModule
     }
@@ -1240,11 +1240,11 @@ trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModul
     developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
 
-  def ivyDeps = Seq(ivy&quot;com.lihaoyi::scalatags::0.13.1&quot;)
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags::0.13.1&quot;)
 }
 
 trait SharedTestModule extends TestModule {
-  def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest::0.8.5&quot;)
   def testFramework = &quot;utest.runner.Framework&quot;
 }
 
@@ -1270,7 +1270,7 @@ object qux extends Module {
   object jvm extends Cross[JvmModule](scalaVersions)
   trait JvmModule extends Shared {
     def moduleDeps = Seq(bar.jvm())
-    def ivyDeps = super.ivyDeps() ++ Seq(ivy&quot;com.lihaoyi::upickle::3.0.0&quot;)
+    def mvnDeps = super.mvnDeps() ++ Seq(mvn&quot;com.lihaoyi::upickle::3.0.0&quot;)
 
     object test extends ScalaTests with SharedTestModule
   }

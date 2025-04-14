@@ -714,7 +714,7 @@ You only need a <code>.scalafmt.conf</code> config file which at least needs con
 <h2 id="_finding_plugin_updates"><a class="anchor" href="#_finding_plugin_updates"></a>Finding plugin updates</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill plugins are defined as <code>ivyDeps</code> in the meta-build.
+<p>Mill plugins are defined as <code>mvnDeps</code> in the meta-build.
 Hence, you can easily search for updates with the external <code>mill.scalalib.Dependency</code> module.</p>
 </div>
 <div class="listingblock">
@@ -740,9 +740,9 @@ import scalatags.Text.all._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.4&quot;
-  def ivyDeps = Seq(
-    ivy&quot;com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}&quot;,
-    ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}&quot;,
+    mvn&quot;com.lihaoyi::os-lib:0.10.7&quot;
   )
 
   def htmlSnippet = Task { h1(&quot;hello&quot;).toString }
@@ -756,7 +756,7 @@ object `package` extends RootModule with ScalaModule {
 <div class="paragraph">
 <p>This example illustrates usage of the <code>mill-build/</code> folder. Mill’s <code>build.mill</code>
 file and it’s <code>import $file</code> and <code>$ivy</code> are a shorthand syntax for defining
-a Mill <code>ScalaModule</code>, with sources and <code>ivyDeps</code> and so on, which is
+a Mill <code>ScalaModule</code>, with sources and <code>mvnDeps</code> and so on, which is
 compiled and executed to perform your build. This &quot;meta-build&quot; module lives in
 <code>mill-build/</code>, and can be enabled via the <code>import $meta._</code> statement above.</p>
 </div>
@@ -768,7 +768,7 @@ import mill._, scalalib._
 
 object `package` extends MillBuildRootModule {
   val scalatagsVersion = &quot;0.13.1&quot;
-  def ivyDeps = Seq(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
 
   def generatedSources = Task {
     os.write(
@@ -801,7 +801,7 @@ object Foo {
 <div class="paragraph">
 <p>Typically, if you wanted to use a library such as Scalatags in both your <code>build.mill</code>
 as well as your application code, you would need to duplicate the version of Scalatags
-used in both your <code>import $ivy</code> statement as well as your <code>def ivyDeps</code> statement.
+used in both your <code>import $ivy</code> statement as well as your <code>def mvnDeps</code> statement.
 The meta-build lets us avoid this duplication: we use <code>generatedSources</code> in
 <code>mill-build/build.mill</code> to create a <code>DepVersions</code> object that the <code>build.mill</code> can use to pass the
 <code>scalatagsVersion</code> to the application without having to copy-paste the

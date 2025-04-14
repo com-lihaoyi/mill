@@ -696,8 +696,8 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   // You can have arbitrary numbers of third-party dependencies
-  def ivyDeps = Seq(
-    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
+  def mvnDeps = Seq(
+    mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )
 
   // Choose a main class to use for `.run` if there are multiple present
@@ -1052,7 +1052,7 @@ import mill._, javalib._
 import java.io.File
 
 object foo extends JavaModule {
-  def compileIvyDeps = Seq(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
+  def compileMvnDeps = Seq(mvn&quot;org.projectlombok:lombok:1.18.34&quot;)
 
   object test extends JavaTests with TestModule.Junit4
 }</code></pre>
@@ -1074,7 +1074,7 @@ Test foo.HelloWorldTest.testSimple finished...
 </div>
 <div class="paragraph">
 <p>The Java compiler automatically discovers annotation processors based on the
-classes available during compilation, e.g. in <code>compileIvyDeps</code> or <code>ivyDeps</code>,
+classes available during compilation, e.g. in <code>compileMvnDeps</code> or <code>mvnDeps</code>,
 which is what takes place in the example above.</p>
 </div>
 <div class="paragraph">
@@ -1088,10 +1088,10 @@ those to <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  def compileIvyDeps = Seq(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
+  def compileMvnDeps = Seq(mvn&quot;org.projectlombok:lombok:1.18.34&quot;)
 
   def processors = Task {
-    defaultResolver().classpath(Seq(ivy&quot;org.projectlombok:lombok:1.18.34&quot;))
+    defaultResolver().classpath(Seq(mvn&quot;org.projectlombok:lombok:1.18.34&quot;))
   }
 
   def javacOptions = Seq(
@@ -1187,7 +1187,7 @@ main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
 <ol class="arabic">
 <li>
 <p>For <code>generatedSources</code>, we override the task and make it depend
-directly on <code>ivyDeps</code> to generate its source files. In this example,
+directly on <code>mvnDeps</code> to generate its source files. In this example,
 to include the list of dependencies as tuples within a static <code>object</code></p>
 </li>
 <li>
@@ -1204,23 +1204,23 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Seq(ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;)
+  def mvnDeps = Seq(mvn&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
-    val prettyIvyDeps = for (ivyDep &lt;- ivyDeps()) yield {
+    val prettyMvnDeps = for (ivyDep &lt;- mvnDeps()) yield {
       val org = ivyDep.organization
       val name = ivyDep.name
       val version = ivyDep.version
       s&quot;&quot;&quot; &quot;$org:$name:$version&quot; &quot;&quot;&quot;
     }
-    val ivyDepsString = prettyIvyDeps.mkString(&quot; + \&quot;\\n\&quot; + \n&quot;)
+    val mvnDepsString = prettyMvnDeps.mkString(&quot; + \&quot;\\n\&quot; + \n&quot;)
     os.write(
       Task.dest / s&quot;MyDeps.java&quot;,
       s&quot;&quot;&quot;
          |package foo;
          |public class MyDeps {
          |  public static String value =
-         |    $ivyDepsString;
+         |    $mvnDepsString;
          |}
       &quot;&quot;&quot;.stripMargin
     )
@@ -1249,111 +1249,111 @@ labels representing existing Mill tasks:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="493px" height="119px" viewBox="0.00 0.00 492.87 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="500px" height="119px" viewBox="0.00 0.00 499.87 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 488.87,-114.8 488.87,4 -4,4"></polygon>
-<!-- ivyDeps -->
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 495.87,-114.8 495.87,4 -4,4"></polygon>
+<!-- mvnDeps -->
 <g id="node1" class="node">
-<title>ivyDeps</title>
-<polygon fill="none" stroke="black" points="62.49,-110.7 0.17,-110.7 0.17,-86.1 62.49,-86.1 62.49,-110.7"></polygon>
-<text text-anchor="middle" x="31.33" y="-94.2" font-family="Times,serif" font-size="14.00">ivyDeps</text>
+<title>mvnDeps</title>
+<polygon fill="none" stroke="black" points="69.49,-110.7 0.17,-110.7 0.17,-86.1 69.49,-86.1 69.49,-110.7"></polygon>
+<text text-anchor="middle" x="34.83" y="-94.2" font-family="Times,serif" font-size="14.00">mvnDeps</text>
 </g>
 <!-- generatedSources -->
 <g id="node2" class="node">
 <title>generatedSources</title>
-<polygon fill="none" stroke="black" points="213.25,-110.7 98.79,-110.7 98.79,-86.1 213.25,-86.1 213.25,-110.7"></polygon>
-<text text-anchor="middle" x="156.02" y="-94.2" font-family="Times,serif" font-size="14.00">generatedSources</text>
+<polygon fill="none" stroke="black" points="220.25,-110.7 105.79,-110.7 105.79,-86.1 220.25,-86.1 220.25,-110.7"></polygon>
+<text text-anchor="middle" x="163.02" y="-94.2" font-family="Times,serif" font-size="14.00">generatedSources</text>
 </g>
-<!-- ivyDeps&#45;&gt;generatedSources -->
+<!-- mvnDeps&#45;&gt;generatedSources -->
 <g id="edge1" class="edge">
-<title>ivyDeps-&gt;generatedSources</title>
-<path fill="none" stroke="black" d="M62.66,-98.4C70.6,-98.4 79.48,-98.4 88.51,-98.4"></path>
-<polygon fill="black" stroke="black" points="88.73,-101.9 98.73,-98.4 88.73,-94.9 88.73,-101.9"></polygon>
+<title>mvnDeps-&gt;generatedSources</title>
+<path fill="none" stroke="black" d="M69.65,-98.4C77.71,-98.4 86.59,-98.4 95.56,-98.4"></path>
+<polygon fill="black" stroke="black" points="95.69,-101.9 105.69,-98.4 95.69,-94.9 95.69,-101.9"></polygon>
 </g>
 <!-- compile -->
 <g id="node3" class="node">
 <title>compile</title>
-<polygon fill="none" stroke="white" points="331.15,-110.7 269.95,-110.7 269.95,-86.1 331.15,-86.1 331.15,-110.7"></polygon>
-<text text-anchor="middle" x="300.55" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+<polygon fill="none" stroke="white" points="338.15,-110.7 276.95,-110.7 276.95,-86.1 338.15,-86.1 338.15,-110.7"></polygon>
+<text text-anchor="middle" x="307.55" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- generatedSources&#45;&gt;compile -->
 <g id="edge2" class="edge">
 <title>generatedSources-&gt;compile</title>
-<path fill="none" stroke="black" d="M213.35,-98.4C228.88,-98.4 245.4,-98.4 259.77,-98.4"></path>
-<polygon fill="black" stroke="black" points="259.82,-101.9 269.82,-98.4 259.82,-94.9 259.82,-101.9"></polygon>
+<path fill="none" stroke="black" d="M220.35,-98.4C235.88,-98.4 252.4,-98.4 266.77,-98.4"></path>
+<polygon fill="black" stroke="black" points="266.82,-101.9 276.82,-98.4 266.82,-94.9 266.82,-101.9"></polygon>
 </g>
 <!-- ... -->
 <g id="node4" class="node">
 <title>...</title>
-<polygon fill="none" stroke="white" points="414.46,-88.7 387.45,-88.7 387.45,-64.1 414.46,-64.1 414.46,-88.7"></polygon>
-<text text-anchor="middle" x="400.96" y="-72.2" font-family="Times,serif" font-size="14.00">...</text>
+<polygon fill="none" stroke="white" points="421.46,-88.7 394.45,-88.7 394.45,-64.1 421.46,-64.1 421.46,-88.7"></polygon>
+<text text-anchor="middle" x="407.96" y="-72.2" font-family="Times,serif" font-size="14.00">...</text>
 </g>
 <!-- compile&#45;&gt;... -->
 <g id="edge3" class="edge">
 <title>compile-&gt;...</title>
-<path fill="none" stroke="black" d="M331.34,-91.74C346.25,-88.41 363.99,-84.44 377.7,-81.38"></path>
-<polygon fill="black" stroke="black" points="378.7,-84.74 387.7,-79.14 377.17,-77.91 378.7,-84.74"></polygon>
+<path fill="none" stroke="black" d="M338.34,-91.74C353.25,-88.41 370.99,-84.44 384.7,-81.38"></path>
+<polygon fill="black" stroke="black" points="385.7,-84.74 394.7,-79.14 384.17,-77.91 385.7,-84.74"></polygon>
 </g>
 <!-- run -->
 <g id="node8" class="node">
 <title>run</title>
-<polygon fill="none" stroke="white" points="484.7,-88.7 450.38,-88.7 450.38,-64.1 484.7,-64.1 484.7,-88.7"></polygon>
-<text text-anchor="middle" x="467.54" y="-72.2" font-family="Times,serif" font-size="14.00">run</text>
+<polygon fill="none" stroke="white" points="491.7,-88.7 457.38,-88.7 457.38,-64.1 491.7,-64.1 491.7,-88.7"></polygon>
+<text text-anchor="middle" x="474.54" y="-72.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- ...&#45;&gt;run -->
 <g id="edge7" class="edge">
 <title>...-&gt;run</title>
-<path fill="none" stroke="black" d="M414.41,-76.4C421.6,-76.4 430.94,-76.4 439.72,-76.4"></path>
-<polygon fill="black" stroke="black" points="439.97,-79.9 449.97,-76.4 439.97,-72.9 439.97,-79.9"></polygon>
+<path fill="none" stroke="black" d="M421.41,-76.4C428.6,-76.4 437.94,-76.4 446.72,-76.4"></path>
+<polygon fill="black" stroke="black" points="446.97,-79.9 456.97,-76.4 446.97,-72.9 446.97,-79.9"></polygon>
 </g>
 <!-- sources -->
 <g id="node5" class="node">
 <title>sources</title>
-<polygon fill="none" stroke="white" points="60.31,-46.7 2.35,-46.7 2.35,-22.1 60.31,-22.1 60.31,-46.7"></polygon>
-<text text-anchor="middle" x="31.33" y="-30.2" font-family="Times,serif" font-size="14.00">sources</text>
+<polygon fill="none" stroke="white" points="63.81,-46.7 5.85,-46.7 5.85,-22.1 63.81,-22.1 63.81,-46.7"></polygon>
+<text text-anchor="middle" x="34.83" y="-30.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- lineCount -->
 <g id="node6" class="node">
 <title>lineCount</title>
-<polygon fill="none" stroke="black" points="191.74,-46.7 120.3,-46.7 120.3,-22.1 191.74,-22.1 191.74,-46.7"></polygon>
-<text text-anchor="middle" x="156.02" y="-30.2" font-family="Times,serif" font-size="14.00">lineCount</text>
+<polygon fill="none" stroke="black" points="198.74,-46.7 127.3,-46.7 127.3,-22.1 198.74,-22.1 198.74,-46.7"></polygon>
+<text text-anchor="middle" x="163.02" y="-30.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- sources&#45;&gt;lineCount -->
 <g id="edge4" class="edge">
 <title>sources-&gt;lineCount</title>
-<path fill="none" stroke="black" d="M60.48,-34.4C75.12,-34.4 93.38,-34.4 109.94,-34.4"></path>
-<polygon fill="black" stroke="black" points="109.98,-37.9 119.98,-34.4 109.98,-30.9 109.98,-37.9"></polygon>
+<path fill="none" stroke="black" d="M63.83,-34.4C79.49,-34.4 99.38,-34.4 117.16,-34.4"></path>
+<polygon fill="black" stroke="black" points="117.33,-37.9 127.33,-34.4 117.33,-30.9 117.33,-37.9"></polygon>
 </g>
 <!-- forkArgs -->
 <g id="node7" class="node">
 <title>forkArgs</title>
-<polygon fill="none" stroke="black" points="333.58,-67.7 267.51,-67.7 267.51,-43.1 333.58,-43.1 333.58,-67.7"></polygon>
-<text text-anchor="middle" x="300.55" y="-51.2" font-family="Times,serif" font-size="14.00">forkArgs</text>
+<polygon fill="none" stroke="black" points="340.58,-67.7 274.51,-67.7 274.51,-43.1 340.58,-43.1 340.58,-67.7"></polygon>
+<text text-anchor="middle" x="307.55" y="-51.2" font-family="Times,serif" font-size="14.00">forkArgs</text>
 </g>
 <!-- lineCount&#45;&gt;forkArgs -->
 <g id="edge5" class="edge">
 <title>lineCount-&gt;forkArgs</title>
-<path fill="none" stroke="black" d="M191.89,-39.54C211.63,-42.45 236.46,-46.1 257.3,-49.18"></path>
-<polygon fill="black" stroke="black" points="257.07,-52.68 267.48,-50.67 258.09,-45.75 257.07,-52.68"></polygon>
+<path fill="none" stroke="black" d="M198.89,-39.54C218.63,-42.45 243.46,-46.1 264.3,-49.18"></path>
+<polygon fill="black" stroke="black" points="264.07,-52.68 274.48,-50.67 265.09,-45.75 264.07,-52.68"></polygon>
 </g>
 <!-- printLineCount -->
 <g id="node9" class="node">
 <title>printLineCount</title>
-<polygon fill="none" stroke="black" points="351.87,-24.7 249.22,-24.7 249.22,-0.1 351.87,-0.1 351.87,-24.7"></polygon>
-<text text-anchor="middle" x="300.55" y="-8.2" font-family="Times,serif" font-size="14.00">printLineCount</text>
+<polygon fill="none" stroke="black" points="358.87,-24.7 256.22,-24.7 256.22,-0.1 358.87,-0.1 358.87,-24.7"></polygon>
+<text text-anchor="middle" x="307.55" y="-8.2" font-family="Times,serif" font-size="14.00">printLineCount</text>
 </g>
 <!-- lineCount&#45;&gt;printLineCount -->
 <g id="edge8" class="edge">
 <title>lineCount-&gt;printLineCount</title>
-<path fill="none" stroke="black" d="M191.89,-29.02C206.15,-26.82 223.07,-24.2 239.23,-21.71"></path>
-<polygon fill="black" stroke="black" points="239.81,-25.16 249.16,-20.18 238.74,-18.24 239.81,-25.16"></polygon>
+<path fill="none" stroke="black" d="M198.89,-29.02C213.15,-26.82 230.07,-24.2 246.23,-21.71"></path>
+<polygon fill="black" stroke="black" points="246.81,-25.16 256.16,-20.18 245.74,-18.24 246.81,-25.16"></polygon>
 </g>
 <!-- forkArgs&#45;&gt;... -->
 <g id="edge6" class="edge">
 <title>forkArgs-&gt;...</title>
-<path fill="none" stroke="black" d="M333.77,-62.28C348.14,-65.34 364.7,-68.88 377.67,-71.64"></path>
-<polygon fill="black" stroke="black" points="377.07,-75.09 387.58,-73.76 378.53,-68.25 377.07,-75.09"></polygon>
+<path fill="none" stroke="black" d="M340.77,-62.28C355.14,-65.34 371.7,-68.88 384.67,-71.64"></path>
+<polygon fill="black" stroke="black" points="384.07,-75.09 394.58,-73.76 385.53,-68.25 384.07,-75.09"></polygon>
 </g>
 </g>
 </svg>
@@ -1372,7 +1372,7 @@ cannot take parameters.</p>
 </div>
 <div class="paragraph">
 <p>Note that depending on a task requires use of parentheses after the task
-name, e.g. <code>ivyDeps()</code>, <code>sources()</code> and <code>lineCount()</code>. This converts the
+name, e.g. <code>mvnDeps()</code>, <code>sources()</code> and <code>lineCount()</code>. This converts the
 task of type <code>T[V]</code> into a value of type <code>V</code> you can make use in your task
 implementation.</p>
 </div>

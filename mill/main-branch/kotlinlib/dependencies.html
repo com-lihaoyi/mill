@@ -690,14 +690,14 @@ object `package` extends RootModule with KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def ivyDeps = Seq(
-    ivy&quot;com.fasterxml.jackson.core:jackson-databind:2.13.4&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.fasterxml.jackson.core:jackson-databind:2.13.4&quot;
   )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can define the <code>ivyDeps</code> field to add ivy dependencies to your module,
+<p>You can define the <code>mvnDeps</code> field to add ivy dependencies to your module,
 named after the <a href="https://ant.apache.org/ivy/history/latest-milestone/settings/resolvers.html">Ivy Dependency Resolver</a>
 and JVM package repository format. The <code>Agg</code> factory function constructs an
 <code>Seq[Dep]</code> collection, which is a collection of `Dep`s without duplicates,
@@ -706,7 +706,7 @@ a type common in Mill builds.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Single <code>:</code> syntax (e.g. <code>&quot;ivy&quot;org.testng:testng:6.11&quot;</code>) defines Java
+<p>Single <code>:</code> syntax (e.g. <code>&quot;mvn&quot;org.testng:testng:6.11&quot;</code>) defines Java
 dependencies</p>
 </li>
 </ul>
@@ -717,7 +717,7 @@ dependencies</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code></p>
+<p><code>mvn&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code></p>
 </li>
 </ul>
 </div>
@@ -738,7 +738,7 @@ JSONified using Jackson: [&quot;i&quot;,&quot;am&quot;,&quot;cow&quot;]</code></
 <div class="paragraph">
 <p>If you want to use additional dependencies at runtime or override
 dependencies and their versions at runtime, you can do so with
-<code>runIvyDeps</code>.</p>
+<code>runMvnDeps</code>.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-kotlinlib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/kotlinlib/dependencies/2-run-compile-deps">browse</a>)</div>
@@ -751,17 +751,17 @@ object foo extends KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   def moduleDeps = Seq(bar)
-  def runIvyDeps = Seq(
-    ivy&quot;javax.servlet:servlet-api:2.5&quot;,
-    ivy&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
-    ivy&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
+  def runMvnDeps = Seq(
+    mvn&quot;javax.servlet:servlet-api:2.5&quot;,
+    mvn&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
+    mvn&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
   )
   def mainClass = Some(&quot;bar.BarKt&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can also declare compile-time-only dependencies with <code>compileIvyDeps</code>.
+<p>You can also declare compile-time-only dependencies with <code>compileMvnDeps</code>.
 These are present in the compile classpath, but will not propagate to the
 transitive dependencies.</p>
 </div>
@@ -771,10 +771,10 @@ transitive dependencies.</p>
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def compileIvyDeps = Seq(
-    ivy&quot;javax.servlet:servlet-api:2.5&quot;,
-    ivy&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
-    ivy&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
+  def compileMvnDeps = Seq(
+    mvn&quot;javax.servlet:servlet-api:2.5&quot;,
+    mvn&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
+    mvn&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
   )
 }</code></pre>
 </div>
@@ -808,7 +808,7 @@ dependencies when publish to Maven or Ivy-Repositories.
 </tbody></table>
 </div>
 <div class="paragraph">
-<p>Both <code>compileIvyDeps</code> and <code>runIvyDeps</code> are non-transitive: a module does not
+<p>Both <code>compileMvnDeps</code> and <code>runMvnDeps</code> are non-transitive: a module does not
 automatically aggregate them from its upstream dependencies. They must be
 defined in every module that they are required in, either explicitly or via
 a <code>trait</code> that the module inherits from.</p>
@@ -829,7 +829,7 @@ in <a href="../fundamentals/library-deps.html" class="xref page">Library Depende
 <h2 id="_unmanaged_jars"><a class="anchor" href="#_unmanaged_jars"></a>Unmanaged Jars</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In most scenarios you should rely on <code>ivyDeps</code>/<code>moduleDeps</code> and let Mill manage
+<p>In most scenarios you should rely on <code>mvnDeps</code>/<code>moduleDeps</code> and let Mill manage
 the compilation/downloading/caching of classpath jars for you, as Mill will
 automatically pull in transitive dependencies which are generally needed for things
 to work, and avoids including different versions of the same classfiles or jar which
@@ -957,9 +957,9 @@ object foo extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def ivyDeps = Seq(
-    ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;,
-    ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;,
+    mvn&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
   )
 
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }

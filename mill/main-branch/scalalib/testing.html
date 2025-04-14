@@ -678,7 +678,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -791,7 +791,7 @@ details on how to use each one from the command line.</p>
   def scalaVersion = &quot;2.13.8&quot;
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
   }
 }</code></pre>
 </div>
@@ -915,8 +915,8 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <div class="paragraph">
 <p>You might be used to test-scoped dependencies from other build tools like
 Maven, Gradle or <code>sbt</code>. As test modules in Mill are just regular modules,
-there is no special need for a dedicated test-scope. You can use <code>ivyDeps</code>
-and <code>runIvyDeps</code> to declare dependencies in test modules, and test modules
+there is no special need for a dedicated test-scope. You can use <code>mvnDeps</code>
+and <code>runMvnDeps</code> to declare dependencies in test modules, and test modules
 can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
@@ -930,7 +930,7 @@ object qux extends ScalaModule {
   def moduleDeps = Seq(baz)
 
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
   }
@@ -940,7 +940,7 @@ object baz extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -993,10 +993,10 @@ object qux extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
   }
   object integration extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
   }
 }</code></pre>
 </div>
@@ -1039,7 +1039,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
 
     def testParallelism = true
@@ -1084,7 +1084,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     def testParallelism = false
@@ -1199,7 +1199,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
 
     // Group tests by GroupX and GroupY

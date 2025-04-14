@@ -712,7 +712,7 @@ interface-implementation-separation to resolve.</p>
 </div>
 <div class="paragraph">
 <p>As a Scala compiler plugin, Acyclic can be enabled on any <code>ScalaModule</code> by
-adding its <code>compileIvyDeps,</code> <code>scalacPluginIvyDeps</code>, and <code>scalacOptions</code> as
+adding its <code>compileMvnDeps,</code> <code>scalacPluginMvnDeps</code>, and <code>scalacOptions</code> as
 shown below:</p>
 </div>
 <div class="listingblock">
@@ -723,8 +723,8 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
-  def compileIvyDeps = Seq(ivy&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
-  def scalacPluginIvyDeps = Seq(ivy&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
+  def compileMvnDeps = Seq(mvn&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
+  def scalacPluginMvnDeps = Seq(mvn&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
   def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
 }</code></pre>
 </div>
@@ -882,13 +882,13 @@ import mill.contrib.scoverage._
 object `package` extends RootModule with ScoverageModule {
   def scoverageVersion = &quot;2.1.0&quot;
   def scalaVersion = &quot;2.13.11&quot;
-  def ivyDeps = Seq(
-    ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;,
-    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;,
+    mvn&quot;com.lihaoyi::mainargs:0.6.2&quot;
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>

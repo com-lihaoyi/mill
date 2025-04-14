@@ -796,7 +796,7 @@ perform head-to-head comparisons between old and new build systems</p>
 <p>Sub-project <code>pom.xml</code> and <code>build.gradle</code> files need to be translated into Mill <code>Module</code>s</p>
 </li>
 <li>
-<p>Third-party dependencies need to be translated into Mill’s <code>def ivyDeps</code></p>
+<p>Third-party dependencies need to be translated into Mill’s <code>def mvnDeps</code></p>
 </li>
 <li>
 <p>Third-party Plugins need to be replaced by their Mill equivalent, or re-implemented</p>
@@ -954,7 +954,7 @@ will require some degree of third party dependencies that will need to be config
 <div class="ulist">
 <ul>
 <li>
-<p>Define the third-party dependencies for each module with <code>def ivyDeps</code>.</p>
+<p>Define the third-party dependencies for each module with <code>def mvnDeps</code>.</p>
 </li>
 </ul>
 </div>
@@ -1003,7 +1003,7 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Seq(ivy&quot;com.google.guava:guava:3.3.1-jre&quot;)</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mvnDeps = Seq(mvn&quot;com.google.guava:guava:3.3.1-jre&quot;)</code></pre>
 </div>
 </div></div></td>
 </tr>
@@ -1034,7 +1034,7 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Seq(ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;)</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags:0.12.0&quot;)</code></pre>
 </div>
 </div></div></td>
 </tr>
@@ -1046,8 +1046,8 @@ will require some degree of third party dependencies that will need to be config
 <p>Again, test-only third-party dependencies are defined inside the <code>object test</code> submodule.</p>
 </li>
 <li>
-<p>Compile-only dependencies can be defined with <code>def compileIvyDeps</code>, and runtime-only/provided
-dependencies defined with <code>def runIvyDeps</code></p>
+<p>Compile-only dependencies can be defined with <code>def compileMvnDeps</code>, and runtime-only/provided
+dependencies defined with <code>def runMvnDeps</code></p>
 </li>
 </ul>
 </div>

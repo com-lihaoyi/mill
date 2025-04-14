@@ -685,12 +685,12 @@ object `package` extends RootModule with ScalaNativeModule {
   def scalaNativeVersion = &quot;0.5.5&quot;
 
   // You can have arbitrary numbers of third-party dependencies
-  def ivyDeps = Seq(
-    ivy&quot;com.lihaoyi::mainargs::0.7.6&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.lihaoyi::mainargs::0.7.6&quot;
   )
 
   object test extends ScalaNativeTests with TestModule.Utest {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest::0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -729,7 +729,7 @@ object `package` extends RootModule with ScalaNativeModule {
   def scalaNativeVersion = &quot;0.5.5&quot;
 
   object test extends ScalaNativeTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest::0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 
@@ -797,7 +797,7 @@ trait MyModule extends ScalaNativeModule {
   def scalaNativeVersion = &quot;0.5.5&quot;
 
   object test extends ScalaNativeTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest::0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }
@@ -805,7 +805,7 @@ trait MyModule extends ScalaNativeModule {
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
 
-  def ivyDeps = Seq(ivy&quot;com.lihaoyi::mainargs::0.7.6&quot;)
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::mainargs::0.7.6&quot;)
 }
 
 object bar extends MyModule</code></pre>
@@ -822,7 +822,7 @@ module, using <code>def moduleDeps</code> to define the relationship between the
 <p>Note that we split out the <code>test</code> submodule configuration common to both
 modules into a separate <code>trait MyModule</code>. This lets us avoid the need to
 copy-paste common settings, while still letting us define any per-module
-configuration such as <code>ivyDeps</code> specific to a particular module.</p>
+configuration such as <code>mvnDeps</code> specific to a particular module.</p>
 </div>
 <div class="paragraph">
 <p>The above builds expect the following project layout:</p>
@@ -887,8 +887,8 @@ object `package` extends RootModule with ScalaNativeModule {
 
   // You can have arbitrary numbers of third-party dependencies
   // Scala Native uses double colon `::` between organization and the dependency names
-  def ivyDeps = Seq(
-    ivy&quot;com.lihaoyi::fansi::0.5.0&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.lihaoyi::fansi::0.5.0&quot;
   )
 
   // Set the releaseMode to ReleaseFast.

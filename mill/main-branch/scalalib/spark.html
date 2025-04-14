@@ -677,15 +677,15 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.12.15&quot;
-  def ivyDeps = Seq(
-    ivy&quot;org.apache.spark::spark-core:3.5.4&quot;,
-    ivy&quot;org.apache.spark::spark-sql:3.5.4&quot;
+  def mvnDeps = Seq(
+    mvn&quot;org.apache.spark::spark-core:3.5.4&quot;,
+    mvn&quot;org.apache.spark::spark-sql:3.5.4&quot;
   )
 
   def forkArgs = Seq(&quot;--add-opens&quot;, &quot;java.base/sun.nio.ch=ALL-UNNAMED&quot;)
 
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
 
     def forkArgs = Seq(&quot;--add-opens&quot;, &quot;java.base/sun.nio.ch=ALL-UNNAMED&quot;)
@@ -727,15 +727,15 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.12.15&quot;
-  def ivyDeps = Seq(
-    ivy&quot;org.apache.spark::spark-core:3.5.4&quot;,
-    ivy&quot;org.apache.spark::spark-sql:3.5.4&quot;
+  def mvnDeps = Seq(
+    mvn&quot;org.apache.spark::spark-core:3.5.4&quot;,
+    mvn&quot;org.apache.spark::spark-sql:3.5.4&quot;
   )
 
   def forkArgs = Seq(&quot;--add-opens&quot;, &quot;java.base/sun.nio.ch=ALL-UNNAMED&quot;)
 
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
 
     def forkArgs = Seq(&quot;--add-opens&quot;, &quot;java.base/sun.nio.ch=ALL-UNNAMED&quot;)
@@ -777,9 +777,9 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.12.15&quot;
-  def ivyDeps = Seq(
-    ivy&quot;org.apache.spark::spark-core:3.5.4&quot;,
-    ivy&quot;org.apache.spark::spark-sql:3.5.4&quot;
+  def mvnDeps = Seq(
+    mvn&quot;org.apache.spark::spark-core:3.5.4&quot;,
+    mvn&quot;org.apache.spark::spark-sql:3.5.4&quot;
   )
 
   def forkArgs = Seq(&quot;--add-opens&quot;, &quot;java.base/sun.nio.ch=ALL-UNNAMED&quot;)
@@ -787,7 +787,7 @@ object `package` extends RootModule with ScalaModule {
   def prependShellScript = &quot;&quot;
 
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
 
     def forkArgs = Seq(&quot;--add-opens&quot;, &quot;java.base/sun.nio.ch=ALL-UNNAMED&quot;)

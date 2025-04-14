@@ -342,7 +342,7 @@ and <a href="https://maven.apache.org/">Maven</a></p>
 <h3 id="_mill"><a class="anchor" href="#_mill"></a>Mill</h3>
 <div class="paragraph">
 <p>The Mill build config for this project is shown below, setting the <code>scalaVersion</code>
-and the <code>ivyDeps</code>. There is a wrinkle in needing override <code>def prependShellScript</code>,
+and the <code>mvnDeps</code>. There is a wrinkle in needing override <code>def prependShellScript</code>,
 because Mill’s <a href="5-executable-jars.html" class="xref page">executable assembly jars</a> don’t work
 for large assemblies like this one.</p>
 </div>
@@ -353,9 +353,9 @@ import mill._, scalalib._
 
 object `package` extends RootModule with SbtModule {
   def scalaVersion = &quot;2.12.19&quot;
-  def ivyDeps = Agg(
-    ivy&quot;org.apache.spark::spark-core:3.5.4&quot;,
-    ivy&quot;org.apache.spark::spark-sql:3.5.4&quot;
+  def mvnDeps = Agg(
+    mvn&quot;org.apache.spark::spark-core:3.5.4&quot;,
+    mvn&quot;org.apache.spark::spark-sql:3.5.4&quot;
   )
 
   def prependShellScript = &quot;&quot;

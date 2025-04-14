@@ -684,7 +684,7 @@ object foo extends ScoverageModule  {
   def scoverageVersion = &quot;2.1.1&quot;
 
   object test extends ScoverageTests with TestModule.ScalaTest {
-    def ivyDeps = Seq(ivy&quot;org.scalatest::scalatest:3.2.19&quot;)
+    def mvnDeps = Seq(mvn&quot;org.scalatest::scalatest:3.2.19&quot;)
   }
 }</code></pre>
 </div>

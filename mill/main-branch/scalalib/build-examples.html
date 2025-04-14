@@ -691,9 +691,9 @@ when preparing the resources for test suite execution</p>
 }
 
 object Deps {
-  def acyclic = ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;
-  def scalaCompiler(scalaVersion: String) = ivy&quot;org.scala-lang:scala-compiler:$scalaVersion&quot;
-  val utest = ivy&quot;com.lihaoyi::utest:0.8.5&quot;
+  def acyclic = mvn&quot;com.lihaoyi:::acyclic:0.3.6&quot;
+  def scalaCompiler(scalaVersion: String) = mvn&quot;org.scala-lang:scala-compiler:$scalaVersion&quot;
+  val utest = mvn&quot;com.lihaoyi::utest:0.8.5&quot;
 }
 
 val crosses =
@@ -716,11 +716,11 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
     developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
 
-  def compileIvyDeps = Seq(Deps.scalaCompiler(crossScalaVersion))
+  def compileMvnDeps = Seq(Deps.scalaCompiler(crossScalaVersion))
 
   object test extends ScalaTests with TestModule.Utest {
     def sources = Task.Sources(&quot;src&quot;, &quot;resources&quot;)
-    def ivyDeps = Seq(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
+    def mvnDeps = Seq(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
 }</code></pre>
 </div>
@@ -791,10 +791,10 @@ trait FansiModule extends PublishModule with CrossScalaModule with PlatformScala
     developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
 
-  def ivyDeps = Seq(ivy&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
 
   trait FansiTests extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Seq(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest::0.8.5&quot;)
   }
 }
 

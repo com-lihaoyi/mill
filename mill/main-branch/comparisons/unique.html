@@ -710,9 +710,9 @@ setup for a module:</p>
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def ivyDeps = Seq(
-    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
-    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
+  def mvnDeps = Seq(
+    mvn&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )
 
   object test extends JavaTests with TestModule.Junit4
@@ -1008,7 +1008,7 @@ definition in <code>build.foo</code>, allowing us to jump to it if we want to se
 </div>
 </div>
 <div class="paragraph">
-<p>In the <code>JavaModule</code> example earlier, IntelliJ is able to see the <code>def ivyDeps</code> configuration
+<p>In the <code>JavaModule</code> example earlier, IntelliJ is able to see the <code>def mvnDeps</code> configuration
 override, and find the exact override definitions in the parent class hierarchy:</p>
 </div>
 <div class="imageblock">

@@ -678,9 +678,9 @@ import mill._, javalib._
 object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
-    def ivyDeps = Seq(
-      ivy&quot;com.novocode:junit-interface:0.11&quot;,
-      ivy&quot;org.mockito:mockito-core:4.6.1&quot;
+    def mvnDeps = Seq(
+      mvn&quot;com.novocode:junit-interface:0.11&quot;,
+      mvn&quot;org.mockito:mockito-core:4.6.1&quot;
     )
   }
 }</code></pre>
@@ -812,8 +812,8 @@ details on how to use each one from the command line.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
   object test extends JavaTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;org.mockito:mockito-core:4.6.1&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;org.mockito:mockito-core:4.6.1&quot;
     )
   }
 }</code></pre>
@@ -932,8 +932,8 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <div class="paragraph">
 <p>You might be used to test-scoped dependencies from other build tools like
 Maven, Gradle or <code>sbt</code>. As test modules in Mill are just regular modules,
-there is no special need for a dedicated test-scope. You can use <code>ivyDeps</code>
-and <code>runIvyDeps</code> to declare dependencies in test modules, and test modules
+there is no special need for a dedicated test-scope. You can use <code>mvnDeps</code>
+and <code>runMvnDeps</code> to declare dependencies in test modules, and test modules
 can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
@@ -947,13 +947,13 @@ object qux extends JavaModule {
 
   object test extends JavaTests with TestModule.Junit4 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
-    def ivyDeps = super.ivyDeps() ++ Seq(ivy&quot;com.google.guava:guava:33.3.0-jre&quot;)
+    def mvnDeps = super.mvnDeps() ++ Seq(mvn&quot;com.google.guava:guava:33.3.0-jre&quot;)
   }
 }
 
 object baz extends JavaModule {
   object test extends JavaTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Seq(ivy&quot;com.google.guava:guava:33.3.0-jre&quot;)
+    def mvnDeps = super.mvnDeps() ++ Seq(mvn&quot;com.google.guava:guava:33.3.0-jre&quot;)
   }
 }</code></pre>
 </div>
@@ -1048,9 +1048,9 @@ import mill._, javalib._
 object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
-    def ivyDeps = Seq(
-      ivy&quot;com.novocode:junit-interface:0.11&quot;,
-      ivy&quot;org.mockito:mockito-core:4.6.1&quot;
+    def mvnDeps = Seq(
+      mvn&quot;com.novocode:junit-interface:0.11&quot;,
+      mvn&quot;org.mockito:mockito-core:4.6.1&quot;
     )
     def testParallelism = true
   }
@@ -1094,9 +1094,9 @@ import mill._, javalib._
 object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
-    def ivyDeps = Seq(
-      ivy&quot;com.novocode:junit-interface:0.11&quot;,
-      ivy&quot;org.mockito:mockito-core:4.6.1&quot;
+    def mvnDeps = Seq(
+      mvn&quot;com.novocode:junit-interface:0.11&quot;,
+      mvn&quot;org.mockito:mockito-core:4.6.1&quot;
     )
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     def testParallelism = false
@@ -1216,9 +1216,9 @@ import mill._, javalib._
 object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
-    def ivyDeps = Seq(
-      ivy&quot;com.novocode:junit-interface:0.11&quot;,
-      ivy&quot;org.mockito:mockito-core:4.6.1&quot;
+    def mvnDeps = Seq(
+      mvn&quot;com.novocode:junit-interface:0.11&quot;,
+      mvn&quot;org.mockito:mockito-core:4.6.1&quot;
     )
     def testForkGrouping =
       discoveredTestClasses().groupMapReduce(_.contains(&quot;GroupX&quot;))(Seq(_))(_ ++ _).toSeq.sortBy(

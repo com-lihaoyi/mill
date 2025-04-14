@@ -741,8 +741,8 @@ import mill.javalib.android.AndroidTestModule</code></pre>
 
   object test extends AndroidAppTests with TestModule.Junit4 {
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;junit:junit:4.13.2&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;junit:junit:4.13.2&quot;
     )
   }
 
@@ -756,17 +756,17 @@ import mill.javalib.android.AndroidTestModule</code></pre>
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;androidx.test.ext:junit:1.2.1&quot;.exclude((
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;androidx.test.ext:junit:1.2.1&quot;.exclude((
         &quot;org.jetbrains.kotlinx&quot;,
         &quot;kotlinx-coroutines-core-jvm&quot;
       )),
-      ivy&quot;androidx.test:runner:1.6.2&quot;,
-      ivy&quot;androidx.test.espresso:espresso-core:3.5.1&quot;.exclude((
+      mvn&quot;androidx.test:runner:1.6.2&quot;,
+      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;.exclude((
         &quot;org.jetbrains.kotlinx&quot;,
         &quot;kotlinx-coroutines-core-jvm&quot;
       )),
-      ivy&quot;junit:junit:4.13.2&quot;
+      mvn&quot;junit:junit:4.13.2&quot;
     )
   }
 

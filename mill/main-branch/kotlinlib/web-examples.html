@@ -682,15 +682,15 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some(&quot;com.example.HelloKtorKt&quot;)
 
-  def ivyDeps = Seq(
-    ivy&quot;io.ktor:ktor-server-core-jvm:2.3.12&quot;,
-    ivy&quot;io.ktor:ktor-server-netty-jvm:2.3.12&quot;
+  def mvnDeps = Seq(
+    mvn&quot;io.ktor:ktor-server-core-jvm:2.3.12&quot;,
+    mvn&quot;io.ktor:ktor-server-netty-jvm:2.3.12&quot;
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;io.ktor:ktor-server-test-host-jvm:2.3.12&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
+      mvn&quot;io.ktor:ktor-server-test-host-jvm:2.3.12&quot;
     )
   }
 }</code></pre>
@@ -793,25 +793,25 @@ object `package` extends RootModule with KotlinModule {
   val ktorVersion = &quot;2.3.12&quot;
   val exposedVersion = &quot;0.53.0&quot;
 
-  def ivyDeps = Seq(
-    ivy&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
-    ivy&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
-    ivy&quot;org.jetbrains.exposed:exposed-core:$exposedVersion&quot;,
-    ivy&quot;org.jetbrains.exposed:exposed-jdbc:$exposedVersion&quot;,
-    ivy&quot;com.h2database:h2:2.2.224&quot;,
-    ivy&quot;io.ktor:ktor-server-webjars-jvm:$ktorVersion&quot;,
-    ivy&quot;org.webjars:jquery:3.2.1&quot;,
-    ivy&quot;io.ktor:ktor-server-thymeleaf-jvm:$ktorVersion&quot;,
-    ivy&quot;org.webjars:webjars-locator:0.41&quot;,
-    ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
-    ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;,
-    ivy&quot;ch.qos.logback:logback-classic:1.4.14&quot;
+  def mvnDeps = Seq(
+    mvn&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
+    mvn&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
+    mvn&quot;org.jetbrains.exposed:exposed-core:$exposedVersion&quot;,
+    mvn&quot;org.jetbrains.exposed:exposed-jdbc:$exposedVersion&quot;,
+    mvn&quot;com.h2database:h2:2.2.224&quot;,
+    mvn&quot;io.ktor:ktor-server-webjars-jvm:$ktorVersion&quot;,
+    mvn&quot;org.webjars:jquery:3.2.1&quot;,
+    mvn&quot;io.ktor:ktor-server-thymeleaf-jvm:$ktorVersion&quot;,
+    mvn&quot;org.webjars:webjars-locator:0.41&quot;,
+    mvn&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
+    mvn&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;,
+    mvn&quot;ch.qos.logback:logback-classic:1.4.14&quot;
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;io.ktor:ktor-server-test-host-jvm:2.3.12&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
+      mvn&quot;io.ktor:ktor-server-test-host-jvm:2.3.12&quot;
     )
   }
 }</code></pre>
@@ -879,8 +879,8 @@ object `package` extends RootModule with KotlinJsModule {
   override def kotlinJsModuleKind = ModuleKind.ESModule
   override def kotlinVersion = &quot;1.9.25&quot;
   override def kotlinJsRunTarget = Some(RunTarget.Node)
-  override def ivyDeps = Seq(
-    ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:0.11.0&quot;
+  override def mvnDeps = Seq(
+    mvn&quot;org.jetbrains.kotlinx:kotlinx-html-js:0.11.0&quot;
   )
   object test extends KotlinJsModule with KotestTests {
     override def kotestVersion = &quot;5.9.1&quot;
@@ -938,10 +938,10 @@ object `package` extends RootModule with KotlinModule {
 
   override def mainClass = Some(&quot;webapp.WebApp&quot;)
 
-  override def ivyDeps = Seq(
-    ivy&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
-    ivy&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
-    ivy&quot;io.ktor:ktor-server-html-builder-jvm:$ktorVersion&quot;
+  override def mvnDeps = Seq(
+    mvn&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
+    mvn&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
+    mvn&quot;io.ktor:ktor-server-html-builder-jvm:$ktorVersion&quot;
   )
 
   override def resources = Task {
@@ -955,9 +955,9 @@ object `package` extends RootModule with KotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    override def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;io.ktor:ktor-server-test-host-jvm:$ktorVersion&quot;
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
+      mvn&quot;io.ktor:ktor-server-test-host-jvm:$ktorVersion&quot;
     )
   }
 
@@ -966,8 +966,8 @@ object `package` extends RootModule with KotlinModule {
 
     override def kotlinJsSplitPerModule = false
 
-    override def ivyDeps = Seq(
-      ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;
+    override def mvnDeps = Seq(
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;
     )
   }
 }</code></pre>
@@ -1032,13 +1032,13 @@ object `package` extends RootModule with AppKotlinModule {
 
   override def moduleDeps = Seq(shared.jvm)
 
-  override def ivyDeps = Seq(
-    ivy&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
-    ivy&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
-    ivy&quot;io.ktor:ktor-server-html-builder-jvm:$ktorVersion&quot;,
-    ivy&quot;io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion&quot;,
-    ivy&quot;io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion&quot;,
-    ivy&quot;ch.qos.logback:logback-classic:1.5.8&quot;
+  override def mvnDeps = Seq(
+    mvn&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
+    mvn&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
+    mvn&quot;io.ktor:ktor-server-html-builder-jvm:$ktorVersion&quot;,
+    mvn&quot;io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion&quot;,
+    mvn&quot;io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion&quot;,
+    mvn&quot;ch.qos.logback:logback-classic:1.5.8&quot;
   )
 
   override def resources = Task {
@@ -1050,30 +1050,30 @@ object `package` extends RootModule with AppKotlinModule {
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
-    override def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;io.ktor:ktor-server-test-host-jvm:$ktorVersion&quot;
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
+      mvn&quot;io.ktor:ktor-server-test-host-jvm:$ktorVersion&quot;
     )
   }
 
   object shared extends Module {
 
     trait SharedModule extends AppKotlinModule with PlatformKotlinModule {
-      override def kotlincPluginIvyDeps = Seq(
-        ivy&quot;org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}&quot;
+      override def kotlincPluginMvnDeps = Seq(
+        mvn&quot;org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}&quot;
       )
     }
 
     object jvm extends SharedModule {
-      override def ivyDeps = super.ivyDeps() ++ Seq(
-        ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion&quot;,
-        ivy&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion&quot;
+      override def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion&quot;,
+        mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion&quot;
       )
     }
     object js extends SharedModule with AppKotlinJsModule {
-      override def ivyDeps = super.ivyDeps() ++ Seq(
-        ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;,
-        ivy&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion&quot;
+      override def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;,
+        mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion&quot;
       )
     }
   }
@@ -1081,9 +1081,9 @@ object `package` extends RootModule with AppKotlinModule {
   object client extends AppKotlinJsModule {
     override def kotlinJsSplitPerModule = false
     override def moduleDeps = Seq(shared.js)
-    override def ivyDeps = Seq(
-      ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;,
-      ivy&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion&quot;
+    override def mvnDeps = Seq(
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion&quot;
     )
   }
 }</code></pre>
@@ -1137,14 +1137,14 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some(&quot;com.example.HelloSpringBootKt&quot;)
 
-  def ivyDeps = Seq(
-    ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
-    ivy&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
+  def mvnDeps = Seq(
+    mvn&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
+    mvn&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
   }
 }</code></pre>
@@ -1182,37 +1182,37 @@ object `package` extends RootModule with KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   def mainClass = Some(&quot;com.example.TodomvcApplicationKt&quot;)
-  def ivyDeps = Seq(
-    ivy&quot;org.springframework.boot:spring-boot-starter-data-jpa:2.5.4&quot;,
-    ivy&quot;org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4&quot;,
-    ivy&quot;org.springframework.boot:spring-boot-starter-validation:2.5.4&quot;,
-    ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.4&quot;,
-    ivy&quot;org.jetbrains.kotlin:kotlin-reflect:2.0.21&quot;,
-    ivy&quot;javax.xml.bind:jaxb-api:2.3.1&quot;,
-    ivy&quot;org.webjars:webjars-locator:0.41&quot;,
-    ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
-    ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;
+  def mvnDeps = Seq(
+    mvn&quot;org.springframework.boot:spring-boot-starter-data-jpa:2.5.4&quot;,
+    mvn&quot;org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4&quot;,
+    mvn&quot;org.springframework.boot:spring-boot-starter-validation:2.5.4&quot;,
+    mvn&quot;org.springframework.boot:spring-boot-starter-web:2.5.4&quot;,
+    mvn&quot;org.jetbrains.kotlin:kotlin-reflect:2.0.21&quot;,
+    mvn&quot;javax.xml.bind:jaxb-api:2.3.1&quot;,
+    mvn&quot;org.webjars:webjars-locator:0.41&quot;,
+    mvn&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
+    mvn&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;
   )
 
   trait HelloTests extends KotlinTests with TestModule.Junit5 {
     def mainClass = Some(&quot;com.example.TodomvcApplicationKt&quot;)
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
   }
 
   object test extends HelloTests {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;com.h2database:h2:2.3.230&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;com.h2database:h2:2.3.230&quot;
     )
   }
 
   object integration extends HelloTests {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy&quot;org.testcontainers:testcontainers:1.18.0&quot;,
-      ivy&quot;org.testcontainers:junit-jupiter:1.18.0&quot;,
-      ivy&quot;org.testcontainers:postgresql:1.18.0&quot;,
-      ivy&quot;org.postgresql:postgresql:42.6.0&quot;
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;org.testcontainers:testcontainers:1.18.0&quot;,
+      mvn&quot;org.testcontainers:junit-jupiter:1.18.0&quot;,
+      mvn&quot;org.testcontainers:postgresql:1.18.0&quot;,
+      mvn&quot;org.postgresql:postgresql:42.6.0&quot;
     )
   }
 }</code></pre>

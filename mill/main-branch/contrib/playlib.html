@@ -778,10 +778,10 @@ object core extends PlayModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Seq(
-  ivy&quot;com.typesafe.play::play:${playVersion()}&quot;,
-  ivy&quot;com.typesafe.play::play-guice:${playVersion()}&quot;,
-  ivy&quot;com.typesafe.play::play-server:${playVersion()}&quot;,
-  ivy&quot;com.typesafe.play::play-logback:${playVersion()}&quot;
+  mvn&quot;com.typesafe.play::play:${playVersion()}&quot;,
+  mvn&quot;com.typesafe.play::play-guice:${playVersion()}&quot;,
+  mvn&quot;com.typesafe.play::play-server:${playVersion()}&quot;,
+  mvn&quot;com.typesafe.play::play-logback:${playVersion()}&quot;
 )</code></pre>
 </div>
 </div>
@@ -791,7 +791,7 @@ added (the actual version depends on the version of Play you are pulling <code>2
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">ivy&quot;org.scalatestplus.play::scalatestplus-play::5.1.0&quot;</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">mvn&quot;org.scalatestplus.play::scalatestplus-play::5.1.0&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -799,7 +799,7 @@ added (the actual version depends on the version of Play you are pulling <code>2
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ivy&quot;com.typesafe.play::play-akka-http-server:${playVersion()}&quot;</pre>
+<pre>mvn&quot;com.typesafe.play::play-akka-http-server:${playVersion()}&quot;</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -807,7 +807,7 @@ added (the actual version depends on the version of Play you are pulling <code>2
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ivy&quot;com.typesafe.play::play-pekko-http-server:${playVersion()}&quot;</pre>
+<pre>mvn&quot;com.typesafe.play::play-pekko-http-server:${playVersion()}&quot;</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -885,7 +885,7 @@ module configuration options</a> and the <a href="twirllib.html#_twirl_configura
 </ul>
 </div>
 <div class="paragraph">
-<p>If you want to add an optional library using the helper you can do so by overriding <code>ivyDeps</code>
+<p>If you want to add an optional library using the helper you can do so by overriding <code>mvnDeps</code>
 like in the following example build:</p>
 </div>
 <div class="listingblock">
@@ -902,7 +902,7 @@ object core extends PlayApiModule {
 
     object test extends PlayTests
 
-    override def ivyDeps = Task { super.ivyDeps() ++ Seq(ws(), filters()) }
+    override def mvnDeps = Task { super.mvnDeps() ++ Seq(ws(), filters()) }
 }</code></pre>
 </div>
 </div>

@@ -674,8 +674,8 @@ import mill.scalalib._
 object project extends ScalaModule {
   object test extends ScalaTests {
     def testFramework = &quot;mill.testng.TestNGFramework&quot;
-    def ivyDeps = super.ivyDeps ++ Seq(
-      ivy&quot;com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}&quot;
+    def mvnDeps = super.mvnDeps ++ Seq(
+      mvn&quot;com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}&quot;
     )
   }
 }</code></pre>
