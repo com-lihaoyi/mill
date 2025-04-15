@@ -106,29 +106,15 @@ object `package` extends RootModule with InstallModule {
     (s"com.lihaoyi-${build.dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))
   )
 
-  def genTask(m: ScalaModule) = Task.Anon { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
-
   def localBinName = "mill-assembly.jar"
 
   def launcher = Task {
     val isWin = scala.util.Properties.isWin
     val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
 
-    val genIdeaArgs =
-      genTask(build.core.define)() ++
-        genTask(build.core.exec)() ++
-        genTask(build.main)() ++
-        genTask(build.scalalib)() ++
-        genTask(build.kotlinlib)() ++
-        genTask(build.scalajslib)() ++
-        genTask(build.scalanativelib)() ++
-        genTask(build.javascriptlib)() ++
-        genTask(build.pythonlib)()
-
     val launcherForkArgs = testArgs() ++
       Seq(
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
-        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(",")
       )
     val (millArgs, otherArgs) =
       launcherForkArgs.partition(arg =>

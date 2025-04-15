@@ -47,9 +47,4 @@ public class EnvVars {
    */
   public static final String MILL_TEST_SUITE = "MILL_TEST_SUITE";
 
-  /**
-   * Used to indicate to the Mill test suite which libraries should be resolved from
-   * the local disk and not from Maven Central
-   */
-  public static final String MILL_BUILD_LIBRARIES = "MILL_BUILD_LIBRARIES";
 }
