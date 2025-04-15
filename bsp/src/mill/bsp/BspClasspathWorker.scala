@@ -21,14 +21,13 @@ object BspClasspathWorker {
 
   def apply(
       workspace: os.Path,
-      log: Logger,
       workerLibs: Option[Seq[URL]] = None
   ): Result[BspClasspathWorker] = boundary {
     worker match {
       case Some(x) => Result.Success(x)
       case None =>
         val urls = workerLibs.map { urls =>
-          log.debug("Using direct submitted worker libs")
+          println("Using direct submitted worker libs")
           urls.map(url => os.Path(url.getPath))
         }.getOrElse {
           // load extra classpath entries from file
@@ -41,7 +40,7 @@ object BspClasspathWorker {
           // TODO: if outdated, we could regenerate the resource file and re-load the worker
 
           // read the classpath from resource file
-          log.debug(s"Reading worker classpath from file: ${cpFile}")
+          println(s"Reading worker classpath from file: ${cpFile}")
           os.read(cpFile).linesIterator.map(u => os.Path(new URL(u).getPath)).toSeq
         }
 
