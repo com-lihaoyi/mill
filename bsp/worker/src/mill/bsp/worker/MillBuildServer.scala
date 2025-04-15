@@ -615,7 +615,7 @@ private class MillBuildServer(
 
           def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
             val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
-            debug(msg)
+            print(msg)
             client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
           }
 
@@ -633,9 +633,8 @@ private class MillBuildServer(
 
           resultsById.flatMap {
             case (id, values) =>
-              try {
-                Seq(f(ev, state, id, state.bspModulesById(id)._1, values))
-              } catch {
+              try Seq(f(ev, state, id, state.bspModulesById(id)._1, values))
+              catch {
                 case NonFatal(e) =>
                   logError(id, e.toString)
                   Seq()
