@@ -25,7 +25,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =
-    completableTasks(
+    handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: JavaModuleApi =>
@@ -56,7 +56,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
 
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
       : CompletableFuture[ScalaMainClassesResult] =
-    completableTasks(
+    handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = { case m: JavaModuleApi => m.bspBuildTargetScalaMainClasses }
     ) {
@@ -79,7 +79,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
 
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
       : CompletableFuture[ScalaTestClassesResult] =
-    completableTasks(
+    handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: TestModuleApi => m.bspBuildTargetScalaTestClasses

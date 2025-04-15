@@ -16,7 +16,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
-    completableTasks(
+    handlerTasks(
       targetIds = _ => javacOptionsParams.getTargets.asScala,
       tasks = { case m: JavaModuleApi =>
         m.bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
