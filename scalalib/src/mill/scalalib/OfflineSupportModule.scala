@@ -7,7 +7,7 @@ import upickle.default.ReadWriter
 trait OfflineSupportModule extends mill.define.Module {
 
   /**
-   * Prepare the module for working offline. This should typically fetch (missing) resources like ivy dependencies.
+   * Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.
    *
    * @param all If `true`, it also fetches resources not always needed.
    */
