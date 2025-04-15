@@ -363,7 +363,6 @@ object MillMain {
   }
 
   def validatePorts(config: MillCliConfig, streams: SystemStreams): Option[Set[Int]] = {
-    println(config.ports.isDefined)
     val result =
       if (config.ports.isDefined) {
         var ports = Set.empty[Int]
