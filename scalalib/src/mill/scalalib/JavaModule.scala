@@ -1259,7 +1259,7 @@ trait JavaModule
           resolvedMvnDeps() ++
           classgraphWorkerModule().prepareOffline(all)() ++
           jvmWorker().prepareOffline(all)() ++
-          resolvedRunIvyDeps() ++
+          resolvedRunMvnDeps() ++
           Task.sequence(tasks)().flatten
       ).distinct
     }

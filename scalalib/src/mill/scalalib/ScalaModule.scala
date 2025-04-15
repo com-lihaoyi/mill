@@ -559,7 +559,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * @param all If `true` , fetches also sources, Ammonite and compiler dependencies.
    */
   override def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
-    val ammonite = resolvedAmmoniteReplIvyDeps
+    val ammonite = resolvedAmmoniteReplMvnDeps
     val tasks: Seq[Task[Seq[PathRef]]] =
       if (all.value) Seq(ammonite)
       else Seq()
