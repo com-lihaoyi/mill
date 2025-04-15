@@ -311,10 +311,12 @@ def millVersionTruth: T[String] = Task.Input {
 }
 
 def millVersion: T[String] = Task {
-  if (millVersionIsStable() && isCI()) {
+  if (millVersionIsStable()) {
     // Ignore local changes when computing the VCS version string,
     // since we make those in CI and can promise they are safe
-    VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
+    val vcsState = VcsVersion.calcVcsState(Task.log)
+    if (isCI()) vcsState.copy(dirtyHash = None).format()
+    else vcsState.format()
   } else "SNAPSHOT"
 }
 
