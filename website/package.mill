@@ -57,7 +57,7 @@ object `package` extends RootModule {
   }
 
   def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
-      ctx: mill.api.Ctx.Log
+      ctx: mill.define.TaskCtx.Log
   ) = {
 
     prepareAntora(npmDir)
@@ -116,7 +116,7 @@ object `package` extends RootModule {
   }
 
   def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Agg[os.Path])(implicit
-      ctx: mill.api.Ctx
+      ctx: mill.define.TaskCtx
   ) = {
 
     // Walk all files to render graphviz templates ourselves because the only Antora graphviz
