@@ -1,13 +1,14 @@
 package mill.api.internal
 
+import scala.concurrent.Future
+
 /** With this server handle you can interact with a running Mill BSP server. */
 trait BspServerHandle {
 
   /**
-   * Runs a new session with the given evaluator. This one blocks until the session ends.
-   * @return The reason which the session ended, possibly indicating the wish for restart (e.g. in case of workspace reload).
+   * Starts a new session with the given evaluator. Doesn't block or wait for the session to end.
    */
-  def runSession(evaluators: Seq[EvaluatorApi]): BspServerResult
+  def startSession(evaluators: Seq[EvaluatorApi], errored: Boolean): Future[BspServerResult]
 
   /** Stops the BSP server. */
   def close(): Unit

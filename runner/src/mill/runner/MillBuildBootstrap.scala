@@ -75,14 +75,17 @@ class MillBuildBootstrap(
     }
 
     Watching.Result(
-      watched = runnerState.frames.flatMap(f => f.evalWatched ++ f.moduleWatched),
+      watched = runnerState.watched,
       error = runnerState.errorOpt,
       result = runnerState
     )
   }
 
-  def evaluateRec(depth: Int): RunnerState = {
-    // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
+  def evaluateRec(
+      depth: Int,
+      closeEvaluator: Boolean = true
+  ): RunnerState = {
+    // println(s"+evaluateRec($depth, $closeEvaluator) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
@@ -93,7 +96,7 @@ class MillBuildBootstrap(
         // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
         // Unfortunately, some targets also make sense without a `build.mill`, e.g. the `init` command.
         // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
-        lazy val state = evaluateRec(depth + 1)
+        lazy val state = evaluateRec(depth + 1, closeEvaluator = closeEvaluator)
         if (
           rootBuildFileNames.asScala.exists(rootBuildFileName =>
             os.exists(recRoot(projectRoot, depth) / rootBuildFileName)
@@ -121,7 +124,7 @@ class MillBuildBootstrap(
           output
         )
 
-        if (parsedScriptFiles.metaBuild) evaluateRec(depth + 1)
+        if (parsedScriptFiles.metaBuild) evaluateRec(depth + 1, closeEvaluator = closeEvaluator)
         else {
           val bootstrapModule =
             new MillBuildRootModule.BootstrapModule()(
@@ -187,7 +190,7 @@ class MillBuildBootstrap(
           case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
           case Result.Success(rootModule) =>
 
-            Using.resource(makeEvaluator(
+            def makeEvaluator0 = makeEvaluator(
               prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
               nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
               rootModule,
@@ -210,19 +213,26 @@ class MillBuildBootstrap(
                 .getOrElse(0),
               depth,
               actualBuildFileName = nestedState.buildFile
-            )) { evaluator =>
-              if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator)
+            )
+
+            def proceed(evaluator: () => EvaluatorApi): RunnerState =
+              // FIXME If this throws after having called evaluator(), the evaluator might not be closed
+              if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator())
               else if (depth <= requestedDepth) nestedState
               else {
                 processRunClasspath(
                   nestedState,
                   rootModule,
-                  evaluator,
+                  evaluator(),
                   prevFrameOpt,
                   prevOuterFrameOpt
                 )
               }
-            }
+
+            if (closeEvaluator)
+              Using.resource(makeEvaluator0)(ev => proceed(() => ev))
+            else
+              proceed(() => makeEvaluator0)
         }
       }
 

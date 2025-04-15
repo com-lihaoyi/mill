@@ -63,7 +63,7 @@ class MillServerMain(
         args = args,
         stateCache = stateCache,
         mainInteractive = mainInteractive,
-        streams0 = streams,
+        streams = streams,
         env = env,
         setIdle = setIdle,
         userSpecifiedProperties0 = userSpecifiedProperties,

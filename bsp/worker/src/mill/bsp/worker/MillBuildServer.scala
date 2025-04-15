@@ -45,21 +45,93 @@ private class MillBuildServer(
   // progresses through:
   //
   // Set when the client connects
-  protected var client: BuildClient = scala.compiletime.uninitialized
+  protected var client: BuildClient = null
   // Set when the `buildInitialize` message comes in
   protected var sessionInfo: SessionInfo = scala.compiletime.uninitialized
   // Set when the `MillBuildBootstrap` completes and the evaluators are available
   private var bspEvaluators: Promise[BspEvaluators] = Promise[BspEvaluators]()
   // Set when a session is completed, either due to reload or shutdown
-  private[worker] var sessionResult: Option[BspServerResult] = None
+  private[worker] var sessionResult = Promise[BspServerResult]()
 
   def initialized = sessionInfo != null
 
-  def updateEvaluator(evaluatorsOpt: Option[Seq[EvaluatorApi]]): Unit = {
+  def updateEvaluator(evaluatorsOpt: Option[Seq[EvaluatorApi]], errored: Boolean): Unit = {
     debug(s"Updating Evaluator: $evaluatorsOpt")
+    val previousTargetIds = bspEvaluators.future.value
+      .flatMap(_.toOption)
+      .map(_.bspModulesIdList.map {
+        case (id, (_, ev)) =>
+          id -> ev
+      })
+      .getOrElse(Nil)
+    val previousOpt =
+      if (errored) bspEvaluators.future.value.flatMap(_.toOption).map(_.evaluators)
+      else None
     if (bspEvaluators.isCompleted) bspEvaluators = Promise[BspEvaluators]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
-      bspEvaluators.success(new BspEvaluators(topLevelProjectRoot, evaluators, s => debug(s())))
+      val updatedEvaluators = previousOpt match {
+        case Some(previous) =>
+          evaluators.headOption match {
+            case None => // ???
+              previous
+            case Some(headEvaluator) =>
+              val idx = previous.indexWhere(_.outPathJava == headEvaluator.outPathJava)
+              if (idx < 0) // ???
+                evaluators
+              else
+                previous.take(idx) ++ evaluators
+          }
+        case None => evaluators
+      }
+      val bspEvaluators0 =
+        new BspEvaluators(topLevelProjectRoot, updatedEvaluators, s => debug(s()))
+      bspEvaluators.success(bspEvaluators0)
+      if (client != null) {
+        val newTargetIds = bspEvaluators0.bspModulesIdList.map {
+          case (id, (_, ev)) =>
+            id -> ev
+        }
+        val newTargetIdsMap = newTargetIds.toMap
+
+        val deleted0 = previousTargetIds.filterNot {
+          case (id, _) =>
+            newTargetIdsMap.contains(id)
+        }
+        val previousTargetIdsMap = previousTargetIds.toMap
+        val (modified0, created0) = newTargetIds.partition {
+          case (id, _) =>
+            previousTargetIdsMap.contains(id)
+        }
+
+        val deletedEvents = deleted0.map {
+          case (id, _) =>
+            val event = new bsp4j.BuildTargetEvent(id)
+            event.setKind(bsp4j.BuildTargetEventKind.DELETED)
+            event
+        }
+        val createdEvents = created0.map {
+          case (id, _) =>
+            val event = new bsp4j.BuildTargetEvent(id)
+            event.setKind(bsp4j.BuildTargetEventKind.CREATED)
+            event
+        }
+        val modifiedEvents = modified0
+          .filter {
+            case (id, ev) =>
+              !previousTargetIdsMap.get(id).contains(ev)
+          }
+          .map {
+            case (id, ev) =>
+              val event = new bsp4j.BuildTargetEvent(id)
+              event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
+              event
+          }
+
+        val allEvents = deletedEvents ++ createdEvents ++ modifiedEvents
+
+        if (allEvents.nonEmpty)
+          client.onBuildTargetDidChange(new bsp4j.DidChangeBuildTarget(allEvents.asJava))
+      }
     }
   }
 
@@ -81,7 +153,7 @@ private class MillBuildServer(
       val supportedLangs = Constants.languages.asJava
       val capabilities = new BuildServerCapabilities
 
-      capabilities.setBuildTargetChangedProvider(false)
+      capabilities.setBuildTargetChangedProvider(true)
       capabilities.setCanReload(canReload)
       capabilities.setCompileProvider(new CompileProvider(supportedLangs))
       capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
@@ -139,7 +211,7 @@ private class MillBuildServer(
   override def onBuildExit(): Unit = {
     print("Entered onBuildExit")
     SemanticDbJavaModuleApi.resetContext()
-    sessionResult = Some(BspServerResult.Shutdown)
+    sessionResult.trySuccess(BspServerResult.Shutdown)
     onShutdown()
   }
 
@@ -192,7 +264,7 @@ private class MillBuildServer(
     handlerRaw(checkInitialized = false) {
       // Instead stop and restart the command
       // BSP.install(evaluator)
-      sessionResult = Some(BspServerResult.ReloadWorkspace)
+      sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
       ().asInstanceOf[Object]
     }
 

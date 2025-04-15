@@ -8,8 +8,9 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.internal.{BspServerResult, internal}
+import mill.api.internal.{BspServerHandle, BspServerResult, EvaluatorApi, internal}
 import mill.api.{DummyInputStream, Logger, MillException, Result, SystemStreams}
+import mill.bsp.worker.BspWorkerImpl
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
 import mill.define.WorkspaceRoot
@@ -17,8 +18,9 @@ import mill.util.BuildInfo
 import mill.runner.meta.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}
 import java.lang.reflect.InvocationTargetException
+import scala.concurrent.Future
 import scala.util.control.NonFatal
-import scala.util.Using
+import scala.util.{Failure, Success, Using}
 import mill.server.Server
 
 @internal
@@ -64,7 +66,7 @@ object MillMain {
           args = args.tail,
           stateCache = RunnerState.empty,
           mainInteractive = mill.constants.Util.hasConsole(),
-          streams0 = initialSystemStreams,
+          streams = initialSystemStreams,
           env = System.getenv().asScala.toMap,
           setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
@@ -83,7 +85,7 @@ object MillMain {
       args: Array[String],
       stateCache: RunnerState,
       mainInteractive: Boolean,
-      streams0: SystemStreams,
+      streams: SystemStreams,
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties0: Map[String, String],
@@ -91,7 +93,6 @@ object MillMain {
       systemExit: Int => Nothing,
       serverDir: os.Path
   ): (Boolean, RunnerState) = {
-    val streams = streams0
     mill.define.SystemStreams.withStreams(streams) {
       os.SubProcess.env.withValue(env) {
         MillCliConfigParser.parse(args) match {
@@ -235,7 +236,7 @@ object MillMain {
                               requestedMetaLevel = config.metaLevel,
                               config.allowPositional.value,
                               systemExit = systemExit,
-                              streams0 = streams0,
+                              streams0 = streams,
                               selectiveExecution = config.watch.value,
                               scalaCompilerWorker = scalaCompilerWorker,
                               offline = config.offline.value
@@ -246,17 +247,58 @@ object MillMain {
                     }
 
                     if (bspMode) {
-
-                      runBspSession(
-                        streams,
-                        (prevRunnerState, splitStreams) =>
-                          runMillBootstrap(
-                            false,
-                            prevRunnerState,
-                            Seq("version"),
-                            splitStreams
-                          ).result
+                      val splitOut = new mill.internal.MultiStream(
+                        streams.err,
+                        os.write.outputStream(
+                          WorkspaceRoot.workspaceRoot / OutFiles.out / "mill-bsp.out.log"
+                        )
                       )
+                      val splitErr = new mill.internal.MultiStream(
+                        streams.err,
+                        os.write.outputStream(
+                          WorkspaceRoot.workspaceRoot / OutFiles.out / "mill-bsp.err.log"
+                        )
+                      )
+
+                      var prevRunnerStateOpt = Option.empty[RunnerState]
+                      val bspServerHandle = startBspServer(streams)
+                      var keepGoing = true
+                      while (keepGoing) {
+                        val watchRes = runMillBootstrap(
+                          false,
+                          prevRunnerStateOpt,
+                          Seq("version"),
+                          new SystemStreams(splitOut, splitErr, DummyInputStream)
+                        )
+
+                        for (err <- watchRes.error)
+                          streams.err.println(err)
+
+                        prevRunnerStateOpt = Some(watchRes.result)
+
+                        val sessionResultFuture = bspServerHandle.startSession(
+                          watchRes.result.frames.flatMap(_.evaluator),
+                          errored = watchRes.error.nonEmpty
+                        )
+
+                        val res = Watching.futureWatchWait(watchRes.watched, sessionResultFuture)
+
+                        res match {
+                          case None =>
+                          // Some watched meta-build files changed
+                          case Some(Failure(ex)) =>
+                          // What does this correspond to?
+                          case Some(Success(BspServerResult.ReloadWorkspace)) =>
+                          // reload asked by client
+                          case Some(Success(BspServerResult.Shutdown)) =>
+                            // shutdown asked by client
+                            keepGoing = false
+                            // should make the lsp4j-managed BSP server exit
+                            streams.in.close()
+                        }
+                      }
+
+                      splitErr.println("Exiting BSP runner loop")
 
                       (true, RunnerState(None, Nil, None))
                     } else {
@@ -300,77 +342,25 @@ object MillMain {
     }
   }
 
-  def runBspSession(
-      streams0: SystemStreams,
-      runMillBootstrap: (Option[RunnerState], SystemStreams) => RunnerState
-  ): Result[BspServerResult] = {
-    val splitOut = new mill.internal.MultiStream(
-      streams0.out,
-      os.write.outputStream(
-        WorkspaceRoot.workspaceRoot / OutFiles.out / "mill-bsp/out.log",
-        createFolders = true
-      )
-    )
-    val splitErr = new mill.internal.MultiStream(
-      streams0.out,
-      os.write.outputStream(
-        WorkspaceRoot.workspaceRoot / OutFiles.out / "mill-bsp/err.log",
-        createFolders = true
-      )
-    )
-    val splitStreams = new SystemStreams(splitOut, splitErr, streams0.in)
+  def startBspServer(streams: SystemStreams): BspServerHandle = {
 
-    mill.define.SystemStreams.withStreams(splitStreams) {
-      try {
-        splitStreams.err.println("Trying to load BSP server...")
+    streams.err.println("Trying to load BSP server...")
 
-        val wsRoot = WorkspaceRoot.workspaceRoot
-        val logDir = wsRoot / OutFiles.out / "mill-bsp"
-        val bspServerHandleRes = {
-          os.makeDir.all(logDir)
-          mill.bsp.worker.BspWorkerImpl.startBspServer(
-            define.WorkspaceRoot.workspaceRoot,
-            splitStreams,
-            logDir,
-            true
-          )
-        }
+    val wsRoot = WorkspaceRoot.workspaceRoot
+    val logDir = wsRoot / OutFiles.out / "mill-bsp"
+    os.makeDir.all(logDir)
 
-        streams0.err.println("BSP server started")
+    val bspServerHandleRes =
+      BspWorkerImpl.startBspServer(
+        define.WorkspaceRoot.workspaceRoot,
+        streams,
+        logDir,
+        true
+      ).get
 
-        val runSessionRes = bspServerHandleRes.flatMap { bspServerHandle =>
-          try {
-            var repeatForBsp = true
-            var bspRes: Option[Result[BspServerResult]] = None
-            var prevRunnerState: Option[RunnerState] = None
-            while (repeatForBsp) {
-              repeatForBsp = false
-              val runnerState = runMillBootstrap(prevRunnerState, splitStreams)
-              val runSessionRes =
-                bspServerHandle.runSession(runnerState.frames.flatMap(_.evaluator))
-              prevRunnerState = Some(runnerState)
-              repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
-              bspRes = Some(runSessionRes)
-              streams0.err.println(s"BSP session returned with $runSessionRes")
-            }
+    streams.err.println("BSP server started")
 
-            // should make the lsp4j-managed BSP server exit
-            streams0.in.close()
-
-            bspRes.get
-          } finally bspServerHandle.close()
-        }
-
-        splitErr.println(
-          s"Exiting BSP runner loop. Stopping BSP server. Last result: $runSessionRes"
-        )
-        runSessionRes
-      } finally {
-
-        splitErr.close()
-        splitOut.close()
-      }
-    }
+    bspServerHandleRes
   }
 
   private[runner] def parseThreadCount(

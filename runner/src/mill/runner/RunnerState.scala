@@ -39,6 +39,9 @@ case class RunnerState(
   ): RunnerState = {
     this.copy(frames = Seq(frame) ++ frames, errorOpt = errorOpt)
   }
+
+  def watched: Seq[Watchable] =
+    frames.flatMap(f => f.evalWatched ++ f.moduleWatched)
 }
 
 object RunnerState {
@@ -104,7 +107,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, null)
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None)
   }
 
 }

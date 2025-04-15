@@ -5,7 +5,7 @@ import mill.api.internal.{BaseModuleApi, BspModuleApi, EvaluatorApi, ModuleApi}
 
 private class BspEvaluators(
     workspaceDir: os.Path,
-    evaluators: Seq[EvaluatorApi],
+    val evaluators: Seq[EvaluatorApi],
     debug: (() => String) => Unit
 ) {
 
