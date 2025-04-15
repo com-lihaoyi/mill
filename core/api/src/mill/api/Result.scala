@@ -1,7 +1,5 @@
 package mill.api
 
-import mill.api.Result
-
 import scala.collection.{BuildFrom, mutable}
 
 /**
