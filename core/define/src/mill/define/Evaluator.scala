@@ -1,9 +1,9 @@
 package mill.define
 
-import mill.runner.api.{TaskApi, CompileProblemReporter, TestReporter, DummyTestReporter}
+import mill.api.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
 import mill.define.internal.Watchable
-import mill.runner.api.EvaluatorApi
+import mill.api.internal.{EvaluatorApi, TaskApi}
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
@@ -20,6 +20,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def workerCache: mutable.Map[String, (Int, Val)]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
+  private[mill] def offline: Boolean
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
@@ -64,13 +65,13 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
    */
   def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.internal.TopoSorted
 
-  def executeApi[T](targets: Seq[mill.runner.api.TaskApi[T]]): Evaluator.Result[T] =
+  private[mill] def executeApi[T](targets: Seq[TaskApi[T]]): Evaluator.Result[T] =
     execute[T](targets.map(_.asInstanceOf[Task[T]]))
 
   def execute[T](
       targets: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
@@ -82,22 +83,24 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]]
 
-  def executeApi[T](
+  private[mill] def executeApi[T](
       targets: Seq[TaskApi[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = null,
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
   ): EvaluatorApi.Result[T] = {
-    execute(
-      targets.map(_.asInstanceOf[Task[T]]),
-      reporter,
-      testReporter,
-      logger,
-      serialCommandExec,
-      selectiveExecution
-    )
+    os.checker.withValue(os.Checker.Nop) {
+      execute(
+        targets.map(_.asInstanceOf[Task[T]]),
+        reporter,
+        testReporter,
+        logger,
+        serialCommandExec,
+        selectiveExecution
+      )
+    }
   }
 
   /**

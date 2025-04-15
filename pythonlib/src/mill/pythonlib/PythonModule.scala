@@ -3,7 +3,7 @@ package mill.pythonlib
 import mill._
 import mill.api.Result
 import mill.util.{Jvm}
-import mill.api.Ctx
+import mill.define.TaskCtx
 import mill.constants.ServerFiles
 
 trait PythonModule extends PipModule with TaskModule { outer =>
@@ -256,7 +256,7 @@ object PythonModule {
         command: String = null,
         env: Map[String, String] = null,
         workingDir: os.Path = null
-    )(implicit ctx: Ctx): Unit
+    )(implicit ctx: TaskCtx): Unit
   }
 
   private class RunnerImpl(
@@ -270,7 +270,7 @@ object PythonModule {
         command: String = null,
         env: Map[String, String] = null,
         workingDir: os.Path = null
-    )(implicit ctx: Ctx): Unit = {
+    )(implicit ctx: TaskCtx): Unit = {
       os.call(
         cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
         env = Option(env).getOrElse(env0),

@@ -1,12 +1,13 @@
 package mill.main.maven
 
+import mill.api.internal.internal
 import org.apache.maven.model.{Model, Plugin}
 import org.codehaus.plexus.util.xml.Xpp3Dom
 
 import scala.jdk.CollectionConverters.*
 
 /** Utilities for handling Maven plugins. */
-@mill.api.internal
+@internal
 object Plugins {
 
   def find(model: Model, groupId: String, artifactId: String): Option[Plugin] =

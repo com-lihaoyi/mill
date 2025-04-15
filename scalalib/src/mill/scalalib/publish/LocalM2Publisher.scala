@@ -1,6 +1,6 @@
 package mill.scalalib.publish
 
-import mill.api.Ctx
+import mill.define.TaskCtx
 
 class LocalM2Publisher(m2Repo: os.Path) {
 
@@ -17,7 +17,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
       pom: os.Path,
       artifact: Artifact,
       publishInfos: Seq[PublishInfo]
-  )(implicit ctx: Ctx.Log): Seq[os.Path] = {
+  )(implicit ctx: TaskCtx.Log): Seq[os.Path] = {
 
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
     ctx.log.info(s"Publish ${artifact.id}-${artifact.version} to ${releaseDir}")

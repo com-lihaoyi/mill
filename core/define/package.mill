@@ -5,7 +5,7 @@ import mill.scalalib._
 
 /**
  * This module contains the data types necessary for defining a Mill build:
- * defining Tasks, Modules, and other related data structures.
+ * defining Tasks, Modules, helper code, and other related data structures.
  */
 object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(build.core.api)
@@ -20,6 +20,11 @@ object `package` extends RootModule with build.MillStableScalaModule {
     // TODO: somewhere sourcecode is included transitively,
     // but we need the latest version to bring the macro improvements.
     build.Deps.sourcecode,
+    build.Deps.osLib,
+    build.Deps.mainargs,
+    build.Deps.upickle,
+    build.Deps.pprint,
+    build.Deps.fansi,
     // Necessary so we can share the JNA classes throughout the build process
     build.Deps.jna,
     build.Deps.jnaPlatform,

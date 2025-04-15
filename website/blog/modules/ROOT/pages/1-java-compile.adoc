@@ -1,7 +1,6 @@
-// tag::header[]
-
 = How Fast Does Java Compile?
 :page-aliases: xref:mill:ROOT:comparisons/java-compile.adoc
+// tag::header[]
 :author: Li Haoyi
 :revdate: 29 November 2024
 
@@ -47,7 +46,7 @@ from Gradle, but the following stackoverflow answer gives us some tips:
 
 * https://stackoverflow.com/a/50639444/871202[How do I print out the Java classpath in gradle?]
 
-[source,bash]
+[source,console]
 ----
 > ./gradlew clean && ./gradlew :classes --no-build-cache --debug | grep "classpath "
 ----
@@ -67,7 +66,7 @@ We can then pass this classpath into `javac -cp`, together with `src/main/java/*
 to perform the compilation outside of Gradle using `javac` directly. Running this a few
 times gives us the timings below:
 
-[source,bash]
+[source,console]
 ----
 > time javac -cp $MY_CLASSPATH src/main/java/**/*.java
 1.290s
@@ -77,7 +76,7 @@ times gives us the timings below:
 
 To give us an idea of how many lines of code we are compiling, we can run:
 
-[source,bash]
+[source,console]
 ----
 > find src/main/java | grep \\.java | xargs wc -l
 ...
@@ -177,7 +176,7 @@ public class Bench {
 Running this using `java Bench.java` in the Mockito repo root, eventually we see it
 settle on approximately the following numbers:
 
-[source,bash]
+[source,txt]
 ----
 359ms
 378ms
@@ -208,7 +207,7 @@ easily-reproducible benchmark, we want a decently-sized module that's relatively
 standalone within the project: `netty-common` is a perfect fit. Again, we can use `find | grep | xargs`
 to see how many lines of code we are looking at:
 
-[source,bash]
+[source,console]
 ----
 > find common/src/main/java | grep \\.java | xargs wc -l
 29712 total
@@ -219,21 +218,21 @@ but the following stackoverflow answer gives us a hint in how to do so:
 
 - https://stackoverflow.com/a/16655088/871202[In Maven, how output the classpath being used?]
 
-[source,bash]
+[source,console]
 ----
 > ./mvnw clean; time ./mvnw -e -X -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 ----
 
 If you grep the output for `-classpath`, we see:
 
-[source,bash]
+[source,txt]
 ----
 -classpath /Users/lihaoyi/Github/netty/common/target/classes:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/svm/19.3.6/svm-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/sdk/graal-sdk/19.3.6/graal-sdk-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/objectfile/19.3.6/objectfile-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/pointsto/19.3.6/pointsto-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/truffle/truffle-nfi/19.3.6/truffle-nfi-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/truffle/truffle-api/19.3.6/truffle-api-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/compiler/compiler/19.3.6/compiler-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/jctools/jctools-core/4.0.5/jctools-core-4.0.5.jar:/Users/lihaoyi/.m2/repository/org/jetbrains/annotations-java5/23.0.0/annotations-java5-23.0.0.jar:/Users/lihaoyi/.m2/repository/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar:/Users/lihaoyi/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar:/Users/lihaoyi/.m2/repository/org/apache/logging/log4j/log4j-1.2-api/2.17.2/log4j-1.2-api-2.17.2.jar:/Users/lihaoyi/.m2/repository/org/apache/logging/log4j/log4j-api/2.17.2/log4j-api-2.17.2.jar:/Users/lihaoyi/.m2/repository/io/projectreactor/tools/blockhound/1.0.6.RELEASE/blockhound-1.0.6.RELEASE.jar
 ----
 
 Again, we can `export MY_CLASSPATH` and start using `javac` from the command line:
 
-[source,bash]
+[source,console]
 ----
 > javac -cp $MY_CLASSPATH common/src/main/java/**/*.java
 1.624s
@@ -243,7 +242,7 @@ Again, we can `export MY_CLASSPATH` and start using `javac` from the command lin
 
 Or programmatically using the `Bench.java` program we saw earlier:
 
-[source,bash]
+[source,txt]
 ----
 294ms
 282ms
@@ -268,7 +267,7 @@ completing both Mockito-Core and Netty-Common in ~300ms - the experience of usin
 build tools is nowhere near as snappy. Consider the benchmark of clean-compiling the
 Mockito-Core codebase using Gradle or Mill:
 
-[source,bash]
+[source,console]
 ----
 $ ./gradlew clean; time ./gradlew :classes --no-build-cache
 4.14s
@@ -283,7 +282,7 @@ $ ./mill clean; time ./mill compile
 
 Or the benchmark of clean-compiling the Netty-Common codebase using Maven or Mill:
 
-[source,bash]
+[source,console]
 ----
 $ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
 4.85s

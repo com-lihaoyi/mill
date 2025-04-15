@@ -2,7 +2,8 @@ package mill.scalalib
 
 import coursier.maven.MavenRepository
 import mill.api.Result.{Failure, Success}
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 
 import mill.define.{Discover, Task}
 import mill.testkit.{TestBaseModule, UnitTester}
@@ -33,21 +34,21 @@ object ResolveDepsTests extends TestSuite {
 
   object TestCase extends TestBaseModule {
     object pomStuff extends JavaModule {
-      def ivyDeps = Seq(
+      def mvnDeps = Seq(
         // Dependency whose packaging is "pom", as it's meant to be used
         // as a "parent dependency" by other dependencies, rather than be pulled
         // as we do here. We do it anyway, to check that pulling the "pom" artifact
         // type brings that dependency POM file in the class path. We need a dependency
         // that has a "pom" packaging for that.
-        ivy"org.apache.hadoop:hadoop-yarn-server:3.4.0"
+        mvn"org.apache.hadoop:hadoop-yarn-server:3.4.0"
       )
       def artifactTypes = super.artifactTypes() + coursier.Type("pom")
     }
 
     object scope extends JavaModule {
-      def ivyDeps = Seq(
-        ivy"androidx.compose.animation:animation-core:1.1.1",
-        ivy"androidx.compose.ui:ui:1.1.1"
+      def mvnDeps = Seq(
+        mvn"androidx.compose.animation:animation-core:1.1.1",
+        mvn"androidx.compose.ui:ui:1.1.1"
       )
       def repositoriesTask = Task.Anon {
         super.repositoriesTask() :+ coursier.Repositories.google
@@ -60,13 +61,13 @@ object ResolveDepsTests extends TestSuite {
 
   val tests = Tests {
     test("resolveValidDeps") {
-      val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3")
+      val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3")
       val Success(paths) = evalDeps(deps): @unchecked
       assert(paths.nonEmpty)
     }
 
     test("resolveValidDepsWithClassifier") {
-      val deps = Seq(ivy"org.lwjgl:lwjgl:3.1.1;classifier=natives-macos")
+      val deps = Seq(mvn"org.lwjgl:lwjgl:3.1.1;classifier=natives-macos")
       assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps): @unchecked
       assert(paths.nonEmpty)
@@ -74,7 +75,7 @@ object ResolveDepsTests extends TestSuite {
     }
 
     test("resolveTransitiveRuntimeDeps") {
-      val deps = Seq(ivy"org.mockito:mockito-core:2.7.22")
+      val deps = Seq(mvn"org.mockito:mockito-core:2.7.22")
       assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps): @unchecked
       assert(paths.nonEmpty)
@@ -83,14 +84,14 @@ object ResolveDepsTests extends TestSuite {
     }
 
     test("excludeTransitiveDeps") {
-      val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
+      val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
       assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps): @unchecked
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
 
     test("excludeTransitiveDepsByOrg") {
-      val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
+      val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
       assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps): @unchecked
       assert(!paths.exists(path =>
@@ -99,28 +100,28 @@ object ResolveDepsTests extends TestSuite {
     }
 
     test("excludeTransitiveDepsByName") {
-      val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3".excludeName("fansi_2.12"))
+      val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3".excludeName("fansi_2.12"))
       assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps): @unchecked
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
 
     test("errOnInvalidOrgDeps") {
-      val deps = Seq(ivy"xxx.yyy.invalid::pprint:0.5.3")
+      val deps = Seq(mvn"xxx.yyy.invalid::pprint:0.5.3")
       assertRoundTrip(deps, simplified = true)
       val Failure(errMsg) = evalDeps(deps): @unchecked
       assert(errMsg.contains("xxx.yyy.invalid"))
     }
 
     test("errOnInvalidVersionDeps") {
-      val deps = Seq(ivy"com.lihaoyi::pprint:invalid.version.num")
+      val deps = Seq(mvn"com.lihaoyi::pprint:invalid.version.num")
       assertRoundTrip(deps, simplified = true)
       val Failure(errMsg) = evalDeps(deps): @unchecked
       assert(errMsg.contains("invalid.version.num"))
     }
 
     test("errOnPartialSuccess") {
-      val deps = Seq(ivy"com.lihaoyi::pprint:0.5.3", ivy"fake::fake:fake")
+      val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3", mvn"fake::fake:fake")
       assertRoundTrip(deps, simplified = true)
       val Failure(errMsg) = evalDeps(deps): @unchecked
       assert(errMsg.contains("fake"))

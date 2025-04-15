@@ -1,7 +1,8 @@
 package mill.kotlinlib.ksp
 
 import mill._
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.define.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
@@ -41,8 +42,8 @@ trait KspModule extends KotlinModule { outer =>
    */
   def kspPlugins: T[Agg[Dep]] = Task {
     Agg(
-      ivy"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
-      ivy"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${kspVersion()}"
+      mvn"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
+      mvn"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${kspVersion()}"
     )
   }
 

@@ -25,14 +25,14 @@ In the example above, that would be `/versionFile/version` relative to the `buil
 
 Create the version file with the initial version number:
 
-[source,bash]
+[source,console]
 ----
 $ 0.1.0-SNAPSHOT > versionFile/version
 ----
 
 Then to write a release version or snapshot version to file:
 
-[source,bash]
+[source,console]
 ----
 $ mill versionFile.setReleaseVersion           # Sets release
 $ mill versionFile.setNextVersion --bump minor # Sets snapshot
@@ -40,7 +40,7 @@ $ mill versionFile.setNextVersion --bump minor # Sets snapshot
 
 You can also make manual changes in-between:
 
-[source,bash]
+[source,console]
 ----
 $ mill versionFile.setReleaseVersion
 $ echo 0.1.0 > versionFile/version
@@ -90,7 +90,7 @@ then overwrites the previous content in the version file with this new version.
 
 Your version file contains `0.1.0-SNAPSHOT`. In your terminal you do the following:
 
-[source,bash]
+[source,console]
 ----
 $ mill versionFile.setReleaseVersion
 ----
@@ -120,7 +120,7 @@ For a version number `1.2.3` in the version file:
 
 Your version file contains `0.1.0`. In your terminal you do the following:
 
-[source,bash]
+[source,console]
 ----
 $ mill versionFile.setNextVersion --bump minor
 ----
@@ -141,7 +141,7 @@ The version to write to the version file.
 
 Your version file contains `0.1.0`. In your terminal you do the following:
 
-[source,bash]
+[source,console]
 ----
 $ mill versionFile.setVersion --version 0.5.2-SNAPSHOT
 ----
@@ -152,21 +152,21 @@ This will update the version file to contain `0.5.2-SNAPSHOT`.
 
 If you need to output the version numbers (for example for other CI tools you might use), you can use the following commands:
 
-[source,bash]
+.Show the current version from the version file
+[source,console]
 ----
-# Show the current version from the version file.
 $ mill show versionFile.currentVersion
 ----
 
-[source,bash]
+.Show the version that would be used as release version
+[source,console]
 ----
-# Show the version that would be used as release version.
 $ mill show versionFile.releaseVersion
 ----
 
-[source,bash]
+.Show the version that would be used as next version with the given --bump argument
+[source,console]
 ----
-# Show the version that would be used as next version with the given --bump argument.
 $ mill show versionFile.nextVersion --bump minor
 ----
 
@@ -174,10 +174,10 @@ $ mill show versionFile.nextVersion --bump minor
 
 The module has an `exec` task that allows you to execute tasks of type `T[Seq[os.proc]]`:
 
-[source,bash]
+[source,console]
 ----
-$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.tag
-$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.push
+$ mill mill.contrib.versionfile/exec --procs versionFile.tag
+$ mill mill.contrib.versionfile/exec --procs versionFile.push
 ----
 
 === Built-in git operations

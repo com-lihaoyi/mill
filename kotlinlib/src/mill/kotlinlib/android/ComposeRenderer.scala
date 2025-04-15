@@ -1,6 +1,6 @@
 package mill.kotlinlib.android
 
-import mill.api.internal
+import mill.api.internal.internal
 
 private[android] object ComposeRenderer {
 

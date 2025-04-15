@@ -5,7 +5,8 @@
 package mill.kotlinlib.kover
 
 import mill.*
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.define.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
@@ -87,7 +88,7 @@ trait KoverModule extends KotlinModule { outer =>
   trait KoverTests extends TestModule {
 
     private def koverAgentDep: T[Seq[Dep]] = Task {
-      Seq(ivy"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
+      Seq(mvn"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
     }
 
     /** The Kover Agent is used at test-runtime. */
@@ -120,8 +121,8 @@ trait KoverModule extends KotlinModule { outer =>
  * all modules that extend [[KoverModule]].
  *
  * - ./mill __.test                                              # run tests for all modules
- * - ./mill mill.kotlinlib.kover.Kover/htmlReportAll     # generates report in html format for all modules
- * - ./mill mill.kotlinlib.kover.Kover/xmlReportAll      # generates report in xml format for all modules
+ * - ./mill mill.kotlinlib.kover/htmlReportAll     # generates report in html format for all modules
+ * - ./mill mill.kotlinlib.kover/xmlReportAll      # generates report in xml format for all modules
  *
  * The aggregated report will be available at either `out/mill/kotlinlib/contrib/kover/Kover/htmlReportAll.dest/`
  * for html reports or `out/mill/kotlinlib/contrib/kover/Kover/xmlReportAll.dest/` for xml reports.
@@ -200,7 +201,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       reportType: ReportType,
       classpath: Seq[Path],
       workingDir: os.Path
-  )(implicit ctx: api.Ctx): PathRef = {
+  )(implicit ctx: mill.define.TaskCtx): PathRef = {
     val args = Seq.newBuilder[String]
     args += "report"
     args ++= binaryReportsPaths.map(_.toString())

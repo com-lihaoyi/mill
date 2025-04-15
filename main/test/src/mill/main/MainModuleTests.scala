@@ -1,14 +1,14 @@
 package mill.main
 
-import mill.api.{ExecResult, PathRef, Result, Val}
+import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles
 import mill.{Task, given}
-import mill.define.{Cross, Discover, Module, TaskModule}
+import mill.define.{PathRef, Cross, Discover, Module, TaskModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, test}
 
-import java.io.{ByteArrayOutputStream, PrintStream}
+import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
 import scala.collection.mutable
 
 object MainModuleTests extends TestSuite {
@@ -206,15 +206,16 @@ object MainModuleTests extends TestSuite {
     }
 
     test("show") {
-      val outStream = new ByteArrayOutputStream()
-      val errStream = new ByteArrayOutputStream()
-      val evaluator = UnitTester(
-        mainModule,
-        null,
-        outStream = new PrintStream(outStream, true),
-        errStream = new PrintStream(errStream, true)
-      )
       test("single") {
+        val outStream = new ByteArrayOutputStream()
+        val errStream = new ByteArrayOutputStream()
+        val evaluator = UnitTester(
+          mainModule,
+          null,
+          outStream = new PrintStream(outStream, true),
+          errStream = new PrintStream(errStream, true)
+        )
+
         val results =
           evaluator.evaluator.execute(Seq(mainModule.show(
             evaluator.evaluator,
@@ -241,6 +242,15 @@ object MainModuleTests extends TestSuite {
         assert(strippedErr.contains("Hello Console Stderr"))
       }
       test("multi") {
+        val outStream = new ByteArrayOutputStream()
+        val errStream = new ByteArrayOutputStream()
+        val evaluator = UnitTester(
+          mainModule,
+          null,
+          outStream = new PrintStream(outStream, true),
+          errStream = new PrintStream(errStream, true)
+        )
+
         val results =
           evaluator.evaluator.execute(Seq(mainModule.show(
             evaluator.evaluator,
@@ -274,6 +284,13 @@ object MainModuleTests extends TestSuite {
       }
 
       test("command") {
+        val evaluator = UnitTester(
+          mainModule,
+          null,
+          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
+          errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+        )
+
         val Left(ExecResult.Failure(failureMsg)) =
           evaluator.apply("show", "helloCommand"): @unchecked
         assert(
@@ -289,6 +306,13 @@ object MainModuleTests extends TestSuite {
       }
 
       test("worker") {
+        val evaluator = UnitTester(
+          mainModule,
+          null,
+          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
+          errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+        )
+
         val Right(result) = evaluator.apply("show", "helloWorker"): @unchecked
         val Seq(res: ujson.Obj) = result.value: @unchecked
         assert(res("toString").str == "theHelloWorker")

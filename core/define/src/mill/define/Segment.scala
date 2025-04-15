@@ -1,6 +1,6 @@
 package mill.define
 
-type Segment = mill.runner.api.Segment
-val Segment = mill.runner.api.Segment
-type Segments = mill.runner.api.Segments
-val Segments = mill.runner.api.Segments
+type Segment = mill.api.Segment
+val Segment = mill.api.Segment
+type Segments = mill.api.Segments
+val Segments = mill.api.Segments

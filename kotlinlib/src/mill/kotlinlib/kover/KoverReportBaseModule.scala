@@ -6,7 +6,7 @@ package mill.kotlinlib.kover
 
 import mill._
 import mill.api.Result.Success
-import mill.api.{PathRef}
+import mill.define.{PathRef}
 import mill.kotlinlib.{Dep, DepSyntax, Versions}
 import mill.scalalib.CoursierModule
 
@@ -22,7 +22,7 @@ trait KoverReportBaseModule extends CoursierModule {
   }
 
   def koverCliDep: Target[Seq[Dep]] = Task {
-    Seq(ivy"org.jetbrains.kotlinx:kover-cli:${koverVersion()}")
+    Seq(mvn"org.jetbrains.kotlinx:kover-cli:${koverVersion()}")
   }
 
   /**

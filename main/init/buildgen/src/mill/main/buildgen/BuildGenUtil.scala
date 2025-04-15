@@ -2,6 +2,7 @@ package mill.main.buildgen
 
 import geny.Generator
 import mainargs.{Flag, arg}
+import mill.api.internal.internal
 import mill.constants.CodeGenConstants.{
   buildFileExtensions,
   nestedBuildFileNames,
@@ -11,12 +12,12 @@ import mill.constants.CodeGenConstants.{
 import mill.constants.OutFiles
 import mill.main.buildgen.BuildObject.Companions
 import mill.internal.Util.backtickWrap
-import mill.api.CrossVersion
+import mill.define.CrossVersion
 
 import scala.collection.immutable.SortedSet
 import scala.util.boundary
 
-@mill.api.internal
+@internal
 object BuildGenUtil {
 
   def renderIrTrait(value: IrTrait): String = {
@@ -77,13 +78,13 @@ object BuildGenUtil {
         // `testSandboxWorkingDir` is disabled as other build tools such as `sbt` don't run tests in the sandbox.
         s"""$declare {
            |
-           |${renderBomIvyDeps(scopedDeps.testBomIvyDeps)}
+           |${renderBomMvnDeps(scopedDeps.testBomMvnDeps)}
            |
-           |${renderIvyDeps(scopedDeps.testIvyDeps)}
+           |${renderMvnDeps(scopedDeps.testMvnDeps)}
            |
            |${renderModuleDeps(scopedDeps.testModuleDeps)}
            |
-           |${renderCompileIvyDeps(scopedDeps.testCompileIvyDeps)}
+           |${renderCompileMvnDeps(scopedDeps.testCompileMvnDeps)}
            |
            |${renderCompileModuleDeps(scopedDeps.testCompileModuleDeps)}
            |
@@ -113,17 +114,17 @@ object BuildGenUtil {
         if (baseTrait != null) baseTrait.repositories else Seq.empty
       )}
        |
-       |${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
+       |${renderBomMvnDeps(scopedDeps.mainBomMvnDeps)}
        |
-       |${renderIvyDeps(scopedDeps.mainIvyDeps)}
+       |${renderMvnDeps(scopedDeps.mainMvnDeps)}
        |
        |${renderModuleDeps(scopedDeps.mainModuleDeps)}
        |
-       |${renderCompileIvyDeps(scopedDeps.mainCompileIvyDeps)}
+       |${renderCompileMvnDeps(scopedDeps.mainCompileMvnDeps)}
        |
        |${renderCompileModuleDeps(scopedDeps.mainCompileModuleDeps)}
        |
-       |${renderRunIvyDeps(scopedDeps.mainRunIvyDeps)}
+       |${renderRunMvnDeps(scopedDeps.mainRunMvnDeps)}
        |
        |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
        |
@@ -175,10 +176,6 @@ object BuildGenUtil {
        else if (packagesSize > 1) Seq("$packages._")
        else None)
   }
-
-  def buildFiles(workspace: os.Path): geny.Generator[os.Path] =
-    os.walk.stream(workspace, skip = (workspace / OutFiles.out).equals)
-      .filter(file => buildFileExtensions.contains(file.ext))
 
   def buildModuleFqn(dirs: Seq[String]): String =
     (rootModuleAlias +: dirs).iterator.map(backtickWrap).mkString(".")
@@ -289,7 +286,7 @@ object BuildGenUtil {
   def escapeOption(value: String): String =
     if (null == value) "None" else s"Some(\"$value\")"
 
-  def renderIvyString(
+  def renderMvnString(
       group: String,
       artifact: String,
       crossVersion: Option[CrossVersion] = None,
@@ -328,7 +325,7 @@ object BuildGenUtil {
       .map { case (group, artifact) => s";exclude=$group:$artifact" }
       .mkString
 
-    s"ivy\"$group$sepArtifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
+    s"mvn\"$group$sepArtifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
   }
 
   def isBom(groupArtifactVersion: (String, String, String)): Boolean =
@@ -430,40 +427,27 @@ object BuildGenUtil {
       s"def $defName = Task.Anon { $s }"
     )
 
-  def scalafmtConfigFile: os.Path =
-    os.temp(
-      """version = "3.8.4"
-        |runner.dialect = scala213
-        |newlines.source=fold
-        |newlines.topLevelStatementBlankLines = [
-        |  {
-        |    blanks { before = 1 }
-        |  }
-        |]
-        |""".stripMargin
-    )
-
   def renderArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
 
-  def renderBomIvyDeps(args: IterableOnce[String]): String =
-    optional("def bomIvyDeps = super.bomIvyDeps() ++ Seq", args)
+  def renderBomMvnDeps(args: IterableOnce[String]): String =
+    optional("def bomMvnDeps = super.bomMvnDeps() ++ Seq", args)
 
-  def renderIvyDeps(args: IterableOnce[String]): String =
-    optional("def ivyDeps = super.ivyDeps() ++ Seq", args)
+  def renderMvnDeps(args: IterableOnce[String]): String =
+    optional("def mvnDeps = super.mvnDeps() ++ Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
-  def renderCompileIvyDeps(args: IterableOnce[String]): String =
-    optional("def compileIvyDeps = super.compileIvyDeps() ++ Seq", args)
+  def renderCompileMvnDeps(args: IterableOnce[String]): String =
+    optional("def compileMvnDeps = super.compileMvnDeps() ++ Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
-  def renderRunIvyDeps(args: IterableOnce[String]): String =
-    optional("def runIvyDeps = super.runIvyDeps() ++ Seq", args)
+  def renderRunMvnDeps(args: IterableOnce[String]): String =
+    optional("def runMvnDeps = super.runMvnDeps() ++ Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
@@ -555,7 +539,7 @@ object BuildGenUtil {
 
     println("removing existing Mill build files")
     val workspace = os.pwd
-    buildFiles(workspace).foreach(os.remove.apply)
+    mill.init.Util.buildFiles(workspace).foreach(os.remove.apply)
 
     nodes.foreach { node =>
       val file = buildFile(node.dirs)

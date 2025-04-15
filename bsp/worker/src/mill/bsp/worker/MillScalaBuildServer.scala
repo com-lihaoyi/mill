@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsParams,
   ScalacOptionsResult
 }
-import mill.runner.api.{TaskApi, JavaModuleApi, TestModuleApi}
+import mill.api.internal.{TaskApi, JavaModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 import sbt.testing.Fingerprint
 
@@ -25,8 +25,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =
-    completableTasks(
-      hint = s"buildTarget/scalacOptions ${p}",
+    handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: JavaModuleApi =>
@@ -57,8 +56,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
 
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
       : CompletableFuture[ScalaMainClassesResult] =
-    completableTasks(
-      hint = "buildTarget/scalaMainClasses",
+    handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = { case m: JavaModuleApi => m.bspBuildTargetScalaMainClasses }
     ) {
@@ -80,37 +78,23 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     }
 
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
-      : CompletableFuture[ScalaTestClassesResult] = ???
-//    completableTasks(
-//      s"buildTarget/scalaTestClasses ${p}",
-//      targetIds = _ => p.getTargets.asScala.toSeq,
-//      tasks = {
-//        case m: TestModuleApi => m.bspBuildTargetScalaTestClasses
-//      }
-//    ) {
-//      case (ev, state, id, m: TestModuleApi, Some((classpath, testFramework, testClasspath))) =>
-//        val (frameworkName, classFingerprint): (String, Seq[(Class[?], Fingerprint)]) =
-//          Jvm.withClassLoader(
-//            classPath = classpath.map(_.path).toVector,
-//            sharedPrefixes = Seq("sbt.testing.")
-//          ) { classLoader =>
-//            val framework = Framework.framework(testFramework)(classLoader)
-//            val discoveredTests = TestRunnerUtils.discoverTests(
-//              classLoader,
-//              framework,
-//              Seq.from(testClasspath.map(_.path))
-//            )
-//            (framework.name(), discoveredTests)
-//          }: @unchecked
-//        val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
-//        new ScalaTestClassesItem(id, classes.asJava).tap { it =>
-//          it.setFramework(frameworkName)
-//        }
-//      case (ev, state, id, _, _) =>
-//        // Not a test module, so no test classes
-//        new ScalaTestClassesItem(id, Seq.empty[String].asJava)
-//    } {
-//      new ScalaTestClassesResult(_)
-//    }
+      : CompletableFuture[ScalaTestClassesResult] =
+    handlerTasks(
+      targetIds = _ => p.getTargets.asScala.toSeq,
+      tasks = {
+        case m: TestModuleApi => m.bspBuildTargetScalaTestClasses
+      }
+    ) {
+      case (ev, state, id, m: TestModuleApi, (frameworkName, classes)) =>
+        val item = new ScalaTestClassesItem(id, classes.asJava)
+        item.setFramework(frameworkName)
+        item
+
+      case (ev, state, id, _, _) =>
+        // Not a test module, so no test classes
+        new ScalaTestClassesItem(id, Seq.empty[String].asJava)
+    } {
+      new ScalaTestClassesResult(_)
+    }
 
 }

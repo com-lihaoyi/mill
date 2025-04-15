@@ -22,21 +22,21 @@ object InspectTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
       import tester._
-      val res = eval(("inspect", "core.test.ivyDeps"))
+      val res = eval(("inspect", "core.test.mvnDeps"))
       assert(res.isSuccess == true)
 
-      val inheritedIvyDeps = out("inspect").json.str
+      val inheritedMvnDeps = out("inspect").json.str
       assertGlobMatches(
-        """core.test.ivyDeps(build.mill:11)
-          |    Overridden ivyDeps Docs!!!
+        """core.test.mvnDeps(build.mill:11)
+          |    Overridden mvnDeps Docs!!!
           |
           |    Any ivy dependencies you want to add to this Module, in the format
-          |    ivy"org::name:version" for Scala dependencies or ivy"org:name:version"
+          |    mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
           |    for Java dependencies
           |
           |Inputs:
           |""".stripMargin,
-        inheritedIvyDeps
+        inheritedMvnDeps
       )
 
       assert(eval(("inspect", "core.task")).isSuccess)
@@ -85,32 +85,32 @@ object InspectTests extends UtestIntegrationTestSuite {
         run
       )
 
-      assert(eval(("inspect", "core.ivyDepsTree")).isSuccess)
+      assert(eval(("inspect", "core.mvnDepsTree")).isSuccess)
 
-      val ivyDepsTree = out("inspect").json.str
+      val mvnDepsTree = out("inspect").json.str
 
       assertGlobMatches(
-        """core.ivyDepsTree(JavaModule.scala:...)
+        """core.mvnDepsTree(JavaModule.scala:...)
           |    Command to print the transitive dependency tree to STDOUT.
           |
           |    --inverse                Invert the tree representation, so that the root is on the bottom val
           |                             inverse (will be forced when used with whatDependsOn)
           |    --what-depends-on <str>  Possible list of modules (org:artifact) to target in the tree in order
           |                             to see where a dependency stems from.
-          |    --with-compile           Include the compile-time only dependencies (`compileIvyDeps`, provided
+          |    --with-compile           Include the compile-time only dependencies (`compileMvnDeps`, provided
           |                             scope) into the tree.
-          |    --with-runtime           Include the runtime dependencies (`runIvyDeps`, runtime scope) into the
+          |    --with-runtime           Include the runtime dependencies (`runMvnDeps`, runtime scope) into the
           |                             tree.
           |
           |Inputs:
-          |    core.mandatoryIvyDeps
-          |    core.ivyDeps
-          |    core.compileIvyDeps
-          |    core.runIvyDeps
-          |    core.bomIvyDeps
+          |    core.mandatoryMvnDeps
+          |    core.mvnDeps
+          |    core.compileMvnDeps
+          |    core.runMvnDeps
+          |    core.bomMvnDeps
           |    core.depManagement
           |""".stripMargin,
-        ivyDepsTree
+        mvnDepsTree
       )
 
       assert(eval(("inspect", "core.test.theWorker")).isSuccess)
@@ -129,8 +129,8 @@ object InspectTests extends UtestIntegrationTestSuite {
 
       // Make sure both kebab-case and camelCase flags work, even though the
       // docs from `inspect` only show the kebab-case version
-      assert(eval(("core.ivyDepsTree", "--withCompile", "--withRuntime")).isSuccess)
-      assert(eval(("core.ivyDepsTree", "--with-compile", "--with-runtime")).isSuccess)
+      assert(eval(("core.mvnDepsTree", "--withCompile", "--withRuntime")).isSuccess)
+      assert(eval(("core.mvnDepsTree", "--with-compile", "--with-runtime")).isSuccess)
 
       val basic = eval(("inspect", "basic"))
       assert(basic.isSuccess)

@@ -122,7 +122,7 @@ object Cross {
   }
 
   class Factory[T: ClassTag](
-      val makeList: Seq[(Class[?], mill.define.Ctx => T)],
+      val makeList: Seq[(Class[?], mill.define.ModuleCtx => T)],
       val crossValuesListLists: Seq[Seq[Any]],
       val crossSegmentsList: Seq[Seq[String]],
       val crossValuesRaw: Seq[Any]
@@ -160,7 +160,7 @@ object Cross {
  */
 trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.define.Module {
 
-  val ctx: Ctx = moduleCtx
+  val ctx: ModuleCtx = moduleCtx
 
   trait Item {
     def crossValues: List[Any]

@@ -2,7 +2,8 @@ package mill.scalalib
 
 import mainargs.Flag
 import mill._
-import mill.api.{Ctx, PathRef, Result}
+import mill.api.Result
+import mill.define.{TaskCtx, PathRef}
 import mill.define.{Discover, ExternalModule, Task}
 import mill.scalalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
@@ -61,10 +62,11 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       val path = mill.util.Jvm.resolveJavaHome(
         id = id,
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.api.Ctx.Log]),
+        ctx = Some(Task.ctx()),
         jvmIndexVersion = jvmIndexVersion()
       ).get
-      PathRef(path, quick = true)
+      // Java home is externally managed, better revalidate it at least once
+      PathRef(path, quick = true).withRevalidateOnce
     }
   }
 
@@ -109,7 +111,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: Ctx): (Option[Seq[PathRef]], PathRef) = {
+  )(implicit ctx: TaskCtx): (Option[Seq[PathRef]], PathRef) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, JvmWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -121,18 +123,18 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
           if (isDotty(scalaVersion0)) "dotty-sbt-bridge"
           else "scala3-sbt-bridge"
         val version = scalaVersion
-        (ivy"$org:$name:$version", name, version)
+        (mvn"$org:$name:$version", name, version)
       } else if (JvmWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
         val org = "com.lihaoyi"
         val name = s"mill-scala-compiler-bridge_$scalaVersion"
         val version = Versions.millCompilerBridgeVersion
-        (ivy"$org:$name:$version", name, version)
+        (mvn"$org:$name:$version", name, version)
       } else {
         val org = "org.scala-sbt"
         val name = "compiler-bridge"
         val version = Versions.zinc
         (
-          ivy"$org:${name}_${scalaBinaryVersion0}:$version",
+          mvn"$org:${name}_${scalaBinaryVersion0}:$version",
           s"${name}_$scalaBinaryVersion0",
           version
         )
@@ -158,9 +160,9 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: Ctx): Seq[PathRef] = {
+  )(implicit ctx: TaskCtx): Seq[PathRef] = {
     resolver.classpath(
-      deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
+      deps = Seq(mvn"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))

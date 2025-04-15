@@ -1,7 +1,6 @@
 package mill.testrunner
 
-import mill.api.internal
-import mill.runner.api.DummyTestReporter
+import mill.api.internal.{TestReporter, internal}
 
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
@@ -18,7 +17,7 @@ import mill.runner.api.DummyTestReporter
             args = testArgs.arguments,
             classFilter = cls => filter(cls.getName),
             cl = classLoader,
-            testReporter = DummyTestReporter,
+            testReporter = TestReporter(testArgs.logLevel),
             resultPathOpt = Some(testArgs.resultPath)
           )
         case Right((startingTestClass, testClassQueueFolder, claimFolder)) =>
@@ -30,7 +29,7 @@ import mill.runner.api.DummyTestReporter
             testClassQueueFolder = testClassQueueFolder,
             claimFolder = claimFolder,
             cl = classLoader,
-            testReporter = DummyTestReporter,
+            testReporter = TestReporter(testArgs.logLevel),
             resultPath = testArgs.resultPath
           )
       }

@@ -1,6 +1,6 @@
 //package mill.contrib.bloop
 //
-//import mill.api.WorkspaceRoot
+//import WorkspaceRoot
 //import mill.define.Evaluator
 //
 ///**

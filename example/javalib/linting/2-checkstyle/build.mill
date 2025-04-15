@@ -139,7 +139,7 @@ Audit done.
 // [source,scala]
 // ----
 // import mill._
-// import mill.api.PathRef
+// import mill.define.PathRef
 // import mill.contrib.checkstyle.CheckstyleXsltModule
 // import mill.contrib.checkstyle.CheckstyleXsltReport
 // import mill.scalalib._

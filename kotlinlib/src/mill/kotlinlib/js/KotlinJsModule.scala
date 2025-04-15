@@ -1,7 +1,8 @@
 package mill.kotlinlib.js
 
 import mainargs.arg
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.define.{Command, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
@@ -62,13 +63,13 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
-  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-    super.mandatoryIvyDeps()
+  override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+    super.mandatoryMvnDeps()
       // TODO: find source or docs, why this is the correct behavior
       // Filter out the non-js kotlin-stdlib
       .filterNot(d => d.organization == "org.jetbrains.kotlin" && d.name == "kotlin-stdlib") ++
       Seq(
-        ivy"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
+        mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
       )
   }
 
@@ -149,7 +150,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       artifactId: String,
       envArgs: Map[String, String] = Map.empty[String, String],
       workingDir: os.Path
-  )(implicit ctx: mill.api.Ctx): Result[Int] = {
+  )(implicit ctx: mill.define.TaskCtx): Result[Int] = {
     if (binaryKind.isEmpty || binaryKind.get != BinaryKind.Executable) {
       return Result.Failure("Run action is only allowed for the executable binary")
     }
@@ -277,7 +278,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       explicitApi: Boolean,
       extraKotlinArgs: Seq[String],
       worker: KotlinWorker
-  )(implicit ctx: mill.api.Ctx): Result[CompilationResult] = {
+  )(implicit ctx: mill.define.TaskCtx): Result[CompilationResult] = {
     val versionAllowed = kotlinVersion.split("\\.").map(_.toInt) match {
       case Array(1, 8, z) => z >= 20
       case Array(1, y, _) => y >= 9
@@ -424,7 +425,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
 
   // **NOTE**: This logic may (and probably is) be incomplete
-  private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.api.Ctx): Boolean = {
+  private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.define.TaskCtx): Boolean = {
     if (os.isDir(path)) {
       true
     } else if (path.ext == "klib") {
@@ -675,8 +676,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Run tests for Kotlin/JS target using `kotlin.test` package.
    */
   trait KotlinTestPackageTests extends KotlinJsTests {
-    override def mandatoryIvyDeps: T[Seq[Dep]] = super.mandatoryIvyDeps() ++ Seq(
-      ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++ Seq(
+      mvn"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
   }
 
@@ -691,13 +692,13 @@ trait KotlinJsModule extends KotlinModule { outer =>
      */
     def kotestVersion: T[String]
 
-    override def kotlincPluginIvyDeps: T[Seq[Dep]] = super.kotlincPluginIvyDeps() ++ Seq(
-      ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] = super.kotlincPluginMvnDeps() ++ Seq(
+      mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
     )
 
-    override def mandatoryIvyDeps: T[Seq[Dep]] = super.mandatoryIvyDeps() ++ Seq(
-      ivy"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
-      ivy"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++ Seq(
+      mvn"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
+      mvn"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
     )
   }
 

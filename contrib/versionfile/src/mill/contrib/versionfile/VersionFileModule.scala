@@ -37,7 +37,7 @@ trait VersionFileModule extends Module {
     writeVersionToFile(versionFile(), version())
   }
 
-  def writeVersionToFile(versionFile: mill.api.PathRef, version: Version): Unit =
+  def writeVersionToFile(versionFile: PathRef, version: Version): Unit =
     os.write.over(
       versionFile.path,
       version.toString
@@ -80,6 +80,7 @@ trait VersionFileModule extends Module {
     )
 }
 
+object `package` extends define.ExternalModule.Alias(VersionFileModule)
 object VersionFileModule extends define.ExternalModule {
 
   /** Executes the given processes. */

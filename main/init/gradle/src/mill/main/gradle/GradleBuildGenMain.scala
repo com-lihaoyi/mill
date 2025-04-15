@@ -1,6 +1,7 @@
 package mill.main.gradle
 
 import mainargs.{ParserForClass, arg, main}
+import mill.api.internal.internal
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.gradle.JavaModel.{Dep, ExternalDep}
@@ -40,7 +41,7 @@ import scala.jdk.CollectionConverters.*
  *  - custom tasks
  *  - non-Java sources
  */
-@mill.api.internal
+@internal
 object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep] {
   override type C = Config
 
@@ -241,8 +242,8 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       case version => version
     }
 
-  def interpIvy(dep: ExternalDep): String = {
-    BuildGenUtil.renderIvyString(dep.group(), dep.name(), version = dep.version())
+  def interpMvn(dep: ExternalDep): String = {
+    BuildGenUtil.renderMvnString(dep.group(), dep.name(), version = dep.version())
   }
 
   def extractPomSettings(project: ProjectModel): IrPom | Null = {
@@ -276,17 +277,17 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()
     if (null != _java) {
-      val ivyDep: ExternalDep => String =
-        cfg.shared.basicConfig.depsObject.fold(interpIvy(_)) { objName => dep =>
+      val mvnDep: ExternalDep => String =
+        cfg.shared.basicConfig.depsObject.fold(interpMvn(_)) { objName => dep =>
           val depName = s"`${dep.group()}:${dep.name()}`"
-          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))
+          sd = sd.copy(namedMvnDeps = sd.namedMvnDeps :+ (depName, interpMvn(dep)))
           s"$objName.$depName"
         }
 
-      def appendIvyDepPackage(
+      def appendMvnDepPackage(
           deps: IterableOnce[Dep],
           onPackage: String => IrScopedDeps,
-          onIvy: (String, (String, String, String)) => IrScopedDeps
+          onMvn: (String, (String, String, String)) => IrScopedDeps
       ): Unit = {
         for (dep <- deps.iterator) {
           if (dep.isProjectDepOrExternalDep)
@@ -294,8 +295,8 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
           else {
             val externalDep = dep.externalDep()
             val id = getDepGav(externalDep)
-            val ivy = ivyDep(externalDep)
-            sd = onIvy(ivy, id)
+            val mvn = mvnDep(externalDep)
+            sd = onMvn(mvn, id)
           }
         }
       }
@@ -305,37 +306,37 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
         val conf = config.name()
         conf match {
           case IMPLEMENTATION_CONFIGURATION_NAME | API_CONFIGURATION_NAME =>
-            appendIvyDepPackage(
+            appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(mainModuleDeps = sd.mainModuleDeps + v),
-              onIvy = (v, id) =>
-                if (isBom(id)) sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + v)
-                else sd.copy(mainIvyDeps = sd.mainIvyDeps + v)
+              onMvn = (v, id) =>
+                if (isBom(id)) sd.copy(mainBomMvnDeps = sd.mainBomMvnDeps + v)
+                else sd.copy(mainMvnDeps = sd.mainMvnDeps + v)
             )
 
           case COMPILE_ONLY_CONFIGURATION_NAME | COMPILE_ONLY_API_CONFIGURATION_NAME =>
 
-            appendIvyDepPackage(
+            appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + v),
-              onIvy = (v, id) => sd.copy(mainCompileIvyDeps = sd.mainCompileIvyDeps + v)
+              onMvn = (v, id) => sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + v)
             )
 
           case RUNTIME_ONLY_CONFIGURATION_NAME =>
-            appendIvyDepPackage(
+            appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(mainRunModuleDeps = sd.mainRunModuleDeps + v),
-              onIvy = (v, id) => sd.copy(mainRunIvyDeps = sd.mainRunIvyDeps + v)
+              onMvn = (v, id) => sd.copy(mainRunMvnDeps = sd.mainRunMvnDeps + v)
             )
 
           case TEST_IMPLEMENTATION_CONFIGURATION_NAME =>
 
-            appendIvyDepPackage(
+            appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(testModuleDeps = sd.testModuleDeps + v),
-              onIvy = (v, id) =>
-                if (isBom(id)) sd.copy(testBomIvyDeps = sd.testBomIvyDeps + v)
-                else sd.copy(testIvyDeps = sd.testIvyDeps + v)
+              onMvn = (v, id) =>
+                if (isBom(id)) sd.copy(testBomMvnDeps = sd.testBomMvnDeps + v)
+                else sd.copy(testMvnDeps = sd.testMvnDeps + v)
             )
             config.deps.forEach(dep =>
               if (hasTest && sd.testModule.isEmpty && !dep.isProjectDepOrExternalDep)
@@ -343,10 +344,10 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
             )
 
           case TEST_COMPILE_ONLY_CONFIGURATION_NAME =>
-            appendIvyDepPackage(
+            appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(testCompileModuleDeps = sd.testCompileModuleDeps + v),
-              onIvy = (v, id) => sd.copy(testCompileIvyDeps = sd.testCompileIvyDeps + v)
+              onMvn = (v, id) => sd.copy(testCompileMvnDeps = sd.testCompileMvnDeps + v)
             )
 
           case name =>
@@ -364,7 +365,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
   }
 
   @main
-  @mill.api.internal
+  @internal
   case class Config(
       shared: BuildGenUtil.Config,
       @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')

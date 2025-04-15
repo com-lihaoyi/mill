@@ -1,7 +1,7 @@
 package mill.kotlinlib.detekt
 
 import mill._
-import mill.api.{PathRef}
+import mill.define.{PathRef}
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Jvm
 
@@ -38,7 +38,9 @@ trait DetektModule extends KotlinModule {
     ).exitCode
   }
 
-  private def detektHandleErrors(check: Boolean, exitCode: Int)(implicit ctx: mill.api.Ctx) = {
+  private def detektHandleErrors(check: Boolean, exitCode: Int)(implicit
+      ctx: mill.define.TaskCtx
+  ) = {
 
     if (exitCode == 0) {} // do nothing
     else if (exitCode == 1) {
@@ -61,7 +63,7 @@ trait DetektModule extends KotlinModule {
    */
   def detektClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(ivy"io.gitlab.arturbosch.detekt:detekt-cli:${detektVersion()}")
+      Seq(mvn"io.gitlab.arturbosch.detekt:detekt-cli:${detektVersion()}")
     )
   }
 

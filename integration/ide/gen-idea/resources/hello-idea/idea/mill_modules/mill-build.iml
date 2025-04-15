@@ -57,21 +57,19 @@
         <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>
         <orderEntry type="library" name="mill-core-define_3.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-internal_3.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-util_3.jar" level="project"/>
         <orderEntry type="library" name="mill-idea_3.jar" level="project"/>
         <orderEntry type="library" name="mill-javascriptlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-kotlinlib-worker_3.jar" level="project"/>
         <orderEntry type="library" name="mill-kotlinlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-main-init-buildgen_3.jar" level="project"/>
         <orderEntry type="library" name="mill-main-init_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-main-util_3.jar" level="project"/>
         <orderEntry type="library" name="mill-main_3.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
         <orderEntry type="library" name="mill-pythonlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalajslib-worker-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalajslib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-scalalib-api_3.jar" level="project"/>
