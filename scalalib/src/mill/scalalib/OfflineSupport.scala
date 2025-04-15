@@ -14,23 +14,23 @@ object OfflineSupport extends ExternalModule {
   override protected def millDiscover: Discover = Discover[this.type]
 
   /**
-   * Prepare the project for working offline. 
+   * Prepare the project for working offline.
    * This should typically fetch (missing) resources like Maven dependencies.
-   * 
+   *
    * All fetched or cached resources will be returned. The result
    * - does not contain duplicates
    * - is also available as a JSON file at the stable location `<mill-out>/mill/scalalib/OfflineSupport/prepareOffline.json`
-   * 
+   *
    * If used without parameters, it's equivalent to running
-   * `mill mill.scalalib.OfflineSupport/prepareOffline __:OfflineSupportModule.prepareOffline` 
+   * `mill mill.scalalib.OfflineSupport/prepareOffline __:OfflineSupportModule.prepareOffline`
    * but without duplicates.
-   * 
+   *
    * To select only a subset of modules (`foo` and `bar`), run
-   * `mill mill.scalalib.OfflineSupport/prepareOffline "{foo,bar}.prepareOffline"` 
-   * 
+   * `mill mill.scalalib.OfflineSupport/prepareOffline "{foo,bar}.prepareOffline"`
+   *
    * To fetch all dependencies, even rarely used ones, run
-   * `mill mill.scalalib.OfflineSupport/prepareOffline __:OfflineSupportModule.prepareOffline --all` 
-   * 
+   * `mill mill.scalalib.OfflineSupport/prepareOffline __:OfflineSupportModule.prepareOffline --all`
+   *
    * @param modules module and parameter selector
    */
   def prepareOffline(
