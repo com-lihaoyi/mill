@@ -44,7 +44,7 @@ object MillMain {
   def main(args: Array[String]): Unit = mill.define.SystemStreams.withTopLevelSystemStreamProxy {
     val initialSystemStreams = mill.define.SystemStreams.original
     // setup streams
-    val (runnerStreams, cleanupStreams, bspLog) =
+    val (runnerStreams, cleanupStreams) =
       if (args.headOption == Option("--bsp")) {
         // In BSP mode, we use System.in/out for protocol communication
         // and all Mill output (stdout and stderr) goes to a dedicated file
@@ -64,11 +64,10 @@ object MillMain {
             in = System.in
           ),
           Seq(errFile),
-          Some(errFile)
         )
       } else {
         // Unchanged system stream
-        (initialSystemStreams, Seq(), None)
+        (initialSystemStreams, Seq())
       }
 
     if (Properties.isWin && Util.hasConsole())
@@ -92,7 +91,6 @@ object MillMain {
           stateCache = RunnerState.empty,
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = runnerStreams,
-          bspLog = bspLog,
           env = System.getenv().asScala.toMap,
           setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
@@ -114,7 +112,6 @@ object MillMain {
       stateCache: RunnerState,
       mainInteractive: Boolean,
       streams0: SystemStreams,
-      bspLog: Option[PrintStream],
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties0: Map[String, String],
@@ -290,7 +287,6 @@ object MillMain {
                       )
                       val runSessionRes = runBspSession(
                         streams,
-                        bspLog,
                         prevRunnerState =>
                           runMillBootstrap(
                             false,
@@ -349,7 +345,6 @@ object MillMain {
 
   def runBspSession(
       streams0: SystemStreams,
-      logStream: Option[PrintStream],
       runMillBootstrap: Option[RunnerState] => RunnerState,
       splitErr: PrintStream
   ): Result[BspServerResult] = {
@@ -381,7 +376,6 @@ object MillMain {
         worker.startBspServer(
           define.WorkspaceRoot.workspaceRoot,
           streams0,
-          logStream.getOrElse(streams0.err),
           logDir,
           true
         )

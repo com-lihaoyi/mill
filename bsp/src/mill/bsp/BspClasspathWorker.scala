@@ -10,7 +10,6 @@ private trait BspClasspathWorker {
   def startBspServer(
       topLevelBuildRoot: os.Path,
       streams: SystemStreams,
-      logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
   ): Result[BspServerHandle]
