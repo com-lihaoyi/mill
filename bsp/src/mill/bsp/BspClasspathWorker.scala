@@ -22,7 +22,6 @@ object BspClasspathWorker {
 
   def apply(
       workspace: os.Path,
-      logger: Logger,
       workerLibs: Option[Seq[URL]] = None
   ): BspClasspathWorker = {
     worker.getOrElse {

@@ -326,7 +326,7 @@ object MillMain {
 
         val bspServerHandleRes = {
           val wsRoot = WorkspaceRoot.workspaceRoot
-          val worker = mill.bsp.BspClasspathWorker(wsRoot, logger = ???)
+          val worker = mill.bsp.BspClasspathWorker(wsRoot)
           val logDir = wsRoot / OutFiles.out / "mill-bsp"
           os.makeDir.all(logDir)
           worker.startBspServer(
