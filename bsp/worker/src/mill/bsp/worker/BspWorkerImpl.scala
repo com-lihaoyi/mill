@@ -18,7 +18,6 @@ private class BspWorkerImpl() extends BspClasspathWorker {
   override def startBspServer(
       topLevelBuildRoot: os.Path,
       streams: SystemStreams,
-      logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
   ): mill.api.Result[BspServerHandle] = {
@@ -31,7 +30,7 @@ private class BspWorkerImpl() extends BspClasspathWorker {
           bspVersion = Constants.bspProtocolVersion,
           serverVersion = BuildInfo.millVersion,
           serverName = Constants.serverName,
-          logStream = logStream,
+          logStream = streams.err,
           canReload = canReload,
           debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true"),
           onShutdown = () => {

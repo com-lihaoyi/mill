@@ -615,7 +615,7 @@ private class MillBuildServer(
 
           def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
             val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
-            debug(msg)
+            print(msg)
             client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
           }
 
@@ -633,9 +633,8 @@ private class MillBuildServer(
 
           resultsById.flatMap {
             case (id, values) =>
-              try {
-                Seq(f(ev, state, id, state.bspModulesById(id)._1, values))
-              } catch {
+              try Seq(f(ev, state, id, state.bspModulesById(id)._1, values))
+              catch {
                 case NonFatal(e) =>
                   logError(id, e.toString)
                   Seq()
@@ -660,10 +659,10 @@ private class MillBuildServer(
       hint: String,
       checkInitialized: Boolean = true
   )(f: BspEvaluators => V): CompletableFuture[V] = {
-    print(s"Entered ${hint}")
 
     val start = System.currentTimeMillis()
     val prefix = hint.split(" ").head
+    print(s"Entered ${prefix}")
     def took =
       print(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
@@ -679,7 +678,7 @@ private class MillBuildServer(
         case Success(state) =>
           try {
             requestLock.lock()
-            val v = os.checker.withValue(os.Checker.Nop)(f(state))
+            val v = f(state)
             took
             debug(s"${prefix} result: ${v}")
             future.complete(v)
