@@ -53,15 +53,15 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   object worker extends MillKotlinModule {
     def moduleDeps = Seq(build.testrunner)
 
-    override def compileIvyDeps: T[Agg[Dep]] = Agg(
+    override def compileMvnDeps: T[Agg[Dep]] = Agg(
       build.Deps.osLib
     )
 
     object impl extends MillKotlinModule {
       override def compileModuleDeps = Seq(worker)
-      def mandatoryIvyDeps = Agg.empty[Dep]
-      override def compileIvyDeps: T[Agg[Dep]] =
-        super.mandatoryIvyDeps() ++ Agg(
+      def mandatoryMvnDeps = Agg.empty[Dep]
+      override def compileMvnDeps: T[Agg[Dep]] =
+        super.mandatoryMvnDeps() ++ Agg(
           build.Deps.osLib,
           build.Deps.kotlinCompiler
         )
@@ -75,7 +75,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
 
     override def moduleDeps = Seq(build.main, build.kotlinlib)
 
-    override def ivyDeps = Agg(
+    override def mvnDeps = Agg(
       build.Deps.hiltGradlePlugin,
       build.Deps.androidTools
     )
