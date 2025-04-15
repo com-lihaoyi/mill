@@ -660,10 +660,10 @@ private class MillBuildServer(
       hint: String,
       checkInitialized: Boolean = true
   )(f: BspEvaluators => V): CompletableFuture[V] = {
-    print(s"Entered ${hint}")
 
     val start = System.currentTimeMillis()
     val prefix = hint.split(" ").head
+    print(s"Entered ${prefix}")
     def took =
       print(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
