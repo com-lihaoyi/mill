@@ -14,10 +14,11 @@ trait ClassgraphWorkerModule extends CoursierModule with OfflineSupportModule {
     ))
   }
 
-  override def prepareOffline(all: Flag): Command[Unit] = Task.Command {
-    super.prepareOffline(all)()
-    classgraphWorkerClasspath()
-    ()
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
+    (
+      super.prepareOffline(all)() ++
+        classgraphWorkerClasspath()
+    ).distinct
   }
 
   def classgraphWorker: Worker[ClassgraphWorker] = Task.Worker {

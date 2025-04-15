@@ -11,6 +11,7 @@ import os.RelPath
 import upickle.default._
 
 import scala.jdk.OptionConverters.RichOptional
+import scala.xml.{Attribute, Null, Text, XML}
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -53,6 +54,38 @@ object AndroidLintReportFormat extends Enumeration {
 trait AndroidAppModule extends AndroidModule {
 
   private val parent: AndroidAppModule = this
+
+  /**
+   * The namespace of the android application which is used
+   * to specify the fully qualified classpath of the activity.
+   *
+   * For instance, it is used as the package name in Android Manifest
+   */
+  def androidApplicationNamespace: String
+
+  /**
+   * Android Application Id which is typically package.main .
+   * Can be used for build variants.
+   *
+   * Build variant feature is not yet implemented!
+   */
+  def androidApplicationId: String
+
+  /**
+   * Provides os.Path to an XML file containing configuration and metadata about your android application.
+   */
+  override def androidManifest: T[PathRef] = Task {
+    val manifestFromSourcePath = moduleDir / "src/main/AndroidManifest.xml"
+
+    val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
+    // add the application package
+    val manifestWithPackage =
+      manifestElem % Attribute(None, "package", Text(androidApplicationNamespace), Null)
+    val generatedManifestPath = Task.dest / "AndroidManifest.xml"
+    os.write(generatedManifestPath, manifestWithPackage.mkString)
+
+    PathRef(generatedManifestPath)
+  }
 
   /**
    * Specifies the file format(s) of the lint report. Available file formats are defined in AndroidLintReportFormat,
@@ -166,17 +199,11 @@ trait AndroidAppModule extends AndroidModule {
    *
    * @return os.Path to the Generated DEX File Directory
    */
-  def androidDex: T[PathRef] = Task {
-
-    val inheritedClassFiles = compileClasspath().map(_.path).filter(os.isDir)
-      .flatMap(os.walk(_))
-      .filter(os.isFile)
-      .filter(_.ext == "class")
-      .map(_.toString())
+  override def androidDex: T[PathRef] = Task {
 
     val appCompiledFiles = os.walk(compile().classes.path)
       .filter(_.ext == "class")
-      .map(_.toString) ++ inheritedClassFiles
+      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString())
 
     val libsJarFiles = compileClasspath()
       .filter(_ != androidSdkModule().androidJarPath())
@@ -520,7 +547,7 @@ trait AndroidAppModule extends AndroidModule {
   /**
    * Creates the android virtual device identified in virtualDeviceIdentifier
    */
-  def createAndroidVirtualDevice(): Command[String] = Task.Command {
+  def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
     val command = os.call((
       androidSdkModule().avdPath().path,
       "create",
@@ -632,7 +659,7 @@ trait AndroidAppModule extends AndroidModule {
    *
    * @return The name of the device the app was installed to
    */
-  def androidInstall: Target[String] = Task {
+  def androidInstall(): Command[String] = Task.Command(exclusive = true) {
     val emulator = runningEmulator()
 
     os.call(
@@ -753,11 +780,15 @@ trait AndroidAppModule extends AndroidModule {
 
   trait AndroidAppTests extends AndroidAppModule with JavaTests {
 
-    override def androidCompileSdk: T[Int] = parent.androidCompileSdk
-    override def androidMinSdk: T[Int] = parent.androidMinSdk
-    override def androidTargetSdk: T[Int] = parent.androidTargetSdk
-    override def androidSdkModule = parent.androidSdkModule
-    override def androidManifest: Task[PathRef] = parent.androidManifest
+    override def androidCompileSdk: T[Int] = parent.androidCompileSdk()
+    override def androidMinSdk: T[Int] = parent.androidMinSdk()
+    override def androidTargetSdk: T[Int] = parent.androidTargetSdk()
+    override def androidSdkModule: ModuleRef[AndroidSdkModule] = parent.androidSdkModule
+    override def androidManifest: T[PathRef] = parent.androidManifest()
+
+    override def androidApplicationId: String = parent.androidApplicationId
+
+    override def androidApplicationNamespace: String = parent.androidApplicationNamespace
 
     override def moduleDir = parent.moduleDir
 
@@ -777,17 +808,20 @@ trait AndroidAppModule extends AndroidModule {
 
     override def moduleDeps: Seq[JavaModule] = Seq(parent)
 
-    override def androidCompileSdk: T[Int] = parent.androidCompileSdk
-    override def androidMinSdk: T[Int] = parent.androidMinSdk
-    override def androidTargetSdk: T[Int] = parent.androidTargetSdk
+    override def androidCompileSdk: T[Int] = parent.androidCompileSdk()
+    override def androidMinSdk: T[Int] = parent.androidMinSdk()
+    override def androidTargetSdk: T[Int] = parent.androidTargetSdk()
 
-    override def androidIsDebug: T[Boolean] = parent.androidIsDebug
+    override def androidIsDebug: T[Boolean] = parent.androidIsDebug()
 
-    override def androidReleaseKeyAlias: T[Option[String]] = parent.androidReleaseKeyAlias
-    override def androidReleaseKeyName: T[Option[String]] = parent.androidReleaseKeyName
-    override def androidReleaseKeyPass: T[Option[String]] = parent.androidReleaseKeyPass
-    override def androidReleaseKeyStorePass: T[Option[String]] = parent.androidReleaseKeyStorePass
-    override def androidReleaseKeyPath: T[Option[PathRef]] = parent.androidReleaseKeyPath
+    override def androidApplicationId: String = parent.androidApplicationId
+    override def androidApplicationNamespace: String = parent.androidApplicationNamespace
+
+    override def androidReleaseKeyAlias: T[Option[String]] = parent.androidReleaseKeyAlias()
+    override def androidReleaseKeyName: T[Option[String]] = parent.androidReleaseKeyName()
+    override def androidReleaseKeyPass: T[Option[String]] = parent.androidReleaseKeyPass()
+    override def androidReleaseKeyStorePass: T[Option[String]] = parent.androidReleaseKeyStorePass()
+    override def androidReleaseKeyPath: T[Option[PathRef]] = parent.androidReleaseKeyPath()
 
     override def androidEmulatorPort: String = parent.androidEmulatorPort
 
@@ -806,7 +840,7 @@ trait AndroidAppModule extends AndroidModule {
      * will need to be created. Then this needs to point to the location of that debug
      * AndroidManifest.xml
      */
-    override def androidManifest: Task[PathRef] = parent.androidManifest
+    override def androidManifest: T[PathRef] = parent.androidManifest()
 
     override def androidVirtualDeviceIdentifier: String = parent.androidVirtualDeviceIdentifier
     override def androidEmulatorArchitecture: String = parent.androidEmulatorArchitecture
@@ -815,7 +849,7 @@ trait AndroidAppModule extends AndroidModule {
 
     def testFramework: T[String]
 
-    override def androidInstall: Target[String] = Task {
+    override def androidInstall(): Command[String] = Task.Command {
       val emulator = runningEmulator()
       os.call(
         (
@@ -834,7 +868,7 @@ trait AndroidAppModule extends AndroidModule {
         args: Task[Seq[String]],
         globSelectors: Task[Seq[String]]
     ): Task[(String, Seq[TestResult])] = Task {
-      val device = androidInstall()
+      val device = androidInstall().apply()
 
       val instrumentOutput = os.proc(
         (
@@ -860,7 +894,7 @@ trait AndroidAppModule extends AndroidModule {
     }
 
     /** Builds the apk including the integration tests (e.g. from androidTest) */
-    def androidInstantApk: T[PathRef] = androidApk
+    def androidInstantApk: T[PathRef] = androidApk()
 
     @internal
     override def bspBuildTarget: BspBuildTarget = super[AndroidTestModule].bspBuildTarget.copy(

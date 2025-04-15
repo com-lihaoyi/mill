@@ -7,10 +7,7 @@ import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
 import mill.define.{TaskCtx, PathRef}
 import mill.api.Result
-import mill.constants.EnvVars
-import mill.util.BuildInfo
 import mill.scalalib.api.JvmWorkerUtil
-import mill.util.MillModuleUtil
 
 object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {

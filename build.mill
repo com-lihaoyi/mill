@@ -225,6 +225,10 @@ object Deps {
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-84-f852c6"
   val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
+
+  val androidTools = ivy"com.android.tools.build:gradle:8.9.1"
+  val hiltGradlePlugin = ivy"com.google.dagger:hilt-android-gradle-plugin:2.56"
+
   val sbt = ivy"org.scala-sbt:sbt:1.10.10"
 
   object RuntimeDeps {
