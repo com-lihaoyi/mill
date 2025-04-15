@@ -741,7 +741,6 @@ private class MillBuildServer(
     debug("onRunReadStdin is current unsupported")
   }
 
-  val lock = new Object()
   private def evaluate(
       evaluator: EvaluatorApi,
       goals: Seq[TaskApi[?]],
@@ -750,27 +749,26 @@ private class MillBuildServer(
       logger: Logger = null
   ): ExecutionResultsApi = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
-    lock.synchronized {
-      Server.withOutLock(
-        noBuildLock = false,
-        noWaitForBuildLock = false,
-        out = os.Path(evaluator.outPathJava),
-        targetsAndParams = goals.map {
-          case n: NamedTaskApi[_] => n.label
-          case t => t.toString
-        },
-        streams = logger0.streams
-      ) {
-        evaluator.executeApi(
-          goals,
-          reporter,
-          testReporter,
-          logger0,
-          serialCommandExec = false
-        ).executionResults
-      }
+    Server.withOutLock(
+      noBuildLock = false,
+      noWaitForBuildLock = false,
+      out = os.Path(evaluator.outPathJava),
+      targetsAndParams = goals.map {
+        case n: NamedTaskApi[_] => n.label
+        case t => t.toString
+      },
+      streams = logger0.streams
+    ) {
+      evaluator.executeApi(
+        goals,
+        reporter,
+        testReporter,
+        logger0,
+        serialCommandExec = false
+      ).executionResults
     }
   }
+
 
 }
 
