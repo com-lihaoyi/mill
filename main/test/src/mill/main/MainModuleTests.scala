@@ -277,10 +277,20 @@ object MainModuleTests extends TestSuite {
         val strippedErr =
           fansi.Str(errStream.toString, errorMode = fansi.ErrorMode.Sanitize).plainText
 
-        assert(strippedErr.contains("Hello2 System Stdout"))
-        assert(strippedErr.contains("Hello2 System Stderr"))
-        assert(strippedErr.contains("Hello2 Console Stdout"))
-        assert(strippedErr.contains("Hello2 Console Stderr"))
+        try {
+          assert(strippedErr.contains("Hello System Stdout"))
+          assert(strippedErr.contains("Hello System Stderr"))
+          assert(strippedErr.contains("Hello Console Stdout"))
+          assert(strippedErr.contains("Hello Console Stderr"))
+          assert(strippedErr.contains("Hello2 System Stdout"))
+          assert(strippedErr.contains("Hello2 System Stderr"))
+          assert(strippedErr.contains("Hello2 Console Stdout"))
+          assert(strippedErr.contains("Hello2 Console Stderr"))
+        } catch {
+          case ex: utest.AssertionError =>
+            pprint.err.log(strippedErr)
+            throw ex
+        }
       }
 
       test("command") {
