@@ -53,7 +53,9 @@ public class EnvVars {
    */
   public static final String MILL_BUILD_LIBRARIES = "MILL_BUILD_LIBRARIES";
   /**
-   * Used to store free ports for Mill's tests to use.
+   * Used to store free ports for Mill's tests to use. 
+   * Ports are stored in comma-separated values, with no prefix or suffix. 
+   * e.g 1024,9999,10953
    */
   public static final String MILL_TEST_FREE_PORT = "MILL_TEST_FREE_PORT";
 }

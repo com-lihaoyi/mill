@@ -161,7 +161,9 @@ case class MillCliConfig(
         """Provides specified ports for Mill to propagate into System Properties. 
           |The ports must be between 1024 to 65535.
           |The ports must be free at the time of Mill launching, and should remain free.
-          |If no ports are specified, free ports will be determined on startup
+          |If no ports are specified, free ports will be determined on startup.
+          |Ports are specified in comma-seperated values, e.g 8080,4859,2000.
+          |If no value is specified, random ports will be chosen on startup.
           """
           .stripMargin,
       name = "ports"

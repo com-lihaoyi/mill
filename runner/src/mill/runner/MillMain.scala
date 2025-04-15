@@ -362,6 +362,8 @@ object MillMain {
     }
   }
 
+  val tartgetNumberOfPorts = 6
+
   def validatePorts(config: MillCliConfig, streams: SystemStreams): Option[Set[Int]] = {
     val result =
       if (config.ports.isDefined) {
@@ -400,7 +402,7 @@ object MillMain {
         var i = 0
         var ports = Set.empty[Int]
         for (_ <- 1 to 100) {
-          if (i == 6) {
+          if (i == tartgetNumberOfPorts) {
             return Some(ports)
           }
           val socket = new ServerSocket(0)
@@ -417,7 +419,7 @@ object MillMain {
         }
 
         streams.err.println(
-          "Failed to generate enough ports for servers to use. Either there isn't 6 free ports on your computer, or there is a firewall issue. "
+          s"Failed to generate the target number of ports used by tests ($tartgetNumberOfPorts). Either there isn't 6 free ports on your computer, or there is a firewall issue. "
         )
 
         None
