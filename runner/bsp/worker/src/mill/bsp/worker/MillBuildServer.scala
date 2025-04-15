@@ -9,6 +9,7 @@ import mill.api.Segment.Label
 import mill.bsp.Constants
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.client.lock.Lock
+import mill.define.internal.WatchSig
 import mill.internal.PrefixLogger
 import mill.server.Server
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
@@ -60,6 +61,9 @@ private class MillBuildServer(
   protected var sessionInfo: SessionInfo = scala.compiletime.uninitialized
   // Set when the `MillBuildBootstrap` completes and the evaluators are available
   private var bspEvaluators: Promise[BspEvaluators] = Promise[BspEvaluators]()
+  private def bspEvaluatorsOpt(): Option[BspEvaluators] =
+    bspEvaluators.future.value.flatMap(_.toOption)
+  private var savedPreviousEvaluators = Option.empty[BspEvaluators]
   // Set when a session is completed, either due to reload or shutdown
   private[worker] var sessionResult: Promise[BspServerResult] = Promise()
 
@@ -67,16 +71,96 @@ private class MillBuildServer(
 
   def initialized = sessionInfo != null
 
-  def updateEvaluator(evaluatorsOpt: Option[Seq[EvaluatorApi]]): Unit = {
-    baseLogger.debug(s"Updating Evaluator: $evaluatorsOpt")
+  def updateEvaluator(
+      evaluators: Seq[EvaluatorApi],
+      errored: Boolean,
+      watched: Seq[Watchable]
+  ): Unit = {
+    baseLogger.debug(s"Updating Evaluator: $evaluators")
+    val previousEvaluatorsOpt = bspEvaluatorsOpt().orElse(savedPreviousEvaluators)
     if (bspEvaluators.isCompleted) bspEvaluators = Promise[BspEvaluators]() // replace the promise
-    evaluatorsOpt.foreach { evaluators =>
-      bspEvaluators.success(new BspEvaluators(
-        topLevelProjectRoot,
-        evaluators,
-        s => baseLogger.debug(s())
-      ))
+    val updatedEvaluators =
+      if (errored)
+        previousEvaluatorsOpt.map(_.evaluators) match {
+          case Some(previous) =>
+            evaluators.headOption match {
+              case None => // ???
+                previous
+              case Some(headEvaluator) =>
+                val idx = previous.indexWhere(_.outPathJava == headEvaluator.outPathJava)
+                if (idx < 0) // ???
+                  evaluators
+                else
+                  previous.take(idx) ++ evaluators
+            }
+          case None => evaluators
+        }
+      else
+        evaluators
+    val evaluators0 = new BspEvaluators(
+      topLevelProjectRoot,
+      updatedEvaluators,
+      s => baseLogger.debug(s()),
+      watched
+    )
+    bspEvaluators.success(evaluators0)
+    if (client != null && previousEvaluatorsOpt.nonEmpty) {
+      val newTargetIds = evaluators0.bspModulesIdList.map {
+        case (id, (_, ev)) =>
+          id -> ev
+      }
+      val newTargetIdsMap = newTargetIds.toMap
+
+      val previousTargetIds = previousEvaluatorsOpt.map(_.bspModulesIdList).getOrElse(Nil).map {
+        case (id, (_, ev)) =>
+          id -> ev
+      }
+
+      val deleted0 = previousTargetIds.filterNot {
+        case (id, _) =>
+          newTargetIdsMap.contains(id)
+      }
+      val previousTargetIdsMap = previousTargetIds.toMap
+      val (modified0, created0) = newTargetIds.partition {
+        case (id, _) =>
+          previousTargetIdsMap.contains(id)
+      }
+
+      val deletedEvents = deleted0.map {
+        case (id, _) =>
+          val event = new bsp4j.BuildTargetEvent(id)
+          event.setKind(bsp4j.BuildTargetEventKind.DELETED)
+          event
+      }
+      val createdEvents = created0.map {
+        case (id, _) =>
+          val event = new bsp4j.BuildTargetEvent(id)
+          event.setKind(bsp4j.BuildTargetEventKind.CREATED)
+          event
+      }
+      val modifiedEvents = modified0
+        .filter {
+          case (id, ev) =>
+            !previousTargetIdsMap.get(id).contains(ev)
+        }
+        .map {
+          case (id, ev) =>
+            val event = new bsp4j.BuildTargetEvent(id)
+            event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
+            event
+        }
+
+      val allEvents = deletedEvents ++ createdEvents ++ modifiedEvents
+
+      if (allEvents.nonEmpty)
+        client.onBuildTargetDidChange(new bsp4j.DidChangeBuildTarget(allEvents.asJava))
     }
+  }
+
+  def resetEvaluator(): Unit = {
+    baseLogger.debug("Resetting Evaluator")
+    savedPreviousEvaluators = bspEvaluatorsOpt().orElse(savedPreviousEvaluators)
+    if (bspEvaluators.isCompleted) bspEvaluators = Promise[BspEvaluators]()
   }
 
   def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
@@ -102,7 +186,7 @@ private class MillBuildServer(
       val supportedLangs = Constants.languages.asJava
       val capabilities = new BuildServerCapabilities
 
-      capabilities.setBuildTargetChangedProvider(false)
+      capabilities.setBuildTargetChangedProvider(true)
       capabilities.setCanReload(canReload)
       capabilities.setCompileProvider(new CompileProvider(supportedLangs))
       capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
@@ -719,15 +803,19 @@ private class MillBuildServer(
                 streams = logger.streams,
                 outLock = outLock
               ) {
-                for (evaluator <- bspEvaluators.future.value.flatMap(_.toOption)) {
-                  elemOpt = None
-                  try block(evaluator)
-                  catch {
-                    case t: Throwable =>
-                      logger.error(s"Could not process request: $t")
-                      t.printStackTrace(logger.streams.err)
+                for (evaluator <- bspEvaluatorsOpt())
+                  if (evaluator.watched.forall(WatchSig.haveNotChanged)) {
+                    elemOpt = None
+                    try block(evaluator)
+                    catch {
+                      case t: Throwable =>
+                        logger.error(s"Could not process request: $t")
+                        t.printStackTrace(logger.streams.err)
+                    }
+                  } else {
+                    resetEvaluator()
+                    sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
                   }
-                }
               }
             }
           }

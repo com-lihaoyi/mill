@@ -167,21 +167,35 @@ object BspServerTestUtil {
       workspacePath: os.Path,
       millTestSuiteEnv: Map[String, String],
       bspLog: Option[(Array[Byte], Int) => Unit] = None,
-      client: b.BuildClient = DummyBuildClient
+      client: b.BuildClient = DummyBuildClient,
+      millExecutableNoBspFile: Option[os.Path] = None
   )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
-
-    val bspMetadataFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
-    assert(os.exists(bspMetadataFile))
-    val contents = os.read(bspMetadataFile)
-    assert(
-      !contents.contains("--debug"),
-      contents.contains(s""""bspVersion":"$bsp4jVersion"""")
-    )
 
     val outputOnErrorOnly = System.getenv("CI") != null
 
-    val contentsJson = ujson.read(contents)
-    val bspCommand = contentsJson("argv").arr.map(_.str)
+    val bspCommand = millExecutableNoBspFile match {
+      case None =>
+        val bspMetadataFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
+        assert(os.exists(bspMetadataFile))
+        val contents = os.read(bspMetadataFile)
+        assert(
+          !contents.contains("--debug"),
+          contents.contains(s""""bspVersion":"$bsp4jVersion"""")
+        )
+        val contentsJson = ujson.read(contents)
+        contentsJson("argv").arr.map(_.str)
+      case Some(millExecutableNoBspFile0) =>
+        Seq(
+          millExecutableNoBspFile0.toString,
+          "--bsp",
+          "--disable-ticker",
+          "--color",
+          "false",
+          "--jobs",
+          "1"
+        )
+    }
+
     val stderr = new ByteArrayOutputStream
     val proc = os.proc(bspCommand).spawn(
       cwd = workspacePath,
