@@ -46,5 +46,4 @@ public class EnvVars {
    * e.g. to turn on additional testing/debug/log-related code
    */
   public static final String MILL_TEST_SUITE = "MILL_TEST_SUITE";
-
 }
