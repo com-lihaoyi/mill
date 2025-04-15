@@ -7,11 +7,11 @@ import HelloWorldTests.*
 import mill.define.Discover
 trait ScalaAssemblyTestUtils {
 
-  val akkaHttpDeps = Seq(ivy"com.typesafe.akka::akka-http:10.0.13")
+  val akkaHttpDeps = Seq(mvn"com.typesafe.akka::akka-http:10.0.13")
 
   object HelloWorldAkkaHttpAppend extends TestBaseModule {
     object core extends HelloWorldModuleWithMain {
-      override def ivyDeps = akkaHttpDeps
+      override def mvnDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
 
@@ -20,7 +20,7 @@ trait ScalaAssemblyTestUtils {
 
   object HelloWorldAkkaHttpExclude extends TestBaseModule {
     object core extends HelloWorldModuleWithMain {
-      override def ivyDeps = akkaHttpDeps
+      override def mvnDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
 
@@ -30,7 +30,7 @@ trait ScalaAssemblyTestUtils {
 
   object HelloWorldAkkaHttpAppendPattern extends TestBaseModule {
     object core extends HelloWorldModuleWithMain {
-      override def ivyDeps = akkaHttpDeps
+      override def mvnDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
 
@@ -40,7 +40,7 @@ trait ScalaAssemblyTestUtils {
 
   object HelloWorldAkkaHttpExcludePattern extends TestBaseModule {
     object core extends HelloWorldModuleWithMain {
-      override def ivyDeps = akkaHttpDeps
+      override def mvnDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
 
@@ -49,7 +49,7 @@ trait ScalaAssemblyTestUtils {
 
   object HelloWorldAkkaHttpRelocate extends TestBaseModule {
     object core extends HelloWorldModuleWithMain {
-      override def ivyDeps = akkaHttpDeps
+      override def mvnDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Relocate("akka.**", "shaded.akka.@1"))
     }
 
@@ -58,7 +58,7 @@ trait ScalaAssemblyTestUtils {
 
   object HelloWorldAkkaHttpNoRules extends TestBaseModule {
     object core extends HelloWorldModuleWithMain {
-      override def ivyDeps = akkaHttpDeps
+      override def mvnDeps = akkaHttpDeps
       override def assemblyRules = Seq.empty
     }
 
