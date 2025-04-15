@@ -94,7 +94,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     )
   }
 
-  def scalaJSToolsClasspath: Target[Seq[PathRef]] = Task { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
+  def scalaJSToolsClasspath: Target[Seq[PathRef]] =
+    Task { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
   def fastLinkJS: T[Report] = Task(persistent = true) {
     linkTask(isFullLinkJS = false, forceOutJs = false)()

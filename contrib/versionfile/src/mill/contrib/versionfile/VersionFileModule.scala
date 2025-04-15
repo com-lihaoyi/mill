@@ -80,7 +80,6 @@ trait VersionFileModule extends Module {
     )
 }
 
-
 object VersionFileModule extends define.ExternalModule {
 
   /** Executes the given processes. */
