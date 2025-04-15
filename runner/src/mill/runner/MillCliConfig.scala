@@ -163,7 +163,6 @@ case class MillCliConfig(
           |The ports must be free at the time of Mill launching, and should remain free.
           |If no ports are specified, free ports will be determined on startup.
           |Ports are specified in comma-seperated values, e.g 8080,4859,2000.
-          |If no value is specified, random ports will be chosen on startup.
           """
           .stripMargin,
       name = "ports"
