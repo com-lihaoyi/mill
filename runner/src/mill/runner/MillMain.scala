@@ -257,17 +257,20 @@ object MillMain {
                           WorkspaceRoot.workspaceRoot / OutFiles.out / "mill-bsp.err.log"
                         )
                       )
-                      val runSessionRes = runBspSession(
-                        streams,
+                      val splitStreams = new SystemStreams(splitOut, splitErr, streams.in)
+                      val runSessionRes = try runBspSession(
+                        splitStreams,
                         prevRunnerState =>
                           runMillBootstrap(
                             false,
                             prevRunnerState,
                             Seq("version"),
-                            new SystemStreams(splitOut, splitErr, DummyInputStream)
+                            splitStreams
                           ).result,
-                        splitErr
-                      )
+                      ) finally{
+                        splitOut.close()
+                        splitErr.close()
+                      }
 
                       splitErr.println(
                         s"Exiting BSP runner loop. Stopping BSP server. Last result: $runSessionRes"
@@ -318,7 +321,6 @@ object MillMain {
   def runBspSession(
       streams0: SystemStreams,
       runMillBootstrap: Option[RunnerState] => RunnerState,
-      splitErr: PrintStream
   ): Result[BspServerResult] = {
 
     streams0.err.println("Trying to load BSP server...")
@@ -368,7 +370,7 @@ object MillMain {
           prevRunnerState = Some(runnerState)
           repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
           bspRes = Some(runSessionRes)
-          splitErr.println(s"BSP session returned with $runSessionRes")
+          streams0.err.println(s"BSP session returned with $runSessionRes")
         }
 
         // should make the lsp4j-managed BSP server exit
