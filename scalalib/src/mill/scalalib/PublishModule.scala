@@ -30,8 +30,8 @@ trait PublishModule extends JavaModule { outer =>
       )
   }
 
-  override def bomModuleDeps: Seq[BomModule with PublishModule] = super.bomModuleDeps.map {
-    case m: BomModule with PublishModule => m
+  override def bomModuleDeps: Seq[BomModule & PublishModule] = super.bomModuleDeps.map {
+    case m: (BomModule & PublishModule) => m
     case other =>
       throw new Exception(
         s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
