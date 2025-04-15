@@ -1,10 +1,7 @@
 package mill.api
 
-import mill.constants.{DebugLog, InputPumper}
-
-import java.io.{InputStream, OutputStream, PrintStream}
-import scala.util.DynamicVariable
-import java.io.{InputStream, OutputStream, PrintStream}
+import java.io.InputStream
+import java.io.PrintStream
 
 /**
  * Represents a set of streams that look similar to those provided by the

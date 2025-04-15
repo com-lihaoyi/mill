@@ -6,7 +6,7 @@ import mill.api.Result
 import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
-import mill.define.{PathRef, Command, Task}
+import mill.define.{Command, PathRef, Target, Task}
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.api.internal.{ScalaBuildTarget, ScalaJSModuleApi, ScalaPlatform, internal}
@@ -94,7 +94,9 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     )
   }
 
-  def scalaJSToolsClasspath = Task { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
+  def scalaJSToolsClasspath: Target[Seq[PathRef]] = Task {
+    scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath()
+  }
 
   def fastLinkJS: T[Report] = Task(persistent = true) {
     linkTask(isFullLinkJS = false, forceOutJs = false)()
@@ -309,14 +311,15 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
    */
   def scalaJSMinify: T[Boolean] = Task { true }
 
-  override def prepareOffline(all: Flag): Command[Unit] = {
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
     val tasks =
       if (all.value) Seq(scalaJSToolsClasspath)
       else Seq()
     Task.Command {
-      super.prepareOffline(all)()
-      Task.sequence(tasks)()
-      ()
+      (
+        super.prepareOffline(all)() ++
+          Task.sequence(tasks)().flatten
+      ).distinct
     }
   }
 
