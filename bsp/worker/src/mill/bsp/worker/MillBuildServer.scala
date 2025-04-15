@@ -591,6 +591,7 @@ private class MillBuildServer(
       java.util.List[T],
       BspEvaluators
   ) => V): CompletableFuture[V] = {
+    mill.constants.DebugLog.println("completableTasksWithState " + hint)
     val prefix = hint.split(" ").head
     completable(hint) { (state: BspEvaluators) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala

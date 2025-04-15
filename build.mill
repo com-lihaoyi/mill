@@ -303,7 +303,7 @@ def millVersionIsStable: T[Boolean] = Task.Input {
 }
 
 def millVersionTruth: T[String] = Task.Input {
-  VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
+  VcsVersion.calcVcsState(Task.log).format()
 }
 
 def millVersion: T[String] = Task {
