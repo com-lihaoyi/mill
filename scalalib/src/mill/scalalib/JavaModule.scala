@@ -1,32 +1,46 @@
 package mill
 package scalalib
 
+import coursier.Repository
+import coursier.Type
 import coursier.core as cs
-import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
+import coursier.core.BomDependency
+import coursier.core.Configuration
+import coursier.core.DependencyManagement
+import coursier.core.Resolution
 import coursier.params.ResolutionParams
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
-import coursier.util.{EitherT, ModuleMatcher, Monad}
-import coursier.{Repository, Type}
-import mainargs.{Flag, arg}
-import mill.util.JarManifest
-import mill.api.{MillException, Result, Segments}
-import mill.api.internal.{
-  BspBuildTarget,
-  EvaluatorApi,
-  IdeaConfigFile,
-  JavaFacet,
-  ResolvedModule,
-  Scoped,
-  internal
-}
-import mill.define.{TaskCtx, PathRef}
-import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
-import mill.scalalib.internal.ModuleUtils
+import coursier.util.EitherT
+import coursier.util.ModuleMatcher
+import coursier.util.Monad
+import mainargs.Flag
+import mill.api.MillException
+import mill.api.Result
+import mill.api.Segments
+import mill.api.internal.BspBuildTarget
+import mill.api.internal.BspModuleApi
+import mill.api.internal.BspUri
+import mill.api.internal.EvaluatorApi
+import mill.api.internal.IdeaConfigFile
+import mill.api.internal.JavaFacet
+import mill.api.internal.JavaModuleApi
+import mill.api.internal.JvmBuildTarget
+import mill.api.internal.ResolvedModule
+import mill.api.internal.Scoped
+import mill.api.internal.internal
+import mill.define.Command
+import mill.define.ModuleRef
+import mill.define.PathRef
+import mill.define.Segment
+import mill.define.Task
+import mill.define.TaskCtx
+import mill.define.TaskModule
 import mill.scalalib.api.CompilationResult
-import mill.api.internal.{BspBuildTarget, BspUri, JvmBuildTarget, JavaModuleApi, BspModuleApi}
 import mill.scalalib.bsp.BspModule
+import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.publish.Artifact
+import mill.util.JarManifest
 import mill.util.Jvm
 import os.Path
 
@@ -1359,8 +1373,6 @@ trait JavaModule
     }
 
   private[mill] def bspBuildTargetDependencySources = Task.Anon {
-    val repos = allRepositories()
-
     (
       millResolver().classpath(
         Seq(
