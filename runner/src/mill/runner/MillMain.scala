@@ -43,32 +43,6 @@ object MillMain {
 
   def main(args: Array[String]): Unit = mill.define.SystemStreams.withTopLevelSystemStreamProxy {
     val initialSystemStreams = mill.define.SystemStreams.original
-    // setup streams
-    val (runnerStreams, cleanupStreams) =
-      if (args.headOption == Option("--bsp")) {
-        // In BSP mode, we use System.in/out for protocol communication
-        // and all Mill output (stdout and stderr) goes to a dedicated file
-        val stderrFile = WorkspaceRoot.workspaceRoot / ".bsp/mill-bsp.stderr"
-        os.makeDir.all(stderrFile / os.up)
-        val errFile =
-          new PrintStream(Files.newOutputStream(stderrFile.toNIO, StandardOpenOption.APPEND))
-        val errTee = new TeePrintStream(initialSystemStreams.err, errFile)
-        val msg = s"Mill in BSP mode, version ${BuildInfo.millVersion}, ${new java.util.Date()}"
-        errTee.println(msg)
-        (
-          new SystemStreams(
-            // out is used for the protocol
-            out = initialSystemStreams.out,
-            // err is default, but also tee-ed into the bsp log file
-            err = errTee,
-            in = System.in
-          ),
-          Seq(errFile),
-        )
-      } else {
-        // Unchanged system stream
-        (initialSystemStreams, Seq())
-      }
 
     if (Properties.isWin && Util.hasConsole())
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
@@ -90,7 +64,7 @@ object MillMain {
           args = args.tail,
           stateCache = RunnerState.empty,
           mainInteractive = mill.constants.Util.hasConsole(),
-          streams0 = runnerStreams,
+          streams0 = initialSystemStreams,
           env = System.getenv().asScala.toMap,
           setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
@@ -98,10 +72,8 @@ object MillMain {
           systemExit = i => sys.exit(i),
           serverDir = os.Path(args.head)
         )
-      catch handleMillException(runnerStreams.err, ())
-      finally {
-        cleanupStreams.foreach(_.close())
-      }
+      catch handleMillException(initialSystemStreams.err, ())
+
     System.exit(if (result) 0 else 1)
   }
 
