@@ -732,7 +732,7 @@ index fb3771a61d8..6b76fedb694 100644
      )
    }
 diff --git a/kotlinlib/package.mill b/kotlinlib/package.mill
-index eb99c62d141..ce8594339f8 100644
+index eb99c62d141..b319de48563 100644
 --- a/kotlinlib/package.mill
 +++ b/kotlinlib/package.mill
 @@ -53,15 +53,15 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
@@ -755,6 +755,15 @@ index eb99c62d141..ce8594339f8 100644
            build.Deps.osLib,
            build.Deps.kotlinCompiler
          )
+@@ -75,7 +75,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
+ 
+     override def moduleDeps = Seq(build.main, build.kotlinlib)
+ 
+-    override def ivyDeps = Agg(
++    override def mvnDeps = Agg(
+       build.Deps.hiltGradlePlugin,
+       build.Deps.androidTools
+     )
 diff --git a/main/init/package.mill b/main/init/package.mill
 index c967c052705..1b41f966727 100644
 --- a/main/init/package.mill
