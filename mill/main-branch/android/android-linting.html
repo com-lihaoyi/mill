@@ -709,6 +709,9 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidCompileSdk = 35
 
+  def androidApplicationId = &quot;com.helloworld.app&quot;
+  def androidApplicationNamespace = &quot;com.helloworld.app&quot;
+
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
   def androidLintConfigPath = Task { Some(PathRef(moduleDir / &quot;lint.xml&quot;)) }
 
@@ -727,7 +730,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <div class="listingblock">
 <div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/android/javalib/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; package=&quot;com.helloworld.app&quot; android:versionCode=&quot;1&quot; android:versionName=&quot;1.0&quot;&gt;
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; android:versionCode=&quot;1&quot; android:versionName=&quot;1.0&quot;&gt;
     &lt;uses-sdk android:minSdkVersion=&quot;9&quot; android:targetSdkVersion=&quot;35&quot;/&gt;
     &lt;application android:label=&quot;@string/app_name&quot; android:theme=&quot;@android:style/Theme.Light.NoTitleBar&quot; android:debuggable=&quot;true&quot;&gt;
         &lt;activity android:name=&quot;.MainActivity&quot;

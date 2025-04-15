@@ -730,6 +730,8 @@ import mill.javalib.android.AndroidTestModule</code></pre>
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
+  def androidApplicationId = &quot;com.helloworld.app&quot;
+  def androidApplicationNamespace = &quot;com.helloworld.app&quot;
 
   // Configuration for ReleaseKey
   def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
@@ -960,6 +962,9 @@ object androidSdkModule0 extends AndroidSdkModule {
 object bundle extends AndroidAppBundle {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidCompileSdk = 35
+
+  def androidApplicationId = &quot;com.helloworld.app&quot;
+  def androidApplicationNamespace = &quot;com.helloworld.app&quot;
 
   def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
