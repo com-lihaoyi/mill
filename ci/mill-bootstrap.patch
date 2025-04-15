@@ -1,5 +1,5 @@
 diff --git a/.github/workflows/run-tests.yml b/.github/workflows/run-tests.yml
-index 4d681f091a2..9cac9ec5532 100644
+index 21f1b0ba78b..8fdb67b1010 100644
 --- a/.github/workflows/run-tests.yml
 +++ b/.github/workflows/run-tests.yml
 @@ -264,7 +264,7 @@ jobs:
@@ -25,7 +25,7 @@ index 1c42566e1ad..0e9b955fbe8 100644
        build.Deps.sbtTestInterface,
        build.Deps.osLib
 diff --git a/build.mill b/build.mill
-index 76a4904ce88..7e86b6c9d6d 100644
+index 44766c9c277..60daaf8aab1 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -69,37 +69,37 @@ object Deps {
@@ -81,7 +81,7 @@ index 76a4904ce88..7e86b6c9d6d 100644
      }
      def scalaVersion: String = Deps.scalaVersion
    }
-@@ -124,132 +124,132 @@ object Deps {
+@@ -124,136 +124,136 @@ object Deps {
    val play =
      Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
  
@@ -248,8 +248,14 @@ index 76a4904ce88..7e86b6c9d6d 100644
 +    mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
    val coursierJvmIndexVersion = "0.0.4-84-f852c6"
 -  val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
--  val sbt = ivy"org.scala-sbt:sbt:1.10.10"
 +  val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
+ 
+-  val androidTools = ivy"com.android.tools.build:gradle:8.9.1"
+-  val hiltGradlePlugin = ivy"com.google.dagger:hilt-android-gradle-plugin:2.56"
++  val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
++  val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
+ 
+-  val sbt = ivy"org.scala-sbt:sbt:1.10.10"
 +  val sbt = mvn"org.scala-sbt:sbt:1.10.10"
  
    object RuntimeDeps {
@@ -295,7 +301,7 @@ index 76a4904ce88..7e86b6c9d6d 100644
  
      def all = Seq(
        detektCli,
-@@ -274,27 +274,27 @@ object Deps {
+@@ -278,27 +278,27 @@ object Deps {
  
    /** Used to manage transitive versions. */
    lazy val transitiveDeps = Seq(
@@ -334,7 +340,7 @@ index 76a4904ce88..7e86b6c9d6d 100644
    }
  }
  
-@@ -425,7 +425,7 @@ trait MillJavaModule extends JavaModule {
+@@ -429,7 +429,7 @@ trait MillJavaModule extends JavaModule {
      upstream.toMap ++ current
    }
  
@@ -343,7 +349,7 @@ index 76a4904ce88..7e86b6c9d6d 100644
    def testForkEnv: T[Map[String, String]] = forkEnv()
    def testModuleDeps: Seq[JavaModule] =
      if (this == build.main) Seq(build.main, build.core.util)
-@@ -552,20 +552,20 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
+@@ -556,20 +556,20 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
        )
      )
  
@@ -368,7 +374,7 @@ index 76a4904ce88..7e86b6c9d6d 100644
        Option.when(hasModuleDefs)(Deps.millModuledefs)
    }
  
-@@ -576,7 +576,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
+@@ -580,7 +580,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
      def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
      def forkArgs = super.forkArgs() ++ outer.testArgs()
      def moduleDeps = outer.testModuleDeps
@@ -377,7 +383,7 @@ index 76a4904ce88..7e86b6c9d6d 100644
      def forkEnv = super.forkEnv() ++ outer.testForkEnv()
    }
  }
-@@ -639,7 +639,7 @@ trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
+@@ -643,7 +643,7 @@ trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
              }
            }
            val patchedId = artifactName() + patchedSuffix
@@ -386,7 +392,7 @@ index 76a4904ce88..7e86b6c9d6d 100644
          })
      )
    }
-@@ -661,13 +661,13 @@ trait BridgeModule extends MillPublishCrossScalaModule {
+@@ -665,13 +665,13 @@ trait BridgeModule extends MillPublishCrossScalaModule {
    def artifactName = "mill-scala-compiler-bridge"
    def pomSettings = commonPomSettings(artifactName())
    def crossFullScalaVersion = true
@@ -405,7 +411,7 @@ index 76a4904ce88..7e86b6c9d6d 100644
    )
  
    def resources = Task {
-@@ -675,15 +675,15 @@ trait BridgeModule extends MillPublishCrossScalaModule {
+@@ -679,15 +679,15 @@ trait BridgeModule extends MillPublishCrossScalaModule {
      Seq(PathRef(Task.dest))
    }
  
@@ -425,7 +431,7 @@ index 76a4904ce88..7e86b6c9d6d 100644
        sources = true
      )
    }
-@@ -717,7 +717,7 @@ val dummyDeps: Seq[Dep] = Seq(
+@@ -721,7 +721,7 @@ val dummyDeps: Seq[Dep] = Seq(
    Deps.TestDeps.zioTest,
    Deps.acyclic,
    Deps.scalacScoverage2Plugin,
@@ -434,7 +440,7 @@ index 76a4904ce88..7e86b6c9d6d 100644
  ) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.all
  
  implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
-@@ -734,5 +734,5 @@ implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
+@@ -738,5 +738,5 @@ implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
  object dummy extends Cross[DependencyFetchDummy](dummyDeps)
  trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
    def scalaVersion = Deps.scala2Version
@@ -645,10 +651,10 @@ index 4734a645fd7..97fd1e13d75 100644
      build.Deps.coursierJvm,
      build.Deps.jline,
 diff --git a/dist/package.mill b/dist/package.mill
-index 9eb94aaaced..4e86def19dd 100644
+index c3d65b1ed39..b053ce42350 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
-@@ -343,41 +343,10 @@ object `package` extends RootModule with InstallModule {
+@@ -344,41 +344,10 @@ object `package` extends RootModule with InstallModule {
  
      def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
  
@@ -726,10 +732,10 @@ index fb3771a61d8..6b76fedb694 100644
      )
    }
 diff --git a/kotlinlib/package.mill b/kotlinlib/package.mill
-index ffbdcb6df0b..6a5326f0fa8 100644
+index eb99c62d141..ce8594339f8 100644
 --- a/kotlinlib/package.mill
 +++ b/kotlinlib/package.mill
-@@ -52,15 +52,15 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
+@@ -53,15 +53,15 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
    object worker extends MillKotlinModule {
      def moduleDeps = Seq(build.testrunner)
  
