@@ -23,6 +23,9 @@ object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidCompileSdk = 35
 
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
+
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
   def androidLintConfigPath = Task { Some(PathRef(moduleDir / "lint.xml")) }
 

@@ -28,6 +28,8 @@ object app extends AndroidAppKotlinModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
 
   // Configuration for ReleaseKey
   def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
