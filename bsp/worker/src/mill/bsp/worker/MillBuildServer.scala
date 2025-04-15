@@ -414,7 +414,7 @@ private class MillBuildServer(
     }
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] =
-    handlerEvaluators(){ state =>
+    handlerEvaluators() { state =>
       testParams.setTargets(state.filterNonSynthetic(testParams.getTargets))
       val millBuildTargetIds = state
         .rootModules
@@ -569,7 +569,9 @@ private class MillBuildServer(
       BuildTargetIdentifier,
       BspModuleApi,
       W
-  ) => T)(agg: java.util.List[T] => V)(implicit name: sourcecode.Name)
+  ) => T)(agg: java.util.List[T] => V)(implicit
+      name: sourcecode.Name
+  )
       : CompletableFuture[V] =
     handlerTasksEvaluators[T, V, W](targetIds, tasks)(block)((l, _) => agg(l))
 
@@ -642,15 +644,14 @@ private class MillBuildServer(
   val requestLock = new java.util.concurrent.locks.ReentrantLock()
 
   protected def handlerEvaluators[V](
-                                 checkInitialized: Boolean = true
-                               )(block: BspEvaluators => V)(implicit name: sourcecode.Name): CompletableFuture[V] = {
+      checkInitialized: Boolean = true
+  )(block: BspEvaluators => V)(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handler0[BspEvaluators, V](checkInitialized, bspEvaluators.future)(block)(name)
   }
 
-
   protected def handlerRaw[V](
-                                       checkInitialized: Boolean = true
-                                     )(block: => V)(implicit name: sourcecode.Name): CompletableFuture[V] = {
+      checkInitialized: Boolean = true
+  )(block: => V)(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handler0[Unit, V](checkInitialized, scala.concurrent.Future.successful(()))(_ => block)(name)
   }
 
