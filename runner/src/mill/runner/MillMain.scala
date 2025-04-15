@@ -254,7 +254,7 @@ object MillMain {
                             prevRunnerState,
                             Seq("version"),
                             splitStreams
-                          ).result,
+                          ).result
                       )
 
                       (true, RunnerState(None, Nil, None))
@@ -301,7 +301,7 @@ object MillMain {
 
   def runBspSession(
       streams0: SystemStreams,
-      runMillBootstrap: (Option[RunnerState], SystemStreams) => RunnerState,
+      runMillBootstrap: (Option[RunnerState], SystemStreams) => RunnerState
   ): Result[BspServerResult] = {
     val splitOut = new mill.internal.MultiStream(
       streams0.out,
@@ -347,7 +347,8 @@ object MillMain {
             while (repeatForBsp) {
               repeatForBsp = false
               val runnerState = runMillBootstrap(prevRunnerState, splitStreams)
-              val runSessionRes = bspServerHandle.runSession(runnerState.frames.flatMap(_.evaluator))
+              val runSessionRes =
+                bspServerHandle.runSession(runnerState.frames.flatMap(_.evaluator))
               prevRunnerState = Some(runnerState)
               repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
               bspRes = Some(runSessionRes)
@@ -366,7 +367,6 @@ object MillMain {
         )
         runSessionRes
       } finally {
-
 
         splitErr.close()
         splitOut.close()

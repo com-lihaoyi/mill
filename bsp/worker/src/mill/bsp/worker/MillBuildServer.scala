@@ -769,7 +769,6 @@ private class MillBuildServer(
     }
   }
 
-
 }
 
 private object MillBuildServer {

@@ -114,7 +114,7 @@ object `package` extends RootModule with InstallModule {
 
     val launcherForkArgs = testArgs() ++
       Seq(
-        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
+        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
       )
     val (millArgs, otherArgs) =
       launcherForkArgs.partition(arg =>
