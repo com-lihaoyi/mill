@@ -68,16 +68,4 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     }
   }
 
-  object androidhilt extends build.MillPublishScalaModule {
-    override def repositoriesTask = Task.Anon {
-      super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
-    }
-
-    override def moduleDeps = Seq(build.kotlinlib)
-
-    override def mvnDeps = Agg(
-      build.Deps.hiltGradlePlugin,
-      build.Deps.androidTools
-    )
-  }
 }

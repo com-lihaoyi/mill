@@ -3,9 +3,8 @@ package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task, TaskModule}
-import mill.define.{PathRef}
-import mill.api.{Result}
-import mill.javalib.android.AndroidLibModule
+import mill.define.PathRef
+import mill.api.Result
 import mill.util.JarManifest
 import mill.util.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
@@ -469,19 +468,6 @@ trait PublishModule extends JavaModule { outer =>
             pom() -> s"$baseName.pom"
           )
         }
-      case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
-          val baseName = baseNameTask()
-          Seq(
-            androidLib.androidAar() -> s"$baseName.aar",
-            sourceJar() -> s"$baseName-sources.jar",
-            docJar() -> s"$baseName-javadoc.jar",
-            pom() -> s"$baseName.pom"
-          )
-        }
-      case (PackagingType.Aar, nonAndroidModule) =>
-        throw new IllegalArgumentException(
-          s"Packaging type Aar can only be used with AndroidLibModule"
-        )
       case (PackagingType.Jar, _) | _ => Task.Anon {
           val baseName = baseNameTask()
           Seq(
