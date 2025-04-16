@@ -693,7 +693,7 @@ import mill._, scalalib._
 
 object `package` extends RootModule with build.MyModule {
   def moduleDeps = Seq(build.bar.qux.mymodule)
-  def ivyDeps = Seq(mvn&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 }</code></pre>
 </div>
 </div>
@@ -704,7 +704,7 @@ object `package` extends RootModule with build.MyModule {
 import mill._, scalalib._
 
 object mymodule extends build.MyModule {
-  def ivyDeps = Seq(mvn&quot;com.lihaoyi::scalatags:0.8.2&quot;)
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags:0.8.2&quot;)
 }</code></pre>
 </div>
 </div>
