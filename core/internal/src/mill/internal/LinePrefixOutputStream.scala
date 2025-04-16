@@ -32,13 +32,10 @@ private[mill] class LinePrefixOutputStream(
       buffer.write(fansi.Attrs.emitAnsiCodes(endOfLastLineColor, 0).getBytes())
 
       buffer.write(linePrefixBytes)
-      if (linePrefixNonEmpty) writePreviousColor()
+      if (linePrefixNonEmpty) {
+        buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
+      }
     }
-  }
-
-  def writePreviousColor() = {
-
-    buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
   }
 
   def writeOutBuffer(): Unit = {
