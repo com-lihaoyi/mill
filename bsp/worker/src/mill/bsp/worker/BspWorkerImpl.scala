@@ -4,7 +4,6 @@ import ch.epfl.scala.bsp4j.BuildClient
 import mill.bsp.BuildInfo
 import mill.api.internal.{BspServerHandle, BspServerResult, EvaluatorApi}
 import mill.bsp.Constants
-import mill.bsp.{BspClasspathWorker, Constants}
 import mill.api.{Result, SystemStreams}
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
@@ -13,9 +12,9 @@ import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, CancellationException, ExecutionContext, Promise}
 
-private class BspWorkerImpl() extends BspClasspathWorker {
+object BspWorkerImpl {
 
-  override def startBspServer(
+  def startBspServer(
       topLevelBuildRoot: os.Path,
       streams: SystemStreams,
       logDir: os.Path,
@@ -43,9 +42,7 @@ private class BspWorkerImpl() extends BspClasspathWorker {
         .setInput(streams.in)
         .setLocalService(millServer)
         .setRemoteInterface(classOf[BuildClient])
-        .traceMessages(new PrintWriter(
-          (logDir / s"${Constants.serverName}.trace").toIO
-        ))
+        .traceMessages(new PrintWriter((logDir / "trace.log").toIO))
         .setExecutorService(executor)
         .create()
 
