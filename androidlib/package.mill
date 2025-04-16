@@ -5,6 +5,8 @@ import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib._
 
+// TODO when android hardcoded versions are fixed, generate a build info
+// TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
 object `package` extends RootModule with build.MillPublishScalaModule {
 
   def moduleDeps = Seq(build.scalalib, build.kotlinlib)
