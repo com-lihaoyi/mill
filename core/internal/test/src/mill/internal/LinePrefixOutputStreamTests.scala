@@ -74,7 +74,6 @@ object LinePrefixOutputStreamTests extends TestSuite {
 
     }
 
-
     test("colors") {
       val baos = new ByteArrayOutputStream()
       val lpos = new LinePrefixOutputStream("PREFIX", baos)
@@ -87,19 +86,19 @@ object LinePrefixOutputStreamTests extends TestSuite {
 
       val blueText = fansi.Color.Blue("one\ntwo\nthree\nfour\nfive").render.getBytes
 
-      blueText.grouped(7).foreach {chunk =>
+      blueText.grouped(7).foreach { chunk =>
         lpos.write(chunk)
         lpos.flush()
       }
 
       val expected =
         "PREFIX" + fansi.Color.Red("hello").render + "\n" +
-        "PREFIX" + fansi.Color.Green("world").render + "\n" +
-        "PREFIX" + fansi.Color.Blue("one\n") +
-        "PREFIX" + fansi.Color.Blue("two\n") +
-        "PREFIX" + fansi.Color.Blue("three\n") +
-        "PREFIX" + fansi.Color.Blue("four\n") +
-        "PREFIX" + fansi.Color.Blue("five")
+          "PREFIX" + fansi.Color.Green("world").render + "\n" +
+          "PREFIX" + fansi.Color.Blue("one\n") +
+          "PREFIX" + fansi.Color.Blue("two\n") +
+          "PREFIX" + fansi.Color.Blue("three\n") +
+          "PREFIX" + fansi.Color.Blue("four\n") +
+          "PREFIX" + fansi.Color.Blue("five")
 
       assert(baos.toString == expected)
     }
