@@ -21,7 +21,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
       super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
     }
 
-    override def moduleDeps = Seq(build.main, build.kotlinlib)
+    override def moduleDeps = Seq(build.main, build.androidlib)
 
     override def mvnDeps = Agg(
       build.Deps.hiltGradlePlugin,
