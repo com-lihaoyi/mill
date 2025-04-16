@@ -4,7 +4,6 @@ import ch.epfl.scala.bsp4j.BuildClient
 import mill.bsp.BuildInfo
 import mill.api.internal.{BspServerHandle, BspServerResult, EvaluatorApi}
 import mill.bsp.Constants
-import mill.bsp.{BspClasspathWorker, Constants}
 import mill.api.{Result, SystemStreams}
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
