@@ -106,7 +106,7 @@ class MillBuildRootModule()(implicit
         .map(mill.scalalib.Dep.parse)
     ) ++
       Seq(
-        mvn"com.lihaoyi::mill-main:${Versions.millModuledefsVersion}",
+        mvn"com.lihaoyi::mill-main:${Versions.millVersion}",
       ) ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
