@@ -11,13 +11,10 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._
-import kotlinlib._
-import mill.androidlib.AndroidLibModule
-import mill.androidlib.AndroidTestModule
+import mill._, androidlib._, scalalib._
+
 import coursier.maven.MavenRepository
-import mill.androidlib.{AndroidAppModule, AndroidSdkModule}
-import mill.androidlib.AndroidTestModule
+
 import publish._
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.

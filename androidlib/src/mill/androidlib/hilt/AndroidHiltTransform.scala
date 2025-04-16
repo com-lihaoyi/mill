@@ -8,7 +8,7 @@ import mill.{T, Task}
 
 /**
  * A module that can be used to run bytecode transformations
- * with [[mill.kotlinlib.android.hilt.AndroidHiltTransformAsm]] to
+ * with [[mill.androidlib.hilt.AndroidHiltTransformAsm]] to
  * achieve Dependency Injection using Hilt .
  */
 @mill.api.experimental
@@ -32,7 +32,7 @@ trait AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
   /**
    * Transforms the Kotlin classes with Hilt dependency injection context
    * and returns the new path of the kotlin compiled classpath. This uses
-   * the [[mill.kotlinlib.android.hilt.AndroidHiltTransformAsm]] that uses
+   * the [[mill.androidlib.hilt.AndroidHiltTransformAsm]] that uses
    * the hilt gradle plugin and the android build tools.
    */
   def androidHiltTransformAsm(
@@ -44,7 +44,7 @@ trait AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
 
     os.makeDir.all(transformedClasses)
 
-    val mainClass = "mill.kotlinlib.android.hilt.AndroidHiltTransformAsm"
+    val mainClass = "mill.androidlib.hilt.AndroidHiltTransformAsm"
 
     mill.util.Jvm.callProcess(
       mainClass = mainClass,

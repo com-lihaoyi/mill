@@ -11,9 +11,8 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._
-import kotlinlib._
-import androidlib._
+import mill._, androidlib._, kotlinlib._
+
 import coursier.maven.MavenRepository
 import publish._
 

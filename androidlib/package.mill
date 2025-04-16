@@ -7,13 +7,10 @@ import mill.scalalib._
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
-  def moduleDeps = Seq(build.scalalib, build.kotlinlib, build.kotlinlib.worker, build.testrunner)
+  def moduleDeps = Seq(build.scalalib, build.kotlinlib)
 
   def testTransitiveDeps =
     super.testTransitiveDeps() ++ Seq(build.kotlinlib.worker.impl.testDep())
-
-  def buildInfoPackageName = "mill.androidlib"
-  def buildInfoObjectName = "Versions"
 
   object hilt extends build.MillPublishScalaModule {
     override def repositoriesTask = Task.Anon {

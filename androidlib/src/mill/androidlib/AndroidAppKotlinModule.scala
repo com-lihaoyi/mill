@@ -8,7 +8,7 @@ import mill.define.{Command, ModuleRef, PathRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
 import mill.scalalib.TestModule.Junit5
 import mill.scalalib.{JavaModule, TestModule}
-import mill.{T, Task}
+import mill.T
 
 /**
  * Trait for building Android applications using the Mill build tool.

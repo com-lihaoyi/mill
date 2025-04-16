@@ -9,12 +9,10 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._
-import kotlinlib._
+import mill._, androidlib._, kotlinlib._
+
 import coursier.core.{MinimizedExclusions, ModuleName, Organization}
 import coursier.params.ResolutionParams
-import mill.androidlib.AndroidAppKotlinModule
-import mill.androidlib.AndroidSdkModule
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {

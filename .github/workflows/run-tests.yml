@@ -172,6 +172,11 @@ jobs:
             install-sbt: false
 
           - java-version: 17
+            millargs: "'example.thirdparty[androidtodo].local.server'"
+            install-android-sdk: true
+            install-sbt: false
+
+          - java-version: 17
             millargs: "'{example,integration}.migrating.__.local.server'"
             install-android-sdk: false
             install-sbt: true
