@@ -1,7 +1,5 @@
 package mill.api
 
-import mill.api.Segment
-
 sealed trait Segment {
   def pathSegments: Seq[String] = this match {
     case Segment.Label(s) => Seq(s)

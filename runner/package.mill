@@ -12,19 +12,19 @@ import mill.contrib.buildinfo.BuildInfo
 object `package` extends RootModule with build.MillPublishScalaModule {
 
   object `worker-api` extends build.MillPublishScalaModule {
-    // def ivyDeps = Agg(build.Deps.osLib)
+    // def mvnDeps = Agg(build.Deps.osLib)
   }
 
   object worker extends build.MillPublishScalaModule {
     def moduleDeps = Seq(`worker-api`)
-    def ivyDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
+    def mvnDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
 
     private[runner] def bootstrapDeps = Task {
       val moduleDep = {
         val m = artifactMetadata()
         s"${m.group}:${m.id}:${m.version}"
       }
-      val boundIvys = allIvyDeps()
+      val boundIvys = allMvnDeps()
       val nameFilter = "scala(.*)-compiler(.*)".r
       Agg(moduleDep) ++ boundIvys.collect {
         case dep if nameFilter.matches(dep.name) =>
@@ -43,7 +43,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     def fix(args: String*): Command[Unit] = Task.Command {}
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(build.runner.server.client)
-    def ivyDeps = Agg(
+    def mvnDeps = Agg(
       build.Deps.nativeTerminal,
       build.Deps.coursier,
       build.Deps.coursierInterface,
@@ -84,7 +84,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     )
   }
 
-  def ivyDeps = Seq(
+  def mvnDeps = Seq(
     build.Deps.sourcecode,
     build.Deps.osLib,
     build.Deps.mainargs,
@@ -94,6 +94,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   )
   def moduleDeps = Seq(
     build.bsp,
+    build.bsp.worker,
     build.core.eval,
     build.runner.server,
     client,

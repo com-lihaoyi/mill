@@ -1,9 +1,10 @@
 package build.kotlinlib
 
 // imports
-import mill._
+import mill.*
 import mill.contrib.buildinfo.BuildInfo
-import mill.scalalib._
+import mill.javalib.android.AndroidSdkModule
+import mill.scalalib.*
 
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version with kotlinlib is released,
 //  because currently there is no previous artifact version
@@ -52,18 +53,31 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   object worker extends MillKotlinModule {
     def moduleDeps = Seq(build.testrunner)
 
-    override def compileIvyDeps: T[Agg[Dep]] = Agg(
+    override def compileMvnDeps: T[Agg[Dep]] = Agg(
       build.Deps.osLib
     )
 
     object impl extends MillKotlinModule {
       override def compileModuleDeps = Seq(worker)
-      def mandatoryIvyDeps = Agg.empty[Dep]
-      override def compileIvyDeps: T[Agg[Dep]] =
-        super.mandatoryIvyDeps() ++ Agg(
+      def mandatoryMvnDeps = Agg.empty[Dep]
+      override def compileMvnDeps: T[Agg[Dep]] =
+        super.mandatoryMvnDeps() ++ Agg(
           build.Deps.osLib,
           build.Deps.kotlinCompiler
         )
     }
+  }
+
+  object androidhilt extends build.MillPublishScalaModule {
+    override def repositoriesTask = Task.Anon {
+      super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
+    }
+
+    override def moduleDeps = Seq(build.main, build.kotlinlib)
+
+    override def mvnDeps = Agg(
+      build.Deps.hiltGradlePlugin,
+      build.Deps.androidTools
+    )
   }
 }

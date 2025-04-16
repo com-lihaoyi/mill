@@ -12,7 +12,7 @@ import mill.scalalib._
  * - https://github.com/com-lihaoyi/mill/pull/2417
  */
 object `package` extends RootModule with build.MillPublishScalaModule {
-  override def ivyDeps = Agg(build.Deps.asmTree, build.Deps.osLib, build.Deps.pprint)
+  override def mvnDeps = Agg(build.Deps.asmTree, build.Deps.osLib, build.Deps.pprint)
   def moduleDeps = Seq(build.core.internal)
 
   override lazy val test: CodeSigTests = new CodeSigTests {}
@@ -47,8 +47,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       val Array(prefix, suffix, rest) = caseName.split("-", 3)
       def moduleDir = super.moduleDir / prefix / suffix / rest
       def scalaVersion = build.Deps.scalaVersion
-      def ivyDeps = Task {
-        if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
+      def mvnDeps = Task {
+        if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.mvnDeps()
         else Agg(
           build.Deps.fastparse,
           build.Deps.scalatags,

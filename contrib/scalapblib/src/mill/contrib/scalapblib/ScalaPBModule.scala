@@ -13,11 +13,11 @@ trait ScalaPBModule extends ScalaModule {
 
   override def generatedSources = Task { super.generatedSources() :+ compileScalaPB() }
 
-  override def ivyDeps = Task {
-    super.ivyDeps() ++
-      Seq(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
+  override def mvnDeps = Task {
+    super.mvnDeps() ++
+      Seq(mvn"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
       (if (!scalaPBGrpc()) Seq()
-       else Seq(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
+       else Seq(mvn"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
   }
 
   def scalaPBVersion: T[String]
@@ -77,7 +77,7 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBClasspath: T[Seq[PathRef]] = Task {
     val scalaPBScalaVersion = "2.13.1"
     defaultResolver().classpath(
-      Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
+      Seq(mvn"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
         .map(Lib.depToBoundDep(_, scalaPBScalaVersion)),
       resolutionParamsMapOpt = Some(_.withScalaVersion(scalaPBScalaVersion))
     )
