@@ -1,4 +1,4 @@
-== Instructions for Publishing to Sonatype Maven Central
+== Instructions for Publishing to Maven Central via Central Portal
 
 Once you've mixed in `PublishModule`, apart from publishing locally, you can also publish
 your project's modules to maven central
@@ -42,7 +42,9 @@ export MILL_PGP_SECRET_BASE64=...
 export MILL_PGP_PASSPHRASE=...
 ----
 
-Sonatype Maven Central needs your public key to be uploaded so it can use to verify your artifacts.
+=== Upload Public Key for Artifacts Verification
+
+Sonatype Central Portal needs your public key to be uploaded so it can use for verification of artifacts from their end.
 
 
 [source.sh]
@@ -53,6 +55,94 @@ gpg --keyserver  keyserver.ubuntu.com --send-keys longIDHere
 # Check the server for information about the public key. information will be displayed if found
 gpg --keyserver  keyserver.ubuntu.com --recv-keys longIDHere
 ----
+
+=== Publishing
+
+You can publish all eligible modules in your Mill project using 
+`mill.scalalib.sonatypecentral.SonatypeCentralPublishModule/publishAll`:
+
+[source,console]
+----
+> mill \
+mill.scalalib.sonatypecentral.SonatypeCentralPublishModule/publishAll \
+--username myusername \
+--password mypassword \
+--gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
+--publishArtifacts __.publishArtifacts \
+--readTimeout  36000 \
+--awaitTimeout 36000 \
+--connectTimeout 36000 \
+--shouldRelease false \
+--bundleName com.lihaoyi-requests:1.0.0
+----
+
+You can also specify individual modules you want to publish:
+
+[source,console]
+----
+> ./mill mymodule.publishSonatypeCentral
+----
+
+=== Publishing Using Github Actions
+
+
+To publish on Github Actions, you can use something like this:
+
+```yaml
+# .github/workflows/publish-artifacts.yml
+name: Publish Artifacts
+
+on:
+  push:
+    tags:
+      - '**'  # Trigger on any tag
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  publish-artifacts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Publish artifacts to Sonatype
+        run: |
+          mill \
+            mill.scalalib.sonatypecentral.SonatypeCentralPublishModule/publishAll \
+            --username $MILL_SONATYPE_USERNAME \
+            --password $MILL_SONATYPE_PASSWORD \
+            --gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
+            --publishArtifacts __.publishArtifacts \
+            --readTimeout 36000 \
+            --awaitTimeout 36000 \
+            --connectTimeout 36000 \
+            --shouldRelease false \
+            --bundleName com.lihaoyi-requests:1.0.0
+        env:
+          MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
+          MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
+          MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}
+          MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
+```
+
+Where `MILL_PGP_PASSPHRASE`, `MILL_PGP_SECRET_BASE64`, `MILL_SONATYPE_PASSWORD`, and
+`MILL_SONATYPE_USERNAME` configured for the repository's or organization's Github Actions
+workflows. See
+https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions[Using Secrets in Github Actions]
+for more details.
+
+
+== Instructions for Publishing to Maven Central via Legacy OSSHR (Deprecated)
+
+Just like publishing via the Central Portal requires a GPG key and publish secrets, 
+publishing via the legacy OSSHR(OSS Repository Hosting) also requires them.
 
 === Publishing
 
@@ -69,7 +159,7 @@ You can also specify individual modules you want to publish via a selector:
 
 [source,console]
 ----
-> mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts
+> ./mill foo.publishSonatypeCentral
 ----
 
 The default URL for publishing to sonatype's Maven Central is `oss.sonatype.org`.
