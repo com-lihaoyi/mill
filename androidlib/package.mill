@@ -1,11 +1,11 @@
 package build.androidlib
 
-import mill.*
+import coursier.MavenRepository
+import mill._
 import mill.contrib.buildinfo.BuildInfo
-import mill.javalib.android.AndroidSdkModule
-import mill.scalalib.*
+import mill.scalalib._
 
-object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
+object `package` extends RootModule with build.MillPublishScalaModule {
 
   def moduleDeps = Seq(build.scalalib, build.kotlinlib, build.kotlinlib.worker, build.testrunner)
 
@@ -14,14 +14,13 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
 
   def buildInfoPackageName = "mill.androidlib"
   def buildInfoObjectName = "Versions"
-  def buildInfoMembers = build.kotlinlib.buildInfoMembers
 
   object hilt extends build.MillPublishScalaModule {
     override def repositoriesTask = Task.Anon {
-      super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
+      super.repositoriesTask() :+ MavenRepository("https://maven.google.com/")
     }
 
-    override def moduleDeps = Seq(build.main, build.androidlib)
+    override def moduleDeps = Seq(build.androidlib)
 
     override def mvnDeps = Agg(
       build.Deps.hiltGradlePlugin,
