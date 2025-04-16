@@ -30,9 +30,12 @@ private[mill] class LinePrefixOutputStream(
     if (isNewLine && linePrefixNonEmpty) {
       isNewLine = false
       buffer.write(linePrefixBytes)
-      if (linePrefixNonEmpty)
-        buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
+      if (linePrefixNonEmpty) writePreviousColor()
     }
+  }
+
+  def writePreviousColor() = {
+    buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
   }
 
   def writeOutBuffer(): Unit = {
@@ -40,16 +43,15 @@ private[mill] class LinePrefixOutputStream(
 
     if (linePrefixNonEmpty) {
       val bufferString = buffer.toString
-      if (bufferString.length > 0) {
-        val s = fansi.Str.apply(bufferString, errorMode = fansi.ErrorMode.Sanitize)
-        if (s.length > 0) {
-          // only change last value if we have some proper ansi string
-          endOfLastLineColor = s.getColor(s.length - 1)
-        }
-      }
+      // Make sure we add a suffix "x" to the `bufferString` before computing the last
+      // color. This ensures that any trailing colors in the original `bufferString` do not
+      // get ignored since they would affect zero characters.
+      val s = fansi.Str.apply(bufferString + "x", errorMode = fansi.ErrorMode.Sanitize)
+      endOfLastLineColor = s.getColor(s.length - 1)
     }
     out.synchronized { buffer.writeTo(out) }
     buffer.reset()
+    writePreviousColor()
   }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
