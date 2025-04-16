@@ -11,7 +11,6 @@ import upickle.default.*
 @mill.api.experimental
 trait AndroidLibModule extends AndroidModule with PublishModule {
 
-
   /**
    * The packaging type of the module. This is used to determine how the module
    * should be published. For Android libraries, this is always Aar.
@@ -27,14 +26,14 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
     val defaultPayloadTask: Task[Seq[(PathRef, String)]] = (pomPackagingType, this) match {
       case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
-        val baseName = baseNameTask()
-        Seq(
-          androidLib.androidAar() -> s"$baseName.aar",
-          sourceJar() -> s"$baseName-sources.jar",
-          docJar() -> s"$baseName-javadoc.jar",
-          pom() -> s"$baseName.pom"
-        )
-      }
+          val baseName = baseNameTask()
+          Seq(
+            androidLib.androidAar() -> s"$baseName.aar",
+            sourceJar() -> s"$baseName-sources.jar",
+            docJar() -> s"$baseName-javadoc.jar",
+            pom() -> s"$baseName.pom"
+          )
+        }
       case (otherPackagingType, otherModuleType) =>
         throw new IllegalArgumentException(
           s"Packaging type $otherPackagingType not supported with $otherModuleType"
