@@ -8,7 +8,7 @@ import mill._
  */
 object `package` extends RootModule with build.MillPublishScalaModule {
   def moduleDeps = Seq(build.core.eval, build.core.util, build.main)
-  def ivyDeps = Agg(build.Deps.TestDeps.utest)
+  def mvnDeps = Agg(build.Deps.TestDeps.utest)
 
   def sources =
     super.sources() ++

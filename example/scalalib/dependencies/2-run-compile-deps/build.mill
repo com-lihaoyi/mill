@@ -1,6 +1,6 @@
 // If you want to use additional dependencies at runtime or override
 // dependencies and their versions at runtime, you can do so with
-// `runIvyDeps`.
+// `runMvnDeps`.
 
 //// SNIPPET:BUILD1
 package build
@@ -9,17 +9,17 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
   def moduleDeps = Seq(bar)
-  def runIvyDeps = Seq(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+  def runMvnDeps = Seq(
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    mvn"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
   def mainClass = Some("bar.Bar")
 }
 
 //// SNIPPET:END
 
-// You can also declare compile-time-only dependencies with `compileIvyDeps`.
+// You can also declare compile-time-only dependencies with `compileMvnDeps`.
 // These are present in the compile classpath, but will not propagate to the
 // transitive dependencies.
 
@@ -27,10 +27,10 @@ object foo extends ScalaModule {
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
-  def compileIvyDeps = Seq(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+  def compileMvnDeps = Seq(
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    mvn"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
 }
 
@@ -53,7 +53,7 @@ object bar extends ScalaModule {
 // NOTE: Compile-time dependencies are translated to `provided`-scoped
 // dependencies when publish to Maven or Ivy-Repositories.
 //
-// Both `compileIvyDeps` and `runIvyDeps` are non-transitive: a module does not
+// Both `compileMvnDeps` and `runMvnDeps` are non-transitive: a module does not
 // automatically aggregate them from its upstream dependencies. They must be
 // defined in every module that they are required in, either explicitly or via
 // a `trait` that the module inherits from.

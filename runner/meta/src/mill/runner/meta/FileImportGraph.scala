@@ -12,7 +12,7 @@ import mill.internal.Util.backtickWrap
 /**
  * @param seenScripts
  * @param repos
- * @param ivyDeps
+ * @param mvnDeps
  * @param importGraphEdges
  * @param errors
  * @param metaBuild If `true`, a meta-build is enabled
@@ -21,7 +21,7 @@ import mill.internal.Util.backtickWrap
 case class FileImportGraph(
     seenScripts: Map[os.Path, String],
     repos: Seq[(String, os.Path)],
-    ivyDeps: Set[String],
+    mvnDeps: Set[String],
     errors: Seq[String],
     metaBuild: Boolean,
     buildFile: String

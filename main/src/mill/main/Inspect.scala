@@ -48,15 +48,12 @@ private object Inspect {
       // handle both Windows or Unix separators
       val fullFileName = ctx.fileName.replaceAll(raw"\\", "/")
       val basePath = WorkspaceRoot.workspaceRoot.toString.replaceAll(raw"\\", "/") + "/"
-      mill.constants.DebugLog.println("fullFileName " + fullFileName)
-      mill.constants.DebugLog.println("basePath " + basePath)
       val name =
         if (fullFileName.startsWith(basePath)) {
           fullFileName.drop(basePath.length)
         } else {
           fullFileName.split('/').last
         }
-      mill.constants.DebugLog.println("name " + name)
       s"${name}:${ctx.lineNum}"
     }
 
