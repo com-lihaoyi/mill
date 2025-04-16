@@ -94,6 +94,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   )
   def moduleDeps = Seq(
     build.bsp,
+    build.bsp.worker,
     build.core.eval,
     build.runner.server,
     client,
