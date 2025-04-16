@@ -8,7 +8,7 @@ import mill.util.Jvm
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
-  def moduleDeps = Seq(build.main, build.scalalib)
+  def moduleDeps = Seq(build.scalalib)
 
   override def resources = Task {
     super.resources() ++ Seq(exampleList())

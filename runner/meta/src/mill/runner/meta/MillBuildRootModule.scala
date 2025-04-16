@@ -106,18 +106,7 @@ class MillBuildRootModule()(implicit
         .map(mill.scalalib.Dep.parse)
     ) ++
       Seq(
-        mvn"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}",
-        mvn"com.lihaoyi::mill-core-api:${Versions.millVersion}",
-        mvn"com.lihaoyi::mill-core-define:${Versions.millVersion}",
-        mvn"com.lihaoyi::mill-kotlinlib:${Versions.millVersion}",
-        mvn"com.lihaoyi::mill-scalajslib:${Versions.millVersion}",
-        mvn"com.lihaoyi::mill-scalanativelib:${Versions.millVersion}",
-        mvn"com.lihaoyi::mill-javascriptlib:${Versions.millVersion}",
-        mvn"com.lihaoyi::mill-pythonlib:${Versions.millVersion}",
-        mvn"com.lihaoyi::mill-main-init:${Versions.millVersion}",
-        mvn"com.lihaoyi::mill-idea:${Versions.millVersion}",
-        mvn"com.lihaoyi::mill-bsp:${Versions.millVersion}",
-        mvn"com.lihaoyi::sourcecode:0.4.3-M5"
+        mvn"com.lihaoyi::mill-main:${Versions.millVersion}"
       ) ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
