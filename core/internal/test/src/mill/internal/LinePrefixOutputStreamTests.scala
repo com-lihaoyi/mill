@@ -75,7 +75,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
     }
 
     test("colors") {
-      for(chunkSize <- Seq(1, 2, 3, 4, 5, 6, 7)) {
+      for (chunkSize <- Seq(1, 2, 3, 4, 5, 6, 7)) {
         val baos = new ByteArrayOutputStream()
         val lpos = new LinePrefixOutputStream("PREFIX", baos)
         lpos.write(fansi.Color.Red("hello").render.getBytes)
