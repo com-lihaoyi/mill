@@ -46,7 +46,7 @@ public class EnvVars {
    * e.g. to turn on additional testing/debug/log-related code
    */
   public static final String MILL_TEST_SUITE = "MILL_TEST_SUITE";
-  
+
   /**
    * Used to store free ports for Mill's tests to use.
    * Ports are stored in comma-separated values, with no prefix or suffix.
