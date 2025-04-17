@@ -1,11 +1,13 @@
-package mill.scalalib.sonatypecentral
+package mill.kotlinlib
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill._
 import scalalib._
 import define.{ExternalModule, Task}
+import mill.util.Tasks
+import mill.define.TaskModule
 import mill.api.Result
-import mill.scalalib.sonatypecentral.SonatypeCentralPublishModule.{
+import mill.kotlinlib.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
   defaultConnectTimeout,
   defaultCredentials,
@@ -60,7 +62,7 @@ trait SonatypeCentralPublishModule extends PublishModule {
     }
 }
 
-object SonatypeCentralPublishModule extends ExternalModule {
+object SonatypeCentralPublishModule extends ExternalModule with TaskModule{
 
   val defaultCredentials: String = ""
   val defaultReadTimeout: Int = 60000
@@ -68,8 +70,11 @@ object SonatypeCentralPublishModule extends ExternalModule {
   val defaultAwaitTimeout: Int = 120 * 1000
   val defaultShouldRelease: Boolean = true
 
+  def defaultCommandName(): String = "publishAll"
+
   def publishAll(
-      publishArtifacts: mill.util.Tasks[PublishModule.PublishData],
+      publishArtifacts: mill.util.Tasks[PublishModule.PublishData] =
+        Tasks.resolveMainDefault("__.publishArtifacts"),
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       shouldRelease: Boolean = defaultShouldRelease,
