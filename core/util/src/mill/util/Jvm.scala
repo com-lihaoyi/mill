@@ -495,7 +495,7 @@ object Jvm {
       }
       .pipe { cache =>
         if (ctx.fold(false)(_.offline)) cache.withCachePolicies(Seq(CachePolicy.LocalOnly))
-        else cache
+        else cache.withCachePolicies(Seq(CachePolicy.FetchMissing))
       }
 
   /**
