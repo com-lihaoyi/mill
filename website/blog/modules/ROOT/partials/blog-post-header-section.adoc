@@ -1,0 +1,13 @@
+// This partial assume, the actual blog-post reference is given via the :blog-post: attribute
+// Example: index.adoc
+// :blog-post: 2-monorepo-build-tool.adoc
+// include::partial$blog-post-header-section.adoc[]
+//
+// :blog-post: 1-java-compile.adoc
+// include::partial$blog-post-header-section.adoc[]
+//
+== xref:{blog-post}[]
+
+include::page${blog-post}[tag=header]
+
+xref:{blog-post}[Read More...]

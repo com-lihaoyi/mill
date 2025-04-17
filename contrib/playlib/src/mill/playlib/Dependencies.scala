@@ -14,8 +14,8 @@ private[playlib] trait Dependencies extends ScalaModule with Version {
   def ws = Task { component("play-ahc-ws")() }
   def caffeine = Task { component("play-caffeine-cache")() }
 
-  override def ivyDeps = Task {
-    super.ivyDeps() ++ Seq(
+  override def mvnDeps = Task {
+    super.mvnDeps() ++ Seq(
       core(),
       guice(),
       server(),

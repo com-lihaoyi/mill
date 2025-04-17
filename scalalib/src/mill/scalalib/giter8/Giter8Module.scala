@@ -5,7 +5,7 @@ import mill.define.{Command, Discover, ExternalModule}
 import mill.util.Jvm
 import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib._
-import mill.main.BuildInfo
+import mill.util.BuildInfo
 
 object Giter8Module extends ExternalModule with Giter8Module {
   lazy val millDiscover = Discover[this.type]
@@ -23,7 +23,7 @@ trait Giter8Module extends CoursierModule {
             val bv = JvmWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
             if (bv == "3") "2.13" else bv
           }
-          Seq(ivy"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0"
+          Seq(mvn"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0"
             .bindDep("", "", ""))
         }
       } catch {

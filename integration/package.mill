@@ -49,6 +49,9 @@ object `package` extends RootModule {
             "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
+          ) ++
+          Option.when(!millIntegrationIsPackagedLauncher())(
+            "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
           )
 
       def millIntegrationLauncher: T[PathRef]
@@ -115,7 +118,7 @@ object `package` extends RootModule {
     )
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def mvnDeps = super.mvnDeps() ++ Agg(
       build.Deps.bsp4j
     )
   }

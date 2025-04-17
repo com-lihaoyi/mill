@@ -2,7 +2,7 @@ package mill.scalalib.scalafmt
 
 import mill._
 import mill.define.{Discover, ExternalModule, Worker}
-import mill.api.Ctx
+import mill.define.TaskCtx
 import org.scalafmt.interfaces.Scalafmt
 
 import scala.collection.mutable
@@ -18,11 +18,13 @@ private[scalafmt] class ScalafmtWorker extends AutoCloseable {
   private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0
 
-  def reformat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: Ctx): Unit = {
+  def reformat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: TaskCtx): Unit = {
     reformatAction(input, scalafmtConfig, dryRun = false)
   }
 
-  def checkFormat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: Ctx): Result[Unit] = {
+  def checkFormat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit
+      ctx: TaskCtx
+  ): Result[Unit] = {
 
     val misformatted = reformatAction(input, scalafmtConfig, dryRun = true)
     if (misformatted.isEmpty) {
@@ -42,7 +44,7 @@ private[scalafmt] class ScalafmtWorker extends AutoCloseable {
       input: Seq[PathRef],
       scalafmtConfig: PathRef,
       dryRun: Boolean
-  )(implicit ctx: Ctx): Seq[PathRef] = {
+  )(implicit ctx: TaskCtx): Seq[PathRef] = {
 
     // only consider files that have changed since last reformat
     val toConsider =

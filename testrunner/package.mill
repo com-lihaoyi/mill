@@ -7,9 +7,9 @@ import mill._
  * test suites, both in-process and in a sub-process
  */
 object `package` extends RootModule with build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.scalalib.api, build.core.internal, entrypoint, build.main.util)
+  def moduleDeps = Seq(build.scalalib.api, entrypoint, build.core.util)
 
   object entrypoint extends build.MillPublishJavaModule {
-    override def ivyDeps = Agg(build.Deps.sbtTestInterface)
+    override def mvnDeps = Agg(build.Deps.sbtTestInterface)
   }
 }

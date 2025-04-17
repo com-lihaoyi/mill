@@ -1,6 +1,6 @@
 package mill.scalanativelib.worker
 
-import mill.api.Ctx
+import mill.define.TaskCtx
 import mill.define.{Discover, Worker}
 import mill.{PathRef, Task}
 import mill.scalanativelib.worker.{api => workerApi}

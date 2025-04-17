@@ -8,7 +8,7 @@ import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.FilePath
 import utest.*
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 
 object BspModuleTests extends TestSuite {
 
@@ -17,12 +17,12 @@ object BspModuleTests extends TestSuite {
   object MultiBase extends TestBaseModule {
     object HelloBsp extends ScalaModule {
       def scalaVersion = testScalaVersion
-      override def ivyDeps = Seq(ivy"org.slf4j:slf4j-api:1.7.34")
+      override def mvnDeps = Seq(mvn"org.slf4j:slf4j-api:1.7.34")
     }
     object HelloBsp2 extends ScalaModule {
       def scalaVersion = testScalaVersion
       override def moduleDeps = Seq(HelloBsp)
-      override def ivyDeps = Seq(ivy"ch.qos.logback:logback-classic:1.1.10")
+      override def mvnDeps = Seq(mvn"ch.qos.logback:logback-classic:1.1.10")
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -50,7 +50,7 @@ object BspModuleTests extends TestSuite {
         ): @unchecked
 
         val relResult =
-          result.value.iterator.map(_.resolve(eval.evaluator.outPath).last).toSeq.sorted
+          result.value(eval.evaluator).map(s => os.Path(new java.net.URI(s)).last).toSeq.sorted
         val expected = Seq(
           "compile-resources",
           "slf4j-api-1.7.34.jar",
@@ -67,8 +67,8 @@ object BspModuleTests extends TestSuite {
           MultiBase.HelloBsp2.bspCompileClasspath
         ): @unchecked
 
-        val relResults: Seq[FilePath] = result.value.iterator.map { p =>
-          val path = p.resolve(eval.evaluator.outPath)
+        val relResults: Seq[FilePath] = result.value(eval.evaluator).iterator.map { p =>
+          val path = os.Path(new java.net.URI(p))
           val name = path.last
           if (name.endsWith(".jar")) os.rel / name
           else path

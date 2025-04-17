@@ -1,9 +1,9 @@
 package mill.scalalib
 
-import mill.define.Discover
+import mill.define.{Discover, PathRef}
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
-import mill.main.TokenReaders.*
+import mill.util.TokenReaders.*
 
 object LauncherTests extends TestSuite {
 
@@ -21,7 +21,7 @@ object LauncherTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "launcher"
 
   def tests: Tests = Tests {
-    def check(executableTask: mill.define.Target[mill.api.PathRef], copyBat: Boolean = false) = {
+    def check(executableTask: mill.define.Target[PathRef], copyBat: Boolean = false) = {
       val eval = UnitTester(HelloJava, resourcePath)
 
       val Right(result1) = eval.apply(executableTask): @unchecked

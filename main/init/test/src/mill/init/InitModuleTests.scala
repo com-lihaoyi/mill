@@ -6,25 +6,26 @@ import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
 
-import java.io.{ByteArrayOutputStream, PrintStream}
+import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
 
 object InitModuleTests extends TestSuite {
+
+  object initmodule extends TestBaseModule with InitModule {
+    lazy val millDiscover = Discover[this.type]
+  }
 
   override def tests: Tests = Tests {
 
     test("init") {
-      val outStream = new ByteArrayOutputStream()
-      val errStream = new ByteArrayOutputStream()
-      object initmodule extends TestBaseModule with InitModule {
-        lazy val millDiscover = Discover[this.type]
-      }
-      val evaluator = UnitTester(
-        initmodule,
-        null,
-        outStream = new PrintStream(outStream, true),
-        errStream = new PrintStream(errStream, true)
-      )
       test("no args") {
+        val outStream = new ByteArrayOutputStream()
+        val evaluator = UnitTester(
+          initmodule,
+          null,
+          outStream = new PrintStream(outStream, true),
+          errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+        )
+
         val results = evaluator.evaluator.execute(Seq(initmodule.init(None))).executionResults
 
         assert(results.transitiveFailing.size == 0)
@@ -39,12 +40,21 @@ object InitModuleTests extends TestSuite {
         )
       }
       test("non existing example") {
+        val errStream = new ByteArrayOutputStream()
+        val evaluator = UnitTester(
+          initmodule,
+          null,
+          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
+          errStream = new PrintStream(errStream, true)
+        )
+
         val nonExistingModuleId = "nonExistingExampleId"
         val results = evaluator.evaluator.execute(Seq(
           initmodule.init(Some(nonExistingModuleId))
         )).executionResults
         assert(results.transitiveFailing.size == 1)
-        assert(errStream.toString.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
+        val err = errStream.toString
+        assert(err.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
       }
     }
   }

@@ -11,27 +11,28 @@ import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
+import mill.api.{SystemStreams => _, _}
+import mill.api.internal.{EvaluatorApi, BaseModuleApi, CompileProblemReporter, TestReporter}
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
  * with a single [[Terminal]].
  */
 private trait GroupExecution {
-  def home: os.Path
   def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path
-  def rootModule: mill.define.BaseModule
+  def rootModule: BaseModuleApi
   def classLoaderSigHash: Int
   def classLoaderIdentityHash: Int
-  def workerCache: mutable.Map[Segments, (Int, Val)]
+  def workerCache: mutable.Map[String, (Int, Val)]
   def env: Map[String, String]
   def failFast: Boolean
   def threadCount: Option[Int]
   def codeSignatures: Map[String, Int]
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
-  def getEvaluator: () => Evaluator
+  def getEvaluator: () => EvaluatorApi
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
@@ -50,8 +51,9 @@ private trait GroupExecution {
       deps: Seq[Task[?]],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
-      executionContext: mill.api.Ctx.Fork.Api,
-      exclusive: Boolean
+      executionContext: mill.define.TaskCtx.Fork.Api,
+      exclusive: Boolean,
+      offline: Boolean
   ): GroupExecution.Results = {
     logger.withPromptLine {
       val externalInputsHash = MurmurHash3.orderedHash(
@@ -117,19 +119,20 @@ private trait GroupExecution {
 
               val (newResults, newEvaluated) =
                 executeGroup(
-                  group,
-                  results,
-                  inputsHash,
+                  group = group,
+                  results = results,
+                  inputsHash = inputsHash,
                   paths = Some(paths),
                   maybeTargetLabel = Some(terminal.toString),
                   counterMsg = countMsg,
-                  zincProblemReporter,
-                  testReporter,
-                  logger,
-                  executionContext,
-                  exclusive,
-                  labelled.isInstanceOf[Command[?]],
-                  deps
+                  reporter = zincProblemReporter,
+                  testReporter = testReporter,
+                  logger = logger,
+                  executionContext = executionContext,
+                  exclusive = exclusive,
+                  isCommand = labelled.isInstanceOf[Command[?]],
+                  deps = deps,
+                  offline = offline
                 )
 
               val valueHash = newResults(labelled) match {
@@ -158,19 +161,20 @@ private trait GroupExecution {
           }
         case task =>
           val (newResults, newEvaluated) = executeGroup(
-            group,
-            results,
-            inputsHash,
+            group = group,
+            results = results,
+            inputsHash = inputsHash,
             paths = None,
             maybeTargetLabel = None,
             counterMsg = countMsg,
-            zincProblemReporter,
-            testReporter,
-            logger,
-            executionContext,
-            exclusive,
-            task.isInstanceOf[Command[?]],
-            deps
+            reporter = zincProblemReporter,
+            testReporter = testReporter,
+            logger = logger,
+            executionContext = executionContext,
+            exclusive = exclusive,
+            isCommand = task.isInstanceOf[Command[?]],
+            deps = deps,
+            offline = offline
           )
           GroupExecution.Results(
             newResults,
@@ -195,10 +199,11 @@ private trait GroupExecution {
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
-      executionContext: mill.api.Ctx.Fork.Api,
+      executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
       isCommand: Boolean,
-      deps: Seq[Task[?]]
+      deps: Seq[Task[?]],
+      offline: Boolean
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[?]]
@@ -228,7 +233,7 @@ private trait GroupExecution {
       val res = {
         if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
-          val args = new mill.api.Ctx.Impl(
+          val args = new mill.define.TaskCtx.Impl(
             args = targetInputValues.map(_.value).toIndexedSeq,
             dest0 = () => makeDest(),
             log = multiLogger,
@@ -238,7 +243,8 @@ private trait GroupExecution {
             workspace = workspace,
             systemExit = systemExit,
             fork = executionContext,
-            jobs = effectiveThreadCount
+            jobs = effectiveThreadCount,
+            offline = offline
           )
           // Tasks must be allowed to write to upstream worker's dest folders, because
           // the point of workers is to manualy manage long-lived state which includes
@@ -266,8 +272,9 @@ private trait GroupExecution {
 
             os.dynamicPwdFunction.withValue(destFunc) {
               os.checker.withValue(executionChecker) {
-                SystemStreams.withStreams(streams) {
-                  val exposedEvaluator = if (!exclusive) null else getEvaluator()
+                mill.define.SystemStreams.withStreams(streams) {
+                  val exposedEvaluator =
+                    if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
                   Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
                     if (!exclusive) t
                     else {
@@ -339,7 +346,7 @@ private trait GroupExecution {
   ): Unit = {
     for (w <- labelled.asWorker)
       workerCache.synchronized {
-        workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
+        workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
       }
 
     val terminalResult = labelled
@@ -361,7 +368,7 @@ private trait GroupExecution {
       os.write.over(
         metaPath,
         upickle.default.stream(
-          Cached(json, hashCode, inputsHash),
+          mill.define.Cached(json, hashCode, inputsHash),
           indent = 4
         ),
         createFolders = true
@@ -429,7 +436,7 @@ private trait GroupExecution {
     labelled.asWorker
       .flatMap { w =>
         workerCache.synchronized {
-          workerCache.get(w.ctx.segments)
+          workerCache.get(w.ctx.segments.render)
         }
       }
       .flatMap {
@@ -451,7 +458,7 @@ private trait GroupExecution {
           // make sure, we can no longer re-use a closed worker
           labelled.asWorker.foreach { w =>
             workerCache.synchronized {
-              workerCache.remove(w.ctx.segments)
+              workerCache.remove(w.ctx.segments.render)
             }
           }
           None

@@ -44,15 +44,15 @@ object NodeJSConfigTests extends TestSuite {
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
         override def sources = Task.Sources { this.moduleDir / "src/utest" }
-        override def ivyDeps = Seq(
-          ivy"com.lihaoyi::utest::$utestVersion"
+        override def mvnDeps = Seq(
+          mvn"com.lihaoyi::utest::$utestVersion"
         )
         override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
       }
     }
 
     override lazy val millDiscover = {
-      import mill.main.TokenReaders.given
+      import mill.util.TokenReaders.given
       Discover[this.type]
     }
   }

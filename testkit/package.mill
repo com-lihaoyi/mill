@@ -7,8 +7,8 @@ import mill._
  * and published for third-party plugins to use in their own tests.
  */
 object `package` extends RootModule with build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.core, build.main.util, build.main)
-  def ivyDeps = Agg(build.Deps.TestDeps.utest)
+  def moduleDeps = Seq(build.core.eval, build.core.util)
+  def mvnDeps = Agg(build.Deps.TestDeps.utest)
 
   def sources =
     super.sources() ++

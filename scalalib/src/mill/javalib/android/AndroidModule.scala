@@ -1,7 +1,7 @@
 package mill.javalib.android
 
 import coursier.Repository
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.define.{ModuleRef, Target, Task}
 import mill.T
 import mill.scalalib.*
@@ -174,7 +174,7 @@ trait AndroidModule extends JavaModule {
   def manifestMergerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        ivy"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
+        mvn"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
       )
     )
   }
@@ -189,9 +189,9 @@ trait AndroidModule extends JavaModule {
     // implementation = runtime, but both are actually used for compilation and packaging of the final DEX.
     // More here https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_separation.
     //
-    // In Gradle terms using only `resolvedRunIvyDeps` won't be complete, because source modules can be also
+    // In Gradle terms using only `resolvedRunMvnDeps` won't be complete, because source modules can be also
     // api/implementation, but Mill has no such configurations.
-    val aarFiles = (super.compileClasspath() ++ super.resolvedRunIvyDeps())
+    val aarFiles = (super.compileClasspath() ++ super.resolvedRunMvnDeps())
       .map(_.path)
       .filter(_.ext == "aar")
       .distinct
@@ -404,6 +404,32 @@ trait AndroidModule extends JavaModule {
     (PathRef(T.dest), compiledResources.toSeq.map(PathRef(_)))
   }
 
+  /**
+   * Creates an intermediate R.jar that includes all the resources from the application and its dependencies.
+   */
+  def androidProcessResources: Target[PathRef] = Task {
+
+    val sources = androidLibsRClasses()
+
+    val rJar = Task.dest / "R.jar"
+
+    val classesDest = jvmWorker()
+      .worker()
+      .compileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = sources.map(_.path),
+        compileClasspath = Seq.empty,
+        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        reporter = Task.reporter.apply(hashCode),
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
+      ).get.classes.path
+
+    os.zip(rJar, Seq(classesDest))
+
+    PathRef(rJar)
+  }
+
   // TODO alias, keystore pass and pass below are sensitive credentials and shouldn't be leaked to disk/console.
   // In the current state they are leaked, because Task dumps output to the json.
   // Should be fixed ASAP.
@@ -465,6 +491,16 @@ trait AndroidModule extends JavaModule {
    */
   def androidEmulatorArchitecture: String = "x86_64"
 
+  /** All individual classfiles inherited from the classpath that will be included into the dex */
+  def inheritedClassFiles: T[Seq[PathRef]] = Task {
+    compileClasspath()
+      .map(_.path).filter(os.isDir)
+      .flatMap(os.walk(_))
+      .filter(os.isFile)
+      .filter(_.ext == "class")
+      .map(PathRef(_))
+  }
+
   /**
    * Converts the generated JAR file into a DEX file using the `d8` tool.
    *
@@ -472,15 +508,9 @@ trait AndroidModule extends JavaModule {
    */
   def androidDex: T[PathRef] = Task {
 
-    val inheritedClassFiles = compileClasspath().map(_.path).filter(os.isDir)
-      .flatMap(os.walk(_))
-      .filter(os.isFile)
-      .filter(_.ext == "class")
-      .map(_.toString())
-
     val appCompiledFiles = os.walk(compile().classes.path)
       .filter(_.ext == "class")
-      .map(_.toString) ++ inheritedClassFiles
+      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString)
 
     val libsJarFiles = compileClasspath()
       .filter(_ != androidSdkModule().androidJarPath())

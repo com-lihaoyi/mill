@@ -18,15 +18,15 @@ trait MyModule extends JavaModule {
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Seq(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0"
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0"
   )
 }
 
 object bar extends MyModule {
-  def ivyDeps = Seq(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 }
 // == resolve
@@ -245,9 +245,9 @@ foo.transitiveCompileClasspath
 foo.compileResources
 foo.unmanagedClasspath
 ...
-foo.compileIvyDeps
+foo.compileMvnDeps
 ...
-foo.ivyDeps
+foo.mvnDeps
 foo.compileClasspath
 
 */

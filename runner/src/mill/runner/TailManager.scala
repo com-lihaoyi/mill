@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.api.SystemStreams.ThreadLocalStreams
+import mill.define.SystemStreams.ThreadLocalStreams
 import mill.client.FileToStreamTailer
 import mill.constants.ServerFiles
 

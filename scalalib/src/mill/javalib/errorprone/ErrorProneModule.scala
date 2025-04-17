@@ -1,6 +1,6 @@
 package mill.javalib.errorprone
 
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.scalalib.{Dep, DepSyntax, JavaModule}
 import mill.{T, Task}
 
@@ -23,7 +23,7 @@ trait ErrorProneModule extends JavaModule {
    */
   def errorProneDeps: T[Seq[Dep]] = Task {
     Seq(
-      ivy"com.google.errorprone:error_prone_core:${errorProneVersion()}"
+      mvn"com.google.errorprone:error_prone_core:${errorProneVersion()}"
     )
   }
 

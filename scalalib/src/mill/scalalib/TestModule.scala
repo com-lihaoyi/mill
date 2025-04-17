@@ -1,20 +1,21 @@
 package mill.scalalib
 
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.{TaskCtx, PathRef}
+import mill.api.{Result}
 import mill.define.{Command, Task, TaskModule}
-import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import mill.api.internal.{BspBuildTarget, BspModuleApi, TestReporter}
+import mill.scalalib.bsp.BspModule
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
 import mill.T
+import mill.api.internal.{TestModuleApi, BspBuildTarget}
 
 trait TestModule
     extends TestModule.JavaModuleBase
     with WithJvmWorker
     with RunModule
-    with TaskModule {
-
-  // FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
-  def compile: T[mill.scalalib.api.CompilationResult]
+    with TaskModule
+    with TestModuleApi {
 
   override def defaultCommandName() = "testForked"
 
@@ -148,6 +149,8 @@ trait TestModule
    */
   def testReportXml: T[Option[String]] = T(Some("test-report.xml"))
 
+  def testLogLevel: T[TestReporter.LogLevel] = Task(TestReporter.LogLevel.Debug)
+
   /**
    * Returns a Tuple where the first element is the main-class, second and third are main-class-arguments and the forth is classpath
    */
@@ -168,7 +171,8 @@ trait TestModule
         resultPath = resultPath,
         colored = Task.log.prompt.colored,
         testCp = testClasspath().map(_.path),
-        globSelectors = Left(selectors)
+        globSelectors = Left(selectors),
+        logLevel = testLogLevel()
       )
 
       val argsFile = Task.dest / "testargs"
@@ -218,7 +222,8 @@ trait TestModule
         forkWorkingDir(),
         testReportXml(),
         jvmWorker().javaHome().map(_.path),
-        testParallelism()
+        testParallelism(),
+        testLogLevel()
       )
       testModuleUtil.runTests()
     }
@@ -242,8 +247,22 @@ trait TestModule
     val parent = super.bspBuildTarget
     parent.copy(
       canTest = true,
-      tags = Seq(BspModule.Tag.Test)
+      tags = Seq(BspModuleApi.Tag.Test)
     )
+  }
+
+  private[mill] def bspBuildTargetScalaTestClasses = Task.Anon {
+    val (frameworkName, classFingerprint) =
+      mill.util.Jvm.withClassLoader(
+        classPath = runClasspath().map(_.path),
+        sharedPrefixes = Seq("sbt.testing.")
+      ) { classLoader =>
+        val framework = Framework.framework(testFramework())(classLoader)
+        framework.name() -> mill.testrunner.TestRunnerUtils
+          .discoverTests(classLoader, framework, testClasspath().map(_.path))
+      }
+    val classes = classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
+    (frameworkName, classes)
   }
 }
 
@@ -255,9 +274,9 @@ object TestModule {
    */
   trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
-    override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-      super.mandatoryIvyDeps() ++ Seq(
-        ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++ Seq(
+        mvn"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
       )
     }
   }
@@ -268,8 +287,8 @@ object TestModule {
    */
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
-    override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-      super.mandatoryIvyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++ Seq(mvn"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
 
@@ -279,8 +298,19 @@ object TestModule {
    */
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-    override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-      super.mandatoryIvyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++ Seq(mvn"${mill.scalalib.api.Versions.jupiterInterface}")
+    }
+
+    private lazy val classesDir: Task[Option[os.Path]] = this match {
+      case withCompileTask: JavaModule => Task.Anon {
+          Some(withCompileTask.compile().classes.path)
+        }
+      case m => Task.Anon {
+          m.testClasspath().map(_.path).find { path =>
+            os.exists(path) && os.walk.stream(path).exists(p => os.isFile(p) && p.ext == "class")
+          }
+        }
     }
 
     /**
@@ -293,7 +323,7 @@ object TestModule {
      *
      * Note that we access the test discovery via reflection, to avoid mill
      * itself having a dependency on Junit5. Hence, if you remove the
-     * `sbt-jupiter-interface` dependency from `ivyDeps`, make sure to also
+     * `sbt-jupiter-interface` dependency from `mvnDeps`, make sure to also
      * override this method.
      */
     override def discoveredTestClasses: T[Seq[String]] = Task {
@@ -305,10 +335,13 @@ object TestModule {
           classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
         val builder = builderClass.getConstructor().newInstance()
 
-        builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
-          builder,
-          compile().classes.path.wrapped.toFile
-        )
+        classesDir().foreach { path =>
+          builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
+            builder,
+            path.wrapped.toFile
+          )
+        }
+
         builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
           builder,
           testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
@@ -396,21 +429,21 @@ object TestModule {
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Option[Ctx.Env]
+      ctx: Option[TaskCtx.Env]
   ): Result[(String, Seq[TestResult])] = TestModuleUtil.handleResults(doneMsg, results, ctx)
 
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env & Ctx.Dest,
+      ctx: TaskCtx.Env & TaskCtx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] =
     TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
 
   trait JavaModuleBase extends BspModule {
-    def ivyDeps: T[Seq[Dep]] = Seq.empty[Dep]
-    def mandatoryIvyDeps: T[Seq[Dep]] = Seq.empty[Dep]
+    def mvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
+    def mandatoryMvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
   }
 

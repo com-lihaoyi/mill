@@ -1,6 +1,7 @@
 package mill.main.sbt
 
 import mainargs.{ParserForClass, arg, main}
+import mill.api.internal.internal
 import mill.constants.Util
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
@@ -48,7 +49,7 @@ import scala.collection.immutable.SortedSet
  *  - sources other than Scala on JVM and Java, such as Scala.js and Scala Native
  *  - cross builds
  */
-@mill.api.internal
+@internal
 object SbtBuildGenMain
     extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Option[Project]]])] {
   override type C = Config
@@ -298,18 +299,18 @@ object SbtBuildGenMain
   def getPublishVersion(buildInfo: BuildInfo): String | Null =
     buildInfo.buildPublicationInfo.version.orNull
 
-  // originally named `ivyInterp` in the Maven and module
-  def renderIvy(dependency: LibraryDependency): String = {
+  // originally named `mvnInterp` in the Maven and module
+  def renderMvn(dependency: LibraryDependency): String = {
     import dependency.*
-    renderIvyString(
+    renderMvnString(
       organization,
       name,
       crossVersion match {
         case CrossVersion.Disabled => None
         // The formatter doesn't work well for the import `import mill.scalalib.CrossVersion as MillCrossVersion` in IntelliJ IDEA, so FQNs are used here.
-        case CrossVersion.Binary => Some(mill.scalalib.CrossVersion.Binary(false))
-        case CrossVersion.Full => Some(mill.scalalib.CrossVersion.Full(false))
-        case CrossVersion.Constant(value) => Some(mill.scalalib.CrossVersion.Constant(value, false))
+        case CrossVersion.Binary => Some(mill.define.CrossVersion.Binary(false))
+        case CrossVersion.Full => Some(mill.define.CrossVersion.Full(false))
+        case CrossVersion.Constant(value) => Some(mill.define.CrossVersion.Constant(value, false))
       },
       version = revision,
       tpe = tpe.orNull,
@@ -412,7 +413,7 @@ object SbtBuildGenMain
       }
     ).groupMap(_._1)(_._2)
 
-    val ivyDepsByType = allDependencies.libraryDependencies
+    val mvnDepsByType = allDependencies.libraryDependencies
       .iterator
       .filterNot(isScalaStandardLibrary)
       .flatMap(dep =>
@@ -439,57 +440,57 @@ object SbtBuildGenMain
     val runModuleDeps = moduleDepsByType.getOrElse(Run, Seq.empty)
     val testModuleDeps = moduleDepsByType.getOrElse(Test, Seq.empty)
 
-    val testIvyDeps = ivyDepsByType.getOrElse(Test, Seq.empty)
+    val testMvnDeps = mvnDepsByType.getOrElse(Test, Seq.empty)
 
     val hasTest = os.exists(os.Path(project.projectDirectory) / "src/test")
-    val testModule = Option.when(hasTest)(testIvyDeps.collectFirst(Function.unlift(dep =>
+    val testModule = Option.when(hasTest)(testMvnDeps.collectFirst(Function.unlift(dep =>
       testModulesByGroup.get(dep.organization)
     ))).flatten
 
     cfg.shared.depsObject.fold({
-      val defaultIvyDeps = ivyDepsByType.getOrElse(Default, Seq.empty)
-      val compileIvyDeps = ivyDepsByType.getOrElse(Compile, Seq.empty)
-      val runIvyDeps = ivyDepsByType.getOrElse(Run, Seq.empty)
+      val defaultMvnDeps = mvnDepsByType.getOrElse(Default, Seq.empty)
+      val compileMvnDeps = mvnDepsByType.getOrElse(Compile, Seq.empty)
+      val runMvnDeps = mvnDepsByType.getOrElse(Run, Seq.empty)
 
       IrScopedDeps(
         Seq.empty,
         SortedSet.empty,
-        SortedSet.from(defaultIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(defaultMvnDeps.iterator.map(renderMvn)),
         SortedSet.from(defaultModuleDeps),
-        SortedSet.from(compileIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(compileMvnDeps.iterator.map(renderMvn)),
         SortedSet.from(compileModuleDeps),
-        SortedSet.from(runIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(runMvnDeps.iterator.map(renderMvn)),
         SortedSet.from(runModuleDeps),
         testModule,
         SortedSet.empty,
-        SortedSet.from(testIvyDeps.iterator.map(renderIvy)),
+        SortedSet.from(testMvnDeps.iterator.map(renderMvn)),
         SortedSet.from(testModuleDeps),
         SortedSet.empty,
         SortedSet.empty
       )
     })(objectName => {
-      val extractedIvyDeps = ivyDepsByType.view.mapValues(_.map(dep => {
+      val extractedMvnDeps = mvnDepsByType.view.mapValues(_.map(dep => {
         val depName = s"`${dep.organization}:${dep.name}`"
-        ((depName, renderIvy(dep)), s"$objectName.$depName")
+        ((depName, renderMvn(dep)), s"$objectName.$depName")
       }))
 
-      val extractedDefaultIvyDeps = extractedIvyDeps.getOrElse(Default, Seq.empty)
-      val extractedCompileIvyDeps = extractedIvyDeps.getOrElse(Compile, Seq.empty)
-      val extractedRunIvyDeps = extractedIvyDeps.getOrElse(Run, Seq.empty)
-      val extractedTestIvyDeps = extractedIvyDeps.getOrElse(Test, Seq.empty)
+      val extractedDefaultMvnDeps = extractedMvnDeps.getOrElse(Default, Seq.empty)
+      val extractedCompileMvnDeps = extractedMvnDeps.getOrElse(Compile, Seq.empty)
+      val extractedRunMvnDeps = extractedMvnDeps.getOrElse(Run, Seq.empty)
+      val extractedTestMvnDeps = extractedMvnDeps.getOrElse(Test, Seq.empty)
 
       IrScopedDeps(
-        extractedIvyDeps.values.flatMap(_.map(_._1)).toSeq,
+        extractedMvnDeps.values.flatMap(_.map(_._1)).toSeq,
         SortedSet.empty,
-        SortedSet.from(extractedDefaultIvyDeps.iterator.map(_._2)),
+        SortedSet.from(extractedDefaultMvnDeps.iterator.map(_._2)),
         SortedSet.from(defaultModuleDeps),
-        SortedSet.from(extractedCompileIvyDeps.iterator.map(_._2)),
+        SortedSet.from(extractedCompileMvnDeps.iterator.map(_._2)),
         SortedSet.from(compileModuleDeps),
-        SortedSet.from(extractedRunIvyDeps.iterator.map(_._2)),
+        SortedSet.from(extractedRunMvnDeps.iterator.map(_._2)),
         SortedSet.from(runModuleDeps),
         testModule,
         SortedSet.empty,
-        SortedSet.from(extractedTestIvyDeps.iterator.map(_._2)),
+        SortedSet.from(extractedTestMvnDeps.iterator.map(_._2)),
         SortedSet.from(testModuleDeps),
         SortedSet.empty,
         SortedSet.empty
@@ -498,7 +499,7 @@ object SbtBuildGenMain
   }
 
   @main
-  @mill.api.internal
+  @internal
   case class Config(
       shared: BuildGenUtil.BasicConfig,
       @arg(

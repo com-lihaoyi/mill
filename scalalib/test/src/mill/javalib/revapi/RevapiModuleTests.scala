@@ -1,13 +1,13 @@
 package mill.javalib.revapi
 
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.define.Discover
 import mill.javalib.*
 import mill.scalalib.publish.{PomSettings, VersionControl}
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{T, Task}
 import utest.*
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 
 object RevapiModuleTests extends TestSuite {
 
@@ -105,10 +105,10 @@ object RevapiModuleTests extends TestSuite {
       override def publishVersion: T[String] = v1
 
       override def revapiOldFiles: T[Seq[PathRef]] = Task {
-        defaultResolver().classpath(Seq(ivy"$group:$id:$v1"))
+        defaultResolver().classpath(Seq(mvn"$group:$id:$v1"))
       }
       override def revapiNewFiles: T[Seq[PathRef]] = Task {
-        defaultResolver().classpath(Seq(ivy"$group:$id:$v2"))
+        defaultResolver().classpath(Seq(mvn"$group:$id:$v2"))
       }
       override def revapiConfigFiles: T[Seq[PathRef]] =
         Task.Sources(

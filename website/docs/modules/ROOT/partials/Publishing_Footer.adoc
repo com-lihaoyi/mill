@@ -15,7 +15,7 @@ Mill uses the following environment variables as a way to pass the necessary sec
 for publishing:
 
 
-[source,bash]
+[source,sh]
 ----
 # The LHS and RHS of the User Token, accessible through the sonatype
 # website `Profile` / `User Token` / `Access User Token`
@@ -48,25 +48,25 @@ You can publish all eligible modules in your Mill project using
 the xref:fundamentals/modules.adoc#_default_tasks[default task] of the
 xref:fundamentals/modules.adoc#_external_modules[External Module] `mill.scalalib.PublishModule`:
 
-[source,bash]
+[source,console]
 ----
-mill mill.scalalib.PublishModule/
+> mill mill.scalalib.PublishModule/
 ----
 
 You can also specify individual modules you want to publish via a selector:
 
-[source,bash]
+[source,console]
 ----
-mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts
+> mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts
 ----
 
 The default URL for publishing to sonatype's Maven Central is `oss.sonatype.org`.
 Newer projects registered on sonatype may need to publish using `s01.oss.sonatype.org`.
 In that case, you can pass in a `--sonatypeUri`:
 
-[source,bash]
+[source,console]
 ----
-mill mill.scalalib.PublishModule/ \
+> mill mill.scalalib.PublishModule/ \
         --sonatypeUri https://s01.oss.sonatype.org/service/local
 ----
 
@@ -131,9 +131,9 @@ example, a self-hosted OSS nexus site), you can pass in the
 `--stagingRelease false` option to simply upload release artifacts to corresponding
 maven path under `sonatypeUri` instead of staging path.
 
-[source,bash]
+[source,console]
 ----
-mill mill.scalalib.PublishModule/ \
+> mill mill.scalalib.PublishModule/ \
         --publishArtifacts foo.publishArtifacts \
         --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
         --sonatypeUri http://example.company.com/release \

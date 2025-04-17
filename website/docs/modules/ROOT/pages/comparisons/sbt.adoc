@@ -2,7 +2,6 @@
 :page-aliases: Case_Study_Mill_vs_sbt.adoc, Case_Study_Mill_vs_SBT.adoc
 
 
-
 Compared to `sbt`,
 
 * **Mill makes customizing the build yourself much easier**: most of what build tools
@@ -95,7 +94,7 @@ since Mill doesn't bundle them and instead expects them to be invoked separately
 
 === Parallel Clean Compile All
 
-[source,bash]
+[source,console]
 ----
 $ sbt clean; time sbt test:compile
 34.28s
@@ -122,7 +121,7 @@ comparison for sequential execution times.
 
 === Clean Compile Single-Module
 
-[source,bash]
+[source,console]
 ----
 > sbt clean; time sbt gatling-commons/compile
 10.1
@@ -146,7 +145,7 @@ and all the downstream submodules.
 
 === Incremental Compile Single-Module
 
-[source,bash]
+[source,console]
 ----
 $ echo "" >> gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
 $ time sbt gatling-commons/compile
@@ -178,7 +177,7 @@ a fraction of a second, while Cold `sbt` has substantial overhead.
 
 === No-Op Compile Single-Module
 
-[source,bash]
+[source,console]
 ----
 $ time sbt gatling-commons/compile
 4.2s
@@ -272,12 +271,12 @@ visualize where your build is spending time and where the performance bottleneck
 image::comparisons/GatlingCompileProfile.png[]
 
 If you want to inspect the tree of third-party dependencies used by any module, the
-built in `ivyDepsTree` command lets you do that easily:
+built in `mvnDepsTree` command lets you do that easily:
 
 [source,text]
 ----
-$ ./mill gatling-app.ivyDepsTree
-[137/137] gatling-app.ivyDepsTree
+$ ./mill gatling-app.mvnDepsTree
+[137/137] gatling-app.mvnDepsTree
 ├─ org.scala-lang:scala-library:2.13.14
 ├─ io.gatling:gatling-shared-model_2.13:0.0.6
 │  ├─ io.gatling:gatling-shared-util_2.13:0.0.8

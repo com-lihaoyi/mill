@@ -6,16 +6,24 @@ import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.SelectMode
 import mill.define.internal.Watchable
-import mill.exec.Cached
+import mill.define.Cached
 
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
+import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
+
+abstract class MainRootModule()(implicit
+    baseModuleInfo: RootModule0.Info,
+    millModuleEnclosing0: sourcecode.Enclosing,
+    millModuleLine0: sourcecode.Line,
+    millFile0: sourcecode.File
+) extends RootModule0 with MainModule
 
 /**
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends BaseModule {
+trait MainModule extends BaseModule with MainModuleApi {
   protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   object interp {
@@ -31,7 +39,7 @@ trait MainModule extends BaseModule {
     }
 
     def watch(p: os.Path): os.Path = {
-      val watchable = Watchable.Path(PathRef(p))
+      val watchable = Watchable.Path(p.toNIO, false, PathRef(p).sig)
       watchedValues.append(watchable)
       p
     }
@@ -155,6 +163,13 @@ trait MainModule extends BaseModule {
       }
     }
 
+  private[mill] def bspClean(
+      evaluator: EvaluatorApi,
+      targets: String*
+  ): TaskApi[Seq[java.nio.file.Path]] = Task.Anon {
+    clean(evaluator.asInstanceOf[Evaluator], targets*)().map(_.path.toNIO)
+  }
+
   /**
    * Deletes the given targets from the out directory. Providing no targets
    * will clean everything.
@@ -195,7 +210,7 @@ trait MainModule extends BaseModule {
         case (paths, allSegments) =>
           for {
             workerSegments <- evaluator.workerCache.keys.toList
-            if allSegments.exists(workerSegments.startsWith)
+            if allSegments.exists(x => workerSegments.startsWith(x.render))
             case (_, Val(closeable: AutoCloseable)) <-
               evaluator.workerCache.remove(workerSegments)
           } {

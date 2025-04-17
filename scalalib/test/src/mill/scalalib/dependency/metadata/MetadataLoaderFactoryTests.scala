@@ -40,7 +40,7 @@ object MetadataLoaderFactoryTests extends TestSuite {
     test("mavenRepository") {
       val mavenRepo = MavenRepository("https://repo1.maven.org/maven2")
       assertMatch(MetadataLoaderFactory(mavenRepo)) {
-        case Some(MavenMetadataLoader(`mavenRepo`)) =>
+        case Some(MavenMetadataLoader(`mavenRepo`, false, _)) =>
       }
     }
     test("ivyRepository") {

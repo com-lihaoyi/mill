@@ -238,9 +238,7 @@ object `package` extends RootModule with Module {
     def runClasspath = build.main.test.runClasspath()
     def localRunClasspath = build.testkit.localRunClasspath()
 
-    def forkEnv = Map(
-      "LANG" -> "C"
-    )
+    def forkEnv = Map("LANG" -> "C")
 
     /**
      * Parses a `build.mill` for specific comments and return the split-by-type content
@@ -288,7 +286,7 @@ $txt
             case ("example", txt) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
-[source,bash,subs="attributes,verbatim"]
+[source,console,subs="attributes,verbatim"]
 ----
 $txt
 ----"""
@@ -308,7 +306,8 @@ $txt
     "mockito" -> ("mockito/mockito", "97f3574cc07fdf36f1f76ba7332ac57675e140b1"),
     "gatling" -> ("gatling/gatling", "3870fda86e6bca005fbd53108c60a65db36279b6"),
     "arrow" -> ("arrow-kt/arrow", "bc9bf92cc98e01c21bdd2bf8640cf7db0f97204a"),
-    "ollama-js" -> ("ollama/ollama-js", "99293abe2c7c27ce7e76e8b4a98cae948f00058d")
+    "ollama-js" -> ("ollama/ollama-js", "99293abe2c7c27ce7e76e8b4a98cae948f00058d"),
+    "androidtodo" -> ("android/architecture-samples", "b3437ab428f6fd91804b28801650d590ff52971c")
   )
   object thirdparty extends Cross[ThirdPartyModule](build.listIn(moduleDir / "thirdparty"))
   trait ThirdPartyModule extends ExampleCrossModule {

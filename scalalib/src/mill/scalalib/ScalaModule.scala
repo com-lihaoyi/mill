@@ -2,16 +2,23 @@ package mill
 package scalalib
 
 import mill.util.JarManifest
-import mill.api.{DummyInputStream, PathRef, Result, internal}
-import mill.main.BuildInfo
+import mill.api.{DummyInputStream, Result}
+import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
-
-import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
+import mill.scalalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
-import mill.define.Task
-import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
+import mill.define.{PathRef, Target, Task}
+import mill.api.internal.{
+  BspBuildTarget,
+  BspModuleApi,
+  ScalaBuildTarget,
+  ScalaModuleApi,
+  ScalaPlatform,
+  internal
+}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
+import mill.scalalib.bsp.BspModule
 
 // this import requires scala-reflect library to be on the classpath
 // it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?
@@ -22,12 +29,13 @@ import scala.util.Using
 /**
  * Core configuration required to compile a single Scala compilation target
  */
-trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
+trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
+    with ScalaModuleApi { outer =>
 
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
-    override def scalacPluginIvyDeps: T[Seq[Dep]] = outer.scalacPluginIvyDeps()
+    override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
     override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
     override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
     override def mandatoryScalacOptions: T[Seq[String]] =
@@ -156,9 +164,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * Allows you to make use of Scala compiler plugins.
    */
-  def scalacPluginIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def scalacPluginMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
-  def scalaDocPluginIvyDeps: T[Seq[Dep]] = Task { scalacPluginIvyDeps() }
+  def scalaDocPluginMvnDeps: T[Seq[Dep]] = Task { scalacPluginMvnDeps() }
 
   /**
    * Mandatory command-line options to pass to the Scala compiler
@@ -172,7 +180,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   private def enablePluginScalacOptions: T[Seq[String]] = Task {
 
     val resolvedJars = defaultResolver().classpath(
-      scalacPluginIvyDeps().map(_.exclude("*" -> "*"))
+      scalacPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
@@ -182,7 +190,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   private def enableScalaDocPluginScalacOptions: T[Seq[String]] = Task {
     val resolvedJars = defaultResolver().classpath(
-      scalaDocPluginIvyDeps().map(_.exclude("*" -> "*"))
+      scalaDocPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
@@ -221,7 +229,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * on maven central
    */
   def scalacPluginClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(scalacPluginIvyDeps())
+    defaultResolver().classpath(scalacPluginMvnDeps())
   }
 
   /**
@@ -229,7 +237,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   def scalaDocClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion())
+      Lib.scalaDocMvnDeps(scalaOrganization(), scalaVersion())
     )
   }
 
@@ -238,17 +246,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   def scalaDocPluginClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      scalaDocPluginIvyDeps()
+      scalaDocPluginMvnDeps()
     )
   }
 
-  def scalaLibraryIvyDeps: T[Seq[Dep]] = Task {
-    Lib.scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
+  def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
+    Lib.scalaRuntimeMvnDeps(scalaOrganization(), scalaVersion())
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
-  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-    super.mandatoryIvyDeps() ++ scalaLibraryIvyDeps()
+  override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+    super.mandatoryMvnDeps() ++ scalaLibraryMvnDeps()
   }
 
   /**
@@ -256,8 +264,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   def scalaCompilerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
-        scalaLibraryIvyDeps()
+      Lib.scalaCompilerMvnDeps(scalaOrganization(), scalaVersion()) ++
+        scalaLibraryMvnDeps()
     )
   }
 
@@ -466,10 +474,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     localClasspath() ++
       transitiveLocalClasspath() ++
       unmanagedClasspath() ++
-      resolvedAmmoniteReplIvyDeps()
+      resolvedAmmoniteReplMvnDeps()
   }
 
-  def resolvedAmmoniteReplIvyDeps = Task {
+  def resolvedAmmoniteReplMvnDeps: T[Seq[PathRef]] = Task {
     millResolver().classpath {
       val scaVersion = scalaVersion()
       val ammVersion = ammoniteVersion()
@@ -484,7 +492,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         coursierDependency.withConfiguration(coursier.core.Configuration.runtime),
         force = false
       )) ++
-        Seq(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
+        Seq(mvn"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
     }
   }
 
@@ -550,28 +558,33 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * @param all If `true` , fetches also sources, Ammonite and compiler dependencies.
    */
-  override def prepareOffline(all: Flag): Command[Unit] = {
-    val ammonite = resolvedAmmoniteReplIvyDeps
-    val tasks =
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
+    val ammonite = resolvedAmmoniteReplMvnDeps
+    val tasks: Seq[Task[Seq[PathRef]]] =
       if (all.value) Seq(ammonite)
       else Seq()
 
     Task.Command {
-      super.prepareOffline(all)()
-      // resolve the compile bridge jar
-      defaultResolver().classpath(
-        scalacPluginIvyDeps()
-      )
-      defaultResolver().classpath(
-        scalaDocPluginIvyDeps()
-      )
-      jvmWorker().scalaCompilerBridgeJar(
-        scalaVersion(),
-        scalaOrganization(),
-        defaultResolver()
-      )
-      Task.sequence(tasks)()
-      ()
+      (
+        super.prepareOffline(all)() ++
+          // resolve the compile bridge jar
+          defaultResolver().classpath(
+            scalacPluginMvnDeps()
+          ) ++
+          defaultResolver().classpath(
+            scalaDocPluginMvnDeps()
+          ) ++
+          (
+            jvmWorker().scalaCompilerBridgeJar(
+              scalaVersion(),
+              scalaOrganization(),
+              defaultResolver()
+            ) match {
+              case (opt, single) => opt.toSeq.flatten ++ Seq(single)
+            }
+          ) ++
+          Task.sequence(tasks)().flatten
+      ).distinct
     }
   }
 
@@ -581,7 +594,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Scala),
+    languageIds = Seq(
+      BspModuleApi.LanguageId.Java,
+      BspModuleApi.LanguageId.Scala
+    ),
     canCompile = true,
     canRun = true
   )
@@ -605,7 +621,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
   override protected def semanticDbPluginClasspath = Task {
     defaultResolver().classpath(
-      scalacPluginIvyDeps() ++ semanticDbPluginIvyDeps()
+      scalacPluginMvnDeps() ++ semanticDbPluginMvnDeps()
     )
   }
 
@@ -645,7 +661,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath =
-          (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
+          (compileClasspath() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
         javacOptions = javacOpts,
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),

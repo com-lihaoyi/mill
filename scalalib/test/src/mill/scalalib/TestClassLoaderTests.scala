@@ -4,7 +4,7 @@ import mill.define.Discover
 import mill.Task
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import utest.*
 
 object TestClassLoaderTests extends TestSuite {
@@ -12,9 +12,9 @@ object TestClassLoaderTests extends TestSuite {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object test extends ScalaTests with TestModule.Utest {
-      override def ivyDeps = Task {
-        super.ivyDeps() ++ Seq(
-          ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
+      override def mvnDeps = Task {
+        super.mvnDeps() ++ Seq(
+          mvn"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
       }
     }

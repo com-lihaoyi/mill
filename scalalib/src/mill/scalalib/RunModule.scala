@@ -3,8 +3,10 @@ package mill.scalalib
 import java.lang.reflect.Modifier
 
 import mainargs.arg
-import mill.api.JsonFormatters.pathReadWrite
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.JsonFormatters.pathReadWrite
+import mill.api.Result
+import mill.api.internal.RunModuleApi
+import mill.define.{ModuleCtx, PathRef, TaskCtx}
 import mill.constants.ServerFiles
 import mill.define.{Command, ModuleRef, Task}
 import mill.util.Jvm
@@ -14,7 +16,7 @@ import scala.util.control.NonFatal
 
 import mill.scalalib.classgraph.ClassgraphWorkerModule
 
-trait RunModule extends WithJvmWorker {
+trait RunModule extends WithJvmWorker with RunModuleApi {
 
   def classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 
@@ -179,6 +181,22 @@ trait RunModule extends WithJvmWorker {
     }
 
   /**
+   * Runs this module's code in a background process, until it dies or
+   * `runBackground` is used again. This lets you continue using Mill while
+   * the process is running in the background: editing files, compiling, and
+   * only re-starting the background process when you're ready.
+   *
+   * You can also use `-w foo.runBackground` to make Mill watch for changes
+   * and automatically recompile your code & restart the background process
+   * when ready. This is useful when working on long-running server processes
+   * that would otherwise run forever
+   */
+  def runBackground(args: String*): Command[Unit] = {
+    val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
+    Task.Command { task() }
+  }
+
+  /**
    * If true, stdout and stderr of the process executed by `runBackground`
    * or `runMainBackground` is sent to mill's stdout/stderr (which usually
    * flow to the console).
@@ -199,7 +217,7 @@ trait RunModule extends WithJvmWorker {
         Seq(classpathJar)
       }
 
-    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs(), Task.dest)
   }
 
   /**
@@ -209,6 +227,22 @@ trait RunModule extends WithJvmWorker {
    */
   def launcher: T[PathRef] = Task { launcher0() }
 
+  private[mill] def bspJvmRunTestEnvironment = {
+    val moduleSpecificTask = this match {
+      case m: (TestModule & JavaModule) => m.getTestEnvironmentVars()
+      case _ => allLocalMainClasses
+    }
+    Task.Anon {
+      (
+        runClasspath().map(_.path.toNIO),
+        forkArgs(),
+        forkWorkingDir().toNIO,
+        forkEnv(),
+        mainClass(),
+        moduleSpecificTask()
+      )
+    }
+  }
 }
 
 object RunModule {
@@ -245,7 +279,7 @@ object RunModule {
         extraRunClasspath: Seq[os.Path] = Nil,
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false
-    )(implicit ctx: Ctx): Unit
+    )(implicit ctx: TaskCtx): Unit
   }
   private class RunnerImpl(
       mainClass0: Either[String, String],
@@ -266,7 +300,7 @@ object RunModule {
         extraRunClasspath: Seq[os.Path] = Nil,
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false
-    )(implicit ctx: Ctx): Unit = {
+    )(implicit ctx: TaskCtx): Unit = {
       val dest = ctx.dest
       val cwd = Option(workingDir).getOrElse(dest)
       val mainClass1 = Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity))

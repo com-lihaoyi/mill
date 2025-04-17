@@ -1,13 +1,14 @@
 package mill.bsp
 
-import mill.api.{Ctx, PathRef}
+import mill.define.{ModuleCtx, PathRef}
 import mill.{T, Task, given}
-import mill.define.{Command, Discover, Evaluator, ExternalModule}
-import mill.main.BuildInfo
+import mill.define.{Command, Discover, Evaluator, ExternalModule, Mirrors}
+import mill.util.BuildInfo
 import mill.scalalib.{CoursierModule, Dep}
+import Mirrors.autoMirror
+import mill.api.internal.{BspServerResult, internal}
 
 object BSP extends ExternalModule with CoursierModule {
-
   lazy val millDiscover = Discover[this.type]
 
   private def bspWorkerLibs: T[Seq[PathRef]] = Task {
@@ -41,24 +42,10 @@ object BSP extends ExternalModule with CoursierModule {
     createBspConnection(jobs, Constants.serverName)
   }
 
-  /**
-   * This command only starts a BSP session, which means it injects the current evaluator into an already running BSP server.
-   * This command requires Mill to start with `--bsp` option.
-   * @param allBootstrapEvaluators The Evaluator
-   * @return The server result, indicating if mill should re-run this command or just exit.
-   */
-  def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
-      : Command[BspServerResult] = Task.Command(exclusive = true) {
-    Task.log.streams.err.println("BSP/startSession: Starting BSP session")
-    val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
-    Task.log.streams.err.println(s"BSP/startSession: Finished BSP session, result: ${res}")
-    res
-  }
-
   private def createBspConnection(
       jobs: Int,
       serverName: String
-  )(implicit ctx: Ctx): (PathRef, ujson.Value) = {
+  )(implicit ctx: mill.define.TaskCtx): (PathRef, ujson.Value) = {
     // we create a json connection file
     val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
     if (os.exists(bspFile)) ctx.log.warn(s"Overwriting BSP connection file: ${bspFile}")

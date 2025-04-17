@@ -6,9 +6,8 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsParams,
   JavacOptionsResult
 }
-import mill.Task
+import mill.api.internal.{TaskApi, JavaModuleApi, SemanticDbJavaModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
-import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
@@ -17,34 +16,20 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
-    completableTasks(
-      s"buildTargetJavacOptions ${javacOptionsParams}",
-      targetIds = _ => javacOptionsParams.getTargets.asScala.toSeq,
-      tasks = { case m: JavaModule =>
-        val classesPathTask = m match {
-          case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
-            sem.bspCompiledClassesAndSemanticDbFiles
-          case _ => m.bspCompileClassesPath
-        }
-        Task.Anon {
-          (
-            classesPathTask(),
-            m.javacOptions() ++ m.mandatoryJavacOptions(),
-            m.bspCompileClasspath()
-          )
-        }
+    handlerTasks(
+      targetIds = _ => javacOptionsParams.getTargets.asScala,
+      tasks = { case m: JavaModuleApi =>
+        m.bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
       }
     ) {
       // We ignore all non-JavaModule
-      case (ev, state, id, m: JavaModule, (classesPath, javacOptions, bspCompileClasspath)) =>
-        val options = javacOptions
-        val classpath =
-          bspCompileClasspath.map(_.resolve(ev.outPath)).map(sanitizeUri)
+      case (ev, state, id, m: JavaModuleApi, f) =>
+        val (classesPath, javacOptions, classpath) = f(ev)
         new JavacOptionsItem(
           id,
-          options.asJava,
-          classpath.iterator.toSeq.asJava,
-          sanitizeUri(classesPath.resolve(ev.outPath))
+          javacOptions.asJava,
+          classpath.asJava,
+          sanitizeUri(classesPath)
         )
 
       case _ => ???

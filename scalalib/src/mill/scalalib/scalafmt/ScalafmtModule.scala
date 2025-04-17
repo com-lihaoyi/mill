@@ -5,10 +5,10 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.*
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.api.Result
-import mill.define.{Discover, ExternalModule}
+import mill.define.{Discover, ExternalModule, TaskModule}
 import mill.scalalib.*
 import mainargs.arg
-import mill.main.Tasks
+import mill.util.Tasks
 import mill.util.Jvm
 
 trait ScalafmtModule extends JavaModule {
@@ -108,7 +108,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
   def scalafmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        ivy"org.scalameta:scalafmt-cli_2.13:${mill.scalalib.api.Versions.scalafmtVersion}"
+        mvn"org.scalameta:scalafmt-cli_2.13:${mill.scalalib.api.Versions.scalafmtVersion}"
       )
     )
   }

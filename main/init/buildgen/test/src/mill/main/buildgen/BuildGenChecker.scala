@@ -6,7 +6,7 @@ import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{PathRef, T}
 import utest.framework.TestPath
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import java.nio.file.FileSystems
 
 class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
@@ -27,7 +27,7 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
     os.dynamicPwd.withValue(testRoot)(generate)
 
     // fmt
-    val files = BuildGenUtil.buildFiles(testRoot).map(PathRef(_)).toSeq
+    val files = mill.init.Util.buildFiles(testRoot).map(PathRef(_)).toSeq
     object module extends TestBaseModule with ScalafmtModule {
       override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = files
       override def scalafmtConfig: T[Seq[PathRef]] = Seq(PathRef(scalafmtConfigFile))
@@ -76,5 +76,5 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 object BuildGenChecker {
 
   def apply(sourceRoot: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))): BuildGenChecker =
-    new BuildGenChecker(sourceRoot, BuildGenUtil.scalafmtConfigFile)
+    new BuildGenChecker(sourceRoot, mill.init.Util.scalafmtConfigFile)
 }

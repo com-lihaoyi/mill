@@ -46,10 +46,10 @@ object `package` extends RootModule {
 
     // pure Java implementation
     def artifactSuffix: T[String] = ""
-    def scalaLibraryIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
-    def ivyDeps = Agg(build.Deps.sbtTestInterface)
-    def compileIvyDeps = Agg(build.Deps.testng)
-    def runIvyDeps = Agg(build.Deps.testng)
+    def scalaLibraryMvnDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+    def mvnDeps = Agg(build.Deps.sbtTestInterface)
+    def compileMvnDeps = Agg(build.Deps.testng)
+    def runMvnDeps = Agg(build.Deps.testng)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.scalalib)
     def docJar: T[PathRef] = super[JavaModule].docJar
   }
@@ -96,7 +96,7 @@ object `package` extends RootModule {
 
       def scalaVersion = build.Deps.play(playBinary).scalaVersion
       def moduleDeps = Seq(playlib.api)
-      def ivyDeps = Agg(build.Deps.osLib, build.Deps.play(playBinary).routesCompiler)
+      def mvnDeps = Agg(build.Deps.osLib, build.Deps.play(playBinary).routesCompiler)
     }
   }
 
@@ -133,15 +133,15 @@ object `package` extends RootModule {
         build.core.api,
         scoverage.api
       )
-      def compileIvyDeps = Task {
-        super.mandatoryIvyDeps() ++ Agg(
+      def compileMvnDeps = Task {
+        super.mandatoryMvnDeps() ++ Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
           build.Deps.scalacScoverage2Reporter,
           build.Deps.scalacScoverage2Domain,
           build.Deps.scalacScoverage2Serializer
         ) ++ Option.when(!JvmWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
       }
-      def mandatoryIvyDeps = Agg.empty[Dep]
+      def mandatoryMvnDeps = Agg.empty[Dep]
     }
   }
 
@@ -164,7 +164,7 @@ object `package` extends RootModule {
 
   object flyway extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib)
-    def ivyDeps = Agg(build.Deps.flywayCore)
+    def mvnDeps = Agg(build.Deps.flywayCore)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }
 
@@ -173,33 +173,33 @@ object `package` extends RootModule {
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }
 
-  object bloop extends ContribModule with BuildInfo {
-    def compileModuleDeps = Seq(build.scalalib, build.scalajslib, build.scalanativelib)
-    def ivyDeps = Agg(build.Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
-    def testModuleDeps = super.testModuleDeps ++ Seq(
-      build.scalalib,
-      build.scalajslib,
-      build.scalanativelib
-    )
-
-    def buildInfoPackageName = "mill.contrib.bloop"
-    def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Seq(BuildInfo.Value("bloop", build.Deps.bloopConfig.version))
-  }
+  // object bloop extends ContribModule with BuildInfo {
+  //   def compileModuleDeps = Seq(build.scalalib, build.scalajslib, build.scalanativelib)
+  //   def mvnDeps = Agg(build.Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
+  //   def testModuleDeps = super.testModuleDeps ++ Seq(
+  //     build.scalalib,
+  //     build.scalajslib,
+  //     build.scalanativelib
+  //   )
+  //
+  //   def buildInfoPackageName = "mill.contrib.bloop"
+  //   def buildInfoObjectName = "Versions"
+  //   def buildInfoMembers = Seq(BuildInfo.Value("bloop", build.Deps.bloopConfig.version))
+  // }
 
   object artifactory extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib)
-    def ivyDeps = Agg(build.Deps.requests)
+    def mvnDeps = Agg(build.Deps.requests)
   }
 
   object codeartifact extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib)
-    def ivyDeps = Agg(build.Deps.requests)
+    def mvnDeps = Agg(build.Deps.requests)
   }
 
   object sonatypecentral extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib)
-    def ivyDeps = Agg(build.Deps.sonatypeCentralClient)
+    def mvnDeps = Agg(build.Deps.sonatypeCentralClient)
   }
 
   object versionfile extends ContribModule {
@@ -208,12 +208,12 @@ object `package` extends RootModule {
 
   object bintray extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib)
-    def ivyDeps = Agg(build.Deps.requests)
+    def mvnDeps = Agg(build.Deps.requests)
   }
 
   object gitlab extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib)
-    def ivyDeps = Agg(build.Deps.requests, build.Deps.osLib)
+    def mvnDeps = Agg(build.Deps.requests, build.Deps.osLib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }
 

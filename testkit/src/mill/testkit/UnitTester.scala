@@ -22,7 +22,8 @@ object UnitTester {
       inStream: InputStream = DummyInputStream,
       debugEnabled: Boolean = false,
       env: Map[String, String] = Evaluator.defaultEnv,
-      resetSourcePath: Boolean = true
+      resetSourcePath: Boolean = true,
+      offline: Boolean = false
   ) = new UnitTester(
     module = module,
     sourceRoot = sourceRoot,
@@ -33,7 +34,8 @@ object UnitTester {
     inStream = inStream,
     debugEnabled = debugEnabled,
     env = env,
-    resetSourcePath = resetSourcePath
+    resetSourcePath = resetSourcePath,
+    offline = offline
   )
 }
 
@@ -52,7 +54,8 @@ class UnitTester(
     inStream: InputStream,
     debugEnabled: Boolean,
     env: Map[String, String],
-    resetSourcePath: Boolean
+    resetSourcePath: Boolean,
+    offline: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
   val outPath: os.Path = module.moduleDir / "out"
 
@@ -93,7 +96,6 @@ class UnitTester(
     baseLogger = logger,
     chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
     profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
-    home = mill.api.Ctx.defaultHome,
     workspace = module.moduleDir,
     outPath = outPath,
     externalOutPath = outPath,
@@ -107,7 +109,8 @@ class UnitTester(
     codeSignatures = Map(),
     systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
-    getEvaluator = () => evaluator
+    getEvaluator = () => evaluator,
+    offline = offline
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(

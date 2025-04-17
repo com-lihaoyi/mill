@@ -47,8 +47,8 @@ object lib extends AndroidLibModule with PublishModule {
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   object test extends AndroidLibTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy"junit:junit:4.13.2"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"junit:junit:4.13.2"
     )
   }
 
@@ -60,21 +60,24 @@ object app extends AndroidAppModule {
   def androidMinSdk = 19
   def androidCompileSdk = 35
 
+  def androidApplicationId = "com.example.app"
+  def androidApplicationNamespace = "com.example.app"
+
   override def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++ Seq(
       MavenRepository("file://" + sys.props("user.home") + "/.m2/repository")
     )
   }
 
-  def ivyDeps = super.ivyDeps() ++ Seq(
-    ivy"com.example.sumlib:lib:0.0.1"
+  def mvnDeps = super.mvnDeps() ++ Seq(
+    mvn"com.example.sumlib:lib:0.0.1"
   )
 
   object test extends AndroidAppTests with TestModule.Junit4 {
     def testFramework = "com.novocode.junit.JUnitFramework"
 
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy"junit:junit:4.13.2"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"junit:junit:4.13.2"
     )
 
   }

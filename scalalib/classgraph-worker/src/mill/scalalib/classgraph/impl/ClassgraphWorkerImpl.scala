@@ -6,12 +6,12 @@ import scala.jdk.CollectionConverters._
 import scala.util.Using
 
 import io.github.classgraph.ClassGraph
-import mill.api.Ctx
+import mill.define.TaskCtx
 import mill.scalalib.classgraph.ClassgraphWorker
 
 class ClassgraphWorkerImpl() extends ClassgraphWorker {
 
-  def discoverMainClasses(classpath: Seq[os.Path])(implicit ctx: Ctx): Seq[String] = {
+  def discoverMainClasses(classpath: Seq[os.Path])(implicit ctx: TaskCtx): Seq[String] = {
 
     val cp = classpath.map(_.toNIO.toString()).mkString(File.pathSeparator)
     ctx.log.debug(s"Scanning for mainclasses: ${cp}")

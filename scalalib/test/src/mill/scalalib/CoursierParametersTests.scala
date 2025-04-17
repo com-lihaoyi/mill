@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.define.{Discover, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import utest.*
 
 object CoursierParametersTests extends TestSuite {
@@ -13,8 +13,8 @@ object CoursierParametersTests extends TestSuite {
   object CoursierTest extends TestBaseModule {
     object core extends ScalaModule {
       def scalaVersion = "2.13.12"
-      def ivyDeps = Task {
-        Seq(ivy"com.lihaoyi::pprint:0.9.0")
+      def mvnDeps = Task {
+        Seq(mvn"com.lihaoyi::pprint:0.9.0")
       }
       def resolutionParams = Task.Anon {
         super.resolutionParams()

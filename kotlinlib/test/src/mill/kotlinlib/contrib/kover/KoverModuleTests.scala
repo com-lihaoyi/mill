@@ -1,7 +1,7 @@
 package mill.kotlinlib.kover
 
 import mill.define.Discover
-import mill.main.TokenReaders._
+import mill.util.TokenReaders._
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule
 import mill.testkit.{TestBaseModule, UnitTester}
@@ -23,8 +23,8 @@ object KoverModuleTests extends TestSuite {
         super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
 
       }
-      override def ivyDeps = super.ivyDeps() ++ Seq(
-        ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      override def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
       )
     }
 

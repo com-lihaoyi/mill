@@ -46,15 +46,15 @@ object CompileLinkTests extends TestSuite {
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
         override def sources = Task.Sources { this.moduleDir / "src/utest" }
         val utestVersion = if (JvmWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
-        override def ivyDeps = Seq(
-          ivy"com.lihaoyi::utest::$utestVersion"
+        override def mvnDeps = Seq(
+          mvn"com.lihaoyi::utest::$utestVersion"
         )
       }
 
       object `test-scalatest` extends ScalaJSTests with TestModule.ScalaTest {
         override def sources = Task.Sources { this.moduleDir / "src/scalatest" }
-        override def ivyDeps = Seq(
-          ivy"org.scalatest::scalatest::3.1.2"
+        override def mvnDeps = Seq(
+          mvn"org.scalatest::scalatest::3.1.2"
         )
       }
 
@@ -69,7 +69,7 @@ object CompileLinkTests extends TestSuite {
     }
 
     override lazy val millDiscover = {
-      import mill.main.TokenReaders.given
+      import mill.util.TokenReaders.given
       Discover[this.type]
     }
   }

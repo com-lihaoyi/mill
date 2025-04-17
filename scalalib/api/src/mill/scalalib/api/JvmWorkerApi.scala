@@ -1,9 +1,10 @@
 package mill.scalalib.api
 
-import mill.api.{CompileProblemReporter, PathRef}
+import mill.api.internal.CompileProblemReporter
+import mill.define.PathRef
 
 object JvmWorkerApi {
-  type Ctx = mill.api.Ctx.Dest & mill.api.Ctx.Log
+  type Ctx = mill.define.TaskCtx.Dest & mill.define.TaskCtx.Log
 }
 trait JvmWorkerApi {
 
