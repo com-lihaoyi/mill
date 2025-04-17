@@ -179,10 +179,10 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     } else dep
   }
 
-  override def prepareOffline(all: Flag): Command[Unit] = Task.Command {
-    super.prepareOffline(all)()
-    classpath()
-    ()
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
+    (
+      super.prepareOffline(all)() ++ classpath()
+    ).distinct
   }
 
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =

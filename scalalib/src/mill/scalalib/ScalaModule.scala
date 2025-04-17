@@ -6,10 +6,9 @@ import mill.api.{DummyInputStream, Result}
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
-
-import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
+import mill.scalalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
-import mill.define.{Task, PathRef}
+import mill.define.{PathRef, Target, Task}
 import mill.api.internal.{
   BspBuildTarget,
   BspModuleApi,
@@ -478,7 +477,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       resolvedAmmoniteReplMvnDeps()
   }
 
-  def resolvedAmmoniteReplMvnDeps = Task {
+  def resolvedAmmoniteReplMvnDeps: T[Seq[PathRef]] = Task {
     millResolver().classpath {
       val scaVersion = scalaVersion()
       val ammVersion = ammoniteVersion()
@@ -559,28 +558,33 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /**
    * @param all If `true` , fetches also sources, Ammonite and compiler dependencies.
    */
-  override def prepareOffline(all: Flag): Command[Unit] = {
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
     val ammonite = resolvedAmmoniteReplMvnDeps
-    val tasks =
+    val tasks: Seq[Task[Seq[PathRef]]] =
       if (all.value) Seq(ammonite)
       else Seq()
 
     Task.Command {
-      super.prepareOffline(all)()
-      // resolve the compile bridge jar
-      defaultResolver().classpath(
-        scalacPluginMvnDeps()
-      )
-      defaultResolver().classpath(
-        scalaDocPluginMvnDeps()
-      )
-      jvmWorker().scalaCompilerBridgeJar(
-        scalaVersion(),
-        scalaOrganization(),
-        defaultResolver()
-      )
-      Task.sequence(tasks)()
-      ()
+      (
+        super.prepareOffline(all)() ++
+          // resolve the compile bridge jar
+          defaultResolver().classpath(
+            scalacPluginMvnDeps()
+          ) ++
+          defaultResolver().classpath(
+            scalaDocPluginMvnDeps()
+          ) ++
+          (
+            jvmWorker().scalaCompilerBridgeJar(
+              scalaVersion(),
+              scalaOrganization(),
+              defaultResolver()
+            ) match {
+              case (opt, single) => opt.toSeq.flatten ++ Seq(single)
+            }
+          ) ++
+          Task.sequence(tasks)().flatten
+      ).distinct
     }
   }
 

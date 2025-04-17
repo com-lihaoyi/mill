@@ -8,7 +8,7 @@ import mill.util.Jvm
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
-  def moduleDeps = Seq(build.main, build.scalalib)
+  def moduleDeps = Seq(build.scalalib)
 
   override def resources = Task {
     super.resources() ++ Seq(exampleList())
@@ -73,13 +73,13 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     /*
     object tree extends Cross[TreeModule](build.Deps.sbtScalaVersion212, build.Deps.scalaVersion)
     trait TreeModule extends build.MillPublishCrossScalaModule {
-      def ivyDeps = Agg(build.Deps.upickle)
+      def mvnDeps = Agg(build.Deps.upickle)
     }
      */
   }
   object gradle extends build.MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
-    def ivyDeps = Agg(
+    def mvnDeps = Agg(
       build.Deps.gradleApi,
       build.Deps.logback
     )
@@ -87,7 +87,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   }
   object maven extends build.MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
-    def ivyDeps = Agg(
+    def mvnDeps = Agg(
       build.Deps.mavenEmbedder,
       build.Deps.mavenResolverConnectorBasic,
       build.Deps.mavenResolverSupplier,
@@ -120,8 +120,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
         extends Cross[ModelsModule](build.Deps.sbtScalaVersion212, build.Deps.scalaVersion)
     trait ModelsModule extends build.MillPublishCrossScalaModule {
       // def moduleDeps = Seq(buildgen.tree())
-      def ivyDeps = Agg(build.Deps.upickle)
-      def compileIvyDeps = Agg(build.Deps.sbt) // for definition references only
+      def mvnDeps = Agg(build.Deps.upickle)
+      def compileMvnDeps = Agg(build.Deps.sbt) // for definition references only
 
       def docJar =
         if (crossScalaVersion == build.Deps.scalaVersion)
@@ -139,7 +139,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       private val scalaVersionString = build.Deps.sbtScalaVersion212
       def scalaVersion = scalaVersionString
       def moduleDeps = Seq(models(scalaVersionString))
-      def compileIvyDeps = Agg(build.Deps.sbt)
+      def compileMvnDeps = Agg(build.Deps.sbt)
       def assemblyRules = Seq(Rule.ExcludePattern("scala\\.*"))
     }
   }

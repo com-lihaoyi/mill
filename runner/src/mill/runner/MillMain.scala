@@ -324,12 +324,11 @@ object MillMain {
       try {
         splitStreams.err.println("Trying to load BSP server...")
 
+        val wsRoot = WorkspaceRoot.workspaceRoot
+        val logDir = wsRoot / OutFiles.out / "mill-bsp"
         val bspServerHandleRes = {
-          val wsRoot = WorkspaceRoot.workspaceRoot
-          val worker = mill.bsp.BspClasspathWorker(wsRoot)
-          val logDir = wsRoot / OutFiles.out / "mill-bsp"
           os.makeDir.all(logDir)
-          worker.startBspServer(
+          mill.bsp.worker.BspWorkerImpl.startBspServer(
             define.WorkspaceRoot.workspaceRoot,
             splitStreams,
             logDir,

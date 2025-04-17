@@ -26,6 +26,8 @@ object app extends AndroidAppKotlinModule {
 
   def kotlinVersion = "2.0.21"
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidApplicationId = "com.example.screenshottest"
+  def androidApplicationNamespace = "com.example.screenshottest"
   def androidCompileSdk = 35
   def androidMinSdk = 26
   def androidEnableCompose = true
@@ -56,7 +58,6 @@ object app extends AndroidAppKotlinModule {
   }
 
   object screenshotTest extends AndroidAppKotlinScreenshotTests {
-    override def namespace = "com.example.screenshottest"
 
     // TODO this exists until auto discovery of methods is implemented
     override def androidScreenshotTestMethods: Seq[(String, Seq[String])] = Seq(
