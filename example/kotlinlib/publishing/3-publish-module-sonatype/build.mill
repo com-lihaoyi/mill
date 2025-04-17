@@ -3,9 +3,7 @@ package build
 
 import mill._, kotlinlib._, publish._
 
-import mill.kotlinlib.sonatypecentral.SonatypeCentralPublishModule
-
-object foo extends SonatypeCentralPublishModule {
+object foo extends KotlinModule with SonatypeCentralPublishModule {
   def scalaVersion = "2.13.8"
   def publishVersion = "0.0.1"
 
@@ -19,6 +17,6 @@ object foo extends SonatypeCentralPublishModule {
   )
 }
 
-// This example configured for publishing to Maven Central via Sonatype's
-// central repository workflow. Extends SonatypeCentralPublishModule which provides
+// This example configured for publishing to Sonatype Maven Central via
+// Central Portal. Extends SonatypeCentralPublishModule which provides
 // simplified publishing tasks without requiring Nexus repository manager.

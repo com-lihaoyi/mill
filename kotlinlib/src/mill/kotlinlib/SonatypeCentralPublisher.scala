@@ -1,4 +1,4 @@
-package mill.scalalib.sonatypecentral
+package mill.kotlinlib
 
 import com.lumidion.sonatype.central.client.core.{
   DeploymentName,

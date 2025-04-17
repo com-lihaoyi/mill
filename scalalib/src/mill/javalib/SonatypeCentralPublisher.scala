@@ -1,4 +1,4 @@
-package mill.javalib.sonatypecentral
+package mill.javalib
 
 import com.lumidion.sonatype.central.client.core.{
   DeploymentName,
