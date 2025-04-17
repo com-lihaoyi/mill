@@ -181,7 +181,8 @@ trait CoursierModule extends mill.define.Module {
   def resolutionParams: Task[ResolutionParams] = Task.Anon {
     ResolutionParams().addVariantAttributes(
       "org.gradle.category" -> VariantMatcher.Library,
-      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm"),
+      "org.gradle.dependency.bundling" -> VariantMatcher.Equals("external")
     )
   }
 

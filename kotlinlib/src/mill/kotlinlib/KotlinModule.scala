@@ -6,6 +6,8 @@
 package mill
 package kotlinlib
 
+import coursier.core.VariantSelector.VariantMatcher
+import coursier.params.ResolutionParams
 import mill.api.Result
 import mill.define.{Command, ModuleRef, PathRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
@@ -78,6 +80,12 @@ trait KotlinModule extends JavaModule { outer =>
 
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
+  override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    super.resolutionParams().addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm")
+    )
+  }
+
   /**
    * The Java classpath resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerMvnDeps]].
@@ -86,7 +94,15 @@ trait KotlinModule extends JavaModule { outer =>
     val deps = kotlinCompilerMvnDeps() ++ Seq(
       Dep.millProjectModule("mill-kotlinlib-worker-impl")
     )
-    defaultResolver().classpath(deps)
+    defaultResolver().classpath(
+      deps,
+      resolutionParamsMapOpt = Some { params =>
+        params.addVariantAttributes(
+          "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
+          "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+        )
+      }
+    )
   }
 
   /**
