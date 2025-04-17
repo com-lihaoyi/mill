@@ -1,7 +1,8 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
-import coursier.core.{Resolution, VariantSelector}
+import coursier.core.Resolution
+import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.T
@@ -178,14 +179,10 @@ trait CoursierModule extends mill.define.Module {
    * `ResolutionParams#defaultConfiguration` is used.
    */
   def resolutionParams: Task[ResolutionParams] = Task.Anon {
-    ResolutionParams()
-      .withDefaultVariantAttributes(
-        VariantSelector.AttributesBased(
-          Map(
-            "org.gradle.category" -> VariantSelector.VariantMatcher.Library
-          )
-        )
-      )
+    ResolutionParams().addVariantAttributes(
+      "org.gradle.category" -> VariantMatcher.Library,
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+    )
   }
 
 }
