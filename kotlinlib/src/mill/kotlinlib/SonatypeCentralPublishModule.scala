@@ -62,7 +62,7 @@ trait SonatypeCentralPublishModule extends PublishModule {
     }
 }
 
-object SonatypeCentralPublishModule extends ExternalModule with TaskModule{
+object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
 
   val defaultCredentials: String = ""
   val defaultReadTimeout: Int = 60000
