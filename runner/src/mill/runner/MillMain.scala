@@ -177,9 +177,7 @@ object MillMain {
                   case Seq((`expectedSelector`, args)) <- Option(parsed)
                   installArgs <- BSP.installArgsParser.constructRaw(args) match {
                     case mainargs.Result.Success(args0) => Some(args0)
-                    case other =>
-                      pprint.err.log(other)
-                      None
+                    case _ => None
                   }
                 } yield installArgs
               }.flatten
