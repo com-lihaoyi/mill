@@ -7,10 +7,10 @@ import mill.javalib.publish._
 
 object Deps {
 
-  val `org.apache.commons:commons-text` = ivy"org.apache.commons:commons-text"
+  val `org.apache.commons:commons-text` = mvn"org.apache.commons:commons-text"
 
   val `org.junit.jupiter:junit-jupiter` =
-    ivy"org.junit.jupiter:junit-jupiter:5.10.3"
+    mvn"org.junit.jupiter:junit-jupiter:5.10.3"
 }
 
 object `package` extends RootModule {
@@ -19,13 +19,13 @@ object `package` extends RootModule {
 
   object app extends BaseModule {
 
-    def ivyDeps = super.ivyDeps() ++ Seq(Deps.`org.apache.commons:commons-text`)
+    def mvnDeps = super.mvnDeps() ++ Seq(Deps.`org.apache.commons:commons-text`)
 
     def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
 
     object tests extends MavenTests with TestModule.Junit5 {
 
-      def ivyDeps = super.ivyDeps() ++
+      def mvnDeps = super.mvnDeps() ++
         Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
       def testSandboxWorkingDir = false
@@ -37,7 +37,7 @@ object `package` extends RootModule {
 
     object tests extends MavenTests with TestModule.Junit5 {
 
-      def ivyDeps = super.ivyDeps() ++
+      def mvnDeps = super.mvnDeps() ++
         Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
       def testSandboxWorkingDir = false

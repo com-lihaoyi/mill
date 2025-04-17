@@ -271,12 +271,12 @@ visualize where your build is spending time and where the performance bottleneck
 image::comparisons/GatlingCompileProfile.png[]
 
 If you want to inspect the tree of third-party dependencies used by any module, the
-built in `ivyDepsTree` command lets you do that easily:
+built in `mvnDepsTree` command lets you do that easily:
 
 [source,text]
 ----
-$ ./mill gatling-app.ivyDepsTree
-[137/137] gatling-app.ivyDepsTree
+$ ./mill gatling-app.mvnDepsTree
+[137/137] gatling-app.mvnDepsTree
 ├─ org.scala-lang:scala-library:2.13.14
 ├─ io.gatling:gatling-shared-model_2.13:0.0.6
 │  ├─ io.gatling:gatling-shared-util_2.13:0.0.8

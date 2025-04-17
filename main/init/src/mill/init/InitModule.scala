@@ -47,10 +47,12 @@ trait InitModule extends Module {
             }
 
           case Some(value) =>
-            val url = examples.toMap.get(value).getOrElse(sys.error(moduleNotExistMsg(value)))
+            val url = examples.toMap.getOrElse(value, sys.error(moduleNotExistMsg(value)))
             println(s"Downloading example from $url...")
             val zipName = url.split('/').last
             val extractedDirName = zipName.stripSuffix(".zip")
+            // TODO: use a previously downloaded index when offline
+            if (Task.offline) sys.error("Can't fetch a list of examples in offline Mode.")
             val downloaded = os.temp(requests.get(url))
             println(s"Unpacking example...")
             val unpackPath = os.unzip(downloaded, Task.dest)

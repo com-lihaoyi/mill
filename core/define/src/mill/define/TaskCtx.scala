@@ -16,7 +16,8 @@ trait TaskCtx extends TaskCtx.Dest
     with TaskCtx.Env
     with TaskCtx.Workspace
     with TaskCtx.Fork
-    with TaskCtx.Jobs {
+    with TaskCtx.Jobs
+    with TaskCtx.Offline {
   def reporter: Int => Option[CompileProblemReporter]
 
   def testReporter: TestReporter
@@ -38,7 +39,8 @@ object TaskCtx {
       val workspace: os.Path,
       val systemExit: Int => Nothing,
       val fork: TaskCtx.Fork.Api,
-      val jobs: Int
+      val jobs: Int,
+      val offline: Boolean
   ) extends TaskCtx {
     def dest: os.Path = dest0()
 
@@ -149,6 +151,10 @@ object TaskCtx {
      * and what logs belong to each future.
      */
     def fork: Fork.Api
+  }
+
+  trait Offline {
+    def offline: Boolean
   }
 
   @experimental

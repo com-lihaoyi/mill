@@ -43,7 +43,8 @@ trait CoursierModule extends mill.define.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      resolutionParams = resolutionParams()
+      resolutionParams = resolutionParams(),
+      offline = Task.offline
     )
   }
 
@@ -62,7 +63,8 @@ trait CoursierModule extends mill.define.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      resolutionParams = resolutionParams()
+      resolutionParams = resolutionParams(),
+      offline = Task.offline
     )
   }
 
@@ -102,8 +104,8 @@ trait CoursierModule extends mill.define.Module {
    * `JavaModule#coursierDependency`).
    *
    * Beware that this needs to evaluate `JavaModule#coursierProject` of all
-   * module dependencies of the current module, which itself evaluates `JavaModule#ivyDeps`
-   * and related tasks. You shouldn't depend on this task from implementations of `ivyDeps`,
+   * module dependencies of the current module, which itself evaluates `JavaModule#mvnDeps`
+   * and related tasks. You shouldn't depend on this task from implementations of `mvnDeps`,
    * which would introduce cycles between Mill tasks.
    */
   def allRepositories: Task[Seq[Repository]] = Task.Anon {
@@ -185,7 +187,8 @@ object CoursierModule {
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
       ] = None,
-      resolutionParams: ResolutionParams = ResolutionParams()
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      offline: Boolean
   ) {
 
     /**
@@ -252,7 +255,7 @@ object CoursierModule {
         repositories,
         deps0.map(_.dep),
         sources = sources,
-        ctx = Some(ctx.log)
+        ctx = Some(ctx)
       ).get
     }
   }

@@ -12,11 +12,11 @@ object ScalaMacrosTests extends TestSuite {
   object HelloWorldMacros212 extends TestBaseModule {
     object core extends ScalaModule {
       override def scalaVersion = scala212Version
-      override def ivyDeps = Seq(
-        ivy"com.github.julien-truffaut::monocle-macro::1.6.0"
+      override def mvnDeps = Seq(
+        mvn"com.github.julien-truffaut::monocle-macro::1.6.0"
       )
-      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Seq(
-        ivy"org.scalamacros:::paradise:2.1.0"
+      override def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++ Seq(
+        mvn"org.scalamacros:::paradise:2.1.0"
       )
     }
     lazy val millDiscover = Discover[this.type]
@@ -25,7 +25,7 @@ object ScalaMacrosTests extends TestSuite {
   object HelloWorldMacros213 extends TestBaseModule {
     object core extends ScalaModule {
       override def scalaVersion = scala213Version
-      override def ivyDeps = Seq(ivy"com.github.julien-truffaut::monocle-macro::2.1.0")
+      override def mvnDeps = Seq(mvn"com.github.julien-truffaut::monocle-macro::2.1.0")
       override def scalacOptions = super.scalacOptions() ++ Seq("-Ymacro-annotations")
     }
     lazy val millDiscover = Discover[this.type]

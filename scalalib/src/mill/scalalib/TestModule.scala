@@ -251,11 +251,18 @@ trait TestModule
     )
   }
 
-  private[mill] def bspBuildTargetScalaTestClasses = this match {
-    case m: TestModule =>
-      Task.Anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
-    case _ =>
-      Task.Anon(None)
+  private[mill] def bspBuildTargetScalaTestClasses = Task.Anon {
+    val (frameworkName, classFingerprint) =
+      mill.util.Jvm.withClassLoader(
+        classPath = runClasspath().map(_.path),
+        sharedPrefixes = Seq("sbt.testing.")
+      ) { classLoader =>
+        val framework = Framework.framework(testFramework())(classLoader)
+        framework.name() -> mill.testrunner.TestRunnerUtils
+          .discoverTests(classLoader, framework, testClasspath().map(_.path))
+      }
+    val classes = classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
+    (frameworkName, classes)
   }
 }
 
@@ -267,9 +274,9 @@ object TestModule {
    */
   trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
-    override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-      super.mandatoryIvyDeps() ++ Seq(
-        ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++ Seq(
+        mvn"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
       )
     }
   }
@@ -280,8 +287,8 @@ object TestModule {
    */
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
-    override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-      super.mandatoryIvyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++ Seq(mvn"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
 
@@ -291,8 +298,8 @@ object TestModule {
    */
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-    override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-      super.mandatoryIvyDeps() ++ Seq(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++ Seq(mvn"${mill.scalalib.api.Versions.jupiterInterface}")
     }
 
     private lazy val classesDir: Task[Option[os.Path]] = this match {
@@ -316,7 +323,7 @@ object TestModule {
      *
      * Note that we access the test discovery via reflection, to avoid mill
      * itself having a dependency on Junit5. Hence, if you remove the
-     * `sbt-jupiter-interface` dependency from `ivyDeps`, make sure to also
+     * `sbt-jupiter-interface` dependency from `mvnDeps`, make sure to also
      * override this method.
      */
     override def discoveredTestClasses: T[Seq[String]] = Task {
@@ -435,8 +442,8 @@ object TestModule {
     TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
 
   trait JavaModuleBase extends BspModule {
-    def ivyDeps: T[Seq[Dep]] = Seq.empty[Dep]
-    def mandatoryIvyDeps: T[Seq[Dep]] = Seq.empty[Dep]
+    def mvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
+    def mandatoryMvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
   }
 

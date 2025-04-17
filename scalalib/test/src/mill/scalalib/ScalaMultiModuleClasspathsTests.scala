@@ -12,25 +12,25 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
     trait FooModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
-      def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.2.2")
-      def compileIvyDeps = Seq(ivy"com.lihaoyi::geny:0.4.2")
-      def runIvyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+      def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode:0.2.2")
+      def compileMvnDeps = Seq(mvn"com.lihaoyi::geny:0.4.2")
+      def runMvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Seq(PathRef(moduleDir / "unmanaged")) }
     }
     trait BarModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
-      def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.2.1")
-      def compileIvyDeps = Seq(ivy"com.lihaoyi::geny:0.4.1")
-      def runIvyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+      def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode:0.2.1")
+      def compileMvnDeps = Seq(mvn"com.lihaoyi::geny:0.4.1")
+      def runMvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Seq(PathRef(moduleDir / "unmanaged")) }
     }
     trait QuxModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
-      def ivyDeps = Seq(ivy"com.lihaoyi::sourcecode:0.2.0")
-      def compileIvyDeps = Seq(ivy"com.lihaoyi::geny:0.4.0")
-      def runIvyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+      def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode:0.2.0")
+      def compileMvnDeps = Seq(mvn"com.lihaoyi::geny:0.4.0")
+      def runMvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Seq(PathRef(moduleDir / "unmanaged")) }
     }
     object ModMod extends Module {
@@ -86,7 +86,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
   def tests: Tests = Tests {
 
     // Make sure that a bunch of modules dependent on each other has their various
-    // {classpaths,moduleDeps,ivyDeps}x{run,compile,normal} properly aggregated
+    // {classpaths,moduleDeps,mvnDeps}x{run,compile,normal} properly aggregated
     def check(
         eval: UnitTester,
         mod: ScalaModule,
@@ -136,10 +136,10 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         expectedRunClasspath = List(
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
           // We pick up the newest version of sourcecode 0.2.4 from the upstream module, because
-          // sourcecode is a `ivyDeps` and `runIvyDeps` and those are picked up transitively
+          // sourcecode is a `mvnDeps` and `runMvnDeps` and those are picked up transitively
           "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
           // We pick up the oldest version of utest 0.7.0 from the current module, because
-          // utest is a `runIvyDeps` and not picked up transitively
+          // utest is a `runMvnDeps` and not picked up transitively
           "com/lihaoyi/utest_2.13/0.8.5/utest_2.13-0.8.5.jar",
           "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
@@ -162,7 +162,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         ),
         expectedCompileClasspath = List(
           // Make sure we only have geny 0.6.4 from the current module, and not newer
-          // versions pulled in by the upstream modules, because as `compileIvyDeps` it
+          // versions pulled in by the upstream modules, because as `compileMvnDeps` it
           // is not picked up transitively
           "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
@@ -198,11 +198,11 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         MultiModuleClasspaths.ModCompile.qux,
         expectedRunClasspath = List(
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
-          // Because `sourcecode` comes from `ivyDeps`, and the dependency from
+          // Because `sourcecode` comes from `mvnDeps`, and the dependency from
           // `qux` to `bar` is a `compileModuleDeps`, we do not include its
           // dependencies for `qux`'s `runClasspath`
           "com/lihaoyi/sourcecode_2.13/0.2.0/sourcecode_2.13-0.2.0.jar",
-          // `utest` is a `runIvyDeps` and not picked up transitively
+          // `utest` is a `runMvnDeps` and not picked up transitively
           "com/lihaoyi/utest_2.13/0.8.5/utest_2.13-0.8.5.jar",
           //
           "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
@@ -217,7 +217,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         expectedCompileClasspath = List(
           "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
-          // `sourcecode` is a `ivyDeps` from a `compileModuleDeps, which still
+          // `sourcecode` is a `mvnDeps` from a `compileModuleDeps, which still
           // gets picked up transitively, but only for compilation. This is necessary
           // in order to make sure that we can correctly compile against the upstream
           // module's classes.
@@ -253,10 +253,10 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         MultiModuleClasspaths.CompileMod.qux,
         expectedRunClasspath = List(
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
-          // We pick up the version of `sourcecode` from `ivyDeps` from `bar` because
+          // We pick up the version of `sourcecode` from `mvnDeps` from `bar` because
           // we have a normal `moduleDeps` from `qux` to `bar`, but do not pick it up
-          // from `foo` because it's a `compileIvyDeps` from `bar` to `foo` and
-          // `compileIvyDeps` are not transitive
+          // from `foo` because it's a `compileMvnDeps` from `bar` to `foo` and
+          // `compileMvnDeps` are not transitive
           "com/lihaoyi/sourcecode_2.13/0.2.1/sourcecode_2.13-0.2.1.jar",
           "com/lihaoyi/utest_2.13/0.8.5/utest_2.13-0.8.5.jar",
           //

@@ -26,16 +26,16 @@ You only need a `.scalafmt.conf` config file which at least needs configure the 
 
 .Run Scalafmt on the `build.mill` (and potentially included files)
 ----
-$ mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/
+$ mill --meta-level 1 mill.scalalib.scalafmt/
 ----
 
 * `--meta-level 1` selects the first meta-build. Without any customization, this is the only built-in meta-build.
-* `mill.scalalib.scalafmt.ScalafmtModule/reformatAll` is a generic task to format scala source files with Scalafmt. It requires the tasks that refer to the source files as argument
+* `mill.scalalib.scalafmt/reformatAll` is a generic task to format scala source files with Scalafmt. It requires the tasks that refer to the source files as argument
 * `sources` this selects the `sources` tasks of the meta-build, which at least contains the `build.mill`.
 
 == Finding plugin updates
 
-Mill plugins are defined as `ivyDeps` in the meta-build.
+Mill plugins are defined as `mvnDeps` in the meta-build.
 Hence, you can easily search for updates with the external `mill.scalalib.Dependency` module.
 
 .Check for Mill Plugin updates

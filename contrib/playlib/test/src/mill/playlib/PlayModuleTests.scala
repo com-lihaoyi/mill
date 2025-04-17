@@ -15,7 +15,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
       object test extends PlayTests
-      override def ivyDeps = Task { super.ivyDeps() ++ Seq(ws()) }
+      override def mvnDeps = Task { super.mvnDeps() ++ Seq(ws()) }
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -66,7 +66,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
         matrix.foreach { case (scalaVersion, playVersion) =>
           UnitTester(playmulti, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).ivyDeps): @unchecked
+              eval.apply(playmulti.core(scalaVersion, playVersion).mvnDeps): @unchecked
             val expectedModules = Seq[String](
               "play",
               "play-guice",
@@ -82,11 +82,11 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
           }
         }
       }
-      test("resolvedRunIvyDeps") {
+      test("resolvedRunMvnDeps") {
         matrix.foreach { case (scalaVersion, playVersion) =>
           UnitTester(playmulti, resourcePath).scoped { eval =>
             val Right(_) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).resolvedRunIvyDeps): @unchecked
+              eval.apply(playmulti.core(scalaVersion, playVersion).resolvedRunMvnDeps): @unchecked
           }
         }
       }

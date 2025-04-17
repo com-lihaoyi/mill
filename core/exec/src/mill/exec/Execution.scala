@@ -36,9 +36,11 @@ private[mill] case class Execution(
     codeSignatures: Map[String, Int],
     systemExit: Int => Nothing,
     exclusiveSystemStreams: SystemStreams,
-    getEvaluator: () => EvaluatorApi
+    getEvaluator: () => EvaluatorApi,
+    offline: Boolean
 ) extends GroupExecution with AutoCloseable {
 
+  // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
   def this(
       baseLogger: Logger,
       workspace: java.nio.file.Path,
@@ -54,7 +56,8 @@ private[mill] case class Execution(
       codeSignatures: Map[String, Int],
       systemExit: Int => Nothing,
       exclusiveSystemStreams: SystemStreams,
-      getEvaluator: () => EvaluatorApi
+      getEvaluator: () => EvaluatorApi,
+      offline: Boolean
   ) = this(
     baseLogger,
     new JsonArrayLogger.ChromeProfile(os.Path(outPath) / millChromeProfile),
@@ -72,7 +75,8 @@ private[mill] case class Execution(
     codeSignatures,
     systemExit,
     exclusiveSystemStreams,
-    getEvaluator
+    getEvaluator,
+    offline
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -169,7 +173,7 @@ private[mill] case class Execution(
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
             try {
-              val countMsg = mill.internal.Util.leftPad(
+              val countMsg = mill.util.Util.leftPad(
                 count.getAndIncrement().toString,
                 terminals.length.toString.length,
                 '0'
@@ -216,7 +220,8 @@ private[mill] case class Execution(
                   classToTransitiveClasses,
                   allTransitiveClassMethods,
                   forkExecutionContext,
-                  exclusive
+                  exclusive,
+                  offline
                 )
 
                 // Count new failures - if there are upstream failures, tasks should be skipped, not failed
