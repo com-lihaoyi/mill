@@ -7,6 +7,7 @@ import mill.util.BuildInfo
 import mill.scalalib.{CoursierModule, Dep}
 import Mirrors.autoMirror
 import mill.api.internal.{BspServerResult, internal}
+import mill.define.WorkspaceRoot
 
 object BSP extends ExternalModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
@@ -72,4 +73,18 @@ object BSP extends ExternalModule with CoursierModule {
     )
   }
 
+  private[mill] case class InstallArgs(jobs: Int = 1)
+  private[mill] lazy val installArgsParser: mainargs.ParserForClass[InstallArgs] =
+    mainargs.ParserForClass[InstallArgs]
+  private[mill] def installHelper(args: InstallArgs, withDebug: Boolean): Unit = {
+    // we create a json connection file
+    val bspFile = WorkspaceRoot.workspaceRoot / Constants.bspDir / s"${Constants.serverName}.json"
+    if (os.exists(bspFile)) System.err.println(s"Overwriting BSP connection file: ${bspFile}")
+    else System.err.println(s"Creating BSP connection file: ${bspFile}")
+    if (withDebug) System.err.println(
+      "Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option."
+    )
+    val connectionContent = bspConnectionJson(args.jobs, withDebug)
+    os.write.over(bspFile, connectionContent, createFolders = true)
+  }
 }

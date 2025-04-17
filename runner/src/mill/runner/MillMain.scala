@@ -10,9 +10,11 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.internal.{BspServerResult, internal}
 import mill.api.{DummyInputStream, Logger, MillException, Result, SystemStreams}
+import mill.bsp.BSP
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
-import mill.define.WorkspaceRoot
+import mill.define.{Segments, SelectMode, WorkspaceRoot}
+import mill.resolve.ParseArgs
 import mill.util.BuildInfo
 import mill.runner.meta.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}
@@ -160,6 +162,27 @@ object MillMain {
 
             // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
             val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
+            val bspInstallModeArgsOpt =
+              Option.when(
+                !config.bsp.value &&
+                  config.leftoverArgs.value.headOption.contains("mill.bsp.BSP/install")
+              ) {
+                val expectedSelector = Seq((
+                  Some(Segments.labels("mill", "bsp", "BSP")),
+                  Some(Segments.labels("install"))
+                ))
+
+                for {
+                  parsed <- ParseArgs(config.leftoverArgs.value, SelectMode.Separated).toOption
+                  case Seq((`expectedSelector`, args)) <- Option(parsed)
+                  installArgs <- BSP.installArgsParser.constructRaw(args) match {
+                    case mainargs.Result.Success(args0) => Some(args0)
+                    case other =>
+                      pprint.err.log(other)
+                      None
+                  }
+                } yield installArgs
+              }.flatten
             val maybeThreadCount =
               parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
 
@@ -177,6 +200,9 @@ object MillMain {
                 streams.err.println(maybeThreadCount.errorOpt.get)
                 (false, stateCache)
 
+              } else if (bspInstallModeArgsOpt.isDefined) {
+                BSP.installHelper(bspInstallModeArgsOpt.get, config.debugLog.value)
+                (true, stateCache)
               } else {
                 val userSpecifiedProperties =
                   userSpecifiedProperties0 ++ config.extraSystemProperties
