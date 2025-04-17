@@ -27,7 +27,7 @@ Create the version file with the initial version number:
 
 [source,console]
 ----
-$ 0.1.0-SNAPSHOT > versionFile/version
+$ echo 0.1.0-SNAPSHOT > versionFile/version
 ----
 
 Then to write a release version or snapshot version to file:
