@@ -40,11 +40,12 @@ object InitModuleTests extends TestSuite {
         )
       }
       test("non existing example") {
+        val outStream = new ByteArrayOutputStream()
         val errStream = new ByteArrayOutputStream()
         val evaluator = UnitTester(
           initmodule,
           null,
-          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
+          outStream = new PrintStream(outStream, true),
           errStream = new PrintStream(errStream, true)
         )
 
@@ -54,7 +55,13 @@ object InitModuleTests extends TestSuite {
         )).executionResults
         assert(results.transitiveFailing.size == 1)
         val err = errStream.toString
-        assert(err.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
+        try assert(err.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
+        catch {
+          case ex: utest.AssertionError =>
+            pprint.err.log(outStream)
+            pprint.err.log(errStream)
+            throw ex
+        }
       }
     }
   }
