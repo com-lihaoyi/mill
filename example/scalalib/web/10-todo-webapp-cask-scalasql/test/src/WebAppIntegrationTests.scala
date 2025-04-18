@@ -14,7 +14,7 @@ object WebAppIntegrationTests extends TestSuite {
   val tests = Tests {
     var serverPid: Option[Process] = None
     val serverPort = 8080
-    
+
     val pgContainer = PostgreSQLContainer(
       dockerImageNameOverride = DockerImageName.parse("postgres:15"),
       databaseName = "testdb",
@@ -38,10 +38,10 @@ object WebAppIntegrationTests extends TestSuite {
       pgContainer.start()
 
       val envVars = Seq(
-        "DB_URL"  -> pgContainer.jdbcUrl,
+        "DB_URL" -> pgContainer.jdbcUrl,
         "DB_USER" -> pgContainer.username,
         "DB_PASS" -> pgContainer.password
-        )
+      )
 
       val cmd = Seq("mill", "runBackground")
       val pb = Process(cmd, None, envVars: _*)
@@ -75,4 +75,3 @@ object WebAppIntegrationTests extends TestSuite {
     }
   }
 }
-
