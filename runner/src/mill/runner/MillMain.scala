@@ -13,8 +13,7 @@ import mill.api.{DummyInputStream, Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.client.lock.Lock
-import mill.define.{Segments, SelectMode, WorkspaceRoot}
-import mill.resolve.ParseArgs
+import mill.define.WorkspaceRoot
 import mill.util.BuildInfo
 import mill.runner.meta.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}
@@ -162,25 +161,28 @@ object MillMain {
 
             // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
             val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
-            val bspInstallModeArgsOpt =
+            val bspInstallModeJobCountOpt =
               Option.when(
                 !config.bsp.value &&
                   config.leftoverArgs.value.headOption.contains("mill.bsp.BSP/install")
               ) {
-                val expectedSelector = Seq((
-                  Some(Segments.labels("mill", "bsp", "BSP")),
-                  Some(Segments.labels("install"))
-                ))
-
-                for {
-                  parsed <- ParseArgs(config.leftoverArgs.value, SelectMode.Separated).toOption
-                  case Seq((`expectedSelector`, args)) <- Option(parsed)
-                  installArgs <- BSP.installArgsParser.constructRaw(args) match {
-                    case mainargs.Result.Success(args0) => Some(args0)
-                    case _ => None
-                  }
-                } yield installArgs
-              }.flatten
+                config.leftoverArgs.value.tail match {
+                  case Seq() => BSP.defaultJobCount
+                  case Seq("--jobs", value) =>
+                    val asIntOpt = value.toIntOption
+                    asIntOpt.getOrElse {
+                      streams.err.println(
+                        "Warning: ignoring --jobs value passed to mill.bsp.BSP/install"
+                      )
+                      BSP.defaultJobCount
+                    }
+                  case other =>
+                    streams.err.println(
+                      "Warning: ignoring leftover arguments passed to mill.bsp.BSP/install"
+                    )
+                    BSP.defaultJobCount
+                }
+              }
             val maybeThreadCount =
               parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
 
@@ -198,8 +200,8 @@ object MillMain {
                 streams.err.println(maybeThreadCount.errorOpt.get)
                 (false, stateCache)
 
-              } else if (bspInstallModeArgsOpt.isDefined) {
-                BSP.installHelper(bspInstallModeArgsOpt.get, config.debugLog.value)
+              } else if (bspInstallModeJobCountOpt.isDefined) {
+                BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
                 (true, stateCache)
               } else {
                 val userSpecifiedProperties =
