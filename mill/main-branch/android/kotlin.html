@@ -675,10 +675,10 @@ a starting point for further experimentation and development.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://mill-build.org/api/latest/mill/javalib/android/AndroidSdkModule.html"><code>mill.javalib.android.AndroidSdkModule</code></a>: Handles Android SDK management and tools.</p>
+<p><a href="https://mill-build.org/api/latest/mill/androidlib/AndroidSdkModule.html"><code>mill.androidlib.AndroidSdkModule</code></a>: Handles Android SDK management and tools.</p>
 </li>
 <li>
-<p><a href="https://mill-build.org/api/latest/mill/kotlinlib/android/AndroidAppKotlinModule.html"><code>mill.kotlinlib.android.AndroidAppKotlinModule</code></a>: Provides a framework for building Android applications.</p>
+<p><a href="https://mill-build.org/api/latest/mill/androidlib/AndroidAppKotlinModule.html"><code>mill.kotlinlib.android.AndroidAppKotlinModule</code></a>: Provides a framework for building Android applications.</p>
 </li>
 <li>
 <p><a href="https://mill-build.org/api/latest/mill/kotlinlib/KotlinModule.html"><code>mill.kotlinlib.KotlinModule</code></a>: General Kotlin build tasks like compiling Kotlin code and creating JAR files.</p>
@@ -701,15 +701,12 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-android-kotlinlib-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/android/kotlinlib/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
-import kotlinlib._
-import mill.kotlinlib.android.AndroidAppKotlinModule
-import mill.javalib.android.AndroidTestModule
-import mill.javalib.android.AndroidSdkModule
+import mill._, androidlib._, kotlinlib._, scalalib._
+
 import coursier.maven.MavenRepository</code></pre>
 </div>
 </div>
