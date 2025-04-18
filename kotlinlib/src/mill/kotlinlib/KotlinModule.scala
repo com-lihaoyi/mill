@@ -86,6 +86,13 @@ trait KotlinModule extends JavaModule { outer =>
     )
   }
 
+  private def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
+    params.addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+    )
+  }
+
   /**
    * The Java classpath resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerMvnDeps]].
@@ -96,12 +103,7 @@ trait KotlinModule extends JavaModule { outer =>
     )
     defaultResolver().classpath(
       deps,
-      resolutionParamsMapOpt = Some { params =>
-        params.addVariantAttributes(
-          "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
-          "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
-        )
-      }
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
     )
   }
 
@@ -160,7 +162,8 @@ trait KotlinModule extends JavaModule { outer =>
     val jars = defaultResolver().classpath(
       kotlincPluginMvnDeps()
         // Don't resolve transitive jars
-        .map(d => d.exclude("*" -> "*"))
+        .map(d => d.exclude("*" -> "*")),
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
     )
     jars.toSeq
   }
@@ -261,7 +264,8 @@ trait KotlinModule extends JavaModule { outer =>
     defaultResolver().classpath(
       Seq(
         mvn"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
-      )
+      ),
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
     )
   }
 
@@ -272,7 +276,8 @@ trait KotlinModule extends JavaModule { outer =>
         mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
         Dep.parse(Versions.kotlinxHtmlJvmDep),
         Dep.parse(Versions.freemarkerDep)
-      )
+      ),
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
     )
   }
 

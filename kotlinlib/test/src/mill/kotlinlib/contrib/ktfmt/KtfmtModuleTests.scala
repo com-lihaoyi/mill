@@ -133,7 +133,7 @@ object KtfmtModuleTests extends TestSuite {
         removeUnusedImports = true
       ),
       sources = Tasks(Seq(module.sources))
-    )).get
+    )).fold(_.get, _.value)
     val Right(sources) = eval(module.sources): @unchecked
     sources.value.flatMap(ref => walkFiles(ref.path))
   }

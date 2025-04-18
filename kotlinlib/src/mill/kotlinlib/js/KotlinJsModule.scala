@@ -707,7 +707,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
     )
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
+      mvn"io.kotest:kotest-framework-engine-js:${kotestVersion()}"
+        // buggy JVM dependency of a kotlin-js dependency?
+        // seems that exclusion can be dropped for kotest-framework-engine-js >= 6.0.0.M2
+        .exclude(("org.jetbrains.kotlinx", "kotlinx-coroutines-debug")),
       mvn"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
     )
   }

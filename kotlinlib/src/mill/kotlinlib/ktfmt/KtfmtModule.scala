@@ -1,5 +1,6 @@
 package mill.kotlinlib.ktfmt
 
+import coursier.core.VariantSelector.VariantMatcher
 import mill._
 import mill.define.{PathRef}
 import mill.define.{Discover, ExternalModule}
@@ -15,7 +16,13 @@ trait KtfmtBaseModule extends JavaModule {
    */
   def ktfmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(mvn"com.facebook:ktfmt:${ktfmtVersion()}")
+      Seq(mvn"com.facebook:ktfmt:${ktfmtVersion()}"),
+      resolutionParamsMapOpt = Some { params =>
+        params.addVariantAttributes(
+          "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
+          "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+        )
+      }
     )
   }
 
