@@ -8,6 +8,9 @@ import utest._
 
 import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
 
+import scala.concurrent.duration.DurationInt
+import scala.util.Properties
+
 object InitModuleTests extends TestSuite {
 
   object initmodule extends TestBaseModule with InitModule {
@@ -55,12 +58,24 @@ object InitModuleTests extends TestSuite {
         )).executionResults
         assert(results.transitiveFailing.size == 1)
         val err = errStream.toString
-        try assert(err.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
+
+        def check(): Unit =
+          try assert(err.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
+          catch {
+            case ex: utest.AssertionError =>
+              pprint.err.log(outStream)
+              pprint.err.log(errStream)
+              throw ex
+          }
+
+        try check()
         catch {
-          case ex: utest.AssertionError =>
-            pprint.err.log(outStream)
-            pprint.err.log(errStream)
-            throw ex
+          case ex: utest.AssertionError if Properties.isWin =>
+            ex.printStackTrace(System.err)
+            val waitFor = 2.seconds
+            System.err.println(s"Caught $ex, trying again in $waitFor")
+            Thread.sleep(waitFor.toMillis)
+            check()
         }
       }
     }
