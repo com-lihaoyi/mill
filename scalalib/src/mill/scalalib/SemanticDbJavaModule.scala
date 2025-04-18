@@ -1,25 +1,27 @@
 package mill.scalalib
 
-import mill.api.{PathRef, Result, experimental}
-import mill.runner.api.SemanticDbJavaModuleApi
+import mill.api.{Result, experimental}
+import mill.api.internal.BspBuildTarget
+import mill.define.{PathRef}
+import mill.api.internal.SemanticDbJavaModuleApi
 import mill.define.ModuleRef
 import mill.util.BuildInfo
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
-import mill.scalalib.bsp.BspBuildTarget
+import mill.api.internal.BspBuildTarget
 import mill.util.Version
 import mill.{T, Task}
 
 import scala.util.Properties
 
 @experimental
-trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticDbJavaModuleApi {
+trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
   def jvmWorker: ModuleRef[JvmWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]
   def zincIncrementalCompilation: T[Boolean]
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.scalalib.api.CompilationResult]
-  def bspBuildTarget: BspBuildTarget
+  private[mill] def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
   def compileClasspath: T[Seq[PathRef]]
@@ -44,7 +46,7 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
 
   def semanticDbScalaVersion: T[String] = BuildInfo.scalaVersion
 
-  protected def semanticDbPluginIvyDeps: T[Seq[Dep]] = Task {
+  protected def semanticDbPluginMvnDeps: T[Seq[Dep]] = Task {
     val sv = semanticDbScalaVersion()
     val semDbVersion = semanticDbVersion()
     if (!JvmWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
@@ -59,12 +61,12 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
       Result.Success(Seq.empty[Dep])
     } else {
       Result.Success(Seq(
-        ivy"org.scalameta:semanticdb-scalac_${sv}:${semDbVersion}"
+        mvn"org.scalameta:semanticdb-scalac_${sv}:${semDbVersion}"
       ))
     }
   }
 
-  private def semanticDbJavaPluginIvyDeps: T[Seq[Dep]] = Task {
+  private def semanticDbJavaPluginMvnDeps: T[Seq[Dep]] = Task {
     val sv = semanticDbJavaVersion()
     if (sv.isEmpty) {
       val msg =
@@ -76,7 +78,7 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
       Result.Failure(msg)
     } else {
       Result.Success(Seq(
-        ivy"com.sourcegraph:semanticdb-javac:${sv}"
+        mvn"com.sourcegraph:semanticdb-javac:${sv}"
       ))
     }
   }
@@ -86,17 +88,17 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
    */
   protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = Task {
     val resolvedJars = defaultResolver().classpath(
-      semanticDbPluginIvyDeps().map(_.exclude("*" -> "*"))
+      semanticDbPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
   protected def semanticDbPluginClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(semanticDbPluginIvyDeps())
+    defaultResolver().classpath(semanticDbPluginMvnDeps())
   }
 
-  protected def resolvedSemanticDbJavaPluginIvyDeps: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(semanticDbJavaPluginIvyDeps())
+  protected def resolvedSemanticDbJavaPluginMvnDeps: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(semanticDbJavaPluginMvnDeps())
   }
 
   def semanticDbData: T[PathRef] = Task(persistent = true) {
@@ -115,7 +117,7 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath =
-          (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
+          (compileClasspath() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
         javacOptions = javacOpts,
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),
@@ -136,7 +138,7 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
   }
 
   // keep in sync with compiledClassesAndSemanticDbFiles
-  def bspCompiledClassesAndSemanticDbFiles: T[UnresolvedPath] = {
+  private[mill] def bspCompiledClassesAndSemanticDbFiles: T[UnresolvedPath] = {
     if (
       compiledClassesAndSemanticDbFiles.ctx.enclosing == s"${classOf[SemanticDbJavaModule].getName}#compiledClassesAndSemanticDbFiles"
     ) {
@@ -159,7 +161,7 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
     }
   }
 
-  def bspBuildTargetCompileSemanticDb = Task.Anon {
+  private[mill] def bspBuildTargetCompileSemanticDb = Task.Anon {
     compiledClassesAndSemanticDbFiles().path.toNIO
   }
 }
@@ -167,7 +169,7 @@ trait SemanticDbJavaModule extends CoursierModule with mill.runner.api.SemanticD
 object SemanticDbJavaModule {
 
   def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(implicit
-      ctx: mill.api.Ctx
+      ctx: mill.define.TaskCtx
   ): Seq[String] = {
     // these are only needed for Java 17+
     val extracJavacExports =

@@ -10,7 +10,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
     super.testTransitiveDeps() ++ Seq(worker("0.5").testDep())
 
   object `worker-api` extends build.MillPublishScalaModule {
-    def ivyDeps = Agg(build.Deps.sbtTestInterface)
+    def mvnDeps = Agg(build.Deps.sbtTestInterface)
   }
 
   object worker extends Cross[WorkerModule]("0.5")
@@ -19,9 +19,9 @@ object `package` extends RootModule with build.MillStableScalaModule {
     def scalaNativeWorkerVersion = crossValue
     def moduleDir: os.Path = super.moduleDir / scalaNativeWorkerVersion
     def compileModuleDeps = Seq(`worker-api`)
-    def compileIvyDeps = scalaNativeWorkerVersion match {
+    def compileMvnDeps = scalaNativeWorkerVersion match {
       case "0.5" =>
-        super.mandatoryIvyDeps() ++ Agg(
+        super.mandatoryMvnDeps() ++ Agg(
           build.Deps.osLib,
           build.Deps.Scalanative_0_5.scalanativeTools,
           build.Deps.Scalanative_0_5.scalanativeUtil,
@@ -29,6 +29,6 @@ object `package` extends RootModule with build.MillStableScalaModule {
           build.Deps.Scalanative_0_5.scalanativeTestRunner
         )
     }
-    def mandatoryIvyDeps = Agg.empty[mill.scalalib.Dep]
+    def mandatoryMvnDeps = Agg.empty[mill.scalalib.Dep]
   }
 }

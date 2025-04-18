@@ -307,7 +307,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     val input = jsEnvInput(report)
     val runConfig0 = RunConfig().withLogger(logger)
     val runConfig =
-      if (mill.api.SystemStreams.isOriginal()) runConfig0
+      if (mill.define.SystemStreams.isOriginal()) runConfig0
       else runConfig0
         .withInheritErr(false)
         .withInheritOut(false)
@@ -350,7 +350,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         .headOption
         .getOrElse(throw new RuntimeException(
           """|Test framework class was not found. Please check that:
-             |- the correct Scala.js dependency of the framework is used (like ivy"group::artifact::version", instead of ivy"group::artifact:version" for JVM Scala. Note the extra : before the version.)
+             |- the correct Scala.js dependency of the framework is used (like mvn"group::artifact::version", instead of mvn"group::artifact:version" for JVM Scala. Note the extra : before the version.)
              |- there are no typos in the framework class name.
              |- the framework library is on the classpath
              |""".stripMargin

@@ -2,17 +2,17 @@ package mill
 package scalajslib
 
 import mainargs.{Flag, arg}
-import mill.api.{PathRef, Result, internal}
+import mill.api.Result
 import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
-import mill.define.{Command, Task}
+import mill.define.{Command, PathRef, Target, Task}
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
-import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
+import mill.api.internal.{ScalaBuildTarget, ScalaJSModuleApi, ScalaPlatform, internal}
 import mill.T
 
-trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSModuleApi { outer =>
+trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =>
 
   def scalaJSVersion: T[String]
 
@@ -29,8 +29,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSMod
 
   def scalaJSWorkerVersion = Task { JvmWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
-  override def scalaLibraryIvyDeps: T[Seq[Dep]] = Task {
-    val deps = super.scalaLibraryIvyDeps()
+  override def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
+    val deps = super.scalaLibraryMvnDeps()
     if (JvmWorkerUtil.isScala3(scalaVersion())) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
       deps.map(dep =>
@@ -49,18 +49,18 @@ trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSMod
     ))
   }
 
-  def scalaJSJsEnvIvyDeps: T[Seq[Dep]] = Task {
+  def scalaJSJsEnvMvnDeps: T[Seq[Dep]] = Task {
     val dep = jsEnvConfig() match {
       case _: JsEnvConfig.NodeJs =>
-        ivy"${ScalaJSBuildInfo.scalajsEnvNodejs}"
+        mvn"${ScalaJSBuildInfo.scalajsEnvNodejs}"
       case _: JsEnvConfig.JsDom =>
-        ivy"${ScalaJSBuildInfo.scalajsEnvJsdomNodejs}"
+        mvn"${ScalaJSBuildInfo.scalajsEnvJsdomNodejs}"
       case _: JsEnvConfig.ExoegoJsDomNodeJs =>
-        ivy"${ScalaJSBuildInfo.scalajsEnvExoegoJsdomNodejs}"
+        mvn"${ScalaJSBuildInfo.scalajsEnvExoegoJsdomNodejs}"
       case _: JsEnvConfig.Phantom =>
-        ivy"${ScalaJSBuildInfo.scalajsEnvPhantomJs}"
+        mvn"${ScalaJSBuildInfo.scalajsEnvPhantomJs}"
       case _: JsEnvConfig.Selenium =>
-        ivy"${ScalaJSBuildInfo.scalajsEnvSelenium}"
+        mvn"${ScalaJSBuildInfo.scalajsEnvSelenium}"
     }
 
     Seq(dep)
@@ -68,24 +68,24 @@ trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSMod
 
   def scalaJSLinkerClasspath: T[Seq[PathRef]] = Task {
     val commonDeps = Seq(
-      ivy"org.scala-js:scalajs-sbt-test-adapter_2.13:${scalaJSVersion()}"
+      mvn"org.scala-js:scalajs-sbt-test-adapter_2.13:${scalaJSVersion()}"
     )
     val scalajsImportMapDeps = scalaJSVersion() match {
       case s"1.$n.$_" if n.toIntOption.exists(_ >= 16) && scalaJSImportMap().nonEmpty =>
-        Seq(ivy"${ScalaJSBuildInfo.scalajsImportMap}")
+        Seq(mvn"${ScalaJSBuildInfo.scalajsImportMap}")
       case _ => Seq.empty[Dep]
     }
 
     val envDeps = scalaJSBinaryVersion() match {
       case "0.6" =>
         Seq(
-          ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
-          ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
+          mvn"org.scala-js::scalajs-tools:${scalaJSVersion()}",
+          mvn"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
         )
       case "1" =>
         Seq(
-          ivy"org.scala-js:scalajs-linker_2.13:${scalaJSVersion()}"
-        ) ++ scalaJSJsEnvIvyDeps()
+          mvn"org.scala-js:scalajs-linker_2.13:${scalaJSVersion()}"
+        ) ++ scalaJSJsEnvMvnDeps()
     }
     // we need to use the scala-library of the currently running mill
     defaultResolver().classpath(
@@ -94,7 +94,9 @@ trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSMod
     )
   }
 
-  def scalaJSToolsClasspath = Task { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
+  def scalaJSToolsClasspath: Target[Seq[PathRef]] = Task {
+    scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath()
+  }
 
   def fastLinkJS: T[Report] = Task(persistent = true) {
     linkTask(isFullLinkJS = false, forceOutJs = false)()
@@ -174,7 +176,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSMod
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
-  )(implicit ctx: mill.api.Ctx): Result[Report] = {
+  )(implicit ctx: mill.define.TaskCtx): Result[Report] = {
     val outputPath = ctx.dest
 
     os.makeDir.all(ctx.dest)
@@ -212,24 +214,24 @@ trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSMod
     super.mandatoryScalacOptions() ++ scalajsFlag
   }
 
-  override def scalacPluginIvyDeps = Task {
-    super.scalacPluginIvyDeps() ++ {
+  override def scalacPluginMvnDeps = Task {
+    super.scalacPluginMvnDeps() ++ {
       if (JvmWorkerUtil.isScala3(scalaVersion())) {
         Seq.empty
       } else {
-        Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
+        Seq(mvn"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
       }
     }
   }
 
   /** Adds the Scala.js Library as mandatory dependency. */
-  override def mandatoryIvyDeps = Task {
-    val prev = super.mandatoryIvyDeps()
+  override def mandatoryMvnDeps = Task {
+    val prev = super.mandatoryMvnDeps()
     val scalaVer = scalaVersion()
     val scalaJSVer = scalaJSVersion()
 
     val scalaJSLibrary =
-      ivy"org.scala-js::scalajs-library:$scalaJSVer".withDottyCompat(scalaVer)
+      mvn"org.scala-js::scalajs-library:$scalaJSVer".withDottyCompat(scalaVer)
 
     /* For Scala 2.x and Scala.js >= 1.15.0, explicitly add scalajs-scalalib,
      * in order to support forward binary incompatible changes in the standard library.
@@ -238,7 +240,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSMod
       scalaVer.startsWith("2.") && scalaJSVer.startsWith("1.")
       && scalaJSVer.drop(2).takeWhile(_.isDigit).toInt >= 15
     ) {
-      val scalaJSScalalib = ivy"org.scala-js::scalajs-scalalib:$scalaVer+$scalaJSVer"
+      val scalaJSScalalib = mvn"org.scala-js::scalajs-scalalib:$scalaVer+$scalaJSVer"
       prev ++ Seq(scalaJSLibrary, scalaJSScalalib)
     } else {
       prev ++ Seq(scalaJSLibrary)
@@ -309,14 +311,15 @@ trait ScalaJSModule extends scalalib.ScalaModule with mill.runner.api.ScalaJSMod
    */
   def scalaJSMinify: T[Boolean] = Task { true }
 
-  override def prepareOffline(all: Flag): Command[Unit] = {
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
     val tasks =
       if (all.value) Seq(scalaJSToolsClasspath)
       else Seq()
     Task.Command {
-      super.prepareOffline(all)()
-      Task.sequence(tasks)()
-      ()
+      (
+        super.prepareOffline(all)() ++
+          Task.sequence(tasks)().flatten
+      ).distinct
     }
   }
 
@@ -345,8 +348,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   def scalaJSTestDeps = Task {
     defaultResolver().classpath(
       Seq(
-        ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
-        ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
+        mvn"org.scala-js::scalajs-library:${scalaJSVersion()}",
+        mvn"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
       )
         .map(_.withDottyCompat(scalaVersion()))
     )

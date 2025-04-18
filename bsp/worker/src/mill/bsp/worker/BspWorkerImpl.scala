@@ -2,28 +2,28 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.bsp.BuildInfo
-import mill.runner.api.{BspServerHandle, BspServerResult}
-import mill.bsp.{Constants}
-import mill.bsp.{BspClasspathWorker, Constants}
-import mill.runner.api.{Result, SystemStreams}
+import mill.api.internal.{BspServerHandle, BspServerResult, EvaluatorApi}
+import mill.bsp.Constants
+import mill.api.{Result, SystemStreams}
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.{PrintStream, PrintWriter}
 import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, CancellationException, Promise}
+import scala.concurrent.{Await, CancellationException, ExecutionContext, Promise}
 
-private class BspWorkerImpl() extends BspClasspathWorker {
+object BspWorkerImpl {
 
-  override def startBspServer(
+  def startBspServer(
       topLevelBuildRoot: os.Path,
       streams: SystemStreams,
-      logStream: PrintStream,
       logDir: os.Path,
       canReload: Boolean
-  ): mill.runner.api.Result[BspServerHandle] = {
+  ): mill.api.Result[BspServerHandle] = {
 
     try {
+      val executor = Executors.newCachedThreadPool()
+      implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
       lazy val millServer: MillBuildServer with MillJvmBuildServer with MillJavaBuildServer
         with MillScalaBuildServer =
         new MillBuildServer(
@@ -31,23 +31,18 @@ private class BspWorkerImpl() extends BspClasspathWorker {
           bspVersion = Constants.bspProtocolVersion,
           serverVersion = BuildInfo.millVersion,
           serverName = Constants.serverName,
-          logStream = logStream,
+          logStream = streams.err,
           canReload = canReload,
           debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true"),
-          onShutdown = () => {
-            listening.cancel(true)
-          }
+          onShutdown = () => listening.cancel(true)
         ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
-      lazy val executor = Executors.newCachedThreadPool()
       lazy val launcher = new Launcher.Builder[BuildClient]()
         .setOutput(streams.out)
         .setInput(streams.in)
         .setLocalService(millServer)
         .setRemoteInterface(classOf[BuildClient])
-        .traceMessages(new PrintWriter(
-          (logDir / s"${Constants.serverName}.trace").toIO
-        ))
+        .traceMessages(new PrintWriter((logDir / "trace.log").toIO))
         .setExecutorService(executor)
         .create()
 
@@ -55,7 +50,7 @@ private class BspWorkerImpl() extends BspClasspathWorker {
       lazy val listening = launcher.startListening()
 
       val bspServerHandle = new BspServerHandle {
-        override def runSession(evaluators: Seq[mill.runner.api.EvaluatorApi]): BspServerResult = {
+        override def runSession(evaluators: Seq[EvaluatorApi]): BspServerResult = {
           millServer.updateEvaluator(Option(evaluators))
           millServer.sessionResult = None
           while (millServer.sessionResult.isEmpty) Thread.sleep(1)
@@ -72,7 +67,10 @@ private class BspWorkerImpl() extends BspClasspathWorker {
       }
 
       new Thread(() => {
-        listening.get()
+        try listening.get()
+        catch {
+          case _: CancellationException => // normal exit
+        }
         streams.err.println("Shutting down executor")
         executor.shutdown()
       }).start()

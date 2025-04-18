@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.{T, Task}
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
 import mill.api.ExecResult
 import mill.define.{Discover, Evaluator}
 import mill.scalalib.publish.{
@@ -70,8 +70,8 @@ object PublishModuleTests extends TestSuite {
           Seq(Developer("lefou", "Tobias Roeser", "https://github.com/lefou"))
       )
       override def versionScheme = Some(VersionScheme.EarlySemVer)
-      override def ivyDeps = Seq(
-        ivy"org.slf4j:slf4j-api:2.0.7"
+      override def mvnDeps = Seq(
+        mvn"org.slf4j:slf4j-api:2.0.7"
       )
       // ensure, these target won't be called
       override def jar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
@@ -97,11 +97,11 @@ object PublishModuleTests extends TestSuite {
       )
     }
     object main extends JavaModule with TestPublishModule {
-      def ivyDeps = Seq(
-        ivy"org.slf4j:slf4j-api:2.0.15"
+      def mvnDeps = Seq(
+        mvn"org.slf4j:slf4j-api:2.0.15"
       )
-      def runIvyDeps = Seq(
-        ivy"ch.qos.logback:logback-classic:1.5.12"
+      def runMvnDeps = Seq(
+        mvn"ch.qos.logback:logback-classic:1.5.12"
       )
     }
 
@@ -209,7 +209,7 @@ object PublishModuleTests extends TestSuite {
       }
     }
 
-    test("ivy") {
+    test("jvm") {
       test("should include scala-library dependency") - UnitTester(
         HelloWorldWithPublish,
         resourcePath

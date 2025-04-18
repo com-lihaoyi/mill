@@ -2,22 +2,22 @@ package mill.runner
 
 import mill.internal.PrefixLogger
 import mill.define.internal.Watchable
-import mill.define.RootModule0
+import mill.define.{PathRef, RootModule0, WorkspaceRoot}
 import mill.util.BuildInfo
-import mill.runner.api.{RootModuleApi, EvaluatorApi}
+import mill.api.internal.{EvaluatorApi, RootModuleApi, internal}
 import mill.constants.CodeGenConstants.*
-import mill.api.{Logger, PathRef, Result, SystemStreams, Val, WorkspaceRoot, internal}
+import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
-import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
-import mill.eval.EvaluatorImpl
 import mill.runner.worker.api.MillScalaParser
-import mill.runner.worker.ScalaCompilerWorker
-
+import mill.runner.meta.{CliImports, FileImportGraph, MillBuildRootModule, ScalaCompilerWorker}
 import java.io.File
 import java.net.URLClassLoader
+
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
+
+import mill.exec.Execution
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -51,7 +51,8 @@ class MillBuildBootstrap(
     systemExit: Int => Nothing,
     streams0: SystemStreams,
     selectiveExecution: Boolean,
-    scalaCompilerWorker: ScalaCompilerWorker.ResolvedWorker
+    scalaCompilerWorker: ScalaCompilerWorker.ResolvedWorker,
+    offline: Boolean
 ) { outer =>
   import MillBuildBootstrap._
 
@@ -298,7 +299,7 @@ class MillBuildBootstrap(
             null
           ) {
             val sharedCl = classOf[MillBuildBootstrap].getClassLoader
-            val sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.runner.api")
+            val sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api")
             override def findClass(name: String): Class[?] =
               if (sharedPrefixes.exists(name.startsWith)) sharedCl.loadClass(name)
               else super.findClass(name)
@@ -339,8 +340,8 @@ class MillBuildBootstrap(
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) =
-      mill.runner.api.EvaluatorApi.allBootstrapEvaluators.withValue(
-        mill.runner.api.EvaluatorApi.AllBootstrapEvaluators(Seq(
+      EvaluatorApi.allBootstrapEvaluators.withValue(
+        EvaluatorApi.AllBootstrapEvaluators(Seq(
           evaluator
         ) ++ nestedState.frames.flatMap(_.evaluator))
       ) {
@@ -388,6 +389,7 @@ class MillBuildBootstrap(
       allowPositionalCommandArgs,
       selectiveExecution,
       // Use the shorter convenience constructor not the primary one
+      // TODO: Check if named tuples could make this call more typesafe
       execCls.getConstructors.minBy(_.getParameterCount).newInstance(
         baseLogger,
         projectRoot.toNIO,
@@ -403,7 +405,8 @@ class MillBuildBootstrap(
         codeSignatures,
         systemExit,
         streams0,
-        () => evaluator
+        () => evaluator,
+        offline
       )
     ).asInstanceOf[EvaluatorApi]
 

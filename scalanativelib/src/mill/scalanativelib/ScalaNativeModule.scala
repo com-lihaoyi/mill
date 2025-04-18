@@ -2,25 +2,23 @@ package mill
 package scalanativelib
 
 import mainargs.Flag
-
-import mill.api.{Result, internal}
-import mill.define.{Command, Task}
+import mill.api.Result
+import mill.define.{Command, PathRef, Target, Task}
 import mill.scalalib.api.JvmWorkerUtil
-import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
+import mill.api.internal.{ScalaBuildTarget, ScalaNativeModuleApi, ScalaPlatform, internal}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
-import mill.scalanativelib.api._
+import mill.scalanativelib.api.*
 import mill.scalanativelib.worker.{
   ScalaNativeWorker,
   ScalaNativeWorkerExternalModule,
-  api => workerApi
+  api as workerApi
 }
 import mill.T
-import mill.api.PathRef
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
-trait ScalaNativeModule extends ScalaModule with mill.runner.api.ScalaNativeModuleApi { outer =>
+trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 
@@ -36,47 +34,47 @@ trait ScalaNativeModule extends ScalaModule with mill.runner.api.ScalaNativeModu
   def scalaNativeWorkerVersion =
     Task { JvmWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
-  def scalaNativeWorkerClasspath = Task {
+  def scalaNativeWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule(s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}")
     ))
   }
 
-  def toolsIvyDeps = Task {
+  def toolsMvnDeps = Task {
     scalaNativeVersion() match {
       case v @ ("0.4.0" | "0.4.1") =>
         Result.Failure(s"Scala Native $v is not supported. Please update to 0.4.2+")
       case version =>
         Result.Success(
           Seq(
-            ivy"org.scala-native::tools:$version",
-            ivy"org.scala-native::test-runner:$version"
+            mvn"org.scala-native::tools:$version",
+            mvn"org.scala-native::test-runner:$version"
           )
         )
 
     }
   }
 
-  def nativeIvyDeps: T[Seq[Dep]] = Task {
+  def nativeMvnDeps: T[Seq[Dep]] = Task {
     val scalaVersionSpecific = {
       val version =
         if (scalaNativeVersion().startsWith("0.4")) scalaNativeVersion()
         else s"${scalaVersion()}+${scalaNativeVersion()}"
 
       if (JvmWorkerUtil.isScala3(scalaVersion()))
-        Seq(ivy"org.scala-native::scala3lib::$version")
-      else Seq(ivy"org.scala-native::scalalib::$version")
+        Seq(mvn"org.scala-native::scala3lib::$version")
+      else Seq(mvn"org.scala-native::scalalib::$version")
     }
 
     Seq(
-      ivy"org.scala-native::nativelib::${scalaNativeVersion()}",
-      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
-      ivy"org.scala-native::auxlib::${scalaNativeVersion()}"
+      mvn"org.scala-native::nativelib::${scalaNativeVersion()}",
+      mvn"org.scala-native::javalib::${scalaNativeVersion()}",
+      mvn"org.scala-native::auxlib::${scalaNativeVersion()}"
     ) ++ scalaVersionSpecific
   }
 
-  override def scalaLibraryIvyDeps: T[Seq[Dep]] = Task {
-    super.scalaLibraryIvyDeps().map(dep =>
+  override def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
+    super.scalaLibraryMvnDeps().map(dep =>
       dep.copy(cross = dep.cross match {
         case c: CrossVersion.Constant => c.copy(platformed = false)
         case c: CrossVersion.Binary => c.copy(platformed = false)
@@ -85,20 +83,20 @@ trait ScalaNativeModule extends ScalaModule with mill.runner.api.ScalaNativeModu
     )
   }
 
-  /** Adds [[nativeIvyDeps]] as mandatory dependencies. */
-  override def mandatoryIvyDeps = Task {
-    super.mandatoryIvyDeps() ++ nativeIvyDeps()
+  /** Adds [[nativeMvnDeps]] as mandatory dependencies. */
+  override def mandatoryMvnDeps = Task {
+    super.mandatoryMvnDeps() ++ nativeMvnDeps()
   }
 
   def bridgeFullClassPath: T[Seq[PathRef]] = Task {
     scalaNativeWorkerClasspath() ++ defaultResolver().classpath(
-      toolsIvyDeps().map(Lib.depToBoundDep(_, mill.util.BuildInfo.scalaVersion, ""))
+      toolsMvnDeps().map(Lib.depToBoundDep(_, mill.util.BuildInfo.scalaVersion, ""))
     )
   }
 
-  override def scalacPluginIvyDeps: T[Seq[Dep]] = Task {
-    super.scalacPluginIvyDeps() ++ Seq(
-      ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}"
+  override def scalacPluginMvnDeps: T[Seq[Dep]] = Task {
+    super.scalacPluginMvnDeps() ++ Seq(
+      mvn"org.scala-native:::nscplugin:${scalaNativeVersion()}"
     )
   }
 
@@ -350,7 +348,7 @@ trait ScalaNativeModule extends ScalaModule with mill.runner.api.ScalaNativeModu
     )
   }
 
-  override def prepareOffline(all: Flag): Command[Unit] = {
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
     val tasks =
       if (all.value) Seq(
         scalaNativeWorkerClasspath,
@@ -358,9 +356,10 @@ trait ScalaNativeModule extends ScalaModule with mill.runner.api.ScalaNativeModu
       )
       else Seq()
     Task.Command {
-      super.prepareOffline(all)()
-      Task.sequence(tasks)()
-      ()
+      (
+        super.prepareOffline(all)() ++
+          Task.sequence(tasks)().flatten
+      ).distinct
     }
   }
 
@@ -405,8 +404,8 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
     close()
     res
   }
-  override def ivyDeps = super.ivyDeps() ++ Seq(
-    ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
+  override def mvnDeps = super.mvnDeps() ++ Seq(
+    mvn"org.scala-native::test-interface::${scalaNativeVersion()}"
   )
   override def mainClass: T[Option[String]] = Some("scala.scalanative.testinterface.TestMain")
 }

@@ -2,7 +2,7 @@ package mill
 
 package object javalib extends mill.scalalib.JsonFormatters {
   implicit class DepSyntax(ctx: StringContext) {
-    def ivy(args: Any*): Dep = Dep.parse {
+    def mvn(args: Any*): Dep = Dep.parse {
       (
         ctx.parts.take(args.length).zip(args).flatMap { case (p, a) => Seq(p, a) } ++
           ctx.parts.drop(args.length)
@@ -43,6 +43,6 @@ package object javalib extends mill.scalalib.JsonFormatters {
   type BoundDep = mill.scalalib.BoundDep
   val BoundDep = mill.scalalib.BoundDep
 
-  type CrossVersion = mill.api.CrossVersion
-  val CrossVersion = mill.api.CrossVersion
+  type CrossVersion = mill.define.CrossVersion
+  val CrossVersion = mill.define.CrossVersion
 }

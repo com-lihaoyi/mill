@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.runner.api.{TaskApi, JavaModuleApi, RunModuleApi, TestModuleApi}
+import mill.api.internal.{TaskApi, JavaModuleApi, RunModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
 
@@ -24,8 +24,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] = {
     jvmRunTestEnvironment(
-      s"buildTarget/jvmRunEnvironment ${params}",
-      params.getTargets.asScala.toSeq,
+      params.getTargets.asScala,
       new JvmRunEnvironmentResult(_)
     )
   }
@@ -33,19 +32,16 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   override def buildTargetJvmTestEnvironment(params: JvmTestEnvironmentParams)
       : CompletableFuture[JvmTestEnvironmentResult] = {
     jvmRunTestEnvironment(
-      s"buildTarget/jvmTestEnvironment ${params}",
-      params.getTargets.asScala.toSeq,
+      params.getTargets.asScala,
       new JvmTestEnvironmentResult(_)
     )
   }
 
   def jvmRunTestEnvironment[V](
-      name: String,
-      targetIds: Seq[BuildTargetIdentifier],
+      targetIds: collection.Seq[BuildTargetIdentifier],
       agg: java.util.List[JvmEnvironmentItem] => V
-  ): CompletableFuture[V] = {
-    completableTasks(
-      name,
+  )(implicit name: sourcecode.Name): CompletableFuture[V] = {
+    handlerTasks(
       targetIds = _ => targetIds,
       tasks = { case m: RunModuleApi => m.bspJvmRunTestEnvironment }
     ) {
@@ -91,7 +87,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val classpath = runClasspath.map(sanitizeUri)
         val item = new JvmEnvironmentItem(
           id,
-          classpath.iterator.toSeq.asJava,
+          classpath.asJava,
           forkArgs.asJava,
           forkWorkingDir.toString(),
           forkEnv.asJava
@@ -108,19 +104,14 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
 
   override def buildTargetJvmCompileClasspath(params: JvmCompileClasspathParams)
       : CompletableFuture[JvmCompileClasspathResult] =
-    completableTasks(
-      hint = "buildTarget/jvmCompileClasspath",
-      targetIds = _ => params.getTargets.asScala.toSeq,
+    handlerTasks(
+      targetIds = _ => params.getTargets.asScala,
       tasks = {
         case m: JavaModuleApi => m.bspCompileClasspath
       }
     ) {
       case (ev, _, id, _: JavaModuleApi, compileClasspath) =>
-
-        new JvmCompileClasspathItem(
-          id,
-          compileClasspath(ev).toSeq.asJava
-        )
+        new JvmCompileClasspathItem(id, compileClasspath(ev).asJava)
       case _ => ???
     } {
       new JvmCompileClasspathResult(_)

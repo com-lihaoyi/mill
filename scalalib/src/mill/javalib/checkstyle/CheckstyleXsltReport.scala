@@ -1,6 +1,6 @@
 package mill.javalib.checkstyle
 
-import mill.api.PathRef
+import mill.define.PathRef
 
 /**
  * A report obtained by transforming a Checkstyle output report.

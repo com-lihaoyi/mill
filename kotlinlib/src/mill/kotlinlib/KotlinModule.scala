@@ -6,18 +6,35 @@
 package mill
 package kotlinlib
 
-import mill.api.{PathRef, Result, internal}
-import mill.define.{Command, ModuleRef, Task}
+import mill.api.Result
+import mill.define.{Command, ModuleRef, PathRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, JvmWorkerApi}
-import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.scalalib.{JavaModule, Lib, JvmWorkerModule}
+import mill.api.internal.{BspBuildTarget, BspModuleApi, CompileProblemReporter, internal}
+import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.T
-
 import java.io.File
 
+import mainargs.Flag
+
 trait KotlinModule extends JavaModule { outer =>
+
+  /**
+   * The Kotlin version to be used (for API and Language level settings).
+   */
+  def kotlinVersion: T[String]
+
+  /**
+   * The compiler language version. Default is derived from [[kotlinVersion]].
+   */
+  def kotlinLanguageVersion: T[String] = Task { kotlinVersion().split("[.]").take(2).mkString(".") }
+
+  /**
+   * The compiler API version. Default is derived from [[kotlinLanguageVersion]],
+   * as the value typically can not be greater than [[kotlinLanguageVersion]].
+   */
+  def kotlinApiVersion: T[String] = Task { kotlinLanguageVersion() }
 
   /**
    * All individual source files fed into the compiler.
@@ -43,44 +60,19 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   /**
-   * The Kotlin version to be used (for API and Language level settings).
-   */
-  def kotlinVersion: T[String]
-
-  /**
    * The dependencies of this module.
    * Defaults to add the kotlin-stdlib dependency matching the [[kotlinVersion]].
    */
-  override def mandatoryIvyDeps: T[Seq[Dep]] = Task {
-    super.mandatoryIvyDeps() ++ Seq(
-      ivy"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
+  override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+    super.mandatoryMvnDeps() ++ Seq(
+      mvn"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
     )
   }
-
-  /**
-   * The version of the Kotlin compiler to be used.
-   * Default is derived from [[kotlinVersion]].
-   * This is deprecated, as it's identical to [[kotlinVersion]]
-   */
-  @deprecated("Use kotlinVersion instead", "Mill 0.13.0-M1")
-  def kotlinCompilerVersion: T[String] = Task { kotlinVersion() }
-
-  /**
-   * The compiler language version. Default is not set.
-   */
-  def kotlinLanguageVersion: T[String] = Task { "" }
-
-  /**
-   * The compiler API version. Default is not set.
-   */
-  def kotlinApiVersion: T[String] = Task { "" }
 
   /**
    * Flag to use explicit API check in the compiler. Default is `false`.
    */
   def kotlinExplicitApi: T[Boolean] = Task { false }
-
-  type CompileProblemReporter = mill.runner.api.CompileProblemReporter
 
   protected def jvmWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
 
@@ -88,10 +80,10 @@ trait KotlinModule extends JavaModule { outer =>
 
   /**
    * The Java classpath resembling the Kotlin compiler.
-   * Default is derived from [[kotlinCompilerIvyDeps]].
+   * Default is derived from [[kotlinCompilerMvnDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
-    val deps = kotlinCompilerIvyDeps() ++ Seq(
+    val deps = kotlinCompilerMvnDeps() ++ Seq(
       Dep.millProjectModule("mill-kotlinlib-worker-impl")
     )
     defaultResolver().classpath(deps)
@@ -119,22 +111,22 @@ trait KotlinModule extends JavaModule { outer =>
    *
    * Default is derived from [[kotlinCompilerVersion]] and [[kotlinUseEmbeddableCompiler]].
    */
-  def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
+  def kotlinCompilerMvnDeps: T[Seq[Dep]] = Task {
     val useEmbeddable = kotlinUseEmbeddableCompiler()
-    val kv = kotlinCompilerVersion()
+    val kv = kotlinVersion()
     val isOldKotlin = Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4")
       .exists(prefix => kv.startsWith(prefix))
 
     val compilerDep = if (useEmbeddable) {
-      ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kv}"
+      mvn"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kv}"
     } else {
-      ivy"org.jetbrains.kotlin:kotlin-compiler:${kv}"
+      mvn"org.jetbrains.kotlin:kotlin-compiler:${kv}"
     }
 
     val scriptCompilerDep = if (useEmbeddable) {
-      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kv}"
+      mvn"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kv}"
     } else {
-      ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kv}"
+      mvn"org.jetbrains.kotlin:kotlin-scripting-compiler:${kv}"
     }
 
     Seq(compilerDep) ++ when(!isOldKotlin)(scriptCompilerDep)
@@ -143,14 +135,14 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Compiler Plugin dependencies.
    */
-  def kotlincPluginIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def kotlincPluginMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   /**
    * The resolved plugin jars
    */
   def kotlincPluginJars: T[Seq[PathRef]] = Task {
     val jars = defaultResolver().classpath(
-      kotlincPluginIvyDeps()
+      kotlincPluginMvnDeps()
         // Don't resolve transitive jars
         .map(d => d.exclude("*" -> "*"))
     )
@@ -217,11 +209,13 @@ trait KotlinModule extends JavaModule { outer =>
 
       Task.log.info("dokka options: " + options)
 
-      Jvm.callProcess(
-        mainClass = "",
-        classPath = Seq.empty,
-        jvmArgs = Seq("-jar", dokkaCliClasspath().head.path.toString()),
-        mainArgs = options,
+      os.call(
+        cmd = (
+          Jvm.javaExe(jvmWorker().javaHome().map(_.path)),
+          "-jar",
+          dokkaCliClasspath().head.path.toString(),
+          options
+        ),
         stdin = os.Inherit,
         stdout = os.Inherit
       )
@@ -250,7 +244,7 @@ trait KotlinModule extends JavaModule { outer =>
   private def dokkaCliClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
+        mvn"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       )
     )
   }
@@ -258,8 +252,8 @@ trait KotlinModule extends JavaModule { outer =>
   private def dokkaPluginsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
-        ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
+        mvn"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
+        mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
         Dep.parse(Versions.kotlinxHtmlJvmDep),
         Dep.parse(Versions.freemarkerDep)
       )
@@ -407,12 +401,22 @@ trait KotlinModule extends JavaModule { outer =>
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     languageIds = Seq(
-      mill.runner.api.BspModuleApi.LanguageId.Java,
-      mill.runner.api.BspModuleApi.LanguageId.Kotlin
+      BspModuleApi.LanguageId.Java,
+      BspModuleApi.LanguageId.Kotlin
     ),
     canCompile = true,
     canRun = true
   )
+
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
+    (
+      super.prepareOffline(all)() ++
+        kotlinCompilerClasspath() ++
+        kotlinCompilerClasspath() ++
+        dokkaCliClasspath() ++
+        dokkaPluginsClasspath()
+    ).distinct
+  }
 
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
@@ -423,9 +427,8 @@ trait KotlinModule extends JavaModule { outer =>
     override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
-    override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
-    override def kotlincPluginIvyDeps: T[Seq[Dep]] =
-      Task { outer.kotlincPluginIvyDeps() }
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] =
+      Task { outer.kotlincPluginMvnDeps() }
       // TODO: make Xfriend-path an explicit setting
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++

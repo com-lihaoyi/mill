@@ -1,7 +1,7 @@
 package mill.contrib.proguard
 
 import mill.{T, Task}
-import mill.api.{PathRef}
+import mill.define.{PathRef}
 import mill.constants.Util
 import mill.util.Jvm
 import mill.scalalib.{DepSyntax, ScalaModule}
@@ -122,7 +122,7 @@ trait Proguard extends ScalaModule {
    */
   def proguardClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      ivy"com.guardsquare:proguard-base:${proguardVersion()}"
+      mvn"com.guardsquare:proguard-base:${proguardVersion()}"
     ))
   }
 

@@ -1,7 +1,6 @@
 package mill.testrunner
 
-import mill.runner.api.TestReporter
-import mill.api.internal
+import mill.api.internal.{TestReporter, internal}
 import os.Path
 import sbt.testing._
 
@@ -15,6 +14,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean
+import scala.math.Ordering.Implicits._
 
 @internal object TestRunnerUtils {
 
@@ -164,12 +164,17 @@ import java.util.concurrent.atomic.AtomicBoolean
           }
         },
         Array(new Logger {
-          def debug(msg: String) = systemOut.println(msg)
-          def error(msg: String) = systemOut.println(msg)
+          private val logDebug = testReporter.logLevel <= TestReporter.LogLevel.Debug
+          private val logInfo = testReporter.logLevel <= TestReporter.LogLevel.Info
+          private val logWarn = testReporter.logLevel <= TestReporter.LogLevel.Warn
+          private val logError = testReporter.logLevel <= TestReporter.LogLevel.Error
+
+          def debug(msg: String) = if (logDebug) systemOut.println(msg)
+          def error(msg: String) = if (logError) systemOut.println(msg)
           def ansiCodesSupported() = true
-          def warn(msg: String) = systemOut.println(msg)
+          def warn(msg: String) = if (logWarn) systemOut.println(msg)
           def trace(t: Throwable) = t.printStackTrace(systemOut)
-          def info(msg: String) = systemOut.println(msg)
+          def info(msg: String) = if (logInfo) systemOut.println(msg)
         })
       )
 
@@ -290,7 +295,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
     def runClaimedTestClass(testClassName: String) = {
 
-      System.err.println(s"Running Test Class $testClassName")
+      if (testReporter.logLevel <= TestReporter.LogLevel.Debug)
+        System.err.println(s"Running Test Class $testClassName")
       val taskDefs = globSelectorCache
         .get(testClassName)
         .map { case (cls, fingerprint) =>

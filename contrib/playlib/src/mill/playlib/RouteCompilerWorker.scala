@@ -1,6 +1,7 @@
 package mill.playlib
 
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.{TaskCtx, ModuleCtx, PathRef}
+import mill.api.Result
 import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
 import mill.scalalib.api.CompilationResult
 import mill.Task
@@ -11,7 +12,7 @@ private[playlib] class RouteCompilerWorker extends AutoCloseable {
     Option.empty[(Long, mill.playlib.api.RouteCompilerWorkerApi)]
 
   protected def bridge(toolsClasspath: Seq[PathRef])(
-      implicit ctx: Ctx
+      implicit ctx: TaskCtx
   ): RouteCompilerWorkerApi = {
     val classloaderSig = toolsClasspath.hashCode
     routeCompilerInstanceCache match {
@@ -44,7 +45,7 @@ private[playlib] class RouteCompilerWorker extends AutoCloseable {
       namespaceReverseRouter: Boolean,
       generatorType: RouteCompilerType,
       dest: os.Path
-  )(implicit ctx: Ctx): Result[CompilationResult] = {
+  )(implicit ctx: TaskCtx): Result[CompilationResult] = {
     // the routes file must come last as it can include the routers generated
     // by the others
     bridge(routerClasspath)

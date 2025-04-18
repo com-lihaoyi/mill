@@ -4,12 +4,12 @@ import mill.define.Task
 import mill.playlib.api.Versions
 import mill.scalalib._
 import mill.{Args, T}
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.define.Target
 
 trait PlayApiModule extends Dependencies with Router with Server {
   trait PlayTests extends ScalaTests with TestModule.ScalaTest {
-    override def ivyDeps = Task {
+    override def mvnDeps = Task {
       val scalatestPlusPlayVersion = playMinorVersion() match {
         case Versions.PLAY_2_6 => "3.1.3"
         case Versions.PLAY_2_7 => "4.0.3"
@@ -17,7 +17,7 @@ trait PlayApiModule extends Dependencies with Router with Server {
         case Versions.PLAY_2_9 => "6.0.0"
         case _ => "7.0.0"
       }
-      Seq(ivy"org.scalatestplus.play::scalatestplus-play::${scalatestPlusPlayVersion}")
+      Seq(mvn"org.scalatestplus.play::scalatestplus-play::${scalatestPlusPlayVersion}")
     }
     override def sources: Target[Seq[PathRef]] = Task.Sources { moduleDir }
   }

@@ -5,7 +5,8 @@ import coursier.core.Resolution
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.util.Jvm
 
 import scala.concurrent.Await
@@ -42,7 +43,8 @@ trait CoursierModule extends mill.define.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      resolutionParams = resolutionParams()
+      resolutionParams = resolutionParams(),
+      offline = Task.offline
     )
   }
 
@@ -61,7 +63,8 @@ trait CoursierModule extends mill.define.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      resolutionParams = resolutionParams()
+      resolutionParams = resolutionParams(),
+      offline = Task.offline
     )
   }
 
@@ -101,8 +104,8 @@ trait CoursierModule extends mill.define.Module {
    * `JavaModule#coursierDependency`).
    *
    * Beware that this needs to evaluate `JavaModule#coursierProject` of all
-   * module dependencies of the current module, which itself evaluates `JavaModule#ivyDeps`
-   * and related tasks. You shouldn't depend on this task from implementations of `ivyDeps`,
+   * module dependencies of the current module, which itself evaluates `JavaModule#mvnDeps`
+   * and related tasks. You shouldn't depend on this task from implementations of `mvnDeps`,
    * which would introduce cycles between Mill tasks.
    */
   def allRepositories: Task[Seq[Repository]] = Task.Anon {
@@ -184,7 +187,8 @@ object CoursierModule {
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
       ] = None,
-      resolutionParams: ResolutionParams = ResolutionParams()
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      offline: Boolean
   ) {
 
     /**
@@ -199,7 +203,7 @@ object CoursierModule {
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
         mapDependencies: Option[Dependency => Dependency] = null
-    )(implicit ctx: mill.api.Ctx): Seq[PathRef] =
+    )(implicit ctx: mill.define.TaskCtx): Seq[PathRef] =
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
@@ -219,7 +223,7 @@ object CoursierModule {
      */
     def resolution[T: CoursierModule.Resolvable](
         deps: IterableOnce[T]
-    )(implicit ctx: mill.api.Ctx): coursier.core.Resolution = {
+    )(implicit ctx: mill.define.TaskCtx): coursier.core.Resolution = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
@@ -242,7 +246,7 @@ object CoursierModule {
     def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
-    )(implicit ctx: mill.api.Ctx): coursier.Artifacts.Result = {
+    )(implicit ctx: mill.define.TaskCtx): coursier.Artifacts.Result = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
@@ -251,7 +255,7 @@ object CoursierModule {
         repositories,
         deps0.map(_.dep),
         sources = sources,
-        ctx = Some(ctx.log)
+        ctx = Some(ctx)
       ).get
     }
   }

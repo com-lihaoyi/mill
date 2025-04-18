@@ -100,7 +100,7 @@ final class JLineNativeLoader {
     }
   }
 
-  private static boolean initialized = Runtime.version().feature() >= 22;
+  private static boolean initialized = false;
 
   static void initJLineNative() {
     if (!initialized) doInitJLineNative();

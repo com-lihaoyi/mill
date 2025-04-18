@@ -1,9 +1,10 @@
 package mill.runner
 
-import mill.api.{internal, PathRef}
 import mill.internal.Colors
 import mill.define.internal.Watchable
+import mill.define.PathRef
 import mill.api.SystemStreams
+import mill.api.internal.internal
 
 import java.io.InputStream
 import scala.annotation.tailrec

@@ -1,9 +1,11 @@
 package mill.scalalib
 
-import mill.api.{Ctx, PathRef, Result}
+import mill.define.{TaskCtx, PathRef}
+import mill.api.{Result}
 import mill.constants.EnvVars
+import mill.api.internal.TestReporter
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
-import mill.util.Jvm
+import mill.util.{Jvm, Util}
 import mill.Task
 import sbt.testing.Status
 
@@ -32,8 +34,9 @@ private final class TestModuleUtil(
     forkWorkingDir: os.Path,
     testReportXml: Option[String],
     javaHome: Option[os.Path],
-    testParallelism: Boolean
-)(implicit ctx: mill.api.Ctx) {
+    testParallelism: Boolean,
+    testLogLevel: TestReporter.LogLevel
+)(implicit ctx: mill.define.TaskCtx) {
 
   private val (jvmArgs, props: Map[String, String]) =
     TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
@@ -125,7 +128,7 @@ private final class TestModuleUtil(
       // - Right((startingTestClass, testClassQueueFolder, claimFolder)):
       //     - first test class to run, folder containing test classes for test runner to claim from, and the worker's base folder.
       selector: Either[Seq[String], (Option[String], os.Path, os.Path)]
-  )(implicit ctx: mill.api.Ctx) = {
+  )(implicit ctx: mill.define.TaskCtx) = {
     if (!os.exists(baseFolder)) os.makeDir.all(baseFolder)
 
     val outputPath = baseFolder / "out.json"
@@ -139,7 +142,8 @@ private final class TestModuleUtil(
       resultPath = resultPath,
       colored = Task.log.prompt.colored,
       testCp = testClasspath.map(_.path),
-      globSelectors = selector
+      globSelectors = selector,
+      logLevel = testLogLevel
     )
 
     val argsFile = baseFolder / "testargs"
@@ -173,7 +177,7 @@ private final class TestModuleUtil(
 
   private def runTestDefault(
       filteredClassLists: Seq[Seq[String]]
-  )(implicit ctx: mill.api.Ctx) = {
+  )(implicit ctx: mill.define.TaskCtx) = {
 
     def runTestRunnerSubprocess(
         base: os.Path,
@@ -213,7 +217,7 @@ private final class TestModuleUtil(
                   ).mkString(", ") + s", ${multiple.length} suites"
               }
 
-              val paddedIndex = mill.internal.Util.leftPad(i.toString, maxLength, '0')
+              val paddedIndex = mill.util.Util.leftPad(i.toString, maxLength, '0')
               val folderName = testClassList match {
                 case Seq(single) => single
                 case multiple =>
@@ -253,7 +257,7 @@ private final class TestModuleUtil(
 
   private def runTestQueueScheduler(
       filteredClassLists: Seq[Seq[String]]
-  )(implicit ctx: mill.api.Ctx) = {
+  )(implicit ctx: mill.define.TaskCtx) = {
 
     val filteredClassCount = filteredClassLists.map(_.size).sum
 
@@ -330,7 +334,7 @@ private final class TestModuleUtil(
       case multipleTestClassLists =>
         val maxLength = multipleTestClassLists.length.toString.length
         multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
-          val paddedIndex = mill.internal.Util.leftPad(i.toString, maxLength, '0')
+          val paddedIndex = mill.util.Util.leftPad(i.toString, maxLength, '0')
           val folderName = testClassList match {
             case Seq(single) => single
             case multiple =>
@@ -359,12 +363,12 @@ private final class TestModuleUtil(
           // Don't have re-calculate for every processes
           groupName = groupFolder.last
           (jobs, maxProcessLength) = jobsProcessLength(numTests)
-          paddedGroupIndex = mill.internal.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
+          paddedGroupIndex = mill.util.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
           processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
         } yield {
 
           val paddedProcessIndex =
-            mill.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
+            mill.util.Util.leftPad(processIndex.toString, maxProcessLength, '0')
 
           val processFolder = groupFolder / s"worker-$paddedProcessIndex"
 
@@ -453,7 +457,7 @@ private[scalalib] object TestModuleUtil {
           java.util.concurrent.ConcurrentMap[os.Path, String => Unit],
           java.util.concurrent.ConcurrentMap[os.Path, Unit]
       ) => T
-  )(implicit ctx: mill.api.Ctx): T = {
+  )(implicit ctx: mill.define.TaskCtx): T = {
     val workerStatusMap = new java.util.concurrent.ConcurrentHashMap[os.Path, String => Unit]()
     val workerResultSet = new java.util.concurrent.ConcurrentHashMap[os.Path, Unit]()
 
@@ -471,7 +475,7 @@ private[scalalib] object TestModuleUtil {
             os.read.lines(claimLog).lastOption.foreach { currentTestClass =>
               testClassTimeMap.putIfAbsent(currentTestClass, now)
               val last = testClassTimeMap.get(currentTestClass)
-              callback(s"$currentTestClass${mill.internal.Util.renderSecondsSuffix(now - last)}")
+              callback(s"$currentTestClass${Util.renderSecondsSuffix(now - last)}")
             }
           }
           var totalSuccess = 0L
@@ -514,7 +518,7 @@ private[scalalib] object TestModuleUtil {
   private[scalalib] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Option[Ctx.Env]
+      ctx: Option[TaskCtx.Env]
   ): Result[(String, Seq[TestResult])] = {
 
     val badTests: Seq[TestResult] =
@@ -541,7 +545,7 @@ private[scalalib] object TestModuleUtil {
   private[scalalib] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env & Ctx.Dest,
+      ctx: TaskCtx.Env & TaskCtx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] = {

@@ -146,7 +146,16 @@ case class MillCliConfig(
       doc =
         """Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands."""
     )
-    noWaitForBuildLock: Flag = Flag()
+    noWaitForBuildLock: Flag = Flag(),
+    @arg(
+      doc =
+        """Try to work offline.
+          |This tells modules that support it to work offline and avoid any access to the internet.
+          |This is on a best effort basis.
+          |There are currently no guarantees that modules don't attempt to fetch remote sources."""
+          .stripMargin
+    )
+    offline: Flag = Flag()
 )
 
 import mainargs.ParserForClass
@@ -188,7 +197,7 @@ task cheat sheet:
 options:
 """
 
-  import mill.api.JsonFormatters._
+  import mill.define.JsonFormatters._
 
   private lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]

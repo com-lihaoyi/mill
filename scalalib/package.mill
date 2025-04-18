@@ -16,9 +16,9 @@ import mill.define.Cross
 
 object `package` extends RootModule with build.MillStableScalaModule {
 
-  def moduleDeps = Seq(build.main.util, build.scalalib.api, build.testrunner)
-  def ivyDeps = {
-    Agg(build.Deps.scalafmtDynamic, build.Deps.scalaXml) ++ {
+  def moduleDeps = Seq(build.core.util, build.scalalib.api, build.testrunner)
+  def mvnDeps = {
+    Agg(build.Deps.scalaXml) ++ {
       // despite compiling with Scala 3, we need to include scala-reflect
       // for the scala.reflect.internal.util.ScalaClassLoader
       // used in ScalaModule.scalacHelp,
@@ -27,7 +27,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
       Agg(build.Deps.scalaReflect(scalaVersion()))
     }
   }
-  def testIvyDeps = super.testIvyDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
+  def testMvnDeps = super.testMvnDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
   def testTransitiveDeps =
     super.testTransitiveDeps() ++ Seq(worker.testDep(), `classgraph-worker`.testDep())
   def testForkEnv = {
@@ -36,11 +36,11 @@ object `package` extends RootModule with build.MillStableScalaModule {
   }
 
   object backgroundwrapper extends build.MillPublishJavaModule with build.MillJavaModule {
-    def ivyDeps = Agg(build.Deps.sbtTestInterface)
+    def mvnDeps = Agg(build.Deps.sbtTestInterface)
   }
 
   object api extends build.MillStableScalaModule with BuildInfo {
-    def moduleDeps = Seq(build.core.api)
+    def moduleDeps = Seq(build.core.define)
     def buildInfoPackageName = "mill.scalalib.api"
     def buildInfoObjectName = "Versions"
 
@@ -92,8 +92,8 @@ object `package` extends RootModule with build.MillStableScalaModule {
   }
 
   object worker extends build.MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api, build.main.util)
-    def ivyDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core)
+    def moduleDeps = Seq(api, build.core.util)
+    def mvnDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core)
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
@@ -102,7 +102,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
   }
 
   object `classgraph-worker` extends build.MillPublishScalaModule {
-    def moduleDeps = Seq(api, build.main.util)
-    def ivyDeps = Agg(build.Deps.classgraph)
+    def moduleDeps = Seq(api, build.core.util)
+    def mvnDeps = Agg(build.Deps.classgraph)
   }
 }

@@ -1,13 +1,14 @@
 package mill.scalalib.publish
 
-import mill.api.{Ctx, Logger, PathRef}
+import mill.define.{TaskCtx, PathRef}
+import mill.api.{Logger}
 import mill.internal.DummyLogger
 import utest.{TestSuite, Tests, assert, test}
 
 object LocalM2PublisherTests extends TestSuite {
   override def tests: Tests = Tests {
 
-    implicit val dummyLog: Ctx.Log = new Ctx.Log {
+    implicit val dummyLog: TaskCtx.Log = new TaskCtx.Log {
       override def log: Logger = DummyLogger
     }
 
