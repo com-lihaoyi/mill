@@ -2,7 +2,7 @@ package mill.runner
 
 import mill.{api, define}
 
-import java.io.{PipedInputStream, PrintStream}
+import java.io.{InputStream, PipedInputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.Locale
@@ -66,7 +66,7 @@ object MillMain {
           args = args.tail,
           stateCache = RunnerState.empty,
           mainInteractive = mill.constants.Util.hasConsole(),
-          streams = initialSystemStreams,
+          streams0 = initialSystemStreams,
           env = System.getenv().asScala.toMap,
           setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
@@ -85,7 +85,7 @@ object MillMain {
       args: Array[String],
       stateCache: RunnerState,
       mainInteractive: Boolean,
-      streams: SystemStreams,
+      streams0: SystemStreams,
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties0: Map[String, String],
@@ -93,6 +93,17 @@ object MillMain {
       systemExit: Int => Nothing,
       serverDir: os.Path
   ): (Boolean, RunnerState) = {
+    val bspMode = args.headOption.contains("--bsp")
+    val streams =
+      if (bspMode)
+        // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
+        new SystemStreams(
+          out = streams0.err,
+          err = streams0.err,
+          in = InputStream.nullInputStream()
+        )
+      else
+        streams0
     mill.define.SystemStreams.withStreams(streams) {
       os.SubProcess.env.withValue(env) {
         MillCliConfigParser.parse(args) match {
@@ -131,6 +142,10 @@ object MillMain {
             streams.err.println(
               "-i/--interactive/--no-server/--bsp must be passed in as the first argument"
             )
+            (false, RunnerState.empty)
+
+          case Result.Success(config) if config.bsp.value != bspMode =>
+            streams.err.println("--bsp must be passed in as the first argument")
             (false, RunnerState.empty)
 
           case Result.Success(config)
@@ -246,6 +261,7 @@ object MillMain {
                       }
                     }
 
+                    // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
                     if (bspMode) {
                       val splitOut = new mill.internal.MultiStream(
                         streams.err,
@@ -261,14 +277,14 @@ object MillMain {
                       )
 
                       var prevRunnerStateOpt = Option.empty[RunnerState]
-                      val bspServerHandle = startBspServer(streams)
+                      val bspServerHandle = startBspServer(streams0)
                       var keepGoing = true
                       while (keepGoing) {
                         val watchRes = runMillBootstrap(
                           false,
                           prevRunnerStateOpt,
                           Seq("version"),
-                          new SystemStreams(splitOut, splitErr, DummyInputStream)
+                          new SystemStreams(splitOut, splitErr, InputStream.nullInputStream())
                         )
 
                         for (err <- watchRes.error)
@@ -294,7 +310,7 @@ object MillMain {
                             // shutdown asked by client
                             keepGoing = false
                             // should make the lsp4j-managed BSP server exit
-                            streams.in.close()
+                            streams0.in.close()
                         }
                       }
 
@@ -342,9 +358,9 @@ object MillMain {
     }
   }
 
-  def startBspServer(streams: SystemStreams): BspServerHandle = {
+  def startBspServer(streams0: SystemStreams): BspServerHandle = {
 
-    streams.err.println("Trying to load BSP server...")
+    streams0.err.println("Trying to load BSP server...")
 
     val wsRoot = WorkspaceRoot.workspaceRoot
     val logDir = wsRoot / OutFiles.out / "mill-bsp"
@@ -353,12 +369,12 @@ object MillMain {
     val bspServerHandleRes =
       BspWorkerImpl.startBspServer(
         define.WorkspaceRoot.workspaceRoot,
-        streams,
+        streams0,
         logDir,
         true
       ).get
 
-    streams.err.println("BSP server started")
+    streams0.err.println("BSP server started")
 
     bspServerHandleRes
   }
