@@ -75,7 +75,6 @@ jobs:
 
       - run: "echo temurin:11 > .mill-jvm-version"
 
-      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
+      - run: ./mill dist.installLocal
 
-      - run: ./mill -i dist.uploadToGithub --authKey $REPO_ACCESS_TOKEN
-        if: ${{ matrix.uploadgithub }}
+      - run: ./mill-assembly.jar -i mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
