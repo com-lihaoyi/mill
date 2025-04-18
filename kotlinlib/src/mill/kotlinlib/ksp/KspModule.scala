@@ -1,8 +1,8 @@
 package mill.kotlinlib.ksp
 
-import mill._
-import mill.define.{PathRef}
-import mill.api.{Result}
+import mill.*
+import mill.define.PathRef
+import mill.api.Result
 import mill.define.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
@@ -126,7 +126,7 @@ trait KspModule extends KotlinModule { outer =>
    * These depend on the plugin being used and the relevant plugin docs
    * should be consulted.
    *
-   * For example see [[mill.kotlinlib.android.AndroidHiltSupport]]
+   * For example see [[AndroidHiltSupport]]
    * @return
    */
   def kspPluginParameters: T[Seq[String]] = Task {

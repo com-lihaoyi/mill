@@ -3,7 +3,6 @@ package build.kotlinlib
 // imports
 import mill.*
 import mill.contrib.buildinfo.BuildInfo
-import mill.javalib.android.AndroidSdkModule
 import mill.scalalib.*
 
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version with kotlinlib is released,
@@ -68,16 +67,4 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     }
   }
 
-  object androidhilt extends build.MillPublishScalaModule {
-    override def repositoriesTask = Task.Anon {
-      super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
-    }
-
-    override def moduleDeps = Seq(build.kotlinlib)
-
-    override def mvnDeps = Agg(
-      build.Deps.hiltGradlePlugin,
-      build.Deps.androidTools
-    )
-  }
 }

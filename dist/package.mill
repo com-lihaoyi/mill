@@ -98,7 +98,8 @@ object `package` extends RootModule with InstallModule {
       build.scalanativelib.testDep(),
       build.kotlinlib.testDep(),
       build.kotlinlib.worker.impl.testDep(),
-      build.kotlinlib.androidhilt.testDep(),
+      build.androidlib.testDep(),
+      build.androidlib.hilt.testDep(),
       build.javascriptlib.testDep(),
       build.pythonlib.testDep()
     )
