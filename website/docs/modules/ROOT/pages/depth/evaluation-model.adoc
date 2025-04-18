@@ -324,7 +324,7 @@ and `package.mill` files? This is called bootstrapping, and proceeds roughly in 
    Otherwise it uses the `MillBuildRootModule.BootstrapModule` directly
 
 4. Mill evaluates the `MillBuildRootModule` to parse the `build.mill`, generate
-   a list of `ivyDeps` as well as appropriately wrapped Scala code that we can
+   a list of `mvnDeps` as well as appropriately wrapped Scala code that we can
    compile, and compiles it to classfiles (<<Compilation>> above)
 
 For most users, you do not need to care about the details of the Mill bootstrapping

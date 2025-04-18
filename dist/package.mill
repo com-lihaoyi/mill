@@ -78,6 +78,7 @@ object `package` extends RootModule with InstallModule {
       build.main.init.gradle.testDep(),
       build.main.init.sbt.testDep(),
       build.main.init.testDep(),
+      build.main.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
       build.scalalib.`classgraph-worker`.testDep(),
       // build.contrib.bloop.testDep(),
@@ -97,6 +98,8 @@ object `package` extends RootModule with InstallModule {
       build.scalanativelib.testDep(),
       build.kotlinlib.testDep(),
       build.kotlinlib.worker.impl.testDep(),
+      build.androidlib.testDep(),
+      build.androidlib.hilt.testDep(),
       build.javascriptlib.testDep(),
       build.pythonlib.testDep()
     )
@@ -106,29 +109,15 @@ object `package` extends RootModule with InstallModule {
     (s"com.lihaoyi-${build.dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))
   )
 
-  def genTask(m: ScalaModule) = Task.Anon { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
-
   def localBinName = "mill-assembly.jar"
 
   def launcher = Task {
     val isWin = scala.util.Properties.isWin
     val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
 
-    val genIdeaArgs =
-      genTask(build.core.define)() ++
-        genTask(build.core.exec)() ++
-        genTask(build.main)() ++
-        genTask(build.scalalib)() ++
-        genTask(build.kotlinlib)() ++
-        genTask(build.scalajslib)() ++
-        genTask(build.scalanativelib)() ++
-        genTask(build.javascriptlib)() ++
-        genTask(build.pythonlib)()
-
     val launcherForkArgs = testArgs() ++
       Seq(
-        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
-        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(",")
+        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
       )
     val (millArgs, otherArgs) =
       launcherForkArgs.partition(arg =>
@@ -343,41 +332,10 @@ object `package` extends RootModule with InstallModule {
 
     def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
 
-    // copying the original method from NativeImageModule until re-bootstrapping
-    // for the withRevalidateOnce
-    def nativeImageTool: T[PathRef] = Task {
-      jvmWorker().javaHome().map(_.path)
-        .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
-        case Some(home) =>
-          val tool = if (scala.util.Properties.isWin) "native-image.cmd" else "native-image"
-          val path = home / "bin" / tool
-          if (os.exists(path))
-            // native-image is externally managed, better revalidate it at least once
-            PathRef(path).withRevalidateOnce
-          else throw new RuntimeException(s"$path not found")
-        case None =>
-          throw new RuntimeException("JvmWorkerModule.javaHome/GRAALVM_HOME not defined")
-      }
-    }
-
     def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
     object JvmWorkerGraalvm extends JvmWorkerModule {
       def jvmId = build.Settings.graalvmJvmId
-      // copying the original method from NativeImageModule until re-bootstrapping
-      // for the withRevalidateOnce
-      def javaHome: T[Option[PathRef]] = Task {
-        Option(jvmId()).filter(_ != "").map { id =>
-          val path = mill.util.Jvm.resolveJavaHome(
-            id = id,
-            coursierCacheCustomizer = coursierCacheCustomizer(),
-            ctx = Some(implicitly[mill.api.Ctx.Log]),
-            jvmIndexVersion = jvmIndexVersion()
-          ).get
-          // Java home is externally managed, better revalidate it at least once
-          PathRef(path, quick = true).withRevalidateOnce
-        }
-      }
     }
   }
 }

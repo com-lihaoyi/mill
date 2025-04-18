@@ -53,6 +53,7 @@
         <orderEntry type="library" name="logback-classic-1.5.17.jar" level="project"/>
         <orderEntry type="library" name="logback-core-1.5.17.jar" level="project"/>
         <orderEntry type="library" name="mainargs_3-0.7.6.jar" level="project"/>
+        <orderEntry type="library" name="mill-androidlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-bsp_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>

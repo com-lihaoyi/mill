@@ -10,7 +10,7 @@ import mill._
 object `package` extends RootModule with build.MillPublishScalaModule {
   def moduleDeps = Seq(build.runner.client, build.core.api)
 
-  def ivyDeps = Seq(
+  def mvnDeps = Seq(
     build.Deps.sourcecode,
     build.Deps.osLib,
     build.Deps.mainargs,

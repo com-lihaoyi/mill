@@ -25,6 +25,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
       if (sys.env("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER") == "true") {
 
         val expected = List(
+          "mill-androidlib_3.jar",
           "mill-bsp_3.jar",
           "mill-core-api_3.jar",
           "mill-core-constants.jar",

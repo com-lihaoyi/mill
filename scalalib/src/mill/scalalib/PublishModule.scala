@@ -3,9 +3,8 @@ package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task, TaskModule}
-import mill.define.{PathRef}
-import mill.api.{Result}
-import mill.javalib.android.AndroidLibModule
+import mill.define.PathRef
+import mill.api.Result
 import mill.util.JarManifest
 import mill.util.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
@@ -30,8 +29,8 @@ trait PublishModule extends JavaModule { outer =>
       )
   }
 
-  override def bomModuleDeps: Seq[BomModule with PublishModule] = super.bomModuleDeps.map {
-    case m: BomModule with PublishModule => m
+  override def bomModuleDeps: Seq[BomModule & PublishModule] = super.bomModuleDeps.map {
+    case m: (BomModule & PublishModule) => m
     case other =>
       throw new Exception(
         s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
@@ -84,7 +83,7 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  def publishIvyDeps
+  def publishMvnDeps
       : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Seq[Dependency]] =
     Task.Anon {
       (rootDepVersions: Map[coursier.core.Module, String], bomDepMgmt: DependencyManagement.Map) =>
@@ -111,12 +110,12 @@ trait PublishModule extends JavaModule { outer =>
           resolvePublishDependency0(BoundDep(dep0, force = false).toDep)
         }
 
-        val ivyPomDeps = allIvyDeps().map(process)
+        val ivyPomDeps = allMvnDeps().map(process)
 
-        val runIvyPomDeps = runIvyDeps().map(process)
+        val runIvyPomDeps = runMvnDeps().map(process)
           .filter(!ivyPomDeps.contains(_))
 
-        val compileIvyPomDeps = compileIvyDeps().map(process)
+        val compileIvyPomDeps = compileMvnDeps().map(process)
           .filter(!ivyPomDeps.contains(_))
 
         val modulePomDeps = Task.sequence(moduleDepsChecked.collect {
@@ -139,14 +138,14 @@ trait PublishModule extends JavaModule { outer =>
 
   def publishXmlDeps: Task[Seq[Dependency]] = Task.Anon {
     val ivyPomDeps =
-      allIvyDeps()
+      allMvnDeps()
         .map(resolvePublishDependency.apply().apply(_))
 
-    val runIvyPomDeps = runIvyDeps()
+    val runIvyPomDeps = runMvnDeps()
       .map(resolvePublishDependency.apply().apply(_))
       .filter(!ivyPomDeps.contains(_))
 
-    val compileIvyPomDeps = compileIvyDeps()
+    val compileIvyPomDeps = compileMvnDeps()
       .map(resolvePublishDependency.apply().apply(_))
       .filter(!ivyPomDeps.contains(_))
 
@@ -178,7 +177,7 @@ trait PublishModule extends JavaModule { outer =>
       Dependency(a, Scope.Import)
     }
     Seq(fromBomMods*) ++
-      bomIvyDeps().map(resolvePublishDependency.apply().apply(_))
+      bomMvnDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
   /**
@@ -244,7 +243,7 @@ trait PublishModule extends JavaModule { outer =>
       )
     val publishXmlDeps0 = {
       val rootDepVersions = results.map(_.moduleVersion).toMap
-      publishIvyDeps.apply().apply(rootDepVersions, bomDepMgmt)
+      publishMvnDeps.apply().apply(rootDepVersions, bomDepMgmt)
     }
     val overrides = {
       val bomDepMgmt0 = {
@@ -469,19 +468,6 @@ trait PublishModule extends JavaModule { outer =>
             pom() -> s"$baseName.pom"
           )
         }
-      case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
-          val baseName = baseNameTask()
-          Seq(
-            androidLib.androidAar() -> s"$baseName.aar",
-            sourceJar() -> s"$baseName-sources.jar",
-            docJar() -> s"$baseName-javadoc.jar",
-            pom() -> s"$baseName.pom"
-          )
-        }
-      case (PackagingType.Aar, nonAndroidModule) =>
-        throw new IllegalArgumentException(
-          s"Packaging type Aar can only be used with AndroidLibModule"
-        )
       case (PackagingType.Jar, _) | _ => Task.Anon {
           val baseName = baseNameTask()
           Seq(

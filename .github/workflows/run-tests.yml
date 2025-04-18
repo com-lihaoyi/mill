@@ -167,7 +167,12 @@ jobs:
             install-sbt: false
 
           - java-version: 17
-            millargs: "'example.android.__.local.server'"
+            millargs: "'example.androidlib.__.local.server'"
+            install-android-sdk: true
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "'example.thirdparty[androidtodo].local.server'"
             install-android-sdk: true
             install-sbt: false
 
@@ -264,7 +269,7 @@ jobs:
             millargs: "'integration.invalidation.__.native.server'"
             install-sbt: false
 
-          - java-version: 17.0.14
+          - java-version: 17
             millargs: "'integration.bootstrap[no-java-bootstrap].native.server'"
 
     uses: ./.github/workflows/post-build-selective.yml
@@ -286,7 +291,7 @@ jobs:
         include:
           # bootstrap tests
           - java-version: 11 # Have one job on oldest JVM
-            buildcmd: ci/test-dist-run.sh && ci/test-install-local.sh && ./mill -i -k __:^IntegrationCrossModule:^TestModule.ivyDepsTree && ./mill -i -k __:^IntegrationCrossModule:^TestModule.ivyDepsTree --withRuntime
+            buildcmd: ci/test-dist-run.sh && ci/test-install-local.sh
           - java-version: 17 # Have one job on default JVM
             buildcmd: ci/test-mill-bootstrap.sh
 

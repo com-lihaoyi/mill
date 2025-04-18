@@ -13,17 +13,17 @@ object myplugin extends ScalaModule with PublishModule {
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
   def platformSuffix = "_mill" + mill.util.BuildInfo.millBinPlatform
 
-  // Depend on `mill-dist` so we can compile against Mill APIs
-  def ivyDeps = Seq(ivy"com.lihaoyi:mill-dist:$millVersion")
+  // Depend on `mill-main` so we can compile against Mill APIs
+  def mvnDeps = Seq(mvn"com.lihaoyi::mill-main:$millVersion")
 
   // Testing Config, with necessary setup for unit/integration/example tests
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Seq(ivy"com.lihaoyi::mill-testkit:$millVersion")
+    def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Map("MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString)
 
     // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule {
-      def ivyDeps = Seq(ivy"com.lihaoyi:mill-dist:$millVersion")
+      def mvnDeps = Seq(mvn"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
       def resources = Task {
         val p = Task.dest / "mill/local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"

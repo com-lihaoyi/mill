@@ -11,7 +11,7 @@ import mill.scalalib._
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.api, build.core.constants, build.core.define)
 
-  def ivyDeps = Agg(
+  def mvnDeps = Agg(
     build.Deps.coursier,
     build.Deps.coursierJvm,
     build.Deps.jline,

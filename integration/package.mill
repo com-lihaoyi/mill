@@ -118,7 +118,7 @@ object `package` extends RootModule {
     )
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def mvnDeps = super.mvnDeps() ++ Agg(
       build.Deps.bsp4j
     )
   }
