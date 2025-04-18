@@ -167,7 +167,12 @@ jobs:
             install-sbt: false
 
           - java-version: 17
-            millargs: "'example.android.__.local.server'"
+            millargs: "'example.androidlib.__.local.server'"
+            install-android-sdk: true
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "'example.thirdparty[androidtodo].local.server'"
             install-android-sdk: true
             install-sbt: false
 

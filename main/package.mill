@@ -20,6 +20,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
     build.core.api,
     build.core.define,
     build.kotlinlib,
+    build.androidlib,
     build.scalajslib,
     build.scalanativelib,
     build.javascriptlib,
