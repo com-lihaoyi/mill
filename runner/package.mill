@@ -68,7 +68,6 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     def moduleDeps = Seq(
       build.scalalib,
       build.core.codesig,
-      build.runner.client,
       `worker-api`,
       build.main
     )
