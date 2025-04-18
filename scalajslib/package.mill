@@ -48,7 +48,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     def moduleDir: os.Path = super.moduleDir / scalajsWorkerVersion
     def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.core.constants, build.core.api)
     def mandatoryMvnDeps = Agg.empty[Dep]
-    def compileMvnDeps = super.mandatoryMvnDeps() ++ Agg(
+    def mvnDeps = super.mandatoryMvnDeps() ++ Agg(
       build.Deps.Scalajs_1.scalajsLinker,
       build.Deps.Scalajs_1.scalajsSbtTestAdapter,
       build.Deps.Scalajs_1.scalajsEnvNodejs,
