@@ -443,11 +443,20 @@ object TestModule {
 
   /**
    * TestModule that uses Weaver to run tests.
-   * You need to provide the weaver dependencies yourself.
+   * You can override the [[weaverVersion]] task or provide the Weaver-dependency yourself.
    * https://github.com/disneystreaming/weaver-test
    */
   trait Weaver extends TestModule {
+
+    /** The Weaver version to use, or the empty string, if you want to provide the Weaver-dependency yourself. */
+    def weaverVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "weaver.framework.CatsEffect"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(weaverVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"com.disneystreaming::weaver-scalacheck::${v.trim()}")
+    }
   }
 
   /**
