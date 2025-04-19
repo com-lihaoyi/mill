@@ -426,10 +426,19 @@ object TestModule {
 
   /**
    * TestModule that uses MUnit to run tests.
-   * You need to provide the munit dependencies yourself.
+   * You can override the [[munitVersion]] task or provide the MUnit-dependency yourself.
    */
   trait Munit extends TestModule {
+
+    /** The MUnit version to use, or the empty string, if you want to provide the MUnit-dependency yourself. */
+    def munitVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "munit.Framework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(munitVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.scalameta::munit::${v.trim()}")
+    }
   }
 
   /**
