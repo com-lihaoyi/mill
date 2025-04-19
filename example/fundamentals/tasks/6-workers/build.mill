@@ -167,9 +167,9 @@ def myWorker = Task.Worker { new MyWorker() }
 //
 // The solution to these issues is to maintain an in-memory cache, with proper locking,
 // eviction, and invalidation. Doing so is tedious and error prone, and so Mill provides
-// the `CachedFactory` helper to make it easier. The example below re-implements the a simplified
+// the `CachedFactory` helper to make it easier. The example below re-implements a simplified
 // version of `CompressWorker` we saw earlier, but using `CacheFactory` to cache, reset, and
-// re-use the `ByteArrayOutputStream` btween calls to `compressWorker2().compress`:
+// re-use the `ByteArrayOutputStream` between calls to `cachedCompressWorker().compress`:
 //
 import mill._
 import java.lang.AutoCloseable
@@ -177,18 +177,20 @@ import mill.util.CachedFactory
 import java.io.ByteArrayOutputStream
 
 def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }
-class CachedCompressWorker(dest: os.Path) extends CachedFactory[Unit, ByteArrayOutputStream] {
-  def setup(key: Unit): ByteArrayOutputStream = {
+class CachedCompressWorker(dest: os.Path)                            // <1>
+    extends CachedFactory[Unit, ByteArrayOutputStream] {
+
+  def setup(key: Unit): ByteArrayOutputStream = {                    // <2>
     println("setup ByteArrayOutputStream")
     new ByteArrayOutputStream()
   }
 
-  def teardown(key: Unit, value: ByteArrayOutputStream): Unit = {
+  def maxCacheSize = 2                                               // <3>
+
+  def teardown(key: Unit, value: ByteArrayOutputStream): Unit = {    // <4>
     println("teardown ByteArrayOutputStream")
     value.reset()
   }
-
-  def maxCacheSize = 2
 
   val cache = collection.mutable.Map.empty[Int, Array[Byte]]
   def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
@@ -213,17 +215,17 @@ def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
   bos.toByteArray
 }
 
-// * `CachedFactory` takes two type parameters, a `K` key type and a `V` value type.
+// <1> `CachedFactory` takes two type parameters, a `K` key type and a `V` value type.
 //   In this case `K` is `Unit` since all ``ByteArrayOutputStream``s are the same, but if you
 //   are caching things which take some kind of configuration (e.g. compilers with compiler
 //   flags) you can set `K` to be the config class so that values with different input
 //   configuration are cached separately.
 //
-// * `def setup` creates the `ByteArrayOutputStream` when a new one is necessary
+// <2> `def setup` creates the `ByteArrayOutputStream` when a new one is necessary
 //
-// * `def maxCacheSize` configures the maximum number of cached entries to keep around while they are not in use,
+// <3> `def maxCacheSize` configures the maximum number of cached entries to keep around while they are not in use,
 //
-// * `def teardown` cleans up the ``ByteArrayOutputStream``s and when the count
+// <4> `def teardown` cleans up the ``ByteArrayOutputStream``s and when the count
 //   of cached entries exceeds that `maxCacheSize``
 //
 // Although this example is synthetic (you don't actually need to reset, reuse, and teardown
@@ -231,7 +233,7 @@ def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
 // or components you need to manage. This is especially important when
 // xref:extending/running-jvm-code.adoc[running JVM code in classloaders or subprocesses],
 // as those are both expensive to initialize and need to be properly closed or terminated
-// when you are done with them
+// when you are done with them.
 //
 // The above `cachedCompressWorker` can be used as shown below, with three
 // `def compressed*` tasks using it to call `.compress`:
@@ -250,7 +252,7 @@ def compressed3 = Task {
 
 /** Usage
 
-> # 3 streams are created on demand, 1 is torn down afer due to maxCacheSize = 2 limit
+> # 3 streams are created on demand, 1 is torn down after due to maxCacheSize = 2 limit
 > ./mill show '{compressed1,compressed2,compressed3}'
 setup ByteArrayOutputStream
 setup ByteArrayOutputStream
