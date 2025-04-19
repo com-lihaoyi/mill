@@ -21,7 +21,6 @@
       "environmentVariables": {},
       "mainClasses": []
     },
-
     {
       "target": {
         "uri": "file:///workspace/hello-java"

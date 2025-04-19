@@ -9,7 +9,4 @@ object BspServerResult {
 
   /** The session or the server ended successfully. */
   object Shutdown extends BspServerResult
-
-  /** The session or the server ended with a failure. */
-  object Failure extends BspServerResult
 }

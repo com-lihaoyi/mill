@@ -1,0 +1,203 @@
+package mill.integration
+
+import ch.epfl.scala.{bsp4j => b}
+import mill.api.BuildInfo
+import mill.bsp.Constants
+import mill.integration.BspServerTestUtil._
+import mill.testkit.UtestIntegrationTestSuite
+import utest._
+
+import scala.concurrent.{Await, Promise}
+import scala.concurrent.duration.DurationInt
+import scala.jdk.CollectionConverters._
+import scala.util.Success
+
+object BspServerReloadTests extends UtestIntegrationTestSuite {
+  override protected def workspaceSourcePath: os.Path =
+    super.workspaceSourcePath / "project"
+
+  def tests = Tests {
+    test("reload") - integrationTest { tester =>
+      import tester._
+
+      val startSnapshotsPath = super.workspaceSourcePath / "snapshots" / "reload" / "start"
+      val afterChangesSnapshotsPath = super.workspaceSourcePath / "snapshots" / "reload" / "changed"
+
+      os.copy.over(workspacePath / "build.mill.base", workspacePath / "build.mill")
+
+      eval(
+        "mill.bsp.BSP/install",
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_MAIN_CLI" -> tester.millExecutable.toString)
+      )
+
+      var didChangePromise = Promise[b.DidChangeBuildTarget]()
+
+      val client = new DummyBuildClient {
+        override def onBuildTargetDidChange(params: b.DidChangeBuildTarget): Unit =
+          didChangePromise.complete(Success(params))
+      }
+
+      withBspServer(
+        workspacePath,
+        millTestSuiteEnv,
+        client = client
+      ) { (buildServer, initRes) =>
+
+        compareWithGsonSnapshot(
+          initRes,
+          startSnapshotsPath / "initialize-build-result.json",
+          normalizedLocalValues = Seq(
+            BuildInfo.millVersion -> "<MILL_VERSION>",
+            Constants.bspProtocolVersion -> "<BSP_VERSION>"
+          )
+        )
+
+        val normalizedLocalValues =
+          normalizeLocalValuesForTesting(workspacePath) ++ scalaVersionNormalizedValues()
+
+        val buildTargets = buildServer.workspaceBuildTargets().get()
+        compareWithGsonSnapshot(
+          buildTargets,
+          startSnapshotsPath / "workspace-build-targets.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
+        didChangePromise = Promise[b.DidChangeBuildTarget]()
+        os.copy.over(
+          workspacePath / "build.mill.deletion-and-renaming",
+          workspacePath / "build.mill"
+        )
+
+        val didChangeParams = Await.result(didChangePromise.future, 1.minute)
+
+        def eventData(event: b.BuildTargetEvent): (String, b.BuildTargetEventKind) =
+          (event.getTarget.getUri.split("/").last, event.getKind)
+
+        val expectedChanges = Set(
+          "thing" -> b.BuildTargetEventKind.DELETED,
+          "app" -> b.BuildTargetEventKind.DELETED,
+          "my-app" -> b.BuildTargetEventKind.CREATED,
+          "lib" -> b.BuildTargetEventKind.CHANGED,
+          "mill-build" -> b.BuildTargetEventKind.CHANGED
+        )
+        val changes = didChangeParams.getChanges().asScala.map(eventData).toSet
+        assert(expectedChanges == changes)
+
+        val afterChangesBuildTargets = buildServer.workspaceBuildTargets().get()
+        compareWithGsonSnapshot(
+          afterChangesBuildTargets,
+          afterChangesSnapshotsPath / "workspace-build-targets.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+      }
+    }
+
+    test("broken") - integrationTest { tester =>
+      import tester._
+
+      val startSnapshotsPath = super.workspaceSourcePath / "snapshots" / "broken" / "start"
+      val afterChangesSnapshotsPath = super.workspaceSourcePath / "snapshots" / "broken" / "changed"
+      val afterChangesSnapshotsPath0 = super.workspaceSourcePath / "snapshots" / "broken" / "back"
+
+      os.copy.over(workspacePath / "build.mill.broken", workspacePath / "build.mill")
+
+      var didChangePromise = Promise[b.DidChangeBuildTarget]()
+
+      val client = new DummyBuildClient {
+        override def onBuildTargetDidChange(params: b.DidChangeBuildTarget): Unit =
+          didChangePromise.complete(Success(params))
+      }
+
+      withBspServer(
+        workspacePath,
+        millTestSuiteEnv,
+        client = client,
+        millExecutableNoBspFile = Some(tester.millExecutable)
+      ) { (buildServer, initRes) =>
+
+        compareWithGsonSnapshot(
+          initRes,
+          startSnapshotsPath / "initialize-build-result.json",
+          normalizedLocalValues = Seq(
+            BuildInfo.millVersion -> "<MILL_VERSION>",
+            Constants.bspProtocolVersion -> "<BSP_VERSION>"
+          )
+        )
+
+        val normalizedLocalValues =
+          normalizeLocalValuesForTesting(workspacePath) ++ scalaVersionNormalizedValues()
+
+        val buildTargets = buildServer.workspaceBuildTargets().get()
+        compareWithGsonSnapshot(
+          buildTargets,
+          startSnapshotsPath / "workspace-build-targets.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
+        def eventData(event: b.BuildTargetEvent): (String, b.BuildTargetEventKind) =
+          (event.getTarget.getUri.split("/").last, event.getKind)
+
+        didChangePromise = Promise[b.DidChangeBuildTarget]()
+        os.copy.over(workspacePath / "build.mill.base", workspacePath / "build.mill")
+
+        val didChangeParams = Await.result(didChangePromise.future, 1.minute)
+
+        val expectedChanges = Set(
+          "thing" -> b.BuildTargetEventKind.CREATED,
+          "app" -> b.BuildTargetEventKind.CREATED,
+          "lib" -> b.BuildTargetEventKind.CREATED,
+          "mill-build" -> b.BuildTargetEventKind.CHANGED
+        )
+        val changes = didChangeParams.getChanges().asScala.map(eventData).toSet
+        assert(expectedChanges == changes)
+
+        val afterChangesBuildTargets = buildServer.workspaceBuildTargets().get()
+        compareWithGsonSnapshot(
+          afterChangesBuildTargets,
+          afterChangesSnapshotsPath / "workspace-build-targets.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
+        didChangePromise = Promise[b.DidChangeBuildTarget]()
+        os.copy.over(workspacePath / "build.mill.broken", workspacePath / "build.mill")
+
+        val didChangeParams0 = Await.result(didChangePromise.future, 1.minute)
+
+        val expectedChanges0 = Set(
+          "mill-build" -> b.BuildTargetEventKind.CHANGED
+        )
+        val changes0 = didChangeParams0.getChanges().asScala.map(eventData).toSet
+        assert(expectedChanges0 == changes0)
+
+        val afterChangesBuildTargets0 = buildServer.workspaceBuildTargets().get()
+        compareWithGsonSnapshot(
+          afterChangesBuildTargets0,
+          afterChangesSnapshotsPath0 / "workspace-build-targets.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
+        val targetsMap = afterChangesBuildTargets0.getTargets.asScala
+          .map(target => target.getId.getUri.split("/").last -> target.getId)
+          .toMap
+
+        val buildCompileRes = buildServer
+          .buildTargetCompile(new b.CompileParams(List(targetsMap("mill-build")).asJava))
+          .get()
+        val appCompileRes = buildServer
+          .buildTargetCompile(new b.CompileParams(List(targetsMap("app")).asJava))
+          .get()
+        assert(
+          buildCompileRes.getStatusCode == b.StatusCode.ERROR,
+          appCompileRes.getStatusCode == b.StatusCode.OK
+        )
+      }
+    }
+
+    // TODO Watch meta-meta-build
+    // TODO Start on broken meta-meta-build
+    // TODO Do more than just calling workspaceBuildTargets on main build with broken meta-build
+  }
+}

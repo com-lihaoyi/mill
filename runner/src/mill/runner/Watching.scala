@@ -8,6 +8,8 @@ import mill.api.internal.internal
 
 import java.io.InputStream
 import scala.annotation.tailrec
+import scala.concurrent.Future
+import scala.util.Try
 
 /**
  * Logic around the "watch and wait" functionality in Mill: re-run on change,
@@ -120,4 +122,32 @@ object Watching {
       new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).sig
     case Watchable.Value(f, sig, pretty) => sig
   }
+
+  /**
+   * Watches files and a future
+   *
+   * Returns only when either:
+   * * a watchable changed
+   * * the future is completed
+   *
+   * @param watched [[Watchable]]s to watch
+   * @param future [[Future]] instance to look for completion
+   * @return if the future completed, the future result wrapped in `Some`; else `None`
+   */
+  def futureWatchWait[T](watched: Seq[Watchable], future: Future[T]): Option[Try[T]] = {
+    @tailrec def statWatchWait0(): Option[Try[T]] =
+      if (watched.forall(Watching.validate(_)))
+        // don't use getOrElse for @tailrec to work
+        future.value match {
+          case Some(res) => Some(res)
+          case None =>
+            Thread.sleep(100)
+            statWatchWait0()
+        }
+      else
+        future.value
+
+    statWatchWait0()
+  }
+
 }

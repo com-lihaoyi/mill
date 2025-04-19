@@ -15,26 +15,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
 
-  def transitiveDependenciesSubstitutions(
-      dependency: coursierapi.Dependency,
-      filter: coursierapi.Dependency => Boolean
-  ): Seq[(String, String)] = {
-    val fetchRes = coursierapi.Fetch.create()
-      .addDependencies(dependency)
-      .fetchResult()
-    fetchRes.getDependencies.asScala
-      .filter(filter)
-      .map { dep =>
-        val organization = dep.getModule.getOrganization
-        val name = dep.getModule.getName
-        val prefix = (organization.split('.') :+ name).mkString("/")
-        def basePath(version: String): String =
-          s"$prefix/$version/$name-$version"
-        basePath(dep.getVersion) -> basePath(s"<$name-version>")
-      }
-      .toSeq
-  }
-
   def tests: Tests = Tests {
     test("requestSnapshots") - integrationTest { tester =>
       import tester._
@@ -50,25 +30,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
         workspacePath,
         millTestSuiteEnv
       ) { (buildServer, initRes) =>
-        val scala2Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-        val scala3Version = sys.props.getOrElse("MILL_SCALA_3_NEXT_VERSION", ???)
-        val scala2TransitiveSubstitutions = transitiveDependenciesSubstitutions(
-          coursierapi.Dependency.of(
-            "org.scala-lang",
-            "scala-compiler",
-            scala2Version
-          ),
-          _.getModule.getOrganization != "org.scala-lang"
-        )
-        val scala3TransitiveSubstitutions = transitiveDependenciesSubstitutions(
-          coursierapi.Dependency.of(
-            "org.scala-lang",
-            "scala3-compiler_3",
-            scala3Version
-          ),
-          _.getModule.getOrganization != "org.scala-lang"
-        )
-
         val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
         val kotlinTransitiveSubstitutions = transitiveDependenciesSubstitutions(
           coursierapi.Dependency.of(
@@ -80,14 +41,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
-          scala2TransitiveSubstitutions ++
-          scala3TransitiveSubstitutions ++
-          kotlinTransitiveSubstitutions ++
-          Seq(
-            scala2Version -> "<scala-version>",
-            scala3Version -> "<scala3-version>",
-            kotlinVersion -> "<kotlin-version>"
-          )
+          scalaVersionNormalizedValues() ++
+          kotlinVersionNormalizedValues()
 
         compareWithGsonSnapshot(
           initRes,
