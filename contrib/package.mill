@@ -124,7 +124,12 @@ object `package` extends RootModule {
     // So we can test with buildinfo in the classpath
     def testModuleDeps =
       super.testModuleDeps ++
-        Seq(build.libs.scalalib, build.libs.scalajslib, build.libs.scalanativelib, build.contrib.buildinfo)
+        Seq(
+          build.libs.scalalib,
+          build.libs.scalajslib,
+          build.libs.scalanativelib,
+          build.contrib.buildinfo
+        )
 
     // Worker for Scoverage 2.0
     object worker2 extends build.MillPublishScalaModule {
@@ -147,7 +152,12 @@ object `package` extends RootModule {
 
   object buildinfo extends ContribModule {
     def compileModuleDeps =
-      Seq(build.libs.scalalib, build.libs.scalajslib, build.libs.scalanativelib, build.libs.kotlinlib)
+      Seq(
+        build.libs.scalalib,
+        build.libs.scalajslib,
+        build.libs.scalanativelib,
+        build.libs.kotlinlib
+      )
     def testModuleDeps =
       super.testModuleDeps ++ Seq(
         build.libs.scalalib,
