@@ -487,8 +487,21 @@ object TestModule {
     }
   }
 
+  /**
+   * TestModule that uses ScalaCheck Test Framework to run tests.
+   * You can override the [[scalaCheckVersion]] task or provide the dependency yourself.
+   */
   trait ScalaCheck extends TestModule {
+
+    /** The ScalaCheck version to use, or the empty string, if you want to provide the dependency yourself. */
+    def scalaCheckVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "org.scalacheck.ScalaCheckFramework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(scalaCheckVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.scalacheck::scalacheck:${v.trim()}")
+    }
   }
 
   def handleResults(
