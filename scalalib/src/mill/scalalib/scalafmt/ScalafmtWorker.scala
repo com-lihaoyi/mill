@@ -1,20 +1,33 @@
 package mill.scalalib.scalafmt
 
-import mill._
-import mill.define.{Discover, ExternalModule, Worker}
-import mill.define.TaskCtx
-import org.scalafmt.interfaces.Scalafmt
+import mill.*
+import mill.define.{Discover, ExternalModule, PathRef, TaskCtx, Worker}
+import mill.scalalib._
 
 import scala.collection.mutable
 import mill.api.Result
 
-object ScalafmtWorkerModule extends ExternalModule {
-  def worker: Worker[ScalafmtWorker] = Task.Worker { new ScalafmtWorker() }
+object ScalafmtWorkerModule extends ExternalModule with JavaModule {
+
+  /**
+   * Classpath for running Palantir Java Format.
+   */
+  def scalafmtClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      Seq(mvn"org.scalameta:scalafmt-dynamic_2.13:${mill.scalalib.api.Versions.scalafmtVersion}")
+    )
+  }
+
+  def scalafmtClassLoader: Worker[java.net.URLClassLoader] = Task.Worker {
+    mill.util.Jvm.createClassLoader(scalafmtClasspath().map(_.path))
+  }
+
+  def worker: Worker[ScalafmtWorker] = Task.Worker { new ScalafmtWorker(scalafmtClassLoader()) }
 
   lazy val millDiscover = Discover[this.type]
 }
 
-private[scalafmt] class ScalafmtWorker extends AutoCloseable {
+private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
   private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0
 
@@ -59,8 +72,9 @@ private[scalafmt] class ScalafmtWorker extends AutoCloseable {
         ctx.log.info(s"Formatting ${toConsider.size} Scala sources")
       }
 
-      val scalafmt = Scalafmt
-        .create(this.getClass.getClassLoader)
+      val scalafmt = cl.loadClass("org.scalafmt.interfaces.Scalafmt")
+        .getMethod("create", classOf[java.lang.ClassLoader])
+        .invoke(null, cl)
 
       val configPath = scalafmtConfig.path.toNIO
 
@@ -74,7 +88,13 @@ private[scalafmt] class ScalafmtWorker extends AutoCloseable {
 
       toConsider.foreach { pathToFormat =>
         val code = os.read(pathToFormat.path)
-        val formattedCode = scalafmt.format(configPath, pathToFormat.path.toNIO, code)
+        val formattedCode = scalafmt
+          .getClass
+          .getMethods
+          .filter(_.getName == "format")
+          .head
+          .invoke(scalafmt, configPath, pathToFormat.path.toNIO, code)
+          .asInstanceOf[String]
 
         if (code != formattedCode) {
           misformatted += pathToFormat
