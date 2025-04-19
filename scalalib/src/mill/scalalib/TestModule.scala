@@ -394,6 +394,7 @@ object TestModule {
    * You can override the [[utestVersion]] task or provide the UTest-dependency yourself.
    */
   trait Utest extends TestModule {
+
     /** The UTest version to use, or the empty string, if you want to provide the UTest-dependency yourself. */
     def utestVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "utest.runner.Framework"

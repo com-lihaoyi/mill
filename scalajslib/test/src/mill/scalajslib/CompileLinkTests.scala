@@ -45,7 +45,8 @@ object CompileLinkTests extends TestSuite {
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
         override def sources = Task.Sources { this.moduleDir / "src/utest" }
-        override val utestVersion = if (JvmWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
+        override val utestVersion =
+          if (JvmWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
       }
 
       object `test-scalatest` extends ScalaJSTests with TestModule.ScalaTest {
