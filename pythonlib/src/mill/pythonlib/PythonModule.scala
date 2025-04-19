@@ -215,10 +215,10 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def console(): Command[Unit] = Task.Command(exclusive = true) {
     if (!mill.constants.Util.hasConsole()) {
-      Result.Failure("console needs to be run with the -i/--interactive flag")
+      Task.fail("console needs to be run with the -i/--interactive flag")
     } else {
       runner().run()
-      Result.Success(())
+      ()
     }
   }
 

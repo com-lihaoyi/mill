@@ -22,12 +22,12 @@ trait AndroidKotlinModule extends KotlinModule {
       if (kv.startsWith("1")) {
         // cut-off usages for Kotlin 1.x, because of the need to maintain the table of
         // Compose compiler version -> Kotlin version
-        Result.Failure("Compose can be used only with Kotlin version 2 or newer.")
+        Task.fail("Compose can be used only with Kotlin version 2 or newer.")
       } else {
-        Result.Success(deps ++ Seq(
+        deps ++ Seq(
           mvn"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
-        ))
+        )
       }
-    } else Result.Success(deps)
+    } else deps
   }
 }
