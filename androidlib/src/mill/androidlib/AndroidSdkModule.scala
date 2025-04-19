@@ -73,11 +73,11 @@ trait AndroidSdkModule extends Module {
       }
     cache.file(Artifact(url)).run.unsafeRun()(cache.ec) match {
       case Right(file) =>
-        Result.Success(PathRef(os.Path(file)).withRevalidateOnce)
+        PathRef(os.Path(file)).withRevalidateOnce
       case Left(ex) if Task.offline =>
-        Result.Failure(s"Can't fetch bundle tools (from ${url}) while in offline mode.")
+        Task.fail(s"Can't fetch bundle tools (from ${url}) while in offline mode.")
       case Left(ex) =>
-        Result.Failure(ex.getMessage())
+        Task.fail(ex.getMessage())
 
     }
   }

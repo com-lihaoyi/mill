@@ -353,7 +353,7 @@ trait PublishModule extends JavaModule { outer =>
       doc,
       transitive
     )()
-    Result.Success(())
+    ()
   }
 
   // bin-compat shim
@@ -660,9 +660,9 @@ object PublishModule extends ExternalModule with TaskModule {
       username <- Task.env.get(USERNAME_ENV_VARIABLE_NAME).orElse(Task.env.get("SONATYPE_USERNAME"))
       password <- Task.env.get(PASSWORD_ENV_VARIABLE_NAME).orElse(Task.env.get("SONATYPE_PASSWORD"))
     } yield {
-      Result.Success((username, password))
+      (username, password)
     }).getOrElse(
-      Result.Failure(
+      Task.fail(
         s"Consider using ${USERNAME_ENV_VARIABLE_NAME}/${PASSWORD_ENV_VARIABLE_NAME} environment variables or passing `sonatypeCreds` argument"
       )
     )
@@ -676,9 +676,9 @@ object PublishModule extends ExternalModule with TaskModule {
     } else {
       Task.Anon {
         if (sonatypeCreds.split(":").length >= 2) {
-          Result.Success(sonatypeCreds)
+          sonatypeCreds
         } else {
-          Result.Failure(
+          Task.fail(
             "Sonatype credentials must be set in the following format - username:password. Incorrect format received."
           )
         }

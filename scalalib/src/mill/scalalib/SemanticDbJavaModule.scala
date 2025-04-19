@@ -56,13 +56,13 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
            |
            |def semanticDbVersion = ???
            |""".stripMargin
-      Result.Failure(msg)
+      Task.fail(msg)
     } else if (JvmWorkerUtil.isScala3(sv)) {
-      Result.Success(Seq.empty[Dep])
+      Seq.empty[Dep]
     } else {
-      Result.Success(Seq(
+      Seq(
         mvn"org.scalameta:semanticdb-scalac_${sv}:${semDbVersion}"
-      ))
+      )
     }
   }
 
@@ -75,11 +75,11 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
            |
            |def semanticDbJavaVersion = ???
            |""".stripMargin
-      Result.Failure(msg)
+      Task.fail(msg)
     } else {
-      Result.Success(Seq(
+      Seq(
         mvn"com.sourcegraph:semanticdb-javac:${sv}"
-      ))
+      )
     }
   }
 

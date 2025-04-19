@@ -5,6 +5,7 @@ import mill.api.internal.{CompileProblemReporter, TestReporter}
 
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
+import mill.api.Result
 
 /**
  * Represents the data and utilities that are contextually available inside the
@@ -17,7 +18,8 @@ trait TaskCtx extends TaskCtx.Dest
     with TaskCtx.Workspace
     with TaskCtx.Fork
     with TaskCtx.Jobs
-    with TaskCtx.Offline {
+    with TaskCtx.Offline
+    with TaskCtx.Fail {
   def reporter: Int => Option[CompileProblemReporter]
 
   def testReporter: TestReporter
@@ -48,6 +50,8 @@ object TaskCtx {
       if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
       else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
     }
+
+    def fail(msg: String): Nothing = throw Result.Exception(msg)
   }
 
   @compileTimeOnly(
@@ -155,6 +159,16 @@ object TaskCtx {
 
   trait Offline {
     def offline: Boolean
+  }
+
+  trait Fail {
+
+    /**
+     * Fail this task with a message.
+     * This is a convenient alternative to returning [[Result.Failure]]
+     * which also requires the happy path to return [[Result.Success]].
+     */
+    def fail(msg: String): Nothing
   }
 
   @experimental

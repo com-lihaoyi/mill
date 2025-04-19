@@ -1146,7 +1146,7 @@ trait JavaModule
 
       println(processedTree)
 
-      Result.Success(())
+      ()
     }
 
   /**
@@ -1206,7 +1206,7 @@ trait JavaModule
     } else {
       Task.Command {
         val msg = invalidModules.mkString("\n")
-        Result.Failure(msg)
+        Task.fail(msg)
       }
     }
   }

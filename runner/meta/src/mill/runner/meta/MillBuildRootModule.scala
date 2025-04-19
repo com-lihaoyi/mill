@@ -142,7 +142,7 @@ class MillBuildRootModule()(implicit
   }
   def generateScriptSources: T[Seq[PathRef]] = Task {
     val parsed = parseBuildFiles()
-    if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
+    if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
     else {
       CodeGen.generateWrappedSources(
         rootModuleInfo.projectRoot / os.up,
@@ -153,7 +153,7 @@ class MillBuildRootModule()(implicit
         rootModuleInfo.output,
         compilerWorker()
       )
-      Result.Success(Seq(PathRef(Task.dest)))
+      Seq(PathRef(Task.dest))
     }
   }
 

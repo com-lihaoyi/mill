@@ -5,7 +5,7 @@
 package mill.kotlinlib.kover
 
 import mill._
-import mill.api.Result.Success
+import mill.api.Result
 import mill.define.{PathRef}
 import mill.kotlinlib.{Dep, DepSyntax, Versions}
 import mill.scalalib.CoursierModule
@@ -18,7 +18,7 @@ trait KoverReportBaseModule extends CoursierModule {
    * Reads the Kover version from system environment variable `KOVER_VERSION` or defaults to a hardcoded version.
    */
   def koverVersion: T[String] = Task.Input {
-    Success[String](Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
+    Result.Success[String](Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
   }
 
   def koverCliDep: Target[Seq[Dep]] = Task {

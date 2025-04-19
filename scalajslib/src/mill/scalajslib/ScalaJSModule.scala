@@ -135,14 +135,14 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       Task.log.warn("Passing command line arguments to run is not supported by Scala.js.")
     }
     finalMainClassOpt() match {
-      case Left(err) => Result.Failure(err)
+      case Left(err) => Task.fail(err)
       case Right(_) =>
         ScalaJSWorkerExternalModule.scalaJSWorker().run(
           scalaJSToolsClasspath(),
           jsEnvConfig(),
           fastLinkJS()
         )
-        Result.Success(())
+        ()
     }
 
   }
@@ -151,12 +151,12 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       @arg(positional = true) mainClass: String,
       args: String*
   ): Command[Unit] = Task.Command[Unit] {
-    mill.api.Result.Failure("runMain is not supported in Scala.js")
+    Task.fail("runMain is not supported in Scala.js")
   }
 
   override def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] =
     Task.Command[Unit] {
-      mill.api.Result.Failure("runMain is not supported in Scala.js")
+      Task.fail("runMain is not supported in Scala.js")
     }
 
   private[scalajslib] def linkJs(

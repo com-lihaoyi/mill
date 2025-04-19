@@ -56,10 +56,10 @@ trait TsLintModule extends Module {
 
     locs.find(p => os.exists(p.path)) match {
       case None =>
-        Result.Failure(
+        Task.fail(
           s"Lint couldn't find an eslint.config.(js|mjs|cjs) or a .eslintrc.(js|mjs|cjs) or a `.pretiierrc` file"
         )
-      case Some(c) => Result.Success(lintT(c.path))
+      case Some(c) => lintT(c.path)
     }
   }
 

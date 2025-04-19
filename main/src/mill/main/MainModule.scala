@@ -119,11 +119,11 @@ trait MainModule extends BaseModule with MainModuleApi {
             }
           }
           found match {
-            case None => Result.Failure(s"No path found between $src and $dest")
+            case None => Task.fail(s"No path found between $src and $dest")
             case Some(list) =>
               val labels = list.collect { case n: NamedTask[_] => n.ctx.segments.render }
               labels.foreach(println)
-              Result.Success(labels)
+              labels
           }
 
         case _ => ???
