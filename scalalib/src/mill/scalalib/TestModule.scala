@@ -286,9 +286,18 @@ object TestModule {
    * You may want to provide the junit dependency explicitly to use another version.
    */
   trait Junit4 extends TestModule {
+
+    /** The JUnit4 version to use, or empty, if you want to provide the Junit-dependency yourself. */
+    def junit4Version: T[String] = Task { "" }
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
-      super.mandatoryMvnDeps() ++ Seq(mvn"${mill.scalalib.api.Versions.sbtTestInterface}")
+      super.mandatoryMvnDeps() ++
+        Seq(
+          mvn"${mill.scalalib.api.Versions.sbtTestInterface}"
+        ) ++
+        Seq(junit4Version())
+          .filter(!_.isBlank())
+          .map(v => mvn"junit:junit:${v.trim()}")
     }
   }
 
@@ -383,8 +392,9 @@ object TestModule {
    * You can override the [[specs2Version]] task or provide the Specs2-dependency yourself.
    */
   trait Specs2 extends ScalaModuleBase with TestModule {
+
     /** The Specs2 version to use, or the empty string, if you want to provide the Specs2-dependency yourself. */
-    def specs2Version: T[String] = Task{ "" }
+    def specs2Version: T[String] = Task { "" }
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
     override def scalacOptions = Task {
       super.scalacOptions() ++ Seq("-Yrangepos")
