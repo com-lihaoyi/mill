@@ -84,7 +84,7 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
     val deps = kotlinCompilerMvnDeps() ++ Seq(
-      Dep.millProjectModule("mill-kotlinlib-worker-impl")
+      Dep.millProjectModule("mill-libs-kotlinlib-worker-impl")
     )
     defaultResolver().classpath(deps)
   }

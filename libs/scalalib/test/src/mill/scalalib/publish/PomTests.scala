@@ -21,7 +21,7 @@ object PomTests extends TestSuite {
       )
     )
     val settings = PomSettings(
-      description = "mill-scalalib",
+      description = "mill-libs-scalalib",
       organization = "com.lihaoyi",
       url = "https://github.com/lihaoyi/mill",
       licenses = Seq(License.`MIT`),

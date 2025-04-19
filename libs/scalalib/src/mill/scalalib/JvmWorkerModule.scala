@@ -27,25 +27,25 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
   def classpath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-scalalib-worker")
+      Dep.millProjectModule("mill-libs-scalalib-worker")
     ))
   }
 
   def scalalibClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-scalalib")
+      Dep.millProjectModule("mill-libs-scalalib")
     ))
   }
 
   def testrunnerEntrypointClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-testrunner-entrypoint", artifactSuffix = "")
+      Dep.millProjectModule("mill-libs-testrunner-entrypoint", artifactSuffix = "")
     ))
   }
 
   def backgroundWrapperClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-scalalib-backgroundwrapper", artifactSuffix = "")
+      Dep.millProjectModule("mill-libs-scalalib-backgroundwrapper", artifactSuffix = "")
     ))
   }
 

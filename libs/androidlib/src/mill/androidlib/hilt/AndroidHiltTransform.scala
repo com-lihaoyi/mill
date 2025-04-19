@@ -24,7 +24,7 @@ trait AndroidHiltTransform extends ExternalModule with JvmWorkerModule {
   def toolsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        Dep.millProjectModule("mill-androidlib-hilt")
+        Dep.millProjectModule("mill-libs-androidlib-hilt")
       )
     )
   }

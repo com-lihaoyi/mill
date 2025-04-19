@@ -10,7 +10,7 @@ trait ClassgraphWorkerModule extends CoursierModule with OfflineSupportModule {
 
   def classgraphWorkerClasspath: T[Seq[PathRef]] = T {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-scalalib-classgraph-worker")
+      Dep.millProjectModule("mill-libs-scalalib-classgraph-worker")
     ))
   }
 
