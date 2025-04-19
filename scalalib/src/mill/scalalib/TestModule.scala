@@ -270,14 +270,20 @@ object TestModule {
 
   /**
    * TestModule using TestNG Framework to run tests.
-   * You need to provide the testng dependency yourself.
+   * You can override the [[testngVersion]] task or provide the UTest-dependency yourself.
    */
   trait TestNg extends TestModule {
+
+    /** The TestNG version to use, or empty, if you want to provide the TestNG-dependency yourself. */
+    def testngVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++ Seq(
         mvn"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
-      )
+      ) ++
+        Seq(testngVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.testng:testng:${v.trim()}")
     }
   }
 
