@@ -115,12 +115,12 @@ trait PublishModule extends PythonModule {
     } else None
     readme match {
       case None =>
-        Result.Failure(
+        Task.fail(
           s"No readme file found in `${moduleDir}`. A readme file is required for publishing distributions. " +
             s"Please create a file named `${moduleDir}/readme*` (any capitalization), or override the `publishReadme` task."
         )
       case Some(path) =>
-        Result.Success(PathRef(path))
+        PathRef(path)
     }
   }
 

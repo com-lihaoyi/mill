@@ -90,14 +90,14 @@ object BintrayPublishModule extends ExternalModule {
         username <- Task.env.get("BINTRAY_USERNAME")
         password <- Task.env.get("BINTRAY_PASSWORD")
       } yield {
-        Result.Success(s"$username:$password")
+        s"$username:$password"
       }).getOrElse(
-        Result.Failure(
+        Task.fail(
           "Consider using BINTRAY_USERNAME/BINTRAY_PASSWORD environment variables or passing `credentials` argument"
         )
       )
     } else {
-      Result.Success(credentials)
+      credentials
     }
   }
 

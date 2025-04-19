@@ -77,8 +77,8 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
 
   def finalMainClass: T[String] = Task {
     finalMainClassOpt() match {
-      case Right(main) => Result.Success(main)
-      case Left(msg) => Result.Failure(msg)
+      case Right(main) => main
+      case Left(msg) => Task.fail(msg)
     }
   }
 
@@ -133,11 +133,10 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   def runForkedTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      try Result.Success(
-          runner().run(args = args().value, mainClass = mainClass(), workingDir = forkWorkingDir())
-        )
-      catch {
-        case NonFatal(_) => Result.Failure("Subprocess failed")
+      try {
+        runner().run(args = args().value, mainClass = mainClass(), workingDir = forkWorkingDir())
+      } catch {
+        case NonFatal(_) => Task.fail("Subprocess failed")
       }
     }
 

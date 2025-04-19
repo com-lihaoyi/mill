@@ -131,12 +131,12 @@ trait KotlinJsModule extends KotlinModule { outer =>
       @arg(positional = true) mainClass: String,
       args: String*
   ): Command[Unit] = Task.Command[Unit] {
-    mill.api.Result.Failure("runMain is not supported in Kotlin/JS.")
+    Task.fail("runMain is not supported in Kotlin/JS.")
   }
 
   override def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] =
     Task.Command[Unit] {
-      mill.api.Result.Failure("runMain is not supported in Kotlin/JS.")
+      Task.fail("runMain is not supported in Kotlin/JS.")
     }
 
   protected[js] def kotlinJsFriendModule: Option[KotlinJsModule] = None
@@ -595,9 +595,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
              |${failedTests.mkString("\n")}
              |
              |""".stripMargin
-        Result.Failure(failureMessage)
+        Task.fail(failureMessage)
       } else {
-        Result.Success((doneMessage, testResults))
+        (doneMessage, testResults)
       }
     }
 

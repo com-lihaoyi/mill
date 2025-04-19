@@ -435,7 +435,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def console(): Command[Unit] = Task.Command(exclusive = true) {
     if (!mill.constants.Util.hasConsole()) {
-      Result.Failure("console needs to be run with the -i/--interactive flag")
+      Task.fail("console needs to be run with the -i/--interactive flag")
     } else {
       val useJavaCp = "-usejavacp"
 
@@ -455,7 +455,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         stdin = os.Inherit,
         stdout = os.Inherit
       )
-      Result.Success(())
+      ()
     }
   }
 
@@ -512,7 +512,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def repl(replOptions: String*): Command[Unit] = Task.Command(exclusive = true) {
     if (Task.log.streams.in == DummyInputStream) {
-      Result.Failure("repl needs to be run with the -i/--interactive flag")
+      Task.fail("repl needs to be run with the -i/--interactive flag")
     } else {
       val mainClass = ammoniteMainClass()
       Task.log.debug(s"Using ammonite main class: ${mainClass}")
@@ -526,7 +526,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         stdin = os.Inherit,
         stdout = os.Inherit
       )
-      Result.Success(())
+      ()
     }
 
   }

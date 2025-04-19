@@ -131,7 +131,7 @@ trait AssemblyModule extends mill.define.Module {
     val problematicEntryCount = 65535
 
     if (prependScript.isDefined && created.entries > problematicEntryCount) {
-      Result.Failure(
+      Task.fail(
         s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
            |JARs of that size are known to not work correctly with a prepended shell script.
            |Either reduce the entries count of the assembly or disable the prepended shell script with:
@@ -140,7 +140,7 @@ trait AssemblyModule extends mill.define.Module {
            |""".stripMargin
       )
     } else {
-      Result.Success(created.pathRef)
+      created.pathRef
     }
   }
 }
