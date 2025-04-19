@@ -177,17 +177,17 @@ import mill.util.CachedFactory
 import java.io.ByteArrayOutputStream
 
 def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }
-class CachedCompressWorker(dest: os.Path)                            // <1>
+class CachedCompressWorker(dest: os.Path) // <1>
     extends CachedFactory[Unit, ByteArrayOutputStream] {
 
-  def setup(key: Unit): ByteArrayOutputStream = {                    // <2>
+  def setup(key: Unit): ByteArrayOutputStream = { // <2>
     println("setup ByteArrayOutputStream")
     new ByteArrayOutputStream()
   }
 
-  def maxCacheSize = 2                                               // <3>
+  def maxCacheSize = 2 // <3>
 
-  def teardown(key: Unit, value: ByteArrayOutputStream): Unit = {    // <4>
+  def teardown(key: Unit, value: ByteArrayOutputStream): Unit = { // <4>
     println("teardown ByteArrayOutputStream")
     value.reset()
   }
