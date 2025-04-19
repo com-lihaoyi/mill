@@ -12,7 +12,7 @@ object ScalaVersionsRangesTests extends TestSuite {
     trait CoreCrossModule extends CrossScalaModule
         with CrossScalaVersionRanges {
       object test extends ScalaTests with TestModule.Utest {
-        def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+        override def utestVersion = "0.8.5"
       }
     }
 

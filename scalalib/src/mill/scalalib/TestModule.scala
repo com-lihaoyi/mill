@@ -391,10 +391,18 @@ object TestModule {
 
   /**
    * TestModule that uses UTest Framework to run tests.
-   * You need to provide the utest dependencies yourself.
+   * You can override the [[utestVersion]] task or provide the UTest-dependency yourself.
    */
   trait Utest extends TestModule {
+    /** The UTest version to use, or the empty string, if you want to provide the UTest-dependency yourself. */
+    def utestVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "utest.runner.Framework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(utestVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"com.lihaoyi::utest::${v.trim()}")
+    }
   }
 
   /**
