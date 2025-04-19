@@ -2270,9 +2270,9 @@ of it being long lived</p>
 <div class="paragraph">
 <p>The solution to these issues is to maintain an in-memory cache, with proper locking,
 eviction, and invalidation. Doing so is tedious and error prone, and so Mill provides
-the <code>CachedFactory</code> helper to make it easier. The example below re-implements the a simplified
+the <code>CachedFactory</code> helper to make it easier. The example below re-implements a simplified
 version of <code>CompressWorker</code> we saw earlier, but using <code>CacheFactory</code> to cache, reset, and
-re-use the <code>ByteArrayOutputStream</code> btween calls to <code>compressWorker2().compress</code>:</p>
+re-use the <code>ByteArrayOutputStream</code> between calls to <code>cachedCompressWorker().compress</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2282,18 +2282,20 @@ import mill.util.CachedFactory
 import java.io.ByteArrayOutputStream
 
 def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }
-class CachedCompressWorker(dest: os.Path) extends CachedFactory[Unit, ByteArrayOutputStream] {
-  def setup(key: Unit): ByteArrayOutputStream = {
+class CachedCompressWorker(dest: os.Path) <i class="conum" data-value="1"></i><b>(1)</b>
+    extends CachedFactory[Unit, ByteArrayOutputStream] {
+
+  def setup(key: Unit): ByteArrayOutputStream = { <i class="conum" data-value="2"></i><b>(2)</b>
     println(&quot;setup ByteArrayOutputStream&quot;)
     new ByteArrayOutputStream()
   }
 
-  def teardown(key: Unit, value: ByteArrayOutputStream): Unit = {
+  def maxCacheSize = 2 <i class="conum" data-value="3"></i><b>(3)</b>
+
+  def teardown(key: Unit, value: ByteArrayOutputStream): Unit = { <i class="conum" data-value="4"></i><b>(4)</b>
     println(&quot;teardown ByteArrayOutputStream&quot;)
     value.reset()
   }
-
-  def maxCacheSize = 2
 
   val cache = collection.mutable.Map.empty[Int, Array[Byte]]
   def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
@@ -2319,26 +2321,30 @@ def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
 }</code></pre>
 </div>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>CachedFactory</code> takes two type parameters, a <code>K</code> key type and a <code>V</code> value type.
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>CachedFactory</code> takes two type parameters, a <code>K</code> key type and a <code>V</code> value type.
 In this case <code>K</code> is <code>Unit</code> since all <code>ByteArrayOutputStream</code>s are the same, but if you
 are caching things which take some kind of configuration (e.g. compilers with compiler
 flags) you can set <code>K</code> to be the config class so that values with different input
-configuration are cached separately.</p>
-</li>
-<li>
-<p><code>def setup</code> creates the <code>ByteArrayOutputStream</code> when a new one is necessary</p>
-</li>
-<li>
-<p><code>def maxCacheSize</code> configures the maximum number of cached entries to keep around while they are not in use,</p>
-</li>
-<li>
-<p><code>def teardown</code> cleans up the <code>ByteArrayOutputStream</code>s and when the count
-of cached entries exceeds that <code>maxCacheSize`</code></p>
-</li>
-</ul>
+configuration are cached separately.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>def setup</code> creates the <code>ByteArrayOutputStream</code> when a new one is necessary</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>def maxCacheSize</code> configures the maximum number of cached entries to keep around while they are not in use,</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>def teardown</code> cleans up the <code>ByteArrayOutputStream</code>s and when the count
+of cached entries exceeds that <code>maxCacheSize`</code></td>
+</tr>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>Although this example is synthetic (you don’t actually need to reset, reuse, and teardown
@@ -2346,7 +2352,7 @@ of cached entries exceeds that <code>maxCacheSize`</code></p>
 or components you need to manage. This is especially important when
 <a href="../extending/running-jvm-code.html" class="xref page">running JVM code in classloaders or subprocesses</a>,
 as those are both expensive to initialize and need to be properly closed or terminated
-when you are done with them</p>
+when you are done with them.</p>
 </div>
 <div class="paragraph">
 <p>The above <code>cachedCompressWorker</code> can be used as shown below, with three
@@ -2369,7 +2375,7 @@ def compressed3 = Task {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; # 3 streams are created on demand, 1 is torn down afer due to maxCacheSize = 2 limit
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; # 3 streams are created on demand, 1 is torn down after due to maxCacheSize = 2 limit
 &gt; ./mill show '{compressed1,compressed2,compressed3}'
 setup ByteArrayOutputStream
 setup ByteArrayOutputStream
