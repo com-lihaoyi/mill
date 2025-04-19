@@ -5,7 +5,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 
 object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
-  def compileModuleDeps = Seq(build.scalalib)
+  def compileModuleDeps = Seq(build.libs.scalalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
 
@@ -38,7 +38,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
       build.bsp,
       build.runner.server.client,
       build.core.api
-    ) ++ build.scalalib.compileModuleDeps
+    ) ++ build.libs.scalalib.compileModuleDeps
     def mvnDeps = Agg(
       build.Deps.bsp4j,
       build.Deps.sbtTestInterface,

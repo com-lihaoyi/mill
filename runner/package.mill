@@ -68,7 +68,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     def moduleDeps = Seq(
       build.core.codesig,
       `worker-api`,
-      build.main
+      build.libs.main
     )
 
     def buildInfoPackageName = "mill.runner.meta"

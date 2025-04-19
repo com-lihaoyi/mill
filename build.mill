@@ -439,8 +439,8 @@ trait MillJavaModule extends JavaModule {
   def testMvnDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testForkEnv: T[Map[String, String]] = forkEnv()
   def testModuleDeps: Seq[JavaModule] =
-    if (this == build.main) Seq(build.main, build.core.util)
-    else Seq(this, build.main.test)
+    if (this == build.libs.main) Seq(build.libs.main, build.core.util)
+    else Seq(this, build.libs.main.test)
 
   def localTestOverridesClasspath = Task {
     for ((k, v) <- testTransitiveDeps()) {
