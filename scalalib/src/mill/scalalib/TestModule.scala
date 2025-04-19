@@ -467,10 +467,24 @@ object TestModule {
 
   /**
    * TestModule that uses ZIO Test Framework to run tests.
-   * You need to provide the zio-test dependencies yourself.
+   * You can override the [[zioTestVersion]] task or provide the Weaver-dependency yourself.
    */
   trait ZioTest extends TestModule {
+
+    /** The ZIO Test version to use, or the empty string, if you want to provide the ZIO Test-dependency yourself. */
+    def zioTestVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(zioTestVersion())
+          .filter(!_.isBlank())
+          .flatMap(v =>
+            Seq(
+              mvn"dev.zio::zio-test:${v.trim()}",
+              mvn"dev.zio::zio-test-sbt:${v.trim()}"
+            )
+          )
+    }
   }
 
   trait ScalaCheck extends TestModule {
