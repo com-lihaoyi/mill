@@ -27,7 +27,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
     build.libs.javascriptlib,
     build.libs.pythonlib,
     build.libs.init,
-    build.idea,
+    build.libs.idea,
     build.runner.bsp
   )
   def mvnDeps = Agg(
