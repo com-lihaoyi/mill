@@ -364,6 +364,8 @@ class TaskBase {
 
   def offline(implicit ctx: mill.define.TaskCtx): Boolean = ctx.offline
 
+  def fail(msg: String)(implicit ctx: mill.define.TaskCtx): Nothing = ctx.fail(msg)
+
   /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
    */

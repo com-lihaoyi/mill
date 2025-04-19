@@ -7,6 +7,8 @@ import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
 import mill.testkit.TestBaseModule
 import utest.framework.TestPath
+import mill.exec.PlanTests.checkTopological
+import mill.api.ExecResult
 
 trait TaskTests extends TestSuite {
   trait SuperBuild extends TestBaseModule {
@@ -119,6 +121,19 @@ trait TaskTests extends TestSuite {
     override def superBuildTargetOverrideWithInput = Task.Input {
       superBuildTargetOverrideWithInputCount += 1
       superBuildTargetOverrideWithInputCount
+    }
+
+    // A task that can fail by using Result.Failure
+    def sometimesFailing(fail: Boolean): Task[String] = Task.Anon {
+      if (!fail) mill.api.Result.Success("Success")
+      else mill.api.Result.Failure("Failure")
+    }
+
+    // A task that can fail by using Task.fail API
+    // this is the high-level API for [[sometimesFailing]]
+    def sometimesFailingWithException(fail: Boolean): Task[String] = Task.Anon {
+      if (!fail) "Success"
+      else Task.fail("Failure")
     }
 
     // Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2958
@@ -257,6 +272,23 @@ trait TaskTests extends TestSuite {
     }
     test("duplicateTaskInResult-issue2958") - withEnv { (build, check) =>
       check(build.repro2958.command()) ==> Right(Result("task1,task1", 3))
+    }
+
+    test("sometimeFailing") {
+      test("success") - withEnv { (build, check) =>
+        check(build.sometimesFailing(false)) ==> Right(Result("Success", 0))
+      }
+      test("failure") - withEnv { (build, check) =>
+        check(build.sometimesFailing(true)) ==> Left(ExecResult.Failure("Failure"))
+      }
+    }
+    test("sometimeFailingWithException") {
+      test("success") - withEnv { (build, check) =>
+        check(build.sometimesFailingWithException(false)) ==> Right(Result("Success", 0))
+      }
+      test("failure") - withEnv { (build, check) =>
+        check(build.sometimesFailingWithException(true)) ==> Left(ExecResult.Failure("Failure"))
+      }
     }
   }
 
