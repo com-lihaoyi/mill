@@ -380,12 +380,20 @@ object TestModule {
 
   /**
    * TestModule that uses Specs2 Framework to run tests.
-   * You need to provide the specs2 dependencies yourself.
+   * You can override the [[specs2Version]] task or provide the Specs2-dependency yourself.
    */
   trait Specs2 extends ScalaModuleBase with TestModule {
+    /** The Specs2 version to use, or the empty string, if you want to provide the Specs2-dependency yourself. */
+    def specs2Version: T[String] = Task{ "" }
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
     override def scalacOptions = Task {
       super.scalacOptions() ++ Seq("-Yrangepos")
+    }
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(specs2Version())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.specs2::specs2-core::${v.trim()}")
     }
   }
 
