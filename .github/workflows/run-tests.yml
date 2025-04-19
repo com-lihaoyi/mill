@@ -134,7 +134,7 @@ jobs:
           # each test on each Java version and each operating system
           # We also try to group tests together to manually balance out the runtimes of each jobs
           - java-version: 17
-            millargs: "'{core,bsp,testkit}.__.test'"
+            millargs: "'{core,testkit,runner}.__.test'"
             install-android-sdk: false
             install-sbt: true
 

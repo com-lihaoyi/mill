@@ -28,7 +28,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
     build.libs.pythonlib,
     build.libs.init,
     build.idea,
-    build.bsp
+    build.runner.bsp
   )
   def mvnDeps = Agg(
     build.Deps.nativeTerminal,
