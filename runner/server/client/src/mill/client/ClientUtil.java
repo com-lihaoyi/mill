@@ -125,7 +125,7 @@ public class ClientUtil {
    * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
    * Missing vars will be replaced by the empty string.
    */
-  public static String interpolateEnvVars(String input, Map<String, String> env) throws Exception {
+  public static String interpolateEnvVars(String input, Map<String, String> env) {
     Matcher matcher = envInterpolatorPattern.matcher(input);
     // StringBuilder to store the result after replacing
     StringBuffer result = new StringBuffer();
@@ -135,13 +135,18 @@ public class ClientUtil {
       if (match.equals("$")) {
         matcher.appendReplacement(result, "\\$");
       } else {
-        String envVarValue =
-            // Hardcode support for PWD because the graal native launcher has it set to the
-            // working dir of the enclosing process, when we want it to be set to the working
-            // dir of the current process
-            match.equals("PWD")
-                ? new java.io.File(".").getAbsoluteFile().getCanonicalPath()
-                : env.containsKey(match) ? env.get(match) : "";
+        String envVarValue;
+        try {
+            envVarValue =
+                // Hardcode support for PWD because the graal native launcher has it set to the
+                // working dir of the enclosing process, when we want it to be set to the working
+                // dir of the current process
+                match.equals("PWD")
+                    ? new java.io.File(".").getAbsoluteFile().getCanonicalPath()
+                    : env.containsKey(match) ? env.get(match) : "";
+        } catch (IOException e) {
+            envVarValue="";
+        }
         matcher.appendReplacement(result, envVarValue);
       }
     }

@@ -90,10 +90,11 @@ public class MillProcessLauncher {
     return builder.start();
   }
 
-  static Object loadMillConfig(String key) throws IOException{
+  static Object loadMillConfig(String key) throws Exception{
 
     Path configFile = Paths.get("." + key);
-    if (Files.exists(configFile)) return Files.readAllLines(configFile.toAbsolutePath());
+      final Map<String, String> env = System.getenv();
+    if (Files.exists(configFile)) return ClientUtil.readOptsFileLines(configFile.toAbsolutePath());
     else {
       for(String rootBuildFileName: CodeGenConstants.rootBuildFileNames){
         Path buildFile = Paths.get(rootBuildFileName);
@@ -103,9 +104,9 @@ public class MillProcessLauncher {
             Map<String, List<String>> conf2 = (Map<String, List<String>>)conf;
             if (conf2.containsKey(key)){
               if (conf2.get(key) instanceof List){
-                return ((List)conf2.get(key)).stream().map(x -> x.toString()).collect(Collectors.toList());
+                return ((List)conf2.get(key)).stream().map(x -> ClientUtil.interpolateEnvVars(x.toString(), env)).collect(Collectors.toList());
               } else {
-                return conf2.get(key).toString();
+                return ClientUtil.interpolateEnvVars(conf2.get(key).toString(), env);
               }
             }
           }
@@ -115,19 +116,19 @@ public class MillProcessLauncher {
     return null;
   }
 
-  static List<String> millJvmOpts() throws IOException{
+  static List<String> millJvmOpts() throws Exception{
     Object value = loadMillConfig("mill-jvm-opts");
     if (value == null) return List.<String>of();
     else return (List<String>)value;
   }
 
-  static List<String> millOpts() throws IOException{
+  static List<String> millOpts() throws Exception{
       Object value = loadMillConfig("mill-opts");
       if (value == null) return List.<String>of();
       else return (List<String>)value;
   }
 
-  static String millJvmVersion() throws IOException{
+  static String millJvmVersion() throws Exception{
       Object value = loadMillConfig("mill-jvm-version");
       if (value == null) return null;
       else return (String)value;
