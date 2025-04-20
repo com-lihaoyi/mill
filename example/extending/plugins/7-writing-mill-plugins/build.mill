@@ -13,8 +13,8 @@ object myplugin extends ScalaModule with PublishModule {
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
   def platformSuffix = "_mill" + mill.util.BuildInfo.millBinPlatform
 
-  // Depend on `mill-libs-main` so we can compile against Mill APIs
-  def mvnDeps = Seq(mvn"com.lihaoyi::mill-libs-main:$millVersion")
+  // Depend on `mill-libs` so we can compile against Mill APIs
+  def mvnDeps = Seq(mvn"com.lihaoyi::mill-libs:$millVersion")
 
   // Testing Config, with necessary setup for unit/integration/example tests
   object test extends ScalaTests with TestModule.Utest {
