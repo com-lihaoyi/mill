@@ -174,7 +174,7 @@ object SbtBuildGenMain
     val sbtPluginJarPath = tempDir / sbtPluginJarName
     os.write(sbtPluginJarPath, sbtPluginJarStream)
     val contents =
-      s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-exportplugin" % "dummy-version" from ${
+      s"""addSbtPlugin("com.lihaoyi" % "mill-libs-init-sbt-exportplugin" % "dummy-version" from ${
           escape(sbtPluginJarPath.wrapped.toUri.toString)
         })
          |""".stripMargin

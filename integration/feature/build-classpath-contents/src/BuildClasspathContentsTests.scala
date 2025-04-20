@@ -35,7 +35,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           "mill-javascriptlib_3.jar",
           "mill-libs-kotlinlib-worker_3.jar",
           "mill-kotlinlib_3.jar",
-          "mill-main-init_3.jar",
+          "mill-libs-init_3.jar",
           "mill-main_3.jar",
           "mill-moduledefs_3-0.11.3-M5.jar",
           "mill-pythonlib_3.jar",

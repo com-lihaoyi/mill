@@ -10,7 +10,7 @@ object InitGradleModule extends ExternalModule with BuildGenModule {
   lazy val millDiscover = Discover[this.type]
 
   override def buildGenDeps = super.buildGenDeps() ++ Seq(
-    Dep.millProjectModule("mill-main-init-gradle")
+    Dep.millProjectModule("mill-libs-init-gradle")
   )
 
   def buildGenMainClass: T[String] = "mill.main.gradle.GradleBuildGenMain"
