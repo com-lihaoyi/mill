@@ -15,6 +15,7 @@ bsp.log
 lowered.hnir
 .dotty-ide*
 node_modules/
+build/
 *.bak
 mill-assembly.jar
 mill-native
