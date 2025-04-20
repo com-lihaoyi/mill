@@ -133,11 +133,6 @@ public class MillProcessLauncher {
       else return (String)value;
   }
 
-  static boolean millJvmOptsAlreadyApplied() {
-    final String propAppliedProp = System.getProperty("mill.jvm_opts_applied");
-    return propAppliedProp != null && propAppliedProp.equals("true");
-  }
-
   static String millServerTimeout() {
     return System.getenv(EnvVars.MILL_SERVER_TIMEOUT_MILLIS);
   }

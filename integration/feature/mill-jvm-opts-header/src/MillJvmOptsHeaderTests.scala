@@ -4,7 +4,7 @@ import mill.constants.Util
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
-object MillJvmOptsTests extends UtestIntegrationTestSuite {
+object MillJvmOptsHeaderTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("simple") - integrationTest { tester =>
       import tester._
