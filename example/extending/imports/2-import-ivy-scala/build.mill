@@ -3,8 +3,9 @@
 // a HTML generation library that does the string concatenation/construction internally
 // and also escapes the input strings on your behalf:
 
+//| mvnDeps: ["com.lihaoyi::scalatags:0.13.1"]
 import mill._, scalalib._
-import $ivy.`com.lihaoyi::scalatags:0.13.1`, scalatags.Text.all._
+import scalatags.Text.all._
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
