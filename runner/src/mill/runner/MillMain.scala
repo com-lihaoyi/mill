@@ -457,7 +457,7 @@ object MillMain {
   def readBestMillVersion(projectDir: os.Path): Option[(os.Path, String)] = {
     val versionFiles = Seq(".mill-version", ".config/mill-version")
       .map(f => (projectDir / os.RelPath(f), readVersionFile))
-    val usingFiles = CodeGenConstants.rootBuildFileNames.asScala
+    val usingFiles = mill.constants.CodeGenConstants.rootBuildFileNames.asScala
       .map(f => (projectDir / os.RelPath(f), readUsingMillVersionFile))
 
     (versionFiles ++ usingFiles)

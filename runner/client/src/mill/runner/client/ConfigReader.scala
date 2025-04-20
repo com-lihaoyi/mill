@@ -11,12 +11,12 @@ object ConfigReader {
         .stream()
         .takeWhile(_.startsWith("//|"))
         .map{case s"//|$rest" => rest}
-        .toArray(n => new Array[String](n))
+        .toList
     )
 
-    
     val loaded = new Load(LoadSettings.builder().build())
       .loadFromString(yamlString)
-  }
 
+    loaded
+  }
 }

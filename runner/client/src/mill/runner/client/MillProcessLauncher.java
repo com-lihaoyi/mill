@@ -12,8 +12,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import mill.client.ClientUtil;
+import mill.constants.CodeGenConstants;
 import mill.constants.EnvVars;
 import mill.constants.ServerFiles;
 
@@ -28,7 +30,7 @@ public class MillProcessLauncher {
     l.addAll(millLaunchJvmCommand(setJnaNoSys));
     l.add("mill.runner.MillMain");
     l.add(processDir.toAbsolutePath().toString());
-    l.addAll(ClientUtil.readOptsFileLines(millOptsFile()));
+    l.addAll(millOpts());
     l.addAll(Arrays.asList(args));
 
     final ProcessBuilder builder = new ProcessBuilder().command(l).inheritIO();
@@ -88,28 +90,47 @@ public class MillProcessLauncher {
     return builder.start();
   }
 
-  static Path millJvmVersionFile() {
-    String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_VERSION_PATH);
-    if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
-      millJvmOptsPath = ".mill-jvm-version";
+  static Object loadMillConfig(String key) throws IOException{
+
+    Path configFile = Paths.get("." + key);
+    if (Files.exists(configFile)) return Files.readAllLines(configFile.toAbsolutePath());
+    else {
+      for(String rootBuildFileName: CodeGenConstants.rootBuildFileNames){
+        Path buildFile = Paths.get(rootBuildFileName);
+        if (Files.exists(buildFile)){
+          Object conf = mill.runner.client.ConfigReader.readYaml(buildFile);
+          if (conf instanceof Map){
+            Map<String, List<String>> conf2 = (Map<String, List<String>>)conf;
+            if (conf2.containsKey(key)){
+              if (conf2.get(key) instanceof List){
+                return ((List)conf2.get(key)).stream().map(x -> x.toString()).collect(Collectors.toList());
+              } else {
+                return conf2.get(key).toString();
+              }
+            }
+          }
+        }
+      }
     }
-    return Paths.get(millJvmOptsPath).toAbsolutePath();
+    return null;
   }
 
-  static Path millJvmOptsFile() {
-    String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_OPTS_PATH);
-    if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
-      millJvmOptsPath = ".mill-jvm-opts";
-    }
-    return Paths.get(millJvmOptsPath).toAbsolutePath();
+  static List<String> millJvmOpts() throws IOException{
+    Object value = loadMillConfig("mill-jvm-opts");
+    if (value == null) return List.<String>of();
+    else return (List<String>)value;
   }
 
-  static Path millOptsFile() {
-    String millJvmOptsPath = System.getenv(EnvVars.MILL_OPTS_PATH);
-    if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
-      millJvmOptsPath = ".mill-opts";
-    }
-    return Paths.get(millJvmOptsPath).toAbsolutePath();
+  static List<String> millOpts() throws IOException{
+      Object value = loadMillConfig("mill-opts");
+      if (value == null) return List.<String>of();
+      else return (List<String>)value;
+  }
+
+  static String millJvmVersion() throws IOException{
+      Object value = loadMillConfig("mill-jvm-version");
+      if (value == null) return null;
+      else return (String)value;
   }
 
   static boolean millJvmOptsAlreadyApplied() {
@@ -126,13 +147,11 @@ public class MillProcessLauncher {
   }
 
   static String javaHome() throws Exception {
-    String jvmId;
-    Path millJvmVersionFile = millJvmVersionFile();
+    String jvmId = null;
+    jvmId = millJvmVersion();
 
     String javaHome = null;
-    if (Files.exists(millJvmVersionFile)) {
-      jvmId = Files.readString(millJvmVersionFile).trim();
-    } else {
+    if (jvmId == null) {
       boolean systemJavaExists =
           new ProcessBuilder(isWin() ? "where" : "which", "java").start().waitFor() == 0;
       if (systemJavaExists && System.getenv("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA") == null) {
@@ -254,10 +273,7 @@ public class MillProcessLauncher {
     if (serverTimeout != null) vmOptions.add("-D" + "mill.server_timeout" + "=" + serverTimeout);
 
     // extra opts
-    Path millJvmOptsFile = millJvmOptsFile();
-    if (Files.exists(millJvmOptsFile)) {
-      vmOptions.addAll(ClientUtil.readOptsFileLines(millJvmOptsFile));
-    }
+    vmOptions.addAll(millJvmOpts());
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
@@ -266,9 +282,6 @@ public class MillProcessLauncher {
     return vmOptions;
   }
 
-  static List<String> readMillJvmOpts() throws Exception {
-    return ClientUtil.readOptsFileLines(millJvmOptsFile());
-  }
 
   static int getTerminalDim(String s, boolean inheritError) throws Exception {
     Process proc = new ProcessBuilder()

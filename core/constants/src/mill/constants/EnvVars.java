@@ -21,10 +21,6 @@ public class EnvVars {
    */
   public static final String MILL_SERVER_TIMEOUT_MILLIS = "MILL_SERVER_TIMEOUT_MILLIS";
 
-  public static final String MILL_JVM_VERSION_PATH = "MILL_JVM_VERSION_PATH";
-  public static final String MILL_JVM_OPTS_PATH = "MILL_JVM_OPTS_PATH";
-  public static final String MILL_OPTS_PATH = "MILL_OPTS_PATH";
-
   /**
    * Output directory where Mill workers' state and Mill tasks output should be
    * written to
