@@ -1,1 +1,7 @@
 package build.core
+
+/**
+ * `core/` contains the Mill code that is part of its core evaluation engine,
+ * and not specific to supporting any language or toolchain.
+ */
+object `package` extends RootModule

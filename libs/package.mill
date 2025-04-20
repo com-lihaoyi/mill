@@ -2,6 +2,11 @@ package build.libs
 
 import mill._
 
+/**
+ * `libs/` contains the various Mill libraries that are available on the user `build.mill`
+ * classpath, but aren't core to the Mill evaluation engine. Support for various language
+ * toolchains, IDEs, helper tasks all fall into this category
+ */
 object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(
     build.libs.kotlinlib,
