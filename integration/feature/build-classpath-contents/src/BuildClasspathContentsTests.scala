@@ -24,7 +24,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         .sorted
       if (sys.env("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER") == "true") {
 
-        val expected =  List(
+        val expected = List(
           "mill-core-api_3.jar",
           "mill-core-constants.jar",
           "mill-core-define_3.jar",

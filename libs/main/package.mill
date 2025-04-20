@@ -18,7 +18,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(
     build.core.util,
     build.core.define,
-    build.libs.init,
+    build.libs.init
   )
   def mvnDeps = Agg(
     build.Deps.nativeTerminal,
