@@ -1,3 +1,5 @@
+//| mill-version: 0.13.0-M1-43-b217bc
+
 package build
 // imports
 //import com.github.lolgab.mill.mima.Mima

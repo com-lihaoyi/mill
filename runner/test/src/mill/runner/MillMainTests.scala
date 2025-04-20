@@ -2,6 +2,7 @@ package mill.runner
 
 import utest._
 import mill.api.Result
+import scala.util.chaining._
 
 object MillMainTests extends TestSuite {
 
@@ -70,6 +71,66 @@ object MillMainTests extends TestSuite {
         )
       }
 
+    }
+
+    test("read mill version") {
+      test("from .mill-version") {
+        val file = os.temp.dir() / ".mill-version"
+        os.write(file, "1.2.3")
+        val read = MillMain.readVersionFile(file)
+        assert(read == Some("1.2.3"))
+      }
+      test("from .config/mill-version") {
+        val file = os.temp.dir() / ".config" / "mill-version"
+        os.write(file, "1.2.3", createFolders = true)
+        val read = MillMain.readVersionFile(file)
+        assert(read == Some("1.2.3"))
+      }
+      test("from build.mill") {
+        val file = os.temp.dir() / "build.mill"
+        os.write(file, "//| mill-version: 1.2.3")
+        val read = MillMain.readUsingMillVersionFile(file)
+        assert(read == Some("1.2.3"))
+      }
+      test("precedence") {
+        val dir = os.temp.dir()
+        val file1 = (dir / ".mill-version").tap { os.write(_, "1") }
+        val file2 =
+          (dir / ".config" / "mill-version").tap { os.write(_, "2", createFolders = true) }
+        val file3 = (dir / "build.mill").tap { os.write(_, "//| mill-version:   3") }
+        val file4 = (dir / "build.mill.scala").tap { os.write(_, "//|   mill-version 4") }
+        val file5 = (dir / "build.sc").tap { os.write(_, "//|   mill-version 5") }
+        test(".mill-version") {
+          val read = MillMain.readBestMillVersion(dir)
+          assert(read == Some(file1, "1"))
+        }
+        test(".config/mill-version") {
+          os.remove(file1)
+          val read = MillMain.readBestMillVersion(dir)
+          assert(read == Some(file2, "2"))
+        }
+        test("build.mill") {
+          os.remove(file1)
+          os.remove(file2)
+          val read = MillMain.readBestMillVersion(dir)
+          assert(read == Some(file3, "3"))
+        }
+        test("build.mill.scala") {
+          os.remove(file1)
+          os.remove(file2)
+          os.remove(file3)
+          val read = MillMain.readBestMillVersion(dir)
+          assert(read == Some(file4, "4"))
+        }
+        test("build.sc") {
+          os.remove(file1)
+          os.remove(file2)
+          os.remove(file3)
+          os.remove(file4)
+          val read = MillMain.readBestMillVersion(dir)
+          assert(read == Some(file5, "5"))
+        }
+      }
     }
 
   }
