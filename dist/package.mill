@@ -101,7 +101,8 @@ object `package` extends RootModule with InstallModule {
       build.libs.androidlib.testDep(),
       build.libs.androidlib.hilt.testDep(),
       build.libs.javascriptlib.testDep(),
-      build.libs.pythonlib.testDep()
+      build.libs.pythonlib.testDep(),
+      build.libs.testDep()
     )
   }
 
