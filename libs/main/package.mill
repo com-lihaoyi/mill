@@ -16,19 +16,9 @@ import mill.scalalib.api.JvmWorkerUtil
 object `package` extends RootModule with build.MillStableScalaModule {
 
   def moduleDeps = Seq(
-    build.core.constants,
     build.core.util,
-    build.core.api,
     build.core.define,
-    build.libs.kotlinlib,
-    build.libs.androidlib,
-    build.libs.scalajslib,
-    build.libs.scalanativelib,
-    build.libs.javascriptlib,
-    build.libs.pythonlib,
     build.libs.init,
-    build.libs.idea,
-    build.runner.bsp
   )
   def mvnDeps = Agg(
     build.Deps.nativeTerminal,

@@ -81,6 +81,7 @@
         <orderEntry type="library" name="mill-libs-scalanativelib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-testrunner-entrypoint.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-testrunner_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs_3.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-bsp_3.jar" level="project"/>
         <orderEntry type="library" name="munit_3-0.7.29.jar" level="project"/>

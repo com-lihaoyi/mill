@@ -45,6 +45,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           "mill-libs-scalanativelib_3.jar",
           "mill-libs-testrunner-entrypoint.jar",
           "mill-libs-testrunner_3.jar",
+          "mill-libs_3.jar",
           "mill-moduledefs_3-0.11.3-M5.jar",
           "mill-runner-bsp_3.jar"
         )
@@ -52,11 +53,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         assert(millPublishedJars == expected)
         assert(millLocalClasspath == Nil)
       } else {
-
         sys.error("This test must be run in `packaged` mode, not `local`")
-
-        assert(millLocalClasspath == expected)
-        assert(millPublishedJars == Seq("mill-moduledefs_3-0.11.3-M5.jar"))
       }
     }
   }
