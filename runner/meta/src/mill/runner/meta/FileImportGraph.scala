@@ -155,6 +155,7 @@ object FileImportGraph {
 
     walkBuildFiles(projectRoot, output).foreach(processScript(_))
 
+    val headerData = mill.constants.Util.readYamlHeader((projectRoot / foundRootBuildFileName).toNIO)
     new FileImportGraph(
       seenScripts.toMap,
       seenRepo.toSeq,
@@ -162,7 +163,7 @@ object FileImportGraph {
       errors.toSeq,
       millImport,
       foundRootBuildFileName,
-      mill.constants.Util.readYamlHeader((projectRoot / foundRootBuildFileName).toNIO)
+      headerData
     )
   }
 

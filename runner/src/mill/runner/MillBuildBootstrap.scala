@@ -195,7 +195,8 @@ class MillBuildBootstrap(
                 .map(_.hashCode())
                 .getOrElse(0),
               depth,
-              actualBuildFileName = nestedState.buildFile
+              actualBuildFileName = nestedState.buildFile,
+              headerData = nestedState.frames.headOption.fold("")(_.headerData)
             )) { evaluator =>
               if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator)
               else if (depth <= requestedDepth) nestedState
@@ -366,7 +367,8 @@ class MillBuildBootstrap(
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
       depth: Int,
-      actualBuildFileName: Option[String] = None
+      actualBuildFileName: Option[String] = None,
+      headerData: String
   ): EvaluatorApi = {
 
     val bootLogPrefix: Seq[String] =
@@ -403,7 +405,8 @@ class MillBuildBootstrap(
         systemExit,
         streams0,
         () => evaluator,
-        offline
+        offline,
+        headerData
       )
     ).asInstanceOf[EvaluatorApi]
 
@@ -497,7 +500,6 @@ object MillBuildBootstrap {
           targetsAndParams,
           SelectMode.Separated,
           selectiveExecution = selectiveExecution,
-          headerData = headerData
         )
       }
 

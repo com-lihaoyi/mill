@@ -240,8 +240,7 @@ final class EvaluatorImpl private[mill] (
   def evaluate(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      selectiveExecution: Boolean = false,
-      headerData: String = ""
+      selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
     val resolved = os.checker.withValue(ResolveChecker) {
       Evaluator.currentEvaluator0.withValue(this) {

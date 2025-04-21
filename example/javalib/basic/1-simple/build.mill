@@ -1,5 +1,5 @@
+//| key: value
 //// SNIPPET:BUILD
-
 package build
 import mill._, javalib._
 
