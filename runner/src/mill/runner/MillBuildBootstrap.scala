@@ -159,25 +159,11 @@ class MillBuildBootstrap(
           // We don't want to evaluate anything in this depth (and above), so we just skip creating an evaluator,
           // mainly because we didn't even construct (compile) its classpath
           None,
-          None
+          None,
+          ""
         )
         nestedState.add(frame = evalState, errorOpt = None)
       } else {
-
-        def renderFailure(e: Throwable): String = {
-          e match {
-            case e: ExceptionInInitializerError if e.getCause != null => renderFailure(e.getCause)
-            case e: NoClassDefFoundError if e.getCause != null => renderFailure(e.getCause)
-            case _ =>
-              val msg =
-                e.toString +
-                  "\n" +
-                  e.getStackTrace.dropRight(new Exception().getStackTrace.length).mkString("\n")
-
-              msg
-          }
-        }
-
         val rootModuleRes = nestedState.frames.headOption match {
           case None => Result.Success(nestedState.bootstrapModuleOpt.get)
           case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
@@ -244,13 +230,14 @@ class MillBuildBootstrap(
       rootModule: RootModuleApi,
       evaluator: EvaluatorApi,
       prevFrameOpt: Option[RunnerState.Frame],
-      prevOuterFrameOpt: Option[RunnerState.Frame]
+      prevOuterFrameOpt: Option[RunnerState.Frame],
   ): RunnerState = {
     evaluateWithWatches(
       rootModule,
       evaluator,
       Seq("millBuildRootModuleResult"),
-      selectiveExecution = false
+      selectiveExecution = false,
+      headerData = nestedState.frames.lastOption.fold("")(_.headerData)
     ) match {
       case (Result.Failure(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
@@ -261,16 +248,18 @@ class MillBuildBootstrap(
           None,
           Nil,
           None,
-          Option(evaluator)
+          Option(evaluator),
+          ""
         )
 
         nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-            Result.Success(Seq(Tuple3(
+            Result.Success(Seq(Tuple4(
               runClasspath: Seq[String],
               compileClasses: String,
-              codeSignatures: Map[String, Int]
+              codeSignatures: Map[String, Int],
+              headerData: String
             ))),
             evalWatches,
             moduleWatches
@@ -317,7 +306,8 @@ class MillBuildBootstrap(
           Some(classLoader),
           runClasspath.map(f => PathRef(os.Path(f))),
           Some(PathRef(os.Path(compileClasses))),
-          Option(evaluator)
+          Option(evaluator),
+          headerData
         )
 
         nestedState.add(frame = evalState)
@@ -345,7 +335,13 @@ class MillBuildBootstrap(
           evaluator
         ) ++ nestedState.frames.flatMap(_.evaluator))
       ) {
-        evaluateWithWatches(rootModule, evaluator, targetsAndParams, selectiveExecution)
+        evaluateWithWatches(
+          rootModule,
+          evaluator,
+          targetsAndParams,
+          selectiveExecution,
+          headerData = nestedState.frames.lastOption.fold("")(_.headerData)
+        )
       }
 
     val evalState = RunnerState.Frame(
@@ -356,7 +352,8 @@ class MillBuildBootstrap(
       None,
       Nil,
       None,
-      Option(evaluator)
+      Option(evaluator),
+      ""
     )
 
     nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
@@ -490,7 +487,8 @@ object MillBuildBootstrap {
       rootModule: RootModuleApi,
       evaluator: EvaluatorApi,
       targetsAndParams: Seq[String],
-      selectiveExecution: Boolean
+      selectiveExecution: Boolean,
+      headerData: String
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
@@ -498,7 +496,8 @@ object MillBuildBootstrap {
         evaluator.evaluate(
           targetsAndParams,
           SelectMode.Separated,
-          selectiveExecution = selectiveExecution
+          selectiveExecution = selectiveExecution,
+          headerData = headerData
         )
       }
 

@@ -24,7 +24,8 @@ case class FileImportGraph(
     mvnDeps: Set[String],
     errors: Seq[String],
     metaBuild: Boolean,
-    buildFile: String
+    buildFile: String,
+    headerData: String
 )
 
 /**
@@ -160,7 +161,8 @@ object FileImportGraph {
       seenIvy.toSet,
       errors.toSeq,
       millImport,
-      foundRootBuildFileName
+      foundRootBuildFileName,
+      mill.constants.Util.readYamlHeader((projectRoot / foundRootBuildFileName).toNIO)
     )
   }
 

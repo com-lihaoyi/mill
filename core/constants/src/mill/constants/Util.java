@@ -71,4 +71,14 @@ public class Util {
   public static boolean hasConsole() {
     return hasConsole0;
   }
+
+    public static String readYamlHeader(java.nio.file.Path buildFile) throws java.io.IOException {
+        java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
+        String yamlString = lines.stream()
+            .takeWhile(line -> line.startsWith("//|"))
+            .map(line -> line.substring(3)) // Remove the `//|` prefix
+            .collect(java.util.stream.Collectors.joining("\n"));
+
+        return yamlString;
+    }
 }

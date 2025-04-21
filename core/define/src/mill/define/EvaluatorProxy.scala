@@ -98,9 +98,10 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
   def evaluate(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      selectiveExecution: Boolean = false
+      selectiveExecution: Boolean = false,
+      headerData: String = ""
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    delegate.evaluate(scriptArgs, selectMode, selectiveExecution)
+    delegate.evaluate(scriptArgs, selectMode, selectiveExecution, headerData)
   }
   def close = delegate.close()
 

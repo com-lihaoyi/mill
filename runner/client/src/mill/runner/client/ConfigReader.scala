@@ -4,18 +4,8 @@ import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
 import java.nio.file.Files
 object ConfigReader {
   def readYaml(buildFile: java.nio.file.Path) = {
-    val yamlString = String.join(
-      "\n",
-      Files
-        .readAllLines(buildFile)
-        .stream()
-        .takeWhile(_.startsWith("//|"))
-        .map{case s"//|$rest" => rest}
-        .toList
-    )
-
     val loaded = new Load(LoadSettings.builder().build())
-      .loadFromString(yamlString)
+      .loadFromString(mill.constants.Util.readYamlHeader(buildFile))
 
     loaded
   }
