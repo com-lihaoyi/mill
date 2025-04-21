@@ -37,7 +37,8 @@ public class MillClientMain {
     } else
       try {
         // start in client-server mode
-        java.util.List<String> optsArgs = MillProcessLauncher.millOpts();
+        java.util.List<String> optsArgs = new java.util.ArrayList<>();
+        Collections.addAll(optsArgs, MillProcessLauncher.millOpts());
         Collections.addAll(optsArgs, args);
 
         ServerLauncher launcher =
