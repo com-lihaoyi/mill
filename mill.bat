@@ -65,7 +65,7 @@ if [!MILL_VERSION!]==[] (
       set /p MILL_VERSION=<.config\mill-version
     ) else (
       if not "%MILL_BUILD_SCRIPT%"=="" (
-        for /f "tokens=1-3*" %%a in ('findstr /r "[/][/][>]  *using  *mill.version  *" %MILL_BUILD_SCRIPT%') do (
+        for /f "tokens=1-3*" %%a in ('findstr /r "[/][/][|]  *mill-version  *" %MILL_BUILD_SCRIPT%') do (
           set "MILL_VERSION=%%d"
         )
       )
