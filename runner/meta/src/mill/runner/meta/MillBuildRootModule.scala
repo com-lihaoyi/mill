@@ -134,11 +134,10 @@ class MillBuildRootModule()(implicit
   }
 
   def millBuildRootModuleResult = Task {
-    Tuple4(
+    Tuple3(
       runClasspath().map(_.path.toNIO.toString),
       compile().classes.path.toNIO.toString,
       codeSignatures(),
-      parseBuildFiles().headerData
     )
   }
   def generateScriptSources: T[Seq[PathRef]] = Task {

@@ -163,8 +163,7 @@ class MillBuildBootstrap(
           // We don't want to evaluate anything in this depth (and above), so we just skip creating an evaluator,
           // mainly because we didn't even construct (compile) its classpath
           None,
-          None,
-          ""
+          None
         )
         nestedState.add(frame = evalState, errorOpt = None)
       } else {
@@ -242,7 +241,6 @@ class MillBuildBootstrap(
       evaluator,
       Seq("millBuildRootModuleResult"),
       selectiveExecution = false,
-      headerData = nestedState.frames.lastOption.fold("")(_.headerData)
     ) match {
       case (Result.Failure(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
@@ -253,8 +251,7 @@ class MillBuildBootstrap(
           None,
           Nil,
           None,
-          Option(evaluator),
-          ""
+          Option(evaluator)
         )
 
         nestedState.add(frame = evalState, errorOpt = Some(error))
@@ -264,7 +261,6 @@ class MillBuildBootstrap(
               runClasspath: Seq[String],
               compileClasses: String,
               codeSignatures: Map[String, Int],
-              headerData: String
             ))),
             evalWatches,
             moduleWatches
@@ -312,7 +308,6 @@ class MillBuildBootstrap(
           runClasspath.map(f => PathRef(os.Path(f))),
           Some(PathRef(os.Path(compileClasses))),
           Option(evaluator),
-          headerData
         )
 
         nestedState.add(frame = evalState)
@@ -344,7 +339,6 @@ class MillBuildBootstrap(
           evaluator,
           targetsAndParams,
           selectiveExecution,
-          headerData = nestedState.frames.lastOption.fold("")(_.headerData)
         )
       }
 
@@ -356,8 +350,7 @@ class MillBuildBootstrap(
       None,
       Nil,
       None,
-      Option(evaluator),
-      ""
+      Option(evaluator)
     )
 
     nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
@@ -493,7 +486,6 @@ object MillBuildBootstrap {
       evaluator: EvaluatorApi,
       targetsAndParams: Seq[String],
       selectiveExecution: Boolean,
-      headerData: String
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
