@@ -88,7 +88,7 @@ class MillBuildBootstrap(
 
     val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
-    val nestedState: RunnerState =
+    val (nestedState, headerDataOpt) =
       if (depth == 0) {
         // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
         // Unfortunately, some targets also make sense without a `build.mill`, e.g. the `init` command.
@@ -98,20 +98,21 @@ class MillBuildBootstrap(
           rootBuildFileNames.asScala.exists(rootBuildFileName =>
             os.exists(recRoot(projectRoot, depth) / rootBuildFileName)
           )
-        ) state
+        ) (state, None)
         else {
           val msg =
             s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
-          if (needBuildFile) {
-            RunnerState(None, Nil, Some(msg), None)
-          } else {
-            state match {
-              case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
-                // Add a potential clue (missing build.mill) to the underlying error message
-                RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
-              case state => state
+          val res =
+            if (needBuildFile) RunnerState(None, Nil, Some(msg), None)
+            else {
+              state match {
+                case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
+                  // Add a potential clue (missing build.mill) to the underlying error message
+                  RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
+                case state => state
+              }
             }
-          }
+          (res, None)
         }
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
@@ -121,20 +122,23 @@ class MillBuildBootstrap(
           output
         )
 
-        if (parsedScriptFiles.metaBuild) evaluateRec(depth + 1)
-        else {
-          val bootstrapModule =
-            new MillBuildRootModule.BootstrapModule()(
-              new RootModule0.Info(
-                scalaCompilerWorker.classpath,
-                recRoot(projectRoot, depth),
-                output,
-                projectRoot
-              ),
-              scalaCompilerWorker.constResolver
-            )
-          RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
-        }
+        val state =
+          if (parsedScriptFiles.metaBuild) evaluateRec(depth + 1)
+          else {
+            val bootstrapModule =
+              new MillBuildRootModule.BootstrapModule()(
+                new RootModule0.Info(
+                  scalaCompilerWorker.classpath,
+                  recRoot(projectRoot, depth),
+                  output,
+                  projectRoot
+                ),
+                scalaCompilerWorker.constResolver
+              )
+            RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
+          }
+
+        (state, Some(parsedScriptFiles.headerData))
       }
 
     val res =
@@ -196,7 +200,7 @@ class MillBuildBootstrap(
                 .getOrElse(0),
               depth,
               actualBuildFileName = nestedState.buildFile,
-              headerData = nestedState.frames.headOption.fold("")(_.headerData)
+              headerData = headerDataOpt.getOrElse("")
             )) { evaluator =>
               if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator)
               else if (depth <= requestedDepth) nestedState
@@ -327,7 +331,6 @@ class MillBuildBootstrap(
       rootModule: RootModuleApi,
       evaluator: EvaluatorApi
   ): RunnerState = {
-
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) =
@@ -370,7 +373,6 @@ class MillBuildBootstrap(
       actualBuildFileName: Option[String] = None,
       headerData: String
   ): EvaluatorApi = {
-
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
       else Seq(

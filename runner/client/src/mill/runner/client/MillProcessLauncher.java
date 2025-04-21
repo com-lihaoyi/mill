@@ -118,13 +118,13 @@ public class MillProcessLauncher {
 
   static List<String> millJvmOpts() throws Exception{
     Object value = loadMillConfig("mill-jvm-opts");
-    if (value == null) return List.<String>of();
+    if (value == null) return new java.util.ArrayList<>();
     else return (List<String>)value;
   }
 
   static List<String> millOpts() throws Exception{
       Object value = loadMillConfig("mill-opts");
-      if (value == null) return List.<String>of();
+      if (value == null) return new java.util.ArrayList<>();
       else return (List<String>)value;
   }
 

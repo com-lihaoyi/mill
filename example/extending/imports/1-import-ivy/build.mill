@@ -1,8 +1,9 @@
+//| mvnDeps: ["org.thymeleaf:thymeleaf:3.1.1.RELEASE"]
+
 // The following example shows how to import the library `org.thymeleaf:thymeleaf:3.1.1.RELEASE`
 // into your build, so you can use it at build-time to safely generate escaped HTML snippets
 // in your resource path for your application to use.
 
-//| mvnDeps: ["org.thymeleaf:thymeleaf:3.1.1.RELEASE"]
 package build
 import mill._, javalib._
 import org.thymeleaf.TemplateEngine

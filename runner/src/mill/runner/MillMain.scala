@@ -93,6 +93,7 @@ object MillMain {
       systemExit: Int => Nothing,
       serverDir: os.Path
   ): (Boolean, RunnerState) = {
+
     val streams = streams0
     mill.define.SystemStreams.withStreams(streams) {
       os.SubProcess.env.withValue(env) {
