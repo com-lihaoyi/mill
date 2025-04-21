@@ -72,7 +72,7 @@ if [ -z "${MILL_VERSION}" ] ; then
   elif [ -f ".config/mill-version" ] ; then
     MILL_VERSION="$(tr '\r' '\n' < .config/mill-version | head -n 1 2> /dev/null)"
   elif [ -n "${MILL_BUILD_SCRIPT}" ] ; then
-    MILL_VERSION="$(head -n1 ${MILL_BUILD_SCRIPT} | grep '//\|  *mill-version:  *' | sed 's;//|  *mill-version:  *;;')"
+    MILL_VERSION="$(cat ${MILL_BUILD_SCRIPT} | grep '//[|]  *mill-version:  *' | sed 's;//|  *mill-version:  *;;')"
   fi
 fi
 
