@@ -234,13 +234,13 @@ class MillBuildBootstrap(
       rootModule: RootModuleApi,
       evaluator: EvaluatorApi,
       prevFrameOpt: Option[RunnerState.Frame],
-      prevOuterFrameOpt: Option[RunnerState.Frame],
+      prevOuterFrameOpt: Option[RunnerState.Frame]
   ): RunnerState = {
     evaluateWithWatches(
       rootModule,
       evaluator,
       Seq("millBuildRootModuleResult"),
-      selectiveExecution = false,
+      selectiveExecution = false
     ) match {
       case (Result.Failure(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
@@ -260,7 +260,7 @@ class MillBuildBootstrap(
             Result.Success(Seq(Tuple3(
               runClasspath: Seq[String],
               compileClasses: String,
-              codeSignatures: Map[String, Int],
+              codeSignatures: Map[String, Int]
             ))),
             evalWatches,
             moduleWatches
@@ -307,7 +307,7 @@ class MillBuildBootstrap(
           Some(classLoader),
           runClasspath.map(f => PathRef(os.Path(f))),
           Some(PathRef(os.Path(compileClasses))),
-          Option(evaluator),
+          Option(evaluator)
         )
 
         nestedState.add(frame = evalState)
@@ -338,7 +338,7 @@ class MillBuildBootstrap(
           rootModule,
           evaluator,
           targetsAndParams,
-          selectiveExecution,
+          selectiveExecution
         )
       }
 
@@ -485,7 +485,7 @@ object MillBuildBootstrap {
       rootModule: RootModuleApi,
       evaluator: EvaluatorApi,
       targetsAndParams: Seq[String],
-      selectiveExecution: Boolean,
+      selectiveExecution: Boolean
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
@@ -493,7 +493,7 @@ object MillBuildBootstrap {
         evaluator.evaluate(
           targetsAndParams,
           SelectMode.Separated,
-          selectiveExecution = selectiveExecution,
+          selectiveExecution = selectiveExecution
         )
       }
 

@@ -90,48 +90,47 @@ public class MillProcessLauncher {
     return builder.start();
   }
 
-  static Object loadMillConfig(String key) throws Exception{
+  static List<String> loadMillConfig(String key) throws Exception {
 
     Path configFile = Paths.get("." + key);
-      final Map<String, String> env = System.getenv();
+    final Map<String, String> env = System.getenv();
     if (Files.exists(configFile)) return ClientUtil.readOptsFileLines(configFile.toAbsolutePath());
     else {
-      for(String rootBuildFileName: CodeGenConstants.rootBuildFileNames){
+      for (String rootBuildFileName : CodeGenConstants.rootBuildFileNames) {
         Path buildFile = Paths.get(rootBuildFileName);
-        if (Files.exists(buildFile)){
+        if (Files.exists(buildFile)) {
           Object conf = mill.runner.client.ConfigReader.readYaml(buildFile);
-          if (conf instanceof Map){
-            Map<String, List<String>> conf2 = (Map<String, List<String>>)conf;
-            if (conf2.containsKey(key)){
-              if (conf2.get(key) instanceof List){
-                return ((List)conf2.get(key)).stream().map(x -> ClientUtil.interpolateEnvVars(x.toString(), env)).collect(Collectors.toList());
+          if (conf instanceof Map) {
+            Map<String, List<String>> conf2 = (Map<String, List<String>>) conf;
+            if (conf2.containsKey(key)) {
+              if (conf2.get(key) instanceof List) {
+                return (List<String>) ((List) conf2.get(key))
+                    .stream()
+                        .map(x -> ClientUtil.interpolateEnvVars(x.toString(), env))
+                        .collect(Collectors.toList());
               } else {
-                return ClientUtil.interpolateEnvVars(conf2.get(key).toString(), env);
+                return List.of(ClientUtil.interpolateEnvVars(conf2.get(key).toString(), env));
               }
             }
           }
         }
       }
     }
-    return null;
+    return List.of();
   }
 
-  static List<String> millJvmOpts() throws Exception{
-    Object value = loadMillConfig("mill-jvm-opts");
-    if (value == null) return new java.util.ArrayList<>();
-    else return (List<String>)value;
+  static List<String> millJvmOpts() throws Exception {
+    return loadMillConfig("mill-jvm-opts");
   }
 
-  static List<String> millOpts() throws Exception{
-      Object value = loadMillConfig("mill-opts");
-      if (value == null) return new java.util.ArrayList<>();
-      else return (List<String>)value;
+  static List<String> millOpts() throws Exception {
+    return loadMillConfig("mill-opts");
   }
 
-  static String millJvmVersion() throws Exception{
-      Object value = loadMillConfig("mill-jvm-version");
-      if (value == null) return null;
-      else return (String)value;
+  static String millJvmVersion() throws Exception {
+    List<String> res = loadMillConfig("mill-jvm-version");
+    if (res.isEmpty()) return null;
+    else return res.get(0);
   }
 
   static String millServerTimeout() {
@@ -277,7 +276,6 @@ public class MillProcessLauncher {
 
     return vmOptions;
   }
-
 
   static int getTerminalDim(String s, boolean inheritError) throws Exception {
     Process proc = new ProcessBuilder()

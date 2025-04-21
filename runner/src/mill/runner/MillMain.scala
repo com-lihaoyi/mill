@@ -443,7 +443,7 @@ object MillMain {
     case _ => None
   }
 
-  private val usingMillVersionPattern = "//| +mill-version: +([^ ]+) *$".r
+  private val usingMillVersionPattern = "//[|] +mill-version: +([^ ]+) *$".r
 
   def readUsingMillVersionFile(file: os.Path): Option[String] = file match {
     case f if os.exists(f) =>

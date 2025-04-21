@@ -137,15 +137,15 @@ public class ClientUtil {
       } else {
         String envVarValue;
         try {
-            envVarValue =
-                // Hardcode support for PWD because the graal native launcher has it set to the
-                // working dir of the enclosing process, when we want it to be set to the working
-                // dir of the current process
-                match.equals("PWD")
-                    ? new java.io.File(".").getAbsoluteFile().getCanonicalPath()
-                    : env.containsKey(match) ? env.get(match) : "";
+          envVarValue =
+              // Hardcode support for PWD because the graal native launcher has it set to the
+              // working dir of the enclosing process, when we want it to be set to the working
+              // dir of the current process
+              match.equals("PWD")
+                  ? new java.io.File(".").getAbsoluteFile().getCanonicalPath()
+                  : env.containsKey(match) ? env.get(match) : "";
         } catch (IOException e) {
-            envVarValue="";
+          envVarValue = "";
         }
         matcher.appendReplacement(result, envVarValue);
       }

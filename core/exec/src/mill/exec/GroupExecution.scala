@@ -115,7 +115,7 @@ private trait GroupExecution {
       terminal match {
 
         case labelled: NamedTask[_] =>
-          labelled.ctx.segments.value match{
+          labelled.ctx.segments.value match {
             case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
               val jsonData = parsedHeaderData(single)
               val resultData = upickle.default.read[Any](jsonData)(

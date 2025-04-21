@@ -137,7 +137,7 @@ class MillBuildRootModule()(implicit
     Tuple3(
       runClasspath().map(_.path.toNIO.toString),
       compile().classes.path.toNIO.toString,
-      codeSignatures(),
+      codeSignatures()
     )
   }
   def generateScriptSources: T[Seq[PathRef]] = Task {

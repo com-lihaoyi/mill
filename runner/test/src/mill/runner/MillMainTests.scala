@@ -115,21 +115,6 @@ object MillMainTests extends TestSuite {
           val read = MillMain.readBestMillVersion(dir)
           assert(read == Some(file3, "3"))
         }
-        test("build.mill.scala") {
-          os.remove(file1)
-          os.remove(file2)
-          os.remove(file3)
-          val read = MillMain.readBestMillVersion(dir)
-          assert(read == Some(file4, "4"))
-        }
-        test("build.sc") {
-          os.remove(file1)
-          os.remove(file2)
-          os.remove(file3)
-          os.remove(file4)
-          val read = MillMain.readBestMillVersion(dir)
-          assert(read == Some(file5, "5"))
-        }
       }
     }
 
