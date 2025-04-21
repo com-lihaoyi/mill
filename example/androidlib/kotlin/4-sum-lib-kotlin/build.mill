@@ -89,29 +89,29 @@ object app extends AndroidAppKotlinModule {
 //
 // ----
 // .
-//├── app
-//│   └── src
-//│       ├── main
-//│       │   ├── AndroidManifest.xml
-//│       │   ├── java/com/example/SampleLogic.kt
-//|       |   └── kotlin/com/example/SampleLogicKotlinDir.kt
-//│       │   └── res
-//│       │       └── values
-//│       │           ├── colors.xml
-//│       │           └── strings.xml
-//│       └── test/java/com/example/ExampleUnitTest.kt
-//│       └── test/kotlin/com/example/ExampleUnitTestInKotlinDir.kt
-//├── lib
-//│   └── src
-//│       └── main
-//│           ├── AndroidManifest.xml
-//│       |   └── kotlin/com/example/Sum.kt
-//|       |   └── res
-//|       |       └── values
-//|       |           ├── colors.xml
-//|       |           └── strings.xml
-//|       └── test/java/com/example/SumUnitTest.kt
-//└── build.mill
+// ├── app
+// │   └── src
+// │       ├── main
+// │       │   ├── AndroidManifest.xml
+// │       │   ├── java/com/example/SampleLogic.kt
+// |       |   └── kotlin/com/example/SampleLogicKotlinDir.kt
+// │       │   └── res
+// │       │       └── values
+// │       │           ├── colors.xml
+// │       │           └── strings.xml
+// │       └── test/java/com/example/ExampleUnitTest.kt
+// │       └── test/kotlin/com/example/ExampleUnitTestInKotlinDir.kt
+// ├── lib
+// │   └── src
+// │       └── main
+// │           ├── AndroidManifest.xml
+// │       |   └── kotlin/com/example/Sum.kt
+// |       |   └── res
+// |       |       └── values
+// |       |           ├── colors.xml
+// |       |           └── strings.xml
+// |       └── test/java/com/example/SumUnitTest.kt
+// └── build.mill
 // ----
 //
 
