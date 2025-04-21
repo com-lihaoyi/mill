@@ -257,7 +257,7 @@ class MillBuildBootstrap(
         nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-            Result.Success(Seq(Tuple4(
+            Result.Success(Seq(Tuple3(
               runClasspath: Seq[String],
               compileClasses: String,
               codeSignatures: Map[String, Int],
