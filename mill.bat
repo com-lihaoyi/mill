@@ -66,7 +66,7 @@ if [!MILL_VERSION!]==[] (
     ) else (
       if not "%MILL_BUILD_SCRIPT%"=="" (
         for /f "tokens=1-2*" %%a in ('findstr /r "[/][/][|]  *mill-version:  *" %MILL_BUILD_SCRIPT%') do (
-          set "MILL_VERSION=%%d"
+          set "MILL_VERSION=%%c"
         )
       )
     )
