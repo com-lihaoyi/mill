@@ -177,12 +177,12 @@ object Deps {
     if (JvmWorkerUtil.isScala3(scalaVersion)) mvn"org.scala-lang:scala3-compiler_3:${scalaVersion}"
     else mvn"org.scala-lang:scala-compiler:${scalaVersion}"
   }
-  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.8.5".withDottyCompat(scalaVersion)
+  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.9.4".withDottyCompat(scalaVersion)
   def scalaReflect(scalaVersion: String) =
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
     else mvn"org.scala-lang:scala-reflect:${scalaVersion}"
-  val scoverage2Version = "2.2.1"
+  val scoverage2Version = "2.3.0"
   val scalacScoverage2Plugin = mvn"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = mvn"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = mvn"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -208,7 +208,7 @@ object Deps {
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.17"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.3.0"
-  val kotlinVersion = "2.0.21"
+  val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val mavenVersion = "3.9.9"
   val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
@@ -439,8 +439,8 @@ trait MillJavaModule extends JavaModule {
   def testMvnDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testForkEnv: T[Map[String, String]] = forkEnv()
   def testModuleDeps: Seq[JavaModule] =
-    if (this == build.main) Seq(build.main, build.core.util)
-    else Seq(this, build.main.test)
+    if (this == build.libs.main) Seq(build.libs.main, build.core.util)
+    else Seq(this, build.libs.main.test)
 
   def localTestOverridesClasspath = Task {
     for ((k, v) <- testTransitiveDeps()) {
@@ -715,10 +715,6 @@ def formatDep(dep: Dep) = {
 }
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
-
-object idea extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.util)
-}
 
 val dummyDeps: Seq[Dep] = Seq(
   Deps.DocDeps.millScip,

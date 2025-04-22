@@ -106,7 +106,7 @@ class MillBuildRootModule()(implicit
         .map(mill.scalalib.Dep.parse)
     ) ++
       Seq(
-        mvn"com.lihaoyi::mill-main:${Versions.millVersion}"
+        mvn"com.lihaoyi::mill-libs:${Versions.millVersion}"
       ) ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
@@ -142,7 +142,7 @@ class MillBuildRootModule()(implicit
   }
   def generateScriptSources: T[Seq[PathRef]] = Task {
     val parsed = parseBuildFiles()
-    if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
+    if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
     else {
       CodeGen.generateWrappedSources(
         rootModuleInfo.projectRoot / os.up,
@@ -153,7 +153,7 @@ class MillBuildRootModule()(implicit
         rootModuleInfo.output,
         compilerWorker()
       )
-      Result.Success(Seq(PathRef(Task.dest)))
+      Seq(PathRef(Task.dest))
     }
   }
 
