@@ -17,7 +17,7 @@ globally.
 The Mill example projects in this documentation come with `./mill` and `./mill.bat`
 bootstrap script, included. You can also download the boostrap script manually:
 
-.Max/Linux
+.Mac/Linux
 [source,console,subs="verbatim,attributes"]
 ----
 > curl -L {mill-download-url}/mill -o mill
@@ -29,7 +29,7 @@ bootstrap script, included. You can also download the boostrap script manually:
 [source,console,subs="verbatim,attributes"]
 ----
 > curl -L {mill-download-url}/mill.bat -o mill.bat
-> echo {mill-version} > .mill-version
+> echo {mill-version}> .mill-version
 ----
 
 [CAUTION]
@@ -40,7 +40,7 @@ PowerShell 5.1 is known to produce `UTF-16LE` encoded `.mill-version` files, whi
 You should update to Powershell 7 or newer.
 --
 
-Downloading a `mill` bootstrap script to the root of your project repository helps make it easier for
+Downloading a `mill` bootstrap script to the root of your project repository makes it easier for
 new contributors to build your project, as they don't have to install Mill before they can start.
 Anyone who wants to work with the project can simply use the `./mill` script directly.
 
