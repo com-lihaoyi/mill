@@ -106,10 +106,11 @@ public class MillProcessLauncher {
               if (conf2.get(key) instanceof List) {
                 return (List<String>) ((List) conf2.get(key))
                     .stream()
-                        .map(x -> ClientUtil.interpolateEnvVars(x.toString(), env))
+                        .map(x -> mill.constants.Util.interpolateEnvVars(x.toString(), env))
                         .collect(Collectors.toList());
               } else {
-                return List.of(ClientUtil.interpolateEnvVars(conf2.get(key).toString(), env));
+                return List.of(
+                    mill.constants.Util.interpolateEnvVars(conf2.get(key).toString(), env));
               }
             }
           }

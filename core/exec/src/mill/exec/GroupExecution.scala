@@ -37,12 +37,15 @@ private trait GroupExecution {
   lazy val parsedHeaderData: Map[String, ujson.Value] = {
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
-
+    mill.constants.DebugLog.println("headerData " + headerData)
     // recursively convert java data structure to ujson.Value
     def rec(x: Any): ujson.Value = {
+      import collection.JavaConverters._
       x match {
         case d: java.util.Date => ujson.Str(d.toString)
-        case s: String => ujson.Str(s)
+        case s: String =>
+          mill.constants.DebugLog.println("headerData s " + s)
+          ujson.Str(mill.constants.Util.interpolateEnvVars(s, env.asJava))
         case d: Double => ujson.Num(d)
         case d: Int => ujson.Num(d)
         case d: Long => ujson.Num(d)

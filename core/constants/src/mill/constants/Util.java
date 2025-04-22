@@ -1,12 +1,16 @@
 package mill.constants;
 
 import java.io.Console;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Util {
 
@@ -80,5 +84,45 @@ public class Util {
         .collect(java.util.stream.Collectors.joining("\n"));
 
     return yamlString;
+  }
+
+  private static String envInterpolatorPattern0 = "(\\$|[A-Z_][A-Z0-9_]*)";
+  private static Pattern envInterpolatorPattern =
+      Pattern.compile("\\$\\{" + envInterpolatorPattern0 + "\\}|\\$" + envInterpolatorPattern0);
+
+  /**
+   * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
+   * Missing vars will be replaced by the empty string.
+   */
+  public static String interpolateEnvVars(String input, Map<String, String> env0) {
+    Matcher matcher = envInterpolatorPattern.matcher(input);
+    // StringBuilder to store the result after replacing
+    StringBuffer result = new StringBuffer();
+
+    Map<String, String> env = new java.util.HashMap<>();
+    env.putAll(env0);
+    // Hardcode support for PWD because the graal native launcher has it set to the
+    // working dir of the enclosing process, when we want it to be set to the working
+    // dir of the current process
+    try {
+      env.put("PWD", new java.io.File(".").getAbsoluteFile().getCanonicalPath());
+    } catch (IOException e) {
+    }
+
+    env.put("MILL_VERSION", mill.constants.BuildInfo.millVersion);
+    while (matcher.find()) {
+      String match = matcher.group(0);
+      if (match.equals("$")) {
+        matcher.appendReplacement(result, "\\$");
+      } else {
+        String envVarValue;
+        mill.constants.DebugLog.println("MATCH " + match);
+        envVarValue = env.containsKey(match) ? env.get(match) : "";
+        matcher.appendReplacement(result, envVarValue);
+      }
+    }
+
+    matcher.appendTail(result); // Append the remaining part of the string
+    return result.toString();
   }
 }
