@@ -13,8 +13,6 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 
-// plugins and dependencies
-import $meta._
 
 object `package` extends RootModule with Module {
   def exampleModules: Seq[ExampleCrossModule] = moduleInternal
