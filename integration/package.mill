@@ -25,7 +25,7 @@ object `package` extends RootModule {
   trait IntegrationTestModule extends Cross.Module[String] {
     def moduleDir = super.moduleDir / crossValue
 
-    def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
+    def moduleDeps = Seq(build.libs.main.test, build.testkit, build.runner)
 
     def resources: T[Seq[PathRef]]
     def runClasspath: T[Seq[PathRef]]
