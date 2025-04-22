@@ -16,4 +16,3 @@ object `package` extends RootModule with JavaModule {
     }
   }
 }
-//// SNIPPET:END
