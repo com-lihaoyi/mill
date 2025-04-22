@@ -34,7 +34,7 @@ trait TestModule
   def testClasspath: T[Seq[PathRef]] = Task { localRunClasspath() }
 
   /**
-   * The test framework to use.
+   * The test framework to use to discover and run run tests.
    *
    * For convenience, you can also mix-in one of these predefined traits:
    * - [[TestModule.Junit4]]
@@ -46,9 +46,14 @@ trait TestModule
    * - [[TestModule.Utest]]
    * - [[TestModule.Weaver]]
    * - [[TestModule.ZioTest]]
+   *
+   * Most of these provide additional `xxxVersion` tasks, to manage the test framework dependencies for you.
    */
   def testFramework: T[String]
 
+  /**
+   * Test classes (often called test suites) discovered by the configured [[testFramework]].
+   */
   def discoveredTestClasses: T[Seq[String]] = Task {
     val classes = if (jvmWorker().javaHome().isDefined) {
       Jvm.callProcess(
@@ -78,10 +83,9 @@ trait TestModule
    * results to the console.
    * @see [[testCached]]
    */
-  def testForked(args: String*): Command[(String, Seq[TestResult])] =
-    Task.Command {
-      testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
-    }
+  def testForked(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+    testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+  }
 
   def getTestEnvironmentVars(args: String*): Command[(String, String, String, Seq[String])] = {
     Task.Command {
@@ -331,7 +335,7 @@ object TestModule {
     def jupiterVersion: T[String] = Task { "" }
 
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-    
+
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++
         Seq(mvn"${mill.scalalib.api.Versions.jupiterInterface}") ++
