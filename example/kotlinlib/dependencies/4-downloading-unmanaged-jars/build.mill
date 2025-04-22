@@ -19,5 +19,3 @@ object `package` extends RootModule with KotlinModule {
     }
   }
 }
-
-// SNIPPET:END
