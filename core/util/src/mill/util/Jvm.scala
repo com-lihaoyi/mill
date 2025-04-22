@@ -726,8 +726,7 @@ object Jvm {
 
   // Parse a list of repositories from their string representation
   private[mill] def reposFromStrings(repoList: Seq[String]): Result[Seq[Repository]] = {
-    // Replace backslashes with normal slashes to sure this work on windows
-    RepositoryParser.repositories(repoList.map(_.replace("\\", "/"))).either match {
+    RepositoryParser.repositories(repoList).either match {
       case Left(errs) =>
         val msg =
           s"Invalid repository string:" + System.lineSeparator() +

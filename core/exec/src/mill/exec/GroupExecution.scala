@@ -38,7 +38,10 @@ private trait GroupExecution {
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
     // recursively convert java data structure to ujson.Value
-    val envWithPwd = env ++ Seq("PWD" -> workspace.toString)
+    val envWithPwd = env ++ Seq(
+      "PWD" -> workspace.toString,
+      "PWD_URI" -> workspace.toNIO.toUri.toString
+    )
     def rec(x: Any): ujson.Value = {
       import collection.JavaConverters._
       x match {

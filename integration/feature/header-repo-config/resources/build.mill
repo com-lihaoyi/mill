@@ -1,4 +1,4 @@
-//| repositories: [file://$PWD/custom-repo]
+//| repositories: [$PWD_URI/custom-repo]
 //| mvnDeps: [com.grack:nanojson:1.8-custom-test]
 
 package build
