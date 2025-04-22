@@ -82,165 +82,165 @@ jobs:
 
       - run: ./mill -i website.fastPages + website.checkBrokenLinks
 
-#  cross-plat:
-#    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#          # Run these with Mill native launcher as a smoketest
-#        include:
-#          - os: ubuntu-24.04-arm
-#            millargs: "'example.thirdparty[fansi].native.server'"
-#            java-version: 17
-#
-#          - os: macos-latest
-#            millargs: "'example.thirdparty[acyclic].native.server'"
-#            java-version: 11
-#
-#          - os: macos-13
-#            millargs: "'example.thirdparty[jimfs].native.server'"
-#            java-version: 11
-#    steps:
-#      - uses: actions/checkout@v4
-#        with: { fetch-depth: 1 }
-#
-#      - uses: ./.github/actions/pre-build-setup
-#        with:
-#          os: ${{ matrix.os }}
-#          java-version: ${{ matrix.java-version }}
-#          shell: bash
-#
-#      - uses: ./.github/actions/post-build-setup
-#        with:
-#          java-version: ${{ matrix.java-version }}
-#          os: ${{ matrix.os }}
-#
-#      - uses: ./.github/actions/post-build-selective
-#        with:
-#          millargs: ${{ matrix.millargs }}
-#          coursierarchive: "/tmp"
-#          shell: bash
+  cross-plat:
+    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+          # Run these with Mill native launcher as a smoketest
+        include:
+          - os: ubuntu-24.04-arm
+            millargs: "'example.thirdparty[fansi].native.server'"
+            java-version: 17
 
-#  linux:
-#    needs: build-linux
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#
-#        include:
-#          # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
-#          # on the opposite version on Windows below, so we get decent coverage of
-#          # each test on each Java version and each operating system
-#          # We also try to group tests together to manually balance out the runtimes of each jobs
-#          - java-version: 17
-#            millargs: "'{core,testkit,runner}.__.test'"
-#            install-android-sdk: false
-#            install-sbt: true
-#
-#          - java-version: 17
-#            millargs: "'libs.{main,scalalib,testrunner}.__.test'"
-#            install-android-sdk: false
-#            install-sbt: true
-#
-#          - java-version: 11
-#            millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          - java-version: 17
-#            millargs: "contrib.__.test"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          - java-version: 17
-#            millargs: "example.javalib.__.local.server"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          - java-version: 17
-#            millargs: "example.kotlinlib.__.local.server"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          # Run this one using `.native` as a smoketest. Also make sure the java-version
-#          # is the same as that used in the `build-linux` job to avoid diverging code
-#          # hashes (https://github.com/com-lihaoyi/mill/pull/4410)
-#          - java-version: 11
-#            millargs: "example.scalalib.__.native.server"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          - java-version: 17
-#            millargs: "'example.androidlib.__.local.server'"
-#            install-android-sdk: true
-#            install-sbt: false
-#
-#          - java-version: 17
-#            millargs: "'example.thirdparty[androidtodo].local.server'"
-#            install-android-sdk: true
-#            install-sbt: false
-#
-#          - java-version: 17
-#            millargs: "'{example,integration}.migrating.__.local.server'"
-#            install-android-sdk: false
-#            install-sbt: true
-#
-#          - java-version: 17
-#            millargs: "'example.{pythonlib,javascriptlib}.__.local.server'"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          - java-version: 11
-#            millargs: "'example.thirdparty[{mockito,commons-io}].local.server'"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          - java-version: 17
-#            millargs: "'example.thirdparty[{netty,gatling}].local.server'"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          - java-version: '17'
-#            millargs: "'example.thirdparty[arrow].local.server'"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          - java-version: 11
-#            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server'"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          - java-version: 11
-#            millargs: "'integration.{failure,feature,ide}.__.packaged.server'"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#            # run this specifically in `native` mode to make sure our non-JVM native image
-#            # launcher is able to bootstrap everything necessary without a JVM installed
-#          - java-version: 17
-#            millargs: "'integration.bootstrap[no-java-bootstrap].native.server'"
-#            install-android-sdk: false
-#
-#            # These invalidation tests need to be exercised in both execution modes
-#            # to make sure they work with and without -i/--no-server being passed
-#          - java-version: 17
-#            millargs: "'integration.invalidation.__.packaged.fork'"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#          - java-version: 17
-#            millargs: "'integration.invalidation.__.packaged.server'"
-#            install-android-sdk: false
-#            install-sbt: false
-#
-#    uses: ./.github/workflows/post-build-selective.yml
-#    with:
-#      install-android-sdk: ${{ matrix.install-android-sdk }}
-#      install-sbt: ${{ matrix.install-sbt || false }}
-#      java-version: ${{ matrix.java-version }}
-#      millargs: ${{ matrix.millargs }}
-#      shell: bash
+          - os: macos-latest
+            millargs: "'example.thirdparty[acyclic].native.server'"
+            java-version: 11
+
+          - os: macos-13
+            millargs: "'example.thirdparty[jimfs].native.server'"
+            java-version: 11
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - uses: ./.github/actions/pre-build-setup
+        with:
+          os: ${{ matrix.os }}
+          java-version: ${{ matrix.java-version }}
+          shell: bash
+
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: ${{ matrix.java-version }}
+          os: ${{ matrix.os }}
+
+      - uses: ./.github/actions/post-build-selective
+        with:
+          millargs: ${{ matrix.millargs }}
+          coursierarchive: "/tmp"
+          shell: bash
+
+  linux:
+    needs: build-linux
+    strategy:
+      fail-fast: false
+      matrix:
+
+        include:
+          # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
+          # on the opposite version on Windows below, so we get decent coverage of
+          # each test on each Java version and each operating system
+          # We also try to group tests together to manually balance out the runtimes of each jobs
+          - java-version: 17
+            millargs: "'{core,testkit,runner}.__.test'"
+            install-android-sdk: false
+            install-sbt: true
+
+          - java-version: 17
+            millargs: "'libs.{main,scalalib,testrunner}.__.test'"
+            install-android-sdk: false
+            install-sbt: true
+
+          - java-version: 11
+            millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
+            install-android-sdk: false
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "contrib.__.test"
+            install-android-sdk: false
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "example.javalib.__.local.server"
+            install-android-sdk: false
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "example.kotlinlib.__.local.server"
+            install-android-sdk: false
+            install-sbt: false
+
+          # Run this one using `.native` as a smoketest. Also make sure the java-version
+          # is the same as that used in the `build-linux` job to avoid diverging code
+          # hashes (https://github.com/com-lihaoyi/mill/pull/4410)
+          - java-version: 11
+            millargs: "example.scalalib.__.native.server"
+            install-android-sdk: false
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "'example.androidlib.__.local.server'"
+            install-android-sdk: true
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "'example.thirdparty[androidtodo].local.server'"
+            install-android-sdk: true
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "'{example,integration}.migrating.__.local.server'"
+            install-android-sdk: false
+            install-sbt: true
+
+          - java-version: 17
+            millargs: "'example.{pythonlib,javascriptlib}.__.local.server'"
+            install-android-sdk: false
+            install-sbt: false
+
+          - java-version: 11
+            millargs: "'example.thirdparty[{mockito,commons-io}].local.server'"
+            install-android-sdk: false
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "'example.thirdparty[{netty,gatling}].local.server'"
+            install-android-sdk: false
+            install-sbt: false
+
+          - java-version: '17'
+            millargs: "'example.thirdparty[arrow].local.server'"
+            install-android-sdk: false
+            install-sbt: false
+
+          - java-version: 11
+            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server'"
+            install-android-sdk: false
+            install-sbt: false
+
+          - java-version: 11
+            millargs: "'integration.{failure,feature,ide}.__.packaged.server'"
+            install-android-sdk: false
+            install-sbt: false
+
+            # run this specifically in `native` mode to make sure our non-JVM native image
+            # launcher is able to bootstrap everything necessary without a JVM installed
+          - java-version: 17
+            millargs: "'integration.bootstrap[no-java-bootstrap].native.server'"
+            install-android-sdk: false
+
+            # These invalidation tests need to be exercised in both execution modes
+            # to make sure they work with and without -i/--no-server being passed
+          - java-version: 17
+            millargs: "'integration.invalidation.__.packaged.fork'"
+            install-android-sdk: false
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "'integration.invalidation.__.packaged.server'"
+            install-android-sdk: false
+            install-sbt: false
+
+    uses: ./.github/workflows/post-build-selective.yml
+    with:
+      install-android-sdk: ${{ matrix.install-android-sdk }}
+      install-sbt: ${{ matrix.install-sbt || false }}
+      java-version: ${{ matrix.java-version }}
+      millargs: ${{ matrix.millargs }}
+      shell: bash
 
   windows:
     needs: build-windows
@@ -254,28 +254,28 @@ jobs:
           # * One job unit tests,
           # * One job each for local/packaged/native tests
           # * At least one job for each of fork/server tests, and example/integration tests
-#          - java-version: 11
-#            millargs: '"libs.{main,scalalib}.__.test"'
-#            install-sbt: false
-#
-#          - java-version: 11
-#            millargs: '"example.scalalib.{basic,publishing}.__.local.fork"'
-#            install-sbt: false
-#
-#          - java-version: 11
-#            millargs: '"example.migrating.{scalalib,javalib}.__.local.fork"'
-#            install-sbt: true
+          - java-version: 11
+            millargs: '"libs.{main,scalalib}.__.test"'
+            install-sbt: false
+
+          - java-version: 11
+            millargs: '"example.scalalib.{basic,publishing}.__.local.fork"'
+            install-sbt: false
+
+          - java-version: 11
+            millargs: '"example.migrating.{scalalib,javalib}.__.local.fork"'
+            install-sbt: true
 
           - java-version: 17
             millargs: "'integration.{feature,failure}.__.packaged.fork'"
             install-sbt: false
 
-#          - java-version: 11 # Run this with Mill native launcher as a smoketest
-#            millargs: "'integration.invalidation.__.native.server'"
-#            install-sbt: false
-#
-#          - java-version: 17
-#            millargs: "'integration.bootstrap[no-java-bootstrap].native.server'"
+          - java-version: 11 # Run this with Mill native launcher as a smoketest
+            millargs: "'integration.invalidation.__.native.server'"
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "'integration.bootstrap[no-java-bootstrap].native.server'"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:

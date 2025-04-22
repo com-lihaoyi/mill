@@ -10,9 +10,10 @@ import com.grack.nanojson.JsonObject
 // Line under test: add the given repo as Maven repo to the configured repositories
 
 def parseJson(jsonString: String) = Task.Command(exclusive = true) {
-  val jsonObj = JsonParser.`object`().from(jsonString)
 
-  jsonObj.entrySet.forEach { entry =>
-    println(s"Key: ${entry.getKey}, Value: ${entry.getValue}")
+  val jsonObj = JsonParser.`array`().from(jsonString)
+
+  jsonObj.forEach { entry =>
+    println(s"Value: $entry")
   }
 }
