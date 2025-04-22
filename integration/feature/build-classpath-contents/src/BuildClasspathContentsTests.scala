@@ -25,71 +25,35 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
       if (sys.env("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER") == "true") {
 
         val expected = List(
-          "mill-androidlib_3.jar",
-          "mill-bsp_3.jar",
           "mill-core-api_3.jar",
           "mill-core-constants.jar",
           "mill-core-define_3.jar",
           "mill-core-util_3.jar",
-          "mill-idea_3.jar",
-          "mill-javascriptlib_3.jar",
-          "mill-kotlinlib-worker_3.jar",
-          "mill-kotlinlib_3.jar",
-          "mill-main-init_3.jar",
-          "mill-main_3.jar",
+          "mill-libs-androidlib_3.jar",
+          "mill-libs-idea_3.jar",
+          "mill-libs-init_3.jar",
+          "mill-libs-javascriptlib_3.jar",
+          "mill-libs-kotlinlib-worker_3.jar",
+          "mill-libs-kotlinlib_3.jar",
+          "mill-libs-main_3.jar",
+          "mill-libs-pythonlib_3.jar",
+          "mill-libs-scalajslib-worker-api_3.jar",
+          "mill-libs-scalajslib_3.jar",
+          "mill-libs-scalalib-api_3.jar",
+          "mill-libs-scalalib_3.jar",
+          "mill-libs-scalanativelib-worker-api_3.jar",
+          "mill-libs-scalanativelib_3.jar",
+          "mill-libs-testrunner-entrypoint.jar",
+          "mill-libs-testrunner_3.jar",
+          "mill-libs_3.jar",
           "mill-moduledefs_3-0.11.3-M5.jar",
-          "mill-pythonlib_3.jar",
-          "mill-scalajslib-worker-api_3.jar",
-          "mill-scalajslib_3.jar",
-          "mill-scalalib-api_3.jar",
-          "mill-scalalib_3.jar",
-          "mill-scalanativelib-worker-api_3.jar",
-          "mill-scalanativelib_3.jar",
-          "mill-testrunner-entrypoint.jar",
-          "mill-testrunner_3.jar"
+          "mill-runner-bsp_3.jar"
         )
 
         assert(millPublishedJars == expected)
         assert(millLocalClasspath == Nil)
       } else {
-
-        // Make sure we don't include `core. exec`, `core.resolve`, `core`, `runner`, `runner.server`,
-        // etc. since users should not need to write code that compiles against those interfaces
-        val expected: Seq[String] = List(
-          "out/bsp/buildInfoResources.dest",
-          "out/bsp/compile.dest/classes",
-          "out/core/api/buildInfoResources.dest",
-          "out/core/api/compile.dest/classes",
-          "out/core/constants/buildInfoResources.dest",
-          "out/core/constants/compile.dest/classes",
-          "out/core/define/compile.dest/classes",
-          "out/core/util/buildInfoResources.dest",
-          "out/core/util/compile.dest/classes",
-          "out/dist/localTestOverridesClasspath.dest",
-          "out/idea/compile.dest/classes",
-          "out/javascriptlib/compile.dest/classes",
-          "out/kotlinlib/buildInfoResources.dest",
-          "out/kotlinlib/compile.dest/classes",
-          "out/kotlinlib/worker/compile.dest/classes",
-          "out/main/compile.dest/classes",
-          "out/main/init/compile.dest/classes",
-          "out/main/init/exampleList.dest",
-          "out/pythonlib/compile.dest/classes",
-          "out/scalajslib/buildInfoResources.dest",
-          "out/scalajslib/compile.dest/classes",
-          "out/scalajslib/worker-api/compile.dest/classes",
-          "out/scalalib/api/buildInfoResources.dest",
-          "out/scalalib/api/compile.dest/classes",
-          "out/scalalib/compile.dest/classes",
-          "out/scalanativelib/compile.dest/classes",
-          "out/scalanativelib/worker-api/compile.dest/classes",
-          "out/testrunner/compile.dest/classes",
-          "out/testrunner/entrypoint/compile.dest/classes",
-          "scalalib/resources"
-        )
-
-        assert(millLocalClasspath == expected)
-        assert(millPublishedJars == Seq("mill-moduledefs_3-0.11.3-M5.jar"))
+        sys.error("This test must be run in `packaged` mode, not `local`")
       }
     }
   }
