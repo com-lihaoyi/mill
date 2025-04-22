@@ -94,12 +94,12 @@ public class MillProcessLauncher {
 
     Path configFile = Paths.get("." + key);
     final Map<String, String> env = new HashMap<>();
-      env.putAll(System.getenv());
-      // Hardcode support for PWD because the graal native launcher has it set to the
-      // working dir of the enclosing process, when we want it to be set to the working
-      // dir of the current process
+    env.putAll(System.getenv());
+    // Hardcode support for PWD because the graal native launcher has it set to the
+    // working dir of the enclosing process, when we want it to be set to the working
+    // dir of the current process
 
-      env.put("PWD", new java.io.File(".").getAbsoluteFile().getCanonicalPath());
+    env.put("PWD", new java.io.File(".").getAbsoluteFile().getCanonicalPath());
     if (Files.exists(configFile)) return ClientUtil.readOptsFileLines(configFile.toAbsolutePath());
     else {
       for (String rootBuildFileName : CodeGenConstants.rootBuildFileNames) {
