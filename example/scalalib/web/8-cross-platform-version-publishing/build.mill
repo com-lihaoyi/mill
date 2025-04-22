@@ -16,9 +16,8 @@ trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModul
   def mvnDeps = Seq(mvn"com.lihaoyi::scalatags::0.13.1")
 }
 
-trait SharedTestModule extends TestModule {
-  def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.5")
-  def testFramework = "utest.runner.Framework"
+trait SharedTestModule extends TestModule.Utest {
+  def utestVersion = "0.8.5"
 }
 
 trait SharedJS extends Shared with ScalaJSModule {

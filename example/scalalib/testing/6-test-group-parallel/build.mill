@@ -6,9 +6,8 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
-    def testFramework = "utest.runner.Framework"
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = "0.8.5"
 
     // Group tests by GroupX and GroupY
     def testForkGrouping =
@@ -23,7 +22,7 @@ object foo extends ScalaModule {
 
 /** Usage
 
-> mill -j 4 foo.test
+> mill --jobs 4 foo.test
 
 > find out/foo/test/testForked.dest
 ...
