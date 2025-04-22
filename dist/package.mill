@@ -12,7 +12,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   lazy val allPublishModules = build.moduleInternal.modules.collect {
     case m: PublishModule if (m ne build.dist) && (m ne build.dist.native) => m
   }
-  def moduleDeps = Seq(build.runner, build.idea, build.main.init)
+  def moduleDeps = Seq(build.runner, build.libs.idea, build.libs.init)
 
   def jar = executableRaw()
   def executableRaw: T[PathRef]
@@ -70,17 +70,17 @@ object `package` extends RootModule with InstallModule {
    */
   object dist0 extends build.MillPublishJavaModule {
     // disable scalafix here because it crashes when a module has no sources
-    def moduleDeps = Seq(build.runner, build.idea)
+    def moduleDeps = Seq(build.runner, build.libs.idea)
 
     def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
-      build.main.graphviz.testDep(),
-      build.main.init.maven.testDep(),
-      build.main.init.gradle.testDep(),
-      build.main.init.sbt.testDep(),
-      build.main.init.testDep(),
-      build.main.testDep(),
-      build.scalalib.backgroundwrapper.testDep(),
-      build.scalalib.`classgraph-worker`.testDep(),
+      build.libs.graphviz.testDep(),
+      build.libs.init.maven.testDep(),
+      build.libs.init.gradle.testDep(),
+      build.libs.init.sbt.testDep(),
+      build.libs.init.testDep(),
+      build.libs.main.testDep(),
+      build.libs.scalalib.backgroundwrapper.testDep(),
+      build.libs.scalalib.`classgraph-worker`.testDep(),
       // build.contrib.bloop.testDep(),
       build.contrib.buildinfo.testDep(),
       build.contrib.scoverage.testDep(),
@@ -89,18 +89,20 @@ object `package` extends RootModule with InstallModule {
       build.contrib.playlib.testDep(),
       build.contrib.playlib.worker("2.8").testDep(),
       build.contrib.testng.testDep(),
-      build.bsp.worker.testDep(),
-      build.idea.testDep(),
+      build.runner.bsp.worker.testDep(),
+      build.libs.idea.testDep(),
       build.testkit.testDep(),
       build.runner.worker.testDep(),
-      build.scalalib.worker.testDep(),
-      build.scalajslib.testDep(),
-      build.scalanativelib.testDep(),
-      build.kotlinlib.testDep(),
-      build.kotlinlib.worker.impl.testDep(),
-      build.kotlinlib.androidhilt.testDep(),
-      build.javascriptlib.testDep(),
-      build.pythonlib.testDep()
+      build.libs.scalalib.worker.testDep(),
+      build.libs.scalajslib.testDep(),
+      build.libs.scalanativelib.testDep(),
+      build.libs.kotlinlib.testDep(),
+      build.libs.kotlinlib.worker.impl.testDep(),
+      build.libs.androidlib.testDep(),
+      build.libs.androidlib.hilt.testDep(),
+      build.libs.javascriptlib.testDep(),
+      build.libs.pythonlib.testDep(),
+      build.libs.testDep()
     )
   }
 
