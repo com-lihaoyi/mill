@@ -86,13 +86,6 @@ trait KotlinModule extends JavaModule { outer =>
     )
   }
 
-  private def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
-    params.addVariantAttributes(
-      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
-      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
-    )
-  }
-
   /**
    * The Java classpath resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerMvnDeps]].
@@ -103,7 +96,7 @@ trait KotlinModule extends JavaModule { outer =>
     )
     defaultResolver().classpath(
       deps,
-      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
 
@@ -163,7 +156,7 @@ trait KotlinModule extends JavaModule { outer =>
       kotlincPluginMvnDeps()
         // Don't resolve transitive jars
         .map(d => d.exclude("*" -> "*")),
-      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
     jars.toSeq
   }
@@ -265,7 +258,7 @@ trait KotlinModule extends JavaModule { outer =>
       Seq(
         mvn"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       ),
-      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
 
@@ -277,7 +270,7 @@ trait KotlinModule extends JavaModule { outer =>
         Dep.parse(Versions.kotlinxHtmlJvmDep),
         Dep.parse(Versions.freemarkerDep)
       ),
-      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
 
@@ -457,6 +450,17 @@ trait KotlinModule extends JavaModule { outer =>
     }
     override def kotlinUseEmbeddableCompiler: Task[Boolean] =
       Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+  }
+
+}
+
+object KotlinModule {
+
+  private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
+    params.addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+    )
   }
 
 }

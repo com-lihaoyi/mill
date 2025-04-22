@@ -248,7 +248,7 @@ object CoursierModule {
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
-        resolutionParams = ResolutionParams(),
+        resolutionParams = resolutionParams,
         boms = Nil
       ).get
     }
