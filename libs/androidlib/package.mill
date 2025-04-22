@@ -1,0 +1,30 @@
+package build.libs.androidlib
+
+import coursier.MavenRepository
+import mill._
+import mill.contrib.buildinfo.BuildInfo
+import mill.scalalib._
+
+// TODO when android hardcoded versions are fixed, generate a build info
+// TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
+object `package` extends RootModule with build.MillPublishScalaModule {
+
+  def moduleDeps = Seq(build.libs.scalalib, build.libs.kotlinlib)
+
+  def testTransitiveDeps =
+    super.testTransitiveDeps() ++ Seq(build.libs.kotlinlib.worker.impl.testDep())
+
+  object hilt extends build.MillPublishScalaModule {
+    override def repositoriesTask = Task.Anon {
+      super.repositoriesTask() :+ MavenRepository("https://maven.google.com/")
+    }
+
+    override def moduleDeps = Seq(build.libs.androidlib)
+
+    override def mvnDeps = Agg(
+      build.Deps.hiltGradlePlugin,
+      build.Deps.androidTools
+    )
+  }
+
+}

@@ -33,7 +33,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
   )
 
-  def ivyDeps = Agg(
+  def mvnDeps = Agg(
     build.Deps.sbtTestInterface
   )
 }

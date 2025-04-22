@@ -1,8 +1,6 @@
 package mill.api
 
-import mill.api.{Logger, SystemStreams}
-
-import java.io.{InputStream, OutputStream, PrintStream}
+import java.io.PrintStream
 
 /**
  * The standard logging interface of the Mill build tool.

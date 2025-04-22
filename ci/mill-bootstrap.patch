@@ -1,92 +1,13 @@
-diff --git a/.github/workflows/run-tests.yml b/.github/workflows/run-tests.yml
-index 7afdd53994b..5ec15bb6b0a 100644
---- a/.github/workflows/run-tests.yml
-+++ b/.github/workflows/run-tests.yml
-@@ -263,7 +263,7 @@ jobs:
-             millargs: "'integration.invalidation.__.native.server'"
-             install-sbt: false
- 
--          - java-version: 17.0.14
-+          - java-version: 17
-             millargs: "'integration.bootstrap[no-java-bootstrap].native.server'"
- 
-     uses: ./.github/workflows/post-build-selective.yml
-diff --git a/dist/package.mill b/dist/package.mill
-index d0d68e63fce..7a91f6de8b9 100644
---- a/dist/package.mill
-+++ b/dist/package.mill
-@@ -342,41 +342,10 @@ object `package` extends RootModule with InstallModule {
- 
-     def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
- 
--    // copying the original method from NativeImageModule until re-bootstrapping
--    // for the withRevalidateOnce
--    def nativeImageTool: T[PathRef] = Task {
--      jvmWorker().javaHome().map(_.path)
--        .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
--        case Some(home) =>
--          val tool = if (scala.util.Properties.isWin) "native-image.cmd" else "native-image"
--          val path = home / "bin" / tool
--          if (os.exists(path))
--            // native-image is externally managed, better revalidate it at least once
--            PathRef(path).withRevalidateOnce
--          else throw new RuntimeException(s"$path not found")
--        case None =>
--          throw new RuntimeException("JvmWorkerModule.javaHome/GRAALVM_HOME not defined")
--      }
--    }
--
-     def jvmWorker = ModuleRef(JvmWorkerGraalvm)
- 
-     object JvmWorkerGraalvm extends JvmWorkerModule {
-       def jvmId = build.Settings.graalvmJvmId
--      // copying the original method from NativeImageModule until re-bootstrapping
--      // for the withRevalidateOnce
--      def javaHome: T[Option[PathRef]] = Task {
--        Option(jvmId()).filter(_ != "").map { id =>
--          val path = mill.util.Jvm.resolveJavaHome(
--            id = id,
--            coursierCacheCustomizer = coursierCacheCustomizer(),
--            ctx = Some(implicitly[mill.api.Ctx.Log]),
--            jvmIndexVersion = jvmIndexVersion()
--          ).get
--          // Java home is externally managed, better revalidate it at least once
--          PathRef(path, quick = true).withRevalidateOnce
--        }
--      }
-     }
-   }
- }
 diff --git a/mill-build/build.mill b/mill-build/build.mill
-index 521b6533dd6..1c8b6ff79ea 100644
+index f32b3cbcf65..3fc9b0097c8 100644
 --- a/mill-build/build.mill
 +++ b/mill-build/build.mill
-@@ -1,5 +1,5 @@
- import mill._
--import mill.runner.MillBuildRootModule
-+import mill.runner.meta.MillBuildRootModule
- import mill.scalalib._
- 
- object `package` extends MillBuildRootModule {
-diff --git a/website/package.mill b/website/package.mill
-index c30c14440e4..f3e6aa41ed3 100644
---- a/website/package.mill
-+++ b/website/package.mill
-@@ -57,7 +57,7 @@ object `package` extends RootModule {
-   }
- 
-   def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
--      ctx: mill.api.Ctx.Log
-+      ctx: mill.define.TaskCtx.Log
-   ) = {
- 
-     prepareAntora(npmDir)
-@@ -116,7 +116,7 @@ object `package` extends RootModule {
-   }
- 
-   def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Agg[os.Path])(implicit
--      ctx: mill.api.Ctx
-+      ctx: mill.define.TaskCtx
-   ) = {
- 
-     // Walk all files to render graphviz templates ourselves because the only Antora graphviz
+@@ -14,7 +14,7 @@ object `package` extends MillBuildRootModule {
+     // TODO: implement empty version for ivy deps as we do in import parser
+     mvn"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
+ //    mvn"com.goyeau::mill-scalafix::0.5.0",
+-    mvn"com.lihaoyi::mill-main-graphviz:${mill.api.BuildInfo.millVersion}",
++    mvn"com.lihaoyi::mill-libs-graphviz:${mill.api.BuildInfo.millVersion}",
+     // TODO: document, why we have this dependency
+     mvn"org.jsoup:jsoup:1.18.1"
+   )

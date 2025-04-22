@@ -48,7 +48,7 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
   of test suites, robust enough to provide speedups on most workloads. This is expected to
   become the default (with an opt out) in Mill 0.13.0
 
-* Break the dependency between repositoriesTask and ivyDeps ({link-pr}/4472[#4472])
+* Break the dependency between repositoriesTask and mvnDeps ({link-pr}/4472[#4472])
 * Update coursier to 2.1.25-M2 (adds early Gradle Module support) - 0.12.x ({link-pr}/4623[#4623])
 * Fix semanticdbData for mixed scala/java projects ({link-pr}/4599[#4599]) ({link-pr}/4629[#4629])
 * Improve performances of Bloop/install ({link-pr}/4600[#4600]) ({link-pr}/4628[#4628])
@@ -426,7 +426,7 @@ https://github.com/com-lihaoyi/scalasql/pull/30, https://github.com/com-lihaoyi/
 
 * Update Zinc to 0.10.3 to fix issues with over-compilation {link-pr}/3748[#3748]
 
-* `runIvyDeps` is now transitive, as is the newly-introduced `runModuleDeps`,
+* `runMvnDeps` is now transitive, as is the newly-introduced `runModuleDeps`,
 to try and match the semantics of runtime deps in Maven{link-pr}/3774[#3774]
 
 [#0-12-0-RC3]
@@ -481,7 +481,7 @@ name above, so you can attribute each line of logs to the task that generated it
 ```
 ...
 [3861/4712] main.client.publishLocalCached
-[3861] Publishing Artifact(com.lihaoyi,mill-main-client,0.12.0-RC2-67-a566d8-DIRTY875bcbb1) to ivy repo /Users/lihaoyi/.ivy2/local
+[3861] Publishing Artifact(com.lihaoyi,mill-libs-client,0.12.0-RC2-67-a566d8-DIRTY875bcbb1) to ivy repo /Users/lihaoyi/.ivy2/local
 [3868/4712] runner.client.publishLocalCached
 [3868] Publishing Artifact(com.lihaoyi,mill-runner-client,0.12.0-RC2-67-a566d8-DIRTY875bcbb1) to ivy repo /Users/lihaoyi/.ivy2/local
   [3869/4712] ======================================= installLocalCache ============================================== 4s
@@ -1267,7 +1267,7 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 _Changes since {prev-version}:_
 
-* Introduced automatic `PathRef` validation for cached targets; default-enabled it for `CoursierModule.resolveDeps` and various `resolvedIvyDeps` targets
+* Introduced automatic `PathRef` validation for cached targets; default-enabled it for `CoursierModule.resolveDeps` and various `resolvedMvnDeps` targets
 * `internal`: Update Protocol version to 2.1.0-M4
 * `internal`: Support new `mainClasses` field in run and test environments
 * `internal`: Fixed handling of Mill plugins and other improvements
@@ -1853,8 +1853,8 @@ The API is suspected to change before a 0.10.0 releae.*
 _Changes since {prev-version}:_
 
 * `ScalaModule with PublishModule`: the `scala-library` artifact is now always part of the dependencies in published `pom.xml`s and `ivy.xml`s
-* New `JavaModule.mandatoryIvyDeps` target to provide essential dependencies like scala-library without forcing the user to call `super.ivyDeps`
-* `ScalaJSModule.scalaLibraryIvyDeps` no longer contains the scala-js-library, but only the scala-library; if you need that, use `ScalaJSModule.mandatoryIvyDeps` instead.
+* New `JavaModule.mandatoryMvnDeps` target to provide essential dependencies like scala-library without forcing the user to call `super.mvnDeps`
+* `ScalaJSModule.scalaLibraryMvnDeps` no longer contains the scala-js-library, but only the scala-library; if you need that, use `ScalaJSModule.mandatoryMvnDeps` instead.
 * `import $ivy` support `$MILL_BIN_PLATFORM` variable and a new sort notations for external plugins
 * We fixed and enabled lots of tests to run on Windows
 * Some generic targets like `plan` or `path` now also return their output
@@ -2174,7 +2174,7 @@ and the {link-compare}/0.6.1\...0.6.2[list of commits]._
 * New `--version` option
 * Added Support for Scala.js 1.0.0+
 * Added Support for Scala Native 0.4.0-M2
-* `JavaModule`: Enhanced `ivyDepsTree` to optionally include compile-time and runtime-time dependencies
+* `JavaModule`: Enhanced `mvnDepsTree` to optionally include compile-time and runtime-time dependencies
 * `JavaModule`: `allSourceFiles` no longer include Scala sources
 * `JavaModule`: assembly supports configurable separator when merging resources
 * `ScoverageModule`: respect `unmanagedClasspath`, added console reporter
@@ -2306,7 +2306,7 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 [#0-4-0]
 === 0.4.0 - 2019-05-20
 
-* Publish `compileIvyDeps` as provided scope ({link-issue}/535[535])
+* Publish `compileMvnDeps` as provided scope ({link-issue}/535[535])
 
 * Added contrib modules to integrate
 {link-current-doc-site}/page/contrib-modules.html#bloop[Bloop],
@@ -2505,11 +2505,11 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 
 * Properly pass compiler plugins to Scaladoc ({link-issue}/282[#282])
 
-* Support for ivy version-pinning via `ivy"...".forceVersion()`
+* Support for ivy version-pinning via `jvm"...".forceVersion()`
 
-* Support for ivy excludes via `ivy"...".exclude()` ({link-pr}/254[#254])
+* Support for ivy excludes via `jvm"...".exclude()` ({link-pr}/254[#254])
 
-* Make `ivyDepsTree` properly handle transitive dependencies ({link-issue}/226[#226])
+* Make `mvnDepsTree` properly handle transitive dependencies ({link-issue}/226[#226])
 
 * Fix handling of `runtime`-scoped ivy dependencies ({link-issue}/173[#173])
 
@@ -2534,7 +2534,7 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 
 * Passing command-line arguments with spaces in them to tests no longer parses wrongly
 
-* `ScalaModule#repositories`, `scalacPluginIvyDeps`, `scalacOptions`,
+* `ScalaModule#repositories`, `scalacPluginMvnDeps`, `scalacOptions`,
 `javacOptions` are now automatically propagated to `Tests` modules
 
 * `ScalaJSModule` linking errors no longer show a useless stack trace
@@ -2557,7 +2557,7 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 
 * Mill now generates an `out/mill-profile.json` file containing task-timings, to make it easier to see where your mill evaluation time is going
 
-* Introduced `ScalaModule#ivyDepsTree` command to show dependencies tree
+* Introduced `ScalaModule#mvnDepsTree` command to show dependencies tree
 
 * Rename `describe` to `inspect` for consistency with SBT
 
@@ -2569,7 +2569,7 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 
 * Scala.js now supports `NoModule` and `CommonJSModule` module kinds
 
-* Include `compileIvyDeps` when generating IntelliJ projects
+* Include `compileMvnDeps` when generating IntelliJ projects
 
 * Fixed invalid POM generation
 

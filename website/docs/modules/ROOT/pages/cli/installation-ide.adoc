@@ -17,7 +17,7 @@ globally.
 The Mill example projects in this documentation come with `./mill` and `./mill.bat`
 bootstrap script, included. You can also download the boostrap script manually:
 
-.Max/Linux
+.Mac/Linux
 [source,console,subs="verbatim,attributes"]
 ----
 > curl -L {mill-download-url}/mill -o mill
@@ -29,7 +29,7 @@ bootstrap script, included. You can also download the boostrap script manually:
 [source,console,subs="verbatim,attributes"]
 ----
 > curl -L {mill-download-url}/mill.bat -o mill.bat
-> echo {mill-version} > .mill-version
+> echo {mill-version}> .mill-version
 ----
 
 [CAUTION]
@@ -40,7 +40,7 @@ PowerShell 5.1 is known to produce `UTF-16LE` encoded `.mill-version` files, whi
 You should update to Powershell 7 or newer.
 --
 
-Downloading a `mill` bootstrap script to the root of your project repository helps make it easier for
+Downloading a `mill` bootstrap script to the root of your project repository makes it easier for
 new contributors to build your project, as they don't have to install Mill before they can start.
 Anyone who wants to work with the project can simply use the `./mill` script directly.
 
@@ -274,9 +274,9 @@ The typical symptom will be error messages which look like this;
 mill.scalalib.JvmWorkerModule.classpath
 Resolution failed for 1 modules:
 --------------------------------------------
-  com.lihaoyi:mill-scalalib-worker_2.13:0.11.1
-        not found: C:\Users\partens\.ivy2\local\com.lihaoyi\mill-scalalib-worker_2.13\0.11.1\ivys\ivy.xml
-        download error: Caught java.io.IOException (Server returned HTTP response code: 503 for URL: https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom) while downloading https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom
+  com.lihaoyi:mill-libs-scalalib-worker_2.13:0.11.1
+        not found: C:\Users\partens\.ivy2\local\com.lihaoyi\mill-libs-scalalib-worker_2.13\0.11.1\ivys\ivy.xml
+        download error: Caught java.io.IOException (Server returned HTTP response code: 503 for URL: https://repo1.maven.org/maven2/com/lihaoyi/mill-libs-scalalib-worker_2.13/0.11.1/mill-libs-scalalib-worker_2.13-0.11.1.pom) while downloading https://repo1.maven.org/maven2/com/lihaoyi/mill-libs-scalalib-worker_2.13/0.11.1/mill-libs-scalalib-worker_2.13-0.11.1.pom
 ----
 
 It is expected that basic commands (e.g. clean) will not work, as Mill saying it is

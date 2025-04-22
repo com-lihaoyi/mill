@@ -18,8 +18,8 @@ private[playlib] trait Server extends ScalaModule with Version {
       pekkoHttpServer()
   }
 
-  override def runIvyDeps = Task {
-    super.runIvyDeps() ++ Seq(playServerProvider())
+  override def runMvnDeps = Task {
+    super.runMvnDeps() ++ Seq(playServerProvider())
   }
 
   override def mainClass = Task { Some("play.core.server.ProdServerStart") }
