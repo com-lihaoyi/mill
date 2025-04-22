@@ -10,6 +10,8 @@ import utest.{TestSuite, Tests, assert, test}
 
 import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
 import scala.collection.mutable
+import scala.concurrent.duration.DurationInt
+import scala.util.Properties
 
 object MainModuleTests extends TestSuite {
 
@@ -272,15 +274,38 @@ object MainModuleTests extends TestSuite {
         assert(value == expected)
         assert(shown == expected)
 
-        // Make sure both stdout and stderr are redirected by `show`
-        // to stderr so that only the JSON file value goes to stdout
-        val strippedErr =
-          fansi.Str(errStream.toString, errorMode = fansi.ErrorMode.Sanitize).plainText
+        def check(): Unit =
+          try {
+            // Make sure both stdout and stderr are redirected by `show`
+            // to stderr so that only the JSON file value goes to stdout
+            val strippedErr =
+              fansi.Str(errStream.toString, errorMode = fansi.ErrorMode.Sanitize).plainText
 
-        assert(strippedErr.contains("Hello2 System Stdout"))
-        assert(strippedErr.contains("Hello2 System Stderr"))
-        assert(strippedErr.contains("Hello2 Console Stdout"))
-        assert(strippedErr.contains("Hello2 Console Stderr"))
+            assert(strippedErr.contains("Hello System Stdout"))
+            assert(strippedErr.contains("Hello System Stderr"))
+            assert(strippedErr.contains("Hello Console Stdout"))
+            assert(strippedErr.contains("Hello Console Stderr"))
+            assert(strippedErr.contains("Hello2 System Stdout"))
+            assert(strippedErr.contains("Hello2 System Stderr"))
+            assert(strippedErr.contains("Hello2 Console Stdout"))
+            assert(strippedErr.contains("Hello2 Console Stderr"))
+          } catch {
+            case ex: utest.AssertionError =>
+              pprint.err.log(errStream.toString)
+              throw ex
+          }
+
+        try check()
+        catch {
+          case ex: utest.AssertionError if Properties.isWin =>
+            // On Windows, it seems there can be a delay until the messages land in errStream,
+            // it's worth retrying
+            ex.printStackTrace(System.err)
+            val waitFor = 2.seconds
+            System.err.println(s"Caught $ex, trying again in $waitFor")
+            Thread.sleep(waitFor.toMillis)
+            check()
+        }
       }
 
       test("command") {
