@@ -1,4 +1,4 @@
-import $meta._
+//| meta: true
 
 import mill._
 import mill.define.PathRef
