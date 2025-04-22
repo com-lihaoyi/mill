@@ -27,7 +27,7 @@ import scala.collection.mutable
  * Mill module for pre-processing a Mill `build.mill` and related files and then
  * compiling them as a normal [[ScalaModule]]. Parses `build.mill`, walks any
  * `import $file`s, wraps the script files to turn them into valid Scala code
- * and then compiles them with the `mvnDeps` extracted from the `import $ivy`
+ * and then compiles them with the `mvnDeps` extracted from the `//| mvnDeps:`
  * calls within the scripts.
  */
 @internal

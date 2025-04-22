@@ -4,7 +4,7 @@ import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object ImportIvyWorkerInvalidation extends UtestIntegrationTestSuite {
+object HeaderMvnDepsWorkerInvalidation extends UtestIntegrationTestSuite {
 
   val tests: Tests = Tests {
     test - integrationTest { tester =>

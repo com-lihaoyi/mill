@@ -1,4 +1,4 @@
-// `import $ivy` can also be used with Scala libraries. The following example
+// `//| mvnDeps:` can also be used with Scala libraries. The following example
 // replaces `org.thymeleaf:thymeleaf:3.1.1.RELEASE` above with `com.lihaoyi::scalatags:0.12.0`,
 // a HTML generation library that does the string concatenation/construction internally
 // and also escapes the input strings on your behalf:
@@ -20,7 +20,7 @@ object bar extends ScalaModule {
 
 // In this case, we move the Scalatags rendering logic to build time, so the application
 // code gets a pre-rendered string it can directly print without further work.
-// Note that using `import $ivy` on Scala libraries requires a double colon `::` between
+// Note that using `//| mvnDeps:` on Scala libraries requires a double colon `::` between
 // the organization name and artifact name.
 
 /** Usage

@@ -1,5 +1,5 @@
 //| repositories: [file://$PWD/custom-repo]
-//| mvnDeps: [com.grack:nanojson:1.8]
+//| mvnDeps: [com.grack:nanojson:1.8-custom-test]
 
 package build
 
@@ -9,11 +9,10 @@ import com.grack.nanojson.JsonObject
 
 // Line under test: add the given repo as Maven repo to the configured repositories
 
-
-def parseJson(jsonString: String) = Task.Command {
+def parseJson(jsonString: String) = Task.Command(exclusive = true) {
   val jsonObj = JsonParser.`object`().from(jsonString)
 
-  jsonObj.entries.forEach { v =>
-    println(s"Key: ${v.key}, Value: ${v.value}")
+  jsonObj.entrySet.forEach { entry =>
+    println(s"Key: ${entry.getKey}, Value: ${entry.getValue}")
   }
 }

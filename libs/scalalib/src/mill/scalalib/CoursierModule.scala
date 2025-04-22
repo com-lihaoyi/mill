@@ -117,7 +117,7 @@ trait CoursierModule extends mill.define.Module {
    * which would introduce cycles between Mill tasks.
    */
   def allRepositories: Task[Seq[Repository]] = Task.Anon {
-    internalRepositories() ++ repositoriesTask() 
+    internalRepositories() ++ repositoriesTask()
   }
 
   /**

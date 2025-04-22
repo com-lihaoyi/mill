@@ -38,11 +38,12 @@ private trait GroupExecution {
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
     // recursively convert java data structure to ujson.Value
+    val envWithPwd = env ++ Seq("PWD" -> workspace.toString)
     def rec(x: Any): ujson.Value = {
       import collection.JavaConverters._
       x match {
         case d: java.util.Date => ujson.Str(d.toString)
-        case s: String => ujson.Str(mill.constants.Util.interpolateEnvVars(s, env.asJava))
+        case s: String => ujson.Str(mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava))
         case d: Double => ujson.Num(d)
         case d: Int => ujson.Num(d)
         case d: Long => ujson.Num(d)
@@ -374,7 +375,7 @@ private trait GroupExecution {
   // invalidate workers in the scenario where a worker classloader is
   // re-created - so the worker *class* changes - but the *value* inputs to the
   // worker does not change. This typically happens when the worker class is
-  // brought in via `import $ivy`, since the class then comes from the
+  // brought in via `//| mvnDeps:`, since the class then comes from the
   // non-bootstrap classloader which can be re-created when the `build.mill` file
   // changes.
   //

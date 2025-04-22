@@ -101,13 +101,6 @@ public class Util {
 
     Map<String, String> env = new java.util.HashMap<>();
     env.putAll(env0);
-    // Hardcode support for PWD because the graal native launcher has it set to the
-    // working dir of the enclosing process, when we want it to be set to the working
-    // dir of the current process
-    try {
-      env.put("PWD", new java.io.File(".").getAbsoluteFile().getCanonicalPath());
-    } catch (IOException e) {
-    }
 
     env.put("MILL_VERSION", mill.constants.BuildInfo.millVersion);
     while (matcher.find()) {

@@ -1,5 +1,5 @@
 // The following example demonstrates a use case: using cross modules to
-// turn files on disk into blog posts. To begin with, we xref:extending/import-ivy-plugins.adoc[import $ivy]
+// turn files on disk into blog posts. To begin with, we xref:extending/import-mvn-plugins.adoc[import $ivy]
 // two third-party libraries - Commonmark and Scalatags - to deal with Markdown parsing and
 // HTML generation respectively:
 package build
