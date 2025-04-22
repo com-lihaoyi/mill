@@ -79,7 +79,10 @@ Run-time HTML snippet: <p>world</p>
 ]
 
 > mill --meta-level 2 show sources
-.../mill-build/build.mill"
+[
+.../mill-build/build.mill",
+.../mill-build/mill-build/src"
+]
 
 
 */
