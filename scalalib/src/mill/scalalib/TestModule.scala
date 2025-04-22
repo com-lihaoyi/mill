@@ -1,14 +1,22 @@
 package mill.scalalib
 
-import mill.define.{TaskCtx, PathRef}
-import mill.api.{Result}
-import mill.define.{Command, Task, TaskModule}
-import mill.api.internal.{BspBuildTarget, BspModuleApi, TestReporter}
-import mill.scalalib.bsp.BspModule
-import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
-import mill.util.Jvm
 import mill.T
-import mill.api.internal.{TestModuleApi, BspBuildTarget}
+import mill.api.Result
+import mill.api.internal.BspBuildTarget
+import mill.api.internal.BspModuleApi
+import mill.api.internal.TestModuleApi
+import mill.api.internal.TestReporter
+import mill.define.Command
+import mill.define.PathRef
+import mill.define.Task
+import mill.define.TaskCtx
+import mill.define.TaskModule
+import mill.scalalib.bsp.BspModule
+import mill.testrunner.Framework
+import mill.testrunner.TestArgs
+import mill.testrunner.TestResult
+import mill.testrunner.TestRunner
+import mill.util.Jvm
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -387,10 +395,42 @@ object TestModule {
 
   /**
    * TestModule that uses ScalaTest Framework to run tests.
-   * You need to provide the scalatest dependencies yourself.
+   * You can override the [[scalaTestVersion]] task or provide the Specs2-dependency yourself.
+   *
+   * See: https://www.scalatest.org
    */
   trait ScalaTest extends TestModule {
+
+    /** The ScalaTest version to use, or the empty string, if you want to provide the ScalaTest-dependency yourself. */
+    def scalaTestVersion: T[String] = Task { "" }
+
+    /**
+     * If non-empty, only the selected suites/specs will be added as dependencies.
+     * E.g. `Seq("funsuite", "freespec")` will result in the tho dependencies:
+     * `org.scalatest::scalatest-funsuite` and `org.scalatest::scalatest-freespec`.
+     *
+     * If empty (default), the full scalatest dependency is used.
+     *
+     * See also: https://www.scalatest.org/user_guide/selecting_a_style
+     */
+    def scalaTestStyles: T[Seq[String]] = Task { Seq.empty[String] }
     override def testFramework: T[String] = "org.scalatest.tools.Framework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(scalaTestVersion())
+          .filter(!_.isBlank())
+          .flatMap(v =>
+            scalaTestStyles() match {
+              case Seq() => Seq(
+                  // the full suite
+                  mvn"org.scalatest::scalatest::${v.trim()}"
+                )
+              case features => features.map { feature =>
+                  mvn"org.scalatest::scalatest-${feature}::${v.trim()}"
+                }
+            }
+          )
+    }
   }
 
   /**
