@@ -84,6 +84,18 @@ class MillBuildRootModule()(implicit
       }
   }
 
+  override def allMvnDeps = Task {
+    super.allMvnDeps().map { dep =>
+      dep.copy(
+        dep = dep.dep
+          .withVersion(MillIvy.substituteMillVersion(dep.dep.version))
+          .withModule(dep.dep.module.withName(
+            coursier.ModuleName(MillIvy.substituteMillVersion(dep.dep.module.name.value))
+          ))
+      )
+    }
+  }
+
   override def runMvnDeps = Task {
     val imports = cliImports()
     val ivyImports = imports.collect { case s"ivy:$rest" => rest }

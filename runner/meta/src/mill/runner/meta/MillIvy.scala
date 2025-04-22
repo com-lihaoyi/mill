@@ -13,12 +13,13 @@ object MillIvy {
       }
 
     // replace special MILL_ placeholders
-    val replaced = millSigs.map(_
-      .replace("$MILL_VERSION", mill.util.BuildInfo.millVersion)
-      .replace("${MILL_VERSION}", mill.util.BuildInfo.millVersion)
-      .replace("$MILL_BIN_PLATFORM", mill.util.BuildInfo.millBinPlatform)
-      .replace("${MILL_BIN_PLATFORM}", mill.util.BuildInfo.millBinPlatform))
-
-    replaced
+    millSigs.map(substituteMillVersion)
   }
+
+  def substituteMillVersion(str: String) = str
+    .replace("$MILL_VERSION", mill.util.BuildInfo.millVersion)
+    .replace("${MILL_VERSION}", mill.util.BuildInfo.millVersion)
+    .replace("$MILL_BIN_PLATFORM", mill.util.BuildInfo.millBinPlatform)
+    .replace("${MILL_BIN_PLATFORM}", mill.util.BuildInfo.millBinPlatform)
+
 }

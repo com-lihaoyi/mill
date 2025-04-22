@@ -83,6 +83,7 @@ class MillBuildBootstrap(
 
   def evaluateRec(depth: Int): RunnerState = {
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
+    val currentRoot = recRoot(projectRoot, depth)
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
@@ -96,7 +97,7 @@ class MillBuildBootstrap(
         lazy val state = evaluateRec(depth + 1)
         if (
           rootBuildFileNames.asScala.exists(rootBuildFileName =>
-            os.exists(recRoot(projectRoot, depth) / rootBuildFileName)
+            os.exists(currentRoot / rootBuildFileName)
           )
         ) (state, None)
         else {
@@ -118,18 +119,18 @@ class MillBuildBootstrap(
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
           parserBridge,
           projectRoot,
-          recRoot(projectRoot, depth) / os.up,
+          currentRoot / os.up,
           output
         )
 
         val state =
-          if (os.exists(recRoot(projectRoot, depth))) evaluateRec(depth + 1)
+          if (os.exists(currentRoot)) evaluateRec(depth + 1)
           else {
             val bootstrapModule =
               new MillBuildRootModule.BootstrapModule()(
                 new RootModule0.Info(
                   scalaCompilerWorker.classpath,
-                  recRoot(projectRoot, depth),
+                  currentRoot,
                   output,
                   projectRoot
                 ),
