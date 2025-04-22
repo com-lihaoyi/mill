@@ -7,7 +7,9 @@ package build
 // In this test case, `mill.playlib.RouteCompilerWorker` is the relevant worker
 // class, instantiated in `RouterModule.routeCompilerWorker`
 
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`
+//| mvnDeps:
+//| - com.lihaoyi::mill-contrib-playlib:$MILL_VERSION
+
 import mill._
 import mill.playlib._
 
