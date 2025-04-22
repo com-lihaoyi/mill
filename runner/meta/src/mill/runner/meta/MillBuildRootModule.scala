@@ -68,30 +68,6 @@ class MillBuildRootModule()(implicit
     scalaCompilerResolver.resolve(rootModuleInfo.compilerWorkerClasspath)
   }
 
-  override def repositoriesTask: Task[Seq[Repository]] = {
-    val importedRepos = Task.Anon {
-      val repos = parseBuildFiles().repos.map { case (repo, srcFile) =>
-        val relFile = Try {
-          srcFile.relativeTo(Task.workspace)
-        }.recover { case _ => srcFile }.get
-        Jvm.repoFromString(
-          repo,
-          s"buildfile `${relFile}`: import $$repo.`${repo}`"
-        )
-      }
-      repos.find(_.isInstanceOf[Result.Failure]) match {
-        case Some(error) => error
-        case None =>
-          val res = repos.collect { case Result.Success(v) => v }.flatten
-          Result.Success(res)
-      }
-    }
-
-    Task.Anon {
-      super.repositoriesTask() ++ importedRepos()
-    }
-  }
-
   def cliImports: T[Seq[String]] = Task.Input {
     val imports = CliImports.value
     if (imports.nonEmpty) {
@@ -101,17 +77,11 @@ class MillBuildRootModule()(implicit
   }
 
   override def mandatoryMvnDeps = Task {
-    Seq.from(
-      MillIvy.processMillMvnDepsignature(parseBuildFiles().mvnDeps)
-        .map(mill.scalalib.Dep.parse)
-    ) ++
-      Seq(
-        mvn"com.lihaoyi::mill-libs:${Versions.millVersion}"
-      ) ++
-      // only include mill-runner for meta-builds
-      Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
-        mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
-      }
+    Seq(mvn"com.lihaoyi::mill-libs:${Versions.millVersion}") ++
+    // only include mill-runner for meta-builds
+    Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
+      mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
+    }
   }
 
   override def runMvnDeps = Task {
@@ -121,7 +91,7 @@ class MillBuildRootModule()(implicit
       MillIvy.processMillMvnDepsignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     ) ++ Seq(
-      // Needed at runtime to insantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
+      // Needed at runtime to instantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
       // classloader but should not be available for users to compile against
       mvn"com.lihaoyi::mill-core-eval:${Versions.millVersion}"
     )

@@ -20,8 +20,6 @@ import mill.internal.Util.backtickWrap
 @internal
 case class FileImportGraph(
     seenScripts: Map[os.Path, String],
-    repos: Seq[(String, os.Path)],
-    mvnDeps: Set[String],
     errors: Seq[String],
     metaBuild: Boolean,
     buildFile: String,
@@ -50,11 +48,7 @@ object FileImportGraph {
       output: os.Path
   ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
-    val seenIvy = mutable.Set.empty[String]
-    val seenRepo = mutable.ListBuffer.empty[(String, os.Path)]
     val errors = mutable.Buffer.empty[String]
-    var millImport = false
-    var packagesImport = false
 
     def processScript(s: os.Path, useDummy: Boolean = false): Unit = {
       val readFileEither = scala.util.Try {
@@ -104,49 +98,8 @@ object FileImportGraph {
         case Right(stmts) =>
           // we don't expect any new imports when using an empty dummy
           val transformedStmts = mutable.Buffer.empty[String]
-          for ((stmt0, importTrees) <- parser.parseImportHooksWithIndices(stmts)) {
-            walkStmt(s, stmt0, importTrees, transformedStmts)
-          }
           seenScripts(s) = transformedStmts.mkString
       }
-    }
-
-    def walkStmt(
-        s: os.Path,
-        stmt0: String,
-        importTrees: Seq[ImportTree],
-        transformedStmts: mutable.Buffer[String]
-    ) = {
-
-      var stmt = stmt0
-      for (importTree <- importTrees) {
-        val (start, patchString, end) = importTree match {
-          case ImportTree(Seq(("$repo", _), rest @ _*), mapping, start, end) =>
-            for {
-              repo <- mapping.map(_._1)
-              if seenRepo.find(_._1 == repo).isEmpty
-            } seenRepo.addOne((repo, s))
-            (start, "_root_._", end)
-
-          case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
-            seenIvy.addAll(mapping.map(_._1))
-            (start, "_root_._", end)
-
-          case ImportTree(Seq(("$meta", _), rest @ _*), mapping, start, end) =>
-            millImport = true
-            (start, "_root_._", end)
-
-          case ImportTree(Seq(("$packages", _), rest @ _*), mapping, start, end) =>
-            packagesImport = true
-            (start, "_root_._", end)
-        }
-
-        val numNewLines = stmt.substring(start, end).count(_ == '\n')
-
-        stmt = stmt.patch(start, patchString + System.lineSeparator() * numNewLines, end - start)
-      }
-
-      transformedStmts.append(stmt)
     }
 
     val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
@@ -159,13 +112,12 @@ object FileImportGraph {
       if (os.exists(projectRoot / foundRootBuildFileName)) {
         mill.constants.Util.readYamlHeader((projectRoot / foundRootBuildFileName).toNIO)
       } else ""
-
+    
+    val headerJson = mill.internal.Util.parsedHeaderData(headerData)
     new FileImportGraph(
       seenScripts.toMap,
-      seenRepo.toSeq,
-      seenIvy.toSet,
       errors.toSeq,
-      millImport,
+      headerJson.obj.get("meta") == ujson.True,
       foundRootBuildFileName,
       headerData
     )
