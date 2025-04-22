@@ -778,13 +778,25 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
   def unmanagedWheels = Task {
-    val name = &quot;jinja2-3.1.4-py3-none-any.whl&quot;
-    val url = s&quot;https://github.com/pallets/jinja/releases/download/3.1.4/$name&quot;
-    os.write(Task.dest / name, requests.get.stream(url))
-    Seq(PathRef(Task.dest / name))
+    if (Task.offline) Task.fail(&quot;Cannot download classpath when in offline-mode&quot;) <i class="conum" data-value="1"></i><b>(1)</b>
+    else {
+      val name = &quot;jinja2-3.1.4-py3-none-any.whl&quot;
+      val url = s&quot;https://github.com/pallets/jinja/releases/download/3.1.4/$name&quot;
+      os.write(Task.dest / name, requests.get.stream(url))
+      Seq(PathRef(Task.dest / name))
+    }
   }
 }</code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Since Mill can also be run with the <code>--offline</code> option, we should make sure,
+that we don’t download anything when in offline mode.</td>
+</tr>
+</tbody></table>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -797,6 +809,12 @@ Hello, world!</code></pre>
 once and re-used indefinitely after that. This is usually not a problem, because usually URLs
 follow the rule that <a href="https://www.w3.org/Provider/Style/URI">Cool URIs don’t change</a>, and so files
 downloaded from the same URL will always contain the same contents.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --offline run
+Hello, world!</code></pre>
+</div>
 </div>
 <div class="admonitionblock note">
 <table>

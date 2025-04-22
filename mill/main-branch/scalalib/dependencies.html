@@ -910,16 +910,28 @@ import mill._, scalalib._
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def unmanagedClasspath = Task {
-    os.write(
-      Task.dest / &quot;fastjavaio.jar&quot;,
-      requests.get.stream(
-        &quot;https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar&quot;
+    if (Task.offline) Task.fail(&quot;Cannot download classpath when in offline-mode&quot;) <i class="conum" data-value="1"></i><b>(1)</b>
+    else {
+      os.write(
+        Task.dest / &quot;fastjavaio.jar&quot;,
+        requests.get.stream(
+          &quot;https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar&quot;
+        )
       )
-    )
-    Seq(PathRef(Task.dest / &quot;fastjavaio.jar&quot;))
+      Seq(PathRef(Task.dest / &quot;fastjavaio.jar&quot;))
+    }
   }
 }</code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Since Mill can also be run with the <code>--offline</code> option, we should make sure,
+that we don’t download anything when in offline mode.</td>
+</tr>
+</tbody></table>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -935,6 +947,14 @@ cached, so your jar is downloaded only once and re-used indefinitely after that.
 This is usually not a problem, because usually URLs follow the rule that
 <a href="https://www.w3.org/Provider/Style/URI">Cool URIs don’t change</a>, and so jars
 downloaded from the same URL will always contain the same contents.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --offline run &quot;textfile.txt&quot;
+I am cow
+hear me moo
+I weigh twice as much as you</code></pre>
+</div>
 </div>
 <div class="admonitionblock note">
 <table>
