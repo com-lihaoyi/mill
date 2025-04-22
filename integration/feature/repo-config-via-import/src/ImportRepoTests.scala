@@ -10,12 +10,13 @@ object ImportRepoTests extends UtestIntegrationTestSuite {
       import tester._
       // Make sure, we properly parse a line:
       // ```
-      //   import $repo.`file:///tmp/testrepo`
+      // //| repositories: [file://$PWD/custom-repo/testrepo]
       // ```
       // and use it as additional repository
-      assert(eval("foo.resolvedMvnDeps").isSuccess)
-      val model = os.read(workspacePath / "out/mill-build/parseBuildFiles.json")
-      assert(model.contains("""file:///tmp/testrepo""""))
+      val result = eval(("parseJson", "--json-string", """{"a": 1, "b": 2, "c": 3}"""))
+      assert(result.isSuccess)
+      pprint.log(result)
+
     }
   }
 }

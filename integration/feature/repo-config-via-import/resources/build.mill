@@ -1,7 +1,19 @@
+//| repositories: [file://$PWD/custom-repo]
+//| mvnDeps: [com.grack:nanojson:1.8]
+
 package build
+
+import mill._
+import com.grack.nanojson.JsonParser
+import com.grack.nanojson.JsonObject
+
 // Line under test: add the given repo as Maven repo to the configured repositories
-import $repo.`file:///tmp/testrepo`
 
-import mill._, mill.scalalib._
 
-object foo extends JavaModule
+def parseJson(jsonString: String) = Task.Command {
+  val jsonObj = JsonParser.`object`().from(jsonString)
+
+  jsonObj.entries.forEach { v =>
+    println(s"Key: ${v.key}, Value: ${v.value}")
+  }
+}

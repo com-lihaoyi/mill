@@ -8,6 +8,7 @@ import mill.define.Task
 import mill.define.{PathRef}
 import mill.api.{Result}
 import mill.util.Jvm
+import mill.T
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -93,8 +94,15 @@ trait CoursierModule extends mill.define.Module {
       resolve.finalRepositories.future()(resolve.cache.ec),
       Duration.Inf
     )
-    repos
+    Jvm.reposFromStrings(repositories()).map(_ ++ repos)
   }
+
+  /**
+   * The repositories used to resolve dependencies with [[classpath()]].
+   *
+   * See [[allRepositories]] if you need to resolve Mill internal modules.
+   */
+  def repositories: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * The repositories used to resolve dependencies
@@ -109,7 +117,7 @@ trait CoursierModule extends mill.define.Module {
    * which would introduce cycles between Mill tasks.
    */
   def allRepositories: Task[Seq[Repository]] = Task.Anon {
-    internalRepositories() ++ repositoriesTask()
+    internalRepositories() ++ repositoriesTask() 
   }
 
   /**

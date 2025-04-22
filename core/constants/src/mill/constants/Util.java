@@ -111,7 +111,8 @@ public class Util {
 
     env.put("MILL_VERSION", mill.constants.BuildInfo.millVersion);
     while (matcher.find()) {
-      String match = matcher.group(0);
+      String match = matcher.group(1);
+      if (match == null) match = matcher.group(2);
       if (match.equals("$")) {
         matcher.appendReplacement(result, "\\$");
       } else {
