@@ -50,40 +50,41 @@ object FileImportGraph {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[String]
 
-    def processScript(s: os.Path, useDummy: Boolean = false): Unit = {
-      try {
-        val content = if (useDummy) "" else os.read(s)
-        val fileName = s.relativeTo(topLevelProjectRoot).toString
-        for (splitted <- parser.splitScript(content, fileName))
-          yield {
-            val (pkgs, stmts) = splitted
-            val importSegments = pkgs.mkString(".")
+    def processScript(s: os.Path, useDummy: Boolean = false): Unit = try {
 
-            val expectedImportSegments0 =
-              Seq(rootModuleAlias) ++ (s / os.up).relativeTo(projectRoot).segments
+      val content = if (useDummy) "" else os.read(s)
+      val fileName = s.relativeTo(topLevelProjectRoot).toString
+      parser.splitScript(content, fileName) match {
+        case Right(splitted) =>
+          val (pkgs, stmts) = splitted
+          val importSegments = pkgs.mkString(".")
 
-            val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
-            if (
-              expectedImportSegments != importSegments &&
+          val expectedImportSegments0 =
+            Seq(rootModuleAlias) ++ (s / os.up).relativeTo(projectRoot).segments
+
+          val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
+          if (
+            expectedImportSegments != importSegments &&
               // Root build.mill file has its `package build` be optional
               !(importSegments == "" && rootBuildFileNames.contains(s.last))
-            ) {
-              val expectedImport =
-                if (expectedImportSegments.isEmpty) "<none>"
-                else s"\"package $expectedImportSegments\""
-              errors.append(
-                s"Package declaration \"package $importSegments\" in " +
-                  s"${s.relativeTo(topLevelProjectRoot)} does not match " +
-                  s"folder structure. Expected: $expectedImport"
-              )
-            }
-            seenScripts(s) = stmts.mkString("\n")
+          ) {
+            val expectedImport =
+              if (expectedImportSegments.isEmpty) "<none>"
+              else s"\"package $expectedImportSegments\""
+            errors.append(
+              s"Package declaration \"package $importSegments\" in " +
+                s"${s.relativeTo(topLevelProjectRoot)} does not match " +
+                s"folder structure. Expected: $expectedImport"
+            )
           }
-
-      } catch { case ex: Throwable =>
+          seenScripts(s) = stmts.mkString("\n")
+        case Left(error) =>
+          seenScripts(s) = ""
+          errors.append(error)
+      }
+    } catch { case ex: Throwable =>
         seenScripts(s) = ""
         errors.append(ex.getClass.getName + " " + ex.getMessage)
-      }
     }
 
     val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
