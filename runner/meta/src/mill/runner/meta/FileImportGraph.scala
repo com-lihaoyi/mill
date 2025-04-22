@@ -3,8 +3,7 @@ package mill.runner.meta
 import mill.api.internal.internal
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.*
-import mill.runner.worker.api.{ImportTree, MillScalaParser}
-import scala.reflect.NameTransformer.encode
+import mill.runner.worker.api.MillScalaParser
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.internal.Util.backtickWrap
@@ -21,7 +20,6 @@ import mill.internal.Util.backtickWrap
 case class FileImportGraph(
     seenScripts: Map[os.Path, String],
     errors: Seq[String],
-    metaBuild: Boolean,
     buildFile: String,
     headerData: String
 )
@@ -104,7 +102,6 @@ object FileImportGraph {
     new FileImportGraph(
       seenScripts.toMap,
       errors.toSeq,
-      headerJson.obj.get("meta") == Some(ujson.True),
       foundRootBuildFileName,
       headerData
     )

@@ -123,7 +123,7 @@ class MillBuildBootstrap(
         )
 
         val state =
-          if (parsedScriptFiles.metaBuild) evaluateRec(depth + 1)
+          if (os.exists(recRoot(projectRoot, depth))) evaluateRec(depth + 1)
           else {
             val bootstrapModule =
               new MillBuildRootModule.BootstrapModule()(

@@ -211,15 +211,7 @@ class MillBuildRootModule()(implicit
   }
 
   override def sources: T[Seq[PathRef]] = Task {
-    scriptSources() ++ {
-      if (parseBuildFiles().metaBuild) super.sources()
-      else Seq.empty[PathRef]
-    }
-  }
-
-  override def resources: T[Seq[PathRef]] = Task {
-    if (parseBuildFiles().metaBuild) super.resources()
-    else Seq.empty[PathRef]
+    scriptSources() ++ super.sources()
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = Task {
