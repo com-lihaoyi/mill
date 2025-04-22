@@ -297,7 +297,7 @@ object TestModule {
 
   /**
    * TestModule that uses JUnit 4 Framework to run tests.
-   * You may want to provide the junit dependency explicitly to use another version.
+   * You can override the [[junit4Version]] task or provide the JUnit 4-dependency yourself.
    */
   trait Junit4 extends TestModule {
 
@@ -317,12 +317,30 @@ object TestModule {
 
   /**
    * TestModule that uses JUnit 5 Framework to run tests.
-   * You may want to provide the junit dependency explicitly to use another version.
+   * You can override the [[junitPlatformVersion]] and [[jupiterVersion]] task
+   * or provide the JUnit 5-dependencies yourself.
+   *
+   * See: https://junit.org/junit5/
    */
   trait Junit5 extends TestModule {
+
+    /** The JUnit 5 Platfrom version to use, or empty, if you want to provide the dependencies yourself. */
+    def junitPlatformVersion: T[String] = Task { "" }
+
+    /** The JUnit Jupiter version to use, or empty, if you want to provide the dependencie yourself. */
+    def jupiterVersion: T[String] = Task { "" }
+
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
+    
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
-      super.mandatoryMvnDeps() ++ Seq(mvn"${mill.scalalib.api.Versions.jupiterInterface}")
+      super.mandatoryMvnDeps() ++
+        Seq(mvn"${mill.scalalib.api.Versions.jupiterInterface}") ++
+        Seq(junitPlatformVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.junit.platform:junit-platform-launcher:${v.trim()}") ++
+        Seq(jupiterVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.junit.jupiter:junit-jupiter-api:${v.trim()}")
     }
 
     private lazy val classesDir: Task[Option[os.Path]] = this match {
