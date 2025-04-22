@@ -78,10 +78,10 @@ class MillBuildRootModule()(implicit
 
   override def mandatoryMvnDeps = Task {
     Seq(mvn"com.lihaoyi::mill-libs:${Versions.millVersion}") ++
-    // only include mill-runner for meta-builds
-    Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
-      mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
-    }
+      // only include mill-runner for meta-builds
+      Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
+        mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
+      }
   }
 
   override def runMvnDeps = Task {

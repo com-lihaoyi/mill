@@ -12,6 +12,7 @@ public class DebugLog {
   public static synchronized void apply(String s) {
     println(s);
   }
+
   public static synchronized void println(String s) {
     Path path = Paths.get(System.getProperty("user.home"), "mill-debug-log.txt");
     try {
