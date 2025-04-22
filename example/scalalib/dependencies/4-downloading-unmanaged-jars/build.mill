@@ -57,4 +57,3 @@ I weigh twice as much as you
 // pull in transitive dependencies or de-duplicate different versions on the classpath
 // All the same caveats you need to worry about when dealing with xref:#_unmanaged_jars[unmanaged jars]
 // apply here as well.
-
