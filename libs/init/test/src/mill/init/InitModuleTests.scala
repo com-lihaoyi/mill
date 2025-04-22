@@ -8,6 +8,9 @@ import utest._
 
 import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
 
+import scala.concurrent.duration.DurationInt
+import scala.util.Properties
+
 object InitModuleTests extends TestSuite {
 
   object initmodule extends TestBaseModule with InitModule {
@@ -40,11 +43,12 @@ object InitModuleTests extends TestSuite {
         )
       }
       test("non existing example") {
+        val outStream = new ByteArrayOutputStream()
         val errStream = new ByteArrayOutputStream()
         val evaluator = UnitTester(
           initmodule,
           null,
-          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
+          outStream = new PrintStream(outStream, true),
           errStream = new PrintStream(errStream, true)
         )
 
@@ -54,7 +58,27 @@ object InitModuleTests extends TestSuite {
         )).executionResults
         assert(results.transitiveFailing.size == 1)
         val err = errStream.toString
-        assert(err.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
+
+        def check(): Unit =
+          try assert(err.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
+          catch {
+            case ex: utest.AssertionError =>
+              pprint.err.log(outStream)
+              pprint.err.log(errStream)
+              throw ex
+          }
+
+        try check()
+        catch {
+          case ex: utest.AssertionError if Properties.isWin =>
+            // On Windows, it seems there can be a delay until the messages land in errStream,
+            // it's worth retrying
+            ex.printStackTrace(System.err)
+            val waitFor = 2.seconds
+            System.err.println(s"Caught $ex, trying again in $waitFor")
+            Thread.sleep(waitFor.toMillis)
+            check()
+        }
       }
     }
   }
