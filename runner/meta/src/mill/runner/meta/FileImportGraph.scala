@@ -51,7 +51,7 @@ object FileImportGraph {
     val errors = mutable.Buffer.empty[String]
 
     def processScript(s: os.Path, useDummy: Boolean = false): Unit = {
-      val readFileEither = scala.util.Try {
+      try {
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
         for (splitted <- parser.splitScript(content, fileName))
@@ -60,13 +60,10 @@ object FileImportGraph {
             val importSegments = pkgs.mkString(".")
 
             val expectedImportSegments0 =
-              Seq(rootModuleAlias) ++
-                (s / os.up).relativeTo(projectRoot).segments
+              Seq(rootModuleAlias) ++ (s / os.up).relativeTo(projectRoot).segments
 
             val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
             if (
-              // Legacy `.sc` files have their package build be optional
-              (s.last.endsWith(".mill") || s.last.endsWith(".mill.scala")) &&
               expectedImportSegments != importSegments &&
               // Root build.mill file has its `package build` be optional
               !(importSegments == "" && rootBuildFileNames.contains(s.last))
@@ -80,25 +77,12 @@ object FileImportGraph {
                   s"folder structure. Expected: $expectedImport"
               )
             }
-            stmts
+            seenScripts(s) = stmts.mkString("\n")
           }
 
-      } match {
-        case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
-        case scala.util.Success(value) => value
-      }
-      readFileEither match {
-        case Left(err) =>
-          // Make sure we mark even scripts that failed to parse as seen, so
-          // they can be watched and the build can be re-triggered if the user
-          // fixes the parse error
-          seenScripts(s) = ""
-          errors.append(err)
-
-        case Right(stmts) =>
-          // we don't expect any new imports when using an empty dummy
-          val transformedStmts = mutable.Buffer.empty[String]
-          seenScripts(s) = transformedStmts.mkString
+      } catch { case ex: Throwable =>
+        seenScripts(s) = ""
+        errors.append(ex.getClass.getName + " " + ex.getMessage)
       }
     }
 
@@ -109,10 +93,9 @@ object FileImportGraph {
     walkBuildFiles(projectRoot, output).foreach(processScript(_))
 
     val headerData =
-      if (os.exists(projectRoot / foundRootBuildFileName)) {
-        mill.constants.Util.readYamlHeader((projectRoot / foundRootBuildFileName).toNIO)
-      } else ""
-    
+      if (!os.exists(projectRoot / foundRootBuildFileName)) ""
+      else mill.constants.Util.readYamlHeader((projectRoot / foundRootBuildFileName).toNIO)
+
     val headerJson = mill.internal.Util.parsedHeaderData(headerData)
     new FileImportGraph(
       seenScripts.toMap,
