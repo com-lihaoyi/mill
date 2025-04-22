@@ -97,8 +97,6 @@ object FileImportGraph {
       if (!os.exists(projectRoot / foundRootBuildFileName)) ""
       else mill.constants.Util.readYamlHeader((projectRoot / foundRootBuildFileName).toNIO)
 
-    val headerJson = mill.internal.Util.parsedHeaderData(headerData)
-
     new FileImportGraph(
       seenScripts.toMap,
       errors.toSeq,
