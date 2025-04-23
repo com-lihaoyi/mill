@@ -15,7 +15,6 @@ trait NettyBaseModule extends MavenModule {
 }
 trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5 {
   def testSandboxWorkingDir = false
-  def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
   def mvnDeps = Seq(
     mvn"com.github.sbt.junit:jupiter-interface:0.11.2",
     mvn"org.hamcrest:hamcrest-library:1.3",

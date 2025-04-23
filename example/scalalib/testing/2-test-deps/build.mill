@@ -17,9 +17,8 @@ object qux extends ScalaModule {
   def scalaVersion = "2.13.8"
   def moduleDeps = Seq(baz)
 
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
-    def testFramework = "utest.runner.Framework"
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = "0.8.5"
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
   }
 }
@@ -27,9 +26,8 @@ object qux extends ScalaModule {
 object baz extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
-    def testFramework = "utest.runner.Framework"
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = "0.8.5"
   }
 }
 

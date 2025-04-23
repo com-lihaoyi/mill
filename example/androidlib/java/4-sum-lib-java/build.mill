@@ -71,12 +71,7 @@ object app extends AndroidAppModule {
   )
 
   object test extends AndroidAppTests with TestModule.Junit4 {
-    def testFramework = "com.novocode.junit.JUnitFramework"
-
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"junit:junit:4.13.2"
-    )
-
+    def junit4Version = "4.13.2"
   }
 }
 

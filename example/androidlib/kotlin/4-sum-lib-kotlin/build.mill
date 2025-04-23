@@ -45,9 +45,7 @@ object lib extends AndroidLibKotlinModule with PublishModule {
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   object test extends AndroidLibKotlinTests with TestModule.Junit4 {
-    def mvnDeps = super.mvnDeps() ++ Agg(
-      mvn"junit:junit:4.13.2"
-    )
+    def junit4Version = "4.13.2"
   }
 
 }
@@ -73,10 +71,7 @@ object app extends AndroidAppKotlinModule {
   )
 
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
-    def testFramework = "com.novocode.junit.JUnitFramework"
-    def mvnDeps = super.mvnDeps() ++ Agg(
-      mvn"junit:junit:4.13.2"
-    )
+    def junit4Version = "4.13.2"
   }
 }
 
