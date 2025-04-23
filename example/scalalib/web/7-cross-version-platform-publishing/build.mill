@@ -19,9 +19,8 @@ trait FooModule extends Cross.Module[String] {
     def mvnDeps = Seq(mvn"com.lihaoyi::scalatags::0.13.1")
   }
 
-  trait FooTestModule extends TestModule {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.5")
-    def testFramework = "utest.runner.Framework"
+  trait FooTestModule extends TestModule.Utest {
+    def utestVersion = "0.8.5"
   }
 
   trait SharedJS extends Shared with ScalaJSModule {

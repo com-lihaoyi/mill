@@ -11,6 +11,7 @@ import sbt.testing.Status
 import utest.*
 
 import scala.xml.{Elem, NodeSeq, XML}
+import mill.define.Target
 
 object TestRunnerTestUtils {
   object testrunner extends TestRunnerTestModule {
@@ -40,13 +41,9 @@ object TestRunnerTestUtils {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object utest extends ScalaTests with TestModule.Utest {
+      override def utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def testParallelism = enableParallelism
-      override def mvnDeps = Task {
-        super.mvnDeps() ++ Seq(
-          mvn"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
-        )
-      }
     }
 
     object scalatest extends ScalaTests with TestModule.ScalaTest {
@@ -81,12 +78,7 @@ object TestRunnerTestUtils {
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def testParallelism = enableParallelism
-      override def mvnDeps = Task {
-        super.mvnDeps() ++ Seq(
-          mvn"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
-          mvn"dev.zio::zio-test-sbt:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
-        )
-      }
+      override def zioTestVersion: Target[String] = sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)
     }
   }
 

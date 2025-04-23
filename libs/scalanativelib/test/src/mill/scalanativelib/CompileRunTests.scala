@@ -29,7 +29,7 @@ object CompileRunTests extends TestSuite {
   val scala213 = sys.props.getOrElse("TEST_SCALA_2_13_VERSION_FOR_SCALANATIVE_4_2", ???)
   val scala33 = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
   val scalaNative05 = sys.props.getOrElse("TEST_SCALANATIVE_0_5_VERSION", ???)
-  val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
+  val testUtestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
 
   object HelloNativeWorld extends TestBaseModule {
     implicit object ReleaseModeToSegments
@@ -58,9 +58,7 @@ object CompileRunTests extends TestSuite {
 
       object test extends ScalaNativeTests with TestModule.Utest {
         override def sources = Task.Sources { this.moduleDir / "src/utest" }
-        override def mvnDeps = super.mvnDeps() ++ Seq(
-          mvn"com.lihaoyi::utest::$utestVersion"
-        )
+        override def utestVersion: Target[String] = testUtestVersion
       }
     }
 

@@ -14,7 +14,7 @@ import scala.util.Properties
 object NodeJSConfigTests extends TestSuite {
   val scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
   val scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
-  val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
+  val testUtestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
   val nodeArgsEmpty = List()
   val nodeArgs2G = List("--max-old-space-size=2048")
   val nodeArgs4G = List("--max-old-space-size=4096")
@@ -44,9 +44,7 @@ object NodeJSConfigTests extends TestSuite {
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
         override def sources = Task.Sources { this.moduleDir / "src/utest" }
-        override def mvnDeps = Seq(
-          mvn"com.lihaoyi::utest::$utestVersion"
-        )
+        override def utestVersion = testUtestVersion
         override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
       }
     }
