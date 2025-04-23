@@ -32,7 +32,6 @@
 <orderEntry type="library" name="jheaps-0.11.jar" level="project"/>
 <orderEntry type="library" name="jline-3.28.0.jar" level="project"/>
 <orderEntry type="library" name="jline-native-3.29.0.jar" level="project"/>
-<orderEntry type="library" name="jna-5.17.0.jar" level="project"/>
 <orderEntry type="library" name="jna-platform-5.16.0.jar" level="project"/>
 <orderEntry type="library" name="jsoniter-scala-core_2.13-2.13.5.2.jar" level="project"/>
 <orderEntry type="library" name="jsr305-3.0.2.jar" level="project"/>
