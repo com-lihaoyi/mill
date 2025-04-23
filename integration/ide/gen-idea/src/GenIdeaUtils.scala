@@ -69,7 +69,7 @@ object GenIdeaUtils {
         .foreach { line => expectedResourceLines = expectedResourceLines.filterNot(_ == line) }
     }
 
-    assert(expectedResourceLines == Nil)
+    assert(expectedResourceLines == Nil, actualLines != Nil)
   }
 
   def partialContentMatches(found: String, expected: String, context: String = ""): Boolean =
