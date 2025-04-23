@@ -47,6 +47,31 @@ object GenIdeaUtils {
       )
   }
 
+  def assertFileContainsLines(
+      workspaceSourcePath: os.Path,
+      workspacePath: os.Path,
+      resource: os.SubPath,
+      fileSuffix: String
+  ): Unit = {
+    var expectedResourcePath = workspaceSourcePath / "idea" / resource
+    val actualResourcePath =
+      workspacePath / ".idea" / resource / os.up / resource.last.stripSuffix(fileSuffix)
+
+    println(s"Checking ${expectedResourcePath.relativeTo(workspaceSourcePath)} ...")
+    var expectedResourceLines = os.read.lines(expectedResourcePath).map(_.trim())
+    val actualLines = os.read.lines(actualResourcePath)
+      .map(_.trim())
+      .map(l => normaliseLibraryPaths(l, workspacePath))
+
+    actualLines.foreach { line =>
+      expectedResourceLines
+        .find(_ == line)
+        .foreach { line => expectedResourceLines = expectedResourceLines.filterNot(_ == line) }
+    }
+
+    assert(expectedResourceLines == Nil)
+  }
+
   def partialContentMatches(found: String, expected: String, context: String = ""): Boolean =
     (expected.contains(ignoreString) || (context != null && found == expected)) && {
       val pattern =
