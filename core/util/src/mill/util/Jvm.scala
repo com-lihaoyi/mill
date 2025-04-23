@@ -13,7 +13,7 @@ import os.CommandResult
 import java.util.jar.{JarEntry, JarOutputStream}
 
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
-import coursier.core.{BomDependency, Module}
+import coursier.core.{BomDependency, Module, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
@@ -534,6 +534,10 @@ object Jvm {
         .withClassifiers(
           if (sources) Set(Classifier("sources"))
           else Set.empty
+        )
+        .withAttributes(
+          if (sources) Seq(VariantSelector.AttributesBased.sources)
+          else Nil
         )
         .withArtifactTypesOpt(artifactTypes)
         .eitherResult()
