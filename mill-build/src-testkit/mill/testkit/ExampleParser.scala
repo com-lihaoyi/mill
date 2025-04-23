@@ -20,7 +20,7 @@ object ExampleParser {
         case s"/** See Also: $path */" =>
           (s"see:$path", Some(os.read(os.Path(path, testRepoRoot))))
         case s"*/" => ("scala", None)
-        case s"//$rest" => ("comment", Some(rest.stripPrefix(" ")))
+        case s"//$rest" if !rest.startsWith("|") => ("comment", Some(rest.stripPrefix(" ")))
         case l => (if (states.last == "comment") "scala" else states.last, Some(l))
       }
 

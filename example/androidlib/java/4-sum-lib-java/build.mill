@@ -89,27 +89,27 @@ object app extends AndroidAppModule {
 //
 // ----
 // .
-//├── app
-//│   └── src
-//│       ├── main
-//│       │   ├── AndroidManifest.xml
-//│       │   ├── java/com/example/app/Calculator.java
-//│       │   └── res
-//│       │       └── values
-//│       │           ├── colors.xml
-//│       │           └── strings.xml
-//│       └── test/java/com/example/CalculatorUnitTest.java
-//├── lib
-//│   └── src
-//│       └── main
-//│           ├── AndroidManifest.xml
-//│       |   └── java/com/example/lib/Sum.java
-//|       |   └── res
-//|       |       └── values
-//|       |           ├── colors.xml
-//|       |           └── strings.xml
-//|       └── test/java/com/example/lib/SumUnitTest.java
-//└── build.mill
+// ├── app
+// │   └── src
+// │       ├── main
+// │       │   ├── AndroidManifest.xml
+// │       │   ├── java/com/example/app/Calculator.java
+// │       │   └── res
+// │       │       └── values
+// │       │           ├── colors.xml
+// │       │           └── strings.xml
+// │       └── test/java/com/example/CalculatorUnitTest.java
+// ├── lib
+// │   └── src
+// │       └── main
+// │           ├── AndroidManifest.xml
+// │       |   └── java/com/example/lib/Sum.java
+// |       |   └── res
+// |       |       └── values
+// |       |           ├── colors.xml
+// |       |           └── strings.xml
+// |       └── test/java/com/example/lib/SumUnitTest.java
+// └── build.mill
 // ----
 //
 

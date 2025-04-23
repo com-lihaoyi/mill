@@ -1,5 +1,4 @@
 package build
-import $packages._
 import mill._, scalalib._
 
 object `package` extends RootModule with MyModule {

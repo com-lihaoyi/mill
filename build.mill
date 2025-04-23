@@ -1,3 +1,5 @@
+//| mill-version: 0.13.0-M1-43-b217bc
+
 package build
 // imports
 //import com.github.lolgab.mill.mima.Mima
@@ -230,6 +232,7 @@ object Deps {
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
+  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.9"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
