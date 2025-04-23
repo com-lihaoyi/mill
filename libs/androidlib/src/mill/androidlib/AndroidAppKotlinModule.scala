@@ -57,6 +57,11 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
 
     override def androidApplicationId: String = outer.androidApplicationId
 
+    /**
+     * Screenshot tests cannot be run in parallel for now
+     */
+    override def testParallelism: T[Boolean] = Task { false }
+
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace
 
     override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
