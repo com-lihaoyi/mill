@@ -70,7 +70,8 @@ object BspServerTestUtil {
       case None => ""
     }
     if (updateSnapshots) {
-      System.err.println(if (snapshotExists) s"Updating $snapshotPath" else s"Writing $snapshotPath")
+      System.err.println(if (snapshotExists) s"Updating $snapshotPath"
+      else s"Writing $snapshotPath")
       os.write.over(snapshotPath, jsonStr, createFolders = true)
     } else {
       Predef.assert(
