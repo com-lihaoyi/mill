@@ -23,6 +23,7 @@
         <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M8.jar" level="project"/>
         <orderEntry type="library" name="coursier-core_2.13-2.1.25-M8.jar" level="project"/>
         <orderEntry type="library" name="coursier-env_2.13-2.1.25-M8.jar" level="project"/>
+        <orderEntry type="library" name="coursier-exec-2.1.25-M8.jar" level="project"/>
         <orderEntry type="library" name="coursier-jvm_2.13-2.1.25-M8.jar" level="project"/>
         <orderEntry type="library" name="coursier-proxy-setup-2.1.25-M8.jar" level="project"/>
         <orderEntry type="library" name="coursier-util_2.13-2.1.25-M8.jar" level="project"/>
@@ -46,7 +47,7 @@
         <orderEntry type="library" name="jline-native-3.29.0.jar" level="project"/>
         <orderEntry type="library" name="jna-5.17.0.jar" level="project"/>
         <orderEntry type="library" name="jna-platform-5.16.0.jar" level="project"/>
-        <orderEntry type="library" name="jsoniter-scala-core_2.13-2.13.5.2.jar" level="project"/>
+        <orderEntry type="library" name="jsoniter-scala-core_2.13-2.13.39.jar" level="project"/>
         <orderEntry type="library" name="jsr305-3.0.2.jar" level="project"/>
         <orderEntry type="library" name="jul-to-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" name="logback-classic-1.5.17.jar" level="project"/>
@@ -113,6 +114,6 @@
         <orderEntry type="library" name="windows-jni-utils-0.3.3.jar" level="project"/>
         <orderEntry type="library" name="xbean-reflect-3.7.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xz-1.9.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="zstd-jni-1.5.6-3.jar" level="project"/>
+        <orderEntry type="library" name="zstd-jni-1.5.7-2.jar" level="project"/>
     </component>
 </module>
