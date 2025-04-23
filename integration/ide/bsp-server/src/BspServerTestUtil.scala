@@ -79,8 +79,8 @@ object BspServerTestUtil {
           val diff = os.call((
             "git",
             "diff",
-            os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr"),
-            os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr")
+            os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr"),
+            os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr")
           ))
           s"""Error: value differs from snapshot in $snapshotPath
              |
