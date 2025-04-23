@@ -1,4 +1,6 @@
-= Sonatype Central
+=======
+= Sonatype Central (Plugin Moved to Scalalib)
+
 :page-aliases: Plugin_Sonatype_Central.adoc
 
 This plugin allows users to publish open-source packages to Maven Central via the Sonatype Central portal.
@@ -7,9 +9,14 @@ This plugin allows users to publish open-source packages to Maven Central via th
 Add the following to your `build.mill`:
 [source,scala]
 ----
+<<<<<<< HEAD
 //| mvnDeps: ["com.lihaoyi::mill-contrib-sonatypecentral:$MILL_VERSION"]
 package build
 
+=======
+package build
+import $ivy.`com.lihaoyi::mill-contrib-sonatypecentral:`
+>>>>>>> bfa5208ee (reintroduced sonatypecentral plugin doc)
 import mill.contrib.sonatypecentral.SonatypeCentralPublishModule
 
 object mymodule extends SonatypeCentralPublishModule {

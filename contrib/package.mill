@@ -210,6 +210,10 @@ object `package` extends RootModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
   }
 
+  object sonatypecentral extends ContribModule {
+    def compileModuleDeps = Seq(build.libs.scalalib)
+  }
+  
   object bintray extends ContribModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
     def mvnDeps = Agg(build.Deps.requests)
