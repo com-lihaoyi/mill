@@ -70,4 +70,4 @@ The `AndroidAppBundle` trait is used to create and manage Android App Bundles (A
 
 == Using the R8 optimization tool in Android modules
 
-include::partial$example/android/javalib/5-R8.adoc[]
+include::partial$example/androidlib/java/5-R8.adoc[]
