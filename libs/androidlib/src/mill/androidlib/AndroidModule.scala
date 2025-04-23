@@ -2,6 +2,7 @@ package mill.androidlib
 
 import coursier.Repository
 import mill.T
+import mill.androidlib.AndroidModule.AndroidModuleGeneratedSources
 import mill.define.{ModuleRef, PathRef, Target, Task}
 import mill.scalalib.*
 import mill.util.Jvm
