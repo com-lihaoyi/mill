@@ -80,8 +80,8 @@ object MillMain {
   lazy val maybeScalaCompilerWorker = ScalaCompilerWorker.bootstrapWorker()
 
   private def withStreams[T](
-    bspMode: Boolean,
-    streams0: SystemStreams
+      bspMode: Boolean,
+      streams0: SystemStreams
   )(thunk: SystemStreams => T): T =
     if (bspMode) {
       // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
@@ -104,13 +104,11 @@ object MillMain {
         mill.define.SystemStreams.withStreams(streams) {
           thunk(streams)
         }
-      }
-      finally {
+      } finally {
         errFileStream.close()
         outFileStream.close()
       }
-    }
-    else
+    } else
       mill.define.SystemStreams.withStreams(streams0) {
         thunk(streams0)
       }
