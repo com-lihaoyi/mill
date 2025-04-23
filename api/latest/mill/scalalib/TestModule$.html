@@ -366,7 +366,7 @@ node3 -> node2;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses JUnit 4 Framework to run tests.\n * You may want to provide the junit dependency explicitly to use another version.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses JUnit 4 Framework to run tests.\n * You can override the [[junit4Version]] task or provide the JUnit 4-dependency yourself.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -380,11 +380,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>TestModule that uses JUnit 4 Framework to run tests. You may want to provide the junit dependency explicitly to use another version.</p>
+             <p>TestModule that uses JUnit 4 Framework to run tests. You can override the <a href="TestModule$$Junit4.html#junit4Version-0">junit4Version</a> task or provide the JUnit 4-dependency yourself.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>TestModule that uses JUnit 4 Framework to run tests. You may want to provide the junit dependency explicitly to use another version.</p>
+              <p>TestModule that uses JUnit 4 Framework to run tests. You can override the <a href="TestModule$$Junit4.html#junit4Version-0">junit4Version</a> task or provide the JUnit 4-dependency yourself.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -465,7 +465,7 @@ node3 -> node2;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses JUnit 5 Framework to run tests.\n * You may want to provide the junit dependency explicitly to use another version.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses JUnit 5 Framework to run tests.\n * You can override the [[junitPlatformVersion]] and [[jupiterVersion]] task\n * or provide the JUnit 5-dependencies yourself.\n *\n * See: https://junit.org/junit5/\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -479,11 +479,12 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>TestModule that uses JUnit 5 Framework to run tests. You may want to provide the junit dependency explicitly to use another version.</p>
+             <p>TestModule that uses JUnit 5 Framework to run tests. You can override the <a href="TestModule$$Junit5.html#junitPlatformVersion-0">junitPlatformVersion</a> and <a href="TestModule$$Junit5.html#jupiterVersion-0">jupiterVersion</a> task or provide the JUnit 5-dependencies yourself.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>TestModule that uses JUnit 5 Framework to run tests. You may want to provide the junit dependency explicitly to use another version.</p>
+              <p>TestModule that uses JUnit 5 Framework to run tests. You can override the <a href="TestModule$$Junit5.html#junitPlatformVersion-0">junitPlatformVersion</a> and <a href="TestModule$$Junit5.html#jupiterVersion-0">jupiterVersion</a> task or provide the JUnit 5-dependencies yourself.</p>
+              <p>See: <a href="https://junit.org/junit5/">https://junit.org/junit5/</a></p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -564,7 +565,7 @@ node3 -> node2;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses MUnit to run tests.\n * You need to provide the munit dependencies yourself.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses MUnit to run tests.\n * You can override the [[munitVersion]] task or provide the MUnit-dependency yourself.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -578,11 +579,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>TestModule that uses MUnit to run tests. You need to provide the munit dependencies yourself.</p>
+             <p>TestModule that uses MUnit to run tests. You can override the <a href="TestModule$$Munit.html#munitVersion-0">munitVersion</a> task or provide the MUnit-dependency yourself.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>TestModule that uses MUnit to run tests. You need to provide the munit dependencies yourself.</p>
+              <p>TestModule that uses MUnit to run tests. You can override the <a href="TestModule$$Munit.html#munitVersion-0">munitVersion</a> task or provide the MUnit-dependency yourself.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -662,6 +663,9 @@ node3 -> node2;
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses ScalaCheck Test Framework to run tests.\n * You can override the [[scalaCheckVersion]] task or provide the dependency yourself.\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="TestModule$$ScalaCheck.html" t="n" class="documentableName ">ScalaCheck</a><span t="k"> extends </span><a href="TestModule.html" t="t">TestModule</a></span><span class="signature-long"></span>
@@ -673,8 +677,13 @@ node3 -> node2;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>TestModule that uses ScalaCheck Test Framework to run tests. You can override the <a href="TestModule$$ScalaCheck.html#scalaCheckVersion-0">scalaCheckVersion</a> task or provide the dependency yourself.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>TestModule that uses ScalaCheck Test Framework to run tests. You can override the <a href="TestModule$$ScalaCheck.html#scalaCheckVersion-0">scalaCheckVersion</a> task or provide the dependency yourself.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -882,7 +891,7 @@ node3 -> node2;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses ScalaTest Framework to run tests.\n * You need to provide the scalatest dependencies yourself.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses ScalaTest Framework to run tests.\n * You can override the [[scalaTestVersion]] task or provide the Specs2-dependency yourself.\n *\n * See: https://www.scalatest.org\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -896,11 +905,12 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>TestModule that uses ScalaTest Framework to run tests. You need to provide the scalatest dependencies yourself.</p>
+             <p>TestModule that uses ScalaTest Framework to run tests. You can override the <a href="TestModule$$ScalaTest.html#scalaTestVersion-0">scalaTestVersion</a> task or provide the Specs2-dependency yourself.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>TestModule that uses ScalaTest Framework to run tests. You need to provide the scalatest dependencies yourself.</p>
+              <p>TestModule that uses ScalaTest Framework to run tests. You can override the <a href="TestModule$$ScalaTest.html#scalaTestVersion-0">scalaTestVersion</a> task or provide the Specs2-dependency yourself.</p>
+              <p>See: <a href="https://www.scalatest.org">https://www.scalatest.org</a></p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -981,7 +991,7 @@ node3 -> node2;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses Specs2 Framework to run tests.\n * You need to provide the specs2 dependencies yourself.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses Specs2 Framework to run tests.\n * You can override the [[specs2Version]] task or provide the Specs2-dependency yourself.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -995,11 +1005,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>TestModule that uses Specs2 Framework to run tests. You need to provide the specs2 dependencies yourself.</p>
+             <p>TestModule that uses Specs2 Framework to run tests. You can override the <a href="TestModule$$Specs2.html#specs2Version-0">specs2Version</a> task or provide the Specs2-dependency yourself.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>TestModule that uses Specs2 Framework to run tests. You need to provide the specs2 dependencies yourself.</p>
+              <p>TestModule that uses Specs2 Framework to run tests. You can override the <a href="TestModule$$Specs2.html#specs2Version-0">specs2Version</a> task or provide the Specs2-dependency yourself.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1083,7 +1093,7 @@ node3 -> node2;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule using TestNG Framework to run tests.\n * You need to provide the testng dependency yourself.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule using TestNG Framework to run tests.\n * You can override the [[testngVersion]] task or provide the UTest-dependency yourself.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -1097,11 +1107,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>TestModule using TestNG Framework to run tests. You need to provide the testng dependency yourself.</p>
+             <p>TestModule using TestNG Framework to run tests. You can override the <a href="TestModule$$TestNg.html#testngVersion-0">testngVersion</a> task or provide the UTest-dependency yourself.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>TestModule using TestNG Framework to run tests. You need to provide the testng dependency yourself.</p>
+              <p>TestModule using TestNG Framework to run tests. You can override the <a href="TestModule$$TestNg.html#testngVersion-0">testngVersion</a> task or provide the UTest-dependency yourself.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1182,7 +1192,7 @@ node3 -> node2;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses UTest Framework to run tests.\n * You need to provide the utest dependencies yourself.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses UTest Framework to run tests.\n * You can override the [[utestVersion]] task or provide the UTest-dependency yourself.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -1196,11 +1206,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>TestModule that uses UTest Framework to run tests. You need to provide the utest dependencies yourself.</p>
+             <p>TestModule that uses UTest Framework to run tests. You can override the <a href="TestModule$$Utest.html#utestVersion-0">utestVersion</a> task or provide the UTest-dependency yourself.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>TestModule that uses UTest Framework to run tests. You need to provide the utest dependencies yourself.</p>
+              <p>TestModule that uses UTest Framework to run tests. You can override the <a href="TestModule$$Utest.html#utestVersion-0">utestVersion</a> task or provide the UTest-dependency yourself.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1281,7 +1291,7 @@ node3 -> node2;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses Weaver to run tests.\n * You need to provide the weaver dependencies yourself.\n * https://github.com/disneystreaming/weaver-test\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses Weaver to run tests.\n * You can override the [[weaverVersion]] task or provide the Weaver-dependency yourself.\n * https://github.com/disneystreaming/weaver-test\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -1295,11 +1305,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>TestModule that uses Weaver to run tests. You need to provide the weaver dependencies yourself. https://github.com/disneystreaming/weaver-test</p>
+             <p>TestModule that uses Weaver to run tests. You can override the <a href="TestModule$$Weaver.html#weaverVersion-0">weaverVersion</a> task or provide the Weaver-dependency yourself. https://github.com/disneystreaming/weaver-test</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>TestModule that uses Weaver to run tests. You need to provide the weaver dependencies yourself. <a href="https://github.com/disneystreaming/weaver-test">https://github.com/disneystreaming/weaver-test</a></p>
+              <p>TestModule that uses Weaver to run tests. You can override the <a href="TestModule$$Weaver.html#weaverVersion-0">weaverVersion</a> task or provide the Weaver-dependency yourself. <a href="https://github.com/disneystreaming/weaver-test">https://github.com/disneystreaming/weaver-test</a></p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1380,7 +1390,7 @@ node3 -> node2;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses ZIO Test Framework to run tests.\n * You need to provide the zio-test dependencies yourself.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses ZIO Test Framework to run tests.\n * You can override the [[zioTestVersion]] task or provide the Weaver-dependency yourself.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -1394,11 +1404,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>TestModule that uses ZIO Test Framework to run tests. You need to provide the zio-test dependencies yourself.</p>
+             <p>TestModule that uses ZIO Test Framework to run tests. You can override the <a href="TestModule$$ZioTest.html#zioTestVersion-0">zioTestVersion</a> task or provide the Weaver-dependency yourself.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>TestModule that uses ZIO Test Framework to run tests. You need to provide the zio-test dependencies yourself.</p>
+              <p>TestModule that uses ZIO Test Framework to run tests. You can override the <a href="TestModule$$ZioTest.html#zioTestVersion-0">zioTestVersion</a> task or provide the Weaver-dependency yourself.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">

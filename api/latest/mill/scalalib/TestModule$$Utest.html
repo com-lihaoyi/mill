@@ -6,14 +6,14 @@
  <span>mill.scalalib.TestModule.Utest</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses UTest Framework to run tests.\n * You need to provide the utest dependencies yourself.\n */") </span>
+ <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses UTest Framework to run tests.\n * You can override the [[utestVersion]] task or provide the UTest-dependency yourself.\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="TestModule$$Utest.html" t="n" class="documentableName ">Utest</a><span t="k"> extends </span><a href="TestModule.html" t="t">TestModule</a></span><span class="signature-long"></span>
  </div>
 </div>
 <div class="cover">
  <div class="doc">
-  <p>TestModule that uses UTest Framework to run tests. You need to provide the utest dependencies yourself.</p>
+  <p>TestModule that uses UTest Framework to run tests. You can override the <a href="TestModule$$Utest.html#utestVersion-0">utestVersion</a> task or provide the UTest-dependency yourself.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Attributes</h2>
@@ -258,6 +258,44 @@ node18 -> node12;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
         </div>
+        <div class="documentableElement" id="mandatoryMvnDeps-0" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="TestModule$$Utest.html#mandatoryMvnDeps-0" t="n" class="documentableName ">mandatoryMvnDeps</a>: <a href="../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="Dep.html" t="t">Dep</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="TestModule$$JavaModuleBase.html">JavaModuleBase</a>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/libs/scalalib/src/mill/scalalib/TestModule.scala" target="_blank">TestModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="testFramework-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -273,11 +311,11 @@ node18 -> node12;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The test framework to use.</p>
+             <p>The test framework to use to discover and run run tests.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The test framework to use.</p>
+              <p>The test framework to use to discover and run run tests.</p>
               <p>For convenience, you can also mix-in one of these predefined traits:</p>
               <ul>
                <li><a href="TestModule$$Junit4.html">TestModule.Junit4</a></li>
@@ -290,6 +328,7 @@ node18 -> node12;
                <li><a href="TestModule$$Weaver.html">TestModule.Weaver</a></li>
                <li><a href="TestModule$$ZioTest.html">TestModule.ZioTest</a></li>
               </ul>
+              <p>Most of these provide additional <code>xxxVersion</code> tasks, to manage the test framework dependencies for you.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -301,6 +340,44 @@ node18 -> node12;
                 <a href="TestModule.html">TestModule</a>
                </div>
               </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/libs/scalalib/src/mill/scalalib/TestModule.scala" target="_blank">TestModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="utestVersion-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** The UTest version to use, or the empty string, if you want to provide the UTest-dependency yourself. */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestModule$$Utest.html#utestVersion-0" t="n" class="documentableName ">utestVersion</a>: <a href="../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The UTest version to use, or the empty string, if you want to provide the UTest-dependency yourself.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The UTest version to use, or the empty string, if you want to provide the UTest-dependency yourself.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
               <dt class="body-small">
                Source
               </dt>
@@ -502,6 +579,9 @@ node18 -> node12;
         <div class="documentableElement" id="discoveredTestClasses-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Test classes (often called test suites) discovered by the configured [[testFramework]].\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestModule$$Utest.html#discoveredTestClasses-0" t="n" class="documentableName ">discoveredTestClasses</a>: <a href="../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -513,8 +593,13 @@ node18 -> node12;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Test classes (often called test suites) discovered by the configured <a href="TestModule.html#testFramework-0">testFramework</a>.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Test classes (often called test suites) discovered by the configured <a href="TestModule.html#testFramework-0">testFramework</a>.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -928,42 +1013,6 @@ node18 -> node12;
               </dt>
               <dd class="body-medium">
                <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/libs/scalalib/src/mill/scalalib/RunModule.scala" target="_blank">RunModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="mandatoryMvnDeps-0" data-f-inherited="JavaModuleBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestModule$$Utest.html#mandatoryMvnDeps-0" t="n" class="documentableName ">mandatoryMvnDeps</a>: <a href="../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="Dep.html" t="t">Dep</a>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TestModule$$JavaModuleBase.html#mandatoryMvnDeps-0">JavaModuleBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/libs/scalalib/src/mill/scalalib/TestModule.scala" target="_blank">TestModule.scala</a>
               </dd>
              </dl>
             </div>

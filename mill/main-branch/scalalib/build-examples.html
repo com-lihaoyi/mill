@@ -794,7 +794,7 @@ trait FansiModule extends PublishModule with CrossScalaModule with PlatformScala
   def mvnDeps = Seq(mvn&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
 
   trait FansiTests extends ScalaTests with TestModule.Utest {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest::0.8.5&quot;)
+    def utestVersion = &quot;0.8.5&quot;
   }
 }
 

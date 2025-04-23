@@ -676,7 +676,7 @@
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = &quot;2.13.15&quot;
   object test extends ScalaTests {
     def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
@@ -776,6 +776,9 @@ compiling 2 ... source...
 <p><code>TestModule.Utest</code>, using <a href="https://github.com/com-lihaoyi/utest">uTest</a></p>
 </li>
 <li>
+<p><code>TestModule.Waever</code>, using <a href="https://github.com/disneystreaming/weaver-test">Weaver</a></p>
+</li>
+<li>
 <p><code>TestModule.ZioTest</code>, using <a href="https://zio.dev/reference/test/">ZioTest</a></p>
 </li>
 </ul>
@@ -788,10 +791,10 @@ details on how to use each one from the command line.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = &quot;2.13.15&quot;
 
   object test extends ScalaTests with TestModule.Utest {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def utestVersion = &quot;0.8.5&quot;
   }
 }</code></pre>
 </div>
@@ -929,9 +932,8 @@ object qux extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def moduleDeps = Seq(baz)
 
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = &quot;0.8.5&quot;
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
   }
 }
@@ -939,9 +941,8 @@ object qux extends ScalaModule {
 object baz extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = &quot;0.8.5&quot;
   }
 }</code></pre>
 </div>
@@ -993,10 +994,10 @@ object qux extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   object test extends ScalaTests with TestModule.Utest {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def utestVersion = &quot;0.8.5&quot;
   }
   object integration extends ScalaTests with TestModule.Utest {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def utestVersion = &quot;0.8.5&quot;
   }
 }</code></pre>
 </div>
@@ -1038,9 +1039,8 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = &quot;0.8.5&quot;
 
     def testParallelism = true
   }
@@ -1049,7 +1049,7 @@ object foo extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill -j 3 foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill --jobs 3 foo.test
 
 &gt; find out/foo/test/testForked.dest
 ...
@@ -1083,9 +1083,9 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = &quot;0.8.5&quot;
+
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     def testParallelism = false
   }
@@ -1198,9 +1198,8 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = &quot;0.8.5&quot;
 
     // Group tests by GroupX and GroupY
     def testForkGrouping =
@@ -1214,7 +1213,7 @@ object foo extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill -j 4 foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill --jobs 4 foo.test
 
 &gt; find out/foo/test/testForked.dest
 ...

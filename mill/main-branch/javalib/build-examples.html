@@ -701,16 +701,13 @@ object jimfs extends PublishModule with MavenModule {
 
   def javacOptions = Seq(&quot;-processor&quot;, &quot;com.google.auto.service.processor.AutoServiceProcessor&quot;)
 
-  object test extends MavenTests {
+  object test extends MavenTests with TestModule.Junit4 {
+    def junit4Version = &quot;4.13.2&quot;
     def mvnDeps = sharedCompileMvnDeps() ++ Seq(
-      mvn&quot;junit:junit:4.13.2&quot;,
       mvn&quot;com.google.guava:guava-testlib:31.1-android&quot;,
       mvn&quot;com.google.truth:truth:1.1.3&quot;,
-      mvn&quot;com.github.sbt:junit-interface:0.13.2&quot;,
       mvn&quot;com.ibm.icu:icu4j:73.1&quot;
     )
-
-    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
   }
 }</code></pre>
 </div>

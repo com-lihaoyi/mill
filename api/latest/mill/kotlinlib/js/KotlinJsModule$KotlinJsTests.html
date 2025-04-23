@@ -1315,11 +1315,11 @@ node33 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The test framework to use.</p>
+             <p>The test framework to use to discover and run run tests.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The test framework to use.</p>
+              <p>The test framework to use to discover and run run tests.</p>
               <p>For convenience, you can also mix-in one of these predefined traits:</p>
               <ul>
                <li><span data-unresolved-link="" title="Problem linking TestModule.Junit4: No DRI found for query">TestModule.Junit4</span></li>
@@ -1332,6 +1332,7 @@ node33 -> node0;
                <li><span data-unresolved-link="" title="Problem linking TestModule.Weaver: No DRI found for query">TestModule.Weaver</span></li>
                <li><span data-unresolved-link="" title="Problem linking TestModule.ZioTest: No DRI found for query">TestModule.ZioTest</span></li>
               </ul>
+              <p>Most of these provide additional <code>xxxVersion</code> tasks, to manage the test framework dependencies for you.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -3137,6 +3138,9 @@ node33 -> node0;
         <div class="documentableElement" id="discoveredTestClasses-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Test classes (often called test suites) discovered by the configured [[testFramework]].\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="KotlinJsModule$KotlinJsTests.html#discoveredTestClasses-0" t="n" class="documentableName ">discoveredTestClasses</a>: <a href="../../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -3148,8 +3152,13 @@ node33 -> node0;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Test classes (often called test suites) discovered by the configured <a href="../../scalalib/TestModule.html#testFramework-0">testFramework</a>.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Test classes (often called test suites) discovered by the configured <a href="../../scalalib/TestModule.html#testFramework-0">testFramework</a>.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">

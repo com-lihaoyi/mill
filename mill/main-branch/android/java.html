@@ -739,10 +739,7 @@ import mill._, androidlib._, scalalib._</code></pre>
   override def androidVirtualDeviceIdentifier: String = &quot;java-test&quot;
 
   object test extends AndroidAppTests with TestModule.Junit4 {
-    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;junit:junit:4.13.2&quot;
-    )
+    def junit4Version = &quot;4.13.2&quot;
   }
 
   object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {

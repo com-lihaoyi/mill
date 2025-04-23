@@ -2716,6 +2716,9 @@ node35 -> node29;
         <div class="documentableElement" id="discoveredTestClasses-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Test classes (often called test suites) discovered by the configured [[testFramework]].\n */") </span>
+          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="CrossSbtModule$CrossSbtTests.html#discoveredTestClasses-0" t="n" class="documentableName ">discoveredTestClasses</a>: <a href="../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -2727,8 +2730,13 @@ node35 -> node29;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Test classes (often called test suites) discovered by the configured <a href="TestModule.html#testFramework-0">testFramework</a>.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Test classes (often called test suites) discovered by the configured <a href="TestModule.html#testFramework-0">testFramework</a>.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -8481,7 +8489,7 @@ node35 -> node29;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The test framework to use.\n *\n * For convenience, you can also mix-in one of these predefined traits:\n * - [[TestModule.Junit4]]\n * - [[TestModule.Junit5]]\n * - [[TestModule.Munit]]\n * - [[TestModule.ScalaTest]]\n * - [[TestModule.Specs2]]\n * - [[TestModule.TestNg]]\n * - [[TestModule.Utest]]\n * - [[TestModule.Weaver]]\n * - [[TestModule.ZioTest]]\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The test framework to use to discover and run run tests.\n *\n * For convenience, you can also mix-in one of these predefined traits:\n * - [[TestModule.Junit4]]\n * - [[TestModule.Junit5]]\n * - [[TestModule.Munit]]\n * - [[TestModule.ScalaTest]]\n * - [[TestModule.Specs2]]\n * - [[TestModule.TestNg]]\n * - [[TestModule.Utest]]\n * - [[TestModule.Weaver]]\n * - [[TestModule.ZioTest]]\n *\n * Most of these provide additional `xxxVersion` tasks, to manage the test framework dependencies for you.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -8495,11 +8503,11 @@ node35 -> node29;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The test framework to use.</p>
+             <p>The test framework to use to discover and run run tests.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The test framework to use.</p>
+              <p>The test framework to use to discover and run run tests.</p>
               <p>For convenience, you can also mix-in one of these predefined traits:</p>
               <ul>
                <li><a href="TestModule$$Junit4.html">TestModule.Junit4</a></li>
@@ -8512,6 +8520,7 @@ node35 -> node29;
                <li><a href="TestModule$$Weaver.html">TestModule.Weaver</a></li>
                <li><a href="TestModule$$ZioTest.html">TestModule.ZioTest</a></li>
               </ul>
+              <p>Most of these provide additional <code>xxxVersion</code> tasks, to manage the test framework dependencies for you.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">

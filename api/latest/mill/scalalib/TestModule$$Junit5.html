@@ -6,14 +6,15 @@
  <span>mill.scalalib.TestModule.Junit5</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses JUnit 5 Framework to run tests.\n * You may want to provide the junit dependency explicitly to use another version.\n */") </span>
+ <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * TestModule that uses JUnit 5 Framework to run tests.\n * You can override the [[junitPlatformVersion]] and [[jupiterVersion]] task\n * or provide the JUnit 5-dependencies yourself.\n *\n * See: https://junit.org/junit5/\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="TestModule$$Junit5.html" t="n" class="documentableName ">Junit5</a><span t="k"> extends </span><a href="TestModule.html" t="t">TestModule</a></span><span class="signature-long"></span>
  </div>
 </div>
 <div class="cover">
  <div class="doc">
-  <p>TestModule that uses JUnit 5 Framework to run tests. You may want to provide the junit dependency explicitly to use another version.</p>
+  <p>TestModule that uses JUnit 5 Framework to run tests. You can override the <a href="TestModule$$Junit5.html#junitPlatformVersion-0">junitPlatformVersion</a> and <a href="TestModule$$Junit5.html#jupiterVersion-0">jupiterVersion</a> task or provide the JUnit 5-dependencies yourself.</p>
+  <p>See: <a href="https://junit.org/junit5/">https://junit.org/junit5/</a></p>
  </div>
  <section id="attributes">
   <h2 class="h500">Attributes</h2>
@@ -306,6 +307,82 @@ node18 -> node12;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="junitPlatformVersion-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** The JUnit 5 Platfrom version to use, or empty, if you want to provide the dependencies yourself. */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestModule$$Junit5.html#junitPlatformVersion-0" t="n" class="documentableName ">junitPlatformVersion</a>: <a href="../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The JUnit 5 Platfrom version to use, or empty, if you want to provide the dependencies yourself.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The JUnit 5 Platfrom version to use, or empty, if you want to provide the dependencies yourself.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/libs/scalalib/src/mill/scalalib/TestModule.scala" target="_blank">TestModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="jupiterVersion-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** The JUnit Jupiter version to use, or empty, if you want to provide the dependencie yourself. */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestModule$$Junit5.html#jupiterVersion-0" t="n" class="documentableName ">jupiterVersion</a>: <a href="../define/Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The JUnit Jupiter version to use, or empty, if you want to provide the dependencie yourself.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The JUnit Jupiter version to use, or empty, if you want to provide the dependencie yourself.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/libs/scalalib/src/mill/scalalib/TestModule.scala" target="_blank">TestModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="mandatoryMvnDeps-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -359,11 +436,11 @@ node18 -> node12;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The test framework to use.</p>
+             <p>The test framework to use to discover and run run tests.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The test framework to use.</p>
+              <p>The test framework to use to discover and run run tests.</p>
               <p>For convenience, you can also mix-in one of these predefined traits:</p>
               <ul>
                <li><a href="TestModule$$Junit4.html">TestModule.Junit4</a></li>
@@ -376,6 +453,7 @@ node18 -> node12;
                <li><a href="TestModule$$Weaver.html">TestModule.Weaver</a></li>
                <li><a href="TestModule$$ZioTest.html">TestModule.ZioTest</a></li>
               </ul>
+              <p>Most of these provide additional <code>xxxVersion</code> tasks, to manage the test framework dependencies for you.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">

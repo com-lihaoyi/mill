@@ -743,9 +743,7 @@ import coursier.maven.MavenRepository</code></pre>
   override def androidEmulatorPort: String = &quot;5556&quot;
 
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;junit:junit:4.13.2&quot;
-    )
+    def junit4Version = &quot;4.13.2&quot;
   }
 
   object it extends AndroidAppKotlinInstrumentedTests with AndroidTestModule.AndroidJUnit {
