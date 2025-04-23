@@ -734,7 +734,12 @@ import coursier.maven.MavenRepository</code></pre>
   def androidApplicationId = &quot;com.helloworld.app&quot;
   def androidApplicationNamespace = &quot;com.helloworld.app&quot;
 
-  // Configuration for ReleaseKey
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
   def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
@@ -773,7 +778,19 @@ import coursier.maven.MavenRepository</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
-&quot;.../out/app/androidApk.dest/app.apk&quot;</code></pre>
+&quot;.../out/app/androidApk.dest/app.apk&quot;
+
+&gt; ./mill show app.createAndroidVirtualDevice
+...Name: kotlin-test, DeviceId: medium_phone...
+
+&gt; ./mill show app.startAndroidEmulator
+
+&gt; ./mill show app.androidReleaseInstall
+...All files should be loaded. Notifying the device...
+
+&gt; ./mill show app.stopAndroidEmulator
+
+&gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
 </div>
 </div>
 <div class="paragraph">
