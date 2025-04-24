@@ -11,7 +11,6 @@ import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.api.{SystemStreams => _, _}
 import mill.api.internal.{EvaluatorApi, BaseModuleApi, CompileProblemReporter, TestReporter}
 
 /**
@@ -40,7 +39,9 @@ private trait GroupExecution {
     // recursively convert java data structure to ujson.Value
     val envWithPwd = env ++ Seq(
       "PWD" -> workspace.toString,
-      "PWD_URI" -> workspace.toNIO.toUri.toString
+      "PWD_URI" -> workspace.toNIO.toUri.toString,
+      "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
+      "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
     )
     def rec(x: Any): ujson.Value = {
       import collection.JavaConverters._
