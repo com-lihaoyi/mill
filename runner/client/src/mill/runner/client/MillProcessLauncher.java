@@ -98,11 +98,13 @@ public class MillProcessLauncher {
     // Hardcode support for PWD because the graal native launcher has it set to the
     // working dir of the enclosing process, when we want it to be set to the working
     // dir of the current process
-    env.put("PWD", new java.io.File(".").getAbsoluteFile().getCanonicalPath());
+    final String workspaceDir = new java.io.File(".").getAbsoluteFile().getCanonicalPath();
+    env.put("PWD", workspaceDir);
+    env.put("WORKSPACE", workspaceDir);
     env.put("MILL_VERSION", mill.constants.BuildInfo.millVersion);
     env.put("MILL_BIN_PLATFORM", mill.constants.BuildInfo.millBinPlatform);
 
-    if (Files.exists(configFile)) return ClientUtil.readOptsFileLines(configFile.toAbsolutePath());
+    if (Files.exists(configFile)) return ClientUtil.readOptsFileLines(configFile.toAbsolutePath(), env);
     else {
       for (String rootBuildFileName : CodeGenConstants.rootBuildFileNames) {
         Path buildFile = Paths.get(rootBuildFileName);
