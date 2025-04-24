@@ -5,7 +5,6 @@ import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
-import mill.T
 import mill.define.Task
 import mill.define.{PathRef}
 import mill.api.{Result}
