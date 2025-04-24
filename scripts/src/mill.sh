@@ -7,7 +7,7 @@
 #   - local file `.mill-version`
 #   - local file `.config/mill-version`
 #   - `mill-version` from YAML fronmatter of current buildfile
-#   - if accessible, find the latest stable version available on Maven Central (https://repo1.maven.org/maven2)
+#   - if accessible, find the latest stable version available on Maven Central ({{{ mill-maven-url }}})
 #   - env-variable `DEFAULT_MILL_VERSION`
 #
 # If a version has the suffix '-native' a native binary will be used.
@@ -16,24 +16,24 @@
 #
 # Once a version was determined, it tries to use either
 #    - a system-installed mill, if found and it's version matches
-#    - an already downloaded version under ~/.cache/mill/download
+#    - an already downloaded version under {{{ mill-download-cache-unix }}}
 #
 # If no working mill version was found on the system,
 # this script downloads a binary file from Maven Central or Github Pages (this is version dependent)
-# into a cache location (~/.cache/mill/download).
+# into a cache location ({{{ mill-download-cache-unix }}}).
 #
-# Mill Project URL: https://github.com/com-lihaoyi/mill
-# Script Version: 0.13.0-M2-3-ba7090
+# Mill Project URL: {{{ mill-repo-url }}}
+# Script Version: {{{ mill-version }}}
 #
 # If you want to improve this script, please also contribute your changes back!
-# This script was generated from: scripts/src/mill.sh
+# This script was generated from: {{{ template-file }}}
 #
 # Licensed under the Apache License, Version 2.0
 
 set -e
 
 if [ -z "${DEFAULT_MILL_VERSION}" ] ; then
-  DEFAULT_MILL_VERSION="0.12.10"
+  DEFAULT_MILL_VERSION="{{{ mill-best-version }}}"
 fi
 
 
@@ -42,7 +42,7 @@ if [ -z "${GITHUB_RELEASE_CDN}" ] ; then
 fi
 
 
-MILL_REPO_URL="https://github.com/com-lihaoyi/mill"
+MILL_REPO_URL="{{{ mill-repo-url }}}"
 
 if [ -z "${CURL_CMD}" ] ; then
   CURL_CMD=curl
@@ -275,7 +275,7 @@ if [ ! -s "${MILL}" ] ; then
     DOWNLOAD_FILE=$(mktemp mill.XXXXXX)
 
     if [ "$DOWNLOAD_FROM_MAVEN" = "1" ] ; then
-      DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.jar"
+      DOWNLOAD_URL="{{{ mill-maven-url }}}/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.jar"
     else
       MILL_VERSION_TAG=$(echo "$MILL_VERSION" | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
       DOWNLOAD_URL="${GITHUB_RELEASE_CDN}${MILL_REPO_URL}/releases/download/${MILL_VERSION_TAG}/${MILL_VERSION}${DOWNLOAD_SUFFIX}"

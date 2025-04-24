@@ -7,7 +7,7 @@ rem   - env-variable `MILL_VERSION`
 rem   - local file `.mill-version`
 rem   - local file `.config/mill-version`
 rem   - `mill-version` from YAML fronmatter of current buildfile
-rem   - if accessible, find the latest stable version available on Maven Central (https://repo1.maven.org/maven2)
+rem   - if accessible, find the latest stable version available on Maven Central ({{{ mill-maven-url }}})
 rem   - env-variable `DEFAULT_MILL_VERSION`
 rem
 rem If a version has the suffix '-native' a native binary will be used.
@@ -16,17 +16,17 @@ rem If no such suffix is found, the script will pick a default based on version 
 rem
 rem Once a version was determined, it tries to use either
 rem    - a system-installed mill, if found and it's version matches
-rem    - an already downloaded version under %USERPROFILE%\.mill\download
+rem    - an already downloaded version under {{{ mill-download-cache-win }}}
 rem
 rem If no working mill version was found on the system,
 rem this script downloads a binary file from Maven Central or Github Pages (this is version dependent)
-rem into a cache location (%USERPROFILE%\.mill\download).
+rem into a cache location ({{{ mill-download-cache-win }}}).
 rem
-rem Mill Project URL: https://github.com/com-lihaoyi/mill
-rem Script Version: 0.13.0-M2-3-ba7090
+rem Mill Project URL: {{{ mill-repo-url }}}
+rem Script Version: {{{ mill-version }}}
 rem
 rem If you want to improve this script, please also contribute your changes back!
-rem This script was generated from: scripts/src/mill.bat
+rem This script was generated from: {{{ template-file }}}
 rem
 rem Licensed under the Apache License, Version 2.0
 
@@ -35,7 +35,7 @@ rem but I don't think we need to support them in 2019
 setlocal enabledelayedexpansion
 
 if [!DEFAULT_MILL_VERSION!]==[] (
-    set "DEFAULT_MILL_VERSION=0.12.10"
+    set "DEFAULT_MILL_VERSION={{{ mill-best-version }}}"
 )
 
 if [!GITHUB_RELEASE_CDN!]==[] (
@@ -46,7 +46,7 @@ if [!MILL_MAIN_CLI!]==[] (
     set "MILL_MAIN_CLI=%~f0"
 )
 
-set "MILL_REPO_URL=https://github.com/com-lihaoyi/mill"
+set "MILL_REPO_URL={{{ mill-repo-url }}}"
 
 SET MILL_BUILD_SCRIPT=
 
@@ -199,7 +199,7 @@ if not exist "%MILL%" (
     set DOWNLOAD_FILE=%MILL%.tmp
 
     if [!DOWNLOAD_FROM_MAVEN!]==[1] (
-        set DOWNLOAD_URL=https://repo1.maven.org/maven2/com/lihaoyi/mill-dist!ARTIFACT_SUFFIX!/!MILL_VERSION!/mill-dist!ARTIFACT_SUFFIX!-!MILL_VERSION!.jar
+        set DOWNLOAD_URL={{{ mill-maven-url }}}/com/lihaoyi/mill-dist!ARTIFACT_SUFFIX!/!MILL_VERSION!/mill-dist!ARTIFACT_SUFFIX!-!MILL_VERSION!.jar
     ) else (
         set DOWNLOAD_URL=!GITHUB_RELEASE_CDN!%MILL_REPO_URL%/releases/download/!MILL_VERSION_TAG!/!MILL_VERSION!!DOWNLOAD_SUFFIX!
     )
