@@ -39,7 +39,10 @@ and any Mill plugins will need to be re-published for Mill-1.0.0/Scala-3
 ```
 //| mill-version: 1.0.0
 //| mill-jvm-version: 17
-//| mvnDeps: [com.lihaoyi::scalatags:0.12.0]
+//| repositories: [$PWD_URI/custom-repo]
+//| mvnDeps:
+//| - com.grack:nanojson:1.8-custom-test
+//| - com.lihaoyi::scalatags:0.12.0
 
 package build
 ...
