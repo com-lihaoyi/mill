@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import mill.client.ClientUtil;
@@ -98,8 +99,10 @@ public class MillProcessLauncher {
     // Hardcode support for PWD because the graal native launcher has it set to the
     // working dir of the enclosing process, when we want it to be set to the working
     // dir of the current process
-
     env.put("PWD", new java.io.File(".").getAbsoluteFile().getCanonicalPath());
+    env.put("MILL_VERSION", mill.constants.BuildInfo.millVersion);
+    env.put("MILL_BIN_PLATFORM", mill.constants.BuildInfo.millBinPlatform);
+
     if (Files.exists(configFile)) return ClientUtil.readOptsFileLines(configFile.toAbsolutePath());
     else {
       for (String rootBuildFileName : CodeGenConstants.rootBuildFileNames) {
