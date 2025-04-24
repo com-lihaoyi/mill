@@ -6,7 +6,6 @@ import mill.api._
 import mill.api.internal._
 import mill.define._
 import mill.internal.PrefixLogger
-import mill.define.MultiBiMap
 
 import mill.api._
 import java.util.concurrent.ConcurrentHashMap
