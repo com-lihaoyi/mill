@@ -745,13 +745,4 @@ object dummy extends Cross[DependencyFetchDummy](dummyDeps)
 trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
   def scalaVersion = Deps.scala2Version
   def compileMvnDeps = Agg(crossValue)
-
-  def resolutionParams = Task.Anon {
-    import coursier.core.VariantSelector.VariantMatcher
-
-    // adding that to make kotlin dependencies happy when Gradle Module support is enabled
-    super.resolutionParams().addVariantAttributes(
-      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm")
-    )
-  }
 }
