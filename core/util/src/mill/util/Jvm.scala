@@ -556,7 +556,7 @@ object Jvm {
    *
    * We do not bother breaking this out into the separate JvmWorkerApi classpath,
    * because Coursier is already bundled with mill/Ammonite to support the
-   * `import $ivy` syntax.
+   * `//| mvnDeps:` syntax.
    */
   def resolveDependencies(
       repositories: Seq[Repository],
@@ -732,25 +732,11 @@ object Jvm {
   }
 
   // Parse a list of repositories from their string representation
-  private[mill] def repoFromString(str: String, origin: String): Result[Seq[Repository]] = {
-    val spaceSep = "\\s+".r
-
-    val repoList =
-      if (spaceSep.findFirstIn(str).isEmpty)
-        str
-          .split('|')
-          .toSeq
-          .filter(_.nonEmpty)
-      else
-        spaceSep
-          .split(str)
-          .toSeq
-          .filter(_.nonEmpty)
-
+  private[mill] def reposFromStrings(repoList: Seq[String]): Result[Seq[Repository]] = {
     RepositoryParser.repositories(repoList).either match {
       case Left(errs) =>
         val msg =
-          s"Invalid repository string in $origin:" + System.lineSeparator() +
+          s"Invalid repository string:" + System.lineSeparator() +
             errs.map("  " + _ + System.lineSeparator()).mkString
         Result.Failure(msg)
       case Right(repos) =>

@@ -27,7 +27,7 @@ import scala.collection.mutable
  * Mill module for pre-processing a Mill `build.mill` and related files and then
  * compiling them as a normal [[ScalaModule]]. Parses `build.mill`, walks any
  * `import $file`s, wraps the script files to turn them into valid Scala code
- * and then compiles them with the `mvnDeps` extracted from the `import $ivy`
+ * and then compiles them with the `mvnDeps` extracted from the `//| mvnDeps:`
  * calls within the scripts.
  */
 @internal
@@ -68,30 +68,6 @@ class MillBuildRootModule()(implicit
     scalaCompilerResolver.resolve(rootModuleInfo.compilerWorkerClasspath)
   }
 
-  override def repositoriesTask: Task[Seq[Repository]] = {
-    val importedRepos = Task.Anon {
-      val repos = parseBuildFiles().repos.map { case (repo, srcFile) =>
-        val relFile = Try {
-          srcFile.relativeTo(Task.workspace)
-        }.recover { case _ => srcFile }.get
-        Jvm.repoFromString(
-          repo,
-          s"buildfile `${relFile}`: import $$repo.`${repo}`"
-        )
-      }
-      repos.find(_.isInstanceOf[Result.Failure]) match {
-        case Some(error) => error
-        case None =>
-          val res = repos.collect { case Result.Success(v) => v }.flatten
-          Result.Success(res)
-      }
-    }
-
-    Task.Anon {
-      super.repositoriesTask() ++ importedRepos()
-    }
-  }
-
   def cliImports: T[Seq[String]] = Task.Input {
     val imports = CliImports.value
     if (imports.nonEmpty) {
@@ -101,13 +77,7 @@ class MillBuildRootModule()(implicit
   }
 
   override def mandatoryMvnDeps = Task {
-    Seq.from(
-      MillIvy.processMillMvnDepsignature(parseBuildFiles().mvnDeps)
-        .map(mill.scalalib.Dep.parse)
-    ) ++
-      Seq(
-        mvn"com.lihaoyi::mill-main:${Versions.millVersion}"
-      ) ++
+    Seq(mvn"com.lihaoyi::mill-libs:${Versions.millVersion}") ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
         mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
@@ -121,7 +91,7 @@ class MillBuildRootModule()(implicit
       MillIvy.processMillMvnDepsignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     ) ++ Seq(
-      // Needed at runtime to insantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
+      // Needed at runtime to instantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
       // classloader but should not be available for users to compile against
       mvn"com.lihaoyi::mill-core-eval:${Versions.millVersion}"
     )
@@ -142,7 +112,7 @@ class MillBuildRootModule()(implicit
   }
   def generateScriptSources: T[Seq[PathRef]] = Task {
     val parsed = parseBuildFiles()
-    if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
+    if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
     else {
       CodeGen.generateWrappedSources(
         rootModuleInfo.projectRoot / os.up,
@@ -153,7 +123,7 @@ class MillBuildRootModule()(implicit
         rootModuleInfo.output,
         compilerWorker()
       )
-      Result.Success(Seq(PathRef(Task.dest)))
+      Seq(PathRef(Task.dest))
     }
   }
 
@@ -241,15 +211,7 @@ class MillBuildRootModule()(implicit
   }
 
   override def sources: T[Seq[PathRef]] = Task {
-    scriptSources() ++ {
-      if (parseBuildFiles().metaBuild) super.sources()
-      else Seq.empty[PathRef]
-    }
-  }
-
-  override def resources: T[Seq[PathRef]] = Task {
-    if (parseBuildFiles().metaBuild) super.resources()
-    else Seq.empty[PathRef]
+    scriptSources() ++ super.sources()
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = Task {
