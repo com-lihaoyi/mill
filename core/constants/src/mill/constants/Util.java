@@ -78,7 +78,7 @@ public class Util {
   public static String readYamlHeader(java.nio.file.Path buildFile) throws java.io.IOException {
     java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
     String yamlString = lines.stream()
-        .filter(line -> line.startsWith("//|"))
+        .takeWhile(line -> line.startsWith("//| "))
         .map(line -> line.substring(4)) // Remove the `//|` prefix
         .collect(java.util.stream.Collectors.joining("\n"));
 
