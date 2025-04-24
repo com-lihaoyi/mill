@@ -95,21 +95,16 @@ public class Util {
    * @throws IllegalArgumentException if a variable is missing.
    */
   public static String interpolateEnvVars(String input, Map<String, String> env0) {
-    return interpolateEnvVars(
-      input,
-      env0,
-      var -> { throw new IllegalArgumentException("Cannot interpolate missing env var '" + var + "'"); }
-    );
+    return interpolateEnvVars(input, env0, var -> {
+      throw new IllegalArgumentException("Cannot interpolate missing env var '" + var + "'");
+    });
   }
 
   /**
    * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
    */
   public static String interpolateEnvVars(
-    String input,
-    Map<String, String> env0,
-    Function<String, String> onMissing
-  ) {
+      String input, Map<String, String> env0, Function<String, String> onMissing) {
     Matcher matcher = envInterpolatorPattern.matcher(input);
     // StringBuilder to store the result after replacing
     StringBuffer result = new StringBuffer();
