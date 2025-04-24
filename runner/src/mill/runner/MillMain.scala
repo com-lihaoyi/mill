@@ -83,7 +83,7 @@ object MillMain {
 
   private def withStreams[T](
       bspMode: Boolean,
-      streams0: SystemStreams
+      streams: SystemStreams
   )(thunk: SystemStreams => T): T =
     if (bspMode) {
       // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
@@ -98,21 +98,21 @@ object MillMain {
       )
 
       try {
-        val streams = new SystemStreams(
-          out = new MultiStream(streams0.err, outFileStream),
-          err = new MultiStream(streams0.err, errFileStream),
+        val streams0 = new SystemStreams(
+          out = new MultiStream(streams.err, outFileStream),
+          err = new MultiStream(streams.err, errFileStream),
           in = InputStream.nullInputStream()
         )
-        mill.define.SystemStreams.withStreams(streams) {
-          thunk(streams)
+        mill.define.SystemStreams.withStreams(streams0) {
+          thunk(streams0)
         }
       } finally {
         errFileStream.close()
         outFileStream.close()
       }
     } else
-      mill.define.SystemStreams.withStreams(streams0) {
-        thunk(streams0)
+      mill.define.SystemStreams.withStreams(streams) {
+        thunk(streams)
       }
 
   def main0(
@@ -128,7 +128,13 @@ object MillMain {
       serverDir: os.Path
   ): (Boolean, RunnerState) = {
 
-    val bspMode = args.headOption.contains("--bsp")
+    val bspMode = {
+      val args0 =
+        // workaround for IntelliJ adding --jobs=0.5C upfront on its own
+        if (args.headOption.exists(_.startsWith("--jobs="))) args.drop(1)
+        else args
+      args0.headOption.contains("--bsp")
+    }
     withStreams(bspMode, streams0) { streams =>
       os.SubProcess.env.withValue(env) {
         MillCliConfigParser.parse(args) match {
