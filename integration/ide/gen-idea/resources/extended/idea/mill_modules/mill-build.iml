@@ -10,7 +10,7 @@
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
-        <orderEntry type="library" name="scala-SDK-3.6.2" level="project"/>
+        <orderEntry type="library" name="scala-SDK-3.6.4" level="project"/>
         <orderEntry type="library" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" name="asm-9.6.jar" level="project"/>
         <orderEntry type="library" name="asm-commons-9.6.jar" level="project"/>
@@ -105,6 +105,7 @@
         <orderEntry type="library" name="scala3-library_3-3.6.4.jar" level="project"/>
         <orderEntry type="library" name="scalaparse_3-3.1.1.jar" level="project"/>
         <orderEntry type="library" name="slf4j-api-2.0.17.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-2.9.jar" level="project"/>
         <orderEntry type="library" name="sourcecode_3-0.4.3-M5.jar" level="project"/>
         <orderEntry type="library" name="specification-level_2.13-1.1.3.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>

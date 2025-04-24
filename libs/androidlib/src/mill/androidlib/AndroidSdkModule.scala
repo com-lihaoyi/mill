@@ -83,6 +83,31 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
+   * Provides all the Android libraries classpaths, including `android.jar` and other necessary files,
+   * for the Android R8 tool.
+   */
+  def androidLibsClasspaths: T[Seq[PathRef]] = Task {
+    installAndroidSdkComponents()
+    Seq(
+      PathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar"),
+      PathRef(sdkPath().path / "platforms" / platformsVersion() / "core-for-system-modules.jar"),
+      PathRef(
+        sdkPath().path / "platforms" / platformsVersion() / "optional" / "org.apache.http.legacy.jar"
+      ),
+      PathRef(sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.car.jar"),
+      PathRef(
+        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.mock.jar"
+      ),
+      PathRef(
+        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.base.jar"
+      ),
+      PathRef(
+        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.runner.jar"
+      )
+    )
+  }
+
+  /**
    * Provides the path to the `android.jar` file, necessary for compiling Android apps.
    */
   def androidJarPath: T[PathRef] = Task {
@@ -180,6 +205,15 @@ trait AndroidSdkModule extends Module {
    */
   def sdkManagerPath: T[PathRef] = Task {
     PathRef(sdkPath().path / "cmdline-tools/latest/bin/sdkmanager")
+  }
+
+  /**
+   * Provides the path for the r8 tool, used for code shrinking and optimization.
+   *
+   * @return A task containing a [[PathRef]] pointing to the r8 directory.
+   */
+  def r8Exe: T[PathRef] = Task {
+    PathRef(sdkPath().path / "cmdline-tools/latest/bin/r8")
   }
 
   /**

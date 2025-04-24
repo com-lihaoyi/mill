@@ -3,6 +3,7 @@ package mill.runner.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -82,6 +83,12 @@ final class JLineNativeLoader {
           Files.move(tmpLocation, millJLineNativeLibLocation, StandardCopyOption.ATOMIC_MOVE);
         } catch (FileAlreadyExistsException ex) {
           // Ignored, file should have been created by another Mill process
+        } catch (AccessDeniedException ex) {
+          if (Files.exists(millJLineNativeLibLocation)) {
+            // Ignored, file should have been created by another Mill process
+          } else {
+            throw new RuntimeException(ex);
+          }
         } catch (AtomicMoveNotSupportedException ex) {
           try {
             Files.move(tmpLocation, millJLineNativeLibLocation);

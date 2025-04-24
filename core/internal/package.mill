@@ -18,6 +18,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     build.Deps.mainargs,
     build.Deps.upickle,
     build.Deps.pprint,
-    build.Deps.fansi
+    build.Deps.fansi,
+    build.Deps.snakeyamlEngine
   )
 }

@@ -172,9 +172,7 @@ object BuildGenUtil {
       "mill.javalib.publish._"
     ) ++
       extraImports ++
-      (if (isNested) baseModule.map(name => s"_root_.build_.$name")
-       else if (packagesSize > 1) Seq("$packages._")
-       else None)
+      Option.when(isNested) { baseModule.map(name => s"_root_.build_.$name") }.flatten
   }
 
   def buildModuleFqn(dirs: Seq[String]): String =
@@ -269,12 +267,6 @@ object BuildGenUtil {
       }
 
       val unmergedChildren = unmerged.result()
-      if (node.dirs.isEmpty) {
-        module = module.copy(imports = module.imports.filterNot(_.startsWith("$file")))
-        if (unmergedChildren.isEmpty) {
-          module = module.copy(imports = module.imports.filterNot(_ == "$packages._"))
-        }
-      }
 
       Tree(node.copy(value = module), unmergedChildren)
     }
