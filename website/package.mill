@@ -29,7 +29,7 @@ object `package` extends RootModule {
     def scalaVersion = build.Deps.scalaVersion
     def moduleDeps = build.moduleInternal.modules.collect {
       case m: build.MillStableScalaModule => m
-      case m: JavaModule if m eq build.kotlinlib => m
+      case m: JavaModule if m eq build.libs.kotlinlib => m
     }
     def unidocSourceUrl = Task {
       val sha = "main" // VcsVersion.vcsState().currentRevision

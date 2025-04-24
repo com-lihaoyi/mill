@@ -58,25 +58,6 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       Right(res)
   }
 
-  def parseImportHooksWithIndices(stmts: Seq[String]): Seq[(String, Seq[ImportTree])] = {
-    for stmt <- stmts yield {
-      val imports = {
-        if stmt.startsWith("import") then
-          parseImportTrees(SourceFile.virtual("<import>", stmt))
-        else
-          Nil
-      }
-      (stmt, imports)
-    }
-  }
-
-  def parseImportTrees(source: SourceFile): Seq[ImportTree] = MillDriver.unitContext(source) {
-    val trees = MillParsers.importStatement(source)
-    // syntax was already checked in splitScript, so any errors would suggest a bug
-    assert(!ctx.reporter.hasErrors, "Import parsing should not have errors.")
-    importTrees(trees)
-  }
-
   def parseObjectData(rawCode: String): Seq[ObjectData] = {
     parseObjects(SourceFile.virtual("<script>", rawCode))
   }

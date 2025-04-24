@@ -1,7 +1,5 @@
 package mill.runner.client;
 
-import static mill.runner.client.MillProcessLauncher.millOptsFile;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -39,7 +37,8 @@ public class MillClientMain {
     } else
       try {
         // start in client-server mode
-        java.util.List<String> optsArgs = ClientUtil.readOptsFileLines(millOptsFile());
+        java.util.List<String> optsArgs = new java.util.ArrayList<>();
+        optsArgs.addAll(MillProcessLauncher.millOpts());
         Collections.addAll(optsArgs, args);
 
         ServerLauncher launcher =
