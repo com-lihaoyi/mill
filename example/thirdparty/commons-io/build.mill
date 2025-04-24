@@ -1,8 +1,9 @@
-package build
-import mill._, javalib._, publish._
-import mill.define.ModuleRef
 //| mvnDeps:
 //| - com.lihaoyi::mill-contrib-jmh:$MILL_VERSION
+package build
+
+import mill._, javalib._, publish._
+import mill.define.ModuleRef
 import contrib.jmh.JmhModule
 
 object `package` extends RootModule with PublishModule with MavenModule {

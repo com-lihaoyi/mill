@@ -1,7 +1,7 @@
-package build
 // mill plugins
 //| mvnDeps:
 //| - com.lihaoyi::mill-contrib-bloop:$MILL_VERSION
+package build
 
 // imports
 import mill._

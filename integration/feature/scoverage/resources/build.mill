@@ -1,11 +1,9 @@
-package build
-// Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2579
-
-// mill plugins
 //| mvnDeps:
 //| - com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION
+package build
 
-// imports
+// Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2579
+
 import mill._
 import mill.contrib.scoverage.ScoverageModule
 import mill.scalalib._
