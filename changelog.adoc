@@ -28,7 +28,8 @@ and any Mill plugins will need to be re-published for Mill-1.0.0/Scala-3
 * `ivyDeps` has been renamed to `mvnDeps`, along with all related tasks and methods
   e.g. `compileIvyDeps` is now `compileMvnDeps` ({link-pr}/4930[#4930]).
 
-* The `Agg[T]` collection types have been removed and replaced by `Seq`
+* The `Agg()`/`Agg[T]` collection types have been removed and replaced by `Seq()`/`Seq[T]`
+  ({link-pr}/4525[#4525]).
 
 * Mill now supports a YAML front-matter syntax in `build.mill` files, defined by line comments
   starting with `//|` ({link-pr}/4969[#4969]). This replaces the `import $ivy...` syntax with
@@ -44,6 +45,10 @@ package build
 ...
 ```
 
+* `import $file` has been removed and replaced by direct references to the
+  definitions ({link-pr}/4462[#4462]), e.g. if you have a `package build.foo.bar`
+  containing `def qux` you can refer to the definition via `build.foo.bar.qux`
+
 * `build.mill` files are now compiled with a minimized classpath containing only
   the necessary APIs, without all of Mill's internal code on the classpath
   ({link-pr}/4879[#4879]). The `.mill` file classpath has been consolidated under
@@ -54,6 +59,24 @@ package build
   Windows-ARM which is not supported by the Graal tooling we used to build these native
   image. To use the JVM-based launcher, you need to explicitly use a `-jvm` suffix in
   your `.mill-version` file e.g. `1.0.0-jvm`
+
+* Mill's native launcher is able to run on systems without a JVM installed, and will
+  download an appropriate JVM distribution on demand if necessary ({link-pr}/4597[#4597])
+
+* `Jvm.*` methods to spawn subprocesses and classloaders have been consolidated from 20+ helpers
+  into 4 main functions
+
+* `evaluator: Evaluator` Command parameters are now only available in commands marked
+  `exclusive = true` ({link-pr}/3717[#3717])
+
+* `Task.Source`, `Task.Sources`, and `Task.Input` are no longer allowed to have upstream
+  tasks ({link-pr}/4524[#4524])
+
+* `Task` bodies are no longer allowed to write files to disk outside of their `Task.dest`
+  folder ({link-pr}/4635[#4635]), except for `Task.Command`s which are expected to be
+  side-effecting
+
+* `RootModule` and `Cross` can now be applied to the same module ({link-pr}/4593[#4593])
 
 [#0-12-10]
 === 0.12.10 - 2025-04-01
