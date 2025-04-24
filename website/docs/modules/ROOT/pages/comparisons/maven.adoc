@@ -39,7 +39,7 @@ compiling Java, compiling and linking C code via JNI, custom codegen using Groov
 running JUnit tests and some integration tests using H2Spec. All 47 Maven subprojects are
 modelled using Mill, with the entire Netty codebase being approximately 500,000 lines of code.
 
-[source,bash]
+[source,console]
 ----
 $ git ls-files | grep \\.java | xargs wc -l
 ...
@@ -84,7 +84,7 @@ we can explain the difference in performing the same task with the two different
 [#_sequential_clean_compile_all]
 === Sequential Clean Compile All
 
-[source,bash]
+[source,console]
 ----
 $ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
 98.80s
@@ -140,7 +140,7 @@ into `.jar` files. But even if we _did_ want Mill to generate the ``.jar``s, the
 overhead of doing so is just a few seconds, far less than the minutes that
 Maven's overhead adds to the clean build:
 
-[source,bash]
+[source,console]
 ----
 $ ./mill clean; time ./mill -j1 __.jar
 26.74s
@@ -158,7 +158,7 @@ to avoid.
 [#_parallel_clean_compile_all]
 === Parallel Clean Compile All
 
-[source,bash]
+[source,console]
 ----
 $ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 48.92s
@@ -183,7 +183,7 @@ when performing a clean build of the Netty repository.
 [#_clean_compile_single_module]
 === Clean Compile Single-Module
 
-[source,bash]
+[source,console]
 ----
 $ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
 4.85s
@@ -208,7 +208,7 @@ at what you would expect, whereas Maven's has a significant overhead.
 [#_incremental_compile_single_module]
 === Incremental Compile Single-Module
 
-[source,bash]
+[source,console]
 ----
 $ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
@@ -246,9 +246,6 @@ the file that changed, taking barely half a second:
 ----
 $ git diff
 diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
-index de16653cee..9818f6b3ce 100644
---- a/common/src/main/java/io/netty/util/AbstractConstant.java
-+++ b/common/src/main/java/io/netty/util/AbstractConstant.java
 @@ -83,7 +83,7 @@ public abstract class AbstractConstant<T extends AbstractConstant<T>> implements
              return 1;
          }
@@ -260,7 +257,7 @@ index de16653cee..9818f6b3ce 100644
  }
 ----
 
-[source,bash]
+[source,console]
 ----
 $ time ./mill common.test.compile
 [info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
@@ -274,9 +271,6 @@ require downstream code to re-compile, and we can see that below:
 ----
 $ git diff
 diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
-index de16653cee..f5f5a93e0d 100644
---- a/common/src/main/java/io/netty/util/AbstractConstant.java
-+++ b/common/src/main/java/io/netty/util/AbstractConstant.java
 @@ -41,6 +41,10 @@ public abstract class AbstractConstant<T extends AbstractConstant<T>> implements
          return name;
      }
@@ -290,7 +284,7 @@ index de16653cee..f5f5a93e0d 100644
          return id;
 ----
 
-[source,bash]
+[source,console]
 ----
 $ time ./mill common.test.compile
 [25/48] common.compile
@@ -316,7 +310,7 @@ the same thing in Maven
 [#_no_op_compile_single_module]
 === No-Op Compile Single-Module
 
-[source,bash]
+[source,console]
 ----
 $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 5.08s
@@ -403,7 +397,7 @@ import $ivy.`org.codehaus.groovy:groovy:3.0.9`
 import $ivy.`org.codehaus.groovy:groovy-ant:3.0.9`
 import $ivy.`ant:ant-optional:1.5.3-1`
 
-object common extends NettyModule{
+object common extends NettyModule {
   ...
   def script = Task.Source("src" / "main" / "script")
   def generatedSources = Task {
@@ -434,11 +428,11 @@ limited to what an existing plugin _allows_ you to do, Mill allows you to direct
 the code necessary to do what _you need to do_. In this case, if we need to invoke
 https://github.com/apache/groovy[Groovy] and
 https://github.com/groovy/groovy-core/blob/4c05980922a927b32691e4c3eba5633825cc01e3/subprojects/groovy-ant/src/spec/doc/groovy-ant-task.adoc[Groovy-Ant],
-Mill allows us to direct xref:extending/import-ivy-plugins.adoc[import $ivy] the relevant
+Mill allows us to direct xref:extending/import-mvn-plugins.adoc[import $ivy] the relevant
 JVM artifacts from Maven Central
 
 Mill gives you the full power of the JVM ecosystem to use in your build: any Java library
-on Maven central is just an `import $ivy` away, and can be used with the full IDE support
+on Maven central is just an `//| mvnDeps:` away, and can be used with the full IDE support
 and tooling experience you are used to in the JVM ecosystem.
 
 == IDE Support

@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.util.Jvm
-import mill.api.Ctx.Dest
+import mill.define.TaskCtx.Dest
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 
@@ -12,11 +12,11 @@ import mill.*
 import mill.define.{Discover, Task}
 
 object JavaCompileJarTests extends TestSuite {
-  def compileAll(sources: Seq[mill.api.PathRef])(implicit ctx: Dest) = {
+  def compileAll(sources: Seq[PathRef])(implicit ctx: Dest) = {
     os.makeDir.all(ctx.dest)
 
     os.proc("javac", sources.map(_.path.toString()).toSeq, "-d", ctx.dest).call(ctx.dest)
-    mill.api.PathRef(ctx.dest)
+    PathRef(ctx.dest)
   }
 
   val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
@@ -41,7 +41,7 @@ object JavaCompileJarTests extends TestSuite {
         def sourceRoot = Task.Sources { sourceRootPath }
         def resourceRoot = Task.Sources { resourceRootPath }
         def allSources =
-          Task { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
+          Task { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
         def classFiles = Task { compileAll(allSources()) }
         def jar = Task {
           val jar = Jvm.createJar(

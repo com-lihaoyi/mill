@@ -1,6 +1,5 @@
-// tag::header[]
-
 = Faster CI with Selective Testing
+// tag::header[]
 :author: Li Haoyi
 :revdate: 24 December 2024
 

@@ -1,8 +1,7 @@
 = What Makes Mill Unique
 
 
-
-https://mill-build.org/[Mill] is a JVM build tool that targets Java/Scala/Kotlin and has
+{mill-doc-url}[Mill] is a JVM build tool that targets Java/Scala/Kotlin and has
 potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good
 traction among its users, benchmarks that demonstrate 3-6x faster builds than its competitors,
 and a unique "direct-style" design that make it easy to use and extend. This page discusses
@@ -41,9 +40,9 @@ package build
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def ivyDeps = Seq(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   object test extends JavaTests with TestModule.Junit4
@@ -55,7 +54,7 @@ what this build means: a `JavaModule` with two ivy dependencies `argparse4j` and
 and a `test` submodule supporting `Junit4`.
 This build can then be compiled, tested, run, or packaged into an assembly from the command line:
 
-[source,bash]
+[source,console]
 ----
 > /mill foo.compile
 compiling 1 Java source...
@@ -240,7 +239,7 @@ definition in `build.foo`, allowing us to jump to it if we want to see what it d
 
 image::unique/IntellijDefinition.png[]
 
-In the `JavaModule` example earlier, IntelliJ is able to see the `def ivyDeps` configuration
+In the `JavaModule` example earlier, IntelliJ is able to see the `def mvnDeps` configuration
 override, and find the exact override definitions in the parent class hierarchy:
 
 image::unique/IntellijOverride.png[]
@@ -364,9 +363,9 @@ for a widely-used general purpose programming language is much more solid.
 
 As another example, if you need a production-quality templating engine to use in your build
 system, you have a buffet of options. The common Java
-xref:extending/import-ivy-plugins.adoc#_importing_java_libraries[Thymeleaf] templating engine is
+xref:extending/import-mvn-plugins.adoc#_importing_java_libraries[Thymeleaf] templating engine is
 available with a single import, as is the popular
-xref:extending/import-ivy-plugins.adoc#_importing_scala_libraries[Scalatags] templating engine.
+xref:extending/import-mvn-plugins.adoc#_importing_scala_libraries[Scalatags] templating engine.
 Rather than being limited to what the build tool has built-in or what third-party plugins
 someone on the internet has published, you have at your fingertips any library in the huge JVM
 ecosystem, and can use them in exactly the same way you would in any Java/Scala/Kotlin application.
@@ -486,7 +485,7 @@ functionality, but at 10% the complexity:
 
 Mill provides many of the same things Bazel does: automatic xref:depth/evaluation-model.adoc[caching],
 parallelization, xref:depth/sandboxing.adoc[sandboxing],
-xref:extending/import-ivy-plugins.adoc[extensibility]. Mill
+xref:extending/import-mvn-plugins.adoc[extensibility]. Mill
 can already work with a wide variety of programming languages,
 from JVM languages like xref:javalib/intro.adoc[Java]/xref:scalalib/intro.adoc[Scala]/xref:kotlinlib/intro.adoc[Kotlin]
 to xref:extending/example-typescript-support.adoc[Typescript] and

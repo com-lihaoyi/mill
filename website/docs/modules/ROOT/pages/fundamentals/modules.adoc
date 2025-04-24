@@ -54,15 +54,15 @@ In the above example, `Bar` is an `ExternalModule` living within the `foo`
 Java package, containing the `baz` task and `qux` command. Those can be run
 from the command line via:
 
-[source,bash]
+[source,console]
 ----
-mill foo.Bar/baz
-mill foo.Bar/qux
+> mill foo.Bar/baz
+> mill foo.Bar/qux
 ----
 
 ``ExternalModule``s are useful for someone providing a library for use with Mill
 that is shared by the entire build: for example,
-`mill.scalalib.ZincWorkerApi/zincWorker` provides a shared Scala compilation
+`mill.scalalib.JvmWorkerApi/jvmWorker` provides a shared Scala compilation
 service & cache that is shared between all ``ScalaModule``s, and
 `mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
 needing to define your own `Task.Command` in your `build.mill` file

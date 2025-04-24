@@ -1,6 +1,6 @@
 package mill.playlib
 
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
 import mill.scalalib.api._
@@ -48,11 +48,11 @@ trait RouterModule extends ScalaModule with Version {
     defaultResolver().classpath(
       playMinorVersion() match {
         case "2.6" | "2.7" | "2.8" =>
-          Seq(ivy"com.typesafe.play::routes-compiler:${playVersion()}")
+          Seq(mvn"com.typesafe.play::routes-compiler:${playVersion()}")
         case "2.9" =>
-          Seq(ivy"com.typesafe.play::play-routes-compiler:${playVersion()}")
+          Seq(mvn"com.typesafe.play::play-routes-compiler:${playVersion()}")
         case _ =>
-          Seq(ivy"org.playframework::play-routes-compiler:${playVersion()}")
+          Seq(mvn"org.playframework::play-routes-compiler:${playVersion()}")
       }
     )
   }

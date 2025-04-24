@@ -60,9 +60,10 @@ object foo extends JavaModule with JpackageModule {
 // The `JpackageModule` trait will infer most of the options needed to assemble a native
 // package/installer, but you can still customize its output. In our example, we specified:
 //
-// ```scala
+// [source,scala]
+// ----
 // def jpackageType = "pkg"
-//```
+// ----
 //
 // This tells `jpackage` to generate a `.pkg`, which is the native installer format on macOS.
 // Valid values on macOS are: `dmg`, `pkg` and `app-image`.
@@ -74,20 +75,23 @@ object foo extends JavaModule with JpackageModule {
 // On macOS, `jpackageType` accepts 3 values: "dmg" or "pkg" or "app-image" (default).
 //
 // * Setting `def jpackageType = "dmg"` will produce:
+// [source,console]
 // ----
-// ls -l ./out/foo/jpackageAppImage.dest/image
+// > ls -l ./out/foo/jpackageAppImage.dest/image
 // ... foo-1.0.dmg
 // ----
 //
 // * Setting `def jpackageType = "pkg"` will produce:
+// [source,console]
 // ----
-// ls -l ./out/foo/jpackageAppImage.dest/image
+// > ls -l ./out/foo/jpackageAppImage.dest/image
 // ... foo-1.0.pkg
 // ----
 //
 // * Setting `def jpackageType = "app-image"` will produce:
+// [source,console]
 // ----
-// ls -l ./out/foo/jpackageAppImage.dest/image
+// > ls -l ./out/foo/jpackageAppImage.dest/image
 // ... foo.app/
 // ./out/foo/jpackageAppImage.dest/image/foo.app/Contents/MacOS/foo
 // ... foo.Foo readConf

@@ -6,11 +6,11 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def depManagement = Seq(
-    ivy"com.google.protobuf:protobuf-java:4.28.3",
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+    mvn"com.google.protobuf:protobuf-java:4.28.3",
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
-  def ivyDeps = Seq(
-    ivy"io.grpc:grpc-protobuf"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf"
   )
 }
 
@@ -25,28 +25,28 @@ object foo extends JavaModule {
 
 object bar extends JavaModule {
   def depManagement = Seq(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+    mvn"io.grpc:grpc-protobuf:1.67.1"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
-  def ivyDeps = Seq(
-    ivy"io.grpc:grpc-protobuf"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf"
   )
 }
 
-// Here, grpc-protobuf has an empty version in `ivyDeps`, so the one in `depManagement`,
+// Here, grpc-protobuf has an empty version in `mvnDeps`, so the one in `depManagement`,
 // `1.67.1`, is used. Also, `com.google.protobuf:protobuf-java` is excluded from grpc-protobuf
-// in `depManagement`, so it ends up being excluded from it in `ivyDeps` too.
+// in `depManagement`, so it ends up being excluded from it in `mvnDeps` too.
 
 // If one wants to add exclusions via `depManagement`, specifying a version is optional,
 // like
 
 object baz extends JavaModule {
   def depManagement = Seq(
-    ivy"io.grpc:grpc-protobuf"
+    mvn"io.grpc:grpc-protobuf"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
-  def ivyDeps = Seq(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
 }
 
@@ -56,13 +56,13 @@ object baz extends JavaModule {
 // One can manage and publish Bill of Material (BOM) modules from Mill, by using `BomModule`:
 
 object myBom extends BomModule {
-  // Importing external BOMs from our BOM module with bomIvyDeps
-  def bomIvyDeps = Seq(
-    ivy"com.google.protobuf:protobuf-bom:4.28.1"
+  // Importing external BOMs from our BOM module with bomMvnDeps
+  def bomMvnDeps = Seq(
+    mvn"com.google.protobuf:protobuf-bom:4.28.1"
   )
   // Managing versions directly from our BOM module with depManagement
   def depManagement = Seq(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
 }
 
@@ -71,8 +71,8 @@ object bomUser extends JavaModule {
   def bomModuleDeps = Seq(
     myBom
   )
-  def ivyDeps = Seq(
-    ivy"io.grpc:grpc-protobuf"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf"
   )
 }
 
@@ -80,11 +80,11 @@ object bomUser extends JavaModule {
 // packaging type `pom`, usable as a BOM from other build tools:
 
 object myPublishedBom extends BomModule with MyPublishModule {
-  def bomIvyDeps = Seq(
-    ivy"com.google.protobuf:protobuf-bom:4.28.1"
+  def bomMvnDeps = Seq(
+    mvn"com.google.protobuf:protobuf-bom:4.28.1"
   )
   def depManagement = Seq(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
 }
 
@@ -94,8 +94,8 @@ object publishedBomUser extends JavaModule with MyPublishModule {
   def bomModuleDeps = Seq(
     myPublishedBom
   )
-  def ivyDeps = Seq(
-    ivy"io.grpc:grpc-protobuf"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf"
   )
 }
 

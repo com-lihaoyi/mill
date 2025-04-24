@@ -1,7 +1,7 @@
 // This example shows how to define task that depend on other tasks:
 //
 // 1. For `generatedSources`, we override the task and make it depend
-//    directly on `ivyDeps` to generate its source files. In this example,
+//    directly on `mvnDeps` to generate its source files. In this example,
 //    to include the list of dependencies as tuples within a static `object`
 //
 // 2. For `lineCount`, we define a brand new task that depends on `sources`,
@@ -14,10 +14,10 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
-  def ivyDeps = Seq(ivy"com.lihaoyi::mainargs:0.4.0")
+  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.4.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
-    val prettyIvyDeps = for (ivyDep <- ivyDeps()) yield {
+    val prettyMvnDeps = for (ivyDep <- mvnDeps()) yield {
       val org = ivyDep.organization
       val name = ivyDep.name
       val version = ivyDep.version
@@ -29,7 +29,7 @@ object `package` extends RootModule with ScalaModule {
          |package foo
          |object MyDeps {
          |  val value = List(
-         |    ${prettyIvyDeps.mkString(",\n")}
+         |    ${prettyMvnDeps.mkString(",\n")}
          |  )
          |}
       """.stripMargin
@@ -62,7 +62,7 @@ object `package` extends RootModule with ScalaModule {
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0]
-//   ivyDeps -> generatedSources -> compile -> "..."
+//   mvnDeps -> generatedSources -> compile -> "..."
 //
 //   sources -> lineCount -> forkArgs -> "..." -> run
 //   lineCount -> printLineCount
@@ -85,7 +85,7 @@ object `package` extends RootModule with ScalaModule {
 // cannot take parameters.
 //
 // Note that depending on a task requires use of parentheses after the task
-// name, e.g. `ivyDeps()`, `sources()` and `lineCount()`. This converts the
+// name, e.g. `mvnDeps()`, `sources()` and `lineCount()`. This converts the
 // task of type `T[V]` into a value of type `V` you can make use in your task
 // implementation.
 //
@@ -115,7 +115,7 @@ my.line.count: 14
 // create some custom jar/zip assembly with the files you want , all of these
 // can simply be custom tasks with your code running in the `Task {...}` block.
 // You can also import arbitrary Java or Scala libraries from Maven Central via
-// xref:extending/import-ivy-plugins.adoc[import $ivy] to use in your build.
+// xref:extending/import-mvn-plugins.adoc[import $ivy] to use in your build.
 //
 // You can create arbitrarily long chains of dependent tasks, and Mill will
 // handle the re-evaluation and caching of the tasks' output for you.

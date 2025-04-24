@@ -12,9 +12,8 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
-  object test extends ScalaTests {
-    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
-    def testFramework = "utest.runner.Framework"
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = "0.8.5"
 
     def testParallelism = true
   }
@@ -24,7 +23,7 @@ object foo extends ScalaModule {
 
 /** Usage
 
-> mill -j 3 foo.test
+> mill --jobs 3 foo.test
 
 > find out/foo/test/testForked.dest
 ...

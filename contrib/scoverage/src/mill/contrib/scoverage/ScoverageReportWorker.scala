@@ -1,7 +1,7 @@
 package mill.contrib.scoverage
 
 import mill.Task
-import mill.api.{Ctx, PathRef}
+import mill.define.{TaskCtx, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
 import mill.define.{Discover, ExternalModule, Worker}
 
@@ -13,7 +13,7 @@ import ScoverageReportWorkerApi2.{Ctx => ApiCtx}
 class ScoverageReportWorker extends AutoCloseable {
   private var scoverageClCache = Option.empty[(Long, ClassLoader)]
 
-  def bridge(classpath: Seq[PathRef])(implicit ctx: Ctx): ScoverageReportWorkerApiBridge = {
+  def bridge(classpath: Seq[PathRef])(implicit ctx: TaskCtx): ScoverageReportWorkerApiBridge = {
 
     val classloaderSig = classpath.hashCode
     val cl = scoverageClCache match {
@@ -36,7 +36,7 @@ class ScoverageReportWorker extends AutoCloseable {
         .newInstance()
         .asInstanceOf[api.ScoverageReportWorkerApi2]
 
-    def ctx0(implicit ctx: Ctx): ApiCtx = {
+    def ctx0(implicit ctx: TaskCtx): ApiCtx = {
       val logger = new ApiLogger {
         def error(msg: String): Unit = ctx.log.error(msg)
         def warn(msg: String): Unit = ctx.log.warn(msg)
@@ -56,7 +56,7 @@ class ScoverageReportWorker extends AutoCloseable {
           dataDirs: Seq[os.Path],
           sourceRoot: os.Path
       )(implicit
-          ctx: Ctx
+          ctx: TaskCtx
       ): Unit = {
         worker.report(
           reportType,
@@ -84,7 +84,7 @@ object ScoverageReportWorker extends ExternalModule {
         dataDirs: Seq[os.Path],
         sourceRoot: os.Path
     )(implicit
-        ctx: Ctx
+        ctx: TaskCtx
     ): Unit
   }
 

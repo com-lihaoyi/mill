@@ -1,13 +1,7 @@
 package build.core
-// imports
-import mill._
 
 /**
- * This folder contains the core evaluator logic for the Mill build tool,
- * able to work with Modules and Tasks and resolve/plan/execute them,
- * without any of the user-land logic or helpers necessary to build actual
- * codebases.
+ * `core/` contains the Mill code that is part of its core evaluation engine,
+ * and not specific to supporting any language or toolchain.
  */
-object `package` extends RootModule with build.MillStableScalaModule {
-  def moduleDeps = Seq(build.core.define, build.core.exec, build.core.resolve)
-}
+object `package` extends RootModule

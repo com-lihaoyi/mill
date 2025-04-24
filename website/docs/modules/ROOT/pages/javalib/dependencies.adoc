@@ -7,7 +7,7 @@ for `JavaModule`.
 
 == Adding Ivy Dependencies
 
-include::partial$example/javalib/dependencies/1-ivy-deps.adoc[]
+include::partial$example/javalib/dependencies/1-mvn-deps.adoc[]
 
 == Runtime and Compile-time Dependencies
 
