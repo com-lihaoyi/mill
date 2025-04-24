@@ -1,6 +1,5 @@
-// tag::header[]
-
 = Understanding JVM Garbage Collector Performance
+// tag::header[]
 :author: Li Haoyi
 :revdate: 10 January 2025
 
@@ -545,7 +544,7 @@ clear even if the exact numbers will differ between runs.
 
 You can run this program via:
 
-[source,bash]
+[source,console]
 ----
 > javac -Xmx1g GC.java 800 10000 5 # Default is -XX:+UseG1GC
 > javac -Xmx1g -XX:+UseParallelGC GC.java 800 10000 5

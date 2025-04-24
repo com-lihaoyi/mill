@@ -197,7 +197,7 @@ private[mill] object CrossMacros {
 
     newSyms += newField(
       "local_ctx",
-      res = TypeRepr.of[mill.define.Ctx],
+      res = TypeRepr.of[mill.define.ModuleCtx],
       flags = Flags.PrivateLocal | Flags.ParamAccessor
     )
 
@@ -237,7 +237,7 @@ private[mill] object CrossMacros {
       pathSegmentsTrees.result().reduceLeft((a, b) => arg => '{ ${ a(arg) } ++ ${ b(arg) } })
 
     def newCtor(cls: Symbol): (List[String], List[TypeRepr]) =
-      (List("local_ctx"), List(TypeRepr.of[mill.define.Ctx]))
+      (List("local_ctx"), List(TypeRepr.of[mill.define.ModuleCtx]))
 
     def newClassDecls(cls: Symbol): List[Symbol] = {
       newSyms.result().map(_(cls))
@@ -297,7 +297,7 @@ private[mill] object CrossMacros {
                   body = newTrees.toList.map(_(concreteCls, 'v2))
                 )
                 val clsOf = Ref(defn.Predef_classOf).appliedToType(concreteCls.typeRef)
-                def newCls(ctx0: Expr[mill.define.Ctx]): Expr[T] = {
+                def newCls(ctx0: Expr[mill.define.ModuleCtx]): Expr[T] = {
                   New(TypeTree.ref(concreteCls))
                     .select(concreteCls.primaryConstructor)
                     .appliedTo(ctx0.asTerm)
@@ -306,9 +306,12 @@ private[mill] object CrossMacros {
                 Block(
                   List(concreteClsDef),
                   '{
-                    (${ clsOf.asExprOf[Class[?]] }, (ctx0: mill.define.Ctx) => ${ newCls('ctx0) })
+                    (
+                      ${ clsOf.asExprOf[Class[?]] },
+                      (ctx0: mill.define.ModuleCtx) => ${ newCls('ctx0) }
+                    )
                   }.asTerm
-                ).asExprOf[(Class[?], mill.define.Ctx => T)]
+                ).asExprOf[(Class[?], mill.define.ModuleCtx => T)]
               }
             ),
             crossSegmentsList =

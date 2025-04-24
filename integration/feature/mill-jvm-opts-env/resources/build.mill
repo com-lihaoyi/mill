@@ -1,0 +1,5 @@
+import mill._
+
+def maxMemory = Task { Runtime.getRuntime().maxMemory }
+
+def testProperty = Task { sys.props.get("test.property").get.toInt }

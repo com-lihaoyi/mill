@@ -1,42 +1,87 @@
 package mill.exec
 
-import mill.api.ExecResult.{Aborted, Failing}
+import mill.api.ExecResult.Aborted
 
 import mill.api._
+import mill.api.internal._
 import mill.define._
 import mill.internal.PrefixLogger
-import mill.define.MultiBiMap
 
+import mill.api._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
+import mill.api.internal.{BaseModuleApi, EvaluatorApi}
+import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
 private[mill] case class Execution(
-    baseLogger: ColorLogger,
+    baseLogger: Logger,
     chromeProfileLogger: JsonArrayLogger.ChromeProfile,
     profileLogger: JsonArrayLogger.Profile,
-    home: os.Path,
     workspace: os.Path,
     outPath: os.Path,
     externalOutPath: os.Path,
-    rootModule: BaseModule,
+    rootModule: BaseModuleApi,
     classLoaderSigHash: Int,
     classLoaderIdentityHash: Int,
-    workerCache: mutable.Map[Segments, (Int, Val)],
+    workerCache: mutable.Map[String, (Int, Val)],
     env: Map[String, String],
     failFast: Boolean,
     threadCount: Option[Int],
     codeSignatures: Map[String, Int],
     systemExit: Int => Nothing,
     exclusiveSystemStreams: SystemStreams,
-    getEvaluator: () => Evaluator
+    getEvaluator: () => EvaluatorApi,
+    offline: Boolean,
+    headerData: String
 ) extends GroupExecution with AutoCloseable {
 
-  def withBaseLogger(newBaseLogger: ColorLogger) = this.copy(baseLogger = newBaseLogger)
+  // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
+  def this(
+      baseLogger: Logger,
+      workspace: java.nio.file.Path,
+      outPath: java.nio.file.Path,
+      externalOutPath: java.nio.file.Path,
+      rootModule: BaseModuleApi,
+      classLoaderSigHash: Int,
+      classLoaderIdentityHash: Int,
+      workerCache: mutable.Map[String, (Int, Val)],
+      env: Map[String, String],
+      failFast: Boolean,
+      threadCount: Option[Int],
+      codeSignatures: Map[String, Int],
+      systemExit: Int => Nothing,
+      exclusiveSystemStreams: SystemStreams,
+      getEvaluator: () => EvaluatorApi,
+      offline: Boolean,
+      headerData: String
+  ) = this(
+    baseLogger,
+    new JsonArrayLogger.ChromeProfile(os.Path(outPath) / millChromeProfile),
+    new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
+    os.Path(workspace),
+    os.Path(outPath),
+    os.Path(externalOutPath),
+    rootModule,
+    classLoaderSigHash,
+    classLoaderIdentityHash,
+    workerCache,
+    env,
+    failFast,
+    threadCount,
+    codeSignatures,
+    systemExit,
+    exclusiveSystemStreams,
+    getEvaluator,
+    offline,
+    headerData
+  )
+
+  def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
 
   /**
    * @param goals The tasks that need to be evaluated
@@ -46,10 +91,10 @@ private[mill] case class Execution(
   def executeTasks(
       goals: Seq[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      logger: Logger = baseLogger,
       serialCommandExec: Boolean = false
-  ): Execution.Results = logger.withPromptUnpaused {
+  ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
@@ -62,27 +107,12 @@ private[mill] case class Execution(
     }
   }
 
-  private def getFailing(
-      sortedGroups: MultiBiMap[Task[?], Task[?]],
-      results: Map[Task[?], ExecResult[(Val, Int)]]
-  ): MultiBiMap.Mutable[Task[?], Failing[Val]] = {
-    val failing = new MultiBiMap.Mutable[Task[?], ExecResult.Failing[Val]]
-    for ((k, vs) <- sortedGroups.items()) {
-      val failures = vs.flatMap(results.get).collect {
-        case f: ExecResult.Failing[(Val, Int)] => f.map(_._1)
-      }
-
-      failing.addAll(k, Seq.from(failures))
-    }
-    failing
-  }
-
   private def execute0(
       goals: Seq[Task[?]],
-      logger: ColorLogger,
+      logger: Logger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
-      ec: mill.api.Ctx.Fork.Impl,
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      ec: mill.define.TaskCtx.Fork.Impl,
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)
@@ -109,12 +139,12 @@ private[mill] case class Execution(
 
     val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
-    def formatHeaderPrefix(countMsg: String, verboseKeySuffix: String) =
-      s"$countMsg$verboseKeySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
+    def formatHeaderPrefix(countMsg: String, keySuffix: String) =
+      s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
 
     def evaluateTerminals(
         terminals: Seq[Task[?]],
-        forkExecutionContext: mill.api.Ctx.Fork.Impl,
+        forkExecutionContext: mill.define.TaskCtx.Fork.Impl,
         exclusive: Boolean
     ) = {
       implicit val taskExecutionContext =
@@ -145,14 +175,14 @@ private[mill] case class Execution(
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
             try {
-              val countMsg = mill.internal.Util.leftPad(
+              val countMsg = mill.util.Util.leftPad(
                 count.getAndIncrement().toString,
                 terminals.length.toString.length,
                 '0'
               )
 
-              val verboseKeySuffix = s"/${terminals0.size}"
-              logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
+              val keySuffix = s"/${terminals0.size}"
+              logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
               if (failed.get()) None
               else {
                 val upstreamResults = upstreamValues
@@ -169,12 +199,13 @@ private[mill] case class Execution(
                 } yield upstreamResults(item).map(_._1)
                 val logRun = inputResults.forall(_.isInstanceOf[ExecResult.Success[?]])
 
-                val tickerPrefix = if (logRun && logger.enableTicker) terminal.toString else ""
+                val tickerPrefix =
+                  if (logRun && logger.prompt.enableTicker) terminal.toString else ""
 
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
-                  key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
-                  verboseKeySuffix = verboseKeySuffix,
+                  key0 = if (!logger.prompt.enableTicker) Nil else Seq(countMsg),
+                  keySuffix = keySuffix,
                   message = tickerPrefix,
                   noPrefix = exclusive
                 )
@@ -184,7 +215,6 @@ private[mill] case class Execution(
                   group = plan.sortedGroups.lookupKey(terminal).toSeq,
                   results = upstreamResults,
                   countMsg = countMsg,
-                  verboseKeySuffix = verboseKeySuffix,
                   zincProblemReporter = reporter,
                   testReporter = testReporter,
                   logger = contextLogger,
@@ -192,7 +222,8 @@ private[mill] case class Execution(
                   classToTransitiveClasses,
                   allTransitiveClassMethods,
                   forkExecutionContext,
-                  exclusive
+                  exclusive,
+                  offline
                 )
 
                 // Count new failures - if there are upstream failures, tasks should be skipped, not failed
@@ -201,7 +232,7 @@ private[mill] case class Execution(
                 rootFailedCount.addAndGet(newFailures)
 
                 // Always show failed count in header if there are failures
-                logger.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, verboseKeySuffix))
+                logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
 
                 if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                   failed.set(true)
@@ -210,12 +241,27 @@ private[mill] case class Execution(
                 val duration = endTime - startTime
 
                 val threadId = threadNumberer.getThreadId(Thread.currentThread())
-                chromeProfileLogger.log(terminal, "job", startTime, duration, threadId, res.cached)
+                chromeProfileLogger.log(
+                  terminal.toString,
+                  "job",
+                  startTime,
+                  duration,
+                  threadId,
+                  res.cached
+                )
 
                 if (!res.cached) uncached.put(terminal, ())
                 if (res.valueHashChanged) changedValueHash.put(terminal, ())
 
-                profileLogger.log(terminal, duration, res, deps)
+                profileLogger.log(
+                  terminal.toString,
+                  duration,
+                  res.cached,
+                  res.valueHashChanged,
+                  deps.map(_.toString),
+                  res.inputsHash,
+                  res.previousInputsHash
+                )
 
                 Some(res)
               }
@@ -249,7 +295,7 @@ private[mill] case class Execution(
 
     val exclusiveResults = evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
 
-    logger.clearPromptStatuses()
+    logger.prompt.clearPromptStatuses()
 
     val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
@@ -262,12 +308,18 @@ private[mill] case class Execution(
     )
 
     val results0: Vector[(Task[?], ExecResult[(Val, Int)])] = terminals0
-      .flatMap { t =>
-        plan.sortedGroups.lookupKey(t).flatMap { t0 =>
-          finishedOptsMap(t) match {
-            case None => Some((t0, Aborted))
-            case Some(res) => res.newResults.get(t0).map(r => (t0, r))
-          }
+      .map { t =>
+        finishedOptsMap(t) match {
+          case None => (t, ExecResult.Skipped)
+          case Some(res) =>
+            Tuple2(
+              t,
+              (Seq(t) ++ plan.sortedGroups.lookupKey(t))
+                .flatMap { t0 => res.newResults.get(t0) }
+                .sortBy(!_.isInstanceOf[ExecResult.Failing[_]])
+                .head
+            )
+
         }
       }
 
@@ -276,7 +328,6 @@ private[mill] case class Execution(
     Execution.Results(
       goals.toIndexedSeq.map(results(_).map(_._1)),
       finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
-      getFailing(plan.sortedGroups, results).items().map { case (k, v) => (k, v.toSeq) }.toMap,
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
@@ -312,9 +363,8 @@ private[mill] object Execution {
       .toMap
   }
   private[Execution] case class Results(
-      rawValues: Seq[ExecResult[Val]],
-      evaluated: Seq[Task[?]],
-      failing: Map[Task[?], Seq[ExecResult.Failing[Val]]],
-      results: Map[Task[?], ExecResult[Val]]
+      results: Seq[ExecResult[Val]],
+      uncached: Seq[Task[?]],
+      transitiveResults: Map[Task[?], ExecResult[Val]]
   ) extends mill.define.ExecutionResults
 }

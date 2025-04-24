@@ -10,9 +10,9 @@ val sonatypeReleases = Seq(
 
 object foo extends JavaModule {
 
-  def ivyDeps = Seq(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
@@ -20,12 +20,12 @@ object foo extends JavaModule {
 
 //// SNIPPET:BUILD2
 
-object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
+object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 object bar extends JavaModule {
-  def zincWorker = ModuleRef(CustomZincWorkerModule)
+  def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }

@@ -1,10 +1,12 @@
 // The following example demonstrates a use case: using cross modules to
-// turn files on disk into blog posts. To begin with, we xref:extending/import-ivy-plugins.adoc[import $ivy]
+// turn files on disk into blog posts. To begin with, we xref:extending/import-mvn-plugins.adoc[import $ivy]
 // two third-party libraries - Commonmark and Scalatags - to deal with Markdown parsing and
 // HTML generation respectively:
 package build
-import $ivy.`com.lihaoyi::scalatags:0.13.1`, scalatags.Text.all._
-import $ivy.`com.atlassian.commonmark:commonmark:0.13.1`
+//| mvnDeps:
+//| - com.lihaoyi::scalatags:0.13.1
+//| - com.atlassian.commonmark:commonmark:0.13.1
+import scalatags.Text.all._
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 
@@ -138,4 +140,4 @@ def dist = Task {
 // This example use case is taken from the following blog post, which contains
 // some extensions and fun exercises to further familiarize yourself with Mill
 //
-// * http://www.lihaoyi.com/post/HowtocreateBuildPipelinesinScala.html[How to create Build Pipelines in Scala]
+// * https://www.lihaoyi.com/post/HowtocreateBuildPipelinesinScala.html[How to create Build Pipelines in Scala]

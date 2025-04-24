@@ -19,10 +19,8 @@ trait GitlabMavenRepository {
 
     gitlabAuth match {
       case Result.Failure(msg) =>
-        Failure(
-          s"Token lookup for PACKAGE repository ($gitlabRepository) failed with $msg"
-        ): Result[MavenRepository]
-      case Result.Success(value) => Success(value)
+        Task.fail(s"Token lookup for PACKAGE repository ($gitlabRepository) failed with $msg")
+      case Result.Success(value) => value
     }
   }
 }

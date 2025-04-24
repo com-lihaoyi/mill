@@ -7,8 +7,6 @@ object foo extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def mainClass = Some("foo.FooKt")
-
   def moduleDeps = Seq(bar)
   def assemblyRules = Seq(
     // all application.conf files will be concatenated into single file

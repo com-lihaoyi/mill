@@ -5,7 +5,6 @@ import mill.api.ExecResult.OuterStack
 import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
 import mill.define.{Evaluator, InputImpl, SelectMode, TargetImpl}
 import mill.resolve.Resolve
-import mill.internal.PrintLogger
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
@@ -23,7 +22,8 @@ object UnitTester {
       inStream: InputStream = DummyInputStream,
       debugEnabled: Boolean = false,
       env: Map[String, String] = Evaluator.defaultEnv,
-      resetSourcePath: Boolean = true
+      resetSourcePath: Boolean = true,
+      offline: Boolean = false
   ) = new UnitTester(
     module = module,
     sourceRoot = sourceRoot,
@@ -34,7 +34,8 @@ object UnitTester {
     inStream = inStream,
     debugEnabled = debugEnabled,
     env = env,
-    resetSourcePath = resetSourcePath
+    resetSourcePath = resetSourcePath,
+    offline = offline
   )
 }
 
@@ -53,7 +54,8 @@ class UnitTester(
     inStream: InputStream,
     debugEnabled: Boolean,
     env: Map[String, String],
-    resetSourcePath: Boolean
+    resetSourcePath: Boolean,
+    offline: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
   val outPath: os.Path = module.moduleDir / "out"
 
@@ -66,15 +68,17 @@ class UnitTester(
     }
   }
 
-  object logger extends mill.internal.PrintLogger(
+  object logger extends mill.internal.PromptLogger(
         colored = true,
         enableTicker = false,
-        mill.internal.Colors.Default.info,
-        mill.internal.Colors.Default.error,
-        new SystemStreams(out = outStream, err = errStream, in = inStream),
+        infoColor = mill.internal.Colors.Default.info,
+        warnColor = mill.internal.Colors.Default.warn,
+        errorColor = mill.internal.Colors.Default.error,
+        systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
-        context = "",
-        new PrintLogger.State()
+        titleText = "",
+        terminfoPath = os.temp(),
+        currentTimeMillis = () => System.currentTimeMillis()
       ) {
     val prefix: String = {
       val idx = fullName.value.lastIndexOf(".")
@@ -82,6 +86,7 @@ class UnitTester(
       else fullName.value
     }
     override def error(s: String): Unit = super.error(s"${prefix}: ${s}")
+    override def warn(s: String): Unit = super.warn(s"${prefix}: ${s}")
     override def info(s: String): Unit = super.info(s"${prefix}: ${s}")
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
@@ -91,7 +96,6 @@ class UnitTester(
     baseLogger = logger,
     chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
     profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
-    home = mill.api.Ctx.defaultHome,
     workspace = module.moduleDir,
     outPath = outPath,
     externalOutPath = outPath,
@@ -105,7 +109,9 @@ class UnitTester(
     codeSignatures = Map(),
     systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
-    getEvaluator = () => evaluator
+    getEvaluator = () => evaluator,
+    offline = offline,
+    headerData = ""
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
@@ -138,11 +144,11 @@ class UnitTester(
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     val evaluated = evaluator.execute(tasks).executionResults
 
-    if (evaluated.failing.isEmpty) {
+    if (evaluated.transitiveFailing.isEmpty) {
       Right(
         UnitTester.Result(
-          evaluated.rawValues.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
-          evaluated.evaluated.collect {
+          evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
+          evaluated.uncached.collect {
             case t: TargetImpl[_]
                 if module.moduleInternal.targets.contains(t)
                   && !t.ctx.external => t
@@ -150,16 +156,7 @@ class UnitTester(
           }.size
         )
       )
-    } else {
-      Left(
-        evaluated
-          .failing(evaluated.failing.keys.head)
-          .head
-          .asFailing
-          .get
-          .map(_.value)
-      )
-    }
+    } else Left(evaluated.transitiveFailing.values.head)
   }
 
   def fail(
@@ -170,20 +167,20 @@ class UnitTester(
 
     val res = evaluator.execute(Seq(target)).executionResults
 
-    val cleaned = res.rawValues.map {
+    val cleaned = res.results.map {
       case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
       case x => x.map(_.value)
     }
 
     assert(cleaned == expectedRawValues)
-    assert(res.failing.size == expectedFailCount)
+    assert(res.transitiveFailing.size == expectedFailCount)
 
   }
 
   def check(targets: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
     val evaluated = evaluator.execute(targets).executionResults
-      .evaluated
+      .uncached
       .flatMap(_.asTarget)
       .filter(module.moduleInternal.targets.contains)
       .filter(!_.isInstanceOf[InputImpl[?]])

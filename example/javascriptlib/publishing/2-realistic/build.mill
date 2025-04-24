@@ -1,6 +1,7 @@
 package build
 
 import mill._, javascriptlib._
+import ujson._
 
 object foo extends TypeScriptModule {
   object bar extends TypeScriptModule {
@@ -24,19 +25,21 @@ object qux extends PublishModule {
     Seq(PathRef(Task.dest))
   }
 
-  def exports = Map(
+  def pubBundledOut = "dist"
+
+  def pubExports = Map(
     "./qux/generate_user" -> "src/generate_user.js",
     "./foo" -> "foo/src/foo.js",
     "./foo/bar" -> "foo/bar/src/bar.js"
   )
 
-  def publishMeta = PublishMeta(
+  def packageJson = PackageJson(
     name = "mill-realistic",
     version = "1.0.3",
     description = "A simple Node.js command-line tool",
     files = Seq("README.md"),
-    bin = Map(
-      "qux" -> "src/qux.js"
+    bin = ujson.Obj(
+      "qux" -> s"${pubBundledOut()}/src/qux.js"
     )
   )
 
@@ -84,6 +87,22 @@ object qux extends PublishModule {
 //// SNIPPET:END
 
 /** Usage
+
+> mill qux.run James Bond prof
+{ prof: 'Professor' }
+prof
+Professor
+Hello James Bond Professor
+
+> mill show qux.bundle
+Build succeeded!
+
+> node out/qux/bundle.dest/dist/src/qux.js James Bond prof
+{ prof: 'Professor' }
+prof
+Professor
+Hello James Bond Professor
+
 > mill qux.test
 PASS .../qux.test.ts
 ...

@@ -16,19 +16,17 @@ trait MyModule extends KotlinModule with PublishModule {
 
   def kotlinVersion = "1.9.24"
 
-  def ivyDeps = Seq(ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0")
+  def mvnDeps = Seq(mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0")
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar, qux)
-
-  def mainClass = Some("foo.FooKt")
 
   def generatedSources = Task {
     os.write(
@@ -55,7 +53,7 @@ object qux extends MyModule {
 
 // A semi-realistic build setup, combining all the individual Mill concepts:
 //
-// - Three `KotlinModule`s that depend on each other
+// - Three ``KotlinModule``s that depend on each other
 //
 // - With unit testing and publishing set up
 //
@@ -65,9 +63,10 @@ object qux extends MyModule {
 // Note that for multi-module builds like this, using using xref:cli/query-syntax.adoc[queries] to run tasks on
 // multiple modules at once can be very convenient:
 //
+// [source,sh]
 // ----
-// __.test
-// __.publishLocal
+// > mill __.test
+// > mill __.publishLocal
 // ----
 //
 // Also note how you can use ``trait``s to bundle together common combinations of

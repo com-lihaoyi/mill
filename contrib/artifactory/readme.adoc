@@ -20,7 +20,7 @@ object mymodule extends ArtifactoryPublishModule {
 
 Then in your terminal:
 
-[source,bash]
+[source,console]
 ----
 $ mill mymodule.publishArtifactory --credentials $ARTIFACTORY_USER:$ARTIFACTORY_PASSWORD
 ----

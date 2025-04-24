@@ -7,11 +7,19 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Util {
 
-  public static boolean isWindows =
-      System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
+  private static String lowerCaseOsName() {
+    return System.getProperty("os.name").toLowerCase(Locale.ROOT);
+  }
+
+  public static boolean isWindows = lowerCaseOsName().startsWith("windows");
+  public static boolean isLinux = lowerCaseOsName().equals("linux");
   public static boolean isJava9OrAbove =
       !System.getProperty("java.specification.version").startsWith("1.");
 
@@ -34,6 +42,24 @@ public class Util {
     return new String(hexChars);
   }
 
+  private static final boolean hasConsole0;
+
+  static {
+    Console console = System.console();
+
+    boolean foundConsole;
+    if (console != null) {
+      try {
+        Method method = console.getClass().getMethod("isTerminal");
+        foundConsole = (Boolean) method.invoke(console);
+      } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException ignored) {
+        foundConsole = true;
+      }
+    } else foundConsole = false;
+
+    hasConsole0 = foundConsole;
+  }
+
   /**
    * Determines if we have an interactive console attached to the application.
    * <p>
@@ -46,17 +72,60 @@ public class Util {
    * This method takes into account these differences and is compatible with
    * both JDK versions before 22 and later.
    */
-  @SuppressWarnings("SystemConsoleNull")
   public static boolean hasConsole() {
-    Console console = System.console();
+    return hasConsole0;
+  }
 
-    if (console != null) {
-      try {
-        Method method = console.getClass().getMethod("isTerminal");
-        return (Boolean) method.invoke(console);
-      } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException ignored) {
-        return true;
+  public static String readYamlHeader(java.nio.file.Path buildFile) throws java.io.IOException {
+    java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
+    String yamlString = lines.stream()
+        .filter(line -> line.startsWith("//|"))
+        .map(line -> line.substring(4)) // Remove the `//|` prefix
+        .collect(java.util.stream.Collectors.joining("\n"));
+
+    return yamlString;
+  }
+
+  private static String envInterpolatorPattern0 = "(\\$|[A-Z_][A-Z0-9_]*)";
+  private static Pattern envInterpolatorPattern =
+      Pattern.compile("\\$\\{" + envInterpolatorPattern0 + "\\}|\\$" + envInterpolatorPattern0);
+
+  /**
+   * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
+   * @throws IllegalArgumentException if a variable is missing.
+   */
+  public static String interpolateEnvVars(String input, Map<String, String> env0) {
+    return interpolateEnvVars(input, env0, var -> {
+      throw new IllegalArgumentException("Cannot interpolate missing env var '" + var + "'");
+    });
+  }
+
+  /**
+   * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
+   */
+  public static String interpolateEnvVars(
+      String input, Map<String, String> env0, Function<String, String> onMissing) {
+    Matcher matcher = envInterpolatorPattern.matcher(input);
+    // StringBuilder to store the result after replacing
+    StringBuffer result = new StringBuffer();
+
+    Map<String, String> env = new java.util.HashMap<>();
+    env.putAll(env0);
+
+    while (matcher.find()) {
+      String match = matcher.group(1);
+      if (match == null) match = matcher.group(2);
+      if (match.equals("$")) {
+        matcher.appendReplacement(result, "\\$");
+      } else {
+        String envVarValue;
+        mill.constants.DebugLog.println("MATCH " + match);
+        envVarValue = env.containsKey(match) ? env.get(match) : onMissing.apply(match);
+        matcher.appendReplacement(result, envVarValue);
       }
-    } else return false;
+    }
+
+    matcher.appendTail(result); // Append the remaining part of the string
+    return result.toString();
   }
 }

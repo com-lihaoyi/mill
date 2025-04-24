@@ -62,12 +62,12 @@ object `package` extends RootModule with PythonModule with PublishModule {
 // Mill uses https://twine.readthedocs.io/en/stable/[`twine`] to upload packages, and respects its
 // configuration. You can also configure it with environment variables, prefixed with `MILL_`.
 //
-// [source,bash]
+// [source,console]
 // ----
-// export MILL_TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/
-// export MILL_TWINE_USERNAME=<username, not necessary for PyPI>
-// export MILL_TWINE_PASSWORD=<apitoken>
-// mill __.publish
+// > export MILL_TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/
+// > export MILL_TWINE_USERNAME=<username, not necessary for PyPI>
+// > export MILL_TWINE_PASSWORD=<apitoken>
+// > mill __.publish
 // ----
 //
 // [NOTE]

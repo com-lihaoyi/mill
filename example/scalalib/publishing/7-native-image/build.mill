@@ -8,10 +8,10 @@ object foo extends ScalaModule with NativeImageModule {
 
   def nativeImageOptions = Seq("--no-fallback")
 
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 }
 
-object ZincWorkerGraalvm extends ZincWorkerModule {
+object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:17.0.7"
 }
 
@@ -19,7 +19,7 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 //
 // This example uses `NativeImageModule` to generate a native executable using https://www.graalvm.org/[Graal VM].
 // We recommend you xref:fundamentals/configuring-jvm-versions.adoc[configure a specific JDK version]
-// via a custom `ZincWorkerModule` overriding `def jvmId` (shown above), as not every JVM can build Graal native images.
+// via a custom `JvmWorkerModule` overriding `def jvmId` (shown above), as not every JVM can build Graal native images.
 
 /** Usage
 

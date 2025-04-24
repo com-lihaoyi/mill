@@ -29,9 +29,12 @@ private[mill] class LinePrefixOutputStream(
   private def writeLinePrefixIfNecessary(): Unit = {
     if (isNewLine && linePrefixNonEmpty) {
       isNewLine = false
+      buffer.write(fansi.Attrs.emitAnsiCodes(endOfLastLineColor, 0).getBytes())
+
       buffer.write(linePrefixBytes)
-      if (linePrefixNonEmpty)
+      if (linePrefixNonEmpty) {
         buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
+      }
     }
   }
 
@@ -39,12 +42,14 @@ private[mill] class LinePrefixOutputStream(
     if (buffer.size() > 0) reportPrefix()
 
     if (linePrefixNonEmpty) {
-      val bufferString = buffer.toString
-      if (bufferString.length > 0) {
-        val s = fansi.Str.apply(bufferString, errorMode = fansi.ErrorMode.Sanitize)
-        endOfLastLineColor = s.getColor(s.length - 1)
-      }
+      val bufferString = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor) + buffer.toString
+      // Make sure we add a suffix "x" to the `bufferString` before computing the last
+      // color. This ensures that any trailing colors in the original `bufferString` do not
+      // get ignored since they would affect zero characters.
+      val s = fansi.Str.apply(bufferString + "x", errorMode = fansi.ErrorMode.Sanitize)
+      endOfLastLineColor = s.getColor(s.length - 1)
     }
+
     out.synchronized { buffer.writeTo(out) }
     buffer.reset()
   }

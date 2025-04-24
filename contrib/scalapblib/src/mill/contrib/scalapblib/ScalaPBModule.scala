@@ -2,8 +2,7 @@ package mill
 package contrib.scalapblib
 
 import coursier.core.Version
-import mill.api.{PathRef}
-import mill.scalalib.Lib.resolveDependencies
+import mill.define.{PathRef}
 import mill.scalalib._
 
 import java.util.zip.ZipInputStream
@@ -14,11 +13,11 @@ trait ScalaPBModule extends ScalaModule {
 
   override def generatedSources = Task { super.generatedSources() :+ compileScalaPB() }
 
-  override def ivyDeps = Task {
-    super.ivyDeps() ++
-      Seq(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
+  override def mvnDeps = Task {
+    super.mvnDeps() ++
+      Seq(mvn"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
       (if (!scalaPBGrpc()) Seq()
-       else Seq(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
+       else Seq(mvn"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
   }
 
   def scalaPBVersion: T[String]
@@ -76,10 +75,11 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBClasspath: T[Seq[PathRef]] = Task {
-    resolveDependencies(
-      repositoriesTask(),
-      Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
-        .map(Lib.depToBoundDep(_, "2.13.1"))
+    val scalaPBScalaVersion = "2.13.1"
+    defaultResolver().classpath(
+      Seq(mvn"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
+        .map(Lib.depToBoundDep(_, scalaPBScalaVersion)),
+      resolutionParamsMapOpt = Some(_.withScalaVersion(scalaPBScalaVersion))
     )
   }
 
@@ -91,7 +91,7 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
-    millResolver().resolveDeps(
+    millResolver().classpath(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),
         coursierDependency
@@ -111,7 +111,7 @@ trait ScalaPBModule extends ScalaModule {
               if (entry.getName.endsWith(".proto")) {
                 val protoDest = dest / os.SubPath(entry.getName)
                 if (os.exists(protoDest))
-                  Task.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
+                  Task.log.warn(s"Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
                 Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
                   _root_.os.Internals.transfer(zip, os, close = false)
                 }

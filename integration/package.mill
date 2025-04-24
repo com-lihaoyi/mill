@@ -3,20 +3,16 @@ package build.integration
 import scala.util.chaining._
 import coursier.maven.MavenRepository
 import mill._
-import mill.api.JarManifest
 import mill.main.Tasks
 import mill.scalalib._
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.resolve.SelectMode
+import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 import mill.testrunner.TestResult
-
-// plugins and dependencies
-import $meta._
 
 object `package` extends RootModule {
   // We compile the test code once and then offer multiple modes to
@@ -24,9 +20,9 @@ object `package` extends RootModule {
   // and pass `lib`'s compile output back to `test`.
 
   trait IntegrationTestModule extends Cross.Module[String] {
-    def millSourcePath = super.millSourcePath / crossValue
+    def moduleDir = super.moduleDir / crossValue
 
-    def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
+    def moduleDeps = Seq(build.libs.main.test, build.testkit, build.runner)
 
     def resources: T[Seq[PathRef]]
     def runClasspath: T[Seq[PathRef]]
@@ -34,11 +30,11 @@ object `package` extends RootModule {
     def forkEnv: T[Map[String, String]]
     def testExclusive = false
     trait ModeModule extends build.MillBaseTestsModule {
-      override def test(args: String*) = Task.Command(exclusive = testExclusive) {
+      override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
         testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
       }
 
-      def mode: String = millModuleSegments.parts.last
+      def mode: String = moduleSegments.parts.last
       def scalaVersion = build.Deps.scalaVersion
 
       def forkEnv =
@@ -46,12 +42,19 @@ object `package` extends RootModule {
           IntegrationTestModule.this.forkEnv() ++
           Map(
             "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
+            "MILL_INTEGRATION_IS_PACKAGED_LAUNCHER" -> millIntegrationIsPackagedLauncher().toString,
             "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
+          ) ++
+          Option.when(!millIntegrationIsPackagedLauncher())(
+            "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
           )
 
       def millIntegrationLauncher: T[PathRef]
+
+      /** Whether the Mill JARs are published locally alongside this Mill launcher */
+      def millIntegrationIsPackagedLauncher: Task[Boolean]
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
 
@@ -59,51 +62,55 @@ object `package` extends RootModule {
       def runClasspath = IntegrationTestModule.this.runClasspath()
       def localRunClasspath = IntegrationTestModule.this.localRunClasspath()
 
-      def compile: T[mill.scalalib.api.CompilationResult] =
-        Task {
-          mill.scalalib.api.CompilationResult(null, null)
-        } // binary compatibility stub, not used
-
-      def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     }
 
     object local extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.launcher()
+      def millIntegrationIsPackagedLauncher = Task(false)
     }
     object packaged extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.executable()
+      def millIntegrationIsPackagedLauncher = Task(true)
     }
     object native extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.native.executable()
+      def millIntegrationIsPackagedLauncher = Task(true)
     }
     trait IntegrationLauncherModule extends Module {
       def millIntegrationLauncher: T[PathRef]
+      def millIntegrationIsPackagedLauncher: Task[Boolean]
       object fork extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
+        def millIntegrationIsPackagedLauncher =
+          IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
       object server extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
+        def millIntegrationIsPackagedLauncher =
+          IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
     }
   }
 
-  object failure extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "failure"))
-  object feature extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "feature"))
+  object failure extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "failure"))
+  object feature extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "feature"))
   object invalidation
-      extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "invalidation"))
-  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "ide"))
+      extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "invalidation"))
+  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "ide"))
   object bootstrap
-      extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "bootstrap"))
+      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
+  object migrating
+      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "migrating"))
   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
       "MILL_PROJECT_ROOT" -> Task.workspace.toString,
       "TEST_SCALA_2_13_VERSION" -> build.Deps.testScala213Version,
-      "TEST_KOTLIN_VERSION" -> build.Deps.kotlinCompiler.dep.version
+      "TEST_KOTLIN_VERSION" -> build.Deps.kotlinCompiler.version
     )
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {
-    def ivyDeps = super.ivyDeps() ++ Agg(
+    def mvnDeps = super.mvnDeps() ++ Agg(
       build.Deps.bsp4j
     )
   }

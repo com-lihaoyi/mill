@@ -3,7 +3,7 @@ import mill._, javalib._
 import java.io.File
 
 object foo extends JavaModule {
-  def compileIvyDeps = Seq(ivy"org.projectlombok:lombok:1.18.34")
+  def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
 
   object test extends JavaTests with TestModule.Junit4
 }
@@ -23,7 +23,7 @@ Test foo.HelloWorldTest.testSimple finished...
 */
 
 // The Java compiler automatically discovers annotation processors based on the
-// classes available during compilation, e.g. in `compileIvyDeps` or `ivyDeps`,
+// classes available during compilation, e.g. in `compileMvnDeps` or `mvnDeps`,
 // which is what takes place in the example above.
 //
 // In some cases, you may need
@@ -34,10 +34,10 @@ Test foo.HelloWorldTest.testSimple finished...
 // those to `-processorpath` to `javacOptions` explicitly:
 
 object bar extends JavaModule {
-  def compileIvyDeps = Seq(ivy"org.projectlombok:lombok:1.18.34")
+  def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
 
   def processors = Task {
-    defaultResolver().resolveDeps(Seq(ivy"org.projectlombok:lombok:1.18.34"))
+    defaultResolver().classpath(Seq(mvn"org.projectlombok:lombok:1.18.34"))
   }
 
   def javacOptions = Seq(

@@ -23,7 +23,7 @@ object foo extends JavaModule with DockerModule {
 
 Then
 
-[source,bash]
+[source,console]
 ----
 $ mill foo.docker.build
 $ docker run foo

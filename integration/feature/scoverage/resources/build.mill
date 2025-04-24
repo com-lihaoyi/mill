@@ -2,7 +2,8 @@ package build
 // Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2579
 
 // mill plugins
-import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
+//| mvnDeps:
+//| - com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION
 
 // imports
 import mill._
@@ -11,15 +12,15 @@ import mill.scalalib._
 
 object Deps {
   val millVersion = "0.11.0"
-  val millMain = ivy"com.lihaoyi:mill-main_2.13:${millVersion}"
-  val scalaTest = ivy"org.scalatest::scalatest:3.2.16"
+  val millMain = mvn"com.lihaoyi:mill-main_2.13:${millVersion}"
+  val scalaTest = mvn"org.scalatest::scalatest:3.2.16"
 }
 
 object core extends Cross[CoreCross]("2.13.11")
 trait CoreCross extends CrossScalaModule with ScoverageModule {
   override def scoverageVersion = "2.0.11"
   object test extends ScoverageTests with TestModule.ScalaTest {
-    override def ivyDeps = Seq(Deps.scalaTest, Deps.millMain)
+    override def mvnDeps = Seq(Deps.scalaTest, Deps.millMain)
   }
 }
 

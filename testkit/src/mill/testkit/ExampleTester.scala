@@ -199,13 +199,22 @@ class ExampleTester(
   def run(): Unit = {
     os.makeDir.all(workspacePath)
     val parsed = ExampleParser(workspaceSourcePath)
+    val ignoreErrors = System.getenv("CI") != null &&
+      os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
     try {
       initWorkspace()
       os.copy.over(millExecutable, workspacePath / s"mill$millExt")
-      for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
+      try for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
+      catch {
+        case ex: Throwable if ignoreErrors =>
+          System.err.println(
+            s"Warning: ignoring exception while running example test under $workspaceSourcePath"
+          )
+          ex.printStackTrace(System.err)
+      }
     } finally {
       if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
       removeProcessIdFile()

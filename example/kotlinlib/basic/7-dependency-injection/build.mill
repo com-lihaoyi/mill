@@ -16,25 +16,25 @@ object dagger extends KspModule {
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-  def ivyDeps = Agg(
-    ivy"com.google.dagger:dagger-compiler:2.55"
+  def mvnDeps = Agg(
+    mvn"com.google.dagger:dagger-compiler:2.55"
   )
 
   def kotlinSymbolProcessors = Agg(
-    ivy"com.google.dagger:dagger-compiler:2.55"
+    mvn"com.google.dagger:dagger-compiler:2.55"
   )
 
   object test extends KspTests with TestModule.Junit5 {
 
     def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.google.dagger:dagger-compiler:2.55",
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    def mvnDeps = super.mvnDeps() ++ Agg(
+      mvn"com.google.dagger:dagger-compiler:2.55",
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
 
     def kotlinSymbolProcessors = Agg(
-      ivy"com.google.dagger:dagger-compiler:2.55"
+      mvn"com.google.dagger:dagger-compiler:2.55"
     )
 
   }
@@ -48,7 +48,7 @@ object dagger extends KspModule {
 
 > ./mill show dagger.compile
 
-> ls out/dagger/generateSourcesWithKSP.dest/generated/ksp/main/java/com/example/dagger/
+> ls out/dagger/generatedSourcesWithKSP.dest/generated/ksp/main/java/com/example/dagger/
 DaggerNumberApp.java
 NumberService_Factory.java
 RandomNumberGenerator_Factory.java
@@ -77,7 +77,7 @@ Random number: ...
 ]
 ...
 
-> ls out/dagger/test/generateSourcesWithKSP.dest/generated/ksp/main/java/com/example/dagger/
+> ls out/dagger/test/generatedSourcesWithKSP.dest/generated/ksp/main/java/com/example/dagger/
 ConstantNumberGenerator_Factory.java
 DaggerDemoComponent.java
 DaggerTestApp.java

@@ -14,18 +14,6 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/lib"
-      },
-      "sources": [
-        {
-          "uri": "file:///workspace/lib/src",
-          "kind": 2,
-          "generated": false
-        }
-      ]
-    },
-    {
-      "target": {
         "uri": "file:///workspace/hello-java"
       },
       "sources": [
@@ -62,12 +50,29 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/lib/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/mill-build"
       },
       "sources": [
         {
           "uri": "file:///workspace/build.mill",
           "kind": 1,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/mill-build/src",
+          "kind": 2,
           "generated": false
         },
         {

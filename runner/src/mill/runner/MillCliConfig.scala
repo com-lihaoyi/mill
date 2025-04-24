@@ -10,7 +10,7 @@ case class MillCliConfig(
       doc =
         """(internal) The home directory where Mill looks for config and caches."""
     )
-    home: os.Path = mill.api.Ctx.defaultHome,
+    home: os.Path = os.home,
     // We need to keep it, otherwise, a given --repl would be silently parsed as target and result in misleading error messages.
     // Instead, we fail programmatically when this flag is set.
     @deprecated("No longer supported.", "Mill 0.11.0-M8")
@@ -126,11 +126,13 @@ case class MillCliConfig(
     metaLevel: Option[Int] = None,
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag(),
+    @deprecated("No longer used", "Mill 0.13.0")
     @arg(
       doc = """
         Disables the new multi-line status prompt used for showing thread
         status at the command line and falls back to the legacy ticker
-      """
+      """,
+      hidden = true
     )
     disablePrompt: Flag = Flag(),
     @arg(
@@ -144,7 +146,16 @@ case class MillCliConfig(
       doc =
         """Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands."""
     )
-    noWaitForBuildLock: Flag = Flag()
+    noWaitForBuildLock: Flag = Flag(),
+    @arg(
+      doc =
+        """Try to work offline.
+          |This tells modules that support it to work offline and avoid any access to the internet.
+          |This is on a best effort basis.
+          |There are currently no guarantees that modules don't attempt to fetch remote sources."""
+          .stripMargin
+    )
+    offline: Flag = Flag()
 )
 
 import mainargs.ParserForClass
@@ -153,7 +164,7 @@ import mainargs.ParserForClass
 // to under-compilation, we have it in this file
 // see https://github.com/com-lihaoyi/mill/issues/2315
 object MillCliConfigParser {
-  val customName: String = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
+  val customName: String = s"Mill Build Tool, version ${mill.util.BuildInfo.millVersion}"
   val customDoc = """
 Usage: mill [options] task [task-options] [+ task ...]
 """
@@ -186,7 +197,7 @@ task cheat sheet:
 options:
 """
 
-  import mill.api.JsonFormatters._
+  import mill.define.JsonFormatters._
 
   private lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]

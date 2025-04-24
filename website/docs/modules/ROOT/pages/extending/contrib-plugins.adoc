@@ -5,7 +5,7 @@
 
 The ((plugins)) in this section are hosted in the Mill git tree and developed / maintained by the community.
 
-For details about including plugins in your `build.mill` read xref:extending/import-ivy-plugins.adoc[Using Mill Plugins].
+For details about including plugins in your `build.mill` read xref:extending/import-mvn-plugins.adoc[Using Mill Plugins].
 
 [CAUTION]
 --
@@ -31,7 +31,7 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 
 == Importing Contrib Modules
 
-include::partial$example/extending/imports/3-contrib-import.adoc[]
+include::partial$example/extending/imports/3-contrib-dep.adoc[]
 
 
 == List of Contrib Plugins
@@ -39,7 +39,6 @@ include::partial$example/extending/imports/3-contrib-import.adoc[]
 // See also the list in nav.adoc
 * xref:contrib/artifactory.adoc[]
 * xref:contrib/bintray.adoc[]
-* xref:contrib/bloop.adoc[]
 * xref:contrib/buildinfo.adoc[]
 * xref:contrib/codeartifact.adoc[]
 * xref:contrib/docker.adoc[]

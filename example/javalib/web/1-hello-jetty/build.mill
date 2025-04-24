@@ -2,9 +2,9 @@ package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Seq(
-    ivy"org.eclipse.jetty:jetty-server:9.4.43.v20210629",
-    ivy"javax.servlet:javax.servlet-api:4.0.1"
+  def mvnDeps = Seq(
+    mvn"org.eclipse.jetty:jetty-server:9.4.43.v20210629",
+    mvn"javax.servlet:javax.servlet-api:4.0.1"
   )
 
   object test extends JavaTests with TestModule.Junit4

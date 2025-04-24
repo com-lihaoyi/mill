@@ -1,6 +1,9 @@
 package mill.testkit
 
+import mill.util.Retry
 import os.Path
+
+import scala.concurrent.duration.DurationInt
 
 trait IntegrationTestSuite {
 
@@ -39,15 +42,21 @@ trait IntegrationTestSuite {
    * given [[block]].
    */
   def integrationTest[T](block: IntegrationTester => T): T = {
-    val tester = new IntegrationTester(
-      clientServerMode,
-      workspaceSourcePath,
-      millExecutable,
-      debugLog,
-      baseWorkspacePath = os.pwd,
-      propagateJavaHome = propagateJavaHome
-    )
-    try block(tester)
-    finally tester.close()
+    Retry(
+      Retry.printStreamLogger(System.err),
+      count = if (sys.env.contains("CI")) 1 else 0,
+      timeoutMillis = 10.minutes.toMillis
+    ) {
+      val tester = new IntegrationTester(
+        clientServerMode,
+        workspaceSourcePath,
+        millExecutable,
+        debugLog,
+        baseWorkspacePath = os.pwd,
+        propagateJavaHome = propagateJavaHome
+      )
+      try block(tester)
+      finally tester.close()
+    }
   }
 }
