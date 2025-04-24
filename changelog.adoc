@@ -12,6 +12,49 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+=== `main` development branch
+
+Mill's `main` branch is targeting the upcoming Mill 1.0.0 release. This is a major backwards
+incompatible release that aims to clean up years of technical debt, and build a strong
+technical foundation for the next few years of backwards-compatible development. We
+expect it will take some work from projects on Mill 0.12.x or earlier to migrate to 1.0.0,
+and any Mill plugins will need to be re-published for Mill-1.0.0/Scala-3
+
+* `build.mill` and `package.mill` files are now written in Scala 3.7 ({link-pr}/3369[#3369]).
+  Any third-party libraries used must be Scala 3 compatible (most already are). You may now
+  use Scala 3 language features such as https://docs.scala-lang.org/scala3/reference/other-new-features/indentation.html[Optional Braces]
+  in your `.mill` files
+
+* `ivyDeps` has been renamed to `mvnDeps`, along with all related tasks and methods
+  e.g. `compileIvyDeps` is now `compileMvnDeps` ({link-pr}/4930[#4930]).
+
+* The `Agg[T]` collection types have been removed and replaced by `Seq`
+
+* Mill now supports a YAML front-matter syntax in `build.mill` files, defined by line comments
+  starting with `//|` ({link-pr}/4969[#4969]). This replaces the `import $ivy...` syntax with
+  and allows external configuration files like `.mill-version`,
+  `.mill-jvm-version`, etc. to be configured together e.g.
+
+```
+//| mill-version: 1.0.0
+//| mill-jvm-version: 17
+//| mvnDeps: [com.lihaoyi::scalatags:0.12.0]
+
+package build
+...
+```
+
+* `build.mill` files are now compiled with a minimized classpath containing only
+  the necessary APIs, without all of Mill's internal code on the classpath
+  ({link-pr}/4879[#4879]). The `.mill` file classpath has been consolidated under
+  the `mill-libs` artifact ({link-pr}/4967[#4967]), which should be used when
+  building plugins, rather than the `mill-dist` we were using before.
+
+* Mill's bootstrap scripts now use the native launcher by the default, except for
+  Windows-ARM which is not supported by the Graal tooling we used to build these native
+  image. To use the JVM-based launcher, you need to explicitly use a `-jvm` suffix in
+  your `.mill-version` file e.g. `1.0.0-jvm`
+
 [#0-12-10]
 === 0.12.10 - 2025-04-01
 :version: 0.12.10
