@@ -32,7 +32,7 @@ and any Mill plugins will need to be re-published for Mill-1.0.0/Scala-3
   ({link-pr}/4525[#4525]).
 
 * Mill now supports a YAML front-matter syntax in `build.mill` files, defined by line comments
-  starting with `//|` ({link-pr}/4969[#4969]). This replaces the `import $ivy...` syntax with
+  starting with `//|` ({link-pr}/4969[#4969]). This replaces the `import $ivy...` syntax
   and allows external configuration files like `.mill-version`,
   `.mill-jvm-version`, etc. to be configured together e.g.
 
