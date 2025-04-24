@@ -38,7 +38,12 @@ object lib extends AndroidLibModule with PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  // Configuration for ReleaseKey
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
@@ -71,12 +76,7 @@ object app extends AndroidAppModule {
   )
 
   object test extends AndroidAppTests with TestModule.Junit4 {
-    def testFramework = "com.novocode.junit.JUnitFramework"
-
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"junit:junit:4.13.2"
-    )
-
+    def junit4Version = "4.13.2"
   }
 }
 
@@ -89,27 +89,27 @@ object app extends AndroidAppModule {
 //
 // ----
 // .
-//├── app
-//│   └── src
-//│       ├── main
-//│       │   ├── AndroidManifest.xml
-//│       │   ├── java/com/example/app/Calculator.java
-//│       │   └── res
-//│       │       └── values
-//│       │           ├── colors.xml
-//│       │           └── strings.xml
-//│       └── test/java/com/example/CalculatorUnitTest.java
-//├── lib
-//│   └── src
-//│       └── main
-//│           ├── AndroidManifest.xml
-//│       |   └── java/com/example/lib/Sum.java
-//|       |   └── res
-//|       |       └── values
-//|       |           ├── colors.xml
-//|       |           └── strings.xml
-//|       └── test/java/com/example/lib/SumUnitTest.java
-//└── build.mill
+// ├── app
+// │   └── src
+// │       ├── main
+// │       │   ├── AndroidManifest.xml
+// │       │   ├── java/com/example/app/Calculator.java
+// │       │   └── res
+// │       │       └── values
+// │       │           ├── colors.xml
+// │       │           └── strings.xml
+// │       └── test/java/com/example/CalculatorUnitTest.java
+// ├── lib
+// │   └── src
+// │       └── main
+// │           ├── AndroidManifest.xml
+// │       |   └── java/com/example/lib/Sum.java
+// |       |   └── res
+// |       |       └── values
+// |       |           ├── colors.xml
+// |       |           └── strings.xml
+// |       └── test/java/com/example/lib/SumUnitTest.java
+// └── build.mill
 // ----
 //
 

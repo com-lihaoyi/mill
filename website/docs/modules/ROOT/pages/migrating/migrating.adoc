@@ -260,7 +260,7 @@ comes from an external tool (e.g. third-party compilers, code-generators, linter
 
 2. For using third-party libraries in your build, these are usually published
    to Maven Central or some other package repository, in which case they are
-   easy to directly import and use in your custom tasks (see xref:extending/import-ivy-plugins.adoc[])
+   easy to directly import and use in your custom tasks (see xref:extending/import-mvn-plugins.adoc[])
 
 3. For more sophisticated integrations, e.g. if you need to dynamically compile
    and run JVM programs or build plugins as part of your build, you can do so via

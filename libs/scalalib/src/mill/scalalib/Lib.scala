@@ -58,7 +58,7 @@ object Lib {
    *
    * We do not bother breaking this out into the separate JvmWorker classpath,
    * because Coursier is already bundled with mill/Ammonite to support the
-   * `import $ivy` syntax.
+   * `//| mvnDeps:` syntax.
    */
   def resolveDependencies(
       repositories: Seq[Repository],

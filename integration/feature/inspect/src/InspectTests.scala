@@ -27,7 +27,7 @@ object InspectTests extends UtestIntegrationTestSuite {
 
       val inheritedMvnDeps = out("inspect").json.str
       assertGlobMatches(
-        """core.test.mvnDeps(build.mill:11)
+        """core.test.mvnDeps(build.mill:10)
           |    Overridden mvnDeps Docs!!!
           |
           |    Any ivy dependencies you want to add to this Module, in the format
@@ -42,7 +42,7 @@ object InspectTests extends UtestIntegrationTestSuite {
       assert(eval(("inspect", "core.task")).isSuccess)
       val task = out("inspect").json.str
       assertGlobMatches(
-        """core.task(build.mill:49)
+        """core.task(build.mill:48)
           |    Core Task Docz!
           |
           |Inputs:
@@ -109,6 +109,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    core.runMvnDeps
           |    core.bomMvnDeps
           |    core.depManagement
+          |    core.repositories
           |    core.checkGradleModules
           |""".stripMargin,
         mvnDepsTree
@@ -118,7 +119,7 @@ object InspectTests extends UtestIntegrationTestSuite {
       val theWorkerInspect = out("inspect").json.str
 
       assertGlobMatches(
-        """core.test.theWorker(build.mill:39)
+        """core.test.theWorker(build.mill:38)
           |    -> The worker <-
           |
           |    *The worker*
@@ -137,7 +138,7 @@ object InspectTests extends UtestIntegrationTestSuite {
       assert(basic.isSuccess)
       val basicInspect = out("inspect").json.str
       assertGlobMatches(
-        """basic(build.mill:26)
+        """basic(build.mill:25)
           |
           |Inherited Modules:""",
         basicInspect
@@ -147,7 +148,7 @@ object InspectTests extends UtestIntegrationTestSuite {
       val coreInspect = out("inspect").json.str
       assert(
         globMatches(
-          """core(build.mill:31)
+          """core(build.mill:30)
             |    The Core Module Docz!
             |
             |Inherited Modules:
@@ -166,7 +167,7 @@ object InspectTests extends UtestIntegrationTestSuite {
       val jtmInspect = out("inspect").json.str
       assert(
         globMatches(
-          """MyJavaTaskModule(build.mill:54)
+          """MyJavaTaskModule(build.mill:53)
             |
             |Inherited Modules:
             |...JavaModule...

@@ -1,14 +1,22 @@
 package mill.scalalib
 
-import mill.define.{TaskCtx, PathRef}
-import mill.api.{Result}
-import mill.define.{Command, Task, TaskModule}
-import mill.api.internal.{BspBuildTarget, BspModuleApi, TestReporter}
-import mill.scalalib.bsp.BspModule
-import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
-import mill.util.Jvm
 import mill.T
-import mill.api.internal.{TestModuleApi, BspBuildTarget}
+import mill.api.Result
+import mill.api.internal.BspBuildTarget
+import mill.api.internal.BspModuleApi
+import mill.api.internal.TestModuleApi
+import mill.api.internal.TestReporter
+import mill.define.Command
+import mill.define.PathRef
+import mill.define.Task
+import mill.define.TaskCtx
+import mill.define.TaskModule
+import mill.scalalib.bsp.BspModule
+import mill.testrunner.Framework
+import mill.testrunner.TestArgs
+import mill.testrunner.TestResult
+import mill.testrunner.TestRunner
+import mill.util.Jvm
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -26,7 +34,7 @@ trait TestModule
   def testClasspath: T[Seq[PathRef]] = Task { localRunClasspath() }
 
   /**
-   * The test framework to use.
+   * The test framework to use to discover and run run tests.
    *
    * For convenience, you can also mix-in one of these predefined traits:
    * - [[TestModule.Junit4]]
@@ -38,9 +46,14 @@ trait TestModule
    * - [[TestModule.Utest]]
    * - [[TestModule.Weaver]]
    * - [[TestModule.ZioTest]]
+   *
+   * Most of these provide additional `xxxVersion` tasks, to manage the test framework dependencies for you.
    */
   def testFramework: T[String]
 
+  /**
+   * Test classes (often called test suites) discovered by the configured [[testFramework]].
+   */
   def discoveredTestClasses: T[Seq[String]] = Task {
     val classes = if (jvmWorker().javaHome().isDefined) {
       Jvm.callProcess(
@@ -70,10 +83,9 @@ trait TestModule
    * results to the console.
    * @see [[testCached]]
    */
-  def testForked(args: String*): Command[(String, Seq[TestResult])] =
-    Task.Command {
-      testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
-    }
+  def testForked(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+    testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+  }
 
   def getTestEnvironmentVars(args: String*): Command[(String, String, String, Seq[String])] = {
     Task.Command {
@@ -270,36 +282,69 @@ object TestModule {
 
   /**
    * TestModule using TestNG Framework to run tests.
-   * You need to provide the testng dependency yourself.
+   * You can override the [[testngVersion]] task or provide the UTest-dependency yourself.
    */
   trait TestNg extends TestModule {
+
+    /** The TestNG version to use, or empty, if you want to provide the TestNG-dependency yourself. */
+    def testngVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++ Seq(
         mvn"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
-      )
+      ) ++
+        Seq(testngVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.testng:testng:${v.trim()}")
     }
   }
 
   /**
    * TestModule that uses JUnit 4 Framework to run tests.
-   * You may want to provide the junit dependency explicitly to use another version.
+   * You can override the [[junit4Version]] task or provide the JUnit 4-dependency yourself.
    */
   trait Junit4 extends TestModule {
+
+    /** The JUnit4 version to use, or empty, if you want to provide the Junit-dependency yourself. */
+    def junit4Version: T[String] = Task { "" }
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
-      super.mandatoryMvnDeps() ++ Seq(mvn"${mill.scalalib.api.Versions.sbtTestInterface}")
+      super.mandatoryMvnDeps() ++
+        Seq(
+          mvn"${mill.scalalib.api.Versions.sbtTestInterface}"
+        ) ++
+        Seq(junit4Version())
+          .filter(!_.isBlank())
+          .map(v => mvn"junit:junit:${v.trim()}")
     }
   }
 
   /**
    * TestModule that uses JUnit 5 Framework to run tests.
-   * You may want to provide the junit dependency explicitly to use another version.
+   * You can override the [[junitPlatformVersion]] and [[jupiterVersion]] task
+   * or provide the JUnit 5-dependencies yourself.
+   *
+   * See: https://junit.org/junit5/
    */
   trait Junit5 extends TestModule {
+
+    /** The JUnit 5 Platfrom version to use, or empty, if you want to provide the dependencies yourself. */
+    def junitPlatformVersion: T[String] = Task { "" }
+
+    /** The JUnit Jupiter version to use, or empty, if you want to provide the dependencie yourself. */
+    def jupiterVersion: T[String] = Task { "" }
+
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
+
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
-      super.mandatoryMvnDeps() ++ Seq(mvn"${mill.scalalib.api.Versions.jupiterInterface}")
+      super.mandatoryMvnDeps() ++
+        Seq(mvn"${mill.scalalib.api.Versions.jupiterInterface}") ++
+        Seq(junitPlatformVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.junit.platform:junit-platform-launcher:${v.trim()}") ++
+        Seq(jupiterVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.junit.jupiter:junit-jupiter-api:${v.trim()}")
     }
 
     private lazy val classesDir: Task[Option[os.Path]] = this match {
@@ -372,58 +417,153 @@ object TestModule {
 
   /**
    * TestModule that uses ScalaTest Framework to run tests.
-   * You need to provide the scalatest dependencies yourself.
+   * You can override the [[scalaTestVersion]] task or provide the Specs2-dependency yourself.
+   *
+   * See: https://www.scalatest.org
    */
   trait ScalaTest extends TestModule {
+
+    /** The ScalaTest version to use, or the empty string, if you want to provide the ScalaTest-dependency yourself. */
+    def scalaTestVersion: T[String] = Task { "" }
+
+    /**
+     * If non-empty, only the selected suites/specs will be added as dependencies.
+     * E.g. `Seq("funsuite", "freespec")` will result in the tho dependencies:
+     * `org.scalatest::scalatest-funsuite` and `org.scalatest::scalatest-freespec`.
+     *
+     * If empty (default), the full scalatest dependency is used.
+     *
+     * See also: https://www.scalatest.org/user_guide/selecting_a_style
+     */
+    def scalaTestStyles: T[Seq[String]] = Task { Seq.empty[String] }
     override def testFramework: T[String] = "org.scalatest.tools.Framework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(scalaTestVersion())
+          .filter(!_.isBlank())
+          .flatMap(v =>
+            scalaTestStyles() match {
+              case Seq() => Seq(
+                  // the full suite
+                  mvn"org.scalatest::scalatest::${v.trim()}"
+                )
+              case features => features.map { feature =>
+                  mvn"org.scalatest::scalatest-${feature}::${v.trim()}"
+                }
+            }
+          )
+    }
   }
 
   /**
    * TestModule that uses Specs2 Framework to run tests.
-   * You need to provide the specs2 dependencies yourself.
+   * You can override the [[specs2Version]] task or provide the Specs2-dependency yourself.
    */
   trait Specs2 extends ScalaModuleBase with TestModule {
+
+    /** The Specs2 version to use, or the empty string, if you want to provide the Specs2-dependency yourself. */
+    def specs2Version: T[String] = Task { "" }
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
     override def scalacOptions = Task {
       super.scalacOptions() ++ Seq("-Yrangepos")
+    }
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(specs2Version())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.specs2::specs2-core::${v.trim()}")
     }
   }
 
   /**
    * TestModule that uses UTest Framework to run tests.
-   * You need to provide the utest dependencies yourself.
+   * You can override the [[utestVersion]] task or provide the UTest-dependency yourself.
    */
   trait Utest extends TestModule {
+
+    /** The UTest version to use, or the empty string, if you want to provide the UTest-dependency yourself. */
+    def utestVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "utest.runner.Framework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(utestVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"com.lihaoyi::utest::${v.trim()}")
+    }
   }
 
   /**
    * TestModule that uses MUnit to run tests.
-   * You need to provide the munit dependencies yourself.
+   * You can override the [[munitVersion]] task or provide the MUnit-dependency yourself.
    */
   trait Munit extends TestModule {
+
+    /** The MUnit version to use, or the empty string, if you want to provide the MUnit-dependency yourself. */
+    def munitVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "munit.Framework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(munitVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.scalameta::munit::${v.trim()}")
+    }
   }
 
   /**
    * TestModule that uses Weaver to run tests.
-   * You need to provide the weaver dependencies yourself.
+   * You can override the [[weaverVersion]] task or provide the Weaver-dependency yourself.
    * https://github.com/disneystreaming/weaver-test
    */
   trait Weaver extends TestModule {
+
+    /** The Weaver version to use, or the empty string, if you want to provide the Weaver-dependency yourself. */
+    def weaverVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "weaver.framework.CatsEffect"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(weaverVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"com.disneystreaming::weaver-scalacheck::${v.trim()}")
+    }
   }
 
   /**
    * TestModule that uses ZIO Test Framework to run tests.
-   * You need to provide the zio-test dependencies yourself.
+   * You can override the [[zioTestVersion]] task or provide the Weaver-dependency yourself.
    */
   trait ZioTest extends TestModule {
+
+    /** The ZIO Test version to use, or the empty string, if you want to provide the ZIO Test-dependency yourself. */
+    def zioTestVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(zioTestVersion())
+          .filter(!_.isBlank())
+          .flatMap(v =>
+            Seq(
+              mvn"dev.zio::zio-test:${v.trim()}",
+              mvn"dev.zio::zio-test-sbt:${v.trim()}"
+            )
+          )
+    }
   }
 
+  /**
+   * TestModule that uses ScalaCheck Test Framework to run tests.
+   * You can override the [[scalaCheckVersion]] task or provide the dependency yourself.
+   */
   trait ScalaCheck extends TestModule {
+
+    /** The ScalaCheck version to use, or the empty string, if you want to provide the dependency yourself. */
+    def scalaCheckVersion: T[String] = Task { "" }
     override def testFramework: T[String] = "org.scalacheck.ScalaCheckFramework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(scalaCheckVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"org.scalacheck::scalacheck:${v.trim()}")
+    }
   }
 
   def handleResults(

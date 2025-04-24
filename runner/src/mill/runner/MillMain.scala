@@ -1,11 +1,11 @@
 package mill.runner
 
 import mill.{api, define}
-
 import java.io.{PipedInputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.Locale
+
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.internal.{BspServerResult, internal}
@@ -17,6 +17,8 @@ import mill.util.BuildInfo
 import mill.runner.meta.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}
 import java.lang.reflect.InvocationTargetException
+
+import scala.collection.immutable
 import scala.util.control.NonFatal
 import scala.util.Using
 import mill.server.Server
@@ -91,6 +93,7 @@ object MillMain {
       systemExit: Int => Nothing,
       serverDir: os.Path
   ): (Boolean, RunnerState) = {
+
     val streams = streams0
     mill.define.SystemStreams.withStreams(streams) {
       os.SubProcess.env.withValue(env) {
@@ -435,14 +438,37 @@ object MillMain {
     !(whitelistMatch || extraPlugins)
   }
 
+  def readVersionFile(file: os.Path): Option[String] = file match {
+    case f if os.exists(f) => os.read.lines(f).find(l => l.trim().nonEmpty)
+    case _ => None
+  }
+
+  private val usingMillVersionPattern = "//[|] +mill-version: +([^ ]+) *$".r
+
+  def readUsingMillVersionFile(file: os.Path): Option[String] = file match {
+    case f if os.exists(f) =>
+      os.read.lines(f)
+        .takeWhile(_.startsWith("//|"))
+        .collectFirst {
+          case usingMillVersionPattern(version) => version
+        }
+    case _ => None
+  }
+
+  def readBestMillVersion(projectDir: os.Path): Option[(os.Path, String)] = {
+    val versionFiles = Seq(".mill-version", ".config/mill-version")
+      .map(f => (projectDir / os.RelPath(f), readVersionFile))
+    val usingFiles = mill.constants.CodeGenConstants.rootBuildFileNames.asScala
+      .map(f => (projectDir / os.RelPath(f), readUsingMillVersionFile))
+
+    (versionFiles ++ usingFiles)
+      .foldLeft(None: Option[(os.Path, String)]) {
+        case (l, (file, readVersion)) => l.orElse(readVersion(file).map(version => (file, version)))
+      }
+  }
+
   def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream): Unit = {
-    Seq(
-      projectDir / ".config/mill-version",
-      projectDir / ".mill-version"
-    ).collectFirst {
-      case f if os.exists(f) =>
-        (f, os.read.lines(f).find(l => l.trim().nonEmpty).get)
-    }.foreach { case (file, version) =>
+    readBestMillVersion(projectDir).foreach { case (file, version) =>
       if (BuildInfo.millVersion != version.stripSuffix("-native")) {
         val msg =
           s"""Mill version ${BuildInfo.millVersion} is different than configured for this directory!

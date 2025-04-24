@@ -8,7 +8,6 @@
 // Usage of sub-folder `package.mill` files is enabled by the magic import `import $packages._`
 
 package build
-import $packages._
 
 import mill._, scalalib._
 
