@@ -55,9 +55,22 @@ package build
 
 * `build.mill` files are now compiled with a minimized classpath containing only
   the necessary APIs, without all of Mill's internal code on the classpath
-  ({link-pr}/4879[#4879]). The `.mill` file classpath has been consolidated under
-  the `mill-libs` artifact ({link-pr}/4967[#4967]), which should be used when
-  building plugins, rather than the `mill-dist` we were using before.
+  ({link-pr}/4879[#4879]).
+
+** The `.mill` file classpath has been consolidated under
+   the `mill-libs` artifact ({link-pr}/4967[#4967]), which should be used when
+   building plugins, rather than the `mill-dist` we were using before. All the "library"
+   code Mill provides to integrate language toolchains now has `libs-` in the artifact name,
+   e.g. `mill-libs-scalalib`, `mill-libs-kotlinlib`, etc.
+
+** `mill.resolve`, `mill.runner`, `mill.eval`, etc. are no longer on the classpath
+
+** `mill.api`, `mill.define` and `mill.util` have been re-organized. `mill.api` now contains
+   `build.mill` code that has zero third-party dependencies, `mill.define` contains the code used
+   in `build.mill` that has dependencies, and `mill.util` contains code used in `build.mill`
+   that is also used in other parts of Mill. Many classes have been moved around, so if your
+   imports no longer compile you may need to try the other two packages to see where the
+   class ended up.
 
 * `Jvm.*` methods to spawn subprocesses and classloaders have been consolidated from 20+ helpers
   into 4 main functions ({link-pr}/4456[#4456])
@@ -66,11 +79,15 @@ package build
   `exclusive = true` ({link-pr}/3717[#3717])
 
 * `Task.Source`, `Task.Sources`, and `Task.Input` are no longer allowed to have upstream
-  tasks ({link-pr}/4524[#4524])
+  tasks ({link-pr}/4524[#4524]). You can generally replace cases like
+  `Task.Sources{ super.sources() ++ Seq(PathRef(...)) }` with
+  `def customSources =  Task.Sources()` and `def sources = Task { super.sources() ++ customSources() }`
 
 * `Task` bodies are no longer allowed to write files to disk outside of their `Task.dest`
-  folder ({link-pr}/4635[#4635]), except for `Task.Command`s which are expected to be
-  side-effecting
+  folder ({link-pr}/4635[#4635]), except for ``Task.Command``s which are expected to be
+  side-effecting. You can disable this check with `os.checker.withValue(os.Checker.Nop) {...}`
+  if you have some special reason you need to write a file somewhere and you are sure it is
+  safe to do so.
 
 * Mill's bootstrap scripts now use the native launcher by the default, except for
   Windows-ARM which is not supported by the Graal tooling we used to build these native
