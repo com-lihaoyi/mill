@@ -4,7 +4,6 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
 import os.Path
-import mill.integration.GenIdeaUtils.assertFileContainsLines
 import mill.integration.GenIdeaUtils.assertIdeaXmlResourceMatchesFile
 
 object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
