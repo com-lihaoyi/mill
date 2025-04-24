@@ -58,14 +58,6 @@ package build
   the `mill-libs` artifact ({link-pr}/4967[#4967]), which should be used when
   building plugins, rather than the `mill-dist` we were using before.
 
-* Mill's bootstrap scripts now use the native launcher by the default, except for
-  Windows-ARM which is not supported by the Graal tooling we used to build these native
-  image. To use the JVM-based launcher, you need to explicitly use a `-jvm` suffix in
-  your `.mill-version` file e.g. `1.0.0-jvm`
-
-* Mill's native launcher is able to run on systems without a JVM installed, and will
-  download an appropriate JVM distribution on demand if necessary ({link-pr}/4597[#4597])
-
 * `Jvm.*` methods to spawn subprocesses and classloaders have been consolidated from 20+ helpers
   into 4 main functions
 
@@ -78,6 +70,14 @@ package build
 * `Task` bodies are no longer allowed to write files to disk outside of their `Task.dest`
   folder ({link-pr}/4635[#4635]), except for `Task.Command`s which are expected to be
   side-effecting
+
+* Mill's bootstrap scripts now use the native launcher by the default, except for
+  Windows-ARM which is not supported by the Graal tooling we used to build these native
+  image. To use the JVM-based launcher, you need to explicitly use a `-jvm` suffix in
+  your `.mill-version` file e.g. `1.0.0-jvm`
+
+* Mill's native launcher is able to run on systems without a JVM installed, and will
+  download an appropriate JVM distribution on demand if necessary ({link-pr}/4597[#4597])
 
 * `RootModule` and `Cross` can now be applied to the same module ({link-pr}/4593[#4593])
 
