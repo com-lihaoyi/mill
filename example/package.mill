@@ -280,10 +280,13 @@ $title
 [source,scala,subs="attributes,verbatim"]
 ----
 
-${if(seenFrontMatter) "" else {
-  seenFrontMatter = true
-  frontMatter
-}}
+${
+                  if (seenFrontMatter) ""
+                  else {
+                    seenFrontMatter = true
+                    frontMatter
+                  }
+                }
 
 $txt
 ----

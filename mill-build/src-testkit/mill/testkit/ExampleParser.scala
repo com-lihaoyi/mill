@@ -22,7 +22,8 @@ object ExampleParser {
         case s"*/" => ("scala", None)
         case line @ s"//|$_" if states.last == "yaml" => ("yaml", Some(line))
         case s"//$rest" if !rest.startsWith("|") => ("comment", Some(rest.stripPrefix(" ")))
-        case l => (if (Seq("comment", "yaml").contains(states.last)) "scala" else states.last, Some(l))
+        case l =>
+          (if (Seq("comment", "yaml").contains(states.last)) "scala" else states.last, Some(l))
       }
 
       if (newState != states.last) {
