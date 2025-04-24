@@ -22,7 +22,7 @@ rem this script downloads a binary file from Maven Central or Github Pages (this
 rem into a cache location (%USERPROFILE%\.mill\download).
 rem
 rem Mill Project URL: https://github.com/com-lihaoyi/mill
-rem Script Version: 0.13.0-M1-13-935205
+rem Script Version: 0.13.0-M2-1-613d98
 rem
 rem If you want to improve this script, please also contribute your changes back!
 rem This script was generated from: scripts/src/mill.bat

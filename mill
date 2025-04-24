@@ -22,7 +22,7 @@
 # into a cache location (~/.cache/mill/download).
 #
 # Mill Project URL: https://github.com/com-lihaoyi/mill
-# Script Version: 0.13.0-M1-13-935205
+# Script Version: 0.13.0-M2-1-613d98
 #
 # If you want to improve this script, please also contribute your changes back!
 # This script was generated from: scripts/src/mill.sh
