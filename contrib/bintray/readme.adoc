@@ -9,7 +9,8 @@ Make sure your module extends from `BintrayPublishModule`:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-bintray:`
+//| mvnDeps: ["com.lihaoyi::mill-contrib-bintray:$MILL_VERSION"]
+
 import mill.contrib.bintray.BintrayPublishModule
 
 object mymodule extends BintrayPublishModule {
