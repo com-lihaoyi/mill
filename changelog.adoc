@@ -51,6 +51,7 @@ package build
 * `import $file` has been removed and replaced by direct references to the
   definitions ({link-pr}/4462[#4462]), e.g. if you have a `package build.foo.bar`
   containing `def qux` you can refer to the definition via `build.foo.bar.qux`
+  or `import build.foo.bar.qux` without needing the `import $file`
 
 * `build.mill` files are now compiled with a minimized classpath containing only
   the necessary APIs, without all of Mill's internal code on the classpath
