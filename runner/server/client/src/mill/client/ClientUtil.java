@@ -102,7 +102,8 @@ public class ClientUtil {
    *
    * @return The non-empty lines of the files or an empty list, if the file does not exist
    */
-  public static List<String> readOptsFileLines(final Path file, Map<String, String> env) throws Exception {
+  public static List<String> readOptsFileLines(final Path file, Map<String, String> env)
+      throws Exception {
     final List<String> vmOptions = new LinkedList<>();
     try (final Scanner sc = new Scanner(file.toFile(), StandardCharsets.UTF_8)) {
       while (sc.hasNextLine()) {

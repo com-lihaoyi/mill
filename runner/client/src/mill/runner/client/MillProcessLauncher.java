@@ -104,7 +104,8 @@ public class MillProcessLauncher {
     env.put("MILL_VERSION", mill.constants.BuildInfo.millVersion);
     env.put("MILL_BIN_PLATFORM", mill.constants.BuildInfo.millBinPlatform);
 
-    if (Files.exists(configFile)) return ClientUtil.readOptsFileLines(configFile.toAbsolutePath(), env);
+    if (Files.exists(configFile))
+      return ClientUtil.readOptsFileLines(configFile.toAbsolutePath(), env);
     else {
       for (String rootBuildFileName : CodeGenConstants.rootBuildFileNames) {
         Path buildFile = Paths.get(rootBuildFileName);
