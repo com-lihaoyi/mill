@@ -128,7 +128,7 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.18"
   val ammoniteVersion = "3.0.2"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.7.1"
+  val asmTree = mvn"org.ow2.asm:asm-tree:9.8"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.179"
@@ -194,7 +194,7 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   def scalaXml = mvn"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.12.4"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   val upickle = mvn"com.lihaoyi::upickle:4.1.0"
