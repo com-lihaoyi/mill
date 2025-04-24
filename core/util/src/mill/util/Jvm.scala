@@ -27,6 +27,7 @@ import mill.define.{PathRef, TaskCtx}
 import scala.collection.mutable
 import scala.util.Properties.isWin
 import scala.util.chaining.scalaUtilChainingOps
+import coursier.cache.loggers.RefreshLogger
 
 object Jvm {
 
@@ -487,11 +488,9 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
   ) =
     FileCache[Task]()
+      .withLogger(RefreshLogger.create(RefreshLogger.defaultDisplay(fallbackMode = true)))
       .pipe { cache =>
         coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
-      }
-      .pipe { cache =>
-        ctx.fold(cache)(c => cache.withLogger(new CoursierTickerResolutionLogger(c)))
       }
       .pipe { cache =>
         if (ctx.fold(false)(_.offline)) cache.withCachePolicies(Seq(CachePolicy.LocalOnly))
