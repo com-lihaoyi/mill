@@ -6,7 +6,7 @@ import scalalib._
 import define.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.define.TaskModule
-import mill.api.Result
+import mill.api.{Result,experimental}
 import mill.scalalib.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
   defaultConnectTimeout,
@@ -21,6 +21,7 @@ import mill.scalalib.publish.SonatypeHelpers.{
   USERNAME_ENV_VARIABLE_NAME
 }
 
+@experimental
 trait SonatypeCentralPublishModule extends PublishModule {
   def sonatypeCentralGpgArgs: T[String] = Task {
     PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE")).mkString(",")
@@ -75,7 +76,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
 
   def publishAll(
       publishArtifacts: mill.util.Tasks[PublishModule.PublishData] =
-        Tasks.resolveMainDefault("__.publishArtifacts"),
+        Tasks.resolveMainDefault("__:PublishModule.publishArtifacts"),
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       shouldRelease: Boolean = defaultShouldRelease,
