@@ -4,7 +4,7 @@ import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
-import mill.define.{Task,TaskCtx}
+import mill.define.{Task, TaskCtx}
 import mill.define.{PathRef}
 import mill.api.{Result}
 import mill.util.Jvm

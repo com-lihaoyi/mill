@@ -2,7 +2,7 @@ package mill.scalalib.publish
 
 import mill.define.{TaskCtx, PathRef}
 import mill.api.{Logger}
-import mill.api.internal.{CompileProblemReporter,TestReporter}
+import mill.api.internal.{CompileProblemReporter, TestReporter}
 import mill.internal.DummyLogger
 import os.Path
 import utest.{TestSuite, Tests, assert, test}
