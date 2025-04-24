@@ -120,6 +120,7 @@ trait AndroidModule extends JavaModule {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
 
+  override def checkGradleModules: T[Boolean] = true
   override def resolutionParams: Task[ResolutionParams] = Task.Anon {
     super.resolutionParams().addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" ->

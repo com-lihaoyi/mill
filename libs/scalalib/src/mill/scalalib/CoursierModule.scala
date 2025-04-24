@@ -23,7 +23,10 @@ import scala.concurrent.duration.Duration
  */
 trait CoursierModule extends mill.define.Module {
 
-  def checkGradleModules: T[Boolean] = true
+  /**
+   * Whether to enable Gradle Module support when fetching dependencies
+   */
+  def checkGradleModules: T[Boolean] = false
 
   /**
    * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)

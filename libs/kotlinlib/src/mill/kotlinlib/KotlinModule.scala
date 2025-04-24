@@ -80,6 +80,7 @@ trait KotlinModule extends JavaModule { outer =>
 
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
+  override def checkGradleModules: T[Boolean] = true
   override def resolutionParams: Task[ResolutionParams] = Task.Anon {
     super.resolutionParams().addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm")
