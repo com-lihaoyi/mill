@@ -167,7 +167,7 @@ object MillMain {
             val bspInstallModeJobCountOpt =
               Option.when(
                 !config.bsp.value &&
-                  config.leftoverArgs.value.headOption.contains("mill.bsp.BSP/install")
+                  config.leftoverArgs.value.headOption.exists(bspInstallAliases.contains)
               ) {
                 config.leftoverArgs.value.tail match {
                   case Seq() => BSP.defaultJobCount
@@ -175,13 +175,13 @@ object MillMain {
                     val asIntOpt = value.toIntOption
                     asIntOpt.getOrElse {
                       streams.err.println(
-                        "Warning: ignoring --jobs value passed to mill.bsp.BSP/install"
+                        s"Warning: ignoring --jobs value passed to ${config.leftoverArgs.value.head}"
                       )
                       BSP.defaultJobCount
                     }
                   case other =>
                     streams.err.println(
-                      "Warning: ignoring leftover arguments passed to mill.bsp.BSP/install"
+                      s"Warning: ignoring leftover arguments passed to ${config.leftoverArgs.value.head}"
                     )
                     BSP.defaultJobCount
                 }
@@ -517,4 +517,9 @@ object MillMain {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
+
+  private val bspInstallAliases = Seq(
+    "mill.bsp.BSP/install",
+    "mill.bsp/install"
+  )
 }
