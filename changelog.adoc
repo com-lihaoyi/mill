@@ -99,6 +99,10 @@ package build
 
 * `RootModule` and `Cross` can now be applied to the same module ({link-pr}/4593[#4593])
 
+* Mill now supports a `--offline` option to run in offline mode. 
+  Custom tasks that need to download remote resources should respect that mode via
+  the `Task.offline` API. ({link-pr}/4914[#4914])
+  
 [#0-12-10]
 === 0.12.10 - 2025-04-01
 :version: 0.12.10
