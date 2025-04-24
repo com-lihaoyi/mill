@@ -20,11 +20,7 @@ object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
       eval("mill.idea/", check = true, stdout = os.Inherit, stderr = os.Inherit)
 
       for (resource <- resources)
-        if (resource.last.endsWith(".lines")) {
-          assertFileContainsLines(tester.workspaceSourcePath, workspacePath, resource, ".lines")
-        } else {
-          assertIdeaXmlResourceMatchesFile(tester.workspaceSourcePath, workspacePath, resource)
-        }
+        assertIdeaXmlResourceMatchesFile(tester.workspaceSourcePath, workspacePath, resource)
     }
   }
 }
