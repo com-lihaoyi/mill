@@ -10,7 +10,7 @@ for `ScalaModule`.
 
 == Adding Ivy Dependencies
 
-include::partial$example/scalalib/dependencies/1-ivy-deps.adoc[]
+include::partial$example/scalalib/dependencies/1-mvn-deps.adoc[]
 
 == Runtime and Compile-time Dependencies
 

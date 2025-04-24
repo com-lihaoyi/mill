@@ -5,8 +5,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ClientUtil {
   // use methods instead of constants to avoid inlining by compiler
@@ -104,15 +102,15 @@ public class ClientUtil {
    *
    * @return The non-empty lines of the files or an empty list, if the file does not exist
    */
-  public static List<String> readOptsFileLines(final Path file) throws Exception {
+  public static List<String> readOptsFileLines(final Path file, Map<String, String> env)
+      throws Exception {
     final List<String> vmOptions = new LinkedList<>();
     try (final Scanner sc = new Scanner(file.toFile(), StandardCharsets.UTF_8)) {
-      final Map<String, String> env = System.getenv();
       while (sc.hasNextLine()) {
         String arg = sc.nextLine();
         String trimmed = arg.trim();
         if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
-          vmOptions.add(interpolateEnvVars(arg, env));
+          vmOptions.add(mill.constants.Util.interpolateEnvVars(arg, env));
         }
       }
     } catch (FileNotFoundException e) {
@@ -120,36 +118,4 @@ public class ClientUtil {
     }
     return vmOptions;
   }
-
-  /**
-   * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
-   * Missing vars will be replaced by the empty string.
-   */
-  public static String interpolateEnvVars(String input, Map<String, String> env) throws Exception {
-    Matcher matcher = envInterpolatorPattern.matcher(input);
-    // StringBuilder to store the result after replacing
-    StringBuffer result = new StringBuffer();
-
-    while (matcher.find()) {
-      String match = matcher.group(1);
-      if (match.equals("$")) {
-        matcher.appendReplacement(result, "\\$");
-      } else {
-        String envVarValue =
-            // Hardcode support for PWD because the graal native launcher has it set to the
-            // working dir of the enclosing process, when we want it to be set to the working
-            // dir of the current process
-            match.equals("PWD")
-                ? new java.io.File(".").getAbsoluteFile().getCanonicalPath()
-                : env.containsKey(match) ? env.get(match) : "";
-        matcher.appendReplacement(result, envVarValue);
-      }
-    }
-
-    matcher.appendTail(result); // Append the remaining part of the string
-    return result.toString();
-  }
-
-  private static Pattern envInterpolatorPattern =
-      Pattern.compile("\\$\\{(\\$|[A-Z_][A-Z0-9_]*)\\}");
 }
