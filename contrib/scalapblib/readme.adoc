@@ -10,8 +10,9 @@ This creates a Scala module which compiles `.proto` files in the `protobuf` fold
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-scalapblib:`
+
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
@@ -56,8 +57,9 @@ If you'd like to configure the https://scalapb.github.io/docs/scalapbc#passing-g
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-scalapblib:`
+
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
@@ -72,8 +74,9 @@ If you'd like to pass additional arguments to the ScalaPB compiler directly, you
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
+
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {

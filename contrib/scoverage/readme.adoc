@@ -14,8 +14,9 @@ module. Additionally, you must define a submodule that extends the
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
+
 import mill.contrib.scoverage.ScoverageModule
 
 object foo extends ScoverageModule  {

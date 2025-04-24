@@ -1,9 +1,10 @@
-package build
-import mill._, javalib._
 //| mvnDeps:
 //| - org.codehaus.groovy:groovy:3.0.9
 //| - org.codehaus.groovy:groovy-ant:3.0.9
 //| - ant:ant-optional:1.5.3-1
+package build
+
+import mill._, javalib._
 
 // TODO:
 //   testsuite-shading
