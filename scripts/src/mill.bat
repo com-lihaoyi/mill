@@ -6,6 +6,7 @@ rem This script determines the Mill version to use by trying these sources
 rem   - env-variable `MILL_VERSION`
 rem   - local file `.mill-version`
 rem   - local file `.config/mill-version`
+rem   - `mill-version` from YAML fronmatter of current buildfile
 rem   - if accessible, find the latest stable version available on Maven Central ({{{ mill-maven-url }}})
 rem   - env-variable `DEFAULT_MILL_VERSION`
 rem
