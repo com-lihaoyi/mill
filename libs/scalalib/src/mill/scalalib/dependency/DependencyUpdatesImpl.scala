@@ -1,6 +1,5 @@
 package mill.scalalib.dependency
 
-import mill.api.TaskCtx
 import mill.define.*
 import mill.scalalib.dependency.updates.{
   DependencyUpdates,

@@ -2,25 +2,28 @@ package mill.scalalib.publish
 
 import mill.define.{TaskCtx, PathRef}
 import mill.api.{Logger}
+import mill.api.internal.{CompileProblemReporter,TestReporter}
 import mill.internal.DummyLogger
 import os.Path
 import utest.{TestSuite, Tests, assert, test}
 
 object LocalM2PublisherTests extends TestSuite {
 
-  class DummyCtx extends Ctx {
+  class DummyCtx extends TaskCtx {
     override def log: Logger = DummyLogger
     // stubs
     override def arg[T](index: Int): T = ???
     override def args: IndexedSeq[?] = ???
-    override def reporter: Int => Option[mill.api.CompileProblemReporter] = ???
+    override def reporter: Int => Option[CompileProblemReporter] = ???
     override def systemExit: Int => Nothing = ???
-    override def testReporter: mill.api.TestReporter = ???
+    override def testReporter: TestReporter = ???
     override def dest: os.Path = ???
     override def env: Map[String, String] = ???
-    override def fork: mill.api.Ctx.Fork.Api = ???
+    override def fork: TaskCtx.Fork.Api = ???
     override def jobs: Int = ???
     override def workspace: Path = ???
+    override def offline: Boolean = ???
+    override def fail(msg: String): Nothing = ???
   }
 
   override def tests: Tests = Tests {

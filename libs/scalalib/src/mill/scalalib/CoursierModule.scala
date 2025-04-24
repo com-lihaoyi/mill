@@ -4,7 +4,7 @@ import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
-import mill.define.Task
+import mill.define.{Task,TaskCtx}
 import mill.define.{PathRef}
 import mill.api.{Result}
 import mill.util.Jvm
@@ -194,7 +194,7 @@ object CoursierModule {
       bind: Dep => BoundDep,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[mill.api.Ctx] = None,
+      ctx: Option[TaskCtx] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
       ] = None,
