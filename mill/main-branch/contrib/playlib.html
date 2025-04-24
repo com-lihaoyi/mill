@@ -735,9 +735,11 @@ Twirl versions. You also need to define your own test object which extends the p
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object core extends PlayModule {
     // config
@@ -822,9 +824,11 @@ added (the actual version depends on the version of Play you are pulling <code>2
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object core extends PlayApiModule {
     // config
@@ -891,9 +895,11 @@ like in the following example build:</p>
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
+import mill.playlib._
 
 object core extends PlayApiModule {
     // config
@@ -961,9 +967,11 @@ your directory layout into multiple subdirectories or by using mill’s nested m
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
+import mill.playlib._
 
 object core extends PlayModule {
     // config
@@ -1004,9 +1012,11 @@ object core extends PlayModule {
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object build extends RootModule with PlayModule {
  // config

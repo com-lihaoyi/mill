@@ -674,8 +674,9 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $ivy.`com.lihaoyi::mill-contrib-sonatypecentral:`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-sonatypecentral:$MILL_VERSION&quot;]
+package build
+
 import mill.contrib.sonatypecentral.SonatypeCentralPublishModule
 
 object mymodule extends SonatypeCentralPublishModule {

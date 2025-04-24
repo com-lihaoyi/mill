@@ -674,7 +674,8 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::mill-contrib-bintray:`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-bintray:$MILL_VERSION&quot;]
+
 import mill.contrib.bintray.BintrayPublishModule
 
 object mymodule extends BintrayPublishModule {
