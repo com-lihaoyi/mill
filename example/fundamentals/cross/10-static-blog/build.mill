@@ -1,11 +1,13 @@
+//| mvnDeps:
+//| - com.lihaoyi::scalatags:0.13.1
+//| - com.atlassian.commonmark:commonmark:0.13.1
+
 // The following example demonstrates a use case: using cross modules to
 // turn files on disk into blog posts. To begin with, we xref:extending/import-mvn-plugins.adoc[import $ivy]
 // two third-party libraries - Commonmark and Scalatags - to deal with Markdown parsing and
 // HTML generation respectively:
 package build
-//| mvnDeps:
-//| - com.lihaoyi::scalatags:0.13.1
-//| - com.atlassian.commonmark:commonmark:0.13.1
+
 import scalatags.Text.all._
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
