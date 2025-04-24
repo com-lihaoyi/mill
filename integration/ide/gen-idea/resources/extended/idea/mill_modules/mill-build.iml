@@ -5,7 +5,42 @@
         <content url="file://$MODULE_DIR$/../..">
             <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/generatedSources.dest" isTestSource="false" generated="true"/>
             <sourceFolder url="file://$MODULE_DIR$/../../build.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../contrib/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../core/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../dist/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../example/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../integration/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/package.mill" isTestSource="false"/>
             <sourceFolder url="file://$MODULE_DIR$/../../mill-build/src" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../mill-build/src-testkit" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../runner/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../scripts/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../testkit/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../website/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../core/api/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../core/constants/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../core/define/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../core/eval/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../core/exec/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../core/internal/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../core/resolve/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../core/util/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/androidlib/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/graphviz/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/idea/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/init/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/javascriptlib/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/kotlinlib/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/main/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/pythonlib/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/scalajslib/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/scalalib/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/scalanativelib/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../libs/testrunner/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../runner/bsp/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../runner/codesig/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../runner/server/package.mill" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../runner/server/client/package.mill" isTestSource="false"/>
             <sourceFolder url="file://$MODULE_DIR$/../../mill-build/resources" type="java-resource"/>
         </content>
         <orderEntry type="inheritedJdk"/>
@@ -20,7 +55,9 @@
         <orderEntry type="library" name="commons-compress-1.26.2.jar" level="project"/>
         <orderEntry type="library" name="commons-io-2.18.0.jar" level="project"/>
         <orderEntry type="library" name="commons-lang3-3.16.0.jar" level="project"/>
+        <orderEntry type="library" name="commons-logging-1.0.4.jar" level="project"/>
         <orderEntry type="library" name="concurrent-reference-hash-map-1.1.0.jar" level="project"/>
+        <orderEntry type="library" name="config-1.4.3.jar" level="project"/>
         <orderEntry type="library" name="config_2.13-1.1.3.jar" level="project"/>
         <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M11.jar" level="project"/>
         <orderEntry type="library" name="coursier-core_2.13-2.1.25-M11.jar" level="project"/>
@@ -36,28 +73,37 @@
         <orderEntry type="library" name="geny_3-1.1.1.jar" level="project"/>
         <orderEntry type="library" name="graphviz-java-0.18.1.jar" level="project"/>
         <orderEntry type="library" name="graphviz-java-min-deps-0.18.1.jar" level="project"/>
-        <orderEntry type="library" name="hamcrest-core-1.3.jar" level="project"/>
+        <orderEntry type="library" name="htmlcleaner-2.29.jar" level="project"/>
         <orderEntry type="library" name="interface-1.0.29-M1.jar" level="project"/>
         <orderEntry type="library" name="is-terminal-0.1.2.jar" level="project"/>
+        <orderEntry type="library" name="j2v8_linux_x86_64-4.6.0.jar" level="project"/>
         <orderEntry type="library" name="jansi-2.4.1.jar" level="project"/>
         <orderEntry type="library" name="jarjar-1.14.1.jar" level="project"/>
         <orderEntry type="library" name="jarjar-abrams-core_2.13-1.14.1.jar" level="project"/>
         <orderEntry type="library" name="javax.inject-1.jar" level="project"/>
+        <orderEntry type="library" name="javet-4.0.0.jar" level="project"/>
+        <orderEntry type="library" name="javet-linux-arm64-4.0.0.jar" level="project"/>
+        <orderEntry type="library" name="javet-macos-4.0.0.jar" level="project"/>
         <orderEntry type="library" name="jcl-over-slf4j-1.7.30.jar" level="project"/>
+        <orderEntry type="library" name="jdom2-2.0.6.1.jar" level="project"/>
         <orderEntry type="library" name="jgrapht-core-1.4.0.jar" level="project"/>
         <orderEntry type="library" name="jheaps-0.11.jar" level="project"/>
         <orderEntry type="library" name="jline-3.28.0.jar" level="project"/>
         <orderEntry type="library" name="jline-native-3.29.0.jar" level="project"/>
         <orderEntry type="library" name="jna-5.17.0.jar" level="project"/>
         <orderEntry type="library" name="jna-platform-5.16.0.jar" level="project"/>
+<<<<<<< HEAD
         <orderEntry type="library" name="jsoniter-scala-core_2.13-2.13.39.jar" level="project"/>
+=======
+        <orderEntry type="library" name="jsoniter-scala-core_2.13-2.13.5.2.jar" level="project"/>
+        <orderEntry type="library" name="jsoup-1.18.1.jar" level="project"/>
+>>>>>>> 3327bc64c (update mill-build.iml)
         <orderEntry type="library" name="jsr305-3.0.2.jar" level="project"/>
         <orderEntry type="library" name="jul-to-slf4j-1.7.30.jar" level="project"/>
-        <orderEntry type="library" name="junit-4.13.2.jar" level="project"/>
-        <orderEntry type="library" name="junit-interface-0.7.29.jar" level="project"/>
         <orderEntry type="library" name="logback-classic-1.5.17.jar" level="project"/>
         <orderEntry type="library" name="logback-core-1.5.17.jar" level="project"/>
         <orderEntry type="library" name="mainargs_3-0.7.6.jar" level="project"/>
+<<<<<<< HEAD
         <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>
         <orderEntry type="library" name="mill-core-define_3.jar" level="project"/>
@@ -97,11 +143,15 @@
         <orderEntry type="library" name="scala-collection-compat_3-2.12.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala-library-2.13.12.jar" level="project"/>
         <orderEntry type="library" name="scala-library-2.13.16.jar" level="project"/>
+        <orderEntry type="library" name="scala-parallel-collections_2.13-1.1.0.jar" level="project"/>
         <orderEntry type="library" name="scala-reflect-2.13.15.jar" level="project"/>
         <orderEntry type="library" name="scala-xml_2.13-2.3.0.jar" level="project"/>
         <orderEntry type="library" name="scala-xml_3-2.3.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
         <orderEntry type="library" name="scala3-library_3-3.6.4.jar" level="project"/>
+        <orderEntry type="library" name="scalafmt-dynamic_2.13-3.8.5.jar" level="project"/>
+        <orderEntry type="library" name="scalafmt-interfaces-3.8.5.jar" level="project"/>
+        <orderEntry type="library" name="scalafmt-sysops_2.13-3.8.5.jar" level="project"/>
         <orderEntry type="library" name="scalaparse_3-3.1.1.jar" level="project"/>
         <orderEntry type="library" name="slf4j-api-2.0.17.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-2.9.jar" level="project"/>
@@ -115,9 +165,13 @@
         <orderEntry type="library" name="upickle-implicits_3-4.1.0.jar" level="project"/>
         <orderEntry type="library" name="upickle_3-4.1.0.jar" level="project"/>
         <orderEntry type="library" name="versions_2.13-0.5.1.jar" level="project"/>
+        <orderEntry type="library" name="viz.js-graphviz-java-2.1.3.jar" level="project"/>
         <orderEntry type="library" name="windows-ansi-0.0.6.jar" level="project"/>
         <orderEntry type="library" name="windows-jni-utils-0.3.3.jar" level="project"/>
         <orderEntry type="library" name="xbean-reflect-3.7.jar" level="project"/>
+        <orderEntry type="library" name="xml-apis-1.4.01.jar" level="project"/>
+        <orderEntry type="library" name="xml-apis-ext-1.3.04.jar" level="project"/>
+        <orderEntry type="library" name="xmlgraphics-commons-2.10.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xz-1.9.jar" level="project"/>
         <orderEntry type="library" name="zstd-jni-1.5.7-2.jar" level="project"/>
     </component>
