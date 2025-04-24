@@ -7,6 +7,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Util {
 
@@ -70,5 +73,49 @@ public class Util {
    */
   public static boolean hasConsole() {
     return hasConsole0;
+  }
+
+  public static String readYamlHeader(java.nio.file.Path buildFile) throws java.io.IOException {
+    java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
+    String yamlString = lines.stream()
+        .filter(line -> line.startsWith("//|"))
+        .map(line -> line.substring(4)) // Remove the `//|` prefix
+        .collect(java.util.stream.Collectors.joining("\n"));
+
+    return yamlString;
+  }
+
+  private static String envInterpolatorPattern0 = "(\\$|[A-Z_][A-Z0-9_]*)";
+  private static Pattern envInterpolatorPattern =
+      Pattern.compile("\\$\\{" + envInterpolatorPattern0 + "\\}|\\$" + envInterpolatorPattern0);
+
+  /**
+   * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
+   * Missing vars will be replaced by the empty string.
+   */
+  public static String interpolateEnvVars(String input, Map<String, String> env0) {
+    Matcher matcher = envInterpolatorPattern.matcher(input);
+    // StringBuilder to store the result after replacing
+    StringBuffer result = new StringBuffer();
+
+    Map<String, String> env = new java.util.HashMap<>();
+    env.putAll(env0);
+
+    env.put("MILL_VERSION", mill.constants.BuildInfo.millVersion);
+    while (matcher.find()) {
+      String match = matcher.group(1);
+      if (match == null) match = matcher.group(2);
+      if (match.equals("$")) {
+        matcher.appendReplacement(result, "\\$");
+      } else {
+        String envVarValue;
+        mill.constants.DebugLog.println("MATCH " + match);
+        envVarValue = env.containsKey(match) ? env.get(match) : "";
+        matcher.appendReplacement(result, envVarValue);
+      }
+    }
+
+    matcher.appendTail(result); // Append the remaining part of the string
+    return result.toString();
   }
 }

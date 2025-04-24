@@ -83,12 +83,13 @@ class MillBuildBootstrap(
 
   def evaluateRec(depth: Int): RunnerState = {
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
+    val currentRoot = recRoot(projectRoot, depth)
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
     val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
-    val nestedState: RunnerState =
+    val (nestedState, headerDataOpt) =
       if (depth == 0) {
         // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
         // Unfortunately, some targets also make sense without a `build.mill`, e.g. the `init` command.
@@ -96,45 +97,49 @@ class MillBuildBootstrap(
         lazy val state = evaluateRec(depth + 1)
         if (
           rootBuildFileNames.asScala.exists(rootBuildFileName =>
-            os.exists(recRoot(projectRoot, depth) / rootBuildFileName)
+            os.exists(currentRoot / rootBuildFileName)
           )
-        ) state
+        ) (state, None)
         else {
           val msg =
             s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
-          if (needBuildFile) {
-            RunnerState(None, Nil, Some(msg), None)
-          } else {
-            state match {
-              case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
-                // Add a potential clue (missing build.mill) to the underlying error message
-                RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
-              case state => state
+          val res =
+            if (needBuildFile) RunnerState(None, Nil, Some(msg), None)
+            else {
+              state match {
+                case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
+                  // Add a potential clue (missing build.mill) to the underlying error message
+                  RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
+                case state => state
+              }
             }
-          }
+          (res, None)
         }
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
           parserBridge,
           projectRoot,
-          recRoot(projectRoot, depth) / os.up,
+          currentRoot / os.up,
           output
         )
 
-        if (parsedScriptFiles.metaBuild) evaluateRec(depth + 1)
-        else {
-          val bootstrapModule =
-            new MillBuildRootModule.BootstrapModule()(
-              new RootModule0.Info(
-                scalaCompilerWorker.classpath,
-                recRoot(projectRoot, depth),
-                output,
-                projectRoot
-              ),
-              scalaCompilerWorker.constResolver
-            )
-          RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
-        }
+        val state =
+          if (os.exists(currentRoot)) evaluateRec(depth + 1)
+          else {
+            val bootstrapModule =
+              new MillBuildRootModule.BootstrapModule()(
+                new RootModule0.Info(
+                  scalaCompilerWorker.classpath,
+                  currentRoot,
+                  output,
+                  projectRoot
+                ),
+                scalaCompilerWorker.constResolver
+              )
+            RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
+          }
+
+        (state, Some(parsedScriptFiles.headerData))
       }
 
     val res =
@@ -163,21 +168,6 @@ class MillBuildBootstrap(
         )
         nestedState.add(frame = evalState, errorOpt = None)
       } else {
-
-        def renderFailure(e: Throwable): String = {
-          e match {
-            case e: ExceptionInInitializerError if e.getCause != null => renderFailure(e.getCause)
-            case e: NoClassDefFoundError if e.getCause != null => renderFailure(e.getCause)
-            case _ =>
-              val msg =
-                e.toString +
-                  "\n" +
-                  e.getStackTrace.dropRight(new Exception().getStackTrace.length).mkString("\n")
-
-              msg
-          }
-        }
-
         val rootModuleRes = nestedState.frames.headOption match {
           case None => Result.Success(nestedState.bootstrapModuleOpt.get)
           case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
@@ -209,7 +199,8 @@ class MillBuildBootstrap(
                 .map(_.hashCode())
                 .getOrElse(0),
               depth,
-              actualBuildFileName = nestedState.buildFile
+              actualBuildFileName = nestedState.buildFile,
+              headerData = headerDataOpt.getOrElse("")
             )) { evaluator =>
               if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator)
               else if (depth <= requestedDepth) nestedState
@@ -336,7 +327,6 @@ class MillBuildBootstrap(
       rootModule: RootModuleApi,
       evaluator: EvaluatorApi
   ): RunnerState = {
-
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) =
@@ -345,7 +335,12 @@ class MillBuildBootstrap(
           evaluator
         ) ++ nestedState.frames.flatMap(_.evaluator))
       ) {
-        evaluateWithWatches(rootModule, evaluator, targetsAndParams, selectiveExecution)
+        evaluateWithWatches(
+          rootModule,
+          evaluator,
+          targetsAndParams,
+          selectiveExecution
+        )
       }
 
     val evalState = RunnerState.Frame(
@@ -369,9 +364,9 @@ class MillBuildBootstrap(
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
       depth: Int,
-      actualBuildFileName: Option[String] = None
+      actualBuildFileName: Option[String] = None,
+      headerData: String
   ): EvaluatorApi = {
-
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
       else Seq(
@@ -406,7 +401,8 @@ class MillBuildBootstrap(
         systemExit,
         streams0,
         () => evaluator,
-        offline
+        offline,
+        headerData
       )
     ).asInstanceOf[EvaluatorApi]
 

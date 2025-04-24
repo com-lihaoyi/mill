@@ -85,7 +85,7 @@ OK
 // `os.read.lines` and `os.write` come from the https://github.com/com-lihaoyi/os-lib[OS-Lib] library,
 // which is one of Mill’s https://mill-build.org/mill/main-branch/fundamentals/bundled-libraries.html[Bundled Libraries].
 // You can also import any other library you want from Maven Central using
-// https://mill-build.org/mill/main-branch/extending/import-ivy-plugins.html[import $ivy],
+// https://mill-build.org/mill/main-branch/extending/import-mvn-plugins.html[import $ivy],
 // so you are not limited to what is bundled with Mill.
 //
 // Custom user-defined tasks in Mill benefit from all the same things that built-in tasks do: automatic caching

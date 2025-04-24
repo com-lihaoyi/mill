@@ -14,9 +14,6 @@ import mill.T
 import mill.define.Cross
 import build.Deps
 
-// plugins and dependencies
-import $meta._
-
 /**
  * [[build.contrib]] contains user-contributed Mill plugins that satisfy
  * a range of use cases not covered by the core Mill builtins. `contrib`
