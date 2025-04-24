@@ -434,7 +434,7 @@
 <ul class="nav-list">
 
   <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -651,7 +651,7 @@
 <button class="nav-toggle"></button>
 </div>
 <div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/extending/import-ivy-plugins.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/extending/import-mvn-plugins.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -662,12 +662,12 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This page illustrates usage of  <code>import $ivy</code>.
-<code>import $ivy</code> lets you import JVM dependencies into your <code>build.mill</code>, so
+<p>This page illustrates usage of the <code>//| mvnDeps:</code> syntax.
+<code>//| mvnDeps:</code> lets you import JVM dependencies into your <code>build.mill</code>, so
 you can use arbitrary third-party libraries at build-time. This makes
 lets you perform computations at build-time rather than run-time,
 speeding up your application start up. Unlike most other build tools that
-require purpose-built plugins to extend them, Mill’s <code>import $ivy</code> can be used to pull
+require purpose-built plugins to extend them, Mill’s <code>//| mvnDeps:</code> can be used to pull
 in any JVM library on Maven Central to use in your custom tasks, with
 <a href="thirdparty-plugins.html" class="xref page">Third-Party Plugins</a> only necessary for
 more sophisticated integrations.</p>
@@ -683,11 +683,12 @@ into your build, so you can use it at build-time to safely generate escaped HTML
 in your resource path for your application to use.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-imports-1-import-ivy.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/imports/1-import-ivy">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-imports-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/imports/1-mvn-deps">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;]
+
+package build
 import mill._, javalib._
-import $ivy.`org.thymeleaf:thymeleaf:3.1.1.RELEASE`
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 
@@ -739,16 +740,17 @@ generated snippet.txt resource: &lt;div&gt;&lt;h1&gt;hello&lt;/h1&gt;&lt;p&gt;wo
 <h2 id="_importing_scala_libraries"><a class="anchor" href="#_importing_scala_libraries"></a>Importing Scala Libraries</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><code>import $ivy</code> can also be used with Scala libraries. The following example
+<p><code>//| mvnDeps:</code> can also be used with Scala libraries. The following example
 replaces <code>org.thymeleaf:thymeleaf:3.1.1.RELEASE</code> above with <code>com.lihaoyi::scalatags:0.12.0</code>,
 a HTML generation library that does the string concatenation/construction internally
 and also escapes the input strings on your behalf:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-imports-2-import-ivy-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/imports/2-import-ivy-scala">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-imports-2-mvn-deps-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/imports/2-mvn-deps-scala">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-import $ivy.`com.lihaoyi::scalatags:0.13.1`, scalatags.Text.all._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::scalatags:0.13.1&quot;]
+import mill._, scalalib._
+import scalatags.Text.all._
 
 object bar extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
@@ -765,7 +767,7 @@ object bar extends ScalaModule {
 <div class="paragraph">
 <p>In this case, we move the Scalatags rendering logic to build time, so the application
 code gets a pre-rendered string it can directly print without further work.
-Note that using <code>import $ivy</code> on Scala libraries requires a double colon <code>::</code> between
+Note that using <code>//| mvnDeps:</code> on Scala libraries requires a double colon <code>::</code> between
 the organization name and artifact name.</p>
 </div>
 <div class="listingblock">
@@ -791,7 +793,7 @@ generated snippet.txt resource: &lt;div&gt;&lt;h1&gt;hello&lt;/h1&gt;&lt;p&gt;wo
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill plugins are ordinary JVM libraries jars and are loaded as any other external dependency with
-the <code>import $ivy</code> mechanism.</p>
+the <code>//| mvnDeps:</code> mechanism.</p>
 </div>
 <div class="paragraph">
 <p>There exist a large number of Mill plugins, Many of them are available on GitHub and via
@@ -841,7 +843,7 @@ import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" d
 </div>
 </div>
 <div class="sect2">
-<h3 id="_use_special_placeholders_in_your_import_ivy"><a class="anchor" href="#_use_special_placeholders_in_your_import_ivy"></a>Use special placeholders in your <code>import $ivy</code></h3>
+<h3 id="_use_special_placeholders_in_your_mvndeps"><a class="anchor" href="#_use_special_placeholders_in_your_mvndeps"></a>Use special placeholders in your <code>//| mvnDeps:</code></h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1"><code>$MILL_VERSION</code> </dt>

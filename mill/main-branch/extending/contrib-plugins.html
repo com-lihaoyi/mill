@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Contrib Plugins :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/extending/contrib-plugins.html" />
-    <link rel="prev" href="import-ivy-plugins.html" />
+    <link rel="prev" href="import-mvn-plugins.html" />
     <link rel="next" href="../contrib/artifactory.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
@@ -434,7 +434,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item is-current-page" data-depth="2">
@@ -665,7 +665,7 @@
 <p>The plugins in this section are hosted in the Mill git tree and developed / maintained by the community.</p>
 </div>
 <div class="paragraph">
-<p>For details about including plugins in your <code>build.mill</code> read <a href="import-ivy-plugins.html" class="xref page">Using Mill Plugins</a>.</p>
+<p>For details about including plugins in your <code>build.mill</code> read <a href="import-mvn-plugins.html" class="xref page">Using Mill Plugins</a>.</p>
 </div>
 <div class="admonitionblock caution">
 <table>
@@ -705,11 +705,12 @@ You can also leave the version completely empty to default to the mill version (
 <h2 id="_importing_contrib_modules"><a class="anchor" href="#_importing_contrib_modules"></a>Importing Contrib Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-imports-3-contrib-import.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/imports/3-contrib-import">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-imports-3-contrib-dep.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/imports/3-contrib-dep">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION&quot;]
+
+package build
 import mill._, scalalib._
-import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 
 object foo extends ScalaModule with BuildInfo {
@@ -811,7 +812,7 @@ builtin comdules</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="import-ivy-plugins.html">Import Libraries and Plugins</a></span>
+  <span class="prev"><a href="import-mvn-plugins.html">Import Libraries and Plugins</a></span>
   <span class="next"><a href="../contrib/artifactory.html">Artifactory</a></span>
 </nav>
 </article>

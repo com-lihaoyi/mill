@@ -434,7 +434,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -1192,7 +1192,7 @@ that people do not do it.</p>
 <div class="paragraph">
 <p>With Mill, pre-rendering HTML at build time is really easy, even if you need a third-party
 library. Mill does not ship with a bundled HTML templating engine, but you can use the
-<code>import $ivy</code> syntax to include one such as Thymeleaf, which would immediately make the
+<code>//| mvnDeps:</code> syntax to include one such as Thymeleaf, which would immediately make the
 Thymeleaf classes available for you to import and use in your build as below:</p>
 </div>
 <div class="listingblock">
@@ -1224,7 +1224,7 @@ object foo extends JavaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>Once we have run <code>import $ivy</code>, we can import <code>TemplateEngine</code>, <code>Context</code>, and replace our
+<p>Once we have run <code>//| mvnDeps:</code>, we can import <code>TemplateEngine</code>, <code>Context</code>, and replace our
 <code>def lineCount</code> with a <code>def htmlSnippet</code> task that uses Thymeleaf to render  HTML. Again,
 we get full IDE support for working with the Thymeleaf Java API, the new <code>htmlSnippet</code> task
 is inspectable from the Mill command line via <code>show</code>, and we wire it up into

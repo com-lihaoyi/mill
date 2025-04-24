@@ -434,7 +434,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -664,7 +664,7 @@
 <div class="paragraph">
 <p>This example demonstrates how to write and test Mill plugin, and publish it to
 Sonatype’s Maven Central so it can be used by other developers over the internet
-via <a href="import-ivy-plugins.html" class="xref page">import $ivy</a>.</p>
+via <a href="import-mvn-plugins.html" class="xref page">import $ivy</a>.</p>
 </div>
 </div>
 </div>
@@ -672,7 +672,7 @@ via <a href="import-ivy-plugins.html" class="xref page">import $ivy</a>.</p>
 <h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._
@@ -721,7 +721,7 @@ object myplugin extends ScalaModule with PublishModule {
 <div class="paragraph">
 <p>Mill plugins are fundamentally just JVM libraries that depend on Mill. Any vanilla JVM
 library (whether written in Java or Scala) can be used in a Mill <code>build.mill</code> file via
-<code>import $ivy</code>, but Mill plugins tend to integrate with Mill by defining a
+<code>//| mvnDeps:</code>, but Mill plugins tend to integrate with Mill by defining a
 <a href="../fundamentals/modules.html#_module_traits" class="xref page">trait for modules in your <code>build.mill</code> to inherit from</a>.</p>
 </div>
 <div class="paragraph">
@@ -745,7 +745,7 @@ error)</p>
 </li>
 <li>
 <p>An <code>object millExecutable</code> that adds some resources to the published <code>mill-dist</code>
-assembly to configure it to rewire <code>import $ivy</code> to instead use the local compiled
+assembly to configure it to rewire <code>//| mvnDeps:</code> to instead use the local compiled
 classfiles for testing.</p>
 </li>
 </ul>
@@ -782,7 +782,7 @@ it defines an abstract <code>def lineCountResourceFileName</code> task, it adds 
 <code>def lineCount</code> task, and it overrides the <code>def resources</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/src/LineCountJavaModule.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/plugins/7-writing-mill-plugins/myplugin/src/LineCountJavaModule.scala">browse</a>)</div>
+<div class="title">myplugin/src/LineCountJavaModule.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/plugins/7-writing-mill-plugins/myplugin/src/LineCountJavaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill._
@@ -850,7 +850,7 @@ and can be used to evaluate tasks (by direct reference or by string-selector) an
 the results in-memory:</p>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/src/mill/testkit/UnitTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/plugins/7-writing-mill-plugins/myplugin/test/src/mill/testkit/UnitTests.scala">browse</a>)</div>
+<div class="title">myplugin/test/src/mill/testkit/UnitTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/plugins/7-writing-mill-plugins/myplugin/test/src/mill/testkit/UnitTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 
@@ -896,7 +896,7 @@ object UnitTests extends TestSuite {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/resources/unit-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/unit-test-project/src/foo/Foo.java">browse</a>)</div>
+<div class="title">myplugin/test/resources/unit-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/unit-test-project/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -955,7 +955,7 @@ parsed <code>ujson.Value</code> ASTs (<code>.json</code>), or parsed into a type
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/src/mill/testkit/IntegrationTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/plugins/7-writing-mill-plugins/myplugin/test/src/mill/testkit/IntegrationTests.scala">browse</a>)</div>
+<div class="title">myplugin/test/src/mill/testkit/IntegrationTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/plugins/7-writing-mill-plugins/myplugin/test/src/mill/testkit/IntegrationTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill.testkit.IntegrationTester
@@ -999,7 +999,7 @@ object IntegrationTests extends TestSuite {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/resources/integration-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/integration-test-project/src/foo/Foo.java">browse</a>)</div>
+<div class="title">myplugin/test/resources/integration-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/integration-test-project/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -1022,10 +1022,11 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/resources/integration-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/integration-test-project/build.mill">browse</a>)</div>
+<div class="title">myplugin/test/resources/integration-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/integration-test-project/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $ivy.`com.lihaoyi::myplugin::0.0.1`
+//| mvnDeps:
+//| - com.lihaoyi::myplugin::0.0.1
 import mill._, myplugin._
 
 object `package` extends RootModule with LineCountJavaModule {
@@ -1048,12 +1049,12 @@ that the printed output is as expected.</p>
 having the testing logic defined as part of the test suite in a <code>.scala</code> file, the testing
 logic is instead defined as a <code>/** Usage */</code> comment in the <code>build.mill</code>. These tests are
 a great way of documenting expected usage of your plugin: a user can glance at a single
-file to see how the plugin is imported (via <code>import $ivy</code>) how it is used (e.g. by being
+file to see how the plugin is imported (via <code>//| mvnDeps:</code>) how it is used (e.g. by being
 extended by a module) and what commands they can run exercising the plugin and the resultant
 output they should expect:</p>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/src/mill/testkit/ExampleTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/plugins/7-writing-mill-plugins/myplugin/test/src/mill/testkit/ExampleTests.scala">browse</a>)</div>
+<div class="title">myplugin/test/src/mill/testkit/ExampleTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/plugins/7-writing-mill-plugins/myplugin/test/src/mill/testkit/ExampleTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill.testkit.ExampleTester
@@ -1075,7 +1076,7 @@ object ExampleTests extends TestSuite {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/resources/example-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/example-test-project/src/foo/Foo.java">browse</a>)</div>
+<div class="title">myplugin/test/resources/example-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/example-test-project/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -1098,10 +1099,12 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/resources/example-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/example-test-project/build.mill">browse</a>)</div>
+<div class="title">myplugin/test/resources/example-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/example-test-project/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $ivy.`com.lihaoyi::myplugin::0.0.1`
+//| mvnDeps:
+//| - com.lihaoyi::myplugin::0.0.1
+
 import mill._, myplugin._
 
 object `package` extends RootModule with LineCountJavaModule {

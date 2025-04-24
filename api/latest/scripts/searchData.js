@@ -1890,6 +1890,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/CoursierModule.html#defaultResolver-0","e":false,"i":"","n":"defaultResolver","t":"defaultResolver: Task[Resolver]","d":"mill.scalalib.CoursierModule","k":"def","x":""},
 {"l":"mill/scalalib/CoursierModule.html#mapDependencies-0","e":false,"i":"","n":"mapDependencies","t":"mapDependencies: Task[Dependency => Dependency]","d":"mill.scalalib.CoursierModule","k":"def","x":""},
 {"l":"mill/scalalib/CoursierModule.html#millResolver-0","e":false,"i":"","n":"millResolver","t":"millResolver: Task[Resolver]","d":"mill.scalalib.CoursierModule","k":"def","x":""},
+{"l":"mill/scalalib/CoursierModule.html#repositories-0","e":false,"i":"","n":"repositories","t":"repositories: Target[Seq[String]]","d":"mill.scalalib.CoursierModule","k":"def","x":""},
 {"l":"mill/scalalib/CoursierModule.html#repositoriesTask-0","e":false,"i":"","n":"repositoriesTask","t":"repositoriesTask: Task[Seq[Repository]]","d":"mill.scalalib.CoursierModule","k":"def","x":""},
 {"l":"mill/scalalib/CoursierModule.html#resolutionCustomizer-0","e":false,"i":"","n":"resolutionCustomizer","t":"resolutionCustomizer: Task[Option[Resolution => Resolution]]","d":"mill.scalalib.CoursierModule","k":"def","x":""},
 {"l":"mill/scalalib/CoursierModule.html#resolutionParams-0","e":false,"i":"","n":"resolutionParams","t":"resolutionParams: Task[ResolutionParams]","d":"mill.scalalib.CoursierModule","k":"def","x":""},
@@ -2500,10 +2501,4 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/util/Version$.html#parse-799","e":false,"i":"","n":"parse","t":"parse(version: String): Version","d":"mill.util.Version","k":"def","x":""},
 {"l":"mill/util/Version$$IgnoreQualifierOrdering$.html#","e":false,"i":"","n":"IgnoreQualifierOrdering","t":"IgnoreQualifierOrdering extends Ordering[Version]","d":"mill.util.Version","k":"object","x":""},
 {"l":"mill/util/Version$$MavenOrdering$.html#","e":false,"i":"","n":"MavenOrdering","t":"MavenOrdering extends Ordering[Version]","d":"mill.util.Version","k":"object","x":""},
-{"l":"mill/util/Version$$OsgiOrdering$.html#","e":false,"i":"","n":"OsgiOrdering","t":"OsgiOrdering extends Ordering[Version]","d":"mill.util.Version","k":"object","x":""},
-{"l":"$packages.html#","e":false,"i":"","n":"$packages","t":"$packages","d":"","k":"package","x":""},
-{"l":"$packages/$dummy$.html#","e":false,"i":"","n":"$dummy","t":"$dummy","d":"$packages","k":"object","x":""},
-{"l":"$meta.html#","e":false,"i":"","n":"$meta","t":"$meta","d":"","k":"package","x":""},
-{"l":"$meta/$dummy$.html#","e":false,"i":"","n":"$dummy","t":"$dummy","d":"$meta","k":"object","x":""},
-{"l":"$ivy.html#","e":false,"i":"","n":"$ivy","t":"$ivy","d":"","k":"package","x":""},
-{"l":"$ivy/$dummy$.html#","e":false,"i":"","n":"$dummy","t":"$dummy","d":"$ivy","k":"object","x":""}];
+{"l":"mill/util/Version$$OsgiOrdering$.html#","e":false,"i":"","n":"OsgiOrdering","t":"OsgiOrdering extends Ordering[Version]","d":"mill.util.Version","k":"object","x":""}];

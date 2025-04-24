@@ -434,7 +434,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -1176,12 +1176,12 @@ limited to what an existing plugin <em>allows</em> you to do, Mill allows you to
 the code necessary to do what <em>you need to do</em>. In this case, if we need to invoke
 <a href="https://github.com/apache/groovy">Groovy</a> and
 <a href="https://github.com/groovy/groovy-core/blob/4c05980922a927b32691e4c3eba5633825cc01e3/subprojects/groovy-ant/src/spec/doc/groovy-ant-task.adoc">Groovy-Ant</a>,
-Mill allows us to direct <a href="../extending/import-ivy-plugins.html" class="xref page">import $ivy</a> the relevant
+Mill allows us to direct <a href="../extending/import-mvn-plugins.html" class="xref page">import $ivy</a> the relevant
 JVM artifacts from Maven Central</p>
 </div>
 <div class="paragraph">
 <p>Mill gives you the full power of the JVM ecosystem to use in your build: any Java library
-on Maven central is just an <code>import $ivy</code> away, and can be used with the full IDE support
+on Maven central is just an <code>//| mvnDeps:</code> away, and can be used with the full IDE support
 and tooling experience you are used to in the JVM ecosystem.</p>
 </div>
 </div>

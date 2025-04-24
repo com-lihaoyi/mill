@@ -434,7 +434,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -664,12 +664,8 @@
 <div class="paragraph">
 <p>The meta-build manages the compilation of the <code>build.mill</code>.
 Customizing the meta-build gives you greater control over how exactly your
-<code>build.mill</code> evaluates.</p>
-</div>
-<div class="paragraph">
-<p>To customize it, you need to explicitly enable it with <code>import $meta._</code>.
-Once enabled, the meta-build lives in the <code>mill-build/</code> directory.
-It needs to contain a top-level module of type <code>MillBuildRootModule</code>.</p>
+<code>build.mill</code> evaluates. The meta-build lives in the <code>mill-build/</code> directory,
+and needs to contain a top-level module of type <code>MillBuildRootModule</code>.</p>
 </div>
 <div class="paragraph">
 <p>If you don’t configure it explicitly, a built-in synthetic meta-build is used.
@@ -731,10 +727,10 @@ de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-&gt; 0.4.0</pr
 <h2 id="_sharing_libraries_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_libraries_between_build_mill_and_application_code"></a>Sharing Libraries between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/metabuild/4-meta-build">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/metabuild/4-meta-build">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $meta._
+
 import mill._, scalalib._
 import scalatags.Text.all._
 
@@ -761,7 +757,7 @@ compiled and executed to perform your build. This &quot;meta-build&quot; module 
 <code>mill-build/</code>, and can be enabled via the <code>import $meta._</code> statement above.</p>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/metabuild/4-meta-build/mill-build/build.mill">browse</a>)</div>
+<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/metabuild/4-meta-build/mill-build/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -786,7 +782,7 @@ object `package` extends MillBuildRootModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/metabuild/4-meta-build/src/Foo.scala">browse</a>)</div>
+<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/metabuild/4-meta-build/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 import scalatags.Text.all._
@@ -801,7 +797,7 @@ object Foo {
 <div class="paragraph">
 <p>Typically, if you wanted to use a library such as Scalatags in both your <code>build.mill</code>
 as well as your application code, you would need to duplicate the version of Scalatags
-used in both your <code>import $ivy</code> statement as well as your <code>def mvnDeps</code> statement.
+used in both your <code>//| mvnDeps:</code> statement as well as your <code>def mvnDeps</code> statement.
 The meta-build lets us avoid this duplication: we use <code>generatedSources</code> in
 <code>mill-build/build.mill</code> to create a <code>DepVersions</code> object that the <code>build.mill</code> can use to pass the
 <code>scalatagsVersion</code> to the application without having to copy-paste the
@@ -837,7 +833,7 @@ enabled by <code>import $meta._</code>, this becomes possible.</p>
 </div>
 <div class="paragraph">
 <p>You can customize the <code>mill-build/</code> module with more flexibility than is
-provided by <code>import $ivy</code> or <code>import $file</code>, overriding any tasks that are
+provided by <code>//| mvnDeps:</code> or <code>import $file</code>, overriding any tasks that are
 present on a typical <code>ScalaModule</code>: <code>scalacOptions</code>, <code>generatedSources</code>, etc.
 This is useful for large projects where the build itself is a non-trivial
 module which requires its own non-trivial customization.</p>
@@ -855,7 +851,10 @@ cli option.</p>
 ]
 
 &gt; mill --meta-level 2 show sources
-.../mill-build/build.mill&quot;</code></pre>
+[
+.../mill-build/build.mill&quot;,
+.../mill-build/mill-build/src&quot;
+]</code></pre>
 </div>
 </div>
 </div>
@@ -864,10 +863,10 @@ cli option.</p>
 <h2 id="_sharing_source_code_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_source_code_between_build_mill_and_application_code"></a>Sharing Source Code between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $meta._
+
 import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
@@ -879,7 +878,7 @@ object `package` extends RootModule with ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/metabuild/5-meta-shared-sources/mill-build/build.mill">browse</a>)</div>
+<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/metabuild/5-meta-shared-sources/mill-build/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -888,7 +887,7 @@ object `package` extends MillBuildRootModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/ScalaVersion.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/metabuild/5-meta-shared-sources/mill-build/src/ScalaVersion.scala">browse</a>)</div>
+<div class="title">mill-build/src/ScalaVersion.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/metabuild/5-meta-shared-sources/mill-build/src/ScalaVersion.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 object ScalaVersion {
@@ -897,7 +896,7 @@ object ScalaVersion {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/metabuild/5-meta-shared-sources/src/Foo.scala">browse</a>)</div>
+<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/metabuild/5-meta-shared-sources/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 

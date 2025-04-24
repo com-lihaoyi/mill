@@ -434,7 +434,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -662,7 +662,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>While <a href="import-ivy-plugins.html" class="xref page">import $ivy</a> is convenient,
+<p>While <a href="import-mvn-plugins.html" class="xref page">import $ivy</a> is convenient,
 it comes with limitations as the JVM library it imports is global to your build:</p>
 </div>
 <div class="olist arabic">
@@ -676,7 +676,7 @@ needing to download the library when working on parts that don’t need it can b
 <p>The library can only have one version across the entire build. This can be an issue if
 you need to have multiple versions of the library used in different parts of your build.
 e.g. different parts of a large Groovy codebase may use different versions of the Groovy
-interpreter, and so the Groovy interpreter cannot be included via <code>import $ivy</code> because the
+interpreter, and so the Groovy interpreter cannot be included via <code>//| mvnDeps:</code> because the
 different versions would collide.</p>
 </li>
 <li>
@@ -684,13 +684,13 @@ different versions would collide.</p>
 it as part of your <a href="meta-build.html" class="xref page">Meta-Build</a>, that comes with additional
 complexity and limitations. In a large codebase, you often end up building modules that
 are shared between production deployments as well as local tooling: in such cases
-<code>import $ivy</code> is not a good fit</p>
+<code>//| mvnDeps:</code> is not a good fit</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
 <p>In scenarios where these limitations cause issues, Mill provides other ways to run arbitrary
-JVM code apart from <code>import $ivy</code>.</p>
+JVM code apart from <code>//| mvnDeps:</code>.</p>
 </div>
 </div>
 </div>
@@ -699,7 +699,7 @@ JVM code apart from <code>import $ivy</code>.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This example demonstrates how to resolve a third-party library from Maven Central,
-but instead of using <a href="import-ivy-plugins.html" class="xref page">import $ivy</a> (which loads the
+but instead of using <a href="import-mvn-plugins.html" class="xref page">import $ivy</a> (which loads the
 library as part of the main build) we use:</p>
 </div>
 <div class="ulist">
@@ -721,7 +721,7 @@ can be used to create any processes, JVM subprocesses are common enough have eno
 idiosyncracies (e.g. classpaths) that Mill provides helper methods specifically for them.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-jvmcode-1-subprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/jvmcode/1-subprocess">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-jvmcode-1-subprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/jvmcode/1-subprocess">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -773,7 +773,7 @@ Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt
 </div>
 <div class="paragraph">
 <p>As mentioned above, <code>defaultResolver().classpath</code> and <code>Jvm.runSubprocess</code> are an
-alternative to <code>import $ivy</code>, providing you more flexibility to resolve dependencies
+alternative to <code>//| mvnDeps:</code>, providing you more flexibility to resolve dependencies
 on-demand as part of your task graph only when necessary, and keeping it isolated from
 the build in a subprocess preventing classpath collisions.</p>
 </div>
@@ -798,7 +798,7 @@ load the Groovy interpreter classpath files into an in-memory in-process classlo
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/jvmcode/2-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/jvmcode/2-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -871,7 +871,7 @@ a subprocess, but instead of using <code>Jvm.runSubprocess</code> we use <code>C
 load the Groovy interpreter classpath files:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/jvmcode/3-worker">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/jvmcode/3-worker">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -969,7 +969,7 @@ than pulling the code we need off of Maven Central, we instead build the code
 within the <code>bar</code> module as <code>bar/src/Bar.scala</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-jvmcode-4-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/jvmcode/4-module-run-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-jvmcode-4-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/jvmcode/4-module-run-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1047,7 +1047,7 @@ purpose, with a source code generator written in Java. We also run the
 we saw earlier:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-jvmcode-5-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/jvmcode/5-module-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-jvmcode-5-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/jvmcode/5-module-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1107,7 +1107,7 @@ which ensures that the classloaders are created when necessary,
 cached/re-used where possible, and torn down properly when no longer necessary.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M1/example-extending-jvmcode-6-module-cached-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M1/example/extending/jvmcode/6-module-cached-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-extending-jvmcode-6-module-cached-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/extending/jvmcode/6-module-cached-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
