@@ -626,9 +626,16 @@ object Jvm {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     val shortPathDirOpt = Option.when(useShortPaths) {
       if (isWin)
+        // On Windows, prefer to use System.getenv over sys.env (or ctx.env for
+        // now), as the former respects the case-insensitiveness of env vars on
+        // Windows, while the latter doesn't
         os.Path(System.getenv("UserProfile")) / ".mill/cache/jvm"
       else {
-        val cacheBase = sys.env.get("XDG_CACHE_HOME").map(os.Path(_)).getOrElse(os.home / ".cache")
+        val cacheBase = ctx.map(_.env)
+          .getOrElse(sys.env)
+          .get("XDG_CACHE_HOME")
+          .map(os.Path(_))
+          .getOrElse(os.home / ".cache")
         cacheBase / "mill/jvm"
       }
     }
