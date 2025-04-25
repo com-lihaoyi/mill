@@ -129,25 +129,17 @@ object MillMain {
       serverDir: os.Path
   ): (Boolean, RunnerState) = {
 
-    // Detect when we're running in BSP mode as early as possible,
-    // and ensure we don't log to the default stdout or use the default
-    // stdin, meant to be used for BSP JSONRPC communication, where those
-    // logs would be lost.
-    // This is especially helpful if anything unexpectedly goes wrong
-    // early on, when developing on Mill or debugging things for example.
-    val bspMode = args match {
-      case Array("--bsp", _*) =>
-        // --bsp passed upfront
-        true
-      case Array(s"--jobs=$_", "--bsp", _*) =>
-        // IntelliJ inserts a --jobs=... before --bsp
-        true
-      case _ =>
-        false
-    }
-    withStreams(bspMode, streams0) { streams =>
-      os.SubProcess.env.withValue(env) {
-        MillCliConfigParser.parse(args) match {
+    os.SubProcess.env.withValue(env) {
+      val parserResult = MillCliConfigParser.parse(args)
+      // Detect when we're running in BSP mode as early as possible,
+      // and ensure we don't log to the default stdout or use the default
+      // stdin, meant to be used for BSP JSONRPC communication, where those
+      // logs would be lost.
+      // This is especially helpful if anything unexpectedly goes wrong
+      // early on, when developing on Mill or debugging things for example.
+      val bspMode = parserResult.toOption.exists(_.bsp.value)
+      withStreams(bspMode, streams0) { streams =>
+        parserResult match {
           // Cannot parse args
           case Result.Failure(msg) =>
             streams.err.println(msg)
