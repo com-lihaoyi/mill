@@ -209,7 +209,7 @@ object MainModuleTests extends TestSuite {
 
     test("show") {
       def checkErrStream[T](errStream: ByteArrayOutputStream)(check: String => T): T = {
-        def runCheck(): Unit =
+        def runCheck(): T =
           try {
             val strippedErr =
               fansi.Str(errStream.toString, errorMode = fansi.ErrorMode.Sanitize).plainText
