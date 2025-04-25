@@ -164,10 +164,10 @@ object MillMain {
 
             // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
             val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
-            val bspInstallModeJobCountOpt =
-              Option.when(
+            val bspInstallModeJobCountOpt = {
+              val viaEmulatedExternalCommand = Option.when(
                 !config.bsp.value &&
-                  config.leftoverArgs.value.headOption.exists(bspInstallAliases.contains)
+                  config.leftoverArgs.value.headOption.contains("mill.bsp.BSP/install")
               ) {
                 config.leftoverArgs.value.tail match {
                   case Seq() => BSP.defaultJobCount
@@ -186,6 +186,11 @@ object MillMain {
                     BSP.defaultJobCount
                 }
               }
+
+              viaEmulatedExternalCommand.orElse {
+                Option.when(config.bspInstall.value)(BSP.defaultJobCount)
+              }
+            }
             val maybeThreadCount =
               parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
 
@@ -194,6 +199,9 @@ object MillMain {
                 streams.err.println("The --repl mode is no longer supported.")
                 (false, stateCache)
 
+              } else if (bspInstallModeJobCountOpt.isDefined) {
+                BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
+                (true, stateCache)
               } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
                 println(MillCliConfigParser.shortUsageText)
 
@@ -203,9 +211,6 @@ object MillMain {
                 streams.err.println(maybeThreadCount.errorOpt.get)
                 (false, stateCache)
 
-              } else if (bspInstallModeJobCountOpt.isDefined) {
-                BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
-                (true, stateCache)
               } else {
                 val userSpecifiedProperties =
                   userSpecifiedProperties0 ++ config.extraSystemProperties
@@ -517,9 +522,4 @@ object MillMain {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
-
-  private val bspInstallAliases = Seq(
-    "mill.bsp.BSP/install",
-    "mill.bsp/install"
-  )
 }
