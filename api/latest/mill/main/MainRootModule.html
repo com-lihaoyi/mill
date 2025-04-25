@@ -1099,7 +1099,21 @@ node15 -> node11;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Commands related to selective execution, where Mill runs tasks selectively\n * depending on what task inputs or implementations changed\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Commands related to selective execution, where Mill runs tasks selectively\n * depending on what task inputs or implementations changed.\n *\n * Read more about it at: https://mill-build.org/mill/large/selective-execution.html\n *\n * Here are the essential commands:\n *\n * - `mill selective.prepare <selector>
+             `:\n * run on the codebase before the code change,\n * stores a snapshot of task inputs and implementations\n *\n * - `mill selective.run 
+             <selector>
+              `:\n * run on the codebase after the code change,\n * runs tasks in the given `
+              <selector>
+               ` which are affected by the code changes\n * that have happened since `selective.prepare` was run\n *\n * - `mill selective.resolve 
+               <selector>
+                `:\n * a dry-run version of `selective.run`,\n * prints out the tasks in `
+                <selector>
+                 ` that are affected by the code changes\n * and would have run, without actually running them.\n */")
+                </selector>
+               </selector>
+              </selector>
+             </selector>
+            </selector></span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -1113,11 +1127,21 @@ node15 -> node11;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Commands related to selective execution, where Mill runs tasks selectively depending on what task inputs or implementations changed</p>
+             <p>Commands related to selective execution, where Mill runs tasks selectively depending on what task inputs or implementations changed.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Commands related to selective execution, where Mill runs tasks selectively depending on what task inputs or implementations changed</p>
+              <p>Commands related to selective execution, where Mill runs tasks selectively depending on what task inputs or implementations changed.</p>
+              <p>Read more about it at: <a href="https://mill-build.org/mill/large/selective-execution.html">https://mill-build.org/mill/large/selective-execution.html</a></p>
+              <p>Here are the essential commands:</p>
+              <ul>
+               <li>
+                <p><code>mill selective.prepare &lt;selector&gt;</code>: run on the codebase before the code change, stores a snapshot of task inputs and implementations</p></li>
+               <li>
+                <p><code>mill selective.run &lt;selector&gt;</code>: run on the codebase after the code change, runs tasks in the given <code>&lt;selector&gt;</code> which are affected by the code changes that have happened since <code>selective.prepare</code> was run</p></li>
+               <li>
+                <p><code>mill selective.resolve &lt;selector&gt;</code>: a dry-run version of <code>selective.run</code>, prints out the tasks in <code>&lt;selector&gt;</code> that are affected by the code changes and would have run, without actually running them.</p></li>
+              </ul>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
