@@ -679,7 +679,7 @@ For more details about coursier, refer to the <a href="https://get-coursier.io/d
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>jvm&quot;{organization}:{name}:{version}&quot;</pre>
+<pre>mvn&quot;{organization}:{name}:{version}&quot;</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -687,7 +687,7 @@ For more details about coursier, refer to the <a href="https://get-coursier.io/d
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>jvm&quot;{organization}:{name}:{version}[;{attribute}={value}]*&quot;</pre>
+<pre>mvn&quot;{organization}:{name}:{version}[;{attribute}={value}]*&quot;</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1167,7 +1167,10 @@ object foo extends MyModule {
 }
 
 object bar extends MyModule {
-  def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags:0.8.2&quot;)
+  def mvnDeps = Seq(
+    mvn&quot;com.lihaoyi::mainargs:0.4.0&quot;,
+    mvn&quot;com.lihaoyi::scalatags:0.8.2&quot;
+  )
 }</code></pre>
 </div>
 </div>
@@ -1177,8 +1180,28 @@ object bar extends MyModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.Dependency/showUpdates
+Found 2 dependency update for bar
+  com.lihaoyi:mainargs_2.13 : 0.4.0 -&gt; 0.5.0 -&gt; 0.5.1 -&gt; 0.5.2 -&gt; 0.5.3 -&gt; ...
+  com.lihaoyi:scalatags_2.13 : 0.8.2 -&gt; 0.8.3 -&gt; 0.8.4 -&gt; 0.8.5 -&gt; 0.8.6 -&gt; ...
+Found 1 dependency update for foo
+  com.lihaoyi:mainargs_2.13 : 0.4.0 -&gt; 0.5.0 -&gt; 0.5.1 -&gt; 0.5.2 -&gt; 0.5.3 -&gt; ...
+
+&gt; mill mill.scalalib.Dependency/showUpdates --format PerDependency
+com.lihaoyi:mainargs_2.13 : 0.4.0 -&gt; 0.5.0 -&gt; 0.5.1 -&gt; 0.5.2 -&gt; 0.5.3 -&gt; ... in
+  bar
+  foo
+com.lihaoyi:scalatags_2.13 : 0.8.2 -&gt; 0.8.3 -&gt; 0.8.4 -&gt; 0.8.5 -&gt; 0.8.6 -&gt; ... in
+  bar
 
 &gt; mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you have a meta-build, you can also search for updates there</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill --meta-level 1 mill.scalalib.Dependency/showUpdates</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1188,13 +1211,10 @@ object bar extends MyModule {
 <ul>
 <li>
 <p>Only works for <code>JavaModule</code> modules (including <code>ScalaModule</code>s,
-<code>CrossScalaModule</code>s, etc.) and Maven repositories.</p>
+<code>CrossScalaModule</code>s, <code>KotlinModule</code>s, etc.) and Maven repositories.</p>
 </li>
 <li>
 <p>Always applies to all modules in the build.</p>
-</li>
-<li>
-<p>Doesn’t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
 </li>
 </ul>
 </div>

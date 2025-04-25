@@ -814,10 +814,10 @@ following techniques:</p>
 <h3 id="_use_the_specific_mill_binary_platform_notation"><a class="anchor" href="#_use_the_specific_mill_binary_platform_notation"></a>Use the specific Mill Binary Platform notation</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// for classic Scala dependencies
-import $ivy.`&lt;group&gt;::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" data-value="1"></i><b>(1)</b>
-// for dependencies specific to the exact Scala version
-import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| # for classic Scala dependencies
+//| mvnDeps: [&quot;&lt;group&gt;::&lt;plugin&gt;::&lt;version&gt;&quot;]  <i class="conum" data-value="1"></i><b>(1)</b>
+//| # for dependencies specific to the exact Scala version
+//| mvnDeps: [&quot;&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;&quot;] <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -827,7 +827,7 @@ import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" d
 <td>This is equivalent to
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`&lt;group&gt;::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;`</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;&lt;group&gt;::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;&quot;]  <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
 </div></td>
 </tr>
@@ -836,7 +836,7 @@ import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" d
 <td>This is equivalent to
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`&lt;group&gt;:::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;`</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;&lt;group&gt;:::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;&quot;]  <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
 </div></td>
 </tr>
@@ -858,18 +858,7 @@ This is typical required for Mill contrib modules, which are developed in the Mi
 <div class="listingblock">
 <div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
 <div class="content">
-<pre>import $ivy.`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>There is the even more convenient option to leave the version completely empty.
-Mill will substitute it with its current version.
-But don’t forget to provide the trailing colon!</p>
-</div>
-<div class="listingblock">
-<div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
-<div class="content">
-<pre>import $ivy.`com.lihaoyi:mill-contrib-bloop:`</pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-bloop:$MILL_VERSION&quot;]</code></pre>
 </div>
 </div>
 </div>
@@ -885,7 +874,7 @@ But don’t forget to provide the trailing colon!</p>
 <div class="listingblock">
 <div class="title">Example: Using <code>mill-vcs-version</code> plugin matching the current Mill Binary Platform</div>
 <div class="content">
-<pre>import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`</pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2&quot;]</code></pre>
 </div>
 </div>
 </div>
