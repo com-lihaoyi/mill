@@ -12,8 +12,9 @@ Quickstart:
 .Example `build.mill` defining a Scala module with `BuildInfo`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
+
 import mill.contrib.buildinfo.BuildInfo
 
 object project extends ScalaModule with BuildInfo {

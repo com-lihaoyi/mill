@@ -16,13 +16,13 @@ For more details about coursier, refer to the {link-coursier-doc}[coursier docum
 Mill dependencies have the simple form:
 
 ----
-jvm"{organization}:{name}:{version}"
+mvn"{organization}:{name}:{version}"
 ----
 
 Additional attributes are also supported:
 
 ----
-jvm"{organization}:{name}:{version}[;{attribute}={value}]*"
+mvn"{organization}:{name}:{version}[;{attribute}={value}]*"
 ----
 
 When working in other Java and Scala projects, you will find some synonyms, which typically all mean the same.
@@ -234,7 +234,6 @@ include::partial$example/fundamentals/dependencies/1-external-bom.adoc[]
 === Managed Bill of Material (BOM)
 
 include::partial$example/fundamentals/dependencies/2-managed.adoc[]
-
 
 
 == Searching For Dependency Updates

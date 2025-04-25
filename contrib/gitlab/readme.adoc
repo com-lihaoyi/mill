@@ -15,9 +15,10 @@ Most trivial publish config is:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
 package build
+
 import mill._, scalalib._, mill.scalalib.publish._
-import $ivy.`com.lihaoyi::mill-contrib-gitlab:`
 import mill.contrib.gitlab._
 
 object lib extends ScalaModule with GitlabPublishModule {
@@ -85,6 +86,8 @@ If the original search order is too wide, or you would like to add places to loo
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
+
 package build
 // Personal, Env, Deploy etc types
 import mill.contrib.gitlab.GitlabTokenLookup._
