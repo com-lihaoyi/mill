@@ -51,9 +51,11 @@ object AndroidLintReportFormat extends Enumeration {
  * [[https://developer.android.com/studio Android Studio Documentation]]
  */
 @mill.api.experimental
-trait AndroidAppModule extends AndroidModule {
+trait AndroidAppModule extends AndroidModule { outer =>
 
-  private val parent: AndroidAppModule = this
+  protected val debugKeyStorePass = "mill-android"
+  protected val debugKeyAlias = "mill-android"
+  protected val debugKeyPass = "mill-android"
 
   /**
    * The namespace of the android application which is used
@@ -168,11 +170,6 @@ trait AndroidAppModule extends AndroidModule {
     ).distinct.map(PathRef(_))
   }
 
-  /**
-   * Specifies AAPT options for Android resource compilation.
-   */
-  def androidAaptOptions: T[Seq[String]] = Task { Seq("--auto-add-overlay") }
-
   def androidTransitiveResources: Target[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) { m =>
       Task.Anon(m.resources())
@@ -192,63 +189,6 @@ trait AndroidAppModule extends AndroidModule {
    */
   override def generatedSources: T[Seq[PathRef]] = Task {
     androidLibsRClasses()
-  }
-
-  /**
-   * Converts the generated JAR file into a DEX file using the `d8` tool.
-   *
-   * @return os.Path to the Generated DEX File Directory
-   */
-  override def androidDex: T[PathRef] = Task {
-
-    val appCompiledFiles = os.walk(compile().classes.path)
-      .filter(_.ext == "class")
-      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString())
-
-    val libsJarFiles = compileClasspath()
-      .filter(_ != androidSdkModule().androidJarPath())
-      .filter(_.path.ext == "jar")
-      .map(_.path.toString())
-
-    val proguardFile = Task.dest / "proguard-rules.pro"
-    val knownProguardRules = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
-      .mkString("\n")
-    os.write(proguardFile, knownProguardRules)
-
-    val d8ArgsBuilder = Seq.newBuilder[String]
-
-    d8ArgsBuilder += androidSdkModule().d8Path().path.toString
-
-    if (androidIsDebug()) {
-      d8ArgsBuilder += "--debug"
-    } else {
-      d8ArgsBuilder += "--release"
-    }
-    // TODO explore --incremental flag for incremental builds
-    d8ArgsBuilder ++= Seq(
-      "--output",
-      Task.dest.toString(),
-      "--lib",
-      androidSdkModule().androidJarPath().path.toString(),
-      "--min-api",
-      androidMinSdk().toString,
-      "--main-dex-rules",
-      proguardFile.toString()
-    ) ++ appCompiledFiles ++ libsJarFiles
-
-    val d8Args = d8ArgsBuilder.result()
-
-    Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
-
-    os.call(d8Args)
-
-    PathRef(Task.dest)
   }
 
   /**
@@ -342,33 +282,6 @@ trait AndroidAppModule extends AndroidModule {
   }
 
   /**
-   * Collect files from META-INF folder of classes.jar (not META-INF of aar in case of Android library).
-   */
-  def androidLibsClassesJarMetaInf: T[Seq[PathRef]] = Task {
-    // ^ not the best name for the method, but this is to distinguish between META-INF of aar and META-INF
-    // of classes.jar included in aar
-    compileClasspath()
-      .filter(ref =>
-        ref.path.ext == "jar" &&
-          ref != androidSdkModule().androidJarPath()
-      )
-      .flatMap(ref => {
-        val dest = Task.dest / ref.path.baseName
-        os.unzip(ref.path, dest)
-        val lookupPath = dest / "META-INF"
-        if (os.exists(lookupPath)) {
-          os.walk(lookupPath)
-            .filter(os.isFile)
-            .filterNot(f => isExcludedFromPackaging(f.relativeTo(lookupPath)))
-        } else {
-          Seq.empty[os.Path]
-        }
-      })
-      .map(PathRef(_))
-      .toSeq
-  }
-
-  /**
    * Optimizes the APK using the `zipalign` tool for better performance.
    *
    * For more details on the zipalign tool, refer to:
@@ -387,6 +300,38 @@ trait AndroidAppModule extends AndroidModule {
     ))
 
     PathRef(alignedApk)
+  }
+
+  // TODO alias, keystore pass and pass below are sensitive credentials and shouldn't be leaked to disk/console.
+  // In the current state they are leaked, because Task dumps output to the json.
+  // Should be fixed ASAP.
+
+  /**
+   * Name of the key alias in the release keystore. Default is not set.
+   */
+  def androidReleaseKeyAlias: T[Option[String]] = Task {
+    None
+  }
+
+  /**
+   * Name of the release keystore file. Default is not set.
+   */
+  def androidReleaseKeyName: T[Option[String]] = Task {
+    None
+  }
+
+  /**
+   * Password for the release key. Default is not set.
+   */
+  def androidReleaseKeyPass: T[Option[String]] = Task {
+    None
+  }
+
+  /**
+   * Password for the release keystore. Default is not set.
+   */
+  def androidReleaseKeyStorePass: T[Option[String]] = Task {
+    None
   }
 
   /**
@@ -568,7 +513,7 @@ trait AndroidAppModule extends AndroidModule {
   }
 
   /**
-   * Deletes  the android device
+   * Deletes the android device
    */
   def deleteAndroidVirtualDevice: T[os.CommandResult] = Task {
     os.call((
@@ -669,6 +614,19 @@ trait AndroidAppModule extends AndroidModule {
     emulator
   }
 
+  /**
+   * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
+   * Users can customize the keystore file name to change this path.
+   */
+  def androidReleaseKeyPath: T[Option[PathRef]] = Task {
+    androidReleaseKeyName().map(name => PathRef(moduleDir / name))
+  }
+
+  /*
+    The debug keystore is stored in `$HOME/.mill-android`. The practical
+  purpose of a global keystore is to avoid the user having to uninstall the
+  app everytime the task directory is deleted (as the app signatures will not match).
+   */
   private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {
     val debugFileName = "mill-debug.jks"
     val globalDebugFileLocation = os.home / ".mill-android"
@@ -703,11 +661,7 @@ trait AndroidAppModule extends AndroidModule {
       ))
     }
 
-    val debugKeystoreTaskFile = Task.dest / debugFileName
-
-    os.copy(debugKeystoreFile, debugKeystoreTaskFile)
-
-    PathRef(debugKeystoreTaskFile)
+    PathRef(debugKeystoreFile)
   }
 
   protected def androidKeystore: T[PathRef] = Task {
@@ -719,6 +673,7 @@ trait AndroidAppModule extends AndroidModule {
     pathRef
   }
 
+  //TODO consider managing with proguard and/or r8
   private def isExcludedFromPackaging(relPath: RelPath): Boolean = {
     val topPath = relPath.segments.head
     // TODO do this better
@@ -867,7 +822,7 @@ trait AndroidAppModule extends AndroidModule {
 
     // ProGuard configuration files: add our extra rules file and all provided config files.
     val pgArgs = Seq("--pg-conf", extraRulesFile.toString) ++
-      proguardConfigs().flatMap(cfg => Seq("--pg-conf", cfg.path.toString))
+      androidProguardConfigs().flatMap(cfg => Seq("--pg-conf", cfg.path.toString))
 
     r8ArgsBuilder ++= pgArgs
 
@@ -954,17 +909,17 @@ trait AndroidAppModule extends AndroidModule {
 
   trait AndroidAppTests extends AndroidAppModule with JavaTests {
 
-    override def androidCompileSdk: T[Int] = parent.androidCompileSdk()
-    override def androidMinSdk: T[Int] = parent.androidMinSdk()
-    override def androidTargetSdk: T[Int] = parent.androidTargetSdk()
-    override def androidSdkModule: ModuleRef[AndroidSdkModule] = parent.androidSdkModule
-    override def androidManifest: T[PathRef] = parent.androidManifest()
+    override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
+    override def androidMinSdk: T[Int] = outer.androidMinSdk()
+    override def androidTargetSdk: T[Int] = outer.androidTargetSdk()
+    override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
+    override def androidManifest: T[PathRef] = outer.androidManifest()
 
-    override def androidApplicationId: String = parent.androidApplicationId
+    override def androidApplicationId: String = outer.androidApplicationId
 
-    override def androidApplicationNamespace: String = parent.androidApplicationNamespace
+    override def androidApplicationNamespace: String = outer.androidApplicationNamespace
 
-    override def moduleDir = parent.moduleDir
+    override def moduleDir = outer.moduleDir
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
 
@@ -978,26 +933,26 @@ trait AndroidAppModule extends AndroidModule {
   }
 
   trait AndroidAppInstrumentedTests extends AndroidAppModule with AndroidTestModule {
-    override def moduleDir = parent.moduleDir
+    override def moduleDir = outer.moduleDir
 
-    override def moduleDeps: Seq[JavaModule] = Seq(parent)
+    override def moduleDeps: Seq[JavaModule] = Seq(outer)
 
-    override def androidCompileSdk: T[Int] = parent.androidCompileSdk()
-    override def androidMinSdk: T[Int] = parent.androidMinSdk()
-    override def androidTargetSdk: T[Int] = parent.androidTargetSdk()
+    override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
+    override def androidMinSdk: T[Int] = outer.androidMinSdk()
+    override def androidTargetSdk: T[Int] = outer.androidTargetSdk()
 
-    override def androidIsDebug: T[Boolean] = parent.androidIsDebug()
+    override def androidIsDebug: T[Boolean] = outer.androidIsDebug()
 
-    override def androidApplicationId: String = parent.androidApplicationId
-    override def androidApplicationNamespace: String = parent.androidApplicationNamespace
+    override def androidApplicationId: String = outer.androidApplicationId
+    override def androidApplicationNamespace: String = outer.androidApplicationNamespace
 
-    override def androidReleaseKeyAlias: T[Option[String]] = parent.androidReleaseKeyAlias()
-    override def androidReleaseKeyName: T[Option[String]] = parent.androidReleaseKeyName()
-    override def androidReleaseKeyPass: T[Option[String]] = parent.androidReleaseKeyPass()
-    override def androidReleaseKeyStorePass: T[Option[String]] = parent.androidReleaseKeyStorePass()
-    override def androidReleaseKeyPath: T[Option[PathRef]] = parent.androidReleaseKeyPath()
+    override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
+    override def androidReleaseKeyName: T[Option[String]] = outer.androidReleaseKeyName()
+    override def androidReleaseKeyPass: T[Option[String]] = outer.androidReleaseKeyPass()
+    override def androidReleaseKeyStorePass: T[Option[String]] = outer.androidReleaseKeyStorePass()
+    override def androidReleaseKeyPath: T[Option[PathRef]] = outer.androidReleaseKeyPath()
 
-    override def androidEmulatorPort: String = parent.androidEmulatorPort
+    override def androidEmulatorPort: String = outer.androidEmulatorPort
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/androidTest/java")
 
@@ -1014,10 +969,10 @@ trait AndroidAppModule extends AndroidModule {
      * will need to be created. Then this needs to point to the location of that debug
      * AndroidManifest.xml
      */
-    override def androidManifest: T[PathRef] = parent.androidManifest()
+    override def androidManifest: T[PathRef] = outer.androidManifest()
 
-    override def androidVirtualDeviceIdentifier: String = parent.androidVirtualDeviceIdentifier
-    override def androidEmulatorArchitecture: String = parent.androidEmulatorArchitecture
+    override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
+    override def androidEmulatorArchitecture: String = outer.androidEmulatorArchitecture
 
     def instrumentationPackage: String
 

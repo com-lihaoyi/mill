@@ -15,10 +15,6 @@ trait AndroidModule extends JavaModule {
   private val rClassDirName = "RClass"
   private val compiledResourcesDirName = "compiled-resources"
 
-  protected val debugKeyStorePass = "mill-android"
-  protected val debugKeyAlias = "mill-android"
-  protected val debugKeyPass = "mill-android"
-
   // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/D8BundleMainDexListTask.kt;l=210-223;drc=66ab6bccb85ce3ed7b371535929a69f494d807f0
   val mainDexPlatformRules = Seq(
     "-keep public class * extends android.app.Instrumentation {\n" +
@@ -116,56 +112,6 @@ trait AndroidModule extends JavaModule {
 
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
-  }
-
-  private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {
-    val debugFileName = "mill-debug.jks"
-    val globalDebugFileLocation = os.home / ".mill-android"
-
-    if (!os.exists(globalDebugFileLocation)) {
-      os.makeDir(globalDebugFileLocation)
-    }
-
-    val debugKeystoreFile = globalDebugFileLocation / debugFileName
-
-    if (!os.exists(debugKeystoreFile)) {
-      // TODO test on windows and mac and/or change implementation with java APIs
-      os.call((
-        "keytool",
-        "-genkeypair",
-        "-keystore",
-        debugKeystoreFile,
-        "-alias",
-        debugKeyAlias,
-        "-dname",
-        "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
-        "-validity",
-        "10000",
-        "-keyalg",
-        "RSA",
-        "-keysize",
-        "2048",
-        "-storepass",
-        debugKeyStorePass,
-        "-keypass",
-        debugKeyPass
-      ))
-    }
-
-    val debugKeystoreTaskFile = T.dest / debugFileName
-
-    os.copy(debugKeystoreFile, debugKeystoreTaskFile)
-
-    PathRef(debugKeystoreTaskFile)
-  }
-
-  protected def androidKeystore: T[PathRef] = Task {
-    val pathRef = if (androidIsDebug()) {
-      androidDebugKeystore()
-    } else {
-      androidReleaseKeyPath().get
-    }
-    pathRef
   }
 
   /**
@@ -430,67 +376,6 @@ trait AndroidModule extends JavaModule {
     PathRef(rJar)
   }
 
-  // TODO alias, keystore pass and pass below are sensitive credentials and shouldn't be leaked to disk/console.
-  // In the current state they are leaked, because Task dumps output to the json.
-  // Should be fixed ASAP.
-
-  /**
-   * Name of the key alias in the release keystore. Default is not set.
-   */
-  def androidReleaseKeyAlias: T[Option[String]] = Task {
-    None
-  }
-
-  /**
-   * Name of the release keystore file. Default is not set.
-   */
-  def androidReleaseKeyName: T[Option[String]] = Task {
-    None
-  }
-
-  /**
-   * Password for the release key. Default is not set.
-   */
-  def androidReleaseKeyPass: T[Option[String]] = Task {
-    None
-  }
-
-  /**
-   * Password for the release keystore. Default is not set.
-   */
-  def androidReleaseKeyStorePass: T[Option[String]] = Task {
-    None
-  }
-
-  /** The emulator port where adb connects to. Defaults to 5554 */
-  def androidEmulatorPort: String = "5554"
-
-  /**
-   * Returns the emulator identifier for created from startAndroidEmulator
-   * by iterating the adb device list
-   */
-  def runningEmulator: T[String] = Task {
-    s"emulator-$androidEmulatorPort"
-  }
-
-  /**
-   * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
-   * Users can customize the keystore file name to change this path.
-   */
-  def androidReleaseKeyPath: T[Option[PathRef]] = Task {
-    androidReleaseKeyName().map(name => PathRef(moduleDir / name))
-  }
-
-  /** The name of the virtual device to be created by  [[createAndroidVirtualDevice]] */
-  def androidVirtualDeviceIdentifier: String = "test"
-
-  /**
-   * The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
-   * For example, "x86_64" (default). For a list of system images and their architectures,
-   * see the Android SDK Manager `sdkmanager --list`.
-   */
-  def androidEmulatorArchitecture: String = "x86_64"
-
   /** All individual classfiles inherited from the classpath that will be included into the dex */
   def inheritedClassFiles: T[Seq[PathRef]] = Task {
     compileClasspath()
@@ -510,14 +395,14 @@ trait AndroidModule extends JavaModule {
 
     val appCompiledFiles = os.walk(compile().classes.path)
       .filter(_.ext == "class")
-      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString)
+      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString())
 
     val libsJarFiles = compileClasspath()
       .filter(_ != androidSdkModule().androidJarPath())
       .filter(_.path.ext == "jar")
       .map(_.path.toString())
 
-    val proguardFile = T.dest / "proguard-rules.pro"
+    val proguardFile = Task.dest / "proguard-rules.pro"
     val knownProguardRules = androidUnpackArchives()
       // TODO need also collect rules from other modules,
       // but Android lib module doesn't yet exist
@@ -551,7 +436,7 @@ trait AndroidModule extends JavaModule {
 
     val d8Args = d8ArgsBuilder.result()
 
-    T.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
+    Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
     os.call(d8Args)
 
@@ -593,7 +478,7 @@ trait AndroidModule extends JavaModule {
           ref != androidSdkModule().androidJarPath()
       )
       .flatMap(ref => {
-        val dest = T.dest / ref.path.baseName
+        val dest = Task.dest / ref.path.baseName
         os.unzip(ref.path, dest)
         val lookupPath = dest / "META-INF"
         if (os.exists(lookupPath)) {
@@ -608,140 +493,17 @@ trait AndroidModule extends JavaModule {
       .toSeq
   }
 
-  /**
-   * Packages DEX files and Android resources into an unsigned APK.
-   *
-   * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
-   */
-  def androidUnsignedApk: T[PathRef] = Task {
-    val unsignedApk = Task.dest / "app.unsigned.apk"
-
-    os.copy(androidResources()._1.path / "res.apk", unsignedApk)
-    val dexFiles = os.walk(androidDex().path)
-      .filter(_.ext == "dex")
-      .map(os.zip.ZipSource.fromPath)
-    // TODO probably need to merge all content, not only in META-INF of classes.jar, but also outside it
-    val metaInf = androidLibsClassesJarMetaInf()
-      .map(ref => {
-        def metaInfRoot(p: os.Path): os.Path = {
-          var current = p
-          while (!current.endsWith(os.rel / "META-INF")) {
-            current = current / os.up
-          }
-          current / os.up
-        }
-
-        val path = ref.path
-        os.zip.ZipSource.fromPathTuple((path, path.subRelativeTo(metaInfRoot(path))))
-      })
-      .distinctBy(_.dest.get)
-
-    // TODO generate aar-metadata.properties (for lib distribution, not in this module) or
-    //  app-metadata.properties (for app distribution).
-    // Example of aar-metadata.properties:
-    // aarFormatVersion=1.0
-    // aarMetadataVersion=1.0
-    // minCompileSdk=33
-    // minCompileSdkExtension=0
-    // minAndroidGradlePluginVersion=1.0.0
-    //
-    // Example of app-metadata.properties:
-    // appMetadataVersion=1.1
-    // androidGradlePluginVersion=8.7.2
-    os.zip(unsignedApk, dexFiles)
-    os.zip(unsignedApk, metaInf)
-    // TODO pack also native (.so) libraries
-
-    PathRef(unsignedApk)
-  }
-
-  /**
-   * Generates the command-line arguments required for Android app signing.
-   *
-   * Uses the release keystore if release build type is set; otherwise, defaults to a generated debug keystore.
-   */
-  def androidSignKeyDetails: T[Seq[String]] = Task {
-
-    val keystorePass = {
-      if (androidIsDebug()) debugKeyStorePass else androidReleaseKeyStorePass().get
-    }
-    val keyAlias = {
-      if (androidIsDebug()) debugKeyAlias else androidReleaseKeyAlias().get
-    }
-    val keyPass = {
-      if (androidIsDebug()) debugKeyPass else androidReleaseKeyPass().get
-    }
-
+  def androidDefaultUserProguardConfigFiles: T[Seq[PathRef]] = Task {
     Seq(
-      "--ks",
-      androidKeystore().path.toString,
-      "--ks-key-alias",
-      keyAlias,
-      "--ks-pass",
-      s"pass:$keystorePass",
-      "--key-pass",
-      s"pass:$keyPass"
+      PathRef(moduleDir / "proguard-rules.pro"),
+      PathRef(moduleDir / "test-proguard-rules.pro")
     )
   }
 
-  /**
-   * Optimizes the APK using the `zipalign` tool for better performance.
-   *
-   * For more details on the zipalign tool, refer to:
-   * [[https://developer.android.com/tools/zipalign zipalign Documentation]]
-   */
-  def androidAlignedUnsignedApk: T[PathRef] = Task {
-    val alignedApk: os.Path = Task.dest / "app.aligned.apk"
-
-    os.call((
-      androidSdkModule().zipalignPath().path,
-      "-f",
-      "-p",
-      "4",
-      androidUnsignedApk().path,
-      alignedApk
-    ))
-
-    PathRef(alignedApk)
-  }
-
-  /**
-   * Signs the APK using a keystore to generate a final, distributable APK.
-   *
-   * The signing step is mandatory to distribute Android applications. It adds a cryptographic
-   * signature to the APK, verifying its authenticity. This method uses the `apksigner` tool
-   * along with a keystore file to sign the APK.
-   *
-   * If no keystore is available, a new one is generated using the `keytool` utility.
-   *
-   * For more details on the apksigner tool, refer to:
-   * [[https://developer.android.com/tools/apksigner apksigner Documentation]]
-   */
-  def androidApk: T[PathRef] = Task {
-    val signedApk = Task.dest / "app.apk"
-
-    val signArgs = Seq(
-      androidSdkModule().apksignerPath().path.toString,
-      "sign",
-      "--in",
-      androidAlignedUnsignedApk().path.toString,
-      "--out",
-      signedApk.toString
-    ) ++ androidSignKeyDetails()
-
-    T.log.info(s"Calling apksigner with arguments: ${signArgs.mkString(" ")}")
-
-    os.call(signArgs)
-
-    PathRef(signedApk)
-  }
-
   /** ProGuard/R8 rules configuration files (user-provided and generated) */
-  def proguardConfigs: T[Seq[PathRef]] = {
-    Seq(
-      PathRef(moduleDir / "proguard-rules.pro"),
-      PathRef(androidModuleGeneratedSourcesFunc().androidReleaseDex.path / "proguard-rules.pro"),
-      PathRef(moduleDir / "test-proguard-rules.pro")
+  def androidProguardConfigs: T[Seq[PathRef]] = Task {
+    androidDefaultUserProguardConfigFiles().filter(p => os.exists(p.path)) ++ Seq(
+      PathRef(androidModuleGeneratedSourcesFunc().androidReleaseDex.path / "proguard-rules.pro")
     )
   }
 
