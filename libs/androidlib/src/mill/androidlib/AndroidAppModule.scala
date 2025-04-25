@@ -217,6 +217,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .map(PathRef(_))
       .toSeq
   }
+
   /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
@@ -699,7 +700,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     pathRef
   }
 
-  //TODO consider managing with proguard and/or r8
+  // TODO consider managing with proguard and/or r8
   private def isExcludedFromPackaging(relPath: RelPath): Boolean = {
     val topPath = relPath.segments.head
     // TODO do this better
@@ -797,7 +798,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
   }
 
-
   /**
    * Provides the output path for the generated main-dex list file, which is used
    * during the DEX generation process.
@@ -858,7 +858,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       if (buildSettings.isMinifyEnabled) {
         androidR8Dex()
       } else
-        androidD8DexArgs()
+        androidD8Dex()
     }
 
     Task.log.debug("Building dex with command: " + dexCliArgs.mkString(" "))
@@ -869,9 +869,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   }
 
-
   // uses the d8 tool to generate the dex file, when minification is disabled
-  private def androidD8DexArgs: T[(PathRef, Seq[String])] = Task {
+  private def androidD8Dex: T[(PathRef, Seq[String])] = Task {
 
     val outPath = T.dest
 
@@ -922,7 +921,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     PathRef(outPath) -> d8Args
   }
-
 
   // uses the R8 tool to generate the dex (to shrink and obfuscate)
   private def androidR8Dex: Task[(PathRef, Seq[String])] = Task {
@@ -1066,7 +1064,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
     override def androidMinSdk: T[Int] = outer.androidMinSdk()
     override def androidTargetSdk: T[Int] = outer.androidTargetSdk()
-    
+
     override def androidIsDebug: T[Boolean] = Task { true }
 
     override def androidApplicationId: String = outer.androidApplicationId
