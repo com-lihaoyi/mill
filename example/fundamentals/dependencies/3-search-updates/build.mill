@@ -51,11 +51,8 @@ com.lihaoyi:scalatags_2.13 : 0.8.2 -> 0.8.3 -> 0.8.4 -> 0.8.5 -> 0.8.6 -> ... in
 > mill --meta-level 1 mill.scalalib.Dependency/showUpdates
 */
 
-
-
 // Current limitations:
 //
 // * Only works for `JavaModule` modules (including ``ScalaModule``s,
 // ``CrossScalaModule``s, ``KotlinModule``s, etc.) and Maven repositories.
 // * Always applies to all modules in the build.
-
