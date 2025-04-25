@@ -162,37 +162,41 @@ object MillMain {
               checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)
             }
 
+            val maybeThreadCount =
+              parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
+
             // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
             val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
             val bspInstallModeJobCountOpt = {
+              def defaultJobCount =
+                maybeThreadCount.toOption.getOrElse(BSP.defaultJobCount)
+
               val viaEmulatedExternalCommand = Option.when(
                 !config.bsp.value &&
                   config.leftoverArgs.value.headOption.contains("mill.bsp.BSP/install")
               ) {
                 config.leftoverArgs.value.tail match {
-                  case Seq() => BSP.defaultJobCount
+                  case Seq() => defaultJobCount
                   case Seq("--jobs", value) =>
                     val asIntOpt = value.toIntOption
                     asIntOpt.getOrElse {
                       streams.err.println(
                         s"Warning: ignoring --jobs value passed to ${config.leftoverArgs.value.head}"
                       )
-                      BSP.defaultJobCount
+                      defaultJobCount
                     }
                   case other =>
                     streams.err.println(
                       s"Warning: ignoring leftover arguments passed to ${config.leftoverArgs.value.head}"
                     )
-                    BSP.defaultJobCount
+                    defaultJobCount
                 }
               }
 
               viaEmulatedExternalCommand.orElse {
-                Option.when(config.bspInstall.value)(BSP.defaultJobCount)
+                Option.when(config.bspInstall.value)(defaultJobCount)
               }
             }
-            val maybeThreadCount =
-              parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
 
             val (success, nextStateCache) = {
               if (config.repl.value) {
