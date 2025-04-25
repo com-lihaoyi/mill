@@ -128,12 +128,15 @@ object MillMain {
       serverDir: os.Path
   ): (Boolean, RunnerState) = {
 
-    val bspMode = {
-      val args0 =
-        // workaround for IntelliJ adding --jobs=0.5C upfront on its own
-        if (args.headOption.exists(_.startsWith("--jobs="))) args.drop(1)
-        else args
-      args0.headOption.contains("--bsp")
+    val bspMode = args match {
+      case Array("--bsp", _*) =>
+        // --bsp passed upfront
+        true
+      case Array(s"--jobs=$_", "--bsp", _*) =>
+        // IntelliJ inserts a --jobs=... before --bsp
+        true
+      case _ =>
+        false
     }
     withStreams(bspMode, streams0) { streams =>
       os.SubProcess.env.withValue(env) {
@@ -348,8 +351,15 @@ object MillMain {
     }
   }
 
+  /**
+   * Runs the BSP server, and exits when the server is done
+   *
+   * @param bspStreams Streams to use for BSP JSONRPC communication with the BSP client
+   * @param logStreams Streams to use for logging
+   * @param runMillBootstrap Load the Mill build, building / updating meta-builds along the way
+   */
   def runBspSession(
-      streams0: SystemStreams,
+      bspStreams: SystemStreams,
       logStreams: SystemStreams,
       runMillBootstrap: Option[RunnerState] => RunnerState
   ): Result[BspServerResult] = {
@@ -361,13 +371,13 @@ object MillMain {
       os.makeDir.all(logDir)
       mill.bsp.worker.BspWorkerImpl.startBspServer(
         define.WorkspaceRoot.workspaceRoot,
-        streams0,
+        bspStreams,
         logDir,
         true
       )
     }
 
-    streams0.err.println("BSP server started")
+    logStreams.err.println("BSP server started")
 
     val runSessionRes = bspServerHandleRes.flatMap { bspServerHandle =>
       try {
@@ -382,11 +392,11 @@ object MillMain {
           prevRunnerState = Some(runnerState)
           repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
           bspRes = Some(runSessionRes)
-          streams0.err.println(s"BSP session returned with $runSessionRes")
+          logStreams.err.println(s"BSP session returned with $runSessionRes")
         }
 
         // should make the lsp4j-managed BSP server exit
-        streams0.in.close()
+        bspStreams.in.close()
 
         bspRes.get
       } finally bspServerHandle.close()
