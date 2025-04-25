@@ -236,7 +236,6 @@ include::partial$example/fundamentals/dependencies/1-external-bom.adoc[]
 include::partial$example/fundamentals/dependencies/2-managed.adoc[]
 
 
-
 == Searching For Dependency Updates
 
 include::partial$example/fundamentals/dependencies/3-search-updates.adoc[]
