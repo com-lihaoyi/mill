@@ -153,7 +153,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     val deps = resolver.classpath(
       Seq(bridgeDep.bindDep("", "", "")),
       sources = useSources,
-      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+      resolutionParamsMapOpt = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     )
 
     val bridgeJar = JvmWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
@@ -173,19 +173,25 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       deps = Seq(mvn"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
-      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+      resolutionParamsMapOpt = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     )
   }
 
   def overrideScalaLibrary(
       scalaVersion: String,
       scalaOrganization: String
-  )(dep: coursier.Dependency): coursier.Dependency = {
-    if (dep.module.name.value == "scala-library") {
-      dep.withModule(dep.module.withOrganization(coursier.Organization(scalaOrganization)))
-        .withVersion(scalaVersion)
-    } else dep
-  }
+  ): coursier.params.ResolutionParams => coursier.params.ResolutionParams =
+    params =>
+      params
+        .withTypelevel(scalaOrganization == "org.typelevel")
+        .addForceVersion0(
+          coursier.Module(
+            coursier.Organization(scalaOrganization),
+            coursier.ModuleName("scala-library"),
+            Map.empty
+          ) ->
+            coursier.version.VersionConstraint(scalaVersion)
+        )
 
   override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
     (
