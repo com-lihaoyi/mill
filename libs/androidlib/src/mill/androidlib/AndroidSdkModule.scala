@@ -199,6 +199,14 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
+   * Location of the default proguard optimisation config. 
+   * See also [[https://developer.android.com/build/shrink-code]]
+   */
+  def androidProguardPath: T[PathRef] = Task {
+    PathRef(sdkPath().path / "tools/proguard")
+  }
+
+  /**
    * Provides the path for the Android SDK Manager tool
    *
    * @return A task containing a [[PathRef]] pointing to the SDK directory.

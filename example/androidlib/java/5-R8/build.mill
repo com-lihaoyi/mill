@@ -43,6 +43,16 @@ object app extends AndroidAppModule { // <2>
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDeviceIdentifier: String = "java-test"
+  override def androidIsDebug: T[Boolean] = Task { false }
+
+  override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
+    super.androidReleaseSettings().withProguardLocalFiles(
+      Seq(
+        moduleDir / "proguard-rules.pro",
+        moduleDir / "test-proguard-rules.pro"
+      )
+    )
+  }
 
   // Unit tests for the application
   object test extends AndroidAppTests with TestModule.Junit4 {
@@ -80,15 +90,16 @@ object app extends AndroidAppModule { // <2>
 /** Usage
 
 > ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
 
 > ./mill show app.createAndroidVirtualDevice
 ...Name: java-test, DeviceId: medium_phone...
 
 > ./mill show app.startAndroidEmulator
 
-> ./mill show app.androidReleaseInstall
+> ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...
+
+> ./mill show app.it
 
 > ./mill show app.stopAndroidEmulator
 
@@ -96,9 +107,9 @@ object app extends AndroidAppModule { // <2>
 
 */
 
-// R8 will run automatically when you run the `androidReleaseInstall` task.
-// If you want to create the APK without R8, you can use the `androidApk` task to create the not-optimized APK. You can also
+// R8 will run automatically when you run the `androidInstall` task with androidIsDebug set to false.
+// If you want to create the APK without R8, you can set the androidReleaseSettings isMinifyEnabled to false. You can also
 // run the `andoidInstall` task that will automaticaly run the `androidApk` and also install it in the emulator.
-// The `androidReleaseInstall` task will install the optimized APK on the emulator.
+// The release settings used in `androidInstall` task will install the optimized APK on the emulator.
 // So first you need to create the emulator and start it.
 // After the emulator is started, you can run the `androidReleaseInstall` task and see the app in the emulator.

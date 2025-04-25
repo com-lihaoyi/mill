@@ -2,7 +2,6 @@ package mill.androidlib
 
 import coursier.Repository
 import mill.T
-import mill.androidlib.AndroidModule.AndroidModuleGeneratedSources
 import mill.define.{ModuleRef, PathRef, Target, Task}
 import mill.scalalib.*
 import mill.util.Jvm
@@ -386,134 +385,9 @@ trait AndroidModule extends JavaModule {
       .map(PathRef(_))
   }
 
-  /**
-   * Converts the generated JAR file into a DEX file using the `d8` tool.
-   *
-   * @return os.Path to the Generated DEX File Directory
-   */
-  def androidDex: T[PathRef] = Task {
-
-    val appCompiledFiles = os.walk(compile().classes.path)
-      .filter(_.ext == "class")
-      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString())
-
-    val libsJarFiles = compileClasspath()
-      .filter(_ != androidSdkModule().androidJarPath())
-      .filter(_.path.ext == "jar")
-      .map(_.path.toString())
-
-    val proguardFile = Task.dest / "proguard-rules.pro"
-    val knownProguardRules = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
-      .mkString("\n")
-    os.write(proguardFile, knownProguardRules)
-
-    val d8ArgsBuilder = Seq.newBuilder[String]
-
-    d8ArgsBuilder += androidSdkModule().d8Path().path.toString
-
-    if (androidIsDebug()) {
-      d8ArgsBuilder += "--debug"
-    } else {
-      d8ArgsBuilder += "--release"
-    }
-    // TODO explore --incremental flag for incremental builds
-    d8ArgsBuilder ++= Seq(
-      "--output",
-      Task.dest.toString(),
-      "--lib",
-      androidSdkModule().androidJarPath().path.toString(),
-      "--min-api",
-      androidMinSdk().toString,
-      "--main-dex-rules",
-      proguardFile.toString()
-    ) ++ appCompiledFiles ++ libsJarFiles
-
-    val d8Args = d8ArgsBuilder.result()
-
-    Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
-
-    os.call(d8Args)
-
-    PathRef(Task.dest)
-  }
-
-  private def isExcludedFromPackaging(relPath: RelPath): Boolean = {
-    val topPath = relPath.segments.head
-    // TODO do this better
-    // full list is here https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/packaging/PackagingOptionsUtils.kt;drc=85330e2f750acc1e1510623222d80e4b1ad5c8a2
-    // but anyway it should be a packaging option DSL to configure additional excludes from the user side
-    relPath.ext == "kotlin_module" ||
-    relPath.ext == "kotlin_metadata" ||
-    relPath.ext == "DSA" ||
-    relPath.ext == "EC" ||
-    relPath.ext == "SF" ||
-    relPath.ext == "RSA" ||
-    topPath == "maven" ||
-    topPath == "proguard" ||
-    topPath == "com.android.tools" ||
-    relPath.last == "MANIFEST.MF" ||
-    relPath.last == "LICENSE" ||
-    relPath.last == "LICENSE.TXT" ||
-    relPath.last == "NOTICE" ||
-    relPath.last == "NOTICE.TXT" ||
-    relPath.last == "kotlin-project-structure-metadata.json" ||
-    relPath.last == "module-info.class"
-  }
-
-  /**
-   * Collect files from META-INF folder of classes.jar (not META-INF of aar in case of Android library).
-   */
-  def androidLibsClassesJarMetaInf: T[Seq[PathRef]] = Task {
-    // ^ not the best name for the method, but this is to distinguish between META-INF of aar and META-INF
-    // of classes.jar included in aar
-    compileClasspath()
-      .filter(ref =>
-        ref.path.ext == "jar" &&
-          ref != androidSdkModule().androidJarPath()
-      )
-      .flatMap(ref => {
-        val dest = Task.dest / ref.path.baseName
-        os.unzip(ref.path, dest)
-        val lookupPath = dest / "META-INF"
-        if (os.exists(lookupPath)) {
-          os.walk(lookupPath)
-            .filter(os.isFile)
-            .filterNot(f => isExcludedFromPackaging(f.relativeTo(lookupPath)))
-        } else {
-          Seq.empty[os.Path]
-        }
-      })
-      .map(PathRef(_))
-      .toSeq
-  }
-
-  def androidDefaultUserProguardConfigFiles: T[Seq[PathRef]] = Task {
-    Seq(
-      PathRef(moduleDir / "proguard-rules.pro"),
-      PathRef(moduleDir / "test-proguard-rules.pro")
-    )
-  }
-
-  /** ProGuard/R8 rules configuration files (user-provided and generated) */
-  def androidProguardConfigs: T[Seq[PathRef]] = Task {
-    androidDefaultUserProguardConfigFiles().filter(p => os.exists(p.path)) ++ Seq(
-      PathRef(androidModuleGeneratedSourcesFunc().androidReleaseDex.path / "proguard-rules.pro")
-    )
-  }
-
   /** Additional library classes provided */
   def libraryClassesPaths: T[Seq[PathRef]] = Task {
     androidSdkModule().androidLibsClasspaths()
-  }
-
-  def enableDesugaring: T[Boolean] = Task {
-    true
   }
 
   /**
@@ -532,68 +406,9 @@ trait AndroidModule extends JavaModule {
     None
   }
 
-  /**
-   *  Provides the output path for the generated main-dex list file, which is used
-   *  during the DEX generation process.
-   */
-  def mainDexListOutput: T[Option[PathRef]] = Task {
-    Some(androidModuleGeneratedSourcesFunc().mainDexListOutput)
-  }
-
   /** Optional baseline profile for ART rewriting */
   def baselineProfile: T[Option[PathRef]] = Task {
     None
   }
 
-  def androidModuleGeneratedSourcesFunc: T[AndroidModuleGeneratedSources] = Task {
-    val androidDebugDex = T.dest / "androidDebugDex.dest"
-    os.makeDir(androidDebugDex)
-    val androidReleaseDex = T.dest / "androidReleaseDex.dest"
-    os.makeDir(androidReleaseDex)
-    val mainDexListOutput = T.dest / "main-dex-list-output.txt"
-
-    val proguardFileDebug = androidDebugDex / "proguard-rules.pro"
-
-    val knownProguardRulesDebug = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
-      .mkString("\n")
-    os.write(proguardFileDebug, knownProguardRulesDebug)
-
-    val proguardFileRelease = androidReleaseDex / "proguard-rules.pro"
-
-    val knownProguardRulesRelease = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
-      .mkString("\n")
-    os.write(proguardFileRelease, knownProguardRulesRelease)
-
-    AndroidModuleGeneratedSources(
-      androidDebugDex = PathRef(androidDebugDex),
-      androidReleaseDex = PathRef(androidReleaseDex),
-      mainDexListOutput = PathRef(mainDexListOutput)
-    )
-  }
-
-}
-
-object AndroidModule {
-  case class AndroidModuleGeneratedSources(
-      androidDebugDex: PathRef,
-      androidReleaseDex: PathRef,
-      mainDexListOutput: PathRef
-  )
-
-  object AndroidModuleGeneratedSources {
-    implicit def resultRW: upickle.default.ReadWriter[AndroidModuleGeneratedSources] =
-      upickle.default.macroRW
-  }
 }

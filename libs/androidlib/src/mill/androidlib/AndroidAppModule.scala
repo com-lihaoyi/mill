@@ -192,6 +192,32 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Collect files from META-INF folder of classes.jar (not META-INF of aar in case of Android library).
+   */
+  def androidLibsClassesJarMetaInf: T[Seq[PathRef]] = Task {
+    // ^ not the best name for the method, but this is to distinguish between META-INF of aar and META-INF
+    // of classes.jar included in aar
+    compileClasspath()
+      .filter(ref =>
+        ref.path.ext == "jar" &&
+          ref != androidSdkModule().androidJarPath()
+      )
+      .flatMap(ref => {
+        val dest = Task.dest / ref.path.baseName
+        os.unzip(ref.path, dest)
+        val lookupPath = dest / "META-INF"
+        if (os.exists(lookupPath)) {
+          os.walk(lookupPath)
+            .filter(os.isFile)
+            .filterNot(f => isExcludedFromPackaging(f.relativeTo(lookupPath)))
+        } else {
+          Seq.empty[os.Path]
+        }
+      })
+      .map(PathRef(_))
+      .toSeq
+  }
+  /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
    * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
@@ -733,9 +759,174 @@ trait AndroidAppModule extends AndroidModule { outer =>
       throw new Exception("Device failed to boot")
   }
 
-  def runR8: T[PathRef] = Task {
+  def androidModuleGeneratedDexVariants: Task[AndroidModuleGeneratedDexVariants] = Task {
+    val androidDebugDex = T.dest / "androidDebugDex.dest"
+    os.makeDir(androidDebugDex)
+    val androidReleaseDex = T.dest / "androidReleaseDex.dest"
+    os.makeDir(androidReleaseDex)
+    val mainDexListOutput = T.dest / "main-dex-list-output.txt"
 
-    val destDir = Task.dest / "minify"
+    val proguardFileDebug = androidDebugDex / "proguard-rules.pro"
+
+    val knownProguardRulesDebug = androidUnpackArchives()
+      // TODO need also collect rules from other modules,
+      // but Android lib module doesn't yet exist
+      .flatMap(_.proguardRules)
+      .map(p => os.read(p.path))
+      .appendedAll(mainDexPlatformRules)
+      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .mkString("\n")
+    os.write(proguardFileDebug, knownProguardRulesDebug)
+
+    val proguardFileRelease = androidReleaseDex / "proguard-rules.pro"
+
+    val knownProguardRulesRelease = androidUnpackArchives()
+      // TODO need also collect rules from other modules,
+      // but Android lib module doesn't yet exist
+      .flatMap(_.proguardRules)
+      .map(p => os.read(p.path))
+      .appendedAll(mainDexPlatformRules)
+      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .mkString("\n")
+    os.write(proguardFileRelease, knownProguardRulesRelease)
+
+    AndroidModuleGeneratedDexVariants(
+      androidDebugDex = PathRef(androidDebugDex),
+      androidReleaseDex = PathRef(androidReleaseDex),
+      mainDexListOutput = PathRef(mainDexListOutput)
+    )
+  }
+
+
+  /**
+   * Provides the output path for the generated main-dex list file, which is used
+   * during the DEX generation process.
+   */
+  def mainDexListOutput: T[Option[PathRef]] = Task {
+    Some(androidModuleGeneratedDexVariants().mainDexListOutput)
+  }
+
+  /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
+  def androidProguardReleaseConfigs: T[Seq[PathRef]] = Task {
+    val proguardFilesFromReleaseSettings = androidReleaseSettings().proguardFiles
+    val androidProguardPath = androidSdkModule().androidProguardPath().path
+    val defaultProguardFile = proguardFilesFromReleaseSettings.defaultProguardFile.map {
+      pf => androidProguardPath / pf
+    }
+    val userProguardFiles = proguardFilesFromReleaseSettings.localFiles
+
+    (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
+  }
+
+  def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
+    AndroidBuildTypeSettings(
+      isMinifyEnabled = true,
+      isShrinkEnabled = true,
+      proguardFiles = ProguardFiles(
+        defaultProguardFile = Some("proguard-android-optimize.txt")
+      )
+    )
+  }
+
+  def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    AndroidBuildTypeSettings()
+  }
+
+  /**
+   * Gives the android build type settings for debug or release.
+   * Controlled by [[androidIsDebug]] flag!
+   * @return
+   */
+  def androidBuildSettings: T[AndroidBuildTypeSettings] = Task {
+    if (androidIsDebug())
+      androidDebugSettings()
+    else
+      androidReleaseSettings()
+  }
+
+  /**
+   * Converts the generated JAR file into a DEX file using the `d8` or the r8 tool if minification is enabled
+   * through the [[androidBuildSettings]].
+   *
+   * @return os.Path to the Generated DEX File Directory
+   */
+  def androidDex: T[PathRef] = Task {
+
+    val buildSettings: AndroidBuildTypeSettings = androidBuildSettings()
+
+    val (outPath, dexCliArgs) = {
+      if (buildSettings.isMinifyEnabled) {
+        androidR8Dex()
+      } else
+        androidD8DexArgs()
+    }
+
+    Task.log.debug("Building dex with command: " + dexCliArgs.mkString(" "))
+
+    os.call(dexCliArgs)
+
+    outPath
+
+  }
+
+
+  // uses the d8 tool to generate the dex file, when minification is disabled
+  private def androidD8DexArgs: T[(PathRef, Seq[String])] = Task {
+
+    val outPath = T.dest
+
+    val appCompiledFiles = os.walk(compile().classes.path)
+      .filter(_.ext == "class")
+      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString())
+
+    val libsJarFiles = compileClasspath()
+      .filter(_ != androidSdkModule().androidJarPath())
+      .filter(_.path.ext == "jar")
+      .map(_.path.toString())
+
+    val proguardFile = Task.dest / "proguard-rules.pro"
+    val knownProguardRules = androidUnpackArchives()
+      // TODO need also collect rules from other modules,
+      // but Android lib module doesn't yet exist
+      .flatMap(_.proguardRules)
+      .map(p => os.read(p.path))
+      .appendedAll(mainDexPlatformRules)
+      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .mkString("\n")
+    os.write(proguardFile, knownProguardRules)
+
+    val d8ArgsBuilder = Seq.newBuilder[String]
+
+    d8ArgsBuilder += androidSdkModule().d8Path().path.toString
+
+    if (androidIsDebug()) {
+      d8ArgsBuilder += "--debug"
+    } else {
+      d8ArgsBuilder += "--release"
+    }
+    // TODO explore --incremental flag for incremental builds
+    d8ArgsBuilder ++= Seq(
+      "--output",
+      outPath.toString(),
+      "--lib",
+      androidSdkModule().androidJarPath().path.toString(),
+      "--min-api",
+      androidMinSdk().toString,
+      "--main-dex-rules",
+      proguardFile.toString()
+    ) ++ appCompiledFiles ++ libsJarFiles
+
+    val d8Args = d8ArgsBuilder.result()
+
+    Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
+
+    PathRef(outPath) -> d8Args
+  }
+
+
+  // uses the R8 tool to generate the dex (to shrink and obfuscate)
+  private def androidR8Dex: Task[(PathRef, Seq[String])] = Task {
+    val destDir = T.dest / "minify"
     os.makeDir.all(destDir)
 
     val outputPath = destDir
@@ -790,8 +981,17 @@ trait AndroidAppModule extends AndroidModule { outer =>
       configOut.toString
     )
 
-    if (!enableDesugaring()) {
+    if (!androidBuildSettings().enableDesugaring) {
       r8ArgsBuilder += "--no-desugaring"
+    }
+
+    if (!androidBuildSettings().isMinifyEnabled) {
+      r8ArgsBuilder += "--no-minification"
+    }
+
+    // TODO support resource shrinking too
+    if (!androidBuildSettings().isShrinkEnabled) {
+      r8ArgsBuilder += "--no-tree-shaking"
     }
 
     r8ArgsBuilder ++= Seq(
@@ -822,7 +1022,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     // ProGuard configuration files: add our extra rules file and all provided config files.
     val pgArgs = Seq("--pg-conf", extraRulesFile.toString) ++
-      androidProguardConfigs().flatMap(cfg => Seq("--pg-conf", cfg.path.toString))
+      androidProguardReleaseConfigs().flatMap(cfg => Seq("--pg-conf", cfg.path.toString))
 
     r8ArgsBuilder ++= pgArgs
 
@@ -830,81 +1030,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val r8Args = r8ArgsBuilder.result()
 
-    T.log.info(s"Running r8 with the command: ${r8Args.mkString(" ")}")
-
-    val result = os.call(r8Args)
-
-    T.log.info(result.out.text())
-
-    if (result.exitCode != 0) {
-      T.log.error(s"R8 failed with exit code ${result.exitCode}")
-      T.log.error(result.err.text())
-      throw new RuntimeException(s"R8 failed with exit code ${result.exitCode}")
-    }
-
-    PathRef(outputPath)
-  }
-
-  def androidReleaseInstall: T[PathRef] = Task {
-    val unsignedApk = Task.dest / "app.unsigned.apk"
-    os.copy(androidResources()._1.path / "res.apk", unsignedApk)
-
-    val r8DexFiles = os.walk(runR8().path)
-      .filter(_.ext == "dex")
-      .map(os.zip.ZipSource.fromPath)
-
-    val metaInf = androidLibsClassesJarMetaInf()
-      .map(ref => {
-        def metaInfRoot(p: os.Path): os.Path = {
-          var current = p
-          while (!current.endsWith(os.rel / "META-INF")) {
-            current = current / os.up
-          }
-          current / os.up
-        }
-
-        val path = ref.path
-        os.zip.ZipSource.fromPathTuple((path, path.subRelativeTo(metaInfRoot(path))))
-      })
-      .distinctBy(_.dest.get)
-
-    os.zip(unsignedApk, r8DexFiles)
-    os.zip(unsignedApk, metaInf)
-
-    val alignedApk: os.Path = Task.dest / "app.aligned.apk"
-
-    os.call((
-      androidSdkModule().zipalignPath().path.toString,
-      "-f",
-      "-p",
-      "4",
-      unsignedApk.toString,
-      alignedApk
-    ))
-
-    val signedApk = Task.dest / "app.apk"
-
-    val signArgs = Seq(
-      androidSdkModule().apksignerPath().path.toString,
-      "sign",
-      "--in",
-      alignedApk.toString,
-      "--out",
-      signedApk.toString
-    ) ++ androidSignKeyDetails()
-
-    T.log.info(s"Calling apksigner with arguments: ${signArgs.mkString(" ")}")
-
-    os.call(signArgs)
-
-    val emulator = runningEmulator()
-
-    os.call(
-      (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", signedApk.toString)
-    )
-
-    PathRef(signedApk)
-
+    PathRef(outputPath) -> r8Args
   }
 
   trait AndroidAppTests extends AndroidAppModule with JavaTests {
@@ -940,8 +1066,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
     override def androidMinSdk: T[Int] = outer.androidMinSdk()
     override def androidTargetSdk: T[Int] = outer.androidTargetSdk()
-
-    override def androidIsDebug: T[Boolean] = outer.androidIsDebug()
+    
+    override def androidIsDebug: T[Boolean] = Task { true }
 
     override def androidApplicationId: String = outer.androidApplicationId
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace
@@ -987,7 +1113,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
           emulator,
           "install",
           "-r",
-          androidInstantApk().path
+          androidTestApk().path
         )
       )
       emulator
@@ -1023,7 +1149,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     /** Builds the apk including the integration tests (e.g. from androidTest) */
-    def androidInstantApk: T[PathRef] = androidApk()
+    def androidTestApk: T[PathRef] = androidApk()
 
     @internal
     override def bspBuildTarget: BspBuildTarget = super[AndroidTestModule].bspBuildTarget.copy(
