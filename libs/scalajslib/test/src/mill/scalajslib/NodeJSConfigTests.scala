@@ -3,7 +3,7 @@ package mill.scalajslib
 import mill._
 import mill.define.Discover
 import mill.define.ExecutionPaths
-import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
+import mill.scalalib.{ScalaModule, TestModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._

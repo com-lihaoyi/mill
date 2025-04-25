@@ -2,7 +2,6 @@ package mill.scalalib
 
 import mill.define.Task
 import mill.{Module, PathRef, T}
-import os.SubPath
 import mill.api.internal.{JavaFacet, IdeaConfigFile}
 
 /**

@@ -1,7 +1,7 @@
 package mill.androidlib
 
 import coursier.MavenRepository
-import coursier.cache.CachePolicy.{LocalOnly, LocalOnlyIfValid}
+import coursier.cache.CachePolicy.LocalOnly
 import coursier.cache.FileCache
 import coursier.util.Artifact
 import mill.*
