@@ -883,10 +883,11 @@ override def gitlabHeaders(
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, mill.scalalib.publish._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION&quot;]
+
+import mill._, scalalib._, mill.scalalib.publish._
 import coursier.MavenRepository
 import coursier.core.Authentication
-import $ivy.`com.lihaoyi::mill-contrib-gitlab:`
 import mill.contrib.gitlab._
 
 // DON'T DO THIS
@@ -904,7 +905,9 @@ provides trait <code>GitlabMavenRepository</code> to ease that.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myPackageRepository extends GitlabMavenRepository {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION&quot;]
+
+object myPackageRepository extends GitlabMavenRepository {
   // Customize if needed, omit if unnecessary
   // override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {}
 

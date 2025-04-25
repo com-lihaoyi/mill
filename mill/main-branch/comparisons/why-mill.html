@@ -1197,11 +1197,13 @@ Thymeleaf classes available for you to import and use in your build as below:</p
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;]
+package build
+
 import mill._, javalib._
-import $ivy.`org.thymeleaf:thymeleaf:3.1.1.RELEASE`
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
+
 object foo extends JavaModule {
   /** Total number of lines in module source files */
   def lineCount = Task {

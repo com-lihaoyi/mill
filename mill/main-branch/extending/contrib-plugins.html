@@ -676,23 +676,14 @@
 <td class="content">
 <div class="paragraph">
 <p>When using one of these contribution modules, it is important that the versions you load match your mill version.
-To facilitate this, Mill will automatically replace the <code>$MILL_VERSION</code> literal in your ivy imports with the correct value.
-You can also leave the version completely empty to default to the mill version (but don’t forget to keep the trailing colon).</p>
+To facilitate this, Mill will automatically replace the <code>$MILL_VERSION</code> literal in your mvnDeps with the correct value.</p>
 </div>
 <div class="paragraph">
 <p>For instance:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>or</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::mill-contrib-bloop:`</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-bloop:$MILL_VERSION&quot;]</code></pre>
 </div>
 </div>
 </td>

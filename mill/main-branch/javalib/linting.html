@@ -672,14 +672,16 @@ codebases using the Mill build tool</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p><a href="https://errorprone.info/index">Error Prone</a> augments the Java compiler’s type
-checker and detect common mistakes at compile time. Mill supports ErrorProne via
-<code>ErrorProneModule</code>: mix <code>ErrorProneModule</code> into your <code>JavaModule</code> and it will
+checker and detect common mistakes at compile time.
+Mill supports ErrorProne via the <code>ErrorProneModule</code>.
+Mix the <code>ErrorProneModule</code> trait into your <code>JavaModule</code> and it will
 automatically run with every compilation.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-javalib-linting-1-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/javalib/linting/1-error-prone">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
 import mill._, javalib._, errorprone._
 
 object `package` extends RootModule with JavaModule with ErrorProneModule {
@@ -724,19 +726,6 @@ the <code>error-prone</code> compiler plugin automatically detects various kind 
 [warn]               ^    (see https://errorprone.info/bugpattern/CollectionIncompatibleType)
 [warn] 1 warning
 [warn]               ^</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title"><code>build.mill.scala</code>: Enable <code>ErrorProne</code> in a module</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-
-import $ivy.`com.lihaoyi::mill-contrib-errorprone:`
-import mill.contrib.errorprone.ErrorProneModule
-
-object foo extends JavaModule with ErrorProneModule {
-}</code></pre>
 </div>
 </div>
 <div class="sect2">
