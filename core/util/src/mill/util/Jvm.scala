@@ -625,8 +625,12 @@ object Jvm {
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     val shortPathDirOpt = Option.when(useShortPaths) {
-      if (isWin) os.Path(System.getenv("UserProfile")) / ".mill/cache/jvm"
-      else os.home / ".cache/mill/jvm"
+      if (isWin)
+        os.Path(System.getenv("UserProfile")) / ".mill/cache/jvm"
+      else {
+        val cacheBase = sys.env.get("XDG_CACHE_HOME").map(os.Path(_)).getOrElse(os.home / ".cache")
+        cacheBase / "mill/jvm"
+      }
     }
     val jvmCache = JvmCache()
       .withArchiveCache(
