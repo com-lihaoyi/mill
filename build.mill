@@ -397,22 +397,12 @@ trait MillJavaModule extends JavaModule {
       Seq(MavenRepository("https://oss.sonatype.org/content/repositories/releases"))
   }
 
-  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { dep =>
-      forcedVersions.find(f =>
-        f.dep.module.organization.value == dep.module.organization.value &&
-          f.dep.module.name.value == dep.module.name.value
-      ).map { forced =>
-        val newDep = dep.withVersion(forced.dep.version)
-        Task.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
-        newDep
-      }.getOrElse(dep)
-    }
+  def resolutionParams: Task[coursier.params.ResolutionParams] = Task.Anon {
+    super.resolutionParams().addForceVersion0(
+      Deps.jline.dep.module -> Deps.jline.dep.versionConstraint,
+      Deps.jna.dep.module -> Deps.jna.dep.versionConstraint
+    )
   }
-  val forcedVersions: Seq[Dep] = Deps.transitiveDeps ++ Seq(
-    Deps.jline,
-    Deps.jna
-  )
 
   def javadocOptions = super.javadocOptions() ++ Seq(
     // Disable warnings for missing documentation comments or tags (for example,
