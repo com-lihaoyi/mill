@@ -2,7 +2,6 @@
 :page-aliases: Import_File_And_Import_Ivy.adoc, Using_Plugins.adoc
 
 
-
 This page illustrates usage of the `//| mvnDeps:` syntax.
 `//| mvnDeps:` lets you import JVM dependencies into your `build.mill`, so
 you can use arbitrary third-party libraries at build-time. This makes
@@ -45,22 +44,22 @@ following techniques:
 
 [source,scala]
 ----
-// for classic Scala dependencies
-import $ivy.`<group>::<plugin>::<version>` // <1>
-// for dependencies specific to the exact Scala version
-import $ivy.`<group>:::<plugin>::<version>` // <2>
+//| # for classic Scala dependencies
+//| mvnDeps: ["<group>::<plugin>::<version>"]  // <1>
+//| # for dependencies specific to the exact Scala version
+//| mvnDeps: ["<group>:::<plugin>::<version>"] // <2>
 ----
 <1> This is equivalent to
 +
 [source,scala]
 ----
-import $ivy.`<group>::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
+//| mvnDeps: ["<group>::<plugin>_mill$MILL_BIN_PLATFORM:<version>"]  // <1>
 ----
 <2> This is equivalent to
 +
 [source,scala]
 ----
-import $ivy.`<group>:::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
+//| mvnDeps: ["<group>:::<plugin>_mill$MILL_BIN_PLATFORM:<version>"]  // <1>
 ----
 
 
@@ -73,18 +72,20 @@ to substitute the currently used Mill version.
 This is typical required for Mill contrib modules, which are developed in the Mill repository and highly bound to the current Mill version.
 
 .Example: Use `mill-contrib-bloop` plugin matching the current Mill version
+[source,scala]
 ----
-import $ivy.`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`
+//| mvnDeps: ["com.lihaoyi::mill-contrib-bloop:$MILL_VERSION"]
 ----
 
-There is the even more convenient option to leave the version completely empty.
-Mill will substitute it with its current version.
-But don't forget to provide the trailing colon!
+// There is the even more convenient option to leave the version completely empty.
+// Mill will substitute it with its current version.
+// But don't forget to provide the trailing colon!
 
-.Example: Use `mill-contrib-bloop` plugin matching the current Mill version
-----
-import $ivy.`com.lihaoyi:mill-contrib-bloop:`
-----
+// .Example: Use `mill-contrib-bloop` plugin matching the current Mill version
+// [source,scala]
+// ----
+// //| mvnDeps: ["com.lihaoyi::mill-contrib-bloop:$MILL_VERSION"]
+// ----
 --
 
 `$MILL_BIN_PLATFORM` ::
@@ -93,8 +94,9 @@ import $ivy.`com.lihaoyi:mill-contrib-bloop:`
 to substitute the currently used Mill binary platform.
 
 .Example: Using `mill-vcs-version` plugin matching the current Mill Binary Platform
+[source,scala]
 ----
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`
+//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2"]
 ----
 --
 
