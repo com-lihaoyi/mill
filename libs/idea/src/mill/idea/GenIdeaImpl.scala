@@ -269,6 +269,7 @@ class GenIdeaImpl(
       }
     }
 
+    // TODO: check if this still holds, since we have replaced import $ivy support.
     /**
      * We need to use a very specific library name format.
      * This is required in order IntelliJ IDEA can recognize `$ivy` imports in `build.mill` files and doesn't show red code.

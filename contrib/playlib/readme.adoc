@@ -288,9 +288,11 @@ define `playVersion` and `scalaVersion`.
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object app extends ScalaModule with RouterModule {
   def playVersion = Task { "2.8.20" }
@@ -343,10 +345,11 @@ To add additional imports to all of the routes:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
-import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import mill.scalalib.*
+import mill.playlib.*
 
 object app extends ScalaModule with RouterModule {
   def playVersion = "2.8.20"

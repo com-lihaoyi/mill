@@ -8,9 +8,10 @@ import mill.util.Jvm
  *
  * Example configuration:
  * {{{
+ * //| mvnDeps: ["com.lihaoyi::mill-contrib-jmh:$MILL_VERSION"]
+
  * import mill._, scalalib._
  *
- * import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
  * import contrib.jmh.JmhModule
  *
  * object foo extends ScalaModule with JmhModule {
