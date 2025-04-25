@@ -12,7 +12,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   lazy val allPublishModules = build.moduleInternal.modules.collect {
     case m: PublishModule if (m ne build.dist) && (m ne build.dist.native) => m
   }
-  def moduleDeps = Seq(build.runner, build.libs.idea, build.libs.init)
+  def moduleDeps = Seq(build.runner.client)
 
   def jar = executableRaw()
   def executableRaw: T[PathRef]
@@ -118,7 +118,7 @@ object `package` extends RootModule with InstallModule {
 
     val launcherForkArgs = testArgs() ++
       Seq(
-        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
+        "-DMILL_CLASSPATH=" + build.runner.runClasspath().map(_.path.toString).mkString(",")
       )
     val (millArgs, otherArgs) =
       launcherForkArgs.partition(arg =>
