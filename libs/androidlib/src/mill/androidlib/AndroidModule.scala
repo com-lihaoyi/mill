@@ -46,7 +46,7 @@ trait AndroidModule extends JavaModule {
   def androidSdkModule: ModuleRef[AndroidSdkModule]
 
   /**
-   * Provides os.Path to an XML file containing configuration and metadata about your android application.
+   * Provides os.Path to an XML file containing configuration and metadata about your android library.
    */
   def androidManifest: Task[PathRef] = Task.Source("src/main/AndroidManifest.xml")
 
@@ -245,6 +245,9 @@ trait AndroidModule extends JavaModule {
     libClasses :+ PathRef(mainRClassPath)
   }
 
+  /** In which package to place the generated R sources */
+  protected def androidGeneratedResourcesPackage: String
+
   /**
    * Compiles Android resources and generates `R.java` and `res.apk`.
    *
@@ -314,6 +317,8 @@ trait AndroidModule extends JavaModule {
       androidSdkModule().androidJarPath().path.toString,
       "--manifest",
       androidMergedManifest().path.toString,
+      "--custom-package",
+      androidGeneratedResourcesPackage,
       "--java",
       rClassDir.toString,
       "--min-sdk-version",
