@@ -80,7 +80,7 @@ object app extends AndroidAppKotlinModule {
 
 > ./mill show app.startAndroidEmulator
 
-> ./mill show app.androidReleaseInstall
+> ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...
 
 > ./mill show app.stopAndroidEmulator
