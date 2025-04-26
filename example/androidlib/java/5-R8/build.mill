@@ -105,6 +105,21 @@ object app extends AndroidAppModule { // <2>
 > ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...
 
+> ./mill show app.it
+...
+[
+  "",
+  [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+]
+
+
 > ./mill show app.stopAndroidEmulator
 
 > ./mill show app.deleteAndroidVirtualDevice
