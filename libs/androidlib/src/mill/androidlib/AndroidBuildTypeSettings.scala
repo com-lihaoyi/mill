@@ -18,6 +18,9 @@ case class AndroidBuildTypeSettings(
 ) {
   def withProguardLocalFiles(localFiles: Seq[os.Path]): AndroidBuildTypeSettings =
     copy(proguardFiles = proguardFiles.copy(localFiles = localFiles))
+
+  def withDefaultProguardFile(fileName: String): AndroidBuildTypeSettings =
+    copy(proguardFiles = proguardFiles.copy(defaultProguardFile = Some(fileName)))
 }
 
 case class ProguardFiles(

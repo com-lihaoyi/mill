@@ -834,6 +834,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
     (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
   }
 
+  /**
+   * The default release settings with the following settings:
+   * - minifyEnabled=true
+   * - shrinkEnabled=true
+   * - proguardFiles=proguard-android-optimize.txt
+   * @return
+   */
   def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
       isMinifyEnabled = true,
@@ -1118,7 +1125,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val manifestWithInstrumentation = {
         val instrumentation =
           <instrumentation android:name={testFrameworkName} android:targetPackage={
-            instrumentationPackage
+            androidApplicationNamespace
           }/>
         baseManifestElem.copy(child = baseManifestElem.child ++ instrumentation)
       }
@@ -1131,8 +1138,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
     override def androidEmulatorArchitecture: String = outer.androidEmulatorArchitecture
 
-    def instrumentationPackage: String = outer.androidApplicationNamespace
-
     def testFramework: T[String]
 
     /**
@@ -1141,9 +1146,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
      */
     def androidTestInstall(): Command[String] = Task.Command {
 
-      val emulator = runningEmulator()
-
-      androidInstallTask()
+      val emulator = outer.androidInstallTask()
 
       os.call(
         (
