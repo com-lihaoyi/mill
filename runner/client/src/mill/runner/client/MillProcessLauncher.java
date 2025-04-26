@@ -73,6 +73,8 @@ public class MillProcessLauncher {
     Path sandbox = serverDir.resolve(ServerFiles.sandbox);
     Files.createDirectories(sandbox);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
+    String portPath = File.createTempFile("ports", ".json").getCanonicalPath();
+    builder.environment().put("MILL_PORTS_PATH", portPath);
 
     String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
     if (jdkJavaOptions == null) jdkJavaOptions = "";

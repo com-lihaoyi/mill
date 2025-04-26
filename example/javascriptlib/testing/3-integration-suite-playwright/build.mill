@@ -15,11 +15,9 @@ object server extends TypeScriptModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  def forkEnv = super.forkEnv() + ("PORT" -> "3000")
-
   object test extends TypeScriptTests with TestModule.PlayWright {
     def service = server
-    def port = "6000"
+    def port = sys.env.get("PORT").get
   }
 }
 
@@ -31,8 +29,6 @@ object server extends TypeScriptModule {
 /** Usage
 
 > mill server.test
-...
-...Server listening on port 6000
 ...
 ...1 passed...
 ...

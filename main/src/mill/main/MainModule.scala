@@ -170,6 +170,26 @@ trait MainModule extends BaseModule with MainModuleApi {
     clean(evaluator.asInstanceOf[Evaluator], targets*)().map(_.path.toNIO)
   }
 
+  def allocatePorts(numberOfPorts : Int, registerName : String) = {
+    Task.Command(exclusive = true){
+      PortManager.synchronized {
+        val ports = PortManager.getPorts(numberOfPorts).get
+        PortManager.portsByName = PortManager.portsByName + (registerName -> ports)
+        println(ports.mkString(","))
+      }
+    }                    
+  }
+
+  def freePorts(registerName : String) = {
+    Task.Command(exclusive = true){
+      PortManager.synchronized {
+        val ports = PortManager.portsByName.get(registerName).get
+        PortManager.portsAllocated = PortManager.portsAllocated  -- ports
+        PortManager.portsByName = PortManager.portsByName + (registerName -> Set.empty)
+      }
+    }
+  }   
+
   /**
    * Deletes the given targets from the out directory. Providing no targets
    * will clean everything.
@@ -382,5 +402,7 @@ object MainModule {
         plan.sortedGroups.keys().collect { case r: NamedTask[_] => r }.toArray
     }
   }
+
+
 
 }

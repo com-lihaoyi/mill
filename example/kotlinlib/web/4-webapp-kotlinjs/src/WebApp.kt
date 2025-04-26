@@ -245,7 +245,7 @@ object WebApp {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        embeddedServer(Netty, port = 8092, host = "0.0.0.0") {
+        embeddedServer(Netty, port = System.getenv("PORT").toInt(), host = "0.0.0.0") {
             configureRoutes(this)
         }.start(wait = true)
     }

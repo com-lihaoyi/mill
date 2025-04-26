@@ -53,11 +53,11 @@ object `package` extends RootModule with ScalaModule {
 
 > ./mill runBackground
 
-> curl http://localhost:8082
+> curl http://localhost:$PORT
 ...What needs to be done...
 ...
 
-> curl http://localhost:8082/static/main.js
+> curl http://localhost:$PORT/static/main.js
 ..."org.scalajs.linker.runtime.RuntimeLong"...
 ...
 

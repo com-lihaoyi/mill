@@ -21,7 +21,6 @@ import scala.util.control.NonFatal
 import scala.util.Using
 import mill.server.Server
 import java.lang.NumberFormatException
-import java.net.{ServerSocket, BindException}
 
 @internal
 object MillMain {
@@ -181,19 +180,8 @@ object MillMain {
                 (false, stateCache)
 
               } else {
-                val ports = validatePorts(config, streams)
-                if (ports == None) {
-                  return (true, stateCache)
-                }
-                val portStr = ports.get.mkString(",")
-
-                val portJvmProperties = (
-                  "MILL_TEST_FREE_PORT",
-                  portStr
-                )
-
                 val userSpecifiedProperties =
-                  userSpecifiedProperties0 ++ config.extraSystemProperties + portJvmProperties
+                  userSpecifiedProperties0 ++ config.extraSystemProperties 
 
                 val threadCount = Some(maybeThreadCount.toOption.get)
 
@@ -315,69 +303,6 @@ object MillMain {
   }
 
   val tartgetNumberOfPorts = 6
-
-  def validatePorts(config: MillCliConfig, streams: SystemStreams): Option[Set[Int]] = {
-    val result =
-      if (config.ports.isDefined) {
-        var ports = Set.empty[Int]
-        try {
-          ports = config.ports.get.split(",").map(_.toInt).toSet
-        } catch {
-          case e: NumberFormatException =>
-            streams.err.println(
-              "Failed to parse  --ports, please provide comma sepperated values. E.g 4090,5000,2910"
-            )
-            None
-        }
-        // Port validation
-        ports.foreach { case port =>
-          // 1024 is the min port on windows
-          if (port < 1024 || port > 65535) {
-            streams.err.println(
-              s"Failed to parse $port. Ports provided must be within 1024 to 65535."
-            )
-            None
-          }
-          try {
-            new ServerSocket(port).close()
-          } catch {
-            case e: BindException => {
-              streams.err.println(
-                s"Failed to bind to $port! Please only provide free ports."
-              )
-              None
-            }
-          }
-        }
-        Some(ports)
-      } else {
-        var i = 0
-        var ports = Set.empty[Int]
-        for (_ <- 1 to 100) {
-          if (i == tartgetNumberOfPorts) {
-            return Some(ports)
-          }
-          val socket = new ServerSocket(0)
-          try {
-            val port = socket.getLocalPort
-            if (!ports.contains(port)) {
-              ports = ports + port
-              i += 1
-            }
-
-          } finally {
-            socket.close()
-          }
-        }
-
-        streams.err.println(
-          s"Failed to generate the target number of ports used by tests ($tartgetNumberOfPorts). Either there isn't 6 free ports on your computer, or there is a firewall issue. "
-        )
-
-        None
-      }
-    result
-  }
 
   def runBspSession(
       streams0: SystemStreams,

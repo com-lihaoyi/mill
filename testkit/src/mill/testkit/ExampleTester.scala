@@ -1,6 +1,7 @@
 package mill.testkit
 
 import mill.constants.Util.isWindows
+import mill.main.PortsManager
 import utest.*
 
 /**
@@ -79,6 +80,8 @@ class ExampleTester(
     val propagateJavaHome: Boolean = true
 ) extends IntegrationTesterBase {
 
+  val portsAllocated = PortsManager.getPorts(1).get
+
   def processCommandBlock(commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
@@ -131,7 +134,7 @@ class ExampleTester(
       stderr = os.Inherit,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = millTestSuiteEnv ++ windowsPathEnv,
+      env = millTestSuiteEnv ++ windowsPathEnv + ("PORT" -> portsAllocated.mkString(",")),
       check = false
     )
 
@@ -203,7 +206,6 @@ class ExampleTester(
       os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
-
     try {
       initWorkspace()
       os.copy.over(millExecutable, workspacePath / s"mill$millExt")
@@ -219,5 +221,7 @@ class ExampleTester(
       if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
       removeProcessIdFile()
     }
+
+    PortsManager.releasePorts(portsAllocated)
   }
 }

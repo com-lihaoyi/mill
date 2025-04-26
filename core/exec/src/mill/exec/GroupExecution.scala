@@ -159,6 +159,7 @@ private trait GroupExecution {
                 !cached.map(_._3).contains(valueHash)
               )
           }
+
         case task =>
           val (newResults, newEvaluated) = executeGroup(
             group = group,
@@ -205,7 +206,6 @@ private trait GroupExecution {
       deps: Seq[Task[?]],
       offline: Boolean
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
-
     val newEvaluated = mutable.Buffer.empty[Task[?]]
     val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]
 

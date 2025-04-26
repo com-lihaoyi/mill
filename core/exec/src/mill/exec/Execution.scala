@@ -1,5 +1,6 @@
 package mill.exec
 
+import java.io.{BufferedWriter, FileWriter}
 import mill.api.ExecResult.Aborted
 
 import mill.api._

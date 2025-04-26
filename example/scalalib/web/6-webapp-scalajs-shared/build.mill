@@ -71,14 +71,15 @@ object `package` extends RootModule with AppScalaModule {
 
 > ./mill runBackground
 
-> curl http://localhost:8083
+> curl http://localhost:$PORT
 ...What needs to be done...
 ...
 
-> curl http://localhost:8083/static/main.js
+> curl http://localhost:$PORT/static/main.js
 ...Scala.js...
 ...
 
 > ./mill clean runBackground
+
 
 */

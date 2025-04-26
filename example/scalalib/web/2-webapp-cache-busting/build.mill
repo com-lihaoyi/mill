@@ -66,11 +66,11 @@ object `package` extends RootModule with ScalaModule {
 
 > ./mill runBackground
 
-> curl http://localhost:8081
+> curl http://localhost:$PORT
 ...What needs to be done...
 ...
 
-> curl http://localhost:8081/static/main-6da98e99.js # mac/linux
+> curl http://localhost:$PORT/static/main-6da98e99.js # mac/linux
 initListeners()
 
 > ./mill clean runBackground

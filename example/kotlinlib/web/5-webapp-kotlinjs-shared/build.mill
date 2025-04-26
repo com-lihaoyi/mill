@@ -97,11 +97,11 @@ object `package` extends RootModule with AppKotlinModule {
 
 > ./mill runBackground
 
-> curl http://localhost:8093
+> curl http://localhost:$PORT
 ...What needs to be done...
 ...
 
-> curl http://localhost:8093/static/client.js
+> curl http://localhost:$PORT/static/client.js
 ...kotlin.js...
 ...
 

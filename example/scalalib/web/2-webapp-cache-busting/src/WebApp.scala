@@ -1,9 +1,10 @@
 package webapp
 import scalatags.Text.all._
 import scalatags.Text.tags2
+import java.io.{BufferedWriter, FileWriter}
 
 object WebApp extends cask.MainRoutes {
-  override def port = 8081
+  override def port = sys.env.get("PORT").getOrElse("!").toInt
   case class Todo(checked: Boolean, text: String)
 
   object Todo {
