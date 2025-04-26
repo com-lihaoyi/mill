@@ -254,7 +254,7 @@ object CoursierModule {
     def fetch[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
-    )(implicit ctx: mill.api.Ctx): Fetch.Result = {
+    )(implicit ctx: mill.define.TaskCtx): Fetch.Result = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))

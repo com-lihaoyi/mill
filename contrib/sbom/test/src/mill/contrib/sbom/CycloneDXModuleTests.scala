@@ -21,13 +21,13 @@ object TestModule extends TestBaseModule {
 
   object withDeps extends JavaModule with CycloneDXJavaModule {
     override def sbomHeader(): CycloneDX.SbomHeader = fixedHeader
-    override def ivyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.5.12")
+    override def mvnDeps = Seq(mvn"ch.qos.logback:logback-classic:1.5.12")
   }
 
   object withModuleDeps extends JavaModule with CycloneDXJavaModule {
     override def sbomHeader(): CycloneDX.SbomHeader = fixedHeader
     override def moduleDeps = Seq(withDeps)
-    override def ivyDeps = Agg(ivy"commons-io:commons-io:2.18.0")
+    override def mvnDeps = Seq(mvn"commons-io:commons-io:2.18.0")
   }
 
   lazy val millDiscover = Discover[this.type]
