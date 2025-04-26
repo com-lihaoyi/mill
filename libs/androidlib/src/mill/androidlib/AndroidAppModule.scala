@@ -81,6 +81,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
+   * TODO dynamically add android:debuggable
    */
   override def androidManifest: T[PathRef] = Task {
     val manifestFromSourcePath = moduleDir / "src/main/AndroidManifest.xml"
@@ -1108,8 +1109,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     /**
      * The android manifest of the instrumented tests
-     * has a different package from the app to differantiate installations
-     * (e.g. the test apk can have different signing keys from the app apk)
+     * has a different package from the app to differentiate installations
      * @return
      */
     override def androidManifest: T[PathRef] = Task {
@@ -1143,7 +1143,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       val emulator = runningEmulator()
 
-      outer.androidInstallTask()
+      androidInstallTask()
 
       os.call(
         (

@@ -55,7 +55,9 @@ trait AndroidModule extends JavaModule {
    *
    * This option will probably go away in the future once build variants are supported.
    */
-  def androidIsDebug: T[Boolean] = true
+  def androidIsDebug: T[Boolean] = {
+    true
+  }
 
   /**
    * The minimum SDK version to use. Default is 1.
