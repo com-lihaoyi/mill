@@ -2,8 +2,8 @@ package mill.scalalib.worker
 
 import mill.util.CachedFactory
 import mill.api._
-import mill.api.internal._
 import mill.api.internal.internal
+import mill.api.internal.CompileProblemReporter
 import mill.define.PathRef
 import mill.constants.CodeGenConstants
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerApi, JvmWorkerUtil}

@@ -1,7 +1,7 @@
 package mill.define
 
-import mill.constants.{DebugLog, InputPumper}
-import mill.api.{DummyInputStream}
+import mill.api.DummyInputStream
+import mill.constants.InputPumper
 
 import java.io.{InputStream, OutputStream, PrintStream}
 import scala.util.DynamicVariable

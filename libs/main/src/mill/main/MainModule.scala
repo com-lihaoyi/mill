@@ -1,15 +1,14 @@
 package mill.main
 
 import mill.api.*
+import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 import mill.define.*
-import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.internal.Watchable
-import mill.define.Cached
+import mill.moduledefs.Scaladoc
 
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
-import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 
 abstract class MainRootModule()(implicit
     baseModuleInfo: RootModule0.Info,
