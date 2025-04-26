@@ -376,13 +376,25 @@ trait AndroidModule extends JavaModule {
   }
 
   /** All individual classfiles inherited from the classpath that will be included into the dex */
-  def inheritedClassFiles: T[Seq[PathRef]] = Task {
+  def androidPackagedClassfiles: T[Seq[PathRef]] = Task {
     compileClasspath()
       .map(_.path).filter(os.isDir)
       .flatMap(os.walk(_))
       .filter(os.isFile)
       .filter(_.ext == "class")
       .map(PathRef(_))
+  }
+
+  def androidPackagedCompiledClasses: T[Seq[PathRef]] = Task {
+    os.walk(compile().classes.path)
+      .filter(_.ext == "class")
+      .map(PathRef(_))
+  }
+
+  def androidPackagedDeps: T[Seq[PathRef]] = Task {
+    compileClasspath()
+      .filter(_ != androidSdkModule().androidJarPath())
+      .filter(_.path.ext == "jar")
   }
 
   /** Additional library classes provided */

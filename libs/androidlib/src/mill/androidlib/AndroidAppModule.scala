@@ -11,7 +11,7 @@ import os.RelPath
 import upickle.default.*
 
 import scala.jdk.OptionConverters.RichOptional
-import scala.xml.{Attribute, Null, Text, XML}
+import scala.xml.{Attribute, Elem, NodeBuffer, Null, Text, XML}
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -73,6 +73,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def androidApplicationId: String
 
+  private def androidManifestUsesSdkSection: Task[Elem] = Task.Anon {
+    val minSdkVersion = androidMinSdk().toString
+    val targetSdkVersion = androidTargetSdk().toString
+    <uses-sdk android:minSdkVersion={minSdkVersion} android:targetSdkVersion={targetSdkVersion}/>
+  }
+
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
    */
@@ -82,9 +88,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
     // add the application package
     val manifestWithPackage =
-      manifestElem % Attribute(None, "package", Text(androidApplicationNamespace), Null)
+      manifestElem % Attribute(None, "package", Text(androidApplicationId), Null)
+
+    val manifestWithUsesSdk = manifestWithPackage.copy(
+      child = androidManifestUsesSdkSection() ++ manifestWithPackage.child
+    )
+
     val generatedManifestPath = Task.dest / "AndroidManifest.xml"
-    os.write(generatedManifestPath, manifestWithPackage.mkString)
+    os.write(generatedManifestPath, manifestWithUsesSdk.mkString)
 
     PathRef(generatedManifestPath)
   }
@@ -632,6 +643,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * @return The name of the device the app was installed to
    */
   def androidInstall(): Command[String] = Task.Command(exclusive = true) {
+    androidInstallTask()
+  }
+
+  def androidInstallTask = Task.Anon {
     val emulator = runningEmulator()
 
     os.call(
@@ -874,13 +889,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val outPath = T.dest
 
-    val appCompiledFiles = os.walk(compile().classes.path)
-      .filter(_.ext == "class")
-      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString())
+    val appCompiledFiles = (androidPackagedCompiledClasses() ++ androidPackagedClassfiles())
+      .map(_.path.toString())
 
-    val libsJarFiles = compileClasspath()
+    val libsJarFiles = androidPackagedDeps()
       .filter(_ != androidSdkModule().androidJarPath())
-      .filter(_.path.ext == "jar")
       .map(_.path.toString())
 
     val proguardFile = Task.dest / "proguard-rules.pro"
@@ -948,18 +961,15 @@ trait AndroidAppModule extends AndroidModule { outer =>
          |""".stripMargin.trim
     os.write.over(extraRulesFile, extraRulesContent)
 
-    // Get the list of all class files to be processed by R8
-    super.compileClasspath().map(_.path).filter(os.isDir)
-      .flatMap(os.walk(_))
-      .filter(os.isFile)
-      .filter(_.ext == "class")
-      .map(_.toString())
+    val classpathClassFiles: Seq[String] = androidPackagedClassfiles()
+      .filter(_.path.ext == "class")
+      .map(_.path.toString)
 
-    val appCompiledFiles = os.walk(compile().classes.path)
-      .filter(_.ext == "class")
-      .map(_.toString)
+    val appCompiledFiles: Seq[String] = androidPackagedCompiledClasses()
+      .filter(_.path.ext == "class")
+      .map(_.path.toString)
 
-    T.log.debug(s"appCompiledFiles: ${appCompiledFiles}")
+    val allClassFiles = classpathClassFiles ++ appCompiledFiles
 
     val r8ArgsBuilder = Seq.newBuilder[String]
 
@@ -987,7 +997,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
       r8ArgsBuilder += "--no-minification"
     }
 
-    // TODO support resource shrinking too
     if (!androidBuildSettings().isShrinkEnabled) {
       r8ArgsBuilder += "--no-tree-shaking"
     }
@@ -1024,7 +1033,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     r8ArgsBuilder ++= pgArgs
 
-    r8ArgsBuilder ++= appCompiledFiles
+    r8ArgsBuilder ++= allClassFiles
 
     val r8Args = r8ArgsBuilder.result()
 
@@ -1067,7 +1076,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidIsDebug: T[Boolean] = Task { true }
 
-    override def androidApplicationId: String = outer.androidApplicationId
+    override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace
 
     override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
@@ -1089,39 +1098,78 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def generatedSources: T[Seq[PathRef]] = Task.Sources()
 
-    /* TODO on debug work, an AndroidManifest.xml with debug and instrumentation settings
-     * will need to be created. Then this needs to point to the location of that debug
-     * AndroidManifest.xml
+    private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package={
+        androidApplicationId
+      }>
+        {androidManifestUsesSdkSection()}
+      </manifest>
+    }
+
+    /**
+     * The android manifest of the instrumented tests
+     * has a different package from the app to differantiate installations
+     * (e.g. the test apk can have different signing keys from the app apk)
+     * @return
      */
-    override def androidManifest: T[PathRef] = outer.androidManifest()
+    override def androidManifest: T[PathRef] = Task {
+      val baseManifestElem = androidInstrumentedTestsBaseManifest()
+      val testFrameworkName = testFramework()
+      val manifestWithInstrumentation = {
+        val instrumentation =
+          <instrumentation android:name={testFrameworkName} android:targetPackage={
+            instrumentationPackage
+          }/>
+        baseManifestElem.copy(child = baseManifestElem.child ++ instrumentation)
+      }
+      val destManifest = Task.dest / "AndroidManifest.xml"
+      os.write(destManifest, manifestWithInstrumentation.toString)
+      PathRef(destManifest)
+
+    }
 
     override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
     override def androidEmulatorArchitecture: String = outer.androidEmulatorArchitecture
 
-    def instrumentationPackage: String
+    def instrumentationPackage: String = outer.androidApplicationNamespace
 
     def testFramework: T[String]
 
-    override def androidInstall(): Command[String] = Task.Command {
+    /**
+     * Re/Installs the app apk and then the test apk on the [[runningEmulator]]
+     * @return
+     */
+    def androidTestInstall(): Command[String] = Task.Command {
+
       val emulator = runningEmulator()
+
+      outer.androidInstallTask()
+
       os.call(
         (
           androidSdkModule().adbPath().path,
           "-s",
           emulator,
           "install",
-          "-r",
+          "-t",
           androidTestApk().path
         )
       )
       emulator
     }
 
+    /**
+     * Runs the tests on the [[runningEmulator]] with the [[androidTestApk]]
+     * against the [[androidApk]]
+     * @param args
+     * @param globSelectors
+     * @return
+     */
     override def testTask(
         args: Task[Seq[String]],
         globSelectors: Task[Seq[String]]
-    ): Task[(String, Seq[TestResult])] = Task {
-      val device = androidInstall().apply()
+    ): Task[(String, Seq[TestResult])] = Task.Anon {
+      val device = androidTestInstall().apply()
 
       val instrumentOutput = os.proc(
         (
@@ -1133,7 +1181,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
           "instrument",
           "-w",
           "-r",
-          s"$instrumentationPackage/${testFramework()}"
+          s"${androidApplicationId}/${testFramework()}"
         )
       ).spawn()
 
@@ -1144,6 +1192,28 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       res
 
+    }
+
+    /** The instrumented dex should just contain the test dependencies and locally tested files */
+    override def androidPackagedClassfiles: T[Seq[PathRef]] = Task {
+      testClasspath()
+        .map(_.path).filter(os.isDir)
+        .flatMap(os.walk(_))
+        .filter(os.isFile)
+        .filter(_.ext == "class")
+        .map(PathRef(_))
+    }
+
+    override def androidPackagedDeps: T[Seq[PathRef]] = Task {
+      resolvedRunMvnDeps()
+    }
+
+    /**
+     * The instrumented tests are packaged with testClasspath which already contains the
+     * user compiled classes
+     */
+    override def androidPackagedCompiledClasses: T[Seq[PathRef]] = Task {
+      Seq.empty[PathRef]
     }
 
     /** Builds the apk including the integration tests (e.g. from androidTest) */
