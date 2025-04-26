@@ -174,10 +174,6 @@ object MillMain {
             )
             (false, RunnerState.empty)
 
-          case Result.Success(config) if config.bsp.value != bspMode =>
-            streams.err.println("--bsp must be passed in as the first argument")
-            (false, RunnerState.empty)
-
           case Result.Success(config)
               if Seq(
                 config.interactive.value,
