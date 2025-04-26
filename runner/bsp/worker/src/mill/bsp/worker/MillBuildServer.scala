@@ -3,15 +3,13 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
-import mill.api.internal.{JvmBuildTarget, ScalaBuildTarget, *}
 import mill.api.*
+import mill.api.internal.{JvmBuildTarget, ScalaBuildTarget, *}
+import mill.api.Segment.Label
 import mill.bsp.{Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
-import mill.api.Segment.Label
-import mill.given
-import mill.constants.OutFiles
-import mill.client.lock.Lock
-import scala.util.Using
+import mill.server.Server
+
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import scala.collection.mutable
@@ -21,7 +19,7 @@ import scala.reflect.ClassTag
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
-import mill.server.Server
+
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
     bspVersion: String,

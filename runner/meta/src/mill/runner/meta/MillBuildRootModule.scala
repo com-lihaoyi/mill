@@ -1,27 +1,18 @@
 package mill.runner.meta
-import scala.jdk.CollectionConverters.ListHasAsScala
-import coursier.Repository
+
 import mill.*
 import mill.api.Result
-import mill.define.{PathRef, Discover, Task}
-import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
-import mill.util.Jvm
-import mill.scalalib.api.JvmWorkerUtil
-import mill.scalalib.api.{CompilationResult, Versions}
-import mill.constants.OutFiles.*
-import mill.constants.CodeGenConstants.buildFileExtensions
-import mill.util.BuildInfo
-import mill.define.RootModule0
-import mill.runner.meta.ScalaCompilerWorker
-import mill.runner.worker.api.ScalaCompilerWorkerApi
-
-import scala.util.Try
-import mill.define.Target
-import mill.api.Watchable
 import mill.api.internal.internal
+import mill.constants.CodeGenConstants.buildFileExtensions
+import mill.constants.OutFiles.*
+import mill.define.{PathRef, Discover, RootModule0, Target, Task}
+import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
+import mill.scalalib.api.{CompilationResult, Versions}
+import mill.util.BuildInfo
+import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.runner.worker.api.MillScalaParser
 
-import scala.collection.mutable
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then

@@ -1,15 +1,14 @@
 package mill.main
 
 import mill.api.*
+import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 import mill.define.*
-import mill.moduledefs.Scaladoc
 import mill.define.SelectMode.Separated
 import mill.define.internal.Watchable
-import mill.define.Cached
+import mill.moduledefs.Scaladoc
 
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
-import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 
 abstract class MainRootModule()(implicit
     baseModuleInfo: RootModule0.Info,
@@ -322,7 +321,25 @@ trait MainModule extends BaseModule with MainModuleApi {
 
   /**
    * Commands related to selective execution, where Mill runs tasks selectively
-   * depending on what task inputs or implementations changed
+   * depending on what task inputs or implementations changed.
+   *
+   * Read more about it at: https://mill-build.org/mill/large/selective-execution.html
+   *
+   * Here are the essential commands:
+   *
+   * - `mill selective.prepare <selector>`:
+   *   run on the codebase before the code change,
+   *   stores a snapshot of task inputs and implementations
+   *
+   * - `mill selective.run <selector>`:
+   *   run on the codebase after the code change,
+   *   runs tasks in the given `<selector>` which are affected by the code changes
+   *   that have happened since `selective.prepare` was run
+   *
+   * - `mill selective.resolve <selector>`:
+   *   a dry-run version of `selective.run`,
+   *   prints out the tasks in `<selector>` that are affected by the code changes
+   *   and would have run, without actually running them.
    */
   lazy val selective: SelectiveExecutionModule = new SelectiveExecutionModule {}
 

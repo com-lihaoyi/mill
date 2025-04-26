@@ -6,7 +6,7 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsParams,
   JavacOptionsResult
 }
-import mill.api.internal.{TaskApi, JavaModuleApi, SemanticDbJavaModuleApi}
+import mill.api.internal.{TaskApi, JavaModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 
 import java.util.concurrent.CompletableFuture
