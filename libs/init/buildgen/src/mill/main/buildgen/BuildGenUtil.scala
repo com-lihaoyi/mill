@@ -3,13 +3,7 @@ package mill.main.buildgen
 import geny.Generator
 import mainargs.{Flag, arg}
 import mill.api.internal.internal
-import mill.constants.CodeGenConstants.{
-  buildFileExtensions,
-  nestedBuildFileNames,
-  rootBuildFileNames,
-  rootModuleAlias
-}
-import mill.constants.OutFiles
+import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
 import mill.main.buildgen.BuildObject.Companions
 import mill.internal.Util.backtickWrap
 import mill.define.CrossVersion

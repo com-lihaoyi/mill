@@ -179,15 +179,17 @@ object BspServerTestUtil {
       success = true
       value
     } finally {
-      proc.stdin.close()
-      proc.stdout.close()
+      try {
+        proc.stdin.close()
+        proc.stdout.close()
 
-      proc.join(30000L)
-
-      if (!success && outputOnErrorOnly) {
-        System.err.println(" == BSP server output ==")
-        System.err.write(stderr.toByteArray)
-        System.err.println(" == end of BSP server output ==")
+        proc.join(30000L)
+      } finally {
+        if (!success && outputOnErrorOnly) {
+          System.err.println(" == BSP server output ==")
+          System.err.write(stderr.toByteArray)
+          System.err.println(" == end of BSP server output ==")
+        }
       }
     }
   }

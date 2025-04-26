@@ -7,7 +7,6 @@ import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
 import mill.testkit.TestBaseModule
 import utest.framework.TestPath
-import mill.exec.PlanTests.checkTopological
 import mill.api.ExecResult
 
 trait TaskTests extends TestSuite {

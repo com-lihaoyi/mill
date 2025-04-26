@@ -1,27 +1,25 @@
 package mill.runner
 
-import mill.{api, define}
-import java.io.{PipedInputStream, PrintStream}
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
-import java.util.Locale
-
-import scala.jdk.CollectionConverters.*
-import scala.util.Properties
+import mill.api
 import mill.api.internal.{BspServerResult, internal}
-import mill.api.{DummyInputStream, Logger, MillException, Result, SystemStreams}
+import mill.api.{Logger, MillException, Result, SystemStreams}
+import mill.bsp.BSP
 import mill.constants.{OutFiles, ServerFiles, Util}
-import mill.client.lock.Lock
+import mill.define
 import mill.define.WorkspaceRoot
 import mill.util.BuildInfo
 import mill.runner.meta.ScalaCompilerWorker
 import mill.internal.{Colors, PromptLogger}
-import java.lang.reflect.InvocationTargetException
-
-import scala.collection.immutable
-import scala.util.control.NonFatal
-import scala.util.Using
 import mill.server.Server
+
+import java.io.{PipedInputStream, PrintStream}
+import java.lang.reflect.InvocationTargetException
+import java.util.Locale
+import scala.collection.immutable
+import scala.jdk.CollectionConverters.*
+import scala.util.control.NonFatal
+import scala.util.Properties
+import scala.util.Using
 
 @internal
 object MillMain {
@@ -161,16 +159,50 @@ object MillMain {
               checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)
             }
 
-            // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
-            val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
             val maybeThreadCount =
               parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
+
+            // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
+            val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
+            val bspInstallModeJobCountOpt = {
+              def defaultJobCount =
+                maybeThreadCount.toOption.getOrElse(BSP.defaultJobCount)
+
+              val viaEmulatedExternalCommand = Option.when(
+                !config.bsp.value &&
+                  config.leftoverArgs.value.headOption.contains("mill.bsp.BSP/install")
+              ) {
+                config.leftoverArgs.value.tail match {
+                  case Seq() => defaultJobCount
+                  case Seq("--jobs", value) =>
+                    val asIntOpt = value.toIntOption
+                    asIntOpt.getOrElse {
+                      streams.err.println(
+                        s"Warning: ignoring --jobs value passed to ${config.leftoverArgs.value.head}"
+                      )
+                      defaultJobCount
+                    }
+                  case other =>
+                    streams.err.println(
+                      s"Warning: ignoring leftover arguments passed to ${config.leftoverArgs.value.head}"
+                    )
+                    defaultJobCount
+                }
+              }
+
+              viaEmulatedExternalCommand.orElse {
+                Option.when(config.bspInstall.value)(defaultJobCount)
+              }
+            }
 
             val (success, nextStateCache) = {
               if (config.repl.value) {
                 streams.err.println("The --repl mode is no longer supported.")
                 (false, stateCache)
 
+              } else if (bspInstallModeJobCountOpt.isDefined) {
+                BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
+                (true, stateCache)
               } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
                 println(MillCliConfigParser.shortUsageText)
 

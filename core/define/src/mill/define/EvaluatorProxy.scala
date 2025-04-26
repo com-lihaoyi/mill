@@ -2,8 +2,7 @@ package mill.define
 
 import mill.api.*
 import mill.api.internal.*
-import mill.define.*
-import mill.api.*
+
 final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
   override def allowPositionalCommandArgs = delegate.allowPositionalCommandArgs
   override def selectiveExecution = delegate.selectiveExecution

@@ -25,8 +25,9 @@ the deserialised configuration for that particular module:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-bloop:$MILL_VERSION"]
+
 package build
-import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 
 import mill._
 import mill.scalalib._

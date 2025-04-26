@@ -163,7 +163,7 @@ run this command to generate the BSP configuration files:
 
 [source,console]
 ----
-> ./mill mill.bsp/install
+> ./mill --bsp-install
 ----
 
 ==== IntelliJ IDEA XML Support
