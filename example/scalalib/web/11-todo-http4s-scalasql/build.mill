@@ -1,9 +1,11 @@
 package build
+
 import mill._, scalalib._
 import coursier.ivyRepositoryString
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
+  
   def ivyDeps = Agg(
     Dep.parse(ivy"org.http4s::http4s-ember-server::0.23.30", scalaVersion()).right.get,
     Dep.parse(ivy"org.http4s::http4s-dsl::0.23.30", scalaVersion()).right.get,
@@ -20,35 +22,21 @@ object `package` extends RootModule with ScalaModule {
     def ivyDeps = Agg(
       Dep.parse(ivy"com.lihaoyi::utest::0.8.5", scalaVersion()).right.get,
       Dep.parse(ivy"org.typelevel::cats-effect-testing-utest::1.6.0", scalaVersion()).right.get,
+      Dep.parse(ivy"org.http4s::http4s-client::0.23.30", scalaVersion()).right.get
+    )
+  }
+
+  object integration extends ScalaTests {
+    def testFramework = "utest.runner.Framework"
+    def scalaVersion = `package`.scalaVersion
+
+    def ivyDeps = Agg(
+      Dep.parse(ivy"com.lihaoyi::utest::0.8.5", scalaVersion()).right.get,
+      Dep.parse(ivy"org.typelevel::cats-effect-testing-utest::1.6.0", scalaVersion()).right.get,
       Dep.parse(ivy"org.http4s::http4s-client::0.23.30", scalaVersion()).right.get,
-      Dep.parse(
-        ivy"com.dimafeng::testcontainers-scala-postgresql:0.43.0",
-        scalaVersion()
-      ).right.get,
+      Dep.parse(ivy"com.dimafeng::testcontainers-scala-postgresql:0.43.0", scalaVersion()).right.get,
       Dep.parse(ivy"com.dimafeng::testcontainers-scala-scalatest:0.43.0", scalaVersion()).right.get,
       Dep.parse(ivy"org.testcontainers:postgresql:1.19.1", scalaVersion()).right.get
     )
   }
 }
-
-// This example demonstrates how to set up a Scala webserver using the popular
-// https://http4s.org/[Http4S] web framework and associated libraries.
-// implementing the popular Todo-MVC demo application. It also uses the popular
-// https://github.com/com-lihaoyi/scalasql/[Scalasql] typesafe ORM library for
-// querying of in memory H2 database. It includes a test suite
-// that spins up the web server locally and makes HTTP requests against it.
-
-/** Usage
-
-> ./mill test
-+ webapp.WebAppTests.simpleRequest...
-
-> ./mill runBackground
-
-> curl http://localhost:8084
-...What needs to be done...
-...
-
-> ./mill clean runBackground
-
-*/
