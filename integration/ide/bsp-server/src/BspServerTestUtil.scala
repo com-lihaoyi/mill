@@ -81,8 +81,8 @@ object BspServerTestUtil {
             // "git",
             "diff",
             "-u",
-            os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr"),
-            os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr")
+            os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr"),
+            os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr")
           ))
           s"""Error: value differs from snapshot in $snapshotPath
              |
