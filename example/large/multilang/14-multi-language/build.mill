@@ -12,13 +12,13 @@ object `sentiment-analysis` extends PythonModule {
 }
 
 object server extends JavaModule {
-  def ivyDeps = Seq(
-    ivy"org.springframework.boot:spring-boot-starter-web:2.5.6",
-    ivy"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-web:2.5.6",
+    mvn"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
   )
 
   /** Bundle client & sentiment-analysis as resource */
-  def resources = Task.Sources {
+  def resources = Task {
     os.copy(client.bundle().path, Task.dest / "static")
     os.makeDir.all(Task.dest / "analysis")
     os.copy(`sentiment-analysis`.bundle().path, Task.dest / "analysis" / "analysis.pex")
@@ -26,8 +26,8 @@ object server extends JavaModule {
   }
 
   object test extends JavaTests with javalib.TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 }

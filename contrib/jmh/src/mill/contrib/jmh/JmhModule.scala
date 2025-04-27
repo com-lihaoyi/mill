@@ -8,9 +8,10 @@ import mill.util.Jvm
  *
  * Example configuration:
  * {{{
+ * //| mvnDeps: ["com.lihaoyi::mill-contrib-jmh:$MILL_VERSION"]
+ *
  * import mill._, scalalib._
  *
- * import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
  * import contrib.jmh.JmhModule
  *
  * object foo extends ScalaModule with JmhModule {
@@ -33,7 +34,7 @@ trait JmhModule extends JavaModule {
   def jmhCoreVersion: T[String]
   def jmhGeneratorByteCodeVersion: T[String] = jmhCoreVersion
 
-  def ivyDeps = super.ivyDeps() ++ Seq(ivy"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
+  def mvnDeps = super.mvnDeps() ++ Seq(mvn"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
 
   def runJmh(args: String*) =
     Task.Command {
@@ -105,7 +106,7 @@ trait JmhModule extends JavaModule {
 
   def generatorDeps = Task {
     defaultResolver().classpath(
-      Seq(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
+      Seq(mvn"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
     )
   }
 }

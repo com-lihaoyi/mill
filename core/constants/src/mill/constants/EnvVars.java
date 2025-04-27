@@ -21,10 +21,6 @@ public class EnvVars {
    */
   public static final String MILL_SERVER_TIMEOUT_MILLIS = "MILL_SERVER_TIMEOUT_MILLIS";
 
-  public static final String MILL_JVM_VERSION_PATH = "MILL_JVM_VERSION_PATH";
-  public static final String MILL_JVM_OPTS_PATH = "MILL_JVM_OPTS_PATH";
-  public static final String MILL_OPTS_PATH = "MILL_OPTS_PATH";
-
   /**
    * Output directory where Mill workers' state and Mill tasks output should be
    * written to
@@ -46,10 +42,4 @@ public class EnvVars {
    * e.g. to turn on additional testing/debug/log-related code
    */
   public static final String MILL_TEST_SUITE = "MILL_TEST_SUITE";
-
-  /**
-   * Used to indicate to the Mill test suite which libraries should be resolved from
-   * the local disk and not from Maven Central
-   */
-  public static final String MILL_BUILD_LIBRARIES = "MILL_BUILD_LIBRARIES";
 }

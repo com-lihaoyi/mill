@@ -54,10 +54,10 @@ In the above example, `Bar` is an `ExternalModule` living within the `foo`
 Java package, containing the `baz` task and `qux` command. Those can be run
 from the command line via:
 
-[source,bash]
+[source,console]
 ----
-mill foo.Bar/baz
-mill foo.Bar/qux
+> mill foo.Bar/baz
+> mill foo.Bar/qux
 ----
 
 ``ExternalModule``s are useful for someone providing a library for use with Mill

@@ -1,7 +1,7 @@
 package mill.contrib.scalapblib
 
 import mill.*
-import mill.api.PathRef
+import mill.define.PathRef
 import mill.constants.Util
 import mill.define.Discover
 import mill.testkit.UnitTester

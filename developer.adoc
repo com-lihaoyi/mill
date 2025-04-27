@@ -93,23 +93,23 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 **Automated Test**
 
-[source,bash]
+[source,console]
 ----
-./mill "example.javalib.basic[1-simple].local.server"
+> ./mill "example.javalib.basic[1-simple].local.server"
 ----
 
 **Manual Test**
 
-[source,bash]
+[source,console]
 ----
-./mill dist.run example/javalib/basic/1-simple foo.run --text hello
+> ./mill dist.run example/javalib/basic/1-simple foo.run --text hello
 ----
 
 **Manual Test using Launcher Script**
 
-[source,bash]
+[source,console]
 ----
-./mill dist.launcher && (cd example/javalib/basic/1-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
+> ./mill dist.launcher && (cd example/javalib/basic/1-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
 ----
 
 === Sub-Process Tests *with* Packaging/Publishing
@@ -123,9 +123,9 @@ more to run a test after making a code change.
 
 You can reproduce these tests manually using `dist.installLocal`:
 
-[source,bash]
+[source,console]
 ----
-./mill dist.installLocal && (cd example/basic/1-simple && ../../../mill-assembly.jar run --text hello)
+> ./mill dist.installLocal && (cd example/basic/1-simple && ../../../mill-assembly.jar run --text hello)
 ----
 
 You can also use `dist.native.installLocal` for a Graal Native Image executable,
@@ -162,10 +162,10 @@ thing you want to test that needs those code paths to run.
 
 To test bootstrapping of Mill's own Mill build using a version of Mill built from your checkout, you can run
 
-[source,bash]
+[source,console]
 ----
-./mill dist.installLocal
-ci/patch-mill-bootstrap.sh
+> ./mill dist.installLocal
+> ci/patch-mill-bootstrap.sh
 ----
 
 This creates a standalone assembly at `mill-assembly.jar` you can use, which references jars
@@ -185,7 +185,7 @@ If you have another default shell like zsh or fish, you probably need to invoke 
 If you want to install into a different location or a different Ivy repository, you can set its optional parameters.
 
 .Install into `/tmp`
-[source,bash]
+[source,console]
 ----
 $ ./mill dist.installLocal --binFile /tmp/mill --ivyRepo /tmp/millRepo
 ...
@@ -195,7 +195,7 @@ Published 44 modules and installed /tmp/mill
 
 For testing documentation changes locally, you can generate documentation for the current checkout via
 
-[source,bash]
+[source,console]
 ----
 $ ./mill docs.fastPages
 ----
@@ -203,7 +203,7 @@ $ ./mill docs.fastPages
 To generate documentation for both the current checkout and earlier versions, you can use
 
 
-[source,bash]
+[source,console]
 ----
 $ ./mill docs.localPages
 ----
@@ -212,7 +212,7 @@ $ ./mill docs.localPages
 
 In case of troubles with caching and/or incremental compilation, you can always restart from scratch removing the `out` directory:
 
-[source,bash]
+[source,console]
 ----
 rm -rf out/
 ----
@@ -221,9 +221,10 @@ rm -rf out/
 
 To run all autofixes and autoformatters:
 
-```bash
-./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/scalafmt + mill.kotlinlib.ktlint.KtlintModule/
-```
+[source,console]
+----
+> ./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/scalafmt + mill.kotlinlib.ktlint.KtlintModule/
+----
 
 These are run automatically on pull requests, so feel free to `pull` down the changes if you want
 to continue developing after your PR has been autofixed for you.

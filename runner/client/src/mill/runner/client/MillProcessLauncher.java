@@ -2,7 +2,8 @@ package mill.runner.client;
 
 import static mill.constants.OutFiles.*;
 
-import io.github.alexarchambault.windowsansi.WindowsAnsi;
+import io.github.alexarchambault.nativeterm.NativeTerminal;
+import io.github.alexarchambault.nativeterm.TerminalSize;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,8 +12,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import mill.client.ClientUtil;
+import mill.constants.CodeGenConstants;
 import mill.constants.EnvVars;
 import mill.constants.ServerFiles;
 
@@ -27,7 +30,7 @@ public class MillProcessLauncher {
     l.addAll(millLaunchJvmCommand(setJnaNoSys));
     l.add("mill.runner.MillMain");
     l.add(processDir.toAbsolutePath().toString());
-    l.addAll(ClientUtil.readOptsFileLines(millOptsFile()));
+    l.addAll(millOpts());
     l.addAll(Arrays.asList(args));
 
     final ProcessBuilder builder = new ProcessBuilder().command(l).inheritIO();
@@ -73,37 +76,73 @@ public class MillProcessLauncher {
     Files.createDirectories(sandbox);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
 
+    String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
+    if (jdkJavaOptions == null) jdkJavaOptions = "";
+    String javaOpts = System.getenv("JAVA_OPTS");
+    if (javaOpts == null) javaOpts = "";
+
+    String opts = (jdkJavaOptions + " " + javaOpts).trim();
+    if (!opts.isEmpty()) {
+      builder.environment().put("JDK_JAVA_OPTIONS", opts);
+    }
+
     builder.directory(sandbox.toFile());
     return builder.start();
   }
 
-  static Path millJvmVersionFile() {
-    String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_VERSION_PATH);
-    if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
-      millJvmOptsPath = ".mill-jvm-version";
+  static List<String> loadMillConfig(String key) throws Exception {
+
+    Path configFile = Paths.get("." + key);
+    final Map<String, String> env = new HashMap<>();
+    env.putAll(System.getenv());
+    // Hardcode support for PWD because the graal native launcher has it set to the
+    // working dir of the enclosing process, when we want it to be set to the working
+    // dir of the current process
+    final String workspaceDir = new java.io.File(".").getAbsoluteFile().getCanonicalPath();
+    env.put("PWD", workspaceDir);
+    env.put("WORKSPACE", workspaceDir);
+    env.put("MILL_VERSION", mill.constants.BuildInfo.millVersion);
+    env.put("MILL_BIN_PLATFORM", mill.constants.BuildInfo.millBinPlatform);
+
+    if (Files.exists(configFile))
+      return ClientUtil.readOptsFileLines(configFile.toAbsolutePath(), env);
+    else {
+      for (String rootBuildFileName : CodeGenConstants.rootBuildFileNames) {
+        Path buildFile = Paths.get(rootBuildFileName);
+        if (Files.exists(buildFile)) {
+          Object conf = mill.runner.client.ConfigReader.readYaml(buildFile);
+          if (conf instanceof Map) {
+            Map<String, List<String>> conf2 = (Map<String, List<String>>) conf;
+            if (conf2.containsKey(key)) {
+              if (conf2.get(key) instanceof List) {
+                return (List<String>) ((List) conf2.get(key))
+                    .stream()
+                        .map(x -> mill.constants.Util.interpolateEnvVars(x.toString(), env))
+                        .collect(Collectors.toList());
+              } else {
+                return List.of(
+                    mill.constants.Util.interpolateEnvVars(conf2.get(key).toString(), env));
+              }
+            }
+          }
+        }
+      }
     }
-    return Paths.get(millJvmOptsPath).toAbsolutePath();
+    return List.of();
   }
 
-  static Path millJvmOptsFile() {
-    String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_OPTS_PATH);
-    if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
-      millJvmOptsPath = ".mill-jvm-opts";
-    }
-    return Paths.get(millJvmOptsPath).toAbsolutePath();
+  static List<String> millJvmOpts() throws Exception {
+    return loadMillConfig("mill-jvm-opts");
   }
 
-  static Path millOptsFile() {
-    String millJvmOptsPath = System.getenv(EnvVars.MILL_OPTS_PATH);
-    if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
-      millJvmOptsPath = ".mill-opts";
-    }
-    return Paths.get(millJvmOptsPath).toAbsolutePath();
+  static List<String> millOpts() throws Exception {
+    return loadMillConfig("mill-opts");
   }
 
-  static boolean millJvmOptsAlreadyApplied() {
-    final String propAppliedProp = System.getProperty("mill.jvm_opts_applied");
-    return propAppliedProp != null && propAppliedProp.equals("true");
+  static String millJvmVersion() throws Exception {
+    List<String> res = loadMillConfig("mill-jvm-version");
+    if (res.isEmpty()) return null;
+    else return res.get(0);
   }
 
   static String millServerTimeout() {
@@ -115,13 +154,11 @@ public class MillProcessLauncher {
   }
 
   static String javaHome() throws Exception {
-    String jvmId;
-    Path millJvmVersionFile = millJvmVersionFile();
+    String jvmId = null;
+    jvmId = millJvmVersion();
 
     String javaHome = null;
-    if (Files.exists(millJvmVersionFile)) {
-      jvmId = Files.readString(millJvmVersionFile).trim();
-    } else {
+    if (jvmId == null) {
       boolean systemJavaExists =
           new ProcessBuilder(isWin() ? "where" : "which", "java").start().waitFor() == 0;
       if (systemJavaExists && System.getenv("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA") == null) {
@@ -140,7 +177,12 @@ public class MillProcessLauncher {
       if (Files.exists(millJavaHomeFile)) {
         String[] savedJavaHomeInfo = Files.readString(millJavaHomeFile).split(" ");
         if (savedJavaHomeInfo[0].equals(jvmId)) {
-          javaHome = savedJavaHomeInfo[1];
+          // Make sure we check to see if the saved java home exists before using
+          // it, since it may have been since uninstalled, or the `out/` folder
+          // may have been transferred to a different machine
+          if (Files.exists(Paths.get(savedJavaHomeInfo[1]))) {
+            javaHome = savedJavaHomeInfo[1];
+          }
         }
       }
 
@@ -238,20 +280,13 @@ public class MillProcessLauncher {
     if (serverTimeout != null) vmOptions.add("-D" + "mill.server_timeout" + "=" + serverTimeout);
 
     // extra opts
-    Path millJvmOptsFile = millJvmOptsFile();
-    if (Files.exists(millJvmOptsFile)) {
-      vmOptions.addAll(ClientUtil.readOptsFileLines(millJvmOptsFile));
-    }
+    vmOptions.addAll(millJvmOpts());
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
     vmOptions.add(String.join(File.pathSeparator, millClasspath()));
 
     return vmOptions;
-  }
-
-  static List<String> readMillJvmOpts() throws Exception {
-    return ClientUtil.readOptsFileLines(millJvmOptsFile());
   }
 
   static int getTerminalDim(String s, boolean inheritError) throws Exception {
@@ -274,15 +309,33 @@ public class MillProcessLauncher {
 
   private static AtomicReference<String> memoizedTerminalDims = new AtomicReference();
 
+  private static final boolean canUseNativeTerminal;
+
+  static {
+    JLineNativeLoader.initJLineNative();
+
+    boolean canUse;
+    if (mill.constants.Util.hasConsole()) {
+      try {
+        NativeTerminal.getSize();
+        canUse = true;
+      } catch (Throwable ex) {
+        canUse = false;
+      }
+    } else canUse = false;
+
+    canUseNativeTerminal = canUse;
+  }
+
   static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
 
     try {
-      if (java.lang.System.console() == null) str = "0 0";
+      if (!mill.constants.Util.hasConsole()) str = "0 0";
       else {
-        if (isWin()) {
+        if (canUseNativeTerminal) {
 
-          WindowsAnsi.Size size = WindowsAnsi.terminalSize();
+          TerminalSize size = NativeTerminal.getSize();
           int width = size.getWidth();
           int height = size.getHeight();
           str = width + " " + height;

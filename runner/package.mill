@@ -9,21 +9,22 @@ import mill.contrib.buildinfo.BuildInfo
  *
  * Mostly tested by [[build.integration]] and [[build.example]] tests.
  */
-object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
+object `package` extends RootModule with build.MillPublishScalaModule {
+
   object `worker-api` extends build.MillPublishScalaModule {
-    // def ivyDeps = Agg(build.Deps.osLib)
+    // def mvnDeps = Agg(build.Deps.osLib)
   }
 
   object worker extends build.MillPublishScalaModule {
     def moduleDeps = Seq(`worker-api`)
-    def ivyDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
+    def mvnDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
 
     private[runner] def bootstrapDeps = Task {
       val moduleDep = {
         val m = artifactMetadata()
         s"${m.group}:${m.id}:${m.version}"
       }
-      val boundIvys = allIvyDeps()
+      val boundIvys = allMvnDeps()
       val nameFilter = "scala(.*)-compiler(.*)".r
       Agg(moduleDep) ++ boundIvys.collect {
         case dep if nameFilter.matches(dep.name) =>
@@ -42,39 +43,62 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     def fix(args: String*): Command[Unit] = Task.Command {}
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(build.runner.server.client)
-    def ivyDeps = Agg(
-      build.Deps.windowsAnsi,
+    def mvnDeps = Agg(
+      build.Deps.nativeTerminal,
       build.Deps.coursier,
+      build.Deps.coursierInterface,
       build.Deps.coursierJvm,
-      build.Deps.logback
+      build.Deps.logback,
+      build.Deps.snakeyamlEngine
     )
     def buildInfoObjectName = "Versions"
+    def buildInfoMembers = Task {
+      val jlineNativeVersion = compileClasspath().map(_.path.last)
+        .find(name => name.startsWith("jline-native-") && name.endsWith(".jar"))
+        .map(_.stripPrefix("jline-native-").stripSuffix(".jar"))
+        .getOrElse {
+          sys.error("Cannot get jline-native version from compile class path")
+        }
+      Seq(
+        BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
+        BuildInfo.Value("jlineNativeVersion", jlineNativeVersion)
+      )
+    }
+  }
+  object meta extends build.MillPublishScalaModule with BuildInfo {
+    def moduleDeps = Seq(
+      build.runner.codesig,
+      `worker-api`,
+      build.libs.main
+    )
+
+    def buildInfoPackageName = "mill.runner.meta"
+
     def buildInfoMembers = Seq(
-      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
+      BuildInfo.Value(
+        "bootstrapDeps",
+        worker.bootstrapDeps().mkString(";"),
+        "Depedendencies used to bootstrap the scala compiler worker."
+      )
     )
   }
 
+  def mvnDeps = Seq(
+    build.Deps.sourcecode,
+    build.Deps.osLib,
+    build.Deps.mainargs,
+    build.Deps.upickle,
+    build.Deps.pprint,
+    build.Deps.fansi
+  )
   def moduleDeps = Seq(
-    build.scalalib,
-    build.kotlinlib,
-    build.scalajslib,
-    build.scalanativelib,
-    build.javascriptlib,
-    build.pythonlib,
-    build.bsp,
-    build.core.codesig,
+    build.runner.bsp,
+    build.runner.bsp.worker,
+    build.core.eval,
     build.runner.server,
     client,
-    `worker-api`
+    `worker-api`,
+    meta
   )
 
-  def buildInfoPackageName = "mill.runner.worker"
-
-  def buildInfoMembers = Seq(
-    BuildInfo.Value(
-      "bootstrapDeps",
-      worker.bootstrapDeps().mkString(";"),
-      "Depedendencies used to bootstrap the scala compiler worker."
-    )
-  )
 }

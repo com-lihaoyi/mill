@@ -1,6 +1,5 @@
-// tag::header[]
-
 = How JVM Executable Assembly Jars Work
+// tag::header[]
 :author: Li Haoyi
 :revdate: 2 January 2025
 _{author}, {revdate}_
@@ -10,7 +9,7 @@ _{author}, {revdate}_
 One feature of the https://mill-build.org[Mill JVM build tool] is that the
 assembly jars it creates are directly executable:
 
-[source,bash]
+[source,console]
 ----
 > ./mill show foo.assembly # generate the assembly jar
 "ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
@@ -58,7 +57,7 @@ public class Foo{
 }
 ----
 
-[source,bash]
+[source,console]
 ----
 > ./mill show foo.assembly
 "ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
@@ -93,7 +92,7 @@ One thing that many people don't know is that jar files are just zip files. You 
 that from the command line, where although you normally use `jar tf` to list the contents
 of a `.jar` file, `unzip -l` works as well:
 
-[source,bash]
+[source,console]
 ----
 > jar tf /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
 META-INF/MANIFEST.MF
@@ -102,7 +101,7 @@ foo/
 foo/Foo.class
 ----
 
-[source,bash]
+[source,console]
 ----------
 > unzip -l /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
 Archive:  /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
@@ -126,7 +125,7 @@ In addition to the compiled class files, jars also can contain metadata. For exa
 this generated `out.jar` contains a `META-INF/MANIFEST.MF` file, which contains some basic
 metadata including the `Main-Class: foo.Foo` which is the entrypoint of the Java program:
 
-[source,bash]
+[source,console]
 ----
 $ unzip -p /Users/lihaoyi/test/out/foo/assembly.dest/out.jar META-INF/MANIFEST.MF
 warning [/Users/lihaoyi/test/out/foo/assembly.dest/out.jar]:  203 extra bytes at beginning or within zipfile
@@ -341,7 +340,7 @@ N<91><FA>%<FD>3ri^T*<8F><E1>1<8B><E8>CD<81><82>^WPK^G^HB?^Xo[^@^@^@n^@^@^@PK^C^D
 
 We can run it directly on Mac/Linux:
 
-[source,bash]
+[source,console]
 ----
 > ./mill show foo.assembly # generate the assembly jar
 "ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
@@ -353,7 +352,7 @@ Hello World
 And we can run it on windows, although we need to rename
 `out.jar` to `out.bat` before executing it:
 
-[source,bash]
+[source,console]
 ----
 > ./mill show foo.assembly
 "ref:v0:bd2c6c70:C:\\Users\\haoyi\\test\\out\\foo\\assembly.dest\\out.jar"

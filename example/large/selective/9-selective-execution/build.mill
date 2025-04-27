@@ -10,16 +10,17 @@
 //
 // * `mill selective.run <selector>`: run on the codebase after the code change,
 // runs tasks in the given `<selector>` which are affected by the code changes
-// that have happen since `selective.prepare` was run
+// that have happened since `selective.prepare` was run
 //
 // * `mill selective.resolve <selector>`: a dry-run version of `selective.run`, prints
 // out the tasks in `<selector>` that are affected by the code changes and would have
-// run, without actually tunning them.
+// run, without actually running them.
 //
 // For example, if you want to run all tests related to the code changes in a pull
 // request branch, you can do that as follows:
 //
-// ```bash
+// [source,console]
+// ----
 // > git checkout main # start from the target branch of the PR
 //
 // > ./mill selective.prepare
@@ -27,7 +28,7 @@
 // > git checkout pull-request-branch # go to the pull request branch
 //
 // > ./mill selective.run __.test
-// ```
+// ----
 //
 // The example below demonstrates selective test execution on a small 3-module Java build,
 // where `bar` depends on `foo` but `qux` is standalone:
@@ -153,26 +154,18 @@ bar.sources
 > mill selective.resolveTree __.test
 {
   "bar.sources": {
-    "bar.test.sources": {
-      "bar.test.allSources": {
-        "bar.test.allSourceFiles": {
-          "bar.test.compile": {
-            "bar.test.localRunClasspath": {
-              "bar.test.testClasspath": {
-                "bar.test.testForked": {}
-              }
-            }
-          }
-        }
-      }
-    },
     "bar.allSources": {
       "bar.allSourceFiles": {
         "bar.compile": {
-          "foo.test.upstreamCompileOutput": {
-            "foo.test.compile": {
-              "foo.test.localRunClasspath": {
-                "foo.test.testClasspath": {
+          "bar.localRunClasspath": {
+            "bar.localClasspath": {
+              "bar.test.transitiveLocalClasspath": {
+                "bar.test.runClasspath": {
+                  "bar.test.testForked": {}
+                }
+              },
+              "foo.test.transitiveLocalClasspath": {
+                "foo.test.runClasspath": {
                   "foo.test.testForked": {}
                 }
               }

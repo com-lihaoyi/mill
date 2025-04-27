@@ -39,7 +39,7 @@ private[mill] class PrefixLogger(
 
   def prefixPrintStream(stream: java.io.OutputStream) = {
     new PrintStream(new LinePrefixOutputStream(
-      prompt.infoColor(linePrefix).render,
+      prompt.infoColor(linePrefix),
       stream,
       () => prompt.reportKey(logKey)
     ))

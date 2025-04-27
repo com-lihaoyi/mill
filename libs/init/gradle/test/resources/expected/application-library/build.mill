@@ -1,0 +1,11 @@
+package build
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object `package` extends RootModule {
+
+  def artifactName = "application-library"
+
+}
