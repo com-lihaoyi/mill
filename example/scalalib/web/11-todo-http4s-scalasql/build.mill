@@ -5,7 +5,7 @@ import coursier.ivyRepositoryString
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
-  
+
   def ivyDeps = Agg(
     Dep.parse(ivy"org.http4s::http4s-ember-server::0.23.30", scalaVersion()).right.get,
     Dep.parse(ivy"org.http4s::http4s-dsl::0.23.30", scalaVersion()).right.get,
@@ -34,7 +34,10 @@ object `package` extends RootModule with ScalaModule {
       Dep.parse(ivy"com.lihaoyi::utest::0.8.5", scalaVersion()).right.get,
       Dep.parse(ivy"org.typelevel::cats-effect-testing-utest::1.6.0", scalaVersion()).right.get,
       Dep.parse(ivy"org.http4s::http4s-client::0.23.30", scalaVersion()).right.get,
-      Dep.parse(ivy"com.dimafeng::testcontainers-scala-postgresql:0.43.0", scalaVersion()).right.get,
+      Dep.parse(
+        ivy"com.dimafeng::testcontainers-scala-postgresql:0.43.0",
+        scalaVersion()
+      ).right.get,
       Dep.parse(ivy"com.dimafeng::testcontainers-scala-scalatest:0.43.0", scalaVersion()).right.get,
       Dep.parse(ivy"org.testcontainers:postgresql:1.19.1", scalaVersion()).right.get
     )
