@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill.constants.Util.isWindows
-import mill.main.PortsManager
+import mill.main.PortManager
 import utest.*
 
 /**
@@ -80,7 +80,7 @@ class ExampleTester(
     val propagateJavaHome: Boolean = true
 ) extends IntegrationTesterBase {
 
-  val portsAllocated = PortsManager.getPorts(1).get
+  val portsAllocated = PortManager.getPorts(1).get
 
   def processCommandBlock(commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
@@ -222,6 +222,6 @@ class ExampleTester(
       removeProcessIdFile()
     }
 
-    PortsManager.releasePorts(portsAllocated)
+    PortManager.releasePorts(portsAllocated)
   }
 }
