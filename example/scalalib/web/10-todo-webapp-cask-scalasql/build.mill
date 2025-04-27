@@ -26,7 +26,7 @@ object `package` extends RootModule with ScalaModule {
     override def moduleDeps = Seq(`package`)
   }
 
-  /** Unit tests using H2 (your current tests) */
+  /** Unit tests using H2 */
   trait TestModule extends TestBase with ScalaTests {
     def testFramework = "utest.runner.Framework"
 
