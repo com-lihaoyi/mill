@@ -78,7 +78,7 @@ case class MillCliConfig(
     threadCountRaw: Option[String] = None,
     @arg(
       name = "import",
-      doc = """Additional ivy dependencies to load into mill, e.g. plugins."""
+      doc = """Additional ivy/mvn dependencies to load into mill, e.g. plugins."""
     )
     imports: Seq[String] = Nil,
     @arg(
