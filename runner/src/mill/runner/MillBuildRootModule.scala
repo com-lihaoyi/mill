@@ -98,7 +98,10 @@ abstract class MillBuildRootModule()(implicit
 
   override def runIvyDeps = Task {
     val imports = cliImports()
-    val ivyImports = imports.collect { case s"ivy:$rest" | s"mvn:$rest" => rest }
+    val ivyImports = imports.collect {
+      case s"ivy:$rest" => rest
+      case s"mvn:$rest" => rest
+    }
     Agg.from(
       MillIvy.processMillIvyDepSignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
