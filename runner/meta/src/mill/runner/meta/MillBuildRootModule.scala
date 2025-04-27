@@ -97,6 +97,7 @@ class MillBuildRootModule()(implicit
       codeSignatures()
     )
   }
+
   /**
    * Additional script files, we generate, since not all Mill source
    * files (e.g. `.sc` and `.mill`) can be fed to the compiler as-is.
