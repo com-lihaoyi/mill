@@ -8,4 +8,5 @@ import mill._
  */
 object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(build.core.define, build.core.internal)
+  def mvnDeps = Seq(build.Deps.snakeyamlEngine)
 }

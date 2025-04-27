@@ -1,20 +1,15 @@
 package mill.exec
 
-import mill.api.ExecResult.Aborted
-
 import mill.api._
 import mill.api.internal._
+import mill.constants.OutFiles.{millChromeProfile, millProfile}
 import mill.define._
 import mill.internal.PrefixLogger
-import mill.define.MultiBiMap
 
-import mill.api._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
-import mill.api.internal.{BaseModuleApi, EvaluatorApi}
-import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -36,9 +31,12 @@ private[mill] case class Execution(
     codeSignatures: Map[String, Int],
     systemExit: Int => Nothing,
     exclusiveSystemStreams: SystemStreams,
-    getEvaluator: () => EvaluatorApi
+    getEvaluator: () => EvaluatorApi,
+    offline: Boolean,
+    headerData: String
 ) extends GroupExecution with AutoCloseable {
 
+  // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
   def this(
       baseLogger: Logger,
       workspace: java.nio.file.Path,
@@ -54,7 +52,9 @@ private[mill] case class Execution(
       codeSignatures: Map[String, Int],
       systemExit: Int => Nothing,
       exclusiveSystemStreams: SystemStreams,
-      getEvaluator: () => EvaluatorApi
+      getEvaluator: () => EvaluatorApi,
+      offline: Boolean,
+      headerData: String
   ) = this(
     baseLogger,
     new JsonArrayLogger.ChromeProfile(os.Path(outPath) / millChromeProfile),
@@ -72,7 +72,9 @@ private[mill] case class Execution(
     codeSignatures,
     systemExit,
     exclusiveSystemStreams,
-    getEvaluator
+    getEvaluator,
+    offline,
+    headerData
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -169,7 +171,7 @@ private[mill] case class Execution(
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
             try {
-              val countMsg = mill.internal.Util.leftPad(
+              val countMsg = mill.util.Util.leftPad(
                 count.getAndIncrement().toString,
                 terminals.length.toString.length,
                 '0'
@@ -216,7 +218,8 @@ private[mill] case class Execution(
                   classToTransitiveClasses,
                   allTransitiveClassMethods,
                   forkExecutionContext,
-                  exclusive
+                  exclusive,
+                  offline
                 )
 
                 // Count new failures - if there are upstream failures, tasks should be skipped, not failed

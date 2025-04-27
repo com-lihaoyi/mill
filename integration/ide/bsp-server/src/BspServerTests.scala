@@ -39,7 +39,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
     test("requestSnapshots") - integrationTest { tester =>
       import tester._
       eval(
-        "mill.bsp.BSP/install",
+        "--bsp-install",
         stdout = os.Inherit,
         stderr = os.Inherit,
         check = true,

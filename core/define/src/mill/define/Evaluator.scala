@@ -20,6 +20,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def workerCache: mutable.Map[String, (Int, Val)]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
+  private[mill] def offline: Boolean
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
@@ -90,14 +91,16 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
   ): EvaluatorApi.Result[T] = {
-    execute(
-      targets.map(_.asInstanceOf[Task[T]]),
-      reporter,
-      testReporter,
-      logger,
-      serialCommandExec,
-      selectiveExecution
-    )
+    os.checker.withValue(os.Checker.Nop) {
+      execute(
+        targets.map(_.asInstanceOf[Task[T]]),
+        reporter,
+        testReporter,
+        logger,
+        serialCommandExec,
+        selectiveExecution
+      )
+    }
   }
 
   /**

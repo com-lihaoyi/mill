@@ -29,7 +29,7 @@ object `package` extends RootModule {
     def scalaVersion = build.Deps.scalaVersion
     def moduleDeps = build.moduleInternal.modules.collect {
       case m: build.MillStableScalaModule => m
-      case m: JavaModule if m eq build.kotlinlib => m
+      case m: JavaModule if m eq build.libs.kotlinlib => m
     }
     def unidocSourceUrl = Task {
       val sha = "main" // VcsVersion.vcsState().currentRevision
@@ -57,7 +57,7 @@ object `package` extends RootModule {
   }
 
   def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
-      ctx: mill.api.Ctx.Log
+      ctx: mill.define.TaskCtx.Log
   ) = {
 
     prepareAntora(npmDir)
@@ -116,7 +116,7 @@ object `package` extends RootModule {
   }
 
   def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Agg[os.Path])(implicit
-      ctx: mill.api.Ctx
+      ctx: mill.define.TaskCtx
   ) = {
 
     // Walk all files to render graphviz templates ourselves because the only Antora graphviz

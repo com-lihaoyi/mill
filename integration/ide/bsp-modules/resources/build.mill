@@ -1,5 +1,5 @@
 package build
-import $packages._
+
 import mill._
 import mill.define.PathRef
 import mill.api.internal.ModuleApi

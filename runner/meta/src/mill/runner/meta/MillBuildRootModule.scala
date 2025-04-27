@@ -1,33 +1,24 @@
 package mill.runner.meta
-import scala.jdk.CollectionConverters.ListHasAsScala
-import coursier.Repository
+
 import mill.*
 import mill.api.Result
-import mill.define.{PathRef, Discover, Task}
-import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
-import mill.util.Jvm
-import mill.scalalib.api.JvmWorkerUtil
-import mill.scalalib.api.{CompilationResult, Versions}
-import mill.constants.OutFiles.*
-import mill.constants.CodeGenConstants.buildFileExtensions
-import mill.util.BuildInfo
-import mill.define.RootModule0
-import mill.runner.meta.ScalaCompilerWorker
-import mill.runner.worker.api.ScalaCompilerWorkerApi
-
-import scala.util.Try
-import mill.define.Target
-import mill.api.Watchable
 import mill.api.internal.internal
+import mill.constants.CodeGenConstants.buildFileExtensions
+import mill.constants.OutFiles.*
+import mill.define.{PathRef, Discover, RootModule0, Target, Task}
+import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
+import mill.scalalib.api.{CompilationResult, Versions}
+import mill.util.BuildInfo
+import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.runner.worker.api.MillScalaParser
 
-import scala.collection.mutable
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
  * compiling them as a normal [[ScalaModule]]. Parses `build.mill`, walks any
  * `import $file`s, wraps the script files to turn them into valid Scala code
- * and then compiles them with the `ivyDeps` extracted from the `import $ivy`
+ * and then compiles them with the `mvnDeps` extracted from the `//| mvnDeps:`
  * calls within the scripts.
  */
 @internal
@@ -68,30 +59,6 @@ class MillBuildRootModule()(implicit
     scalaCompilerResolver.resolve(rootModuleInfo.compilerWorkerClasspath)
   }
 
-  override def repositoriesTask: Task[Seq[Repository]] = {
-    val importedRepos = Task.Anon {
-      val repos = parseBuildFiles().repos.map { case (repo, srcFile) =>
-        val relFile = Try {
-          srcFile.relativeTo(Task.workspace)
-        }.recover { case _ => srcFile }.get
-        Jvm.repoFromString(
-          repo,
-          s"buildfile `${relFile}`: import $$repo.`${repo}`"
-        )
-      }
-      repos.find(_.isInstanceOf[Result.Failure]) match {
-        case Some(error) => error
-        case None =>
-          val res = repos.collect { case Result.Success(v) => v }.flatten
-          Result.Success(res)
-      }
-    }
-
-    Task.Anon {
-      super.repositoriesTask() ++ importedRepos()
-    }
-  }
-
   def cliImports: T[Seq[String]] = Task.Input {
     val imports = CliImports.value
     if (imports.nonEmpty) {
@@ -100,41 +67,24 @@ class MillBuildRootModule()(implicit
     imports
   }
 
-  override def mandatoryIvyDeps = Task {
-    Seq.from(
-      MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
-        .map(mill.scalalib.Dep.parse)
-    ) ++
-      Seq(
-        ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}",
-        ivy"com.lihaoyi::mill-core-api:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-core-define:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-kotlinlib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-scalajslib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-scalanativelib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-javascriptlib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-pythonlib:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-main-init:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-idea:${Versions.millVersion}",
-        ivy"com.lihaoyi::mill-bsp:${Versions.millVersion}",
-        ivy"com.lihaoyi::sourcecode:0.4.3-M5"
-      ) ++
+  override def mandatoryMvnDeps = Task {
+    Seq(mvn"com.lihaoyi::mill-libs:${Versions.millVersion}") ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
-        ivy"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
+        mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
       }
   }
 
-  override def runIvyDeps = Task {
+  override def runMvnDeps = Task {
     val imports = cliImports()
     val ivyImports = imports.collect { case s"ivy:$rest" => rest }
     Seq.from(
-      MillIvy.processMillIvyDepSignature(ivyImports.toSet)
+      MillIvy.processMillMvnDepsignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
     ) ++ Seq(
-      // Needed at runtime to insantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
+      // Needed at runtime to instantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
       // classloader but should not be available for users to compile against
-      ivy"com.lihaoyi::mill-core:${Versions.millVersion}"
+      mvn"com.lihaoyi::mill-core-eval:${Versions.millVersion}"
     )
   }
 
@@ -153,7 +103,7 @@ class MillBuildRootModule()(implicit
   }
   def generateScriptSources: T[Seq[PathRef]] = Task {
     val parsed = parseBuildFiles()
-    if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
+    if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
     else {
       CodeGen.generateWrappedSources(
         rootModuleInfo.projectRoot / os.up,
@@ -164,7 +114,7 @@ class MillBuildRootModule()(implicit
         rootModuleInfo.output,
         compilerWorker()
       )
-      Result.Success(Seq(PathRef(Task.dest)))
+      Seq(PathRef(Task.dest))
     }
   }
 
@@ -252,15 +202,7 @@ class MillBuildRootModule()(implicit
   }
 
   override def sources: T[Seq[PathRef]] = Task {
-    scriptSources() ++ {
-      if (parseBuildFiles().metaBuild) super.sources()
-      else Seq.empty[PathRef]
-    }
-  }
-
-  override def resources: T[Seq[PathRef]] = Task {
-    if (parseBuildFiles().metaBuild) super.resources()
-    else Seq.empty[PathRef]
+    scriptSources() ++ super.sources()
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = Task {
@@ -277,11 +219,11 @@ class MillBuildRootModule()(implicit
       .toSeq
   }
 
-  def compileIvyDeps = Seq(
-    ivy"com.lihaoyi::sourcecode:0.4.3-M5"
+  def compileMvnDeps = Seq(
+    mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   )
-  override def scalacPluginIvyDeps: T[Seq[Dep]] = Seq(
-    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+  override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
+    mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 

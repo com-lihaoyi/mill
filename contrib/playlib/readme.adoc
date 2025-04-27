@@ -38,9 +38,11 @@ Twirl versions. You also need to define your own test object which extends the p
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object core extends PlayModule {
     // config
@@ -79,10 +81,10 @@ The following compile dependencies will automatically be added to your build:
 [source,scala]
 ----
 Seq(
-  ivy"com.typesafe.play::play:${playVersion()}",
-  ivy"com.typesafe.play::play-guice:${playVersion()}",
-  ivy"com.typesafe.play::play-server:${playVersion()}",
-  ivy"com.typesafe.play::play-logback:${playVersion()}"
+  mvn"com.typesafe.play::play:${playVersion()}",
+  mvn"com.typesafe.play::play-guice:${playVersion()}",
+  mvn"com.typesafe.play::play-server:${playVersion()}",
+  mvn"com.typesafe.play::play-logback:${playVersion()}"
 )
 ----
 
@@ -91,17 +93,17 @@ added (the actual version depends on the version of Play you are pulling `2.6.x`
 
 [source,scala]
 ----
-ivy"org.scalatestplus.play::scalatestplus-play::5.1.0"
+mvn"org.scalatestplus.play::scalatestplus-play::5.1.0"
 ----
 
 In order to have a working `start` command the following runtime dependency is also added:
 
 ----
-ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
+mvn"com.typesafe.play::play-akka-http-server:${playVersion()}"
 ----
 or
 ----
-ivy"com.typesafe.play::play-pekko-http-server:${playVersion()}"
+mvn"com.typesafe.play::play-pekko-http-server:${playVersion()}"
 ----
 depending on the play version
 
@@ -113,9 +115,11 @@ The `PlayApiModule` trait behaves the same as the `PlayModule` trait but it won'
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object core extends PlayApiModule {
     // config
@@ -145,15 +149,17 @@ The following helpers are available to provide additional Play Framework depende
 * `ws()` - optional,
 * `caffeine()` - optional.
 
-If you want to add an optional library using the helper you can do so by overriding `ivyDeps`
+If you want to add an optional library using the helper you can do so by overriding `mvnDeps`
 like in the following example build:
 
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
+import mill.playlib._
 
 object core extends PlayApiModule {
     // config
@@ -162,7 +168,7 @@ object core extends PlayApiModule {
 
     object test extends PlayTests
 
-    override def ivyDeps = Task { super.ivyDeps() ++ Seq(ws(), filters()) }
+    override def mvnDeps = Task { super.mvnDeps() ++ Seq(ws(), filters()) }
 }
 ----
 
@@ -193,9 +199,11 @@ Looking back at the sample build definition in <<_using_playmodule>>:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
+import mill.playlib._
 
 object core extends PlayModule {
     // config
@@ -234,9 +242,11 @@ by extending `RootModule0` in your build:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object build extends RootModule with PlayModule {
 	// config
@@ -278,9 +288,11 @@ define `playVersion` and `scalaVersion`.
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object app extends ScalaModule with RouterModule {
   def playVersion = Task { "2.8.20" }
@@ -333,10 +345,11 @@ To add additional imports to all of the routes:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
-import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import mill.scalalib.*
+import mill.playlib.*
 
 object app extends ScalaModule with RouterModule {
   def playVersion = "2.8.20"

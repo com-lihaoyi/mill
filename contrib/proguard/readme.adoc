@@ -19,8 +19,9 @@ Here is a simple example:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-proguard:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-proguard:`
+
 import contrib.proguard._
 
 object foo extends ScalaModule with Proguard {

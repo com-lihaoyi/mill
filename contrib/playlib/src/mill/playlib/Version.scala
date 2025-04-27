@@ -17,6 +17,6 @@ private[playlib] trait Version extends Module {
   }
 
   private[playlib] def component(id: String): Task[Dep] = Task.Anon {
-    ivy"${playOrganization()}::$id::${playVersion()}"
+    mvn"${playOrganization()}::$id::${playVersion()}"
   }
 }

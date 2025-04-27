@@ -13,8 +13,9 @@ Add a `VersionFileModule` to the `build.mill` file:
 
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-versiofile:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
+
 import mill.contrib.versionfile.VersionFileModule
 
 object versionFile extends VersionFileModule
@@ -27,7 +28,7 @@ Create the version file with the initial version number:
 
 [source,console]
 ----
-$ 0.1.0-SNAPSHOT > versionFile/version
+$ echo 0.1.0-SNAPSHOT > versionFile/version
 ----
 
 Then to write a release version or snapshot version to file:
@@ -51,7 +52,8 @@ If you want to use the version file for publishing, you can do it like this:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
+//| mvnDeps: ["com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION"]
+
 import mill.contrib.versionfile.VersionFileModule
 
 object versionFile extends VersionFileModule
@@ -71,7 +73,8 @@ at the root of the project, you can override `millSourcePath`:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
+//| mvnDeps: ["com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION"]
+
 import mill.contrib.versionfile.VersionFileModule
 
 object versionFile extends VersionFileModule {
@@ -176,8 +179,8 @@ The module has an `exec` task that allows you to execute tasks of type `T[Seq[os
 
 [source,console]
 ----
-$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.tag
-$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.push
+$ mill mill.contrib.versionfile/exec --procs versionFile.tag
+$ mill mill.contrib.versionfile/exec --procs versionFile.push
 ----
 
 === Built-in git operations

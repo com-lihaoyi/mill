@@ -11,7 +11,6 @@ import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.api.{SystemStreams => _, _}
 import mill.api.internal.{EvaluatorApi, BaseModuleApi, CompileProblemReporter, TestReporter}
 
 /**
@@ -33,6 +32,42 @@ private trait GroupExecution {
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
+  def headerData: String
+  lazy val parsedHeaderData: Map[String, ujson.Value] = {
+    import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
+    val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
+    // recursively convert java data structure to ujson.Value
+    val envWithPwd = env ++ Seq(
+      "PWD" -> workspace.toString,
+      "PWD_URI" -> workspace.toNIO.toUri.toString,
+      "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
+      "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
+    )
+    def rec(x: Any): ujson.Value = {
+      import collection.JavaConverters._
+      x match {
+        case d: java.util.Date => ujson.Str(d.toString)
+        case s: String => ujson.Str(mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava))
+        case d: Double => ujson.Num(d)
+        case d: Int => ujson.Num(d)
+        case d: Long => ujson.Num(d)
+        case true => ujson.True
+        case false => ujson.False
+        case null => ujson.Null
+        case m: java.util.Map[Object, Object] =>
+          import collection.JavaConverters._
+          val scalaMap = m.asScala
+          ujson.Obj.from(scalaMap.map { case (k, v) => (k.toString, rec(v)) })
+        case l: java.util.List[Object] =>
+          import collection.JavaConverters._
+          val scalaList: collection.Seq[Object] = l.asScala
+          ujson.Arr.from(scalaList.map(rec))
+      }
+    }
+
+    rec(loaded).objOpt.getOrElse(Map.empty[String, ujson.Value]).toMap
+  }
+
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
@@ -52,7 +87,8 @@ private trait GroupExecution {
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.define.TaskCtx.Fork.Api,
-      exclusive: Boolean
+      exclusive: Boolean,
+      offline: Boolean
   ): GroupExecution.Results = {
     logger.withPromptLine {
       val externalInputsHash = MurmurHash3.orderedHash(
@@ -84,94 +120,112 @@ private trait GroupExecution {
       terminal match {
 
         case labelled: NamedTask[_] =>
-          val out = if (!labelled.ctx.external) outPath else externalOutPath
-          val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
-          val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-
-          // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
-          val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled, cached.isEmpty)
-
-          val cachedValueAndHash =
-            upToDateWorker.map((_, inputsHash))
-              .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) =>
-                valOpt.map((_, valueHash))
-              })
-
-          cachedValueAndHash match {
-            case Some((v, hashCode)) =>
-              val res = ExecResult.Success((v, hashCode))
-              val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
-                Map(labelled -> res)
-
+          labelled.ctx.segments.value match {
+            case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
+              val jsonData = parsedHeaderData(single)
+              val resultData = upickle.default.read[Any](jsonData)(
+                using labelled.readWriterOpt.get.asInstanceOf[upickle.default.Reader[Any]]
+              )
               GroupExecution.Results(
-                newResults,
+                Map(labelled -> ExecResult.Success(Val(resultData), resultData.##)),
                 Nil,
                 cached = true,
                 inputsHash,
                 -1,
-                valueHashChanged = false
+                false
               )
-
             case _ =>
-              // uncached
-              if (!labelled.persistent) os.remove.all(paths.dest)
+              val out = if (!labelled.ctx.external) outPath else externalOutPath
+              val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
+              val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
-              val (newResults, newEvaluated) =
-                executeGroup(
-                  group,
-                  results,
-                  inputsHash,
-                  paths = Some(paths),
-                  maybeTargetLabel = Some(terminal.toString),
-                  counterMsg = countMsg,
-                  zincProblemReporter,
-                  testReporter,
-                  logger,
-                  executionContext,
-                  exclusive,
-                  labelled.isInstanceOf[Command[?]],
-                  deps
-                )
+              // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
+              val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled, cached.isEmpty)
 
-              val valueHash = newResults(labelled) match {
-                case ExecResult.Success((v, _)) =>
-                  val valueHash = getValueHash(v, terminal, inputsHash)
-                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                  valueHash
+              val cachedValueAndHash =
+                upToDateWorker.map((_, inputsHash))
+                  .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) =>
+                    valOpt.map((_, valueHash))
+                  })
+
+              cachedValueAndHash match {
+                case Some((v, hashCode)) =>
+                  val res = ExecResult.Success((v, hashCode))
+                  val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
+                    Map(labelled -> res)
+
+                  GroupExecution.Results(
+                    newResults,
+                    Nil,
+                    cached = true,
+                    inputsHash,
+                    -1,
+                    valueHashChanged = false
+                  )
 
                 case _ =>
-                  // Wipe out any cached meta.json file that exists, so
-                  // a following run won't look at the cached metadata file and
-                  // assume it's associated with the possibly-borked state of the
-                  // destPath after an evaluation failure.
-                  os.remove.all(paths.meta)
-                  0
-              }
+                  // uncached
+                  if (!labelled.persistent) os.remove.all(paths.dest)
 
-              GroupExecution.Results(
-                newResults,
-                newEvaluated.toSeq,
-                cached = if (labelled.isInstanceOf[InputImpl[?]]) null else false,
-                inputsHash,
-                cached.map(_._1).getOrElse(-1),
-                !cached.map(_._3).contains(valueHash)
-              )
+                  val (newResults, newEvaluated) =
+                    executeGroup(
+                      group = group,
+                      results = results,
+                      inputsHash = inputsHash,
+                      paths = Some(paths),
+                      maybeTargetLabel = Some(terminal.toString),
+                      counterMsg = countMsg,
+                      reporter = zincProblemReporter,
+                      testReporter = testReporter,
+                      logger = logger,
+                      executionContext = executionContext,
+                      exclusive = exclusive,
+                      isCommand = labelled.isInstanceOf[Command[?]],
+                      deps = deps,
+                      offline = offline
+                    )
+
+                  val valueHash = newResults(labelled) match {
+                    case ExecResult.Success((v, _)) =>
+                      val valueHash = getValueHash(v, terminal, inputsHash)
+                      handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                      valueHash
+
+                    case _ =>
+                      // Wipe out any cached meta.json file that exists, so
+                      // a following run won't look at the cached metadata file and
+                      // assume it's associated with the possibly-borked state of the
+                      // destPath after an evaluation failure.
+                      os.remove.all(paths.meta)
+                      0
+                  }
+
+                  GroupExecution.Results(
+                    newResults,
+                    newEvaluated.toSeq,
+                    cached = if (labelled.isInstanceOf[InputImpl[?]]) null else false,
+                    inputsHash,
+                    cached.map(_._1).getOrElse(-1),
+                    !cached.map(_._3).contains(valueHash)
+                  )
+              }
           }
         case task =>
           val (newResults, newEvaluated) = executeGroup(
-            group,
-            results,
-            inputsHash,
+            group = group,
+            results = results,
+            inputsHash = inputsHash,
             paths = None,
             maybeTargetLabel = None,
             counterMsg = countMsg,
-            zincProblemReporter,
-            testReporter,
-            logger,
-            executionContext,
-            exclusive,
-            task.isInstanceOf[Command[?]],
-            deps
+            reporter = zincProblemReporter,
+            testReporter = testReporter,
+            logger = logger,
+            executionContext = executionContext,
+            exclusive = exclusive,
+            isCommand = task.isInstanceOf[Command[?]],
+            deps = deps,
+            offline = offline
           )
           GroupExecution.Results(
             newResults,
@@ -199,7 +253,8 @@ private trait GroupExecution {
       executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
       isCommand: Boolean,
-      deps: Seq[Task[?]]
+      deps: Seq[Task[?]],
+      offline: Boolean
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[?]]
@@ -239,7 +294,8 @@ private trait GroupExecution {
             workspace = workspace,
             systemExit = systemExit,
             fork = executionContext,
-            jobs = effectiveThreadCount
+            jobs = effectiveThreadCount,
+            offline = offline
           )
           // Tasks must be allowed to write to upstream worker's dest folders, because
           // the point of workers is to manualy manage long-lived state which includes
@@ -323,7 +379,7 @@ private trait GroupExecution {
   // invalidate workers in the scenario where a worker classloader is
   // re-created - so the worker *class* changes - but the *value* inputs to the
   // worker does not change. This typically happens when the worker class is
-  // brought in via `import $ivy`, since the class then comes from the
+  // brought in via `//| mvnDeps:`, since the class then comes from the
   // non-bootstrap classloader which can be re-created when the `build.mill` file
   // changes.
   //
