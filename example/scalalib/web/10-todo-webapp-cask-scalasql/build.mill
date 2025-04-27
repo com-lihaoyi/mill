@@ -13,37 +13,38 @@ object `package` extends RootModule with ScalaModule {
     ivy"com.h2database:h2:2.2.224"
   )
 
-  object test extends ScalaTests {
+  object test extends TestModule
+
+  object integration extends IntegrationTestModule
+
+  /** Common test setup */
+  trait TestBase extends ScalaModule {
+    def scalaVersion = `package`.scalaVersion
+    override def repositories = super.repositories ++ Seq(
+      coursier.MavenRepository("https://oss.sonatype.org/content/repositories/snapshots")
+    )
+    override def moduleDeps = Seq(`package`)
+  }
+
+  /** Unit tests using H2 (your current tests) */
+  trait TestModule extends TestBase with ScalaTests {
     def testFramework = "utest.runner.Framework"
 
-    override def ivyDeps = Agg(
+    override def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.lihaoyi::utest:0.8.5",
-      ivy"com.lihaoyi::requests:0.6.9",
+      ivy"com.lihaoyi::requests:0.6.9"
+    )
+  }
+
+  /** Integration tests using PostgreSQL Testcontainers */
+  trait IntegrationTestModule extends TestBase with ScalaTests {
+    def testFramework = "utest.runner.Framework"
+
+    override def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"com.lihaoyi::utest:0.8.5",
       ivy"com.dimafeng::testcontainers-scala-postgresql:0.43.0",
       ivy"com.dimafeng::testcontainers-scala-scalatest:0.43.0",
       ivy"org.testcontainers:postgresql:1.19.1"
     )
   }
 }
-
-// This example demonstrates how to set up a simple Scala webserver
-// implementing the popular Todo-MVC demo application. It uses the
-// Cask web framework to handle HTTP requests and Scalasql to interact
-// with an in-memory H2 database. It includes a test suite
-// that spins up the web server locally, creates a postgres testcontainer
-// and makes HTTP requests against it.
-
-/** Usage
- *
- * > ./mill test
- * + webapp.WebAppTests.simpleRequest...
- *
- * > ./mill runBackground
- *
- * > curl http://localhost:8080
- * ...What needs to be done...
- * ...
- *
- * > ./mill clean runBackground
- *
- */
