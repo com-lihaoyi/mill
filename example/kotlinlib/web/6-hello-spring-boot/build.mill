@@ -27,9 +27,11 @@ object `package` extends RootModule with KotlinModule {
 > mill test
 ...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
 
+> echo "server.port=$PORT" >> ./resources/application.properties
+
 > mill runBackground
 
-> curl http://localhost:8095
+> curl http://localhost:$PORT
 ...<h1>Hello, World!</h1>...
 
 > mill clean runBackground
