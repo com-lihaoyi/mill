@@ -3,6 +3,7 @@ package mill.runner.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -38,7 +39,14 @@ final class JLineNativeLoader {
         System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
     final Path baseDir;
     if (isWindows) baseDir = Paths.get(System.getenv("UserProfile")).resolve(".mill/cache/");
-    else baseDir = Paths.get(System.getProperty("user.home")).resolve(".cache/mill/");
+    else {
+      final String xdgCacheHome = System.getenv("XDG_CACHE_HOME");
+      final Path cacheBase;
+      if (xdgCacheHome == null)
+        cacheBase = Paths.get(System.getProperty("user.home")).resolve(".cache");
+      else cacheBase = Paths.get(xdgCacheHome);
+      baseDir = cacheBase.resolve("mill");
+    }
     this.millJLineNativeDir = baseDir.resolve("jline/" + jlineNativeVersion);
     this.millJLineNativeLibLocation =
         millJLineNativeDir.resolve(OSInfo.getNativeLibFolderPathForCurrentOS() + "/"
@@ -82,6 +90,12 @@ final class JLineNativeLoader {
           Files.move(tmpLocation, millJLineNativeLibLocation, StandardCopyOption.ATOMIC_MOVE);
         } catch (FileAlreadyExistsException ex) {
           // Ignored, file should have been created by another Mill process
+        } catch (AccessDeniedException ex) {
+          if (Files.exists(millJLineNativeLibLocation)) {
+            // Ignored, file should have been created by another Mill process
+          } else {
+            throw new RuntimeException(ex);
+          }
         } catch (AtomicMoveNotSupportedException ex) {
           try {
             Files.move(tmpLocation, millJLineNativeLibLocation);

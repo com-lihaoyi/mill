@@ -393,9 +393,10 @@ In contrast, the Mill build configures the code generation as follows:
 
 [source,scala]
 ----
-import $ivy.`org.codehaus.groovy:groovy:3.0.9`
-import $ivy.`org.codehaus.groovy:groovy-ant:3.0.9`
-import $ivy.`ant:ant-optional:1.5.3-1`
+//| mvnDeps:
+//| - "org.codehaus.groovy:groovy:3.0.9"
+//| - "org.codehaus.groovy:groovy-ant:3.0.9"
+//| - "ant:ant-optional:1.5.3-1"
 
 object common extends NettyModule {
   ...
@@ -428,11 +429,11 @@ limited to what an existing plugin _allows_ you to do, Mill allows you to direct
 the code necessary to do what _you need to do_. In this case, if we need to invoke
 https://github.com/apache/groovy[Groovy] and
 https://github.com/groovy/groovy-core/blob/4c05980922a927b32691e4c3eba5633825cc01e3/subprojects/groovy-ant/src/spec/doc/groovy-ant-task.adoc[Groovy-Ant],
-Mill allows us to direct xref:extending/import-ivy-plugins.adoc[import $ivy] the relevant
+Mill allows us to direct xref:extending/import-mvn-plugins.adoc[import $ivy] the relevant
 JVM artifacts from Maven Central
 
 Mill gives you the full power of the JVM ecosystem to use in your build: any Java library
-on Maven central is just an `import $ivy` away, and can be used with the full IDE support
+on Maven central is just an `//| mvnDeps:` away, and can be used with the full IDE support
 and tooling experience you are used to in the JVM ecosystem.
 
 == IDE Support

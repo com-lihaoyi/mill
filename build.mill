@@ -1,3 +1,5 @@
+//| mill-version: 0.13.0-M1-43-b217bc
+
 package build
 // imports
 //import com.github.lolgab.mill.mima.Mima
@@ -53,7 +55,7 @@ object Deps {
   // The Scala version to use
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "3.6.2"
+  val scalaVersion = "3.6.4"
   val scala2Version = "2.13.15"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.20"
@@ -126,11 +128,11 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.18"
   val ammoniteVersion = "3.0.2"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.7.1"
+  val asmTree = mvn"org.ow2.asm:asm-tree:9.8"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.179"
-  val coursierVersion = "2.1.25-M4"
+  val coursierVersion = "2.1.25-M6"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
@@ -177,12 +179,12 @@ object Deps {
     if (JvmWorkerUtil.isScala3(scalaVersion)) mvn"org.scala-lang:scala3-compiler_3:${scalaVersion}"
     else mvn"org.scala-lang:scala-compiler:${scalaVersion}"
   }
-  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.8.5".withDottyCompat(scalaVersion)
+  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.9.4".withDottyCompat(scalaVersion)
   def scalaReflect(scalaVersion: String) =
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
     else mvn"org.scala-lang:scala-reflect:${scalaVersion}"
-  val scoverage2Version = "2.2.1"
+  val scoverage2Version = "2.3.0"
   val scalacScoverage2Plugin = mvn"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = mvn"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = mvn"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -192,7 +194,7 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   def scalaXml = mvn"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.12.4"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   val upickle = mvn"com.lihaoyi::upickle:4.1.0"
@@ -208,7 +210,7 @@ object Deps {
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.17"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.3.0"
-  val kotlinVersion = "2.0.21"
+  val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val mavenVersion = "3.9.9"
   val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
@@ -230,6 +232,7 @@ object Deps {
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
+  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.9"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
@@ -439,8 +442,8 @@ trait MillJavaModule extends JavaModule {
   def testMvnDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testForkEnv: T[Map[String, String]] = forkEnv()
   def testModuleDeps: Seq[JavaModule] =
-    if (this == build.main) Seq(build.main, build.core.util)
-    else Seq(this, build.main.test)
+    if (this == build.libs.main) Seq(build.libs.main, build.core.util)
+    else Seq(this, build.libs.main.test)
 
   def localTestOverridesClasspath = Task {
     for ((k, v) <- testTransitiveDeps()) {
@@ -715,10 +718,6 @@ def formatDep(dep: Dep) = {
 }
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
-
-object idea extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.util)
-}
 
 val dummyDeps: Seq[Dep] = Seq(
   Deps.DocDeps.millScip,

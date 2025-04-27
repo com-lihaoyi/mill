@@ -11,7 +11,7 @@ object BspModulesTests extends UtestIntegrationTestSuite {
     test("BSP module with foreign modules") {
       test("can be installed") - integrationTest { tester =>
         import tester._
-        val res = eval("mill.bsp/install")
+        val res = eval("mill.bsp.BSP/install")
         assert(res.isSuccess)
         os.exists(workspacePath / Constants.bspDir / s"${Constants.serverName}.json") ==> true
       }

@@ -1,32 +1,26 @@
 package mill.util
 
-import mill.api.*
-import os.ProcessOutput
-import java.io.*
-import java.net.URLClassLoader
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.Files
-
-import scala.util.Properties.isWin
-
-import os.CommandResult
-import java.util.jar.{JarEntry, JarOutputStream}
-
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
 import coursier.core.{BomDependency, Module}
+import mill.define.{PathRef, TaskCtx}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
-import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
-import mill.api.Result
-import mill.define.{PathRef, TaskCtx}
+import mill.api.*
+
+import java.io.BufferedOutputStream
+import java.io.File
+import java.net.URLClassLoader
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.Files
+import java.util.jar.{JarEntry, JarOutputStream}
 import scala.collection.mutable
-import scala.util.Properties.isWin
 import scala.util.chaining.scalaUtilChainingOps
+import scala.util.Properties.isWin
 
 object Jvm {
 
@@ -70,14 +64,14 @@ object Jvm {
       propagateEnv: Boolean = true,
       cwd: os.Path = null,
       stdin: os.ProcessInput = os.Pipe,
-      stdout: ProcessOutput = os.Pipe,
-      stderr: ProcessOutput = os.Inherit,
+      stdout: os.ProcessOutput = os.Pipe,
+      stderr: os.ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false,
       timeout: Long = -1,
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true,
       check: Boolean = true
-  )(implicit ctx: TaskCtx): CommandResult = {
+  )(implicit ctx: TaskCtx): os.CommandResult = {
     val cp = cpPassingJarPath match {
       case Some(passingJarPath) if classPath.nonEmpty =>
         createClasspathPassingJar(passingJarPath, classPath.toSeq)
@@ -155,8 +149,8 @@ object Jvm {
       propagateEnv: Boolean = true,
       cwd: os.Path = null,
       stdin: os.ProcessInput = os.Pipe,
-      stdout: ProcessOutput = os.Pipe,
-      stderr: ProcessOutput = os.Inherit,
+      stdout: os.ProcessOutput = os.Pipe,
+      stderr: os.ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false,
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true
@@ -556,7 +550,7 @@ object Jvm {
    *
    * We do not bother breaking this out into the separate JvmWorkerApi classpath,
    * because Coursier is already bundled with mill/Ammonite to support the
-   * `import $ivy` syntax.
+   * `//| mvnDeps:` syntax.
    */
   def resolveDependencies(
       repositories: Seq[Repository],
@@ -620,12 +614,30 @@ object Jvm {
       id: String,
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion
+      jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion,
+      useShortPaths: Boolean = false
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    val shortPathDirOpt = Option.when(useShortPaths) {
+      if (isWin)
+        // On Windows, prefer to use System.getenv over sys.env (or ctx.env for
+        // now), as the former respects the case-insensitiveness of env vars on
+        // Windows, while the latter doesn't
+        os.Path(System.getenv("UserProfile")) / ".mill/cache/jvm"
+      else {
+        val cacheBase = ctx.map(_.env)
+          .getOrElse(sys.env)
+          .get("XDG_CACHE_HOME")
+          .map(os.Path(_))
+          .getOrElse(os.home / ".cache")
+        cacheBase / "mill/jvm"
+      }
+    }
     val jvmCache = JvmCache()
       .withArchiveCache(
-        ArchiveCache().withCache(coursierCache0)
+        ArchiveCache()
+          .withCache(coursierCache0)
+          .withShortPathDirectory(shortPathDirOpt.map(_.toIO))
       )
       .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
     val javaHome = JavaHome()
@@ -725,25 +737,11 @@ object Jvm {
   }
 
   // Parse a list of repositories from their string representation
-  private[mill] def repoFromString(str: String, origin: String): Result[Seq[Repository]] = {
-    val spaceSep = "\\s+".r
-
-    val repoList =
-      if (spaceSep.findFirstIn(str).isEmpty)
-        str
-          .split('|')
-          .toSeq
-          .filter(_.nonEmpty)
-      else
-        spaceSep
-          .split(str)
-          .toSeq
-          .filter(_.nonEmpty)
-
+  private[mill] def reposFromStrings(repoList: Seq[String]): Result[Seq[Repository]] = {
     RepositoryParser.repositories(repoList).either match {
       case Left(errs) =>
         val msg =
-          s"Invalid repository string in $origin:" + System.lineSeparator() +
+          s"Invalid repository string:" + System.lineSeparator() +
             errs.map("  " + _ + System.lineSeparator()).mkString
         Result.Failure(msg)
       case Right(repos) =>

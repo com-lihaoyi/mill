@@ -1,6 +1,5 @@
 package mill.define
 
-import mill.define.CrossVersion
 import upickle.default.{macroRW, ReadWriter as RW}
 
 sealed trait CrossVersion {
