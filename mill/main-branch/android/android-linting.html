@@ -730,7 +730,6 @@ import mill._, androidlib._</code></pre>
 <div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/androidlib/java/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; android:versionCode=&quot;1&quot; android:versionName=&quot;1.0&quot;&gt;
-    &lt;uses-sdk android:minSdkVersion=&quot;9&quot; android:targetSdkVersion=&quot;35&quot;/&gt;
     &lt;application android:label=&quot;@string/app_name&quot; android:theme=&quot;@android:style/Theme.Light.NoTitleBar&quot; android:debuggable=&quot;true&quot;&gt;
         &lt;activity android:name=&quot;.MainActivity&quot;
                 android:exported=&quot;true&quot;&gt;
@@ -835,7 +834,7 @@ lint.xml
 src
 
 &gt; cat out/app/androidLintRun.dest/report.txt # Display content of the linting report
-AndroidManifest.xml:3: ...Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
+AndroidManifest.xml:2: ...Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
 
 &gt; sed -i.bak 's/ android:debuggable=&quot;true&quot;//g' app/src/main/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
 
@@ -862,7 +861,7 @@ and lastly suppressing linting issue in both XML and Java files. Some output of 
 &gt; ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 &gt; cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
-AndroidManifest.xml:3: ...Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
+AndroidManifest.xml:2: ...Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
 
 &gt; sed -i.bak 's/severity=&quot;warning&quot;/severity=&quot;ignore&quot;/g' app/lint.xml # Revert the severity level of `MissingApplicationIcon`
 
