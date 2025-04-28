@@ -79,7 +79,7 @@ object libraries {
     mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${versions.kotlin}"
 }
 
-object `package` extends RootModule {
+object `package` extends Module {
 
   // comment to disable test for the module
   val modulesWithTestingEnabled = Set[CoursierModule](
