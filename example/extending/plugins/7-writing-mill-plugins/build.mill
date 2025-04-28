@@ -23,7 +23,7 @@ object myplugin extends ScalaModule with PublishModule {
 
     // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule {
-      def mvnDeps = Seq(mvn"com.lihaoyi:mill-dist:$millVersion")
+      def mvnDeps = Seq(mvn"com.lihaoyi:mill-runner_3:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
       def resources = Task {
         val p = Task.dest / "mill/local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
