@@ -17,7 +17,6 @@ trait DistModule extends Module {
   }
   def moduleDeps = Seq(build.runner)
 
-  def jar: T[PathRef] = executableRaw()
   def executableRaw: T[PathRef]
 
   def executable = Task {
@@ -62,14 +61,20 @@ trait DistModule extends Module {
     )
     targetFile
   }
+
+  def artifactName: T[String]
+  def publishArtifacts = Task {
+    PublishModule.PublishData(
+      meta = Artifact(build.Settings.pomOrg, artifactName(), build.millVersion()),
+      payload = Seq(executableRaw() -> s"mill-dist-${build.millVersion()}.jar")
+    )
+  }
 }
 
 object `package` extends MillJavaModule with DistModule {
 
   // disable scalafix here because it crashes when a module has no sources
   def moduleDeps = Seq(build.runner)
-
-  def jar: T[PathRef] = executableRaw()
 
   def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
     build.libs.graphviz.testDep(),
@@ -146,10 +151,6 @@ object `package` extends MillJavaModule with DistModule {
     if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
 
     PathRef(outputPath)
-  }
-
-  def extraPublish: T[Seq[PublishInfo]] = Task {
-    Seq(PublishInfo(file = assembly(), classifier = Some("assembly"), ivyConfig = "compile"))
   }
 
   def assemblyRules = super.assemblyRules ++ Seq(
@@ -254,14 +255,13 @@ object `package` extends MillJavaModule with DistModule {
   }
 
   def publishArtifacts = Task {
-    PublishModule.PublishData(
-      meta = Artifact(build.Settings.pomOrg, artifactName(), build.millVersion()),
-      payload =
+    super.publishArtifacts().copy(payload =
+      super.publishArtifacts().payload ++
         exampleZips().map(z => (z, z.path.last)) ++
         Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
-      )
+    )
   }
-  
+
   object native extends mill.scalalib.NativeImageModule with DistModule {
     def finalMainClass = build.dist.finalMainClass()
     def runClasspath = build.dist.runClasspath()
@@ -279,7 +279,7 @@ object `package` extends MillJavaModule with DistModule {
       }
     }
 
-    def artifactName = Task{ s"mill-dist-${artifactOsSuffix()}-${artifactCpuSuffix()}" }
+    def artifactName = Task { s"mill-dist-${artifactOsSuffix()}-${artifactCpuSuffix()}" }
 
     def mainClass = Some("mill.runner.client.MillClientMain")
 
