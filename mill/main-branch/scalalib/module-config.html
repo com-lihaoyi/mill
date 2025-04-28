@@ -694,7 +694,7 @@ called directly via <code>compile</code> or <code>run</code> without needing a <
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   // You can have arbitrary numbers of third-party dependencies
@@ -833,7 +833,7 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...<
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def scalacOptions = Seq(&quot;-Ydelambdafy:inline&quot;)
   def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
@@ -1045,7 +1045,7 @@ the sandbox and make the tests run in the project root.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   def compileMvnDeps = Seq(mvn&quot;com.lihaoyi:::acyclic:0.3.6&quot;)
@@ -1185,7 +1185,7 @@ documentation.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def mainClass = Some(&quot;foo.Qux&quot;)
 }</code></pre>
@@ -1377,7 +1377,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def mvnDeps = Seq(mvn&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 

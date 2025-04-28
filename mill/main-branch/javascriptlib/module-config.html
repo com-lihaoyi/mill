@@ -921,7 +921,7 @@ Line count: 9</code></pre>
 import mill._
 import mill.javascriptlib._
 
-object `package` extends RootModule with TypeScriptModule {
+object `package` extends TypeScriptModule {
   def moduleName = &quot;foo&quot;
 
   def sources = Task {
@@ -1195,7 +1195,7 @@ as the root module of the file:</p>
 
 import mill._, javascriptlib._
 
-object `package` extends RootModule with TypeScriptModule {
+object `package` extends TypeScriptModule {
   def moduleName = &quot;foo&quot;
   def npmDeps = Seq(&quot;immutable@4.3.7&quot;)
   object test extends TypeScriptTests with TestModule.Jest

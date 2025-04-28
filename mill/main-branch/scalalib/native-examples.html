@@ -680,7 +680,7 @@ as well as example of two modules with a scala-native application.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalanativelib._
 
-object `package` extends RootModule with ScalaNativeModule {
+object `package` extends ScalaNativeModule {
   def scalaVersion = &quot;3.3.4&quot;
   def scalaNativeVersion = &quot;0.5.5&quot;
 
@@ -724,7 +724,7 @@ Native for native integration and <code>mainargs</code> for command-line argumen
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalanativelib._
 
-object `package` extends RootModule with ScalaNativeModule {
+object `package` extends ScalaNativeModule {
   def scalaVersion = &quot;3.3.4&quot;
   def scalaNativeVersion = &quot;0.5.5&quot;
 
@@ -881,7 +881,7 @@ Bar.value: The string length of 'hello' is 5</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalanativelib._, scalanativelib.api._
 
-object `package` extends RootModule with ScalaNativeModule {
+object `package` extends ScalaNativeModule {
   def scalaVersion = &quot;3.3.4&quot;
   def scalaNativeVersion = &quot;0.5.5&quot;
 

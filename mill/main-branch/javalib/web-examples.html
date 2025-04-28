@@ -676,7 +676,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mvnDeps = Seq(
     mvn&quot;org.eclipse.jetty:jetty-server:9.4.43.v20210629&quot;,
     mvn&quot;javax.servlet:javax.servlet-api:4.0.1&quot;
@@ -714,7 +714,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mvnDeps = Seq(
     mvn&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
     mvn&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
@@ -756,7 +756,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mvnDeps = Seq(
     mvn&quot;org.springframework.boot:spring-boot-starter-data-jpa:2.5.4&quot;,
     mvn&quot;org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4&quot;,
@@ -845,7 +845,7 @@ this example also demonstrates:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with MicronautModule {
+object `package` extends MicronautModule {
   def micronautVersion = &quot;4.5.3&quot;
   def mvnDeps = Seq(
     mvn&quot;io.micronaut:micronaut-http-server-netty:$micronautVersion&quot;,
@@ -938,7 +938,7 @@ extended with more features as necessary.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with MicronautModule {
+object `package` extends MicronautModule {
   def micronautVersion = &quot;4.4.3&quot;
   def runMvnDeps = Seq(
     mvn&quot;ch.qos.logback:logback-classic:1.5.3&quot;,

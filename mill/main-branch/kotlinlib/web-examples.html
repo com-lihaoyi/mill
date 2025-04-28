@@ -676,7 +676,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
@@ -784,7 +784,7 @@ Test com.example.HelloKtorTest HelloKtorTest finished, took...
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
@@ -875,7 +875,7 @@ fully developing Kotlin/JS support, see the following ticket:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._, kotlinlib.js._
 
-object `package` extends RootModule with KotlinJsModule {
+object `package` extends KotlinJsModule {
   override def kotlinJsModuleKind = ModuleKind.ESModule
   override def kotlinVersion = &quot;1.9.25&quot;
   override def kotlinJsRunTarget = Some(RunTarget.Node)
@@ -930,7 +930,7 @@ we replace the <code>main.js</code> client side code with the Javascript output 
 
 import mill._, kotlinlib._, kotlinlib.js._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   override def kotlinVersion = &quot;1.9.24&quot;
   def ktorVersion = &quot;2.3.12&quot;
@@ -1022,7 +1022,7 @@ trait AppKotlinModule extends KotlinModule {
 
 trait AppKotlinJsModule extends AppKotlinModule with KotlinJsModule
 
-object `package` extends RootModule with AppKotlinModule {
+object `package` extends AppKotlinModule {
 
   def ktorVersion = &quot;2.3.12&quot;
   def kotlinHtmlVersion = &quot;0.11.0&quot;
@@ -1131,7 +1131,7 @@ is beyond the scope of this example.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
@@ -1178,7 +1178,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   def mainClass = Some(&quot;com.example.TodomvcApplicationKt&quot;)

@@ -676,7 +676,7 @@ for <code>JavaModule</code>.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mvnDeps = Seq(
     mvn&quot;com.fasterxml.jackson.core:jackson-databind:2.13.4&quot;
   )
@@ -824,7 +824,7 @@ way to do it.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def unmanagedClasspath = Task {
     if (!os.exists(moduleDir / &quot;lib&quot;)) Seq()
     else Seq.from(os.list(moduleDir / &quot;lib&quot;).map(PathRef(_)))
@@ -861,7 +861,7 @@ library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class=
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def unmanagedClasspath = Task {
     if (Task.offline) Task.fail(&quot;Cannot download classpath when in offline-mode&quot;) <i class="conum" data-value="1"></i><b>(1)</b>
     else {

@@ -679,7 +679,7 @@ import mill._
 import kotlinlib.KotlinModule
 import kotlinlib.detekt.DetektModule
 
-object `package` extends RootModule with KotlinModule with DetektModule {
+object `package` extends KotlinModule with DetektModule {
   def kotlinVersion = &quot;1.9.24&quot;
 }</code></pre>
 </div>
@@ -738,7 +738,7 @@ import mill.util.Jvm
 import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
 
-object `package` extends RootModule with KotlinModule with KtlintModule {
+object `package` extends KotlinModule with KtlintModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   def ktlintConfig = Some(PathRef(Task.workspace / &quot;.editorconfig&quot;))
@@ -781,7 +781,7 @@ import mill.util.Jvm
 import kotlinlib.KotlinModule
 import kotlinlib.ktfmt.KtfmtModule
 
-object `package` extends RootModule with KotlinModule with KtfmtModule {
+object `package` extends KotlinModule with KtfmtModule {
   def kotlinVersion = &quot;1.9.24&quot;
 }</code></pre>
 </div>
@@ -817,7 +817,7 @@ Done formatting ...src/example/FooWrong.kt
 import mill._, kotlinlib._
 import kotlinlib.kover.KoverModule
 
-object `package` extends RootModule with KotlinModule with KoverModule {
+object `package` extends KotlinModule with KoverModule {
 
   trait KotestTests extends TestModule.Junit5 {
     override def forkArgs: T[Seq[String]] = Task {

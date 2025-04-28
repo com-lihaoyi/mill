@@ -694,7 +694,7 @@ called directly via <code>compile</code> or <code>run</code> without needing a <
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
     mvn&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
@@ -820,7 +820,7 @@ my.custom.property: my-prop-value</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
@@ -1150,7 +1150,7 @@ object foo extends KotlinModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
@@ -1201,7 +1201,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
@@ -1537,7 +1537,7 @@ Hello World</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._, util.Jvm
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def mainClass = Some(&quot;foo.HelloWorldKt&quot;)
 

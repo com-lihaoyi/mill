@@ -684,7 +684,7 @@ automatically run with every compilation.</p>
 
 import mill._, javalib._, errorprone._
 
-object `package` extends RootModule with JavaModule with ErrorProneModule {
+object `package` extends JavaModule with ErrorProneModule {
   def errorProneOptions = Seq(&quot;-XepAllErrorsAsWarnings&quot;)
 }</code></pre>
 </div>
@@ -763,7 +763,7 @@ Those are documented as &quot;flags&quot; at <a href="https://errorprone.info/do
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, checkstyle._
 
-object `package` extends RootModule with CheckstyleModule {
+object `package` extends CheckstyleModule {
   def checkstyleVersion = &quot;9.3&quot;
 }</code></pre>
 </div>
@@ -964,7 +964,7 @@ object foo extends JavaModule with CheckstyleXsltModule {
 import mill._
 import mill.javalib.palantirformat._
 
-object `package` extends RootModule with PalantirFormatModule</code></pre>
+object `package` extends PalantirFormatModule</code></pre>
 </div>
 </div>
 <div class="listingblock">

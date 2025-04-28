@@ -676,7 +676,7 @@ for <code>PythonModule</code>s.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def pythonDeps = Seq(
     &quot;numpy==2.1.2&quot;,
     &quot;pandas~=2.2.3&quot;,
@@ -709,7 +709,7 @@ useful if you’re migrating an existing project to mill.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def pythonRequirementFiles = Task.Sources {
     moduleDir / &quot;requirements.txt&quot;
   }
@@ -740,7 +740,7 @@ include it in your project, <code>unmanagedWheels</code> is the way to do it.</p
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def unmanagedWheels: T[Seq[PathRef]] = Task.Input {
     Seq.from(os.list(moduleDir / &quot;lib&quot;).map(PathRef(_)))
   }
@@ -776,7 +776,7 @@ library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class=
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def unmanagedWheels = Task {
     if (Task.offline) Task.fail(&quot;Cannot download classpath when in offline-mode&quot;) <i class="conum" data-value="1"></i><b>(1)</b>
     else {
@@ -913,7 +913,7 @@ arguments mill passes to <code>pip install</code> by looking at the output of th
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def pythonDeps = Seq(
     &quot;numpy==2.1.2&quot;,
     &quot;pandas~=2.2.3&quot;,

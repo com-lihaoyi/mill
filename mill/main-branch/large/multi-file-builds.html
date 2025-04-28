@@ -690,7 +690,7 @@ trait MyModule extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 import mill._, scalalib._
 
-object `package` extends RootModule with build.MyModule {
+object `package` extends build.MyModule {
   def moduleDeps = Seq(build.bar.qux.mymodule)
   def mvnDeps = Seq(mvn&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 }</code></pre>
@@ -763,7 +763,7 @@ as your <code>build.mill</code> or a <code>package.mill</code>.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with MyModule {
+object `package` extends MyModule {
   def forkEnv = Map(
     &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
     &quot;MY_PROJECT_VERSION&quot; -&gt; foo.myProjectVersion
@@ -789,7 +789,7 @@ trait MyModule extends ScalaModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 import mill._, scalalib._
-object `package` extends RootModule with build.MyModule {
+object `package` extends build.MyModule {
   def forkEnv = Map(
     &quot;MY_SCALA_VERSION&quot; -&gt; build.myScalaVersion,
     &quot;MY_PROJECT_VERSION&quot; -&gt; myProjectVersion

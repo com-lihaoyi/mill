@@ -686,7 +686,7 @@ code nice and tidy.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule with RuffModule</code></pre>
+object `package` extends PythonModule with RuffModule</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -803,7 +803,7 @@ shorter name that’s easier to type.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule with RuffModule {}</code></pre>
+object `package` extends PythonModule with RuffModule {}</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -875,7 +875,7 @@ def doit(x: int):
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
 
   object test extends PythonTests with TestModule.Pytest with CoverageTests
 

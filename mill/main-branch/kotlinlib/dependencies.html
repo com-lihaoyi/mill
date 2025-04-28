@@ -686,7 +686,7 @@ for <code>KotlinModule</code>.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
@@ -843,7 +843,7 @@ way to do it.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
@@ -883,7 +883,7 @@ library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class=
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 

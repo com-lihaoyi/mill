@@ -775,7 +775,7 @@ object foo extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = &quot;2.12.15&quot;
   def mvnDeps = Seq(
     mvn&quot;org.apache.spark::spark-core:3.5.4&quot;,

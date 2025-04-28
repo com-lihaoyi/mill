@@ -734,7 +734,7 @@ de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-&gt; 0.4.0</pr
 import mill._, scalalib._
 import scalatags.Text.all._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = &quot;2.13.4&quot;
   def mvnDeps = Seq(
     mvn&quot;com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}&quot;,
@@ -869,7 +869,7 @@ cli option.</p>
 
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
   // Add (or replace) source folders for the module to use
   def customSources = Task.Sources(&quot;mill-build/src&quot;)

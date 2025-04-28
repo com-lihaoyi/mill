@@ -1138,7 +1138,7 @@ Hello World</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def mainScript = Task.Source { &quot;src/foo.py&quot; }
   def pythonOptions = Seq(&quot;-Wall&quot;, &quot;-Xdev&quot;)
   def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;HELLO MILL!&quot;)

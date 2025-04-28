@@ -694,7 +694,7 @@ called directly via <code>compile</code> or <code>run</code> without needing a <
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
     mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
@@ -817,7 +817,7 @@ my.custom.property: my-prop-value</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
   def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
   def javacOptions = Seq(&quot;-deprecation&quot;)
@@ -1155,7 +1155,7 @@ object foo extends JavaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mainClass = Some(&quot;foo.Qux&quot;)
 }</code></pre>
 </div>
@@ -1203,7 +1203,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mvnDeps = Seq(mvn&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
@@ -1536,7 +1536,7 @@ code using JNI.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, util.Jvm
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   // Additional source folder to put C sources
   def nativeSources = Task.Sources(&quot;native-src&quot;)
 

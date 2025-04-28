@@ -676,7 +676,7 @@ for <code>ScalaModule</code>.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = &quot;2.12.17&quot;
   def mvnDeps = Seq(
     mvn&quot;com.lihaoyi::upickle:3.1.0&quot;,
@@ -869,7 +869,7 @@ way to do it.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def unmanagedClasspath = Task {
     if (!os.exists(moduleDir / &quot;lib&quot;)) Seq()
@@ -907,7 +907,7 @@ library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class=
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def unmanagedClasspath = Task {
     if (Task.offline) Task.fail(&quot;Cannot download classpath when in offline-mode&quot;) <i class="conum" data-value="1"></i><b>(1)</b>
