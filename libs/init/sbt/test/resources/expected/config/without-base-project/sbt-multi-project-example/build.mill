@@ -37,7 +37,7 @@ object Deps {
   val `org.slf4j:jcl-over-slf4j` = mvn"org.slf4j:jcl-over-slf4j:1.7.25"
 }
 
-object `package` extends RootModule with BaseModule {
+object `package` extends  BaseModule {
 
   def artifactName = "sbt-multi-project-example"
 

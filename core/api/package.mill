@@ -8,7 +8,7 @@ import mill._
  * internal code and user-land code. Should have zero or minimal dependencies
  * to ensure the two codebases are not bound to the same versions of shared libraries
  */
-object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
+object `package` extends  build.MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.constants)
 
   def buildInfoPackageName = "mill.api"
