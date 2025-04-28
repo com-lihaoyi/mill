@@ -72,6 +72,9 @@ package build
    imports no longer compile you may need to try the other two packages to see where the
    class ended up.
 
+* Root modules in `build.mill` and `package.mill` files no longer need an explicit `extends RootModule`
+  superclass, as it is now taken care of by Mill automatically ({link-pr}/5008[#5008]) 
+
 * `Jvm.*` methods to spawn subprocesses and classloaders have been consolidated from 20+ helpers
   into 4 main functions ({link-pr}/4456[#4456])
 
