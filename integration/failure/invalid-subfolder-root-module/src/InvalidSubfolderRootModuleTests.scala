@@ -9,7 +9,9 @@ object InvalidSubfolderRootModuleTests extends UtestIntegrationTestSuite {
     test("success") - integrationTest { tester =>
       val res = tester.eval(("resolve", "_"))
       assert(res.isSuccess == false)
-      assert(res.err.contains("object `package` in sub/package.mill must extend a subclass of `mill.Module`"))
+      assert(res.err.contains(
+        "object `package` in sub/package.mill must extend a subclass of `mill.Module`"
+      ))
     }
   }
 }
