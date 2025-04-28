@@ -219,21 +219,22 @@ object CodeGen {
             ()
         }
 
-        newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
-
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
-
         newScriptCode = objectData.parent.applyTo(
           newScriptCode,
           if (objectData.parent.text == null) {
             throw new Result.Exception(
               s"object `package` in ${scriptPath.relativeTo(millTopLevelProjectRoot)} " +
-              "must extend a subclass of `mill.Module`"
+                "must extend a subclass of `mill.Module`"
             )
           }
           else if (objectData.parent.text == expectedParent) newParent
           else newParent + " with " + objectData.parent.text
         )
+
+        newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
+
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
+
 
         s"""$headerCode
            |$markerComment
