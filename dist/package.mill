@@ -336,6 +336,84 @@ object `package` extends InstallModule {
 
     object JvmWorkerGraalvm extends JvmWorkerModule {
       def jvmId = build.Settings.graalvmJvmId
+
+      import coursier.cache.{ArchiveCache, FileCache}
+      import coursier.jvm.{JavaHome, JvmCache}
+      import coursier.util.{Task => CsTask}
+      import mill.api.Result
+      import scala.util.Properties.isWin
+
+      def javaHome: T[Option[PathRef]] = Task {
+        Option(jvmId()).filter(_ != "").map { id =>
+          val path = resolveJavaHome(
+            id = id,
+            coursierCacheCustomizer = coursierCacheCustomizer(),
+            ctx = Some(Task.ctx()),
+            jvmIndexVersion = jvmIndexVersion(),
+            useShortPaths = isWin && (
+              jvmId().startsWith("graalvm") || jvmId().startsWith("liberica-nik")
+            )
+          ).get
+          // Java home is externally managed, better revalidate it at least once
+          PathRef(path, quick = true).withRevalidateOnce
+        }
+      }
+
+      def resolveJavaHome(
+          id: String,
+          ctx: Option[mill.define.TaskCtx] = None,
+          coursierCacheCustomizer: Option[FileCache[CsTask] => FileCache[CsTask]] = None,
+          jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion,
+          useShortPaths: Boolean = false
+      ): Result[os.Path] = {
+        val coursierCache0 =
+          FileCache() // .withLogger(new CoursierTickerResolutionLogger(Task.ctx))
+        val shortPathDirOpt = Option.when(useShortPaths) {
+          if (isWin)
+            // On Windows, prefer to use System.getenv over sys.env (or ctx.env for
+            // now), as the former respects the case-insensitiveness of env vars on
+            // Windows, while the latter doesn't
+            os.Path(System.getenv("UserProfile")) / ".mill/cache/jvm"
+          else {
+            val cacheBase = ctx.map(_.env)
+              .getOrElse(sys.env)
+              .get("XDG_CACHE_HOME")
+              .map(os.Path(_))
+              .getOrElse(os.home / ".cache")
+            cacheBase / "mill/jvm"
+          }
+        }
+        val jvmCache = JvmCache()
+          .withArchiveCache(
+            ArchiveCache()
+              .withCache(coursierCache0)
+              // .withShortPathDirectory(shortPathDirOpt.map(_.toIO))
+          )
+          .withIndex(Jvm.jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
+        val javaHome = JavaHome()
+          .withCache(jvmCache)
+          // when given a version like "17", always pick highest version in the index
+          // rather than the highest already on disk
+          .withUpdate(true)
+        val file = os.Path(javaHome.get(id).unsafeRun()(coursierCache0.ec))
+        val finalDir = shortPathDirOpt match {
+          case None => file
+          case Some(shortPathDir) =>
+            val sha1 = {
+              import java.math.BigInteger
+              import java.security.MessageDigest
+              val bytes = MessageDigest.getInstance("SHA-1").digest(file.toString.getBytes)
+              val baseSha1 = new BigInteger(1, bytes).toString(16)
+              "0" * (40 - baseSha1.length) + baseSha1
+            }
+            val dir = shortPathDir / sha1.take(8)
+            os.copy(file, dir, createFolders = true)
+            dir
+        }
+        Result.Success(finalDir)
+
+      }
+
     }
   }
 }
