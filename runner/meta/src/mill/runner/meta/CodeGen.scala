@@ -169,7 +169,7 @@ object CodeGen {
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
 
     val expectedModuleMsg =
-      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "Module"
+      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "mill.Module"
 
     val misnamed =
       objectData.filter(o => o.name.text != "`package`" && o.parent.text == expectedParent)
