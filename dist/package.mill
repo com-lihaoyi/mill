@@ -61,7 +61,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   }
 }
 
-object `package` extends RootModule with InstallModule {
+object `package` extends InstallModule {
 
   /**
    * Version of [[dist]] meant for local integration testing within the Mill
