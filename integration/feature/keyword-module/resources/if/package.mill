@@ -1,6 +1,6 @@
 package build.`if`
 import mill._, scalalib._
 
-object `package` extends Module {
+object `package` extends RootModule {
   def task = Task { true }
 }

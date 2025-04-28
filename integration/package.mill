@@ -14,7 +14,7 @@ import mill.T
 import mill.define.Cross
 import mill.testrunner.TestResult
 
-object `package` extends Module {
+object `package` extends RootModule {
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
