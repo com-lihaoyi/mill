@@ -18,7 +18,6 @@ import mill.T
 import mill.define.Cross
 import scala.util.Properties
 
-
 object Settings {
   val pomOrg = "com.lihaoyi"
   val githubOrg = "com-lihaoyi"

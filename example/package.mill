@@ -13,7 +13,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 
-object `package` extends  Module {
+object `package` extends Module {
   def exampleModules: Seq[ExampleCrossModule] = moduleInternal
     .modules
     .collect { case m: ExampleCrossModule => m }

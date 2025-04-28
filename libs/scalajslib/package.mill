@@ -7,7 +7,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 
-object `package` extends  build.MillStableScalaModule with BuildInfo {
+object `package` extends build.MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.libs.scalalib, `worker-api`)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker("1").testDep())
   def buildInfoPackageName = "mill.scalajslib"
