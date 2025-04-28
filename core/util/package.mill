@@ -38,13 +38,6 @@ object `package` extends build.MillStableScalaModule with BuildInfo {
     ),
     BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
-    BuildInfo.Value(
-      "millDistModule", {
-        val selfDep = build.dist.publishSelfDependency()
-        s"${selfDep.group}:${selfDep.id}"
-      },
-      "Coordinates of the module pulling the whole of Mill"
-    ),
     BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
     BuildInfo.Value(
       "millAllDistDependencies", {

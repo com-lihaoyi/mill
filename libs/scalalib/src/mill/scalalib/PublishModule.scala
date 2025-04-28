@@ -18,26 +18,10 @@ import os.Path
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar
  */
-trait PublishModule extends CoursierModule { outer =>
+trait PublishModule extends JavaModule { outer =>
   import mill.scalalib.publish._
 
-  def runMvnDeps: T[Seq[Dep]]
-  def compileMvnDeps: T[Seq[Dep]]
-  def allMvnDeps: T[Seq[Dep]]
-  def artifactId: T[String]
-  def moduleDeps: Seq[Module]
-  def moduleDepsChecked: Seq[Module]
-  def compileModuleDepsChecked: Seq[Module]
-  def runModuleDepsChecked: Seq[Module]
-  def bomModuleDeps: Seq[Module]
-  def bindDependency: Task[Dep => BoundDep]
-  def resolvePublishDependency: Task[Dep => mill.scalalib.publish.Dependency]
-  def depManagement = Task[Seq[Dep]]
-
-  protected def processedDependencyManagement(deps: Seq[coursier.core.Dependency])
-  : Seq[(DependencyManagement.Key, DependencyManagement.Values)]
-
-  abstract override def moduleDeps: Seq[PublishModule] = super.moduleDeps.map {
+  override def moduleDeps: Seq[PublishModule] = super.moduleDeps.map {
     case m: PublishModule => m
     case other =>
       throw new Exception(
@@ -45,7 +29,7 @@ trait PublishModule extends CoursierModule { outer =>
       )
   }
 
-  abstract override def bomModuleDeps: Seq[BomModule & PublishModule] = super.bomModuleDeps.map {
+  override def bomModuleDeps: Seq[BomModule & PublishModule] = super.bomModuleDeps.map {
     case m: (BomModule & PublishModule) => m
     case other =>
       throw new Exception(

@@ -40,7 +40,5 @@ object `package` extends build.MillStableScalaModule {
     else Agg(build.Deps.scalaReflect(scalaVersion()))
   }
 
-  private def dist = build.dist.dist0
-
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
 }
