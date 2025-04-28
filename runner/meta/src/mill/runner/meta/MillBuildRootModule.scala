@@ -211,6 +211,12 @@ class MillBuildRootModule()(implicit
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task.Input {
+    Option(System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH"))
+      .map(s => PathRef(os.Path(s)))
+      .toSeq
+  }
+
   def compileMvnDeps = Seq(
     mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   )
