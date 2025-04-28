@@ -9,8 +9,7 @@ object InvalidMetaModuleTests extends UtestIntegrationTestSuite {
     test("success") - integrationTest { tester =>
       val res = tester.eval(("resolve", "_"))
       assert(res.isSuccess == false)
-      assert(res.err.contains("object `package` "))
-      assert(res.err.contains("must extend `MillBuildRootModule`"))
+      assert(res.err.contains(" object `package` in mill-build/build.mill must extend a subclass of `MillBuildRootModule`"))
     }
   }
 }

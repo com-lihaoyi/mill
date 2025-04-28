@@ -168,6 +168,9 @@ object CodeGen {
     val expectedParent =
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
 
+    val expectedModuleMsg =
+      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "Module"
+
     val misnamed =
       objectData.filter(o => o.name.text != "`package`" && o.parent.text == expectedParent)
     if (misnamed.nonEmpty) {
@@ -224,7 +227,7 @@ object CodeGen {
           if (objectData.parent.text == null) {
             throw new Result.Exception(
               s"object `package` in ${scriptPath.relativeTo(millTopLevelProjectRoot)} " +
-                "must extend a subclass of `mill.Module`"
+                s"must extend a subclass of `$expectedModuleMsg`"
             )
           } else if (objectData.parent.text == expectedParent) newParent
           else newParent + " with " + objectData.parent.text
