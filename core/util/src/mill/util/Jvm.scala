@@ -614,30 +614,12 @@ object Jvm {
       id: String,
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion,
-      useShortPaths: Boolean = false
+      jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
-    val shortPathDirOpt = Option.when(useShortPaths) {
-      if (isWin)
-        // On Windows, prefer to use System.getenv over sys.env (or ctx.env for
-        // now), as the former respects the case-insensitiveness of env vars on
-        // Windows, while the latter doesn't
-        os.Path(System.getenv("UserProfile")) / ".mill/cache/jvm"
-      else {
-        val cacheBase = ctx.map(_.env)
-          .getOrElse(sys.env)
-          .get("XDG_CACHE_HOME")
-          .map(os.Path(_))
-          .getOrElse(os.home / ".cache")
-        cacheBase / "mill/jvm"
-      }
-    }
     val jvmCache = JvmCache()
       .withArchiveCache(
-        ArchiveCache()
-          .withCache(coursierCache0)
-          .withShortPathDirectory(shortPathDirOpt.map(_.toIO))
+        ArchiveCache().withCache(coursierCache0)
       )
       .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
     val javaHome = JavaHome()

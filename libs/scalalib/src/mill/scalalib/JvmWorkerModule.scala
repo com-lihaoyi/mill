@@ -9,8 +9,6 @@ import mill.scalalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDott
 import mill.scalalib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
 import mill.scalalib.CoursierModule.Resolver
 
-import scala.util.Properties
-
 /**
  * A default implementation of [[JvmWorkerModule]]
  */
@@ -53,11 +51,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
-  def useShortJvmPath(jvmId: String): Boolean =
-    Properties.isWin && (
-      jvmId.startsWith("graalvm") || jvmId.startsWith("liberica-nik")
-    )
-
   /**
    * Optional custom Java Home for the JvmWorker to use
    *
@@ -70,8 +63,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
         id = id,
         coursierCacheCustomizer = coursierCacheCustomizer(),
         ctx = Some(Task.ctx()),
-        jvmIndexVersion = jvmIndexVersion(),
-        useShortPaths = useShortJvmPath(id)
+        jvmIndexVersion = jvmIndexVersion()
       ).get
       // Java home is externally managed, better revalidate it at least once
       PathRef(path, quick = true).withRevalidateOnce

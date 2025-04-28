@@ -3,7 +3,7 @@ import mill._
 
 object before extends UnknownBeforeFooModule
 
-object `package` extends RootModule with UnknownFooModule {
+object `package` extends UnknownFooModule {
   def scalaVersion = unknownFooInternalDef
 }
 

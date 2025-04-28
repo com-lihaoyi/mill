@@ -12,7 +12,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   lazy val allPublishModules = build.moduleInternal.modules.collect {
     case m: PublishModule if (m ne build.dist) && (m ne build.dist.native) => m
   }
-  def moduleDeps = Seq(build.runner, build.libs.idea, build.libs.init)
+  def moduleDeps = Seq(build.runner)
 
   def jar = executableRaw()
   def executableRaw: T[PathRef]
@@ -61,7 +61,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   }
 }
 
-object `package` extends RootModule with InstallModule {
+object `package` extends InstallModule {
 
   /**
    * Version of [[dist]] meant for local integration testing within the Mill
@@ -70,7 +70,7 @@ object `package` extends RootModule with InstallModule {
    */
   object dist0 extends build.MillPublishJavaModule {
     // disable scalafix here because it crashes when a module has no sources
-    def moduleDeps = Seq(build.runner, build.libs.idea)
+    def moduleDeps = Seq(build.runner)
 
     def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
       build.libs.graphviz.testDep(),
@@ -90,7 +90,6 @@ object `package` extends RootModule with InstallModule {
       build.contrib.playlib.worker("2.8").testDep(),
       build.contrib.testng.testDep(),
       build.runner.bsp.worker.testDep(),
-      build.libs.idea.testDep(),
       build.testkit.testDep(),
       build.runner.worker.testDep(),
       build.libs.scalalib.worker.testDep(),
