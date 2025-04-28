@@ -66,7 +66,6 @@
         <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-util_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-idea_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-init_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-javascriptlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-kotlinlib-worker_3.jar" level="project"/>
@@ -83,7 +82,6 @@
         <orderEntry type="library" name="mill-libs-testrunner_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-bsp_3.jar" level="project"/>
         <orderEntry type="library" name="munit_3-0.7.29.jar" level="project"/>
         <orderEntry type="library" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-0.11.5-M2.jar" level="project"/>
