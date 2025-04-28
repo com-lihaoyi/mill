@@ -33,12 +33,12 @@ object `package` extends RootModule {
 
   object testng extends JavaModule with ContribModule {
 
-    def testTransitiveDeps =
-      super.testTransitiveDeps() ++
+    def transitiveLocalTestOverrides =
+      super.transitiveLocalTestOverrides() ++
         Seq(
-          build.libs.scalalib.testDep(),
-          build.libs.scalalib.worker.testDep(),
-          build.libs.testrunner.entrypoint.testDep()
+          build.libs.scalalib.localTestOverride(),
+          build.libs.scalalib.worker.localTestOverride(),
+          build.libs.testrunner.entrypoint.localTestOverride()
         )
 
     // pure Java implementation
@@ -60,8 +60,8 @@ object `package` extends RootModule {
     def moduleDeps = Seq(twirllib, playlib.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
-    def testTransitiveDeps =
-      super.testTransitiveDeps() ++ Task.traverse(build.Deps.play.keys.toSeq)(worker(_).testDep)()
+    def transitiveLocalTestOverrides =
+      super.transitiveLocalTestOverrides() ++ Task.traverse(build.Deps.play.keys.toSeq)(worker(_).localTestOverride)()
 
     def testArgs = Task {
       super.testArgs() ++
@@ -108,8 +108,8 @@ object `package` extends RootModule {
     def moduleDeps = Seq(scoverage.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
-    def testTransitiveDeps =
-      super.testTransitiveDeps() ++ Seq(worker2.testDep())
+    def transitiveLocalTestOverrides =
+      super.transitiveLocalTestOverrides() ++ Seq(worker2.localTestOverride())
 
     def testArgs = Task {
       super.testArgs() ++
@@ -130,7 +130,7 @@ object `package` extends RootModule {
 
     // Worker for Scoverage 2.0
     object worker2 extends build.MillPublishScalaModule {
-      def testDepPaths = Task { Seq(compile().classes) }
+      def localTestOverridePaths = Task { Seq(compile().classes) }
       def compileModuleDeps = Seq(
         build.core.api,
         scoverage.api

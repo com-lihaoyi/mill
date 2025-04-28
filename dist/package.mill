@@ -76,36 +76,36 @@ object `package` extends MillJavaModule with DistModule {
   // disable scalafix here because it crashes when a module has no sources
   def moduleDeps = Seq(build.runner)
 
-  def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
-    build.libs.graphviz.testDep(),
-    build.libs.init.maven.testDep(),
-    build.libs.init.gradle.testDep(),
-    build.libs.init.sbt.testDep(),
-    build.libs.init.testDep(),
-    build.libs.main.testDep(),
-    build.libs.scalalib.backgroundwrapper.testDep(),
-    build.libs.scalalib.`classgraph-worker`.testDep(),
+  def transitiveLocalTestOverrides = Map(
+    build.libs.graphviz.localTestOverride(),
+    build.libs.init.maven.localTestOverride(),
+    build.libs.init.gradle.localTestOverride(),
+    build.libs.init.sbt.localTestOverride(),
+    build.libs.init.localTestOverride(),
+    build.libs.main.localTestOverride(),
+    build.libs.scalalib.backgroundwrapper.localTestOverride(),
+    build.libs.scalalib.`classgraph-worker`.localTestOverride(),
     // build.contrib.bloop.testDep(),
-    build.contrib.buildinfo.testDep(),
-    build.contrib.scoverage.testDep(),
-    build.contrib.scoverage.worker2.testDep(),
-    build.contrib.jmh.testDep(),
-    build.contrib.playlib.testDep(),
-    build.contrib.playlib.worker("2.8").testDep(),
-    build.contrib.testng.testDep(),
-    build.runner.bsp.worker.testDep(),
-    build.testkit.testDep(),
-    build.runner.worker.testDep(),
-    build.libs.scalalib.worker.testDep(),
-    build.libs.scalajslib.testDep(),
-    build.libs.scalanativelib.testDep(),
-    build.libs.kotlinlib.testDep(),
-    build.libs.kotlinlib.worker.impl.testDep(),
-    build.libs.androidlib.testDep(),
-    build.libs.androidlib.hilt.testDep(),
-    build.libs.javascriptlib.testDep(),
-    build.libs.pythonlib.testDep(),
-    build.libs.testDep()
+    build.contrib.buildinfo.localTestOverride(),
+    build.contrib.scoverage.localTestOverride(),
+    build.contrib.scoverage.worker2.localTestOverride(),
+    build.contrib.jmh.localTestOverride(),
+    build.contrib.playlib.localTestOverride(),
+    build.contrib.playlib.worker("2.8").localTestOverride(),
+    build.contrib.testng.localTestOverride(),
+    build.runner.bsp.worker.localTestOverride(),
+    build.testkit.localTestOverride(),
+    build.runner.worker.localTestOverride(),
+    build.libs.scalalib.worker.localTestOverride(),
+    build.libs.scalajslib.localTestOverride(),
+    build.libs.scalanativelib.localTestOverride(),
+    build.libs.kotlinlib.localTestOverride(),
+    build.libs.kotlinlib.worker.impl.localTestOverride(),
+    build.libs.androidlib.localTestOverride(),
+    build.libs.androidlib.hilt.localTestOverride(),
+    build.libs.javascriptlib.localTestOverride(),
+    build.libs.pythonlib.localTestOverride(),
+    build.libs.localTestOverride()
   )
 
   def localBinName = "mill-assembly.jar"
@@ -140,7 +140,7 @@ object `package` extends MillJavaModule with DistModule {
     Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
 
     val script = Jvm.launcherUniversalScript(
-      mainClass = "mill.runner.client.MillClientMain",
+      mainClass = mainClass().get,
       shellClassPath = classpath,
       cmdClassPath = Agg(classpathJar.toString()),
       jvmArgs = jvmArgs
@@ -279,9 +279,9 @@ object `package` extends MillJavaModule with DistModule {
       }
     }
 
-    def artifactName = Task { s"${build.dist.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}" }
-
-    def mainClass = Some("mill.runner.client.MillClientMain")
+    def artifactName = Task {
+      s"${build.dist.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
+    }
 
     def nativeImageClasspath = build.runner.client.runClasspath()
 
