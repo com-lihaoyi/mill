@@ -226,15 +226,13 @@ object CodeGen {
               s"object `package` in ${scriptPath.relativeTo(millTopLevelProjectRoot)} " +
                 "must extend a subclass of `mill.Module`"
             )
-          }
-          else if (objectData.parent.text == expectedParent) newParent
+          } else if (objectData.parent.text == expectedParent) newParent
           else newParent + " with " + objectData.parent.text
         )
 
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
 
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
-
 
         s"""$headerCode
            |$markerComment
