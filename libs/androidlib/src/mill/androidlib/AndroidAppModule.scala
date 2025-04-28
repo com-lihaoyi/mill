@@ -265,6 +265,30 @@ trait AndroidAppModule extends AndroidModule { outer =>
       })
       .distinctBy(_.dest.get)
 
+
+    // Include native libraries (.so files) from compileNative task
+    val nativeLibsPath = compileNative().path
+
+//    val nativeLibsZipSources =
+//      os.walk(nativeLibsPath)
+//        .filter(_.ext == "so")
+//        .map { soFile =>
+//          val archFolder = soFile.relativeTo(nativeLibsPath).segments.head
+//          // Inside APK, .so files must be in lib/<arch>/*.so
+//          os.zip.ZipSource.fromPathTuple(
+//            (soFile, os.sub / "lib" / archFolder / soFile.last)
+//          )
+//        }
+
+    val nativeLibsZipSources =
+      os.walk(nativeLibsPath / "x86_64")
+        .filter(_.ext == "so")
+        .map { soFile =>
+          os.zip.ZipSource.fromPathTuple(
+            (soFile, os.sub / "lib" / "x86_64" / soFile.last)
+          )
+        }
+
     // TODO generate aar-metadata.properties (for lib distribution, not in this module) or
     //  app-metadata.properties (for app distribution).
     // Example of aar-metadata.properties:
@@ -279,6 +303,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // androidGradlePluginVersion=8.7.2
     os.zip(unsignedApk, dexFiles)
     os.zip(unsignedApk, metaInf)
+    os.zip(unsignedApk, nativeLibsZipSources)
     // TODO pack also native (.so) libraries
 
     PathRef(unsignedApk)
@@ -656,6 +681,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidInstallTask = Task.Anon {
     val emulator = runningEmulator()
 
+    if(externalNativeLibs() != Seq.empty) {
+      Task.log.info("Copying native libs to the device")
+
+    }
+    Task.log.info("whatever")
     os.call(
       (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", androidApk().path)
     )
@@ -1050,6 +1080,89 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val r8Args = r8ArgsBuilder.result()
 
     PathRef(outputPath) -> r8Args
+  }
+
+  def externalNativeLibs: T[Seq[PathRef]] = Task {
+    Seq.empty
+  }
+
+
+  def supportedAbis: T[Seq[String]] = Task {
+    Seq("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+  }
+
+  def apiVersion: T[String] = Task {
+    androidSdkModule().buildToolsVersion().split('.')(0)
+  }
+
+  def compileNative: T[PathRef] = Task {
+    val srcFile = externalNativeLibs().headOption
+      .map(_.path.toString)
+      .getOrElse("")
+    if (srcFile == "") {
+      Task.log.error("No source file provided for native compilation.")
+      return PathRef(Task.dest)
+    }
+    val outDir = Task.dest // Mill provides a dest dir for this task
+    os.makeDir.all(outDir) // ensure output dir exists
+
+    val ndkPath = androidSdkModule().ndkPath().path
+
+    for (abi <- supportedAbis()) {
+      // Determine target triple and API level for each ABI
+      val (triple, apiLevel) = abi match {
+        case "armeabi-v7a" => ("armv7a-linux-androideabi", apiVersion())   // 32-bit ARM
+        case "arm64-v8a" => ("aarch64-linux-android", apiVersion()) // 64-bit ARM
+        case "x86" => ("i686-linux-android", apiVersion())
+        case "x86_64" => ("x86_64-linux-android", apiVersion())
+      }
+
+      val libName = s"libnative-lib"
+      val outFile = outDir / abi / libName
+      val outCxx = outDir / ".cxx"
+      os.makeDir.all(outDir / abi)
+      os.makeDir.all(outCxx)
+
+      val cmakeArgs = Seq(
+        "/home/irodotos/Android/Sdk/cmake/3.22.1/bin/cmake",
+        "-H/home/irodotos/vaslabs/mill/example/androidlib/java/6-native-libs/app/src/main/cpp",
+        "-DCMAKE_SYSTEM_NAME=Android",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        s"-DCMAKE_SYSTEM_VERSION=${apiVersion()}",
+        s"-DANDROID_PLATFORM=android-${apiVersion()}",
+        s"-DANDROID_ABI=${abi}",
+        s"-DCMAKE_ANDROID_ARCH_ABI=${abi}",
+        s"-DANDROID_NDK=/home/irodotos/Android/Sdk/ndk/${androidSdkModule().ndkVersion()}",
+        s"-DCMAKE_ANDROID_NDK=/home/irodotos/Android/Sdk/ndk/${androidSdkModule().ndkVersion()}",
+        s"-DCMAKE_TOOLCHAIN_FILE=/home/irodotos/Android/Sdk/ndk/${androidSdkModule().ndkVersion()}/build/cmake/android.toolchain.cmake",
+        "-DCMAKE_MAKE_PROGRAM=/home/irodotos/Android/Sdk/cmake/3.22.1/bin/ninja",
+        s"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${outFile.toString}",
+        s"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${outFile.toString}",
+        "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+        s"-B/${outCxx.toString}/${abi}",
+        "-GNinja"
+      )
+
+      T.log.info(s"Calling CMake with arguments: ${cmakeArgs.mkString(" ")}")
+
+      // Execute the command
+      os.proc(cmakeArgs).call()
+
+      val ninjaArgs = Seq(
+        "/home/irodotos/Android/Sdk/cmake/3.22.1/bin/ninja",
+        "-C",
+        s"${outCxx.toString}/${abi}",
+        s"libnative-lib.so"
+      )
+
+      os.proc(ninjaArgs).call()
+//      val clangXX = ndkPath / "toolchains" / "llvm" / "prebuilt" / "linux-x86_64" / "bin" / s"${triple}${apiLevel}-clang++"
+      // Run the compiler to build the shared library
+//      os.proc(clangXX, "-shared", "-fPIC", "-o", outFile, srcFile).call(check = true)
+    }
+
+    // Return the output directory as a result of the task (so Mill knows about the files)
+    PathRef(outDir)
   }
 
   trait AndroidAppTests extends AndroidAppModule with JavaTests {

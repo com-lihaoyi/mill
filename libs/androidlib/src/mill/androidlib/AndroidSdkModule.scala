@@ -48,6 +48,11 @@ trait AndroidSdkModule extends Module {
   def buildToolsVersion: T[String]
 
   /**
+   * Specifies the version of the Android NDK (Native Development Kit) to be used.
+   */
+  def ndkVersion: T[String] = Task{ "27.0.12077973" }
+
+  /**
    * Specifies the Android platform version (e.g., Android API level).
    */
   def platformsVersion: T[String] = Task { "android-" + buildToolsVersion().split('.').head }
@@ -222,6 +227,11 @@ trait AndroidSdkModule extends Module {
    */
   def r8Exe: T[PathRef] = Task {
     PathRef(sdkPath().path / "cmdline-tools/latest/bin/r8")
+  }
+
+  def ndkPath: T[PathRef] = Task {
+    installAndroidSdkComponents()
+    PathRef(sdkPath().path / "ndk" / ndkVersion())
   }
 
   /**
