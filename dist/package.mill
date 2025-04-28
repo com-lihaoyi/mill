@@ -13,7 +13,7 @@ trait DistModule extends Module {
   // All modules that we want to aggregate as part of this `dev` assembly.
   // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.moduleInternal.modules.collect {
-    case m: PublishModule if (m ne build.dist) && (m ne build.dist.native) => m
+    case m: build.MillPublishJavaModule => m
   }
   def moduleDeps = Seq(build.runner)
 
@@ -77,35 +77,7 @@ object `package` extends MillJavaModule with DistModule {
   def moduleDeps = Seq(build.runner)
 
   def transitiveLocalTestOverrides = Map(
-    build.libs.graphviz.localTestOverride(),
-    build.libs.init.maven.localTestOverride(),
-    build.libs.init.gradle.localTestOverride(),
-    build.libs.init.sbt.localTestOverride(),
-    build.libs.init.localTestOverride(),
-    build.libs.main.localTestOverride(),
-    build.libs.scalalib.backgroundwrapper.localTestOverride(),
-    build.libs.scalalib.`classgraph-worker`.localTestOverride(),
-    // build.contrib.bloop.testDep(),
-    build.contrib.buildinfo.localTestOverride(),
-    build.contrib.scoverage.localTestOverride(),
-    build.contrib.scoverage.worker2.localTestOverride(),
-    build.contrib.jmh.localTestOverride(),
-    build.contrib.playlib.localTestOverride(),
-    build.contrib.playlib.worker("2.8").localTestOverride(),
-    build.contrib.testng.localTestOverride(),
-    build.runner.bsp.worker.localTestOverride(),
-    build.testkit.localTestOverride(),
-    build.runner.worker.localTestOverride(),
-    build.libs.scalalib.worker.localTestOverride(),
-    build.libs.scalajslib.localTestOverride(),
-    build.libs.scalanativelib.localTestOverride(),
-    build.libs.kotlinlib.localTestOverride(),
-    build.libs.kotlinlib.worker.impl.localTestOverride(),
-    build.libs.androidlib.localTestOverride(),
-    build.libs.androidlib.hilt.localTestOverride(),
-    build.libs.javascriptlib.localTestOverride(),
-    build.libs.pythonlib.localTestOverride(),
-    build.libs.localTestOverride()
+    Task.traverse(allPublishModules)(_.localTestOverride)():_*
   )
 
   def localBinName = "mill-assembly.jar"
