@@ -18,9 +18,6 @@ import mill.T
 import mill.define.Cross
 import scala.util.Properties
 
-// plugins and dependencies
-//| meta: true
-
 
 object Settings {
   val pomOrg = "com.lihaoyi"
