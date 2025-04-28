@@ -29,7 +29,7 @@ import mill.api.internal._
 
 class GenIdeaImpl(
     private val evaluators: Seq[EvaluatorApi]
-){
+) {
   def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }

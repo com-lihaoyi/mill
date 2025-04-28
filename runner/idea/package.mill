@@ -4,4 +4,3 @@ import mill._
 object `package` extends build.MillPublishScalaModule {
   def moduleDeps = Seq(build.core.util)
 }
-
