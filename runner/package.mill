@@ -92,6 +92,7 @@ object `package` extends build.MillPublishScalaModule {
     build.Deps.fansi
   )
   def moduleDeps = Seq(
+    build.runner.idea,
     build.runner.bsp,
     build.runner.bsp.worker,
     build.core.eval,

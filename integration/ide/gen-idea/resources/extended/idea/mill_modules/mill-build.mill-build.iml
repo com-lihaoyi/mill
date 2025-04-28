@@ -65,7 +65,6 @@
         <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-util_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-idea_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-init_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-javascriptlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-kotlinlib-worker_3.jar" level="project"/>
@@ -82,7 +81,6 @@
         <orderEntry type="library" name="mill-libs-testrunner_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-bsp_3.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-codesig_3.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-meta_3.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-worker-api_3.jar" level="project"/>
