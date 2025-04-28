@@ -70,7 +70,7 @@ trait MockitoModule extends MavenModule {
   }
 }
 
-object `package` extends RootModule with MockitoModule {
+object `package` extends MockitoModule {
 
   object JvmWorkerJava11 extends JvmWorkerModule {
     def jvmId = "temurin:11.0.24"

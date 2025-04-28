@@ -2,7 +2,7 @@
 package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"

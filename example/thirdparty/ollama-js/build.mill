@@ -131,7 +131,7 @@ trait Examples extends TypeScriptModule {
   }
 }
 
-object `package` extends RootModule with OllamaModule with TsLintModule {
+object `package` extends OllamaModule with TsLintModule {
   def npmLintDeps = Seq(
     "prettier@3.2.4",
     "eslint@8.29.0",

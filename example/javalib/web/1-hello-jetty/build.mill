@@ -1,7 +1,7 @@
 package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mvnDeps = Seq(
     mvn"org.eclipse.jetty:jetty-server:9.4.43.v20210629",
     mvn"javax.servlet:javax.servlet-api:4.0.1"

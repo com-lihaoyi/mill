@@ -2,7 +2,7 @@ package build
 import mill._, scalalib._
 import java.util.Arrays
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = "2.13.8"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::cask:0.9.1",
