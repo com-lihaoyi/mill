@@ -3,7 +3,7 @@ package build
 import mill._, kotlinlib._
 import kotlinlib.kover.KoverModule
 
-object `package` extends RootModule with KotlinModule with KoverModule {
+object `package` extends KotlinModule with KoverModule {
 
   trait KotestTests extends TestModule.Junit5 {
     override def forkArgs: T[Seq[String]] = Task {

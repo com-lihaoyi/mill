@@ -1,6 +1,6 @@
 import mill._, javalib._
 import mainargs.arg
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] =
     Task.Command {
       val res = super.runMainBackground(mainClass, args: _*)()

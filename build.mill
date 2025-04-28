@@ -1,4 +1,4 @@
-//| mill-version: 0.13.0-M1-43-b217bc
+//| mill-version: 0.13.0-M2-19-7fbdc2
 
 package build
 // imports
@@ -17,11 +17,6 @@ import mill.define.SelectMode
 import mill.T
 import mill.define.Cross
 import scala.util.Properties
-
-// plugins and dependencies
-import $meta._
-
-import $packages._
 
 object Settings {
   val pomOrg = "com.lihaoyi"

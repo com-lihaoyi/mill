@@ -2,7 +2,7 @@
 package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def unmanagedClasspath = Task {
     if (Task.offline) Task.fail("Cannot download classpath when in offline-mode") // <1>
     else {

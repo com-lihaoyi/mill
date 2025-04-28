@@ -111,10 +111,9 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
     )
   }
 
-  object androidTest extends AndroidAppKotlinInstrumentedTests with AndroidTestModule.AndroidJUnit {
-    override def instrumentationPackage = "com.example.android"
-
-  }
+  // TODO support instrumented tests on Hilt setups
+  object androidTest extends AndroidAppKotlinInstrumentedTests
+      with AndroidTestModule.AndroidJUnit {}
 
 }
 

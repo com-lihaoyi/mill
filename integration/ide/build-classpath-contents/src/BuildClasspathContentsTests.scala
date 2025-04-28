@@ -28,7 +28,6 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           "mill-core-define_3.jar",
           "mill-core-util_3.jar",
           "mill-libs-androidlib_3.jar",
-          "mill-libs-idea_3.jar",
           "mill-libs-init_3.jar",
           "mill-libs-javascriptlib_3.jar",
           "mill-libs-kotlinlib-worker_3.jar",
@@ -44,8 +43,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           "mill-libs-testrunner-entrypoint.jar",
           "mill-libs-testrunner_3.jar",
           "mill-libs_3.jar",
-          "mill-moduledefs_3-0.11.3-M5.jar",
-          "mill-runner-bsp_3.jar"
+          "mill-moduledefs_3-0.11.3-M5.jar"
         )
 
         assert(millPublishedJars == expected)

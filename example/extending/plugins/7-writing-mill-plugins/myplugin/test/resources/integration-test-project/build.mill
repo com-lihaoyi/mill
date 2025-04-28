@@ -4,6 +4,6 @@ package build
 
 import mill._, myplugin._
 
-object `package` extends RootModule with LineCountJavaModule {
+object `package` extends LineCountJavaModule {
   def lineCountResourceFileName = "line-count.txt"
 }

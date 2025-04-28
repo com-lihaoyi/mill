@@ -7,9 +7,37 @@ import mill.scalalib.publish.{PackagingType, PublishInfo}
 import mill.util.Jvm
 import os.RelPath
 import upickle.default.*
+import scala.xml.*
 
 @mill.api.experimental
 trait AndroidLibModule extends AndroidModule with PublishModule {
+
+  /**
+   * The package name of the module. Used in the generated AndroidManifest.xml
+   * and for placing the android resources in.
+   * @return
+   */
+  def androidLibPackage: String
+
+  override protected def androidGeneratedResourcesPackage: String = androidLibPackage
+
+  /**
+   * Provides os.Path to an XML file containing configuration and metadata about your android application.
+   * TODO dynamically add android:debuggable
+   */
+  override def androidManifest: T[PathRef] = Task {
+    val manifestFromSourcePath = moduleDir / "src/main/AndroidManifest.xml"
+
+    val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
+    // add the application package
+    val manifestWithPackage =
+      manifestElem % Attribute(None, "package", Text(androidLibPackage), Null)
+
+    val generatedManifestPath = Task.dest / "AndroidManifest.xml"
+    os.write(generatedManifestPath, manifestWithPackage.mkString)
+
+    PathRef(generatedManifestPath)
+  }
 
   /**
    * The packaging type of the module. This is used to determine how the module
