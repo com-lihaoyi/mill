@@ -6,7 +6,7 @@
 package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def unmanagedWheels = Task {
     if (Task.offline) Task.fail("Cannot download classpath when in offline-mode") // <1>
     else {
