@@ -279,7 +279,7 @@ object `package` extends MillJavaModule with DistModule {
       }
     }
 
-    def artifactName = Task { s"mill-dist-${artifactOsSuffix()}-${artifactCpuSuffix()}" }
+    def artifactName = Task { s"${build.dist.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}" }
 
     def mainClass = Some("mill.runner.client.MillClientMain")
 
