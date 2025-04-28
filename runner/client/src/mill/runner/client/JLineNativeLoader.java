@@ -39,14 +39,7 @@ final class JLineNativeLoader {
         System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
     final Path baseDir;
     if (isWindows) baseDir = Paths.get(System.getenv("UserProfile")).resolve(".mill/cache/");
-    else {
-      final String xdgCacheHome = System.getenv("XDG_CACHE_HOME");
-      final Path cacheBase;
-      if (xdgCacheHome == null)
-        cacheBase = Paths.get(System.getProperty("user.home")).resolve(".cache");
-      else cacheBase = Paths.get(xdgCacheHome);
-      baseDir = cacheBase.resolve("mill");
-    }
+    else baseDir = Paths.get(System.getProperty("user.home")).resolve(".cache/mill/");
     this.millJLineNativeDir = baseDir.resolve("jline/" + jlineNativeVersion);
     this.millJLineNativeLibLocation =
         millJLineNativeDir.resolve(OSInfo.getNativeLibFolderPathForCurrentOS() + "/"
