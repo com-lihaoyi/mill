@@ -1,7 +1,7 @@
 package build
 import mill._, kotlinlib._, util.Jvm
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def mainClass = Some("foo.HelloWorldKt")
 

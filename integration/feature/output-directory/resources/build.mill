@@ -3,7 +3,7 @@ package build
 import mill._
 import mill.scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = scala.util.Properties.versionNumberString
 
   def hello = Task {

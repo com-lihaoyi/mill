@@ -7,7 +7,7 @@ import mill._
  * classpath, but aren't core to the Mill evaluation engine. Support for various language
  * toolchains, IDEs, helper tasks all fall into this category
  */
-object `package` extends RootModule with build.MillStableScalaModule {
+object `package` extends build.MillStableScalaModule {
   def moduleDeps = Seq(
     build.libs.kotlinlib,
     build.libs.androidlib,

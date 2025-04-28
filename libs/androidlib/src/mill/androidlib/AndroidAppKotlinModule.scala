@@ -66,8 +66,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
 
     override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
 
-    override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest()
-
     override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
 
     // FIXME: avoid hardcoded version

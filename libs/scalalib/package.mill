@@ -14,7 +14,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 
-object `package` extends RootModule with build.MillStableScalaModule {
+object `package` extends build.MillStableScalaModule {
 
   def moduleDeps = Seq(build.core.util, build.libs.scalalib.api, build.libs.testrunner)
   def mvnDeps = {

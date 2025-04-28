@@ -11,6 +11,7 @@
 
 # Keep all Espresso framework classes and specifically ensure that the idling resources aren’t stripped
 -keep class androidx.test.espresso.** { *; }
+-keep class androidx.test.** { *; }
 -keep class androidx.test.espresso.IdlingRegistry { *; }
 -keep class androidx.test.espresso.IdlingResource { *; }
 

@@ -9,7 +9,7 @@ trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
   def scalaJSVersion = "1.16.0"
 }
 
-object `package` extends RootModule with AppScalaModule {
+object `package` extends AppScalaModule {
   def moduleDeps = Seq(shared.jvm)
   def mvnDeps = Seq(mvn"com.lihaoyi::cask:0.9.1")
 
