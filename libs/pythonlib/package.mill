@@ -10,7 +10,9 @@ object `package` extends build.MillPublishScalaModule {
   // management of projects), NOT for reusing build logic
   def moduleDeps = Seq(build.libs.scalalib)
   def transitiveLocalTestOverrides =
-    super.transitiveLocalTestOverrides() ++ Seq(build.libs.scalalib.backgroundwrapper.localTestOverride())
+    super.transitiveLocalTestOverrides() ++ Seq(
+      build.libs.scalalib.backgroundwrapper.localTestOverride()
+    )
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.runner.server.client)
 }

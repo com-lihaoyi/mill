@@ -412,7 +412,8 @@ val bridgeVersion = "0.0.1"
 trait MillJavaModule extends JavaModule {
 
   // Test setup
-  def localTestOverride = Task { (s"com.lihaoyi-${artifactId()}", localTestOverridePaths().map(_.path).mkString("\n")) }
+  def localTestOverride =
+    Task { (s"com.lihaoyi-${artifactId()}", localTestOverridePaths().map(_.path).mkString("\n")) }
 
   def testArgs: T[Seq[String]] = Task {
     // Workaround for Zinc/JNA bug
@@ -423,7 +424,8 @@ trait MillJavaModule extends JavaModule {
       else Nil
     jnaArgs ++ userLang
   }
-  def localTestOverridePaths = Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
+  def localTestOverridePaths =
+    Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
   def transitiveLocalTestOverrides: T[Map[String, String]] = Task {
     val upstream = Task.traverse(moduleDeps ++ compileModuleDeps) {

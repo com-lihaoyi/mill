@@ -77,7 +77,7 @@ object `package` extends MillJavaModule with DistModule {
   def moduleDeps = Seq(build.runner)
 
   def transitiveLocalTestOverrides = Map(
-    Task.traverse(allPublishModules)(_.localTestOverride)():_*
+    Task.traverse(allPublishModules)(_.localTestOverride)(): _*
   )
 
   def localBinName = "mill-assembly.jar"

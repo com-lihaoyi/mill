@@ -9,7 +9,8 @@ import mill.define.Cross
 
 object `package` extends build.MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.libs.scalalib, `worker-api`)
-  def transitiveLocalTestOverrides = super.transitiveLocalTestOverrides() ++ Seq(worker("1").localTestOverride())
+  def transitiveLocalTestOverrides =
+    super.transitiveLocalTestOverrides() ++ Seq(worker("1").localTestOverride())
   def buildInfoPackageName = "mill.scalajslib"
   def buildInfoObjectName = "ScalaJSBuildInfo"
 

@@ -61,7 +61,9 @@ object `package` extends RootModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
 
     def transitiveLocalTestOverrides =
-      super.transitiveLocalTestOverrides() ++ Task.traverse(build.Deps.play.keys.toSeq)(worker(_).localTestOverride)()
+      super.transitiveLocalTestOverrides() ++ Task.traverse(
+        build.Deps.play.keys.toSeq
+      )(worker(_).localTestOverride)()
 
     def testArgs = Task {
       super.testArgs() ++

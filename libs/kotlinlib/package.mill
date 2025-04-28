@@ -10,7 +10,8 @@ import mill.scalalib.*
 object `package` extends build.MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.scalalib, build.libs.testrunner, worker)
-  def transitiveLocalTestOverrides = super.transitiveLocalTestOverrides() ++ Seq(worker.impl.localTestOverride())
+  def transitiveLocalTestOverrides =
+    super.transitiveLocalTestOverrides() ++ Seq(worker.impl.localTestOverride())
 
   def buildInfoPackageName = "mill.kotlinlib"
   def buildInfoObjectName = "Versions"
