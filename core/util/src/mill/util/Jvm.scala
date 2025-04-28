@@ -665,14 +665,17 @@ object Jvm {
     }
 
     try {
-      val testOverridesRepo = testOverridesClassloaders.map(cl =>
+      val envTestOverridesRepo = testOverridesClassloaders.map(cl =>
         new TestOverridesRepo(os.resource(cl) / "mill/local-test-overrides")
       )
+
+      val resourceTestOverridesRepo =
+        new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
 
       val resolve = Resolve()
         .withCache(coursierCache0)
         .withDependencies(rootDeps)
-        .withRepositories(testOverridesRepo ++ repositories)
+        .withRepositories(Seq(resourceTestOverridesRepo) ++ testOverridesRepo ++ repositories)
         .withResolutionParams(resolutionParams0)
         .withMapDependenciesOpt(mapDependencies)
         .withBoms(boms.iterator.toSeq)
