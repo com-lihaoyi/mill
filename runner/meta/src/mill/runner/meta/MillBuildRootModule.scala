@@ -44,7 +44,7 @@ class MillBuildRootModule()(implicit
 
   /**
    * All script files (that will get wrapped later)
-   * @see [[generateScriptSources]]
+   * @see [[generatedSources]]
    */
   def scriptSources: Target[Seq[PathRef]] = Task.Sources(
     scriptSourcesPaths.map(Result.Success(_))* // Ensure ordering is deterministic

@@ -341,7 +341,7 @@ Result: {
           "generated": false
         },
         {
-          "uri": "file:///Users/lihaoyi/Downloads/1-simple/out/mill-build/generateScriptSources.dest",
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/out/mill-build/generatedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -955,7 +955,7 @@ Result: {
           "generated": false
         },
         {
-          "uri": "file:///Users/lihaoyi/Downloads/1-simple/out/mill-build/generateScriptSources.dest",
+          "uri": "file:///Users/lihaoyi/Downloads/1-simple/out/mill-build/generatedSources.dest",
           "kind": 2,
           "generated": true
         }
