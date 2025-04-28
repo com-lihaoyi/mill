@@ -28,6 +28,8 @@ object lib extends AndroidLibKotlinModule with PublishModule {
   def androidCompileSdk = 35
   def kotlinVersion = "2.0.20"
 
+  def androidLibPackage = "com.example"
+
   def publishVersion = "0.0.1"
   def pomSettings = PomSettings(
     description = "sumlib",
@@ -38,16 +40,19 @@ object lib extends AndroidLibKotlinModule with PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  // Configuration for ReleaseKey
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
   def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   object test extends AndroidLibKotlinTests with TestModule.Junit4 {
-    def mvnDeps = super.mvnDeps() ++ Agg(
-      mvn"junit:junit:4.13.2"
-    )
+    def junit4Version = "4.13.2"
   }
 
 }
@@ -73,10 +78,7 @@ object app extends AndroidAppKotlinModule {
   )
 
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
-    def testFramework = "com.novocode.junit.JUnitFramework"
-    def mvnDeps = super.mvnDeps() ++ Agg(
-      mvn"junit:junit:4.13.2"
-    )
+    def junit4Version = "4.13.2"
   }
 }
 
@@ -89,29 +91,29 @@ object app extends AndroidAppKotlinModule {
 //
 // ----
 // .
-//├── app
-//│   └── src
-//│       ├── main
-//│       │   ├── AndroidManifest.xml
-//│       │   ├── java/com/example/SampleLogic.kt
-//|       |   └── kotlin/com/example/SampleLogicKotlinDir.kt
-//│       │   └── res
-//│       │       └── values
-//│       │           ├── colors.xml
-//│       │           └── strings.xml
-//│       └── test/java/com/example/ExampleUnitTest.kt
-//│       └── test/kotlin/com/example/ExampleUnitTestInKotlinDir.kt
-//├── lib
-//│   └── src
-//│       └── main
-//│           ├── AndroidManifest.xml
-//│       |   └── kotlin/com/example/Sum.kt
-//|       |   └── res
-//|       |       └── values
-//|       |           ├── colors.xml
-//|       |           └── strings.xml
-//|       └── test/java/com/example/SumUnitTest.kt
-//└── build.mill
+// ├── app
+// │   └── src
+// │       ├── main
+// │       │   ├── AndroidManifest.xml
+// │       │   ├── java/com/example/SampleLogic.kt
+// |       |   └── kotlin/com/example/SampleLogicKotlinDir.kt
+// │       │   └── res
+// │       │       └── values
+// │       │           ├── colors.xml
+// │       │           └── strings.xml
+// │       └── test/java/com/example/ExampleUnitTest.kt
+// │       └── test/kotlin/com/example/ExampleUnitTestInKotlinDir.kt
+// ├── lib
+// │   └── src
+// │       └── main
+// │           ├── AndroidManifest.xml
+// │       |   └── kotlin/com/example/Sum.kt
+// |       |   └── res
+// |       |       └── values
+// |       |           ├── colors.xml
+// |       |           └── strings.xml
+// |       └── test/java/com/example/SumUnitTest.kt
+// └── build.mill
 // ----
 //
 

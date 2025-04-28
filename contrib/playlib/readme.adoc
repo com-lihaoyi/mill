@@ -38,9 +38,11 @@ Twirl versions. You also need to define your own test object which extends the p
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object core extends PlayModule {
     // config
@@ -113,9 +115,11 @@ The `PlayApiModule` trait behaves the same as the `PlayModule` trait but it won'
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object core extends PlayApiModule {
     // config
@@ -151,9 +155,11 @@ like in the following example build:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
+import mill.playlib._
 
 object core extends PlayApiModule {
     // config
@@ -193,9 +199,11 @@ Looking back at the sample build definition in <<_using_playmodule>>:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
+import mill.playlib._
 
 object core extends PlayModule {
     // config
@@ -234,9 +242,11 @@ by extending `RootModule0` in your build:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object build extends RootModule with PlayModule {
 	// config
@@ -278,9 +288,11 @@ define `playVersion` and `scalaVersion`.
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
+
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
+import mill.playlib._
 
 object app extends ScalaModule with RouterModule {
   def playVersion = Task { "2.8.20" }
@@ -333,10 +345,11 @@ To add additional imports to all of the routes:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-playlib:$MILL_VERSION"]
 package build
-import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import mill.scalalib.*
+import mill.playlib.*
 
 object app extends ScalaModule with RouterModule {
   def playVersion = "2.8.20"

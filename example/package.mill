@@ -13,10 +13,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 
-// plugins and dependencies
-import $meta._
-
-object `package` extends RootModule with Module {
+object `package` extends Module {
   def exampleModules: Seq[ExampleCrossModule] = moduleInternal
     .modules
     .collect { case m: ExampleCrossModule => m }
@@ -235,7 +232,7 @@ object `package` extends RootModule with Module {
     }
 
     def resources = Seq(testRepoRoot())
-    def runClasspath = build.main.test.runClasspath()
+    def runClasspath = build.libs.main.test.runClasspath()
     def localRunClasspath = build.testkit.localRunClasspath()
 
     def forkEnv = Map("LANG" -> "C")
@@ -249,10 +246,14 @@ object `package` extends RootModule with Module {
 
     def rendered = Task {
       var seenCode = false
+      var seenFrontMatter = false
       val examplePath = moduleDir.subRelativeTo(Task.workspace)
+      val frontMatter = parsed().takeWhile(_._1 == "yaml").map(_._2).mkString("\n")
+      val withoutFrontMatter = parsed().dropWhile(_._1 == "yaml")
+
       os.write(
         Task.dest / "example.adoc",
-        parsed()
+        withoutFrontMatter
           .filter(_._2.nonEmpty)
           .map {
             case (s"see:$path", txt) =>
@@ -278,6 +279,14 @@ $txt
 $title
 [source,scala,subs="attributes,verbatim"]
 ----
+
+${
+                  if (seenFrontMatter) ""
+                  else {
+                    seenFrontMatter = true
+                    frontMatter
+                  }
+                }
 
 $txt
 ----

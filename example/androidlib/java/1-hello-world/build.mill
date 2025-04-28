@@ -24,7 +24,12 @@ object app extends AndroidAppModule {
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
-  // Configuration for ReleaseKey
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
   def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
@@ -33,17 +38,12 @@ object app extends AndroidAppModule {
   override def androidVirtualDeviceIdentifier: String = "java-test"
 
   object test extends AndroidAppTests with TestModule.Junit4 {
-    def testFramework = "com.novocode.junit.JUnitFramework"
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"junit:junit:4.13.2"
-    )
+    def junit4Version = "4.13.2"
   }
 
   object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {
 
     def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
-
-    override def instrumentationPackage = "com.helloworld.app"
 
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
@@ -139,7 +139,7 @@ object app extends AndroidAppModule {
 ]
 ...
 
-> cat out/app/it/testTask.dest/test-report.xml
+> cat out/app/it/testForked.dest/test-report.xml
 ...
 <?xml version='1.0' encoding='UTF-8'?>
 <testsuites tests="1" failures="0" errors="0" skipped="0" time="...">

@@ -1,0 +1,34 @@
+package build.libs.scalanativelib
+// imports
+import mill._
+import mill.T
+import mill.define.Cross
+
+object `package` extends build.MillStableScalaModule {
+  def moduleDeps = Seq(build.libs.scalalib, `worker-api`)
+  def testTransitiveDeps =
+    super.testTransitiveDeps() ++ Seq(worker("0.5").testDep())
+
+  object `worker-api` extends build.MillPublishScalaModule {
+    def mvnDeps = Agg(build.Deps.sbtTestInterface)
+  }
+
+  object worker extends Cross[WorkerModule]("0.5")
+
+  trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
+    def scalaNativeWorkerVersion = crossValue
+    def moduleDir: os.Path = super.moduleDir / scalaNativeWorkerVersion
+    def compileModuleDeps = Seq(`worker-api`)
+    def compileMvnDeps = scalaNativeWorkerVersion match {
+      case "0.5" =>
+        super.mandatoryMvnDeps() ++ Agg(
+          build.Deps.osLib,
+          build.Deps.Scalanative_0_5.scalanativeTools,
+          build.Deps.Scalanative_0_5.scalanativeUtil,
+          build.Deps.Scalanative_0_5.scalanativeNir,
+          build.Deps.Scalanative_0_5.scalanativeTestRunner
+        )
+    }
+    def mandatoryMvnDeps = Agg.empty[mill.scalalib.Dep]
+  }
+}

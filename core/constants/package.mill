@@ -8,9 +8,12 @@ import mill.scalalib._
  * This module contains basic constants and helpers shared between the client,
  * server, and the rest of the Mill codebase.
  */
-object `package` extends RootModule with build.MillPublishJavaModule with BuildInfo {
-  def buildInfoPackageName = "mill.cosntants"
-  def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
+object `package` extends build.MillPublishJavaModule with BuildInfo {
+  def buildInfoPackageName = "mill.constants"
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version.")
+  )
 
   object test extends JavaTests with TestModule.Junit4 {
     def mvnDeps = Agg(build.Deps.junitInterface, build.Deps.commonsIo)

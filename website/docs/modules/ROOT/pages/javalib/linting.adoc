@@ -1,5 +1,6 @@
 = Linting Java Projects
 :page-aliases: Linting_Java_Projects.adoc
+:page-aliases: Plugin_ErrorProne.adoc
 
 
 
