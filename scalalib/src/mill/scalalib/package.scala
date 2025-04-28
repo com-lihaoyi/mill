@@ -10,6 +10,9 @@ package object scalalib extends mill.scalalib.JsonFormatters {
           ctx.parts.drop(args.length)
       ).mkString
     }
+
+    // Forward-compatibility with Mill 1.0
+    def mvn(args: Any*): Dep = ivy(args: _*)
   }
 
   @nowarn("cat=deprecation")
