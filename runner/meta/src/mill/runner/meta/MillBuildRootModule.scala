@@ -77,11 +77,16 @@ class MillBuildRootModule()(implicit
 
   override def runMvnDeps = Task {
     val imports = cliImports()
-    val ivyImports = imports.collect { case s"ivy:$rest" => rest }
+    val ivyImports = imports.collect {
+      // compat with older Mill-versions
+      case s"ivy:$rest" => rest
+      case s"mvn:$rest" => rest
+    }
     MillIvy.processMillMvnDepsignature(ivyImports).map(mill.scalalib.Dep.parse) ++
       // Needed at runtime to instantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
       // classloader but should not be available for users to compile against
       Seq(mvn"com.lihaoyi::mill-core-eval:${Versions.millVersion}")
+
   }
 
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
