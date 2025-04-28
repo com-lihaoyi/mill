@@ -87,17 +87,6 @@ class MillBuildRootModule()(implicit
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
 
   override def generatedSources: T[Seq[PathRef]] = Task {
-    generateScriptSources()
-  }
-
-  def millBuildRootModuleResult = Task {
-    Tuple3(
-      runClasspath().map(_.path.toNIO.toString),
-      compile().classes.path.toNIO.toString,
-      codeSignatures()
-    )
-  }
-  def generateScriptSources: T[Seq[PathRef]] = Task {
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
     else {
@@ -112,6 +101,14 @@ class MillBuildRootModule()(implicit
       )
       Seq(PathRef(Task.dest))
     }
+  }
+
+  def millBuildRootModuleResult = Task {
+    Tuple3(
+      runClasspath().map(_.path.toNIO.toString),
+      compile().classes.path.toNIO.toString,
+      codeSignatures()
+    )
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
