@@ -20,7 +20,7 @@ object `package` extends RootModule with JavaModule {
 
 > mill runBackground
 
-> curl http://localhost:$PORT
+> curl http://localhost:8085
 ...<h1>Hello, World!</h1>...
 
 > mill clean runBackground

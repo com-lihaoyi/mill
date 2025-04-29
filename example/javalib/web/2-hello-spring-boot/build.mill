@@ -22,9 +22,11 @@ object `package` extends RootModule with JavaModule {
 > mill test
 ...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
 
+> echo "server.port=$PORT" >> ./resources/application.properties
+
 > mill runBackground
 
-> curl http://localhost:8086
+> curl http://localhost:$PORT
 ...<h1>Hello, World!</h1>...
 
 > mill clean runBackground

@@ -1,6 +1,7 @@
 package mill.testkit
 
 import mill.constants.Util.isWindows
+import mill.main.PortManager
 import utest.*
 
 /**
@@ -79,6 +80,8 @@ class ExampleTester(
     val propagateJavaHome: Boolean = true
 ) extends IntegrationTesterBase {
 
+  val portsAllocated = PortManager.getPorts(1)
+
   def processCommandBlock(commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
@@ -91,9 +94,7 @@ class ExampleTester(
     val incorrectPlatform =
       (comment.exists(_.startsWith("windows")) && !isWindows) ||
         (comment.exists(_.startsWith("mac/linux")) && isWindows) ||
-        (comment.exists(_.startsWith("--no-server")) && clientServerMode) ||
-        (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
-
+        (comment.exists(_.startsWith("--no-server")) && clientServerMode) || (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
     if (!incorrectPlatform) {
       processCommand(expectedSnippets, commandHead.trim)
     }
@@ -131,7 +132,7 @@ class ExampleTester(
       stderr = os.Inherit,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = millTestSuiteEnv ++ windowsPathEnv,
+      env = millTestSuiteEnv ++ windowsPathEnv + ("PORT" -> portsAllocated.mkString(",")),
       check = false
     )
 
@@ -203,7 +204,6 @@ class ExampleTester(
       os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
-
     try {
       initWorkspace()
       os.copy.over(millExecutable, workspacePath / s"mill$millExt")

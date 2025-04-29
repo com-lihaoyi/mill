@@ -70,11 +70,11 @@ trait MicronautModule extends MavenModule {
 > mill test
 ...example.micronaut.HelloControllerTest#testHello()...
 
-> mill runBackground
-
 > echo "micronaut.server.port=$PORT" >> ./src/main/resources/application.properties
 
-> curl http://localhost:$PORT/hello
+> mill runBackground
+
+> curl "http://localhost:$PORT/hello"
 ...Hello World...
 
 > mill clean runBackground
