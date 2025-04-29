@@ -676,13 +676,13 @@ via <a href="import-mvn-plugins.html" class="xref page">import $ivy</a>.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._
-import mill.util.BuildInfo.millVersion
+import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
 object myplugin extends ScalaModule with PublishModule {
   def scalaVersion = &quot;3.6.2&quot;
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
-  def platformSuffix = &quot;_mill&quot; + mill.util.BuildInfo.millBinPlatform
+  def platformSuffix = s&quot;_mill$millBinPlatform&quot;
 
   // Depend on `mill-libs` so we can compile against Mill APIs
   def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-libs:$millVersion&quot;)
@@ -694,7 +694,7 @@ object myplugin extends ScalaModule with PublishModule {
 
     // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule {
-      def mvnDeps = Seq(mvn&quot;com.lihaoyi:mill-dist:$millVersion&quot;)
+      def mvnDeps = Seq(mvn&quot;com.lihaoyi:mill-runner_3:$millVersion&quot;)
       def mainClass = Some(&quot;mill.runner.client.MillClientMain&quot;)
       def resources = Task {
         val p = Task.dest / &quot;mill/local-test-overrides&quot; / s&quot;com.lihaoyi-${myplugin.artifactId()}&quot;

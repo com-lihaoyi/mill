@@ -2411,7 +2411,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/util/BuildInfo$.html#","e":false,"i":"","n":"BuildInfo","t":"BuildInfo","d":"mill.util","k":"object","x":""},
 {"l":"mill/util/BuildInfo$.html#millAllDistDependencies-0","e":false,"i":"","n":"millAllDistDependencies","t":"millAllDistDependencies: String","d":"mill.util.BuildInfo","k":"val","x":""},
 {"l":"mill/util/BuildInfo$.html#millBinPlatform-0","e":false,"i":"","n":"millBinPlatform","t":"millBinPlatform: String","d":"mill.util.BuildInfo","k":"val","x":""},
-{"l":"mill/util/BuildInfo$.html#millDistModule-0","e":false,"i":"","n":"millDistModule","t":"millDistModule: String","d":"mill.util.BuildInfo","k":"val","x":""},
 {"l":"mill/util/BuildInfo$.html#millScalacPluginDeps-0","e":false,"i":"","n":"millScalacPluginDeps","t":"millScalacPluginDeps: String","d":"mill.util.BuildInfo","k":"val","x":""},
 {"l":"mill/util/BuildInfo$.html#millVersion-0","e":false,"i":"","n":"millVersion","t":"millVersion: String","d":"mill.util.BuildInfo","k":"val","x":""},
 {"l":"mill/util/BuildInfo$.html#scalaVersion-0","e":false,"i":"","n":"scalaVersion","t":"scalaVersion: String","d":"mill.util.BuildInfo","k":"val","x":""},
