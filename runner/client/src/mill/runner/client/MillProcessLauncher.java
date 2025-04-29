@@ -10,9 +10,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import mill.client.ClientUtil;
+import mill.constants.BuildInfo;
 import mill.constants.CodeGenConstants;
 import mill.constants.EnvVars;
 import mill.constants.ServerFiles;
@@ -102,27 +104,32 @@ public class MillProcessLauncher {
     env.put("MILL_VERSION", mill.constants.BuildInfo.millVersion);
     env.put("MILL_BIN_PLATFORM", mill.constants.BuildInfo.millBinPlatform);
 
-    if (Files.exists(configFile))
+    if (Files.exists(configFile)) {
       return ClientUtil.readOptsFileLines(configFile.toAbsolutePath(), env);
-    else {
+    } else {
       for (String rootBuildFileName : CodeGenConstants.rootBuildFileNames) {
         Path buildFile = Paths.get(rootBuildFileName);
         if (Files.exists(buildFile)) {
-          Object conf = mill.runner.client.ConfigReader.readYaml(buildFile);
-          if (conf instanceof Map) {
-            Map<String, List<String>> conf2 = (Map<String, List<String>>) conf;
-            if (conf2.containsKey(key)) {
-              if (conf2.get(key) instanceof List) {
-                return (List<String>) ((List) conf2.get(key))
-                    .stream()
-                        .map(x -> mill.constants.Util.interpolateEnvVars(x.toString(), env))
-                        .collect(Collectors.toList());
-              } else {
-                return List.of(
-                    mill.constants.Util.interpolateEnvVars(conf2.get(key).toString(), env));
+          String[] config = cachedComputedValue(
+            "yaml-config-" + key,
+            mill.constants.Util.readYamlHeader(buildFile),
+              () -> {
+                  Object conf = mill.runner.client.ConfigReader.readYaml(buildFile);
+                  if (!(conf instanceof Map)) return new String[]{};
+                  Map<String, List<String>> conf2 = (Map<String, List<String>>) conf;
+
+                  if (!conf2.containsKey(key)) return new String[]{};
+                  if (conf2.get(key) instanceof List) {
+                      return (String[]) ((List) conf2.get(key))
+                          .stream()
+                          .map(x -> mill.constants.Util.interpolateEnvVars(x.toString(), env))
+                          .toArray(String[]::new);
+                  } else {
+                      return new String[]{mill.constants.Util.interpolateEnvVars(conf2.get(key).toString(), env)};
+                  }
               }
-            }
-          }
+          );
+          return Arrays.asList(config);
         }
       }
     }
@@ -167,28 +174,14 @@ public class MillProcessLauncher {
     }
 
     if (jvmId != null) {
+      final String jvmIdFinal = jvmId;
+      javaHome = cachedComputedValue(
+          "java-home",
+          jvmId,
+          () -> new String[]{CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()}
 
-      // Fast path to avoid calling `CoursierClient` and paying the classloading cost
-      // when the `javaHome` JVM has already been initialized for the configured `jvmId`
-      // and is ready to use directly
-      Path millJavaHomeFile = Paths.get(".").resolve(out).resolve(millJavaHome);
-      if (Files.exists(millJavaHomeFile)) {
-        String[] savedJavaHomeInfo = Files.readString(millJavaHomeFile).split(" ");
-        if (savedJavaHomeInfo[0].equals(jvmId)) {
-          // Make sure we check to see if the saved java home exists before using
-          // it, since it may have been since uninstalled, or the `out/` folder
-          // may have been transferred to a different machine
-          if (Files.exists(Paths.get(savedJavaHomeInfo[1]))) {
-            javaHome = savedJavaHomeInfo[1];
-          }
-        }
-      }
+      )[0];
 
-      if (javaHome == null) {
-        javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
-        Files.createDirectories(millJavaHomeFile.getParent());
-        Files.write(millJavaHomeFile, (jvmId + " " + javaHome).getBytes());
-      }
     }
 
     if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
@@ -234,9 +227,39 @@ public class MillProcessLauncher {
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
-    vmOptions.add(String.join(File.pathSeparator, CoursierClient.resolveMillRunner()));
+    String[] runnerClasspath = cachedComputedValue(
+        "resolve-runner",
+        BuildInfo.millVersion,
+        () -> CoursierClient.resolveMillRunner()
+    );
+    vmOptions.add(String.join(File.pathSeparator, runnerClasspath));
 
     return vmOptions;
+  }
+
+  static String[] cachedComputedValue(String name, String key, Supplier<String[]> block){
+      //      // Fast path to avoid calling `CoursierClient` and paying the classloading cost
+      //      // when the `javaHome` JVM has already been initialized for the configured `jvmId`
+      //      // and is ready to use directly
+      //      Path millJavaHomeFile = Paths.get(".").resolve(out).resolve(millJavaHome);
+      //      if (Files.exists(millJavaHomeFile)) {
+      //        String[] savedJavaHomeInfo = Files.readString(millJavaHomeFile).split(" ");
+      //        if (savedJavaHomeInfo[0].equals(jvmId)) {
+      //          // Make sure we check to see if the saved java home exists before using
+      //          // it, since it may have been since uninstalled, or the `out/` folder
+      //          // may have been transferred to a different machine
+      //          if (Files.exists(Paths.get(savedJavaHomeInfo[1]))) {
+      //            javaHome = savedJavaHomeInfo[1];
+      //          }
+      //        }
+      //      }
+      //
+      //        if (javaHome == null) {
+      //            javaHome = ;
+      //            Files.createDirectories(millJavaHomeFile.getParent());
+      //            Files.write(millJavaHomeFile, (jvmId + " " + javaHome).getBytes());
+      //        }
+      return block.get();
   }
 
   static int getTerminalDim(String s, boolean inheritError) throws Exception {
