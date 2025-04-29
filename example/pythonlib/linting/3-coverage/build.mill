@@ -5,7 +5,7 @@
 
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
 
   object test extends PythonTests with TestModule.Pytest with CoverageTests
 

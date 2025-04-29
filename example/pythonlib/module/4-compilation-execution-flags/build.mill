@@ -1,7 +1,7 @@
 package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def mainScript = Task.Source { "src/foo.py" }
   def pythonOptions = Seq("-Wall", "-Xdev")
   def forkEnv = Map("MY_ENV_VAR" -> "HELLO MILL!")

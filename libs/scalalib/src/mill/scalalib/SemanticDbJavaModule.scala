@@ -6,8 +6,7 @@ import mill.define.{PathRef}
 import mill.api.internal.SemanticDbJavaModuleApi
 import mill.define.ModuleRef
 import mill.util.BuildInfo
-import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
-import mill.api.internal.BspBuildTarget
+import mill.scalalib.api.{CompilationResult, JvmWorkerUtil}
 import mill.util.Version
 import mill.{T, Task}
 

@@ -9,10 +9,11 @@ Configure flyway by overriding settings in your module. For example
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-flyway:$MILL_VERSION"]
 package build
+
 import mill._, scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-flyway:`
 import contrib.flyway.FlywayModule
 
 object foo extends ScalaModule with FlywayModule {

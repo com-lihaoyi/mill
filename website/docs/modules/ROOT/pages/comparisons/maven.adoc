@@ -393,9 +393,10 @@ In contrast, the Mill build configures the code generation as follows:
 
 [source,scala]
 ----
-import $ivy.`org.codehaus.groovy:groovy:3.0.9`
-import $ivy.`org.codehaus.groovy:groovy-ant:3.0.9`
-import $ivy.`ant:ant-optional:1.5.3-1`
+//| mvnDeps:
+//| - "org.codehaus.groovy:groovy:3.0.9"
+//| - "org.codehaus.groovy:groovy-ant:3.0.9"
+//| - "ant:ant-optional:1.5.3-1"
 
 object common extends NettyModule {
   ...

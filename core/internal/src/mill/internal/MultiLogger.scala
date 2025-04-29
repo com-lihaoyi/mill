@@ -1,6 +1,5 @@
 package mill.internal
 
-import fansi.Attrs
 import mill.api.{Logger, SystemStreams}
 
 import java.io.{InputStream, PrintStream}

@@ -1,11 +1,7 @@
 package mill.define
 
-import mill.define.Discover
-import mill.define.internal.Watchable
 import mill.api.internal.{RootModuleApi, internal}
-
 import scala.annotation.compileTimeOnly
-import scala.collection.mutable
 
 /**
  * Used to mark a module in your `build.mill` as a top-level module, so it's

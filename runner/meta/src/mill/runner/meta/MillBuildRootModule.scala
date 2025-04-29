@@ -1,27 +1,18 @@
 package mill.runner.meta
-import scala.jdk.CollectionConverters.ListHasAsScala
-import coursier.Repository
+
 import mill.*
 import mill.api.Result
-import mill.define.{PathRef, Discover, Task}
-import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
-import mill.util.Jvm
-import mill.scalalib.api.JvmWorkerUtil
-import mill.scalalib.api.{CompilationResult, Versions}
-import mill.constants.OutFiles.*
-import mill.constants.CodeGenConstants.buildFileExtensions
-import mill.util.BuildInfo
-import mill.define.RootModule0
-import mill.runner.meta.ScalaCompilerWorker
-import mill.runner.worker.api.ScalaCompilerWorkerApi
-
-import scala.util.Try
-import mill.define.Target
-import mill.api.Watchable
 import mill.api.internal.internal
+import mill.constants.CodeGenConstants.buildFileExtensions
+import mill.constants.OutFiles.*
+import mill.define.{PathRef, Discover, RootModule0, Target, Task}
+import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
+import mill.scalalib.api.{CompilationResult, Versions}
+import mill.util.BuildInfo
+import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.runner.worker.api.MillScalaParser
 
-import scala.collection.mutable
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -53,7 +44,7 @@ class MillBuildRootModule()(implicit
 
   /**
    * All script files (that will get wrapped later)
-   * @see [[generateScriptSources]]
+   * @see [[generatedSources]]
    */
   def scriptSources: Target[Seq[PathRef]] = Task.Sources(
     scriptSourcesPaths.map(Result.Success(_))* // Ensure ordering is deterministic
@@ -86,31 +77,21 @@ class MillBuildRootModule()(implicit
 
   override def runMvnDeps = Task {
     val imports = cliImports()
-    val ivyImports = imports.collect { case s"ivy:$rest" => rest }
-    Seq.from(
-      MillIvy.processMillMvnDepsignature(ivyImports.toSet)
-        .map(mill.scalalib.Dep.parse)
-    ) ++ Seq(
+    val ivyImports = imports.collect {
+      // compat with older Mill-versions
+      case s"ivy:$rest" => rest
+      case s"mvn:$rest" => rest
+    }
+    MillIvy.processMillMvnDepsignature(ivyImports).map(mill.scalalib.Dep.parse) ++
       // Needed at runtime to instantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
       // classloader but should not be available for users to compile against
-      mvn"com.lihaoyi::mill-core-eval:${Versions.millVersion}"
-    )
+      Seq(mvn"com.lihaoyi::mill-core-eval:${Versions.millVersion}")
+
   }
 
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
 
   override def generatedSources: T[Seq[PathRef]] = Task {
-    generateScriptSources()
-  }
-
-  def millBuildRootModuleResult = Task {
-    Tuple3(
-      runClasspath().map(_.path.toNIO.toString),
-      compile().classes.path.toNIO.toString,
-      codeSignatures()
-    )
-  }
-  def generateScriptSources: T[Seq[PathRef]] = Task {
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
     else {
@@ -125,6 +106,14 @@ class MillBuildRootModule()(implicit
       )
       Seq(PathRef(Task.dest))
     }
+  }
+
+  def millBuildRootModuleResult = Task {
+    Tuple3(
+      runClasspath().map(_.path.toNIO.toString),
+      compile().classes.path.toNIO.toString,
+      codeSignatures()
+    )
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {

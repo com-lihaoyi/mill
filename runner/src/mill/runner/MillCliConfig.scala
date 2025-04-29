@@ -25,6 +25,8 @@ case class MillCliConfig(
     noServer: Flag = Flag(),
     @arg(doc = """Enable BSP server mode.""")
     bsp: Flag,
+    @arg(doc = """Create mill-bsp.json with Mill details under .bsp/""")
+    bspInstall: Flag,
     @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
     showVersion: Flag = Flag(),
     @arg(

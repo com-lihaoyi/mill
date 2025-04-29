@@ -1,4 +1,4 @@
-//| mill-version: 0.13.0-M1-43-b217bc
+//| mill-version: 0.13.0-M2-29-d4e08d
 
 package build
 // imports
@@ -17,11 +17,6 @@ import mill.define.SelectMode
 import mill.T
 import mill.define.Cross
 import scala.util.Properties
-
-// plugins and dependencies
-import $meta._
-
-import $packages._
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -55,7 +50,7 @@ object Deps {
   // The Scala version to use
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "3.6.2"
+  val scalaVersion = "3.6.4"
   val scala2Version = "2.13.15"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.20"
@@ -128,11 +123,11 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.18"
   val ammoniteVersion = "3.0.2"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.7.1"
+  val asmTree = mvn"org.ow2.asm:asm-tree:9.8"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.179"
-  val coursierVersion = "2.1.25-M4"
+  val coursierVersion = "2.1.25-M11"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
@@ -194,7 +189,7 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   def scalaXml = mvn"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.12.4"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   val upickle = mvn"com.lihaoyi::upickle:4.1.0"
@@ -417,7 +412,8 @@ val bridgeVersion = "0.0.1"
 trait MillJavaModule extends JavaModule {
 
   // Test setup
-  def testDep = Task { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
+  def localTestOverride =
+    Task { (s"com.lihaoyi-${artifactId()}", localTestOverridePaths().map(_.path).mkString("\n")) }
 
   def testArgs: T[Seq[String]] = Task {
     // Workaround for Zinc/JNA bug
@@ -428,14 +424,15 @@ trait MillJavaModule extends JavaModule {
       else Nil
     jnaArgs ++ userLang
   }
-  def testDepPaths = Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
+  def localTestOverridePaths =
+    Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
-  def testTransitiveDeps: T[Map[String, String]] = Task {
+  def transitiveLocalTestOverrides: T[Map[String, String]] = Task {
     val upstream = Task.traverse(moduleDeps ++ compileModuleDeps) {
-      case m: MillJavaModule => m.testTransitiveDeps.map(Some(_))
+      case m: MillJavaModule => m.transitiveLocalTestOverrides.map(Some(_))
       case _ => Task.Anon(None)
     }().flatten.flatten
-    val current = Seq(testDep())
+    val current = Seq(localTestOverride())
     upstream.toMap ++ current
   }
 
@@ -446,7 +443,7 @@ trait MillJavaModule extends JavaModule {
     else Seq(this, build.libs.main.test)
 
   def localTestOverridesClasspath = Task {
-    for ((k, v) <- testTransitiveDeps()) {
+    for ((k, v) <- transitiveLocalTestOverrides()) {
       os.write(Task.dest / "mill/local-test-overrides" / k, v, createFolders = true)
     }
     PathRef(Task.dest)

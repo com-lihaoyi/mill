@@ -1,23 +1,21 @@
 package mill.runner
 
-import mill.internal.PrefixLogger
+import mill.api.internal.{EvaluatorApi, RootModuleApi, internal}
+import mill.api.{Logger, Result, SystemStreams, Val}
+import mill.constants.CodeGenConstants.*
+import mill.constants.OutFiles.{millBuild, millRunnerState}
 import mill.define.internal.Watchable
 import mill.define.{PathRef, RootModule0, WorkspaceRoot}
-import mill.util.BuildInfo
-import mill.api.internal.{EvaluatorApi, RootModuleApi, internal}
-import mill.constants.CodeGenConstants.*
-import mill.api.{Logger, Result, SystemStreams, Val}
-import mill.define.{BaseModule, Evaluator, Segments, SelectMode}
-import mill.constants.OutFiles.{millBuild, millChromeProfile, millProfile, millRunnerState}
+import mill.define.SelectMode
+import mill.internal.PrefixLogger
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.meta.{CliImports, FileImportGraph, MillBuildRootModule, ScalaCompilerWorker}
+import mill.util.BuildInfo
+
 import java.io.File
 import java.net.URLClassLoader
-
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
-
-import mill.exec.Execution
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]

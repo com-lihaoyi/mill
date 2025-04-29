@@ -1,17 +1,17 @@
 package mill.scalanativelib
 
-import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
 import mill.define.ExecutionPaths
 import mill.scalalib.api.JvmWorkerUtil
-import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
+import mill.scalalib.{PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
 
+import java.util.jar.JarFile
 import scala.jdk.CollectionConverters._
 
 object CompileRunTests extends TestSuite {

@@ -1,7 +1,7 @@
 package mill.androidlib
 
 import coursier.MavenRepository
-import coursier.cache.CachePolicy.{LocalOnly, LocalOnlyIfValid}
+import coursier.cache.CachePolicy.LocalOnly
 import coursier.cache.FileCache
 import coursier.util.Artifact
 import mill.*
@@ -196,6 +196,14 @@ trait AndroidSdkModule extends Module {
    */
   def emulatorPath: T[PathRef] = Task {
     PathRef(sdkPath().path / "emulator/emulator")
+  }
+
+  /**
+   * Location of the default proguard optimisation config.
+   * See also [[https://developer.android.com/build/shrink-code]]
+   */
+  def androidProguardPath: T[PathRef] = Task {
+    PathRef(sdkPath().path / "tools/proguard")
   }
 
   /**

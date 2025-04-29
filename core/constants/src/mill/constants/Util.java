@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,7 +79,7 @@ public class Util {
   public static String readYamlHeader(java.nio.file.Path buildFile) throws java.io.IOException {
     java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
     String yamlString = lines.stream()
-        .filter(line -> line.startsWith("//|"))
+        .takeWhile(line -> line.startsWith("//|"))
         .map(line -> line.substring(4)) // Remove the `//|` prefix
         .collect(java.util.stream.Collectors.joining("\n"));
 
@@ -91,9 +92,19 @@ public class Util {
 
   /**
    * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
-   * Missing vars will be replaced by the empty string.
+   * @throws IllegalArgumentException if a variable is missing.
    */
   public static String interpolateEnvVars(String input, Map<String, String> env0) {
+    return interpolateEnvVars(input, env0, var -> {
+      throw new IllegalArgumentException("Cannot interpolate missing env var '" + var + "'");
+    });
+  }
+
+  /**
+   * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
+   */
+  public static String interpolateEnvVars(
+      String input, Map<String, String> env0, Function<String, String> onMissing) {
     Matcher matcher = envInterpolatorPattern.matcher(input);
     // StringBuilder to store the result after replacing
     StringBuffer result = new StringBuffer();
@@ -101,7 +112,6 @@ public class Util {
     Map<String, String> env = new java.util.HashMap<>();
     env.putAll(env0);
 
-    env.put("MILL_VERSION", mill.constants.BuildInfo.millVersion);
     while (matcher.find()) {
       String match = matcher.group(1);
       if (match == null) match = matcher.group(2);
@@ -110,7 +120,7 @@ public class Util {
       } else {
         String envVarValue;
         mill.constants.DebugLog.println("MATCH " + match);
-        envVarValue = env.containsKey(match) ? env.get(match) : "";
+        envVarValue = env.containsKey(match) ? env.get(match) : onMissing.apply(match);
         matcher.appendReplacement(result, envVarValue);
       }
     }
