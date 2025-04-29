@@ -11,7 +11,6 @@ object `package` extends RootModule with SpotlessModule
 /** See Also: src/A.kt */
 /** See Also: src/B.kt */
 /** See Also: spotless-config.json */
-/** See Also: spotless-config-full.json */
 
 // You can use Spotless on a per-module basis by inheriting from
 // `SpotlessModule` and running the `spotless` command on that module.
